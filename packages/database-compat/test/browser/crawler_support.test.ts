@@ -17,8 +17,8 @@
 
 import { expect } from 'chai';
 
-import { forceRestClient } from '../../../../database/src/api/test_access';
-import { getRandomNode, getFreshRepoFromReference } from '../../../../database/test/helpers/util';
+import { forceRestClient } from '../../../database/src/api/test_access';
+import { getRandomNode, getFreshRepoFromReference } from '../helpers/util';
 
 // Some sanity checks for the ReadonlyRestClient crawler support.
 describe('Crawler Support', () => {

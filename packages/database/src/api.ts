@@ -21,8 +21,7 @@ export {
   getDatabase,
   goOffline,
   goOnline,
-  connectDatabaseEmulator,
-  repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp
+  connectDatabaseEmulator
 } from './api/Database';
 export {
   Query,
@@ -65,9 +64,7 @@ export {
   startAfter,
   startAt,
   update,
-  child,
-  ReferenceImpl as _ReferenceImpl,
-  QueryImpl as _QueryImpl
+  child
 } from './api/Reference_impl';
 export { increment, serverTimestamp } from './api/ServerValue';
 export {
@@ -75,3 +72,19 @@ export {
   TransactionOptions,
   TransactionResult
 } from './api/Transaction';
+
+// internal exports
+export { setSDKVersion as _setSDKVersion } from './core/version';
+export {
+  ReferenceImpl as _ReferenceImpl,
+  QueryImpl as _QueryImpl
+} from './api/Reference_impl';
+export {
+  repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp
+} from './api/Database';
+export { 
+  validatePathString as _validatePathString,
+  validateWritablePath as _validateWritablePath
+} from './core/util/validation';
+export { UserCallback as _UserCallback } from './core/view/EventRegistration';
+export { QueryParams as _QueryParams} from './core/view/QueryParams';

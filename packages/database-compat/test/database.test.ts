@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import firebase from '@firebase/app-compat';
 import { expect } from 'chai';
 
 import { DATABASE_ADDRESS, createTestApp } from './helpers/util';
-import '../index';
+import '../src/index';
 
 describe('Database Tests', () => {
   let defaultApp;

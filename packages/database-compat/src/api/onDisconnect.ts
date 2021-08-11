@@ -17,8 +17,7 @@
 
 import { validateArgCount, validateCallback, Compat } from '@firebase/util';
 
-import { Indexable } from '../core/util/misc';
-import { warn } from '../core/util/util';
+import { warn } from '../util/util';
 
 // TODO: revert to import { OnDisconnect as ExpOnDisconnect } from '../../exp/index'; once the modular SDK goes GA
 /**
@@ -93,7 +92,7 @@ export class OnDisconnect implements Compat<ExpOnDisconnect> {
   }
 
   update(
-    objectToMerge: Indexable,
+    objectToMerge: Record<string, unknown>,
     onComplete?: (a: Error | null) => void
   ): Promise<void> {
     validateArgCount('OnDisconnect.update', 1, 2, arguments.length);

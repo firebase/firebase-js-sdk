@@ -25,13 +25,7 @@ import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
 import { setSDKVersion } from '../src/core/version';
 
-import { Database, repoManagerDatabaseFromApp } from './api/Database';
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'database': Database;
-  }
-}
+import { repoManagerDatabaseFromApp } from './api/Database';
 
 export function registerDatabase(variant?: string): void {
   setSDKVersion(SDK_VERSION);

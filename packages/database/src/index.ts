@@ -22,7 +22,14 @@
  */
 
 import { registerDatabase } from './register';
+import { Database } from './api/Database';
 
 export * from './api';
 
 registerDatabase();
+
+declare module '@firebase/component' {
+    interface NameServiceMapping {
+        'database': Database;
+    }
+}

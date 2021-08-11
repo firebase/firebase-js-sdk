@@ -53,37 +53,29 @@ import {
   setPriority,
   push,
   runTransaction,
+  child,
+  DataSnapshot as ExpDataSnapshot,
+  Query as ExpQuery,
+  DatabaseReference as ExpReference,
   _QueryImpl,
   _ReferenceImpl,
-  child
-} from '../../exp/index'; // import from the exp public API
-import { warn } from '../core/util/util';
+  _validatePathString,
+  _validateWritablePath,
+  _UserCallback,
+  _QueryParams
+} from '@firebase/database'; // import from the exp public API
+import { warn } from '../util/util';
 import {
   validateBoolean,
-  validateEventType,
-  validatePathString,
-  validateWritablePath
-} from '../core/util/validation';
-import { UserCallback } from '../core/view/EventRegistration';
-import { QueryParams } from '../core/view/QueryParams';
-import { ThenableReferenceImpl } from '../exp/Reference_impl';
+  validateEventType
+} from '../util/validation';
+// import { ThenableReferenceImpl } from '../exp/Reference_impl';
 
 import { Database } from './Database';
 import { OnDisconnect } from './onDisconnect';
 import { TransactionResult } from './TransactionResult';
 
-// TODO: revert to import {  DataSnapshot as ExpDataSnapshot, Query as ExpQuery,
-// Reference as ExpReference,} from '../../exp/index'; once the modular SDK goes GA
-/**
- * This is part of a workaround for an issue in the no-modular '@firebase/database' where its typings
- * reference types from `@firebase/app-exp`.
- */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type ExpDataSnapshot = any;
-type ExpQuery = any;
-type ExpReference = any;
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
  * Class representing a firebase data snapshot.  It wraps a SnapshotNode and
@@ -93,7 +85,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
   constructor(
     readonly _database: Database,
     readonly _delegate: ExpDataSnapshot
-  ) {}
+  ) { }
 
   /**
    * Retrieves the snapshot contents as JSON.  Returns null if the snapshot is
@@ -144,7 +136,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
     validateArgCount('DataSnapshot.child', 0, 1, arguments.length);
     // Ensure the childPath is a string (can be a number)
     path = String(path);
-    validatePathString('DataSnapshot.child', 'path', path, false);
+    _validatePathString('DataSnapshot.child', 'path', path, false);
     return new DataSnapshot(this._database, this._delegate.child(path));
   }
 
@@ -156,7 +148,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
    */
   hasChild(path: string): boolean {
     validateArgCount('DataSnapshot.hasChild', 1, 1, arguments.length);
-    validatePathString('DataSnapshot.hasChild', 'path', path, false);
+    _validatePathString('DataSnapshot.hasChild', 'path', path, false);
     return this._delegate.hasChild(path);
   }
 
@@ -233,7 +225,7 @@ export interface SnapshotCallback {
  * Since every Firebase reference is a query, Firebase inherits from this object.
  */
 export class Query implements Compat<ExpQuery> {
-  constructor(readonly database: Database, readonly _delegate: ExpQuery) {}
+  constructor(readonly database: Database, readonly _delegate: ExpQuery) { }
 
   on(
     eventType: string,
@@ -249,7 +241,7 @@ export class Query implements Compat<ExpQuery> {
       cancelCallbackOrContext,
       context
     );
-    const valueCallback: UserCallback = (expSnapshot, previousChildName?) => {
+    const valueCallback = (expSnapshot, previousChildName?) => {
       callback.call(
         ret.context,
         new DataSnapshot(this.database, expSnapshot),
@@ -279,8 +271,8 @@ export class Query implements Compat<ExpQuery> {
       default:
         throw new Error(
           errorPrefix('Query.on', 'eventType') +
-            'must be a valid event type = "value", "child_added", "child_removed", ' +
-            '"child_changed", or "child_moved".'
+          'must be a valid event type = "value", "child_added", "child_removed", ' +
+          '"child_changed", or "child_moved".'
         );
     }
   }
@@ -295,7 +287,7 @@ export class Query implements Compat<ExpQuery> {
     validateCallback('Query.off', 'callback', callback, true);
     validateContextObject('Query.off', 'context', context, true);
     if (callback) {
-      const valueCallback: UserCallback = () => {};
+      const valueCallback: _UserCallback = () => { };
       valueCallback.userCallback = callback;
       valueCallback.context = context;
       off(this._delegate, eventType as EventType, valueCallback);
@@ -331,7 +323,7 @@ export class Query implements Compat<ExpQuery> {
       context
     );
     const deferred = new Deferred<DataSnapshot>();
-    const valueCallback: UserCallback = (expSnapshot, previousChildName?) => {
+    const valueCallback: _UserCallback = (expSnapshot, previousChildName?) => {
       const result = new DataSnapshot(this.database, expSnapshot);
       if (callback) {
         callback.call(ret.context, result, previousChildName);
@@ -376,8 +368,8 @@ export class Query implements Compat<ExpQuery> {
       default:
         throw new Error(
           errorPrefix('Query.once', 'eventType') +
-            'must be a valid event type = "value", "child_added", "child_removed", ' +
-            '"child_changed", or "child_moved".'
+          'must be a valid event type = "value", "child_added", "child_removed", ' +
+          '"child_changed", or "child_moved".'
         );
     }
 
@@ -544,7 +536,7 @@ export class Query implements Compat<ExpQuery> {
       } else {
         throw new Error(
           errorPrefix(fnName, 'cancelOrContext') +
-            ' must either be a cancel callback or a context object.'
+          ' must either be a cancel callback or a context object.'
         );
       }
     }
@@ -573,7 +565,7 @@ export class Reference extends Query implements Compat<ExpReference> {
   constructor(readonly database: Database, readonly _delegate: ExpReference) {
     super(
       database,
-      new _QueryImpl(_delegate._repo, _delegate._path, new QueryParams(), false)
+      new _QueryImpl(_delegate._repo, _delegate._path, new _QueryParams(), false)
     );
   }
 
@@ -634,12 +626,12 @@ export class Reference extends Query implements Compat<ExpReference> {
       values = newObjectToMerge;
       warn(
         'Passing an Array to Firebase.update() is deprecated. ' +
-          'Use set() if you want to overwrite the existing data, or ' +
-          'an Object with integer keys if you really do want to ' +
-          'only update some of the children.'
+        'Use set() if you want to overwrite the existing data, or ' +
+        'an Object with integer keys if you really do want to ' +
+        'only update some of the children.'
       );
     }
-    validateWritablePath('Reference.update', this._delegate._path);
+    _validateWritablePath('Reference.update', this._delegate._path);
     validateCallback('Reference.update', 'onComplete', onComplete, true);
 
     const result = update(this._delegate, values);
@@ -757,7 +749,7 @@ export class Reference extends Query implements Compat<ExpReference> {
     validateArgCount('Reference.push', 0, 2, arguments.length);
     validateCallback('Reference.push', 'onComplete', onComplete, true);
 
-    const expPromise = push(this._delegate, value) as ThenableReferenceImpl;
+    const expPromise = push(this._delegate, value);
     const promise = expPromise.then(
       expRef => new Reference(this.database, expRef)
     );
@@ -776,7 +768,7 @@ export class Reference extends Query implements Compat<ExpReference> {
   }
 
   onDisconnect(): OnDisconnect {
-    validateWritablePath('Reference.onDisconnect', this._delegate._path);
+    _validateWritablePath('Reference.onDisconnect', this._delegate._path);
     return new OnDisconnect(
       new ExpOnDisconnect(this._delegate._repo, this._delegate._path)
     );

@@ -21,26 +21,18 @@ import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 import * as types from '@firebase/database-types';
 
-import { enableLogging } from '../exp/index';
+import { enableLogging } from '@firebase/database';
 import { Database } from '../src/api/Database';
 import * as INTERNAL from '../src/api/internal';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
-import * as TEST_ACCESS from '../src/api/test_access';
-import { setSDKVersion } from '../src/core/version';
+// import * as TEST_ACCESS from '../src/api/test_access';
 
-import { name, version } from './package.json';
+import { name, version } from '../package.json';
 
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'database-compat': Database;
-  }
-}
 
 const ServerValue = Database.ServerValue;
 
 export function registerDatabase(instance: FirebaseNamespace) {
-  // set SDK_VERSION
-  setSDKVersion(instance.SDK_VERSION);
 
   // Register the Database Service with the 'firebase' namespace.
   const namespace = ((instance as unknown) as _FirebaseNamespace).INTERNAL.registerComponent(
@@ -51,7 +43,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app-compat').getImmediate();
         const databaseExp = container
-          .getProvider('database-exp')
+          .getProvider('database')
           .getImmediate({ identifier: url });
         return new Database(databaseExp, app);
       },
@@ -67,7 +59,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
           enableLogging,
           INTERNAL,
           ServerValue,
-          TEST_ACCESS
+          // TEST_ACCESS
         }
       )
       .setMultipleInstances(true)

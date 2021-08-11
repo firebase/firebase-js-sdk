@@ -21,19 +21,14 @@ import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import { Component, ComponentType } from '@firebase/component';
 import * as types from '@firebase/database-types';
 import { CONSTANTS, isNodeSdk } from '@firebase/util';
-import { Client } from 'faye-websocket';
 
-import { enableLogging } from '../../database/exp/index';
-import { Database } from '../../database/src/api/Database';
-import * as INTERNAL from '../../database/src/api/internal';
-import { DataSnapshot, Query, Reference } from '../../database/src/api/Reference';
-import * as TEST_ACCESS from '../../database/src/api/test_access';
-import { setSDKVersion } from '../../database/src/core/version';
-import { setWebSocketImpl } from '../../database/src/realtime/WebSocketConnection';
-
+import { enableLogging } from '@firebase/database';
+import { Database } from '../src/api/Database';
+import * as INTERNAL from '../src/api/internal';
+import { DataSnapshot, Query, Reference } from '../src/api/Reference';
+// import * as TEST_ACCESS from '../src/api/test_access';
 import { name, version } from '../package.json';
 
-setWebSocketImpl(Client);
 
 const ServerValue = Database.ServerValue;
 
@@ -68,16 +63,13 @@ export function initStandalone(
       enableLogging,
       INTERNAL,
       ServerValue,
-      TEST_ACCESS
+      // TEST_ACCESS
     },
     nodeAdmin
   });
 }
 
 export function registerDatabase(instance: FirebaseNamespace) {
-  // set SDK_VERSION
-  setSDKVersion(instance.SDK_VERSION);
-
   // Register the Database Service with the 'firebase' namespace.
   const namespace = (instance as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
@@ -87,7 +79,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app-compat').getImmediate();
         const databaseExp = container
-          .getProvider('database-exp')
+          .getProvider('database')
           .getImmediate({ identifier: url });
         return new Database(databaseExp, app);
       },
@@ -103,7 +95,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
           enableLogging,
           INTERNAL,
           ServerValue,
-          TEST_ACCESS
+          // TEST_ACCESS
         }
       )
       .setMultipleInstances(true)
@@ -151,4 +143,4 @@ declare module '@firebase/app-compat' {
     database?(): types.FirebaseDatabase;
   }
 }
-export { DataSnapshot } from '../../database/src/api/Reference';
+export { DataSnapshot } from '../src/api/Reference';

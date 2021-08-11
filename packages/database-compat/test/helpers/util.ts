@@ -17,15 +17,14 @@
 
 declare let MozWebSocket: WebSocket;
 
-import '../../index';
+import '../../src/index';
 
-import firebase from '@firebase/app';
+import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 
-import { Query, Reference } from '../../../../database/src/api/Reference';
-import { ConnectionTarget } from '../../../../database/src/api/test_access';
-import { Path } from '../../../../database/src/core/util/Path';
+import { Query, Reference } from '../../src/api/Reference';
+import { Path } from '../../../database/src/core/util/Path';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');
@@ -56,7 +55,7 @@ console.log(`USE_EMULATOR: ${USE_EMULATOR}. DATABASE_URL: ${DATABASE_URL}.`);
 let numDatabases = 0;
 
 // mock authentication functions for testing
-(firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+(firebase as unknown as _FirebaseNamespace).INTERNAL.registerComponent(
   new Component(
     'auth-internal',
     () => ({
@@ -175,39 +174,4 @@ export function canCreateExtraConnections() {
   return (
     typeof MozWebSocket !== 'undefined' || typeof WebSocket !== 'undefined'
   );
-}
-
-export function buildObjFromKey(key) {
-  const keys = key.split('.');
-  const obj = {};
-  let parent = obj;
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    parent[key] = i < keys.length - 1 ? {} : 'test_value';
-    parent = parent[key];
-  }
-  return obj;
-}
-
-export function testRepoInfo(url) {
-  const regex = /https?:\/\/(.*).firebaseio.com/;
-  const match = url.match(regex);
-  if (!match) {
-    throw new Error('Couldnt get Namespace from passed URL');
-  }
-  const [, ns] = match;
-  return new ConnectionTarget(`${ns}.firebaseio.com`, true, ns, false);
-}
-
-export function repoInfoForConnectionTest() {
-  if (USE_EMULATOR) {
-    return new ConnectionTarget(
-      /* host = */ `localhost:${EMULATOR_PORT}`,
-      /* secure (useSsl) = */ false, // emulator does not support https or wss
-      /* namespace = */ EMULATOR_NAMESPACE,
-      /* webSocketOnly = */ false
-    );
-  } else {
-    return testRepoInfo(TEST_PROJECT.databaseURL);
-  }
 }

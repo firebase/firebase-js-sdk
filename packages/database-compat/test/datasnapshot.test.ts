@@ -17,10 +17,10 @@
 
 import { expect } from 'chai';
 
-import { DataSnapshot, Reference } from '../../../database/src/api/Reference';
-import { PRIORITY_INDEX } from '../../../database/src/core/snap/indexes/PriorityIndex';
-import { nodeFromJSON } from '../../../database/src/core/snap/nodeFromJSON';
-import { DataSnapshot as ExpDataSnapshot } from '../../../database/src/api/Reference_impl';
+import { DataSnapshot, Reference } from '../src/api/Reference';
+import { DataSnapshot as ExpDataSnapshot } from '@firebase/database';
+import { PRIORITY_INDEX } from '../../database/src/core/snap/indexes/PriorityIndex';
+import { nodeFromJSON } from '../../database/src/core/snap/nodeFromJSON';
 
 import { getRandomNode } from './helpers/util';
 

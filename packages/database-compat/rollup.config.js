@@ -18,17 +18,10 @@
 import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import path from 'path';
-import { getImportPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
-import compatPkg from './compat/package.json';
-import pkg from '../database/package.json';
+import pkg from './package.json';
 
-const deps = [
-  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
-  '@firebase/app',
-  '@firebase/database'
-];
+const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
 
 function onWarn(warning, defaultWarn) {
   if (warning.code === 'CIRCULAR_DEPENDENCY') {
@@ -43,14 +36,7 @@ function onWarn(warning, defaultWarn) {
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
-    abortOnError: false,
-    transformers: [
-      getImportPathTransformer({
-        // ../../exp/index
-        pattern: /^.*exp\/index$/,
-        template: ['@firebase/database']
-      })
-    ]
+    abortOnError: false
   }),
   json()
 ];
@@ -60,10 +46,10 @@ const es5Builds = [
    * Node.js Build
    */
   {
-    input: 'compat/index.node.ts',
+    input: 'src/index.node.ts',
     output: [
       {
-        file: path.resolve('compat', compatPkg.main),
+        file: pkg.main,
         format: 'cjs',
         sourcemap: true
       }
@@ -79,10 +65,10 @@ const es5Builds = [
    * Browser Builds
    */
   {
-    input: 'compat/index.ts',
+    input: 'src/index.ts',
     output: [
       {
-        file: path.resolve('compat', compatPkg.esm5),
+        file: pkg.esm5,
         format: 'es',
         sourcemap: true
       }
@@ -107,14 +93,7 @@ const es2017BuildPlugins = [
         target: 'es2017'
       }
     },
-    abortOnError: false,
-    transformers: [
-      getImportPathTransformer({
-        // ../../exp/index
-        pattern: /^.*exp\/index$/,
-        template: ['@firebase/database']
-      })
-    ]
+    abortOnError: false
   }),
   json({ preferConst: true })
 ];
@@ -124,10 +103,10 @@ const es2017Builds = [
    * Browser Build
    */
   {
-    input: 'compat/index.ts',
+    input: 'src/index.ts',
     output: [
       {
-        file: path.resolve('compat', compatPkg.browser),
+        file: pkg.browser,
         format: 'es',
         sourcemap: true
       }

@@ -32,7 +32,7 @@ import {
   refFromURL,
   increment,
   serverTimestamp
-} from '../../exp/index'; // import from the exp public API
+} from '@firebase/database'; // import from the exp public API
 
 import { Reference } from './Reference';
 

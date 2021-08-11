@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { Reference } from '../../../database/src/api/Reference';
+import { Reference } from '../src/api/Reference';
 
 import { getRandomNode, getRootNode } from './helpers/util';
 
