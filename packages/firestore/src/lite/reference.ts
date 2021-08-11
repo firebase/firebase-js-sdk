@@ -50,19 +50,21 @@ export interface DocumentData {
 }
 
 type Primitive = string | number | boolean | bigint | undefined | null;
-// eslint-disable-next-line @typescript-eslint/ban-types
-type Builtin = Primitive | Function;
 
 /** Like Partial but recursive */
-export type NestedPartialWithFieldValue<T> = T extends Builtin
+export type NestedPartial<T> = T extends Primitive
   ? T
   : T extends Map<infer K, infer V>
-  ? Map<NestedPartialWithFieldValue<K>, NestedPartialWithFieldValue<V>>
+  ? Map<NestedPartial<K>, NestedPartial<V>>
   : T extends {}
-  ? { [K in keyof T]?: NestedPartialWithFieldValue<T[K]> | FieldValue }
+  ? { [K in keyof T]?: NestedPartial<T[K]> | FieldValue }
   : Partial<T>;
 
-export type WithFieldValue<T> = { [P in keyof T]: T[P] | FieldValue };
+export type WithFieldValue<T> = T extends Primitive
+  ? T
+  : T extends {}
+  ? { [K in keyof T]: WithFieldValue<T[K]> | FieldValue }
+  : Partial<T>;
 
 /**
  * Update data (for use with {@link @firebase/firestore/lite#(updateDoc:1)}) consists of field paths (e.g.
@@ -76,7 +78,7 @@ export interface UpdateData {
 }
 // Represents an update object to Firestore document data, which can contain either fields like {a: 2}
 // or dot-separated paths such as {"a.b" : 2} (which updates the nested property "b" in map field "a").
-export type TypedUpdateData<T> = T extends Builtin
+export type TypedUpdateData<T> = T extends Primitive
   ? T
   : T extends Map<infer K, infer V>
   ? Map<TypedUpdateData<K>, TypedUpdateData<V>>

@@ -27,7 +27,7 @@ import { FieldPath } from './field_path';
 import {
   DocumentData,
   DocumentReference,
-  NestedPartialWithFieldValue,
+  NestedPartial,
   Query,
   queryEqual,
   SetOptions,
@@ -93,10 +93,7 @@ export interface FirestoreDataConverter<T> {
    * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
    * and {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true` or `mergeFields`.
    */
-  toFirestore(
-    modelObject: NestedPartialWithFieldValue<T>,
-    options: SetOptions
-  ): DocumentData;
+  toFirestore(modelObject: NestedPartial<T>, options: SetOptions): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of

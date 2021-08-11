@@ -29,7 +29,7 @@ import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import {
   DocumentReference,
-  NestedPartialWithFieldValue,
+  NestedPartial,
   SetOptions,
   TypedUpdateData,
   UpdateData,
@@ -135,12 +135,12 @@ export class Transaction {
    */
   set<T>(
     documentRef: DocumentReference<T>,
-    data: NestedPartialWithFieldValue<T>,
+    data: NestedPartial<T>,
     options: SetOptions
   ): this;
   set<T>(
     documentRef: DocumentReference<T>,
-    value: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
+    value: WithFieldValue<T> | NestedPartial<T>,
     options?: SetOptions
   ): this {
     const ref = validateReference(documentRef, this._firestore);

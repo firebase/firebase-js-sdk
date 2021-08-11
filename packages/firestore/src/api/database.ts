@@ -127,7 +127,7 @@ import {
   NextFn,
   PartialObserver
 } from './observer';
-import { NestedPartialWithFieldValue, WithFieldValue } from '../lite/reference';
+import { NestedPartial, WithFieldValue } from '../lite/reference';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.
@@ -441,22 +441,19 @@ export class Transaction implements PublicTransaction, Compat<ExpTransaction> {
 
   set<T>(
     documentRef: DocumentReference<T>,
-    data: NestedPartialWithFieldValue<T>,
+    data: Partial<T>,
     options: PublicSetOptions
   ): Transaction;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: WithFieldValue<T>
-  ): Transaction;
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
   set<T>(
     documentRef: PublicDocumentReference<T>,
-    data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
+    data: T | Partial<T>,
     options?: PublicSetOptions
   ): Transaction {
     const ref = castReference(documentRef);
     if (options) {
       validateSetOptions('Transaction.set', options);
-      this._delegate.set(ref, data as NestedPartialWithFieldValue<T>, options);
+      this._delegate.set(ref, data as NestedPartial<T>, options);
     } else {
       this._delegate.set(ref, data as WithFieldValue<T>);
     }
@@ -505,22 +502,19 @@ export class WriteBatch implements PublicWriteBatch, Compat<ExpWriteBatch> {
   constructor(readonly _delegate: ExpWriteBatch) {}
   set<T>(
     documentRef: DocumentReference<T>,
-    data: NestedPartialWithFieldValue<T>,
+    data: Partial<T>,
     options: PublicSetOptions
   ): WriteBatch;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: WithFieldValue<T>
-  ): WriteBatch;
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
   set<T>(
     documentRef: PublicDocumentReference<T>,
-    data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
+    data: T | Partial<T>,
     options?: PublicSetOptions
   ): WriteBatch {
     const ref = castReference(documentRef);
     if (options) {
       validateSetOptions('WriteBatch.set', options);
-      this._delegate.set(ref, data as NestedPartialWithFieldValue<T>, options);
+      this._delegate.set(ref, data as NestedPartial<T>, options);
     } else {
       this._delegate.set(ref, data as WithFieldValue<T>);
     }
@@ -606,11 +600,11 @@ class FirestoreDataConverter<U>
 
   toFirestore(modelObject: WithFieldValue<U>): PublicDocumentData;
   toFirestore(
-    modelObject: NestedPartialWithFieldValue<U>,
+    modelObject: NestedPartial<U>,
     options: PublicSetOptions
   ): PublicDocumentData;
   toFirestore(
-    modelObject: WithFieldValue<U> | NestedPartialWithFieldValue<U>,
+    modelObject: WithFieldValue<U> | NestedPartial<U>,
     options?: PublicSetOptions
   ): PublicDocumentData {
     if (!options) {
@@ -741,11 +735,7 @@ export class DocumentReference<T = PublicDocumentData>
     options = validateSetOptions('DocumentReference.set', options);
     try {
       if (options) {
-        return setDoc(
-          this._delegate,
-          value as NestedPartialWithFieldValue<T>,
-          options
-        );
+        return setDoc(this._delegate, value as NestedPartial<T>, options);
       } else {
         return setDoc(this._delegate, value as WithFieldValue<T>);
       }
@@ -1302,7 +1292,7 @@ export class CollectionReference<T = PublicDocumentData>
   }
 
   add(data: T): Promise<DocumentReference<T>> {
-    return addDoc(this._delegate, data).then(
+    return addDoc(this._delegate, data as WithFieldValue<T>).then(
       docRef => new DocumentReference(this.firestore, docRef)
     );
   }

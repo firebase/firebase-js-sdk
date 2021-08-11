@@ -59,7 +59,7 @@ import {
   UpdateData,
   DocumentData,
   WithFieldValue,
-  NestedPartialWithFieldValue,
+  NestedPartial,
   TypedUpdateData
 } from '../../src/lite/reference';
 import {
@@ -350,7 +350,7 @@ interface MutationTester {
   ): Promise<void>;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: NestedPartialWithFieldValue<T>,
+    data: NestedPartial<T>,
     options: SetOptions
   ): Promise<void>;
   update<T>(
@@ -382,7 +382,7 @@ describe('WriteBatch', () => {
 
     set<T>(
       ref: DocumentReference<T>,
-      data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
+      data: WithFieldValue<T> | NestedPartial<T>,
       options?: SetOptions
     ): Promise<void> {
       const batch = writeBatch(ref.firestore);
@@ -445,12 +445,12 @@ describe('Transaction', () => {
 
     set<T>(
       ref: DocumentReference<T>,
-      data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
+      data: WithFieldValue<T> | NestedPartial<T>,
       options?: SetOptions
     ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         if (options) {
-          transaction.set(ref, data as NestedPartialWithFieldValue<T>, options);
+          transaction.set(ref, data as NestedPartial<T>, options);
         } else {
           transaction.set(ref, data as WithFieldValue<T>);
         }
@@ -472,7 +472,7 @@ describe('Transaction', () => {
             ...moreFieldsAndValues
           );
         } else {
-          transaction.update(ref, dataOrField as UpdateData);
+          transaction.update(ref, dataOrField as TypedUpdateData<T>);
         }
       });
     }
@@ -619,7 +619,22 @@ function genericMutationTests(
       }
 
       const testConverterMerge = {
-        toFirestore(testObj: WithFieldValue<TestObject>, options?: SetOptions) {
+        toFirestore(testObj: NestedPartial<TestObject>, options?: SetOptions) {
+          return { ...testObj };
+        },
+        fromFirestore(snapshot: QueryDocumentSnapshot): TestObject {
+          const data = snapshot.data();
+          return new TestObject(
+            data.outerString,
+            data.outerNum,
+            data.outerArr,
+            data.nested
+          );
+        }
+      };
+
+      const testConverter = {
+        toFirestore(testObj: WithFieldValue<TestObject>) {
           return { ...testObj };
         },
         fromFirestore(snapshot: QueryDocumentSnapshot): TestObject {
@@ -635,7 +650,7 @@ function genericMutationTests(
 
       return withTestDb(async db => {
         const coll = collection(db, 'posts');
-        const ref = doc(coll, 'testobj').withConverter(testConverterMerge);
+        let ref = doc(coll, 'testobj').withConverter(testConverterMerge);
 
         // Allow Field Values and nested partials.
         await setDoc(
@@ -735,6 +750,57 @@ function genericMutationTests(
           // @ts-expect-error
           'nested.innerArr': 3,
           'nested.timestamp': serverTimestamp()
+        });
+
+        // Tests for `WithFieldValue`
+        ref = doc(coll, 'testobj').withConverter(testConverter);
+        // Allow Field Values and nested partials.
+        await setDoc(ref, {
+          outerString: deleteField(),
+          outerNum: 3,
+          outerArr: [],
+          nested: {
+            innerNested: {
+              innerNestedNum: increment(1),
+              innerNestedString: deleteField()
+            },
+            innerArr: arrayUnion(2),
+            timestamp: serverTimestamp()
+          }
+        });
+
+        // Type validation still works for outer and nested fields
+        await setDoc(ref, {
+          outerString: deleteField(),
+          outerNum: 3,
+          // @ts-expect-error
+          outerArr: 2,
+          nested: {
+            innerNested: {
+              // @ts-expect-error
+              innerNestedNum: 'string',
+              innerNestedString: deleteField()
+            },
+            innerArr: arrayUnion(2),
+            timestamp: serverTimestamp()
+          }
+        });
+
+        // Nonexistent fields should error
+        await setDoc(ref, {
+          outerString: deleteField(),
+          outerNum: 3,
+          outerArr: [],
+          nested: {
+            innerNested: {
+              // @ts-expect-error
+              nonexistent: string,
+              innerNestedNum: 2,
+              innerNestedString: deleteField()
+            },
+            innerArr: arrayUnion(2),
+            timestamp: serverTimestamp()
+          }
         });
       });
     });

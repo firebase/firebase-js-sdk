@@ -20,7 +20,7 @@ import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite/field_path';
 import {
   DocumentData,
-  NestedPartialWithFieldValue,
+  NestedPartial,
   Query,
   queryEqual,
   SetOptions,
@@ -99,10 +99,7 @@ export interface FirestoreDataConverter<T>
    * Firestore database). Used with {@link (setDoc:1)}, {@link (WriteBatch.set:1)}
    * and {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
    */
-  toFirestore(
-    modelObject: NestedPartialWithFieldValue<T>,
-    options: SetOptions
-  ): DocumentData;
+  toFirestore(modelObject: NestedPartial<T>, options: SetOptions): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of

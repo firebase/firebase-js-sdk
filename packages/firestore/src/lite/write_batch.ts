@@ -27,7 +27,7 @@ import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import {
   DocumentReference,
-  NestedPartialWithFieldValue,
+  NestedPartial,
   SetOptions,
   TypedUpdateData,
   UpdateData,
@@ -91,12 +91,12 @@ export class WriteBatch {
    */
   set<T>(
     documentRef: DocumentReference<T>,
-    data: NestedPartialWithFieldValue<T>,
+    data: NestedPartial<T>,
     options: SetOptions
   ): WriteBatch;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
+    data: WithFieldValue<T> | NestedPartial<T>,
     options?: SetOptions
   ): WriteBatch {
     this._verifyNotCommitted();

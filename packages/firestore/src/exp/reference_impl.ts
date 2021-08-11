@@ -42,7 +42,7 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  NestedPartialWithFieldValue,
+  NestedPartial,
   Query,
   SetOptions,
   TypedUpdateData,
@@ -261,12 +261,12 @@ export function setDoc<T>(
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: NestedPartialWithFieldValue<T>,
+  data: NestedPartial<T>,
   options: SetOptions
 ): Promise<void>;
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
+  data: WithFieldValue<T> | NestedPartial<T>,
   options?: SetOptions
 ): Promise<void> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
@@ -274,7 +274,7 @@ export function setDoc<T>(
 
   const convertedValue = applyFirestoreDataConverter(
     reference.converter,
-    data,
+    data as WithFieldValue<T>,
     options
   );
   const dataReader = newUserDataReader(firestore);

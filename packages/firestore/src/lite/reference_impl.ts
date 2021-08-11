@@ -41,7 +41,7 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  NestedPartialWithFieldValue,
+  NestedPartial,
   Query,
   SetOptions,
   TypedUpdateData,
@@ -74,7 +74,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  */
 export function applyFirestoreDataConverter<T>(
   converter: UntypedFirestoreDataConverter<T> | null,
-  value: T,
+  value: WithFieldValue<T> | NestedPartial<T>,
   options?: PublicSetOptions
 ): PublicDocumentData {
   let convertedValue;
@@ -85,7 +85,7 @@ export function applyFirestoreDataConverter<T>(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       convertedValue = (converter as any).toFirestore(value, options);
     } else {
-      convertedValue = converter.toFirestore(value);
+      convertedValue = converter.toFirestore(value as WithFieldValue<T>);
     }
   } else {
     convertedValue = value as PublicDocumentData;
@@ -220,18 +220,18 @@ export function setDoc<T>(
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: NestedPartialWithFieldValue<T>,
+  data: NestedPartial<T>,
   options: SetOptions
 ): Promise<void>;
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: WithFieldValue<T> | NestedPartialWithFieldValue<T>,
+  data: WithFieldValue<T> | NestedPartial<T>,
   options?: SetOptions
 ): Promise<void> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
   const convertedValue = applyFirestoreDataConverter(
     reference.converter,
-    data,
+    data as WithFieldValue<T>,
     options
   );
   const dataReader = newUserDataReader(reference.firestore);
@@ -376,7 +376,7 @@ export function deleteDoc(
  */
 export function addDoc<T>(
   reference: CollectionReference<T>,
-  data: T
+  data: WithFieldValue<T>
 ): Promise<DocumentReference<T>> {
   reference = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(reference);
