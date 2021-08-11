@@ -23,9 +23,8 @@ import {
   validateCallback,
   validateContextObject
 } from '@firebase/util';
-
 import {
-  OnDisconnect as ExpOnDisconnect,
+  OnDisconnect as ModularOnDisconnect,
   off,
   onChildAdded,
   onChildChanged,
@@ -54,20 +53,19 @@ import {
   push,
   runTransaction,
   child,
-  DataSnapshot as ExpDataSnapshot,
+  DataSnapshot as ModularDataSnapshot,
   Query as ExpQuery,
-  DatabaseReference as ExpReference,
+  DatabaseReference as ModularReference,
   _QueryImpl,
   _ReferenceImpl,
   _validatePathString,
   _validateWritablePath,
   _UserCallback,
   _QueryParams
-} from '@firebase/database'; // import from the exp public API
+} from '@firebase/database';
+
 import { warn } from '../util/util';
 import { validateBoolean, validateEventType } from '../util/validation';
-// import { ThenableReferenceImpl } from '../exp/Reference_impl';
-
 import { Database } from './Database';
 import { OnDisconnect } from './onDisconnect';
 import { TransactionResult } from './TransactionResult';
@@ -76,10 +74,10 @@ import { TransactionResult } from './TransactionResult';
  * Class representing a firebase data snapshot.  It wraps a SnapshotNode and
  * surfaces the public methods (val, forEach, etc.) we want to expose.
  */
-export class DataSnapshot implements Compat<ExpDataSnapshot> {
+export class DataSnapshot implements Compat<ModularDataSnapshot> {
   constructor(
     readonly _database: Database,
-    readonly _delegate: ExpDataSnapshot
+    readonly _delegate: ModularDataSnapshot
   ) {}
 
   /**
@@ -546,7 +544,7 @@ export class Query implements Compat<ExpQuery> {
   }
 }
 
-export class Reference extends Query implements Compat<ExpReference> {
+export class Reference extends Query implements Compat<ModularReference> {
   then: Promise<Reference>['then'];
   catch: Promise<Reference>['catch'];
 
@@ -557,7 +555,10 @@ export class Reference extends Query implements Compat<ExpReference> {
    *
    * Externally - this is the firebase.database.Reference type.
    */
-  constructor(readonly database: Database, readonly _delegate: ExpReference) {
+  constructor(
+    readonly database: Database,
+    readonly _delegate: ModularReference
+  ) {
     super(
       database,
       new _QueryImpl(
@@ -770,7 +771,7 @@ export class Reference extends Query implements Compat<ExpReference> {
   onDisconnect(): OnDisconnect {
     _validateWritablePath('Reference.onDisconnect', this._delegate._path);
     return new OnDisconnect(
-      new ExpOnDisconnect(this._delegate._repo, this._delegate._path)
+      new ModularOnDisconnect(this._delegate._repo, this._delegate._path)
     );
   }
 

@@ -27,69 +27,12 @@ import {
   Provider
 } from '@firebase/component';
 import * as types from '@firebase/database-types';
-
 import {
   _repoManagerDatabaseFromApp,
   _setSDKVersion
 } from '@firebase/database';
-// import {
-//   repoInterceptServerData,
-//   repoStats,
-//   repoStatsIncrementCounter
-// } from '../core/Repo';
-// import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
-// import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
 import { Database } from './Database';
-import { Reference } from './Reference';
-
-/**
- * INTERNAL methods for internal-use only (tests, etc.).
- *
- * Customers shouldn't use these or else should be aware that they could break at any time.
- */
-
-// export const forceLongPolling = function () {
-//   WebSocketConnection.forceDisallow();
-//   BrowserPollConnection.forceAllow();
-// };
-
-// export const forceWebSockets = function () {
-//   BrowserPollConnection.forceDisallow();
-// };
-
-// /* Used by App Manager */
-// export const isWebSocketsAvailable = function (): boolean {
-//   return WebSocketConnection['isAvailable']();
-// };
-
-export const setSecurityDebugCallback = function (
-  ref: Reference,
-  callback: (a: object) => void
-) {
-  const connection = ref._delegate._repo.persistentConnection_;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (connection as any).securityDebugCallback_ = callback;
-};
-
-// export const stats = function (ref: Reference, showDelta?: boolean) {
-//   repoStats(ref._delegate._repo, showDelta);
-// };
-
-// export const statsIncrementCounter = function (ref: Reference, metric: string) {
-//   repoStatsIncrementCounter(ref._delegate._repo, metric);
-// };
-
-export const dataUpdateCount = function (ref: Reference): number {
-  return ref._delegate._repo.dataUpdateCount;
-};
-
-// export const interceptServerData = function (
-//   ref: Reference,
-//   callback: ((a: string, b: unknown) => void) | null
-// ) {
-//   return repoInterceptServerData(ref._delegate._repo, callback);
-// };
 
 /**
  * Used by console to create a database based on the app,

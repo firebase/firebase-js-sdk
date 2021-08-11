@@ -26,7 +26,6 @@ import { enableLogging } from '@firebase/database';
 import { Database } from '../src/api/Database';
 import * as INTERNAL from '../src/api/internal';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
-// import * as TEST_ACCESS from '../src/api/test_access';
 import { name, version } from '../package.json';
 
 const ServerValue = Database.ServerValue;
@@ -62,7 +61,6 @@ export function initStandalone(
       enableLogging,
       INTERNAL,
       ServerValue
-      // TEST_ACCESS
     },
     nodeAdmin
   });
@@ -94,7 +92,6 @@ export function registerDatabase(instance: FirebaseNamespace) {
           enableLogging,
           INTERNAL,
           ServerValue
-          // TEST_ACCESS
         }
       )
       .setMultipleInstances(true)

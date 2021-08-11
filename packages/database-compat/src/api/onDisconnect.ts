@@ -16,19 +16,11 @@
  */
 
 import { validateArgCount, validateCallback, Compat } from '@firebase/util';
+import { OnDisconnect as ModularOnDisconnect } from '@firebase/database';
 
 import { warn } from '../util/util';
-
-// TODO: revert to import { OnDisconnect as ExpOnDisconnect } from '../../exp/index'; once the modular SDK goes GA
-/**
- * This is a workaround for an issue in the no-modular '@firebase/database' where its typings
- * reference types from `@firebase/app-exp`.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ExpOnDisconnect = any;
-
-export class OnDisconnect implements Compat<ExpOnDisconnect> {
-  constructor(readonly _delegate: ExpOnDisconnect) {}
+export class OnDisconnect implements Compat<ModularOnDisconnect> {
+  constructor(readonly _delegate: ModularOnDisconnect) {}
 
   cancel(onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.cancel', 0, 1, arguments.length);

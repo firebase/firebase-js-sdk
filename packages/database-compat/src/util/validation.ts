@@ -1,9 +1,4 @@
-import {
-  contains,
-  errorPrefix as errorPrefixFxn,
-  safeGet,
-  stringLength
-} from '@firebase/util';
+import { errorPrefix as errorPrefixFxn } from '@firebase/util';
 
 export const validateBoolean = function (
   fnName: string,

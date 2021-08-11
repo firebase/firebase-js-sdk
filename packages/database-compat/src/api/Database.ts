@@ -31,23 +31,16 @@ import {
   ref,
   refFromURL,
   increment,
-  serverTimestamp
-} from '@firebase/database'; // import from the exp public API
+  serverTimestamp,
+  Database as ModularDatabase
+} from '@firebase/database';
 
 import { Reference } from './Reference';
-
-// TODO: revert to import {FirebaseDatabase as ExpDatabase} from '@firebase/database' once modular SDK goes GA
-/**
- * This is a workaround for an issue in the no-modular '@firebase/database' where its typings
- * reference types from `@firebase/app-exp`.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ExpDatabase = any;
 
 /**
  * Class representing a firebase database.
  */
-export class Database implements FirebaseService, Compat<ExpDatabase> {
+export class Database implements FirebaseService, Compat<ModularDatabase> {
   static readonly ServerValue = {
     TIMESTAMP: serverTimestamp(),
     increment: (delta: number) => increment(delta)
@@ -56,7 +49,7 @@ export class Database implements FirebaseService, Compat<ExpDatabase> {
   /**
    * The constructor should not be called by users of our public API.
    */
-  constructor(readonly _delegate: ExpDatabase, readonly app: FirebaseApp) {}
+  constructor(readonly _delegate: ModularDatabase, readonly app: FirebaseApp) {}
 
   INTERNAL = {
     delete: () => this._delegate._delete()
