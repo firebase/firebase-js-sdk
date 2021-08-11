@@ -64,8 +64,12 @@ export {
   SetOptions,
   DocumentData,
   UpdateData,
+  Primitive,
   WithFieldValue,
+  NestedUpdateFields,
+  AddPrefixToKeys,
   NestedPartial,
+  UnionToIntersection,
   refEqual,
   queryEqual
 } from '../src/exp/reference';

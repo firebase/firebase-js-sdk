@@ -9,7 +9,12 @@ import { FirebaseApp } from '@firebase/app-exp';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
 // @public
-export function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
+export function addDoc<T>(reference: CollectionReference<T>, data: WithFieldValue<T>): Promise<DocumentReference<T>>;
+
+// @public
+export type AddPrefixToKeys<Prefix extends string, T extends Record<string, any>> = {
+    [K in keyof T & string as `${Prefix}.${K}`]+?: T[K];
+};
 
 // @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
@@ -162,8 +167,8 @@ export class Firestore {
 // @public
 export interface FirestoreDataConverter<T> {
     fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>, options?: SnapshotOptions): T;
-    toFirestore(modelObject: T): DocumentData;
-    toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+    toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+    toFirestore(modelObject: NestedPartial<T>, options: SetOptions): DocumentData;
 }
 
 // @public
@@ -257,6 +262,16 @@ export { LogLevel }
 export function namedQuery(firestore: Firestore, name: string): Promise<Query | null>;
 
 // @public
+export type NestedPartial<T> = T extends Primitive ? T : T extends Map<infer K, infer V> ? Map<NestedPartial<K>, NestedPartial<V>> : T extends {} ? {
+    [K in keyof T]?: NestedPartial<T[K]> | FieldValue;
+} : Partial<T>;
+
+// @public
+export type NestedUpdateFields<T extends Record<string, any>> = UnionToIntersection<{
+    [K in keyof T & string]: T[K] extends Record<string, any> ? AddPrefixToKeys<K, UpdateData<T[K]>> : never;
+}[keyof T & string]>;
+
+// @public
 export function onSnapshot<T>(reference: DocumentReference<T>, observer: {
     next?: (snapshot: DocumentSnapshot<T>) => void;
     error?: (error: FirestoreError) => void;
@@ -317,6 +332,9 @@ export interface PersistenceSettings {
     forceOwnership?: boolean;
 }
 
+// @public (undocumented)
+export type Primitive = string | number | boolean | bigint | undefined | null;
+
 // @public
 export class Query<T = DocumentData> {
     protected constructor();
@@ -368,10 +386,10 @@ export function runTransaction<T>(firestore: Firestore, updateFunction: (transac
 export function serverTimestamp(): FieldValue;
 
 // @public
-export function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<void>;
+export function setDoc<T>(reference: DocumentReference<T>, data: WithFieldValue<T>): Promise<void>;
 
 // @public
-export function setDoc<T>(reference: DocumentReference<T>, data: Partial<T>, options: SetOptions): Promise<void>;
+export function setDoc<T>(reference: DocumentReference<T>, data: NestedPartial<T>, options: SetOptions): Promise<void>;
 
 // @public
 export function setLogLevel(logLevel: LogLevel): void;
@@ -446,11 +464,14 @@ export class Timestamp {
 export class Transaction {
     delete(documentRef: DocumentReference<unknown>): this;
     get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
-    set<T>(documentRef: DocumentReference<T>, data: T): this;
-    set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): this;
-    update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
+    set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): this;
+    set<T>(documentRef: DocumentReference<T>, data: NestedPartial<T>, options: SetOptions): this;
+    update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 }
+
+// @public
+export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
 // @public
 export interface Unsubscribe {
@@ -458,12 +479,12 @@ export interface Unsubscribe {
 }
 
 // @public
-export interface UpdateData {
-    [fieldPath: string]: any;
-}
+export type UpdateData<T> = T extends Primitive ? T : T extends Map<infer K, infer V> ? Map<UpdateData<K>, UpdateData<V>> : T extends {} ? {
+    [K in keyof T]?: UpdateData<T[K]> | FieldValue;
+} & NestedUpdateFields<T> : Partial<T>;
 
 // @public
-export function updateDoc(reference: DocumentReference<unknown>, data: UpdateData): Promise<void>;
+export function updateDoc<T>(reference: DocumentReference<T>, data: UpdateData<T>): Promise<void>;
 
 // @public
 export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
@@ -478,12 +499,17 @@ export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value
 export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
 
 // @public
+export type WithFieldValue<T> = T extends Primitive ? T : T extends {} ? {
+    [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
+} : Partial<T>;
+
+// @public
 export class WriteBatch {
     commit(): Promise<void>;
     delete(documentRef: DocumentReference<unknown>): WriteBatch;
-    set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
-    set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): WriteBatch;
-    update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
+    set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): WriteBatch;
+    set<T>(documentRef: DocumentReference<T>, data: NestedPartial<T>, options: SetOptions): WriteBatch;
+    update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
 }
 

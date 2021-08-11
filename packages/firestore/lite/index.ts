@@ -38,9 +38,15 @@ export {
 } from '../src/lite/database';
 
 export {
-  SetOptions,
   DocumentData,
   TypedUpdateData as UpdateData,
+  Primitive,
+  WithFieldValue,
+  NestedUpdateFields,
+  AddPrefixToKeys,
+  NestedPartial,
+  UnionToIntersection,
+  SetOptions,
   DocumentReference,
   Query,
   CollectionReference,

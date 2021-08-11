@@ -49,7 +49,7 @@ export interface DocumentData {
   [field: string]: any;
 }
 
-type Primitive = string | number | boolean | bigint | undefined | null;
+export type Primitive = string | number | boolean | bigint | undefined | null;
 
 /**
  * Similar to Typescript's `Partial<T>`, but allows nested fields to be
@@ -94,18 +94,19 @@ export type TypedUpdateData<T> = T extends Primitive
  */
 // Mapping between a field and its value.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type NestedUpdateFields<T extends Record<string, any>> = UnionToIntersection<
-  {
-    // Check that T[K] extends Record to only allow nesting for map values.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [K in keyof T & string]: T[K] extends Record<string, any>
-      ? // Recurse into the map and add the prefix in front of each key
-        // (e.g. Prefix 'bar.' to create: 'bar.baz' and 'bar.qux'.
-        AddPrefixToKeys<K, TypedUpdateData<T[K]>>
-      : // TypedUpdateData is always a map of values.
-        never;
-  }[keyof T & string] // Also include the generated prefix-string keys.
->;
+export type NestedUpdateFields<T extends Record<string, any>> =
+  UnionToIntersection<
+    {
+      // Check that T[K] extends Record to only allow nesting for map values.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      [K in keyof T & string]: T[K] extends Record<string, any>
+        ? // Recurse into the map and add the prefix in front of each key
+          // (e.g. Prefix 'bar.' to create: 'bar.baz' and 'bar.qux'.
+          AddPrefixToKeys<K, TypedUpdateData<T[K]>>
+        : // TypedUpdateData is always a map of values.
+          never;
+    }[keyof T & string] // Also include the generated prefix-string keys.
+  >;
 
 /**
  * Returns a new map where every key is prefixed with the outer key appended
@@ -113,7 +114,10 @@ type NestedUpdateFields<T extends Record<string, any>> = UnionToIntersection<
  */
 // Mapping between a field and its value.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AddPrefixToKeys<Prefix extends string, T extends Record<string, any>> =
+export type AddPrefixToKeys<
+  Prefix extends string,
+  T extends Record<string, any>
+> =
   // Remap K => Prefix.K. See https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
   { [K in keyof T & string as `${Prefix}.${K}`]+?: T[K] };
 
@@ -128,9 +132,9 @@ type AddPrefixToKeys<Prefix extends string, T extends Record<string, any>> =
  * https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
-) => void
+export type UnionToIntersection<U> = (
+  U extends any ? (k: U) => void : never
+) extends (k: infer I) => void
   ? I
   : never;
 
