@@ -51,10 +51,10 @@ describe('platform_browser/util/popup', () => {
 
   beforeEach(async () => {
     windowOpenStub = sinon.stub(window, 'open');
-    popupStub = sinon.stub(({
+    popupStub = sinon.stub({
       focus: () => {},
       close: () => {}
-    } as unknown) as Window);
+    } as unknown as Window);
     windowOpenStub.returns(popupStub);
     auth = await testAuth();
   });
