@@ -128,10 +128,31 @@ export function initializeFirestore(
   const provider = _getProvider(app, 'firestore-exp');
 
   if (provider.isInitialized()) {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      'Firestore can only be initialized once per app.'
-    );
+    const existingInstance = provider.getImmediate();
+    const initialOptions = provider.getOptions() as FirestoreSettings;
+    // Every option can currently be compared shallowly.
+    // We could currently do a deepEqual() on `settings` but if we add
+    // a new option to `FirestoreSettings` that needs a custom
+    // comparison, it should be coded separately. This makes it less
+    // likely to be missed.
+    const shallowOptionsKeys: Array<keyof FirestoreSettings> = [
+      'cacheSizeBytes',
+      'experimentalAutoDetectLongPolling',
+      'experimentalForceLongPolling',
+      'host',
+      'ignoreUndefinedProperties',
+      'ssl'
+    ];
+    if (
+      shallowOptionsKeys.every(key => initialOptions[key] === settings[key])
+    ) {
+      return existingInstance;
+    } else {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'Firestore can only be initialized once per app.'
+      );
+    }
   }
 
   if (
