@@ -31,10 +31,6 @@ const fakeFirebaseConfig = {
   appId: '1:111:web:a1234'
 };
 
-// const fakeFirebaseApp = ({
-//   options: fakeFirebaseConfig
-// } as unknown) as firebase.FirebaseApp;
-
 describe('Firebase Performance > initializePerformance()', () => {
   let app: FirebaseApp;
   beforeEach(() => {
