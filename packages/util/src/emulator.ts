@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { base64 } from './crypt';
+import { base64urlEncodeWithoutPadding } from './crypt';
 
 // Firebase Auth tokens contain snake_case claims following the JWT standard / convention.
 /* eslint-disable camelcase */
@@ -135,8 +135,8 @@ export function createMockUserToken(
   // Unsecured JWTs use the empty string as a signature.
   const signature = '';
   return [
-    base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
-    base64.encodeString(JSON.stringify(payload), /*webSafe=*/ false),
+    base64urlEncodeWithoutPadding(JSON.stringify(header)),
+    base64urlEncodeWithoutPadding(JSON.stringify(payload)),
     signature
   ].join('.');
 }

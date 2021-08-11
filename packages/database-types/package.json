@@ -14,6 +14,9 @@
   "dependencies": {
     "@firebase/app-types": "0.6.3"
   },
+  "peerDependencies": {
+    "@firebase/util": "1.x"
+  },
   "repository": {
     "directory": "packages/database-types",
     "type": "git",

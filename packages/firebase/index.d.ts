@@ -5907,7 +5907,7 @@ declare namespace firebase.database {
       host: string,
       port: number,
       options?: {
-        mockUserToken?: EmulatorMockTokenOptions;
+        mockUserToken?: EmulatorMockTokenOptions | string;
       }
     ): void;
     /**
@@ -8385,7 +8385,7 @@ declare namespace firebase.firestore {
       host: string,
       port: number,
       options?: {
-        mockUserToken?: EmulatorMockTokenOptions;
+        mockUserToken?: EmulatorMockTokenOptions | string;
       }
     ): void;
 
