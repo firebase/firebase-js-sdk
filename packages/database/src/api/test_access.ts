@@ -42,6 +42,9 @@ export const DataConnection = PersistentConnection;
 // RealTimeConnection properties that we use in tests.
 export const RealTimeConnection = Connection;
 
+/**
+ * @internal
+ */
 export const hijackHash = function (newHash: () => string) {
   const oldPut = PersistentConnection.prototype.put;
   PersistentConnection.prototype.put = function (
@@ -64,6 +67,7 @@ export const ConnectionTarget = RepoInfo;
 
 /**
  * Forces the RepoManager to create Repos that use ReadonlyRestClient instead of PersistentConnection.
+ * @internal
  */
 export const forceRestClient = function (forceRestClient: boolean) {
   repoManagerForceRestClient(forceRestClient);

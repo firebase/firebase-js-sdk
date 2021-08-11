@@ -82,9 +82,14 @@ export {
 export {
   repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp
 } from './api/Database';
-export { 
+export {
   validatePathString as _validatePathString,
   validateWritablePath as _validateWritablePath
 } from './core/util/validation';
 export { UserCallback as _UserCallback } from './core/view/EventRegistration';
-export { QueryParams as _QueryParams} from './core/view/QueryParams';
+export { QueryParams as _QueryParams } from './core/view/QueryParams';
+
+export { 
+  hijackHash as _TEST_ACCESS_hijackHash,
+  forceRestClient as _TEST_ACCESS_forceRestClient
+} from './api/test_access';

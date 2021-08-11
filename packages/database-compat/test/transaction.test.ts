@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import firebase from '@firebase/app-compat';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
 import { Reference } from '../src/api/Reference';
-import { hijackHash } from '../../database/src/api/test_access';
+import { _TEST_ACCESS_hijackHash as hijackHash } from '@firebase/database';
 
 import {
   EventAccumulator,

@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { forceRestClient } from '../../../database/src/api/test_access';
+import { _TEST_ACCESS_forceRestClient as forceRestClient } from '@firebase/database';
 import { getRandomNode, getFreshRepoFromReference } from '../helpers/util';
 
 // Some sanity checks for the ReadonlyRestClient crawler support.
