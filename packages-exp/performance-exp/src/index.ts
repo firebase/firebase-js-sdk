@@ -45,7 +45,7 @@ import {
 import { name, version } from '../package.json';
 import { Trace } from './resources/trace';
 import '@firebase/installations-exp';
-import { getModularInstance } from '@firebase/util';
+import { deepEqual, getModularInstance } from '@firebase/util';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
@@ -81,12 +81,7 @@ export function initializePerformance(
   if (provider.isInitialized()) {
     const existingInstance = provider.getImmediate();
     const initialSettings = provider.getOptions() as PerformanceSettings;
-    if (
-      settings?.dataCollectionEnabled ===
-        initialSettings?.dataCollectionEnabled &&
-      settings?.instrumentationEnabled ===
-        initialSettings?.instrumentationEnabled
-    ) {
+    if (deepEqual(initialSettings, settings ?? {})) {
       return existingInstance;
     } else {
       throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
