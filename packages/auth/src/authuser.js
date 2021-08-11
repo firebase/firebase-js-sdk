@@ -183,8 +183,10 @@ fireauth.AuthUser =
       // Get the client Auth endpoint used.
       fireauth.constants.getEndpointConfig(fireauth.constants.clientEndpoint),
     clientFullVersion);
-  if (appOptions['emulatorConfig']) {
-    this.rpcHandler_.updateEmulatorConfig(appOptions['emulatorConfig']);
+  /** @private {?fireauth.constants.EmulatorSettings} The emulator config */
+  this.emulatorConfig_ = appOptions['emulatorConfig'] || null;
+  if (this.emulatorConfig_) {
+    this.rpcHandler_.updateEmulatorConfig(this.emulatorConfig_);
   }
   // TODO: Consider having AuthUser take a fireauth.StsTokenManager
   // instance instead of a token response but make sure lastAccessToken_ also
@@ -212,7 +214,7 @@ fireauth.AuthUser =
       fireauth.util.isPopupRedirectSupported()) {
     // Get the Auth event manager associated with this user.
     this.authEventManager_ = fireauth.AuthEventManager.getManager(
-        this.authDomain_, this.apiKey_, this.appName_);
+        this.authDomain_, this.apiKey_, this.appName_, this.emulatorConfig_);
   }
   /** @private {!Array<!function(!fireauth.AuthUser):!goog.Promise>} The list of
    *      state change listeners. This is needed to make sure state changes are
@@ -312,7 +314,24 @@ fireauth.AuthUser.prototype.setLanguageCode = function(languageCode) {
  */
 fireauth.AuthUser.prototype.setEmulatorConfig = function(emulatorConfig) {
   // Update the emulator config.
+  this.emulatorConfig_ = emulatorConfig;
   this.rpcHandler_.updateEmulatorConfig(emulatorConfig);
+
+  if (this.authEventManager_) {
+    // We need to get a new auth event manager keyed with the new emulator
+    // config.
+    const oldManager = this.authEventManager_;
+
+    // If authEventManager_ was previously set, we know authDomain_ is set as
+    // well.
+    this.authEventManager_ = fireauth.AuthEventManager.getManager(
+        /** @type {string} */ (this.authDomain_), this.apiKey_, this.appName_,
+        this.emulatorConfig_);
+    if (this.popupRedirectEnabled_) {
+      oldManager.unsubscribe(this);
+      this.authEventManager_.subscribe(this);
+    }
+  }
 };
 
 
@@ -1823,7 +1842,8 @@ fireauth.AuthUser.prototype.runOperationWithPopup_ =
             firebase.SDK_VERSION || null,
             null,
             null,
-            this['tenantId']);
+            this['tenantId'],
+            this.emulatorConfig_);
   }
   // The popup must have a name, otherwise when successive popups are triggered
   // they will all render in the same instance and none will succeed since the

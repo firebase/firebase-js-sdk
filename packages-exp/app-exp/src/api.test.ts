@@ -74,15 +74,85 @@ describe('API tests', () => {
       expect(app2.name).to.equal(appName);
     });
 
-    it('throws when creating duplicate DEDAULT Apps', () => {
-      initializeApp({});
-      expect(() => initializeApp({})).throws(/\[DEFAULT\].*exists/i);
+    it('can be called more than once and returns the same instance if the options and config are the same', () => {
+      const app = initializeApp(
+        {
+          apiKey: 'test1'
+        },
+        { automaticDataCollectionEnabled: true }
+      );
+      expect(
+        initializeApp(
+          {
+            apiKey: 'test1'
+          },
+          { automaticDataCollectionEnabled: true }
+        )
+      ).to.equal(app);
     });
 
-    it('throws when creating duplicate named Apps', () => {
+    it('throws when creating duplicate DEDAULT Apps with different options', () => {
+      initializeApp({
+        apiKey: 'test1'
+      });
+      expect(() =>
+        initializeApp({
+          apiKey: 'test2'
+        })
+      ).throws(/\[DEFAULT\].*exists/i);
+    });
+
+    it('throws when creating duplicate named Apps with different options', () => {
       const appName = 'MyApp';
-      initializeApp({}, appName);
-      expect(() => initializeApp({}, appName)).throws(/'MyApp'.*exists/i);
+      initializeApp(
+        {
+          apiKey: 'test1'
+        },
+        appName
+      );
+      expect(() =>
+        initializeApp(
+          {
+            apiKey: 'test2'
+          },
+          appName
+        )
+      ).throws(/'MyApp'.*exists/i);
+    });
+
+    it('throws when creating duplicate DEDAULT Apps with different config values', () => {
+      initializeApp(
+        {
+          apiKey: 'test1'
+        },
+        { automaticDataCollectionEnabled: true }
+      );
+      expect(() =>
+        initializeApp(
+          {
+            apiKey: 'test1'
+          },
+          { automaticDataCollectionEnabled: false }
+        )
+      ).throws(/\[DEFAULT\].*exists/i);
+    });
+
+    it('throws when creating duplicate named Apps with different config values', () => {
+      const appName = 'MyApp';
+      initializeApp(
+        {
+          apiKey: 'test1'
+        },
+        { name: appName, automaticDataCollectionEnabled: true }
+      );
+      expect(() =>
+        initializeApp(
+          {
+            apiKey: 'test1'
+          },
+          { name: appName, automaticDataCollectionEnabled: false }
+        )
+      ).throws(/'MyApp'.*exists/i);
     });
 
     it('takes an object as the second parameter to create named App', () => {

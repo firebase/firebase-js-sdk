@@ -18,13 +18,14 @@
 import * as types from '@firebase/storage-types';
 import { FirebaseApp } from '@firebase/app-types';
 
-import { ref, _Location } from '../exp/api'; // import from the exp public API
-import { ReferenceCompat } from './reference';
 import {
-  isUrl,
-  StorageService,
-  useStorageEmulator as internalUseEmulator
-} from '../src/service';
+  ref,
+  _Location,
+  connectStorageEmulator,
+  FirebaseStorage
+} from '../exp/api'; // import from the exp public API
+import { ReferenceCompat } from './reference';
+import { isUrl, FirebaseStorageImpl } from '../src/service';
 import { invalidArgument } from '../src/implementation/error';
 import { Compat } from '@firebase/util';
 
@@ -33,17 +34,9 @@ import { Compat } from '@firebase/util';
  * @param opt_url gs:// url to a custom Storage Bucket
  */
 export class StorageServiceCompat
-  implements types.FirebaseStorage, Compat<StorageService> {
-  constructor(public app: FirebaseApp, readonly _delegate: StorageService) {}
-
-  INTERNAL = {
-    /**
-     * Called when the associated app is deleted.
-     */
-    delete: () => {
-      return this._delegate._delete();
-    }
-  };
+  implements types.FirebaseStorage, Compat<FirebaseStorage>
+{
+  constructor(public app: FirebaseApp, readonly _delegate: FirebaseStorage) {}
 
   get maxOperationRetryTime(): number {
     return this._delegate.maxOperationRetryTime;
@@ -77,7 +70,7 @@ export class StorageServiceCompat
       );
     }
     try {
-      _Location.makeFromUrl(url, this._delegate.host);
+      _Location.makeFromUrl(url, (this._delegate as FirebaseStorageImpl).host);
     } catch (e) {
       throw invalidArgument(
         'refFromUrl() expected a valid full URL but got an invalid one.'
@@ -95,6 +88,6 @@ export class StorageServiceCompat
   }
 
   useEmulator(host: string, port: number): void {
-    internalUseEmulator(this._delegate, host, port);
+    connectStorageEmulator(this._delegate, host, port);
   }
 }

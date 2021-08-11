@@ -16,6 +16,7 @@
  */
 
 import { unknown, invalidFormat } from './error';
+import { decodeBase64 } from '../platform/base64';
 
 /**
  * An enumeration of the possible string formats for upload.
@@ -178,7 +179,7 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
   }
   let bytes;
   try {
-    bytes = atob(value);
+    bytes = decodeBase64(value);
   } catch (e) {
     throw invalidFormat(format, 'Invalid character found');
   }

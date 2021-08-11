@@ -48,7 +48,7 @@ export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
 
 describe('FirebaseStorage Exp', () => {
   let app: FirebaseApp;
-  let storage: types.StorageService;
+  let storage: types.FirebaseStorage;
 
   beforeEach(async () => {
     app = initializeApp({

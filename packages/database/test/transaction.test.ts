@@ -1500,4 +1500,34 @@ describe('Transaction Tests', () => {
       done();
     });
   });
+
+  it('Can listen to transaction changes', async () => {
+    // Repro for https://github.com/firebase/firebase-js-sdk/issues/5195
+    let latestValue = 0;
+
+    const ref = getRandomNode() as Reference;
+
+    let deferred = new Deferred<void>();
+    ref.on('value', snap => {
+      latestValue = snap.val() as number;
+      deferred.resolve();
+    });
+
+    async function incrementViaTransaction() {
+      deferred = new Deferred<void>();
+      await ref.transaction(currentData => {
+        return (currentData as number) + 1;
+      });
+      // Wait for the snapshot listener to fire. They are not invoked inline
+      // for transactions.
+      await deferred.promise;
+    }
+
+    expect(latestValue).to.equal(0);
+
+    await incrementViaTransaction();
+    expect(latestValue).to.equal(1);
+    await incrementViaTransaction();
+    expect(latestValue).to.equal(2);
+  });
 });

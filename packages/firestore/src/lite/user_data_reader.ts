@@ -59,7 +59,7 @@ import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
 
 import { Bytes } from './bytes';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
@@ -346,9 +346,7 @@ export class UserDataReader {
   }
 }
 
-export function newUserDataReader(
-  firestore: FirebaseFirestore
-): UserDataReader {
+export function newUserDataReader(firestore: Firestore): UserDataReader {
   const settings = firestore._freezeSettings();
   const serializer = newSerializer(firestore._databaseId);
   return new UserDataReader(

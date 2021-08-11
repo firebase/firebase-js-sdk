@@ -17,7 +17,7 @@
 
 import { FirebaseApp, _getProvider, getApp } from '@firebase/app-exp';
 import {
-  FirebaseMessaging,
+  Messaging,
   GetTokenOptions,
   MessagePayload
 } from './interfaces/public-types';
@@ -42,9 +42,7 @@ import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryM
  *
  * @public
  */
-export function getMessagingInWindow(
-  app: FirebaseApp = getApp()
-): FirebaseMessaging {
+export function getMessagingInWindow(app: FirebaseApp = getApp()): Messaging {
   return _getProvider(getModularInstance(app), 'messaging-exp').getImmediate();
 }
 
@@ -55,9 +53,7 @@ export function getMessagingInWindow(
  *
  * @public
  */
-export function getMessagingInSw(
-  app: FirebaseApp = getApp()
-): FirebaseMessaging {
+export function getMessagingInSw(app: FirebaseApp = getApp()): Messaging {
   return _getProvider(
     getModularInstance(app),
     'messaging-sw-exp'
@@ -80,7 +76,7 @@ export function getMessagingInSw(
  * @public
  */
 export async function getToken(
-  messaging: FirebaseMessaging,
+  messaging: Messaging,
   options?: GetTokenOptions
 ): Promise<string> {
   messaging = getModularInstance(messaging);
@@ -97,7 +93,7 @@ export async function getToken(
  *
  * @public
  */
-export function deleteToken(messaging: FirebaseMessaging): Promise<boolean> {
+export function deleteToken(messaging: Messaging): Promise<boolean> {
   messaging = getModularInstance(messaging);
   return _deleteToken(messaging as MessagingService);
 }
@@ -116,7 +112,7 @@ export function deleteToken(messaging: FirebaseMessaging): Promise<boolean> {
  * @public
  */
 export function onMessage(
-  messaging: FirebaseMessaging,
+  messaging: Messaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
   messaging = getModularInstance(messaging);
@@ -136,7 +132,7 @@ export function onMessage(
  * @public
  */
 export function onBackgroundMessage(
-  messaging: FirebaseMessaging,
+  messaging: Messaging,
   nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
 ): Unsubscribe {
   messaging = getModularInstance(messaging);

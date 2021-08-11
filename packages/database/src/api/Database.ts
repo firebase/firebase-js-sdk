@@ -26,7 +26,7 @@ import {
 
 import {
   goOnline,
-  useDatabaseEmulator,
+  connectDatabaseEmulator,
   goOffline,
   ref,
   refFromURL,
@@ -78,7 +78,7 @@ export class Database implements FirebaseService, Compat<ExpDatabase> {
       mockUserToken?: EmulatorMockTokenOptions;
     } = {}
   ): void {
-    useDatabaseEmulator(this._delegate, host, port, options);
+    connectDatabaseEmulator(this._delegate, host, port, options);
   }
 
   /**

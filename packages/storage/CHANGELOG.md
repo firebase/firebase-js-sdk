@@ -1,5 +1,46 @@
 #Unreleased
 
+## 0.6.2
+
+### Patch Changes
+
+- [`5bda08eee`](https://github.com/firebase/firebase-js-sdk/commit/5bda08eee4e0c4007b1d858edcbcc8020604d560) [#5245](https://github.com/firebase/firebase-js-sdk/pull/5245) - Adds a browser CJS build as ./dist/index.browser.cjs.js.
+
+## 0.6.1
+
+### Patch Changes
+
+- Updated dependencies [[`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c)]:
+  - @firebase/util@1.2.0
+  - @firebase/component@0.5.5
+
+## 0.6.0
+
+### Minor Changes
+
+- [`b3caa5158`](https://github.com/firebase/firebase-js-sdk/commit/b3caa515846d2bfcf4a95dedff69f08d503cbfc2) [#5149](https://github.com/firebase/firebase-js-sdk/pull/5149) - Add NodeJS support to Cloud Storage for Firebase. This release changes the `main` field in package.json to point to a Node specific build. If you are building a bundle for borwser usage, please make sure that your bundler uses the `browser` field (the default).
+
+## 0.5.6
+
+### Patch Changes
+
+- Updated dependencies [[`56a6a9d4a`](https://github.com/firebase/firebase-js-sdk/commit/56a6a9d4af2766154584a0f66d3c4d8024d74ba5)]:
+  - @firebase/component@0.5.4
+
+## 0.5.5
+
+### Patch Changes
+
+- Updated dependencies [[`725ab4684`](https://github.com/firebase/firebase-js-sdk/commit/725ab4684ef0999a12f71e704c204a00fb030e5d)]:
+  - @firebase/component@0.5.3
+
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies [[`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b)]:
+  - @firebase/component@0.5.2
+
 ## 0.5.3
 
 ### Patch Changes

@@ -1,12 +1,12 @@
 {
   "name": "@firebase/storage",
-  "version": "0.5.3",
+  "version": "0.6.2",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
-  "browser": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "main": "dist/index.node.cjs.js",
+  "module": "dist/index.browser.esm.js",
+  "browser": "dist/index.browser.esm.js",
+  "esm2017": "dist/index.browser.esm2017.js",
   "files": [
     "dist",
     "exp/dist"
@@ -21,8 +21,8 @@
     "build:exp:release": "yarn build:exp && yarn build:compat",
     "build:deps": "lerna run --scope @firebase/storage --include-dependencies build",
     "dev": "rollup -c -w",
-    "test": "run-p test:browser lint",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
+    "test": "run-p test:browser test:node lint",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser test:node",
     "test:browser:compat:unit": "karma start --single-run --compat --unit",
     "test:browser:exp:unit": "karma start --single-run --exp --unit",
     "test:browser:compat:integration": "karma start --single-run --compat --integration",
@@ -30,6 +30,7 @@
     "test:browser:compat": "karma start --single-run --compat",
     "test:browser:exp": "karma start --single-run --exp",
     "test:browser": "karma start --single-run",
+    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input exp/dist/storage-public.d.ts --output exp/dist/storage-public.d.ts",
@@ -38,8 +39,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/storage-types": "0.4.1",
-    "@firebase/util": "1.1.0",
-    "@firebase/component": "0.5.1",
+    "@firebase/util": "1.2.0",
+    "@firebase/component": "0.5.5",
+    "node-fetch": "2.6.1",
     "tslib": "^2.1.0"
   },
   "peerDependencies": {
@@ -47,11 +49,12 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.24",
-    "@firebase/auth": "0.16.6",
-    "rollup": "2.35.1",
+    "@firebase/app": "0.6.29",
+    "@firebase/auth": "0.16.8",
+    "rollup": "2.52.2",
+    "@rollup/plugin-alias": "3.1.2",
     "@rollup/plugin-json": "4.1.0",
-    "rollup-plugin-typescript2": "0.29.0",
+    "rollup-plugin-typescript2": "0.30.0",
     "typescript": "4.2.2"
   },
   "repository": {

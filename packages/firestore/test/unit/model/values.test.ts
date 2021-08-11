@@ -25,7 +25,8 @@ import {
   valueCompare,
   valueEquals,
   estimateByteSize,
-  refValue
+  refValue,
+  deepClone
 } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -404,5 +405,42 @@ describe('Values', () => {
         })
       )
     ).to.equal('{a:1,b:2,c:3}');
+  });
+
+  it('clones properties without normalization', () => {
+    const values = [
+      { integerValue: '1' },
+      { integerValue: 1 },
+      { doubleValue: '2' },
+      { doubleValue: 2 },
+      { timestampValue: '2007-04-05T14:30:01Z' },
+      { timestampValue: { seconds: 1175783401 } },
+      { timestampValue: '2007-04-05T14:30:01.999Z' },
+      {
+        timestampValue: { seconds: 1175783401, nanos: 999000000 }
+      },
+      { timestampValue: '2007-04-05T14:30:02Z' },
+      { timestampValue: { seconds: 1175783402 } },
+      { timestampValue: '2007-04-05T14:30:02.100Z' },
+      {
+        timestampValue: { seconds: 1175783402, nanos: 100000000 }
+      },
+      { timestampValue: '2007-04-05T14:30:02.100001Z' },
+      {
+        timestampValue: { seconds: 1175783402, nanos: 100001000 }
+      },
+      { bytesValue: new Uint8Array([0, 1, 2]) },
+      { bytesValue: 'AAEC' },
+      { bytesValue: new Uint8Array([0, 1, 3]) },
+      { bytesValue: 'AAED' }
+    ];
+
+    for (const value of values) {
+      expect(deepClone(value)).to.deep.equal(value);
+      const mapValue = { mapValue: { fields: { foo: value } } };
+      expect(deepClone(mapValue)).to.deep.equal(mapValue);
+      const arrayValue = { arrayValue: { values: [value] } };
+      expect(deepClone(arrayValue)).to.deep.equal(arrayValue);
+    }
   });
 });

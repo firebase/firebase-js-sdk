@@ -7,10 +7,8 @@
   },
   "packageRules": [
     {
-      "minor": {
-        "groupName": "all non-major dependencies",
-        "groupSlug": "all-minor-patch"
-      },
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "all non-major dependencies",
       "excludePackageNames": ["typescript"]
     }
   ],
@@ -21,7 +19,8 @@
     "rollup-plugin-copy-assets",
     "idb",
     "whatwg-fetch",
-    "typedoc"
+    "typedoc",
+    "@microsoft/tsdoc"
   ],
   "assignees": [
     "@Feiyang1",

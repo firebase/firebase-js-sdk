@@ -19,10 +19,11 @@ const path = require('path');
 const webpack = require('webpack');
 
 /**
- * A regular expression used to replace Firestore's platform specific modules,
- * which are located under 'packages/firestore/src/platform/'.
+ * A regular expression used to replace Firestore's and Storage's platform-
+ * specific modules, which are located under
+ * 'packages/(component)/src/platform/'.
  */
-const FIRESTORE_PLATFORM_RE = /^(.*)\/platform\/([^.\/]*)(\.ts)?$/;
+const PLATFORM_RE = /^(.*)\/platform\/([^.\/]*)(\.ts)?$/;
 
 module.exports = {
   mode: 'development',
@@ -100,16 +101,13 @@ module.exports = {
     symlinks: false
   },
   plugins: [
-    new webpack.NormalModuleReplacementPlugin(
-      FIRESTORE_PLATFORM_RE,
-      resource => {
-        const targetPlatform = process.env.TEST_PLATFORM || 'browser';
-        resource.request = resource.request.replace(
-          FIRESTORE_PLATFORM_RE,
-          `$1/platform/${targetPlatform}/$2.ts`
-        );
-      }
-    ),
+    new webpack.NormalModuleReplacementPlugin(PLATFORM_RE, resource => {
+      const targetPlatform = process.env.TEST_PLATFORM || 'browser';
+      resource.request = resource.request.replace(
+        PLATFORM_RE,
+        `$1/platform/${targetPlatform}/$2.ts`
+      );
+    }),
     new webpack.EnvironmentPlugin([
       'RTDB_EMULATOR_PORT',
       'RTDB_EMULATOR_NAMESPACE'

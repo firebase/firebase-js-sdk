@@ -17,6 +17,11 @@ export interface AnalyticsCallOptions {
 }
 
 // @public
+export interface AnalyticsSettings {
+    config?: GtagConfigParams | EventParams;
+}
+
+// @public
 export interface ControlParams {
     // (undocumented)
     event_callback?: () => void;
@@ -46,13 +51,13 @@ export type EventNameString = 'add_payment_info' | 'add_shipping_info' | 'add_to
 // @public
 export interface EventParams {
     // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
     affiliation?: string;
     // (undocumented)
     checkout_option?: string;
     // (undocumented)
     checkout_step?: number;
-    // (undocumented)
-    content_id?: string;
     // (undocumented)
     content_type?: string;
     // (undocumented)
@@ -67,6 +72,10 @@ export interface EventParams {
     event_label?: string;
     // (undocumented)
     fatal?: boolean;
+    firebase_screen?: string;
+    firebase_screen_class?: string;
+    // (undocumented)
+    item_id?: string;
     // (undocumented)
     item_list_id?: string;
     // (undocumented)
@@ -109,6 +118,25 @@ export interface EventParams {
 
 // @public
 export function getAnalytics(app?: FirebaseApp): Analytics;
+
+// @public
+export interface GtagConfigParams {
+    'allow_google_signals?': boolean;
+    // (undocumented)
+    [key: string]: unknown;
+    'allow_ad_personalization_signals'?: boolean;
+    'cookie_domain'?: string;
+    'cookie_expires'?: number;
+    'cookie_flags'?: string;
+    'cookie_prefix'?: string;
+    'cookie_update'?: boolean;
+    'page_location'?: string;
+    'page_title'?: string;
+    'send_page_view'?: boolean;
+}
+
+// @public
+export function initializeAnalytics(app: FirebaseApp, options?: AnalyticsSettings): Analytics;
 
 // @public
 export function isSupported(): Promise<boolean>;
@@ -228,7 +256,6 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'exception', e
 export function logEvent(analyticsInstance: Analytics, eventName: 'generate_lead', eventParams?: {
     value?: EventParams['value'];
     currency?: EventParams['currency'];
-    transaction_id?: EventParams['transaction_id'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
@@ -261,11 +288,8 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'purchase' | '
 
 // @public
 export function logEvent(analyticsInstance: Analytics, eventName: 'screen_view', eventParams?: {
-    app_name: string;
-    screen_name: EventParams['screen_name'];
-    app_id?: string;
-    app_version?: string;
-    app_installer_id?: string;
+    firebase_screen: EventParams['firebase_screen'];
+    firebase_screen_class: EventParams['firebase_screen_class'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
@@ -277,10 +301,8 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'search' | 'vi
 
 // @public
 export function logEvent(analyticsInstance: Analytics, eventName: 'select_content', eventParams?: {
-    items?: EventParams['items'];
-    promotions?: EventParams['promotions'];
     content_type?: EventParams['content_type'];
-    content_id?: EventParams['content_id'];
+    item_id?: EventParams['item_id'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 
@@ -311,7 +333,7 @@ export function logEvent(analyticsInstance: Analytics, eventName: 'set_checkout_
 export function logEvent(analyticsInstance: Analytics, eventName: 'share', eventParams?: {
     method?: EventParams['method'];
     content_type?: EventParams['content_type'];
-    content_id?: EventParams['content_id'];
+    item_id?: EventParams['item_id'];
     [key: string]: any;
 }, options?: AnalyticsCallOptions): void;
 

@@ -1,5 +1,11 @@
 # @firebase/webchannel-wrapper
 
+## 0.5.1
+
+### Patch Changes
+
+- [`85f73abb5`](https://github.com/firebase/firebase-js-sdk/commit/85f73abb5c5dd5625c82b874adbfbb4acd1d70d7) [#5099](https://github.com/firebase/firebase-js-sdk/pull/5099) - Added a new export for FetchXmlHttpFactory.
+
 ## 0.5.0
 
 ### Minor Changes

@@ -153,6 +153,31 @@ describe('Testing Module Tests', function () {
       .catch(() => {});
   });
 
+  it('assertFails() if message contains unauthorized', async function () {
+    const success = Promise.resolve('success');
+    const permissionDenied = Promise.reject({
+      message: 'User does not have permission to access \'file\'. (storage/unauthorized)'
+    });
+    const otherFailure = Promise.reject('failure');
+    await firebase
+      .assertFails(success)
+      .then(() => {
+        throw new Error('Expected success to fail.');
+      })
+      .catch(() => {});
+
+    await firebase.assertFails(permissionDenied).catch(() => {
+      throw new Error('Expected permissionDenied to succeed.');
+    });
+
+    await firebase
+      .assertFails(otherFailure)
+      .then(() => {
+        throw new Error('Expected otherFailure to fail.');
+      })
+      .catch(() => {});
+  });
+
   it('discoverEmulators() finds all running emulators', async () => {
     const options = await firebase.discoverEmulators();
 
@@ -279,7 +304,7 @@ describe('Testing Module Tests', function () {
     // TODO: This test cannot be enabled without adding credentials to the test environment
     //       due to an underlying issue with firebase-admin storage. For now we will run it
     //       locally but not in CI.
-    if (process.env.CI !== "true") {
+    if (process.env.CI !== 'true') {
       await firebase.assertSucceeds(
         app.storage().bucket().file('/foo/bar.txt').save('Hello, World!')
       );

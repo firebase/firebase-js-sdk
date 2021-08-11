@@ -1,5 +1,52 @@
 # @firebase/firestore
 
+## 2.3.10
+
+### Patch Changes
+
+- Updated dependencies [[`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c)]:
+  - @firebase/util@1.2.0
+  - @firebase/component@0.5.5
+
+## 2.3.9
+
+### Patch Changes
+
+- [`b51be1da3`](https://github.com/firebase/firebase-js-sdk/commit/b51be1da318a8f79ff159bcb8be9797d192519fd) [#5166](https://github.com/firebase/firebase-js-sdk/pull/5166) (fixes [#4076](https://github.com/firebase/firebase-js-sdk/issues/4076)) - The SDK no longer accesses IndexedDB during a page unload event on Safari 14. This aims to reduce the occurrence of an IndexedDB bug in Safari (https://bugs.webkit.org/show_bug.cgi?id=226547).
+
+* [`2cd9d7c39`](https://github.com/firebase/firebase-js-sdk/commit/2cd9d7c394dd0c84f285fbcfa4b0a5d79509451f) [#5147](https://github.com/firebase/firebase-js-sdk/pull/5147) (fixes [#5047](https://github.com/firebase/firebase-js-sdk/issues/5047)) - Fixed an issue that prevented Timestamps from being used via `update()` when connected to the Emulator
+
+## 2.3.8
+
+### Patch Changes
+
+- Updated dependencies [[`85f73abb5`](https://github.com/firebase/firebase-js-sdk/commit/85f73abb5c5dd5625c82b874adbfbb4acd1d70d7), [`56a6a9d4a`](https://github.com/firebase/firebase-js-sdk/commit/56a6a9d4af2766154584a0f66d3c4d8024d74ba5)]:
+  - @firebase/webchannel-wrapper@0.5.1
+  - @firebase/component@0.5.4
+
+## 2.3.7
+
+### Patch Changes
+
+- Updated dependencies [[`725ab4684`](https://github.com/firebase/firebase-js-sdk/commit/725ab4684ef0999a12f71e704c204a00fb030e5d)]:
+  - @firebase/component@0.5.3
+
+## 2.3.6
+
+### Patch Changes
+
+- [`1d54447ca`](https://github.com/firebase/firebase-js-sdk/commit/1d54447ca928ab50228600858978bb3b341c0507) [#5010](https://github.com/firebase/firebase-js-sdk/pull/5010) - Fixes a regression that prevented Firestore from detecting Auth during its initial initialization, which could cause some writes to not be send.
+  [4971](https://github.com/firebase/firebase-js-sdk/pull/4971) didn't actually fix it.
+
+## 2.3.5
+
+### Patch Changes
+
+- [`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b) [#4971](https://github.com/firebase/firebase-js-sdk/pull/4971) - Fixes a regression that prevented Firestore from detecting Auth during its initial initialization, which could cause some writes to not be send.
+
+- Updated dependencies [[`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b)]:
+  - @firebase/component@0.5.2
+
 ## 2.3.4
 
 ### Patch Changes

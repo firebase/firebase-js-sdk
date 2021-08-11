@@ -39,7 +39,7 @@ export function getFakeApp(overrides: Record<string, any> = {}): FirebaseApp {
       storageBucket: 'storageBucket',
       appId: '1:777777777777:web:d93b5ca1475efe57'
     } as any,
-    automaticDataCollectionEnabled: true,
+    automaticDataCollectionEnabled: false,
     delete: async () => {},
     // This won't be used in tests.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

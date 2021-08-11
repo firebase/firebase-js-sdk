@@ -38,7 +38,7 @@ export default [
         'node',
         getImportPathTransformer({
           // ../../exp/index
-          pattern: /^.*exp\/index$/g,
+          pattern: /^.*exp\/index$/,
           template: ['@firebase/firestore']
         })
       ),

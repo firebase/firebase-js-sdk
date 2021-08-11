@@ -17,7 +17,7 @@
 
 import '@firebase/installations-exp';
 
-import { FirebaseMessaging } from './interfaces/public-types';
+import { Messaging } from './interfaces/public-types';
 import { registerMessagingInSw } from './helpers/register';
 
 export {
@@ -29,7 +29,7 @@ export { isSwSupported as isSupported } from './api/isSupported';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging-sw-exp': FirebaseMessaging;
+    'messaging-sw-exp': Messaging;
   }
 }
 

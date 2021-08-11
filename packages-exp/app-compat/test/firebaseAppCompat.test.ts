@@ -346,15 +346,61 @@ function firebaseAppTests(
       expect(firebase.apps.length).to.eq(2);
     });
 
-    it('duplicate DEFAULT initialize is an error.', () => {
-      firebase.initializeApp({});
-      expect(() => firebase.initializeApp({})).throws(/\[DEFAULT\].*exists/i);
+    it('initializeApp can be called more than once and returns the same instance if the options and config are the same', () => {
+      const app = firebase.initializeApp(
+        {
+          apiKey: 'test1'
+        },
+        { automaticDataCollectionEnabled: true }
+      );
+      expect(
+        firebase.initializeApp(
+          {
+            apiKey: 'test1'
+          },
+          { automaticDataCollectionEnabled: true }
+        )
+      ).to.equal(app);
     });
 
-    it('duplicate named App initialize is an error.', () => {
-      firebase.initializeApp({}, 'abc');
+    it('duplicate DEFAULT initialize with different options is an error.', () => {
+      firebase.initializeApp({ apiKey: 'key1' });
+      expect(() => firebase.initializeApp({ apiKey: 'key2' })).throws(
+        /\[DEFAULT\].*exists/i
+      );
+    });
 
-      expect(() => firebase.initializeApp({}, 'abc')).throws(/'abc'.*exists/i);
+    it('duplicate named App initialize with different options is an error.', () => {
+      firebase.initializeApp({ apiKey: 'key1', appId: 'id' }, 'abc');
+      expect(() => firebase.initializeApp({ apiKey: 'key1' }, 'abc')).throws(
+        /'abc'.*exists/i
+      );
+    });
+
+    it('duplicate DEFAULT initialize with different config is an error.', () => {
+      firebase.initializeApp(
+        { apiKey: 'key1' },
+        { automaticDataCollectionEnabled: true }
+      );
+      expect(() =>
+        firebase.initializeApp(
+          { apiKey: 'key1' },
+          { automaticDataCollectionEnabled: false }
+        )
+      ).throws(/\[DEFAULT\].*exists/i);
+    });
+
+    it('duplicate named App initialize with different config is an error.', () => {
+      firebase.initializeApp(
+        { apiKey: 'key1' },
+        { name: 'abc', automaticDataCollectionEnabled: true }
+      );
+      expect(() =>
+        firebase.initializeApp(
+          { apiKey: 'key1' },
+          { name: 'abc', automaticDataCollectionEnabled: false }
+        )
+      ).throws(/'abc'.*exists/i);
     });
 
     it('automaticDataCollectionEnabled is `false` by default', () => {

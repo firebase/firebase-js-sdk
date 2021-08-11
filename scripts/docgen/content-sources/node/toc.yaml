@@ -176,3 +176,29 @@ toc:
     path: /docs/reference/node/firebase.functions.HttpsCallableResult
   - title: "HttpsError"
     path: /docs/reference/node/firebase.functions.HttpsError
+
+- title: "firebase.storage"
+  path: /docs/reference/node/firebase.storage
+  section:
+  - title: "FirebaseStorageError"
+    path: /docs/reference/node/firebase.storage.FirebaseStorageError
+  - title: "FullMetadata"
+    path: /docs/reference/node/firebase.storage.FullMetadata
+  - title: "ListOptions"
+    path: /docs/reference/node/firebase.storage.ListOptions
+  - title: "ListResult"
+    path: /docs/reference/node/firebase.storage.ListResult
+  - title: "Reference"
+    path: /docs/reference/node/firebase.storage.Reference
+  - title: "SettableMetadata"
+    path: /docs/reference/node/firebase.storage.SettableMetadata
+  - title: "Storage"
+    path: /docs/reference/node/firebase.storage.Storage
+  - title: "StorageObserver"
+    path: /docs/reference/node/firebase.storage.StorageObserver
+  - title: "UploadMetadata"
+    path: /docs/reference/node/firebase.storage.UploadMetadata
+  - title: "UploadTask"
+    path: /docs/reference/node/firebase.storage.UploadTask
+  - title: "UploadTaskSnapshot"
+    path: /docs/reference/node/firebase.storage.UploadTaskSnapshot

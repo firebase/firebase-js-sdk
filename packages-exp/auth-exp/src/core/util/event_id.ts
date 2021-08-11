@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
-export function _generateEventId(prefix?: string): string {
-  return `${prefix ? prefix : ''}${Math.floor(Math.random() * 1000000000)}`;
+export function _generateEventId(prefix = '', digits = 10): string {
+  let random = '';
+  for (let i = 0; i < digits; i++) {
+    random += Math.floor(Math.random() * 10);
+  }
+  return prefix + random;
 }

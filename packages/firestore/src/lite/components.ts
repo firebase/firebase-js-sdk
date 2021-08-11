@@ -26,7 +26,7 @@ import { Datastore, newDatastore } from '../remote/datastore';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 
-import { FirestoreSettings } from './settings';
+import { FirestoreSettingsImpl } from './settings';
 
 export const LOG_TAG = 'ComponentProvider';
 
@@ -46,7 +46,7 @@ export interface FirestoreService extends _FirebaseService {
   _databaseId: DatabaseId;
   _terminated: boolean;
 
-  _freezeSettings(): FirestoreSettings;
+  _freezeSettings(): FirestoreSettingsImpl;
 }
 /**
  * An instance map that ensures only one Datastore exists per Firestore
@@ -104,7 +104,7 @@ export function makeDatabaseInfo(
   databaseId: DatabaseId,
   appId: string,
   persistenceKey: string,
-  settings: FirestoreSettings
+  settings: FirestoreSettingsImpl
 ): DatabaseInfo {
   return new DatabaseInfo(
     databaseId,

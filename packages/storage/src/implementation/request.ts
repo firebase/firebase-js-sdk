@@ -31,8 +31,8 @@ import {
 import { RequestInfo } from './requestinfo';
 import { isJustDef } from './type';
 import { makeQueryString } from './url';
-import { Headers, XhrIo, ErrorCode } from './xhrio';
-import { XhrIoPool } from './xhriopool';
+import { Headers, Connection, ErrorCode } from './connection';
+import { ConnectionPool } from './connectionPool';
 
 export interface Request<T> {
   getPromise(): Promise<T>;
@@ -54,20 +54,20 @@ class NetworkRequest<T> implements Request<T> {
   private body_: string | Blob | Uint8Array | null;
   private successCodes_: number[];
   private additionalRetryCodes_: number[];
-  private pendingXhr_: XhrIo | null = null;
+  private pendingConnection_: Connection | null = null;
   private backoffId_: backoffId | null = null;
   private resolve_!: (value?: T | PromiseLike<T>) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private reject_!: (reason?: any) => void;
   private canceled_: boolean = false;
   private appDelete_: boolean = false;
-  private callback_: (p1: XhrIo, p2: string) => T;
+  private callback_: (p1: Connection, p2: string) => T;
   private errorCallback_:
-    | ((p1: XhrIo, p2: FirebaseStorageError) => FirebaseStorageError)
+    | ((p1: Connection, p2: FirebaseStorageError) => FirebaseStorageError)
     | null;
   private progressCallback_: ((p1: number, p2: number) => void) | null;
   private timeout_: number;
-  private pool_: XhrIoPool;
+  private pool_: ConnectionPool;
   promise_: Promise<T>;
 
   constructor(
@@ -77,13 +77,13 @@ class NetworkRequest<T> implements Request<T> {
     body: string | Blob | Uint8Array | null,
     successCodes: number[],
     additionalRetryCodes: number[],
-    callback: (p1: XhrIo, p2: string) => T,
+    callback: (p1: Connection, p2: string) => T,
     errorCallback:
-      | ((p1: XhrIo, p2: FirebaseStorageError) => FirebaseStorageError)
+      | ((p1: Connection, p2: FirebaseStorageError) => FirebaseStorageError)
       | null,
     timeout: number,
     progressCallback: ((p1: number, p2: number) => void) | null,
-    pool: XhrIoPool
+    pool: ConnectionPool
   ) {
     this.url_ = url;
     this.method_ = method;
@@ -117,8 +117,8 @@ class NetworkRequest<T> implements Request<T> {
         backoffCallback(false, new RequestEndStatus(false, null, true));
         return;
       }
-      const xhr = self.pool_.createXhrIo();
-      self.pendingXhr_ = xhr;
+      const connection = self.pool_.createConnection();
+      self.pendingConnection_ = connection;
 
       function progressListener(progressEvent: ProgressEvent): void {
         const loaded = progressEvent.loaded;
@@ -128,22 +128,21 @@ class NetworkRequest<T> implements Request<T> {
         }
       }
       if (self.progressCallback_ !== null) {
-        xhr.addUploadProgressListener(progressListener);
+        connection.addUploadProgressListener(progressListener);
       }
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      xhr
+      connection
         .send(self.url_, self.method_, self.body_, self.headers_)
-        .then((xhr: XhrIo) => {
+        .then(() => {
           if (self.progressCallback_ !== null) {
-            xhr.removeUploadProgressListener(progressListener);
+            connection.removeUploadProgressListener(progressListener);
           }
-          self.pendingXhr_ = null;
-          xhr = xhr as XhrIo;
-          const hitServer = xhr.getErrorCode() === ErrorCode.NO_ERROR;
-          const status = xhr.getStatus();
+          self.pendingConnection_ = null;
+          const hitServer = connection.getErrorCode() === ErrorCode.NO_ERROR;
+          const status = connection.getStatus();
           if (!hitServer || self.isRetryStatusCode_(status)) {
-            const wasCanceled = xhr.getErrorCode() === ErrorCode.ABORT;
+            const wasCanceled = connection.getErrorCode() === ErrorCode.ABORT;
             backoffCallback(
               false,
               new RequestEndStatus(false, null, wasCanceled)
@@ -151,7 +150,7 @@ class NetworkRequest<T> implements Request<T> {
             return;
           }
           const successCode = self.successCodes_.indexOf(status) !== -1;
-          backoffCallback(true, new RequestEndStatus(successCode, xhr));
+          backoffCallback(true, new RequestEndStatus(successCode, connection));
         });
     }
 
@@ -165,10 +164,13 @@ class NetworkRequest<T> implements Request<T> {
     ): void {
       const resolve = self.resolve_;
       const reject = self.reject_;
-      const xhr = status.xhr as XhrIo;
+      const connection = status.connection as Connection;
       if (status.wasSuccessCode) {
         try {
-          const result = self.callback_(xhr, xhr.getResponseText());
+          const result = self.callback_(
+            connection,
+            connection.getResponseText()
+          );
           if (isJustDef(result)) {
             resolve(result);
           } else {
@@ -178,11 +180,11 @@ class NetworkRequest<T> implements Request<T> {
           reject(e);
         }
       } else {
-        if (xhr !== null) {
+        if (connection !== null) {
           const err = unknown();
-          err.serverResponse = xhr.getResponseText();
+          err.serverResponse = connection.getResponseText();
           if (self.errorCallback_) {
-            reject(self.errorCallback_(xhr, err));
+            reject(self.errorCallback_(connection, err));
           } else {
             reject(err);
           }
@@ -216,8 +218,8 @@ class NetworkRequest<T> implements Request<T> {
     if (this.backoffId_ !== null) {
       stop(this.backoffId_);
     }
-    if (this.pendingXhr_ !== null) {
-      this.pendingXhr_.abort();
+    if (this.pendingConnection_ !== null) {
+      this.pendingConnection_.abort();
     }
   }
 
@@ -250,7 +252,7 @@ export class RequestEndStatus {
 
   constructor(
     public wasSuccessCode: boolean,
-    public xhr: XhrIo | null,
+    public connection: Connection | null,
     canceled?: boolean
   ) {
     this.canceled = !!canceled;
@@ -294,7 +296,7 @@ export function makeRequest<T>(
   appId: string | null,
   authToken: string | null,
   appCheckToken: string | null,
-  pool: XhrIoPool,
+  pool: ConnectionPool,
   firebaseVersion?: string
 ): Request<T> {
   const queryPart = makeQueryString(requestInfo.urlParams);
