@@ -103,15 +103,15 @@ export async function _dispatchLogEvents(
           }
         );
 
-        if (response.ok) {
-          // existing the do-while interactive retry logic because a 200 response code has been
-          // returned.
+        // don't retry on 200s or non retriable errors
+        if (response.ok || (!response.ok && !isRetriableError(response))) {
           break;
         }
 
-        if (!response.ok) {
+        if (!response.ok && isRetriableError(response)) {
+          // rethrow to retry with quota
           throw new Error(
-            'Non-200 code is returned in fetch to Firelog endpoint.'
+            'a retriable Non-200 code is returned in fetch to Firelog endpoint. Retry'
           );
         }
       } catch (error) {
@@ -140,6 +140,17 @@ export async function _dispatchLogEvents(
   messaging.logEvents = [];
   // schedule for next logging
   _processQueue(messaging, LOG_INTERVAL_IN_MS);
+}
+
+function isRetriableError(response: Response): boolean {
+  const httpStatus = response.status;
+
+  return (
+    httpStatus === 429 ||
+    httpStatus === 500 ||
+    httpStatus === 503 ||
+    httpStatus === 504
+  );
 }
 
 export async function stageLog(

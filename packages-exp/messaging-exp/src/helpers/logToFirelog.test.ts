@@ -90,14 +90,14 @@ describe('logToFirelog', () => {
       expect(messaging.logEvents).to.be.empty;
     });
 
-    it('Retries when non-200 response returned ', async () => {
+    it('Retries when retriable(429) status returned ', async () => {
       // set up
       fetchStub.resolves(
         new Response(
           /** body= */ new Blob(),
           /** init= */ {
-            'status': 404,
-            'statusText': 'non-200 error returned'
+            'status': 429,
+            'statusText': 'retriable(429) error returned'
           }
         )
       );
@@ -109,6 +109,28 @@ describe('logToFirelog', () => {
 
       //assert
       expect(fetchStub).to.be.calledThrice;
+      expect(messaging.logEvents).to.be.empty;
+    });
+
+    it('Do not retry when non-retriable(405) status returned ', async () => {
+      // set up
+      fetchStub.resolves(
+        new Response(
+          /** body= */ new Blob(),
+          /** init= */ {
+            'status': 405,
+            'statusText': 'non-retriable(405) status returned'
+          }
+        )
+      );
+
+      messaging.logEvents.push(getFakeLogEvent());
+
+      // call
+      await LogModule._dispatchLogEvents(messaging);
+
+      //assert
+      expect(fetchStub).to.be.calledOnce;
       expect(messaging.logEvents).to.be.empty;
     });
 
