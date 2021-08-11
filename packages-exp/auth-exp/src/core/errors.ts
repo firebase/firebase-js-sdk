@@ -349,7 +349,10 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.WEB_STORAGE_UNSUPPORTED]:
       'This browser is not supported or 3rd party cookies and data may be disabled.',
     [AuthErrorCode.ALREADY_INITIALIZED]:
-      'Auth can only be initialized once per app.'
+      'initializeAuth() has already been called with ' +
+      'different options. To avoid this error, call initializeAuth() with the ' +
+      'same options as when it was originally called, or call getAuth() to return the' +
+      ' already initialized instance.'
   };
 }
 
