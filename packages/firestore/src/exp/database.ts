@@ -24,6 +24,7 @@ import {
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { deepEqual } from '../../../util/dist';
 
 import {
   IndexedDbOfflineComponentProvider,
@@ -129,23 +130,8 @@ export function initializeFirestore(
 
   if (provider.isInitialized()) {
     const existingInstance = provider.getImmediate();
-    const initialOptions = provider.getOptions() as FirestoreSettings;
-    // Every option can currently be compared shallowly.
-    // We could currently do a deepEqual() on `settings` but if we add
-    // a new option to `FirestoreSettings` that needs a custom
-    // comparison, it should be coded separately. This makes it less
-    // likely to be missed.
-    const shallowOptionsKeys: Array<keyof FirestoreSettings> = [
-      'cacheSizeBytes',
-      'experimentalAutoDetectLongPolling',
-      'experimentalForceLongPolling',
-      'host',
-      'ignoreUndefinedProperties',
-      'ssl'
-    ];
-    if (
-      shallowOptionsKeys.every(key => initialOptions[key] === settings[key])
-    ) {
+    const initialSettings = provider.getOptions() as FirestoreSettings;
+    if (deepEqual(initialSettings, settings)) {
       return existingInstance;
     } else {
       throw new FirestoreError(
