@@ -24,6 +24,7 @@ import type { app } from 'firebase-admin';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import * as request from 'request';
+import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import { Component, ComponentType } from '@firebase/component';
 import { base64Encode } from '@firebase/util';
@@ -159,7 +160,7 @@ export type FirebaseEmulatorOptions = {
 
 function trimmedBase64Encode(val: string): string {
   // Use base64url encoding and remove padding in the end (dot characters).
-  return base64Encode(val).replace(/\./g, '');
+  return base64Encode(val).replace(/\./g, "");
 }
 
 function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
@@ -497,7 +498,7 @@ function initializeApp(
       ComponentType.PRIVATE
     );
 
-    (app as unknown as _FirebaseApp)._addOrOverwriteComponent(
+    ((app as unknown) as _FirebaseApp)._addOrOverwriteComponent(
       mockAuthComponent
     );
   }
@@ -702,7 +703,7 @@ export function assertFails(pr: Promise<any>): any {
         errCode === 'permission-denied' ||
         errCode === 'permission_denied' ||
         errMessage.indexOf('permission_denied') >= 0 ||
-        errMessage.indexOf('permission denied') >= 0 ||
+        errMessage.indexOf('permission denied') >= 0 ||   
         // Storage permission errors contain message: (storage/unauthorized)
         errMessage.indexOf('unauthorized') >= 0;
 
