@@ -385,9 +385,6 @@ export interface Promotion {
     name?: string;
 }
 
-// @public (undocumented)
-export function registerAnalytics(): void;
-
 // @public
 export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enabled: boolean): void;
 
