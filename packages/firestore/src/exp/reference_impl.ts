@@ -46,7 +46,6 @@ import {
   Query,
   SetOptions,
   TypedUpdateData,
-  UpdateData,
   WithFieldValue
 } from '../lite/reference';
 import { applyFirestoreDataConverter } from '../lite/reference_impl';

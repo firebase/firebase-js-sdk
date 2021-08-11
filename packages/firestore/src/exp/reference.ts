@@ -25,6 +25,8 @@ export {
   queryEqual,
   SetOptions,
   DocumentData,
-  UpdateData,
+  TypedUpdateData as UpdateData,
+  NestedPartial,
+  WithFieldValue,
   refEqual
 } from '../lite/reference';

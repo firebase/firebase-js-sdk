@@ -64,6 +64,8 @@ export {
   SetOptions,
   DocumentData,
   UpdateData,
+  WithFieldValue,
+  NestedPartial,
   refEqual,
   queryEqual
 } from '../src/exp/reference';

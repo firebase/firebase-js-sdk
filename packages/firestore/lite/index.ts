@@ -40,7 +40,7 @@ export {
 export {
   SetOptions,
   DocumentData,
-  UpdateData,
+  TypedUpdateData as UpdateData,
   DocumentReference,
   Query,
   CollectionReference,

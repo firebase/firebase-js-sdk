@@ -30,7 +30,6 @@ import {
   NestedPartial,
   SetOptions,
   TypedUpdateData,
-  UpdateData,
   WithFieldValue
 } from './reference';
 import { applyFirestoreDataConverter } from './reference_impl';

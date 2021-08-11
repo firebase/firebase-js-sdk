@@ -32,7 +32,6 @@ import {
   NestedPartial,
   SetOptions,
   TypedUpdateData,
-  UpdateData,
   WithFieldValue
 } from './reference';
 import {

@@ -71,11 +71,11 @@ export type WithFieldValue<T> = T extends Primitive
  * 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference
  * nested fields within the document.
  */
-export interface UpdateData {
-  /** A mapping between a dot-separated field path and its value. */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [fieldPath: string]: any;
-}
+// export interface UpdateData {
+//   /** A mapping between a dot-separated field path and its value. */
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   [fieldPath: string]: any;
+// }
 // Represents an update object to Firestore document data, which can contain either fields like {a: 2}
 // or dot-separated paths such as {"a.b" : 2} (which updates the nested property "b" in map field "a").
 export type TypedUpdateData<T> = T extends Primitive

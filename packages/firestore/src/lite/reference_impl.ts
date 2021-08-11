@@ -45,7 +45,6 @@ import {
   Query,
   SetOptions,
   TypedUpdateData,
-  UpdateData,
   WithFieldValue
 } from './reference';
 import {
