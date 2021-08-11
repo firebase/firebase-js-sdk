@@ -16,7 +16,7 @@
  */
 
 const { resolve } = require('path');
-const { spawn } = require('child-process-promise');
+const { exec, spawn } = require('child-process-promise');
 const fs = require('mz/fs');
 const glob = require('glob');
 const simpleGit = require('simple-git/promise');
@@ -101,7 +101,7 @@ async function doPrettier(changedFiles) {
   }
 
   const gitSpinner = ora(' Git staging prettier formatting changes.').start();
-  await git.add(targetFiles);
+  await exec('git add -u .', {stdio: 'inherit'});
   gitSpinner.stopAndPersist({
     symbol: '▶️'
   });
