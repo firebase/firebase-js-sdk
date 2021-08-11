@@ -79,7 +79,16 @@ export function initializePerformance(
   // throw if an instance was already created.
   // It could happen if initializePerformance() is called more than once, or getPerformance() is called first.
   if (provider.isInitialized()) {
-    throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+    const existingInstance = provider.getImmediate();
+    const initialSettings = provider.getOptions() as PerformanceSettings;
+    if (
+      settings?.dataCollectionEnabled === initialSettings?.dataCollectionEnabled && 
+      settings?.instrumentationEnabled === initialSettings?.instrumentationEnabled
+    ) {
+      return existingInstance;
+    } else {
+      throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+    }
   }
 
   const perfInstance = provider.initialize({
