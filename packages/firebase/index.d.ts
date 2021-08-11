@@ -1267,8 +1267,6 @@ declare namespace firebase {
    * {@link firebase.storage.Storage `Storage`} service associated with a
    * specific app.
    *
-   * @webonly
-   *
    * @example
    * ```javascript
    * // Get the Storage service for the default app
@@ -1465,8 +1463,6 @@ declare namespace firebase.app {
     /**
      * Gets the {@link firebase.storage.Storage `Storage`} service for the current
      * app, optionally initialized with a custom storage bucket.
-     *
-     * @webonly
      *
      * @example
      * ```javascript
