@@ -222,9 +222,8 @@ describe('WebStorageSharedClientState', () => {
     );
     clientSyncer = new TestSharedClientSyncer([primaryClientId]);
     sharedClientState.syncEngine = clientSyncer;
-    sharedClientState.onlineStateHandler = clientSyncer.applyOnlineStateChange.bind(
-      clientSyncer
-    );
+    sharedClientState.onlineStateHandler =
+      clientSyncer.applyOnlineStateChange.bind(clientSyncer);
   });
 
   afterEach(() => {
@@ -793,8 +792,8 @@ describe('WebStorageSharedClientState', () => {
           'rejected'
         );
 
-        const firestoreError = clientState.targetState[firstClientTargetId]
-          .error!;
+        const firestoreError =
+          clientState.targetState[firstClientTargetId].error!;
         expect(firestoreError.code).to.equal('internal');
         expect(firestoreError.message).to.equal('Test Error');
       });

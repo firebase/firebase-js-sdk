@@ -104,9 +104,9 @@ export function toChangesArray(
   return docSet.docChanges(options).map(d => d.doc.data());
 }
 
-export function toDataMap(
-  docSet: firestore.QuerySnapshot
-): { [field: string]: firestore.DocumentData } {
+export function toDataMap(docSet: firestore.QuerySnapshot): {
+  [field: string]: firestore.DocumentData;
+} {
   const docsData: { [field: string]: firestore.DocumentData } = {};
   docSet.forEach(doc => {
     docsData[doc.id] = doc.data();

@@ -28,9 +28,10 @@ const ISO_TIMESTAMP_REG_EXP = new RegExp(
  * Converts the possible Proto values for a timestamp value into a "seconds and
  * nanos" representation.
  */
-export function normalizeTimestamp(
-  date: Timestamp
-): { seconds: number; nanos: number } {
+export function normalizeTimestamp(date: Timestamp): {
+  seconds: number;
+  nanos: number;
+} {
   hardAssert(!!date, 'Cannot normalize null or undefined timestamp.');
 
   // The json interface (for the browser) will return an iso timestamp string,

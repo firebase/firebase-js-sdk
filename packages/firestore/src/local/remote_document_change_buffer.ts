@@ -53,13 +53,11 @@ interface RemoteDocumentChange {
 export abstract class RemoteDocumentChangeBuffer {
   // A mapping of document key to the new cache entry that should be written (or null if any
   // existing cache entry should be removed).
-  protected changes: ObjectMap<
-    DocumentKey,
-    RemoteDocumentChange
-  > = new ObjectMap(
-    key => key.toString(),
-    (l, r) => l.isEqual(r)
-  );
+  protected changes: ObjectMap<DocumentKey, RemoteDocumentChange> =
+    new ObjectMap(
+      key => key.toString(),
+      (l, r) => l.isEqual(r)
+    );
 
   private changesApplied = false;
 

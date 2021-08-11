@@ -180,8 +180,8 @@ export class MemoryPersistence implements Persistence {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.or(
-      Object.values(this.mutationQueues).map(queue => () =>
-        queue.containsKey(transaction, key)
+      Object.values(this.mutationQueues).map(
+        queue => () => queue.containsKey(transaction, key)
       )
     );
   }
