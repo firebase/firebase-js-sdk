@@ -31,7 +31,7 @@ import {
 import { isNode } from '@firebase/util';
 
 import { expect } from 'chai';
-import { inMemoryPersistence } from '../../../internal';
+import { browserLocalPersistence, browserSessionPersistence, inMemoryPersistence } from '../../../internal';
 
 import { AuthInternal } from '../../model/auth';
 import {
@@ -50,6 +50,7 @@ import {
 import { ClientPlatform, _getClientVersion } from '../util/version';
 import { initializeAuth } from './initialize';
 import { registerAuth } from './register';
+import { debugErrorMap, prodErrorMap } from '../errors';
 
 describe('core/auth/initialize', () => {
   let fakeApp: FirebaseApp;
@@ -209,9 +210,49 @@ describe('core/auth/initialize', () => {
       expect(auth._isInitialized).to.be.false;
     });
 
-    it('should throw if called more than once', () => {
-      initializeAuth(fakeApp);
-      expect(() => initializeAuth(fakeApp)).to.throw();
+    it('should not throw if called again with same (no) params', () => {
+      const auth = initializeAuth(fakeApp);
+      expect(initializeAuth(fakeApp)).to.equal(auth);
+    });
+
+    it('should not throw if called again with same params', () => {
+      const auth = initializeAuth(fakeApp, {
+        errorMap: prodErrorMap,
+        persistence: browserSessionPersistence,
+        popupRedirectResolver: fakePopupRedirectResolver
+      });
+      expect(initializeAuth(fakeApp, {
+        errorMap: prodErrorMap,
+        persistence: browserSessionPersistence,
+        popupRedirectResolver: fakePopupRedirectResolver
+      })).to.equal(auth);
+    });
+
+    it('should throw if called again with different params (popupRedirectResolver)', () => {
+      initializeAuth(fakeApp, {
+        popupRedirectResolver: fakePopupRedirectResolver
+      });
+      expect(() => initializeAuth(fakeApp, {
+        popupRedirectResolver: undefined
+      })).to.throw();
+    });
+
+    it('should throw if called again with different params (errorMap)', () => {
+      initializeAuth(fakeApp, {
+        errorMap: prodErrorMap
+      });
+      expect(() => initializeAuth(fakeApp, {
+        errorMap: debugErrorMap
+      })).to.throw();
+    });
+
+    it('should throw if called again with different params (persistence)', () => {
+      initializeAuth(fakeApp, {
+        persistence: [browserLocalPersistence, browserSessionPersistence]
+      });
+      expect(() => initializeAuth(fakeApp, {
+        persistence: [browserSessionPersistence, browserLocalPersistence]
+      })).to.throw();
     });
   });
 });
