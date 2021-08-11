@@ -43,7 +43,7 @@ declare global {
   }
 }
 
-export function registerAnalytics(): void {
+function registerAnalytics(): void {
   _registerComponent(
     new Component(
       ANALYTICS_TYPE,

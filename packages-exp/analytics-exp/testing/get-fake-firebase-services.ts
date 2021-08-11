@@ -22,7 +22,7 @@ import {
 } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
-import { registerAnalytics } from '../src';
+import { AnalyticsService } from '../src/factory';
 
 const fakeConfig = {
   projectId: 'projectId',
@@ -63,12 +63,20 @@ export function getFullApp(fakeAppParams?: {
   apiKey?: string;
   measurementId?: string;
 }): FirebaseApp {
-  registerAnalytics();
   _registerComponent(
     new Component(
       'installations-exp-internal',
       () => {
-        return getFakeInstallations();
+        return {} as _FirebaseInstallationsInternal;
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  _registerComponent(
+    new Component(
+      'analytics-exp',
+      () => {
+        return {} as AnalyticsService;
       },
       ComponentType.PUBLIC
     )

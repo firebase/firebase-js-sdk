@@ -99,12 +99,7 @@ export function initializeAnalytics(
   );
   if (analyticsProvider.isInitialized()) {
     const existingInstance = analyticsProvider.getImmediate();
-    if (
-      deepEqual(
-        options.config || {},
-        (analyticsProvider.getOptions() as AnalyticsSettings)?.config || {}
-      )
-    ) {
+    if (deepEqual(options, analyticsProvider.getOptions())) {
       return existingInstance;
     } else {
       throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED);

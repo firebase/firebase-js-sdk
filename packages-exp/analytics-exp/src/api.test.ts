@@ -35,7 +35,7 @@ const fakeDynamicConfig = stub(
 });
 
 // Fake indexedDB.open() request
-let fakeRequest = {
+const fakeRequest = {
   onsuccess: () => {},
   result: {
     close: () => {}
@@ -46,13 +46,7 @@ let idbOpenStub = stub();
 // Stub indexedDB.open() because sinon's clock does not know
 // how to wait for the real indexedDB callbacks to resolve.
 function stubIdbOpen(): void {
-  (fakeRequest = {
-    onsuccess: () => {},
-    result: {
-      close: () => {}
-    }
-  }),
-    (idbOpenStub = stub(indexedDB, 'open').returns(fakeRequest as any));
+  idbOpenStub = stub(indexedDB, 'open').returns(fakeRequest as any);
 }
 
 describe('FirebaseAnalytics API tests', () => {
@@ -79,12 +73,6 @@ describe('FirebaseAnalytics API tests', () => {
     fakeDynamicConfig.restore();
   });
 
-  it('initializeAnalytics() returns an Analytics instance', async () => {
-    app = getFullApp(fakeAppParams);
-    const analyticsInstance = initializeAnalytics(app);
-    expect(analyticsInstance.app).to.equal(app);
-    await clock.runAllAsync();
-  });
   it('initializeAnalytics() with same (no) options returns same instance', async () => {
     app = getFullApp(fakeAppParams);
     const analyticsInstance = initializeAnalytics(app);

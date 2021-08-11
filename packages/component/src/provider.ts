@@ -38,7 +38,7 @@ export class Provider<T extends Name> {
     string,
     Deferred<NameServiceMapping[T]>
   > = new Map();
-  private readonly instancesOptions: Map<string, InitializeOptions> = new Map();
+  private readonly instancesOptions: Map<string, Record<string, unknown>> = new Map();
   private onInitCallbacks: Map<string, Set<OnInitCallBack<T>>> = new Map();
 
   constructor(
@@ -219,7 +219,7 @@ export class Provider<T extends Name> {
     return this.instances.has(identifier);
   }
 
-  getOptions(identifier: string = DEFAULT_ENTRY_NAME): InitializeOptions {
+  getOptions(identifier: string = DEFAULT_ENTRY_NAME): Record<string, unknown> {
     return this.instancesOptions.get(identifier) || {};
   }
 
