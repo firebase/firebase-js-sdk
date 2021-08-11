@@ -288,9 +288,8 @@ export class LocalDocumentsView {
           mutation instanceof PatchMutation &&
           existingDocuments.get(mutation.key) === null
         ) {
-          missingBaseDocEntriesForPatching = missingBaseDocEntriesForPatching.add(
-            mutation.key
-          );
+          missingBaseDocEntriesForPatching =
+            missingBaseDocEntriesForPatching.add(mutation.key);
         }
       }
     }

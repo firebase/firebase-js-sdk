@@ -190,7 +190,8 @@ export class SpecBuilder {
 
   private queryIdGenerator = new CachedTargetIdGenerator();
 
-  private readonly currentClientState: ClientMemoryState = new ClientMemoryState();
+  private readonly currentClientState: ClientMemoryState =
+    new ClientMemoryState();
 
   // Accessor function that can be overridden to return a different
   // `ClientMemoryState`.

@@ -143,7 +143,8 @@ const removeAssertAndPrefixInternalTransformer = service => ({
   ],
   after: []
 });
-exports.removeAssertAndPrefixInternalTransformer = removeAssertAndPrefixInternalTransformer;
+exports.removeAssertAndPrefixInternalTransformer =
+  removeAssertAndPrefixInternalTransformer;
 
 /**
  * Terser options that mangle all properties prefixed with __PRIVATE_.
