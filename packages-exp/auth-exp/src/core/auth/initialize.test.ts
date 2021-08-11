@@ -32,7 +32,6 @@ import { isNode } from '@firebase/util';
 
 import { expect } from 'chai';
 import {
-  browserLocalPersistence,
   browserSessionPersistence,
   inMemoryPersistence
 } from '../../../internal';
@@ -259,11 +258,11 @@ describe('core/auth/initialize', () => {
 
     it('should throw if called again with different params (persistence)', () => {
       initializeAuth(fakeApp, {
-        persistence: [browserLocalPersistence, browserSessionPersistence]
+        persistence: [inMemoryPersistence, fakeSessionPersistence]
       });
       expect(() =>
         initializeAuth(fakeApp, {
-          persistence: [browserSessionPersistence, browserLocalPersistence]
+          persistence: [fakeSessionPersistence, inMemoryPersistence]
         })
       ).to.throw();
     });
