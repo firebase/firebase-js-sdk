@@ -143,7 +143,7 @@ an individual package directory.
 The Firebase JS SDK is built with a series of individual packages that are all
 contained in this repository. Development is coordinated via [yarn
 workspaces](https://yarnpkg.com/blog/2017/08/02/introducing-workspaces/) and
-[Lerna](https://lernajs.io/) (a monorepo management tool).
+[Lerna](https://lerna.js.org/) (a monorepo management tool).
 
 Each package in the `packages` directory, constitute a piece of our
 implementation. The SDK is built via a combination of all of these packages

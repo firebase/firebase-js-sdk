@@ -20,7 +20,7 @@ import {
   _FirebaseService
 } from '@firebase/app-compat';
 import {
-  FirebaseMessaging,
+  Messaging,
   MessagePayload,
   deleteToken,
   getToken,
@@ -89,7 +89,7 @@ function isSwSupported(): boolean {
 }
 
 export class MessagingCompatImpl implements MessagingCompat, _FirebaseService {
-  constructor(readonly app: AppCompat, readonly _delegate: FirebaseMessaging) {
+  constructor(readonly app: AppCompat, readonly _delegate: Messaging) {
     this.app = app;
     this._delegate = _delegate;
   }

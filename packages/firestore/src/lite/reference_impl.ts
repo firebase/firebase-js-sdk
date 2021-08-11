@@ -34,7 +34,7 @@ import { cast } from '../util/input_validation';
 
 import { Bytes } from './bytes';
 import { getDatastore } from './components';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { validateHasExplicitOrderByForLimitToLast } from './query';
 import {
@@ -91,7 +91,7 @@ export function applyFirestoreDataConverter<T>(
 }
 
 export class LiteUserDataWriter extends AbstractUserDataWriter {
-  constructor(protected firestore: FirebaseFirestore) {
+  constructor(protected firestore: Firestore) {
     super();
   }
 

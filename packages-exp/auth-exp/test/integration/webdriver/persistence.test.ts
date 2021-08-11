@@ -47,7 +47,7 @@ async function testPersistedUser() {
   };
 }
 
-browserDescribe('WebDriver persistence test', driver => {
+browserDescribe('WebDriver persistence test', (driver, browser) => {
   const fullPersistenceKey = `firebase:authUser:${API_KEY}:[DEFAULT]`;
   context('default persistence hierarchy (indexedDB > localStorage)', () => {
     it('stores user in indexedDB by default', async () => {
@@ -131,11 +131,11 @@ browserDescribe('WebDriver persistence test', driver => {
       expect(await driver.getUserSnapshot()).to.contain({ uid });
     });
 
-    it('fall back to in-memory if neither indexedDB or localStorage is present', async () => {
+    it('fall back to in-memory if neither indexedDB or browser storage is present', async () => {
       await driver.webDriver.navigate().refresh();
       // Simulate browsers that do not support indexedDB or localStorage.
       await driver.webDriver.executeScript(
-        'delete window.indexedDB; delete window.localStorage;'
+        'delete window.indexedDB; delete window.localStorage; delete window.sessionStorage'
       );
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
@@ -205,11 +205,7 @@ browserDescribe('WebDriver persistence test', driver => {
     });
 
     it('use in-memory and clear all persistences if indexedDB and localStorage are both broken', async () => {
-      const persistedUser = await testPersistedUser();
       await driver.webDriver.navigate().refresh();
-      await driver.call(PersistenceFunction.LOCAL_STORAGE_SET, {
-        [fullPersistenceKey]: persistedUser
-      });
       // Simulate browsers that do not support indexedDB.
       await driver.webDriver.executeScript('delete window.indexedDB;');
       // Simulate browsers denying writes to localStorage (e.g. Safari private browsing).
@@ -219,9 +215,10 @@ browserDescribe('WebDriver persistence test', driver => {
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
 
-      // User from localStorage should be picked up.
+      // User should exist in memory storage only
+      await driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY);
       const user = await driver.getUserSnapshot();
-      expect(user.uid).eql(persistedUser.uid);
+      expect(user.uid).to.be.a('string');
 
       // Both storage should be cleared.
       expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).to.eql(
@@ -267,16 +264,20 @@ browserDescribe('WebDriver persistence test', driver => {
       const snapshotAfter = await driver.getUserSnapshot();
       expect(snapshotAfter.uid).to.eql(user.uid);
       expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
-      const snap = await driver.call(PersistenceFunction.SESSION_STORAGE_SNAP);
+      let snap = await driver.call(PersistenceFunction.SESSION_STORAGE_SNAP);
       expect(snap)
         .to.have.property(fullPersistenceKey)
         .that.contains({ uid: user.uid });
 
-      // User will be gone (a.k.a. logged out) after refresh.
+      // User will be in session storage after refresh
       await driver.webDriver.navigate().refresh();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
-      expect(await driver.getUserSnapshot()).to.equal(null);
+      expect(await driver.getUserSnapshot()).to.eql(snapshotAfter);
+      snap = await driver.call(PersistenceFunction.SESSION_STORAGE_SNAP);
+      expect(snap)
+        .to.have.property(fullPersistenceKey)
+        .that.contains({ uid: user.uid });
     });
 
     it('migrates user when switching from indexedDB to localStorage', async () => {
@@ -381,6 +382,12 @@ browserDescribe('WebDriver persistence test', driver => {
     });
 
     it('stays logged in when switching from legacy SDK and then back (no indexedDB support)', async () => {
+      // Skip this test if running in Firefox. The Legacy SDK incorrectly
+      // implements the db delete + reopen workaround for Firefox.
+      if (browser === 'firefox') {
+        return;
+      }
+
       await driver.webDriver.navigate().refresh();
       // Simulate browsers that do not support indexedDB.
       await driver.webDriver.executeScript('delete window.indexedDB');

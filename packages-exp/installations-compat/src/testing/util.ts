@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
-import { FirebaseInstallations } from '@firebase/installations-exp';
+import { Installations } from '@firebase/installations-exp';
 
 const appName = 'testApp';
 const apiKey = 'AIzaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaA';
@@ -41,7 +41,7 @@ export function getFakeApp(): FirebaseApp {
   };
 }
 
-export function getFakeInstallations(): FirebaseInstallations {
+export function getFakeInstallations(): Installations {
   return {
     app: getFakeApp(),
     appConfig: {

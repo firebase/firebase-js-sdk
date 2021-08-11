@@ -24,12 +24,22 @@ import resolveModule from '@rollup/plugin-node-resolve';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
+import alias from '@rollup/plugin-alias';
 
 const external = Object.keys(pkg.dependencies || {});
 const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
 
 const typescriptPlugin = rollupTypescriptPlugin({
   typescript
+});
+
+const typescriptPluginCDN = rollupTypescriptPlugin({
+  typescript,
+  tsconfigOverride: {
+    compilerOptions: {
+      declaration: false
+    }
+  }
 });
 
 /**
@@ -77,4 +87,46 @@ const componentBuilds = pkg.components
   })
   .reduce((a, b) => a.concat(b), []);
 
-export default [...appBuilds, ...componentBuilds];
+/**
+ * CDN script builds
+ */
+const FIREBASE_APP_URL = `https://www.gstatic.com/firebasejs/${pkg.version}/firebase-app.js`;
+const cdnBuilds = [
+  {
+    input: 'app/index.cdn.ts',
+    output: {
+      file: 'firebase-app.js',
+      sourcemap: true,
+      format: 'es'
+    },
+    plugins: [...plugins, typescriptPluginCDN]
+  },
+  ...pkg.components
+    .filter(component => component !== 'app')
+    .map(component => {
+      // It is needed for handling sub modules, for example firestore/lite which should produce firebase-firestore-lite.js
+      // Otherwise, we will create a directory with '/' in the name.
+      const componentName = component.replace('/', '-');
+
+      return {
+        input: `${component}/index.ts`,
+        output: {
+          file: `firebase-${componentName}.js`,
+          sourcemap: true,
+          format: 'es'
+        },
+        plugins: [
+          ...plugins,
+          typescriptPluginCDN,
+          alias({
+            entries: {
+              '@firebase/app': FIREBASE_APP_URL
+            }
+          })
+        ],
+        external: [FIREBASE_APP_URL]
+      };
+    })
+];
+
+export default [...appBuilds, ...componentBuilds, ...cdnBuilds];

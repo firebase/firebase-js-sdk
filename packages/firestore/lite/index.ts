@@ -27,14 +27,14 @@
 import { registerFirestore } from './register';
 registerFirestore();
 
-export { Settings } from '../src/lite/settings';
+export { FirestoreSettings as Settings } from '../src/lite/settings';
 
 export {
-  FirebaseFirestore,
+  Firestore as Firestore,
   initializeFirestore,
   getFirestore,
   terminate,
-  useFirestoreEmulator
+  connectFirestoreEmulator
 } from '../src/lite/database';
 
 export {

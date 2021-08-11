@@ -16,6 +16,9 @@ import { Subscribe } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
 // @public
+export function connectStorageEmulator(storage: FirebaseStorage, host: string, port: number): void;
+
+// @public
 export function deleteObject(ref: StorageReference): Promise<void>;
 
 // @internal (undocumented)
@@ -31,6 +34,13 @@ export class _FbsBlob {
     type(): string;
     // (undocumented)
     uploadData(): Blob | Uint8Array;
+}
+
+// @public
+export interface FirebaseStorage extends _FirebaseService {
+    readonly app: FirebaseApp;
+    maxOperationRetryTime: number;
+    maxUploadRetryTime: number;
 }
 
 // @public
@@ -62,7 +72,7 @@ export function getDownloadURL(ref: StorageReference): Promise<string>;
 export function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 
 // @public
-export function getStorage(app?: FirebaseApp, bucketUrl?: string): StorageService;
+export function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStorage;
 
 // @public
 export function list(ref: StorageReference, options?: ListOptions): Promise<ListResult>;
@@ -103,25 +113,25 @@ export class _Location {
     }
 
 // @public
-export function ref(storage: StorageService, url?: string): StorageReference;
+export function ref(storage: FirebaseStorage, url?: string): StorageReference;
 
 // @public
-export function ref(storageOrRef: StorageService | StorageReference, path?: string): StorageReference;
+export function ref(storageOrRef: FirebaseStorage | StorageReference, path?: string): StorageReference;
 
 // @internal
 export class _Reference {
-    // Warning: (ae-forgotten-export) The symbol "StorageService" needs to be exported by the entry point index.d.ts
-    constructor(_service: StorageService_2, location: string | _Location);
+    // Warning: (ae-forgotten-export) The symbol "FirebaseStorageImpl" needs to be exported by the entry point index.d.ts
+    constructor(_service: FirebaseStorageImpl, location: string | _Location);
     get bucket(): string;
     get fullPath(): string;
     // (undocumented)
     _location: _Location;
     get name(): string;
     // (undocumented)
-    protected _newRef(service: StorageService_2, location: _Location): _Reference;
+    protected _newRef(service: FirebaseStorageImpl, location: _Location): _Reference;
     get parent(): _Reference | null;
     get root(): _Reference;
-    get storage(): StorageService_2;
+    get storage(): FirebaseStorageImpl;
     _throwIfRoot(name: string): void;
     // @override
     toString(): string;
@@ -156,15 +166,8 @@ export interface StorageReference {
     name: string;
     parent: StorageReference | null;
     root: StorageReference;
-    storage: StorageService;
+    storage: FirebaseStorage;
     toString(): string;
-}
-
-// @public
-export interface StorageService extends _FirebaseService {
-    readonly app: FirebaseApp;
-    maxOperationRetryTime: number;
-    maxUploadRetryTime: number;
 }
 
 // @public
@@ -253,9 +256,6 @@ export interface UploadTaskSnapshot {
     task: UploadTask;
     totalBytes: number;
 }
-
-// @public
-export function useStorageEmulator(storage: StorageService, host: string, port: number): void;
 
 
 ```

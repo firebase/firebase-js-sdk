@@ -16,17 +16,17 @@
  */
 
 export {
-  FirebaseDatabase,
+  Database,
   enableLogging,
   getDatabase,
   goOffline,
   goOnline,
-  useDatabaseEmulator,
+  connectDatabaseEmulator,
   repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp
 } from '../src/exp/Database';
 export {
   Query,
-  Reference,
+  DatabaseReference,
   ListenOptions,
   Unsubscribe,
   ThenableReference

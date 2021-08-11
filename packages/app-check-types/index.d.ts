@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
+import { PartialObserver, Unsubscribe } from '@firebase/util';
+import { FirebaseApp } from '@firebase/app-types';
+import { Provider } from '@firebase/component';
+
 export interface FirebaseAppCheck {
+  /** The `FirebaseApp` associated with this instance. */
+  app: FirebaseApp;
+
   /**
    * Activate AppCheck
    * @param siteKeyOrProvider - reCAPTCHA sitekey or custom token provider
@@ -25,7 +32,11 @@ export interface FirebaseAppCheck {
    * defaults to false and can be set in the app config.
    */
   activate(
-    siteKeyOrProvider: string | AppCheckProvider,
+    siteKeyOrProvider:
+      | string
+      | AppCheckProvider
+      | CustomProvider
+      | ReCaptchaV3Provider,
     isTokenAutoRefreshEnabled?: boolean
   ): void;
 
@@ -36,6 +47,40 @@ export interface FirebaseAppCheck {
    * during `activate()`.
    */
   setTokenAutoRefreshEnabled(isTokenAutoRefreshEnabled: boolean): void;
+
+  /**
+   * Get the current App Check token. Attaches to the most recent
+   * in-flight request if one is present. Returns null if no token
+   * is present and no token requests are in flight.
+   *
+   * @param forceRefresh - If true, will always try to fetch a fresh token.
+   * If false, will use a cached token if found in storage.
+   */
+  getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult>;
+
+  /**
+   * Registers a listener to changes in the token state. There can be more
+   * than one listener registered at the same time for one or more
+   * App Check instances. The listeners call back on the UI thread whenever
+   * the current token associated with this App Check instance changes.
+   *
+   * @returns A function that unsubscribes this listener.
+   */
+  onTokenChanged(observer: PartialObserver<AppCheckTokenResult>): Unsubscribe;
+
+  /**
+   * Registers a listener to changes in the token state. There can be more
+   * than one listener registered at the same time for one or more
+   * App Check instances. The listeners call back on the UI thread whenever
+   * the current token associated with this App Check instance changes.
+   *
+   * @returns A function that unsubscribes this listener.
+   */
+  onTokenChanged(
+    onNext: (tokenResult: AppCheckTokenResult) => void,
+    onError?: (error: Error) => void,
+    onCompletion?: () => void
+  ): Unsubscribe;
 }
 
 /**
@@ -50,6 +95,29 @@ interface AppCheckProvider {
   getToken(): Promise<AppCheckToken>;
 }
 
+export class ReCaptchaV3Provider {
+  /**
+   * @param siteKey - ReCAPTCHA v3 site key (public key).
+   */
+  constructor(siteKey: string);
+}
+/*
+ * Custom token provider.
+ */
+export class CustomProvider {
+  /**
+   * @param options - Options for creating the custom provider.
+   */
+  constructor(options: CustomProviderOptions);
+}
+interface CustomProviderOptions {
+  /**
+   * Function to get an App Check token through a custom provider
+   * service.
+   */
+  getToken: () => Promise<AppCheckToken>;
+}
+
 /**
  * The token returned from an `AppCheckProvider`.
  */
@@ -62,6 +130,16 @@ interface AppCheckToken {
    * The local timestamp after which the token will expire.
    */
   readonly expireTimeMillis: number;
+}
+
+/**
+ * Result returned by `getToken()`.
+ */
+interface AppCheckTokenResult {
+  /**
+   * The token string in JWT format.
+   */
+  readonly token: string;
 }
 
 export type AppCheckComponentName = 'appCheck';

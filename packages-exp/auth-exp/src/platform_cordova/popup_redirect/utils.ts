@@ -28,6 +28,10 @@ import { _getRedirectUrl } from '../../core/util/handler';
 import { AuthInternal } from '../../model/auth';
 import { AuthEvent } from '../../model/popup_redirect';
 import { InAppBrowserRef, _cordovaWindow } from '../plugins';
+import {
+  GetProjectConfigRequest,
+  _getProjectConfig
+} from '../../api/project_config/get_project_config';
 
 /**
  * How long to wait after the app comes back into focus before concluding that
@@ -74,6 +78,24 @@ export async function _generateHandlerUrl(
     event.eventId ?? undefined,
     additionalParams
   );
+}
+
+/**
+ * Validates that this app is valid for this project configuration
+ */
+export async function _validateOrigin(auth: AuthInternal): Promise<void> {
+  const { BuildInfo } = _cordovaWindow();
+  const request: GetProjectConfigRequest = {};
+  if (_isIOS()) {
+    request.iosBundleId = BuildInfo.packageName;
+  } else if (_isAndroid()) {
+    request.androidPackageName = BuildInfo.packageName;
+  } else {
+    _fail(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED);
+  }
+
+  // Will fail automatically if package name is not authorized
+  await _getProjectConfig(auth, request);
 }
 
 export function _performRedirect(

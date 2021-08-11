@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _getProvider, FirebaseApp } from '@firebase/app-exp';
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
 import { Auth } from './src/model/public_types';
 
 import { AuthImpl } from './src/core/auth/auth_impl';
@@ -34,7 +34,7 @@ export { indexedDBLocalPersistence } from './src/platform_browser/persistence/in
 
 registerAuth(ClientPlatform.WORKER);
 
-export function getAuth(app: FirebaseApp): Auth {
+export function getAuth(app: FirebaseApp = getApp()): Auth {
   // Unlike the other environments, we need to explicitly check if indexedDb is
   // available. That means doing the whole rigamarole
   const auth = _getProvider(

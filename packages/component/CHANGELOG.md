@@ -1,5 +1,30 @@
 # @firebase/component
 
+## 0.5.5
+
+### Patch Changes
+
+- Updated dependencies [[`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c)]:
+  - @firebase/util@1.2.0
+
+## 0.5.4
+
+### Patch Changes
+
+- [`56a6a9d4a`](https://github.com/firebase/firebase-js-sdk/commit/56a6a9d4af2766154584a0f66d3c4d8024d74ba5) [#5071](https://github.com/firebase/firebase-js-sdk/pull/5071) (fixes [#4932](https://github.com/firebase/firebase-js-sdk/issues/4932)) - Auto initialize `auth-internal` after `auth` has been initialized.
+
+## 0.5.3
+
+### Patch Changes
+
+- [`725ab4684`](https://github.com/firebase/firebase-js-sdk/commit/725ab4684ef0999a12f71e704c204a00fb030e5d) [#5023](https://github.com/firebase/firebase-js-sdk/pull/5023) (fixes [#5018](https://github.com/firebase/firebase-js-sdk/issues/5018)) - Pass the instance to onInit callback
+
+## 0.5.2
+
+### Patch Changes
+
+- [`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b) [#4971](https://github.com/firebase/firebase-js-sdk/pull/4971) - Fixes a regression that prevented Firestore from detecting Auth during its initial initialization, which could cause some writes to not be send.
+
 ## 0.5.1
 
 ### Patch Changes

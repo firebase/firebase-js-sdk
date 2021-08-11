@@ -27,6 +27,7 @@ import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import { Component, ComponentType } from '@firebase/component';
+import { base64Encode } from '@firebase/util';
 
 const { firestore, database, storage } = firebase;
 export { firestore, database, storage };
@@ -157,6 +158,11 @@ export type FirebaseEmulatorOptions = {
   };
 };
 
+function trimmedBase64Encode(val: string): string {
+  // Use base64url encoding and remove padding in the end (dot characters).
+  return base64Encode(val).replace(/\./g, "");
+}
+
 function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
   // Unsecured JWTs use "none" as the algorithm.
   const header = {
@@ -198,12 +204,11 @@ function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
   // Unsecured JWTs use the empty string as a signature.
   const signature = '';
   return [
-    base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
-    base64.encodeString(JSON.stringify(payload), /*webSafe=*/ false),
+    trimmedBase64Encode(JSON.stringify(header)),
+    trimmedBase64Encode(JSON.stringify(payload)),
     signature
   ].join('.');
 }
-
 export function apps(): firebase.app.App[] {
   return firebase.apps;
 }
@@ -263,7 +268,9 @@ export function initializeAdminApp(options: AdminAppOptions): app.App {
  * @param options options object.
  */
 export function useEmulators(options: FirebaseEmulatorOptions): void {
-  if (!(options.database || options.firestore || options.storage || options.hub)) {
+  if (
+    !(options.database || options.firestore || options.storage || options.hub)
+  ) {
     throw new Error(
       "Argument to useEmulators must contain at least one of 'database', 'firestore', 'storage', or 'hub'."
     );
@@ -429,7 +436,7 @@ function getHubHost() {
 }
 
 function parseHost(host: string): { hostname: string; port: number } {
-  const withProtocol = host.startsWith("http") ? host : `http://${host}`;
+  const withProtocol = host.startsWith('http') ? host : `http://${host}`;
   const u = new URL(withProtocol);
   return {
     hostname: u.hostname,
@@ -696,7 +703,9 @@ export function assertFails(pr: Promise<any>): any {
         errCode === 'permission-denied' ||
         errCode === 'permission_denied' ||
         errMessage.indexOf('permission_denied') >= 0 ||
-        errMessage.indexOf('permission denied') >= 0;
+        errMessage.indexOf('permission denied') >= 0 ||   
+        // Storage permission errors contain message: (storage/unauthorized)
+        errMessage.indexOf('unauthorized') >= 0;
 
       if (!isPermissionDenied) {
         return Promise.reject(

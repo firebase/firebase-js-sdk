@@ -42,8 +42,8 @@ export class AuthCredential {
      * The authentication sign in method for the credential.
      *
      * @remarks
-     * For example, {@link  SignInMethod.EMAIL_PASSWORD}, or
-     * {@link  SignInMethod.EMAIL_LINK}. This corresponds to the sign-in method
+     * For example, {@link SignInMethod}.EMAIL_PASSWORD, or
+     * {@link SignInMethod}.EMAIL_LINK. This corresponds to the sign-in method
      * identifier as returned in {@link fetchSignInMethodsForEmail}.
      */
     readonly signInMethod: string

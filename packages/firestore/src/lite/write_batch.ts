@@ -23,7 +23,7 @@ import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { getDatastore } from './components';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { DocumentReference, SetOptions, UpdateData } from './reference';
 import { applyFirestoreDataConverter } from './reference_impl';
@@ -53,7 +53,7 @@ export class WriteBatch {
 
   /** @hideconstructor */
   constructor(
-    private readonly _firestore: FirebaseFirestore,
+    private readonly _firestore: Firestore,
     private readonly _commitHandler: (m: Mutation[]) => Promise<void>
   ) {
     this._dataReader = newUserDataReader(_firestore);
@@ -232,7 +232,7 @@ export class WriteBatch {
 
 export function validateReference<T>(
   documentRef: DocumentReference<T> | Compat<DocumentReference<T>>,
-  firestore: FirebaseFirestore
+  firestore: Firestore
 ): DocumentReference<T> {
   documentRef = getModularInstance(documentRef);
 
@@ -259,8 +259,8 @@ export function validateReference<T>(
  * @returns A `WriteBatch` that can be used to atomically execute multiple
  * writes.
  */
-export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
-  firestore = cast(firestore, FirebaseFirestore);
+export function writeBatch(firestore: Firestore): WriteBatch {
+  firestore = cast(firestore, Firestore);
   const datastore = getDatastore(firestore);
   return new WriteBatch(firestore, writes =>
     invokeCommitRpc(datastore, writes)

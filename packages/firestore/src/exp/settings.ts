@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Settings as LiteSettings } from '../lite/settings';
+import { FirestoreSettings as LiteSettings } from '../lite/settings';
 
 export { DEFAULT_HOST } from '../lite/settings';
 
@@ -37,7 +37,7 @@ export interface PersistenceSettings {
  * Specifies custom configurations for your Cloud Firestore instance.
  * You must set these before invoking any other methods.
  */
-export interface Settings extends LiteSettings {
+export interface FirestoreSettings extends LiteSettings {
   /**
    * An approximate cache size threshold for the on-disk data. If the cache
    * grows beyond this size, Firestore will start removing data that hasn't been

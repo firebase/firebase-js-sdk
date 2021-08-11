@@ -29,7 +29,7 @@ import {
  * A Firebase Storage instance.
  * @public
  */
-export interface StorageService extends _FirebaseService {
+export interface FirebaseStorage extends _FirebaseService {
   /**
    * FirebaseApp associated with this StorageService instance.
    */
@@ -78,7 +78,7 @@ export interface StorageReference {
   /**
    * The StorageService associated with this reference.
    */
-  storage: StorageService;
+  storage: FirebaseStorage;
   /**
    * A reference pointing to the parent location of this reference, or null if
    * this reference is the root.
@@ -487,6 +487,6 @@ export interface UploadResult {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'storage-exp': StorageService;
+    'storage-exp': FirebaseStorage;
   }
 }

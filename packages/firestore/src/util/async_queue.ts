@@ -223,8 +223,13 @@ export interface AsyncQueue {
    * Initialize the shutdown of this queue. Once this method is called, the
    * only possible way to request running an operation is through
    * `enqueueEvenWhileRestricted()`.
+   *
+   * @param purgeExistingTasks Whether already enqueued tasked should be
+   * rejected (unless enqueued wih `enqueueEvenWhileRestricted()`). Defaults
+   * to false.
    */
-  enterRestrictedMode(): void;
+  enterRestrictedMode(purgeExistingTasks?: boolean): void;
+
   /**
    * Adds a new operation to the queue. Returns a promise that will be resolved
    * when the promise returned by the new operation is (with its value).

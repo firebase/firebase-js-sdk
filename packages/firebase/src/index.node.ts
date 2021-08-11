@@ -23,6 +23,7 @@ import '../database';
 import '../firestore';
 import '../firestore/bundle';
 import '../functions';
+import '../storage';
 
 firebase.registerVersion(name, version, 'node');
 

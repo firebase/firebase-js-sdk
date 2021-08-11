@@ -78,7 +78,7 @@ describe('FirebaseStorage Compat', () => {
     });
   });
 
-  it('can delete object ', () => {
+  it('can delete object', () => {
     return withTestInstance(async storage => {
       const ref = storage.ref('public/delete');
       await ref.putString('foo');

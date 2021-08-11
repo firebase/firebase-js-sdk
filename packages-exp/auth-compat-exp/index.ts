@@ -19,7 +19,6 @@
 
 import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
 import * as impl from '@firebase/auth-exp/internal';
-import * as externs from '@firebase/auth-exp';
 import {
   Component,
   ComponentType,
@@ -87,14 +86,14 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
       .setServiceProps({
         ActionCodeInfo: {
           Operation: {
-            EMAIL_SIGNIN: externs.ActionCodeOperation.EMAIL_SIGNIN,
-            PASSWORD_RESET: externs.ActionCodeOperation.PASSWORD_RESET,
-            RECOVER_EMAIL: externs.ActionCodeOperation.RECOVER_EMAIL,
+            EMAIL_SIGNIN: impl.ActionCodeOperation.EMAIL_SIGNIN,
+            PASSWORD_RESET: impl.ActionCodeOperation.PASSWORD_RESET,
+            RECOVER_EMAIL: impl.ActionCodeOperation.RECOVER_EMAIL,
             REVERT_SECOND_FACTOR_ADDITION:
-              externs.ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION,
+              impl.ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION,
             VERIFY_AND_CHANGE_EMAIL:
-              externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
-            VERIFY_EMAIL: externs.ActionCodeOperation.VERIFY_EMAIL
+              impl.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL,
+            VERIFY_EMAIL: impl.ActionCodeOperation.VERIFY_EMAIL
           }
         },
         EmailAuthProvider: impl.EmailAuthProvider,

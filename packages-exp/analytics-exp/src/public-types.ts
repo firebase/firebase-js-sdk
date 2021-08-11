@@ -18,6 +18,79 @@
 import { FirebaseApp } from '@firebase/app-exp';
 
 /**
+ * A set of common Analytics config settings recognized by
+ * gtag.
+ * @public
+ */
+export interface GtagConfigParams {
+  /**
+   * Whether or not a page view should be sent.
+   * If set to true (default), a page view is automatically sent upon initialization
+   * of analytics.
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view | Page views }
+   */
+  'send_page_view'?: boolean;
+  /**
+   * The title of the page.
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view | Page views }
+   */
+  'page_title'?: string;
+  /**
+   * The URL of the page.
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view | Page views }
+   */
+  'page_location'?: string;
+  /**
+   * Defaults to `auto`.
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id | Cookies and user identification }
+   */
+  'cookie_domain'?: string;
+  /**
+   * Defaults to 63072000 (two years, in seconds).
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id | Cookies and user identification }
+   */
+  'cookie_expires'?: number;
+  /**
+   * Defaults to `_ga`.
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id | Cookies and user identification }
+   */
+  'cookie_prefix'?: string;
+  /**
+   * If set to true, will update cookies on each page load.
+   * Defaults to true.
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id | Cookies and user identification }
+   */
+  'cookie_update'?: boolean;
+  /**
+   * Appends additional flags to the cookie when set.
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id | Cookies and user identification }
+   */
+  'cookie_flags'?: string;
+  /**
+   * If set to false, disables all advertising features with gtag.js.
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/display-features | Disable advertising features }
+   */
+  'allow_google_signals?': boolean;
+  /**
+   * If set to false, disables all advertising personalization with gtag.js.
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/display-features | Disable advertising features }
+   */
+  'allow_ad_personalization_signals'?: boolean;
+  [key: string]: unknown;
+}
+
+/**
+ * Analytics initialization options.
+ * @public
+ */
+export interface AnalyticsSettings {
+  /**
+   * Params to be passed in the initial gtag config call during analytics initialization.
+   */
+  config?: GtagConfigParams | EventParams;
+}
+
+/**
  * Additional options that can be passed to Firebase Analytics method
  * calls such as `logEvent`, `setCurrentScreen`, etc.
  * @public
@@ -31,13 +104,12 @@ export interface AnalyticsCallOptions {
 }
 
 /**
- * The Firebase Analytics service interface.
- *
+ * An instance of Firebase Analytics.
  * @public
  */
 export interface Analytics {
   /**
-   * The FirebaseApp this Functions instance is associated with.
+   * The FirebaseApp this Analytics instance is associated with.
    */
   app: FirebaseApp;
 }
@@ -61,6 +133,7 @@ export interface SettingsOptions {
 export interface CustomParams {
   [key: string]: unknown;
 }
+
 /**
  * Type for standard gtag.js event names. `logEvent` also accepts any
  * custom string and interprets it as a custom event name.
@@ -96,14 +169,14 @@ export type EventNameString =
   | 'view_search_results';
 
 /**
- * Currency field used by some Analytics events.
+ * Standard analytics currency type.
  * @public
  */
 export type Currency = string | number;
 
 /* eslint-disable camelcase */
 /**
- * Item field used by some Analytics events.
+ * Standard analytics `Item` type.
  * @public
  */
 export interface Item {
@@ -154,8 +227,8 @@ export interface Promotion {
 /**
  * Standard gtag.js control parameters.
  * For more information, see
- * {@link https://developers.google.com/gtagjs/reference/parameter
- * | the gtag.js documentation on parameters}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * the GA4 reference documentation}.
  * @public
  */
 export interface ControlParams {
@@ -168,14 +241,14 @@ export interface ControlParams {
 /**
  * Standard gtag.js event parameters.
  * For more information, see
- * {@link https://developers.google.com/gtagjs/reference/parameter
- * | the gtag.js documentation on parameters}.
+ * {@link https://developers.google.com/gtagjs/reference/ga4-events
+ * the GA4 reference documentation}.
  * @public
  */
 export interface EventParams {
   checkout_option?: string;
   checkout_step?: number;
-  content_id?: string;
+  item_id?: string;
   content_type?: string;
   coupon?: string;
   currency?: string;
@@ -187,6 +260,14 @@ export interface EventParams {
   number?: string;
   promotions?: Promotion[];
   screen_name?: string;
+  /**
+   * Firebase-specific. Use to log a `screen_name` to Firebase Analytics.
+   */
+  firebase_screen?: string;
+  /**
+   * Firebase-specific. Use to log a `screen_class` to Firebase Analytics.
+   */
+  firebase_screen_class?: string;
   search_term?: string;
   shipping?: Currency;
   tax?: Currency;
@@ -204,5 +285,6 @@ export interface EventParams {
   page_title?: string;
   page_location?: string;
   page_path?: string;
+  [key: string]: unknown;
 }
 /* eslint-enable camelcase */

@@ -197,6 +197,20 @@ describe('Provider', () => {
       expect(callback).to.have.been.calledOnce;
     });
 
+    it('passes service instance', () => {
+      const serviceInstance = { test: true };
+      provider.setComponent(getFakeComponent('test', () => serviceInstance));
+      const callback = fake();
+
+      // initialize the service instance
+      provider.getImmediate();
+
+      provider.onInit(callback);
+
+      expect(callback).to.have.been.calledOnce;
+      expect(callback).to.have.been.calledWith(serviceInstance);
+    });
+
     it('passes instance identifier', () => {
       provider.setComponent(
         getFakeComponent(

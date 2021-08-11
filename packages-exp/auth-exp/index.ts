@@ -27,18 +27,13 @@ import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
 import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
+import { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
 import { Auth } from './src/model/public_types';
 
 // Public types
 export {
-  // Enums
-  ActionCodeOperation,
-  FactorId,
-  OperationType,
-  ProviderId,
-  SignInMethod,
   // Interfaces
   ActionCodeInfo,
   ActionCodeSettings,
@@ -78,6 +73,15 @@ export {
   CompleteFn,
   Unsubscribe
 } from './src/model/public_types';
+
+// Helper maps (not used internally)
+export {
+  FactorId,
+  ProviderId,
+  SignInMethod,
+  OperationType,
+  ActionCodeOperation
+} from './src/model/enum_maps';
 
 // Core functionality shared by all clients
 export * from './src';
@@ -133,7 +137,11 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
 
   return initializeAuth(app, {
     popupRedirectResolver: browserPopupRedirectResolver,
-    persistence: [indexedDBLocalPersistence, browserLocalPersistence]
+    persistence: [
+      indexedDBLocalPersistence,
+      browserLocalPersistence,
+      browserSessionPersistence
+    ]
   });
 }
 

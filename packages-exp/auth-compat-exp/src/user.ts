@@ -158,7 +158,7 @@ export class User implements compat.User, Compat<exp.User> {
     return exp.sendEmailVerification(this._delegate, actionCodeSettings);
   }
   async unlink(providerId: string): Promise<compat.User> {
-    await exp.unlink(this._delegate, providerId as exp.ProviderId);
+    await exp.unlink(this._delegate, providerId);
     return this;
   }
   updateEmail(newEmail: string): Promise<void> {

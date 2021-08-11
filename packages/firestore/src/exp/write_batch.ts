@@ -18,7 +18,7 @@
 import { WriteBatch } from '../lite/write_batch';
 import { cast } from '../util/input_validation';
 
-import { ensureFirestoreConfigured, FirebaseFirestore } from './database';
+import { ensureFirestoreConfigured, Firestore } from './database';
 import { executeWrite } from './reference_impl';
 
 export { WriteBatch };
@@ -34,8 +34,8 @@ export { WriteBatch };
  * @returns A `WriteBatch` that can be used to atomically execute multiple
  * writes.
  */
-export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
-  firestore = cast(firestore, FirebaseFirestore);
+export function writeBatch(firestore: Firestore): WriteBatch {
+  firestore = cast(firestore, Firestore);
   ensureFirestoreConfigured(firestore);
   return new WriteBatch(firestore, mutations =>
     executeWrite(firestore, mutations)

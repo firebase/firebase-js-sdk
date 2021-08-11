@@ -21,7 +21,7 @@ import {
   FirebaseInstallationsImpl,
   AppConfig
 } from '../interfaces/installation-impl';
-import { FirebaseInstallations } from '../interfaces/public-types';
+import { Installations } from '../interfaces/public-types';
 
 /**
  * Returns an Installation auth token, identifying the current Firebase Installation.
@@ -31,7 +31,7 @@ import { FirebaseInstallations } from '../interfaces/public-types';
  * @public
  */
 export async function getToken(
-  installations: FirebaseInstallations,
+  installations: Installations,
   forceRefresh = false
 ): Promise<string> {
   const installationsImpl = installations as FirebaseInstallationsImpl;

@@ -22,6 +22,7 @@ import './auth';
 import './database';
 import './firestore';
 import './functions';
+import './storage';
 
 firebase.registerVersion(name, version, 'compat-node');
 

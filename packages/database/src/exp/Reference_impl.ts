@@ -84,12 +84,12 @@ import {
   queryParamsStartAt
 } from '../core/view/QueryParams';
 
-import { FirebaseDatabase } from './Database';
+import { Database } from './Database';
 import { OnDisconnect } from './OnDisconnect';
 import {
   ListenOptions,
   Query as Query,
-  Reference as Reference,
+  DatabaseReference,
   Unsubscribe,
   ThenableReference
 } from './Reference';
@@ -116,7 +116,7 @@ export class QueryImpl implements Query, QueryContext {
     }
   }
 
-  get ref(): Reference {
+  get ref(): DatabaseReference {
     return new ReferenceImpl(this._repo, this._path);
   }
 
@@ -250,7 +250,7 @@ function validateLimit(params: QueryParams) {
 /**
  * @internal
  */
-export class ReferenceImpl extends QueryImpl implements Reference {
+export class ReferenceImpl extends QueryImpl implements DatabaseReference {
   /** @hideconstructor */
   constructor(repo: Repo, path: Path) {
     super(repo, path, new QueryParams(), false);
@@ -298,7 +298,7 @@ export class DataSnapshot {
     /**
      * The location of this DataSnapshot.
      */
-    readonly ref: Reference,
+    readonly ref: DatabaseReference,
     readonly _index: Index
   ) {}
 
@@ -477,7 +477,7 @@ export class DataSnapshot {
  *   pointing to the provided path. Otherwise, a `Reference` pointing to the
  *   root of the Database.
  */
-export function ref(db: FirebaseDatabase, path?: string): Reference {
+export function ref(db: Database, path?: string): DatabaseReference {
   db = getModularInstance(db);
   db._checkNotDeleted('ref');
   return path !== undefined ? child(db._root, path) : db._root;
@@ -499,7 +499,7 @@ export function ref(db: FirebaseDatabase, path?: string): Reference {
  * @returns A `Reference` pointing to the provided
  *   Firebase URL.
  */
-export function refFromURL(db: FirebaseDatabase, url: string): Reference {
+export function refFromURL(db: Database, url: string): DatabaseReference {
   db = getModularInstance(db);
   db._checkNotDeleted('refFromURL');
   const parsedURL = parseRepoInfo(url, db._repo.repoInfo_.nodeAdmin);
@@ -535,7 +535,10 @@ export function refFromURL(db: FirebaseDatabase, url: string): Reference {
  *   location.
  * @returns The specified child location.
  */
-export function child(parent: Reference, path: string): Reference {
+export function child(
+  parent: DatabaseReference,
+  path: string
+): DatabaseReference {
   parent = getModularInstance(parent);
   if (pathGetFront(parent._path) === null) {
     validateRootPathString('child', 'path', path, false);
@@ -552,7 +555,7 @@ export function child(parent: Reference, path: string): Reference {
  *
  * @param ref - The reference to add OnDisconnect triggers for.
  */
-export function onDisconnect(ref: Reference): OnDisconnect {
+export function onDisconnect(ref: DatabaseReference): OnDisconnect {
   ref = getModularInstance(ref) as ReferenceImpl;
   return new OnDisconnect(ref._repo, ref._path);
 }
@@ -584,7 +587,10 @@ export interface ThenableReferenceImpl
  * @returns Combined `Promise` and `Reference`; resolves when write is complete,
  * but can be used immediately as the `Reference` to the child location.
  */
-export function push(parent: Reference, value?: unknown): ThenableReference {
+export function push(
+  parent: DatabaseReference,
+  value?: unknown
+): ThenableReference {
   parent = getModularInstance(parent);
   validateWritablePath('push', parent._path);
   validateFirebaseDataArg('push', value, parent._path, true);
@@ -629,7 +635,7 @@ export function push(parent: Reference, value?: unknown): ThenableReference {
  * @param ref - The location to remove.
  * @returns Resolves when remove on server is complete.
  */
-export function remove(ref: Reference): Promise<void> {
+export function remove(ref: DatabaseReference): Promise<void> {
   validateWritablePath('remove', ref._path);
   return set(ref, null);
 }
@@ -663,7 +669,7 @@ export function remove(ref: Reference): Promise<void> {
  *   array, or null).
  * @returns Resolves when write to server is complete.
  */
-export function set(ref: Reference, value: unknown): Promise<void> {
+export function set(ref: DatabaseReference, value: unknown): Promise<void> {
   ref = getModularInstance(ref);
   validateWritablePath('set', ref._path);
   validateFirebaseDataArg('set', value, ref._path, false);
@@ -691,7 +697,7 @@ export function set(ref: Reference, value: unknown): Promise<void> {
  * @returns Resolves when write to server is complete.
  */
 export function setPriority(
-  ref: Reference,
+  ref: DatabaseReference,
   priority: string | number | null
 ): Promise<void> {
   ref = getModularInstance(ref);
@@ -724,7 +730,7 @@ export function setPriority(
  * @returns Resolves when write to server is complete.
  */
 export function setWithPriority(
-  ref: Reference,
+  ref: DatabaseReference,
   value: unknown,
   priority: string | number | null
 ): Promise<void> {
@@ -781,7 +787,7 @@ export function setWithPriority(
  * @param values - Object containing multiple values.
  * @returns Resolves when update on server is complete.
  */
-export function update(ref: Reference, values: object): Promise<void> {
+export function update(ref: DatabaseReference, values: object): Promise<void> {
   validateFirebaseMergeDataArg('update', values, ref._path, false);
   const deferred = new Deferred<void>();
   repoUpdate(

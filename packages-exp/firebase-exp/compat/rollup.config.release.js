@@ -137,7 +137,11 @@ const appBuilds = [
           }
         ]
       }),
-      terser()
+      terser({
+        format: {
+          comments: false
+        }
+      })
     ]
   }
 ];
@@ -198,7 +202,11 @@ const componentBuilds = compatPkg.components
               }
             ]
           }),
-          terser()
+          terser({
+            format: {
+              comments: false
+            }
+          })
         ],
         external: ['@firebase/app-compat', '@firebase/app']
       }
@@ -318,7 +326,7 @@ const completeBuilds = [
     plugins: [
       sourcemaps(),
       resolveModule({
-        mainFields: ['lite', 'module', 'main']
+        mainFields: ['lite-esm5', 'esm5', 'module']
       }),
       typescriptPluginUMD,
       json(),
