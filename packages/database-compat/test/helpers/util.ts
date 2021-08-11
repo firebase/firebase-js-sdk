@@ -23,8 +23,8 @@ import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 
-import { Query, Reference } from '../../src/api/Reference';
 import { Path } from '../../../database/src/core/util/Path';
+import { Query, Reference } from '../../src/api/Reference';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');

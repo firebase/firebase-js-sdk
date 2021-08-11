@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { validateArgCount, validateCallback, Compat } from '@firebase/util';
 import { OnDisconnect as ModularOnDisconnect } from '@firebase/database';
+import { validateArgCount, validateCallback, Compat } from '@firebase/util';
 
 import { warn } from '../util/util';
 export class OnDisconnect implements Compat<ModularOnDisconnect> {

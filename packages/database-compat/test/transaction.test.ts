@@ -16,16 +16,17 @@
  */
 
 import firebase from '@firebase/app-compat';
+import { _TEST_ACCESS_hijackHash as hijackHash } from '@firebase/database';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
-
-import { Reference } from '../src/api/Reference';
-import { _TEST_ACCESS_hijackHash as hijackHash } from '@firebase/database';
 
 import {
   EventAccumulator,
   EventAccumulatorFactory
 } from '../../database/test/helpers/EventAccumulator';
+import { Reference } from '../src/api/Reference';
+
+
 import { eventTestHelper } from './helpers/events';
 import {
   canCreateExtraConnections,

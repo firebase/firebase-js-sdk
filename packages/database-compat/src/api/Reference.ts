@@ -16,14 +16,6 @@
  */
 
 import {
-  Compat,
-  Deferred,
-  errorPrefix,
-  validateArgCount,
-  validateCallback,
-  validateContextObject
-} from '@firebase/util';
-import {
   OnDisconnect as ModularOnDisconnect,
   off,
   onChildAdded,
@@ -63,9 +55,18 @@ import {
   _UserCallback,
   _QueryParams
 } from '@firebase/database';
+import {
+  Compat,
+  Deferred,
+  errorPrefix,
+  validateArgCount,
+  validateCallback,
+  validateContextObject
+} from '@firebase/util';
 
 import { warn } from '../util/util';
 import { validateBoolean, validateEventType } from '../util/validation';
+
 import { Database } from './Database';
 import { OnDisconnect } from './onDisconnect';
 import { TransactionResult } from './TransactionResult';

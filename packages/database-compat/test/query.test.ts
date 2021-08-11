@@ -19,16 +19,16 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as _ from 'lodash';
 
-import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 import {
   INTEGER_32_MAX,
   INTEGER_32_MIN
 } from '../../database/src/core/util/util';
-
 import {
   EventAccumulator,
   EventAccumulatorFactory
 } from '../../database/test/helpers/EventAccumulator';
+import { DataSnapshot, Query, Reference } from '../src/api/Reference';
+
 import { getFreshRepo, getPath, getRandomNode, pause } from './helpers/util';
 
 use(chaiAsPromised);

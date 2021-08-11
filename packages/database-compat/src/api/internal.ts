@@ -26,11 +26,11 @@ import {
   ComponentType,
   Provider
 } from '@firebase/component';
-import * as types from '@firebase/database-types';
 import {
   _repoManagerDatabaseFromApp,
   _setSDKVersion
 } from '@firebase/database';
+import * as types from '@firebase/database-types';
 
 import { Database } from './Database';
 

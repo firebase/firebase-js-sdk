@@ -19,12 +19,6 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
 import {
-  validateArgCount,
-  Compat,
-  EmulatorMockTokenOptions
-} from '@firebase/util';
-
-import {
   goOnline,
   connectDatabaseEmulator,
   goOffline,
@@ -34,6 +28,12 @@ import {
   serverTimestamp,
   Database as ModularDatabase
 } from '@firebase/database';
+import {
+  validateArgCount,
+  Compat,
+  EmulatorMockTokenOptions
+} from '@firebase/util';
+
 
 import { Reference } from './Reference';
 

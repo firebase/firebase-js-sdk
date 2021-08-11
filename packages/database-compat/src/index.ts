@@ -19,14 +19,13 @@
 import firebase, { FirebaseNamespace } from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
+import { enableLogging } from '@firebase/database';
 import * as types from '@firebase/database-types';
 
-import { enableLogging } from '@firebase/database';
+import { name, version } from '../package.json';
 import { Database } from '../src/api/Database';
 import * as INTERNAL from '../src/api/internal';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
-
-import { name, version } from '../package.json';
 
 const ServerValue = Database.ServerValue;
 

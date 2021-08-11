@@ -19,14 +19,14 @@ import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import { Component, ComponentType } from '@firebase/component';
+import { enableLogging } from '@firebase/database';
 import * as types from '@firebase/database-types';
 import { CONSTANTS, isNodeSdk } from '@firebase/util';
 
-import { enableLogging } from '@firebase/database';
+import { name, version } from '../package.json';
 import { Database } from '../src/api/Database';
 import * as INTERNAL from '../src/api/internal';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
-import { name, version } from '../package.json';
 
 const ServerValue = Database.ServerValue;
 
