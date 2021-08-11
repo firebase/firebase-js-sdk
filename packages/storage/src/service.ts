@@ -39,6 +39,7 @@ import {
 } from './implementation/error';
 import { validateNumber } from './implementation/type';
 import { FirebaseStorage } from '../exp/public-types';
+import { EmulatorMockTokenOptions } from '@firebase/util';
 
 export function isUrl(path?: string): boolean {
   return /^[A-Za-z]+:\/\//.test(path as string);
@@ -133,7 +134,10 @@ function extractBucket(
 export function connectStorageEmulator(
   storage: FirebaseStorageImpl,
   host: string,
-  port: number
+  port: number,
+  options: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+  } = {}
 ): void {
   storage.host = `http://${host}:${port}`;
 }
