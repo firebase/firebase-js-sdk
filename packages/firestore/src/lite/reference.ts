@@ -113,9 +113,9 @@ export type NestedUpdateFields<T extends Record<string, any>> =
  * to a dot.
  */
 // Mapping between a field and its value.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AddPrefixToKeys<
   Prefix extends string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   T extends Record<string, any>
 > =
   // Remap K => Prefix.K. See https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
@@ -131,9 +131,11 @@ export type AddPrefixToKeys<
  * https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-inference-in-conditional-types
  * https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type UnionToIntersection<U> = (
-  U extends any ? (k: U) => void : never
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  U extends any
+    ? (k: U) => void
+    : never
 ) extends (k: infer I) => void
   ? I
   : never;
