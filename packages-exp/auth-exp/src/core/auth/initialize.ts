@@ -59,7 +59,10 @@ export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
     if (
       initialOptions.errorMap === deps?.errorMap &&
       initialOptions.popupRedirectResolver === deps?.popupRedirectResolver &&
-      deepEqual(initialOptions.persistence as object, deps?.persistence as object)
+      deepEqual(
+        initialOptions.persistence as object,
+        deps?.persistence as object
+      )
     ) {
       return auth;
     } else {
