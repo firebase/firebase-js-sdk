@@ -70,10 +70,10 @@ export class StsTokenManager {
     auth: AuthInternal,
     forceRefresh = false
   ): Promise<string | null> {
-    if (!this.isPassthroughMode) {
-      return this.getTokenAndRefreshIfNeeded(auth, forceRefresh);
-    } else {
+    if (this.isPassthroughMode) {
       return this.getTokenAndTriggerCallback(/* auth, forceRefresh */);
+    } else {
+      return this.getTokenAndRefreshIfNeeded(auth, forceRefresh);
     }
   }
 

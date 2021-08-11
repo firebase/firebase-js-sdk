@@ -171,6 +171,7 @@ describe('core/user/reload', () => {
   it('nulls out properties in passthrough mode', async () => {
     const user = testUser(auth, 'abc', '');
     user.stsTokenManager.isPassthroughMode = true;
+    const getIdTokenSpy = sinon.spy(user, 'getIdToken');
 
     await _reloadWithoutSaving(user);
 
@@ -186,6 +187,7 @@ describe('core/user/reload', () => {
       createdAt: undefined,
       lastLoginAt: undefined
     });
+    expect(getIdTokenSpy).not.to.have.been.called;
   });
 
   context('anonymous carryover', () => {

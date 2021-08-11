@@ -54,9 +54,9 @@ export async function _reloadWithoutSaving(user: UserInternal): Promise<void> {
     ? extractProviderData(coreAccount.providerUserInfo)
     : [];
 
-  const providerData = !user.stsTokenManager.isPassthroughMode
-    ? mergeProviderData(user.providerData, newProviderData)
-    : [];
+  const providerData = user.stsTokenManager.isPassthroughMode
+    ? []
+    : mergeProviderData(user.providerData, newProviderData);
 
   // Preserves the non-nonymous status of the stored user, even if no more
   // credentials (federated or email/password) are linked to the user. If

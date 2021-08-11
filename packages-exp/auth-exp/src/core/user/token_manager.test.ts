@@ -194,7 +194,8 @@ describe('core/user/token_manager', () => {
       Object.assign(stsTokenManager, {
         accessToken: 'token',
         refreshToken: 'refresh',
-        expirationTime: now
+        expirationTime: now,
+        isPassthroughMode: true
       });
 
       const copy = stsTokenManager._clone();
@@ -211,7 +212,8 @@ describe('core/user/token_manager', () => {
         StsTokenManager.fromJSON('app', {
           refreshToken: 45,
           accessToken: 't',
-          expirationTime: 3
+          expirationTime: 3,
+          isPassthroughMode: true
         })
       ).to.throw(FirebaseError, errorString);
     });
@@ -221,7 +223,8 @@ describe('core/user/token_manager', () => {
         StsTokenManager.fromJSON('app', {
           refreshToken: 't',
           accessToken: 45,
-          expirationTime: 3
+          expirationTime: 3,
+          isPassthroughMode: true
         })
       ).to.throw(FirebaseError, errorString);
     });
@@ -231,7 +234,19 @@ describe('core/user/token_manager', () => {
         StsTokenManager.fromJSON('app', {
           refreshToken: 't',
           accessToken: 't',
-          expirationTime: 'lol'
+          expirationTime: 'lol',
+          isPassthroughMode: true
+        })
+      ).to.throw(FirebaseError, errorString);
+    });
+
+    it('throws if isPassthroughMode is not a boolean', () => {
+      expect(() =>
+        StsTokenManager.fromJSON('app', {
+          refreshToken: 't',
+          accessToken: 't',
+          expirationTime: 3,
+          isPassthroughMode: 4
         })
       ).to.throw(FirebaseError, errorString);
     });
@@ -240,11 +255,13 @@ describe('core/user/token_manager', () => {
       const manager = StsTokenManager.fromJSON('app', {
         refreshToken: 'r',
         accessToken: 'a',
-        expirationTime: 45
+        expirationTime: 45,
+        isPassthroughMode: true
       });
       expect(manager.accessToken).to.eq('a');
       expect(manager.refreshToken).to.eq('r');
       expect(manager.expirationTime).to.eq(45);
+      expect(manager.isPassthroughMode).to.be.true;
     });
   });
 });
