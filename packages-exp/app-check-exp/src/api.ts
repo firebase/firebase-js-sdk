@@ -57,7 +57,7 @@ export function initializeAppCheck(
 
   if (provider.isInitialized()) {
     const existingInstance = provider.getImmediate();
-    const initialOptions = provider.getOptions() as AppCheckOptions;
+    const initialOptions = provider.getOptions() as unknown as AppCheckOptions;
     if (
       initialOptions.isTokenAutoRefreshEnabled ===
         options.isTokenAutoRefreshEnabled &&
