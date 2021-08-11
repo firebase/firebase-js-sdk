@@ -65,17 +65,12 @@ import {
   _QueryParams
 } from '@firebase/database'; // import from the exp public API
 import { warn } from '../util/util';
-import {
-  validateBoolean,
-  validateEventType
-} from '../util/validation';
+import { validateBoolean, validateEventType } from '../util/validation';
 // import { ThenableReferenceImpl } from '../exp/Reference_impl';
 
 import { Database } from './Database';
 import { OnDisconnect } from './onDisconnect';
 import { TransactionResult } from './TransactionResult';
-
-
 
 /**
  * Class representing a firebase data snapshot.  It wraps a SnapshotNode and
@@ -85,7 +80,7 @@ export class DataSnapshot implements Compat<ExpDataSnapshot> {
   constructor(
     readonly _database: Database,
     readonly _delegate: ExpDataSnapshot
-  ) { }
+  ) {}
 
   /**
    * Retrieves the snapshot contents as JSON.  Returns null if the snapshot is
@@ -225,7 +220,7 @@ export interface SnapshotCallback {
  * Since every Firebase reference is a query, Firebase inherits from this object.
  */
 export class Query implements Compat<ExpQuery> {
-  constructor(readonly database: Database, readonly _delegate: ExpQuery) { }
+  constructor(readonly database: Database, readonly _delegate: ExpQuery) {}
 
   on(
     eventType: string,
@@ -271,8 +266,8 @@ export class Query implements Compat<ExpQuery> {
       default:
         throw new Error(
           errorPrefix('Query.on', 'eventType') +
-          'must be a valid event type = "value", "child_added", "child_removed", ' +
-          '"child_changed", or "child_moved".'
+            'must be a valid event type = "value", "child_added", "child_removed", ' +
+            '"child_changed", or "child_moved".'
         );
     }
   }
@@ -287,7 +282,7 @@ export class Query implements Compat<ExpQuery> {
     validateCallback('Query.off', 'callback', callback, true);
     validateContextObject('Query.off', 'context', context, true);
     if (callback) {
-      const valueCallback: _UserCallback = () => { };
+      const valueCallback: _UserCallback = () => {};
       valueCallback.userCallback = callback;
       valueCallback.context = context;
       off(this._delegate, eventType as EventType, valueCallback);
@@ -368,8 +363,8 @@ export class Query implements Compat<ExpQuery> {
       default:
         throw new Error(
           errorPrefix('Query.once', 'eventType') +
-          'must be a valid event type = "value", "child_added", "child_removed", ' +
-          '"child_changed", or "child_moved".'
+            'must be a valid event type = "value", "child_added", "child_removed", ' +
+            '"child_changed", or "child_moved".'
         );
     }
 
@@ -536,7 +531,7 @@ export class Query implements Compat<ExpQuery> {
       } else {
         throw new Error(
           errorPrefix(fnName, 'cancelOrContext') +
-          ' must either be a cancel callback or a context object.'
+            ' must either be a cancel callback or a context object.'
         );
       }
     }
@@ -565,7 +560,12 @@ export class Reference extends Query implements Compat<ExpReference> {
   constructor(readonly database: Database, readonly _delegate: ExpReference) {
     super(
       database,
-      new _QueryImpl(_delegate._repo, _delegate._path, new _QueryParams(), false)
+      new _QueryImpl(
+        _delegate._repo,
+        _delegate._path,
+        new _QueryParams(),
+        false
+      )
     );
   }
 
@@ -626,9 +626,9 @@ export class Reference extends Query implements Compat<ExpReference> {
       values = newObjectToMerge;
       warn(
         'Passing an Array to Firebase.update() is deprecated. ' +
-        'Use set() if you want to overwrite the existing data, or ' +
-        'an Object with integer keys if you really do want to ' +
-        'only update some of the children.'
+          'Use set() if you want to overwrite the existing data, or ' +
+          'an Object with integer keys if you really do want to ' +
+          'only update some of the children.'
       );
     }
     _validateWritablePath('Reference.update', this._delegate._path);

@@ -28,7 +28,10 @@ import {
 } from '@firebase/component';
 import * as types from '@firebase/database-types';
 
-import { _repoManagerDatabaseFromApp, _setSDKVersion } from '@firebase/database';
+import {
+  _repoManagerDatabaseFromApp,
+  _setSDKVersion
+} from '@firebase/database';
 // import {
 //   repoInterceptServerData,
 //   repoStats,

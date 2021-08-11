@@ -25,17 +25,16 @@ import { enableLogging } from '@firebase/database';
 import { Database } from '../src/api/Database';
 import * as INTERNAL from '../src/api/internal';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
-// import * as TEST_ACCESS from '../src/api/test_access';
 
 import { name, version } from '../package.json';
-
 
 const ServerValue = Database.ServerValue;
 
 export function registerDatabase(instance: FirebaseNamespace) {
-
   // Register the Database Service with the 'firebase' namespace.
-  const namespace = ((instance as unknown) as _FirebaseNamespace).INTERNAL.registerComponent(
+  const namespace = (
+    instance as unknown as _FirebaseNamespace
+  ).INTERNAL.registerComponent(
     new Component(
       'database-compat',
       (container, { instanceIdentifier: url }) => {
@@ -58,8 +57,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
           DataSnapshot,
           enableLogging,
           INTERNAL,
-          ServerValue,
-          // TEST_ACCESS
+          ServerValue
         }
       )
       .setMultipleInstances(true)

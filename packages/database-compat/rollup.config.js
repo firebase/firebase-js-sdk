@@ -21,7 +21,9 @@ import typescript from 'typescript';
 
 import pkg from './package.json';
 
-const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
+const deps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
 
 function onWarn(warning, defaultWarn) {
   if (warning.code === 'CIRCULAR_DEPENDENCY') {

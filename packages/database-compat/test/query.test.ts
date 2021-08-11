@@ -20,7 +20,10 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as _ from 'lodash';
 
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
-import { INTEGER_32_MAX, INTEGER_32_MIN } from '../../database/src/core/util/util';
+import {
+  INTEGER_32_MAX,
+  INTEGER_32_MIN
+} from '../../database/src/core/util/util';
 
 import {
   EventAccumulator,
@@ -2511,8 +2514,9 @@ describe('Query Tests', () => {
   });
 
   function dumpListens(node: Query) {
-    const listens: Map<string, Map<string, unknown>> = (node._delegate._repo
-      .persistentConnection_ as any).listens;
+    const listens: Map<string, Map<string, unknown>> = (
+      node._delegate._repo.persistentConnection_ as any
+    ).listens;
     const nodePath = getPath(node);
     const listenPaths = [];
     for (const path of listens.keys()) {

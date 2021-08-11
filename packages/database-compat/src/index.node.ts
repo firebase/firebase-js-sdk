@@ -29,7 +29,6 @@ import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 // import * as TEST_ACCESS from '../src/api/test_access';
 import { name, version } from '../package.json';
 
-
 const ServerValue = Database.ServerValue;
 
 /**
@@ -62,7 +61,7 @@ export function initStandalone(
       DataSnapshot,
       enableLogging,
       INTERNAL,
-      ServerValue,
+      ServerValue
       // TEST_ACCESS
     },
     nodeAdmin
@@ -94,7 +93,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
           DataSnapshot,
           enableLogging,
           INTERNAL,
-          ServerValue,
+          ServerValue
           // TEST_ACCESS
         }
       )
