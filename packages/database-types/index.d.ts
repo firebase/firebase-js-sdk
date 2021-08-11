@@ -148,6 +148,6 @@ export function enableLogging(
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'database': FirebaseDatabase;
+    'database-compat': FirebaseDatabase;
   }
 }

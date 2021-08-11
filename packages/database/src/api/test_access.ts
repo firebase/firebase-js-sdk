@@ -17,10 +17,9 @@
 
 import { PersistentConnection } from '../core/PersistentConnection';
 import { RepoInfo } from '../core/RepoInfo';
-import { repoManagerForceRestClient } from '../exp/Database';
 import { Connection } from '../realtime/Connection';
 
-import { Query } from './Reference';
+import { repoManagerForceRestClient } from './Database';
 
 export const DataConnection = PersistentConnection;
 
@@ -62,10 +61,6 @@ export const hijackHash = function (newHash: () => string) {
 };
 
 export const ConnectionTarget = RepoInfo;
-
-export const queryIdentifier = function (query: Query) {
-  return query._delegate._queryIdentifier;
-};
 
 /**
  * Forces the RepoManager to create Repos that use ReadonlyRestClient instead of PersistentConnection.

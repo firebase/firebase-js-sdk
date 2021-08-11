@@ -23,15 +23,15 @@ export {
   goOnline,
   connectDatabaseEmulator,
   repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp
-} from '../src/exp/Database';
+} from './api/Database';
 export {
   Query,
   DatabaseReference,
   ListenOptions,
   Unsubscribe,
   ThenableReference
-} from '../src/exp/Reference';
-export { OnDisconnect } from '../src/exp/OnDisconnect';
+} from './api/Reference';
+export { OnDisconnect } from './api/OnDisconnect';
 export {
   DataSnapshot,
   EventType,
@@ -68,10 +68,10 @@ export {
   child,
   ReferenceImpl as _ReferenceImpl,
   QueryImpl as _QueryImpl
-} from '../src/exp/Reference_impl';
-export { increment, serverTimestamp } from '../src/exp/ServerValue';
+} from './api/Reference_impl';
+export { increment, serverTimestamp } from './api/ServerValue';
 export {
   runTransaction,
   TransactionOptions,
   TransactionResult
-} from '../src/exp/Transaction';
+} from './api/Transaction';

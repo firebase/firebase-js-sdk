@@ -17,7 +17,7 @@
 
 import { assert } from '@firebase/util';
 
-import { DataSnapshot } from '../../exp/Reference_impl';
+import { DataSnapshot } from '../../api/Reference_impl';
 import { Repo } from '../Repo';
 import { Path } from '../util/Path';
 

@@ -17,9 +17,9 @@
 
 import { expect } from 'chai';
 
-import { Reference } from '../src/api/Reference';
+import { Reference } from '../../../database/src/api/Reference';
 
-import { EventAccumulator } from './helpers/EventAccumulator';
+import { EventAccumulator } from '../../../database/test/helpers/EventAccumulator';
 import { eventTestHelper } from './helpers/events';
 import { getRandomNode } from './helpers/util';
 

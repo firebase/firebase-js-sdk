@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,107 +15,182 @@
  * limitations under the License.
  */
 
-import { validateArgCount, validateCallback, Compat } from '@firebase/util';
+import { Deferred } from '@firebase/util';
 
-import { Indexable } from '../core/util/misc';
-import { warn } from '../core/util/util';
+import {
+  Repo,
+  repoOnDisconnectCancel,
+  repoOnDisconnectSet,
+  repoOnDisconnectSetWithPriority,
+  repoOnDisconnectUpdate
+} from '../core/Repo';
+import { Path } from '../core/util/Path';
+import {
+  validateFirebaseDataArg,
+  validateFirebaseMergeDataArg,
+  validatePriority,
+  validateWritablePath
+} from '../core/util/validation';
 
-// TODO: revert to import { OnDisconnect as ExpOnDisconnect } from '../../exp/index'; once the modular SDK goes GA
 /**
- * This is a workaround for an issue in the no-modular '@firebase/database' where its typings
- * reference types from `@firebase/app-exp`.
+ * The `onDisconnect` class allows you to write or clear data when your client
+ * disconnects from the Database server. These updates occur whether your
+ * client disconnects cleanly or not, so you can rely on them to clean up data
+ * even if a connection is dropped or a client crashes.
+ *
+ * The `onDisconnect` class is most commonly used to manage presence in
+ * applications where it is useful to detect how many clients are connected and
+ * when other clients disconnect. See
+ * {@link https://firebase.google.com/docs/database/web/offline-capabilities | Enabling Offline Capabilities in JavaScript}
+ * for more information.
+ *
+ * To avoid problems when a connection is dropped before the requests can be
+ * transferred to the Database server, these functions should be called before
+ * writing any data.
+ *
+ * Note that `onDisconnect` operations are only triggered once. If you want an
+ * operation to occur each time a disconnect occurs, you'll need to re-establish
+ * the `onDisconnect` operations each time you reconnect.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ExpOnDisconnect = any;
+export class OnDisconnect {
+  /** @hideconstructor */
+  constructor(private _repo: Repo, private _path: Path) {}
 
-export class OnDisconnect implements Compat<ExpOnDisconnect> {
-  constructor(readonly _delegate: ExpOnDisconnect) {}
-
-  cancel(onComplete?: (a: Error | null) => void): Promise<void> {
-    validateArgCount('OnDisconnect.cancel', 0, 1, arguments.length);
-    validateCallback('OnDisconnect.cancel', 'onComplete', onComplete, true);
-    const result = this._delegate.cancel();
-    if (onComplete) {
-      result.then(
-        () => onComplete(null),
-        error => onComplete(error)
-      );
-    }
-    return result;
+  /**
+   * Cancels all previously queued `onDisconnect()` set or update events for this
+   * location and all children.
+   *
+   * If a write has been queued for this location via a `set()` or `update()` at a
+   * parent location, the write at this location will be canceled, though writes
+   * to sibling locations will still occur.
+   *
+   * @returns Resolves when synchronization to the server is complete.
+   */
+  cancel(): Promise<void> {
+    const deferred = new Deferred<void>();
+    repoOnDisconnectCancel(
+      this._repo,
+      this._path,
+      deferred.wrapCallback(() => {})
+    );
+    return deferred.promise;
   }
 
-  remove(onComplete?: (a: Error | null) => void): Promise<void> {
-    validateArgCount('OnDisconnect.remove', 0, 1, arguments.length);
-    validateCallback('OnDisconnect.remove', 'onComplete', onComplete, true);
-    const result = this._delegate.remove();
-    if (onComplete) {
-      result.then(
-        () => onComplete(null),
-        error => onComplete(error)
-      );
-    }
-    return result;
+  /**
+   * Ensures the data at this location is deleted when the client is disconnected
+   * (due to closing the browser, navigating to a new page, or network issues).
+   *
+   * @returns Resolves when synchronization to the server is complete.
+   */
+  remove(): Promise<void> {
+    validateWritablePath('OnDisconnect.remove', this._path);
+    const deferred = new Deferred<void>();
+    repoOnDisconnectSet(
+      this._repo,
+      this._path,
+      null,
+      deferred.wrapCallback(() => {})
+    );
+    return deferred.promise;
   }
 
-  set(value: unknown, onComplete?: (a: Error | null) => void): Promise<void> {
-    validateArgCount('OnDisconnect.set', 1, 2, arguments.length);
-    validateCallback('OnDisconnect.set', 'onComplete', onComplete, true);
-    const result = this._delegate.set(value);
-    if (onComplete) {
-      result.then(
-        () => onComplete(null),
-        error => onComplete(error)
-      );
-    }
-    return result;
+  /**
+   * Ensures the data at this location is set to the specified value when the
+   * client is disconnected (due to closing the browser, navigating to a new page,
+   * or network issues).
+   *
+   * `set()` is especially useful for implementing "presence" systems, where a
+   * value should be changed or cleared when a user disconnects so that they
+   * appear "offline" to other users. See
+   * {@link https://firebase.google.com/docs/database/web/offline-capabilities | Enabling Offline Capabilities in JavaScript}
+   * for more information.
+   *
+   * Note that `onDisconnect` operations are only triggered once. If you want an
+   * operation to occur each time a disconnect occurs, you'll need to re-establish
+   * the `onDisconnect` operations each time.
+   *
+   * @param value - The value to be written to this location on disconnect (can
+   * be an object, array, string, number, boolean, or null).
+   * @returns Resolves when synchronization to the Database is complete.
+   */
+  set(value: unknown): Promise<void> {
+    validateWritablePath('OnDisconnect.set', this._path);
+    validateFirebaseDataArg('OnDisconnect.set', value, this._path, false);
+    const deferred = new Deferred<void>();
+    repoOnDisconnectSet(
+      this._repo,
+      this._path,
+      value,
+      deferred.wrapCallback(() => {})
+    );
+    return deferred.promise;
   }
 
+  /**
+   * Ensures the data at this location is set to the specified value and priority
+   * when the client is disconnected (due to closing the browser, navigating to a
+   * new page, or network issues).
+   *
+   * @param value - The value to be written to this location on disconnect (can
+   * be an object, array, string, number, boolean, or null).
+   * @param priority - The priority to be written (string, number, or null).
+   * @returns Resolves when synchronization to the Database is complete.
+   */
   setWithPriority(
     value: unknown,
-    priority: number | string | null,
-    onComplete?: (a: Error | null) => void
+    priority: number | string | null
   ): Promise<void> {
-    validateArgCount('OnDisconnect.setWithPriority', 2, 3, arguments.length);
-    validateCallback(
+    validateWritablePath('OnDisconnect.setWithPriority', this._path);
+    validateFirebaseDataArg(
       'OnDisconnect.setWithPriority',
-      'onComplete',
-      onComplete,
-      true
+      value,
+      this._path,
+      false
     );
-    const result = this._delegate.setWithPriority(value, priority);
-    if (onComplete) {
-      result.then(
-        () => onComplete(null),
-        error => onComplete(error)
-      );
-    }
-    return result;
+    validatePriority('OnDisconnect.setWithPriority', priority, false);
+
+    const deferred = new Deferred<void>();
+    repoOnDisconnectSetWithPriority(
+      this._repo,
+      this._path,
+      value,
+      priority,
+      deferred.wrapCallback(() => {})
+    );
+    return deferred.promise;
   }
 
-  update(
-    objectToMerge: Indexable,
-    onComplete?: (a: Error | null) => void
-  ): Promise<void> {
-    validateArgCount('OnDisconnect.update', 1, 2, arguments.length);
-    if (Array.isArray(objectToMerge)) {
-      const newObjectToMerge: { [k: string]: unknown } = {};
-      for (let i = 0; i < objectToMerge.length; ++i) {
-        newObjectToMerge['' + i] = objectToMerge[i];
-      }
-      objectToMerge = newObjectToMerge;
-      warn(
-        'Passing an Array to firebase.database.onDisconnect().update() is deprecated. Use set() if you want to overwrite the ' +
-          'existing data, or an Object with integer keys if you really do want to only update some of the children.'
-      );
-    }
-    validateCallback('OnDisconnect.update', 'onComplete', onComplete, true);
-    const result = this._delegate.update(objectToMerge);
-    if (onComplete) {
-      result.then(
-        () => onComplete(null),
-        error => onComplete(error)
-      );
-    }
-    return result;
+  /**
+   * Writes multiple values at this location when the client is disconnected (due
+   * to closing the browser, navigating to a new page, or network issues).
+   *
+   * The `values` argument contains multiple property-value pairs that will be
+   * written to the Database together. Each child property can either be a simple
+   * property (for example, "name") or a relative path (for example, "name/first")
+   * from the current location to the data to update.
+   *
+   * As opposed to the `set()` method, `update()` can be use to selectively update
+   * only the referenced properties at the current location (instead of replacing
+   * all the child properties at the current location).
+   *
+   * @param values - Object containing multiple values.
+   * @returns Resolves when synchronization to the Database is complete.
+   */
+  update(values: object): Promise<void> {
+    validateWritablePath('OnDisconnect.update', this._path);
+    validateFirebaseMergeDataArg(
+      'OnDisconnect.update',
+      values,
+      this._path,
+      false
+    );
+    const deferred = new Deferred<void>();
+    repoOnDisconnectUpdate(
+      this._repo,
+      this._path,
+      values as Record<string, unknown>,
+      deferred.wrapCallback(() => {})
+    );
+    return deferred.promise;
   }
 }

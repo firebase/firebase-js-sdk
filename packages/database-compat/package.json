@@ -1,13 +1,23 @@
 {
-    "name": "@firebase/database-compat",
-    "version": "0.0.900",
-    "description": "The Realtime Database component of the Firebase JS SDK.",
-    "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-    "main": "../dist/compat/cjs/index.js",
-    "browser": "../dist/compat/esm2017/index.js",
-    "module": "../dist/compat/esm2017/index.js",
-    "esm5": "../dist/compat/esm5/index.js",
-    "license": "Apache-2.0",
-    "typings": "../dist/compat/esm2017/compat/index.d.ts"
+  "name": "@firebase/database-compat",
+  "version": "0.0.900",
+  "description": "The Realtime Database component of the Firebase JS SDK.",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "../dist/compat/cjs/index.js",
+  "browser": "../dist/compat/esm2017/index.js",
+  "module": "../dist/compat/esm2017/index.js",
+  "esm5": "../dist/compat/esm5/index.js",
+  "license": "Apache-2.0",
+  "typings": "../dist/compat/esm2017/compat/index.d.ts",
+  "scripts": {
+    "build:compat": "rollup -c rollup.config.compat.js && yarn add-compat-overloads",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i dist/exp/index.d.ts -o dist/compat/esm2017/compat/index.d.ts -a -r FirebaseDatabase:types.FirebaseDatabase -r Query:types.Query -r Reference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/database"
+  },
+  "dependencies": {
+    "@firebase/database-types": "0.7.3",
+    "@firebase/logger": "0.2.6",
+    "@firebase/util": "1.2.0",
+    "@firebase/component": "0.5.5",
+    "tslib": "^2.1.0"
   }
-  
+}

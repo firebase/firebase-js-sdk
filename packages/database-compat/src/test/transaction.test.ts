@@ -19,13 +19,13 @@ import firebase from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
-import { Reference } from '../src/api/Reference';
-import { hijackHash } from '../src/api/test_access';
+import { Reference } from '../../../database/src/api/Reference';
+import { hijackHash } from '../../../database/src/api/test_access';
 
 import {
   EventAccumulator,
   EventAccumulatorFactory
-} from './helpers/EventAccumulator';
+} from '../../../database/test/helpers/EventAccumulator';
 import { eventTestHelper } from './helpers/events';
 import {
   canCreateExtraConnections,

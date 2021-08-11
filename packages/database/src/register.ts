@@ -24,11 +24,12 @@ import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
 import { setSDKVersion } from '../src/core/version';
-import { Database, repoManagerDatabaseFromApp } from '../src/exp/Database';
+
+import { Database, repoManagerDatabaseFromApp } from './api/Database';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'database-exp': Database;
+    'database': Database;
   }
 }
 
@@ -36,7 +37,7 @@ export function registerDatabase(variant?: string): void {
   setSDKVersion(SDK_VERSION);
   _registerComponent(
     new Component(
-      'database-exp',
+      'database',
       (container, { instanceIdentifier: url }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
