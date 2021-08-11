@@ -162,6 +162,20 @@ export function connectFunctionsEmulator(
  */
 export function httpsCallable<RequestData, ResponseData>(
   functionsInstance: FunctionsService,
+  name: string,
+  options?: HttpsCallableOptions
+): HttpsCallable<RequestData, ResponseData> {
+  const url = functionsInstance._url(name);
+  return httpsCallableFromURL(functionsInstance, url, options);
+}
+
+/**
+ * Returns a reference to the callable https trigger with the given URL.
+ * @param url - The url of the trigger.
+ * @public
+ */
+export function httpsCallableFromURL<RequestData, ResponseData>(
+  functionsInstance: FunctionsService,
   url: string,
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData> {
