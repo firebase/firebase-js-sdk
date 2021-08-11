@@ -84,9 +84,30 @@ export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
   name: string,
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData> {
+  const instance = getModularInstance<FunctionsService>(
+    functionsInstance as FunctionsService
+  );
+  const url = instance._url(name);
+
+  return _httpsCallable<RequestData, ResponseData>(instance, url, options);
+}
+
+/**
+ * Returns a reference to the callable https trigger with the given URL.
+ * @param url - The URL of the trigger.
+ * @public
+ */
+export function httpsCallableFromURL<
+  RequestData = unknown,
+  ResponseData = unknown
+>(
+  functionsInstance: Functions,
+  url: string,
+  options?: HttpsCallableOptions
+): HttpsCallable<RequestData, ResponseData> {
   return _httpsCallable<RequestData, ResponseData>(
     getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
-    name,
+    url,
     options
   );
 }

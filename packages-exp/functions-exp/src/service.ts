@@ -162,11 +162,11 @@ export function connectFunctionsEmulator(
  */
 export function httpsCallable<RequestData, ResponseData>(
   functionsInstance: FunctionsService,
-  name: string,
+  url: string,
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData> {
   return (data => {
-    return call(functionsInstance, name, data, options || {});
+    return call(functionsInstance, url, data, options || {});
   }) as HttpsCallable<RequestData, ResponseData>;
 }
 
@@ -221,12 +221,10 @@ async function postJSON(
  */
 async function call(
   functionsInstance: FunctionsService,
-  name: string,
+  url: string,
   data: unknown,
   options: HttpsCallableOptions
 ): Promise<HttpsCallableResult> {
-  const url = functionsInstance._url(name);
-
   // Encode any special types, such as dates, in the input data.
   data = encode(data);
   const body = { data };

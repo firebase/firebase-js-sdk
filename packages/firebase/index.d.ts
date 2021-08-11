@@ -2053,6 +2053,18 @@ declare namespace firebase.functions {
      * @return The `HttpsCallable` instance.
      */
     httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable;
+    /**
+     * Gets an `HttpsCallable` instance that refers to the function with the given
+     * URL.
+     *
+     * @param URL A URL that implements the Callable functions protocol.
+     * @param options The options for this HttpsCallable instance.
+     * @return The `HttpsCallable` instance.
+     */
+    httpsCallableFromURL(
+      url: string,
+      options?: HttpsCallableOptions
+    ): HttpsCallable;
   }
   /**
    * The set of Firebase Functions status codes. The codes are the same at the

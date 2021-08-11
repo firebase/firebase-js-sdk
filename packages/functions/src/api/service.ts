@@ -59,9 +59,7 @@ export interface HttpResponseBody {
  *
  * @param millis Number of milliseconds to wait before rejecting.
  */
-function failAfter(
-  millis: number
-): {
+function failAfter(millis: number): {
   timer: number | NodeJS.Timeout;
   promise: Promise<never>;
 } {
@@ -181,8 +179,26 @@ export class Service implements FirebaseFunctions, FirebaseService {
    * @param name The name of the trigger.
    */
   httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
+    const url = this._url(name);
     return data => {
-      return this.call(name, data, options || {});
+      return this.call(url, data, options || {});
+    };
+  }
+
+  /**
+   * Gets an `HttpsCallable` instance that refers to the function with the given
+   * URL.
+   *
+   * @param URL A URL that implements the Callable functions protocol.
+   * @param options The options for this HttpsCallable instance.
+   * @return The `HttpsCallable` instance.
+   */
+  httpsCallableFromURL(
+    url: string,
+    options?: HttpsCallableOptions
+  ): HttpsCallable {
+    return data => {
+      return this.call(url, data, options || {});
     };
   }
 
@@ -249,16 +265,14 @@ export class Service implements FirebaseFunctions, FirebaseService {
 
   /**
    * Calls a callable function asynchronously and returns the result.
-   * @param name The name of the callable trigger.
+   * @param url The url of the callable trigger.
    * @param data The data to pass as params to the function.s
    */
   private async call(
-    name: string,
+    url: string,
     data: unknown,
     options: HttpsCallableOptions
   ): Promise<HttpsCallableResult> {
-    const url = this._url(name);
-
     // Encode any special types, such as dates, in the input data.
     data = this.serializer.encode(data);
     const body = { data };

@@ -54,6 +54,18 @@ export class FirebaseFunctions {
   httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable;
 
   /**
+   * Gets an 'HttpsCallable' instance that refers to an arbitrary URL that implements
+   * the callable functions protocol.
+   *
+   * @param url The URL that hosts a Callable functions endpoint.
+   * @return the `HttpsCallable` instance.
+   */
+  httpsCallableFromURL(
+    url: string,
+    options?: HttpsCallableOptions
+  ): HttpsCallable;
+
+  /**
    * Modify this instance to communicate with the Cloud Functions emulator.
    *
    * Note: this must be called before this instance has been used to do any operations.
