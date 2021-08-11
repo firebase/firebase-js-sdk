@@ -51,7 +51,10 @@ export interface DocumentData {
 
 type Primitive = string | number | boolean | bigint | undefined | null;
 
-/** Like Partial but recursive */
+/**
+ * Similar to Typescript's `Partial<T>`, but allows nested fields to be
+ * omitted and FieldValues to be passed in as property values.
+ */
 export type NestedPartial<T> = T extends Primitive
   ? T
   : T extends Map<infer K, infer V>
@@ -60,6 +63,10 @@ export type NestedPartial<T> = T extends Primitive
   ? { [K in keyof T]?: NestedPartial<T[K]> | FieldValue }
   : Partial<T>;
 
+/**
+ * Allows FieldValues to be passed in as a property value while maintaining
+ * type safety.
+ */
 export type WithFieldValue<T> = T extends Primitive
   ? T
   : T extends {}
@@ -67,17 +74,10 @@ export type WithFieldValue<T> = T extends Primitive
   : Partial<T>;
 
 /**
- * Update data (for use with {@link @firebase/firestore/lite#(updateDoc:1)}) consists of field paths (e.g.
- * 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference
- * nested fields within the document.
+ * Update data (for use with {@link @firebase/firestore/lite#(updateDoc:1)})
+ * that consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values.
+ * Fields that contain dots reference nested fields within the document.
  */
-// export interface UpdateData {
-//   /** A mapping between a dot-separated field path and its value. */
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   [fieldPath: string]: any;
-// }
-// Represents an update object to Firestore document data, which can contain either fields like {a: 2}
-// or dot-separated paths such as {"a.b" : 2} (which updates the nested property "b" in map field "a").
 export type TypedUpdateData<T> = T extends Primitive
   ? T
   : T extends Map<infer K, infer V>
@@ -87,28 +87,52 @@ export type TypedUpdateData<T> = T extends Primitive
       NestedUpdateFields<T>
   : Partial<T>;
 
-// For each field (e.g. "bar"), calculate its nested keys (e.g. {"bar.baz": T1, "bar.quax": T2}), and then
-// intersect them together to make one giant map containing all possible keys (all marked as optional).
+/**
+ * For each field (e.g. 'bar'), find all nested keys (e.g. {'bar.baz': T1,
+ * 'bar.qux': T2}). Intersect them together to make a single map containing
+ * all possible keys that are all marked as optional
+ */
+// Mapping between a field and its value.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type NestedUpdateFields<T extends Record<string, any>> = UnionToIntersection<
   {
-    [K in keyof T & string]: T[K] extends Record<string, any> // Only allow nesting for map values
-      ? AddPrefixToKeys<K, TypedUpdateData<T[K]>> // Recurse into map and add "bar." in front of every key
-      : never;
-  }[keyof T & string]
+    // Check that T[K] extends Record to only allow nesting for map values.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [K in keyof T & string]: T[K] extends Record<string, any>
+      ? // Recurse into the map and add the prefix in front of each key
+        // (e.g. Prefix 'bar.' to create: 'bar.baz' and 'bar.qux'.
+        AddPrefixToKeys<K, TypedUpdateData<T[K]>>
+      : // TypedUpdateData is always a map of values.
+        never;
+  }[keyof T & string] // Also include the generated prefix-string keys.
 >;
 
-// Return a new map where every key is prepended with Prefix + dot.
+/**
+ * Returns a new map where every key is prefixed with the outer key appended
+ * to a dot.
+ */
+// Mapping between a field and its value.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AddPrefixToKeys<Prefix extends string, T extends Record<string, any>> =
   // Remap K => Prefix.K. See https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
   { [K in keyof T & string as `${Prefix}.${K}`]+?: T[K] };
 
-// This takes union type U = T1 | T2 | ... and returns a intersected type (T1 & T2 & ...)
-type UnionToIntersection<U> =
-  // Works because "multiple candidates for the same type variable in contra-variant positions causes an intersection type to be inferred"
-  // https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-inference-in-conditional-types
-  (U extends any ? (k: U) => void : never) extends (k: infer I) => void
-    ? I
-    : never;
+/**
+ * Given a union type `U = T1 | T2 | ...`, returns an intersected type
+ * `(T1 & T2 & ...)`.
+ *
+ * Uses distributive conditional types and inference from conditional types.
+ * This works because multiple candidates for the same type variable in
+ * contra-variant positions causes an intersection type to be inferred.
+ * https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-inference-in-conditional-types
+ * https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I
+) => void
+  ? I
+  : never;
 
 /**
  * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link

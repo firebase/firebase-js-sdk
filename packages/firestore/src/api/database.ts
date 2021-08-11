@@ -106,6 +106,7 @@ import {
   AbstractUserDataWriter
 } from '../../exp/index'; // import from the exp public API
 import { DatabaseId } from '../core/database_info';
+import { NestedPartial, WithFieldValue } from '../lite/reference';
 import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
@@ -127,7 +128,6 @@ import {
   NextFn,
   PartialObserver
 } from './observer';
-import { NestedPartial, WithFieldValue } from '../lite/reference';
 
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.

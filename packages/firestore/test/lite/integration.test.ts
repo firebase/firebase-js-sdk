@@ -56,7 +56,6 @@ import {
   queryEqual,
   collectionGroup,
   SetOptions,
-  UpdateData,
   DocumentData,
   WithFieldValue,
   NestedPartial,
@@ -794,7 +793,7 @@ function genericMutationTests(
           nested: {
             innerNested: {
               // @ts-expect-error
-              nonexistent: string,
+              nonexistent: 'string',
               innerNestedNum: 2,
               innerNestedString: deleteField()
             },
