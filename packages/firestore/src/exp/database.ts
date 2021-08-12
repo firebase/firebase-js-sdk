@@ -24,8 +24,8 @@ import {
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { deepEqual } from '@firebase/util';
 
-import { deepEqual } from '../../../util/dist';
 import {
   IndexedDbOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
