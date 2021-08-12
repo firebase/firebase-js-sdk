@@ -30,9 +30,9 @@ import {
 } from './collections';
 import { MutableDocument } from './document';
 import {
+  Mutation,
   mutationApplyToLocalView,
   mutationApplyToRemoteDocument,
-  Mutation,
   mutationEquals,
   MutationResult
 } from './mutation';
