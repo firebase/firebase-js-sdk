@@ -32,7 +32,6 @@ import { isNode } from '@firebase/util';
 
 import { expect } from 'chai';
 import {
-  browserSessionPersistence,
   inMemoryPersistence
 } from '../../../internal';
 
@@ -222,13 +221,13 @@ describe('core/auth/initialize', () => {
     it('should not throw if called again with same params', () => {
       const auth = initializeAuth(fakeApp, {
         errorMap: prodErrorMap,
-        persistence: browserSessionPersistence,
+        persistence: fakeSessionPersistence,
         popupRedirectResolver: fakePopupRedirectResolver
       });
       expect(
         initializeAuth(fakeApp, {
           errorMap: prodErrorMap,
-          persistence: browserSessionPersistence,
+          persistence: fakeSessionPersistence,
           popupRedirectResolver: fakePopupRedirectResolver
         })
       ).to.equal(auth);
