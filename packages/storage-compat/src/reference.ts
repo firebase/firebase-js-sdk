@@ -35,7 +35,7 @@ import {
   _FbsBlob,
   _dataFromString,
   _invalidRootOperation
-} from '@firebase/storage'; // import from the exp public API
+} from '@firebase/storage';
 
 import { UploadTaskCompat } from './task';
 import { ListResultCompat } from './list';
