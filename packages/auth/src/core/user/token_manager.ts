@@ -42,6 +42,7 @@ export class StsTokenManager {
   refreshToken: string | null = null;
   accessToken: string | null = null;
   expirationTime: number | null = null;
+  isPassthroughMode: boolean = false;
 
   get isExpired(): boolean {
     return (
@@ -54,14 +55,6 @@ export class StsTokenManager {
     response: IdTokenResponse | FinalizeMfaResponse
   ): void {
     _assert(response.idToken, AuthErrorCode.INTERNAL_ERROR);
-    _assert(
-      typeof response.idToken !== 'undefined',
-      AuthErrorCode.INTERNAL_ERROR
-    );
-    _assert(
-      typeof response.refreshToken !== 'undefined',
-      AuthErrorCode.INTERNAL_ERROR
-    );
     const expiresIn =
       'expiresIn' in response && typeof response.expiresIn !== 'undefined'
         ? Number(response.expiresIn)
@@ -74,6 +67,17 @@ export class StsTokenManager {
   }
 
   async getToken(
+    auth: AuthInternal,
+    forceRefresh = false
+  ): Promise<string | null> {
+    if (this.isPassthroughMode) {
+      return this.getTokenAndTriggerCallback(auth, forceRefresh);
+    } else {
+      return this.getTokenAndRefreshIfNeeded(auth, forceRefresh);
+    }
+  }
+
+  private async getTokenAndRefreshIfNeeded(
     auth: AuthInternal,
     forceRefresh = false
   ): Promise<string | null> {
@@ -95,6 +99,14 @@ export class StsTokenManager {
     return null;
   }
 
+  // TODO(lisajian): Fill in once refresh listener is added
+  private async getTokenAndTriggerCallback(
+    _auth: AuthInternal,
+    _forceRefresh = false
+  ): Promise<string | null> {
+    return null;
+  }
+
   clearRefreshToken(): void {
     this.refreshToken = null;
   }
@@ -113,16 +125,18 @@ export class StsTokenManager {
 
   private updateTokensAndExpiration(
     accessToken: string,
-    refreshToken: string,
+    refreshToken: string | undefined,
     expiresInSec: number
   ): void {
     this.refreshToken = refreshToken || null;
     this.accessToken = accessToken || null;
     this.expirationTime = Date.now() + expiresInSec * 1000;
+    this.isPassthroughMode = !this.refreshToken;
   }
 
   static fromJSON(appName: string, object: PersistedBlob): StsTokenManager {
-    const { refreshToken, accessToken, expirationTime } = object;
+    const { refreshToken, accessToken, expirationTime, isPassthroughMode } =
+      object;
 
     const manager = new StsTokenManager();
     if (refreshToken) {
@@ -147,6 +161,16 @@ export class StsTokenManager {
       );
       manager.expirationTime = expirationTime;
     }
+    if (isPassthroughMode) {
+      _assert(
+        typeof isPassthroughMode === 'boolean',
+        AuthErrorCode.INTERNAL_ERROR,
+        {
+          appName
+        }
+      );
+      manager.isPassthroughMode = isPassthroughMode;
+    }
     return manager;
   }
 
@@ -154,7 +178,8 @@ export class StsTokenManager {
     return {
       refreshToken: this.refreshToken,
       accessToken: this.accessToken,
-      expirationTime: this.expirationTime
+      expirationTime: this.expirationTime,
+      isPassthroughMode: this.isPassthroughMode
     };
   }
 
@@ -162,6 +187,7 @@ export class StsTokenManager {
     this.accessToken = stsTokenManager.accessToken;
     this.refreshToken = stsTokenManager.refreshToken;
     this.expirationTime = stsTokenManager.expirationTime;
+    this.isPassthroughMode = stsTokenManager.isPassthroughMode;
   }
 
   _clone(): StsTokenManager {

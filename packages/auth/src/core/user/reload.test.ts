@@ -170,6 +170,28 @@ describe('core/user/reload', () => {
     expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
   });
 
+  it('nulls out properties in passthrough mode', async () => {
+    const user = testUser(auth, 'abc', '');
+    user.stsTokenManager.isPassthroughMode = true;
+    const getIdTokenSpy = sinon.spy(user, 'getIdToken');
+
+    await _reloadWithoutSaving(user);
+
+    expect(user.uid).to.eq('abc');
+    expect(user.displayName).to.be.null;
+    expect(user.photoURL).to.be.null;
+    expect(user.email).to.be.null;
+    expect(user.emailVerified).to.be.false;
+    expect(user.phoneNumber).to.be.null;
+    expect(user.tenantId).to.be.null;
+    expect(user.providerData).to.eql([]);
+    expect((user.metadata as UserMetadata).toJSON()).to.eql({
+      createdAt: undefined,
+      lastLoginAt: undefined
+    });
+    expect(getIdTokenSpy).not.to.have.been.called;
+  });
+
   context('anonymous carryover', () => {
     let user: UserInternal;
     beforeEach(() => {
@@ -182,7 +204,7 @@ describe('core/user/reload', () => {
       providerData: Array<{ providerId: string }>
     ): void {
       // Get around readonly property
-      const mutUser = (user as unknown) as Record<string, unknown>;
+      const mutUser = user as unknown as Record<string, unknown>;
       mutUser.isAnonymous = isAnonStart;
       mutUser.email = emailStart;
 
