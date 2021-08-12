@@ -60,7 +60,11 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
     'Custom metric name {$customMetricName} is invalid',
   [ErrorCode.INVALID_STRING_MERGER_PARAMETER]:
     'Input for String merger is invalid, contact support team to resolve.',
-  [ErrorCode.ALREADY_INITIALIZED]: 'Performance can only be initialized once.'
+  [ErrorCode.ALREADY_INITIALIZED]:
+    'initializePerformance() has already been called with ' +
+    'different options. To avoid this error, call initializePerformance() with the ' +
+    'same options as when it was originally called, or call getPerformance() to return the' +
+    ' already initialized instance.'
 };
 
 interface ErrorParams {
