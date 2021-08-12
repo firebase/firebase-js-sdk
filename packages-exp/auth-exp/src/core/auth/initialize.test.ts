@@ -31,9 +31,7 @@ import {
 import { isNode } from '@firebase/util';
 
 import { expect } from 'chai';
-import {
-  inMemoryPersistence
-} from '../../../internal';
+import { inMemoryPersistence } from '../../../internal';
 
 import { AuthInternal } from '../../model/auth';
 import {
