@@ -332,8 +332,8 @@ export interface PersistenceSettings {
     forceOwnership?: boolean;
 }
 
-// @public (undocumented)
-export type Primitive = string | number | boolean | bigint | undefined | null;
+// @public
+export type Primitive = string | number | boolean | undefined | null;
 
 // @public
 export class Query<T = DocumentData> {

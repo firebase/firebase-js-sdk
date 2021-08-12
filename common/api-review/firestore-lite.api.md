@@ -203,8 +203,8 @@ export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDir
 // @public
 export type OrderByDirection = 'desc' | 'asc';
 
-// @public (undocumented)
-export type Primitive = string | number | boolean | bigint | undefined | null;
+// @public
+export type Primitive = string | number | boolean | undefined | null;
 
 // @public
 export class Query<T = DocumentData> {
