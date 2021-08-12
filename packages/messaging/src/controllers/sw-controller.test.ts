@@ -354,7 +354,7 @@ describe('SwController', () => {
     it('throws on invalid input', () => {
       expect(() =>
         swController.setBackgroundMessageHandler(
-          (null as unknown) as BgMessageHandler
+          null as unknown as BgMessageHandler
         )
       ).to.throw('messaging/invalid-bg-handler');
     });
@@ -363,7 +363,7 @@ describe('SwController', () => {
   describe('usePublicVapidKey', () => {
     it('throws on invalid input', () => {
       expect(() =>
-        swController.usePublicVapidKey((null as unknown) as string)
+        swController.usePublicVapidKey(null as unknown as string)
       ).to.throw('messaging/invalid-vapid-key');
 
       expect(() => swController.usePublicVapidKey('')).to.throw(
@@ -604,5 +604,5 @@ function makeEvent<K extends keyof ServiceWorkerGlobalScopeEventMap>(
 ): Writable<ServiceWorkerGlobalScopeEventMap[K]> {
   const event = new FakeEvent(type);
   Object.assign(event, data);
-  return (event as unknown) as ServiceWorkerGlobalScopeEventMap[K];
+  return event as unknown as ServiceWorkerGlobalScopeEventMap[K];
 }

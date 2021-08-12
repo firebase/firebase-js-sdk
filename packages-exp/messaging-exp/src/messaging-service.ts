@@ -39,10 +39,8 @@ export class MessagingService implements _FirebaseService {
     | Observer<MessagePayload>
     | null = null;
 
-  onMessageHandler:
-    | NextFn<MessagePayload>
-    | Observer<MessagePayload>
-    | null = null;
+  onMessageHandler: NextFn<MessagePayload> | Observer<MessagePayload> | null =
+    null;
 
   logEvents: LogEvent[] = [];
   isLogServiceStarted: boolean = false;

@@ -17,9 +17,9 @@
 
 import { FirebaseApp, _getProvider, getApp } from '@firebase/app-exp';
 import {
-  Messaging,
   GetTokenOptions,
-  MessagePayload
+  MessagePayload,
+  Messaging
 } from './interfaces/public-types';
 import {
   NextFn,
@@ -151,7 +151,7 @@ export function onBackgroundMessage(
  * @public
  */
 export function setDeliveryMetricsExportedToBigQueryEnabled(
-  messaging: FirebaseMessaging,
+  messaging: Messaging,
   enable: boolean
 ): void {
   messaging = getModularInstance(messaging);

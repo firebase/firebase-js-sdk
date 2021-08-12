@@ -447,7 +447,7 @@ describe('WindowController', () => {
   describe('usePublicVapidKey', () => {
     it('throws on invalid input', () => {
       expect(() =>
-        windowController.usePublicVapidKey((null as unknown) as string)
+        windowController.usePublicVapidKey(null as unknown as string)
       ).to.throw('messaging/invalid-vapid-key');
 
       expect(() => windowController.usePublicVapidKey('')).to.throw(
@@ -475,7 +475,7 @@ describe('WindowController', () => {
     it('throws on invalid input', () => {
       expect(() =>
         windowController.useServiceWorker(
-          ({} as unknown) as ServiceWorkerRegistration
+          {} as unknown as ServiceWorkerRegistration
         )
       ).to.throw('messaging/invalid-sw-registration');
     });

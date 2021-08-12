@@ -22,5 +22,6 @@ export function _setDeliveryMetricsExportedToBigQueryEnabled(
   messaging: FirebaseMessaging,
   enable: boolean
 ): void {
-  (messaging as MessagingService).deliveryMetricsExportedToBigQueryEnabled = enable;
+  (messaging as MessagingService).deliveryMetricsExportedToBigQueryEnabled =
+    enable;
 }
