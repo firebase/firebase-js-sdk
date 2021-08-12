@@ -204,7 +204,7 @@ export function preconditionIsValidForDocument(
  *
  * Every type of mutation needs to implement its own applyToRemoteDocument() and
  * applyToLocalView() to implement the actual behavior of applying the mutation
- * to some source document (see `applySetMutationToRemoteDocument()` for an
+ * to some source document (see `setMutationApplyToRemoteDocument()` for an
  * example).
  */
 export abstract class Mutation {
@@ -226,22 +226,22 @@ export abstract class Mutation {
  *     of the document.
  * @param mutationResult - The result of applying the mutation from the backend.
  */
-export function applyMutationToRemoteDocument(
+export function mutationApplyToRemoteDocument(
   mutation: Mutation,
   document: MutableDocument,
   mutationResult: MutationResult
 ): void {
-  verifyMutationKeyMatches(mutation, document);
+  mutationVerifyKeyMatches(mutation, document);
   if (mutation instanceof SetMutation) {
-    applySetMutationToRemoteDocument(mutation, document, mutationResult);
+    setMutationApplyToRemoteDocument(mutation, document, mutationResult);
   } else if (mutation instanceof PatchMutation) {
-    applyPatchMutationToRemoteDocument(mutation, document, mutationResult);
+    patchMutationApplyToRemoteDocument(mutation, document, mutationResult);
   } else {
     debugAssert(
       mutation instanceof DeleteMutation,
       'Unexpected mutation type: ' + mutation
     );
-    applyDeleteMutationToRemoteDocument(mutation, document, mutationResult);
+    deleteMutationApplyToRemoteDocument(mutation, document, mutationResult);
   }
 }
 
@@ -257,23 +257,23 @@ export function applyMutationToRemoteDocument(
  * @param localWriteTime - A timestamp indicating the local write time of the
  *     batch this mutation is a part of.
  */
-export function applyMutationToLocalView(
+export function mutationApplyToLocalView(
   mutation: Mutation,
   document: MutableDocument,
   localWriteTime: Timestamp
 ): void {
-  verifyMutationKeyMatches(mutation, document);
+  mutationVerifyKeyMatches(mutation, document);
 
   if (mutation instanceof SetMutation) {
-    applySetMutationToLocalView(mutation, document, localWriteTime);
+    setMutationApplyToLocalView(mutation, document, localWriteTime);
   } else if (mutation instanceof PatchMutation) {
-    applyPatchMutationToLocalView(mutation, document, localWriteTime);
+    patchMutationApplyToLocalView(mutation, document, localWriteTime);
   } else {
     debugAssert(
       mutation instanceof DeleteMutation,
       'Unexpected mutation type: ' + mutation
     );
-    applyDeleteMutationToLocalView(mutation, document);
+    deleteMutationApplyToLocalView(mutation, document);
   }
 }
 
@@ -293,7 +293,7 @@ export function applyMutationToLocalView(
  * @returns a base value to store along with the mutation, or null for
  * idempotent mutations.
  */
-export function extractMutationBaseValue(
+export function mutationExtractBaseValue(
   mutation: Mutation,
   document: Document
 ): ObjectValue | null {
@@ -348,7 +348,7 @@ export function mutationEquals(left: Mutation, right: Mutation): boolean {
   return true;
 }
 
-function verifyMutationKeyMatches(
+function mutationVerifyKeyMatches(
   mutation: Mutation,
   document: MutableDocument
 ): void {
@@ -385,12 +385,12 @@ export class SetMutation extends Mutation {
   readonly type: MutationType = MutationType.Set;
 }
 
-function applySetMutationToRemoteDocument(
+function setMutationApplyToRemoteDocument(
   mutation: SetMutation,
   document: MutableDocument,
   mutationResult: MutationResult
 ): void {
-  // Unlike applySetMutationToLocalView, if we're applying a mutation to a
+  // Unlike setMutationApplyToLocalView, if we're applying a mutation to a
   // remote document the server has accepted the mutation so the precondition
   // must have held.
   const newData = mutation.value.clone();
@@ -405,7 +405,7 @@ function applySetMutationToRemoteDocument(
     .setHasCommittedMutations();
 }
 
-function applySetMutationToLocalView(
+function setMutationApplyToLocalView(
   mutation: SetMutation,
   document: MutableDocument,
   localWriteTime: Timestamp
@@ -455,7 +455,7 @@ export class PatchMutation extends Mutation {
   readonly type: MutationType = MutationType.Patch;
 }
 
-function applyPatchMutationToRemoteDocument(
+function patchMutationApplyToRemoteDocument(
   mutation: PatchMutation,
   document: MutableDocument,
   mutationResult: MutationResult
@@ -482,7 +482,7 @@ function applyPatchMutationToRemoteDocument(
     .setHasCommittedMutations();
 }
 
-function applyPatchMutationToLocalView(
+function patchMutationApplyToLocalView(
   mutation: PatchMutation,
   document: MutableDocument,
   localWriteTime: Timestamp
@@ -601,7 +601,7 @@ export class DeleteMutation extends Mutation {
   readonly fieldTransforms: FieldTransform[] = [];
 }
 
-function applyDeleteMutationToRemoteDocument(
+function deleteMutationApplyToRemoteDocument(
   mutation: DeleteMutation,
   document: MutableDocument,
   mutationResult: MutationResult
@@ -619,7 +619,7 @@ function applyDeleteMutationToRemoteDocument(
     .setHasCommittedMutations();
 }
 
-function applyDeleteMutationToLocalView(
+function deleteMutationApplyToLocalView(
   mutation: DeleteMutation,
   document: MutableDocument
 ): void {
