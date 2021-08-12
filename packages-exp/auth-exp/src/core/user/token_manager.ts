@@ -71,7 +71,7 @@ export class StsTokenManager {
     forceRefresh = false
   ): Promise<string | null> {
     if (this.isPassthroughMode) {
-      return this.getTokenAndTriggerCallback(/* auth, forceRefresh */);
+      return this.getTokenAndTriggerCallback(auth, forceRefresh);
     } else {
       return this.getTokenAndRefreshIfNeeded(auth, forceRefresh);
     }
@@ -100,7 +100,10 @@ export class StsTokenManager {
   }
 
   // TODO(lisajian): Fill in once refresh listener is added
-  private async getTokenAndTriggerCallback(): Promise<string | null> {
+  private async getTokenAndTriggerCallback(
+    auth: AuthInternal,
+    forceRefresh = false
+  ): Promise<string | null> {
     return null;
   }
 
