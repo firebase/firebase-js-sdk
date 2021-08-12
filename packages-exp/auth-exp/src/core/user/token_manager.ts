@@ -101,8 +101,8 @@ export class StsTokenManager {
 
   // TODO(lisajian): Fill in once refresh listener is added
   private async getTokenAndTriggerCallback(
-    auth: AuthInternal,
-    forceRefresh = false
+    _auth: AuthInternal,
+    _forceRefresh = false
   ): Promise<string | null> {
     return null;
   }
