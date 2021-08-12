@@ -600,7 +600,8 @@ function genericMutationTests(
       });
     });
 
-    it('temporary sanity check tests', async () => {
+    // Skip test. This is just here to just make sure things compile.
+    it.skip('temporary sanity check tests', async () => {
       class TestObject {
         constructor(
           readonly outerString: string,

@@ -49,7 +49,8 @@ export interface DocumentData {
   [field: string]: any;
 }
 
-export type Primitive = string | number | boolean | bigint | undefined | null;
+/** Primitive types. */
+export type Primitive = string | number | boolean | undefined | null;
 
 /**
  * Similar to Typescript's `Partial<T>`, but allows nested fields to be
