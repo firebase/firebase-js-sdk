@@ -7419,7 +7419,7 @@ declare namespace firebase.messaging {
      *
      * @param callback The function to handle the push message.
      *
-     * @deprecated onBackgroundMessage(nextOrObserver: firebase.NextFn<MessagePayload>|
+     * @deprecated Use onBackgroundMessage(nextOrObserver: firebase.NextFn<MessagePayload>|
      * firebase.Observer<MessagePayload>, error?: firebase.ErrorFn,completed?: firebase.CompleteFn):
      * firebase.Unsubscribe.
      */
