@@ -18,6 +18,7 @@
 import { User, UserInfo } from '../../model/public_types';
 
 import {
+  APIUserInfo,
   getAccountInfo,
   ProviderUserInfo
 } from '../../api/account_management/account';
@@ -30,15 +31,22 @@ import { getModularInstance } from '@firebase/util';
 
 export async function _reloadWithoutSaving(user: UserInternal): Promise<void> {
   const auth = user.auth;
-  const idToken = await user.getIdToken();
-  const response = await _logoutIfInvalidated(
-    user,
-    getAccountInfo(auth, { idToken })
-  );
+  let coreAccount: APIUserInfo = {};
 
-  _assert(response?.users.length, auth, AuthErrorCode.INTERNAL_ERROR);
+  if (user.stsTokenManager.isPassthroughMode) {
+    // The uid === localId === id token's `sub` claim
+    coreAccount.localId = user.uid;
+  } else {
+    const idToken = await user.getIdToken();
+    const response = await _logoutIfInvalidated(
+      user,
+      getAccountInfo(auth, { idToken })
+    );
 
-  const coreAccount = response.users[0];
+    _assert(response?.users.length, auth, AuthErrorCode.INTERNAL_ERROR);
+
+    coreAccount = response.users[0];
+  }
 
   user._notifyReloadListener(coreAccount);
 
@@ -46,7 +54,9 @@ export async function _reloadWithoutSaving(user: UserInternal): Promise<void> {
     ? extractProviderData(coreAccount.providerUserInfo)
     : [];
 
-  const providerData = mergeProviderData(user.providerData, newProviderData);
+  const providerData = user.stsTokenManager.isPassthroughMode
+    ? []
+    : mergeProviderData(user.providerData, newProviderData);
 
   // Preserves the non-nonymous status of the stored user, even if no more
   // credentials (federated or email/password) are linked to the user. If
