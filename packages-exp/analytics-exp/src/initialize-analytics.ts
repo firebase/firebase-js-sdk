@@ -65,7 +65,7 @@ async function validateIndexedDB(): Promise<boolean> {
  *
  * @returns Measurement ID.
  */
-export async function initializeAnalytics(
+export async function _initializeAnalytics(
   app: FirebaseApp,
   dynamicConfigPromisesList: Array<
     Promise<DynamicConfig | MinimalDynamicConfig>

@@ -21,7 +21,7 @@ import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
-import { initializeAnalytics } from './initialize-analytics';
+import { _initializeAnalytics } from './initialize-analytics';
 import { logger } from './logger';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
 
@@ -221,7 +221,7 @@ export function factory(
   }
   // Async but non-blocking.
   // This map reflects the completion state of all promises for each appId.
-  initializationPromisesMap[appId] = initializeAnalytics(
+  initializationPromisesMap[appId] = _initializeAnalytics(
     app,
     dynamicConfigPromisesList,
     measurementIdToAppId,

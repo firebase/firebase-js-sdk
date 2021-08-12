@@ -30,7 +30,7 @@ describe('FirebaseAnalytics API tests', () => {
   let app: FirebaseApp;
 
   beforeEach(() => {
-    initStub = stub(init, 'initializeAnalytics').resolves(
+    initStub = stub(init, '_initializeAnalytics').resolves(
       'FAKE_MEASUREMENT_ID'
     );
   });
