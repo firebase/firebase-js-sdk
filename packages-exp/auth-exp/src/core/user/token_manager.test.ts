@@ -88,6 +88,23 @@ describe('core/user/token_manager', () => {
       expect(stsTokenManager.accessToken).to.eq(idToken);
       expect(stsTokenManager.refreshToken).to.eq('refresh-token');
     });
+
+    it('sets refresh token to null when unset in server response', () => {
+      stsTokenManager.updateFromServerResponse({
+        idToken: 'id-token',
+        expiresIn: '60' // From the server this is 30s
+      } as IdTokenResponse);
+
+      expect(stsTokenManager.expirationTime).to.eq(now + 60_000);
+      expect(stsTokenManager.accessToken).to.eq('id-token');
+      expect(stsTokenManager.refreshToken).to.be.null;
+    });
+
+    it('throws an error when id token is missing', () => {
+      expect(() =>
+        stsTokenManager.updateFromServerResponse({} as IdTokenResponse)
+      ).to.throw(FirebaseError, 'auth/internal-error');
+    });
   });
 
   describe('#clearRefreshToken', () => {
@@ -177,7 +194,8 @@ describe('core/user/token_manager', () => {
       Object.assign(stsTokenManager, {
         accessToken: 'token',
         refreshToken: 'refresh',
-        expirationTime: now
+        expirationTime: now,
+        isPassthroughMode: true
       });
 
       const copy = stsTokenManager._clone();
@@ -194,7 +212,8 @@ describe('core/user/token_manager', () => {
         StsTokenManager.fromJSON('app', {
           refreshToken: 45,
           accessToken: 't',
-          expirationTime: 3
+          expirationTime: 3,
+          isPassthroughMode: true
         })
       ).to.throw(FirebaseError, errorString);
     });
@@ -204,7 +223,8 @@ describe('core/user/token_manager', () => {
         StsTokenManager.fromJSON('app', {
           refreshToken: 't',
           accessToken: 45,
-          expirationTime: 3
+          expirationTime: 3,
+          isPassthroughMode: true
         })
       ).to.throw(FirebaseError, errorString);
     });
@@ -214,7 +234,19 @@ describe('core/user/token_manager', () => {
         StsTokenManager.fromJSON('app', {
           refreshToken: 't',
           accessToken: 't',
-          expirationTime: 'lol'
+          expirationTime: 'lol',
+          isPassthroughMode: true
+        })
+      ).to.throw(FirebaseError, errorString);
+    });
+
+    it('throws if isPassthroughMode is not a boolean', () => {
+      expect(() =>
+        StsTokenManager.fromJSON('app', {
+          refreshToken: 't',
+          accessToken: 't',
+          expirationTime: 3,
+          isPassthroughMode: 4
         })
       ).to.throw(FirebaseError, errorString);
     });
@@ -223,11 +255,13 @@ describe('core/user/token_manager', () => {
       const manager = StsTokenManager.fromJSON('app', {
         refreshToken: 'r',
         accessToken: 'a',
-        expirationTime: 45
+        expirationTime: 45,
+        isPassthroughMode: true
       });
       expect(manager.accessToken).to.eq('a');
       expect(manager.refreshToken).to.eq('r');
       expect(manager.expirationTime).to.eq(45);
+      expect(manager.isPassthroughMode).to.be.true;
     });
   });
 });
