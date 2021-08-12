@@ -16,52 +16,27 @@
  */
 
 import { expect } from 'chai';
-import { SinonFakeTimers, stub, useFakeTimers } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import '../testing/setup';
 import { getFullApp } from '../testing/get-fake-firebase-services';
 import { getAnalytics, initializeAnalytics } from './api';
 import { FirebaseApp, deleteApp } from '@firebase/app-exp';
 import { AnalyticsError } from './errors';
-import { removeGtagScript } from '../testing/gtag-script-util';
-import * as getConfig from './get-config';
+import * as init from './initialize-analytics';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 
-const fakeDynamicConfig = stub(
-  getConfig,
-  'fetchDynamicConfigWithRetry'
-).resolves({
-  appId: 'FAKE_APP_ID',
-  measurementId: 'FAKE_MEASUREMENT_ID'
-});
-
-// Fake indexedDB.open() request
-const fakeRequest = {
-  onsuccess: () => {},
-  result: {
-    close: () => {}
-  }
-};
-let idbOpenStub = stub();
-
-// Stub indexedDB.open() because sinon's clock does not know
-// how to wait for the real indexedDB callbacks to resolve.
-function stubIdbOpen(): void {
-  idbOpenStub = stub(indexedDB, 'open').returns(fakeRequest as any);
-}
 
 describe('FirebaseAnalytics API tests', () => {
+  let initStub: SinonStub = stub();
   let app: FirebaseApp;
-  let clock: SinonFakeTimers;
 
   beforeEach(() => {
-    stubIdbOpen();
-    clock = useFakeTimers();
+    initStub = stub(init, 'initializeAnalytics').resolves('FAKE_MEASUREMENT_ID');
   });
 
   afterEach(async () => {
-    clock.restore();
-    idbOpenStub.restore();
-    removeGtagScript();
+    await initStub();
+    initStub.restore();
     if (app) {
       return deleteApp(app);
     }
@@ -70,15 +45,13 @@ describe('FirebaseAnalytics API tests', () => {
   after(() => {
     delete window['gtag'];
     delete window['dataLayer'];
-    fakeDynamicConfig.restore();
   });
 
-  it('initializeAnalytics() with same (no) options returns same instance', async () => {
+  it('initializeAnalytics() with same (no) options returns same instance', () => {
     app = getFullApp(fakeAppParams);
     const analyticsInstance = initializeAnalytics(app);
     const newInstance = initializeAnalytics(app);
     expect(analyticsInstance).to.equal(newInstance);
-    await clock.runAllAsync();
   });
   it('initializeAnalytics() with same options returns same instance', () => {
     app = getFullApp(fakeAppParams);
