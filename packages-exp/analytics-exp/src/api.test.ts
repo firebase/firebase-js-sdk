@@ -25,13 +25,14 @@ import { AnalyticsError } from './errors';
 import * as init from './initialize-analytics';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 
-
 describe('FirebaseAnalytics API tests', () => {
   let initStub: SinonStub = stub();
   let app: FirebaseApp;
 
   beforeEach(() => {
-    initStub = stub(init, 'initializeAnalytics').resolves('FAKE_MEASUREMENT_ID');
+    initStub = stub(init, 'initializeAnalytics').resolves(
+      'FAKE_MEASUREMENT_ID'
+    );
   });
 
   afterEach(async () => {
