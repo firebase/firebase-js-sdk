@@ -56,3 +56,30 @@ export async function signInWithCustomToken(
   await authInternal._updateCurrentUser(cred.user);
   return cred;
 }
+
+/**
+ * Sets a custom token provider, which is invoked when a new Firebase ID token is requested and no
+ * refresh token is present (i.e., in passthrough mode). This callback should be implemented to
+ * obtain a custom token to exchange for a new Firebase ID token.
+ *
+ * @param auth - The Auth instance.
+ * @param provider - The callback that is invoked when a new Firebase ID token is requested and no
+ * refresh token is present.
+ */
+export function setCustomTokenProvider(
+  auth: Auth,
+  provider: { getCustomToken(): Promise<string> }
+): void {
+  const authInternal = _castAuth(auth);
+  authInternal._customTokenProvider = provider;
+}
+
+/**
+ * Removes the current custom token provider that was set by {@link setCustomTokenProvider}.
+ *
+ * @param auth - The Auth instance.
+ */
+export function clearCustomTokenProvider(auth: Auth): void {
+  const authInternal = _castAuth(auth);
+  authInternal._customTokenProvider = null;
+}

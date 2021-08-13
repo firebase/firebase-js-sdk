@@ -21,6 +21,7 @@ import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
+import { signInWithCustomToken } from '../strategies/custom_token';
 import { _assert, debugFail } from '../util/assert';
 import { _tokenExpiresIn } from './id_token_result';
 
@@ -99,16 +100,45 @@ export class StsTokenManager {
     return null;
   }
 
-  // TODO(lisajian): Fill in once refresh listener is added
   private async getTokenAndTriggerCallback(
-    _auth: AuthInternal,
-    _forceRefresh = false
+    auth: AuthInternal,
+    forceRefresh = false
   ): Promise<string | null> {
-    return null;
+    if (forceRefresh) {
+      // TODO(lisajian): Add and use client error code - ERROR_TOKEN_REFRESH_UNAVAILABLE
+      _assert(auth._customTokenProvider, auth, AuthErrorCode.INTERNAL_ERROR);
+      return this.refreshWithCustomToken(auth);
+    }
+
+    // isExpired includes a buffer window, during which the access token will still be returned even
+    // if a customTokenProvider is not set yet.
+    if (this.isExpired) {
+      _assert(
+        this.expirationTime && Date.now() < this.expirationTime!,
+        auth,
+        AuthErrorCode.TOKEN_EXPIRED
+      );
+      if (!auth._customTokenProvider) {
+        return this.accessToken;
+      }
+      return this.refreshWithCustomToken(auth);
+    }
+
+    return this.accessToken;
   }
 
   clearRefreshToken(): void {
     this.refreshToken = null;
+  }
+
+  private async refreshWithCustomToken(
+    auth: AuthInternal
+  ): Promise<string | null> {
+    const token = await auth._customTokenProvider!.getCustomToken();
+    // signInWithCustomToken creates a new User and subsequently new StsTokenManager, so
+    // `this.accessToken` will not hold the new access token
+    const updatedUser = await signInWithCustomToken(auth, token);
+    return updatedUser.user.getIdToken();
   }
 
   private async refresh(auth: AuthInternal, oldToken: string): Promise<void> {

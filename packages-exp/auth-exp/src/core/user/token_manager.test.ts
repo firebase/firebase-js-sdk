@@ -24,10 +24,15 @@ import { FirebaseError } from '@firebase/util';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api/authentication/token';
-import { IdTokenResponse } from '../../model/id_token';
+import { Endpoint as AllEndpoints } from '../../api';
+import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { StsTokenManager, Buffer } from './token_manager';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { makeJWT } from '../../../test/helpers/jwt';
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { APIUserInfo } from '../../api/account_management/account';
+import { _castAuth } from '../auth/auth_impl';
+import { UserImpl } from './user_impl';
 
 use(chaiAsPromised);
 
@@ -186,6 +191,137 @@ describe('core/user/token_manager', () => {
 
       const tokens = (await stsTokenManager.getToken(auth))!;
       expect(tokens).to.eql('token');
+    });
+
+    describe('in passthrough mode', () => {
+      const serverUser: APIUserInfo = {
+        localId: 'local-id',
+        displayName: 'display-name',
+        photoUrl: 'photo-url',
+        email: 'email',
+        emailVerified: true,
+        phoneNumber: 'phone-number',
+        createdAt: 123,
+        lastLoginAt: 456
+      };
+      const idTokenResponse: IdTokenResponse = {
+        idToken: 'new-access-token',
+        expiresIn: '3600',
+        localId: serverUser.localId!,
+        kind: IdTokenResponseKind.CreateAuthUri
+      };
+      const fakeCustomToken = 'fake-custom-token';
+      const provider = {
+        async getCustomToken() {
+          return Promise.resolve(fakeCustomToken);
+        }
+      };
+
+      let signInRoute: fetch.Route;
+      beforeEach(() => {
+        signInRoute = mockEndpoint(
+          AllEndpoints.SIGN_IN_WITH_CUSTOM_TOKEN,
+          idTokenResponse
+        );
+      });
+
+      it('refreshes the token if forceRefresh is true and custom token provider is set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'old-access-token',
+          expirationTime: now + 100_000,
+          isPassthroughMode: true
+        });
+        auth._customTokenProvider = provider;
+
+        const tokens = (await stsTokenManager.getToken(auth, true))!;
+        const authInternal = _castAuth(auth);
+        const updatedTokenManager = (authInternal.currentUser as UserImpl)
+          .stsTokenManager;
+
+        expect(signInRoute.calls[0].request).to.eql({
+          token: fakeCustomToken,
+          returnSecureToken: true
+        });
+        expect(tokens).to.eq('new-access-token');
+        expect(updatedTokenManager.accessToken).to.eq('new-access-token');
+        expect(updatedTokenManager.refreshToken).to.be.null;
+        expect(updatedTokenManager.expirationTime).to.eq(now + 3_600_000);
+        expect(updatedTokenManager.isPassthroughMode).to.be.true;
+      });
+
+      it('throws an error if forceRefresh is true and custom token provider is not set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'token',
+          expirationTime: now + 100_000,
+          isPassthroughMode: true
+        });
+
+        await expect(stsTokenManager.getToken(auth, true)).to.be.rejectedWith(
+          FirebaseError,
+          'auth/internal-error'
+        );
+      });
+
+      it('returns access token during buffer window if custom token provider is not set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'token',
+          expirationTime: now + Buffer.TOKEN_REFRESH,
+          isPassthroughMode: true
+        });
+
+        const tokens = (await stsTokenManager.getToken(auth))!;
+
+        expect(tokens).to.eql('token');
+      });
+
+      it('refreshes the token during buffer window if custom token provider is set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'old-access-token',
+          expirationTime: now + Buffer.TOKEN_REFRESH / 2,
+          isPassthroughMode: true
+        });
+        auth._customTokenProvider = provider;
+
+        const tokens = (await stsTokenManager.getToken(auth, true))!;
+        const authInternal = _castAuth(auth);
+        const updatedTokenManager = (authInternal.currentUser as UserImpl)
+          .stsTokenManager;
+
+        expect(signInRoute.calls[0].request).to.eql({
+          token: fakeCustomToken,
+          returnSecureToken: true
+        });
+        expect(tokens).to.eq('new-access-token');
+        expect(updatedTokenManager.accessToken).to.eq('new-access-token');
+        expect(updatedTokenManager.refreshToken).to.be.null;
+        expect(updatedTokenManager.expirationTime).to.eq(now + 3_600_000);
+        expect(updatedTokenManager.isPassthroughMode).to.be.true;
+      });
+
+      it('throws an error if the token is expired beyond the buffer window', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'old-access-token',
+          expirationTime: now - 1,
+          isPassthroughMode: true
+        });
+
+        await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
+          FirebaseError,
+          "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
+        );
+      });
+
+      it('returns access token when not expired, not refreshing', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'token',
+          expirationTime: now + 100_000,
+          isPassthroughMode: true
+        });
+
+        const tokens = (await stsTokenManager.getToken(auth))!;
+
+        expect(tokens).to.eql('token');
+      });
     });
   });
 

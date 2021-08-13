@@ -250,6 +250,9 @@ export const browserSessionPersistence: Persistence;
 // @public
 export function checkActionCode(auth: Auth, oobCode: string): Promise<ActionCodeInfo>;
 
+// @public
+export function clearCustomTokenProvider(auth: Auth): void;
+
 export { CompleteFn }
 
 // @public
@@ -689,6 +692,11 @@ export function sendPasswordResetEmail(auth: Auth, email: string, actionCodeSett
 
 // @public
 export function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSettings: ActionCodeSettings): Promise<void>;
+
+// @public
+export function setCustomTokenProvider(auth: Auth, provider: {
+    getCustomToken(): Promise<string>;
+}): void;
 
 // @public
 export function setPersistence(auth: Auth, persistence: Persistence): Promise<void>;

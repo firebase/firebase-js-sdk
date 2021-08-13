@@ -27,7 +27,11 @@ import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
-import { signInWithCustomToken } from './custom_token';
+import {
+  clearCustomTokenProvider,
+  setCustomTokenProvider,
+  signInWithCustomToken
+} from './custom_token';
 
 use(chaiAsPromised);
 
@@ -67,31 +71,59 @@ describe('core/strategies/signInWithCustomToken', () => {
   });
   afterEach(mockFetch.tearDown);
 
-  it('should return a valid user credential', async () => {
-    const {
-      user,
-      operationType,
-      _tokenResponse
-    } = (await signInWithCustomToken(
-      auth,
-      'look-at-me-im-a-jwt'
-    )) as UserCredentialInternal;
-    expect(_tokenResponse).to.eql(idTokenResponse);
-    expect(user.uid).to.eq('local-id');
-    expect(user.displayName).to.eq('display-name');
-    expect(operationType).to.eq(OperationType.SIGN_IN);
-  });
+  describe('#signInWithCustomToken', () => {
+    it('should return a valid user credential', async () => {
+      const { user, operationType, _tokenResponse } =
+        (await signInWithCustomToken(
+          auth,
+          'look-at-me-im-a-jwt'
+        )) as UserCredentialInternal;
+      expect(_tokenResponse).to.eql(idTokenResponse);
+      expect(user.uid).to.eq('local-id');
+      expect(user.displayName).to.eq('display-name');
+      expect(operationType).to.eq(OperationType.SIGN_IN);
+    });
 
-  it('should send with a valid request', async () => {
-    await signInWithCustomToken(auth, 'j.w.t');
-    expect(signInRoute.calls[0].request).to.eql({
-      token: 'j.w.t',
-      returnSecureToken: true
+    it('should send with a valid request', async () => {
+      await signInWithCustomToken(auth, 'j.w.t');
+      expect(signInRoute.calls[0].request).to.eql({
+        token: 'j.w.t',
+        returnSecureToken: true
+      });
+    });
+
+    it('should update the current user', async () => {
+      const { user } = await signInWithCustomToken(auth, 'oh.no');
+      expect(auth.currentUser).to.eq(user);
     });
   });
 
-  it('should update the current user', async () => {
-    const { user } = await signInWithCustomToken(auth, 'oh.no');
-    expect(auth.currentUser).to.eq(user);
+  describe('#setCustomTokenProvider', () => {
+    it('sets a custom token provider', () => {
+      const provider = {
+        async getCustomToken() {
+          return Promise.resolve('');
+        }
+      };
+
+      setCustomTokenProvider(auth, provider);
+
+      expect(auth._customTokenProvider).to.eql(provider);
+    });
+  });
+
+  describe('#clearCustomTokenProvider', () => {
+    it('clears the custom token provider', () => {
+      const provider = {
+        async getCustomToken() {
+          return Promise.resolve('');
+        }
+      };
+      auth._customTokenProvider = provider;
+
+      clearCustomTokenProvider(auth);
+
+      expect(auth._customTokenProvider).to.be.null;
+    });
   });
 });

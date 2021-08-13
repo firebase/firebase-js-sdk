@@ -279,6 +279,14 @@ export class Auth
       exp.signInWithCustomToken(this._delegate, token)
     );
   }
+  setCustomTokenProvider(provider: {
+    getCustomToken(): Promise<string>;
+  }): void {
+    exp.setCustomTokenProvider(this._delegate, provider);
+  }
+  clearCustomTokenProvider(): void {
+    exp.clearCustomTokenProvider(this._delegate);
+  }
   signInWithEmailAndPassword(
     email: string,
     password: string

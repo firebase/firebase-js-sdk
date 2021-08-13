@@ -447,6 +447,8 @@ export class FirebaseAuth {
   signInAnonymously(): Promise<UserCredential>;
   signInWithCredential(credential: AuthCredential): Promise<UserCredential>;
   signInWithCustomToken(token: string): Promise<UserCredential>;
+  setCustomTokenProvider(provider: { getCustomToken(): Promise<string> }): void;
+  clearCustomTokenProvider(): void;
   signInWithEmailAndPassword(
     email: string,
     password: string

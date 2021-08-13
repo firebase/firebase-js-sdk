@@ -60,6 +60,7 @@ export interface AuthInternal extends Auth {
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
+  _customTokenProvider: { getCustomToken(): Promise<string> } | null;
   _updateCurrentUser(user: UserInternal | null): Promise<void>;
 
   _onStorageEvent(): void;

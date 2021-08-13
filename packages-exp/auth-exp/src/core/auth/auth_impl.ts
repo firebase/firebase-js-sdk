@@ -100,6 +100,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   tenantId: string | null = null;
   settings: AuthSettings = { appVerificationDisabledForTesting: false };
 
+  _customTokenProvider: { getCustomToken(): Promise<string> } | null = null;
+
   constructor(
     public readonly app: FirebaseApp,
     public readonly config: ConfigInternal
