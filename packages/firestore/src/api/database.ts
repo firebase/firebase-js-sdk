@@ -244,7 +244,7 @@ export class Firestore
     host: string,
     port: number,
     options: {
-      mockUserToken?: EmulatorMockTokenOptions;
+      mockUserToken?: EmulatorMockTokenOptions | string;
     } = {}
   ): void {
     connectFirestoreEmulator(this._delegate, host, port, options);
