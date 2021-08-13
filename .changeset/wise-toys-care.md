@@ -1,12 +1,12 @@
 ---
-"@firebase/database-types": feature
-"@firebase/database": feature
-"firebase": feature
-"@firebase/firestore-types": feature
-"@firebase/firestore": feature
-"@firebase/storage-types": feature
-"@firebase/storage": feature
-"@firebase/util": feature
+'@firebase/database-types': minor
+'@firebase/database': minor
+'firebase': minor
+'@firebase/firestore-types': minor
+'@firebase/firestore': minor
+'@firebase/storage-types': minor
+'@firebase/storage': minor
+'@firebase/util': minor
 ---
 
 Implement mockUserToken for Storage and fix JWT format bugs.

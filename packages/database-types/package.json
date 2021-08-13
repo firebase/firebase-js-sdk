@@ -12,10 +12,8 @@
     "index.d.ts"
   ],
   "dependencies": {
-    "@firebase/app-types": "0.6.3"
-  },
-  "peerDependencies": {
-    "@firebase/util": "1.x"
+    "@firebase/app-types": "0.6.3",
+    "@firebase/util": "1.2.0"
   },
   "repository": {
     "directory": "packages/database-types",
