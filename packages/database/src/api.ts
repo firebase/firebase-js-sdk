@@ -79,9 +79,7 @@ export {
   ReferenceImpl as _ReferenceImpl,
   QueryImpl as _QueryImpl
 } from './api/Reference_impl';
-export {
-  repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp
-} from './api/Database';
+export { repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp } from './api/Database';
 export {
   validatePathString as _validatePathString,
   validateWritablePath as _validateWritablePath
@@ -89,7 +87,9 @@ export {
 export { UserCallback as _UserCallback } from './core/view/EventRegistration';
 export { QueryParams as _QueryParams } from './core/view/QueryParams';
 
-export { 
+/* eslint-disable camelcase */
+export {
   hijackHash as _TEST_ACCESS_hijackHash,
   forceRestClient as _TEST_ACCESS_forceRestClient
 } from './api/test_access';
+/* eslint-enable camelcase */

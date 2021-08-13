@@ -336,7 +336,7 @@ export const validateKey = function (
 };
 
 /**
- * @internal 
+ * @internal
  */
 export const validatePathString = function (
   fnName: string,

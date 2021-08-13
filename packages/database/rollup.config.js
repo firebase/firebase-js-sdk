@@ -21,7 +21,7 @@ import typescript from 'typescript';
 import pkg from './package.json';
 
 const deps = [
-  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  ...Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies }),
   '@firebase/app'
 ];
 
@@ -49,9 +49,7 @@ const es5Builds = [
    */
   {
     input: 'src/index.node.ts',
-    output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true }
-    ],
+    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
     treeshake: {
       moduleSideEffects: false

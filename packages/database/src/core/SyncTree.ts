@@ -831,9 +831,10 @@ function syncTreeQueryKeyForTag_(
 /**
  * Given a queryKey (created by makeQueryKey), parse it back into a path and queryId.
  */
-function syncTreeParseQueryKey_(
-  queryKey: string
-): { queryId: string; path: Path } {
+function syncTreeParseQueryKey_(queryKey: string): {
+  queryId: string;
+  path: Path;
+} {
   const splitIndex = queryKey.indexOf('$');
   assert(
     splitIndex !== -1 && splitIndex < queryKey.length - 1,

@@ -30,7 +30,7 @@ import { QueryParams } from './QueryParams';
  *  to the original user-issued callbacks, which allows equality
  * comparison by reference even though this callbacks are wrapped before
  * they can be passed to the firebase@exp SDK.
- * 
+ *
  * @internal
  */
 export interface UserCallback {
