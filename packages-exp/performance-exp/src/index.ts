@@ -45,7 +45,7 @@ import {
 import { name, version } from '../package.json';
 import { Trace } from './resources/trace';
 import '@firebase/installations-exp';
-import { getModularInstance } from '@firebase/util';
+import { deepEqual, getModularInstance } from '@firebase/util';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
@@ -79,7 +79,13 @@ export function initializePerformance(
   // throw if an instance was already created.
   // It could happen if initializePerformance() is called more than once, or getPerformance() is called first.
   if (provider.isInitialized()) {
-    throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+    const existingInstance = provider.getImmediate();
+    const initialSettings = provider.getOptions() as PerformanceSettings;
+    if (deepEqual(initialSettings, settings ?? {})) {
+      return existingInstance;
+    } else {
+      throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+    }
   }
 
   const perfInstance = provider.initialize({
