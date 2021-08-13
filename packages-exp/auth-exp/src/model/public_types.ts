@@ -31,69 +31,6 @@ import {
 } from './enum_maps';
 
 export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
-/**
- * Enumeration of supported providers.
- *
- * @internal
- */
-export const enum ProviderId {
-  /** @internal */
-  ANONYMOUS = 'anonymous',
-  /** @internal */
-  CUSTOM = 'custom',
-  /** Facebook provider ID */
-  FACEBOOK = 'facebook.com',
-  /** @internal */
-  FIREBASE = 'firebase',
-  /** GitHub provider ID */
-  GITHUB = 'github.com',
-  /** Google provider ID */
-  GOOGLE = 'google.com',
-  /** Password provider */
-  PASSWORD = 'password',
-  /** Phone provider */
-  PHONE = 'phone',
-  /** Twitter provider ID */
-  TWITTER = 'twitter.com'
-}
-
-/**
- * Enumeration of supported sign-in methods.
- *
- * @internal
- */
-export const enum SignInMethod {
-  /** @internal */
-  ANONYMOUS = 'anonymous',
-  /** Email link sign in method */
-  EMAIL_LINK = 'emailLink',
-  /** Email/password sign in method */
-  EMAIL_PASSWORD = 'password',
-  /** Facebook sign in method */
-  FACEBOOK = 'facebook.com',
-  /** GitHub sign in method */
-  GITHUB = 'github.com',
-  /** Google sign in method */
-  GOOGLE = 'google.com',
-  /** Phone sign in method */
-  PHONE = 'phone',
-  /** Twitter sign in method */
-  TWITTER = 'twitter.com'
-}
-
-/**
- * Enumeration of supported operation types.
- *
- * @internal
- */
-export const enum OperationType {
-  /** Operation involving linking an additional provider to an already signed-in user. */
-  LINK = 'link',
-  /** Operation involving using a provider to reauthenticate an already signed-in user. */
-  REAUTHENTICATE = 'reauthenticate',
-  /** Operation involving signing in a user. */
-  SIGN_IN = 'signIn'
-}
 
 /**
  * Interface representing the Auth config.
@@ -125,6 +62,22 @@ export interface Config {
    * The domain at which the web widgets are hosted (provided via Firebase Config).
    */
   authDomain?: string;
+}
+
+/**
+ * Interface representing reCAPTCHA parameters.
+ *
+ * See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param) 
+ * for the list of accepted parameters. All parameters are accepted except for `sitekey`: Firebase Auth 
+ * provisions a reCAPTCHA for each project and will configure the site key upon rendering.
+ *
+ * For an invisible reCAPTCHA, set the `size` key to `invisible`.
+ *
+ * @public
+ */
+export interface RecaptchaParameters {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 /**

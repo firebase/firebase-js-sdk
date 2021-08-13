@@ -18,7 +18,8 @@
 import { AuthErrorCode } from '../../core/errors';
 import { _assert } from '../../core/util/assert';
 import { AuthInternal } from '../../model/auth';
-import { Parameters, Recaptcha } from './recaptcha';
+import { RecaptchaParameters } from '../../model/public_types';
+import { Recaptcha } from './recaptcha';
 
 export const _SOLVE_TIME_MS = 500;
 export const _EXPIRATION_TIME_MS = 60_000;
@@ -36,7 +37,10 @@ export class MockReCaptcha implements Recaptcha {
 
   constructor(private readonly auth: AuthInternal) {}
 
-  render(container: string | HTMLElement, parameters?: Parameters): number {
+  render(
+    container: string | HTMLElement,
+    parameters?: RecaptchaParameters
+  ): number {
     const id = this.counter;
     this._widgets.set(
       id,
@@ -77,7 +81,7 @@ export class MockWidget {
   constructor(
     containerOrId: string | HTMLElement,
     appName: string,
-    private readonly params: Parameters
+    private readonly params: RecaptchaParameters
   ) {
     const container =
       typeof containerOrId === 'string'

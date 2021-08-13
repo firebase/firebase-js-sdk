@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-import { OperationType, ProviderId } from '../../model/public_types';
-
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { IdTokenResponse } from '../../model/id_token';
 import { UserInternal, UserCredentialInternal } from '../../model/user';
 import { UserImpl } from './user_impl';
 import { AuthInternal } from '../../model/auth';
+import { OperationType, ProviderId } from '../../model/enums';
 
 interface UserCredentialParams {
   readonly user: UserInternal;
@@ -31,7 +30,8 @@ interface UserCredentialParams {
 }
 
 export class UserCredentialImpl
-  implements UserCredentialInternal, UserCredentialParams {
+  implements UserCredentialInternal, UserCredentialParams
+{
   readonly user: UserInternal;
   readonly providerId: ProviderId | string | null;
   readonly _tokenResponse: PhoneOrOauthTokenResponse | undefined;

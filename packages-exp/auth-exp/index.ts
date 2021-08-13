@@ -33,46 +33,7 @@ import { browserPopupRedirectResolver } from './src/platform_browser/popup_redir
 import { Auth } from './src/model/public_types';
 
 // Public types
-export {
-  // Interfaces
-  ActionCodeInfo,
-  ActionCodeSettings,
-  AdditionalUserInfo,
-  ApplicationVerifier,
-  Auth,
-  AuthError,
-  AuthErrorMap,
-  AuthProvider,
-  AuthSettings,
-  Config,
-  ConfirmationResult,
-  IdTokenResult,
-  MultiFactorAssertion,
-  MultiFactorError,
-  MultiFactorInfo,
-  MultiFactorResolver,
-  MultiFactorSession,
-  MultiFactorUser,
-  ParsedToken,
-  Persistence,
-  PhoneMultiFactorAssertion,
-  PhoneMultiFactorEnrollInfoOptions,
-  PhoneMultiFactorSignInInfoOptions,
-  PhoneSingleFactorInfoOptions,
-  PopupRedirectResolver,
-  ReactNativeAsyncStorage,
-  User,
-  UserCredential,
-  UserInfo,
-  UserMetadata,
-  UserProfile,
-  PhoneInfoOptions,
-  Dependencies,
-  NextOrObserver,
-  ErrorFn,
-  CompleteFn,
-  Unsubscribe
-} from './src/model/public_types';
+export * from './src/model/public_types';
 
 // Helper maps (not used internally)
 export {

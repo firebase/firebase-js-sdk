@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { OperationType } from '../../model/public_types';
-
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
+import { OperationType } from '../../model/enums';
 import { UserInternal } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';

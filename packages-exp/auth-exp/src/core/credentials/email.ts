@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ProviderId, SignInMethod } from '../../model/public_types';
+import { ProviderId, SignInMethod } from '../../model/enums';
 
 import { updateEmailPassword } from '../../api/account_management/email_and_password';
 import { signInWithPassword } from '../../api/authentication/email_and_password';

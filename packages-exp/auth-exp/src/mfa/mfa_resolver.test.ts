@@ -19,7 +19,8 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
-import { FactorId, OperationType, ProviderId } from '../model/public_types';
+import { FactorId } from '../model/public_types';
+import { OperationType, ProviderId } from '../model/enums';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';

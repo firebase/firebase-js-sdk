@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 
-import {
-  ProviderId,
-  SignInMethod,
-  AuthProvider
-} from '../../model/public_types';
+import { ProviderId, SignInMethod } from '../../model/enums';
+import { AuthProvider } from '../../model/public_types';
 
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthCredential } from '../credentials/email';
