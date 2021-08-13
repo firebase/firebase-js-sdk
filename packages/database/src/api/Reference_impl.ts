@@ -85,7 +85,7 @@ import {
 } from '../core/view/QueryParams';
 
 import { Database } from './Database';
-import { OnDisconnect } from './OnDisconnect';
+import { OnDisconnect } from './onDisconnect';
 import {
   ListenOptions,
   Query as Query,

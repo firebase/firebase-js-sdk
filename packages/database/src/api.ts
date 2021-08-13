@@ -30,7 +30,7 @@ export {
   Unsubscribe,
   ThenableReference
 } from './api/Reference';
-export { OnDisconnect } from './api/OnDisconnect';
+export { OnDisconnect } from './api/onDisconnect';
 export {
   DataSnapshot,
   EventType,
