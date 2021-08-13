@@ -19,7 +19,8 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
-import { ActionCodeOperation, OperationType } from '../../model/public_types';
+import { ActionCodeOperation } from '../../model/public_types';
+import { OperationType } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
