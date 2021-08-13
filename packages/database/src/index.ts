@@ -24,7 +24,7 @@
 import { Database } from './api/Database';
 import { registerDatabase } from './register';
 
-export * from './api';
+export * from './public_api';
 
 registerDatabase();
 

@@ -23,6 +23,6 @@ import { registerDatabase } from './register';
 
 setWebSocketImpl(Client);
 
-export * from './api';
+export * from './public_api';
 
 registerDatabase('node');
