@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { PopupRedirectResolver } from '../../model/public_types';
-import { OperationType, ProviderId } from '../../model/enums'
+import { OperationType, ProviderId } from '../../model/enums';
 
 import { FirebaseError } from '@firebase/util';
 

@@ -26,7 +26,7 @@ import {
   Persistence,
   PopupRedirectResolver
 } from '../model/public_types';
-import { OperationType } from '../model/enums'
+import { OperationType } from '../model/enums';
 
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
 import { AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
