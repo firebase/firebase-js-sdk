@@ -228,7 +228,7 @@ export interface Promotion {
  * Standard gtag.js control parameters.
  * For more information, see
  * {@link https://developers.google.com/gtagjs/reference/ga4-events
- * the GA4 reference documentation}.
+ * | the GA4 reference documentation}.
  * @public
  */
 export interface ControlParams {
@@ -242,7 +242,7 @@ export interface ControlParams {
  * Standard gtag.js event parameters.
  * For more information, see
  * {@link https://developers.google.com/gtagjs/reference/ga4-events
- * the GA4 reference documentation}.
+ * | the GA4 reference documentation}.
  * @public
  */
 export interface EventParams {

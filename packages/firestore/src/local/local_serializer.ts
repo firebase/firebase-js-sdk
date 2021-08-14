@@ -209,7 +209,8 @@ export function fromDbMutationBatch(
         'TransformMutation should be preceded by a patch or set mutation'
       );
       const transformMutation = dbBatch.mutations[i + 1];
-      currentMutation.updateTransforms = transformMutation.transform!.fieldTransforms;
+      currentMutation.updateTransforms =
+        transformMutation.transform!.fieldTransforms;
       dbBatch.mutations.splice(i + 1, 1);
       ++i;
     }

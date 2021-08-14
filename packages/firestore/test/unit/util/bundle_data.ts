@@ -165,8 +165,7 @@ export const metaString = lengthPrefixedString(meta);
 
 export const doc1Meta: BundleElement = {
   documentMetadata: {
-    name:
-      'projects/test-project/databases/(default)/documents/collectionId/doc1',
+    name: 'projects/test-project/databases/(default)/documents/collectionId/doc1',
     readTime: { seconds: 5, nanos: 6 },
     exists: true
   }
@@ -174,8 +173,7 @@ export const doc1Meta: BundleElement = {
 export const doc1MetaString = lengthPrefixedString(doc1Meta);
 export const doc1: BundleElement = {
   document: {
-    name:
-      'projects/test-project/databases/(default)/documents/collectionId/doc1',
+    name: 'projects/test-project/databases/(default)/documents/collectionId/doc1',
     createTime: { seconds: 1, nanos: 2000000 },
     updateTime: { seconds: 3, nanos: 4000 },
     fields: { foo: { stringValue: 'value' }, bar: { integerValue: -42 } }
@@ -185,8 +183,7 @@ export const doc1String = lengthPrefixedString(doc1);
 
 export const doc2Meta: BundleElement = {
   documentMetadata: {
-    name:
-      'projects/test-project/databases/(default)/documents/collectionId/doc2',
+    name: 'projects/test-project/databases/(default)/documents/collectionId/doc2',
     readTime: { seconds: 5, nanos: 6 },
     exists: true
   }
@@ -194,8 +191,7 @@ export const doc2Meta: BundleElement = {
 export const doc2MetaString = lengthPrefixedString(doc2Meta);
 export const doc2: BundleElement = {
   document: {
-    name:
-      'projects/test-project/databases/(default)/documents/collectionId/doc2',
+    name: 'projects/test-project/databases/(default)/documents/collectionId/doc2',
     createTime: { seconds: 1, nanos: 2000000 },
     updateTime: { seconds: 3, nanos: 4000 },
     fields: { foo: { stringValue: 'value1' }, bar: { integerValue: 42 } }
@@ -205,8 +201,7 @@ export const doc2String = lengthPrefixedString(doc2);
 
 export const noDocMeta: BundleElement = {
   documentMetadata: {
-    name:
-      'projects/test-project/databases/(default)/documents/collectionId/nodoc',
+    name: 'projects/test-project/databases/(default)/documents/collectionId/nodoc',
     readTime: { seconds: 5, nanos: 6 },
     exists: false
   }

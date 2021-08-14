@@ -56,9 +56,19 @@ export function initializeAppCheck(
   const provider = _getProvider(app, 'app-check-exp');
 
   if (provider.isInitialized()) {
-    throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
-      appName: app.name
-    });
+    const existingInstance = provider.getImmediate();
+    const initialOptions = provider.getOptions() as unknown as AppCheckOptions;
+    if (
+      initialOptions.isTokenAutoRefreshEnabled ===
+        options.isTokenAutoRefreshEnabled &&
+      initialOptions.provider.isEqual(options.provider)
+    ) {
+      return existingInstance;
+    } else {
+      throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
+        appName: app.name
+      });
+    }
   }
 
   const appCheck = provider.initialize({ options });

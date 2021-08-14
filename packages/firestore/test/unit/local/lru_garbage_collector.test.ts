@@ -122,7 +122,7 @@ function genericLruGarbageCollectorTests(
     );
     const referenceDelegate = persistence.referenceDelegate;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    garbageCollector = ((referenceDelegate as any) as LruDelegate)
+    garbageCollector = (referenceDelegate as any as LruDelegate)
       .garbageCollector;
   }
 

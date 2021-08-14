@@ -27,7 +27,7 @@ import {
   _FirebaseStorageImpl
 } from '@firebase/storage'; // import from the exp public API
 import { ReferenceCompat } from './reference';
-import { Compat } from '@firebase/util';
+import { Compat, EmulatorMockTokenOptions } from '@firebase/util';
 
 /**
  * A service that provides firebaseStorage.Reference instances.
@@ -87,8 +87,14 @@ export class StorageServiceCompat
     this._delegate.maxOperationRetryTime = time;
   }
 
-  useEmulator(host: string, port: number): void {
-    connectStorageEmulator(this._delegate, host, port);
+  useEmulator(
+    host: string,
+    port: number,
+    options: {
+      mockUserToken?: EmulatorMockTokenOptions | string;
+    } = {}
+  ): void {
+    connectStorageEmulator(this._delegate, host, port, options);
   }
 }
 

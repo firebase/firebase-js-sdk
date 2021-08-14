@@ -16,6 +16,7 @@
  */
 
 import { _getProvider, FirebaseApp } from '@firebase/app-exp';
+import { deepEqual } from '@firebase/util';
 import { Auth, Dependencies } from '../../model/public_types';
 
 import { AuthErrorCode } from '../errors';
@@ -54,7 +55,12 @@ export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
 
   if (provider.isInitialized()) {
     const auth = provider.getImmediate() as AuthImpl;
-    _fail(auth, AuthErrorCode.ALREADY_INITIALIZED);
+    const initialOptions = provider.getOptions() as Dependencies;
+    if (deepEqual(initialOptions, deps ?? {})) {
+      return auth;
+    } else {
+      _fail(auth, AuthErrorCode.ALREADY_INITIALIZED);
+    }
   }
 
   const auth = provider.initialize({ options: deps }) as AuthImpl;
@@ -67,9 +73,8 @@ export function _initializeAuthInstance(
   deps?: Dependencies
 ): void {
   const persistence = deps?.persistence || [];
-  const hierarchy = (Array.isArray(persistence)
-    ? persistence
-    : [persistence]
+  const hierarchy = (
+    Array.isArray(persistence) ? persistence : [persistence]
   ).map<PersistenceInternal>(_getInstance);
   if (deps?.errorMap) {
     auth._updateErrorMap(deps.errorMap);

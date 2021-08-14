@@ -217,10 +217,8 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
 }
 
 export class MockConnection implements Connection {
-  watchStream: StreamBridge<
-    api.ListenRequest,
-    api.ListenResponse
-  > | null = null;
+  watchStream: StreamBridge<api.ListenRequest, api.ListenResponse> | null =
+    null;
   writeStream: StreamBridge<api.WriteRequest, api.WriteResponse> | null = null;
   /**
    * Used to make sure a write was actually sent out on the network before the

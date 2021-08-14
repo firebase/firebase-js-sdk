@@ -27,7 +27,9 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { _window } from '../auth_window';
-import { Parameters, Recaptcha } from './recaptcha';
+import { Recaptcha } from './recaptcha';
+import { RecaptchaParameters } from '../../model/public_types';
+
 import { ReCaptchaLoader } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
 import { RecaptchaVerifier } from './recaptcha_verifier';
@@ -39,7 +41,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier', () => {
   let auth: TestAuth;
   let container: HTMLElement;
   let verifier: RecaptchaVerifier;
-  let parameters: Parameters;
+  let parameters: RecaptchaParameters;
   let recaptchaLoader: ReCaptchaLoader;
 
   beforeEach(async () => {
@@ -65,7 +67,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier', () => {
   context('#render', () => {
     it('caches the promise if not completed and returns if called multiple times', () => {
       // This will force the loader to never return so the render promise never completes
-      sinon.stub(recaptchaLoader, 'load').returns(new Promise(() => {}));
+      sinon.stub(recaptchaLoader, 'load').returns(new Promise(() => { }));
       const renderPromise = verifier.render();
       expect(verifier.render()).to.eq(renderPromise);
     });

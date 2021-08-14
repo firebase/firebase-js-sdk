@@ -238,7 +238,7 @@ export function connectFirestoreEmulator(
   host: string,
   port: number,
   options: {
-    mockUserToken?: EmulatorMockTokenOptions;
+    mockUserToken?: EmulatorMockTokenOptions | string;
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
@@ -258,19 +258,30 @@ export function connectFirestoreEmulator(
   });
 
   if (options.mockUserToken) {
-    // Let createMockUserToken validate first (catches common mistakes like
-    // invalid field "uid" and missing field "sub" / "user_id".)
-    const token = createMockUserToken(options.mockUserToken);
-    const uid = options.mockUserToken.sub || options.mockUserToken.user_id;
-    if (!uid) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        "mockUserToken must contain 'sub' or 'user_id' field!"
+    let token: string;
+    let user: User;
+    if (typeof options.mockUserToken === 'string') {
+      token = options.mockUserToken;
+      user = User.MOCK_USER;
+    } else {
+      // Let createMockUserToken validate first (catches common mistakes like
+      // invalid field "uid" and missing field "sub" / "user_id".)
+      token = createMockUserToken(
+        options.mockUserToken,
+        firestore._app?.options.projectId
       );
+      const uid = options.mockUserToken.sub || options.mockUserToken.user_id;
+      if (!uid) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          "mockUserToken must contain 'sub' or 'user_id' field!"
+        );
+      }
+      user = new User(uid);
     }
 
     firestore._credentials = new EmulatorCredentialsProvider(
-      new OAuthToken(token, new User(uid))
+      new OAuthToken(token, user)
     );
   }
 }

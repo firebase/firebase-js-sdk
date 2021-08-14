@@ -115,10 +115,8 @@ class TargetState {
    * These changes are continuously updated as we receive document updates and
    * always reflect the current set of changes against the last issued snapshot.
    */
-  private documentChanges: SortedMap<
-    DocumentKey,
-    ChangeType
-  > = snapshotChangesMap();
+  private documentChanges: SortedMap<DocumentKey, ChangeType> =
+    snapshotChangesMap();
 
   /** See public getters for explanations of these fields. */
   private _resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING;
@@ -526,10 +524,11 @@ export class WatchChangeAggregator {
       document
     );
 
-    this.pendingDocumentTargetMapping = this.pendingDocumentTargetMapping.insert(
-      document.key,
-      this.ensureDocumentTargetMapping(document.key).add(targetId)
-    );
+    this.pendingDocumentTargetMapping =
+      this.pendingDocumentTargetMapping.insert(
+        document.key,
+        this.ensureDocumentTargetMapping(document.key).add(targetId)
+      );
   }
 
   /**
@@ -558,10 +557,11 @@ export class WatchChangeAggregator {
       targetState.removeDocumentChange(key);
     }
 
-    this.pendingDocumentTargetMapping = this.pendingDocumentTargetMapping.insert(
-      key,
-      this.ensureDocumentTargetMapping(key).delete(targetId)
-    );
+    this.pendingDocumentTargetMapping =
+      this.pendingDocumentTargetMapping.insert(
+        key,
+        this.ensureDocumentTargetMapping(key).delete(targetId)
+      );
 
     if (updatedDocument) {
       this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
@@ -614,10 +614,8 @@ export class WatchChangeAggregator {
 
     if (!targetMapping) {
       targetMapping = new SortedSet<TargetId>(primitiveComparator);
-      this.pendingDocumentTargetMapping = this.pendingDocumentTargetMapping.insert(
-        key,
-        targetMapping
-      );
+      this.pendingDocumentTargetMapping =
+        this.pendingDocumentTargetMapping.insert(key, targetMapping);
     }
 
     return targetMapping;

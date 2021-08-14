@@ -48,7 +48,7 @@ let clock: sinon.SinonFakeTimers;
 let fakeInstallations: _FirebaseInstallationsInternal;
 
 // Fake indexedDB.open() request
-let fakeRequest = {
+const fakeRequest = {
   onsuccess: () => {},
   result: {
     close: () => {}
@@ -67,13 +67,7 @@ function stubFetch(status: number, body: object): void {
 // Stub indexedDB.open() because sinon's clock does not know
 // how to wait for the real indexedDB callbacks to resolve.
 function stubIdbOpen(): void {
-  (fakeRequest = {
-    onsuccess: () => {},
-    result: {
-      close: () => {}
-    }
-  }),
-    (idbOpenStub = stub(indexedDB, 'open').returns(fakeRequest as any));
+  idbOpenStub = stub(indexedDB, 'open').returns(fakeRequest as any);
 }
 
 describe('FirebaseAnalytics instance tests', () => {

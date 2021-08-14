@@ -356,10 +356,11 @@ async function initializeViewAndComputeSnapshot(
   );
   const view = new View(query, queryResult.remoteKeys);
   const viewDocChanges = view.computeDocChanges(queryResult.documents);
-  const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
-    targetId,
-    current && syncEngineImpl.onlineState !== OnlineState.Offline
-  );
+  const synthesizedTargetChange =
+    TargetChange.createSynthesizedTargetChangeForCurrentChange(
+      targetId,
+      current && syncEngineImpl.onlineState !== OnlineState.Offline
+    );
   const viewChange = view.applyChanges(
     viewDocChanges,
     /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
@@ -413,9 +414,8 @@ export async function syncEngineUnlisten(
     // We need to remove the local query target first to allow us to verify
     // whether any other client is still interested in this target.
     syncEngineImpl.sharedClientState.removeLocalQueryTarget(queryView.targetId);
-    const targetRemainsActive = syncEngineImpl.sharedClientState.isActiveQueryTarget(
-      queryView.targetId
-    );
+    const targetRemainsActive =
+      syncEngineImpl.sharedClientState.isActiveQueryTarget(queryView.targetId);
 
     if (!targetRemainsActive) {
       await localStoreReleaseTarget(
@@ -495,9 +495,8 @@ export async function syncEngineApplyRemoteEvent(
     );
     // Update `receivedDocument` as appropriate for any limbo targets.
     remoteEvent.targetChanges.forEach((targetChange, targetId) => {
-      const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
-        targetId
-      );
+      const limboResolution =
+        syncEngineImpl.activeLimboResolutionsByTarget.get(targetId);
       if (limboResolution) {
         // Since this is a limbo resolution lookup, it's for a single document
         // and it could be added, modified, or removed, but not a combination.
@@ -606,9 +605,8 @@ export async function syncEngineRejectListen(
   // PORTING NOTE: Multi-tab only.
   syncEngineImpl.sharedClientState.updateQueryState(targetId, 'rejected', err);
 
-  const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
-    targetId
-  );
+  const limboResolution =
+    syncEngineImpl.activeLimboResolutionsByTarget.get(targetId);
   const limboKey = limboResolution && limboResolution.key;
   if (limboKey) {
     // TODO(klimt): We really only should do the following on permission
@@ -641,9 +639,8 @@ export async function syncEngineRejectListen(
     // RemoteEvent. If `applyRemoteEvent()` throws, we want to re-listen to
     // this query when the RemoteStore restarts the Watch stream, which should
     // re-trigger the target failure.
-    syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.remove(
-      limboKey
-    );
+    syncEngineImpl.activeLimboTargetsByKey =
+      syncEngineImpl.activeLimboTargetsByKey.remove(limboKey);
     syncEngineImpl.activeLimboResolutionsByTarget.delete(targetId);
     pumpEnqueuedLimboResolutions(syncEngineImpl);
   } else {
@@ -800,9 +797,8 @@ function addMutationCallback(
     newCallbacks = new SortedMap<BatchId, Deferred<void>>(primitiveComparator);
   }
   newCallbacks = newCallbacks.insert(batchId, callback);
-  syncEngineImpl.mutationUserCallbacks[
-    syncEngineImpl.currentUser.toKey()
-  ] = newCallbacks;
+  syncEngineImpl.mutationUserCallbacks[syncEngineImpl.currentUser.toKey()] =
+    newCallbacks;
 }
 
 /**
@@ -834,9 +830,8 @@ function processUserCallback(
       }
       newCallbacks = newCallbacks.remove(batchId);
     }
-    syncEngineImpl.mutationUserCallbacks[
-      syncEngineImpl.currentUser.toKey()
-    ] = newCallbacks;
+    syncEngineImpl.mutationUserCallbacks[syncEngineImpl.currentUser.toKey()] =
+      newCallbacks;
   }
 }
 
@@ -863,13 +858,11 @@ function removeAndCleanupTarget(
   syncEngineImpl.queriesByTarget.delete(targetId);
 
   if (syncEngineImpl.isPrimaryClient) {
-    const limboKeys = syncEngineImpl.limboDocumentRefs.removeReferencesForId(
-      targetId
-    );
+    const limboKeys =
+      syncEngineImpl.limboDocumentRefs.removeReferencesForId(targetId);
     limboKeys.forEach(limboKey => {
-      const isReferenced = syncEngineImpl.limboDocumentRefs.containsKey(
-        limboKey
-      );
+      const isReferenced =
+        syncEngineImpl.limboDocumentRefs.containsKey(limboKey);
       if (!isReferenced) {
         // We removed the last reference for this key
         removeLimboTarget(syncEngineImpl, limboKey);
@@ -893,9 +886,8 @@ function removeLimboTarget(
   }
 
   remoteStoreUnlisten(syncEngineImpl.remoteStore, limboTargetId);
-  syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.remove(
-    key
-  );
+  syncEngineImpl.activeLimboTargetsByKey =
+    syncEngineImpl.activeLimboTargetsByKey.remove(key);
   syncEngineImpl.activeLimboResolutionsByTarget.delete(limboTargetId);
   pumpEnqueuedLimboResolutions(syncEngineImpl);
 }
@@ -958,8 +950,9 @@ function pumpEnqueuedLimboResolutions(syncEngineImpl: SyncEngineImpl): void {
     syncEngineImpl.activeLimboTargetsByKey.size <
       syncEngineImpl.maxConcurrentLimboResolutions
   ) {
-    const keyString = syncEngineImpl.enqueuedLimboResolutions.values().next()
-      .value;
+    const keyString = syncEngineImpl.enqueuedLimboResolutions
+      .values()
+      .next().value;
     syncEngineImpl.enqueuedLimboResolutions.delete(keyString);
     const key = new DocumentKey(ResourcePath.fromString(keyString));
     const limboTargetId = syncEngineImpl.limboTargetIdGenerator.next();
@@ -967,10 +960,8 @@ function pumpEnqueuedLimboResolutions(syncEngineImpl: SyncEngineImpl): void {
       limboTargetId,
       new LimboResolution(key)
     );
-    syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.insert(
-      key,
-      limboTargetId
-    );
+    syncEngineImpl.activeLimboTargetsByKey =
+      syncEngineImpl.activeLimboTargetsByKey.insert(key, limboTargetId);
     remoteStoreListen(
       syncEngineImpl.remoteStore,
       new TargetData(
@@ -1123,9 +1114,8 @@ export function syncEngineGetRemoteKeysForTarget(
   targetId: TargetId
 ): DocumentKeySet {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
-    targetId
-  );
+  const limboResolution =
+    syncEngineImpl.activeLimboResolutionsByTarget.get(targetId);
   if (limboResolution && limboResolution.receivedDocument) {
     return documentKeySet().add(limboResolution.key);
   } else {
@@ -1160,9 +1150,8 @@ async function synchronizeViewAndComputeSnapshot(
     queryView.query,
     /* usePreviousResults= */ true
   );
-  const viewSnapshot = queryView.view.synchronizeWithPersistedState(
-    queryResult
-  );
+  const viewSnapshot =
+    queryView.view.synchronizeWithPersistedState(queryResult);
   if (syncEngineImpl.isPrimaryClient) {
     updateTrackedLimbos(
       syncEngineImpl,
@@ -1183,10 +1172,9 @@ export async function syncEngineSynchronizeWithChangedDocuments(
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
 
-  return localStoreGetNewDocumentChanges(
-    syncEngineImpl.localStore
-  ).then(changes =>
-    syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
+  return localStoreGetNewDocumentChanges(syncEngineImpl.localStore).then(
+    changes =>
+      syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
   );
 }
 
@@ -1253,7 +1241,8 @@ export async function syncEngineApplyPrimaryState(
     // server considers to be in the target). So when a secondary becomes
     // primary, we need to need to make sure that all views for all targets
     // match the state on disk.
-    const activeTargets = syncEngineImpl.sharedClientState.getAllActiveQueryTargets();
+    const activeTargets =
+      syncEngineImpl.sharedClientState.getAllActiveQueryTargets();
     const activeQueries = await synchronizeQueryViewsAndRaiseSnapshots(
       syncEngineImpl,
       activeTargets.toArray(),
@@ -1447,10 +1436,11 @@ export async function syncEngineApplyTargetState(
         const changes = await localStoreGetNewDocumentChanges(
           syncEngineImpl.localStore
         );
-        const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
-          targetId,
-          state === 'current'
-        );
+        const synthesizedRemoteEvent =
+          RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
+            targetId,
+            state === 'current'
+          );
         await syncEngineEmitNewSnapsAndNotifyLocalStore(
           syncEngineImpl,
           changes,
@@ -1532,26 +1522,16 @@ export async function syncEngineApplyActiveTargetsChange(
 
 function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.applyRemoteEvent = syncEngineApplyRemoteEvent.bind(
-    null,
-    syncEngineImpl
-  );
-  syncEngineImpl.remoteStore.remoteSyncer.getRemoteKeysForTarget = syncEngineGetRemoteKeysForTarget.bind(
-    null,
-    syncEngineImpl
-  );
-  syncEngineImpl.remoteStore.remoteSyncer.rejectListen = syncEngineRejectListen.bind(
-    null,
-    syncEngineImpl
-  );
-  syncEngineImpl.syncEngineListener.onWatchChange = eventManagerOnWatchChange.bind(
-    null,
-    syncEngineImpl.eventManager
-  );
-  syncEngineImpl.syncEngineListener.onWatchError = eventManagerOnWatchError.bind(
-    null,
-    syncEngineImpl.eventManager
-  );
+  syncEngineImpl.remoteStore.remoteSyncer.applyRemoteEvent =
+    syncEngineApplyRemoteEvent.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.getRemoteKeysForTarget =
+    syncEngineGetRemoteKeysForTarget.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.rejectListen =
+    syncEngineRejectListen.bind(null, syncEngineImpl);
+  syncEngineImpl.syncEngineListener.onWatchChange =
+    eventManagerOnWatchChange.bind(null, syncEngineImpl.eventManager);
+  syncEngineImpl.syncEngineListener.onWatchError =
+    eventManagerOnWatchError.bind(null, syncEngineImpl.eventManager);
   return syncEngineImpl;
 }
 
@@ -1559,14 +1539,10 @@ export function syncEngineEnsureWriteCallbacks(
   syncEngine: SyncEngine
 ): SyncEngineImpl {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.applySuccessfulWrite = syncEngineApplySuccessfulWrite.bind(
-    null,
-    syncEngineImpl
-  );
-  syncEngineImpl.remoteStore.remoteSyncer.rejectFailedWrite = syncEngineRejectFailedWrite.bind(
-    null,
-    syncEngineImpl
-  );
+  syncEngineImpl.remoteStore.remoteSyncer.applySuccessfulWrite =
+    syncEngineApplySuccessfulWrite.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.rejectFailedWrite =
+    syncEngineRejectFailedWrite.bind(null, syncEngineImpl);
   return syncEngineImpl;
 }
 

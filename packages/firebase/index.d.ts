@@ -1267,8 +1267,6 @@ declare namespace firebase {
    * {@link firebase.storage.Storage `Storage`} service associated with a
    * specific app.
    *
-   * @webonly
-   *
    * @example
    * ```javascript
    * // Get the Storage service for the default app
@@ -1465,8 +1463,6 @@ declare namespace firebase.app {
     /**
      * Gets the {@link firebase.storage.Storage `Storage`} service for the current
      * app, optionally initialized with a custom storage bucket.
-     *
-     * @webonly
      *
      * @example
      * ```javascript
@@ -5911,7 +5907,7 @@ declare namespace firebase.database {
       host: string,
       port: number,
       options?: {
-        mockUserToken?: EmulatorMockTokenOptions;
+        mockUserToken?: EmulatorMockTokenOptions | string;
       }
     ): void;
     /**
@@ -7423,8 +7419,8 @@ declare namespace firebase.messaging {
      *
      * @param callback The function to handle the push message.
      *
-     * @deprecated onBackgroundMessage(nextOrObserver: firebase.NextFn<MessagePayload>|
-     * firebase.Observer<MessagePayload>, error?: firebase.ErrorFn,completed?: firebase.CompleteFn):
+     * @deprecated Use onBackgroundMessage(nextOrObserver: firebase.NextFn<MessagePayload> |
+     * firebase.Observer<MessagePayload>, error?: firebase.ErrorFn, completed?: firebase.CompleteFn):
      * firebase.Unsubscribe.
      */
     setBackgroundMessageHandler(
@@ -7854,8 +7850,11 @@ declare namespace firebase.storage {
      *
      * @param host - The emulator host (ex: localhost)
      * @param port - The emulator port (ex: 5001)
+     * @param options.mockUserToken the mock auth token to use for unit testing Security Rules
      */
-    useEmulator(host: string, port: number): void;
+    useEmulator(host: string, port: number, options?: {
+      mockUserToken?: EmulatorMockTokenOptions | string;
+    }): void;
   }
 
   /**
@@ -8386,7 +8385,7 @@ declare namespace firebase.firestore {
       host: string,
       port: number,
       options?: {
-        mockUserToken?: EmulatorMockTokenOptions;
+        mockUserToken?: EmulatorMockTokenOptions | string;
       }
     ): void;
 

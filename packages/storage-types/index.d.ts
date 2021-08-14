@@ -16,7 +16,13 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { CompleteFn, FirebaseError, NextFn, Unsubscribe } from '@firebase/util';
+import {
+  CompleteFn,
+  EmulatorMockTokenOptions,
+  FirebaseError,
+  NextFn,
+  Unsubscribe
+} from '@firebase/util';
 
 export interface FullMetadata extends UploadMetadata {
   bucket: string;
@@ -135,7 +141,14 @@ export class FirebaseStorage {
   refFromURL(url: string): Reference;
   setMaxOperationRetryTime(time: number): void;
   setMaxUploadRetryTime(time: number): void;
-  useEmulator(host: string, port: number): void;
+
+  useEmulator(
+    host: string,
+    port: number,
+    options?: {
+      mockUserToken?: EmulatorMockTokenOptions | string;
+    }
+  ): void;
 }
 
 declare module '@firebase/component' {

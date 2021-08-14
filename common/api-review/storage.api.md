@@ -6,7 +6,8 @@
 
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { CompleteFn } from '@firebase/util';
-import { FirebaseApp } from '@firebase/app-exp';
+import { EmulatorMockTokenOptions } from '@firebase/util';
+import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 import { _FirebaseService } from '@firebase/app-exp';
@@ -16,7 +17,9 @@ import { Subscribe } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
 // @public
-export function connectStorageEmulator(storage: FirebaseStorage, host: string, port: number): void;
+export function connectStorageEmulator(storage: FirebaseStorage, host: string, port: number, options?: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+}): void;
 
 // Warning: (ae-forgotten-export) The symbol "StringData" needs to be exported by the entry point index.d.ts
 //
