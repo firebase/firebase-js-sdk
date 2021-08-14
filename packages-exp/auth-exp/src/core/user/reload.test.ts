@@ -20,7 +20,9 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { ProviderId, UserInfo } from '../../model/public_types';
+import { UserInfo } from '../../model/public_types';
+import { ProviderId } from '../../model/enums';
+
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';

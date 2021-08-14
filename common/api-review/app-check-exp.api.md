@@ -51,6 +51,8 @@ export class CustomProvider implements AppCheckProvider {
     getToken(): Promise<AppCheckTokenInternal>;
     // @internal (undocumented)
     initialize(app: FirebaseApp): void;
+    // @internal (undocumented)
+    isEqual(otherProvider: unknown): boolean;
 }
 
 // @public
@@ -79,6 +81,8 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
     getToken(): Promise<AppCheckTokenInternal>;
     // @internal (undocumented)
     initialize(app: FirebaseApp): void;
+    // @internal (undocumented)
+    isEqual(otherProvider: unknown): boolean;
     }
 
 // @public

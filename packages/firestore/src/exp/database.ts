@@ -24,6 +24,7 @@ import {
 } from '@firebase/app-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { deepEqual } from '@firebase/util';
 
 import {
   IndexedDbOfflineComponentProvider,
@@ -128,10 +129,19 @@ export function initializeFirestore(
   const provider = _getProvider(app, 'firestore-exp');
 
   if (provider.isInitialized()) {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      'Firestore can only be initialized once per app.'
-    );
+    const existingInstance = provider.getImmediate();
+    const initialSettings = provider.getOptions() as FirestoreSettings;
+    if (deepEqual(initialSettings, settings)) {
+      return existingInstance;
+    } else {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'initializeFirestore() has already been called with ' +
+          'different options. To avoid this error, call initializeFirestore() with the ' +
+          'same options as when it was originally called, or call getFirestore() to return the' +
+          ' already initialized instance.'
+      );
+    }
   }
 
   if (

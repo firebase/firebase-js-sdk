@@ -280,8 +280,8 @@ class LruGarbageCollectorImpl implements LruGarbageCollector {
               `to the maximum of ${this.params.maximumSequenceNumbersToCollect} ` +
               `from ${sequenceNumbers}`
           );
-          sequenceNumbersToCollect = this.params
-            .maximumSequenceNumbersToCollect;
+          sequenceNumbersToCollect =
+            this.params.maximumSequenceNumbersToCollect;
         } else {
           sequenceNumbersToCollect = sequenceNumbers;
         }

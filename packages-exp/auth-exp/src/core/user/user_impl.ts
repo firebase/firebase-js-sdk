@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { IdTokenResult, ProviderId } from '../../model/public_types';
+import { IdTokenResult } from '../../model/public_types';
 import { NextFn } from '@firebase/util';
 
 import {
@@ -39,6 +39,7 @@ import { ProactiveRefresh } from './proactive_refresh';
 import { _reloadWithoutSaving, reload } from './reload';
 import { StsTokenManager } from './token_manager';
 import { UserMetadata } from './user_metadata';
+import { ProviderId } from '../../model/enums';
 
 function assertStringOrUndefined(
   assertion: unknown,

@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { ProviderId } from '../../model/public_types';
+import { ProviderId } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';

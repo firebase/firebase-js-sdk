@@ -101,7 +101,8 @@ export class IndexedDbTargetCache implements TargetCache {
     return this.retrieveMetadata(transaction).next(metadata => {
       metadata.highestListenSequenceNumber = highestListenSequenceNumber;
       if (lastRemoteSnapshotVersion) {
-        metadata.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion.toTimestamp();
+        metadata.lastRemoteSnapshotVersion =
+          lastRemoteSnapshotVersion.toTimestamp();
       }
       if (highestListenSequenceNumber > metadata.highestListenSequenceNumber) {
         metadata.highestListenSequenceNumber = highestListenSequenceNumber;

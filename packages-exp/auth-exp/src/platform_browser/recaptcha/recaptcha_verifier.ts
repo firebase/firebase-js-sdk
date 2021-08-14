@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Auth } from '../../model/public_types';
+import { Auth, RecaptchaParameters } from '../../model/public_types';
 import { getRecaptchaParams } from '../../api/authentication/recaptcha';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
@@ -25,7 +25,7 @@ import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { AuthInternal } from '../../model/auth';
 import { _window } from '../auth_window';
 import { _isWorker } from '../util/worker';
-import { Parameters, Recaptcha } from './recaptcha';
+import { Recaptcha } from './recaptcha';
 import {
   MockReCaptchaLoaderImpl,
   ReCaptchaLoader,
@@ -34,7 +34,7 @@ import {
 
 export const RECAPTCHA_VERIFIER_TYPE = 'recaptcha';
 
-const DEFAULT_PARAMS: Parameters = {
+const DEFAULT_PARAMS: RecaptchaParameters = {
   theme: 'light',
   type: 'image'
 };
@@ -92,7 +92,7 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
    */
   constructor(
     containerOrId: HTMLElement | string,
-    private readonly parameters: Parameters = {
+    private readonly parameters: RecaptchaParameters = {
       ...DEFAULT_PARAMS
     },
     authExtern: Auth

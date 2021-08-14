@@ -50,7 +50,7 @@ import {
   _getChild as _getChildInternal
 } from '../src/reference';
 import { STORAGE_TYPE } from './constants';
-import { getModularInstance } from '@firebase/util';
+import { EmulatorMockTokenOptions, getModularInstance } from '@firebase/util';
 
 /**
  * Public types.
@@ -307,12 +307,16 @@ export function getStorage(
  * @param storage - The `StorageService` instance
  * @param host - The emulator host (ex: localhost)
  * @param port - The emulator port (ex: 5001)
+ * @param options.mockUserToken - the mock auth token to use for unit testing Security Rules.
  * @public
  */
 export function connectStorageEmulator(
   storage: FirebaseStorage,
   host: string,
-  port: number
+  port: number,
+  options: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+  } = {}
 ): void {
-  connectEmulatorInternal(storage as FirebaseStorageImpl, host, port);
+  connectEmulatorInternal(storage as FirebaseStorageImpl, host, port, options);
 }

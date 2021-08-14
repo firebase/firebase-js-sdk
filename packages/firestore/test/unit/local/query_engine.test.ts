@@ -69,9 +69,8 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    const skipsDocumentsBeforeSnapshot = !SnapshotVersion.min().isEqual(
-      sinceReadTime
-    );
+    const skipsDocumentsBeforeSnapshot =
+      !SnapshotVersion.min().isEqual(sinceReadTime);
 
     expect(skipsDocumentsBeforeSnapshot).to.eq(
       !this.expectFullCollectionScan,

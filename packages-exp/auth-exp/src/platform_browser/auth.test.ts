@@ -23,10 +23,10 @@ import * as sinonChai from 'sinon-chai';
 import { FirebaseApp } from '@firebase/app-exp';
 import {
   Auth,
-  OperationType,
   Persistence,
   PopupRedirectResolver
 } from '../model/public_types';
+import { OperationType } from '../model/enums';
 
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
 import { AuthImpl, DefaultConfig } from '../core/auth/auth_impl';

@@ -179,9 +179,8 @@ export function serializerTest(
           value
         );
         expect(actualJsonProto).to.deep.equal({ [valueType]: jsonValue });
-        const actualReturnFieldValue = userDataWriter.convertValue(
-          actualJsonProto
-        );
+        const actualReturnFieldValue =
+          userDataWriter.convertValue(actualJsonProto);
 
         if (
           actualReturnFieldValue instanceof DocumentReference &&
@@ -199,9 +198,8 @@ export function serializerTest(
           value
         );
         expect(actualProtoJsProto).to.deep.equal({ [valueType]: protoJsValue });
-        const actualProtoJsReturnFieldValue = userDataWriter.convertValue(
-          actualProtoJsProto
-        );
+        const actualProtoJsReturnFieldValue =
+          userDataWriter.convertValue(actualProtoJsProto);
         expect(actualProtoJsReturnFieldValue).to.deep.equal(value);
 
         // If we're using protobufJs JSON (not Proto3Json), then round-trip through protobufjs.
@@ -1505,10 +1503,10 @@ export function serializerTest(
 
       // TODO(dimond): RPC status cause
       it('converts target change with added', () => {
-        const expected = new WatchTargetChange(WatchTargetChangeState.Added, [
-          1,
-          4
-        ]);
+        const expected = new WatchTargetChange(
+          WatchTargetChangeState.Added,
+          [1, 4]
+        );
         const actual = fromWatchChange(s, {
           targetChange: { targetChangeType: 'ADD', targetIds: [1, 4] }
         });

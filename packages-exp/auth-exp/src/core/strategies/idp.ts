@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '../../model/public_types';
 import {
   signInWithIdp,
   SignInWithIdpRequest
@@ -30,6 +29,7 @@ import { _reauthenticate } from '../user/reauthenticate';
 import { _assert } from '../util/assert';
 import { _signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
+import { ProviderId } from '../../model/enums';
 
 export interface IdpTaskParams {
   auth: AuthInternal;
