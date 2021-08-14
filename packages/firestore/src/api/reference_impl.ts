@@ -35,9 +35,9 @@ import {
 } from '../core/firestore_client';
 import { newQueryForPath, Query as InternalQuery } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
-import { Bytes } from '../lite/bytes';
-import { FieldPath } from '../lite/field_path';
-import { validateHasExplicitOrderByForLimitToLast } from '../lite/query';
+import { Bytes } from '../lite-api/bytes';
+import { FieldPath } from '../lite-api/field_path';
+import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
 import {
   CollectionReference,
   doc,
@@ -45,16 +45,16 @@ import {
   Query,
   SetOptions,
   UpdateData
-} from '../lite/reference';
-import { applyFirestoreDataConverter } from '../lite/reference_impl';
+} from '../lite-api/reference';
+import { applyFirestoreDataConverter } from '../lite-api/reference_impl';
 import {
   newUserDataReader,
   ParsedUpdateData,
   parseSetData,
   parseUpdateData,
   parseUpdateVarargs
-} from '../lite/user_data_reader';
-import { AbstractUserDataWriter } from '../lite/user_data_writer';
+} from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';

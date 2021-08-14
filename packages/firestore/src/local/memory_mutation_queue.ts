@@ -17,7 +17,7 @@
 
 import { isCollectionGroupQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
-import { Timestamp } from '../lite/timestamp';
+import { Timestamp } from '../lite-api/timestamp';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';

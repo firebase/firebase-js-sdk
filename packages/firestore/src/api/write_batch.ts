@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { WriteBatch } from '../lite/write_batch';
+import { WriteBatch } from '../lite-api/write_batch';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';

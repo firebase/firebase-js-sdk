@@ -17,9 +17,9 @@
 
 import { firestoreClientTransaction } from '../core/firestore_client';
 import { Transaction as InternalTransaction } from '../core/transaction';
-import { DocumentReference } from '../lite/reference';
-import { Transaction as LiteTransaction } from '../lite/transaction';
-import { validateReference } from '../lite/write_batch';
+import { DocumentReference } from '../lite-api/reference';
+import { Transaction as LiteTransaction } from '../lite-api/transaction';
+import { validateReference } from '../lite-api/write_batch';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { ExpUserDataWriter } from './reference_impl';

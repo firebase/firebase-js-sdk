@@ -18,8 +18,8 @@
 import { DocumentData } from '@firebase/firestore-types';
 
 import { DatabaseId } from '../core/database_info';
-import { GeoPoint } from '../lite/geo_point';
-import { Timestamp } from '../lite/timestamp';
+import { GeoPoint } from './geo_point';
+import { Timestamp } from './timestamp';
 import { DocumentKey } from '../model/document_key';
 import {
   normalizeByteString,

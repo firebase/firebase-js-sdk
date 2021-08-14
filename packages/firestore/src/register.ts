@@ -24,12 +24,12 @@ import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
 import { setSDKVersion } from '../src/core/version';
-import { Firestore } from '../src/exp/database';
-import { PrivateSettings } from '../src/lite/settings';
+import { Firestore } from './api/database';
+import { PrivateSettings } from './lite-api/settings';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore-exp': Firestore;
+    'firestore': Firestore;
   }
 }
 
@@ -37,7 +37,7 @@ export function registerFirestore(variant?: string): void {
   setSDKVersion(SDK_VERSION);
   _registerComponent(
     new Component(
-      'firestore-exp',
+      'firestore',
       (container, { options: settings }: { options?: PrivateSettings }) => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const firestoreInstance = new Firestore(

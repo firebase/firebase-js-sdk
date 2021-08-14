@@ -17,7 +17,7 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
-import { Timestamp } from '../lite/timestamp';
+import { Timestamp } from '../lite-api/timestamp';
 import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
 

@@ -19,8 +19,8 @@ import {
   loadBundle as expLoadBundle,
   namedQuery as expNamedQuery,
   LoadBundleTask
-} from '../exp/index';
-import { Firestore, Query } from '../src/api/database';
+} from '../../firestore/exp/index';
+import { Firestore, Query } from '../../firestore/src/api/database';
 
 export function loadBundle(
   this: Firestore,

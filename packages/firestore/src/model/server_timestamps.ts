@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../lite/timestamp';
+import { Timestamp } from '../lite-api/timestamp';
 import {
   Value as ProtoValue,
   MapValue as ProtoMapValue

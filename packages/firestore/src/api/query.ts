@@ -15,4 +15,18 @@
  * limitations under the License.
  */
 
-export { FieldValue } from '../lite/field_value';
+export {
+  endAt,
+  endBefore,
+  startAfter,
+  startAt,
+  limitToLast,
+  limit,
+  orderBy,
+  OrderByDirection,
+  where,
+  WhereFilterOp,
+  query,
+  QueryConstraint,
+  QueryConstraintType
+} from '../lite-api/query';

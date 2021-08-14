@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { FirestoreSettings as LiteSettings } from '../lite/settings';
+import { FirestoreSettings as LiteSettings } from '../lite-api/settings';
 
-export { DEFAULT_HOST } from '../lite/settings';
+export { DEFAULT_HOST } from '../lite-api/settings';
 
 /**
  * Settings that can be passed to `enableIndexedDbPersistence()` to configure

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export { FieldPath, documentId } from '../src/exp/field_path';
+export { FieldPath, documentId } from './api/field_path';
 
 export {
   Firestore,
@@ -32,15 +32,15 @@ export {
   loadBundle,
   namedQuery,
   ensureFirestoreConfigured
-} from '../src/exp/database';
+} from './api/database';
 
 export {
   LoadBundleTask,
   LoadBundleTaskProgress,
   TaskState
-} from '../src/exp/bundle';
+} from './api/bundle';
 
-export { FirestoreSettings, PersistenceSettings } from '../src/exp/settings';
+export { FirestoreSettings, PersistenceSettings } from './api/settings';
 
 export {
   DocumentChange,
@@ -52,7 +52,7 @@ export {
   FirestoreDataConverter,
   DocumentChangeType,
   SnapshotMetadata
-} from '../src/exp/snapshot';
+} from './api/snapshot';
 
 export {
   DocumentReference,
@@ -66,7 +66,7 @@ export {
   UpdateData,
   refEqual,
   queryEqual
-} from '../src/exp/reference';
+} from './api/reference';
 
 export {
   endAt,
@@ -82,11 +82,11 @@ export {
   QueryConstraintType,
   OrderByDirection,
   WhereFilterOp
-} from '../src/exp/query';
+} from './api/query';
 
-export { Unsubscribe, SnapshotListenOptions } from '../src/exp/reference_impl';
+export { Unsubscribe, SnapshotListenOptions } from './api/reference_impl';
 
-export { runTransaction, Transaction } from '../src/exp/transaction';
+export { runTransaction, Transaction } from './api/transaction';
 
 export {
   getDoc,
@@ -102,9 +102,9 @@ export {
   deleteDoc,
   addDoc,
   executeWrite
-} from '../src/exp/reference_impl';
+} from './api/reference_impl';
 
-export { FieldValue } from '../src/exp/field_value';
+export { FieldValue } from './api/field_value';
 
 export {
   increment,
@@ -112,20 +112,20 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField
-} from '../src/exp/field_value_impl';
+} from './api/field_value_impl';
 
-export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
+export { setLogLevel, LogLevelString as LogLevel } from './util/log';
 
-export { Bytes } from '../src/exp/bytes';
+export { Bytes } from './api/bytes';
 
-export { WriteBatch, writeBatch } from '../src/exp/write_batch';
+export { WriteBatch, writeBatch } from './api/write_batch';
 
-export { GeoPoint } from '../src/exp/geo_point';
+export { GeoPoint } from './api/geo_point';
 
-export { Timestamp } from '../src/exp/timestamp';
+export { Timestamp } from './api/timestamp';
 
-export { CACHE_SIZE_UNLIMITED } from '../src/exp/database';
+export { CACHE_SIZE_UNLIMITED } from './api/database';
 
-export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
+export { FirestoreErrorCode, FirestoreError } from './util/error';
 
-export { AbstractUserDataWriter } from '../src/lite/user_data_writer';
+export { AbstractUserDataWriter } from './lite-api/user_data_writer';

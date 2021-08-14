@@ -1,0 +1,15 @@
+{
+    "name": "@firebase/firestore-compat",
+    "version": "0.1.0",
+    "description": "The Cloud Firestore component of the Firebase JS SDK.",
+    "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+    "main": "dist/index.js",
+    "main-esm2017": "dist/index.esm2017.js",
+    "react-native": "dist/index.rn.js",
+    "browser": "dist/index.esm2017.js",
+    "module": "dist/index.esm2017.js",
+    "esm5": "dist/index.esm5.js",
+    "license": "Apache-2.0",
+    "typings": "../dist/compat/esm2017/firestore/compat/index.d.ts"
+  }
+  

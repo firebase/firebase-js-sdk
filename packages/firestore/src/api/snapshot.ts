@@ -17,15 +17,15 @@
 
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
-import { FieldPath } from '../lite/field_path';
-import { DocumentData, Query, queryEqual, SetOptions } from '../lite/reference';
+import { FieldPath } from '../lite-api/field_path';
+import { DocumentData, Query, queryEqual, SetOptions } from '../lite-api/reference';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
   fieldPathFromArgument,
   FirestoreDataConverter as LiteFirestoreDataConverter
-} from '../lite/snapshot';
-import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
-import { AbstractUserDataWriter } from '../lite/user_data_writer';
+} from '../lite-api/snapshot';
+import { UntypedFirestoreDataConverter } from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail } from '../util/assert';

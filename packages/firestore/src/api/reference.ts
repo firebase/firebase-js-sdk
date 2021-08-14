@@ -16,17 +16,15 @@
  */
 
 export {
-  endAt,
-  endBefore,
-  startAfter,
-  startAt,
-  limitToLast,
-  limit,
-  orderBy,
-  OrderByDirection,
-  where,
-  WhereFilterOp,
-  query,
-  QueryConstraint,
-  QueryConstraintType
-} from '../lite/query';
+  DocumentReference,
+  CollectionReference,
+  Query,
+  collection,
+  collectionGroup,
+  doc,
+  queryEqual,
+  SetOptions,
+  DocumentData,
+  UpdateData,
+  refEqual
+} from '../lite-api/reference';

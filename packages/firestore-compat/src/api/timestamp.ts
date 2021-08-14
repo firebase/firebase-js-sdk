@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,4 @@
  * limitations under the License.
  */
 
-import { Firestore, loadBundle, namedQuery } from './export';
-
-/**
- * Prototype patches bundle loading to Firestore.
- */
-export function registerBundle(instance: typeof Firestore): void {
-  instance.prototype.loadBundle = loadBundle;
-  instance.prototype.namedQuery = namedQuery;
-}
-
-registerBundle(Firestore);
+export { Timestamp } from '../../exp/index';

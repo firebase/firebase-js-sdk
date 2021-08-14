@@ -20,13 +20,11 @@ import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import path from 'path';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy';
 import { terser } from 'rollup-plugin-terser';
-import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
-import pkg from './exp/package.json';
+import pkg from './package.json';
 
 const util = require('./rollup.shared');
 
@@ -41,7 +39,7 @@ const nodePlugins = function () {
       },
       cacheDir: tmp.dirSync(),
       abortOnError: false,
-      transformers: [util.removeAssertTransformer, importPathTransformer]
+      transformers: [util.removeAssertTransformer]
     }),
     json({ preferConst: true }),
     // Needed as we also use the *.proto files
@@ -72,8 +70,7 @@ const browserPlugins = function () {
       clean: true,
       abortOnError: false,
       transformers: [
-        util.removeAssertAndPrefixInternalTransformer,
-        importPathTransformer
+        util.removeAssertAndPrefixInternalTransformer
       ]
     }),
     json({ preferConst: true }),
@@ -84,9 +81,9 @@ const browserPlugins = function () {
 const allBuilds = [
   // Node ESM build
   {
-    input: './exp/index.node.ts',
+    input: './src/index.node.ts',
     output: {
-      file: path.resolve('./exp', pkg['main-esm']),
+      file: pkg['main-esm'],
       format: 'es',
       sourcemap: true
     },
@@ -99,9 +96,9 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: path.resolve('./exp', pkg['main-esm']),
+    input: pkg['main-esm'],
     output: {
-      file: path.resolve('./exp', pkg.main),
+      file: pkg.main,
       format: 'cjs',
       sourcemap: true
     },
@@ -113,9 +110,9 @@ const allBuilds = [
   },
   // Browser build
   {
-    input: './exp/index.ts',
+    input: './src/index.ts',
     output: {
-      file: path.resolve('./exp', pkg.browser),
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },
@@ -127,10 +124,10 @@ const allBuilds = [
   },
   // Convert es2017 build to ES5
   {
-    input: path.resolve('./exp', pkg['browser']),
+    input: pkg['browser'],
     output: [
       {
-        file: path.resolve('./exp', pkg['esm5']),
+        file: pkg['esm5'],
         format: 'es',
         sourcemap: true
       }
@@ -143,9 +140,9 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './exp/index.rn.ts',
+    input: './src/index.rn.ts',
     output: {
-      file: path.resolve('./exp', pkg['react-native']),
+      file: pkg['react-native'],
       format: 'es',
       sourcemap: true
     },

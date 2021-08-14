@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export { FieldPath, documentId } from '../lite/field_path';
+export { Bytes } from '../lite-api/bytes';
