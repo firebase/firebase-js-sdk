@@ -1680,7 +1680,9 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('can set and get data with auto detect long polling enabled', () => {
+  // TODO(b/196858864): This test regularly times out on CI.
+  // eslint-disable-next-line no-restricted-properties
+  it.skip('can set and get data with auto detect long polling enabled', () => {
     const settings = {
       ...DEFAULT_SETTINGS,
       experimentalAutoDetectLongPolling: true
