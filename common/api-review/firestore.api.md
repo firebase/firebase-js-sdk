@@ -120,6 +120,8 @@ export class DocumentSnapshot<T = DocumentData> {
     get ref(): DocumentReference<T>;
 }
 
+export { EmulatorMockTokenOptions }
+
 // @public
 export function enableIndexedDbPersistence(firestore: Firestore, persistenceSettings?: PersistenceSettings): Promise<void>;
 

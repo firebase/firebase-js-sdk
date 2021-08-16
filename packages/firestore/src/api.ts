@@ -19,6 +19,7 @@ export { FieldPath, documentId } from './api/field_path';
 
 export {
   Firestore,
+  EmulatorMockTokenOptions,
   initializeFirestore,
   getFirestore,
   enableIndexedDbPersistence,

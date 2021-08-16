@@ -20,6 +20,7 @@ import {
   namedQuery as expNamedQuery,
   LoadBundleTask
 } from '@firebase/firestore';
+
 import { Firestore, Query } from './api/database';
 
 export function loadBundle(

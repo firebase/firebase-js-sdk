@@ -31,6 +31,7 @@ export { FirestoreSettings as Settings } from '../src/lite-api/settings';
 
 export {
   Firestore as Firestore,
+  EmulatorMockTokenOptions,
   initializeFirestore,
   getFirestore,
   terminate,

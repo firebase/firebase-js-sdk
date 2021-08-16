@@ -48,8 +48,7 @@
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "api-report": "run-s api-report:exp api-report:lite && yarn api-report:api-json",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
-    "doc": "api-documenter markdown --input temp --output docs",
-    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i dist/exp/index.d.ts -o dist/compat/esm2017/firestore/compat/index.d.ts -a -r FirebaseFirestore:types.FirebaseFirestore -r CollectionReference:types.CollectionReference -r DocumentReference:types.DocumentReference -r Query:types.Query -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/firestore"
+    "doc": "api-documenter markdown --input temp --output docs"
   },
   "main": "dist/index.node.cjs.js",
   "main-esm": "dist/index.node.cjs.esm2017.js",

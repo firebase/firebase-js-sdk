@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+import { Bytes, FirestoreError, _isBase64Available } from '@firebase/firestore';
 import { Compat } from '@firebase/util';
 
-import { Bytes, FirestoreError, _isBase64Available } from '@firebase/firestore';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {

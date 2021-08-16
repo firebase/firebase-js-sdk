@@ -20,13 +20,13 @@ import { FirebaseApp } from '@firebase/app-compat';
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
-
 import {
   Firestore as ModularFirestore,
   CACHE_SIZE_UNLIMITED,
   GeoPoint,
   Timestamp
 } from '@firebase/firestore'; // import from the exp public API
+
 import { Blob } from '../src/api/blob';
 import {
   Firestore,

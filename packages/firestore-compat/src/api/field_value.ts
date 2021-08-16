@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { FieldValue as PublicFieldValue } from '@firebase/firestore-types';
-import { Compat } from '@firebase/util';
-
 import {
   arrayRemove,
   arrayUnion,
@@ -26,6 +23,9 @@ import {
   increment,
   serverTimestamp
 } from '@firebase/firestore';
+import { FieldValue as PublicFieldValue } from '@firebase/firestore-types';
+import { Compat } from '@firebase/util';
+
 
 export class FieldValue implements PublicFieldValue, Compat<FieldValue1> {
   static serverTimestamp(): FieldValue {

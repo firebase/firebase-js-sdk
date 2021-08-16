@@ -99,6 +99,8 @@ export class DocumentSnapshot<T = DocumentData> {
     get ref(): DocumentReference<T>;
 }
 
+export { EmulatorMockTokenOptions }
+
 // @public
 export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 

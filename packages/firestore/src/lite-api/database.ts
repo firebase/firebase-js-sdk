@@ -102,7 +102,7 @@ export class Firestore implements FirestoreService {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         "Firestore was not initialized using the Firebase SDK. 'app' is " +
-          'not available'
+        'not available'
       );
     }
     return this._app;
@@ -121,8 +121,8 @@ export class Firestore implements FirestoreService {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
-          'be changed. You can only modify settings before calling any other ' +
-          'methods on a Firestore object.'
+        'be changed. You can only modify settings before calling any other ' +
+        'methods on a Firestore object.'
       );
     }
     this._settings = new FirestoreSettingsImpl(settings);
@@ -220,6 +220,7 @@ export function getFirestore(app: FirebaseApp = getApp()): Firestore {
   return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
 }
 
+export { EmulatorMockTokenOptions } from '@firebase/util';
 /**
  * Modify this instance to communicate with the Cloud Firestore emulator.
  *
@@ -247,7 +248,7 @@ export function connectFirestoreEmulator(
   if (settings.host !== DEFAULT_HOST && settings.host !== host) {
     logWarn(
       'Host has been set in both settings() and useEmulator(), emulator host ' +
-        'will be used'
+      'will be used'
     );
   }
 

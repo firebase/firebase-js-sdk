@@ -9,7 +9,11 @@
     "module": "dist/index.esm2017.js",
     "esm5": "dist/index.esm5.js",
     "scripts": {
-      "build": "rollup -c ./rollup.config.js"
+      "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+      "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+      "prettier": "prettier --write '*.js' '*.ts' '@(lite|exp|src|test)/**/*.ts'",
+      "build": "rollup -c ./rollup.config.js",
+      "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../firestore/dist/index.d.ts -o dist/src/index.d.ts -a -r Firestore:types.FirebaseFirestore -r CollectionReference:types.CollectionReference -r DocumentReference:types.DocumentReference -r Query:types.Query -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/firestore"
     },
     "peerDependencies": {
       "@firebase/app-compat": "0.x"
