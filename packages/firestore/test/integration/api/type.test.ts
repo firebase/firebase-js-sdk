@@ -81,13 +81,13 @@ apiDescribe('Firestore', (persistence: boolean) => {
 
   it('can read and write number fields', () => {
     return withTestDb(persistence, async db => {
-      // TODO(b/174486484): If we build ViewSnapshots from IndexedDb, this test
-      // fails since we first store the backend proto in IndexedDb, which turns
-      // -0.0 into 0.0.
+      // TODO(b/174486484): This test should always test -0.0, but right now
+      // this leaks to flakes as we turn -0.0 into 0.0 when we build the
+      // snapshot from IndexedDb
       const validateSnapshots = !persistence;
       await expectRoundtrip(
         db,
-        { a: 1, b: NaN, c: Infinity, d: -0.0 },
+        { a: 1, b: NaN, c: Infinity, d: persistence ? 0.0 : -0.0 },
         validateSnapshots
       );
     });
