@@ -129,10 +129,7 @@ export class WriteBatch {
    * within the document.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  update<T>(
-    documentRef: DocumentReference<T>,
-    data: UpdateData<T>
-  ): WriteBatch;
+  update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
   /**
    * Updates fields in the document referred to by this {@link
    * DocumentReference}. The update will fail if applied to a document that does

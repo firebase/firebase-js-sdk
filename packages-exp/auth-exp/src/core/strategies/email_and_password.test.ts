@@ -384,15 +384,12 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
   afterEach(mockFetch.tearDown);
 
   it('should sign in the user', async () => {
-    const {
-      _tokenResponse,
-      user,
-      operationType
-    } = (await createUserWithEmailAndPassword(
-      auth,
-      'some-email',
-      'some-password'
-    )) as UserCredentialInternal;
+    const { _tokenResponse, user, operationType } =
+      (await createUserWithEmailAndPassword(
+        auth,
+        'some-email',
+        'some-password'
+      )) as UserCredentialInternal;
     expect(_tokenResponse).to.eql({
       idToken: 'id-token',
       refreshToken: 'refresh-token',
@@ -427,15 +424,12 @@ describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => 
   afterEach(mockFetch.tearDown);
 
   it('should sign in the user', async () => {
-    const {
-      _tokenResponse,
-      user,
-      operationType
-    } = (await signInWithEmailAndPassword(
-      auth,
-      'some-email',
-      'some-password'
-    )) as UserCredentialInternal;
+    const { _tokenResponse, user, operationType } =
+      (await signInWithEmailAndPassword(
+        auth,
+        'some-email',
+        'some-password'
+      )) as UserCredentialInternal;
     expect(_tokenResponse).to.eql({
       idToken: 'id-token',
       refreshToken: 'refresh-token',

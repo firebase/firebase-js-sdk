@@ -67,7 +67,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier', () => {
   context('#render', () => {
     it('caches the promise if not completed and returns if called multiple times', () => {
       // This will force the loader to never return so the render promise never completes
-      sinon.stub(recaptchaLoader, 'load').returns(new Promise(() => { }));
+      sinon.stub(recaptchaLoader, 'load').returns(new Promise(() => {}));
       const renderPromise = verifier.render();
       expect(verifier.render()).to.eq(renderPromise);
     });

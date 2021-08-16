@@ -47,12 +47,8 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           rawUserInfo: rawUserInfoWithLogin
         });
-        const {
-          isNewUser,
-          providerId,
-          username,
-          profile
-        } = _fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } =
+          _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
         expect(username).to.be.undefined;
@@ -64,12 +60,8 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.GITHUB,
           rawUserInfo: rawUserInfoWithLogin
         });
-        const {
-          isNewUser,
-          providerId,
-          username,
-          profile
-        } = _fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } =
+          _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GITHUB);
         expect(username).to.eq('scott');
@@ -81,12 +73,8 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.GOOGLE,
           rawUserInfo: rawUserInfoWithLogin
         });
-        const {
-          isNewUser,
-          providerId,
-          username,
-          profile
-        } = _fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } =
+          _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.GOOGLE);
         expect(username).to.be.undefined;
@@ -99,12 +87,8 @@ describe('core/user/additional_user_info', () => {
           rawUserInfo: rawUserInfoNoLogin,
           screenName: 'scott'
         });
-        const {
-          isNewUser,
-          providerId,
-          username,
-          profile
-        } = _fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } =
+          _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.TWITTER);
         expect(username).to.eq('scott');
@@ -162,12 +146,8 @@ describe('core/user/additional_user_info', () => {
             }
           })
         });
-        const {
-          isNewUser,
-          providerId,
-          username,
-          profile
-        } = _fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } =
+          _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
         expect(username).to.be.undefined;
@@ -183,12 +163,8 @@ describe('core/user/additional_user_info', () => {
             }
           })
         });
-        const {
-          isNewUser,
-          providerId,
-          username,
-          profile
-        } = _fromIdTokenResponse(idResponse)!;
+        const { isNewUser, providerId, username, profile } =
+          _fromIdTokenResponse(idResponse)!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.be.null;
         expect(username).to.be.undefined;
@@ -204,14 +180,10 @@ describe('core/user/additional_user_info', () => {
             })
           ) +
           '.signature';
-        const {
-          isNewUser,
-          providerId,
-          username,
-          profile
-        } = _fromIdTokenResponse(
-          idTokenResponse({ rawUserInfo: rawUserInfoWithLogin, idToken })
-        )!;
+        const { isNewUser, providerId, username, profile } =
+          _fromIdTokenResponse(
+            idTokenResponse({ rawUserInfo: rawUserInfoWithLogin, idToken })
+          )!;
         expect(isNewUser).to.be.false;
         expect(providerId).to.eq(ProviderId.FACEBOOK);
         expect(username).to.be.undefined;
@@ -246,12 +218,8 @@ describe('core/user/additional_user_info', () => {
         providerId: ProviderId.ANONYMOUS,
         rawUserInfo: rawUserInfoWithLogin
       });
-      const {
-        isNewUser,
-        providerId,
-        username,
-        profile
-      } = getAdditionalUserInfo(cred)!;
+      const { isNewUser, providerId, username, profile } =
+        getAdditionalUserInfo(cred)!;
       expect(isNewUser).to.be.false;
       expect(providerId).to.be.null;
       expect(username).to.be.undefined;
@@ -264,12 +232,8 @@ describe('core/user/additional_user_info', () => {
         rawUserInfo: rawUserInfoWithLogin,
         isNewUser: true
       });
-      const {
-        isNewUser,
-        providerId,
-        username,
-        profile
-      } = getAdditionalUserInfo(cred)!;
+      const { isNewUser, providerId, username, profile } =
+        getAdditionalUserInfo(cred)!;
       expect(isNewUser).to.be.true;
       expect(providerId).to.be.null;
       expect(username).to.be.undefined;
@@ -278,7 +242,7 @@ describe('core/user/additional_user_info', () => {
 
     it('returns bespoke info if existing anonymous user', () => {
       // Note that _tokenResponse is not set on cred
-      ((user as unknown) as Record<string, unknown>).isAnonymous = true;
+      (user as unknown as Record<string, unknown>).isAnonymous = true;
       const { isNewUser, providerId, profile } = getAdditionalUserInfo(cred)!;
       expect(isNewUser).to.be.false;
       expect(providerId).to.be.null;

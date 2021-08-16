@@ -175,7 +175,7 @@ describe('core/strategies/abstract_popup_redirect_operation', () => {
 
     context('idp tasks', () => {
       function updateFilter(type: AuthEventType): void {
-        ((operation as unknown) as Record<string, unknown>).filter = type;
+        (operation as unknown as Record<string, unknown>).filter = type;
       }
 
       function expectedIdpTaskParams(): idp.IdpTaskParams {

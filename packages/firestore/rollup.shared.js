@@ -135,11 +135,11 @@ exports.importTransformer = importTransformer;
  */
 const removeAssertAndPrefixInternalTransformer = service => ({
   before: [
-    removeAsserts(service.getProgram())
-    // renameInternals(service.getProgram(), {
-    //   publicIdentifiers,
-    //   prefix: '__PRIVATE_'
-    // })
+    removeAsserts(service.getProgram()),
+    renameInternals(service.getProgram(), {
+      publicIdentifiers,
+      prefix: '__PRIVATE_'
+    })
   ],
   after: []
 });
