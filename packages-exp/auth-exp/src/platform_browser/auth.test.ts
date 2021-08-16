@@ -339,7 +339,12 @@ describe('core/auth/initializeAuth', () => {
           clientPlatform: ClientPlatform.BROWSER,
           sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
         });
-        await expect(auth._initializeWithPersistence([_getInstance(inMemoryPersistence)], browserPopupRedirectResolver)).to.not.be.rejected;
+        await expect(
+          auth._initializeWithPersistence(
+            [_getInstance(inMemoryPersistence)],
+            browserPopupRedirectResolver
+          )
+        ).to.not.be.rejected;
 
         await initAndWait([inMemoryPersistence], browserPopupRedirectResolver);
         expect(stub._remove).to.have.been.called;
