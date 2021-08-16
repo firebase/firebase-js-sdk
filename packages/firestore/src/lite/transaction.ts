@@ -31,7 +31,7 @@ import {
   DocumentReference,
   NestedPartial,
   SetOptions,
-  TypedUpdateData,
+  UpdateData,
   WithFieldValue
 } from './reference';
 import {
@@ -171,7 +171,7 @@ export class Transaction {
    * within the document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  update<T>(documentRef: DocumentReference<T>, data: TypedUpdateData<T>): this;
+  update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
   /**
    * Updates fields in the document referred to by the provided {@link
    * DocumentReference}. The update will fail if applied to a document that does
@@ -194,7 +194,7 @@ export class Transaction {
   ): this;
   update<T>(
     documentRef: DocumentReference<T>,
-    fieldOrUpdateData: string | FieldPath | TypedUpdateData<T>,
+    fieldOrUpdateData: string | FieldPath | UpdateData<T>,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this {

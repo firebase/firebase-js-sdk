@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ProviderId, User } from '../../model/public_types';
+import { User } from '../../model/public_types';
 
 import {
   updateEmailPassword as apiUpdateEmailPassword,
@@ -25,6 +25,7 @@ import { updateProfile as apiUpdateProfile } from '../../api/account_management/
 import { UserInternal } from '../../model/user';
 import { _logoutIfInvalidated } from './invalidation';
 import { getModularInstance } from '@firebase/util';
+import { ProviderId } from '../../model/enums';
 
 /**
  * Updates a user's profile data.

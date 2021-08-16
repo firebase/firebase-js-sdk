@@ -29,7 +29,7 @@ import {
   DocumentReference,
   NestedPartial,
   SetOptions,
-  TypedUpdateData,
+  UpdateData,
   WithFieldValue
 } from './reference';
 import { applyFirestoreDataConverter } from './reference_impl';
@@ -131,7 +131,7 @@ export class WriteBatch {
    */
   update<T>(
     documentRef: DocumentReference<T>,
-    data: TypedUpdateData<T>
+    data: UpdateData<T>
   ): WriteBatch;
   /**
    * Updates fields in the document referred to by this {@link
@@ -155,7 +155,7 @@ export class WriteBatch {
   ): WriteBatch;
   update<T>(
     documentRef: DocumentReference<T>,
-    fieldOrUpdateData: string | FieldPath | TypedUpdateData<T>,
+    fieldOrUpdateData: string | FieldPath | UpdateData<T>,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {

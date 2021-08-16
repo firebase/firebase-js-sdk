@@ -39,7 +39,7 @@ export {
 
 export {
   DocumentData,
-  TypedUpdateData as UpdateData,
+  UpdateData,
   Primitive,
   WithFieldValue,
   NestedUpdateFields,

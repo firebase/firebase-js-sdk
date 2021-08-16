@@ -51,10 +51,10 @@ describe('platform_browser/util/popup', () => {
 
   beforeEach(async () => {
     windowOpenStub = sinon.stub(window, 'open');
-    popupStub = sinon.stub(({
+    popupStub = sinon.stub({
       focus: () => {},
       close: () => {}
-    } as unknown) as Window);
+    } as unknown as Window);
     windowOpenStub.returns(popupStub);
     auth = await testAuth();
   });
@@ -105,6 +105,14 @@ describe('platform_browser/util/popup', () => {
     expect(windowOptions()).to.include('scrollbars=yes');
   });
 
+  it('centers the popup in the screen', () => {
+    sinon.stub(window.screen, 'availHeight').value(1000);
+    sinon.stub(window.screen, 'availWidth').value(1000);
+    _open(auth);
+    expect(windowOptions()).to.include('top=200');
+    expect(windowOptions()).to.include('left=250');
+  });
+
   it('errors if the popup is blocked', () => {
     setUA('');
     windowOpenStub.returns(undefined);
@@ -112,12 +120,8 @@ describe('platform_browser/util/popup', () => {
   });
 
   it('builds the proper options string', () => {
-    const screen = window.screen;
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    (window as any).sreen = {
-      availHeight: 1000,
-      availWidth: 2000
-    };
+    sinon.stub(window.screen, 'availHeight').value(1000);
+    sinon.stub(window.screen, 'availWidth').value(2000);
 
     setUA('');
     _open(auth);
@@ -137,8 +141,8 @@ describe('platform_browser/util/popup', () => {
       toolbar: 'no',
       width: '500',
       height: '600',
-      top: '0',
-      left: '0'
+      top: '200',
+      left: '750'
     });
 
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */

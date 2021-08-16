@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { Auth, OperationType, UserCredential } from '../../model/public_types';
+import { Auth, UserCredential } from '../../model/public_types';
 
 import { signInWithCustomToken as getIdTokenResponse } from '../../api/authentication/custom_token';
 import { IdTokenResponse } from '../../model/id_token';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
+import { OperationType } from '../../model/enums';
 
 /**
  * Asynchronously signs in using a custom token.

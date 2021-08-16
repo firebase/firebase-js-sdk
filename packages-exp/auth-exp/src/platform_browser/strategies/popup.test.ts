@@ -20,11 +20,9 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import {
-  OperationType,
-  PopupRedirectResolver,
-  ProviderId
-} from '../../model/public_types';
+import { PopupRedirectResolver } from '../../model/public_types';
+import { OperationType, ProviderId } from '../../model/enums';
+
 import { FirebaseError } from '@firebase/util';
 
 import { delay } from '../../../test/helpers/delay';

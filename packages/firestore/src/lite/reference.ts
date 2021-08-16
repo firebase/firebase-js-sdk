@@ -79,12 +79,12 @@ export type WithFieldValue<T> = T extends Primitive
  * that consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values.
  * Fields that contain dots reference nested fields within the document.
  */
-export type TypedUpdateData<T> = T extends Primitive
+export type UpdateData<T> = T extends Primitive
   ? T
   : T extends Map<infer K, infer V>
-  ? Map<TypedUpdateData<K>, TypedUpdateData<V>>
+  ? Map<UpdateData<K>, UpdateData<V>>
   : T extends {}
-  ? { [K in keyof T]?: TypedUpdateData<T[K]> | FieldValue } &
+  ? { [K in keyof T]?: UpdateData<T[K]> | FieldValue } &
       NestedUpdateFields<T>
   : Partial<T>;
 
@@ -103,7 +103,7 @@ export type NestedUpdateFields<T extends Record<string, any>> =
       [K in keyof T & string]: T[K] extends Record<string, any>
         ? // Recurse into the map and add the prefix in front of each key
           // (e.g. Prefix 'bar.' to create: 'bar.baz' and 'bar.qux'.
-          AddPrefixToKeys<K, TypedUpdateData<T[K]>>
+          AddPrefixToKeys<K, UpdateData<T[K]>>
         : // TypedUpdateData is always a map of values.
           never;
     }[keyof T & string] // Also include the generated prefix-string keys.

@@ -45,7 +45,7 @@ import {
   NestedPartial,
   Query,
   SetOptions,
-  TypedUpdateData,
+  UpdateData,
   WithFieldValue
 } from '../lite/reference';
 import { applyFirestoreDataConverter } from '../lite/reference_impl';
@@ -304,7 +304,7 @@ export function setDoc<T>(
  */
 export function updateDoc<T>(
   reference: DocumentReference<T>,
-  data: TypedUpdateData<T>
+  data: UpdateData<T>
 ): Promise<void>;
 /**
  * Updates fields in the document referred to by the specified
@@ -329,7 +329,7 @@ export function updateDoc(
 ): Promise<void>;
 export function updateDoc<T>(
   reference: DocumentReference<unknown>,
-  fieldOrUpdateData: string | FieldPath | TypedUpdateData<T>,
+  fieldOrUpdateData: string | FieldPath | UpdateData<T>,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {

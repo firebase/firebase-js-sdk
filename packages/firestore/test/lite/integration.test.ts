@@ -59,7 +59,7 @@ import {
   DocumentData,
   WithFieldValue,
   NestedPartial,
-  TypedUpdateData
+  UpdateData
 } from '../../src/lite/reference';
 import {
   addDoc,
@@ -354,7 +354,7 @@ interface MutationTester {
   ): Promise<void>;
   update<T>(
     documentRef: DocumentReference<T>,
-    data: TypedUpdateData<T>
+    data: UpdateData<T>
   ): Promise<void>;
   update(
     documentRef: DocumentReference<unknown>,
@@ -393,7 +393,7 @@ describe('WriteBatch', () => {
 
     update<T>(
       ref: DocumentReference<T>,
-      dataOrField: TypedUpdateData<T> | string | FieldPath,
+      dataOrField: UpdateData<T> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -458,7 +458,7 @@ describe('Transaction', () => {
 
     update<T>(
       ref: DocumentReference<T>,
-      dataOrField: TypedUpdateData<T> | string | FieldPath,
+      dataOrField: UpdateData<T> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -471,7 +471,7 @@ describe('Transaction', () => {
             ...moreFieldsAndValues
           );
         } else {
-          transaction.update(ref, dataOrField as TypedUpdateData<T>);
+          transaction.update(ref, dataOrField as UpdateData<T>);
         }
       });
     }

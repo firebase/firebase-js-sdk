@@ -38,7 +38,7 @@ import {
   OperationType,
   ProviderId,
   SignInMethod
-} from '../../model/public_types';
+} from '../../model/enums';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { testUser, testAuth } from '../../../test/helpers/mock_auth';

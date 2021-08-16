@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { OperationType } from '../../model/public_types';
+import { OperationType } from '../../model/enums';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';

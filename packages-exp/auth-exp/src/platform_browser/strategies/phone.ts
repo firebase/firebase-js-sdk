@@ -20,7 +20,6 @@ import {
   Auth,
   ConfirmationResult,
   PhoneInfoOptions,
-  ProviderId,
   User,
   UserCredential
 } from '../../model/public_types';
@@ -47,6 +46,7 @@ import { UserInternal } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { getModularInstance } from '@firebase/util';
+import { ProviderId } from '../../model/enums';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;

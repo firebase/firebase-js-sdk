@@ -25,7 +25,7 @@ export {
   queryEqual,
   SetOptions,
   DocumentData,
-  TypedUpdateData as UpdateData,
+  UpdateData,
   Primitive,
   WithFieldValue,
   NestedUpdateFields,

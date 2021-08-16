@@ -36,8 +36,9 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     ' already exists. ' +
     'Only one Firebase Analytics instance can be created for each appId.',
   [AnalyticsError.ALREADY_INITIALIZED]:
-    'Firebase Analytics has already been initialized. ' +
-    'initializeAnalytics() must only be called once. getAnalytics() can be used ' +
+    'initializeAnalytics() cannot be called again with different options than those ' +
+    'it was initially called with. It can be called again with the same options to ' +
+    'return the existing instance, or getAnalytics() can be used ' +
     'to get a reference to the already-intialized instance.',
   [AnalyticsError.ALREADY_INITIALIZED_SETTINGS]:
     'Firebase Analytics has already been initialized.' +
