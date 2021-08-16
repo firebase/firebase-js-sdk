@@ -4,6 +4,8 @@ toc:
   section:
   - title: "FirebaseError"
     path: /docs/reference/node/firebase.FirebaseError
+  - title: "FirebaseIdToken"
+    path: /docs/reference/node/firebase.FirebaseIdToken
 
 - title: "firebase.app"
   path: /docs/reference/node/firebase.app
