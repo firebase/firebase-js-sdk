@@ -18,8 +18,10 @@
 import { FieldPath as PublicFieldPath } from '@firebase/firestore-types';
 import { Compat, getModularInstance } from '@firebase/util';
 
-import { FieldPath as ExpFieldPath } from '../../exp/index';
-import { FieldPath as InternalFieldPath } from '../model/path';
+import { 
+  FieldPath as ExpFieldPath,
+  _FieldPath as InternalFieldPath 
+} from '@firebase/firestore';
 
 // The objects that are a part of this API are exposed to third-parties as
 // compiled javascript so we want to flag our private members with a leading

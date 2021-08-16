@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { JsonObject } from '../model/object_value';
-import { FirestoreError } from '../util/error';
+import { FirestoreError } from '@firebase/firestore';
 
 /**
  * Observer/Subscribe interfaces.
@@ -45,7 +44,7 @@ function implementsAnyMethods(obj: unknown, methods: string[]): boolean {
     return false;
   }
 
-  const object = obj as JsonObject<unknown>;
+  const object = obj as Record<string, unknown>;
   for (const method of methods) {
     if (method in object && typeof object[method] === 'function') {
       return true;

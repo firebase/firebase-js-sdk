@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export { GeoPoint } from '../../exp/index';
+export { GeoPoint } from '@firebase/firestore';

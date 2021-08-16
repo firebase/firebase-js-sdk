@@ -22,7 +22,15 @@
  */
 
 import { registerFirestore } from './register';
+import { Firestore } from './api/database';
 
 registerFirestore();
 
 export * from './api';
+
+
+declare module '@firebase/component' {
+    interface NameServiceMapping {
+      'firestore': Firestore;
+    }
+  }

@@ -25,7 +25,7 @@ import {
   FieldValue as FieldValue1,
   increment,
   serverTimestamp
-} from '../../exp/index';
+} from '@firebase/firestore';
 
 export class FieldValue implements PublicFieldValue, Compat<FieldValue1> {
   static serverTimestamp(): FieldValue {

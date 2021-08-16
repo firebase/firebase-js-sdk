@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export { Timestamp } from '../../exp/index';
+export { Timestamp } from '@firebase/firestore';

@@ -27,12 +27,6 @@ import { setSDKVersion } from '../src/core/version';
 import { Firestore } from './api/database';
 import { PrivateSettings } from './lite-api/settings';
 
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'firestore': Firestore;
-  }
-}
-
 export function registerFirestore(variant?: string): void {
   setSDKVersion(SDK_VERSION);
   _registerComponent(

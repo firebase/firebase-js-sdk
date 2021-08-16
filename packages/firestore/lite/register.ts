@@ -24,8 +24,8 @@ import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../package.json';
 import { setSDKVersion } from '../src/core/version';
-import { Firestore } from '../src/lite/database';
-import { FirestoreSettings } from '../src/lite/settings';
+import { Firestore } from '../src/lite-api/database';
+import { FirestoreSettings } from '../src/lite-api/settings';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

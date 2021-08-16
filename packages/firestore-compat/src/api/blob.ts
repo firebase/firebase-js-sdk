@@ -17,15 +17,13 @@
 
 import { Compat } from '@firebase/util';
 
-import { Bytes } from '../../exp/index';
-import { isBase64Available } from '../platform/base64';
-import { Code, FirestoreError } from '../util/error';
+import { Bytes, FirestoreError, _isBase64Available } from '@firebase/firestore';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
   if (typeof Uint8Array === 'undefined') {
     throw new FirestoreError(
-      Code.UNIMPLEMENTED,
+      'unimplemented',
       'Uint8Arrays are not available in this environment.'
     );
   }
@@ -33,9 +31,9 @@ function assertUint8ArrayAvailable(): void {
 
 /** Helper function to assert Base64 functions are available at runtime. */
 function assertBase64Available(): void {
-  if (!isBase64Available()) {
+  if (!_isBase64Available()) {
     throw new FirestoreError(
-      Code.UNIMPLEMENTED,
+      'unimplemented',
       'Blobs are unavailable in Firestore in this environment.'
     );
   }

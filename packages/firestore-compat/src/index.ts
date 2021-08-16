@@ -26,7 +26,7 @@ import { registerBundle } from './bundle';
 import { configureForFirebase } from './config';
 import { name, version } from '../package.json';
 
-import '../register-module';
+import './register-module';
 
 /**
  * Registers the main Firestore build with the components framework.

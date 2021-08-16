@@ -22,11 +22,11 @@ import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 
 import {
-  FirebaseFirestore,
+  Firestore as ModularFirestore,
   CACHE_SIZE_UNLIMITED,
   GeoPoint,
   Timestamp
-} from '../exp/index'; // import from the exp public API
+} from '@firebase/firestore'; // import from the exp public API
 import { Blob } from '../src/api/blob';
 import {
   Firestore,
@@ -62,12 +62,6 @@ const firestoreNamespace = {
   CACHE_SIZE_UNLIMITED
 };
 
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'firestore-compat': Firestore;
-  }
-}
-
 /**
  * Configures Firestore as part of the Firebase SDK by calling registerComponent.
  *
@@ -79,7 +73,7 @@ export function configureForFirebase(
   firebase: FirebaseNamespace,
   firestoreFactory: (
     app: FirebaseApp,
-    firestoreExp: FirebaseFirestore
+    firestoreExp: ModularFirestore
   ) => Firestore
 ): void {
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
@@ -88,7 +82,7 @@ export function configureForFirebase(
       container => {
         const app = container.getProvider('app-compat').getImmediate()!;
         const firestoreExp = container
-          .getProvider('firestore-exp')
+          .getProvider('firestore')
           .getImmediate()!;
         return firestoreFactory(app, firestoreExp);
       },
