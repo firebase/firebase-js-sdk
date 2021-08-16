@@ -79,7 +79,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private idTokenSubscription = new Subscription<User>(this);
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
-  private redirectInitializerError: Error | null = null;
 
   // Any network calls will set this to true and prevent subsequent emulator
   // initialization
@@ -150,12 +149,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       this._isInitialized = true;
     });
 
-    // After initialization completes, throw any error caused by redirect flow
-    return this._initializationPromise.then(() => {
-      if (this.redirectInitializerError) {
-        throw this.redirectInitializerError;
-      }
-    });
+    return this._initializationPromise;
   }
 
   /**
@@ -267,7 +261,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         true
       );
     } catch (e) {
-      this.redirectInitializerError = e;
+      // Swallow any errors here; the code can retrieve them in
+      // getRedirectResult().
       await this._setRedirectUser(null);
     }
 
