@@ -153,9 +153,11 @@ export interface RulesTestEnvironment {
   /**
    * A readonly copy of the emulator config specified or discovered at test environment creation.
    */
-  readonly emulators: Readonly<
-    Record<'database' | 'firestore' | 'storage', Readonly<EmulatorConfig>>
-  >;
+  readonly emulators: {
+    database?: { host: string; port: number };
+    firestore?: { host: string; port: number };
+    storage?: { host: string; port: number };
+  };
 
   /**
    * Create a {@code RulesTestContext} which behaves like an authenticated Firebase Auth user.
