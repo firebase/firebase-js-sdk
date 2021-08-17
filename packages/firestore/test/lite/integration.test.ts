@@ -1254,7 +1254,7 @@ describe('withConverter() support', () => {
         innerNested: {
           innerNestedNum: number;
         };
-      }
+      };
     }
 
     const testConverter = {
@@ -1266,7 +1266,6 @@ describe('withConverter() support', () => {
         return new TestObject(data.outerString, data.outerArr, data.nested);
       }
     };
-
 
     const initialData = {
       outerString: 'foo',
@@ -1294,7 +1293,7 @@ describe('withConverter() support', () => {
                 innerNestedNum: data.nested.innerNested.innerNestedNum
               }
             }
-          }
+          };
         }
       };
 

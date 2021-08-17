@@ -83,8 +83,8 @@ import { SnapshotListenOptions } from './reference_impl';
  * }
  * ```
  */
-export interface FirestoreDataConverter<T,R>
-  extends LiteFirestoreDataConverter<T,R> {
+export interface FirestoreDataConverter<T, R>
+  extends LiteFirestoreDataConverter<T, R> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain JavaScript object (suitable for writing directly to the
@@ -205,7 +205,7 @@ export interface DocumentChange<T = DocumentData, R = DocumentData> {
   readonly type: DocumentChangeType;
 
   /** The document affected by this change. */
-  readonly doc: QueryDocumentSnapshot<T,R>;
+  readonly doc: QueryDocumentSnapshot<T, R>;
 
   /**
    * The index of the changed document in the result set immediately prior to
@@ -234,8 +234,8 @@ export interface DocumentChange<T = DocumentData, R = DocumentData> {
  */
 export class DocumentSnapshot<
   T = DocumentData,
-    R = DocumentData
-> extends LiteDocumentSnapshot<T,R> {
+  R = DocumentData
+> extends LiteDocumentSnapshot<T, R> {
   private readonly _firestoreImpl: Firestore;
 
   /**
@@ -251,7 +251,7 @@ export class DocumentSnapshot<
     key: DocumentKey,
     document: Document | null,
     metadata: SnapshotMetadata,
-    converter: UntypedFirestoreDataConverter<T,R> | null
+    converter: UntypedFirestoreDataConverter<T, R> | null
   ) {
     super(_firestore, userDataWriter, key, document, converter);
     this._firestoreImpl = _firestore;
@@ -262,7 +262,7 @@ export class DocumentSnapshot<
    * Property of the `DocumentSnapshot` that signals whether or not the data
    * exists. True if the document exists.
    */
-  exists(): this is QueryDocumentSnapshot<T,R> {
+  exists(): this is QueryDocumentSnapshot<T, R> {
     return super.exists();
   }
 
@@ -350,8 +350,8 @@ export class DocumentSnapshot<
  */
 export class QueryDocumentSnapshot<
   T = DocumentData,
-    R = DocumentData
-> extends DocumentSnapshot<T,R> {
+  R = DocumentData
+> extends DocumentSnapshot<T, R> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
@@ -388,16 +388,16 @@ export class QuerySnapshot<T = DocumentData, R = DocumentData> {
    * The query on which you called `get` or `onSnapshot` in order to get this
    * `QuerySnapshot`.
    */
-  readonly query: Query<T,R>;
+  readonly query: Query<T, R>;
 
-  private _cachedChanges?: Array<DocumentChange<T,R>>;
+  private _cachedChanges?: Array<DocumentChange<T, R>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
   /** @hideconstructor */
   constructor(
     readonly _firestore: Firestore,
     readonly _userDataWriter: AbstractUserDataWriter,
-    query: Query<T,R>,
+    query: Query<T, R>,
     readonly _snapshot: ViewSnapshot
   ) {
     this.metadata = new SnapshotMetadata(
@@ -408,8 +408,8 @@ export class QuerySnapshot<T = DocumentData, R = DocumentData> {
   }
 
   /** An array of all the documents in the `QuerySnapshot`. */
-  get docs(): Array<QueryDocumentSnapshot<T,R>> {
-    const result: Array<QueryDocumentSnapshot<T,R>> = [];
+  get docs(): Array<QueryDocumentSnapshot<T, R>> {
+    const result: Array<QueryDocumentSnapshot<T, R>> = [];
     this.forEach(doc => result.push(doc));
     return result;
   }
@@ -432,13 +432,13 @@ export class QuerySnapshot<T = DocumentData, R = DocumentData> {
    * @param thisArg - The `this` binding for the callback.
    */
   forEach(
-    callback: (result: QueryDocumentSnapshot<T,R>) => void,
+    callback: (result: QueryDocumentSnapshot<T, R>) => void,
     thisArg?: unknown
   ): void {
     this._snapshot.docs.forEach(doc => {
       callback.call(
         thisArg,
-        new QueryDocumentSnapshot<T,R>(
+        new QueryDocumentSnapshot<T, R>(
           this._firestore,
           this._userDataWriter,
           doc.key,
@@ -462,7 +462,7 @@ export class QuerySnapshot<T = DocumentData, R = DocumentData> {
    * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
    * snapshot events.
    */
-  docChanges(options: SnapshotListenOptions = {}): Array<DocumentChange<T,R>> {
+  docChanges(options: SnapshotListenOptions = {}): Array<DocumentChange<T, R>> {
     const includeMetadataChanges = !!options.includeMetadataChanges;
 
     if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
@@ -486,10 +486,10 @@ export class QuerySnapshot<T = DocumentData, R = DocumentData> {
 }
 
 /** Calculates the array of DocumentChanges for a given ViewSnapshot. */
-export function changesFromSnapshot<T,R>(
-  querySnapshot: QuerySnapshot<T,R>,
+export function changesFromSnapshot<T, R>(
+  querySnapshot: QuerySnapshot<T, R>,
   includeMetadataChanges: boolean
-): Array<DocumentChange<T,R>> {
+): Array<DocumentChange<T, R>> {
   if (querySnapshot._snapshot.oldDocs.isEmpty()) {
     // Special case the first snapshot because index calculation is easy and
     // fast
@@ -508,7 +508,7 @@ export function changesFromSnapshot<T,R>(
           ) < 0,
         'Got added events in wrong order'
       );
-      const doc = new QueryDocumentSnapshot<T,R>(
+      const doc = new QueryDocumentSnapshot<T, R>(
         querySnapshot._firestore,
         querySnapshot._userDataWriter,
         change.doc.key,
@@ -536,7 +536,7 @@ export function changesFromSnapshot<T,R>(
         change => includeMetadataChanges || change.type !== ChangeType.Metadata
       )
       .map(change => {
-        const doc = new QueryDocumentSnapshot<T,R>(
+        const doc = new QueryDocumentSnapshot<T, R>(
           querySnapshot._firestore,
           querySnapshot._userDataWriter,
           change.doc.key,
@@ -591,9 +591,9 @@ export function resultChangeType(type: ChangeType): DocumentChangeType {
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export function snapshotEqual<T,R>(
-  left: DocumentSnapshot<T,R> | QuerySnapshot<T,R>,
-  right: DocumentSnapshot<T,R> | QuerySnapshot<T,R>
+export function snapshotEqual<T, R>(
+  left: DocumentSnapshot<T, R> | QuerySnapshot<T, R>,
+  right: DocumentSnapshot<T, R> | QuerySnapshot<T, R>
 ): boolean {
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (

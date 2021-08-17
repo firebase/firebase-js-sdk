@@ -78,7 +78,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * }
  * ```
  */
-export interface FirestoreDataConverter<T,R> {
+export interface FirestoreDataConverter<T, R> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
@@ -137,7 +137,7 @@ export class DocumentSnapshot<T = DocumentData, R = DocumentData> {
     public _userDataWriter: AbstractUserDataWriter,
     public _key: DocumentKey,
     public _document: Document | null,
-    public _converter: UntypedFirestoreDataConverter<T,R> | null
+    public _converter: UntypedFirestoreDataConverter<T, R> | null
   ) {}
 
   /** Property of the `DocumentSnapshot` that provides the document's ID. */
@@ -148,8 +148,8 @@ export class DocumentSnapshot<T = DocumentData, R = DocumentData> {
   /**
    * The `DocumentReference` for the document included in the `DocumentSnapshot`.
    */
-  get ref(): DocumentReference<T,R> {
-    return new DocumentReference<T,R>(
+  get ref(): DocumentReference<T, R> {
+    return new DocumentReference<T, R>(
       this._firestore,
       this._converter,
       this._key
@@ -161,7 +161,7 @@ export class DocumentSnapshot<T = DocumentData, R = DocumentData> {
    *
    * @returns true if the document exists.
    */
-  exists(): this is QueryDocumentSnapshot<T,R> {
+  exists(): this is QueryDocumentSnapshot<T, R> {
     return this._document !== null;
   }
 
@@ -227,8 +227,9 @@ export class DocumentSnapshot<T = DocumentData, R = DocumentData> {
  * 'undefined'.
  */
 export class QueryDocumentSnapshot<
-  T = DocumentData, R = DocumentData
-> extends DocumentSnapshot<T,R> {
+  T = DocumentData,
+  R = DocumentData
+> extends DocumentSnapshot<T, R> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
@@ -252,18 +253,18 @@ export class QuerySnapshot<T = DocumentData, R = DocumentData> {
    * The query on which you called {@link getDocs} in order to get this
    * `QuerySnapshot`.
    */
-  readonly query: Query<T,R>;
+  readonly query: Query<T, R>;
 
   /** @hideconstructor */
   constructor(
-    _query: Query<T,R>,
-    readonly _docs: Array<QueryDocumentSnapshot<T,R>>
+    _query: Query<T, R>,
+    readonly _docs: Array<QueryDocumentSnapshot<T, R>>
   ) {
     this.query = _query;
   }
 
   /** An array of all the documents in the `QuerySnapshot`. */
-  get docs(): Array<QueryDocumentSnapshot<T,R>> {
+  get docs(): Array<QueryDocumentSnapshot<T, R>> {
     return [...this._docs];
   }
 
@@ -285,7 +286,7 @@ export class QuerySnapshot<T = DocumentData, R = DocumentData> {
    * @param thisArg - The `this` binding for the callback.
    */
   forEach(
-    callback: (result: QueryDocumentSnapshot<T,R>) => void,
+    callback: (result: QueryDocumentSnapshot<T, R>) => void,
     thisArg?: unknown
   ): void {
     this._docs.forEach(callback, thisArg);
@@ -299,9 +300,9 @@ export class QuerySnapshot<T = DocumentData, R = DocumentData> {
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export function snapshotEqual<T,R>(
-  left: DocumentSnapshot<T,R> | QuerySnapshot<T,R>,
-  right: DocumentSnapshot<T,R> | QuerySnapshot<T,R>
+export function snapshotEqual<T, R>(
+  left: DocumentSnapshot<T, R> | QuerySnapshot<T, R>,
+  right: DocumentSnapshot<T, R> | QuerySnapshot<T, R>
 ): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);
