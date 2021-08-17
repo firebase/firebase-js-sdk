@@ -36,7 +36,7 @@ interface TempSuite {
 }
 
 /** The browsers that these tests will run in */
-const BROWSERS = ['chrome']//, 'firefox'];
+const BROWSERS = ['chrome']; //, 'firefox'];
 
 /** One single AuthDriver instance to control everything */
 const DRIVER = new AuthDriver();

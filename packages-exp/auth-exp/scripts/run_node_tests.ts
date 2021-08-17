@@ -42,7 +42,7 @@ let testConfig = [
   '--file',
   'index.shared.ts',
   '--file',
-  'src/platform_node/index.ts',  // Exports getAuth
+  'src/platform_node/index.ts' // Exports getAuth
 ];
 
 if (argv.integration) {

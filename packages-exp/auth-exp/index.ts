@@ -96,5 +96,5 @@ export {
   RecaptchaVerifier,
   browserPopupRedirectResolver,
   PhoneMultiFactorGenerator,
-  getAuth,
+  getAuth
 };

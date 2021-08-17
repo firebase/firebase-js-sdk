@@ -1,14 +1,30 @@
+/**
+ * @license
+ * Copyright 2021 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { AuthErrorCode } from '../core/errors';
 import { _createError } from '../core/util/assert';
 
- import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
- import { Auth } from '../model/public_types';
- 
- import { initializeAuth } from '..';
- import { registerAuth } from '../core/auth/register';
- import { ClientPlatform } from '../core/util/version';
-import { AuthImpl } from '../core/auth/auth_impl';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
+import { Auth } from '../model/public_types';
 
+import { initializeAuth } from '..';
+import { registerAuth } from '../core/auth/register';
+import { ClientPlatform } from '../core/util/version';
+import { AuthImpl } from '../core/auth/auth_impl';
 
 import { FetchProvider } from '../core/util/fetch_provider';
 import * as fetchImpl from 'node-fetch';
@@ -82,7 +98,7 @@ export class PhoneMultiFactorGenerator {
     throw NOT_AVAILABLE_ERROR;
   }
 }
- 
+
 // Set persistence should no-op instead of fail. Changing the prototype will
 // make sure both setPersistence(auth, persistence) and
 // auth.setPersistence(persistence) are covered.

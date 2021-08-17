@@ -50,7 +50,7 @@ const nodeAliasPlugin = alias({
       find: /^\.\/src\/platform_browser(\/.*)?$/,
       replacement: `./src/platform_node`
     }
-  ],
+  ]
 });
 
 export function getConfig({ isReleaseBuild }) {
