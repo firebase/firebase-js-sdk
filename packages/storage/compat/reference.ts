@@ -43,7 +43,8 @@ import { invalidRootOperation } from '../src/implementation/error';
 import { Compat } from '@firebase/util';
 
 export class ReferenceCompat
-  implements types.Reference, Compat<StorageReference> {
+  implements types.Reference, Compat<StorageReference>
+{
   constructor(
     readonly _delegate: StorageReference,
     public storage: StorageServiceCompat
