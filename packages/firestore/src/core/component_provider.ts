@@ -185,18 +185,11 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
 
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
-    await this.persistence.setPrimaryStateListener(async isPrimary => {
-      await syncEngineApplyPrimaryState(
-        this.onlineComponentProvider.syncEngine,
-        isPrimary
-      );
-      if (this.gcScheduler) {
-        if (isPrimary && !this.gcScheduler.started) {
+    await this.persistence.setPrimaryStateListener(() => {
+      if (this.gcScheduler && !this.gcScheduler.started) {
           this.gcScheduler.start(this.localStore);
-        } else if (!isPrimary) {
-          this.gcScheduler.stop();
-        }
       }
+      return Promise.resolve();
     });
   }
 
@@ -283,6 +276,22 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
       };
       await this.sharedClientState.start();
     }
+
+    // NOTE: This will immediately call the listener, so we make sure to
+    // set it after localStore / remoteStore are started.
+    await this.persistence.setPrimaryStateListener(async isPrimary => {
+      await syncEngineApplyPrimaryState(
+        this.onlineComponentProvider.syncEngine,
+        isPrimary
+      );
+      if (this.gcScheduler) {
+        if (isPrimary && !this.gcScheduler.started) {
+          this.gcScheduler.start(this.localStore);
+        } else if (!isPrimary) {
+          this.gcScheduler.stop();
+        }
+      }
+    });
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
