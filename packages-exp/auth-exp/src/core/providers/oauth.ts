@@ -62,7 +62,8 @@ export interface OAuthCredentialOptions {
  */
 export abstract class BaseOAuthProvider
   extends FederatedAuthProvider
-  implements AuthProvider {
+  implements AuthProvider
+{
   /** @internal */
   private scopes: string[] = [];
 
