@@ -1286,7 +1286,7 @@ describe('withConverter() support', () => {
 
       it('supports FieldValues', async () => {
         return withTestDoc(async doc => {
-          const ref = doc.withConverter(testConverter);
+          const ref = doc.withConverter(testConverterMerge);
 
           // Allow Field Values in nested partials.
           await setDoc(
@@ -1317,7 +1317,7 @@ describe('withConverter() support', () => {
 
       it('validates types in outer and inner fields', async () => {
         return withTestDoc(async doc => {
-          const ref = doc.withConverter(testConverter);
+          const ref = doc.withConverter(testConverterMerge);
 
           // Check top-level fields.
           await setDoc(
@@ -1359,7 +1359,7 @@ describe('withConverter() support', () => {
 
       it('checks for nonexistent properties', async () => {
         return withTestDoc(async doc => {
-          const ref = doc.withConverter(testConverter);
+          const ref = doc.withConverter(testConverterMerge);
           // Top-level property.
           await setDoc(
             ref,

@@ -56,8 +56,6 @@ export interface DocumentData {
  */
 export type PartialWithFieldValue<T> = T extends Primitive
   ? T
-  : T extends Map<infer K, infer V>
-  ? Map<PartialWithFieldValue<K>, PartialWithFieldValue<V>>
   : T extends {}
   ? { [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue }
   : Partial<T>;
