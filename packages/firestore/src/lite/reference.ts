@@ -38,6 +38,7 @@ import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { FirestoreDataConverter } from './snapshot';
+import { NestedUpdateFields, Primitive } from './types';
 
 /**
  * Document data (for use with {@link @firebase/firestore/lite#(setDoc:1)}) consists of fields mapped to
@@ -48,9 +49,6 @@ export interface DocumentData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [field: string]: any;
 }
-
-/** Primitive types. */
-export type Primitive = string | number | boolean | undefined | null;
 
 /**
  * Similar to Typescript's `Partial<T>`, but allows nested fields to be
@@ -86,59 +84,6 @@ export type UpdateData<T> = T extends Primitive
   : T extends {}
   ? { [K in keyof T]?: UpdateData<T[K]> | FieldValue } & NestedUpdateFields<T>
   : Partial<T>;
-
-/**
- * For each field (e.g. 'bar'), find all nested keys (e.g. {'bar.baz': T1,
- * 'bar.qux': T2}). Intersect them together to make a single map containing
- * all possible keys that are all marked as optional
- */
-// Mapping between a field and its value.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type NestedUpdateFields<T extends Record<string, any>> =
-  UnionToIntersection<
-    {
-      // Check that T[K] extends Record to only allow nesting for map values.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      [K in keyof T & string]: T[K] extends Record<string, any>
-        ? // Recurse into the map and add the prefix in front of each key
-          // (e.g. Prefix 'bar.' to create: 'bar.baz' and 'bar.qux'.
-          AddPrefixToKeys<K, UpdateData<T[K]>>
-        : // TypedUpdateData is always a map of values.
-          never;
-    }[keyof T & string] // Also include the generated prefix-string keys.
-  >;
-
-/**
- * Returns a new map where every key is prefixed with the outer key appended
- * to a dot.
- */
-// Mapping between a field and its value.
-export type AddPrefixToKeys<
-  Prefix extends string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  T extends Record<string, any>
-> =
-  // Remap K => Prefix.K. See https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
-  { [K in keyof T & string as `${Prefix}.${K}`]+?: T[K] };
-
-/**
- * Given a union type `U = T1 | T2 | ...`, returns an intersected type
- * `(T1 & T2 & ...)`.
- *
- * Uses distributive conditional types and inference from conditional types.
- * This works because multiple candidates for the same type variable in
- * contra-variant positions causes an intersection type to be inferred.
- * https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-inference-in-conditional-types
- * https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type
- */
-export type UnionToIntersection<U> = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  U extends any
-    ? (k: U) => void
-    : never
-) extends (k: infer I) => void
-  ? I
-  : never;
 
 /**
  * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link

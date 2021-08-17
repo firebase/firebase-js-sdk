@@ -40,12 +40,8 @@ export {
 export {
   DocumentData,
   UpdateData,
-  Primitive,
   WithFieldValue,
-  NestedUpdateFields,
-  AddPrefixToKeys,
   PartialWithFieldValue,
-  UnionToIntersection,
   SetOptions,
   DocumentReference,
   Query,
@@ -81,6 +77,13 @@ export {
   getDoc,
   getDocs
 } from '../src/lite/reference_impl';
+
+export {
+  Primitive,
+  NestedUpdateFields,
+  AddPrefixToKeys,
+  UnionToIntersection
+} from '../src/lite/types';
 
 // TOOD(firestorelite): Add tests when Queries are usable
 export { FieldPath, documentId } from '../src/lite/field_path';

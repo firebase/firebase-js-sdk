@@ -12,7 +12,7 @@ import { LogLevelString as LogLevel } from '@firebase/logger';
 export function addDoc<T>(reference: CollectionReference<T>, data: WithFieldValue<T>): Promise<DocumentReference<T>>;
 
 // @public
-export type AddPrefixToKeys<Prefix extends string, T extends Record<string, any>> = {
+export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unknown>> = {
     [K in keyof T & string as `${Prefix}.${K}`]+?: T[K];
 };
 
@@ -188,8 +188,8 @@ export function limitToLast(limit: number): QueryConstraint;
 export { LogLevel }
 
 // @public
-export type NestedUpdateFields<T extends Record<string, any>> = UnionToIntersection<{
-    [K in keyof T & string]: T[K] extends Record<string, any> ? AddPrefixToKeys<K, UpdateData<T[K]>> : never;
+export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToIntersection<{
+    [K in keyof T & string]: T[K] extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<T[K]>> : never;
 }[keyof T & string]>;
 
 // @public
@@ -327,7 +327,7 @@ export class Transaction {
 }
 
 // @public
-export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
+export type UnionToIntersection<U> = (U extends unknown ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
 // @public
 export type UpdateData<T> = T extends Primitive ? T : T extends Map<infer K, infer V> ? Map<UpdateData<K>, UpdateData<V>> : T extends {} ? {

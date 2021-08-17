@@ -64,12 +64,8 @@ export {
   SetOptions,
   DocumentData,
   UpdateData,
-  Primitive,
   WithFieldValue,
-  NestedUpdateFields,
-  AddPrefixToKeys,
   PartialWithFieldValue,
-  UnionToIntersection,
   refEqual,
   queryEqual
 } from '../src/exp/reference';
@@ -135,3 +131,10 @@ export { CACHE_SIZE_UNLIMITED } from '../src/exp/database';
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
 
 export { AbstractUserDataWriter } from '../src/lite/user_data_writer';
+
+export {
+  Primitive,
+  NestedUpdateFields,
+  AddPrefixToKeys,
+  UnionToIntersection
+} from '../src/lite/types';

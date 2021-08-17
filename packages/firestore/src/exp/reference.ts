@@ -26,11 +26,7 @@ export {
   SetOptions,
   DocumentData,
   UpdateData,
-  Primitive,
   WithFieldValue,
-  NestedUpdateFields,
-  AddPrefixToKeys,
   PartialWithFieldValue,
-  UnionToIntersection,
   refEqual
 } from '../lite/reference';
