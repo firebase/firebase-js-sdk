@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { Auth, UserCredential } from '../../model/public_types';
+import {
+  Auth,
+  CustomTokenProvider,
+  UserCredential
+} from '../../model/public_types';
 
 import { signInWithCustomToken as getIdTokenResponse } from '../../api/authentication/custom_token';
 import { IdTokenResponse } from '../../model/id_token';
@@ -68,7 +72,7 @@ export async function signInWithCustomToken(
  */
 export function setCustomTokenProvider(
   auth: Auth,
-  provider: { getCustomToken(): Promise<string> }
+  provider: CustomTokenProvider
 ): void {
   const authInternal = _castAuth(auth);
   authInternal._customTokenProvider = provider;

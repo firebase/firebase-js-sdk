@@ -29,7 +29,8 @@ import {
   CompleteFn,
   ErrorFn,
   NextFn,
-  Unsubscribe
+  Unsubscribe,
+  CustomTokenProvider
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -100,7 +101,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   tenantId: string | null = null;
   settings: AuthSettings = { appVerificationDisabledForTesting: false };
 
-  _customTokenProvider: { getCustomToken(): Promise<string> } | null = null;
+  _customTokenProvider: CustomTokenProvider | null = null;
 
   constructor(
     public readonly app: FirebaseApp,

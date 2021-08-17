@@ -67,8 +67,8 @@ export interface Config {
 /**
  * Interface representing reCAPTCHA parameters.
  *
- * See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param) 
- * for the list of accepted parameters. All parameters are accepted except for `sitekey`: Firebase Auth 
+ * See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param)
+ * for the list of accepted parameters. All parameters are accepted except for `sitekey`: Firebase Auth
  * provisions a reCAPTCHA for each project and will configure the site key upon rendering.
  *
  * For an invisible reCAPTCHA, set the `size` key to `invisible`.
@@ -1189,4 +1189,15 @@ export interface Dependencies {
    * Which {@link AuthErrorMap} to use.
    */
   errorMap?: AuthErrorMap;
+}
+
+/**
+ * Custom token provider, which is invoked when a new Firebase ID token is requested and no refresh
+ * token is present (i.e., in passthrough mode).
+ */
+export interface CustomTokenProvider {
+  /**
+   * The callback that is invoked to obtain a custom token in passthrough mode.
+   */
+  getCustomToken(): Promise<string>;
 }

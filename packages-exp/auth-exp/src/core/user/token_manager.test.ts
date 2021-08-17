@@ -33,6 +33,7 @@ import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { APIUserInfo } from '../../api/account_management/account';
 import { _castAuth } from '../auth/auth_impl';
 import { UserImpl } from './user_impl';
+import { setCustomTokenProvider } from '../strategies/custom_token';
 
 use(chaiAsPromised);
 
@@ -231,7 +232,7 @@ describe('core/user/token_manager', () => {
           expirationTime: now + 100_000,
           isPassthroughMode: true
         });
-        auth._customTokenProvider = provider;
+        setCustomTokenProvider(auth, provider);
 
         const tokens = (await stsTokenManager.getToken(auth, true))!;
         const authInternal = _castAuth(auth);
@@ -280,7 +281,7 @@ describe('core/user/token_manager', () => {
           expirationTime: now + Buffer.TOKEN_REFRESH / 2,
           isPassthroughMode: true
         });
-        auth._customTokenProvider = provider;
+        setCustomTokenProvider(auth, provider);
 
         const tokens = (await stsTokenManager.getToken(auth, true))!;
         const authInternal = _castAuth(auth);

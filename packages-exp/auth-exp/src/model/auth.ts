@@ -19,6 +19,7 @@ import {
   Auth,
   AuthSettings,
   Config,
+  CustomTokenProvider,
   EmulatorConfig,
   PopupRedirectResolver,
   User
@@ -60,7 +61,7 @@ export interface AuthInternal extends Auth {
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
-  _customTokenProvider: { getCustomToken(): Promise<string> } | null;
+  _customTokenProvider: CustomTokenProvider | null;
   _updateCurrentUser(user: UserInternal | null): Promise<void>;
 
   _onStorageEvent(): void;

@@ -279,9 +279,7 @@ export class Auth
       exp.signInWithCustomToken(this._delegate, token)
     );
   }
-  setCustomTokenProvider(provider: {
-    getCustomToken(): Promise<string>;
-  }): void {
+  setCustomTokenProvider(provider: compat.CustomTokenProvider): void {
     exp.setCustomTokenProvider(this._delegate, provider);
   }
   clearCustomTokenProvider(): void {

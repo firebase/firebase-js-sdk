@@ -110,21 +110,20 @@ export class StsTokenManager {
       return this.refreshWithCustomToken(auth);
     }
 
-    // isExpired includes a buffer window, during which the access token will still be returned even
-    // if a customTokenProvider is not set yet.
-    if (this.isExpired) {
-      _assert(
-        this.expirationTime && Date.now() < this.expirationTime!,
-        auth,
-        AuthErrorCode.TOKEN_EXPIRED
-      );
-      if (!auth._customTokenProvider) {
-        return this.accessToken;
-      }
-      return this.refreshWithCustomToken(auth);
+    if (!this.isExpired) {
+      return this.accessToken;
     }
 
-    return this.accessToken;
+    // isExpired includes a buffer window, during which the access token will still be returned even
+    // if a customTokenProvider is not set yet.
+    _assert(
+      this.expirationTime && Date.now() < this.expirationTime!,
+      auth,
+      AuthErrorCode.TOKEN_EXPIRED
+    );
+    return auth._customTokenProvider
+      ? this.refreshWithCustomToken(auth)
+      : this.accessToken;
   }
 
   clearRefreshToken(): void {

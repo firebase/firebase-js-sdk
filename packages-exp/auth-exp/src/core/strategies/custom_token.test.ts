@@ -119,7 +119,7 @@ describe('core/strategies/signInWithCustomToken', () => {
           return Promise.resolve('');
         }
       };
-      auth._customTokenProvider = provider;
+      setCustomTokenProvider(auth, provider);
 
       clearCustomTokenProvider(auth);
 

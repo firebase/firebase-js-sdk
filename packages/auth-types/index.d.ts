@@ -398,6 +398,10 @@ export interface EmulatorConfig {
   };
 }
 
+export interface CustomTokenProvider {
+  getCustomToken(): Promise<string>;
+}
+
 export class FirebaseAuth {
   private constructor();
 
@@ -447,7 +451,7 @@ export class FirebaseAuth {
   signInAnonymously(): Promise<UserCredential>;
   signInWithCredential(credential: AuthCredential): Promise<UserCredential>;
   signInWithCustomToken(token: string): Promise<UserCredential>;
-  setCustomTokenProvider(provider: { getCustomToken(): Promise<string> }): void;
+  setCustomTokenProvider(provider: CustomTokenProvider): void;
   clearCustomTokenProvider(): void;
   signInWithEmailAndPassword(
     email: string,
