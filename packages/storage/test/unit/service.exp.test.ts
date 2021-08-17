@@ -372,12 +372,6 @@ GOOG4-RSA-SHA256`
       const newRef = ref(reference);
       expect(newRef.toString()).to.equal('gs://bucket/object');
     });
-    it('Throws calling ref(reference, path) if path contains ".."', () => {
-      const error = testShared.assertThrows(() => {
-        ref(reference, `../child/path`);
-      }, 'storage/invalid-argument');
-      expect(error.message).to.match(/"\.\."/);
-    });
   });
 
   describe('Deletion', () => {
