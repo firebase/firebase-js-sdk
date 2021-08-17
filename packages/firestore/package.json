@@ -48,7 +48,8 @@
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "api-report": "run-s api-report:exp api-report:lite && yarn api-report:api-json",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
-    "doc": "api-documenter markdown --input temp --output docs"
+    "doc": "api-documenter markdown --input temp --output docs",
+    "test:prepare": "cp -r ../firestore-compat/src ./compat && cd compat; find . -type f -exec sed -i '' \"s/'@firebase\/firestore';$/'\\.\\.\/\\.\\.\/src\/api';/g\" {} +"
   },
   "main": "dist/index.node.cjs.js",
   "main-esm": "dist/index.node.cjs.esm2017.js",

@@ -19,9 +19,9 @@ import { expect } from 'chai';
 
 import { Query as InternalQuery } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
-import { Query } from '../../../src/exp/reference';
-import { ExpUserDataWriter } from '../../../src/exp/reference_impl';
-import { QuerySnapshot } from '../../../src/exp/snapshot';
+import { Query } from '../../../src/api/reference';
+import { ExpUserDataWriter } from '../../../src/api/reference_impl';
+import { QuerySnapshot } from '../../../src/api/snapshot';
 import { documentKeySet } from '../../../src/model/collections';
 import { MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';

@@ -57,7 +57,7 @@ import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
-import { LoadBundleTask } from '../../../src/exp/bundle';
+import { LoadBundleTask } from '../../../src/api/bundle';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,

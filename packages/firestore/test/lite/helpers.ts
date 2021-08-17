@@ -19,7 +19,7 @@
 import { initializeApp } from '@firebase/app-exp';
 import { expect } from 'chai';
 
-import { initializeFirestore, Firestore } from '../../src/lite/database';
+import { initializeFirestore, Firestore } from '../../src/lite-api/database';
 import {
   doc,
   collection,
@@ -27,10 +27,10 @@ import {
   CollectionReference,
   DocumentReference,
   SetOptions
-} from '../../src/lite/reference';
-import { setDoc } from '../../src/lite/reference_impl';
-import { FirestoreSettings } from '../../src/lite/settings';
-import { QueryDocumentSnapshot } from '../../src/lite/snapshot';
+} from '../../src/lite-api/reference';
+import { setDoc } from '../../src/lite-api/reference_impl';
+import { FirestoreSettings } from '../../src/lite-api/settings';
+import { QueryDocumentSnapshot } from '../../src/lite-api/snapshot';
 import { AutoId } from '../../src/util/misc';
 import {
   DEFAULT_PROJECT_ID,

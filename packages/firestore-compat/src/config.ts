@@ -27,7 +27,7 @@ import {
   Timestamp
 } from '@firebase/firestore'; // import from the exp public API
 
-import { Blob } from '../src/api/blob';
+import { Blob } from './api/blob';
 import {
   Firestore,
   Transaction,
@@ -39,9 +39,9 @@ import {
   QuerySnapshot,
   WriteBatch,
   setLogLevel
-} from '../src/api/database';
-import { FieldPath } from '../src/api/field_path';
-import { FieldValue } from '../src/api/field_value';
+} from './api/database';
+import { FieldPath } from './api/field_path';
+import { FieldValue } from './api/field_value';
 
 const firestoreNamespace = {
   Firestore,

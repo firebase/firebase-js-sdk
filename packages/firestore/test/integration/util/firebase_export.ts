@@ -20,22 +20,22 @@
 // reference to the minified sources. If you change any exports in this file,
 // you need to also adjust "integration/firestore/firebase_export.ts".
 
-import firebase from '@firebase/app';
+import firebase from '@firebase/app-compat';
 import { FirebaseApp } from '@firebase/app-types';
 import * as firestore from '@firebase/firestore-types';
 
-import { Blob } from '../../../src/api/blob';
+import { Blob } from '../../../compat/api/blob';
 import {
   Firestore,
   DocumentReference,
   QueryDocumentSnapshot
-} from '../../../src/api/database';
-import { FieldPath } from '../../../src/api/field_path';
-import { FieldValue } from '../../../src/api/field_value';
-import { GeoPoint } from '../../../src/api/geo_point';
-import { Timestamp } from '../../../src/api/timestamp';
+} from '../../../compat/api/database';
+import { FieldPath } from '../../../compat/api/field_path';
+import { FieldValue } from '../../../compat/api/field_value';
+import { GeoPoint } from '../../../compat/api/geo_point';
+import { Timestamp } from '../../../compat/api/timestamp';
 // Import to trigger prototype patching of bundle loading.
-import '../../../index.bundle';
+// import '../../../index.bundle';
 
 // TODO(dimond): Right now we create a new app and Firestore instance for
 // every test and never clean them up. We may need to revisit.

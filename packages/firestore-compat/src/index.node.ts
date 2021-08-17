@@ -20,7 +20,7 @@ import firebase from '@firebase/app-compat';
 import { FirebaseNamespace } from '@firebase/app-types';
 
 import { name, version } from '../package.json';
-import { Firestore, IndexedDbPersistenceProvider } from '../src/api/database';
+import { Firestore, IndexedDbPersistenceProvider } from './api/database';
 
 import { registerBundle } from './bundle';
 import { configureForFirebase } from './config';

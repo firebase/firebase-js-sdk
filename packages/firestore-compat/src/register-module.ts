@@ -17,7 +17,7 @@
 
 import * as types from '@firebase/firestore-types';
 
-declare module '@firebase/app-types' {
+declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
     firestore: {
       (app?: FirebaseApp): types.FirebaseFirestore;
