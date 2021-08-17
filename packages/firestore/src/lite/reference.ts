@@ -90,7 +90,7 @@ export class DocumentReference<T = DocumentData> {
   readonly type = 'document';
 
   /**
-   * The {@link FirebaseFirestore} the document is in.
+   * The {@link Firestore} instance the document is in.
    * This is useful for performing transactions, for example.
    */
   readonly firestore: Firestore;
