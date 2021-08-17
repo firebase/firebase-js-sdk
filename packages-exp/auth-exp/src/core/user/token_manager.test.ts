@@ -179,7 +179,7 @@ describe('core/user/token_manager', () => {
 
       await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
         FirebaseError,
-        "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
+        'auth/user-token-expired'
       );
     });
 
@@ -213,8 +213,8 @@ describe('core/user/token_manager', () => {
       };
       const fakeCustomToken = 'fake-custom-token';
       const provider = {
-        async getCustomToken() {
-          return Promise.resolve(fakeCustomToken);
+        async getCustomToken(): Promise<string> {
+          return fakeCustomToken;
         }
       };
 
@@ -308,7 +308,7 @@ describe('core/user/token_manager', () => {
 
         await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
           FirebaseError,
-          "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
+          'auth/user-token-expired'
         );
       });
 

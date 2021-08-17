@@ -101,22 +101,22 @@ describe('core/strategies/signInWithCustomToken', () => {
   describe('#setCustomTokenProvider', () => {
     it('sets a custom token provider', () => {
       const provider = {
-        async getCustomToken() {
-          return Promise.resolve('');
+        async getCustomToken(): Promise<string> {
+          return '';
         }
       };
 
       setCustomTokenProvider(auth, provider);
 
-      expect(auth._customTokenProvider).to.eql(provider);
+      expect(auth._customTokenProvider).to.eq(provider);
     });
   });
 
   describe('#clearCustomTokenProvider', () => {
     it('clears the custom token provider', () => {
       const provider = {
-        async getCustomToken() {
-          return Promise.resolve('');
+        async getCustomToken(): Promise<string> {
+          return '';
         }
       };
       setCustomTokenProvider(auth, provider);

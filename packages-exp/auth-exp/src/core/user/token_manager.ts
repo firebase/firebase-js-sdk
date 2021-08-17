@@ -117,7 +117,7 @@ export class StsTokenManager {
     // isExpired includes a buffer window, during which the access token will still be returned even
     // if a customTokenProvider is not set yet.
     _assert(
-      this.expirationTime && Date.now() < this.expirationTime!,
+      this.expirationTime && Date.now() < this.expirationTime,
       auth,
       AuthErrorCode.TOKEN_EXPIRED
     );
