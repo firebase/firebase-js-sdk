@@ -71,8 +71,8 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * their set() or fails due to invalid data originating from a toFirestore()
  * call.
  */
-export function applyFirestoreDataConverter<T>(
-  converter: UntypedFirestoreDataConverter<T> | null,
+export function applyFirestoreDataConverter<T,R>(
+  converter: UntypedFirestoreDataConverter<T,R> | null,
   value: WithFieldValue<T> | PartialWithFieldValue<T>,
   options?: PublicSetOptions
 ): PublicDocumentData {
@@ -120,10 +120,10 @@ export class LiteUserDataWriter extends AbstractUserDataWriter {
  * @returns A Promise resolved with a `DocumentSnapshot` containing the current
  * document contents.
  */
-export function getDoc<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>> {
-  reference = cast<DocumentReference<T>>(reference, DocumentReference);
+export function getDoc<T,R>(
+  reference: DocumentReference<T,R>
+): Promise<DocumentSnapshot<T,R>> {
+  reference = cast<DocumentReference<T,R>>(reference, DocumentReference);
   const datastore = getDatastore(reference.firestore);
   const userDataWriter = new LiteUserDataWriter(reference.firestore);
 
@@ -131,7 +131,7 @@ export function getDoc<T>(
     result => {
       hardAssert(result.length === 1, 'Expected a single document result');
       const document = result[0];
-      return new DocumentSnapshot<T>(
+      return new DocumentSnapshot<T,R>(
         reference.firestore,
         userDataWriter,
         reference._key,
@@ -154,8 +154,8 @@ export function getDoc<T>(
  * @param query - The `Query` to execute.
  * @returns A Promise that will be resolved with the results of the query.
  */
-export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
-  query = cast<Query<T>>(query, Query);
+export function getDocs<T,R>(query: Query<T,R>): Promise<QuerySnapshot<T,R>> {
+  query = cast<Query<T,R>>(query, Query);
   validateHasExplicitOrderByForLimitToLast(query._query);
 
   const datastore = getDatastore(query.firestore);
@@ -163,7 +163,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   return invokeRunQueryRpc(datastore, query._query).then(result => {
     const docs = result.map(
       doc =>
-        new QueryDocumentSnapshot<T>(
+        new QueryDocumentSnapshot<T,R>(
           query.firestore,
           userDataWriter,
           doc.key,
@@ -179,7 +179,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
       docs.reverse();
     }
 
-    return new QuerySnapshot<T>(query, docs);
+    return new QuerySnapshot<T,R>(query, docs);
   });
 }
 

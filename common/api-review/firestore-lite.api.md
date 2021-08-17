@@ -45,12 +45,12 @@ export function collection(reference: DocumentReference, path: string, ...pathSe
 export function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData>;
 
 // @public
-export class CollectionReference<T = DocumentData> extends Query<T> {
+export class CollectionReference<T = DocumentData, U = DocumentData> extends Query<T, U> {
     get id(): string;
     get parent(): DocumentReference<DocumentData> | null;
     get path(): string;
     readonly type = "collection";
-    withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
+    withConverter<U, X>(converter: FirestoreDataConverter<U, X>): CollectionReference<U, X>;
     withConverter(converter: null): CollectionReference<DocumentData>;
 }
 
@@ -83,25 +83,25 @@ export interface DocumentData {
 export function documentId(): FieldPath;
 
 // @public
-export class DocumentReference<T = DocumentData> {
-    readonly converter: FirestoreDataConverter<T> | null;
+export class DocumentReference<T = DocumentData, R = DocumentData> {
+    readonly converter: FirestoreDataConverter<T, R> | null;
     readonly firestore: Firestore;
     get id(): string;
     get parent(): CollectionReference<T>;
     get path(): string;
     readonly type = "document";
-    withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+    withConverter<U, X>(converter: FirestoreDataConverter<U, X>): DocumentReference<U, X>;
     withConverter(converter: null): DocumentReference<DocumentData>;
 }
 
 // @public
-export class DocumentSnapshot<T = DocumentData> {
+export class DocumentSnapshot<T = DocumentData, R = DocumentData> {
     protected constructor();
-    data(): T | undefined;
-    exists(): this is QueryDocumentSnapshot<T>;
+    data(): R | undefined;
+    exists(): this is QueryDocumentSnapshot<T, R>;
     get(fieldPath: string | FieldPath): any;
     get id(): string;
-    get ref(): DocumentReference<T>;
+    get ref(): DocumentReference<T, R>;
 }
 
 // @public
@@ -135,8 +135,8 @@ export class Firestore {
 }
 
 // @public
-export interface FirestoreDataConverter<T> {
-    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
+export interface FirestoreDataConverter<T, R> {
+    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): R;
     toFirestore(modelObject: WithFieldValue<T>): DocumentData;
     toFirestore(modelObject: PartialWithFieldValue<T>, options: SetOptions): DocumentData;
 }
@@ -165,10 +165,10 @@ export class GeoPoint {
 }
 
 // @public
-export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+export function getDoc<T, R>(reference: DocumentReference<T, R>): Promise<DocumentSnapshot<T, R>>;
 
 // @public
-export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocs<T, R>(query: Query<T, R>): Promise<QuerySnapshot<T, R>>;
 
 // @public
 export function getFirestore(app?: FirebaseApp): Firestore;
@@ -207,13 +207,13 @@ export type PartialWithFieldValue<T> = T extends Primitive ? T : T extends Map<i
 export type Primitive = string | number | boolean | undefined | null;
 
 // @public
-export class Query<T = DocumentData> {
+export class Query<T = DocumentData, R = DocumentData> {
     protected constructor();
-    readonly converter: FirestoreDataConverter<T> | null;
+    readonly converter: FirestoreDataConverter<T, R> | null;
     readonly firestore: Firestore;
     readonly type: 'query' | 'collection';
     withConverter(converter: null): Query<DocumentData>;
-    withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+    withConverter<U, X>(converter: FirestoreDataConverter<U, X>): Query<U, X>;
 }
 
 // @public
@@ -228,20 +228,20 @@ export abstract class QueryConstraint {
 export type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
 
 // @public
-export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<T = DocumentData, R = DocumentData> extends DocumentSnapshot<T, R> {
     // @override
-    data(): T;
+    data(): R;
 }
 
 // @public
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
 
 // @public
-export class QuerySnapshot<T = DocumentData> {
-    get docs(): Array<QueryDocumentSnapshot<T>>;
+export class QuerySnapshot<T = DocumentData, R = DocumentData> {
+    get docs(): Array<QueryDocumentSnapshot<T, R>>;
     get empty(): boolean;
-    forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
-    readonly query: Query<T>;
+    forEach(callback: (result: QueryDocumentSnapshot<T, R>) => void, thisArg?: unknown): void;
+    readonly query: Query<T, R>;
     get size(): number;
 }
 
@@ -278,7 +278,7 @@ export interface Settings {
 }
 
 // @public
-export function snapshotEqual<T>(left: DocumentSnapshot<T> | QuerySnapshot<T>, right: DocumentSnapshot<T> | QuerySnapshot<T>): boolean;
+export function snapshotEqual<T, R>(left: DocumentSnapshot<T, R> | QuerySnapshot<T, R>, right: DocumentSnapshot<T, R> | QuerySnapshot<T, R>): boolean;
 
 // @public
 export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryConstraint;

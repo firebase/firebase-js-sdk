@@ -1248,6 +1248,15 @@ describe('withConverter() support', () => {
       ) {}
     }
 
+    interface ITestObject {
+      outerString: string;
+      nested: {
+        innerNested: {
+          innerNestedNum: number;
+        };
+      }
+    }
+
     const testConverter = {
       toFirestore(testObj: WithFieldValue<TestObject>) {
         return { ...testObj };
@@ -1257,6 +1266,7 @@ describe('withConverter() support', () => {
         return new TestObject(data.outerString, data.outerArr, data.nested);
       }
     };
+
 
     const initialData = {
       outerString: 'foo',
@@ -1269,6 +1279,32 @@ describe('withConverter() support', () => {
         timestamp: serverTimestamp()
       }
     };
+
+    it('T,U test', () => {
+      const testConverterI = {
+        toFirestore(testObj: WithFieldValue<TestObject>) {
+          return { ...testObj };
+        },
+        fromFirestore(snapshot: QueryDocumentSnapshot): ITestObject {
+          const data = snapshot.data();
+          return {
+            outerString: data.outerString,
+            nested: {
+              innerNested: {
+                innerNestedNum: data.nested.innerNested.innerNestedNum
+              }
+            }
+          }
+        }
+      };
+
+      return withTestDoc(async doc => {
+        const docRef = doc.withConverter(testConverterI);
+        await setDoc(docRef, initialData);
+        const res = await getDoc(docRef);
+        console.log(res.data()!.outerString);
+      });
+    });
 
     describe('NestedPartial', () => {
       const testConverterMerge = {
@@ -1655,7 +1691,7 @@ describe('withConverter() support', () => {
           batch.update(ref, {
             outerArr: [],
             nested: {
-              'innerNested.innerNestedNum': increment(1),
+              // 'innerNested.innerNestedNum': increment(1),
               'innerArr': arrayUnion(2),
               timestamp: serverTimestamp()
             }

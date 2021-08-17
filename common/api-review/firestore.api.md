@@ -51,12 +51,12 @@ export function collection(reference: DocumentReference, path: string, ...pathSe
 export function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData>;
 
 // @public
-export class CollectionReference<T = DocumentData> extends Query<T> {
+export class CollectionReference<T = DocumentData, U = DocumentData> extends Query<T, U> {
     get id(): string;
     get parent(): DocumentReference<DocumentData> | null;
     get path(): string;
     readonly type = "collection";
-    withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
+    withConverter<U, X>(converter: FirestoreDataConverter<U, X>): CollectionReference<U, X>;
     withConverter(converter: null): CollectionReference<DocumentData>;
 }
 
@@ -84,8 +84,8 @@ export function doc<T>(reference: CollectionReference<T>, path?: string, ...path
 export function doc(reference: DocumentReference<unknown>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
 
 // @public
-export interface DocumentChange<T = DocumentData> {
-    readonly doc: QueryDocumentSnapshot<T>;
+export interface DocumentChange<T = DocumentData, R = DocumentData> {
+    readonly doc: QueryDocumentSnapshot<T, R>;
     readonly newIndex: number;
     readonly oldIndex: number;
     readonly type: DocumentChangeType;
@@ -103,26 +103,26 @@ export interface DocumentData {
 export function documentId(): FieldPath;
 
 // @public
-export class DocumentReference<T = DocumentData> {
-    readonly converter: FirestoreDataConverter<T> | null;
+export class DocumentReference<T = DocumentData, R = DocumentData> {
+    readonly converter: FirestoreDataConverter<T, R> | null;
     readonly firestore: Firestore;
     get id(): string;
     get parent(): CollectionReference<T>;
     get path(): string;
     readonly type = "document";
-    withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+    withConverter<U, X>(converter: FirestoreDataConverter<U, X>): DocumentReference<U, X>;
     withConverter(converter: null): DocumentReference<DocumentData>;
 }
 
 // @public
-export class DocumentSnapshot<T = DocumentData> {
+export class DocumentSnapshot<T = DocumentData, R = DocumentData> {
     protected constructor();
-    data(options?: SnapshotOptions): T | undefined;
-    exists(): this is QueryDocumentSnapshot<T>;
+    data(options?: SnapshotOptions): R | undefined;
+    exists(): this is QueryDocumentSnapshot<T, R>;
     get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
     get id(): string;
     readonly metadata: SnapshotMetadata;
-    get ref(): DocumentReference<T>;
+    get ref(): DocumentReference<T, R>;
 }
 
 // @public
@@ -165,8 +165,8 @@ export class Firestore {
 }
 
 // @public
-export interface FirestoreDataConverter<T> {
-    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>, options?: SnapshotOptions): T;
+export interface FirestoreDataConverter<T, R> {
+    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>, options?: SnapshotOptions): R;
     toFirestore(modelObject: WithFieldValue<T>): DocumentData;
     toFirestore(modelObject: PartialWithFieldValue<T>, options: SetOptions): DocumentData;
 }
@@ -336,13 +336,13 @@ export interface PersistenceSettings {
 export type Primitive = string | number | boolean | undefined | null;
 
 // @public
-export class Query<T = DocumentData> {
+export class Query<T = DocumentData, R = DocumentData> {
     protected constructor();
-    readonly converter: FirestoreDataConverter<T> | null;
+    readonly converter: FirestoreDataConverter<T, R> | null;
     readonly firestore: Firestore;
     readonly type: 'query' | 'collection';
     withConverter(converter: null): Query<DocumentData>;
-    withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+    withConverter<U, X>(converter: FirestoreDataConverter<U, X>): Query<U, X>;
 }
 
 // @public
@@ -357,22 +357,22 @@ export abstract class QueryConstraint {
 export type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
 
 // @public
-export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<T = DocumentData, R = DocumentData> extends DocumentSnapshot<T, R> {
     // @override
-    data(options?: SnapshotOptions): T;
+    data(options?: SnapshotOptions): R;
 }
 
 // @public
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
 
 // @public
-export class QuerySnapshot<T = DocumentData> {
-    docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
-    get docs(): Array<QueryDocumentSnapshot<T>>;
+export class QuerySnapshot<T = DocumentData, R = DocumentData> {
+    docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T, R>>;
+    get docs(): Array<QueryDocumentSnapshot<T, R>>;
     get empty(): boolean;
-    forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
+    forEach(callback: (result: QueryDocumentSnapshot<T, R>) => void, thisArg?: unknown): void;
     readonly metadata: SnapshotMetadata;
-    readonly query: Query<T>;
+    readonly query: Query<T, R>;
     get size(): number;
 }
 
@@ -402,7 +402,7 @@ export type SetOptions = {
 };
 
 // @public
-export function snapshotEqual<T>(left: DocumentSnapshot<T> | QuerySnapshot<T>, right: DocumentSnapshot<T> | QuerySnapshot<T>): boolean;
+export function snapshotEqual<T, R>(left: DocumentSnapshot<T, R> | QuerySnapshot<T, R>, right: DocumentSnapshot<T, R> | QuerySnapshot<T, R>): boolean;
 
 // @public
 export interface SnapshotListenOptions {
@@ -462,12 +462,12 @@ export class Timestamp {
 
 // @public
 export class Transaction {
-    delete(documentRef: DocumentReference<unknown>): this;
+    delete(documentRef: DocumentReference<unknown, DocumentData>): this;
     get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
-    set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): this;
-    set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): this;
-    update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
-    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
+    set<T>(documentRef: DocumentReference<T, DocumentData>, data: WithFieldValue<T>): this;
+    set<T>(documentRef: DocumentReference<T, DocumentData>, data: PartialWithFieldValue<T>, options: SetOptions): this;
+    update<T>(documentRef: DocumentReference<T, DocumentData>, data: UpdateData<T>): this;
+    update(documentRef: DocumentReference<unknown, DocumentData>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 }
 
 // @public

@@ -569,7 +569,7 @@ export class WriteBatch implements PublicWriteBatch, Compat<ExpWriteBatch> {
  */
 class FirestoreDataConverter<U>
   implements
-    UntypedFirestoreDataConverter<U>,
+    UntypedFirestoreDataConverter<U,U>,
     Compat<PublicFirestoreDataConverter<U>>
 {
   private static readonly INSTANCES = new WeakMap();
@@ -660,7 +660,7 @@ export class DocumentReference<T = PublicDocumentData>
   static forPath<U>(
     path: ResourcePath,
     firestore: Firestore,
-    converter: UntypedFirestoreDataConverter<U> | null
+    converter: UntypedFirestoreDataConverter<U,U> | null
   ): DocumentReference<U> {
     if (path.length % 2 !== 0) {
       throw new FirestoreError(
@@ -683,7 +683,7 @@ export class DocumentReference<T = PublicDocumentData>
   static forKey<U>(
     key: DocumentKey,
     firestore: Firestore,
-    converter: UntypedFirestoreDataConverter<U> | null
+    converter: UntypedFirestoreDataConverter<U,U> | null
   ): DocumentReference<U> {
     return new DocumentReference(
       firestore,
@@ -836,7 +836,7 @@ export class DocumentReference<T = PublicDocumentData>
             result._key,
             result._document,
             result.metadata,
-            this._delegate.converter as UntypedFirestoreDataConverter<T>
+            this._delegate.converter as UntypedFirestoreDataConverter<T,T>
           )
         )
     );
@@ -963,7 +963,12 @@ export class DocumentSnapshot<T = PublicDocumentData>
   }
 
   data(options?: PublicSnapshotOptions): T | undefined {
-    return this._delegate.data(options);
+    const result = this._delegate.data(options);
+    if (result) {
+      return result as T;
+    } else {
+      return undefined;
+    }
   }
 
   get(
@@ -990,7 +995,7 @@ export class QueryDocumentSnapshot<T = PublicDocumentData>
       data !== undefined,
       'Document in a QueryDocumentSnapshot should exist'
     );
-    return data;
+    return data as T;
   }
 }
 

@@ -111,7 +111,7 @@ export type SetOptions =
  * and can be used to write, read, or listen to the location. The document at
  * the referenced location may or may not exist.
  */
-export class DocumentReference<T = DocumentData> {
+export class DocumentReference<T = DocumentData,R = DocumentData> {
   /** The type of this Firestore reference. */
   readonly type = 'document';
 
@@ -127,7 +127,7 @@ export class DocumentReference<T = DocumentData> {
     /**
      * If provided, the `FirestoreDataConverter` associated with this instance.
      */
-    readonly converter: FirestoreDataConverter<T> | null,
+    readonly converter: FirestoreDataConverter<T,R> | null,
     readonly _key: DocumentKey
   ) {
     this.firestore = firestore;
@@ -173,7 +173,7 @@ export class DocumentReference<T = DocumentData> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `DocumentReference<U>` that uses the provided converter.
    */
-  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+  withConverter<U,X>(converter: FirestoreDataConverter<U,X>): DocumentReference<U,X>;
   /**
    * Removes the current converter.
    *
@@ -181,10 +181,10 @@ export class DocumentReference<T = DocumentData> {
    * @returns A `DocumentReference<DocumentData>` that does not use a converter.
    */
   withConverter(converter: null): DocumentReference<DocumentData>;
-  withConverter<U>(
-    converter: FirestoreDataConverter<U> | null
-  ): DocumentReference<U> {
-    return new DocumentReference<U>(this.firestore, converter, this._key);
+  withConverter<U,X>(
+    converter: FirestoreDataConverter<U,X> | null
+  ): DocumentReference<U,X> {
+    return new DocumentReference<U,X>(this.firestore, converter, this._key);
   }
 }
 
@@ -192,7 +192,7 @@ export class DocumentReference<T = DocumentData> {
  * A `Query` refers to a Query which you can read or listen to. You can also
  * construct refined `Query` objects by adding filters and ordering.
  */
-export class Query<T = DocumentData> {
+export class Query<T = DocumentData,R = DocumentData> {
   /** The type of this Firestore reference. */
   readonly type: 'query' | 'collection' = 'query';
 
@@ -210,7 +210,7 @@ export class Query<T = DocumentData> {
     /**
      * If provided, the `FirestoreDataConverter` associated with this instance.
      */
-    readonly converter: FirestoreDataConverter<T> | null,
+    readonly converter: FirestoreDataConverter<T,R> | null,
     readonly _query: InternalQuery
   ) {
     this.firestore = firestore;
@@ -232,9 +232,9 @@ export class Query<T = DocumentData> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `Query<U>` that uses the provided converter.
    */
-  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
-  withConverter<U>(converter: FirestoreDataConverter<U> | null): Query<U> {
-    return new Query<U>(this.firestore, converter, this._query);
+  withConverter<U,X>(converter: FirestoreDataConverter<U,X>): Query<U,X>;
+  withConverter<U,X>(converter: FirestoreDataConverter<U,X> | null): Query<U,X> {
+    return new Query<U,X>(this.firestore, converter, this._query);
   }
 }
 
@@ -242,14 +242,14 @@ export class Query<T = DocumentData> {
  * A `CollectionReference` object can be used for adding documents, getting
  * document references, and querying for documents (using {@link query}).
  */
-export class CollectionReference<T = DocumentData> extends Query<T> {
+export class CollectionReference<T = DocumentData,U = DocumentData> extends Query<T,U> {
   /** The type of this Firestore reference. */
   readonly type = 'collection';
 
   /** @hideconstructor */
   constructor(
     firestore: Firestore,
-    converter: FirestoreDataConverter<T> | null,
+    converter: FirestoreDataConverter<T,U> | null,
     readonly _path: ResourcePath
   ) {
     super(firestore, converter, newQueryForPath(_path));
@@ -294,9 +294,9 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `CollectionReference<U>` that uses the provided converter.
    */
-  withConverter<U>(
-    converter: FirestoreDataConverter<U>
-  ): CollectionReference<U>;
+  withConverter<U,X>(
+    converter: FirestoreDataConverter<U,X>
+  ): CollectionReference<U,X>;
   /**
    * Removes the current converter.
    *
@@ -305,10 +305,10 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * converter.
    */
   withConverter(converter: null): CollectionReference<DocumentData>;
-  withConverter<U>(
-    converter: FirestoreDataConverter<U> | null
-  ): CollectionReference<U> {
-    return new CollectionReference<U>(this.firestore, converter, this._path);
+  withConverter<U,X>(
+    converter: FirestoreDataConverter<U,X> | null
+  ): CollectionReference<U,X> {
+    return new CollectionReference<U,X>(this.firestore, converter, this._path);
   }
 }
 
