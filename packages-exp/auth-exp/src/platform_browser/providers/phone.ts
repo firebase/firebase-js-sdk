@@ -149,7 +149,7 @@ export class PhoneAuthProvider {
 
   /**
    * Generates an {@link AuthCredential} from a {@link UserCredential}.
-   * @param userCredential
+   * @param userCredential - The user credential.
    */
   static credentialFromResult(
     userCredential: UserCredential
@@ -188,7 +188,7 @@ export class PhoneAuthProvider {
    * // At this point, auth.currentUser.phoneNumber === number.
    * ```
    *
-   * @param error
+   * @param error - The error to generate a credential from.
    */
   static credentialFromError(error: FirebaseError): AuthCredential | null {
     return PhoneAuthProvider.credentialFromTaggedObject(

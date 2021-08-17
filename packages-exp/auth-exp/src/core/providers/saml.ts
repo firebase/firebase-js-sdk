@@ -36,7 +36,7 @@ const SAML_PROVIDER_PREFIX = 'saml.';
 export class SAMLAuthProvider extends FederatedAuthProvider {
   /**
    * Constructor. The providerId must start with "saml."
-   * @param - providerId
+   * @param providerId - SAML provider ID.
    */
   constructor(providerId: string) {
     _assert(
@@ -60,7 +60,7 @@ export class SAMLAuthProvider extends FederatedAuthProvider {
    * const credential = SAMLAuthProvider.credentialFromResult(userCredential);
    * ```
    *
-   * @param userCredential
+   * @param userCredential - The user credential.
    */
   static credentialFromResult(
     userCredential: UserCredential
@@ -84,7 +84,7 @@ export class SAMLAuthProvider extends FederatedAuthProvider {
 
   /**
    * Creates an {@link AuthCredential} from a JSON string or a plain object.
-   * @param json A plain object or a JSON string
+   * @param json - A plain object or a JSON string
    */
   static credentialFromJSON(json: string | object): AuthCredential {
     const credential = SAMLAuthCredential.fromJSON(json);

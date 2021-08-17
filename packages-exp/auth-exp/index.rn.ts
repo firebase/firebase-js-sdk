@@ -25,7 +25,7 @@
 import { AsyncStorage } from 'react-native';
 
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
-import { Auth } from './src/model/public_types';
+import { Auth, Persistence } from './src/model/public_types';
 
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
@@ -41,7 +41,7 @@ export * from './src';
  *
  * @public
  */
-export const reactNativeLocalPersistence =
+export const reactNativeLocalPersistence: Persistence =
   getReactNativePersistence(AsyncStorage);
 
 export function getAuth(app: FirebaseApp = getApp()): Auth {

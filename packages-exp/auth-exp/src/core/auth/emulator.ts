@@ -36,7 +36,8 @@ import { _castAuth } from './auth_impl';
  *
  * @param auth - The {@link Auth} instance.
  * @param url - The URL at which the emulator is running (eg, 'http://localhost:9099').
- * @param options.disableWarnings - (Optional: default false) Disable the warning banner attached to the DOM
+ * @param options - Optional. `options.disableWarnings` defaults to `false`. Set it to
+ * `true` to disable the warning banner attached to the DOM.
  *
  * @public
  */
