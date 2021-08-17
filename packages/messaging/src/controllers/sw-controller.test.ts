@@ -67,7 +67,9 @@ const DISPLAY_MESSAGE: MessagePayloadInternal = {
   },
   from: 'from',
   // eslint-disable-next-line camelcase
-  collapse_key: 'collapse'
+  collapse_key: 'collapse',
+  // eslint-disable-next-line camelcase
+  fcm_message_id: 'mid'
 };
 
 // internal message payload (parsed directly from the push event) that contains and only contains
@@ -78,7 +80,9 @@ const DATA_MESSAGE: MessagePayloadInternal = {
   },
   from: 'from',
   // eslint-disable-next-line camelcase
-  collapse_key: 'collapse'
+  collapse_key: 'collapse',
+  // eslint-disable-next-line camelcase
+  fcm_message_id: 'mid'
 };
 
 describe('SwController', () => {
@@ -350,7 +354,7 @@ describe('SwController', () => {
     it('throws on invalid input', () => {
       expect(() =>
         swController.setBackgroundMessageHandler(
-          (null as unknown) as BgMessageHandler
+          null as unknown as BgMessageHandler
         )
       ).to.throw('messaging/invalid-bg-handler');
     });
@@ -359,7 +363,7 @@ describe('SwController', () => {
   describe('usePublicVapidKey', () => {
     it('throws on invalid input', () => {
       expect(() =>
-        swController.usePublicVapidKey((null as unknown) as string)
+        swController.usePublicVapidKey(null as unknown as string)
       ).to.throw('messaging/invalid-vapid-key');
 
       expect(() => swController.usePublicVapidKey('')).to.throw(
@@ -600,5 +604,5 @@ function makeEvent<K extends keyof ServiceWorkerGlobalScopeEventMap>(
 ): Writable<ServiceWorkerGlobalScopeEventMap[K]> {
   const event = new FakeEvent(type);
   Object.assign(event, data);
-  return (event as unknown) as ServiceWorkerGlobalScopeEventMap[K];
+  return event as unknown as ServiceWorkerGlobalScopeEventMap[K];
 }

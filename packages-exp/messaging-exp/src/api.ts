@@ -17,9 +17,9 @@
 
 import { FirebaseApp, _getProvider, getApp } from '@firebase/app-exp';
 import {
-  Messaging,
   GetTokenOptions,
-  MessagePayload
+  MessagePayload,
+  Messaging
 } from './interfaces/public-types';
 import {
   NextFn,
@@ -33,6 +33,7 @@ import { deleteToken as _deleteToken } from './api/deleteToken';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
+import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryMetricsExportedToBigQueryEnabled';
 
 /**
  * Retrieves a Firebase Cloud Messaging instance.
@@ -136,4 +137,23 @@ export function onBackgroundMessage(
 ): Unsubscribe {
   messaging = getModularInstance(messaging);
   return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
+}
+
+/**
+ * Enables or disables Firebase Cloud Messaging message delivery metrics export to BigQuery. By
+ * default, message delivery metrics are not exported to BigQuery. Use this method to enable or
+ * disable the export at runtime.
+ *
+ * @param messaging - The `FirebaseMessaging` instance.
+ * @param enable - Whether Firebase Cloud Messaging should export message delivery metrics to
+ * BigQuery.
+ *
+ * @public
+ */
+export function setDeliveryMetricsExportedToBigQueryEnabled(
+  messaging: Messaging,
+  enable: boolean
+): void {
+  messaging = getModularInstance(messaging);
+  return _setDeliveryMetricsExportedToBigQueryEnabled(messaging, enable);
 }
