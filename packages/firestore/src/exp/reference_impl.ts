@@ -121,7 +121,7 @@ export class ExpUserDataWriter extends AbstractUserDataWriter {
  * Reads the document referred to by this `DocumentReference` from cache.
  * Returns an error if the document is not currently cached.
  *
- * @returns A promise resolved with a `DocumentSnapshot` containing the
+ * @returns A `Promise` resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
 export function getDocFromCache<T>(
@@ -152,7 +152,7 @@ export function getDocFromCache<T>(
  * Reads the document referred to by this `DocumentReference` from the server.
  * Returns an error if the network is not available.
  *
- * @returns A promise resolved with a `DocumentSnapshot` containing the
+ * @returns A `Promise` resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
 export function getDocFromServer<T>(
@@ -175,7 +175,7 @@ export function getDocFromServer<T>(
  * you are offline and the server cannot be reached. To specify this behavior,
  * invoke {@link getDocsFromCache} or {@link getDocsFromServer}.
  *
- * @returns A promise that will be resolved with the results of the query.
+ * @returns A `Promise` that will be resolved with the results of the query.
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   query = cast<Query<T>>(query, Query);
@@ -196,7 +196,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  * Executes the query and returns the results as a `QuerySnapshot` from cache.
  * Returns an error if the document is not currently cached.
  *
- * @returns A promise that will be resolved with the results of the query.
+ * @returns A `Promise` that will be resolved with the results of the query.
  */
 export function getDocsFromCache<T>(
   query: Query<T>
@@ -215,7 +215,7 @@ export function getDocsFromCache<T>(
  * Executes the query and returns the results as a `QuerySnapshot` from the
  * server. Returns an error if the network is not available.
  *
- * @returns A promise that will be resolved with the results of the query.
+ * @returns A `Promise` that will be resolved with the results of the query.
  */
 export function getDocsFromServer<T>(
   query: Query<T>
@@ -238,7 +238,7 @@ export function getDocsFromServer<T>(
  *
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
- * @returns A promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
 export function setDoc<T>(
@@ -297,7 +297,7 @@ export function setDoc<T>(
  * @param data - An object containing the fields and values with which to
  * update the document. Fields can contain dots to reference nested fields
  * within the document.
- * @returns A promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
 export function updateDoc(
@@ -316,7 +316,7 @@ export function updateDoc(
  * @param field - The first field to update.
  * @param value - The first value.
  * @param moreFieldsAndValues - Additional key value pairs.
- * @returns A promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
 export function updateDoc(
@@ -387,7 +387,7 @@ export function deleteDoc(
  *
  * @param reference - A reference to the collection to add this document to.
  * @param data - An Object containing the data for the new document.
- * @returns A promise resolved with a `DocumentReference` pointing to the
+ * @returns A `Promise` resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend (Note that it
  * won't resolve while you're offline).
  */

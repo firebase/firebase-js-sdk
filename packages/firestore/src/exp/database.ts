@@ -226,7 +226,7 @@ export function configureFirestore(firestore: Firestore): void {
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param persistenceSettings - Optional settings object to configure
  * persistence.
- * @returns A promise that represents successfully enabling persistent storage.
+ * @returns A `Promise` that represents successfully enabling persistent storage.
  */
 export function enableIndexedDbPersistence(
   firestore: Firestore,
@@ -270,7 +270,7 @@ export function enableIndexedDbPersistence(
  *     persistence implementation.
  *
  * @param firestore - The {@link Firestore} instance to enable persistence for.
- * @returns A promise that represents successfully enabling persistent
+ * @returns A `Promise` that represents successfully enabling persistent
  * storage.
  */
 export function enableMultiTabIndexedDbPersistence(
@@ -384,7 +384,7 @@ function canFallbackFromIndexedDbError(
  * recommend not enabling persistence at all.
  *
  * @param firestore - The {@link Firestore} instance to clear persistence for.
- * @returns A promise that is resolved when the persistent storage is
+ * @returns A `Promise` that is resolved when the persistent storage is
  * cleared. Otherwise, the promise is rejected with an error.
  */
 export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
@@ -423,7 +423,7 @@ export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
  * Any outstanding `waitForPendingWrites()` promises are rejected during user
  * changes.
  *
- * @returns A promise which resolves when all currently pending writes have been
+ * @returns A `Promise` which resolves when all currently pending writes have been
  * acknowledged by the backend.
  */
 export function waitForPendingWrites(firestore: Firestore): Promise<void> {
@@ -436,7 +436,7 @@ export function waitForPendingWrites(firestore: Firestore): Promise<void> {
  * Re-enables use of the network for this {@link Firestore} instance after a prior
  * call to {@link disableNetwork}.
  *
- * @returns A promise that is resolved once the network has been enabled.
+ * @returns A `Promise` that is resolved once the network has been enabled.
  */
 export function enableNetwork(firestore: Firestore): Promise<void> {
   firestore = cast(firestore, Firestore);
@@ -450,7 +450,7 @@ export function enableNetwork(firestore: Firestore): Promise<void> {
  * `getDoc()` or `getDocs()` calls will return results from cache, and any write
  * operations will be queued until the network is restored.
  *
- * @returns A promise that is resolved once the network has been disabled.
+ * @returns A `Promise` that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: Firestore): Promise<void> {
   firestore = cast(firestore, Firestore);
@@ -477,7 +477,7 @@ export function disableNetwork(firestore: Firestore): Promise<void> {
  * of its resources or in combination with `clearIndexedDbPersistence()` to
  * ensure that all local state is destroyed between test runs.
  *
- * @returns A promise that is resolved when the instance has been successfully
+ * @returns A `Promise` that is resolved when the instance has been successfully
  * terminated.
  */
 export function terminate(firestore: Firestore): Promise<void> {

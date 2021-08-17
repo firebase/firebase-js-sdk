@@ -45,8 +45,8 @@ export function getRemoteConfig(app: FirebaseApp = getApp()): RemoteConfig {
 /**
  * Makes the last fetched config available to the getters.
  * @param remoteConfig - The {@link RemoteConfig} instance.
- * @returns A promise which resolves to true if the current call activated the fetched configs.
- * If the fetched configs were already activated, the promise will resolve to false.
+ * @returns A `Promise` which resolves to true if the current call activated the fetched configs.
+ * If the fetched configs were already activated, the `Promise` will resolve to false.
  *
  * @public
  */
@@ -77,7 +77,7 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
  * Ensures the last activated config are available to the getters.
  * @param remoteConfig - The {@link RemoteConfig} instance.
  *
- * @returns A promise that resolves when the last activated config is available to the getters.
+ * @returns A `Promise` that resolves when the last activated config is available to the getters.
  * @public
  */
 export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void> {

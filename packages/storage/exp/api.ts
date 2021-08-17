@@ -132,7 +132,7 @@ export function uploadBytesResumable(
 }
 
 /**
- * A promise that resolves with the metadata for this object. If this
+ * A `Promise` that resolves with the metadata for this object. If this
  * object doesn't exist or metadata cannot be retreived, the promise is
  * rejected.
  * @public
@@ -150,7 +150,7 @@ export function getMetadata(ref: StorageReference): Promise<FullMetadata> {
  * @param metadata - The new metadata for the object.
  *     Only values that have been explicitly set will be changed. Explicitly
  *     setting a value to null will remove the metadata.
- * @returns A promise that resolves with the new metadata for this object.
+ * @returns A `Promise` that resolves with the new metadata for this object.
  */
 export function updateMetadata(
   ref: StorageReference,
@@ -180,7 +180,7 @@ export function updateMetadata(
  *
  * @param ref - {@link StorageReference} to get list from.
  * @param options - See {@link ListOptions} for details.
- * @returns A promise that resolves with the items and prefixes.
+ * @returns A `Promise` that resolves with the items and prefixes.
  *      `prefixes` contains references to sub-folders and `items`
  *      contains references to objects in this folder. `nextPageToken`
  *      can be used to get the rest of the results.
@@ -207,7 +207,7 @@ export function list(
  * @public
  * @param ref - {@link StorageReference} to get list from.
  *
- * @returns A promise that resolves with all the items and prefixes under
+ * @returns A `Promise` that resolves with all the items and prefixes under
  *      the current storage reference. `prefixes` contains references to
  *      sub-directories and `items` contains references to objects in this
  *      folder. `nextPageToken` is never returned.
@@ -221,7 +221,7 @@ export function listAll(ref: StorageReference): Promise<ListResult> {
  * Returns the download URL for the given {@link StorageReference}.
  * @public
  * @param ref - {@link StorageReference} to get the download URL for.
- * @returns A promise that resolves with the download
+ * @returns A `Promise` that resolves with the download
  *     URL for this object.
  */
 export function getDownloadURL(ref: StorageReference): Promise<string> {
@@ -233,7 +233,7 @@ export function getDownloadURL(ref: StorageReference): Promise<string> {
  * Deletes the object at this location.
  * @public
  * @param ref - {@link StorageReference} for object to delete.
- * @returns A promise that resolves if the deletion succeeds.
+ * @returns A `Promise` that resolves if the deletion succeeds.
  */
 export function deleteObject(ref: StorageReference): Promise<void> {
   ref = getModularInstance(ref);

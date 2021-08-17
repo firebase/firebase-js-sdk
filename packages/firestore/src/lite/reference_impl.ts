@@ -192,7 +192,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  *
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
- * @returns A promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
 export function setDoc<T>(
@@ -212,7 +212,7 @@ export function setDoc<T>(
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
  * @param options - An object to configure the set behavior.
- * @returns A promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
 export function setDoc<T>(
@@ -261,7 +261,7 @@ export function setDoc<T>(
  * @param data - An object containing the fields and values with which to
  * update the document. Fields can contain dots to reference nested fields
  * within the document.
- * @returns A promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
 export function updateDoc(
@@ -285,7 +285,7 @@ export function updateDoc(
  * @param field - The first field to update.
  * @param value - The first value.
  * @param moreFieldsAndValues - Additional key value pairs.
- * @returns A promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
 export function updateDoc(
@@ -344,7 +344,7 @@ export function updateDoc(
  * until the client is online, use the full Firestore SDK.
  *
  * @param reference - A reference to the document to delete.
- * @returns A promise resolved once the document has been successfully
+ * @returns A `Promise` resolved once the document has been successfully
  * deleted from the backend.
  */
 export function deleteDoc(
@@ -368,7 +368,7 @@ export function deleteDoc(
  *
  * @param reference - A reference to the collection to add this document to.
  * @param data - An Object containing the data for the new document.
- * @returns A promise resolved with a `DocumentReference` pointing to the
+ * @returns A `Promise` resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend.
  */
 export function addDoc<T>(

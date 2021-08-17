@@ -303,7 +303,7 @@ export function connectFirestoreEmulator(
  * ensure that all local state is destroyed between test runs.
  *
  * @param firestore - The `Firestore` instance to terminate.
- * @returns A promise that is resolved when the instance has been successfully
+ * @returns A `Promise` that is resolved when the instance has been successfully
  * terminated.
  */
 export function terminate(firestore: Firestore): Promise<void> {

@@ -88,7 +88,7 @@ export class TransactionResult {
  * transaction will be aborted and the data at this location will not be
  * modified.
  * @param options - An options object to configure transactions.
- * @returns A promise that can optionally be used instead of the `onComplete`
+ * @returns A `Promise` that can optionally be used instead of the `onComplete`
  * callback to handle success and failure.
  */
 export function runTransaction(

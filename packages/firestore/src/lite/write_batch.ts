@@ -205,7 +205,7 @@ export class WriteBatch {
    * write fails. If you would like to see local modifications or buffer writes
    * until the client is online, use the full Firestore SDK.
    *
-   * @returns A promise resolved once all of the writes in the batch have been
+   * @returns A `Promise` resolved once all of the writes in the batch have been
    * successfully written to the backend as an atomic unit (note that it won't
    * resolve while you're offline).
    */

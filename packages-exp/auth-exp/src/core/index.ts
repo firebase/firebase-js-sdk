@@ -50,7 +50,7 @@ export {
  *
  * @param auth - The {@link Auth} instance.
  * @param persistence - The {@link Persistence} to use.
- * @returns A promise that resolves once the persistence change has completed
+ * @returns A `Promise` that resolves once the persistence change has completed
  *
  * @public
  */

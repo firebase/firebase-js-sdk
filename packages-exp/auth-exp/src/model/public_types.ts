@@ -795,7 +795,7 @@ export interface MultiFactorUser {
    * ```
    *
    * @param option - The multi-factor option to unenroll.
-   * @returns - A promise which resolves when the unenroll operation is complete.
+   * @returns - A `Promise` which resolves when the unenroll operation is complete.
    */
   unenroll(option: MultiFactorInfo | string): Promise<void>;
 }

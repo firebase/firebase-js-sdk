@@ -803,7 +803,7 @@ export function update(ref: DatabaseReference, values: object): Promise<void> {
  * Gets the most up-to-date result for this query.
  *
  * @param query - The query to run.
- * @returns A promise which resolves to the resulting DataSnapshot if a value is
+ * @returns A `Promise` which resolves to the resulting DataSnapshot if a value is
  * available, or rejects if the client is unable to return a value (e.g., if the
  * server is unreachable and there is nothing cached).
  */
