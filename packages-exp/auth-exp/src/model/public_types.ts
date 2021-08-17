@@ -1101,6 +1101,7 @@ declare module '@firebase/component' {
 
 /**
  * Configuration of Firebase Authentication Emulator.
+ * @public
  */
 export interface EmulatorConfig {
   /**

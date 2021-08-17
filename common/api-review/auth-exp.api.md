@@ -657,7 +657,7 @@ export interface RecaptchaParameters {
     [key: string]: any;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ApplicationVerifierInternal" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ApplicationVerifierInternal" needs to be exported by the entry point index.doc.d.ts
 //
 // @public
 export class RecaptchaVerifier implements ApplicationVerifierInternal {
