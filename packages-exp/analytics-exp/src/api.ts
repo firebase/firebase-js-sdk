@@ -32,7 +32,8 @@ import {
   validateIndexedDBOpenable,
   areCookiesEnabled,
   isBrowserExtension,
-  getModularInstance
+  getModularInstance,
+  deepEqual
 } from '@firebase/util';
 import { ANALYTICS_TYPE } from './constants';
 import {
@@ -97,7 +98,12 @@ export function initializeAnalytics(
     ANALYTICS_TYPE
   );
   if (analyticsProvider.isInitialized()) {
-    throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED);
+    const existingInstance = analyticsProvider.getImmediate();
+    if (deepEqual(options, analyticsProvider.getOptions())) {
+      return existingInstance;
+    } else {
+      throw ERROR_FACTORY.create(AnalyticsError.ALREADY_INITIALIZED);
+    }
   }
   const analyticsInstance = analyticsProvider.initialize({ options });
   return analyticsInstance;

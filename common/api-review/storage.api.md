@@ -6,6 +6,7 @@
 
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { CompleteFn } from '@firebase/util';
+import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
@@ -16,7 +17,9 @@ import { Subscribe } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
 // @public
-export function connectStorageEmulator(storage: FirebaseStorage, host: string, port: number): void;
+export function connectStorageEmulator(storage: FirebaseStorage, host: string, port: number, options?: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+}): void;
 
 // @public
 export function deleteObject(ref: StorageReference): Promise<void>;

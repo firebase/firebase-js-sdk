@@ -18,7 +18,6 @@
 import {
   Auth,
   MultiFactorResolver,
-  OperationType,
   UserCredential,
   MultiFactorError
 } from '../model/public_types';
@@ -33,6 +32,7 @@ import { MultiFactorError as MultiFactorErrorInternal } from './mfa_error';
 import { MultiFactorInfoImpl } from './mfa_info';
 import { MultiFactorSessionImpl } from './mfa_session';
 import { getModularInstance } from '@firebase/util';
+import { OperationType } from '../model/enums';
 
 export class MultiFactorResolverImpl implements MultiFactorResolver {
   private constructor(
@@ -83,11 +83,12 @@ export class MultiFactorResolverImpl implements MultiFactorResolver {
         // TODO: we should collapse this switch statement into UserCredentialImpl._forOperation and have it support the SIGN_IN case
         switch (error.operationType) {
           case OperationType.SIGN_IN:
-            const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-              auth,
-              error.operationType,
-              idTokenResponse
-            );
+            const userCredential =
+              await UserCredentialImpl._fromIdTokenResponse(
+                auth,
+                error.operationType,
+                idTokenResponse
+              );
             await auth._updateCurrentUser(userCredential.user);
             return userCredential;
           case OperationType.REAUTHENTICATE:

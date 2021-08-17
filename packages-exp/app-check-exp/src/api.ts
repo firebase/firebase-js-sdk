@@ -31,8 +31,10 @@ import { AppCheckProvider, ListenerType } from './types';
 import {
   getToken as getTokenInternal,
   addTokenListener,
-  removeTokenListener
+  removeTokenListener,
+  isValid
 } from './internal-api';
+import { readTokenFromStorage } from './storage';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -56,9 +58,19 @@ export function initializeAppCheck(
   const provider = _getProvider(app, 'app-check-exp');
 
   if (provider.isInitialized()) {
-    throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
-      appName: app.name
-    });
+    const existingInstance = provider.getImmediate();
+    const initialOptions = provider.getOptions() as unknown as AppCheckOptions;
+    if (
+      initialOptions.isTokenAutoRefreshEnabled ===
+        options.isTokenAutoRefreshEnabled &&
+      initialOptions.provider.isEqual(options.provider)
+    ) {
+      return existingInstance;
+    } else {
+      throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
+        appName: app.name
+      });
+    }
   }
 
   const appCheck = provider.initialize({ options });
@@ -85,7 +97,13 @@ function _activate(
   const state = getState(app);
 
   const newState: AppCheckState = { ...state, activated: true };
-  newState.provider = provider;
+  newState.provider = provider; // Read cached token from storage if it exists and store it in memory.
+  newState.cachedTokenPromise = readTokenFromStorage(app).then(cachedToken => {
+    if (cachedToken && isValid(cachedToken)) {
+      setState(app, { ...getState(app), token: cachedToken });
+    }
+    return cachedToken;
+  });
 
   // Use value of global `automaticDataCollectionEnabled` (which
   // itself defaults to false if not specified in config) if

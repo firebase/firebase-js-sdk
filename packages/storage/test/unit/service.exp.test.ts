@@ -235,7 +235,7 @@ GOOG4-RSA-SHA256`
       );
     });
   });
-  describe('connectStorageEmulator(service, host, port)', () => {
+  describe('connectStorageEmulator(service, host, port, options)', () => {
     it('sets emulator host correctly', done => {
       function newSend(
         connection: TestingConnection,
@@ -258,6 +258,65 @@ GOOG4-RSA-SHA256`
       );
       connectStorageEmulator(service, 'test.host.org', 1234);
       expect(service.host).to.equal('http://test.host.org:1234');
+      void getDownloadURL(ref(service, 'test.png'));
+    });
+    it('sets mock user token string if specified', done => {
+      const mockUserToken = 'my-mock-user-token';
+      function newSend(
+        connection: TestingConnection,
+        url: string,
+        method: string,
+        body?: ArrayBufferView | Blob | string | null,
+        headers?: Headers
+      ): void {
+        // Expect emulator host to be in url of storage operations requests,
+        // in this case getDownloadURL.
+        expect(url).to.match(/^http:\/\/test\.host\.org:1234.+/);
+        expect(headers?.['Authorization']).to.eql(`Firebase ${mockUserToken}`);
+        connection.abort();
+        done();
+      }
+      const service = new FirebaseStorageImpl(
+        testShared.fakeApp,
+        testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
+        testShared.makePool(newSend)
+      );
+      connectStorageEmulator(service, 'test.host.org', 1234, { mockUserToken });
+      expect(service.host).to.equal('http://test.host.org:1234');
+      expect(service._overrideAuthToken).to.equal(mockUserToken);
+      void getDownloadURL(ref(service, 'test.png'));
+    });
+    it('creates mock user token from object if specified', done => {
+      let token: string | undefined = undefined;
+      function newSend(
+        connection: TestingConnection,
+        url: string,
+        method: string,
+        body?: ArrayBufferView | Blob | string | null,
+        headers?: Headers
+      ): void {
+        // Expect emulator host to be in url of storage operations requests,
+        // in this case getDownloadURL.
+        expect(url).to.match(/^http:\/\/test\.host\.org:1234.+/);
+        expect(headers?.['Authorization']).to.eql(`Firebase ${token}`);
+        connection.abort();
+        done();
+      }
+
+      const service = new FirebaseStorageImpl(
+        testShared.fakeApp,
+        testShared.fakeAuthProvider,
+        testShared.fakeAppCheckTokenProvider,
+        testShared.makePool(newSend)
+      );
+      connectStorageEmulator(service, 'test.host.org', 1234, {
+        mockUserToken: { sub: 'alice' }
+      });
+      expect(service.host).to.equal('http://test.host.org:1234');
+      token = service._overrideAuthToken;
+      // Token should be an unsigned JWT with header { "alg": "none", "type": "JWT" } (base64url):
+      expect(token).to.match(/^eyJhbGciOiJub25lIiwidHlwZSI6IkpXVCJ9\./);
       void getDownloadURL(ref(service, 'test.png'));
     });
   });

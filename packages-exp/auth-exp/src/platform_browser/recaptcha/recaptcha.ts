@@ -15,13 +15,10 @@
  * limitations under the License.
  */
 
-export interface Parameters {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-}
+import { RecaptchaParameters } from '../../model/public_types';
 
 export interface Recaptcha {
-  render: (container: HTMLElement, parameters: Parameters) => number;
+  render: (container: HTMLElement, parameters: RecaptchaParameters) => number;
   getResponse: (id: number) => string;
   execute: (id: number) => unknown;
   reset: (id: number) => unknown;

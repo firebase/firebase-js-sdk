@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
-import { ProviderId } from '../../model/public_types';
+import { ProviderId } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
 import { makeJWT } from '../../../test/helpers/jwt';

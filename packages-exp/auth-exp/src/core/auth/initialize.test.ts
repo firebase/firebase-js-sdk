@@ -50,6 +50,7 @@ import {
 import { ClientPlatform, _getClientVersion } from '../util/version';
 import { initializeAuth } from './initialize';
 import { registerAuth } from './register';
+import { debugErrorMap, prodErrorMap } from '../errors';
 
 describe('core/auth/initialize', () => {
   let fakeApp: FirebaseApp;
@@ -127,7 +128,8 @@ describe('core/auth/initialize', () => {
     }
   }
 
-  const fakePopupRedirectResolver: PopupRedirectResolver = FakePopupRedirectResolver;
+  const fakePopupRedirectResolver: PopupRedirectResolver =
+    FakePopupRedirectResolver;
 
   before(() => {
     registerAuth(ClientPlatform.BROWSER);
@@ -203,15 +205,63 @@ describe('core/auth/initialize', () => {
       const auth = initializeAuth(fakeApp, {
         popupRedirectResolver: fakePopupRedirectResolver
       }) as AuthInternal;
-      await ((auth as unknown) as _FirebaseService)._delete();
+      await (auth as unknown as _FirebaseService)._delete();
       await auth._initializationPromise;
 
       expect(auth._isInitialized).to.be.false;
     });
 
-    it('should throw if called more than once', () => {
-      initializeAuth(fakeApp);
-      expect(() => initializeAuth(fakeApp)).to.throw();
+    it('should not throw if called again with same (no) params', () => {
+      const auth = initializeAuth(fakeApp);
+      expect(initializeAuth(fakeApp)).to.equal(auth);
+    });
+
+    it('should not throw if called again with same params', () => {
+      const auth = initializeAuth(fakeApp, {
+        errorMap: prodErrorMap,
+        persistence: fakeSessionPersistence,
+        popupRedirectResolver: fakePopupRedirectResolver
+      });
+      expect(
+        initializeAuth(fakeApp, {
+          errorMap: prodErrorMap,
+          persistence: fakeSessionPersistence,
+          popupRedirectResolver: fakePopupRedirectResolver
+        })
+      ).to.equal(auth);
+    });
+
+    it('should throw if called again with different params (popupRedirectResolver)', () => {
+      initializeAuth(fakeApp, {
+        popupRedirectResolver: fakePopupRedirectResolver
+      });
+      expect(() =>
+        initializeAuth(fakeApp, {
+          popupRedirectResolver: undefined
+        })
+      ).to.throw();
+    });
+
+    it('should throw if called again with different params (errorMap)', () => {
+      initializeAuth(fakeApp, {
+        errorMap: prodErrorMap
+      });
+      expect(() =>
+        initializeAuth(fakeApp, {
+          errorMap: debugErrorMap
+        })
+      ).to.throw();
+    });
+
+    it('should throw if called again with different params (persistence)', () => {
+      initializeAuth(fakeApp, {
+        persistence: [inMemoryPersistence, fakeSessionPersistence]
+      });
+      expect(() =>
+        initializeAuth(fakeApp, {
+          persistence: [fakeSessionPersistence, inMemoryPersistence]
+        })
+      ).to.throw();
     });
   });
 });

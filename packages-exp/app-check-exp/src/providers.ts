@@ -41,6 +41,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    * @param siteKey - ReCAPTCHA V3 siteKey.
    */
   constructor(private _siteKey: string) {}
+
   /**
    * Returns an App Check token.
    * @internal
@@ -73,6 +74,17 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
     initializeRecaptcha(app, this._siteKey).catch(() => {
       /* we don't care about the initialization result */
     });
+  }
+
+  /**
+   * @internal
+   */
+  isEqual(otherProvider: unknown): boolean {
+    if (otherProvider instanceof ReCaptchaV3Provider) {
+      return this._siteKey === otherProvider._siteKey;
+    } else {
+      return false;
+    }
   }
 }
 
@@ -119,5 +131,19 @@ export class CustomProvider implements AppCheckProvider {
    */
   initialize(app: FirebaseApp): void {
     this._app = app;
+  }
+
+  /**
+   * @internal
+   */
+  isEqual(otherProvider: unknown): boolean {
+    if (otherProvider instanceof CustomProvider) {
+      return (
+        this._customProviderOptions.getToken.toString() ===
+        otherProvider._customProviderOptions.getToken.toString()
+      );
+    } else {
+      return false;
+    }
   }
 }

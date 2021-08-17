@@ -82,7 +82,6 @@ export function applyActionCode(auth: Auth, oobCode: string): Promise<void>;
 export interface Auth {
     readonly config: Config;
     readonly currentUser: User | null;
-    // Warning: (ae-forgotten-export) The symbol "EmulatorConfig" needs to be exported by the entry point index.d.ts
     readonly emulatorConfig: EmulatorConfig | null;
     languageCode: string | null;
     readonly name: string;
@@ -328,6 +327,16 @@ export class EmailAuthProvider implements AuthProvider {
     readonly providerId: "password";
 }
 
+// @public
+export interface EmulatorConfig {
+    readonly host: string;
+    readonly options: {
+        readonly disableWarnings: boolean;
+    };
+    readonly port: number | null;
+    readonly protocol: string;
+}
+
 export { ErrorFn }
 
 // Warning: (ae-forgotten-export) The symbol "BaseOAuthProvider" needs to be exported by the entry point index.d.ts
@@ -462,6 +471,8 @@ export interface MultiFactorUser {
     getSession(): Promise<MultiFactorSession>;
     unenroll(option: MultiFactorInfo | string): Promise<void>;
 }
+
+export { NextFn }
 
 // @public
 export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
@@ -634,12 +645,17 @@ export function reauthenticateWithPopup(user: User, provider: AuthProvider, reso
 // @public
 export function reauthenticateWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
 
+// @public
+export interface RecaptchaParameters {
+    // (undocumented)
+    [key: string]: any;
+}
+
 // Warning: (ae-forgotten-export) The symbol "ApplicationVerifierInternal" needs to be exported by the entry point index.d.ts
 //
 // @public
 export class RecaptchaVerifier implements ApplicationVerifierInternal {
-    // Warning: (ae-forgotten-export) The symbol "Parameters" needs to be exported by the entry point index.d.ts
-    constructor(containerOrId: HTMLElement | string, parameters: Parameters_2, authExtern: Auth);
+    constructor(containerOrId: HTMLElement | string, parameters: RecaptchaParameters, authExtern: Auth);
     clear(): void;
     // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.d.ts
     //

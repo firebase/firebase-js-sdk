@@ -12,7 +12,7 @@ export function child(parent: DatabaseReference, path: string): DatabaseReferenc
 
 // @public
 export function connectDatabaseEmulator(db: Database, host: string, port: number, options?: {
-    mockUserToken?: EmulatorMockTokenOptions;
+    mockUserToken?: EmulatorMockTokenOptions | string;
 }): void;
 
 // @public

@@ -4,6 +4,8 @@ toc:
   section:
   - title: "FirebaseError"
     path: /docs/reference/js/firebase.FirebaseError
+  - title: "FirebaseIdToken"
+    path: /docs/reference/js/firebase.FirebaseIdToken
 
 - title: "firebase.app"
   path: /docs/reference/js/firebase.app
@@ -20,6 +22,14 @@ toc:
     path: /docs/reference/js/firebase.appcheck.AppCheckProvider
   - title: "AppCheckToken"
     path: /docs/reference/js/firebase.appcheck.AppCheckToken
+  - title: "AppCheckTokenResult"
+    path: /docs/reference/js/firebase.appcheck.AppCheckTokenResult
+  - title: "CustomProvider"
+    path: /docs/reference/js/firebase.appcheck.CustomProvider
+  - title: "CustomProviderOptions"
+    path: /docs/reference/js/firebase.appcheck.CustomProviderOptions
+  - title: "ReCaptchaV3Provider"
+    path: /docs/reference/js/firebase.appcheck.ReCaptchaV3Provider
 
 - title: "firebase.analytics"
   path: /docs/reference/js/firebase.analytics

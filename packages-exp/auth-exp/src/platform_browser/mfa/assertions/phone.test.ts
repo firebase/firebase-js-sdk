@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '../../../model/public_types';
+import { ProviderId } from '../../../model/enums';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 

@@ -308,7 +308,7 @@ export function connectDatabaseEmulator(
   host: string,
   port: number,
   options: {
-    mockUserToken?: EmulatorMockTokenOptions;
+    mockUserToken?: EmulatorMockTokenOptions | string;
   } = {}
 ): void {
   db = getModularInstance(db);
@@ -329,10 +329,10 @@ export function connectDatabaseEmulator(
     }
     tokenProvider = new EmulatorTokenProvider(EmulatorTokenProvider.OWNER);
   } else if (options.mockUserToken) {
-    const token = createMockUserToken(
-      options.mockUserToken,
-      db.app.options.projectId
-    );
+    const token =
+      typeof options.mockUserToken === 'string'
+        ? options.mockUserToken
+        : createMockUserToken(options.mockUserToken, db.app.options.projectId);
     tokenProvider = new EmulatorTokenProvider(token);
   }
 

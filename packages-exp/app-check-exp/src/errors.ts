@@ -31,8 +31,10 @@ export const enum AppCheckError {
 
 const ERRORS: ErrorMap<AppCheckError> = {
   [AppCheckError.ALREADY_INITIALIZED]:
-    'You have already called initializeAppCheck() for FirebaseApp {$appName}, ' +
-    'initializeAppCheck() can only be called once.',
+    'You have already called initializeAppCheck() for FirebaseApp {$appName} with ' +
+    'different options. To avoid this error, call initializeAppCheck() with the ' +
+    'same options as when it was originally called. This will return the ' +
+    'already initialized instance.',
   [AppCheckError.USE_BEFORE_ACTIVATION]:
     'App Check is being used before initializeAppCheck() is called for FirebaseApp {$appName}. ' +
     'Call initializeAppCheck() before instantiating other Firebase services.',

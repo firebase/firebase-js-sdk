@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { EmulatorMockTokenOptions } from '@firebase/util';
 
 export interface DataSnapshot {
   child(path: string): DataSnapshot;
@@ -34,7 +35,13 @@ export interface DataSnapshot {
 
 export interface Database {
   app: FirebaseApp;
-  useEmulator(host: string, port: number): void;
+  useEmulator(
+    host: string,
+    port: number,
+    options?: {
+      mockUserToken?: EmulatorMockTokenOptions | string;
+    }
+  ): void;
   goOffline(): void;
   goOnline(): void;
   ref(path?: string | Reference): Reference;
@@ -44,7 +51,13 @@ export interface Database {
 export class FirebaseDatabase implements Database {
   private constructor();
   app: FirebaseApp;
-  useEmulator(host: string, port: number): void;
+  useEmulator(
+    host: string,
+    port: number,
+    options?: {
+      mockUserToken?: EmulatorMockTokenOptions | string;
+    }
+  ): void;
   goOffline(): void;
   goOnline(): void;
   ref(path?: string | Reference): Reference;
