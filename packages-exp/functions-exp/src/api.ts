@@ -32,7 +32,7 @@ export * from './public-types';
 
 /**
  * Returns a {@link Functions} instance for the given app.
- * @param app - The `FirebaseApp` to use.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
  * @param regionOrCustomDomain - one of:
  *   a) The region the callable functions are located in (ex: us-central1)
  *   b) A custom domain hosting the callable functions (ex: https://mydomain.com)

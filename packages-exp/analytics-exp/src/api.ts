@@ -60,11 +60,11 @@ declare module '@firebase/component' {
 }
 
 /**
- * Returns a {@link Analytics} instance for the given app.
+ * Returns an {@link Analytics} instance for the given app.
  *
  * @public
  *
- * @param app - The `FirebaseApp` to use.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
  */
 export function getAnalytics(app: FirebaseApp = getApp()): Analytics {
   app = getModularInstance(app);
@@ -82,11 +82,11 @@ export function getAnalytics(app: FirebaseApp = getApp()): Analytics {
 }
 
 /**
- * Returns a {@link Analytics} instance for the given app.
+ * Returns an {@link Analytics} instance for the given app.
  *
  * @public
  *
- * @param app - The `FirebaseApp` to use.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
  */
 export function initializeAnalytics(
   app: FirebaseApp,
@@ -222,7 +222,7 @@ export function setAnalyticsCollectionEnabled(
   ).catch(e => logger.error(e));
 }
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -245,7 +245,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -268,7 +268,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -289,7 +289,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -311,7 +311,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -335,7 +335,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -355,7 +355,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -375,7 +375,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -394,7 +394,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -415,7 +415,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -441,7 +441,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -460,7 +460,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -479,7 +479,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -499,7 +499,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -520,7 +520,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -541,7 +541,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -561,7 +561,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -582,7 +582,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -601,7 +601,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -623,7 +623,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -644,7 +644,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -665,7 +665,7 @@ export function logEvent(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * @public
@@ -681,7 +681,7 @@ export function logEvent<T extends string>(
 ): void;
 
 /**
- * Sends Google Analytics event with given `eventParams`. This method
+ * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
  * app instance on this device.
  * List of official event parameters can be found in the gtag.js

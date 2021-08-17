@@ -80,7 +80,7 @@ export interface GtagConfigParams {
 }
 
 /**
- * Firebase Analytics instance initialization options.
+ * {@link Analytics} instance initialization options.
  * @public
  */
 export interface AnalyticsSettings {
@@ -92,7 +92,7 @@ export interface AnalyticsSettings {
 }
 
 /**
- * Additional options that can be passed to Firebase Analytics method
+ * Additional options that can be passed to Analytics method
  * calls such as `logEvent`, `setCurrentScreen`, etc.
  * @public
  */
@@ -110,7 +110,7 @@ export interface AnalyticsCallOptions {
  */
 export interface Analytics {
   /**
-   * The `FirebaseApp` this {@link Analytics} instance is associated with.
+   * The {@link @firebase/app#FirebaseApp} this {@link Analytics} instance is associated with.
    */
   app: FirebaseApp;
 }

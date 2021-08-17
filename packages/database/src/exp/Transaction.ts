@@ -37,7 +37,7 @@ export interface TransactionOptions {
 }
 
 /**
- * A type for the resolve value of `runTransaction`.
+ * A type for the resolve value of {@link runTransaction}.
  */
 export class TransactionResult {
   /** @hideconstructor */

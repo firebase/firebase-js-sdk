@@ -50,12 +50,12 @@ export interface HttpsCallableOptions {
 }
 
 /**
- * An instance of Firebase Functions.
+ * A `Functions` instance.
  * @public
  */
 export interface Functions {
   /**
-   * The `FirebaseApp` this `Functions` instance is associated with.
+   * The {@link @firebase/app#FirebaseApp} this `Functions` instance is associated with.
    */
   app: FirebaseApp;
 

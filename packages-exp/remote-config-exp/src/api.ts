@@ -31,7 +31,7 @@ import { getModularInstance } from '@firebase/util';
 
 /**
  *
- * @param app - The `FirebaseApp` instance.
+ * @param app - The {@link @firebase/app#FirebaseApp} instance.
  * @returns A {@link RemoteConfig} instance.
  *
  * @public

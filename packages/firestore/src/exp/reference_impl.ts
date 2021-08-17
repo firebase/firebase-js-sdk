@@ -770,8 +770,8 @@ export function executeWrite(
 }
 
 /**
- * Converts a `ViewSnapshot` that contains the single document specified by `ref`
- * to a `DocumentSnapshot`.
+ * Converts a {@link ViewSnapshot} that contains the single document specified by `ref`
+ * to a {@link DocumentSnapshot}.
  */
 function convertToDocSnapshot<T>(
   firestore: Firestore,

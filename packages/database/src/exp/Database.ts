@@ -51,7 +51,7 @@ import { validateUrl } from '../core/util/validation';
 import { ReferenceImpl } from './Reference_impl';
 
 /**
- * This variable is also defined in the firebase NodeJS Admin SDK. Before
+ * This variable is also defined in the firebase Node.js Admin SDK. Before
  * modifying this definition, consult the definition in:
  *
  * https://github.com/firebase/firebase-admin-node
@@ -232,7 +232,7 @@ export class Database implements _FirebaseService {
   /** @hideconstructor */
   constructor(
     public _repoInternal: Repo,
-    /** The `FirebaseApp` associated with this Realtime Database instance. */
+    /** The {@link @firebase/app#FirebaseApp} associated with this Realtime Database instance. */
     readonly app: FirebaseApp
   ) {}
 

@@ -311,7 +311,7 @@ export interface Persistence {
  * Interface representing ID token result obtained from {@link User.getIdTokenResult}.
  *
  * @remarks
- * It contains the ID token JWT string and other helper properties for getting different data
+ * `IdTokenResult` contains the ID token JWT string and other helper properties for getting different data
  * associated with the token as well as all the decoded payload claims.
  *
  * Note that these claims are not to be trusted as they are parsed client side. Only server side

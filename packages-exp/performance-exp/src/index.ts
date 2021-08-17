@@ -51,7 +51,7 @@ const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 /**
  * Returns a {@link FirebasePerformance} instance for the given app.
- * @param app - The `FirebaseApp` to use.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
  * @public
  */
 export function getPerformance(
@@ -65,7 +65,7 @@ export function getPerformance(
 
 /**
  * Returns a {@link FirebasePerformance} instance for the given app. Can only be called once.
- * @param app - The `FirebaseApp` to use.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
  * @param settings - Optional settings for the {@link FirebasePerformance} instance.
  * @public
  */
