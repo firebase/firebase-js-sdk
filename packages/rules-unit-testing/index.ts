@@ -21,4 +21,5 @@
  * creating a dependency on @firebase/rules-unit-testing.
  */
 
-export const TODO = 'TODO';
+export * from './src/public_types';
+export * from './src/test_environment';
