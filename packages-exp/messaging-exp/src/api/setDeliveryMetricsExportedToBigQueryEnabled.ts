@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseMessaging } from '../interfaces/public-types';
+import { Messaging } from '../interfaces/public-types';
 import { MessagingService } from '../messaging-service';
 
 export function _setDeliveryMetricsExportedToBigQueryEnabled(
-  messaging: FirebaseMessaging,
+  messaging: Messaging,
   enable: boolean
 ): void {
   (messaging as MessagingService).deliveryMetricsExportedToBigQueryEnabled =
