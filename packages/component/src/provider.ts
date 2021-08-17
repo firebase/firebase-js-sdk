@@ -38,6 +38,8 @@ export class Provider<T extends Name> {
     string,
     Deferred<NameServiceMapping[T]>
   > = new Map();
+  private readonly instancesOptions: Map<string, Record<string, unknown>> =
+    new Map();
   private onInitCallbacks: Map<string, Set<OnInitCallBack<T>>> = new Map();
 
   constructor(
@@ -171,9 +173,8 @@ export class Provider<T extends Name> {
       instanceIdentifier,
       instanceDeferred
     ] of this.instancesDeferred.entries()) {
-      const normalizedIdentifier = this.normalizeInstanceIdentifier(
-        instanceIdentifier
-      );
+      const normalizedIdentifier =
+        this.normalizeInstanceIdentifier(instanceIdentifier);
 
       try {
         // `getOrInitializeService()` should always return a valid instance since a component is guaranteed. use ! to make typescript happy.
@@ -190,6 +191,7 @@ export class Provider<T extends Name> {
 
   clearInstance(identifier: string = DEFAULT_ENTRY_NAME): void {
     this.instancesDeferred.delete(identifier);
+    this.instancesOptions.delete(identifier);
     this.instances.delete(identifier);
   }
 
@@ -218,6 +220,10 @@ export class Provider<T extends Name> {
     return this.instances.has(identifier);
   }
 
+  getOptions(identifier: string = DEFAULT_ENTRY_NAME): Record<string, unknown> {
+    return this.instancesOptions.get(identifier) || {};
+  }
+
   initialize(opts: InitializeOptions = {}): NameServiceMapping[T] {
     const { options = {} } = opts;
     const normalizedIdentifier = this.normalizeInstanceIdentifier(
@@ -243,9 +249,8 @@ export class Provider<T extends Name> {
       instanceIdentifier,
       instanceDeferred
     ] of this.instancesDeferred.entries()) {
-      const normalizedDeferredIdentifier = this.normalizeInstanceIdentifier(
-        instanceIdentifier
-      );
+      const normalizedDeferredIdentifier =
+        this.normalizeInstanceIdentifier(instanceIdentifier);
       if (normalizedIdentifier === normalizedDeferredIdentifier) {
         instanceDeferred.resolve(instance);
       }
@@ -315,6 +320,7 @@ export class Provider<T extends Name> {
         options
       });
       this.instances.set(instanceIdentifier, instance);
+      this.instancesOptions.set(instanceIdentifier, options);
 
       /**
        * Invoke onInit listeners.

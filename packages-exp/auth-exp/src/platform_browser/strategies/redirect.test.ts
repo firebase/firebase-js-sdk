@@ -22,10 +22,9 @@ import * as sinonChai from 'sinon-chai';
 
 import {
   AuthError,
-  OperationType,
-  PopupRedirectResolver,
-  ProviderId
+  PopupRedirectResolver
 } from '../../model/public_types';
+import { OperationType, ProviderId } from '../../model/enums';
 
 import { delay } from '../../../test/helpers/delay';
 import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';

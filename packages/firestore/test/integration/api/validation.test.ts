@@ -158,11 +158,27 @@ apiDescribe('Validation:', (persistence: boolean) => {
       }
     );
 
-    validationIt(persistence, 'useEmulator can set mockUserToken', () => {
-      const db = newTestFirestore('test-project');
-      // Verify that this doesn't throw.
-      db.useEmulator('localhost', 9000, { mockUserToken: { sub: 'foo' } });
-    });
+    validationIt(
+      persistence,
+      'useEmulator can set mockUserToken object',
+      () => {
+        const db = newTestFirestore('test-project');
+        // Verify that this doesn't throw.
+        db.useEmulator('localhost', 9000, { mockUserToken: { sub: 'foo' } });
+      }
+    );
+
+    validationIt(
+      persistence,
+      'useEmulator can set mockUserToken string',
+      () => {
+        const db = newTestFirestore('test-project');
+        // Verify that this doesn't throw.
+        db.useEmulator('localhost', 9000, {
+          mockUserToken: 'my-mock-user-token'
+        });
+      }
+    );
 
     validationIt(
       persistence,

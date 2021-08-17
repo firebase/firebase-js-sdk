@@ -18,8 +18,6 @@
 import {
   Auth,
   PhoneInfoOptions,
-  ProviderId,
-  SignInMethod,
   ApplicationVerifier,
   UserCredential
 } from '../../model/public_types';
@@ -34,6 +32,7 @@ import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthCredential } from '../../core';
 import { FirebaseError, getModularInstance } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
+import { ProviderId, SignInMethod } from '../../model/enums';
 
 /**
  * Provider for generating an {@link PhoneAuthCredential}.

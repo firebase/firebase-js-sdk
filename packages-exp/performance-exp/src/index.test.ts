@@ -16,12 +16,10 @@
  */
 
 import { expect } from 'chai';
-import { stub } from 'sinon';
 import { initializePerformance } from './index';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
-import * as firebase from '@firebase/app-exp';
-import { Provider } from '@firebase/component';
 import '../test/setup';
+import { deleteApp, FirebaseApp, initializeApp } from '@firebase/app-exp';
 
 const fakeFirebaseConfig = {
   apiKey: 'api-key',
@@ -33,18 +31,43 @@ const fakeFirebaseConfig = {
   appId: '1:111:web:a1234'
 };
 
-const fakeFirebaseApp = ({
-  options: fakeFirebaseConfig
-} as unknown) as firebase.FirebaseApp;
-
 describe('Firebase Performance > initializePerformance()', () => {
-  it('throws if a perf instance has already been created', () => {
-    stub(firebase, '_getProvider').returns(({
-      isInitialized: () => true
-    } as unknown) as Provider<'performance-exp'>);
+  let app: FirebaseApp;
+  beforeEach(() => {
+    app = initializeApp(fakeFirebaseConfig);
+  });
+  afterEach(() => {
+    return deleteApp(app);
+  });
+  it('returns same instance if given same (no) params a second time', () => {
+    const performanceInstance = initializePerformance(app);
+    expect(initializePerformance(app)).to.equal(performanceInstance);
+  });
+  it('returns same instance if given same params a second time', () => {
+    const performanceInstance = initializePerformance(app, {
+      dataCollectionEnabled: false
+    });
+    expect(
+      initializePerformance(app, { dataCollectionEnabled: false })
+    ).to.equal(performanceInstance);
+  });
+  it('throws if called with params after being called with no params', () => {
+    initializePerformance(app);
     const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
-    expect(() => initializePerformance(fakeFirebaseApp)).to.throw(
-      expectedError.message
-    );
+    expect(() =>
+      initializePerformance(app, { dataCollectionEnabled: false })
+    ).to.throw(expectedError.message);
+  });
+  it('throws if called with no params after being called with params', () => {
+    initializePerformance(app, { instrumentationEnabled: false });
+    const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+    expect(() => initializePerformance(app)).to.throw(expectedError.message);
+  });
+  it('throws if called a second time with different params', () => {
+    initializePerformance(app, { instrumentationEnabled: true });
+    const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+    expect(() =>
+      initializePerformance(app, { instrumentationEnabled: false })
+    ).to.throw(expectedError.message);
   });
 });

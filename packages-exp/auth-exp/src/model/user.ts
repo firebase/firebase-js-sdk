@@ -15,13 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  IdTokenResult,
-  ProviderId,
-  User,
-  UserCredential,
-  UserInfo
-} from './public_types';
+import { IdTokenResult, User, UserCredential, UserInfo } from './public_types';
 import { NextFn } from '@firebase/util';
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
@@ -30,6 +24,7 @@ import { StsTokenManager } from '../core/user/token_manager';
 import { UserMetadata } from '../core/user/user_metadata';
 import { AuthInternal } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
+import { ProviderId } from './enums';
 
 export type MutableUserInfo = {
   -readonly [K in keyof UserInfo]: UserInfo[K];

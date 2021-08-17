@@ -23,7 +23,7 @@ import {
   OperationType,
   ProviderId,
   SignInMethod
-} from '../../model/public_types';
+} from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
