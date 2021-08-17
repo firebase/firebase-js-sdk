@@ -600,212 +600,6 @@ function genericMutationTests(
       });
     });
 
-    // Skip test. This is just here to just make sure things compile.
-    // eslint-disable-next-line no-restricted-properties
-    it.skip('temporary sanity check tests', async () => {
-      class TestObject {
-        constructor(
-          readonly outerString: string,
-          readonly outerNum: number,
-          readonly outerArr: string[],
-          readonly nested: {
-            innerNested: {
-              innerNestedNum: number;
-              innerNestedString: string;
-            };
-            innerArr: number[];
-            timestamp: Timestamp;
-          }
-        ) {}
-      }
-
-      const testConverterMerge = {
-        toFirestore(testObj: NestedPartial<TestObject>, options?: SetOptions) {
-          return { ...testObj };
-        },
-        fromFirestore(snapshot: QueryDocumentSnapshot): TestObject {
-          const data = snapshot.data();
-          return new TestObject(
-            data.outerString,
-            data.outerNum,
-            data.outerArr,
-            data.nested
-          );
-        }
-      };
-
-      const testConverter = {
-        toFirestore(testObj: WithFieldValue<TestObject>) {
-          return { ...testObj };
-        },
-        fromFirestore(snapshot: QueryDocumentSnapshot): TestObject {
-          const data = snapshot.data();
-          return new TestObject(
-            data.outerString,
-            data.outerNum,
-            data.outerArr,
-            data.nested
-          );
-        }
-      };
-
-      return withTestDb(async db => {
-        const coll = collection(db, 'posts');
-        let ref = doc(coll, 'testobj').withConverter(testConverterMerge);
-
-        // Allow Field Values and nested partials.
-        await setDoc(
-          ref,
-          {
-            outerString: deleteField(),
-            nested: {
-              innerNested: {
-                innerNestedNum: increment(1)
-              },
-              innerArr: arrayUnion(2),
-              timestamp: serverTimestamp()
-            }
-          },
-          { merge: true }
-        );
-
-        // Checks for non-existent properties
-        await setDoc(
-          ref,
-          {
-            // @ts-expect-error
-            nonexistent: 'foo'
-          },
-          { merge: true }
-        );
-        await setDoc(
-          ref,
-          {
-            nested: {
-              // @ts-expect-error
-              nonexistent: 'foo'
-            }
-          },
-          { merge: true }
-        );
-
-        // Nested Partials are checked
-        await setDoc(
-          ref,
-          {
-            nested: {
-              innerNested: {
-                // @ts-expect-error
-                innerNestedNum: 'string'
-              },
-              // @ts-expect-error
-              innerArr: 2
-            }
-          },
-          { merge: true }
-        );
-        await setDoc(
-          ref,
-          {
-            // @ts-expect-error
-            nested: 3
-          },
-          { merge: true }
-        );
-
-        // Can use update to verify fields
-        await updateDoc(ref, {
-          // @ts-expect-error
-          outerString: 3,
-          // @ts-expect-error
-          outerNum: [],
-          outerArr: arrayUnion('foo'),
-          nested: {
-            innerNested: {
-              // @ts-expect-error
-              innerNestedNum: 'string'
-            },
-            // @ts-expect-error
-            innerArr: 2,
-            timestamp: serverTimestamp()
-          }
-        });
-
-        // Cannot update nonexistent fields
-        await updateDoc(ref, {
-          // @ts-expect-error
-          nonexistent: 'foo'
-        });
-        await updateDoc(ref, {
-          nested: {
-            // @ts-expect-error
-            nonexistent: 'foo'
-          }
-        });
-
-        // Can use update to check string separated fields
-        await updateDoc(ref, {
-          'nested.innerNested.innerNestedNum': 4,
-          // @ts-expect-error
-          'nested.innerNested.innerNestedString': 4,
-          // @ts-expect-error
-          'nested.innerArr': 3,
-          'nested.timestamp': serverTimestamp()
-        });
-
-        // Tests for `WithFieldValue`
-        ref = doc(coll, 'testobj').withConverter(testConverter);
-        // Allow Field Values and nested partials.
-        await setDoc(ref, {
-          outerString: deleteField(),
-          outerNum: 3,
-          outerArr: [],
-          nested: {
-            innerNested: {
-              innerNestedNum: increment(1),
-              innerNestedString: deleteField()
-            },
-            innerArr: arrayUnion(2),
-            timestamp: serverTimestamp()
-          }
-        });
-
-        // Type validation still works for outer and nested fields
-        await setDoc(ref, {
-          outerString: deleteField(),
-          outerNum: 3,
-          // @ts-expect-error
-          outerArr: 2,
-          nested: {
-            innerNested: {
-              // @ts-expect-error
-              innerNestedNum: 'string',
-              innerNestedString: deleteField()
-            },
-            innerArr: arrayUnion(2),
-            timestamp: serverTimestamp()
-          }
-        });
-
-        // Nonexistent fields should error
-        await setDoc(ref, {
-          outerString: deleteField(),
-          outerNum: 3,
-          outerArr: [],
-          nested: {
-            innerNested: {
-              // @ts-expect-error
-              nonexistent: 'string',
-              innerNestedNum: 2,
-              innerNestedString: deleteField()
-            },
-            innerArr: arrayUnion(2),
-            timestamp: serverTimestamp()
-          }
-        });
-      });
-    });
-
     it('supports partials with mergeFields', async () => {
       return withTestDb(async db => {
         const coll = collection(db, 'posts');
@@ -1436,6 +1230,515 @@ describe('withConverter() support', () => {
           '(via `toFirestore()`). Unsupported field value: undefined ' +
           '(found in field author in document posts/post)'
       );
+    });
+  });
+
+  describe('types test', () => {
+    class TestObject {
+      constructor(
+        readonly outerString: string,
+        readonly outerArr: string[],
+        readonly nested: {
+          innerNested: {
+            innerNestedNum: number;
+          };
+          innerArr: number[];
+          timestamp: Timestamp;
+        }
+      ) {}
+    }
+
+    const testConverter = {
+      toFirestore(testObj: WithFieldValue<TestObject>) {
+        return { ...testObj };
+      },
+      fromFirestore(snapshot: QueryDocumentSnapshot): TestObject {
+        const data = snapshot.data();
+        return new TestObject(data.outerString, data.outerArr, data.nested);
+      }
+    };
+
+    function setBaseDoc(ref: DocumentReference<unknown>): Promise<void> {
+      return setDoc(ref, {
+        outerString: 'foo',
+        outerArr: [],
+        nested: {
+          innerNested: {
+            innerNestedNum: 2
+          },
+          innerArr: arrayUnion(2),
+          timestamp: serverTimestamp()
+        }
+      });
+    }
+
+    describe('NestedPartial', () => {
+      const testConverterMerge = {
+        toFirestore(testObj: NestedPartial<TestObject>, options?: SetOptions) {
+          return { ...testObj };
+        },
+        fromFirestore(snapshot: QueryDocumentSnapshot): TestObject {
+          const data = snapshot.data();
+          return new TestObject(data.outerString, data.outerArr, data.nested);
+        }
+      };
+
+      it('supports FieldValues', async () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverterMerge
+          );
+
+          // Allow Field Values in nested partials.
+          await setDoc(
+            ref,
+            {
+              outerString: deleteField(),
+              nested: {
+                innerNested: {
+                  innerNestedNum: increment(1)
+                },
+                innerArr: arrayUnion(2),
+                timestamp: serverTimestamp()
+              }
+            },
+            { merge: true }
+          );
+
+          // Allow setting FieldValue on entire object field.
+          await setDoc(
+            ref,
+            {
+              nested: deleteField()
+            },
+            { merge: true }
+          );
+        });
+      });
+
+      it('validates types in outer and inner fields', async () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverterMerge
+          );
+
+          // Check top-level fields.
+          await setDoc(
+            ref,
+            {
+              // @ts-expect-error
+              outerString: 3,
+              // @ts-expect-error
+              outerArr: null
+            },
+            { merge: true }
+          );
+
+          // Check nested fields.
+          await setDoc(
+            ref,
+            {
+              nested: {
+                innerNested: {
+                  // @ts-expect-error
+                  innerNestedNum: 'string'
+                },
+                // @ts-expect-error
+                innerArr: null
+              }
+            },
+            { merge: true }
+          );
+          await setDoc(
+            ref,
+            {
+              // @ts-expect-error
+              nested: 3
+            },
+            { merge: true }
+          );
+        });
+      });
+
+      it('checks for nonexistent properties', async () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverterMerge
+          );
+          // Top-level property.
+          await setDoc(
+            ref,
+            {
+              // @ts-expect-error
+              nonexistent: 'foo'
+            },
+            { merge: true }
+          );
+
+          // Nested property
+          await setDoc(
+            ref,
+            {
+              nested: {
+                // @ts-expect-error
+                nonexistent: 'foo'
+              }
+            },
+            { merge: true }
+          );
+        });
+      });
+    });
+
+    describe('WithFieldValue', () => {
+      it('supports FieldValues', async () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+
+          // Allow Field Values and nested partials.
+          await setDoc(ref, {
+            outerString: 'foo',
+            outerArr: [],
+            nested: {
+              innerNested: {
+                innerNestedNum: increment(1)
+              },
+              innerArr: arrayUnion(2),
+              timestamp: serverTimestamp()
+            }
+          });
+        });
+      });
+
+      it('requires all fields to be present', async () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+
+          // Allow Field Values and nested partials.
+          // @ts-expect-error
+          await setDoc(ref, {
+            outerArr: [],
+            nested: {
+              innerNested: {
+                innerNestedNum: increment(1)
+              },
+              innerArr: arrayUnion(2),
+              timestamp: serverTimestamp()
+            }
+          });
+        });
+      });
+
+      it('validates inner and outer fields', async () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+
+          await setDoc(ref, {
+            outerString: 'foo',
+            // @ts-expect-error
+            outerArr: 2,
+            nested: {
+              innerNested: {
+                // @ts-expect-error
+                innerNestedNum: 'string'
+              },
+              innerArr: arrayUnion(2),
+              timestamp: serverTimestamp()
+            }
+          });
+        });
+      });
+
+      it('checks for nonexistent properties', async () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+
+          // Top-level nonexistent fields should error
+          await setDoc(ref, {
+            outerString: 'foo',
+            // @ts-expect-error
+            outerNum: 3,
+            outerArr: [],
+            nested: {
+              innerNested: {
+                innerNestedNum: 2
+              },
+              innerArr: arrayUnion(2),
+              timestamp: serverTimestamp()
+            }
+          });
+
+          // Nested nonexistent fields should error
+          await setDoc(ref, {
+            outerString: 'foo',
+            outerNum: 3,
+            outerArr: [],
+            nested: {
+              innerNested: {
+                // @ts-expect-error
+                nonexistent: 'string',
+                innerNestedNum: 2
+              },
+              innerArr: arrayUnion(2),
+              timestamp: serverTimestamp()
+            }
+          });
+        });
+      });
+    });
+
+    describe('UpdateData', () => {
+      // Skip test. This is just here to just make sure things compile.
+      // eslint-disable-next-line no-restricted-properties
+
+      it('supports FieldValues', () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+          await setBaseDoc(ref);
+
+          await updateDoc(ref, {
+            outerString: deleteField(),
+            nested: {
+              innerNested: {
+                innerNestedNum: increment(2)
+              },
+              innerArr: arrayUnion(3)
+            }
+          });
+        });
+      });
+
+      it('validates inner and outer fields', async () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+          await setBaseDoc(ref);
+
+          await updateDoc(ref, {
+            // @ts-expect-error
+            outerString: 3,
+            nested: {
+              innerNested: {
+                // @ts-expect-error
+                innerNestedNum: 'string'
+              },
+              // @ts-expect-error
+              innerArr: 2
+            }
+          });
+        });
+      });
+
+      it('supports string-separated fields', () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+          await setBaseDoc(ref);
+
+          await updateDoc(ref, {
+            // @ts-expect-error
+            outerString: 3,
+            // @ts-expect-error
+            'nested.innerNested.innerNestedNum': 'string',
+            // @ts-expect-error
+            'nested.innerArr': 3,
+            'nested.timestamp': serverTimestamp()
+          });
+
+          // String comprehension works in nested fields.
+          await updateDoc(ref, {
+            nested: {
+              innerNested: {
+                // @ts-expect-error
+                'innerNestedNum': 'string'
+              },
+              // @ts-expect-error
+              'innerArr': 3
+            }
+          });
+        });
+      });
+
+      it('checks for nonexistent fields', () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+          await setBaseDoc(ref);
+
+          // Top-level fields.
+          await updateDoc(ref, {
+            // @ts-expect-error
+            nonexistent: 'foo'
+          });
+
+          // Nested Fields.
+          await updateDoc(ref, {
+            nested: {
+              // @ts-expect-error
+              nonexistent: 'foo'
+            }
+          });
+
+          // String fields.
+          await updateDoc(ref, {
+            // @ts-expect-error
+            'nonexistent': 'foo'
+          });
+          await updateDoc(ref, {
+            // @ts-expect-error
+            'nested.nonexistent': 'foo'
+          });
+        });
+      });
+    });
+
+    describe('methods', () => {
+      it('addDoc()', () => {
+        return withTestDb(async db => {
+          const ref = collection(db, 'testobj').withConverter(testConverter);
+
+          // Requires all fields to be present
+          // @ts-expect-error
+          await addDoc(ref, {
+            outerArr: [],
+            nested: {
+              innerNested: {
+                innerNestedNum: 2
+              },
+              innerArr: [],
+              timestamp: serverTimestamp()
+            }
+          });
+        });
+      });
+
+      it('WriteBatch.set()', () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+          const batch = writeBatch(db);
+
+          // Requires full object if {merge: true} is not set.
+          // @ts-expect-error
+          batch.set(ref, {
+            outerArr: [],
+            nested: {
+              innerNested: {
+                innerNestedNum: increment(1)
+              },
+              innerArr: arrayUnion(2),
+              timestamp: serverTimestamp()
+            }
+          });
+
+          batch.set(
+            ref,
+            {
+              outerArr: [],
+              nested: {
+                innerNested: {
+                  innerNestedNum: increment(1)
+                },
+                innerArr: arrayUnion(2),
+                timestamp: serverTimestamp()
+              }
+            },
+            { merge: true }
+          );
+        });
+      });
+
+      it('WriteBatch.update()', () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+          const batch = writeBatch(db);
+
+          batch.update(ref, {
+            outerArr: [],
+            nested: {
+              'innerNested.innerNestedNum': increment(1),
+              'innerArr': arrayUnion(2),
+              timestamp: serverTimestamp()
+            }
+          });
+        });
+      });
+
+      it('Transaction.set()', () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+
+          return runTransaction(db, async tx => {
+            // Requires full object if {merge: true} is not set.
+            // @ts-expect-error
+            tx.set(ref, {
+              outerArr: [],
+              nested: {
+                innerNested: {
+                  innerNestedNum: increment(1)
+                },
+                innerArr: arrayUnion(2),
+                timestamp: serverTimestamp()
+              }
+            });
+
+            tx.set(
+              ref,
+              {
+                outerArr: [],
+                nested: {
+                  innerNested: {
+                    innerNestedNum: increment(1)
+                  },
+                  innerArr: arrayUnion(2),
+                  timestamp: serverTimestamp()
+                }
+              },
+              { merge: true }
+            );
+          });
+        });
+      });
+
+      it('Transaction.update()', () => {
+        return withTestDb(async db => {
+          const ref = doc(collection(db, 'testobj')).withConverter(
+            testConverter
+          );
+          await setBaseDoc(ref);
+
+          return runTransaction(db, async tx => {
+            tx.update(ref, {
+              outerArr: [],
+              nested: {
+                innerNested: {
+                  innerNestedNum: increment(1)
+                },
+                innerArr: arrayUnion(2),
+                timestamp: serverTimestamp()
+              }
+            });
+          });
+        });
+      });
     });
   });
 });
