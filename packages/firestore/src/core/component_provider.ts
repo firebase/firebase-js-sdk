@@ -182,6 +182,15 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       this.onlineComponentProvider.syncEngine
     );
     await fillWritePipeline(this.onlineComponentProvider.remoteStore);
+
+    // NOTE: This will immediately call the listener, so we make sure to
+    // set it after localStore / remoteStore are started.
+    await this.persistence.setPrimaryStateListener(() => {
+      if (this.gcScheduler && !this.gcScheduler.started) {
+          this.gcScheduler.start(this.localStore);
+      }
+      return Promise.resolve();
+    });
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
