@@ -1285,10 +1285,8 @@ describe('withConverter() support', () => {
       };
 
       it('supports FieldValues', async () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverterMerge
-          );
+        return withTestDoc(async doc => {
+          const ref = doc.withConverter(testConverter);
 
           // Allow Field Values in nested partials.
           await setDoc(
@@ -1318,10 +1316,8 @@ describe('withConverter() support', () => {
       });
 
       it('validates types in outer and inner fields', async () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverterMerge
-          );
+        return withTestDoc(async doc => {
+          const ref = doc.withConverter(testConverter);
 
           // Check top-level fields.
           await setDoc(
@@ -1362,10 +1358,8 @@ describe('withConverter() support', () => {
       });
 
       it('checks for nonexistent properties', async () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverterMerge
-          );
+        return withTestDoc(async doc => {
+          const ref = doc.withConverter(testConverter);
           // Top-level property.
           await setDoc(
             ref,
@@ -1393,10 +1387,8 @@ describe('withConverter() support', () => {
 
     describe('WithFieldValue', () => {
       it('supports FieldValues', async () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverter
-          );
+        return withTestDoc(async doc => {
+          const ref = doc.withConverter(testConverter);
 
           // Allow Field Values and nested partials.
           await setDoc(ref, {
@@ -1414,10 +1406,8 @@ describe('withConverter() support', () => {
       });
 
       it('requires all fields to be present', async () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverter
-          );
+        return withTestDoc(async doc => {
+          const ref = doc.withConverter(testConverter);
 
           // Allow Field Values and nested partials.
           // @ts-expect-error
@@ -1435,10 +1425,8 @@ describe('withConverter() support', () => {
       });
 
       it('validates inner and outer fields', async () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverter
-          );
+        return withTestDoc(async doc => {
+          const ref = doc.withConverter(testConverter);
 
           await setDoc(ref, {
             outerString: 'foo',
@@ -1457,10 +1445,8 @@ describe('withConverter() support', () => {
       });
 
       it('checks for nonexistent properties', async () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverter
-          );
+        return withTestDoc(async doc => {
+          const ref = doc.withConverter(testConverter);
 
           // Top-level nonexistent fields should error
           await setDoc(ref, {
@@ -1590,8 +1576,8 @@ describe('withConverter() support', () => {
 
     describe('methods', () => {
       it('addDoc()', () => {
-        return withTestDb(async db => {
-          const ref = collection(db, 'testobj').withConverter(testConverter);
+        return withTestDoc(async doc => {
+          const ref = doc.withConverter(testConverter);
 
           // Requires all fields to be present
           // @ts-expect-error

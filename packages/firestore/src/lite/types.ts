@@ -17,6 +17,12 @@
 
 import { UpdateData } from './reference';
 
+/**
+ * These types primarily exist to support the `UpdateData`,
+ * `WithFieldValue`, and `PartialWithFieldValue` types and are not consumed
+ * directly by the end developer.
+ */
+
 /** Primitive types. */
 export type Primitive = string | number | boolean | undefined | null;
 

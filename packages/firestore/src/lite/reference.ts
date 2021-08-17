@@ -75,7 +75,8 @@ export type WithFieldValue<T> = T extends Primitive
 /**
  * Update data (for use with {@link (setDoc:1)}) that consists of field paths
  * (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots
- * reference nested fields within the document.
+ * reference nested fields within the document. FieldValues can be passed in
+ * as property values.
  */
 export type UpdateData<T> = T extends Primitive
   ? T
