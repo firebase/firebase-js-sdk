@@ -23,7 +23,7 @@ import { registerMessagingInSw } from './helpers/register';
 export {
   onBackgroundMessage,
   getMessagingInSw as getMessaging,
-  setDeliveryMetricsExportedToBigQueryEnabled
+  setDeliveryMetricsExportedToBigQueryEnabled as experimentalSetDeliveryMetricsExportedToBigQueryEnabled
 } from './api';
 export { isSwSupported as isSupported } from './api/isSupported';
 
