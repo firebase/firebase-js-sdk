@@ -20,7 +20,10 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { AuthError, PopupRedirectResolver } from '../../model/public_types';
+import {
+  AuthError,
+  PopupRedirectResolver
+} from '../../model/public_types';
 import { OperationType, ProviderId } from '../../model/enums';
 
 import { delay } from '../../../test/helpers/delay';
@@ -71,15 +74,17 @@ describe('platform_browser/strategies/redirect', () => {
   let idpStubs: sinon.SinonStubbedInstance<typeof idpTasks>;
 
   beforeEach(async () => {
-    eventManager = new AuthEventManager({} as unknown as TestAuth);
+    eventManager = new AuthEventManager(({} as unknown) as TestAuth);
     provider = new OAuthProvider(ProviderId.GOOGLE);
     resolver = makeMockPopupRedirectResolver(eventManager);
-    _getInstance<PopupRedirectResolverInternal>(resolver)._redirectPersistence =
-      RedirectPersistence;
+    _getInstance<PopupRedirectResolverInternal>(
+      resolver
+    )._redirectPersistence = RedirectPersistence;
     auth = await testAuth(resolver);
     idpStubs = sinon.stub(idpTasks);
-    _getInstance<RedirectPersistence>(RedirectPersistence).hasPendingRedirect =
-      true;
+    _getInstance<RedirectPersistence>(
+      RedirectPersistence
+    ).hasPendingRedirect = true;
   });
 
   afterEach(() => {
@@ -168,8 +173,9 @@ describe('platform_browser/strategies/redirect', () => {
     });
 
     it('persists the redirect user and current user', async () => {
-      const redirectPersistence: PersistenceInternal =
-        _getInstance(RedirectPersistence);
+      const redirectPersistence: PersistenceInternal = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, '_set');
       sinon.spy(auth.persistenceLayer, '_set');
 
@@ -187,8 +193,9 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('persists the redirect user but not current user if diff currentUser', async () => {
       await auth._updateCurrentUser(testUser(auth, 'not-uid', 'email', true));
-      const redirectPersistence: PersistenceInternal =
-        _getInstance(RedirectPersistence);
+      const redirectPersistence: PersistenceInternal = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, '_set');
       sinon.spy(auth.persistenceLayer, '_set');
 
@@ -244,8 +251,9 @@ describe('platform_browser/strategies/redirect', () => {
     });
 
     it('persists the redirect user and current user', async () => {
-      const redirectPersistence: PersistenceInternal =
-        _getInstance(RedirectPersistence);
+      const redirectPersistence: PersistenceInternal = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, '_set');
       sinon.spy(auth.persistenceLayer, '_set');
 
@@ -263,8 +271,9 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('persists the redirect user but not current user if diff currentUser', async () => {
       await auth._updateCurrentUser(testUser(auth, 'not-uid', 'email', true));
-      const redirectPersistence: PersistenceInternal =
-        _getInstance(RedirectPersistence);
+      const redirectPersistence: PersistenceInternal = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, '_set');
       sinon.spy(auth.persistenceLayer, '_set');
 
@@ -291,8 +300,9 @@ describe('platform_browser/strategies/redirect', () => {
     }
 
     async function reInitAuthWithRedirectUser(eventId: string): Promise<void> {
-      const redirectPersistence: RedirectPersistence =
-        _getInstance(RedirectPersistence);
+      const redirectPersistence: RedirectPersistence = _getInstance(
+        RedirectPersistence
+      );
       const mainPersistence = new MockPersistenceLayer();
       const oldAuth = await testAuth();
       const user = testUser(oldAuth, 'uid');
@@ -400,8 +410,9 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('removes the redirect user and clears eventId from currentuser', async () => {
       await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
-      const redirectPersistence: PersistenceInternal =
-        _getInstance(RedirectPersistence);
+      const redirectPersistence: PersistenceInternal = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, '_remove');
 
       const cred = new UserCredentialImpl({
@@ -425,8 +436,9 @@ describe('platform_browser/strategies/redirect', () => {
 
     it('does not mutate authstate if bypassAuthState is true', async () => {
       await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
-      const redirectPersistence: PersistenceInternal =
-        _getInstance(RedirectPersistence);
+      const redirectPersistence: PersistenceInternal = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, '_remove');
 
       const cred = new UserCredentialImpl({
