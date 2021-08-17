@@ -68,7 +68,7 @@ export {
   WithFieldValue,
   NestedUpdateFields,
   AddPrefixToKeys,
-  NestedPartial,
+  PartialWithFieldValue,
   UnionToIntersection,
   refEqual,
   queryEqual

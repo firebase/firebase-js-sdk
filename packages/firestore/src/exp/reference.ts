@@ -30,7 +30,7 @@ export {
   WithFieldValue,
   NestedUpdateFields,
   AddPrefixToKeys,
-  NestedPartial,
+  PartialWithFieldValue,
   UnionToIntersection,
   refEqual
 } from '../lite/reference';

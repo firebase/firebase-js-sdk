@@ -42,7 +42,7 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  NestedPartial,
+  PartialWithFieldValue,
   Query,
   SetOptions,
   UpdateData,
@@ -260,12 +260,12 @@ export function setDoc<T>(
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: NestedPartial<T>,
+  data: PartialWithFieldValue<T>,
   options: SetOptions
 ): Promise<void>;
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: WithFieldValue<T> | NestedPartial<T>,
+  data: PartialWithFieldValue<T>,
   options?: SetOptions
 ): Promise<void> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);

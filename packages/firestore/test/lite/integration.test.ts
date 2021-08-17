@@ -58,7 +58,7 @@ import {
   SetOptions,
   DocumentData,
   WithFieldValue,
-  NestedPartial,
+  PartialWithFieldValue,
   UpdateData
 } from '../../src/lite/reference';
 import {
@@ -349,7 +349,7 @@ interface MutationTester {
   ): Promise<void>;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: NestedPartial<T>,
+    data: PartialWithFieldValue<T>,
     options: SetOptions
   ): Promise<void>;
   update<T>(
@@ -381,7 +381,7 @@ describe('WriteBatch', () => {
 
     set<T>(
       ref: DocumentReference<T>,
-      data: WithFieldValue<T> | NestedPartial<T>,
+      data: PartialWithFieldValue<T>,
       options?: SetOptions
     ): Promise<void> {
       const batch = writeBatch(ref.firestore);
@@ -444,12 +444,12 @@ describe('Transaction', () => {
 
     set<T>(
       ref: DocumentReference<T>,
-      data: WithFieldValue<T> | NestedPartial<T>,
+      data: PartialWithFieldValue<T>,
       options?: SetOptions
     ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         if (options) {
-          transaction.set(ref, data as NestedPartial<T>, options);
+          transaction.set(ref, data, options);
         } else {
           transaction.set(ref, data as WithFieldValue<T>);
         }
@@ -1258,23 +1258,24 @@ describe('withConverter() support', () => {
       }
     };
 
-    function setBaseDoc(ref: DocumentReference<unknown>): Promise<void> {
-      return setDoc(ref, {
-        outerString: 'foo',
-        outerArr: [],
-        nested: {
-          innerNested: {
-            innerNestedNum: 2
-          },
-          innerArr: arrayUnion(2),
-          timestamp: serverTimestamp()
-        }
-      });
-    }
+    const initialData = {
+      outerString: 'foo',
+      outerArr: [],
+      nested: {
+        innerNested: {
+          innerNestedNum: 2
+        },
+        innerArr: arrayUnion(2),
+        timestamp: serverTimestamp()
+      }
+    };
 
     describe('NestedPartial', () => {
       const testConverterMerge = {
-        toFirestore(testObj: NestedPartial<TestObject>, options?: SetOptions) {
+        toFirestore(
+          testObj: PartialWithFieldValue<TestObject>,
+          options?: SetOptions
+        ) {
           return { ...testObj };
         },
         fromFirestore(snapshot: QueryDocumentSnapshot): TestObject {
@@ -1496,17 +1497,9 @@ describe('withConverter() support', () => {
     });
 
     describe('UpdateData', () => {
-      // Skip test. This is just here to just make sure things compile.
-      // eslint-disable-next-line no-restricted-properties
-
       it('supports FieldValues', () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverter
-          );
-          await setBaseDoc(ref);
-
-          await updateDoc(ref, {
+        return withTestDocAndInitialData(initialData, async docRef => {
+          await updateDoc(docRef.withConverter(testConverter), {
             outerString: deleteField(),
             nested: {
               innerNested: {
@@ -1519,13 +1512,8 @@ describe('withConverter() support', () => {
       });
 
       it('validates inner and outer fields', async () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverter
-          );
-          await setBaseDoc(ref);
-
-          await updateDoc(ref, {
+        return withTestDocAndInitialData(initialData, async docRef => {
+          await updateDoc(docRef.withConverter(testConverter), {
             // @ts-expect-error
             outerString: 3,
             nested: {
@@ -1541,13 +1529,10 @@ describe('withConverter() support', () => {
       });
 
       it('supports string-separated fields', () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverter
-          );
-          await setBaseDoc(ref);
-
-          await updateDoc(ref, {
+        return withTestDocAndInitialData(initialData, async docRef => {
+          const testDocRef: DocumentReference<TestObject> =
+            docRef.withConverter(testConverter);
+          await updateDoc(testDocRef, {
             // @ts-expect-error
             outerString: 3,
             // @ts-expect-error
@@ -1558,7 +1543,7 @@ describe('withConverter() support', () => {
           });
 
           // String comprehension works in nested fields.
-          await updateDoc(ref, {
+          await updateDoc(testDocRef, {
             nested: {
               innerNested: {
                 // @ts-expect-error
@@ -1572,20 +1557,18 @@ describe('withConverter() support', () => {
       });
 
       it('checks for nonexistent fields', () => {
-        return withTestDb(async db => {
-          const ref = doc(collection(db, 'testobj')).withConverter(
-            testConverter
-          );
-          await setBaseDoc(ref);
+        return withTestDocAndInitialData(initialData, async docRef => {
+          const testDocRef: DocumentReference<TestObject> =
+            docRef.withConverter(testConverter);
 
           // Top-level fields.
-          await updateDoc(ref, {
+          await updateDoc(testDocRef, {
             // @ts-expect-error
             nonexistent: 'foo'
           });
 
           // Nested Fields.
-          await updateDoc(ref, {
+          await updateDoc(testDocRef, {
             nested: {
               // @ts-expect-error
               nonexistent: 'foo'
@@ -1593,11 +1576,11 @@ describe('withConverter() support', () => {
           });
 
           // String fields.
-          await updateDoc(ref, {
+          await updateDoc(testDocRef, {
             // @ts-expect-error
             'nonexistent': 'foo'
           });
-          await updateDoc(ref, {
+          await updateDoc(testDocRef, {
             // @ts-expect-error
             'nested.nonexistent': 'foo'
           });
@@ -1723,7 +1706,17 @@ describe('withConverter() support', () => {
           const ref = doc(collection(db, 'testobj')).withConverter(
             testConverter
           );
-          await setBaseDoc(ref);
+          await setDoc(ref, {
+            outerString: 'foo',
+            outerArr: [],
+            nested: {
+              innerNested: {
+                innerNestedNum: 2
+              },
+              innerArr: arrayUnion(2),
+              timestamp: serverTimestamp()
+            }
+          });
 
           return runTransaction(db, async tx => {
             tx.update(ref, {

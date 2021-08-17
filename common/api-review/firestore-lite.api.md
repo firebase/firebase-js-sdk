@@ -138,7 +138,7 @@ export class Firestore {
 export interface FirestoreDataConverter<T> {
     fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
     toFirestore(modelObject: WithFieldValue<T>): DocumentData;
-    toFirestore(modelObject: NestedPartial<T>, options: SetOptions): DocumentData;
+    toFirestore(modelObject: PartialWithFieldValue<T>, options: SetOptions): DocumentData;
 }
 
 // @public
@@ -188,11 +188,6 @@ export function limitToLast(limit: number): QueryConstraint;
 export { LogLevel }
 
 // @public
-export type NestedPartial<T> = T extends Primitive ? T : T extends Map<infer K, infer V> ? Map<NestedPartial<K>, NestedPartial<V>> : T extends {} ? {
-    [K in keyof T]?: NestedPartial<T[K]> | FieldValue;
-} : Partial<T>;
-
-// @public
 export type NestedUpdateFields<T extends Record<string, any>> = UnionToIntersection<{
     [K in keyof T & string]: T[K] extends Record<string, any> ? AddPrefixToKeys<K, UpdateData<T[K]>> : never;
 }[keyof T & string]>;
@@ -202,6 +197,11 @@ export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDir
 
 // @public
 export type OrderByDirection = 'desc' | 'asc';
+
+// @public
+export type PartialWithFieldValue<T> = T extends Primitive ? T : T extends Map<infer K, infer V> ? Map<PartialWithFieldValue<K>, PartialWithFieldValue<V>> : T extends {} ? {
+    [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
+} : Partial<T>;
 
 // @public
 export type Primitive = string | number | boolean | undefined | null;
@@ -258,7 +258,7 @@ export function serverTimestamp(): FieldValue;
 export function setDoc<T>(reference: DocumentReference<T>, data: WithFieldValue<T>): Promise<void>;
 
 // @public
-export function setDoc<T>(reference: DocumentReference<T>, data: NestedPartial<T>, options: SetOptions): Promise<void>;
+export function setDoc<T>(reference: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): Promise<void>;
 
 // @public
 export function setLogLevel(logLevel: LogLevel): void;
@@ -321,7 +321,7 @@ export class Transaction {
     delete(documentRef: DocumentReference<unknown>): this;
     get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
     set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): this;
-    set<T>(documentRef: DocumentReference<T>, data: NestedPartial<T>, options: SetOptions): this;
+    set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): this;
     update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 }
@@ -356,7 +356,7 @@ export class WriteBatch {
     commit(): Promise<void>;
     delete(documentRef: DocumentReference<unknown>): WriteBatch;
     set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): WriteBatch;
-    set<T>(documentRef: DocumentReference<T>, data: NestedPartial<T>, options: SetOptions): WriteBatch;
+    set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): WriteBatch;
     update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
 }

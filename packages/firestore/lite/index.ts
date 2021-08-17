@@ -44,7 +44,7 @@ export {
   WithFieldValue,
   NestedUpdateFields,
   AddPrefixToKeys,
-  NestedPartial,
+  PartialWithFieldValue,
   UnionToIntersection,
   SetOptions,
   DocumentReference,

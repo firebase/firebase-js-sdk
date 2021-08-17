@@ -56,12 +56,12 @@ export type Primitive = string | number | boolean | undefined | null;
  * Similar to Typescript's `Partial<T>`, but allows nested fields to be
  * omitted and FieldValues to be passed in as property values.
  */
-export type NestedPartial<T> = T extends Primitive
+export type PartialWithFieldValue<T> = T extends Primitive
   ? T
   : T extends Map<infer K, infer V>
-  ? Map<NestedPartial<K>, NestedPartial<V>>
+  ? Map<PartialWithFieldValue<K>, PartialWithFieldValue<V>>
   : T extends {}
-  ? { [K in keyof T]?: NestedPartial<T[K]> | FieldValue }
+  ? { [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue }
   : Partial<T>;
 
 /**
@@ -75,9 +75,9 @@ export type WithFieldValue<T> = T extends Primitive
   : Partial<T>;
 
 /**
- * Update data (for use with {@link @firebase/firestore/lite#(updateDoc:1)})
- * that consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values.
- * Fields that contain dots reference nested fields within the document.
+ * Update data (for use with {@link (setDoc:1)}) that consists of field paths
+ * (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots
+ * reference nested fields within the document.
  */
 export type UpdateData<T> = T extends Primitive
   ? T

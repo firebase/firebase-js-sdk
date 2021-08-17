@@ -27,7 +27,7 @@ import { FieldPath } from './field_path';
 import {
   DocumentData,
   DocumentReference,
-  NestedPartial,
+  PartialWithFieldValue,
   Query,
   queryEqual,
   SetOptions,
@@ -57,7 +57,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * }
  *
  * const postConverter = {
- *   toFirestore(post: Post): firebase.firestore.DocumentData {
+ *   toFirestore(post: WithFieldValue<Post>): firebase.firestore.DocumentData {
  *     return {title: post.title, author: post.author};
  *   },
  *   fromFirestore(snapshot: firebase.firestore.QueryDocumentSnapshot): Post {
@@ -84,6 +84,9 @@ export interface FirestoreDataConverter<T> {
    * into a plain Javascript object (suitable for writing directly to the
    * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
    * and {@link @firebase/firestore/lite#(Transaction.set:1)}.
+   *
+   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such
+   * {@link (deleteField:1)} to be used as property values.
    */
   toFirestore(modelObject: WithFieldValue<T>): DocumentData;
 
@@ -92,8 +95,16 @@ export interface FirestoreDataConverter<T> {
    * into a plain Javascript object (suitable for writing directly to the
    * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
    * and {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true` or `mergeFields`.
+   *
+   * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
+   * FieldValues such {@link (arrayUnion:1)} to be used as property values.
+   * It also supports nested `Partial` by allowing nested fields to be
+   * omitted.
    */
-  toFirestore(modelObject: NestedPartial<T>, options: SetOptions): DocumentData;
+  toFirestore(
+    modelObject: PartialWithFieldValue<T>,
+    options: SetOptions
+  ): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of

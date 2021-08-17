@@ -106,7 +106,7 @@ import {
   AbstractUserDataWriter
 } from '../../exp/index'; // import from the exp public API
 import { DatabaseId } from '../core/database_info';
-import { NestedPartial, WithFieldValue } from '../lite/reference';
+import { PartialWithFieldValue, WithFieldValue } from '../lite/reference';
 import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
@@ -453,7 +453,7 @@ export class Transaction implements PublicTransaction, Compat<ExpTransaction> {
     const ref = castReference(documentRef);
     if (options) {
       validateSetOptions('Transaction.set', options);
-      this._delegate.set(ref, data as NestedPartial<T>, options);
+      this._delegate.set(ref, data as PartialWithFieldValue<T>, options);
     } else {
       this._delegate.set(ref, data as WithFieldValue<T>);
     }
@@ -514,7 +514,7 @@ export class WriteBatch implements PublicWriteBatch, Compat<ExpWriteBatch> {
     const ref = castReference(documentRef);
     if (options) {
       validateSetOptions('WriteBatch.set', options);
-      this._delegate.set(ref, data as NestedPartial<T>, options);
+      this._delegate.set(ref, data as PartialWithFieldValue<T>, options);
     } else {
       this._delegate.set(ref, data as WithFieldValue<T>);
     }
@@ -600,11 +600,11 @@ class FirestoreDataConverter<U>
 
   toFirestore(modelObject: WithFieldValue<U>): PublicDocumentData;
   toFirestore(
-    modelObject: NestedPartial<U>,
+    modelObject: PartialWithFieldValue<U>,
     options: PublicSetOptions
   ): PublicDocumentData;
   toFirestore(
-    modelObject: WithFieldValue<U> | NestedPartial<U>,
+    modelObject: WithFieldValue<U> | PartialWithFieldValue<U>,
     options?: PublicSetOptions
   ): PublicDocumentData {
     if (!options) {
@@ -735,7 +735,11 @@ export class DocumentReference<T = PublicDocumentData>
     options = validateSetOptions('DocumentReference.set', options);
     try {
       if (options) {
-        return setDoc(this._delegate, value as NestedPartial<T>, options);
+        return setDoc(
+          this._delegate,
+          value as PartialWithFieldValue<T>,
+          options
+        );
       } else {
         return setDoc(this._delegate, value as WithFieldValue<T>);
       }

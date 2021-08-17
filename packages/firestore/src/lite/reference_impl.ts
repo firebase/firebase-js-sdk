@@ -41,7 +41,7 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
-  NestedPartial,
+  PartialWithFieldValue,
   Query,
   SetOptions,
   UpdateData,
@@ -73,7 +73,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  */
 export function applyFirestoreDataConverter<T>(
   converter: UntypedFirestoreDataConverter<T> | null,
-  value: WithFieldValue<T> | NestedPartial<T>,
+  value: WithFieldValue<T> | PartialWithFieldValue<T>,
   options?: PublicSetOptions
 ): PublicDocumentData {
   let convertedValue;
@@ -219,18 +219,18 @@ export function setDoc<T>(
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: NestedPartial<T>,
+  data: PartialWithFieldValue<T>,
   options: SetOptions
 ): Promise<void>;
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: WithFieldValue<T> | NestedPartial<T>,
+  data: PartialWithFieldValue<T>,
   options?: SetOptions
 ): Promise<void> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
   const convertedValue = applyFirestoreDataConverter(
     reference.converter,
-    data as WithFieldValue<T>,
+    data,
     options
   );
   const dataReader = newUserDataReader(reference.firestore);
@@ -380,7 +380,10 @@ export function addDoc<T>(
   reference = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(reference);
 
-  const convertedValue = applyFirestoreDataConverter(reference.converter, data);
+  const convertedValue = applyFirestoreDataConverter(
+    reference.converter,
+    data as PartialWithFieldValue<T>
+  );
 
   const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(

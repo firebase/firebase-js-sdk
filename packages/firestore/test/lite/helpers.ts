@@ -27,7 +27,7 @@ import {
   CollectionReference,
   DocumentReference,
   SetOptions,
-  NestedPartial
+  PartialWithFieldValue
 } from '../../src/lite/reference';
 import { setDoc } from '../../src/lite/reference_impl';
 import { FirestoreSettings } from '../../src/lite/settings';
@@ -124,7 +124,10 @@ export const postConverter = {
 };
 
 export const postConverterMerge = {
-  toFirestore(post: NestedPartial<Post>, options?: SetOptions): DocumentData {
+  toFirestore(
+    post: PartialWithFieldValue<Post>,
+    options?: SetOptions
+  ): DocumentData {
     if (
       options &&
       ((options as { merge: true }).merge ||

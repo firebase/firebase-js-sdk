@@ -63,7 +63,11 @@ import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
-import { DocumentReference, NestedPartial, WithFieldValue } from './reference';
+import {
+  DocumentReference,
+  PartialWithFieldValue,
+  WithFieldValue
+} from './reference';
 import { Timestamp } from './timestamp';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
@@ -74,7 +78,10 @@ const RESERVED_FIELD_REGEX = /^__.*__$/;
  */
 export interface UntypedFirestoreDataConverter<T> {
   toFirestore(modelObject: WithFieldValue<T>): DocumentData;
-  toFirestore(modelObject: NestedPartial<T>, options: SetOptions): DocumentData;
+  toFirestore(
+    modelObject: PartialWithFieldValue<T>,
+    options: SetOptions
+  ): DocumentData;
   fromFirestore(snapshot: unknown, options?: unknown): T;
 }
 
