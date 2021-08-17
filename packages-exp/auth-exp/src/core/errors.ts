@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { AuthErrorMap, User } from '../model/public_types';
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 
@@ -408,6 +407,7 @@ type GenericAuthErrorParams = {
     | AuthErrorCode.INTERNAL_ERROR
     | AuthErrorCode.MFA_REQUIRED
     | AuthErrorCode.NO_AUTH_EVENT
+    | AuthErrorCode.OPERATION_NOT_SUPPORTED
   >]: {
     appName: AppName;
     email?: string;
@@ -419,6 +419,7 @@ export interface AuthErrorParams extends GenericAuthErrorParams {
   [AuthErrorCode.ARGUMENT_ERROR]: { appName?: AppName };
   [AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH]: { appName?: AppName };
   [AuthErrorCode.INTERNAL_ERROR]: { appName?: AppName };
+  [AuthErrorCode.OPERATION_NOT_SUPPORTED]: { appName?: AppName };
   [AuthErrorCode.NO_AUTH_EVENT]: { appName?: AppName };
   [AuthErrorCode.MFA_REQUIRED]: {
     appName: AppName;
