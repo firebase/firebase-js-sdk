@@ -20,13 +20,35 @@
  * import data into the Realtime Database or Cloud Firestore emulator without triggering locally
  * emulated Cloud Functions.
  *
- * This method only works with Firebase CLI version 8.13.0 or higher.
+ * This method only works with Firebase CLI version 8.13.0 or higher. This overload works only if
+ * the Emulator hub host:port is specified by the environment variable FIREBASE_EMULATOR_HUB.
  *
- * @param fn an function which returns a promise.
+ * @param fn an function which may be sync or async (returns a promise)
  * @public
  */
 export async function withFunctionTriggersDisabled<TResult>(
   fn: () => TResult | Promise<TResult>
+): Promise<TResult>;
+
+/**
+ * Run a setup function with background Cloud Functions triggers disabled. This can be used to
+ * import data into the Realtime Database or Cloud Firestore emulator without triggering locally
+ * emulated Cloud Functions.
+ *
+ * This method only works with Firebase CLI version 8.13.0 or higher. The Emulator hub must be
+ * running, which host and port are specified in this overload.
+ *
+ * @param fn an function which may be sync or async (returns a promise)
+ * @param hub the host and port of the Emulator Hub (ex: `{host: 'localhost', port: 4400}`)
+ * @public
+ */ export async function withFunctionTriggersDisabled<TResult>(
+  hub: { host: string; port: number },
+  fn: () => TResult | Promise<TResult>
+): Promise<TResult>;
+
+export async function withFunctionTriggersDisabled<TResult>(
+  fnOrHub: { host: string; port: number } | (() => TResult | Promise<TResult>),
+  maybeFn?: () => TResult | Promise<TResult>
 ): Promise<TResult> {
   throw new Error('unimplemented');
 }
