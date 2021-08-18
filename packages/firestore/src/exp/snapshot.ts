@@ -18,7 +18,14 @@
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite/field_path';
-import { DocumentData, Query, queryEqual, SetOptions } from '../lite/reference';
+import {
+  DocumentData,
+  PartialWithFieldValue,
+  Query,
+  queryEqual,
+  SetOptions,
+  WithFieldValue
+} from '../lite/reference';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
   fieldPathFromArgument,
@@ -52,7 +59,7 @@ import { SnapshotListenOptions } from './reference_impl';
  * }
  *
  * const postConverter = {
- *   toFirestore(post: Post): firebase.firestore.DocumentData {
+ *   toFirestore(post: WithFieldValue<Post>): firebase.firestore.DocumentData {
  *     return {title: post.title, author: post.author};
  *   },
  *   fromFirestore(
@@ -82,17 +89,28 @@ export interface FirestoreDataConverter<T>
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain JavaScript object (suitable for writing directly to the
    * Firestore database). To use `set()` with `merge` and `mergeFields`,
-   * `toFirestore()` must be defined with `Partial<T>`.
+   * `toFirestore()` must be defined with `PartialWithFieldValue<T>`.
+   *
+   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
+   * {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain JavaScript object (suitable for writing directly to the
    * Firestore database). Used with {@link (setDoc:1)}, {@link (WriteBatch.set:1)}
    * and {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
+   *
+   * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
+   * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
+   * It also supports nested `Partial` by allowing nested fields to be
+   * omitted.
    */
-  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  toFirestore(
+    modelObject: PartialWithFieldValue<T>,
+    options: SetOptions
+  ): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of

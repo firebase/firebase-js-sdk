@@ -26,5 +26,7 @@ export {
   SetOptions,
   DocumentData,
   UpdateData,
+  WithFieldValue,
+  PartialWithFieldValue,
   refEqual
 } from '../lite/reference';
