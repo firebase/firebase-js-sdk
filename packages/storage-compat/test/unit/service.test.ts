@@ -43,7 +43,8 @@ describe('Firebase Storage > Service', () => {
       expect(connectStorageEmulatorStub).to.have.been.calledWithExactly(
         fakeStorage,
         'test.host.org',
-        1234
+        1234,
+        {}
       );
     });
   });
