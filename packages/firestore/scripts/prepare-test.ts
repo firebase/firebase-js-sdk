@@ -42,11 +42,8 @@ function updateImportPath(filePath: string, level: number) {
     const BASE_IMPORT_PATH = '../src/api';
     const newImportPath = `'${[...Array(level).fill('..'), BASE_IMPORT_PATH].join('/')}'`;
     const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-    console.log(FIRESTORE_IMPORT, newImportPath)
     const modifierContent = content.replace(FIRESTORE_IMPORT, newImportPath)
-    console.log(content);
-    console.log("################################");
-    console.log(modifierContent);
+
     fs.writeFileSync(filePath, modifierContent);
 }
 
