@@ -246,7 +246,7 @@ export class Firestore
     host: string,
     port: number,
     options: {
-      mockUserToken?: EmulatorMockTokenOptions;
+      mockUserToken?: EmulatorMockTokenOptions | string;
     } = {}
   ): void {
     connectFirestoreEmulator(this._delegate, host, port, options);
@@ -290,8 +290,8 @@ export class Firestore
 
   terminate(): Promise<void> {
     if (this._appCompat) {
+      (this._appCompat as _FirebaseApp)._removeServiceInstance('firestore-compat');
       (this._appCompat as _FirebaseApp)._removeServiceInstance('firestore');
-      (this._appCompat as _FirebaseApp)._removeServiceInstance('firestore-exp');
     }
     return this._delegate._delete();
   }
