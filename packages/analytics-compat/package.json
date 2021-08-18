@@ -1,8 +1,7 @@
 {
   "name": "@firebase/analytics-compat",
-  "version": "0.0.900",
+  "version": "0.1.0",
   "description": "",
-  "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/index.esm2017.js",
@@ -15,7 +14,7 @@
     "@firebase/app-compat": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.0.900",
+    "@firebase/app-compat": "0.1.0",
     "rollup": "2.52.2",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.30.0",
@@ -45,7 +44,7 @@
   "typings": "dist/src/index.d.ts",
   "dependencies": {
     "@firebase/component": "0.5.5",
-    "@firebase/analytics-exp": "0.0.900",
+    "@firebase/analytics": "0.6.18",
     "@firebase/analytics-types": "0.6.0",
     "@firebase/util": "1.2.0",
     "tslib": "^2.1.0"

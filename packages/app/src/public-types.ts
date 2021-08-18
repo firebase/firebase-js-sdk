@@ -143,7 +143,7 @@ export interface _FirebaseService {
   app: FirebaseApp;
   /**
    * Delete the service and free it's resources - called from
-   * {@link @firebase/app-exp#deleteApp | deleteApp()}
+   * {@link @firebase/app#deleteApp | deleteApp()}
    */
   _delete(): Promise<void>;
 }
@@ -160,7 +160,7 @@ export interface _FirebaseAppInternal extends FirebaseApp {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'app-exp': FirebaseApp;
+    'app': FirebaseApp;
     'app-version': VersionService;
     'platform-logger': PlatformLoggerService;
   }

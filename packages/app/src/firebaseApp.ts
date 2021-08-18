@@ -53,7 +53,7 @@ export class FirebaseAppImpl implements FirebaseApp {
       config.automaticDataCollectionEnabled;
     this._container = container;
     this.container.addComponent(
-      new Component('app-exp', () => this, ComponentType.PUBLIC)
+      new Component('app', () => this, ComponentType.PUBLIC)
     );
   }
 
