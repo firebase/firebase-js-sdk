@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-compat';
 import { FunctionsService } from '../src/service';
-import { getFunctions } from '@firebase/functions-exp';
+import { getFunctions } from '@firebase/functions';
 
 export function createTestService(
   app: FirebaseApp,

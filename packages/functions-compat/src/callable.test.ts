@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { FunctionsErrorCode } from '@firebase/functions-exp';
+import { FunctionsErrorCode } from '@firebase/functions';
 import { createTestService } from '../test/utils';
 import { firebase, FirebaseApp } from '@firebase/app-compat';
 
@@ -35,8 +35,8 @@ async function expectError(
     await promise;
   } catch (e) {
     failed = true;
-    // Errors coming from callable functions usually have the functions-exp
-    // code in the message since it's thrown inside functions-exp.
+    // Errors coming from callable functions usually have the functions
+    // code in the message since it's thrown inside functions.
     expect(e.code).to.match(new RegExp(`functions.*/${code}`));
     expect(e.message).to.equal(message);
     expect(e.details).to.deep.equal(details);

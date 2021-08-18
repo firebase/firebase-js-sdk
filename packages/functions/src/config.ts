@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _registerComponent } from '@firebase/app-exp';
+import { _registerComponent } from '@firebase/app';
 import { FunctionsService } from './service';
 import {
   Component,
@@ -29,12 +29,12 @@ import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types
 const APP_CHECK_INTERNAL_NAME: AppCheckInternalComponentName =
   'app-check-internal';
 export function registerFunctions(fetchImpl: typeof fetch): void {
-  const factory: InstanceFactory<'functions-exp'> = (
+  const factory: InstanceFactory<'functions'> = (
     container: ComponentContainer,
     { instanceIdentifier: regionOrCustomDomain }
   ) => {
     // Dependencies
-    const app = container.getProvider('app-exp').getImmediate();
+    const app = container.getProvider('app').getImmediate();
     const authProvider = container.getProvider('auth-internal');
     const messagingProvider = container.getProvider('messaging');
     const appCheckProvider = container.getProvider(APP_CHECK_INTERNAL_NAME);

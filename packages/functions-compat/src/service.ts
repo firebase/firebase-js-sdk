@@ -21,7 +21,7 @@ import {
   connectFunctionsEmulator as useFunctionsEmulatorExp,
   HttpsCallableOptions,
   Functions as FunctionsServiceExp
-} from '@firebase/functions-exp';
+} from '@firebase/functions';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 import { FirebaseError } from '@firebase/util';
 

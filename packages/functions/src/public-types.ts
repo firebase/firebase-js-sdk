@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 
 /**
@@ -150,6 +150,6 @@ export interface FunctionsError extends FirebaseError {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'functions-exp': Functions;
+    'functions': Functions;
   }
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app';
 import {
   HttpsCallable,
   HttpsCallableResult,
