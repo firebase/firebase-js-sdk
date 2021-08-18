@@ -39,7 +39,7 @@ const commonPlugins = [
 ];
 
 /**
- * Node has the same entry point as browser, but browser-specific exports need
+ * Node has the same entry point as browser, but browser-specific exports
  * are turned into either no-ops or errors. See src/platform_node/index.ts for
  * more info. This regex tests explicitly ./src/platform_browser so that the
  * only impacted file is the main index.ts
