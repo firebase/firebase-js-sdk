@@ -287,7 +287,7 @@
    app: FirebaseApp = getApp(),
    url?: string
  ): Database {
-   return _getProvider(app, 'database-exp').getImmediate({
+   return _getProvider(app, 'database').getImmediate({
      identifier: url
    }) as Database;
  }
