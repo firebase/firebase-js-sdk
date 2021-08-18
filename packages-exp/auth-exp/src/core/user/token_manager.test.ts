@@ -24,11 +24,10 @@ import { FirebaseError } from '@firebase/util';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api/authentication/token';
-import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
+import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager, Buffer } from './token_manager';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { makeJWT } from '../../../test/helpers/jwt';
-import { _castAuth } from '../auth/auth_impl';
 import { setCustomTokenProvider } from '../strategies/custom_token';
 import { stub } from 'sinon';
 

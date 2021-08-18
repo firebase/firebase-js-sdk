@@ -92,7 +92,7 @@ export function setCustomTokenProvider(
   authInternal._refreshWithCustomTokenProvider = async () => {
     const token = await provider.getCustomToken();
     const response: IdTokenResponse = await getIdTokenResponse(authInternal, {
-      token: token,
+      token,
       returnSecureToken: true
     });
     _assert(

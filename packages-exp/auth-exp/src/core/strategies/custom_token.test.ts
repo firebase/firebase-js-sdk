@@ -138,7 +138,7 @@ describe('core/strategies/signInWithCustomToken', () => {
       ).to.have.been.calledWith(idTokenResponse);
     });
 
-    it('_refreshWithCustomTokenProvider should error when uid does not match localId', () => {
+    it('_refreshWithCustomTokenProvider should error when uid does not match localId', async () => {
       const provider = {
         async getCustomToken(): Promise<string> {
           return 'custom-token';
@@ -149,9 +149,9 @@ describe('core/strategies/signInWithCustomToken', () => {
       spy(user.stsTokenManager, 'updateFromServerResponse');
 
       setCustomTokenProvider(auth, provider);
-      expect(auth._refreshWithCustomTokenProvider!()).to.be.rejectedWith(
+      await expect(auth._refreshWithCustomTokenProvider!()).to.be.rejectedWith(
         FirebaseError,
-        'auth/user-token-expired'
+        'Firebase: Error (auth/internal-error).'
       );
     });
   });
