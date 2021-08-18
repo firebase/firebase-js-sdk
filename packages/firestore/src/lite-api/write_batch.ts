@@ -25,7 +25,13 @@ import { cast } from '../util/input_validation';
 import { getDatastore } from './components';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
-import { DocumentReference, SetOptions, UpdateData } from './reference';
+import {
+  DocumentReference,
+  PartialWithFieldValue,
+  SetOptions,
+  UpdateData,
+  WithFieldValue
+} from './reference';
 import { applyFirestoreDataConverter } from './reference_impl';
 import {
   newUserDataReader,
@@ -67,7 +73,10 @@ export class WriteBatch {
    * @param data - An object of the fields and values for the document.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: WithFieldValue<T>
+  ): WriteBatch;
   /**
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
@@ -81,12 +90,12 @@ export class WriteBatch {
    */
   set<T>(
     documentRef: DocumentReference<T>,
-    data: Partial<T>,
+    data: PartialWithFieldValue<T>,
     options: SetOptions
   ): WriteBatch;
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
+    data: WithFieldValue<T> | PartialWithFieldValue<T>,
     options?: SetOptions
   ): WriteBatch {
     this._verifyNotCommitted();
@@ -120,7 +129,7 @@ export class WriteBatch {
    * within the document.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
+  update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
   /**
    * Updates fields in the document referred to by this {@link
    * DocumentReference}. The update will fail if applied to a document that does
@@ -141,9 +150,9 @@ export class WriteBatch {
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
-  update(
-    documentRef: DocumentReference<unknown>,
-    fieldOrUpdateData: string | FieldPath | UpdateData,
+  update<T>(
+    documentRef: DocumentReference<T>,
+    fieldOrUpdateData: string | FieldPath | UpdateData<T>,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {

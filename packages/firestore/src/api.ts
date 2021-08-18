@@ -65,6 +65,8 @@ export {
   SetOptions,
   DocumentData,
   UpdateData,
+  WithFieldValue,
+  PartialWithFieldValue,
   refEqual,
   queryEqual
 } from './api/reference';
@@ -129,7 +131,12 @@ export { CACHE_SIZE_UNLIMITED } from './api/database';
 
 export { FirestoreErrorCode, FirestoreError } from './util/error';
 
-export { AbstractUserDataWriter } from './lite-api/user_data_writer';
+export {
+  Primitive,
+  NestedUpdateFields,
+  AddPrefixToKeys,
+  UnionToIntersection
+} from '../src/lite-api/types';
 
 /**
  * Internal exports
@@ -146,3 +153,5 @@ export { FieldPath as _FieldPath } from './model/path';
 export type { ResourcePath as _ResourcePath } from './model/path';
 export type { ByteString as _ByteString } from './util/byte_string';
 export { logWarn as _logWarn } from './util/log';
+
+export { AbstractUserDataWriter } from '../src/lite-api/user_data_writer';

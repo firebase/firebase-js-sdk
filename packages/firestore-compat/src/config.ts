@@ -21,7 +21,11 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 import {
+<<<<<<< HEAD:packages/firestore-compat/src/config.ts
   Firestore as ModularFirestore,
+=======
+  Firestore as FirebaseFirestore,
+>>>>>>> 5bc6afb75 (Firestore: QoL improvements for converters (#5268)):packages/firestore/compat/config.ts
   CACHE_SIZE_UNLIMITED,
   GeoPoint,
   Timestamp

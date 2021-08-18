@@ -27,7 +27,13 @@ import { Deferred } from '../util/promise';
 import { getDatastore } from './components';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
-import { DocumentReference, SetOptions, UpdateData } from './reference';
+import {
+  DocumentReference,
+  PartialWithFieldValue,
+  SetOptions,
+  UpdateData,
+  WithFieldValue
+} from './reference';
 import {
   applyFirestoreDataConverter,
   LiteUserDataWriter
@@ -114,7 +120,7 @@ export class Transaction {
    * @param data - An object of the fields and values for the document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  set<T>(documentRef: DocumentReference<T>, data: T): this;
+  set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): this;
   /**
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
@@ -128,12 +134,12 @@ export class Transaction {
    */
   set<T>(
     documentRef: DocumentReference<T>,
-    data: Partial<T>,
+    data: PartialWithFieldValue<T>,
     options: SetOptions
   ): this;
   set<T>(
     documentRef: DocumentReference<T>,
-    value: T,
+    value: PartialWithFieldValue<T>,
     options?: SetOptions
   ): this {
     const ref = validateReference(documentRef, this._firestore);
@@ -165,7 +171,7 @@ export class Transaction {
    * within the document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
+  update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
   /**
    * Updates fields in the document referred to by the provided {@link
    * DocumentReference}. The update will fail if applied to a document that does
@@ -186,9 +192,9 @@ export class Transaction {
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this;
-  update(
-    documentRef: DocumentReference<unknown>,
-    fieldOrUpdateData: string | FieldPath | UpdateData,
+  update<T>(
+    documentRef: DocumentReference<T>,
+    fieldOrUpdateData: string | FieldPath | UpdateData<T>,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this {
