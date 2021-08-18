@@ -26,7 +26,8 @@ import { BrowserPersistenceClass } from './browser';
 
 class BrowserSessionPersistence
   extends BrowserPersistenceClass
-  implements InternalPersistence {
+  implements InternalPersistence
+{
   static type: 'SESSION' = 'SESSION';
 
   constructor() {
@@ -45,7 +46,7 @@ class BrowserSessionPersistence
 }
 
 /**
- * An implementation of {@link Persistence} of 'SESSION' using `sessionStorage`
+ * An implementation of {@link Persistence} of `SESSION` using `sessionStorage`
  * for the underlying storage.
  *
  * @public

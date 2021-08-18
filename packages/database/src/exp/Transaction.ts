@@ -37,7 +37,7 @@ export interface TransactionOptions {
 }
 
 /**
- * A type for the resolve value of Firebase.transaction.
+ * A type for the resolve value of {@link runTransaction}.
  */
 export class TransactionResult {
   /** @hideconstructor */
@@ -58,7 +58,7 @@ export class TransactionResult {
  * Atomically modifies the data at this location.
  *
  * Atomically modify the data at this location. Unlike a normal `set()`, which
- * just overwrites the data regardless of its previous value, `transaction()` is
+ * just overwrites the data regardless of its previous value, `runTransaction()` is
  * used to modify the existing value to a new value, ensuring there are no
  * conflicts with other clients writing to the same location at the same time.
  *
@@ -72,7 +72,7 @@ export class TransactionResult {
  *
  * Note: Modifying data with `set()` will cancel any pending transactions at
  * that location, so extreme care should be taken if mixing `set()` and
- * `transaction()` to update the same data.
+ * `runTransaction()` to update the same data.
  *
  * Note: When using transactions with Security and Firebase Rules in place, be
  * aware that a client needs `.read` access in addition to `.write` access in
@@ -88,7 +88,7 @@ export class TransactionResult {
  * transaction will be aborted and the data at this location will not be
  * modified.
  * @param options - An options object to configure transactions.
- * @returns A Promise that can optionally be used instead of the onComplete
+ * @returns A `Promise` that can optionally be used instead of the `onComplete`
  * callback to handle success and failure.
  */
 export function runTransaction(

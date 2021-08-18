@@ -51,7 +51,7 @@ import { validateUrl } from '../core/util/validation';
 import { ReferenceImpl } from './Reference_impl';
 
 /**
- * This variable is also defined in the firebase node.js admin SDK. Before
+ * This variable is also defined in the firebase Node.js Admin SDK. Before
  * modifying this definition, consult the definition in:
  *
  * https://github.com/firebase/firebase-admin-node
@@ -61,7 +61,7 @@ import { ReferenceImpl } from './Reference_impl';
 const FIREBASE_DATABASE_EMULATOR_HOST_VAR = 'FIREBASE_DATABASE_EMULATOR_HOST';
 
 /**
- * Creates and caches Repo instances.
+ * Creates and caches `Repo` instances.
  */
 const repos: {
   [appName: string]: {
@@ -70,12 +70,12 @@ const repos: {
 } = {};
 
 /**
- * If true, new Repos will be created to use ReadonlyRestClient (for testing purposes).
+ * If true, any new `Repo` will be created to use `ReadonlyRestClient` (for testing purposes).
  */
 let useRestClient = false;
 
 /**
- * Update an existing repo in place to point to a new host/port.
+ * Update an existing `Repo` in place to point to a new host/port.
  */
 function repoManagerApplyEmulatorSettings(
   repo: Repo,
@@ -220,7 +220,7 @@ export function repoManagerForceRestClient(forceRestClient: boolean): void {
  * Class representing a Firebase Realtime Database.
  */
 export class Database implements _FirebaseService {
-  /** Represents a database instance. */
+  /** Represents a `Database` instance. */
   readonly 'type' = 'database';
 
   /** Track if the instance has been used (root or repo accessed) */
@@ -232,7 +232,7 @@ export class Database implements _FirebaseService {
   /** @hideconstructor */
   constructor(
     public _repoInternal: Repo,
-    /** The FirebaseApp associated with this Realtime Database instance. */
+    /** The {@link @firebase/app#FirebaseApp} associated with this Realtime Database instance. */
     readonly app: FirebaseApp
   ) {}
 
@@ -281,7 +281,7 @@ export class Database implements _FirebaseService {
  * Database instance is associated with.
  * @param url - The URL of the Realtime Database instance to connect to. If not
  * provided, the SDK connects to the default instance of the Firebase App.
- * @returns The `FirebaseDatabase` instance of the provided app.
+ * @returns The `Database` instance of the provided app.
  */
 export function getDatabase(
   app: FirebaseApp = getApp(),

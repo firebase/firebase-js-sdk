@@ -29,6 +29,8 @@ export interface MessagePayloadInternal {
   from: string;
   // eslint-disable-next-line camelcase
   collapse_key: string;
+  // eslint-disable-next-line camelcase
+  fcm_message_id: string;
 }
 
 export interface NotificationPayloadInternal extends NotificationOptions {

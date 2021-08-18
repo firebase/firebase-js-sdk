@@ -115,7 +115,7 @@ export class ActionCodeURL {
 
   /**
    * @param actionLink - The link from which to extract the URL.
-   * @returns The ActionCodeURL object, or null if the link is invalid.
+   * @returns The {@link ActionCodeURL} object, or null if the link is invalid.
    *
    * @internal
    */
@@ -139,7 +139,7 @@ export class ActionCodeURL {
    * otherwise returns null.
    *
    * @param link  - The email action link string.
-   * @returns The ActionCodeURL object, or null if the link is invalid.
+   * @returns The {@link ActionCodeURL} object, or null if the link is invalid.
    *
    * @public
    */

@@ -88,7 +88,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * const credential = await confirmationResult.confirm(verificationCode);
  * ```
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
  * @param appVerifier - The {@link ApplicationVerifier}.
  *
@@ -137,7 +137,7 @@ export async function linkWithPhoneNumber(
 }
 
 /**
- * Re-authenticates a user using a fresh phne credential.
+ * Re-authenticates a user using a fresh phone credential.
  *
  * @remarks Use before operations such as {@link updatePassword} that require tokens from recent sign-in attempts.
  *

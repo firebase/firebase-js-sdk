@@ -49,7 +49,7 @@ import { deepEqual } from '@firebase/util';
 export const SDK_VERSION = version;
 
 /**
- * Creates and initializes a FirebaseApp instance.
+ * Creates and initializes a {@link @firebase/app#FirebaseApp} instance.
  *
  * See
  * {@link
@@ -156,7 +156,7 @@ export function initializeApp(
 }
 
 /**
- * Retrieves a FirebaseApp instance.
+ * Retrieves a {@link @firebase/app#FirebaseApp} instance.
  *
  * When called with no arguments, the default app is returned. When an app name
  * is provided, the app corresponding to that name is returned.

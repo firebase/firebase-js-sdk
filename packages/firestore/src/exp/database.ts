@@ -71,7 +71,7 @@ const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
  * Set this value as the `cacheSizeBytes` on the settings passed to the
- * `Firestore` instance.
+ * {@link Firestore} instance.
  */
 export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
 
@@ -82,7 +82,7 @@ export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
  */
 export class Firestore extends LiteFirestore {
   /**
-   * Whether it's a Firestore or Firestore Lite instance.
+   * Whether it's a {@link Firestore} or Firestore Lite instance.
    */
   type: 'firestore-lite' | 'firestore' = 'firestore';
 
@@ -112,15 +112,15 @@ export class Firestore extends LiteFirestore {
 }
 
 /**
- * Initializes a new instance of Cloud Firestore with the provided settings.
+ * Initializes a new instance of {@link Firestore} with the provided settings.
  * Can only be called before any other function, including
  * {@link getFirestore}. If the custom settings are empty, this function is
  * equivalent to calling {@link getFirestore}.
  *
- * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
+ * @param app - The {@link @firebase/app#FirebaseApp} with which the {@link Firestore} instance will
  * be associated.
- * @param settings - A settings object to configure the `Firestore` instance.
- * @returns A newly initialized `Firestore` instance.
+ * @param settings - A settings object to configure the {@link Firestore} instance.
+ * @returns A newly initialized {@link Firestore} instance.
  */
 export function initializeFirestore(
   app: FirebaseApp,
@@ -159,13 +159,13 @@ export function initializeFirestore(
 }
 
 /**
- * Returns the existing instance of Firestore that is associated with the
+ * Returns the existing {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned Firestore
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
  * instance is associated with.
- * @returns The `Firestore` instance of the provided app.
+ * @returns The {@link Firestore} instance of the provided app.
  */
 export function getFirestore(app: FirebaseApp = getApp()): Firestore {
   return _getProvider(app, 'firestore-exp').getImmediate() as Firestore;
@@ -213,7 +213,7 @@ export function configureFirestore(firestore: Firestore): void {
  * {@link clearIndexedDbPersistence}.
  *
  * If this fails, `enableIndexedDbPersistence()` will reject the promise it
- * returns. Note that even after this failure, the `Firestore` instance will
+ * returns. Note that even after this failure, the {@link Firestore} instance will
  * remain usable, however offline persistence will be disabled.
  *
  * There are several reasons why this can fail, which can be identified by
@@ -223,10 +223,10 @@ export function configureFirestore(firestore: Firestore): void {
  *   * unimplemented: The browser is incompatible with the offline
  *     persistence implementation.
  *
- * @param firestore - The `Firestore` instance to enable persistence for.
+ * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param persistenceSettings - Optional settings object to configure
  * persistence.
- * @returns A promise that represents successfully enabling persistent storage.
+ * @returns A `Promise` that represents successfully enabling persistent storage.
  */
 export function enableIndexedDbPersistence(
   firestore: Firestore,
@@ -258,7 +258,7 @@ export function enableIndexedDbPersistence(
  * across all connected instances.
  *
  * If this fails, `enableMultiTabIndexedDbPersistence()` will reject the promise
- * it returns. Note that even after this failure, the `Firestore` instance will
+ * it returns. Note that even after this failure, the {@link Firestore} instance will
  * remain usable, however offline persistence will be disabled.
  *
  * There are several reasons why this can fail, which can be identified by
@@ -269,8 +269,8 @@ export function enableIndexedDbPersistence(
  *   * unimplemented: The browser is incompatible with the offline
  *     persistence implementation.
  *
- * @param firestore - The `Firestore` instance to enable persistence for.
- * @returns A promise that represents successfully enabling persistent
+ * @param firestore - The {@link Firestore} instance to enable persistence for.
+ * @returns A `Promise` that represents successfully enabling persistent
  * storage.
  */
 export function enableMultiTabIndexedDbPersistence(
@@ -369,10 +369,10 @@ function canFallbackFromIndexedDbError(
  * Clears the persistent storage. This includes pending writes and cached
  * documents.
  *
- * Must be called while the `Firestore` instance is not started (after the app is
+ * Must be called while the {@link Firestore} instance is not started (after the app is
  * terminated or when the app is first initialized). On startup, this function
  * must be called before other functions (other than {@link
- * initializeFirestore} or {@link getFirestore})). If the `Firestore`
+ * initializeFirestore} or {@link getFirestore})). If the {@link Firestore}
  * instance is still running, the promise will be rejected with the error code
  * of `failed-precondition`.
  *
@@ -383,8 +383,8 @@ function canFallbackFromIndexedDbError(
  * to the disclosure of cached data in between user sessions, we strongly
  * recommend not enabling persistence at all.
  *
- * @param firestore - The `Firestore` instance to clear persistence for.
- * @returns A promise that is resolved when the persistent storage is
+ * @param firestore - The {@link Firestore} instance to clear persistence for.
+ * @returns A `Promise` that is resolved when the persistent storage is
  * cleared. Otherwise, the promise is rejected with an error.
  */
 export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
@@ -414,16 +414,16 @@ export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
  * Waits until all currently pending writes for the active user have been
  * acknowledged by the backend.
  *
- * The returned Promise resolves immediately if there are no outstanding writes.
- * Otherwise, the Promise waits for all previously issued writes (including
+ * The returned promise resolves immediately if there are no outstanding writes.
+ * Otherwise, the promise waits for all previously issued writes (including
  * those written in a previous app session), but it does not wait for writes
  * that were added after the function is called. If you want to wait for
  * additional writes, call `waitForPendingWrites()` again.
  *
- * Any outstanding `waitForPendingWrites()` Promises are rejected during user
+ * Any outstanding `waitForPendingWrites()` promises are rejected during user
  * changes.
  *
- * @returns A Promise which resolves when all currently pending writes have been
+ * @returns A `Promise` which resolves when all currently pending writes have been
  * acknowledged by the backend.
  */
 export function waitForPendingWrites(firestore: Firestore): Promise<void> {
@@ -433,10 +433,10 @@ export function waitForPendingWrites(firestore: Firestore): Promise<void> {
 }
 
 /**
- * Re-enables use of the network for this Firestore instance after a prior
+ * Re-enables use of the network for this {@link Firestore} instance after a prior
  * call to {@link disableNetwork}.
  *
- * @returns A promise that is resolved once the network has been enabled.
+ * @returns A `Promise` that is resolved once the network has been enabled.
  */
 export function enableNetwork(firestore: Firestore): Promise<void> {
   firestore = cast(firestore, Firestore);
@@ -450,7 +450,7 @@ export function enableNetwork(firestore: Firestore): Promise<void> {
  * `getDoc()` or `getDocs()` calls will return results from cache, and any write
  * operations will be queued until the network is restored.
  *
- * @returns A promise that is resolved once the network has been disabled.
+ * @returns A `Promise` that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: Firestore): Promise<void> {
   firestore = cast(firestore, Firestore);
@@ -459,7 +459,7 @@ export function disableNetwork(firestore: Firestore): Promise<void> {
 }
 
 /**
- * Terminates the provided Firestore instance.
+ * Terminates the provided {@link Firestore} instance.
  *
  * After calling `terminate()` only the `clearIndexedDbPersistence()` function
  * may be used. Any other function will throw a `FirestoreError`.
@@ -477,7 +477,7 @@ export function disableNetwork(firestore: Firestore): Promise<void> {
  * of its resources or in combination with `clearIndexedDbPersistence()` to
  * ensure that all local state is destroyed between test runs.
  *
- * @returns A promise that is resolved when the instance has been successfully
+ * @returns A `Promise` that is resolved when the instance has been successfully
  * terminated.
  */
 export function terminate(firestore: Firestore): Promise<void> {
@@ -488,7 +488,7 @@ export function terminate(firestore: Firestore): Promise<void> {
 /**
  * Loads a Firestore bundle into the local cache.
  *
- * @param firestore - The `Firestore` instance to load bundles for for.
+ * @param firestore - The {@link Firestore} instance to load bundles for for.
  * @param bundleData - An object representing the bundle to be loaded. Valid objects are
  *   `ArrayBuffer`, `ReadableStream<Uint8Array>` or `string`.
  *
@@ -513,11 +513,11 @@ export function loadBundle(
 }
 
 /**
- * Reads a Firestore `Query` from local cache, identified by the given name.
+ * Reads a Firestore {@link Query} from local cache, identified by the given name.
  *
  * The named queries are packaged  into bundles on the server side (along
  * with resulting documents), and loaded to local cache using `loadBundle`. Once in local
- * cache, use this method to extract a `Query` by name.
+ * cache, use this method to extract a {@link Query} by name.
  */
 export function namedQuery(
   firestore: Firestore,

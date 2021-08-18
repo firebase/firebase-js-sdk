@@ -74,7 +74,9 @@ const DISPLAY_MESSAGE: MessagePayloadInternal = {
   },
   from: 'from',
   // eslint-disable-next-line camelcase
-  collapse_key: 'collapse'
+  collapse_key: 'collapse',
+  // eslint-disable-next-line camelcase
+  fcm_message_id: 'mid'
 };
 
 describe('SwController', () => {
@@ -470,5 +472,5 @@ function makeEvent<K extends keyof ServiceWorkerGlobalScopeEventMap>(
 ): Writable<ServiceWorkerGlobalScopeEventMap[K]> {
   const event = new FakeEvent(type);
   Object.assign(event, data);
-  return (event as unknown) as ServiceWorkerGlobalScopeEventMap[K];
+  return event as unknown as ServiceWorkerGlobalScopeEventMap[K];
 }

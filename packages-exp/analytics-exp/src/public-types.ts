@@ -18,8 +18,8 @@
 import { FirebaseApp } from '@firebase/app-exp';
 
 /**
- * A set of common Analytics config settings recognized by
- * gtag.
+ * A set of common Google Analytics config settings recognized by
+ * `gtag.js`.
  * @public
  */
 export interface GtagConfigParams {
@@ -67,12 +67,12 @@ export interface GtagConfigParams {
    */
   'cookie_flags'?: string;
   /**
-   * If set to false, disables all advertising features with gtag.js.
+   * If set to false, disables all advertising features with `gtag.js`.
    * See {@link https://developers.google.com/analytics/devguides/collection/ga4/display-features | Disable advertising features }
    */
   'allow_google_signals?': boolean;
   /**
-   * If set to false, disables all advertising personalization with gtag.js.
+   * If set to false, disables all advertising personalization with `gtag.js`.
    * See {@link https://developers.google.com/analytics/devguides/collection/ga4/display-features | Disable advertising features }
    */
   'allow_ad_personalization_signals'?: boolean;
@@ -80,25 +80,26 @@ export interface GtagConfigParams {
 }
 
 /**
- * Analytics initialization options.
+ * {@link Analytics} instance initialization options.
  * @public
  */
 export interface AnalyticsSettings {
   /**
-   * Params to be passed in the initial gtag config call during analytics initialization.
+   * Params to be passed in the initial `gtag` config call during Firebase
+   * Analytics initialization.
    */
   config?: GtagConfigParams | EventParams;
 }
 
 /**
- * Additional options that can be passed to Firebase Analytics method
+ * Additional options that can be passed to Analytics method
  * calls such as `logEvent`, `setCurrentScreen`, etc.
  * @public
  */
 export interface AnalyticsCallOptions {
   /**
    * If true, this config or event call applies globally to all
-   * analytics properties on the page.
+   * Google Analytics properties on the page.
    */
   global: boolean;
 }
@@ -109,7 +110,7 @@ export interface AnalyticsCallOptions {
  */
 export interface Analytics {
   /**
-   * The FirebaseApp this Analytics instance is associated with.
+   * The {@link @firebase/app#FirebaseApp} this {@link Analytics} instance is associated with.
    */
   app: FirebaseApp;
 }
@@ -122,12 +123,12 @@ export interface Analytics {
 export interface SettingsOptions {
   /** Sets custom name for `gtag` function. */
   gtagName?: string;
-  /** Sets custom name for `dataLayer` array used by gtag. */
+  /** Sets custom name for `dataLayer` array used by `gtag.js`. */
   dataLayerName?: string;
 }
 
 /**
- * Any custom params the user may pass to gtag.js.
+ * Any custom params the user may pass to `gtag`.
  * @public
  */
 export interface CustomParams {
@@ -135,7 +136,7 @@ export interface CustomParams {
 }
 
 /**
- * Type for standard gtag.js event names. `logEvent` also accepts any
+ * Type for standard Google Analytics event names. `logEvent` also accepts any
  * custom string and interprets it as a custom event name.
  * @public
  */
@@ -169,14 +170,14 @@ export type EventNameString =
   | 'view_search_results';
 
 /**
- * Standard analytics currency type.
+ * Standard Google Analytics currency type.
  * @public
  */
 export type Currency = string | number;
 
 /* eslint-disable camelcase */
 /**
- * Standard analytics `Item` type.
+ * Standard Google Analytics `Item` type.
  * @public
  */
 export interface Item {
@@ -213,8 +214,8 @@ export interface Item {
 }
 
 /**
- * Field previously used by some Analytics events.
- * @deprecated Use Item instead.
+ * Field previously used by some Google Analytics events.
+ * @deprecated Use `Item` instead.
  * @public
  */
 export interface Promotion {
@@ -225,7 +226,7 @@ export interface Promotion {
 }
 
 /**
- * Standard gtag.js control parameters.
+ * Standard `gtag.js` control parameters.
  * For more information, see
  * {@link https://developers.google.com/gtagjs/reference/ga4-events
  * | the GA4 reference documentation}.
@@ -239,7 +240,7 @@ export interface ControlParams {
 }
 
 /**
- * Standard gtag.js event parameters.
+ * Standard `gtag.js` event parameters.
  * For more information, see
  * {@link https://developers.google.com/gtagjs/reference/ga4-events
  * | the GA4 reference documentation}.

@@ -46,7 +46,7 @@ export { ReCaptchaV3Provider, CustomProvider } from './providers';
 
 /**
  * Activate App Check for the given app. Can be called only once per app.
- * @param app - the FirebaseApp to activate App Check for
+ * @param app - the {@link @firebase/app#FirebaseApp} to activate App Check for
  * @param options - App Check initialization options
  * @public
  */
@@ -211,7 +211,7 @@ export function onTokenChanged(
   onCompletion?: () => void
 ): Unsubscribe;
 /**
- * Wraps addTokenListener/removeTokenListener methods in an Observer
+ * Wraps `addTokenListener`/`removeTokenListener` methods in an `Observer`
  * pattern for public use.
  */
 export function onTokenChanged(

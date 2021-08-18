@@ -41,7 +41,7 @@ import { getModularInstance } from '@firebase/util';
  * {@link SignInMethod}.EMAIL_PASSWORD and
  * {@link SignInMethod}.EMAIL_LINK.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param email - The user's email address.
  *
  * @public
