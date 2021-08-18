@@ -16,7 +16,7 @@
  */
 
 import firebase, { FirebaseApp } from '@firebase/app-compat';
-import * as exp from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth/internal';
 import * as compat from '@firebase/auth-types';
 import { Compat } from '@firebase/util';
 

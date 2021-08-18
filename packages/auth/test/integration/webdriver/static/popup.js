@@ -24,7 +24,7 @@ import {
   reauthenticateWithPopup,
   signInWithCredential,
   signInWithPopup
-} from '@firebase/auth-exp';
+} from '@firebase/auth';
 
 // These functions are a little funky: WebDriver relies on callbacks to
 // pass data back to the main Node process. Because of that setup, we can't

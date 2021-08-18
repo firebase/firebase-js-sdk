@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { signInAnonymously } from '@firebase/auth-exp';
+import { signInAnonymously } from '@firebase/auth';
 
 export async function anonymousSignIn() {
   const userCred = await signInAnonymously(auth);

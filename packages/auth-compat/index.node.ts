@@ -22,7 +22,7 @@
  * just use index.ts
  */
 export * from './index';
-import { FetchProvider } from '@firebase/auth-exp/internal';
+import { FetchProvider } from '@firebase/auth/internal';
 import * as fetchImpl from 'node-fetch';
 import './index';
 

@@ -18,7 +18,7 @@
 /* eslint-disable camelcase */
 
 import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
-import * as impl from '@firebase/auth-exp/internal';
+import * as impl from '@firebase/auth/internal';
 import {
   Component,
   ComponentType,
@@ -78,7 +78,7 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
       container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app-compat').getImmediate();
-        const authProvider = container.getProvider('auth-exp');
+        const authProvider = container.getProvider('auth');
         return new Auth(app, authProvider);
       },
       ComponentType.PUBLIC

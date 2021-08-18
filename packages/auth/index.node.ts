@@ -24,7 +24,7 @@
 
 import * as fetchImpl from 'node-fetch';
 
-import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Auth } from './src/model/public_types';
 
 import { initializeAuth } from './src';
@@ -50,7 +50,7 @@ export {
 } from './src/model/enum_maps';
 
 export function getAuth(app: FirebaseApp = getApp()): Auth {
-  const provider = _getProvider(app, 'auth-exp');
+  const provider = _getProvider(app, 'auth');
 
   if (provider.isInitialized()) {
     return provider.getImmediate();

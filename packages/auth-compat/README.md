@@ -1,4 +1,4 @@
-# @firebase/auth-compat-exp
+# @firebase/auth-compat
 
 This is a compatability layer to for the Firebase Authentication SDK
 

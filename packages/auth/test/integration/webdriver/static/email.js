@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { createUserWithEmailAndPassword } from '@firebase/auth-exp';
+import { createUserWithEmailAndPassword } from '@firebase/auth';
 
 const TEST_PASSWORD = 'password';
 

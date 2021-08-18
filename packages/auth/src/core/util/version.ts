@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { SDK_VERSION } from '@firebase/app-exp';
+import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from './browser';
 import { getUA } from '@firebase/util';
 

@@ -19,7 +19,7 @@ import { _castAuth } from '../src/core/auth/auth_impl';
 import { Auth } from '../src/model/public_types';
 
 /**
- * This interface is intended only for use by @firebase/auth-compat-exp, do not use directly
+ * This interface is intended only for use by @firebase/auth-compat, do not use directly
  */
 export * from '../index';
 

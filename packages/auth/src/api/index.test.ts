@@ -38,7 +38,7 @@ import {
   _addTidIfNecessary
 } from './';
 import { ServerError } from './errors';
-import { SDK_VERSION } from '@firebase/app-exp';
+import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from '../core/util/browser';
 
 use(sinonChai);

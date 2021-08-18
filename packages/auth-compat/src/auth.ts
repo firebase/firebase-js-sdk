@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
-import * as exp from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth/internal';
 import * as compat from '@firebase/auth-types';
 import { Provider } from '@firebase/component';
 import { ErrorFn, Observer, Unsubscribe } from '@firebase/util';
@@ -43,7 +43,7 @@ export class Auth
 {
   readonly _delegate: exp.AuthImpl;
 
-  constructor(readonly app: FirebaseApp, provider: Provider<'auth-exp'>) {
+  constructor(readonly app: FirebaseApp, provider: Provider<'auth'>) {
     if (provider.isInitialized()) {
       this._delegate = provider.getImmediate() as exp.AuthImpl;
       this.linkUnderlyingAuth();

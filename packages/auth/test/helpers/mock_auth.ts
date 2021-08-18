@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { PopupRedirectResolver } from '../../src/model/public_types';
 import { debugErrorMap } from '../../src';
 

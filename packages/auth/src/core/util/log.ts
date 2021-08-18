@@ -16,11 +16,11 @@
  */
 
 import { Logger, LogLevel } from '@firebase/logger';
-import { SDK_VERSION } from '@firebase/app-exp';
+import { SDK_VERSION } from '@firebase/app';
 
 export { LogLevel };
 
-const logClient = new Logger('@firebase/auth-exp');
+const logClient = new Logger('@firebase/auth');
 
 // Helper methods are needed because variables can't be exported as read/write
 export function _getLogLevel(): LogLevel {

@@ -22,7 +22,7 @@ import firebase from '@firebase/app-compat';
 import {
   getOobCodes,
   OobCodeSession
-} from '../../../../auth-exp/test/helpers/integration/emulator_rest_helpers';
+} from '../../../../auth/test/helpers/integration/emulator_rest_helpers';
 import {
   cleanUpTestInstance,
   initializeTestInstance,

@@ -39,7 +39,7 @@ const umdBuilds = [
    * App UMD Builds
    */
   {
-    input: '../../firebase-exp/compat/app/index.ts',
+    input: '../../firebase/compat/app/index.ts',
     output: {
       file: 'public/dist/firebase-app.js',
       sourcemap: true,
@@ -58,7 +58,7 @@ const umdBuilds = [
       name: 'firebase',
       globals: {
         '@firebase/app-compat': 'firebase',
-        '@firebase/app-exp': 'firebase.INTERNAL.modularAPIs'
+        '@firebase/app': 'firebase.INTERNAL.modularAPIs'
       },
       /**
        * use iife to avoid below error in the old Safari browser
@@ -80,7 +80,7 @@ const umdBuilds = [
           }`
     },
     plugins: [...plugins],
-    external: ['@firebase/app-compat', '@firebase/app-exp']
+    external: ['@firebase/app-compat', '@firebase/app']
   }
 ];
 

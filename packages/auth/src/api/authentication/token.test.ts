@@ -25,7 +25,7 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
 import { Endpoint, requestStsToken } from './token';
-import { SDK_VERSION } from '@firebase/app-exp';
+import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from '../../core/util/browser';
 
 use(chaiAsPromised);

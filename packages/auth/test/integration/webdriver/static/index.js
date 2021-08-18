@@ -21,8 +21,8 @@ import * as core from './core';
 import * as popup from './popup';
 import * as email from './email';
 import * as persistence from './persistence';
-import { initializeApp } from '@firebase/app-exp';
-import { getAuth, connectAuthEmulator } from '@firebase/auth-exp';
+import { initializeApp } from '@firebase/app';
+import { getAuth, connectAuthEmulator } from '@firebase/auth';
 
 window.core = core;
 window.anonymous = anonymous;

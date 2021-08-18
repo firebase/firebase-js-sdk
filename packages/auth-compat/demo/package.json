@@ -1,5 +1,5 @@
 {
-  "name": "@firebase/auth-compat-exp-demo",
+  "name": "@firebase/auth-compat-demo",
   "version": "0.1.0",
   "private": true,
   "description": "Demo for Auth SDK Compatibility Layer",
@@ -10,13 +10,13 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../../.gitignore'",
     "demo": "rollup -c && firebase serve",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app-compat,app-exp,auth-compat-exp}' --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/'{app-compat,app,auth-compat}' --include-dependencies build",
     "dev": "rollup -c -w"
   },
   "peerDependencies": {
     "@firebase/app-compat": "0.x",
     "@firebase/auth-types": "0.x",
-    "@firebase/auth-exp": "0.x"
+    "@firebase/auth": "0.x"
   },
   "dependencies": {
     "@firebase/logger": "^0.2.2",
@@ -38,7 +38,7 @@
     "typescript": "4.2.2"
   },
   "repository": {
-    "directory": "packages-exp/auth-compat-exp/demo",
+    "directory": "packages/auth-compat/demo",
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },

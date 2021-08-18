@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { SDK_VERSION } from '@firebase/app-exp';
+import { SDK_VERSION } from '@firebase/app';
 import { AuthProvider } from '../../model/public_types';
 import { ApiKey, AppName, AuthInternal } from '../../model/auth';
 import { AuthEventType } from '../../model/popup_redirect';

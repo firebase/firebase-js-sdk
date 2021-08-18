@@ -15,7 +15,7 @@ Run:
 
 ```bash
 git clone https://github.com/firebase/firebase-js-sdk.git
-cd firebase-js-sdk/packages-exp/auth-exp/demo
+cd firebase-js-sdk/packages/auth/demo
 ```
 
 This will clone the repository in the current directory.
@@ -42,14 +42,14 @@ in the `config.js` file.
 
 ## Deploy
 
-Before deploying, you may need to build the auth-exp package:
+Before deploying, you may need to build the auth package:
 ```bash
 yarn build:deps
 ```
 
-This can take some time, and you only need to do it if you've modified the auth-exp package.
+This can take some time, and you only need to do it if you've modified the auth package.
 
-To run the app locally, simply issue the following command in the `auth-exp/demo` directory:
+To run the app locally, simply issue the following command in the `auth/demo` directory:
 
 ```bash
 yarn run demo

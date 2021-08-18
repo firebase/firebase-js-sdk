@@ -25,7 +25,7 @@ import {
   reauthenticateWithRedirect,
   signInWithCredential,
   signInWithRedirect
-} from '@firebase/auth-exp';
+} from '@firebase/auth';
 
 let redirectCred = null;
 let errorCred = null;

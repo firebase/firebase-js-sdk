@@ -1,4 +1,4 @@
-# @firebase/auth-exp
+# @firebase/auth
 
 This is the Firebase Authentication component of the Firebase JS SDK.
 

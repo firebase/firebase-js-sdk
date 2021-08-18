@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as impl from '@firebase/auth-exp/internal';
+import * as impl from '@firebase/auth/internal';
 import {
   getUA,
   isBrowserExtension,

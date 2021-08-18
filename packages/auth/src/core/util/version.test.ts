@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { SDK_VERSION } from '@firebase/app-exp';
+import { SDK_VERSION } from '@firebase/app';
 import { expect } from 'chai';
 import { ClientPlatform, _getClientVersion } from './version';
 import { isNode } from '@firebase/util';

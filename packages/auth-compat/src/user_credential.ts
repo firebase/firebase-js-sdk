@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as exp from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth/internal';
 import * as compat from '@firebase/auth-types';
 import { FirebaseError } from '@firebase/util';
 import { Auth } from './auth';

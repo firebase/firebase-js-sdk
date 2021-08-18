@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseOptions } from '@firebase/app-exp';
+import { FirebaseOptions } from '@firebase/app';
 
 // __karma__ is an untyped global
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

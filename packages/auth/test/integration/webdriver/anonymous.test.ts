@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { OperationType, UserCredential } from '@firebase/auth-exp';
+import { OperationType, UserCredential } from '@firebase/auth';
 import { expect } from 'chai';
 import { AnonFunction } from './util/functions';
 import { browserDescribe } from './util/test_runner';

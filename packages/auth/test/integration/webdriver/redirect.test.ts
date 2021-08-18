@@ -21,7 +21,7 @@ import {
   UserCredential,
   User,
   OAuthCredential
-} from '@firebase/auth-exp';
+} from '@firebase/auth';
 import { expect, use } from 'chai';
 import { IdPPage } from './util/idp_page';
 import * as chaiAsPromised from 'chai-as-promised';

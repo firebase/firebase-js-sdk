@@ -23,7 +23,7 @@ const PORT_NUMBER = '4100';
 
 const INTEGRATION_TEST_ASSETS = express.static(
   path.join(
-    // process.env.PWD == packages-exp/auth-exp
+    // process.env.PWD == packages-exp/auth
     process.env.PWD!,
     'test/integration/webdriver/static'
   )

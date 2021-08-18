@@ -15,6 +15,142 @@
  * limitations under the License.
  */
 
-import { getConfig } from './rollup.config.shared';
+import strip from '@rollup/plugin-strip';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import json from '@rollup/plugin-json';
+import typescript from 'typescript';
+import pkg from './package.json';
 
-export default getConfig({ isReleaseBuild: false });
+const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
+/**
+ * ES5 Builds
+ */
+const es5BuildPlugins = [
+    json(),
+    strip({
+        functions: ['debugAssert.*']
+    }),
+    typescriptPlugin({
+        typescript
+    })
+];
+
+const es5Builds = [
+    /**
+     * Browser Builds
+     */
+    {
+        input: {
+            index: 'index.ts',
+            internal: 'internal/index.ts'
+        },
+        output: [{ dir: 'dist/esm5', format: 'esm', sourcemap: true }],
+        plugins: es5BuildPlugins,
+        external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    },
+    /**
+     * Web Worker Build (compiled without DOM)
+     */
+    {
+        input: 'index.webworker.ts',
+        output: [{ file: pkg.webworker, format: 'es', sourcemap: true }],
+        plugins: [
+            json(),
+            strip({
+                functions: ['debugAssert.*']
+            }),
+            typescriptPlugin({
+                typescript,
+                compilerOptions: {
+                    lib: [
+                        // Remove dom after we figure out why navigator stuff doesn't exist
+                        'dom',
+                        'es2015',
+                        'webworker'
+                    ]
+                }
+
+            })
+        ],
+        external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    },
+    /**
+     * Node.js Build
+     */
+    {
+        input: {
+            index: 'index.node.ts',
+            internal: 'internal/index.ts'
+        },
+        output: [{ dir: 'dist/node', format: 'cjs', sourcemap: true }],
+        plugins: es5BuildPlugins,
+        external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    },
+    /**
+     * Cordova Builds
+     */
+    {
+        input: {
+            index: 'index.cordova.ts',
+            internal: 'internal/index.ts'
+        },
+        output: [{ dir: 'dist/cordova', format: 'es', sourcemap: true }],
+        plugins: es5BuildPlugins,
+        external: id =>
+            [...deps, 'cordova'].some(dep => id === dep || id.startsWith(`${dep}/`))
+    },
+    /**
+     * React Native Builds
+     */
+    {
+        input: {
+            index: 'index.rn.ts',
+            internal: 'internal/index.ts'
+        },
+        output: [{ dir: 'dist/rn', format: 'cjs', sourcemap: true }],
+        plugins: es5BuildPlugins,
+        external: id =>
+            [...deps, 'react-native'].some(
+                dep => id === dep || id.startsWith(`${dep}/`)
+            )
+    }
+];
+
+/**
+ * ES2017 Builds
+ */
+const es2017BuildPlugins = [
+    json(),
+    strip({
+        functions: ['debugAssert.*']
+    }),
+    typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+            compilerOptions: {
+                target: 'es2017'
+            }
+        }
+    })
+];
+
+const es2017Builds = [
+    /**
+     *  Browser Builds
+     */
+    {
+        input: {
+            index: 'index.ts',
+            internal: 'internal/index.ts'
+        },
+        output: {
+            dir: 'dist/esm2017',
+            format: 'es',
+            sourcemap: true
+        },
+        plugins: es2017BuildPlugins,
+        external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    }
+];
+
+export default [...es5Builds, ...es2017Builds];

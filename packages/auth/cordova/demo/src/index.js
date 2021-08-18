@@ -22,7 +22,7 @@
  *   package.
  */
 
-import { initializeApp } from '@firebase/app-exp';
+import { initializeApp } from '@firebase/app';
 import {
   applyActionCode,
   browserLocalPersistence,
@@ -62,7 +62,7 @@ import {
   reauthenticateWithRedirect,
   getRedirectResult,
   cordovaPopupRedirectResolver
-} from '@firebase/auth-exp/dist/cordova';
+} from '@firebase/auth/dist/cordova';
 
 import { config } from './config';
 import {

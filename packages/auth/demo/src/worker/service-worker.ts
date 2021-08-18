@@ -20,8 +20,8 @@
  * service worker caches all content and only serves cached content in offline
  * mode.
  */
-import { initializeApp } from '@firebase/app-exp';
-import { getAuth, User } from '@firebase/auth-exp';
+import { initializeApp } from '@firebase/app';
+import { getAuth, User } from '@firebase/auth';
 
 import { config } from '../config';
 

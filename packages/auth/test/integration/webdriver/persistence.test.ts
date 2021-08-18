@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { UserCredential } from '@firebase/auth-exp';
+import { UserCredential } from '@firebase/auth';
 import { expect } from 'chai';
 import { createAnonAccount } from '../../helpers/integration/emulator_rest_helpers';
 import { API_KEY } from '../../helpers/integration/settings';

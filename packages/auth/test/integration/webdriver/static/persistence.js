@@ -19,7 +19,7 @@ import {
   browserSessionPersistence,
   indexedDBLocalPersistence,
   inMemoryPersistence
-} from '@firebase/auth-exp';
+} from '@firebase/auth';
 
 const INDEXED_DB_NAME = 'firebaseLocalStorageDb';
 

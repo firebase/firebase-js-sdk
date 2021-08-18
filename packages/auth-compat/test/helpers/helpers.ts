@@ -19,12 +19,12 @@ import * as sinon from 'sinon';
 import firebase from '@firebase/app-compat';
 import '../..';
 
-import * as exp from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth/internal';
 import {
   getAppConfig,
   getEmulatorUrl
-} from '../../../auth-exp/test/helpers/integration/settings';
-import { resetEmulator } from '../../../auth-exp/test/helpers/integration/emulator_rest_helpers';
+} from '../../../auth/test/helpers/integration/settings';
+import { resetEmulator } from '../../../auth/test/helpers/integration/emulator_rest_helpers';
 
 export function initializeTestInstance(): void {
   firebase.initializeApp(getAppConfig());

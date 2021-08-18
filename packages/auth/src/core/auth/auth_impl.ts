@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _FirebaseService, FirebaseApp } from '@firebase/app-exp';
+import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import {
   Auth,
   AuthErrorMap,

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _registerComponent, registerVersion } from '@firebase/app-exp';
+import { _registerComponent, registerVersion } from '@firebase/app';
 import {
   Component,
   ComponentType,
@@ -33,7 +33,7 @@ import { Dependencies } from '../../model/public_types';
 import { _initializeAuthInstance } from './initialize';
 
 export const enum _ComponentName {
-  AUTH = 'auth-exp',
+  AUTH = 'auth',
   AUTH_INTERNAL = 'auth-internal'
 }
 
@@ -60,7 +60,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
     new Component(
       _ComponentName.AUTH,
       (container, { options: deps }: { options?: Dependencies }) => {
-        const app = container.getProvider('app-exp').getImmediate()!;
+        const app = container.getProvider('app').getImmediate()!;
         const { apiKey, authDomain } = app.options;
         return (app => {
           _assert(

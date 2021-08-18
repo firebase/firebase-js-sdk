@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as sinon from 'sinon';
-import * as exp from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth/internal';
 import * as platform from './platform';
 import { CompatPopupRedirectResolver } from './popup_redirect';
 import { FirebaseApp } from '@firebase/app-compat';

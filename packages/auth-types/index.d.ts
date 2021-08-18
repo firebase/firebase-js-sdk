@@ -500,6 +500,6 @@ declare module '@firebase/app-types' {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'auth': FirebaseAuth;
+    'auth-compat': FirebaseAuth;
   }
 }

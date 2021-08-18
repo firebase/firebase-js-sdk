@@ -34,7 +34,7 @@ import {
   UserCredential,
   signInWithCredential,
   ConfirmationResult
-} from '@firebase/auth-exp';
+} from '@firebase/auth';
 import { FirebaseError } from '@firebase/util';
 
 import {

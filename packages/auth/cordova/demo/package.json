@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "build:js": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app-exp,auth-exp/cordova}' --include-dependencies build"
+    "build:deps": "lerna run --scope @firebase/'{app,auth/cordova}' --include-dependencies build"
   },
   "keywords": [
     "ecosystem:cordova"
@@ -36,8 +36,8 @@
     ]
   },
   "dependencies": {
-    "@firebase/app-exp": "0.0.900",
-    "@firebase/auth-exp": "0.0.900",
+    "@firebase/app": "0.0.900",
+    "@firebase/auth": "0.0.900",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "1.1.0",
     "cordova-plugin-browsertab": "0.2.0",

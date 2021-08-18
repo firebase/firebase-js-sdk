@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
-import * as exp from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth/internal';
 import { Provider } from '@firebase/component';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
@@ -32,7 +32,7 @@ describe('auth compat', () => {
   context('redirect persistence key storage', () => {
     let underlyingAuth: exp.AuthImpl;
     let app: FirebaseApp;
-    let providerStub: sinon.SinonStubbedInstance<Provider<'auth-exp'>>;
+    let providerStub: sinon.SinonStubbedInstance<Provider<'auth'>>;
 
     beforeEach(() => {
       app = { options: { apiKey: 'api-key' } } as FirebaseApp;
@@ -65,7 +65,7 @@ describe('auth compat', () => {
         providerStub.getImmediate.returns(underlyingAuth);
         const authCompat = new Auth(
           app,
-          providerStub as unknown as Provider<'auth-exp'>
+          providerStub as unknown as Provider<'auth'>
         );
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
@@ -83,7 +83,7 @@ describe('auth compat', () => {
         );
         providerStub.isInitialized.returns(false);
         providerStub.initialize.returns(underlyingAuth);
-        new Auth(app, providerStub as unknown as Provider<'auth-exp'>);
+        new Auth(app, providerStub as unknown as Provider<'auth'>);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         expect(providerStub.initialize).to.have.been.calledWith({
           options: {

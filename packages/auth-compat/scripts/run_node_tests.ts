@@ -41,7 +41,7 @@ if (argv.integration) {
   testConfig = ['test/integration/flows/**.test.ts'];
 } else if (argv.webdriver) {
   testConfig = [
-    '../auth-exp/test/integration/webdriver/**/*.test.ts',
+    '../auth/test/integration/webdriver/**/*.test.ts',
     '--delay'
   ];
 }
@@ -52,7 +52,7 @@ let args = [
   mocha,
   ...testConfig,
   '--file',
-  '../auth-exp/src/platform_browser/iframe/gapi.iframes.ts',
+  '../auth/src/platform_browser/iframe/gapi.iframes.ts',
   '--config',
   '../../config/mocharc.node.js'
 ];

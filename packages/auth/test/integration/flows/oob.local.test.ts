@@ -40,7 +40,7 @@ import {
   updatePassword,
   verifyBeforeUpdateEmail,
   verifyPasswordResetCode
-} from '@firebase/auth-exp';
+} from '@firebase/auth';
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';

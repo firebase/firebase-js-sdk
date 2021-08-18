@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import { Auth } from './src/model/public_types';
 
 import { AuthImpl } from './src/core/auth/auth_impl';

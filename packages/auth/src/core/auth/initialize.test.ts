@@ -20,7 +20,7 @@ import {
   initializeApp,
   FirebaseApp,
   _FirebaseService
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import {
   Auth,
   AuthProvider,

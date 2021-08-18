@@ -22,7 +22,7 @@
  *   package.
  */
 
-import { initializeApp } from '@firebase/app-exp';
+import { initializeApp } from '@firebase/app';
 import {
   applyActionCode,
   browserLocalPersistence,
@@ -68,7 +68,7 @@ import {
   reauthenticateWithRedirect,
   getRedirectResult,
   browserPopupRedirectResolver
-} from '@firebase/auth-exp';
+} from '@firebase/auth';
 
 import { config } from './config';
 import {

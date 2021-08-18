@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Auth, User, Persistence } from '@firebase/auth-exp';
+import { Auth, User, Persistence } from '@firebase/auth';
 import { Builder, Condition, WebDriver } from 'selenium-webdriver';
 import { resetEmulator } from '../../../helpers/integration/emulator_rest_helpers';
 import {

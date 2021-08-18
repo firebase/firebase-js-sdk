@@ -23,7 +23,7 @@ import {
   cleanUpTestInstance,
   initializeTestInstance
 } from '../../helpers/helpers';
-import { getPhoneVerificationCodes } from '../../../../auth-exp/test/helpers/integration/emulator_rest_helpers';
+import { getPhoneVerificationCodes } from '../../../../auth/test/helpers/integration/emulator_rest_helpers';
 import {
   ConfirmationResult,
   RecaptchaVerifier,

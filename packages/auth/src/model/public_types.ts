@@ -1095,7 +1095,7 @@ export interface PopupRedirectResolver {}
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'auth-exp': Auth;
+    'auth': Auth;
   }
 }
 

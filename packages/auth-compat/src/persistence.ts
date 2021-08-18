@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as exp from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth/internal';
 import { isIndexedDBAvailable, isNode, isReactNative } from '@firebase/util';
 import { _isWebStorageSupported, _isWorker } from './platform';
 

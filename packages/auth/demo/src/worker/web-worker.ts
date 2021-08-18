@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { initializeApp } from '@firebase/app-exp';
+import { initializeApp } from '@firebase/app';
 import {
   createUserWithEmailAndPassword,
   fetchSignInMethodsForEmail,
@@ -25,7 +25,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
   User
-} from '@firebase/auth-exp';
+} from '@firebase/auth';
 
 import { config } from '../config';
 

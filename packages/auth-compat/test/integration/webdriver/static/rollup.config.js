@@ -17,7 +17,7 @@
 
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-// This is run from the auth-exp package.json
+// This is run from the auth package.json
 export default {
   input: ['test/integration/webdriver/static/index.js'],
   output: {

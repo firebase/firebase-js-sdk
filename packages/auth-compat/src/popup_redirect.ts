@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as exp from '@firebase/auth-exp/internal';
+import * as exp from '@firebase/auth/internal';
 import { _isCordova, _isLikelyCordova } from './platform';
 
 const _assert: typeof exp._assert = exp._assert;
