@@ -236,7 +236,7 @@ describe('core/user/token_manager', () => {
 
         const tokens = (await stsTokenManager.getToken(auth))!;
 
-        expect(tokens).to.eql('token');
+        expect(tokens).to.eq('token');
       });
 
       it('refreshes the token during buffer window if custom token provider is set', async () => {
@@ -277,7 +277,7 @@ describe('core/user/token_manager', () => {
 
         const tokens = (await stsTokenManager.getToken(auth))!;
 
-        expect(tokens).to.eql('token');
+        expect(tokens).to.eq('token');
       });
     });
   });

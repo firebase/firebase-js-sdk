@@ -17,6 +17,8 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
 import { OperationType } from '../../model/enums';
 
@@ -32,8 +34,6 @@ import {
   setCustomTokenProvider,
   signInWithCustomToken
 } from './custom_token';
-import { spy } from 'sinon';
-import * as sinonChai from 'sinon-chai';
 import { FirebaseError } from '@firebase/util';
 
 use(sinonChai);
@@ -73,7 +73,10 @@ describe('core/strategies/signInWithCustomToken', () => {
       users: [serverUser]
     });
   });
-  afterEach(mockFetch.tearDown);
+  afterEach(() => {
+    mockFetch.tearDown();
+    sinon.restore();
+  });
 
   describe('#signInWithCustomToken', () => {
     it('should return a valid user credential', async () => {
@@ -123,7 +126,7 @@ describe('core/strategies/signInWithCustomToken', () => {
       };
       const user = testUser(auth, serverUser.localId!);
       auth.currentUser = user;
-      spy(user.stsTokenManager, 'updateFromServerResponse');
+      sinon.spy(user.stsTokenManager, 'updateFromServerResponse');
 
       setCustomTokenProvider(auth, provider);
       const token = await auth._refreshWithCustomTokenProvider!();
@@ -146,7 +149,7 @@ describe('core/strategies/signInWithCustomToken', () => {
       };
       const user = testUser(auth, 'not-matching-uid');
       auth.currentUser = user;
-      spy(user.stsTokenManager, 'updateFromServerResponse');
+      sinon.spy(user.stsTokenManager, 'updateFromServerResponse');
 
       setCustomTokenProvider(auth, provider);
       await expect(auth._refreshWithCustomTokenProvider!()).to.be.rejectedWith(
