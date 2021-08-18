@@ -34,7 +34,7 @@ export class FieldPath {
   readonly _internalPath: InternalFieldPath;
 
   /**
-   * Creates a FieldPath from the provided field names. If more than one field
+   * Creates a `FieldPath` from the provided field names. If more than one field
    * name is provided, the path will point to a nested field in a document.
    *
    * @param fieldNames - A list of field names.

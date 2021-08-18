@@ -79,7 +79,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private idTokenSubscription = new Subscription<User>(this);
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
-  private redirectInitializerError: Error | null = null;
 
   // Any network calls will set this to true and prevent subsequent emulator
   // initialization
@@ -88,10 +87,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _deleted = false;
   _initializationPromise: Promise<void> | null = null;
   _popupRedirectResolver: PopupRedirectResolverInternal | null = null;
-  _errorFactory: ErrorFactory<
-    AuthErrorCode,
-    AuthErrorParams
-  > = _DEFAULT_AUTH_ERROR_FACTORY;
+  _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams> =
+    _DEFAULT_AUTH_ERROR_FACTORY;
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -150,12 +147,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       this._isInitialized = true;
     });
 
-    // After initialization completes, throw any error caused by redirect flow
-    return this._initializationPromise.then(() => {
-      if (this.redirectInitializerError) {
-        throw this.redirectInitializerError;
-      }
-    });
+    return this._initializationPromise;
   }
 
   /**
@@ -191,7 +183,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void> {
     // First check to see if we have a pending redirect event.
-    let storedUser = (await this.assertedPersistence.getCurrentUser()) as UserInternal | null;
+    let storedUser =
+      (await this.assertedPersistence.getCurrentUser()) as UserInternal | null;
     if (popupRedirectResolver && this.config.authDomain) {
       await this.getOrInitRedirectPersistenceManager();
       const redirectUserEventId = this.redirectUser?._redirectEventId;
@@ -267,7 +260,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         true
       );
     } catch (e) {
-      this.redirectInitializerError = e;
+      // Swallow any errors here; the code can retrieve them in
+      // getRedirectResult().
       await this._setRedirectUser(null);
     }
 
@@ -419,7 +413,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         [_getInstance(resolver._redirectPersistence)],
         KeyName.REDIRECT_USER
       );
-      this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
+      this.redirectUser =
+        await this.redirectPersistenceManager.getCurrentUser();
     }
 
     return this.redirectPersistenceManager;

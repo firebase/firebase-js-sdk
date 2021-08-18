@@ -41,6 +41,7 @@ export interface MessagePayload {
     };
     fcmOptions?: FcmOptions;
     from: string;
+    messageId: string;
     notification?: NotificationPayload;
 }
 

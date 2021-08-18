@@ -30,15 +30,18 @@ describe('externalizePayload', () => {
       },
       from: 'from',
       // eslint-disable-next-line camelcase
-      collapse_key: 'collapse'
+      collapse_key: 'collapse',
+      // eslint-disable-next-line camelcase
+      fcm_message_id: 'mid'
     };
 
-    const payload: MessagePayload = {
+    const expected: MessagePayload = {
       notification: { title: 'title', body: 'body', image: 'image' },
       from: 'from',
-      collapseKey: 'collapse'
+      collapseKey: 'collapse',
+      messageId: 'mid'
     };
-    expect(externalizePayload(internalPayload)).to.deep.equal(payload);
+    expect(externalizePayload(internalPayload)).to.deep.equal(expected);
   });
 
   it('externalizes internalMessage with only data payload', () => {
@@ -50,15 +53,18 @@ describe('externalizePayload', () => {
       },
       from: 'from',
       // eslint-disable-next-line camelcase
-      collapse_key: 'collapse'
+      collapse_key: 'collapse',
+      // eslint-disable-next-line camelcase
+      fcm_message_id: 'mid'
     };
 
-    const payload: MessagePayload = {
+    const expected: MessagePayload = {
       data: { foo: 'foo', bar: 'bar', baz: 'baz' },
       from: 'from',
-      collapseKey: 'collapse'
+      collapseKey: 'collapse',
+      messageId: 'mid'
     };
-    expect(externalizePayload(internalPayload)).to.deep.equal(payload);
+    expect(externalizePayload(internalPayload)).to.deep.equal(expected);
   });
 
   it('externalizes internalMessage with all three payloads', () => {
@@ -80,10 +86,12 @@ describe('externalizePayload', () => {
       },
       from: 'from',
       // eslint-disable-next-line camelcase
-      collapse_key: 'collapse'
+      collapse_key: 'collapse',
+      // eslint-disable-next-line camelcase
+      fcm_message_id: 'mid'
     };
 
-    const payload: MessagePayload = {
+    const expected: MessagePayload = {
       notification: {
         title: 'title',
         body: 'body',
@@ -99,8 +107,9 @@ describe('externalizePayload', () => {
         analyticsLabel: 'label'
       },
       from: 'from',
-      collapseKey: 'collapse'
+      collapseKey: 'collapse',
+      messageId: 'mid'
     };
-    expect(externalizePayload(internalPayload)).to.deep.equal(payload);
+    expect(externalizePayload(internalPayload)).to.deep.equal(expected);
   });
 });

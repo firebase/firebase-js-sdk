@@ -26,7 +26,7 @@ export { Unsubscribe, PartialObserver } from '@firebase/util';
  */
 export interface AppCheck {
   /**
-   * The `FirebaseApp` this `AppCheck` instance is associated with.
+   * The {@link @firebase/app#FirebaseApp} this `AppCheck` instance is associated with.
    */
   app: FirebaseApp;
 }

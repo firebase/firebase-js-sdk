@@ -57,7 +57,7 @@ export async function _signInWithCredential(
  * @remarks
  * An {@link AuthProvider} can be used to generate the credential.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param credential - The auth credential.
  *
  * @public
@@ -96,7 +96,7 @@ export async function linkWithCredential(
  *
  * @remarks
  * Use before operations such as {@link updatePassword} that require tokens from recent sign-in
- * attempts. This method can be used to recover from a CREDENTIAL_TOO_OLD_LOGIN_AGAIN error.
+ * attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error.
  *
  * @param user - The user.
  * @param credential - The auth credential.

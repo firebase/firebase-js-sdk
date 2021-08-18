@@ -16,10 +16,11 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
+import { MessagePayload, NextFn, Observer } from './interfaces/public-types';
 
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { FirebaseInternalDependencies } from './interfaces/internal-dependencies';
-import { MessagePayload, NextFn, Observer } from './interfaces/public-types';
+import { LogEvent } from './interfaces/logging-types';
 import { Provider } from '@firebase/component';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 import { extractAppConfig } from './helpers/extract-app-config';
@@ -30,16 +31,19 @@ export class MessagingService implements _FirebaseService {
 
   swRegistration?: ServiceWorkerRegistration;
   vapidKey?: string;
+  // logging is only done with end user consent. Default to false.
+  deliveryMetricsExportedToBigQueryEnabled: boolean = false;
 
   onBackgroundMessageHandler:
     | NextFn<MessagePayload>
     | Observer<MessagePayload>
     | null = null;
 
-  onMessageHandler:
-    | NextFn<MessagePayload>
-    | Observer<MessagePayload>
-    | null = null;
+  onMessageHandler: NextFn<MessagePayload> | Observer<MessagePayload> | null =
+    null;
+
+  logEvents: LogEvent[] = [];
+  isLogServiceStarted: boolean = false;
 
   constructor(
     app: FirebaseApp,

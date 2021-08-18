@@ -436,7 +436,7 @@ export const _DEFAULT_AUTH_ERROR_FACTORY = new ErrorFactory<
 >('auth', 'Firebase', _prodErrorMap());
 
 /**
- * A map of potential Auth error codes, for easier comparison with errors
+ * A map of potential `Auth` error codes, for easier comparison with errors
  * thrown by the SDK.
  *
  * @remarks

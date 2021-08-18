@@ -132,11 +132,11 @@ export function uploadBytesResumable(
 }
 
 /**
- * A promise that resolves with the metadata for this object. If this
+ * A `Promise` that resolves with the metadata for this object. If this
  * object doesn't exist or metadata cannot be retreived, the promise is
  * rejected.
  * @public
- * @param ref - StorageReference to get metadata from.
+ * @param ref - {@link StorageReference} to get metadata from.
  */
 export function getMetadata(ref: StorageReference): Promise<FullMetadata> {
   ref = getModularInstance(ref);
@@ -146,11 +146,11 @@ export function getMetadata(ref: StorageReference): Promise<FullMetadata> {
 /**
  * Updates the metadata for this object.
  * @public
- * @param ref - StorageReference to update metadata for.
+ * @param ref - {@link StorageReference} to update metadata for.
  * @param metadata - The new metadata for the object.
  *     Only values that have been explicitly set will be changed. Explicitly
  *     setting a value to null will remove the metadata.
- * @returns A promise that resolves with the new metadata for this object.
+ * @returns A `Promise` that resolves with the new metadata for this object.
  */
 export function updateMetadata(
   ref: StorageReference,
@@ -178,9 +178,9 @@ export function updateMetadata(
  * list() may fail if there are too many unsupported objects in the bucket.
  * @public
  *
- * @param ref - StorageReference to get list from.
- * @param options - See ListOptions for details.
- * @returns A Promise that resolves with the items and prefixes.
+ * @param ref - {@link StorageReference} to get list from.
+ * @param options - See {@link ListOptions} for details.
+ * @returns A `Promise` that resolves with the items and prefixes.
  *      `prefixes` contains references to sub-folders and `items`
  *      contains references to objects in this folder. `nextPageToken`
  *      can be used to get the rest of the results.
@@ -202,12 +202,12 @@ export function list(
  * Note: The results may not be consistent if objects are changed while this
  * operation is running.
  *
- * Warning: listAll may potentially consume too many resources if there are
+ * Warning: `listAll` may potentially consume too many resources if there are
  * too many results.
  * @public
- * @param ref - StorageReference to get list from.
+ * @param ref - {@link StorageReference} to get list from.
  *
- * @returns A Promise that resolves with all the items and prefixes under
+ * @returns A `Promise` that resolves with all the items and prefixes under
  *      the current storage reference. `prefixes` contains references to
  *      sub-directories and `items` contains references to objects in this
  *      folder. `nextPageToken` is never returned.
@@ -218,9 +218,10 @@ export function listAll(ref: StorageReference): Promise<ListResult> {
 }
 
 /**
- * Returns the download URL for the given Reference.
+ * Returns the download URL for the given {@link StorageReference}.
  * @public
- * @returns A promise that resolves with the download
+ * @param ref - {@link StorageReference} to get the download URL for.
+ * @returns A `Promise` that resolves with the download
  *     URL for this object.
  */
 export function getDownloadURL(ref: StorageReference): Promise<string> {
@@ -231,8 +232,8 @@ export function getDownloadURL(ref: StorageReference): Promise<string> {
 /**
  * Deletes the object at this location.
  * @public
- * @param ref - StorageReference for object to delete.
- * @returns A promise that resolves if the deletion succeeds.
+ * @param ref - {@link StorageReference} for object to delete.
+ * @returns A `Promise` that resolves if the deletion succeeds.
  */
 export function deleteObject(ref: StorageReference): Promise<void> {
   ref = getModularInstance(ref);
@@ -240,18 +241,18 @@ export function deleteObject(ref: StorageReference): Promise<void> {
 }
 
 /**
- * Returns a StorageReference for the given url.
- * @param storage - `StorageService` instance.
+ * Returns a {@link StorageReference} for the given url.
+ * @param storage - {@link FirebaseStorage} instance.
  * @param url - URL. If empty, returns root reference.
  * @public
  */
 export function ref(storage: FirebaseStorage, url?: string): StorageReference;
 /**
- * Returns a StorageReference for the given path in the
+ * Returns a {@link StorageReference} for the given path in the
  * default bucket.
- * @param storageOrRef - `StorageService` or `StorageReference`.
- * @param pathOrUrlStorage - path. If empty, returns root reference (if Storage
- * instance provided) or returns same reference (if Reference provided).
+ * @param storageOrRef - {@link FirebaseStorage} or {@link StorageReference}.
+ * @param pathOrUrlStorage - path. If empty, returns root reference (if {@link FirebaseStorage}
+ * instance provided) or returns same reference (if {@link StorageReference} provided).
  * @public
  */
 export function ref(
@@ -279,12 +280,12 @@ export function _getChild(ref: StorageReference, childPath: string): Reference {
 export { StringFormat } from '../src/implementation/string';
 
 /**
- * Gets a Firebase StorageService instance for the given Firebase app.
+ * Gets a {@link FirebaseStorage} instance for the given Firebase app.
  * @public
- * @param app - Firebase app to get Storage instance for.
+ * @param app - Firebase app to get {@link FirebaseStorage} instance for.
  * @param bucketUrl - The gs:// url to your Firebase Storage Bucket.
  * If not passed, uses the app's default Storage Bucket.
- * @returns A Firebase StorageService instance.
+ * @returns A {@link FirebaseStorage} instance.
  */
 export function getStorage(
   app: FirebaseApp = getApp(),
@@ -302,9 +303,9 @@ export function getStorage(
 }
 
 /**
- * Modify this `StorageService` instance to communicate with the Cloud Storage emulator.
+ * Modify this {@link FirebaseStorage} instance to communicate with the Cloud Storage emulator.
  *
- * @param storage - The `StorageService` instance
+ * @param storage - The {@link FirebaseStorage} instance
  * @param host - The emulator host (ex: localhost)
  * @param port - The emulator port (ex: 5001)
  * @param options.mockUserToken - the mock auth token to use for unit testing Security Rules.
