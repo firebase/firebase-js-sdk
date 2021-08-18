@@ -1,7 +1,6 @@
 {
-  "name": "@firebase/app-check-exp",
-  "version": "0.0.900",
-  "private": true,
+  "name": "@firebase/app-check",
+  "version": "0.3.2",
   "description": "An App Check package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -14,20 +13,19 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
-    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
-    "build:deps": "lerna run --scope @firebase/app-check-exp --include-dependencies build",
+    "build:release": "yarn build && yarn api-report && yarn typings:public",
+    "build:deps": "lerna run --scope @firebase/app-check --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run --nocache",
     "api-report": "api-extractor run --local --verbose",
-    "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/app-check-exp-public.d.ts"
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/app-check-public.d.ts"
   },
   "peerDependencies": {
-    "@firebase/app-exp": "0.x"
+    "@firebase/app": "0.x"
   },
   "dependencies": {
     "@firebase/logger": "0.2.6",
@@ -37,7 +35,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-exp": "0.0.900",
+    "@firebase/app": "0.6.30",
     "rollup": "2.52.2",
     "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-json": "4.1.0",

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { AppCheckTokenInternal } from './types';
 const DB_NAME = 'firebase-app-check-database';

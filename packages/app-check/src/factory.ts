@@ -16,7 +16,7 @@
  */
 
 import { AppCheck } from './public-types';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app';
 import { FirebaseAppCheckInternal, ListenerType } from './types';
 import {
   getToken,

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { issuedAtTime } from '@firebase/util';
 import { exchangeToken, getExchangeRecaptchaTokenRequest } from './client';

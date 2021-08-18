@@ -20,7 +20,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { registerVersion, _registerComponent } from '@firebase/app-exp';
+import { registerVersion, _registerComponent } from '@firebase/app';
 import {
   Component,
   ComponentType,
@@ -38,7 +38,7 @@ export { _AppCheckInternalComponentName };
 export * from './api';
 export * from './public-types';
 
-const APP_CHECK_NAME: _AppCheckComponentName = 'app-check-exp';
+const APP_CHECK_NAME: _AppCheckComponentName = 'app-check';
 const APP_CHECK_NAME_INTERNAL: _AppCheckInternalComponentName =
   'app-check-internal';
 function registerAppCheck(): void {
@@ -48,7 +48,7 @@ function registerAppCheck(): void {
       APP_CHECK_NAME,
       container => {
         // getImmediate for FirebaseApp will always succeed
-        const app = container.getProvider('app-exp').getImmediate();
+        const app = container.getProvider('app').getImmediate();
         const platformLoggerProvider = container.getProvider('platform-logger');
         return factory(app, platformLoggerProvider);
       },
@@ -71,7 +71,7 @@ function registerAppCheck(): void {
     new Component(
       APP_CHECK_NAME_INTERNAL,
       container => {
-        const appCheck = container.getProvider('app-check-exp').getImmediate();
+        const appCheck = container.getProvider('app-check').getImmediate();
         return internalFactory(appCheck);
       },
       ComponentType.PUBLIC

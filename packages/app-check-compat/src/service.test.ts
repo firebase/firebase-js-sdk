@@ -17,14 +17,14 @@
 import { expect, use } from 'chai';
 import { AppCheckService } from './service';
 import { firebase, FirebaseApp } from '@firebase/app-compat';
-import * as appCheckExp from '@firebase/app-check-exp';
+import * as appCheckExp from '@firebase/app-check';
 import { stub, match, SinonStub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import {
   AppCheck,
   CustomProvider,
   ReCaptchaV3Provider
-} from '@firebase/app-check-exp';
+} from '@firebase/app-check';
 import { AppCheckTokenResult } from '@firebase/app-check-types';
 import { PartialObserver } from '@firebase/util';
 import { AppCheckError } from './errors';

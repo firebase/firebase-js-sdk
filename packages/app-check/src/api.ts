@@ -24,7 +24,7 @@ import {
 } from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { getState, setState, AppCheckState } from './state';
-import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
 import { AppCheckService } from './factory';
 import { AppCheckProvider, ListenerType } from './types';
@@ -38,7 +38,7 @@ import { readTokenFromStorage } from './storage';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'app-check-exp': AppCheckService;
+    'app-check': AppCheckService;
   }
 }
 
@@ -55,7 +55,7 @@ export function initializeAppCheck(
   options: AppCheckOptions
 ): AppCheck {
   app = getModularInstance(app);
-  const provider = _getProvider(app, 'app-check-exp');
+  const provider = _getProvider(app, 'app-check');
 
   if (provider.isInitialized()) {
     const existingInstance = provider.getImmediate();

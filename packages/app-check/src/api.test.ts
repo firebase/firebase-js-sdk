@@ -38,7 +38,7 @@ import * as logger from './logger';
 import * as client from './client';
 import * as storage from './storage';
 import * as internalApi from './internal-api';
-import { deleteApp, FirebaseApp } from '@firebase/app-exp';
+import { deleteApp, FirebaseApp } from '@firebase/app';
 import { CustomProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
 import { AppCheckToken } from './public-types';

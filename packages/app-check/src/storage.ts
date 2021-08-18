@@ -16,7 +16,7 @@
  */
 
 import { uuidv4 } from './util';
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { isIndexedDBAvailable } from '@firebase/util';
 import {
   readDebugTokenFromIndexedDB,

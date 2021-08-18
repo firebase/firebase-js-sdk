@@ -19,7 +19,7 @@ import {
   FirebaseApp,
   initializeApp,
   _registerComponent
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import { GreCAPTCHA, RECAPTCHA_URL } from '../src/recaptcha';
 import {
   Provider,
@@ -27,7 +27,6 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
-import { PlatformLoggerService } from '@firebase/app-exp/dist/packages-exp/app-exp/src/types';
 import { AppCheckService } from '../src/factory';
 import { AppCheck, CustomProvider } from '../src';
 
@@ -65,14 +64,14 @@ export function getFullApp(): FirebaseApp {
     new Component(
       'platform-logger',
       () => {
-        return {} as PlatformLoggerService;
+        return {} as any;
       },
       ComponentType.PUBLIC
     )
   );
   _registerComponent(
     new Component(
-      'app-check-exp',
+      'app-check',
       () => {
         return {} as AppCheckService;
       },

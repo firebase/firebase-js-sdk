@@ -18,7 +18,7 @@
 import '../test/setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { deleteApp, FirebaseApp } from '@firebase/app-exp';
+import { deleteApp, FirebaseApp } from '@firebase/app';
 import {
   getFullApp,
   getFakeGreCAPTCHA,

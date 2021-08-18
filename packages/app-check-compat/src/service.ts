@@ -29,7 +29,7 @@ import {
   setTokenAutoRefreshEnabled as setTokenAutoRefreshEnabledExp,
   getToken as getTokenExp,
   onTokenChanged as onTokenChangedExp
-} from '@firebase/app-check-exp';
+} from '@firebase/app-check';
 import { PartialObserver, Unsubscribe } from '@firebase/util';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 

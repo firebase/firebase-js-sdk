@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { CustomProvider, ReCaptchaV3Provider } from './providers';
 export { Unsubscribe, PartialObserver } from '@firebase/util';
 
@@ -46,7 +46,7 @@ export interface AppCheckToken {
 /**
  * @internal
  */
-export type _AppCheckComponentName = 'app-check-exp';
+export type _AppCheckComponentName = 'app-check';
 
 /**
  * Options for App Check initialization.

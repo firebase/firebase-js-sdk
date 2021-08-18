@@ -18,7 +18,7 @@
 import '../test/setup';
 import { expect } from 'chai';
 import { SinonStub, spy, stub, useFakeTimers } from 'sinon';
-import { deleteApp, FirebaseApp } from '@firebase/app-exp';
+import { deleteApp, FirebaseApp } from '@firebase/app';
 import {
   FAKE_SITE_KEY,
   getFullApp,
