@@ -28,9 +28,8 @@ registerFirestore();
 
 export * from './api';
 
-
 declare module '@firebase/component' {
-    interface NameServiceMapping {
-      'firestore': Firestore;
-    }
+  interface NameServiceMapping {
+    'firestore': Firestore;
   }
+}

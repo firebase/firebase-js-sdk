@@ -81,9 +81,7 @@ export function configureForFirebase(
       'firestore-compat',
       container => {
         const app = container.getProvider('app-compat').getImmediate()!;
-        const firestoreExp = container
-          .getProvider('firestore')
-          .getImmediate()!;
+        const firestoreExp = container.getProvider('firestore').getImmediate()!;
         return firestoreFactory(app, firestoreExp);
       },
       ComponentType.PUBLIC

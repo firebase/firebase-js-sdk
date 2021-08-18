@@ -131,13 +131,15 @@ export { FirestoreErrorCode, FirestoreError } from './util/error';
 
 export { AbstractUserDataWriter } from './lite-api/user_data_writer';
 
-
 /**
  * Internal exports
  */
 export { isBase64Available as _isBase64Available } from './platform/base64';
 export { DatabaseId as _DatabaseId } from './core/database_info';
-export { validateIsNotUsedTogether as _validateIsNotUsedTogether, cast as _cast } from './util/input_validation';
+export {
+  validateIsNotUsedTogether as _validateIsNotUsedTogether,
+  cast as _cast
+} from './util/input_validation';
 export { DocumentKey as _DocumentKey } from './model/document_key';
 export { debugAssert as _debugAssert } from './util/assert';
 export { FieldPath as _FieldPath } from './model/path';

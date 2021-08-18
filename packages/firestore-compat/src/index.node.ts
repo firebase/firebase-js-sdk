@@ -37,4 +37,4 @@ export function registerFirestore(instance: FirebaseNamespace): void {
   instance.registerVersion(name, version, 'node');
 }
 
-registerFirestore((firebase as unknown) as FirebaseNamespace);
+registerFirestore(firebase as unknown as FirebaseNamespace);

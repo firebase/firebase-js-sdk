@@ -61,7 +61,10 @@ import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
 import { PersistenceSettings, FirestoreSettings } from './settings';
-export { connectFirestoreEmulator, EmulatorMockTokenOptions } from '../lite-api/database';
+export {
+  connectFirestoreEmulator,
+  EmulatorMockTokenOptions
+} from '../lite-api/database';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;

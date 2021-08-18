@@ -26,7 +26,6 @@ import {
 import { FieldValue as PublicFieldValue } from '@firebase/firestore-types';
 import { Compat } from '@firebase/util';
 
-
 export class FieldValue implements PublicFieldValue, Compat<FieldValue1> {
   static serverTimestamp(): FieldValue {
     const delegate = serverTimestamp();

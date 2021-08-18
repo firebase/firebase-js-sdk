@@ -190,7 +190,7 @@ abstract class BasePath<B extends BasePath<B>> {
 /**
  * A slash-separated path for navigating resources (documents and collections)
  * within Firestore.
- * 
+ *
  * @internal
  */
 export class ResourcePath extends BasePath<ResourcePath> {
@@ -246,7 +246,7 @@ export class ResourcePath extends BasePath<ResourcePath> {
 
 const identifierRegExp = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 
-/** 
+/**
  * A dot-separated path for navigating sub-objects within a document.
  * @internal
  */

@@ -18,7 +18,12 @@
 import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
-import { DocumentData, Query, queryEqual, SetOptions } from '../lite-api/reference';
+import {
+  DocumentData,
+  Query,
+  queryEqual,
+  SetOptions
+} from '../lite-api/reference';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
   fieldPathFromArgument,

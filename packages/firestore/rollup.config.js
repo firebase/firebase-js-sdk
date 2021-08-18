@@ -69,9 +69,7 @@ const browserPlugins = function () {
       cacheDir: tmp.dirSync(),
       clean: true,
       abortOnError: false,
-      transformers: [
-        util.removeAssertAndPrefixInternalTransformer
-      ]
+      transformers: [util.removeAssertAndPrefixInternalTransformer]
     }),
     json({ preferConst: true }),
     terser(util.manglePrivatePropertiesOptions)

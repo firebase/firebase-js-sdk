@@ -18,7 +18,6 @@
 import { Bytes, FirestoreError, _isBase64Available } from '@firebase/firestore';
 import { Compat } from '@firebase/util';
 
-
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
   if (typeof Uint8Array === 'undefined') {
