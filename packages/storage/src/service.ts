@@ -74,9 +74,6 @@ function refFromPath(
   } else {
     // ref is a Reference
     if (path !== undefined) {
-      if (path.includes('..')) {
-        throw invalidArgument('`path` param cannot contain ".."');
-      }
       return _getChild(ref, path);
     } else {
       return ref;

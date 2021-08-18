@@ -84,10 +84,10 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
    * configure this upon rendering. For an invisible reCAPTCHA, a size key must have the value
    * 'invisible'.
    *
-   * @param authExtern - The corresponding Firebase Auth instance.
+   * @param authExtern - The corresponding Firebase {@link Auth} instance.
    *
    * @remarks
-   * If none is provided, the default Firebase Auth instance is used. A Firebase Auth instance
+   * If none is provided, the default Firebase {@link Auth} instance is used. A Firebase {@link Auth} instance
    * must be initialized with an API key, otherwise an error will be thrown.
    */
   constructor(

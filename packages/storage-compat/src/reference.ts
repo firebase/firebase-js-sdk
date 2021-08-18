@@ -188,7 +188,7 @@ export class ReferenceCompat
   }
 
   /**
-   * A promise that resolves with the metadata for this object. If this
+   * A `Promise` that resolves with the metadata for this object. If this
    * object doesn't exist or metadata cannot be retreived, the promise is
    * rejected.
    */
@@ -201,7 +201,7 @@ export class ReferenceCompat
    * @param metadata - The new metadata for the object.
    * Only values that have been explicitly set will be changed. Explicitly
    * setting a value to null will remove the metadata.
-   * @returns A promise that resolves
+   * @returns A `Promise` that resolves
    * with the new metadata for this object.
    * @see firebaseStorage.Reference.prototype.getMetadata
    */
@@ -215,7 +215,7 @@ export class ReferenceCompat
   }
 
   /**
-   * @returns A promise that resolves with the download
+   * @returns A `Promise` that resolves with the download
    * URL for this object.
    */
   getDownloadURL(): Promise<string> {
@@ -224,7 +224,7 @@ export class ReferenceCompat
 
   /**
    * Deletes the object at this location.
-   * @returns A promise that resolves if the deletion succeeds.
+   * @returns A `Promise` that resolves if the deletion succeeds.
    */
   delete(): Promise<void> {
     this._throwIfRoot('delete');

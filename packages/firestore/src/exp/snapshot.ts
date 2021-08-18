@@ -465,7 +465,7 @@ export class QuerySnapshot<T = DocumentData> {
   }
 }
 
-/** Calculates the array of DocumentChanges for a given ViewSnapshot. */
+/** Calculates the array of `DocumentChange`s for a given `ViewSnapshot`. */
 export function changesFromSnapshot<T>(
   querySnapshot: QuerySnapshot<T>,
   includeMetadataChanges: boolean
@@ -508,7 +508,7 @@ export function changesFromSnapshot<T>(
       };
     });
   } else {
-    // A DocumentSet that is updated incrementally as changes are applied to use
+    // A `DocumentSet` that is updated incrementally as changes are applied to use
     // to lookup the index of a document.
     let indexTracker = querySnapshot._snapshot.oldDocs;
     return querySnapshot._snapshot.docChanges

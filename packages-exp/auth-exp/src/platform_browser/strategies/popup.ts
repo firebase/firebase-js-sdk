@@ -68,7 +68,7 @@ export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
  * const token = credential.accessToken;
  * ```
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional

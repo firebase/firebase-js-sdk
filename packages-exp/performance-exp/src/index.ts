@@ -50,8 +50,8 @@ import { deepEqual, getModularInstance } from '@firebase/util';
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 /**
- * Returns a FirebasePerformance instance for the given app.
- * @param app - The `FirebaseApp` to use.
+ * Returns a {@link FirebasePerformance} instance for the given app.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
  * @public
  */
 export function getPerformance(
@@ -64,9 +64,9 @@ export function getPerformance(
 }
 
 /**
- * Returns a FirebasePerformance instance for the given app. Can only be called once.
- * @param app - The `FirebaseApp` to use.
- * @param settings - Optional settings for the `FirebasePerformance` instance.
+ * Returns a {@link FirebasePerformance} instance for the given app. Can only be called once.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ * @param settings - Optional settings for the {@link FirebasePerformance} instance.
  * @public
  */
 export function initializePerformance(
@@ -96,7 +96,7 @@ export function initializePerformance(
 
 /**
  * Returns a new `PerformanceTrace` instance.
- * @param performance - The `FirebasePerformance` instance to use.
+ * @param performance - The {@link FirebasePerformance} instance to use.
  * @param name - The name of the trace.
  * @public
  */

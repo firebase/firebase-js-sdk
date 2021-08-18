@@ -64,7 +64,7 @@ import { getModularInstance } from '@firebase/util';
  * }
  * ```
  *
- * @param authInternal - The Auth instance.
+ * @param authInternal - The {@link Auth} instance.
  * @param email - The user's email address.
  * @param actionCodeSettings - The {@link ActionCodeSettings}.
  *
@@ -95,7 +95,7 @@ export async function sendSignInLinkToEmail(
 /**
  * Checks if an incoming link is a sign-in with email link suitable for {@link signInWithEmailLink}.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param emailLink - The link sent to the user's email address.
  *
  * @public
@@ -136,7 +136,7 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {
  * }
  * ```
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param email - The user's email address.
  * @param emailLink - The link sent to the user's email address.
  *

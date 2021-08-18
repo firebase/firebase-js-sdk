@@ -201,11 +201,11 @@ export class WriteBatch {
    * Commits all of the writes in this write batch as a single atomic unit.
    *
    * The result of these writes will only be reflected in document reads that
-   * occur after the returned Promise resolves. If the client is offline, the
+   * occur after the returned promise resolves. If the client is offline, the
    * write fails. If you would like to see local modifications or buffer writes
    * until the client is online, use the full Firestore SDK.
    *
-   * @returns A Promise resolved once all of the writes in the batch have been
+   * @returns A `Promise` resolved once all of the writes in the batch have been
    * successfully written to the backend as an atomic unit (note that it won't
    * resolve while you're offline).
    */
@@ -252,7 +252,7 @@ export function validateReference<T>(
  * is 500.
  *
  * The result of these writes will only be reflected in document reads that
- * occur after the returned Promise resolves. If the client is offline, the
+ * occur after the returned promise resolves. If the client is offline, the
  * write fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *

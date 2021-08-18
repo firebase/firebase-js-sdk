@@ -76,7 +76,7 @@ export interface StorageReference {
    */
   name: string;
   /**
-   * The StorageService associated with this reference.
+   * The {@link FirebaseStorage} instance associated with this reference.
    */
   storage: FirebaseStorage;
   /**

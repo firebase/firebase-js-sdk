@@ -90,7 +90,7 @@ export class DocumentReference<T = DocumentData> {
   readonly type = 'document';
 
   /**
-   * The {@link FirebaseFirestore} the document is in.
+   * The {@link Firestore} instance the document is in.
    * This is useful for performing transactions, for example.
    */
   readonly firestore: Firestore;
@@ -163,7 +163,7 @@ export class DocumentReference<T = DocumentData> {
 }
 
 /**
- * A `Query` refers to a Query which you can read or listen to. You can also
+ * A `Query` refers to a query which you can read or listen to. You can also
  * construct refined `Query` objects by adding filters and ordering.
  */
 export class Query<T = DocumentData> {
@@ -171,7 +171,7 @@ export class Query<T = DocumentData> {
   readonly type: 'query' | 'collection' = 'query';
 
   /**
-   * The `FirebaseFirestore` for the Firestore database (useful for performing
+   * The `Firestore` instance for the Firestore database (useful for performing
    * transactions, etc.).
    */
   readonly firestore: Firestore;
@@ -260,7 +260,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
   }
 
   /**
-   * Applies a custom data converter to this CollectionReference, allowing you
+   * Applies a custom data converter to this `CollectionReference`, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
    * addDoc} with the returned `CollectionReference` instance, the provided
    * converter will convert between Firestore data and your custom type `U`.
@@ -290,7 +290,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
  * Gets a `CollectionReference` instance that refers to the collection at
  * the specified absolute path.
  *
- * @param firestore - A reference to the root Firestore instance.
+ * @param firestore - A reference to the root `Firestore` instance.
  * @param path - A slash-separated path to a collection.
  * @param pathSegments - Additional path segments to apply relative to the first
  * argument.
@@ -381,7 +381,7 @@ export function collection(
  * database that are contained in a collection or subcollection with the
  * given `collectionId`.
  *
- * @param firestore - A reference to the root Firestore instance.
+ * @param firestore - A reference to the root `Firestore` instance.
  * @param collectionId - Identifies the collections to query over. Every
  * collection or subcollection with this ID as the last segment of its path
  * will be included. Cannot contain a slash.
@@ -411,9 +411,9 @@ export function collectionGroup(
 
 /**
  * Gets a `DocumentReference` instance that refers to the document at the
- * specified abosulute path.
+ * specified absolute path.
  *
- * @param firestore - A reference to the root Firestore instance.
+ * @param firestore - A reference to the root `Firestore` instance.
  * @param path - A slash-separated path to a document.
  * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.

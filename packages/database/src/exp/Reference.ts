@@ -114,7 +114,7 @@ export interface DatabaseReference extends Query {
 
 /**
  * A `Promise` that can also act as a `DatabaseReference` when returned by
- * {@link push}. The reference is available immediately and the Promise resolves
+ * {@link push}. The reference is available immediately and the `Promise` resolves
  * as the write to the backend completes.
  */
 export interface ThenableReference

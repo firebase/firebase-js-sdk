@@ -163,7 +163,7 @@ export class Timestamp {
     );
   }
 
-  /** Returns a textual representation of this Timestamp. */
+  /** Returns a textual representation of this `Timestamp`. */
   toString(): string {
     return (
       'Timestamp(seconds=' +
@@ -174,13 +174,13 @@ export class Timestamp {
     );
   }
 
-  /** Returns a JSON-serializable representation of this Timestamp. */
+  /** Returns a JSON-serializable representation of this `Timestamp`. */
   toJSON(): { seconds: number; nanoseconds: number } {
     return { seconds: this.seconds, nanoseconds: this.nanoseconds };
   }
 
   /**
-   * Converts this object to a primitive string, which allows Timestamp objects
+   * Converts this object to a primitive string, which allows `Timestamp` objects
    * to be compared using the `>`, `<=`, `>=` and `>` operators.
    */
   valueOf(): string {

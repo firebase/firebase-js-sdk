@@ -34,13 +34,13 @@ export {
 
 // Non-optional auth methods.
 /**
- * Changes the type of persistence on the Auth instance for the currently saved
- * Auth session and applies this type of persistence for future sign-in requests, including
+ * Changes the type of persistence on the {@link Auth} instance for the currently saved
+ * `Auth` session and applies this type of persistence for future sign-in requests, including
  * sign-in with redirect requests.
  *
  * @remarks
  * This makes it easy for a user signing in to specify whether their session should be
- * remembered or not. It also makes it easier to never persist the Auth state for applications
+ * remembered or not. It also makes it easier to never persist the `Auth` state for applications
  * that are shared by other users or have sensitive data.
  *
  * @example
@@ -48,9 +48,9 @@ export {
  * setPersistence(auth, browserSessionPersistence);
  * ```
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param persistence - The {@link Persistence} to use.
- * @returns A promise that resolves once the persistence change has completed
+ * @returns A `Promise` that resolves once the persistence change has completed
  *
  * @public
  */
@@ -64,7 +64,7 @@ export function setPersistence(
  * Adds an observer for changes to the signed-in user's ID token, which includes sign-in,
  * sign-out, and token refresh events.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param nextOrObserver - callback triggered on change.
  * @param error - callback triggered on error.
  * @param completed - callback triggered when observer is removed.
@@ -89,7 +89,7 @@ export function onIdTokenChanged(
  * @remarks
  * To keep the old behavior, see {@link onIdTokenChanged}.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param nextOrObserver - callback triggered on change.
  * @param error - callback triggered on error.
  * @param completed - callback triggered when observer is removed.
@@ -111,7 +111,7 @@ export function onAuthStateChanged(
 /**
  * Sets the current language to the default device/browser preference.
  *
- * @param auth - The Auth instanec.
+ * @param auth - The {@link Auth} instance.
  *
  * @public
  */
@@ -131,7 +131,7 @@ export function useDeviceLanguage(auth: Auth): void {
  * The operation fails with an error if the user to be updated belongs to a different Firebase
  * project.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param user - The new {@link User}.
  *
  * @public
@@ -145,7 +145,7 @@ export function updateCurrentUser(
 /**
  * Signs out the current user.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  *
  * @public
  */

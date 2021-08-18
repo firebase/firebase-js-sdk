@@ -55,7 +55,9 @@ describe('WindowController', () => {
   let getTokenStub: Stub<typeof tokenManagementModule.getToken>;
   let deleteTokenStub: Stub<typeof tokenManagementModule.deleteToken>;
   let registerStub: Stub<typeof navigator.serviceWorker.register>;
-  let addEventListenerStub: Stub<typeof navigator.serviceWorker.addEventListener>;
+  let addEventListenerStub: Stub<
+    typeof navigator.serviceWorker.addEventListener
+  >;
 
   /** The event listener that WindowController adds to the message event. */
   let messageEventListener: MessageEventListener;
@@ -380,7 +382,9 @@ describe('WindowController', () => {
         isFirebaseMessaging: true,
         from: 'from',
         // eslint-disable-next-line camelcase
-        collapse_key: 'collapse'
+        collapse_key: 'collapse',
+        // eslint-disable-next-line camelcase
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -404,7 +408,9 @@ describe('WindowController', () => {
         isFirebaseMessaging: true,
         from: 'from',
         // eslint-disable-next-line camelcase
-        collapse_key: 'collapse'
+        collapse_key: 'collapse',
+        // eslint-disable-next-line camelcase
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -425,7 +431,9 @@ describe('WindowController', () => {
         isFirebaseMessaging: true,
         from: 'from',
         // eslint-disable-next-line camelcase
-        collapse_key: 'collapse'
+        collapse_key: 'collapse',
+        // eslint-disable-next-line camelcase
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -439,7 +447,7 @@ describe('WindowController', () => {
   describe('usePublicVapidKey', () => {
     it('throws on invalid input', () => {
       expect(() =>
-        windowController.usePublicVapidKey((null as unknown) as string)
+        windowController.usePublicVapidKey(null as unknown as string)
       ).to.throw('messaging/invalid-vapid-key');
 
       expect(() => windowController.usePublicVapidKey('')).to.throw(
@@ -467,7 +475,7 @@ describe('WindowController', () => {
     it('throws on invalid input', () => {
       expect(() =>
         windowController.useServiceWorker(
-          ({} as unknown) as ServiceWorkerRegistration
+          {} as unknown as ServiceWorkerRegistration
         )
       ).to.throw('messaging/invalid-sw-registration');
     });
@@ -519,7 +527,9 @@ describe('WindowController', () => {
         isFirebaseMessaging: true,
         from: 'from',
         // eslint-disable-next-line camelcase
-        collapse_key: 'collapse'
+        collapse_key: 'collapse',
+        // eslint-disable-next-line camelcase
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -530,7 +540,9 @@ describe('WindowController', () => {
         notification: { title: 'hello', body: 'world' },
         from: 'from',
         // eslint-disable-next-line camelcase
-        collapse_key: 'collapse'
+        collapse_key: 'collapse',
+        // eslint-disable-next-line camelcase
+        fcm_message_id: 'mid'
       });
       expect(logEventSpy).not.to.have.been.called;
     });
@@ -542,7 +554,9 @@ describe('WindowController', () => {
         isFirebaseMessaging: true,
         from: 'from',
         // eslint-disable-next-line camelcase
-        collapse_key: 'collapse'
+        collapse_key: 'collapse',
+        // eslint-disable-next-line camelcase
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -566,7 +580,9 @@ describe('WindowController', () => {
         isFirebaseMessaging: true,
         from: 'from',
         // eslint-disable-next-line camelcase
-        collapse_key: 'collapse'
+        collapse_key: 'collapse',
+        // eslint-disable-next-line camelcase
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(
@@ -583,7 +599,9 @@ describe('WindowController', () => {
         },
         from: 'from',
         // eslint-disable-next-line camelcase
-        collapse_key: 'collapse'
+        collapse_key: 'collapse',
+        // eslint-disable-next-line camelcase
+        fcm_message_id: 'mid'
       });
       expect(logEventSpy).to.have.been.calledOnceWith(
         'notification_foreground',
@@ -611,7 +629,9 @@ describe('WindowController', () => {
         isFirebaseMessaging: true,
         from: 'from',
         // eslint-disable-next-line camelcase
-        collapse_key: 'collapse'
+        collapse_key: 'collapse',
+        // eslint-disable-next-line camelcase
+        fcm_message_id: 'mid'
       };
 
       await messageEventListener(

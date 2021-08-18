@@ -34,7 +34,7 @@ import { OperationType } from '../../model/enums';
  *
  * Fails with an error if the token is invalid, expired, or not accepted by the Firebase Auth service.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param customToken - The custom token to sign in with.
  *
  * @public

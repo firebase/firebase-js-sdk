@@ -55,7 +55,7 @@ export class SimpleDbTransaction {
   private aborted = false;
 
   /**
-   * A promise that resolves with the result of the IndexedDb transaction.
+   * A `Promise` that resolves with the result of the IndexedDb transaction.
    */
   private readonly completionDeferred = new Deferred<void>();
 
