@@ -29,7 +29,7 @@ import {
   _addOrOverwriteComponent,
   _DEFAULT_ENTRY_NAME,
   _FirebaseAppInternal as _FirebaseAppExp
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import { _FirebaseService, _FirebaseNamespace } from './types';
 import { Compat } from '@firebase/util';
 

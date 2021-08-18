@@ -1,9 +1,8 @@
 {
   "name": "@firebase/app-compat",
-  "version": "0.0.900",
+  "version": "0.1.0",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "private": true,
   "main": "dist/index.cjs.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
@@ -16,7 +15,6 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:release": "rollup -c rollup.config.release.js",
     "build:deps": "lerna run --scope @firebase/app-compat --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
@@ -28,13 +26,11 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/app-exp": "0.0.900",
+    "@firebase/app": "0.6.30",
     "@firebase/util": "1.2.0",
     "@firebase/logger": "0.2.6",
     "@firebase/component": "0.5.5",
-    "tslib": "^2.1.0",
-    "dom-storage": "2.1.0",
-    "xmlhttprequest": "1.8.0"
+    "tslib": "^2.1.0"
   },
   "devDependencies": {
     "rollup": "2.52.2",
@@ -44,7 +40,7 @@
     "typescript": "4.2.2"
   },
   "repository": {
-    "directory": "packages-exp/app-compat",
+    "directory": "packages/app-compat",
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },

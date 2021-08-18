@@ -21,8 +21,8 @@ import {
   _FirebaseService,
   FirebaseServiceNamespace
 } from './types';
-import * as modularAPIs from '@firebase/app-exp';
-import { _FirebaseAppInternal as _FirebaseAppExp } from '@firebase/app-exp';
+import * as modularAPIs from '@firebase/app';
+import { _FirebaseAppInternal as _FirebaseAppExp } from '@firebase/app';
 import { Component, ComponentType, Name } from '@firebase/component';
 
 import { deepExtend, contains } from '@firebase/util';

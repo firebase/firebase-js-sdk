@@ -22,7 +22,7 @@ import {
   _addComponent,
   _DEFAULT_ENTRY_NAME,
   _FirebaseAppInternal as FirebaseAppExp
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import { Component, ComponentType, Name } from '@firebase/component';
 import { Compat } from '@firebase/util';
 

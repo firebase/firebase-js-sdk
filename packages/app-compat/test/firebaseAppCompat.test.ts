@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import { stub } from 'sinon';
 import { FirebaseNamespace, FirebaseOptions } from '../src/public-types';
 import { _FirebaseApp, _FirebaseNamespace } from '../src/types';
-import { _components, _clearComponents } from '@firebase/app-exp';
+import { _components, _clearComponents } from '@firebase/app';
 import {
   Component,
   ComponentType,
