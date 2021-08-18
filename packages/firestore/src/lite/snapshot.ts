@@ -85,7 +85,7 @@ export interface FirestoreDataConverter<T> {
    * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
    * and {@link @firebase/firestore/lite#(Transaction.set:1)}.
    *
-   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such
+   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
    * {@link (deleteField:1)} to be used as property values.
    */
   toFirestore(modelObject: WithFieldValue<T>): DocumentData;
@@ -97,7 +97,7 @@ export interface FirestoreDataConverter<T> {
    * and {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true` or `mergeFields`.
    *
    * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
-   * FieldValues such {@link (arrayUnion:1)} to be used as property values.
+   * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
    * It also supports nested `Partial` by allowing nested fields to be
    * omitted.
    */

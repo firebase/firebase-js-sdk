@@ -91,7 +91,7 @@ export interface FirestoreDataConverter<T>
    * Firestore database). To use `set()` with `merge` and `mergeFields`,
    * `toFirestore()` must be defined with `PartialWithFieldValue<T>`.
    *
-   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such
+   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
    * {@link (deleteField:1)} to be used as property values.
    */
   toFirestore(modelObject: WithFieldValue<T>): DocumentData;
@@ -103,7 +103,7 @@ export interface FirestoreDataConverter<T>
    * and {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
    *
    * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
-   * FieldValues such {@link (arrayUnion:1)} to be used as property values.
+   * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
    * It also supports nested `Partial` by allowing nested fields to be
    * omitted.
    */
