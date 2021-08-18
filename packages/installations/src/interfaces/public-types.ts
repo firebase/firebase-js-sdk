@@ -43,7 +43,7 @@ export interface _FirebaseInstallationsInternal {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'installations-exp': Installations;
-    'installations-exp-internal': _FirebaseInstallationsInternal;
+    'installations': Installations;
+    'installations-internal': _FirebaseInstallationsInternal;
   }
 }

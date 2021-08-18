@@ -28,7 +28,7 @@ import {
   setCurrentScreen as setCurrentScreenExp,
   setUserId as setUserIdExp,
   setUserProperties as setUserPropertiesExp
-} from '@firebase/analytics-exp';
+} from '@firebase/analytics';
 import { _FirebaseService, FirebaseApp } from '@firebase/app-compat';
 
 export class AnalyticsService implements FirebaseAnalytics, _FirebaseService {

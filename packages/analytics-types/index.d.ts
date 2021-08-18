@@ -679,6 +679,6 @@ export interface ThrottleMetadata {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'analytics': FirebaseAnalytics;
+    'analytics-compat': FirebaseAnalytics;
   }
 }

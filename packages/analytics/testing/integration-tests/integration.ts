@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app-exp';
-import '@firebase/installations-exp';
+import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app';
+import '@firebase/installations';
 import { getAnalytics, initializeAnalytics, logEvent } from '../../src/index';
 import '../setup';
 import { expect } from 'chai';

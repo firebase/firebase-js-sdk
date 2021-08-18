@@ -1,7 +1,6 @@
 {
-  "name": "@firebase/installations-exp",
-  "version": "0.0.900",
-  "private": true,
+  "name": "@firebase/installations",
+  "version": "0.4.32",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm2017.js",
@@ -15,8 +14,8 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
-    "build:deps": "lerna run --scope @firebase/installations-exp --include-dependencies build",
-    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
+    "build:deps": "lerna run --scope @firebase/installations --include-dependencies build",
+    "build:release": "yarn build && yarn typings:public",
     "dev": "rollup -c -w",
     "test": "yarn type-check && yarn test:karma && yarn lint",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
@@ -27,14 +26,13 @@
     "serve:build": "rollup -c test-app/rollup.config.js",
     "serve:host": "http-server -c-1 test-app",
     "api-report": "api-extractor run --local --verbose",
-    "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/installations-exp-public.d.ts",
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/installations-public.d.ts",
     "typings:internal": "node ../../scripts/exp/use_typings.js ./dist/src/index.d.ts"
   },
   "repository": {
-    "directory": "packages-exp/installations-exp",
+    "directory": "packages/installations",
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
@@ -42,7 +40,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app-exp": "0.0.900",
+    "@firebase/app": "0.6.30",
     "rollup": "2.52.2",
     "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-json": "4.1.0",
@@ -52,7 +50,7 @@
     "typescript": "4.2.2"
   },
   "peerDependencies": {
-    "@firebase/app-exp": "0.x"
+    "@firebase/app": "0.x"
   },
   "dependencies": {
     "@firebase/util": "1.2.0",

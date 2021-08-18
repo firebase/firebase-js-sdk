@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 
-import { registerVersion, _registerComponent } from '@firebase/app-exp';
+import { registerVersion, _registerComponent } from '@firebase/app';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { factory } from './factory';
 import { ANALYTICS_TYPE } from './constants';
@@ -35,7 +35,7 @@ import { ERROR_FACTORY, AnalyticsError } from './errors';
 import { logEvent } from './api';
 import { name, version } from '../package.json';
 import { AnalyticsCallOptions } from './public-types';
-import '@firebase/installations-exp';
+import '@firebase/installations';
 
 declare global {
   interface Window {
@@ -49,9 +49,9 @@ function registerAnalytics(): void {
       ANALYTICS_TYPE,
       (container, { options: analyticsOptions }: InstanceFactoryOptions) => {
         // getImmediate for FirebaseApp will always succeed
-        const app = container.getProvider('app-exp').getImmediate();
+        const app = container.getProvider('app').getImmediate();
         const installations = container
-          .getProvider('installations-exp-internal')
+          .getProvider('installations-internal')
           .getImmediate();
 
         return factory(app, installations, analyticsOptions);

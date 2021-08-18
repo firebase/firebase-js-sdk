@@ -31,7 +31,7 @@ import {
 import {
   settings as settingsExp,
   isSupported as isSupportedExp
-} from '@firebase/analytics-exp';
+} from '@firebase/analytics';
 import { EventName } from './constants';
 
 declare module '@firebase/component' {
@@ -46,7 +46,7 @@ const factory: InstanceFactory<'analytics-compat'> = (
   // Dependencies
   const app = container.getProvider('app-compat').getImmediate();
   const analyticsServiceExp = container
-    .getProvider('analytics-exp')
+    .getProvider('analytics')
     .getImmediate();
 
   return new AnalyticsService(app as FirebaseApp, analyticsServiceExp);

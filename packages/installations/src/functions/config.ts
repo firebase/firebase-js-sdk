@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _registerComponent, _getProvider } from '@firebase/app-exp';
+import { _registerComponent, _getProvider } from '@firebase/app';
 import {
   Component,
   ComponentType,
@@ -27,13 +27,13 @@ import { _FirebaseInstallationsInternal } from '../interfaces/public-types';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { extractAppConfig } from '../helpers/extract-app-config';
 
-const INSTALLATIONS_NAME = 'installations-exp';
-const INSTALLATIONS_NAME_INTERNAL = 'installations-exp-internal';
+const INSTALLATIONS_NAME = 'installations';
+const INSTALLATIONS_NAME_INTERNAL = 'installations-internal';
 
-const publicFactory: InstanceFactory<'installations-exp'> = (
+const publicFactory: InstanceFactory<'installations'> = (
   container: ComponentContainer
 ) => {
-  const app = container.getProvider('app-exp').getImmediate();
+  const app = container.getProvider('app').getImmediate();
   // Throws if app isn't configured properly.
   const appConfig = extractAppConfig(app);
   const platformLoggerProvider = _getProvider(app, 'platform-logger');
@@ -47,10 +47,10 @@ const publicFactory: InstanceFactory<'installations-exp'> = (
   return installationsImpl;
 };
 
-const internalFactory: InstanceFactory<'installations-exp-internal'> = (
+const internalFactory: InstanceFactory<'installations-internal'> = (
   container: ComponentContainer
 ) => {
-  const app = container.getProvider('app-exp').getImmediate();
+  const app = container.getProvider('app').getImmediate();
   // Internal FIS instance relies on public FIS instance.
   const installations = _getProvider(app, INSTALLATIONS_NAME).getImmediate();
 

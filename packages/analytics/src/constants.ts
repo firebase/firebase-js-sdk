@@ -18,7 +18,7 @@
 /**
  * Type constant for Firebase Analytics.
  */
-export const ANALYTICS_TYPE = 'analytics-exp';
+export const ANALYTICS_TYPE = 'analytics';
 
 // Key to attach FID to in gtag params.
 export const GA_FID_KEY = 'firebase_id';

@@ -19,9 +19,9 @@ import {
   FirebaseApp,
   initializeApp,
   _registerComponent
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AnalyticsService } from '../src/factory';
 
 const fakeConfig = {
@@ -65,7 +65,7 @@ export function getFullApp(fakeAppParams?: {
 }): FirebaseApp {
   _registerComponent(
     new Component(
-      'installations-exp-internal',
+      'installations-internal',
       () => {
         return {} as _FirebaseInstallationsInternal;
       },
@@ -74,7 +74,7 @@ export function getFullApp(fakeAppParams?: {
   );
   _registerComponent(
     new Component(
-      'analytics-exp',
+      'analytics',
       () => {
         return {} as AnalyticsService;
       },

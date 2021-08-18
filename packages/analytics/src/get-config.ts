@@ -19,7 +19,7 @@
  * @fileoverview Most logic is copied from packages/remote-config/src/client/retrying_client.ts
  */
 
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { DynamicConfig, ThrottleMetadata, MinimalDynamicConfig } from './types';
 import { FirebaseError, calculateBackoffMillis } from '@firebase/util';
 import { AnalyticsError, ERROR_FACTORY } from './errors';

@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
-import { Installations } from '@firebase/installations-exp';
+import { Installations } from '@firebase/installations';
 
 const appName = 'testApp';
 const apiKey = 'AIzaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaA';

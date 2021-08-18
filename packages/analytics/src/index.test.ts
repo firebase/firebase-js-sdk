@@ -23,7 +23,7 @@ import {
   getFakeApp,
   getFakeInstallations
 } from '../testing/get-fake-firebase-services';
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { GtagCommand } from './constants';
 import { findGtagScriptOnPage } from './helpers';
 import { removeGtagScript } from '../testing/gtag-script-util';
@@ -36,7 +36,7 @@ import {
   resetGlobalVars,
   factory as analyticsFactory
 } from './factory';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
 let analyticsInstance: AnalyticsService = {} as AnalyticsService;
 const fakeMeasurementId = 'abcd-efgh';

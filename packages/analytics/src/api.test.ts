@@ -20,7 +20,7 @@ import { SinonStub, stub } from 'sinon';
 import '../testing/setup';
 import { getFullApp } from '../testing/get-fake-firebase-services';
 import { getAnalytics, initializeAnalytics } from './api';
-import { FirebaseApp, deleteApp } from '@firebase/app-exp';
+import { FirebaseApp, deleteApp } from '@firebase/app';
 import { AnalyticsError } from './errors';
 import * as init from './initialize-analytics';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };

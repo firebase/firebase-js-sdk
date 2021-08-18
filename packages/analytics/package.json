@@ -1,7 +1,6 @@
 {
-  "name": "@firebase/analytics-exp",
-  "version": "0.0.900",
-  "private": true,
+  "name": "@firebase/analytics",
+  "version": "0.6.18",
   "description": "A analytics package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -14,8 +13,8 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
-    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
-    "build:deps": "lerna run --scope @firebase/analytics-exp --include-dependencies build",
+    "build:release": "yarn build && yarn typings:public",
+    "build:deps": "lerna run --scope @firebase/analytics --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
     "test:all": "run-p test:browser test:integration",
@@ -23,16 +22,15 @@
     "test:browser": "karma start --single-run --nocache",
     "test:integration": "karma start ./karma.integration.conf.js --single-run --nocache",
     "api-report": "api-extractor run --local --verbose",
-    "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/analytics-exp-public.d.ts"
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/analytics-public.d.ts"
   },
   "peerDependencies": {
-    "@firebase/app-exp": "0.x"
+    "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/installations-exp": "0.0.900",
+    "@firebase/installations": "0.4.32",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "1.2.0",
     "@firebase/component": "0.5.5",
@@ -40,7 +38,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-exp": "0.0.900",
+    "@firebase/app": "0.6.30",
     "rollup": "2.52.2",
     "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-json": "4.1.0",

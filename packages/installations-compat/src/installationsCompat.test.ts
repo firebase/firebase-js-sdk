@@ -18,7 +18,7 @@
 import './testing/setup';
 import { getFakeApp, getFakeInstallations } from './testing/util';
 import { InstallationsCompat } from './installationsCompat';
-import * as modularApi from '@firebase/installations-exp';
+import * as modularApi from '@firebase/installations';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 

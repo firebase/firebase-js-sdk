@@ -25,7 +25,7 @@ import {
   IdChangeCallbackFn,
   IdChangeUnsubscribeFn,
   onIdChange
-} from '@firebase/installations-exp';
+} from '@firebase/installations';
 
 export class InstallationsCompat
   implements FirebaseInstallationsCompat, _FirebaseService

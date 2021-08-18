@@ -19,11 +19,11 @@ import { SettingsOptions, Analytics, AnalyticsSettings } from './public-types';
 import { Gtag, DynamicConfig, MinimalDynamicConfig } from './types';
 import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
 import { _initializeAnalytics } from './initialize-analytics';
 import { logger } from './logger';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app';
 
 /**
  * Analytics Service class.

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Installations } from '../interfaces/public-types';
 
 /**
@@ -28,7 +28,7 @@ import { Installations } from '../interfaces/public-types';
 export function getInstallations(app: FirebaseApp = getApp()): Installations {
   const installationsImpl = _getProvider(
     app,
-    'installations-exp'
+    'installations'
   ).getImmediate();
   return installationsImpl;
 }

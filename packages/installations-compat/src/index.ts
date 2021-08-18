@@ -34,7 +34,7 @@ function registerInstallations(instance: _FirebaseNamespace): void {
       container => {
         const app = container.getProvider('app-compat').getImmediate()!;
         const installations = container
-          .getProvider('installations-exp')
+          .getProvider('installations')
           .getImmediate()!;
         return new InstallationsCompat(app, installations);
       },

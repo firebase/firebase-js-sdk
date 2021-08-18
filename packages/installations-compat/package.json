@@ -1,7 +1,6 @@
 {
   "name": "@firebase/installations-compat",
-  "version": "0.0.900",
-  "private": true,
+  "version": "0.1.0",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm2017.js",
@@ -28,7 +27,7 @@
     "serve:host": "http-server -c-1 test-app"
   },
   "repository": {
-    "directory": "packages-exp/installations-compat",
+    "directory": "packages/installations-compat",
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
@@ -36,7 +35,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.0.900",
+    "@firebase/app-compat": "0.1.0",
     "rollup": "2.52.2",
     "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-json": "4.1.0",
@@ -49,7 +48,7 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/installations-exp": "0.0.900",
+    "@firebase/installations": "0.4.32",
     "@firebase/installations-types": "0.3.4",
     "@firebase/util": "1.2.0",
     "@firebase/component": "0.5.5",
