@@ -34,8 +34,6 @@ import { FieldPath } from '../../../compat/api/field_path';
 import { FieldValue } from '../../../compat/api/field_value';
 import { GeoPoint } from '../../../compat/api/geo_point';
 import { Timestamp } from '../../../compat/api/timestamp';
-// Import to trigger prototype patching of bundle loading.
-// import '../../../index.bundle';
 
 // TODO(dimond): Right now we create a new app and Firestore instance for
 // every test and never clean them up. We may need to revisit.
