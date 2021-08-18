@@ -87,7 +87,7 @@ export class EmailAuthProvider implements AuthProvider {
    * const userCredential = await signInWithEmailLink(auth, email, emailLink);
    * ```
    *
-   * @param auth - The Auth instance used to verify the link.
+   * @param auth - The {@link Auth} instance used to verify the link.
    * @param email - Email address.
    * @param emailLink - Sign-in email link.
    * @returns - The auth provider credential.

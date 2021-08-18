@@ -117,7 +117,7 @@ export class MultiFactorResolverImpl implements MultiFactorResolver {
  * Provides a {@link MultiFactorResolver} suitable for completion of a
  * multi-factor flow.
  *
- * @param auth - The auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param error - The {@link MultiFactorError} raised during a sign-in, or
  * reauthentication operation.
  *

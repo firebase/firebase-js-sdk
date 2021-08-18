@@ -317,7 +317,7 @@ export async function list(
 }
 
 /**
- * A promise that resolves with the metadata for this object. If this
+ * A `Promise` that resolves with the metadata for this object. If this
  * object doesn't exist or metadata cannot be retreived, the promise is
  * rejected.
  * @public
@@ -340,7 +340,7 @@ export async function getMetadata(ref: Reference): Promise<Metadata> {
  * @param metadata - The new metadata for the object.
  *     Only values that have been explicitly set will be changed. Explicitly
  *     setting a value to null will remove the metadata.
- * @returns A promise that resolves
+ * @returns A `Promise` that resolves
  *     with the new metadata for this object.
  *     See `firebaseStorage.Reference.prototype.getMetadata`
  */
@@ -361,7 +361,7 @@ export async function updateMetadata(
 /**
  * Returns the download URL for the given Reference.
  * @public
- * @returns A promise that resolves with the download
+ * @returns A `Promise` that resolves with the download
  *     URL for this object.
  */
 export async function getDownloadURL(ref: Reference): Promise<string> {
@@ -385,7 +385,7 @@ export async function getDownloadURL(ref: Reference): Promise<string> {
  * Deletes the object at this location.
  * @public
  * @param ref - StorageReference for object to delete.
- * @returns A promise that resolves if the deletion succeeds.
+ * @returns A `Promise` that resolves if the deletion succeeds.
  */
 export async function deleteObject(ref: Reference): Promise<void> {
   ref._throwIfRoot('deleteObject');

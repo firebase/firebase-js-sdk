@@ -64,7 +64,7 @@ export interface PrivateSettings extends FirestoreSettings {
 
 /**
  * A concrete type describing all the values that can be applied via a
- * user-supplied firestore.Settings object. This is a separate type so that
+ * user-supplied `FirestoreSettings` object. This is a separate type so that
  * defaults can be supplied and the value can be checked for equality.
  */
 export class FirestoreSettingsImpl {

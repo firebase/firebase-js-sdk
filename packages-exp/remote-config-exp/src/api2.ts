@@ -25,10 +25,10 @@ import { getModularInstance } from '@firebase/util';
  *
  * Performs fetch and activate operations, as a convenience.
  *
- * @param remoteConfig - The remote config instance.
+ * @param remoteConfig - The {@link RemoteConfig} instance.
  *
- * @returns A promise which resolves to true if the current call activated the fetched configs.
- * If the fetched configs were already activated, the promise will resolve to false.
+ * @returns A `Promise` which resolves to true if the current call activated the fetched configs.
+ * If the fetched configs were already activated, the `Promise` will resolve to false.
  *
  * @public
  */

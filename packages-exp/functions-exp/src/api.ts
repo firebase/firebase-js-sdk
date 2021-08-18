@@ -31,8 +31,8 @@ import { getModularInstance } from '@firebase/util';
 export * from './public-types';
 
 /**
- * Returns a Functions instance for the given app.
- * @param app - The FirebaseApp to use.
+ * Returns a {@link Functions} instance for the given app.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
  * @param regionOrCustomDomain - one of:
  *   a) The region the callable functions are located in (ex: us-central1)
  *   b) A custom domain hosting the callable functions (ex: https://mydomain.com)
@@ -75,7 +75,7 @@ export function connectFunctionsEmulator(
 }
 
 /**
- * Returns a reference to the callable https trigger with the given name.
+ * Returns a reference to the callable HTTPS trigger with the given name.
  * @param name - The name of the trigger.
  * @public
  */

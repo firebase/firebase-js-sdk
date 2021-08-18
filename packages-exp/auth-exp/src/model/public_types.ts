@@ -33,7 +33,7 @@ import {
 export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
 
 /**
- * Interface representing the Auth config.
+ * Interface representing the `Auth` config.
  *
  * @public
  */
@@ -67,8 +67,8 @@ export interface Config {
 /**
  * Interface representing reCAPTCHA parameters.
  *
- * See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param) 
- * for the list of accepted parameters. All parameters are accepted except for `sitekey`: Firebase Auth 
+ * See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param)
+ * for the list of accepted parameters. All parameters are accepted except for `sitekey`: Firebase Auth
  * provisions a reCAPTCHA for each project and will configure the site key upon rendering.
  *
  * For an invisible reCAPTCHA, set the `size` key to `invisible`.
@@ -115,7 +115,7 @@ export interface ParsedToken {
 export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 
 /**
- * Interface for an Auth error.
+ * Interface for an `Auth` error.
  *
  * @public
  */
@@ -138,7 +138,7 @@ export interface AuthError extends FirebaseError {
 }
 
 /**
- * Interface representing an Auth instance's settings.
+ * Interface representing an {@link Auth} instance's settings.
  *
  * @remarks Currently used for enabling/disabling app verification for phone Auth testing.
  *
@@ -175,7 +175,7 @@ export interface Auth {
   /** The {@link Config} used to initialize this instance. */
   readonly config: Config;
   /**
-   * Changes the type of persistence on the Auth instance.
+   * Changes the type of persistence on the {@link Auth} instance.
    *
    * @remarks
    * This will affect the currently saved Auth session and applies this type of persistence for
@@ -194,7 +194,7 @@ export interface Auth {
    */
   setPersistence(persistence: Persistence): Promise<void>;
   /**
-   * The Auth instance's language code.
+   * The {@link Auth} instance's language code.
    *
    * @remarks
    * This is a readable/writable property. When set to null, the default Firebase Console language
@@ -205,10 +205,10 @@ export interface Auth {
    */
   languageCode: string | null;
   /**
-   * The Auth instance's tenant ID.
+   * The {@link Auth} instance's tenant ID.
    *
    * @remarks
-   * This is a readable/writable property. When you set the tenant ID of an Auth instance, all
+   * This is a readable/writable property. When you set the tenant ID of an {@link Auth} instance, all
    * future sign-in/sign-up operations will pass this tenant ID and sign in or sign up users to
    * the specified tenant project. When set to null, users are signed in to the parent project.
    *
@@ -226,7 +226,7 @@ export interface Auth {
    */
   tenantId: string | null;
   /**
-   * The Auth instance's settings.
+   * The {@link Auth} instance's settings.
    *
    * @remarks
    * This is used to edit/read configuration related options such as app verification mode for
@@ -311,7 +311,7 @@ export interface Persistence {
  * Interface representing ID token result obtained from {@link User.getIdTokenResult}.
  *
  * @remarks
- * It contains the ID  token JWT string and other helper properties for getting different data
+ * `IdTokenResult` contains the ID token JWT string and other helper properties for getting different data
  * associated with the token as well as all the decoded payload claims.
  *
  * Note that these claims are not to be trusted as they are parsed client side. Only server side
@@ -795,7 +795,7 @@ export interface MultiFactorUser {
    * ```
    *
    * @param option - The multi-factor option to unenroll.
-   * @returns - A promise which resolves when the unenroll operation is complete.
+   * @returns - A `Promise` which resolves when the unenroll operation is complete.
    */
   unenroll(option: MultiFactorInfo | string): Promise<void>;
 }
@@ -866,7 +866,7 @@ export interface PhoneMultiFactorSignInInfoOptions {
 }
 
 /**
- * Interface for a supplied AsyncStorage.
+ * Interface for a supplied `AsyncStorage`.
  *
  * @public
  */
@@ -1101,6 +1101,7 @@ declare module '@firebase/component' {
 
 /**
  * Configuration of Firebase Authentication Emulator.
+ * @public
  */
 export interface EmulatorConfig {
   /**
@@ -1149,7 +1150,7 @@ export interface EmulatorConfig {
 export interface AuthErrorMap {}
 
 /**
- * The dependencies that can be used to initialize an Auth instance.
+ * The dependencies that can be used to initialize an {@link Auth} instance.
  *
  * @remarks
  *
@@ -1160,7 +1161,7 @@ export interface AuthErrorMap {}
  * {@link cordovaPopupRedirectResolver}. The dependencies object is how Auth is
  * configured to reduce bundle sizes.
  *
- * There are two ways to initialize an auth instance: {@link getAuth} and
+ * There are two ways to initialize an {@link Auth} instance: {@link getAuth} and
  * {@link initializeAuth}. `getAuth` initializes everything using
  * platform-specific configurations, while `initializeAuth` takes a
  * `Dependencies` object directly, giving you more control over what is used.

@@ -61,12 +61,12 @@ import {
 import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
- * Converts custom model object of type T into DocumentData by applying the
+ * Converts custom model object of type T into `DocumentData` by applying the
  * converter if it exists.
  *
- * This function is used when converting user objects to DocumentData
+ * This function is used when converting user objects to `DocumentData`
  * because we want to provide the user with a more specific error message if
- * their set() or fails due to invalid data originating from a toFirestore()
+ * their `set()` or fails due to invalid data originating from a `toFirestore()`
  * call.
  */
 export function applyFirestoreDataConverter<T>(
@@ -186,13 +186,13 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  * the document does not yet exist, it will be created.
  *
  * The result of this write will only be reflected in document reads that occur
- * after the returned Promise resolves. If the client is offline, the
+ * after the returned promise resolves. If the client is offline, the
  * write fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
- * @returns A Promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
 export function setDoc<T>(
@@ -205,14 +205,14 @@ export function setDoc<T>(
  * or `mergeFields`, the provided data can be merged into an existing document.
  *
  * The result of this write will only be reflected in document reads that occur
- * after the returned Promise resolves. If the client is offline, the
+ * after the returned promise resolves. If the client is offline, the
  * write fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
  * @param options - An object to configure the set behavior.
- * @returns A Promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
 export function setDoc<T>(
@@ -253,7 +253,7 @@ export function setDoc<T>(
  * not exist.
  *
  * The result of this update will only be reflected in document reads that occur
- * after the returned Promise resolves. If the client is offline, the
+ * after the returned promise resolves. If the client is offline, the
  * update fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
@@ -261,7 +261,7 @@ export function setDoc<T>(
  * @param data - An object containing the fields and values with which to
  * update the document. Fields can contain dots to reference nested fields
  * within the document.
- * @returns A Promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
 export function updateDoc(
@@ -277,7 +277,7 @@ export function updateDoc(
  * strings or by providing `FieldPath` objects.
  *
  * The result of this update will only be reflected in document reads that occur
- * after the returned Promise resolves. If the client is offline, the
+ * after the returned promise resolves. If the client is offline, the
  * update fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
@@ -285,7 +285,7 @@ export function updateDoc(
  * @param field - The first field to update.
  * @param value - The first value.
  * @param moreFieldsAndValues - Additional key value pairs.
- * @returns A Promise resolved once the data has been successfully written
+ * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
 export function updateDoc(
@@ -339,12 +339,12 @@ export function updateDoc(
  * Deletes the document referred to by the specified `DocumentReference`.
  *
  * The deletion will only be reflected in document reads that occur after the
- * returned Promise resolves. If the client is offline, the
+ * returned promise resolves. If the client is offline, the
  * delete fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
  * @param reference - A reference to the document to delete.
- * @returns A Promise resolved once the document has been successfully
+ * @returns A `Promise` resolved once the document has been successfully
  * deleted from the backend.
  */
 export function deleteDoc(
@@ -362,13 +362,13 @@ export function deleteDoc(
  * assigning it a document ID automatically.
  *
  * The result of this write will only be reflected in document reads that occur
- * after the returned Promise resolves. If the client is offline, the
+ * after the returned promise resolves. If the client is offline, the
  * write fails. If you would like to see local modifications or buffer writes
  * until the client is online, use the full Firestore SDK.
  *
  * @param reference - A reference to the collection to add this document to.
  * @param data - An Object containing the data for the new document.
- * @returns A Promise resolved with a `DocumentReference` pointing to the
+ * @returns A `Promise` resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend.
  */
 export function addDoc<T>(

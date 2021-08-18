@@ -61,14 +61,14 @@ export function getMessagingInSw(app: FirebaseApp = getApp()): Messaging {
 }
 
 /**
- * Subscribes the `FirebaseMessaging` instance to push notifications. Returns an Firebase Cloud
- * Messaging registration token that can be used to send push messages to that `FirebaseMessaging`
+ * Subscribes the {@link Messaging} instance to push notifications. Returns an Firebase Cloud
+ * Messaging registration token that can be used to send push messages to that {@link Messaging}
  * instance.
  *
  * If a notification permission isn't already granted, this method asks the user for permission. The
  * returned promise rejects if the user does not allow the app to show notifications.
  *
- * @param messaging - The `FirebaseMessaging` instance.
+ * @param messaging - The {@link Messaging} instance.
  * @param options - Provides an optional vapid key and an optinoal service worker registration
  *
  * @returns The promise resolves with an FCM registration token.
@@ -84,10 +84,10 @@ export async function getToken(
 }
 
 /**
- * Deletes the registration token associated with this `FirebaseMessaging` instance and unsubscribes
- * the `FirebaseMessaging` instance from the push subscription.
+ * Deletes the registration token associated with this {@link Messaging} instance and unsubscribes
+ * the {@link Messaging} instance from the push subscription.
  *
- * @param messaging - The `FirebaseMessaging` instance.
+ * @param messaging - The {@link Messaging} instance.
  *
  * @returns The promise resolves when the token has been successfully deleted.
  *
@@ -104,7 +104,7 @@ export function deleteToken(messaging: Messaging): Promise<boolean> {
  * the push message.
  *
  *
- * @param messaging - The `FirebaseMessaging` instance.
+ * @param messaging - The {@link Messaging} instance.
  * @param nextOrObserver - This function, or observer object with `next` defined,
  *     is called when a message is received and the user is currently viewing your page.
  * @returns To stop listening for messages execute this returned function.
@@ -123,7 +123,7 @@ export function onMessage(
  * Called when a message is received while the app is in the background. An app is considered to be
  * in the background if no active window is displayed.
  *
- * @param messaging - The `FirebaseMessaging` instance.
+ * @param messaging - The {@link Messaging} instance.
  * @param nextOrObserver - This function, or observer object with `next` defined, is called when a
  * message is received and the app is currently in the background.
  *
