@@ -290,7 +290,9 @@ export class Firestore
 
   terminate(): Promise<void> {
     if (this._appCompat) {
-      (this._appCompat as _FirebaseApp)._removeServiceInstance('firestore-compat');
+      (this._appCompat as _FirebaseApp)._removeServiceInstance(
+        'firestore-compat'
+      );
       (this._appCompat as _FirebaseApp)._removeServiceInstance('firestore');
     }
     return this._delegate._delete();
