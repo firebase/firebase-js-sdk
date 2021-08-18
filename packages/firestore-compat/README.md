@@ -1,4 +1,4 @@
-# @firebase/firestore
+# @firebase/firestore-compat
 
 This is the [Cloud Firestore](https://firebase.google.com/docs/firestore/) component of the
 [Firebase JS SDK](https://www.npmjs.com/package/firebase).

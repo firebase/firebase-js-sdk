@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,49 +22,37 @@
 const rollup = require('rollup');
 const { uglify } = require('rollup-plugin-uglify');
 const { nodeResolve } = require('@rollup/plugin-node-resolve');
+const typescriptPlugin = require('rollup-plugin-typescript2');
+const typescript = require('typescript');
+const json = require('@rollup/plugin-json');
 const fs = require('fs');
 const util = require('util');
 const fs_writeFile = util.promisify(fs.writeFile);
-
-const rollupUtil = require('../rollup.shared');
+const rollupUtil = require('../../firestore/rollup.shared');
 
 const EXPORTNAME = '__firestore_exports__';
+const OUTPUT_FOLDER = 'dist';
+const OUTPUT_FILE = 'standalone.js';
 
-const esm2017OutputFile = 'dist/standalone.esm2017.js';
-const esm5OutputFile = 'dist/standalone.js';
-
-const es2017InputOptions = {
-  input: 'index.console.ts',
-  plugins: rollupUtil.es2017Plugins('browser', /* mangled= */ true),
-  external: rollupUtil.resolveBrowserExterns,
-  treeshake: {
-    moduleSideEffects: false
-  }
-};
-
-const es2017OutputOptions = {
-  file: esm2017OutputFile,
-  format: 'es'
-};
-
-const es2017toEs5InputOptions = {
-  input: esm2017OutputFile,
+const es5InputOptions = {
+  input: 'src/index.console.ts',
   plugins: [
     nodeResolve(),
-    ...rollupUtil.es2017ToEs5Plugins(/* mangled= */ true),
+    typescriptPlugin({
+      typescript,
+      transformers: [rollupUtil.removeAssertTransformer]
+    }),
+    json({ preferConst: true }),
     uglify({
       output: {
         ascii_only: true // escape unicode chars
       }
     })
-  ],
-  treeshake: {
-    moduleSideEffects: false
-  }
-};
+  ]
+}
 
-const es2017toEs5OutputOptions = {
-  file: esm5OutputFile,
+const es5OutputOptions = {
+  file: `${OUTPUT_FOLDER}/${OUTPUT_FILE}`,
   name: EXPORTNAME,
   format: 'iife'
 };
@@ -76,18 +64,18 @@ exports = eval(`;
 const POSTFIX = ` + '${EXPORTNAME};');`;
 
 async function build() {
-  // Create an ES2017 bundle
-  const es2017Bundle = await rollup.rollup(es2017InputOptions);
-  await es2017Bundle.write(es2017OutputOptions);
-
-  // Transpile down to ES5
-  const es5Bundle = await rollup.rollup(es2017toEs5InputOptions);
+  const es5Bundle = await rollup.rollup(es5InputOptions);
   const {
     output: [{ code }]
-  } = await es5Bundle.generate(es2017toEs5OutputOptions);
+  } = await es5Bundle.generate(es5OutputOptions);
 
   const output = `${PREFIX}${JSON.stringify(String(code))}${POSTFIX}`;
-  await fs_writeFile(es2017toEs5OutputOptions.file, output, 'utf-8');
+
+  if (!fs.existsSync(OUTPUT_FOLDER)) {
+    fs.mkdirSync(OUTPUT_FOLDER);
+  }
+
+  await fs_writeFile(es5OutputOptions.file, output, 'utf-8');
 }
 
 build();

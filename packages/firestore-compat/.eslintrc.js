@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,17 +47,6 @@ module.exports = {
         'newlines-between': 'always',
         'alphabetize': { 'order': 'asc', 'caseInsensitive': true }
       }
-    ],
-    'no-restricted-globals': [
-      'error',
-      {
-        'name': 'window',
-        'message': 'Use `PlatformSupport.getPlatform().window` instead.'
-      },
-      {
-        'name': 'document',
-        'message': 'Use `PlatformSupport.getPlatform().document` instead.'
-      }
     ]
   },
   overrides: [
@@ -81,20 +70,6 @@ module.exports = {
       rules: {
         'import/no-extraneous-dependencies': 'off',
         '@typescript-eslint/no-require-imports': 'off'
-      }
-    },
-    // TODO(firestorelite): Remove this exception when app-exp is published
-    {
-      files: ['lite/**/*.ts'],
-      rules: {
-        'import/no-extraneous-dependencies': 'off'
-      }
-    },
-    // TODO(firestoreexp): Remove this exception when app-exp is published
-    {
-      files: ['exp/**/*.ts'],
-      rules: {
-        'import/no-extraneous-dependencies': 'off'
       }
     }
   ]
