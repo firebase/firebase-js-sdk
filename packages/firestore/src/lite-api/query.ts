@@ -98,18 +98,18 @@ export abstract class QueryConstraint {
   abstract readonly type: QueryConstraintType;
 
   /**
-   * Takes the provided `Query` and returns a copy of the `Query` with this
-   * `QueryConstraint` applied.
+   * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
+   * {@link QueryConstraint} applied.
    */
   abstract _apply<T>(query: Query<T>): Query<T>;
 }
 
 /**
- * Creates a new immutable instance of `Query` that is extended to also include
+ * Creates a new immutable instance of {@link Query} that is extended to also include
  * additional query constraints.
  *
- * @param query - The Query instance to use as a base for the new constraints.
- * @param queryConstraints - The list of `QueryConstraint`s to apply.
+ * @param query - The {@link Query} instance to use as a base for the new constraints.
+ * @param queryConstraints - The list of {@link QueryConstraint}s to apply.
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
@@ -171,7 +171,7 @@ export type WhereFilterOp =
   | 'not-in';
 
 /**
- * Creates a `QueryConstraint` that enforces that documents must contain the
+ * Creates a {@link QueryConstraint} that enforces that documents must contain the
  * specified field and that the value should satisfy the relation constraint
  * provided.
  *
@@ -179,7 +179,7 @@ export type WhereFilterOp =
  * @param opStr - The operation string (e.g "&lt;", "&lt;=", "==", "&lt;",
  *   "&lt;=", "!=").
  * @param value - The value for comparison
- * @returns The created `Query`.
+ * @returns The created {@link Query}.
  */
 export function where(
   fieldPath: string | FieldPath,
@@ -218,13 +218,13 @@ class QueryOrderByConstraint extends QueryConstraint {
 export type OrderByDirection = 'desc' | 'asc';
 
 /**
- * Creates a `QueryConstraint` that sorts the query result by the
+ * Creates a {@link QueryConstraint} that sorts the query result by the
  * specified field, optionally in descending order instead of ascending.
  *
  * @param fieldPath - The field to sort by.
  * @param directionStr - Optional direction to sort by ('asc' or 'desc'). If
  * not specified, order will be ascending.
- * @returns The created `Query`.
+ * @returns The created {@link Query}.
  */
 export function orderBy(
   fieldPath: string | FieldPath,
@@ -254,10 +254,10 @@ class QueryLimitConstraint extends QueryConstraint {
 }
 
 /**
- * Creates a `QueryConstraint` that only returns the first matching documents.
+ * Creates a {@link QueryConstraint} that only returns the first matching documents.
  *
  * @param limit - The maximum number of items to return.
- * @returns The created `Query`.
+ * @returns The created {@link Query}.
  */
 export function limit(limit: number): QueryConstraint {
   validatePositiveNumber('limit', limit);
@@ -265,13 +265,13 @@ export function limit(limit: number): QueryConstraint {
 }
 
 /**
- * Creates a `QueryConstraint` that only returns the last matching documents.
+ * Creates a {@link QueryConstraint} that only returns the last matching documents.
  *
  * You must specify at least one `orderBy` clause for `limitToLast` queries,
  * otherwise an exception will be thrown during execution.
  *
  * @param limit - The maximum number of items to return.
- * @returns The created `Query`.
+ * @returns The created {@link Query}.
  */
 export function limitToLast(limit: number): QueryConstraint {
   validatePositiveNumber('limitToLast', limit);
@@ -303,23 +303,23 @@ class QueryStartAtConstraint extends QueryConstraint {
 }
 
 /**
- * Creates a `QueryConstraint` that modifies the result set to start at the
+ * Creates a {@link QueryConstraint} that modifies the result set to start at the
  * provided document (inclusive). The starting position is relative to the order
  * of the query. The document must contain all of the fields provided in the
  * `orderBy` of this query.
  *
  * @param snapshot - The snapshot of the document to start at.
- * @returns A `QueryConstraint` to pass to `query()`.
+ * @returns A {@link QueryConstraint} to pass to `query()`.
  */
 export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 /**
- * Creates a `QueryConstraint` that modifies the result set to start at the
+ * Creates a {@link QueryConstraint} that modifies the result set to start at the
  * provided fields relative to the order of the query. The order of the field
  * values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to start this query at, in order
  * of the query's order by.
- * @returns A `QueryConstraint` to pass to `query()`.
+ * @returns A {@link QueryConstraint} to pass to `query()`.
  */
 export function startAt(...fieldValues: unknown[]): QueryConstraint;
 export function startAt(
@@ -329,25 +329,25 @@ export function startAt(
 }
 
 /**
- * Creates a `QueryConstraint` that modifies the result set to start after the
+ * Creates a {@link QueryConstraint} that modifies the result set to start after the
  * provided document (exclusive). The starting position is relative to the order
  * of the query. The document must contain all of the fields provided in the
  * orderBy of the query.
  *
  * @param snapshot - The snapshot of the document to start after.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryConstraint} to pass to `query()`
  */
 export function startAfter(
   snapshot: DocumentSnapshot<unknown>
 ): QueryConstraint;
 /**
- * Creates a `QueryConstraint` that modifies the result set to start after the
+ * Creates a {@link QueryConstraint} that modifies the result set to start after the
  * provided fields relative to the order of the query. The order of the field
  * values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to start this query after, in order
  * of the query's order by.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryConstraint} to pass to `query()`
  */
 export function startAfter(...fieldValues: unknown[]): QueryConstraint;
 export function startAfter(
@@ -385,23 +385,23 @@ class QueryEndAtConstraint extends QueryConstraint {
 }
 
 /**
- * Creates a `QueryConstraint` that modifies the result set to end before the
+ * Creates a {@link QueryConstraint} that modifies the result set to end before the
  * provided document (exclusive). The end position is relative to the order of
  * the query. The document must contain all of the fields provided in the
  * orderBy of the query.
  *
  * @param snapshot - The snapshot of the document to end before.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryConstraint} to pass to `query()`
  */
 export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 /**
- * Creates a `QueryConstraint` that modifies the result set to end before the
+ * Creates a {@link QueryConstraint} that modifies the result set to end before the
  * provided fields relative to the order of the query. The order of the field
  * values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to end this query before, in order
  * of the query's order by.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryConstraint} to pass to `query()`
  */
 export function endBefore(...fieldValues: unknown[]): QueryConstraint;
 export function endBefore(
@@ -411,23 +411,23 @@ export function endBefore(
 }
 
 /**
- * Creates a `QueryConstraint` that modifies the result set to end at the
+ * Creates a {@link QueryConstraint} that modifies the result set to end at the
  * provided document (inclusive). The end position is relative to the order of
  * the query. The document must contain all of the fields provided in the
  * orderBy of the query.
  *
  * @param snapshot - The snapshot of the document to end at.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryConstraint} to pass to `query()`
  */
 export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 /**
- * Creates a `QueryConstraint` that modifies the result set to end at the
+ * Creates a {@link QueryConstraint} that modifies the result set to end at the
  * provided fields relative to the order of the query. The order of the field
  * values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to end this query at, in order
  * of the query's order by.
- * @returns A `QueryConstraint` to pass to `query()`
+ * @returns A {@link QueryConstraint} to pass to `query()`
  */
 export function endAt(...fieldValues: unknown[]): QueryConstraint;
 export function endAt(
@@ -538,9 +538,9 @@ export function newQueryOrderBy(
 }
 
 /**
- * Create a Bound from a query and a document.
+ * Create a `Bound` from a query and a document.
  *
- * Note that the Bound will always include the key of the document
+ * Note that the `Bound` will always include the key of the document
  * and so only the provided document will compare equal to the returned
  * position.
  *
@@ -603,7 +603,7 @@ export function newQueryBoundFromDocument(
 }
 
 /**
- * Converts a list of field values to a Bound for the given query.
+ * Converts a list of field values to a `Bound` for the given query.
  */
 export function newQueryBoundFromFields(
   query: InternalQuery,
@@ -666,9 +666,9 @@ export function newQueryBoundFromFields(
 }
 
 /**
- * Parses the given documentIdValue into a ReferenceValue, throwing
- * appropriate errors if the value is anything other than a DocumentReference
- * or String, or if the string is malformed.
+ * Parses the given `documentIdValue` into a `ReferenceValue`, throwing
+ * appropriate errors if the value is anything other than a `DocumentReference`
+ * or `string`, or if the string is malformed.
  */
 function parseDocumentIdValue(
   databaseId: DatabaseId,
@@ -745,11 +745,11 @@ function validateDisjunctiveFilterElements(
  * Operators in a query must adhere to the following set of rules:
  * 1. Only one array operator is allowed.
  * 2. Only one disjunctive operator is allowed.
- * 3. NOT_EQUAL cannot be used with another NOT_EQUAL operator.
- * 4. NOT_IN cannot be used with array, disjunctive, or NOT_EQUAL operators.
+ * 3. `NOT_EQUAL` cannot be used with another `NOT_EQUAL` operator.
+ * 4. `NOT_IN` cannot be used with array, disjunctive, or `NOT_EQUAL` operators.
  *
- * Array operators: ARRAY_CONTAINS, ARRAY_CONTAINS_ANY
- * Disjunctive operators: IN, ARRAY_CONTAINS_ANY, NOT_IN
+ * Array operators: `ARRAY_CONTAINS`, `ARRAY_CONTAINS_ANY`
+ * Disjunctive operators: `IN`, `ARRAY_CONTAINS_ANY`, `NOT_IN`
  */
 function conflictingOps(op: Operator): Operator[] {
   switch (op) {

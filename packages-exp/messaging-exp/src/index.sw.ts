@@ -20,7 +20,11 @@ import '@firebase/installations-exp';
 import { Messaging } from './interfaces/public-types';
 import { registerMessagingInSw } from './helpers/register';
 
-export { onBackgroundMessage, getMessagingInSw as getMessaging } from './api';
+export {
+  onBackgroundMessage,
+  getMessagingInSw as getMessaging,
+  setDeliveryMetricsExportedToBigQueryEnabled as experimentalSetDeliveryMetricsExportedToBigQueryEnabled
+} from './api';
 export { isSwSupported as isSupported } from './api/isSupported';
 
 declare module '@firebase/component' {

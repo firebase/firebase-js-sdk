@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { OperationType, ProviderId } from '../../model/public_types';
+import { OperationType, ProviderId } from '../../model/enums';
 
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import {

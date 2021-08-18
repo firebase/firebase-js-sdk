@@ -51,7 +51,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 
 // @public
 export function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
-    mockUserToken?: EmulatorMockTokenOptions;
+    mockUserToken?: EmulatorMockTokenOptions | string;
 }): void;
 
 // @public

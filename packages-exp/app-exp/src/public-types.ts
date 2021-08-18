@@ -19,7 +19,7 @@ import { ComponentContainer } from '@firebase/component';
 import { PlatformLoggerService, VersionService } from './types';
 
 /**
- * A FirebaseApp holds the initialization information for a collection of
+ * A {@link @firebase/app#FirebaseApp} holds the initialization information for a collection of
  * services.
  *
  * Do not call this constructor directly. Instead, use

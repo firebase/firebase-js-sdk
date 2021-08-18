@@ -62,7 +62,8 @@ export interface OAuthCredentialOptions {
  */
 export abstract class BaseOAuthProvider
   extends FederatedAuthProvider
-  implements AuthProvider {
+  implements AuthProvider
+{
   /** @internal */
   private scopes: string[] = [];
 
@@ -130,7 +131,7 @@ export abstract class BaseOAuthProvider
 export class OAuthProvider extends BaseOAuthProvider {
   /**
    * Creates an {@link OAuthCredential} from a JSON string or a plain object.
-   * @param json A plain object or a JSON string
+   * @param json - A plain object or a JSON string
    */
   static credentialFromJSON(json: object | string): OAuthCredential {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;

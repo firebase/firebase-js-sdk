@@ -18,7 +18,7 @@ import { FirebaseApp } from '@firebase/app-exp';
 import { FirebaseError } from '@firebase/util';
 
 /**
- * An HttpsCallableResult wraps a single result from a function call.
+ * An `HttpsCallableResult` wraps a single result from a function call.
  * @public
  */
 export interface HttpsCallableResult<ResponseData = unknown> {
@@ -29,8 +29,7 @@ export interface HttpsCallableResult<ResponseData = unknown> {
 }
 
 /**
- * An HttpsCallable is a reference to a "callable" http trigger in
- * Google Cloud Functions.
+ * A reference to a "callable" HTTP trigger in Google Cloud Functions.
  * @param data - Data to be passed to callable function.
  * @public
  */
@@ -39,7 +38,7 @@ export type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (
 ) => Promise<HttpsCallableResult<ResponseData>>;
 
 /**
- * HttpsCallableOptions specify metadata about how calls should be executed.
+ * An interface for metadata about how calls should be executed.
  * @public
  */
 export interface HttpsCallableOptions {
@@ -51,13 +50,12 @@ export interface HttpsCallableOptions {
 }
 
 /**
- * `Functions` represents a Functions instance, and is a required argument for
- * all Functions operations.
+ * A `Functions` instance.
  * @public
  */
 export interface Functions {
   /**
-   * The FirebaseApp this Functions instance is associated with.
+   * The {@link @firebase/app#FirebaseApp} this `Functions` instance is associated with.
    */
   app: FirebaseApp;
 

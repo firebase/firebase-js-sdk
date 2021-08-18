@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  OperationType,
-  UserCredential,
-  Auth,
-  User
-} from '../../model/public_types';
+import { UserCredential, Auth, User } from '../../model/public_types';
 
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { AuthInternal } from '../../model/auth';
@@ -31,6 +26,7 @@ import { _reauthenticate } from '../user/reauthenticate';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 import { getModularInstance } from '@firebase/util';
+import { OperationType } from '../../model/enums';
 
 export async function _signInWithCredential(
   auth: AuthInternal,
@@ -61,7 +57,7 @@ export async function _signInWithCredential(
  * @remarks
  * An {@link AuthProvider} can be used to generate the credential.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param credential - The auth credential.
  *
  * @public
@@ -100,7 +96,7 @@ export async function linkWithCredential(
  *
  * @remarks
  * Use before operations such as {@link updatePassword} that require tokens from recent sign-in
- * attempts. This method can be used to recover from a CREDENTIAL_TOO_OLD_LOGIN_AGAIN error.
+ * attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error.
  *
  * @param user - The user.
  * @param credential - The auth credential.

@@ -39,8 +39,9 @@ import * as client from './client';
 import * as storage from './storage';
 import * as internalApi from './internal-api';
 import { deleteApp, FirebaseApp } from '@firebase/app-exp';
-import { ReCaptchaV3Provider } from './providers';
+import { CustomProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
+import { AppCheckToken } from './public-types';
 
 describe('api', () => {
   let app: FirebaseApp;
@@ -57,15 +58,65 @@ describe('api', () => {
   });
 
   describe('initializeAppCheck()', () => {
-    it('can only be called once', () => {
+    it('can only be called once (if given different provider classes)', () => {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
       expect(() =>
         initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+          provider: new CustomProvider({
+            getToken: () => Promise.resolve({ token: 'mm' } as AppCheckToken)
+          })
         })
       ).to.throw(/appCheck\/already-initialized/);
+    });
+    it('can only be called once (if given different ReCaptchaV3Providers)', () => {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY + 'X')
+        })
+      ).to.throw(/appCheck\/already-initialized/);
+    });
+    it('can only be called once (if given different CustomProviders)', () => {
+      initializeAppCheck(app, {
+        provider: new CustomProvider({
+          getToken: () => Promise.resolve({ token: 'ff' } as AppCheckToken)
+        })
+      });
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new CustomProvider({
+            getToken: () => Promise.resolve({ token: 'gg' } as AppCheckToken)
+          })
+        })
+      ).to.throw(/appCheck\/already-initialized/);
+    });
+    it('can be called multiple times (if given equivalent ReCaptchaV3Providers)', () => {
+      const appCheckInstance = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      expect(
+        initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        })
+      ).to.equal(appCheckInstance);
+    });
+    it('can be called multiple times (if given equivalent CustomProviders)', () => {
+      const appCheckInstance = initializeAppCheck(app, {
+        provider: new CustomProvider({
+          getToken: () => Promise.resolve({ token: 'ff' } as AppCheckToken)
+        })
+      });
+      expect(
+        initializeAppCheck(app, {
+          provider: new CustomProvider({
+            getToken: () => Promise.resolve({ token: 'ff' } as AppCheckToken)
+          })
+        })
+      ).to.equal(appCheckInstance);
     });
 
     it('initialize reCAPTCHA when a ReCaptchaV3Provider is provided', () => {

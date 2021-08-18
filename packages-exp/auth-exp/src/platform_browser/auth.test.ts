@@ -23,10 +23,10 @@ import * as sinonChai from 'sinon-chai';
 import { FirebaseApp } from '@firebase/app-exp';
 import {
   Auth,
-  OperationType,
   Persistence,
   PopupRedirectResolver
 } from '../model/public_types';
+import { OperationType } from '../model/enums';
 
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
 import { AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
@@ -327,6 +327,24 @@ describe('core/auth/initializeAuth', () => {
         stub._isAvailable.returns(Promise.resolve(true));
         stub._remove.returns(Promise.resolve());
         completeRedirectFnStub.returns(Promise.reject(new Error('no')));
+
+        // Manually initialize auth to make sure no error is thrown,
+        // since the _initializeAuthInstance function floats
+        const auth = new AuthImpl(FAKE_APP, {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          authDomain: FAKE_APP.options.authDomain,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
+        });
+        await expect(
+          auth._initializeWithPersistence(
+            [_getInstance(inMemoryPersistence)],
+            browserPopupRedirectResolver
+          )
+        ).to.not.be.rejected;
 
         await initAndWait([inMemoryPersistence], browserPopupRedirectResolver);
         expect(stub._remove).to.have.been.called;

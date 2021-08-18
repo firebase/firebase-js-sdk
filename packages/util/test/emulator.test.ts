@@ -28,7 +28,7 @@ describe('createMockUserToken()', () => {
 
     const token = createMockUserToken(options, projectId);
     const claims = JSON.parse(
-      base64.decodeString(token.split('.')[1], /*webSafe=*/ false)
+      base64.decodeString(token.split('.')[1], /*webSafe=*/ true)
     );
     // We add an 'iat' field.
     expect(claims).to.deep.equal({
@@ -50,7 +50,7 @@ describe('createMockUserToken()', () => {
     const options = { uid: 'alice' };
 
     expect(() =>
-      createMockUserToken((options as unknown) as EmulatorMockTokenOptions)
+      createMockUserToken(options as unknown as EmulatorMockTokenOptions)
     ).to.throw(
       'The "uid" field is no longer supported by mockUserToken. Please use "sub" instead for Firebase Auth User ID.'
     );

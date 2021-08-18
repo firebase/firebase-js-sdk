@@ -39,6 +39,7 @@ import {
 } from './implementation/error';
 import { validateNumber } from './implementation/type';
 import { FirebaseStorage } from '../exp/public-types';
+import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
 
 export function isUrl(path?: string): boolean {
   return /^[A-Za-z]+:\/\//.test(path as string);
@@ -73,9 +74,6 @@ function refFromPath(
   } else {
     // ref is a Reference
     if (path !== undefined) {
-      if (path.includes('..')) {
-        throw invalidArgument('`path` param cannot contain ".."');
-      }
       return _getChild(ref, path);
     } else {
       return ref;
@@ -133,9 +131,19 @@ function extractBucket(
 export function connectStorageEmulator(
   storage: FirebaseStorageImpl,
   host: string,
-  port: number
+  port: number,
+  options: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+  } = {}
 ): void {
   storage.host = `http://${host}:${port}`;
+  const { mockUserToken } = options;
+  if (mockUserToken) {
+    storage._overrideAuthToken =
+      typeof mockUserToken === 'string'
+        ? mockUserToken
+        : createMockUserToken(mockUserToken, storage.app.options.projectId);
+  }
 }
 
 /**
@@ -157,6 +165,7 @@ export class FirebaseStorageImpl implements FirebaseStorage {
   private _deleted: boolean = false;
   private _maxOperationRetryTime: number;
   private _maxUploadRetryTime: number;
+  _overrideAuthToken?: string;
 
   constructor(
     /**
@@ -239,6 +248,9 @@ export class FirebaseStorageImpl implements FirebaseStorage {
   }
 
   async _getAuthToken(): Promise<string | null> {
+    if (this._overrideAuthToken) {
+      return this._overrideAuthToken;
+    }
     const auth = this._authProvider.getImmediate({ optional: true });
     if (auth) {
       const tokenData = await auth.getToken();

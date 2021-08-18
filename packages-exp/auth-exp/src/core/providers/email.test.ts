@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { ProviderId, SignInMethod } from '../../model/public_types';
+import { ProviderId, SignInMethod } from '../../model/enums';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseError } from '@firebase/util';
 

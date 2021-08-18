@@ -147,7 +147,7 @@ export class Firestore implements FirestoreService {
     return this._terminateTask;
   }
 
-  /** Returns a JSON-serializable representation of this Firestore instance. */
+  /** Returns a JSON-serializable representation of this `Firestore` instance. */
   toJSON(): object {
     return {
       app: this._app,
@@ -189,7 +189,7 @@ function databaseIdFromApp(app: FirebaseApp): DatabaseId {
  * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
- * @returns A newly initialized Firestore instance.
+ * @returns A newly initialized `Firestore` instance.
  */
 export function initializeFirestore(
   app: FirebaseApp,
@@ -208,11 +208,11 @@ export function initializeFirestore(
 }
 
 /**
- * Returns the existing instance of Firestore that is associated with the
+ * Returns the existing `Firestore` instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned Firestore
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned `Firestore`
  * instance is associated with.
  * @returns The `Firestore` instance of the provided app.
  */
@@ -227,7 +227,7 @@ export { EmulatorMockTokenOptions } from '@firebase/util';
  * Note: This must be called before this instance has been used to do any
  * operations.
  *
- * @param firestore - The Firestore instance to configure to connect to the
+ * @param firestore - The `Firestore` instance to configure to connect to the
  * emulator.
  * @param host - the emulator host (ex: localhost).
  * @param port - the emulator port (ex: 9000).
@@ -239,7 +239,7 @@ export function connectFirestoreEmulator(
   host: string,
   port: number,
   options: {
-    mockUserToken?: EmulatorMockTokenOptions;
+    mockUserToken?: EmulatorMockTokenOptions | string;
   } = {}
 ): void {
   firestore = cast(firestore, Firestore);
@@ -259,32 +259,43 @@ export function connectFirestoreEmulator(
   });
 
   if (options.mockUserToken) {
-    // Let createMockUserToken validate first (catches common mistakes like
-    // invalid field "uid" and missing field "sub" / "user_id".)
-    const token = createMockUserToken(options.mockUserToken);
-    const uid = options.mockUserToken.sub || options.mockUserToken.user_id;
-    if (!uid) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        "mockUserToken must contain 'sub' or 'user_id' field!"
+    let token: string;
+    let user: User;
+    if (typeof options.mockUserToken === 'string') {
+      token = options.mockUserToken;
+      user = User.MOCK_USER;
+    } else {
+      // Let createMockUserToken validate first (catches common mistakes like
+      // invalid field "uid" and missing field "sub" / "user_id".)
+      token = createMockUserToken(
+        options.mockUserToken,
+        firestore._app?.options.projectId
       );
+      const uid = options.mockUserToken.sub || options.mockUserToken.user_id;
+      if (!uid) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          "mockUserToken must contain 'sub' or 'user_id' field!"
+        );
+      }
+      user = new User(uid);
     }
 
     firestore._credentials = new EmulatorCredentialsProvider(
-      new OAuthToken(token, new User(uid))
+      new OAuthToken(token, user)
     );
   }
 }
 
 /**
- * Terminates the provided Firestore instance.
+ * Terminates the provided `Firestore` instance.
  *
  * After calling `terminate()` only the `clearIndexedDbPersistence()` functions
  * may be used. Any other function will throw a `FirestoreError`. Termination
  * does not cancel any pending writes, and any promises that are awaiting a
  * response from the server will not be resolved.
  *
- * To restart after termination, create a new instance of FirebaseFirestore with
+ * To restart after termination, create a new instance of `Firestore` with
  * {@link getFirestore}.
  *
  * Note: Under normal circumstances, calling `terminate()` is not required. This
@@ -292,8 +303,8 @@ export function connectFirestoreEmulator(
  * its resources or in combination with {@link clearIndexedDbPersistence} to
  * ensure that all local state is destroyed between test runs.
  *
- * @param firestore - The Firestore instance to terminate.
- * @returns A promise that is resolved when the instance has been successfully
+ * @param firestore - The `Firestore` instance to terminate.
+ * @returns A `Promise` that is resolved when the instance has been successfully
  * terminated.
  */
 export function terminate(firestore: Firestore): Promise<void> {

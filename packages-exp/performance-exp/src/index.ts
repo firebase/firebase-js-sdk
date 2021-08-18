@@ -45,13 +45,13 @@ import {
 import { name, version } from '../package.json';
 import { Trace } from './resources/trace';
 import '@firebase/installations-exp';
-import { getModularInstance } from '@firebase/util';
+import { deepEqual, getModularInstance } from '@firebase/util';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 /**
- * Returns a FirebasePerformance instance for the given app.
- * @param app - The `FirebaseApp` to use.
+ * Returns a {@link FirebasePerformance} instance for the given app.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
  * @public
  */
 export function getPerformance(
@@ -64,9 +64,9 @@ export function getPerformance(
 }
 
 /**
- * Returns a FirebasePerformance instance for the given app. Can only be called once.
- * @param app - The `FirebaseApp` to use.
- * @param settings - Optional settings for the `FirebasePerformance` instance.
+ * Returns a {@link FirebasePerformance} instance for the given app. Can only be called once.
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ * @param settings - Optional settings for the {@link FirebasePerformance} instance.
  * @public
  */
 export function initializePerformance(
@@ -79,7 +79,13 @@ export function initializePerformance(
   // throw if an instance was already created.
   // It could happen if initializePerformance() is called more than once, or getPerformance() is called first.
   if (provider.isInitialized()) {
-    throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+    const existingInstance = provider.getImmediate();
+    const initialSettings = provider.getOptions() as PerformanceSettings;
+    if (deepEqual(initialSettings, settings ?? {})) {
+      return existingInstance;
+    } else {
+      throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+    }
   }
 
   const perfInstance = provider.initialize({
@@ -90,7 +96,7 @@ export function initializePerformance(
 
 /**
  * Returns a new `PerformanceTrace` instance.
- * @param performance - The `FirebasePerformance` instance to use.
+ * @param performance - The {@link FirebasePerformance} instance to use.
  * @param name - The name of the trace.
  * @public
  */

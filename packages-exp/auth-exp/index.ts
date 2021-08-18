@@ -33,46 +33,7 @@ import { browserPopupRedirectResolver } from './src/platform_browser/popup_redir
 import { Auth } from './src/model/public_types';
 
 // Public types
-export {
-  // Interfaces
-  ActionCodeInfo,
-  ActionCodeSettings,
-  AdditionalUserInfo,
-  ApplicationVerifier,
-  Auth,
-  AuthError,
-  AuthErrorMap,
-  AuthProvider,
-  AuthSettings,
-  Config,
-  ConfirmationResult,
-  IdTokenResult,
-  MultiFactorAssertion,
-  MultiFactorError,
-  MultiFactorInfo,
-  MultiFactorResolver,
-  MultiFactorSession,
-  MultiFactorUser,
-  ParsedToken,
-  Persistence,
-  PhoneMultiFactorAssertion,
-  PhoneMultiFactorEnrollInfoOptions,
-  PhoneMultiFactorSignInInfoOptions,
-  PhoneSingleFactorInfoOptions,
-  PopupRedirectResolver,
-  ReactNativeAsyncStorage,
-  User,
-  UserCredential,
-  UserInfo,
-  UserMetadata,
-  UserProfile,
-  PhoneInfoOptions,
-  Dependencies,
-  NextOrObserver,
-  ErrorFn,
-  CompleteFn,
-  Unsubscribe
-} from './src/model/public_types';
+export * from './src/model/public_types';
 
 // Helper maps (not used internally)
 export {
@@ -122,7 +83,8 @@ export { browserPopupRedirectResolver } from './src/platform_browser/popup_redir
 export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 
 /**
- * Initializes an Auth instance with platform specific default dependencies.
+ * Returns the Auth instance associated with the provided {@link @firebase/app#FirebaseApp}.
+ * If no instance exists, initializes an Auth instance with platform-specific default dependencies.
  *
  * @param app - The Firebase App.
  *

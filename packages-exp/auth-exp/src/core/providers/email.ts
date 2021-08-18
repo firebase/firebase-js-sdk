@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 
-import {
-  ProviderId,
-  SignInMethod,
-  AuthProvider
-} from '../../model/public_types';
+import { ProviderId, SignInMethod } from '../../model/enums';
+import { AuthProvider } from '../../model/public_types';
 
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthCredential } from '../credentials/email';
@@ -90,7 +87,7 @@ export class EmailAuthProvider implements AuthProvider {
    * const userCredential = await signInWithEmailLink(auth, email, emailLink);
    * ```
    *
-   * @param auth - The Auth instance used to verify the link.
+   * @param auth - The {@link Auth} instance used to verify the link.
    * @param email - Email address.
    * @param emailLink - Sign-in email link.
    * @returns - The auth provider credential.

@@ -91,6 +91,11 @@ export interface MessagePayload {
    * {@link https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages | Non-collapsible and collapsible messages}
    */
   collapseKey: string;
+
+  /**
+   * The message id of a message.
+   */
+  messageId: string;
 }
 
 /**

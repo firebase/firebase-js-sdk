@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Auth } from '../../model/public_types';
+import { Auth, RecaptchaParameters } from '../../model/public_types';
 import { getRecaptchaParams } from '../../api/authentication/recaptcha';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
@@ -25,7 +25,7 @@ import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { AuthInternal } from '../../model/auth';
 import { _window } from '../auth_window';
 import { _isWorker } from '../util/worker';
-import { Parameters, Recaptcha } from './recaptcha';
+import { Recaptcha } from './recaptcha';
 import {
   MockReCaptchaLoaderImpl,
   ReCaptchaLoader,
@@ -34,7 +34,7 @@ import {
 
 export const RECAPTCHA_VERIFIER_TYPE = 'recaptcha';
 
-const DEFAULT_PARAMS: Parameters = {
+const DEFAULT_PARAMS: RecaptchaParameters = {
   theme: 'light',
   type: 'image'
 };
@@ -84,15 +84,15 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
    * configure this upon rendering. For an invisible reCAPTCHA, a size key must have the value
    * 'invisible'.
    *
-   * @param authExtern - The corresponding Firebase Auth instance.
+   * @param authExtern - The corresponding Firebase {@link Auth} instance.
    *
    * @remarks
-   * If none is provided, the default Firebase Auth instance is used. A Firebase Auth instance
+   * If none is provided, the default Firebase {@link Auth} instance is used. A Firebase {@link Auth} instance
    * must be initialized with an API key, otherwise an error will be thrown.
    */
   constructor(
     containerOrId: HTMLElement | string,
-    private readonly parameters: Parameters = {
+    private readonly parameters: RecaptchaParameters = {
       ...DEFAULT_PARAMS
     },
     authExtern: Auth

@@ -20,7 +20,6 @@ import {
   ActionCodeOperation,
   ActionCodeSettings,
   Auth,
-  OperationType,
   UserCredential
 } from '../../model/public_types';
 
@@ -36,6 +35,7 @@ import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
 import { getModularInstance } from '@firebase/util';
+import { OperationType } from '../../model/enums';
 
 /**
  * Sends a password reset email to the given email address.
@@ -63,7 +63,7 @@ import { getModularInstance } from '@firebase/util';
  * await confirmPasswordReset('user@example.com', code);
  * ```
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param email - The user's email address.
  * @param actionCodeSettings - The {@link ActionCodeSettings}.
  *
@@ -89,7 +89,7 @@ export async function sendPasswordResetEmail(
 /**
  * Completes the password reset process, given a confirmation code and new password.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param oobCode - A confirmation code sent to the user.
  * @param newPassword - The new password.
  *
@@ -110,7 +110,7 @@ export async function confirmPasswordReset(
 /**
  * Applies a verification code sent to the user by email or other out-of-band mechanism.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param oobCode - A verification code sent to the user.
  *
  * @public
@@ -127,7 +127,7 @@ export async function applyActionCode(
  *
  * @returns metadata about the code.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param oobCode - A verification code sent to the user.
  *
  * @public
@@ -190,7 +190,7 @@ export async function checkActionCode(
  *
  * @returns the user's email address if valid.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param code - A verification code sent to the user.
  *
  * @public
@@ -215,7 +215,7 @@ export async function verifyPasswordResetCode(
  * Note: The email address acts as a unique identifier for the user and enables an email-based
  * password reset. This function will create a new user account and set the initial user password.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param email - The user's email address.
  * @param password - The user's chosen password.
  *
@@ -253,7 +253,7 @@ export async function createUserWithEmailAndPassword(
  * email address serves as a unique identifier for the user, and the password is used to access
  * the user's account in your Firebase project. See also: {@link createUserWithEmailAndPassword}.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param email - The users email address.
  * @param password - The users password.
  *

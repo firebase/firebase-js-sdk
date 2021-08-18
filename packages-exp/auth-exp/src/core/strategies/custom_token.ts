@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { Auth, OperationType, UserCredential } from '../../model/public_types';
+import { Auth, UserCredential } from '../../model/public_types';
 
 import { signInWithCustomToken as getIdTokenResponse } from '../../api/authentication/custom_token';
 import { IdTokenResponse } from '../../model/id_token';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
+import { OperationType } from '../../model/enums';
 
 /**
  * Asynchronously signs in using a custom token.
@@ -33,7 +34,7 @@ import { _castAuth } from '../auth/auth_impl';
  *
  * Fails with an error if the token is invalid, expired, or not accepted by the Firebase Auth service.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param customToken - The custom token to sign in with.
  *
  * @public

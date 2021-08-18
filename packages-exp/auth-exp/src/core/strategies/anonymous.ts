@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import { Auth, OperationType, UserCredential } from '../../model/public_types';
+import { Auth, UserCredential } from '../../model/public_types';
 import { signUp } from '../../api/authentication/sign_up';
 import { UserInternal } from '../../model/user';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
+import { OperationType } from '../../model/enums';
 
 /**
  * Asynchronously signs in as an anonymous user.
@@ -28,7 +29,7 @@ import { _castAuth } from '../auth/auth_impl';
  * If there is already an anonymous user signed in, that user will be returned; otherwise, a
  * new anonymous user identity will be created and returned.
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  *
  * @public
  */

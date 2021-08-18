@@ -18,8 +18,6 @@
 import {
   Auth,
   PhoneInfoOptions,
-  ProviderId,
-  SignInMethod,
   ApplicationVerifier,
   UserCredential
 } from '../../model/public_types';
@@ -34,6 +32,7 @@ import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthCredential } from '../../core';
 import { FirebaseError, getModularInstance } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
+import { ProviderId, SignInMethod } from '../../model/enums';
 
 /**
  * Provider for generating an {@link PhoneAuthCredential}.
@@ -62,7 +61,7 @@ export class PhoneAuthProvider {
   private readonly auth: AuthInternal;
 
   /**
-   * @param auth - The Firebase Auth instance in which sign-ins should occur.
+   * @param auth - The Firebase {@link Auth} instance in which sign-ins should occur.
    *
    */
   constructor(auth: Auth) {
@@ -150,7 +149,7 @@ export class PhoneAuthProvider {
 
   /**
    * Generates an {@link AuthCredential} from a {@link UserCredential}.
-   * @param userCredential
+   * @param userCredential - The user credential.
    */
   static credentialFromResult(
     userCredential: UserCredential
@@ -189,7 +188,7 @@ export class PhoneAuthProvider {
    * // At this point, auth.currentUser.phoneNumber === number.
    * ```
    *
-   * @param error
+   * @param error - The error to generate a credential from.
    */
   static credentialFromError(error: FirebaseError): AuthCredential | null {
     return PhoneAuthProvider.credentialFromTaggedObject(

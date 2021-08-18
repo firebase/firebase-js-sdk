@@ -20,7 +20,7 @@ import { _assert } from '../util/assert';
 import { _castAuth } from './auth_impl';
 
 /**
- * Changes the Auth instance to communicate with the Firebase Auth Emulator, instead of production
+ * Changes the {@link Auth} instance to communicate with the Firebase Auth Emulator, instead of production
  * Firebase Auth services.
  *
  * @remarks
@@ -34,9 +34,10 @@ import { _castAuth } from './auth_impl';
  * connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
  * ```
  *
- * @param auth - The Auth instance.
+ * @param auth - The {@link Auth} instance.
  * @param url - The URL at which the emulator is running (eg, 'http://localhost:9099').
- * @param options.disableWarnings - (Optional: default false) Disable the warning banner attached to the DOM
+ * @param options - Optional. `options.disableWarnings` defaults to `false`. Set it to
+ * `true` to disable the warning banner attached to the DOM.
  *
  * @public
  */

@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 
 import { EmulatorCredentialsProvider } from '../../../src/api/credentials';
+import { User } from '../../../src/auth/user';
 import {
   collectionReference,
   documentReference,
@@ -252,7 +253,7 @@ describe('Settings', () => {
     expect(db._delegate._getSettings().ssl).to.be.false;
   });
 
-  it('sets credentials based on mockUserToken', async () => {
+  it('sets credentials based on mockUserToken object', async () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     const mockUserToken = { sub: 'foobar' };
@@ -263,5 +264,19 @@ describe('Settings', () => {
     const token = await credentials.getToken();
     expect(token!.type).to.eql('OAuth');
     expect(token!.user.uid).to.eql(mockUserToken.sub);
+  });
+
+  it('sets credentials based on mockUserToken string', async () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db.useEmulator('localhost', 9000, {
+      mockUserToken: 'my-custom-mock-user-token'
+    });
+
+    const credentials = db._delegate._credentials;
+    expect(credentials).to.be.instanceOf(EmulatorCredentialsProvider);
+    const token = await credentials.getToken();
+    expect(token!.type).to.eql('OAuth');
+    expect(token!.user).to.eql(User.MOCK_USER);
   });
 });
