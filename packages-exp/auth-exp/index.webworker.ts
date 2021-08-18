@@ -27,7 +27,7 @@ import { ClientPlatform } from './src/core/util/version';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 // Core functionality shared by all clients
-export * from './src';
+export * from './index.shared';
 
 // persistence
 export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';

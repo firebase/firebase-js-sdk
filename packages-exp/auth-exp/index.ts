@@ -21,17 +21,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
-
-import { initializeAuth } from './src';
-import { registerAuth } from './src/core/auth/register';
-import { ClientPlatform } from './src/core/util/version';
-import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
-import { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
-import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
-import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
-import { Auth } from './src/model/public_types';
-
 // Public types
 export * from './src/model/public_types';
 
@@ -47,64 +36,65 @@ export {
 // Core functionality shared by all clients
 export * from './src';
 
-// Additional DOM dependend functionality
+// Additional DOM dependend functionality; we need to import and then
+// export separately so that the rollup alias will work (for aliasing these
+// imports in node environments to no-ops and errors... see
+// src/platform_node/index.ts).
 
 // persistence
-export { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
-export { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
-export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
+import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
+import { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
+import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 // providers
-export { PhoneAuthProvider } from './src/platform_browser/providers/phone';
+import { PhoneAuthProvider } from './src/platform_browser/providers/phone';
 
 // strategies
-export {
+import {
   signInWithPhoneNumber,
   linkWithPhoneNumber,
   reauthenticateWithPhoneNumber,
   updatePhoneNumber
 } from './src/platform_browser/strategies/phone';
-export {
+import {
   signInWithPopup,
   linkWithPopup,
   reauthenticateWithPopup
 } from './src/platform_browser/strategies/popup';
-export {
+import {
   signInWithRedirect,
   linkWithRedirect,
   reauthenticateWithRedirect,
   getRedirectResult
 } from './src/platform_browser/strategies/redirect';
 
-export { RecaptchaVerifier } from './src/platform_browser/recaptcha/recaptcha_verifier';
-export { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
+import { RecaptchaVerifier } from './src/platform_browser/recaptcha/recaptcha_verifier';
+import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
 
 // MFA
-export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
+import { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 
-/**
- * Returns the Auth instance associated with the provided {@link @firebase/app#FirebaseApp}.
- * If no instance exists, initializes an Auth instance with platform-specific default dependencies.
- *
- * @param app - The Firebase App.
- *
- * @public
- */
-export function getAuth(app: FirebaseApp = getApp()): Auth {
-  const provider = _getProvider(app, 'auth-exp');
+// Initialization and registration of Auth
+import { getAuth } from './src/platform_browser';
 
-  if (provider.isInitialized()) {
-    return provider.getImmediate();
-  }
-
-  return initializeAuth(app, {
-    popupRedirectResolver: browserPopupRedirectResolver,
-    persistence: [
-      indexedDBLocalPersistence,
-      browserLocalPersistence,
-      browserSessionPersistence
-    ]
-  });
-}
-
-registerAuth(ClientPlatform.BROWSER);
+export {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  indexedDBLocalPersistence,
+  PhoneAuthProvider,
+  signInWithPhoneNumber,
+  linkWithPhoneNumber,
+  reauthenticateWithPhoneNumber,
+  updatePhoneNumber,
+  signInWithPopup,
+  linkWithPopup,
+  reauthenticateWithPopup,
+  signInWithRedirect,
+  linkWithRedirect,
+  reauthenticateWithRedirect,
+  getRedirectResult,
+  RecaptchaVerifier,
+  browserPopupRedirectResolver,
+  PhoneMultiFactorGenerator,
+  getAuth
+};
