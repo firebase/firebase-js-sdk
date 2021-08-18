@@ -24,16 +24,13 @@ import { FirebaseError } from '@firebase/util';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api/authentication/token';
-import { Endpoint as AllEndpoints } from '../../api';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { StsTokenManager, Buffer } from './token_manager';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { makeJWT } from '../../../test/helpers/jwt';
-import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { APIUserInfo } from '../../api/account_management/account';
 import { _castAuth } from '../auth/auth_impl';
-import { UserImpl } from './user_impl';
 import { setCustomTokenProvider } from '../strategies/custom_token';
+import { stub } from 'sinon';
 
 use(chaiAsPromised);
 
@@ -195,36 +192,12 @@ describe('core/user/token_manager', () => {
     });
 
     describe('in passthrough mode', () => {
-      const serverUser: APIUserInfo = {
-        localId: 'local-id',
-        displayName: 'display-name',
-        photoUrl: 'photo-url',
-        email: 'email',
-        emailVerified: true,
-        phoneNumber: 'phone-number',
-        createdAt: 123,
-        lastLoginAt: 456
-      };
-      const idTokenResponse: IdTokenResponse = {
-        idToken: 'new-access-token',
-        expiresIn: '3600',
-        localId: serverUser.localId!,
-        kind: IdTokenResponseKind.CreateAuthUri
-      };
       const fakeCustomToken = 'fake-custom-token';
       const provider = {
         async getCustomToken(): Promise<string> {
           return fakeCustomToken;
         }
       };
-
-      let signInRoute: fetch.Route;
-      beforeEach(() => {
-        signInRoute = mockEndpoint(
-          AllEndpoints.SIGN_IN_WITH_CUSTOM_TOKEN,
-          idTokenResponse
-        );
-      });
 
       it('refreshes the token if forceRefresh is true and custom token provider is set', async () => {
         Object.assign(stsTokenManager, {
@@ -233,21 +206,13 @@ describe('core/user/token_manager', () => {
           isPassthroughMode: true
         });
         setCustomTokenProvider(auth, provider);
+        stub(auth, '_refreshWithCustomTokenProvider').returns(
+          Promise.resolve('new-access-token')
+        );
 
         const tokens = (await stsTokenManager.getToken(auth, true))!;
-        const authInternal = _castAuth(auth);
-        const updatedTokenManager = (authInternal.currentUser as UserImpl)
-          .stsTokenManager;
 
-        expect(signInRoute.calls[0].request).to.eql({
-          token: fakeCustomToken,
-          returnSecureToken: true
-        });
         expect(tokens).to.eq('new-access-token');
-        expect(updatedTokenManager.accessToken).to.eq('new-access-token');
-        expect(updatedTokenManager.refreshToken).to.be.null;
-        expect(updatedTokenManager.expirationTime).to.eq(now + 3_600_000);
-        expect(updatedTokenManager.isPassthroughMode).to.be.true;
       });
 
       it('throws an error if forceRefresh is true and custom token provider is not set', async () => {
@@ -282,21 +247,13 @@ describe('core/user/token_manager', () => {
           isPassthroughMode: true
         });
         setCustomTokenProvider(auth, provider);
+        stub(auth, '_refreshWithCustomTokenProvider').returns(
+          Promise.resolve('new-access-token')
+        );
 
-        const tokens = (await stsTokenManager.getToken(auth, true))!;
-        const authInternal = _castAuth(auth);
-        const updatedTokenManager = (authInternal.currentUser as UserImpl)
-          .stsTokenManager;
+        const tokens = (await stsTokenManager.getToken(auth))!;
 
-        expect(signInRoute.calls[0].request).to.eql({
-          token: fakeCustomToken,
-          returnSecureToken: true
-        });
         expect(tokens).to.eq('new-access-token');
-        expect(updatedTokenManager.accessToken).to.eq('new-access-token');
-        expect(updatedTokenManager.refreshToken).to.be.null;
-        expect(updatedTokenManager.expirationTime).to.eq(now + 3_600_000);
-        expect(updatedTokenManager.isPassthroughMode).to.be.true;
       });
 
       it('throws an error if the token is expired beyond the buffer window', async () => {

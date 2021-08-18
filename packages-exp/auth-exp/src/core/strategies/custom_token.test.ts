@@ -21,7 +21,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { OperationType } from '../../model/enums';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
@@ -32,7 +32,11 @@ import {
   setCustomTokenProvider,
   signInWithCustomToken
 } from './custom_token';
+import { spy } from 'sinon';
+import * as sinonChai from 'sinon-chai';
+import { FirebaseError } from '@firebase/util';
 
+use(sinonChai);
 use(chaiAsPromised);
 
 describe('core/strategies/signInWithCustomToken', () => {
@@ -108,7 +112,47 @@ describe('core/strategies/signInWithCustomToken', () => {
 
       setCustomTokenProvider(auth, provider);
 
-      expect(auth._customTokenProvider).to.eq(provider);
+      expect(auth._refreshWithCustomTokenProvider).not.to.be.null;
+    });
+
+    it('_refreshWithCustomTokenProvider should send with a valid request and update the current user', async () => {
+      const provider = {
+        async getCustomToken(): Promise<string> {
+          return 'custom-token';
+        }
+      };
+      const user = testUser(auth, serverUser.localId!);
+      auth.currentUser = user;
+      spy(user.stsTokenManager, 'updateFromServerResponse');
+
+      setCustomTokenProvider(auth, provider);
+      const token = await auth._refreshWithCustomTokenProvider!();
+
+      expect(signInRoute.calls[0].request).to.eql({
+        token: 'custom-token',
+        returnSecureToken: true
+      });
+      expect(token).to.eq('my-id-token');
+      expect(
+        user.stsTokenManager.updateFromServerResponse
+      ).to.have.been.calledWith(idTokenResponse);
+    });
+
+    it('_refreshWithCustomTokenProvider should error when uid does not match localId', () => {
+      const provider = {
+        async getCustomToken(): Promise<string> {
+          return 'custom-token';
+        }
+      };
+      const user = testUser(auth, 'not-matching-uid');
+      auth.currentUser = user;
+      spy(user.stsTokenManager, 'updateFromServerResponse');
+
+      setCustomTokenProvider(auth, provider);
+      expect(auth._refreshWithCustomTokenProvider!()).to.be.rejectedWith(
+        FirebaseError,
+        'auth/user-token-expired'
+      );
     });
   });
 
@@ -123,7 +167,7 @@ describe('core/strategies/signInWithCustomToken', () => {
 
       clearCustomTokenProvider(auth);
 
-      expect(auth._customTokenProvider).to.be.null;
+      expect(auth._refreshWithCustomTokenProvider).to.be.null;
     });
   });
 });

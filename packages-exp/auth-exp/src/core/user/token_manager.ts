@@ -21,7 +21,6 @@ import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
-import { signInWithCustomToken } from '../strategies/custom_token';
 import { _assert, debugFail } from '../util/assert';
 import { _tokenExpiresIn } from './id_token_result';
 
@@ -106,8 +105,12 @@ export class StsTokenManager {
   ): Promise<string | null> {
     if (forceRefresh) {
       // TODO(lisajian): Add and use client error code - ERROR_TOKEN_REFRESH_UNAVAILABLE
-      _assert(auth._customTokenProvider, auth, AuthErrorCode.INTERNAL_ERROR);
-      return this.refreshWithCustomToken(auth);
+      _assert(
+        auth._refreshWithCustomTokenProvider,
+        auth,
+        AuthErrorCode.INTERNAL_ERROR
+      );
+      return auth._refreshWithCustomTokenProvider();
     }
 
     if (!this.isExpired) {
@@ -121,23 +124,13 @@ export class StsTokenManager {
       auth,
       AuthErrorCode.TOKEN_EXPIRED
     );
-    return auth._customTokenProvider
-      ? this.refreshWithCustomToken(auth)
+    return auth._refreshWithCustomTokenProvider
+      ? auth._refreshWithCustomTokenProvider()
       : this.accessToken;
   }
 
   clearRefreshToken(): void {
     this.refreshToken = null;
-  }
-
-  private async refreshWithCustomToken(
-    auth: AuthInternal
-  ): Promise<string | null> {
-    const token = await auth._customTokenProvider!.getCustomToken();
-    // signInWithCustomToken creates a new User and subsequently new StsTokenManager, so
-    // `this.accessToken` will not hold the new access token
-    const updatedUser = await signInWithCustomToken(auth, token);
-    return updatedUser.user.getIdToken();
   }
 
   private async refresh(auth: AuthInternal, oldToken: string): Promise<void> {

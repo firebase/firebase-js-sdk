@@ -26,6 +26,9 @@ import { IdTokenResponse } from '../../model/id_token';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 import { OperationType } from '../../model/enums';
+import { _assert } from '../util/assert';
+import { AuthErrorCode } from '../errors';
+import { UserInternal } from '../../model/user';
 
 /**
  * Asynchronously signs in using a custom token.
@@ -86,7 +89,20 @@ export function setCustomTokenProvider(
   provider: CustomTokenProvider
 ): void {
   const authInternal = _castAuth(auth);
-  authInternal._customTokenProvider = provider;
+  authInternal._refreshWithCustomTokenProvider = async () => {
+    const token = await provider.getCustomToken();
+    const response: IdTokenResponse = await getIdTokenResponse(authInternal, {
+      token: token,
+      returnSecureToken: true
+    });
+    _assert(
+      response.localId === authInternal.currentUser?.uid,
+      AuthErrorCode.INTERNAL_ERROR
+    );
+    const user = authInternal.currentUser as UserInternal;
+    user.stsTokenManager.updateFromServerResponse(response);
+    return response.idToken ?? null;
+  };
 }
 
 /**
@@ -96,5 +112,5 @@ export function setCustomTokenProvider(
  */
 export function clearCustomTokenProvider(auth: Auth): void {
   const authInternal = _castAuth(auth);
-  authInternal._customTokenProvider = null;
+  authInternal._refreshWithCustomTokenProvider = null;
 }

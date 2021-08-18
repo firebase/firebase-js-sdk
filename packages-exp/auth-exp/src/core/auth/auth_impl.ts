@@ -29,8 +29,7 @@ import {
   CompleteFn,
   ErrorFn,
   NextFn,
-  Unsubscribe,
-  CustomTokenProvider
+  Unsubscribe
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -40,7 +39,11 @@ import {
   Subscribe
 } from '@firebase/util';
 
-import { AuthInternal, ConfigInternal } from '../../model/auth';
+import {
+  AuthInternal,
+  ConfigInternal,
+  RefreshWithCustomToken
+} from '../../model/auth';
 import { PopupRedirectResolverInternal } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
 import {
@@ -101,7 +104,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   tenantId: string | null = null;
   settings: AuthSettings = { appVerificationDisabledForTesting: false };
 
-  _customTokenProvider: CustomTokenProvider | null = null;
+  _refreshWithCustomTokenProvider: RefreshWithCustomToken | null = null;
 
   constructor(
     public readonly app: FirebaseApp,
