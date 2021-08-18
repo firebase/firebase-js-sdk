@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ const es2017Plugins = [
   json({ preferConst: true })
 ];
 
-const es5Pluging = [
+const es5Plugings = [
   typescriptPlugin({
     typescript,
     transformers: [util.removeAssertTransformer]
@@ -65,7 +65,7 @@ const browserBuilds = [
         sourcemap: true
       }
     ],
-    plugins: es5Pluging,
+    plugins: es5Plugings,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

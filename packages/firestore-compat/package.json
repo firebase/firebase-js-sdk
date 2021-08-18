@@ -11,7 +11,7 @@
     "scripts": {
       "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
       "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-      "prettier": "prettier --write '*.js' '*.ts' '@(lite|exp|src|test)/**/*.ts'",
+      "prettier": "prettier --write '*.js' '*.ts' '@(src|test)/**/*.ts'",
       "build": "rollup -c ./rollup.config.js",
       "build:deps": "lerna run --scope @firebase/firestore-compat --include-dependencies build",
       "build:release": "yarn build && yarn add-compat-overloads",
