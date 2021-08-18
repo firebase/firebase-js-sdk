@@ -26,6 +26,13 @@ import { FirebaseApp } from '@firebase/app-compat';
 use(sinonChai);
 
 describe('popup_redirect/CompatPopupRedirectResolver', () => {
+  // Do not run these tests in node; in node, this resolver
+  // is never instantiated.
+  if (typeof window === 'undefined') {
+    console.log('Skipping popup/redirect resolver tests in non-browser environment');
+    return;
+  }
+
   let compatResolver: CompatPopupRedirectResolver;
   let auth: exp.AuthImpl;
 
