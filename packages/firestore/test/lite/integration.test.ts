@@ -1576,8 +1576,8 @@ describe('withConverter() support', () => {
 
     describe('methods', () => {
       it('addDoc()', () => {
-        return withTestDoc(async doc => {
-          const ref = doc.withConverter(testConverter);
+        return withTestDb(async db => {
+          const ref = collection(db, 'testobj').withConverter(testConverter);
 
           // Requires all fields to be present
           // @ts-expect-error
