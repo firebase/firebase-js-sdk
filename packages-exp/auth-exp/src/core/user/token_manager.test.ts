@@ -29,7 +29,6 @@ import { StsTokenManager, Buffer } from './token_manager';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { makeJWT } from '../../../test/helpers/jwt';
 import { setCustomTokenProvider } from '../strategies/custom_token';
-import { stub } from 'sinon';
 
 use(chaiAsPromised);
 
@@ -205,9 +204,9 @@ describe('core/user/token_manager', () => {
           isPassthroughMode: true
         });
         setCustomTokenProvider(auth, provider);
-        stub(auth, '_refreshWithCustomTokenProvider').returns(
-          Promise.resolve('new-access-token')
-        );
+        sinon
+          .stub(auth, '_refreshWithCustomTokenProvider')
+          .returns(Promise.resolve('new-access-token'));
 
         const tokens = (await stsTokenManager.getToken(auth, true))!;
 
@@ -246,9 +245,9 @@ describe('core/user/token_manager', () => {
           isPassthroughMode: true
         });
         setCustomTokenProvider(auth, provider);
-        stub(auth, '_refreshWithCustomTokenProvider').returns(
-          Promise.resolve('new-access-token')
-        );
+        sinon
+          .stub(auth, '_refreshWithCustomTokenProvider')
+          .returns(Promise.resolve('new-access-token'));
 
         const tokens = (await stsTokenManager.getToken(auth))!;
 
