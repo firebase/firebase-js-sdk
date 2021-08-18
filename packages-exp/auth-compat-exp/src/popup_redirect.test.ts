@@ -29,7 +29,9 @@ describe('popup_redirect/CompatPopupRedirectResolver', () => {
   // Do not run these tests in node; in node, this resolver
   // is never instantiated.
   if (typeof window === 'undefined') {
-    console.log('Skipping popup/redirect resolver tests in non-browser environment');
+    console.log(
+      'Skipping popup/redirect resolver tests in non-browser environment'
+    );
     return;
   }
 
@@ -82,9 +84,11 @@ describe('popup_redirect/CompatPopupRedirectResolver', () => {
 
     beforeEach(() => {
       underlyingResolver = sinon.createStubInstance(FakeResolver);
-      ((compatResolver as unknown) as {
-        underlyingResolver: exp.PopupRedirectResolverInternal;
-      }).underlyingResolver = underlyingResolver;
+      (
+        compatResolver as unknown as {
+          underlyingResolver: exp.PopupRedirectResolverInternal;
+        }
+      ).underlyingResolver = underlyingResolver;
       provider = new exp.GoogleAuthProvider();
     });
 
