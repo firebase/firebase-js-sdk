@@ -370,7 +370,7 @@ export class Firestore
   }
 
   loadBundle(
-    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+    bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
   ): LoadBundleTask {
     return loadBundle(this._delegate, bundleData);
   }
