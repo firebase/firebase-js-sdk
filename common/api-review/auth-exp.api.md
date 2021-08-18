@@ -208,9 +208,11 @@ export const AuthErrorCodes: {
     readonly TENANT_ID_MISMATCH: "auth/tenant-id-mismatch";
     readonly TIMEOUT: "auth/timeout";
     readonly TOKEN_EXPIRED: "auth/user-token-expired";
+    readonly TOKEN_REFRESH_UNAVAILABLE: "auth/token-refresh-unavailable";
     readonly TOO_MANY_ATTEMPTS_TRY_LATER: "auth/too-many-requests";
     readonly UNAUTHORIZED_DOMAIN: "auth/unauthorized-continue-uri";
     readonly UNSUPPORTED_FIRST_FACTOR: "auth/unsupported-first-factor";
+    readonly UNSUPPORTED_PASSTHROUGH_OPERATION: "auth/unsupported-passthrough-operation";
     readonly UNSUPPORTED_PERSISTENCE: "auth/unsupported-persistence-type";
     readonly UNSUPPORTED_TENANT_OPERATION: "auth/unsupported-tenant-operation";
     readonly UNVERIFIED_EMAIL: "auth/unverified-email";

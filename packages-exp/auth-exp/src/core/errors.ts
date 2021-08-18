@@ -108,9 +108,11 @@ export const enum AuthErrorCode {
   TENANT_ID_MISMATCH = 'tenant-id-mismatch',
   TIMEOUT = 'timeout',
   TOKEN_EXPIRED = 'user-token-expired',
+  TOKEN_REFRESH_UNAVAILABLE = 'token-refresh-unavailable',
   TOO_MANY_ATTEMPTS_TRY_LATER = 'too-many-requests',
   UNAUTHORIZED_DOMAIN = 'unauthorized-continue-uri',
   UNSUPPORTED_FIRST_FACTOR = 'unsupported-first-factor',
+  UNSUPPORTED_PASSTHROUGH_OPERATION = 'unsupported-passthrough-operation',
   UNSUPPORTED_PERSISTENCE = 'unsupported-persistence-type',
   UNSUPPORTED_TENANT_OPERATION = 'unsupported-tenant-operation',
   UNVERIFIED_EMAIL = 'unverified-email',
@@ -320,6 +322,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.TIMEOUT]: 'The operation has timed out.',
     [AuthErrorCode.TOKEN_EXPIRED]:
       "The user's credential is no longer valid. The user must sign in again.",
+    [AuthErrorCode.TOKEN_REFRESH_UNAVAILABLE]: 'Token refresh is unavailable',
     [AuthErrorCode.TOO_MANY_ATTEMPTS_TRY_LATER]:
       'We have blocked all requests from this device due to unusual activity. ' +
       'Try again later.',
@@ -328,6 +331,8 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'the domain in the Firebase console.',
     [AuthErrorCode.UNSUPPORTED_FIRST_FACTOR]:
       'Enrolling a second factor or signing in with a multi-factor account requires sign-in with a supported first factor.',
+    [AuthErrorCode.UNSUPPORTED_PASSTHROUGH_OPERATION]:
+      'This operation is not supported while in passthrough mode',
     [AuthErrorCode.UNSUPPORTED_PERSISTENCE]:
       'The current environment does not support the specified persistence type.',
     [AuthErrorCode.UNSUPPORTED_TENANT_OPERATION]:
@@ -528,9 +533,11 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   TENANT_ID_MISMATCH: 'auth/tenant-id-mismatch',
   TIMEOUT: 'auth/timeout',
   TOKEN_EXPIRED: 'auth/user-token-expired',
+  TOKEN_REFRESH_UNAVAILABLE: 'auth/token-refresh-unavailable',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'auth/too-many-requests',
   UNAUTHORIZED_DOMAIN: 'auth/unauthorized-continue-uri',
   UNSUPPORTED_FIRST_FACTOR: 'auth/unsupported-first-factor',
+  UNSUPPORTED_PASSTHROUGH_OPERATION: 'auth/unsupported-passthrough-operation',
   UNSUPPORTED_PERSISTENCE: 'auth/unsupported-persistence-type',
   UNSUPPORTED_TENANT_OPERATION: 'auth/unsupported-tenant-operation',
   UNVERIFIED_EMAIL: 'auth/unverified-email',
