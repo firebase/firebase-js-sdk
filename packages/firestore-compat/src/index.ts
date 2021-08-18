@@ -23,7 +23,6 @@ import * as types from '@firebase/firestore-types';
 import { name, version } from '../package.json';
 
 import { Firestore, IndexedDbPersistenceProvider } from './api/database';
-import { registerBundle } from './bundle';
 import { configureForFirebase } from './config';
 
 import './register-module';
@@ -42,7 +41,6 @@ export function registerFirestore(instance: FirebaseNamespace): void {
 }
 
 registerFirestore((firebase as unknown) as FirebaseNamespace);
-registerBundle(Firestore);
 
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {

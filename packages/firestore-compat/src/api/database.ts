@@ -82,7 +82,7 @@ import {
   _FieldPath,
   _ResourcePath,
   _ByteString,
-  _logWarn
+  _logWarn, namedQuery, loadBundle
 } from '@firebase/firestore';
 import {
   CollectionReference as PublicCollectionReference,
@@ -371,17 +371,21 @@ export class Firestore
   loadBundle(
     bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
   ): LoadBundleTask {
-    throw new FirestoreError(
-      'failed-precondition',
-      '"loadBundle()" does not exist, have you imported "firebase/firestore/bundle"?'
-    );
+    return loadBundle(this._delegate, bundleData);
   }
 
   namedQuery(name: string): Promise<PublicQuery<DocumentData> | null> {
-    throw new FirestoreError(
-      'failed-precondition',
-      '"namedQuery()" does not exist, have you imported "firebase/firestore/bundle"?'
-    );
+    return namedQuery(this._delegate, name).then(expQuery => {
+      if (!expQuery) {
+        return null;
+      }
+      return new Query(
+        this,
+        // We can pass `expQuery` here directly since named queries don't have a UserDataConverter.
+        // Otherwise, we would have to create a new ExpQuery and pass the old UserDataConverter.
+        expQuery
+      );
+    });
   }
 }
 
