@@ -323,7 +323,7 @@ export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDir
 export type OrderByDirection = 'desc' | 'asc';
 
 // @public
-export type PartialWithFieldValue<T> = T extends Primitive ? T : T extends Map<infer K, infer V> ? Map<PartialWithFieldValue<K>, PartialWithFieldValue<V>> : T extends {} ? {
+export type PartialWithFieldValue<T> = T extends Primitive ? T : T extends {} ? {
     [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
 } : Partial<T>;
 
