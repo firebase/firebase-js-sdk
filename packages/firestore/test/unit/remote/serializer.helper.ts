@@ -18,7 +18,10 @@
 import { expect } from 'chai';
 
 import { Blob } from '../../../compat/api/blob';
-import { DocumentReference, UserDataWriter } from '../../../compat/api/database';
+import {
+  DocumentReference,
+  UserDataWriter
+} from '../../../compat/api/database';
 import { FieldValue } from '../../../compat/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';

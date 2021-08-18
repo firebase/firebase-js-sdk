@@ -22,7 +22,6 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import { name, version } from '../package.json';
 import { Firestore, IndexedDbPersistenceProvider } from './api/database';
 
-import { registerBundle } from './bundle';
 import { configureForFirebase } from './config';
 /**
  * Registers the main Firestore ReactNative build with the components framework.
@@ -37,5 +36,4 @@ export function registerFirestore(instance: FirebaseNamespace): void {
   instance.registerVersion(name, version, 'rn');
 }
 
-registerFirestore((firebase as unknown) as FirebaseNamespace);
-registerBundle(Firestore);
+registerFirestore(firebase as unknown as FirebaseNamespace);

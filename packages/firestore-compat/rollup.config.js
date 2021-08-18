@@ -94,6 +94,6 @@ const rnBuilds = [
     plugins: es2017Plugins,
     external: deps
   }
-]
+];
 
 export default [...browserBuilds, ...nodeBuilds, ...rnBuilds];

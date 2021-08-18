@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-import { 
+import {
   FieldPath as ExpFieldPath,
-  _FieldPath as InternalFieldPath 
+  _FieldPath as InternalFieldPath
 } from '@firebase/firestore';
 import { FieldPath as PublicFieldPath } from '@firebase/firestore-types';
 import { Compat, getModularInstance } from '@firebase/util';
-
 
 // The objects that are a part of this API are exposed to third-parties as
 // compiled javascript so we want to flag our private members with a leading
