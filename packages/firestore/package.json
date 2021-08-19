@@ -19,11 +19,7 @@
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.js' '*.ts' '@(lite|exp|src|test)/**/*.ts'",
-    "pregendeps:exp": "yarn api-report && node scripts/build-bundle.js --input ./exp/index.ts --output ./dist/exp/tmp.js",
-    "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./dist/exp/index.d.ts --bundle ./dist/exp/tmp.js --output ./dist/exp/dependencies.json",
-    "pregendeps:lite": "yarn api-report && node scripts/build-bundle.js --input ./lite/index.ts --output ./dist/lite/tmp.js",
-    "gendeps:lite": "../../scripts/exp/extract-deps.sh --types ./dist/lite/index.d.ts --bundle ./dist/lite/tmp.js --output ./dist/lite/dependencies.json",
+    "prettier": "prettier --write '*.js' '*.ts' '@(lite|src|test)/**/*.ts'",
     "test:lite": "node ./scripts/run-tests.js --emulator --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:prod": "node ./scripts/run-tests.js --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:browser": "karma start --single-run --lite",
@@ -57,9 +53,7 @@
   "license": "Apache-2.0",
   "files": [
     "dist",
-    "memory/package.json",
-    "bundle/package.json",
-    "memory-bundle/package.json"
+    "lite/package.json"
   ],
   "dependencies": {
     "@firebase/component": "0.5.6",
@@ -72,8 +66,7 @@
     "tslib": "^2.1.0"
   },
   "peerDependencies": {
-    "@firebase/app": "0.x",
-    "@firebase/app-types": "0.x"
+    "@firebase/app": "0.x"
   },
   "devDependencies": {
     "@firebase/app": "0.6.30",

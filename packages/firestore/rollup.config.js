@@ -47,7 +47,7 @@ const nodePlugins = function () {
       targets: [
         {
           src: 'src/protos',
-          dest: 'dist/exp/src'
+          dest: 'dist/src'
         }
       ]
     }),
