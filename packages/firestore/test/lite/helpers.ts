@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp } from '@firebase/app-exp';
+import { initializeApp } from '@firebase/app';
 import { expect } from 'chai';
 
 import { initializeFirestore, Firestore } from '../../src/lite-api/database';

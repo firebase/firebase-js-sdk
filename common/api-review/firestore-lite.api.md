@@ -5,7 +5,7 @@
 ```ts
 
 import { EmulatorMockTokenOptions } from '@firebase/util';
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
 // @public

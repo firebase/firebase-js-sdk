@@ -61,7 +61,7 @@ import { validateReference } from './write_batch';
 export class Transaction {
   // This is the tree-shakeable version of the Transaction class used in the
   // legacy SDK. The class is a close copy but takes different input and output
-  // types. The firestore-exp SDK further extends this class to return its API
+  // types. The firestore SDK further extends this class to return its API
   // type.
 
   private readonly _dataReader: UserDataReader;

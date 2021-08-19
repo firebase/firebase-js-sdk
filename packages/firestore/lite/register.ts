@@ -19,7 +19,7 @@ import {
   _registerComponent,
   registerVersion,
   SDK_VERSION
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../package.json';
@@ -39,7 +39,7 @@ export function registerFirestore(): void {
     new Component(
       'firestore/lite',
       (container, { options: settings }: { options?: FirestoreSettings }) => {
-        const app = container.getProvider('app-exp').getImmediate()!;
+        const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
           app,
           container.getProvider('auth-internal')

@@ -19,7 +19,7 @@ import {
   _registerComponent,
   registerVersion,
   SDK_VERSION
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
@@ -33,7 +33,7 @@ export function registerFirestore(variant?: string): void {
     new Component(
       'firestore',
       (container, { options: settings }: { options?: PrivateSettings }) => {
-        const app = container.getProvider('app-exp').getImmediate()!;
+        const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
           app,
           container.getProvider('auth-internal')

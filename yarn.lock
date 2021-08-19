@@ -7899,7 +7899,7 @@ firebase-tools@9.14.0:
     winston-transport "^4.4.0"
     ws "^7.2.3"
 
-firebase@*, firebase@8.9.1:
+firebase@8.9.1:
   version "8.9.1"
   resolved "https://registry.npmjs.org/firebase/-/firebase-8.9.1.tgz#9b3bc8e69830cd8bcabd3d296068e9d9ff481f35"
   integrity sha512-4aKRynB0LSWneYTPwWlAUbcJbgSS11lZRIo9MLNQh1uCo9BxRIYq/r3CCDJOx59tI2nwyv4RXf7hdkgSTF5FYw==

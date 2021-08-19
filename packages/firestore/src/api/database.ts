@@ -21,7 +21,7 @@ import {
   _removeServiceInstance,
   FirebaseApp,
   getApp
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { deepEqual } from '@firebase/util';

@@ -30,7 +30,7 @@ import { SessionStorage } from '../storage/storage';
 // TODO: revert to import { QueryContext } from '../view/EventRegistration'; once the modular SDK goes GA
 /**
  * This is part of a workaround for an issue in the no-modular '@firebase/database' where its typings
- * reference types from `@firebase/app-exp`.
+ * reference types from `@firebase/app`.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type QueryContext = any;

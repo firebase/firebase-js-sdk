@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { _FirebaseService } from '@firebase/app-exp';
+import { _FirebaseService } from '@firebase/app';
 
 import { CredentialsProvider } from '../api/credentials';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';

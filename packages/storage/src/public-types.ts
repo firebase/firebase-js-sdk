@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { FirebaseApp, _FirebaseService } from '@firebase/app-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app';
 import {
   CompleteFn,
   FirebaseError,

@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp, deleteApp } from '@firebase/app-exp';
+import { initializeApp, deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 

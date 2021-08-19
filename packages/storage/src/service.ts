@@ -25,7 +25,7 @@ import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-exp';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app';
 import {
   CONFIG_STORAGE_BUCKET_KEY,
   DEFAULT_HOST,
