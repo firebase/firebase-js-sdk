@@ -1,6 +1,6 @@
 {
     "name": "@firebase/firestore-compat",
-    "version": "0.1.0",
+    "version": "0.0.900",
     "description": "The Cloud Firestore component of the Firebase JS SDK.",
     "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
     "main": "dist/index.node.cjs.js",

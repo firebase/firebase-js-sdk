@@ -15,17 +15,13 @@
  * limitations under the License.
  */
 
-import { FirebaseOptions, FirebaseApp } from '@firebase/app-types';
-import {
-  Provider,
-  ComponentContainer,
-  Component,
-  ComponentType
-} from '@firebase/component';
+import { FirebaseOptions, FirebaseApp } from '@firebase/app';
+import { Provider, ComponentContainer } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
-import { Service } from '../src/api/service';
+import { FunctionsService } from '../src/service';
+import { connectFunctionsEmulator } from '../src/api';
 import nodeFetch from 'node-fetch';
 
 export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
@@ -42,20 +38,13 @@ export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
   return {
     name: 'appName',
     options,
-    automaticDataCollectionEnabled: true,
-    delete: async () => {}
+    automaticDataCollectionEnabled: true
   };
-}
-
-export function getFetchImpl(): typeof fetch {
-  return typeof window !== 'undefined'
-    ? fetch.bind(window)
-    : (nodeFetch as any);
 }
 
 export function createTestService(
   app: FirebaseApp,
-  regionOrCustomDomain?: string,
+  region?: string,
   authProvider = new Provider<FirebaseAuthInternalName>(
     'auth-internal',
     new ComponentContainer('test')
@@ -64,36 +53,28 @@ export function createTestService(
     'messaging',
     new ComponentContainer('test')
   ),
-  fakeAppCheckToken = 'dummytoken',
-  fetchImpl = getFetchImpl()
-): Service {
-  const appCheckProvider = new Provider<AppCheckInternalComponentName>(
+  appCheckProvider = new Provider<AppCheckInternalComponentName>(
     'app-check-internal',
     new ComponentContainer('test')
-  );
-  appCheckProvider.setComponent(
-    new Component(
-      'app-check-internal',
-      () => {
-        return {
-          getToken: () => Promise.resolve({ token: fakeAppCheckToken })
-        } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-      },
-      ComponentType.PRIVATE
-    )
-  );
-  const functions = new Service(
+  )
+): FunctionsService {
+  const fetchImpl: typeof fetch =
+    typeof window !== 'undefined' ? fetch.bind(window) : (nodeFetch as any);
+  const functions = new FunctionsService(
     app,
     authProvider,
     messagingProvider,
     appCheckProvider,
-    regionOrCustomDomain,
+    region,
     fetchImpl
   );
   const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
   if (useEmulator) {
-    functions.useFunctionsEmulator(
-      process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!
+    const url = new URL(process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!);
+    connectFunctionsEmulator(
+      functions,
+      url.hostname,
+      Number.parseInt(url.port, 10)
     );
   }
   return functions;

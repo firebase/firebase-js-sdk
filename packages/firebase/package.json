@@ -1,19 +1,16 @@
 {
   "name": "firebase",
-  "version": "8.9.1",
+  "version": "8.10.0",
+  "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "homepage": "https://firebase.google.com/",
-  "engines": {
-    "node": "^8.13.0 || >=10.10.0"
-  },
   "keywords": [
     "authentication",
     "database",
     "Firebase",
     "firebase",
-    "firestore",
     "realtime",
     "storage",
     "performance",
@@ -24,41 +21,225 @@
     "**/package.json",
     "/firebase*.js",
     "/firebase*.map",
-    "/index.d.ts",
-    "/empty-import.d.ts",
-    "/externs"
+    "compat/index.d.ts"
   ],
+  "exports": {
+    "./analytics": {
+      "node": {
+        "require": "./analytics/dist/index.cjs",
+        "import": "./analytics/dist/index.esm.js"
+      },
+      "default": "./analytics/dist/index.esm.js"
+    },
+    "./app": {
+      "node": {
+        "require": "./app/dist/index.cjs",
+        "import": "./app/dist/index.esm.js"
+      },
+      "default": "./app/dist/index.esm.js"
+    },
+    "./app-check": {
+      "node": {
+        "require": "./app-check/dist/index.cjs",
+        "import": "./app-check/dist/index.esm.js"
+      },
+      "default": "./app-check/dist/index.esm.js"
+    },
+    "./auth": {
+      "node": {
+        "require": "./auth/dist/index.cjs",
+        "import": "./auth/dist/index.esm.js"
+      },
+      "default": "./auth/dist/index.esm.js"
+    },
+    "./auth/cordova": {
+      "node": {
+        "require": "./auth/cordova/dist/index.cjs",
+        "import": "./auth/cordova/dist/index.esm.js"
+      },
+      "default": "./auth/cordova/dist/index.esm.js"
+    },
+    "./auth/react-native": {
+      "node": {
+        "require": "./auth/react-native/dist/index.cjs",
+        "import": "./auth/react-native/dist/index.esm.js"
+      },
+      "default": "./auth/react-native/dist/index.esm.js"
+    },
+    "./database": {
+      "node": {
+        "require": "./database/dist/index.cjs",
+        "import": "./database/dist/index.esm.js"
+      },
+      "default": "./database/dist/index.esm.js"
+    },
+    "./firestore": {
+      "node": {
+        "require": "./firestore/dist/index.cjs",
+        "import": "./firestore/dist/index.esm.js"
+      },
+      "default": "./firestore/dist/index.esm.js"
+    },
+    "./firestore/lite": {
+      "node": {
+        "require": "./firestore/lite/dist/index.cjs",
+        "import": "./firestore/lite/dist/index.esm.js"
+      },
+      "default": "./firestore/lite/dist/index.esm.js"
+    },
+    "./functions": {
+      "node": {
+        "require": "./functions/dist/index.cjs",
+        "import": "./functions/dist/index.esm.js"
+      },
+      "default": "./functions/dist/index.esm.js"
+    },
+    "./messaging": {
+      "node": {
+        "require": "./messaging/dist/index.cjs",
+        "import": "./messaging/dist/index.esm.js"
+      },
+      "default": "./messaging/dist/index.esm.js"
+    },
+    "./messaging/sw": {
+      "node": {
+        "require": "./messaging/sw/dist/index.cjs",
+        "import": "./messaging/sw/dist/index.esm.js"
+      },
+      "default": "./messaging/sw/dist/index.esm.js"
+    },
+    "./performance": {
+      "node": {
+        "require": "./performance/dist/index.cjs",
+        "import": "./performance/dist/index.esm.js"
+      },
+      "default": "./performance/dist/index.esm.js"
+    },
+    "./remote-config": {
+      "node": {
+        "require": "./remote-config/dist/index.cjs",
+        "import": "./remote-config/dist/index.esm.js"
+      },
+      "default": "./remote-config/dist/index.esm.js"
+    },
+    "./storage": {
+      "node": {
+        "require": "./storage/dist/index.cjs",
+        "import": "./storage/dist/index.esm.js"
+      },
+      "default": "./storage/dist/index.esm.js"
+    },
+    "./compat/analytics": {
+      "node": {
+        "require": "./compat/analytics/dist/index.cjs",
+        "import": "./compat/analytics/dist/index.esm.js"
+      },
+      "default": "./compat/analytics/dist/index.esm.js"
+    },
+    "./compat/app": {
+      "node": {
+        "require": "./compat/app/dist/index.cjs",
+        "import": "./compat/app/dist/index.esm.js"
+      },
+      "default": "./compat/app/dist/index.esm.js"
+    },
+    "./compat/app-check": {
+      "node": {
+        "require": "./compat/app-check/dist/index.cjs",
+        "import": "./compat/app-check/dist/index.esm.js"
+      },
+      "default": "./compat/app-check/dist/index.esm.js"
+    },
+    "./compat/auth": {
+      "node": {
+        "require": "./compat/auth/dist/index.cjs",
+        "import": "./compat/auth/dist/index.esm.js"
+      },
+      "default": "./compat/auth/dist/index.esm.js"
+    },
+    "./compat/database": {
+      "node": {
+        "require": "./compat/database/dist/index.cjs",
+        "import": "./compat/database/dist/index.esm.js"
+      },
+      "default": "./compat/database/dist/index.esm.js"
+    },
+    "./compat/firestore": {
+      "node": {
+        "require": "./compat/firestore/dist/index.cjs",
+        "import": "./compat/firestore/dist/index.esm.js"
+      },
+      "default": "./compat/firestore/dist/index.esm.js"
+    },
+    "./compat/functions": {
+      "node": {
+        "require": "./compat/functions/dist/index.cjs",
+        "import": "./compat/functions/dist/index.esm.js"
+      },
+      "default": "./compat/functions/dist/index.esm.js"
+    },
+    "./compat/messaging": {
+      "node": {
+        "require": "./compat/messaging/dist/index.cjs",
+        "import": "./compat/messaging/dist/index.esm.js"
+      },
+      "default": "./compat/messaging/dist/index.esm.js"
+    },
+    "./compat/performance": {
+      "node": {
+        "require": "./compat/performance/dist/index.cjs",
+        "import": "./compat/performance/dist/index.esm.js"
+      },
+      "default": "./compat/performance/dist/index.esm.js"
+    },
+    "./compat/remote-config": {
+      "node": {
+        "require": "./compat/remote-config/dist/index.cjs",
+        "import": "./compat/remote-config/dist/index.esm.js"
+      },
+      "default": "./compat/remote-config/dist/index.esm.js"
+    },
+    "./compat/storage": {
+      "node": {
+        "require": "./compat/storage/dist/index.cjs",
+        "import": "./compat/storage/dist/index.esm.js"
+      },
+      "default": "./compat/storage/dist/index.esm.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "build": "rollup -c",
-    "build:deps": "lerna run --scope firebase --include-dependencies build",
+    "build": "rollup -c && yarn build:compat",
+    "build:release": "rollup -c rollup.config.release.js && yarn build:compat:release",
+    "build:compat": "rollup -c compat/rollup.config.js",
+    "build:compat:release": "rollup -c compat/rollup.config.release.js",
     "dev": "rollup -c -w",
     "test": "echo 'No test suite for firebase wrapper'",
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
-  "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "react-native": "dist/index.rn.cjs.js",
   "dependencies": {
-    "@firebase/app": "0.6.29",
-    "@firebase/app-types": "0.6.3",
+    "@firebase/analytics": "0.6.18",
+    "@firebase/analytics-compat": "0.0.900",
+    "@firebase/app": "0.6.30",
+    "@firebase/app-compat": "0.0.900",
+    "@firebase/app-check": "0.3.2",
+    "@firebase/app-check-compat": "0.0.900",
     "@firebase/auth": "0.16.8",
+    "@firebase/auth-compat": "0.0.900",
     "@firebase/database": "0.10.9",
+    "@firebase/functions": "0.6.15",
+    "@firebase/functions-compat": "0.0.900",
     "@firebase/firestore": "2.3.10",
-    "@firebase/functions": "0.6.14",
-    "@firebase/installations": "0.4.31",
-    "@firebase/messaging": "0.7.15",
-    "@firebase/polyfill": "0.3.36",
     "@firebase/storage": "0.6.2",
-    "@firebase/performance": "0.4.17",
-    "@firebase/remote-config": "0.1.42",
-    "@firebase/analytics": "0.6.17",
-    "@firebase/app-check": "0.3.1",
-    "@firebase/util": "1.2.0"
+    "@firebase/performance": "0.4.18",
+    "@firebase/performance-compat": "0.0.900",
+    "@firebase/remote-config": "0.1.43",
+    "@firebase/remote-config-compat": "0.0.900",
+    "@firebase/messaging": "0.8.0",
+    "@firebase/messaging-compat": "0.0.900"
   },
   "devDependencies": {
     "rollup": "2.52.2",
@@ -69,21 +250,28 @@
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.30.0",
     "rollup-plugin-uglify": "6.0.4",
+    "@rollup/plugin-alias": "3.1.2",
+    "gulp": "4.0.2",
+    "gulp-sourcemaps": "3.0.0",
+    "gulp-concat": "2.6.1",
     "typescript": "4.2.2"
   },
-  "typings": "index.d.ts",
   "components": [
     "analytics",
     "app",
     "app-check",
     "auth",
-    "database",
-    "firestore",
+    "auth/cordova",
+    "auth/react-native",
     "functions",
-    "installations",
-    "messaging",
+    "firestore",
+    "firestore/lite",
     "storage",
     "performance",
-    "remote-config"
-  ]
+    "remote-config",
+    "messaging",
+    "messaging/sw",
+    "database"
+  ],
+  "type": "module"
 }

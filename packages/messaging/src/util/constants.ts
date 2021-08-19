@@ -23,21 +23,29 @@ export const DEFAULT_VAPID_KEY =
 
 export const ENDPOINT = 'https://fcmregistrations.googleapis.com/v1';
 
-// Key of FCM Payload in Notification's data field.
+/** Key of FCM Payload in Notification's data field. */
 export const FCM_MSG = 'FCM_MSG';
-export const TAG = 'FirebaseMessaging: ';
 
-// Set to '1' if Analytics is enabled for the campaign
-export const CONSOLE_CAMPAIGN_ANALYTICS_ENABLED = 'google.c.a.e';
 export const CONSOLE_CAMPAIGN_ID = 'google.c.a.c_id';
-export const CONSOLE_CAMPAIGN_TIME = 'google.c.a.ts';
 export const CONSOLE_CAMPAIGN_NAME = 'google.c.a.c_l';
+export const CONSOLE_CAMPAIGN_TIME = 'google.c.a.ts';
+/** Set to '1' if Analytics is enabled for the campaign */
+export const CONSOLE_CAMPAIGN_ANALYTICS_ENABLED = 'google.c.a.e';
+export const TAG = 'FirebaseMessaging: ';
+export const MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST = 1000;
+export const MAX_RETRIES = 3;
+export const LOG_INTERVAL_IN_MS = 86400000; //24 hour
+export const DEFAULT_BACKOFF_TIME_MS = 5000;
 
-// Due to the fact that onBackgroundMessage can't be awaited (to support rxjs), a silent push
-// warning might be shown by the browser if the callback fails to completes by the end of onPush.
-// Experiments were ran to determine the majority onBackground message clock time. This brief
-// blocking time would allow majority of the onBackgroundMessage callback to finish.
-export const BACKGROUND_HANDLE_EXECUTION_TIME_LIMIT_MS = 1000;
+// FCM log source name registered at Firelog: 'FCM_CLIENT_EVENT_LOGGING'. It uniquely identifies
+// FCM's logging configuration.
+export const FCM_LOG_SOURCE = 1249;
 
-// Preparation time for client to initialize and set up the message handler.
-export const FOREGROUND_HANDLE_PREPARATION_TIME_MS = 3000;
+// Defined as in proto/messaging_event.proto. Neglecting fields that are supported.
+export const SDK_PLATFORM_WEB = 3;
+export const EVENT_MESSAGE_DELIVERED = 1;
+
+export enum MessageType {
+  DATA_MESSAGE = 1,
+  DISPLAY_NOTIFICATION = 3
+}

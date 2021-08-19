@@ -24,24 +24,33 @@ import {
 } from '@firebase/messaging-types';
 
 import { Provider } from '@firebase/component';
+import {
+  AppCheckInternalComponentName,
+  FirebaseAppCheckInternal
+} from '@firebase/app-check-interop-types';
 
 /**
  * The metadata that should be supplied with function calls.
+ * @internal
  */
 export interface Context {
   authToken?: string;
-  instanceIdToken?: string;
+  messagingToken?: string;
+  appCheckToken: string | null;
 }
 
 /**
  * Helper class to get metadata that should be included with a function call.
+ * @internal
  */
 export class ContextProvider {
   private auth: FirebaseAuthInternal | null = null;
   private messaging: FirebaseMessaging | null = null;
+  private appCheck: FirebaseAppCheckInternal | null = null;
   constructor(
     authProvider: Provider<FirebaseAuthInternalName>,
-    messagingProvider: Provider<FirebaseMessagingName>
+    messagingProvider: Provider<FirebaseMessagingName>,
+    appCheckProvider: Provider<AppCheckInternalComponentName>
   ) {
     this.auth = authProvider.getImmediate({ optional: true });
     this.messaging = messagingProvider.getImmediate({
@@ -65,6 +74,15 @@ export class ContextProvider {
         }
       );
     }
+
+    if (!this.appCheck) {
+      appCheckProvider.get().then(
+        appCheck => (this.appCheck = appCheck),
+        () => {
+          /* get() never rejects */
+        }
+      );
+    }
   }
 
   async getAuthToken(): Promise<string | undefined> {
@@ -74,17 +92,14 @@ export class ContextProvider {
 
     try {
       const token = await this.auth.getToken();
-      if (!token) {
-        return undefined;
-      }
-      return token.accessToken;
+      return token?.accessToken;
     } catch (e) {
       // If there's any error when trying to get the auth token, leave it off.
       return undefined;
     }
   }
 
-  async getInstanceIdToken(): Promise<string | undefined> {
+  async getMessagingToken(): Promise<string | undefined> {
     if (
       !this.messaging ||
       !('Notification' in self) ||
@@ -104,9 +119,22 @@ export class ContextProvider {
     }
   }
 
+  async getAppCheckToken(): Promise<string | null> {
+    if (this.appCheck) {
+      const result = await this.appCheck.getToken();
+      // If getToken() fails, it will still return a dummy token that also has
+      // an error field containing the error message. We will send any token
+      // provided here and show an error if/when it is rejected by the functions
+      // endpoint.
+      return result.token;
+    }
+    return null;
+  }
+
   async getContext(): Promise<Context> {
     const authToken = await this.getAuthToken();
-    const instanceIdToken = await this.getInstanceIdToken();
-    return { authToken, instanceIdToken };
+    const messagingToken = await this.getMessagingToken();
+    const appCheckToken = await this.getAppCheckToken();
+    return { authToken, messagingToken, appCheckToken };
   }
 }

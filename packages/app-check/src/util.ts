@@ -18,8 +18,7 @@
 import { GreCAPTCHA } from './recaptcha';
 import { getState } from './state';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { FirebaseApp } from '@firebase/app-types';
-import { base64 } from '@firebase/util';
+import { FirebaseApp } from '@firebase/app';
 
 export function getRecaptcha(): GreCAPTCHA | undefined {
   return self.grecaptcha;
@@ -42,18 +41,4 @@ export function uuidv4(): string {
       v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
-}
-
-/**
- * Stringify and base64 encode token error data.
- *
- * @param tokenError Error data, currently hardcoded.
- */
-export function formatDummyToken(
-  tokenErrorData: Record<string, string>
-): string {
-  return base64.encodeString(
-    JSON.stringify(tokenErrorData),
-    /* webSafe= */ false
-  );
 }

@@ -15,41 +15,53 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import {
-  AppCheckTokenListener,
-  AppCheckTokenResult
-} from '@firebase/app-check-interop-types';
-import {
+  AppCheckTokenResult,
   AppCheckTokenInternal,
   AppCheckTokenObserver,
-  getState,
-  ListenerType,
-  setState
-} from './state';
+  ListenerType
+} from './types';
+import { AppCheckTokenListener } from './public-types';
+import { getState, setState } from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
-import { ensureActivated, formatDummyToken } from './util';
+import { ensureActivated } from './util';
 import { exchangeToken, getExchangeDebugTokenRequest } from './client';
 import { writeTokenToStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
+import { base64 } from '@firebase/util';
 import { logger } from './logger';
-import { Provider } from '@firebase/component';
+import { AppCheckService } from './factory';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
 export const defaultTokenErrorData = { error: 'UNKNOWN_ERROR' };
 
 /**
- * This function will always resolve.
+ * Stringify and base64 encode token error data.
+ *
+ * @param tokenError Error data, currently hardcoded.
+ */
+export function formatDummyToken(
+  tokenErrorData: Record<string, string>
+): string {
+  return base64.encodeString(
+    JSON.stringify(tokenErrorData),
+    /* webSafe= */ false
+  );
+}
+
+/**
+ * This function always resolves.
  * The result will contain an error field if there is any error.
  * In case there is an error, the token field in the result will be populated with a dummy value
  */
 export async function getToken(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  appCheck: AppCheckService,
   forceRefresh = false
 ): Promise<AppCheckTokenResult> {
+  const app = appCheck.app;
   ensureActivated(app);
 
   const state = getState(app);
@@ -90,7 +102,7 @@ export async function getToken(
   if (isDebugMode()) {
     const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
       getExchangeDebugTokenRequest(app, await getDebugToken()),
-      platformLoggerProvider
+      appCheck.platformLoggerProvider
     );
     // Write debug token to indexedDB.
     await writeTokenToStorage(app, tokenFromDebugExchange);
@@ -133,28 +145,27 @@ export async function getToken(
 }
 
 export function addTokenListener(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  appCheck: AppCheckService,
   type: ListenerType,
   listener: AppCheckTokenListener,
   onError?: (error: Error) => void
 ): void {
+  const { app } = appCheck;
   const state = getState(app);
-  const tokenListener: AppCheckTokenObserver = {
+  const tokenObserver: AppCheckTokenObserver = {
     next: listener,
     error: onError,
     type
   };
   const newState = {
     ...state,
-    tokenObservers: [...state.tokenObservers, tokenListener]
+    tokenObservers: [...state.tokenObservers, tokenObserver]
   };
-
   /**
    * Invoke the listener with the valid token, then start the token refresher
    */
   if (!newState.tokenRefresher) {
-    const tokenRefresher = createTokenRefresher(app, platformLoggerProvider);
+    const tokenRefresher = createTokenRefresher(appCheck);
     newState.tokenRefresher = tokenRefresher;
   }
 
@@ -171,7 +182,7 @@ export function addTokenListener(
     Promise.resolve()
       .then(() => listener({ token: validToken.token }))
       .catch(() => {
-        /** Ignore errors in listeners. */
+        /* we don't care about exceptions thrown in listeners */
       });
   } else if (state.token == null) {
     // Only check cache if there was no token. If the token was invalid,
@@ -193,7 +204,7 @@ export function addTokenListener(
 
 export function removeTokenListener(
   app: FirebaseApp,
-  listener: (token: AppCheckTokenResult) => void
+  listener: AppCheckTokenListener
 ): void {
   const state = getState(app);
 
@@ -214,10 +225,8 @@ export function removeTokenListener(
   });
 }
 
-function createTokenRefresher(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>
-): Refresher {
+function createTokenRefresher(appCheck: AppCheckService): Refresher {
+  const { app } = appCheck;
   return new Refresher(
     // Keep in mind when this fails for any reason other than the ones
     // for which we should retry, it will effectively stop the proactive refresh.
@@ -227,9 +236,9 @@ function createTokenRefresher(
       // If there is a token, we force refresh it because we know it's going to expire soon
       let result;
       if (!state.token) {
-        result = await getToken(app, platformLoggerProvider);
+        result = await getToken(appCheck);
       } else {
-        result = await getToken(app, platformLoggerProvider, true);
+        result = await getToken(appCheck, true);
       }
 
       // getToken() always resolves. In case the result has an error field defined, it means the operation failed, and we should retry.
@@ -287,7 +296,7 @@ function notifyTokenListeners(
         // has an error field.
         observer.next(token);
       }
-    } catch (ignored) {
+    } catch (e) {
       // Errors in the listener function itself are always ignored.
     }
   }

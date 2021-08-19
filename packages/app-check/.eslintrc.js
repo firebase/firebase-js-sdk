@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const path = require('path');
 
 module.exports = {
-  extends: '../../config/.eslintrc.js',
-  parserOptions: {
-    project: 'tsconfig.json',
-    // to make vscode-eslint work with monorepo
-    // https://github.com/typescript-eslint/typescript-eslint/issues/251#issuecomment-463943250
-    tsconfigRootDir: __dirname
+  'extends': '../../config/.eslintrc.js',
+  'parserOptions': {
+    'project': 'tsconfig.json',
+    'tsconfigRootDir': __dirname
+  },
+  rules: {
+    'import/no-extraneous-dependencies': [
+      'error',
+      {
+        'packageDir': [path.resolve(__dirname, '../../'), __dirname]
+      }
+    ]
   }
 };
