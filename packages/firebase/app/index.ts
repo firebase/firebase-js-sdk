@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { registerVersion } from '@firebase/app-exp';
+import { registerVersion } from '@firebase/app';
 import { name, version } from '../package.json';
 
 registerVersion(name, version, 'app');
-export * from '@firebase/app-exp';
+export * from '@firebase/app';

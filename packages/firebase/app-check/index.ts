@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from '@firebase/app-check-exp';
+export * from '@firebase/app-check';

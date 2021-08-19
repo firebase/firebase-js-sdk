@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from '@firebase/analytics-exp';
+export * from '@firebase/analytics';

@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from '@firebase/auth-exp/cordova';
+export * from '@firebase/auth/cordova';

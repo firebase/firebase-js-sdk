@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from '@firebase/auth-exp/react-native';
+export * from '@firebase/auth/react-native';
