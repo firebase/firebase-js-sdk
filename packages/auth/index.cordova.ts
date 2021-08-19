@@ -30,8 +30,7 @@ import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
 
-// Core functionality shared by all clients
-export * from './src';
+export * from './index.shared';
 
 // Cordova also supports indexedDB / browserSession / browserLocal
 export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';

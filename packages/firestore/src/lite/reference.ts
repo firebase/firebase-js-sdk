@@ -36,7 +36,9 @@ import { AutoId } from '../util/misc';
 
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
+import { FieldValue } from './field_value';
 import { FirestoreDataConverter } from './snapshot';
+import { NestedUpdateFields, Primitive } from './types';
 
 /**
  * Document data (for use with {@link @firebase/firestore/lite#(setDoc:1)}) consists of fields mapped to
@@ -49,15 +51,38 @@ export interface DocumentData {
 }
 
 /**
- * Update data (for use with {@link @firebase/firestore/lite#(updateDoc:1)}) consists of field paths (e.g.
- * 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference
- * nested fields within the document.
+ * Similar to Typescript's `Partial<T>`, but allows nested fields to be
+ * omitted and FieldValues to be passed in as property values.
  */
-export interface UpdateData {
-  /** A mapping between a dot-separated field path and its value. */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [fieldPath: string]: any;
-}
+export type PartialWithFieldValue<T> = T extends Primitive
+  ? T
+  : T extends {}
+  ? { [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue }
+  : Partial<T>;
+
+/**
+ * Allows FieldValues to be passed in as a property value while maintaining
+ * type safety.
+ */
+export type WithFieldValue<T> = T extends Primitive
+  ? T
+  : T extends {}
+  ? { [K in keyof T]: WithFieldValue<T[K]> | FieldValue }
+  : Partial<T>;
+
+/**
+ * Update data (for use with {@link (updateDoc:1)}) that consists of field paths
+ * (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots
+ * reference nested fields within the document. FieldValues can be passed in
+ * as property values.
+ */
+export type UpdateData<T> = T extends Primitive
+  ? T
+  : T extends Map<infer K, infer V>
+  ? Map<UpdateData<K>, UpdateData<V>>
+  : T extends {}
+  ? { [K in keyof T]?: UpdateData<T[K]> | FieldValue } & NestedUpdateFields<T>
+  : Partial<T>;
 
 /**
  * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link

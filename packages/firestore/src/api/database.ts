@@ -106,6 +106,7 @@ import {
   AbstractUserDataWriter
 } from '../../exp/index'; // import from the exp public API
 import { DatabaseId } from '../core/database_info';
+import { PartialWithFieldValue, WithFieldValue } from '../lite/reference';
 import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
@@ -452,9 +453,9 @@ export class Transaction implements PublicTransaction, Compat<ExpTransaction> {
     const ref = castReference(documentRef);
     if (options) {
       validateSetOptions('Transaction.set', options);
-      this._delegate.set(ref, data, options);
+      this._delegate.set(ref, data as PartialWithFieldValue<T>, options);
     } else {
-      this._delegate.set(ref, data);
+      this._delegate.set(ref, data as WithFieldValue<T>);
     }
     return this;
   }
@@ -513,9 +514,9 @@ export class WriteBatch implements PublicWriteBatch, Compat<ExpWriteBatch> {
     const ref = castReference(documentRef);
     if (options) {
       validateSetOptions('WriteBatch.set', options);
-      this._delegate.set(ref, data, options);
+      this._delegate.set(ref, data as PartialWithFieldValue<T>, options);
     } else {
-      this._delegate.set(ref, data);
+      this._delegate.set(ref, data as WithFieldValue<T>);
     }
     return this;
   }
@@ -597,19 +598,19 @@ class FirestoreDataConverter<U>
     );
   }
 
-  toFirestore(modelObject: U): PublicDocumentData;
+  toFirestore(modelObject: WithFieldValue<U>): PublicDocumentData;
   toFirestore(
-    modelObject: Partial<U>,
+    modelObject: PartialWithFieldValue<U>,
     options: PublicSetOptions
   ): PublicDocumentData;
   toFirestore(
-    modelObject: U | Partial<U>,
+    modelObject: WithFieldValue<U> | PartialWithFieldValue<U>,
     options?: PublicSetOptions
   ): PublicDocumentData {
     if (!options) {
       return this._delegate.toFirestore(modelObject as U);
     } else {
-      return this._delegate.toFirestore(modelObject, options);
+      return this._delegate.toFirestore(modelObject as Partial<U>, options);
     }
   }
 
@@ -733,7 +734,15 @@ export class DocumentReference<T = PublicDocumentData>
   set(value: T | Partial<T>, options?: PublicSetOptions): Promise<void> {
     options = validateSetOptions('DocumentReference.set', options);
     try {
-      return setDoc(this._delegate, value, options);
+      if (options) {
+        return setDoc(
+          this._delegate,
+          value as PartialWithFieldValue<T>,
+          options
+        );
+      } else {
+        return setDoc(this._delegate, value as WithFieldValue<T>);
+      }
     } catch (e) {
       throw replaceFunctionName(e, 'setDoc()', 'DocumentReference.set()');
     }
@@ -1287,7 +1296,7 @@ export class CollectionReference<T = PublicDocumentData>
   }
 
   add(data: T): Promise<DocumentReference<T>> {
-    return addDoc(this._delegate, data).then(
+    return addDoc(this._delegate, data as WithFieldValue<T>).then(
       docRef => new DocumentReference(this.firestore, docRef)
     );
   }

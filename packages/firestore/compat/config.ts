@@ -22,7 +22,7 @@ import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 
 import {
-  FirebaseFirestore,
+  Firestore as FirebaseFirestore,
   CACHE_SIZE_UNLIMITED,
   GeoPoint,
   Timestamp

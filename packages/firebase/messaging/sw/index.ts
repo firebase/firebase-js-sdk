@@ -15,4 +15,8 @@
  * limitations under the License.
  */
 
-export { onBackgroundMessage, getMessaging } from '@firebase/messaging/sw';
+export {
+  onBackgroundMessage,
+  getMessaging,
+  isSupported
+} from '@firebase/messaging/sw';
