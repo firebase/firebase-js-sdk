@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 
 import { initializeAuth } from '..';
 import { registerAuth } from '../core/auth/register';
@@ -35,7 +35,7 @@ import { Auth } from '../model/public_types';
  * @public
  */
 export function getAuth(app: FirebaseApp = getApp()): Auth {
-  const provider = _getProvider(app, 'auth-exp');
+  const provider = _getProvider(app, 'auth');
 
   if (provider.isInitialized()) {
     return provider.getImmediate();

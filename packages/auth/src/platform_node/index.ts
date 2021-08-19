@@ -18,7 +18,7 @@
 import { AuthErrorCode } from '../core/errors';
 import { _createError } from '../core/util/assert';
 
-import { FirebaseApp, getApp, _getProvider } from '@firebase/app-exp';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Auth } from '../model/public_types';
 
 import { initializeAuth } from '..';
@@ -40,7 +40,7 @@ FetchProvider.initialize(
 // the version and declare the Node getAuth function)
 
 export function getAuth(app: FirebaseApp = getApp()): Auth {
-  const provider = _getProvider(app, 'auth-exp');
+  const provider = _getProvider(app, 'auth');
 
   if (provider.isInitialized()) {
     return provider.getImmediate();

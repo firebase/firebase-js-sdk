@@ -19,9 +19,25 @@ import strip from '@rollup/plugin-strip';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
 import typescript from 'typescript';
+import alias from '@rollup/plugin-alias';
 import pkg from './package.json';
 
 const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
+
+/**
+ * Node has the same entry point as browser, but browser-specific exports
+ * are turned into either no-ops or errors. See src/platform_node/index.ts for
+ * more info. This regex tests explicitly ./src/platform_browser so that the
+ * only impacted file is the main index.ts
+ */
+ const nodeAliasPlugin = alias({
+    entries: [
+      {
+        find: /^\.\/src\/platform_browser(\/.*)?$/,
+        replacement: `./src/platform_node`
+      }
+    ]
+  });
 /**
  * ES5 Builds
  */
@@ -83,7 +99,7 @@ const es5Builds = [
             internal: 'internal/index.ts'
         },
         output: [{ dir: 'dist/node', format: 'cjs', sourcemap: true }],
-        plugins: es5BuildPlugins,
+        plugins: [nodeAliasPlugin, ...es5BuildPlugins],
         external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
     },
     /**
