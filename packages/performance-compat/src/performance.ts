@@ -20,7 +20,7 @@ import {
   FirebasePerformance,
   // The PerformanceTrace type has not changed between modular and non-modular packages.
   PerformanceTrace
-} from '@firebase/performance-exp';
+} from '@firebase/performance';
 import { FirebasePerformance as FirebasePerformanceCompat } from '@firebase/performance-types';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 

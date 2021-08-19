@@ -49,7 +49,7 @@ function performanceFactory(
 ): PerformanceCompatImpl {
   const app = container.getProvider('app-compat').getImmediate();
   // The following call will always succeed.
-  const performance = container.getProvider('performance-exp').getImmediate();
+  const performance = container.getProvider('performance').getImmediate();
 
   return new PerformanceCompatImpl(app, performance);
 }

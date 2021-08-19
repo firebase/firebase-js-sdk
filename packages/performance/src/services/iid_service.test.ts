@@ -24,7 +24,7 @@ import {
   getAuthTokenPromise
 } from './iid_service';
 import '../../test/setup';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
 describe('Firebase Perofmrance > iid_service', () => {
   const IID = 'fid';

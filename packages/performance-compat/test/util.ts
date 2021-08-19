@@ -19,7 +19,7 @@ import { FirebaseApp } from '@firebase/app-compat';
 import {
   FirebasePerformance,
   PerformanceTrace
-} from '@firebase/performance-exp';
+} from '@firebase/performance';
 
 export function getFakeApp(): FirebaseApp {
   return {

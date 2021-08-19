@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import { initializePerformance } from './index';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import '../test/setup';
-import { deleteApp, FirebaseApp, initializeApp } from '@firebase/app-exp';
+import { deleteApp, FirebaseApp, initializeApp } from '@firebase/app';
 
 const fakeFirebaseConfig = {
   apiKey: 'api-key',

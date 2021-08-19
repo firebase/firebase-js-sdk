@@ -22,8 +22,8 @@ import { Api, setupApi } from '../services/api_service';
 import * as initializationService from '../services/initialization_service';
 import { SettingsService } from '../services/settings_service';
 import { consoleLogger } from '../utils/console_logger';
-import { FirebaseApp } from '@firebase/app-exp';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
+import { FirebaseApp } from '@firebase/app';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import '../../test/setup';
 
 describe('Firebase Performance Test', () => {

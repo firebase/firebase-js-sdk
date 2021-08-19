@@ -35,7 +35,7 @@ import {
   registerVersion,
   FirebaseApp,
   getApp
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import {
   InstanceFactory,
   ComponentContainer,
@@ -44,7 +44,7 @@ import {
 } from '@firebase/component';
 import { name, version } from '../package.json';
 import { Trace } from './resources/trace';
-import '@firebase/installations-exp';
+import '@firebase/installations';
 import { deepEqual, getModularInstance } from '@firebase/util';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
@@ -58,7 +58,7 @@ export function getPerformance(
   app: FirebaseApp = getApp()
 ): FirebasePerformance {
   app = getModularInstance(app);
-  const provider = _getProvider(app, 'performance-exp');
+  const provider = _getProvider(app, 'performance');
   const perfInstance = provider.getImmediate() as PerformanceController;
   return perfInstance;
 }
@@ -74,7 +74,7 @@ export function initializePerformance(
   settings?: PerformanceSettings
 ): FirebasePerformance {
   app = getModularInstance(app);
-  const provider = _getProvider(app, 'performance-exp');
+  const provider = _getProvider(app, 'performance');
 
   // throw if an instance was already created.
   // It could happen if initializePerformance() is called more than once, or getPerformance() is called first.
@@ -108,14 +108,14 @@ export function trace(
   return new Trace(performance as PerformanceController, name);
 }
 
-const factory: InstanceFactory<'performance-exp'> = (
+const factory: InstanceFactory<'performance'> = (
   container: ComponentContainer,
   { options: settings }: { options?: PerformanceSettings }
 ) => {
   // Dependencies
-  const app = container.getProvider('app-exp').getImmediate();
+  const app = container.getProvider('app').getImmediate();
   const installations = container
-    .getProvider('installations-exp-internal')
+    .getProvider('installations-internal')
     .getImmediate();
 
   if (app.name !== DEFAULT_ENTRY_NAME) {
@@ -133,7 +133,7 @@ const factory: InstanceFactory<'performance-exp'> = (
 
 function registerPerformance(): void {
   _registerComponent(
-    new Component('performance-exp', factory, ComponentType.PUBLIC)
+    new Component('performance', factory, ComponentType.PUBLIC)
   );
 }
 

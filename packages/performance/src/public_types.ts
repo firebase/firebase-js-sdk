@@ -130,6 +130,6 @@ export interface PerformanceTrace {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'performance-exp': FirebasePerformance;
+    'performance': FirebasePerformance;
   }
 }

@@ -19,21 +19,24 @@ import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
-import { es5BuildsNoPlugin, es2017BuildsNoPlugin } from './rollup.shared';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
+const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
 /**
  * ES5 Builds
  */
 const es5BuildPlugins = [typescriptPlugin({ typescript }), json()];
 
-const es5Builds = es5BuildsNoPlugin.map(build => ({
-  ...build,
-  plugins: es5BuildPlugins
-}));
+const es5Builds = [
+  {
+    input: 'src/index.ts',
+    output: [
+      { file: pkg.main, format: 'cjs', sourcemap: true },
+      { file: pkg.esm5, format: 'es', sourcemap: true }
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    plugins: es5BuildPlugins
+  }
+];
 
 /**
  * ES2017 Builds
@@ -50,9 +53,13 @@ const es2017BuildPlugins = [
   json({ preferConst: true })
 ];
 
-const es2017Builds = es2017BuildsNoPlugin.map(build => ({
-  ...build,
-  plugins: es2017BuildPlugins
-}));
+const es2017Builds = [
+  {
+    input: 'src/index.ts',
+    output: [{ file: pkg.browser, format: 'es', sourcemap: true }],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    plugins: es2017BuildPlugins
+  }
+];
 
 export default [...es5Builds, ...es2017Builds];

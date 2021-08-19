@@ -23,7 +23,7 @@ import {
   getFakeModularPerformance,
   getFakeModularPerformanceTrace
 } from '../test/util';
-import * as perfModularApi from '@firebase/performance-exp';
+import * as perfModularApi from '@firebase/performance';
 import { PerformanceCompatImpl } from './performance';
 
 describe('Performance Compat', () => {

@@ -1,4 +1,4 @@
-# @firebase/performance-exp
+# @firebase/performance
 
 This is the Firebase Performance component of the Firebase JS SDK.
 
