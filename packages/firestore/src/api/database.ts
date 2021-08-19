@@ -66,6 +66,12 @@ export {
   EmulatorMockTokenOptions
 } from '../lite-api/database';
 
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'firestore': Firestore;
+  }
+}
+
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;

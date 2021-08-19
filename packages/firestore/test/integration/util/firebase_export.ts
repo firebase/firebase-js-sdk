@@ -62,8 +62,9 @@ export function newTestFirestore(
           nameOrApp
         )
       : nameOrApp;
-  const firestore = firebase.firestore(app);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const firestore = (firebase as any).firestore(app);
   if (settings) {
     firestore.settings(settings);
   }
