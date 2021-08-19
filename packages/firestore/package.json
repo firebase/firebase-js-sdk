@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "2.3.10",
+  "version": "2.4.0",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -62,9 +62,9 @@
     "memory-bundle/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.5.5",
+    "@firebase/component": "0.5.6",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "1.2.0",
+    "@firebase/util": "1.3.0",
     "@firebase/webchannel-wrapper": "0.5.1",
     "@grpc/grpc-js": "^1.3.2",
     "@grpc/proto-loader": "^0.6.0",
@@ -76,7 +76,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.29",
+    "@firebase/app": "0.6.30",
     "@rollup/plugin-alias": "3.1.2",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.2.10",
