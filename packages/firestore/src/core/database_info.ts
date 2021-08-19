@@ -48,7 +48,10 @@ export class DatabaseInfo {
 /** The default database name for a project. */
 const DEFAULT_DATABASE_NAME = '(default)';
 
-/** Represents the database ID a Firestore client is associated with. */
+/**
+ * Represents the database ID a Firestore client is associated with.
+ * @internal
+ */
 export class DatabaseId {
   readonly database: string;
   constructor(readonly projectId: string, database?: string) {

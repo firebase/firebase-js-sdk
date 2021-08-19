@@ -29,7 +29,7 @@ import {
   Query,
   QuerySnapshot,
   UserDataWriter
-} from '../../src/api/database';
+} from '../../compat/api/database';
 import { DatabaseId } from '../../src/core/database_info';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
@@ -40,17 +40,17 @@ import {
 import {
   ensureFirestoreConfigured,
   Firestore as ExpFirestore
-} from '../../src/exp/database';
+} from '../../src/api/database';
 import {
   Query as ExpQuery,
   CollectionReference as ExpCollectionReference
-} from '../../src/exp/reference';
-import { ExpUserDataWriter } from '../../src/exp/reference_impl';
+} from '../../src/api/reference';
+import { ExpUserDataWriter } from '../../src/api/reference_impl';
 import {
   QuerySnapshot as ExpQuerySnapshot,
   DocumentSnapshot as ExpDocumentSnapshot,
   SnapshotMetadata
-} from '../../src/exp/snapshot';
+} from '../../src/api/snapshot';
 import { DocumentKeySet } from '../../src/model/collections';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';

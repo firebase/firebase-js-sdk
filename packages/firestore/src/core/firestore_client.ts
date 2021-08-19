@@ -22,7 +22,7 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { LoadBundleTask } from '../exp/bundle';
+import { LoadBundleTask } from '../api/bundle';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
