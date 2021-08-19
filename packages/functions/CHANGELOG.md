@@ -1,5 +1,12 @@
 # @firebase/functions
 
+## 0.6.15
+
+### Patch Changes
+
+- Updated dependencies [[`bb6b5abff`](https://github.com/firebase/firebase-js-sdk/commit/bb6b5abff6f89ce9ec1bd66ff4e795a059a98eec)]:
+  - @firebase/component@0.5.6
+
 ## 0.6.14
 
 ### Patch Changes
