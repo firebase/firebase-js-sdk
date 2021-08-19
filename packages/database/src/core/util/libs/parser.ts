@@ -101,9 +101,7 @@ export const parseRepoInfo = function (
   };
 };
 
-export const parseDatabaseURL = function (
-  dataURL: string
-): {
+export const parseDatabaseURL = function (dataURL: string): {
   host: string;
   port: number;
   domain: string;

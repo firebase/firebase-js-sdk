@@ -21,8 +21,15 @@
  * limitations under the License.
  */
 
+import { Database } from './api/Database';
 import { registerDatabase } from './register';
 
 export * from './api';
 
 registerDatabase();
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'database': Database;
+  }
+}

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+import { _TEST_ACCESS_forceRestClient as forceRestClient } from '@firebase/database';
 import { expect } from 'chai';
 
-import { forceRestClient } from '../../src/api/test_access';
 import { getRandomNode, getFreshRepoFromReference } from '../helpers/util';
 
 // Some sanity checks for the ReadonlyRestClient crawler support.

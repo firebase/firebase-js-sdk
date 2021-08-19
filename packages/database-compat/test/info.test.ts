@@ -17,9 +17,9 @@
 
 import { expect } from 'chai';
 
+import { EventAccumulator } from '../../database/test/helpers/EventAccumulator';
 import { Reference } from '../src/api/Reference';
 
-import { EventAccumulator } from './helpers/EventAccumulator';
 import {
   getFreshRepo,
   getRootNode,
