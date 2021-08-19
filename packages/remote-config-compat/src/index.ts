@@ -52,8 +52,8 @@ function remoteConfigFactory(
   { instanceIdentifier: namespace }: InstanceFactoryOptions
 ): RemoteConfigCompatImpl {
   const app = container.getProvider('app-compat').getImmediate();
-  // The following call will always succeed because rc `import {...} from '@firebase/remote-config-exp'`
-  const remoteConfig = container.getProvider('remote-config-exp').getImmediate({
+  // The following call will always succeed because rc `import {...} from '@firebase/remote-config'`
+  const remoteConfig = container.getProvider('remote-config').getImmediate({
     identifier: namespace
   });
 

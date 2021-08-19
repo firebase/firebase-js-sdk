@@ -35,7 +35,7 @@ import {
   getNumber,
   getString,
   getValue
-} from '@firebase/remote-config-exp';
+} from '@firebase/remote-config';
 
 export class RemoteConfigCompatImpl
   implements RemoteConfigCompat, _FirebaseService {

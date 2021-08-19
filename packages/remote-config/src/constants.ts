@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export const RC_COMPONENT_NAME = 'remote-config-exp';
+export const RC_COMPONENT_NAME = 'remote-config';

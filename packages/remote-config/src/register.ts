@@ -18,7 +18,7 @@ import {
   _registerComponent,
   registerVersion,
   SDK_VERSION
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import {
   Component,
   ComponentType,
@@ -39,7 +39,7 @@ import { Storage } from './storage/storage';
 import { StorageCache } from './storage/storage_cache';
 // This needs to be in the same file that calls `getProvider()` on the component
 // or it will get tree-shaken out.
-import '@firebase/installations-exp';
+import '@firebase/installations';
 
 export function registerRemoteConfig(): void {
   _registerComponent(
@@ -58,10 +58,10 @@ export function registerRemoteConfig(): void {
   ): RemoteConfig {
     /* Dependencies */
     // getImmediate for FirebaseApp will always succeed
-    const app = container.getProvider('app-exp').getImmediate();
+    const app = container.getProvider('app').getImmediate();
     // The following call will always succeed because rc has `import '@firebase/installations'`
     const installations = container
-      .getProvider('installations-exp-internal')
+      .getProvider('installations-internal')
       .getImmediate();
 
     // Guards against the SDK being used in non-browser environments.

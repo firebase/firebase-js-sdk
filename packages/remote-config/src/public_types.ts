@@ -130,6 +130,6 @@ export type LogLevel = 'debug' | 'error' | 'silent';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'remote-config-exp': RemoteConfig;
+    'remote-config': RemoteConfig;
   }
 }

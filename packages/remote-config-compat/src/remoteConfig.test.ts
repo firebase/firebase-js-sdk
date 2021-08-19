@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import { stub } from 'sinon';
 import { RemoteConfigCompatImpl } from './remoteConfig';
 import { getFakeApp, getFakeModularRemoteConfig } from '../test/util';
-import * as modularApi from '@firebase/remote-config-exp';
+import * as modularApi from '@firebase/remote-config';
 
 describe('Remote Config Compat', () => {
   let remoteConfig!: RemoteConfigCompatImpl;

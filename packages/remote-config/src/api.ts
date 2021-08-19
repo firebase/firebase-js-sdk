@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import {
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
