@@ -19,7 +19,7 @@
     "packages/firestore/dist/lite/internal.d.ts",
     "packages/firestore/dist/internal.d.ts",
     "packages/firestore-types/index.d.ts",
-    "packages/firebase/index.d.ts",
+    "packages/firebase/compat/index.d.ts",
     "packages/component/dist/src/component.d.ts",
     "packages/component/dist/src/provider.d.ts",
     "packages/component/dist/src/component_container.d.ts",
