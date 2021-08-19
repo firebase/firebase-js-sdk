@@ -15,20 +15,20 @@
  * limitations under the License.
  */
 
-/**
- * Returns an replacement configuration for `@rollup/plugin-alias` that replaces
- * references to platform-specific files with implementations for the provided
- * target platform.
- */
-function generateAliasConfig(platform) {
-  return {
-    entries: [
-      {
-        find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
-        replacement: `$1\/platform/${platform}/$2.ts`
-      }
-    ]
-  };
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseStorage } from '@firebase/storage';
+import { StorageServiceCompat } from '../src/service';
+
+export function makeTestCompatStorage(
+  app: FirebaseApp,
+  storage: FirebaseStorage
+): StorageServiceCompat {
+  const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
+    app,
+    storage
+  );
+  return storageServiceCompat;
 }
 
-exports.generateAliasConfig = generateAliasConfig;
+export const fakeApp = {} as FirebaseApp;
+export const fakeStorage = {} as FirebaseStorage;

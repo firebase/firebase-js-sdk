@@ -14,29 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ListResult } from '../exp/api';
-import * as types from '@firebase/storage-types';
+
+import { UploadTaskSnapshot } from '@firebase/storage';
 import { ReferenceCompat } from './reference';
-import { StorageServiceCompat } from './service';
+import { UploadTaskCompat } from './task';
+import * as types from '@firebase/storage-types';
 import { Compat } from '@firebase/util';
 
-export class ListResultCompat implements types.ListResult, Compat<ListResult> {
+export class UploadTaskSnapshotCompat
+  implements types.UploadTaskSnapshot, Compat<UploadTaskSnapshot>
+{
   constructor(
-    readonly _delegate: ListResult,
-    private readonly _service: StorageServiceCompat
+    readonly _delegate: UploadTaskSnapshot,
+    readonly task: UploadTaskCompat,
+    readonly ref: ReferenceCompat
   ) {}
 
-  get prefixes(): ReferenceCompat[] {
-    return this._delegate.prefixes.map(
-      ref => new ReferenceCompat(ref, this._service)
-    );
+  get bytesTransferred(): number {
+    return this._delegate.bytesTransferred;
   }
-  get items(): ReferenceCompat[] {
-    return this._delegate.items.map(
-      ref => new ReferenceCompat(ref, this._service)
-    );
+  get metadata(): types.FullMetadata {
+    return this._delegate.metadata as types.FullMetadata;
   }
-  get nextPageToken(): string | null {
-    return this._delegate.nextPageToken || null;
+  get state(): string {
+    return this._delegate.state;
+  }
+  get totalBytes(): number {
+    return this._delegate.totalBytes;
   }
 }

@@ -59,8 +59,9 @@ export const enum InternalTaskState {
 /**
  * Represents the current state of a running upload.
  */
-export type TaskState = string;
+export type TaskState = typeof TaskState[keyof typeof TaskState];
 
+// type keys = keyof TaskState
 /**
  * Represents the current state of a running upload.
  */
@@ -79,7 +80,7 @@ export const TaskState = {
 
   /** The task failed with an error. */
   ERROR: 'error'
-};
+} as const;
 
 export function taskStateFromInternalTaskState(
   state: InternalTaskState

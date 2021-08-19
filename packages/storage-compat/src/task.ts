@@ -21,7 +21,7 @@ import {
   UploadTaskSnapshot,
   TaskEvent,
   StorageObserver
-} from '../exp/api';
+} from '@firebase/storage';
 import { UploadTaskSnapshotCompat } from './tasksnapshot';
 import { ReferenceCompat } from './reference';
 import * as types from '@firebase/storage-types';
