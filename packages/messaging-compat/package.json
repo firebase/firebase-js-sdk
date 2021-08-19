@@ -30,7 +30,7 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/messaging": "0.0.900",
+    "@firebase/messaging": "0.8.0",
     "@firebase/component": "0.5.5",
     "@firebase/util": "1.2.0",
     "tslib": "^2.1.0"
