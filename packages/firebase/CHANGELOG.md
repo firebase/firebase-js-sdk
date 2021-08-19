@@ -1,5 +1,29 @@
 # firebase
 
+## 8.10.0
+
+### Minor Changes
+
+- [`d0710d500`](https://github.com/firebase/firebase-js-sdk/commit/d0710d5006a07318213163127051eebf0c339383) [#5139](https://github.com/firebase/firebase-js-sdk/pull/5139) - Allows retrieval of `messageId` from `MessagePayload`.
+
+* [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131) [#5282](https://github.com/firebase/firebase-js-sdk/pull/5282) - Implement mockUserToken for Storage and fix JWT format bugs.
+
+### Patch Changes
+
+- Updated dependencies [[`fbb32e7bf`](https://github.com/firebase/firebase-js-sdk/commit/fbb32e7bff32942bea16385fc387b8c22952ed4d), [`d0710d500`](https://github.com/firebase/firebase-js-sdk/commit/d0710d5006a07318213163127051eebf0c339383), [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131), [`f825b1d83`](https://github.com/firebase/firebase-js-sdk/commit/f825b1d83228747e404aaefd9f3948d12257d0fc)]:
+  - @firebase/storage@0.7.0
+  - @firebase/messaging@0.8.0
+  - @firebase/database@0.11.0
+  - @firebase/firestore@2.4.0
+  - @firebase/util@1.3.0
+  - @firebase/functions@0.6.15
+  - @firebase/analytics@0.6.18
+  - @firebase/app@0.6.30
+  - @firebase/app-check@0.3.2
+  - @firebase/installations@0.4.32
+  - @firebase/performance@0.4.18
+  - @firebase/remote-config@0.1.43
+
 ## 8.9.1
 
 ### Patch Changes
