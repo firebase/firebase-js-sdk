@@ -17,11 +17,11 @@
 
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { 
-    _DatabaseId,
-    Firestore as FirestoreExp, 
-    FirestoreError
- } from '@firebase/firestore';
+import {
+  _DatabaseId,
+  Firestore as FirestoreExp,
+  FirestoreError
+} from '@firebase/firestore';
 
 import {
   Firestore as FirestoreCompat,

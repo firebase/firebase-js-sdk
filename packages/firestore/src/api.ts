@@ -138,7 +138,7 @@ export {
   NestedUpdateFields,
   AddPrefixToKeys,
   UnionToIntersection
-} from '../src/lite/types';
+} from '../src/lite-api/types';
 
 /**
  * Internal exports

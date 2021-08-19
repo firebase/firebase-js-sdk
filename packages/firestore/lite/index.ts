@@ -84,7 +84,7 @@ export {
   NestedUpdateFields,
   AddPrefixToKeys,
   UnionToIntersection
-} from '../src/lite/types';
+} from '../src/lite-api/types';
 
 // TOOD(firestorelite): Add tests when Queries are usable
 export { FieldPath, documentId } from '../src/lite-api/field_path';

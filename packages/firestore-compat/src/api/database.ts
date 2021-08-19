@@ -18,6 +18,39 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import {
+  CollectionReference as PublicCollectionReference,
+  DocumentChange as PublicDocumentChange,
+  DocumentChangeType as PublicDocumentChangeType,
+  DocumentData,
+  DocumentData as PublicDocumentData,
+  DocumentReference as PublicDocumentReference,
+  DocumentSnapshot as PublicDocumentSnapshot,
+  FieldPath as PublicFieldPath,
+  FirebaseFirestore as PublicFirestore,
+  FirestoreDataConverter as PublicFirestoreDataConverter,
+  GetOptions as PublicGetOptions,
+  LogLevel as PublicLogLevel,
+  OrderByDirection as PublicOrderByDirection,
+  PersistenceSettings as PublicPersistenceSettings,
+  Query as PublicQuery,
+  QueryDocumentSnapshot as PublicQueryDocumentSnapshot,
+  QuerySnapshot as PublicQuerySnapshot,
+  SetOptions as PublicSetOptions,
+  Settings as PublicSettings,
+  SnapshotListenOptions as PublicSnapshotListenOptions,
+  SnapshotOptions as PublicSnapshotOptions,
+  Transaction as PublicTransaction,
+  UpdateData as PublicUpdateData,
+  WhereFilterOp as PublicWhereFilterOp,
+  WriteBatch as PublicWriteBatch
+} from '@firebase/firestore-types';
+import {
+  Compat,
+  EmulatorMockTokenOptions,
+  getModularInstance
+} from '@firebase/util';
+
+import {
   LoadBundleTask,
   Bytes,
   clearIndexedDbPersistence,
@@ -84,41 +117,10 @@ import {
   _ByteString,
   _logWarn,
   namedQuery,
-  loadBundle
+  loadBundle,
+  PartialWithFieldValue,
+  WithFieldValue
 } from '@firebase/firestore';
-import {
-  CollectionReference as PublicCollectionReference,
-  DocumentChange as PublicDocumentChange,
-  DocumentChangeType as PublicDocumentChangeType,
-  DocumentData,
-  DocumentData as PublicDocumentData,
-  DocumentReference as PublicDocumentReference,
-  DocumentSnapshot as PublicDocumentSnapshot,
-  FieldPath as PublicFieldPath,
-  FirebaseFirestore as PublicFirestore,
-  FirestoreDataConverter as PublicFirestoreDataConverter,
-  GetOptions as PublicGetOptions,
-  LogLevel as PublicLogLevel,
-  OrderByDirection as PublicOrderByDirection,
-  PersistenceSettings as PublicPersistenceSettings,
-  Query as PublicQuery,
-  QueryDocumentSnapshot as PublicQueryDocumentSnapshot,
-  QuerySnapshot as PublicQuerySnapshot,
-  SetOptions as PublicSetOptions,
-  Settings as PublicSettings,
-  SnapshotListenOptions as PublicSnapshotListenOptions,
-  SnapshotOptions as PublicSnapshotOptions,
-  Transaction as PublicTransaction,
-  UpdateData as PublicUpdateData,
-  WhereFilterOp as PublicWhereFilterOp,
-  WriteBatch as PublicWriteBatch
-} from '@firebase/firestore-types';
-import {
-  Compat,
-  EmulatorMockTokenOptions,
-  getModularInstance
-} from '@firebase/util';
-
 import { validateSetOptions } from '../util/input_validation';
 
 import { Blob } from './blob';
@@ -246,7 +248,7 @@ export class Firestore
     host: string,
     port: number,
     options: {
-      mockUserToken?: EmulatorMockTokenOptions;
+      mockUserToken?: EmulatorMockTokenOptions | string;
     } = {}
   ): void {
     connectFirestoreEmulator(this._delegate, host, port, options);
@@ -370,7 +372,7 @@ export class Firestore
   }
 
   loadBundle(
-    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+    bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
   ): LoadBundleTask {
     return loadBundle(this._delegate, bundleData);
   }
@@ -458,9 +460,9 @@ export class Transaction implements PublicTransaction, Compat<ExpTransaction> {
     const ref = castReference(documentRef);
     if (options) {
       validateSetOptions('Transaction.set', options);
-      this._delegate.set(ref, data, options);
+      this._delegate.set(ref, data as PartialWithFieldValue<T>, options);
     } else {
-      this._delegate.set(ref, data);
+      this._delegate.set(ref, data as WithFieldValue<T>);
     }
     return this;
   }
@@ -519,9 +521,9 @@ export class WriteBatch implements PublicWriteBatch, Compat<ExpWriteBatch> {
     const ref = castReference(documentRef);
     if (options) {
       validateSetOptions('WriteBatch.set', options);
-      this._delegate.set(ref, data, options);
+      this._delegate.set(ref, data as PartialWithFieldValue<T>, options);
     } else {
-      this._delegate.set(ref, data);
+      this._delegate.set(ref, data as WithFieldValue<T>);
     }
     return this;
   }
@@ -603,19 +605,19 @@ class FirestoreDataConverter<U>
     );
   }
 
-  toFirestore(modelObject: U): PublicDocumentData;
+  toFirestore(modelObject: WithFieldValue<U>): PublicDocumentData;
   toFirestore(
-    modelObject: Partial<U>,
+    modelObject: PartialWithFieldValue<U>,
     options: PublicSetOptions
   ): PublicDocumentData;
   toFirestore(
-    modelObject: U | Partial<U>,
+    modelObject: WithFieldValue<U> | PartialWithFieldValue<U>,
     options?: PublicSetOptions
   ): PublicDocumentData {
     if (!options) {
       return this._delegate.toFirestore(modelObject as U);
     } else {
-      return this._delegate.toFirestore(modelObject, options);
+      return this._delegate.toFirestore(modelObject as Partial<U>, options);
     }
   }
 
@@ -739,7 +741,15 @@ export class DocumentReference<T = PublicDocumentData>
   set(value: T | Partial<T>, options?: PublicSetOptions): Promise<void> {
     options = validateSetOptions('DocumentReference.set', options);
     try {
-      return setDoc(this._delegate, value, options);
+      if (options) {
+        return setDoc(
+          this._delegate,
+          value as PartialWithFieldValue<T>,
+          options
+        );
+      } else {
+        return setDoc(this._delegate, value as WithFieldValue<T>);
+      }
     } catch (e) {
       throw replaceFunctionName(e, 'setDoc()', 'DocumentReference.set()');
     }
@@ -987,7 +997,7 @@ export class QueryDocumentSnapshot<T = PublicDocumentData>
       data !== undefined,
       'Document in a QueryDocumentSnapshot should exist'
     );
-    return data!;
+    return data;
   }
 }
 
@@ -1293,7 +1303,7 @@ export class CollectionReference<T = PublicDocumentData>
   }
 
   add(data: T): Promise<DocumentReference<T>> {
-    return addDoc(this._delegate, data).then(
+    return addDoc(this._delegate, data as WithFieldValue<T>).then(
       docRef => new DocumentReference(this.firestore, docRef)
     );
   }
