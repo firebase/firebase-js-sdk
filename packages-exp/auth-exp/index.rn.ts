@@ -33,7 +33,7 @@ import { ClientPlatform } from './src/core/util/version';
 import { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
 
 // Core functionality shared by all clients
-export * from './src';
+export * from './index.shared';
 
 /**
  * An implementation of {@link Persistence} of type 'LOCAL' for use in React

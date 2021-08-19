@@ -27,9 +27,11 @@ import { FieldPath } from './field_path';
 import {
   DocumentData,
   DocumentReference,
+  PartialWithFieldValue,
   Query,
   queryEqual,
-  SetOptions
+  SetOptions,
+  WithFieldValue
 } from './reference';
 import {
   fieldPathFromDotSeparatedString,
@@ -55,7 +57,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * }
  *
  * const postConverter = {
- *   toFirestore(post: Post): firebase.firestore.DocumentData {
+ *   toFirestore(post: WithFieldValue<Post>): firebase.firestore.DocumentData {
  *     return {title: post.title, author: post.author};
  *   },
  *   fromFirestore(snapshot: firebase.firestore.QueryDocumentSnapshot): Post {
@@ -82,16 +84,27 @@ export interface FirestoreDataConverter<T> {
    * into a plain Javascript object (suitable for writing directly to the
    * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
    * and {@link @firebase/firestore/lite#(Transaction.set:1)}.
+   *
+   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
+   * {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
    * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
    * and {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true` or `mergeFields`.
+   *
+   * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
+   * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
+   * It also supports nested `Partial` by allowing nested fields to be
+   * omitted.
    */
-  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  toFirestore(
+    modelObject: PartialWithFieldValue<T>,
+    options: SetOptions
+  ): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of

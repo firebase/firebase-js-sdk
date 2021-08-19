@@ -41,9 +41,11 @@ import {
   CollectionReference,
   doc,
   DocumentReference,
+  PartialWithFieldValue,
   Query,
   SetOptions,
-  UpdateData
+  UpdateData,
+  WithFieldValue
 } from './reference';
 import {
   DocumentSnapshot,
@@ -71,7 +73,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  */
 export function applyFirestoreDataConverter<T>(
   converter: UntypedFirestoreDataConverter<T> | null,
-  value: T,
+  value: WithFieldValue<T> | PartialWithFieldValue<T>,
   options?: PublicSetOptions
 ): PublicDocumentData {
   let convertedValue;
@@ -82,7 +84,7 @@ export function applyFirestoreDataConverter<T>(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       convertedValue = (converter as any).toFirestore(value, options);
     } else {
-      convertedValue = converter.toFirestore(value);
+      convertedValue = converter.toFirestore(value as WithFieldValue<T>);
     }
   } else {
     convertedValue = value as PublicDocumentData;
@@ -197,7 +199,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: T
+  data: WithFieldValue<T>
 ): Promise<void>;
 /**
  * Writes to the document referred to by the specified `DocumentReference`. If
@@ -217,12 +219,12 @@ export function setDoc<T>(
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: Partial<T>,
+  data: PartialWithFieldValue<T>,
   options: SetOptions
 ): Promise<void>;
 export function setDoc<T>(
   reference: DocumentReference<T>,
-  data: T,
+  data: PartialWithFieldValue<T>,
   options?: SetOptions
 ): Promise<void> {
   reference = cast<DocumentReference<T>>(reference, DocumentReference);
@@ -264,9 +266,9 @@ export function setDoc<T>(
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  data: UpdateData
+export function updateDoc<T>(
+  reference: DocumentReference<T>,
+  data: UpdateData<T>
 ): Promise<void>;
 /**
  * Updates fields in the document referred to by the specified
@@ -294,9 +296,9 @@ export function updateDoc(
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
-export function updateDoc(
+export function updateDoc<T>(
   reference: DocumentReference<unknown>,
-  fieldOrUpdateData: string | FieldPath | UpdateData,
+  fieldOrUpdateData: string | FieldPath | UpdateData<T>,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
@@ -373,12 +375,15 @@ export function deleteDoc(
  */
 export function addDoc<T>(
   reference: CollectionReference<T>,
-  data: T
+  data: WithFieldValue<T>
 ): Promise<DocumentReference<T>> {
   reference = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(reference);
 
-  const convertedValue = applyFirestoreDataConverter(reference.converter, data);
+  const convertedValue = applyFirestoreDataConverter(
+    reference.converter,
+    data as PartialWithFieldValue<T>
+  );
 
   const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
