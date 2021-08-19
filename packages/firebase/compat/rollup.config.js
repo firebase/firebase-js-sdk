@@ -71,6 +71,10 @@ function createUmdOutputConfig(output) {
 const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
 
 const typescriptPlugin = rollupTypescriptPlugin({
+  typescript
+});
+
+const typescriptPluginCDN = rollupTypescriptPlugin({
   typescript,
   tsconfigOverride: {
     compilerOptions: {
@@ -114,7 +118,7 @@ const appBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPlugin, uglify()]
+    plugins: [...plugins, typescriptPluginCDN, uglify()]
   }
 ];
 
@@ -144,7 +148,7 @@ const componentBuilds = compatPkg.components
       {
         input: `${__dirname}/${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}-compat.js`),
-        plugins: [...plugins, typescriptPlugin, uglify()],
+        plugins: [...plugins, typescriptPluginCDN, uglify()],
         external: ['@firebase/app-compat', '@firebase/app']
       }
     ];
@@ -178,7 +182,7 @@ const completeBuilds = [
       sourcemap: true,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPlugin, uglify()]
+    plugins: [...plugins, typescriptPluginCDN, uglify()]
   },
   /**
    * App Node.js Builds
@@ -222,7 +226,7 @@ const completeBuilds = [
       resolveModule({
         mainFields: ['lite-esm5', 'esm5', 'module']
       }),
-      typescriptPlugin,
+      typescriptPluginCDN,
       json(),
       commonjs(),
       uglify()
