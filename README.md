@@ -88,9 +88,26 @@ $ yarn build
 A production project is required to test the Firebase JS SDK. You can create a
 new project by visiting the [Firebase Console](https://console.firebase.google.com/).
 
+#### Web App Setup
+
+Visit the "Project Overview" and select "Add app" under your project name. Register the app with a
+nickname and click through the remaining steps. Without performing this step, you will encounter
+the error in the test setup:
+
+```
+FirebaseError: There are no WEB apps associated with this Firebase project
+```
+
 #### Firestore Database Setup
 
-Visit the "Database" section of the console and create a Cloud Firestore
+Visit the "Firestore Database" section of the console and create a Cloud Firestore
+database. When prompted to select the set of initial security rules, select
+any option (e.g. "Start in Production Mode") since these permission settings
+will be overwritten below.
+
+#### Realtime Database Setup
+
+Visit the "Realtime Database" section of the console and create a realtime
 database. When prompted to select the set of initial security rules, select
 any option (e.g. "Start in Production Mode") since these permission settings
 will be overwritten below.
