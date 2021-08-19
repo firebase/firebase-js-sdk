@@ -57,9 +57,7 @@
   "license": "Apache-2.0",
   "files": [
     "dist",
-    "memory/package.json",
-    "bundle/package.json",
-    "memory-bundle/package.json"
+    "lite/package.json"
   ],
   "dependencies": {
     "@firebase/component": "0.5.5",

@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
-    "build": "lerna run --scope @firebase/* --scope firebase build",
+    "build": "lerna run --scope @firebase/* --scope firebase --ignore @firebase/rules-unit-testing build",
     "build:exp": "lerna run --scope @firebase/*-exp --scope @firebase/*-compat --scope firebase-exp build",
     "build:release": "lerna run --scope @firebase/app-exp build:deps && lerna run --scope @firebase/* --scope firebase --ignore @firebase/*-exp --ignore @firebase/*-compat build",
     "build:changed": "ts-node-script scripts/ci-test/build_changed.ts",
