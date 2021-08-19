@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 
-import '@firebase/installations-exp';
+import '@firebase/installations';
 
 import { Messaging } from './interfaces/public-types';
 import { registerMessagingInWindow } from './helpers/register';
@@ -37,7 +37,7 @@ export * from './interfaces/public-types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging-exp': Messaging;
+    'messaging': Messaging;
   }
 }
 

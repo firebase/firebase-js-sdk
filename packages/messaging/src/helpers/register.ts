@@ -31,10 +31,10 @@ import {
 
 import { MessagingService } from '../messaging-service';
 import { ServiceWorkerGlobalScope } from '../util/sw-types';
-import { _registerComponent } from '@firebase/app-exp';
+import { _registerComponent } from '@firebase/app';
 import { messageEventListener } from '../listeners/window-listener';
 
-const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
+const WindowMessagingFactory: InstanceFactory<'messaging'> = (
   container: ComponentContainer
 ) => {
   // Conscious decision to make this async check non-blocking during the messaging instance
@@ -52,8 +52,8 @@ const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
     });
 
   const messaging = new MessagingService(
-    container.getProvider('app-exp').getImmediate(),
-    container.getProvider('installations-exp-internal').getImmediate(),
+    container.getProvider('app').getImmediate(),
+    container.getProvider('installations-internal').getImmediate(),
     container.getProvider('analytics-internal')
   );
 
@@ -65,7 +65,7 @@ const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
 };
 
 declare const self: ServiceWorkerGlobalScope;
-const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
+const SwMessagingFactory: InstanceFactory<'messaging'> = (
   container: ComponentContainer
 ) => {
   // Conscious decision to make this async check non-blocking during the messaging instance
@@ -83,8 +83,8 @@ const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
     });
 
   const messaging = new MessagingService(
-    container.getProvider('app-exp').getImmediate(),
-    container.getProvider('installations-exp-internal').getImmediate(),
+    container.getProvider('app').getImmediate(),
+    container.getProvider('installations-internal').getImmediate(),
     container.getProvider('analytics-internal')
   );
 
@@ -103,7 +103,7 @@ const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
 
 export function registerMessagingInWindow(): void {
   _registerComponent(
-    new Component('messaging-exp', WindowMessagingFactory, ComponentType.PUBLIC)
+    new Component('messaging', WindowMessagingFactory, ComponentType.PUBLIC)
   );
 }
 
@@ -114,6 +114,6 @@ export function registerMessagingInWindow(): void {
  */
 export function registerMessagingInSw(): void {
   _registerComponent(
-    new Component('messaging-sw-exp', SwMessagingFactory, ComponentType.PUBLIC)
+    new Component('messaging-sw', SwMessagingFactory, ComponentType.PUBLIC)
   );
 }

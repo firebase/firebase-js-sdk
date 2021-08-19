@@ -21,9 +21,9 @@ import {
 } from '@firebase/analytics-interop-types';
 
 import { FirebaseInternalDependencies } from '../../interfaces/internal-dependencies';
-import { FirebaseOptions } from '@firebase/app-exp';
+import { FirebaseOptions } from '@firebase/app';
 import { Provider } from '@firebase/component';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { extractAppConfig } from '../../helpers/extract-app-config';
 
 export function getFakeFirebaseDependencies(

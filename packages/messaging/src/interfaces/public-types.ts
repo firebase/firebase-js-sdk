@@ -142,6 +142,6 @@ export { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging-exp': Messaging;
+    'messaging': Messaging;
   }
 }

@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-compat';
-import { Messaging } from '@firebase/messaging-exp';
+import { Messaging } from '@firebase/messaging';
 
 export function getFakeApp(): FirebaseApp {
   return {

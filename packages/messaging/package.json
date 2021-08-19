@@ -1,7 +1,6 @@
 {
-  "name": "@firebase/messaging-exp",
-  "private": true,
-  "version": "0.0.900",
+  "name": "@firebase/messaging",
+  "version": "0.8.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -17,32 +16,34 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c && yarn api-report",
-    "build:deps": "lerna run --scope @firebase/'{app-exp,messaging-exp}' --include-dependencies build",
-    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
+    "build:deps": "lerna run --scope @firebase/'{app,messaging}' --include-dependencies build",
+    "build:release": "yarn build && yarn typings:public",
     "dev": "rollup -c -w",
     "test": "run-p test:karma type-check lint ",
     "test:integration": "run-p test:karma type-check lint && cd ../../integration/messaging && npm run-script test",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "api-report": "yarn api-report:rollup && yarn api-report:api-json",
-    "api-report:rollup": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging-exp --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
+    "api-report": "yarn api-report:main && yarn api-report:sw && yarn api-report:api-json",
+    "api-report:main": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
+    "api-report:sw": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging-sw --packageRoot . --typescriptDts ./dist/index.sw.d.ts --rollupDts ./dist/sw/private.d.ts --untrimmedRollupDts ./dist/sw/internal.d.ts --publicDts ./dist/sw/index-public.d.ts",
     "api-report:api-json": "api-extractor run --local --verbose",
     "type-check": "tsc --noEmit",
     "typings:public": "node ../../scripts/exp/use_typings.js ./dist/index-public.d.ts"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@firebase/app-exp": "0.x"
+    "@firebase/app": "0.x"
   },
   "dependencies": {
     "@firebase/component": "0.5.5",
-    "@firebase/installations-exp": "0.0.900",
+    "@firebase/installations": "0.4.32",
     "@firebase/util": "1.2.0",
     "idb": "3.0.2",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
+    "@firebase/app": "0.6.30",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.30.0",
     "ts-essentials": "7.0.1",

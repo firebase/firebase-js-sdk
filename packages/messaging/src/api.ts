@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _getProvider, getApp } from '@firebase/app-exp';
+import { FirebaseApp, _getProvider, getApp } from '@firebase/app';
 import {
   GetTokenOptions,
   MessagePayload,
@@ -43,7 +43,7 @@ import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryM
  * @public
  */
 export function getMessagingInWindow(app: FirebaseApp = getApp()): Messaging {
-  return _getProvider(getModularInstance(app), 'messaging-exp').getImmediate();
+  return _getProvider(getModularInstance(app), 'messaging').getImmediate();
 }
 
 /**
@@ -56,7 +56,7 @@ export function getMessagingInWindow(app: FirebaseApp = getApp()): Messaging {
 export function getMessagingInSw(app: FirebaseApp = getApp()): Messaging {
   return _getProvider(
     getModularInstance(app),
-    'messaging-sw-exp'
+    'messaging-sw'
   ).getImmediate();
 }
 

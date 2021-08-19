@@ -25,10 +25,10 @@ import {
   deleteToken,
   getToken,
   onMessage
-} from '@firebase/messaging-exp';
+} from '@firebase/messaging';
 import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
-import { onBackgroundMessage } from '@firebase/messaging-exp/sw';
+import { onBackgroundMessage } from '@firebase/messaging/sw';
 
 export interface MessagingCompat {
   getToken(options?: {

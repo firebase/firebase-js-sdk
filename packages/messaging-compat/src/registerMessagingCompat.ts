@@ -38,13 +38,13 @@ const messagingCompatFactory: InstanceFactory<'messaging-compat'> = (
     // in window
     return new MessagingCompatImpl(
       container.getProvider('app-compat').getImmediate(),
-      container.getProvider('messaging-exp').getImmediate()
+      container.getProvider('messaging').getImmediate()
     );
   } else {
     // in sw
     return new MessagingCompatImpl(
       container.getProvider('app-compat').getImmediate(),
-      container.getProvider('messaging-sw-exp').getImmediate()
+      container.getProvider('messaging-sw').getImmediate()
     );
   }
 };

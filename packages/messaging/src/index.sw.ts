@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import '@firebase/installations-exp';
+import '@firebase/installations';
 
 import { Messaging } from './interfaces/public-types';
 import { registerMessagingInSw } from './helpers/register';
 
+export * from './interfaces/public-types';
 export {
   onBackgroundMessage,
   getMessagingInSw as getMessaging,
@@ -29,7 +30,7 @@ export { isSwSupported as isSupported } from './api/isSupported';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging-sw-exp': Messaging;
+    'messaging-sw': Messaging;
   }
 }
 

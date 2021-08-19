@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import * as messagingModule from '@firebase/messaging-exp';
-import * as messagingModuleInSw from '@firebase/messaging-exp/sw';
+import * as messagingModule from '@firebase/messaging';
+import * as messagingModuleInSw from '@firebase/messaging/sw';
 
 import { getFakeApp, getFakeModularMessaging } from './fakes';
 

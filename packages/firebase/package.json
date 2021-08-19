@@ -222,9 +222,9 @@
   },
   "dependencies": {
     "@firebase/analytics": "0.6.18",
-    "@firebase/analytics-compat": "0.0.1",
+    "@firebase/analytics-compat": "0.0.900",
     "@firebase/app": "0.6.30",
-    "@firebase/app-compat": "0.0.1",
+    "@firebase/app-compat": "0.0.900",
     "@firebase/app-check": "0.0.900",
     "@firebase/app-check-compat": "0.0.900",
     "@firebase/auth": "0.0.900",
