@@ -38,7 +38,7 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.29",
+    "@firebase/app": "0.6.30",
     "@firebase/auth": "0.16.8",
     "rollup": "2.52.2",
     "@rollup/plugin-alias": "3.1.2",

@@ -43,7 +43,8 @@ function createUmdOutputConfig(output) {
     extend: true,
     name: GLOBAL_NAME,
     globals: {
-      '@firebase/app-compat': GLOBAL_NAME
+      '@firebase/app-compat': GLOBAL_NAME,
+      '@firebase/app': `${GLOBAL_NAME}.INTERNAL.modularAPIs`
     },
 
     /**
@@ -144,7 +145,7 @@ const componentBuilds = compatPkg.components
         input: `${__dirname}/${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}-compat.js`),
         plugins: [...plugins, typescriptPlugin, uglify()],
-        external: ['@firebase/app-compat']
+        external: ['@firebase/app-compat', '@firebase/app']
       }
     ];
   })
@@ -219,7 +220,7 @@ const completeBuilds = [
     plugins: [
       sourcemaps(),
       resolveModule({
-        mainFields: ['lite', 'module', 'main']
+        mainFields: ['lite-esm5', 'esm5', 'module']
       }),
       typescriptPlugin,
       json(),

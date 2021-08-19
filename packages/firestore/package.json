@@ -76,7 +76,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.29",
+    "@firebase/app": "0.6.30",
     "@rollup/plugin-alias": "3.1.2",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.2.10",

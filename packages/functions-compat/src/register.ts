@@ -16,8 +16,7 @@
  */
 
 import firebase, {
-  _FirebaseNamespace,
-  FirebaseApp
+  _FirebaseNamespace
 } from '@firebase/app-compat';
 import { FunctionsService } from './service';
 import {
@@ -27,17 +26,8 @@ import {
   ComponentContainer,
   InstanceFactoryOptions
 } from '@firebase/component';
-import { Functions as FunctionsServiceExp } from '@firebase/functions';
 
 const DEFAULT_REGION = 'us-central1';
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'app-compat': FirebaseApp;
-    'functions-compat': FunctionsService;
-    'functions': FunctionsServiceExp;
-  }
-}
 
 const factory: InstanceFactory<'functions-compat'> = (
   container: ComponentContainer,
