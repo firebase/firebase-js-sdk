@@ -26,7 +26,8 @@ import {
   DocumentData,
   CollectionReference,
   DocumentReference,
-  SetOptions
+  SetOptions,
+  PartialWithFieldValue
 } from '../../src/lite/reference';
 import { setDoc } from '../../src/lite/reference_impl';
 import { FirestoreSettings } from '../../src/lite/settings';
@@ -102,7 +103,11 @@ export function withTestCollection(
 
 // Used for testing the FirestoreDataConverter.
 export class Post {
-  constructor(readonly title: string, readonly author: string) {}
+  constructor(
+    readonly title: string,
+    readonly author: string,
+    readonly id = 1
+  ) {}
   byline(): string {
     return this.title + ', by ' + this.author;
   }
@@ -119,7 +124,10 @@ export const postConverter = {
 };
 
 export const postConverterMerge = {
-  toFirestore(post: Partial<Post>, options?: SetOptions): DocumentData {
+  toFirestore(
+    post: PartialWithFieldValue<Post>,
+    options?: SetOptions
+  ): DocumentData {
     if (
       options &&
       ((options as { merge: true }).merge ||

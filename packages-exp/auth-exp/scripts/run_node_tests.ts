@@ -40,7 +40,9 @@ process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs", "target": "es6"}';
 let testConfig = [
   'src/!(platform_browser|platform_react_native|platform_cordova)/**/*.test.ts',
   '--file',
-  'index.node.ts'
+  'index.shared.ts',
+  '--file',
+  'src/platform_node/index.ts' // Exports getAuth
 ];
 
 if (argv.integration) {

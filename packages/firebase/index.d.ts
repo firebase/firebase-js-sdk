@@ -7852,9 +7852,13 @@ declare namespace firebase.storage {
      * @param port - The emulator port (ex: 5001)
      * @param options.mockUserToken the mock auth token to use for unit testing Security Rules
      */
-    useEmulator(host: string, port: number, options?: {
-      mockUserToken?: EmulatorMockTokenOptions | string;
-    }): void;
+    useEmulator(
+      host: string,
+      port: number,
+      options?: {
+        mockUserToken?: EmulatorMockTokenOptions | string;
+      }
+    ): void;
   }
 
   /**

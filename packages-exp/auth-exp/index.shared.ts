@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
+// Public types
+export * from './src/model/public_types';
+
+// Helper maps (not used internally)
 export {
-  DocumentReference,
-  CollectionReference,
-  Query,
-  collection,
-  collectionGroup,
-  doc,
-  queryEqual,
-  SetOptions,
-  DocumentData,
-  UpdateData,
-  WithFieldValue,
-  PartialWithFieldValue,
-  refEqual
-} from '../lite/reference';
+  FactorId,
+  ProviderId,
+  SignInMethod,
+  OperationType,
+  ActionCodeOperation
+} from './src/model/enum_maps';
+
+// Core functionality shared by all clients
+export * from './src';
