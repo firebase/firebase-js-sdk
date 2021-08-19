@@ -16,6 +16,7 @@
     "firebase-compat-interop-test",
     "firebase-compat-typings-test",
     "@firebase/changelog-generator",
+    "@firebase/rules-unit-testing",
     "firebase-size-analysis"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
