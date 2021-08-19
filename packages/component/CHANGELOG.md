@@ -1,5 +1,14 @@
 # @firebase/component
 
+## 0.5.6
+
+### Patch Changes
+
+- [`bb6b5abff`](https://github.com/firebase/firebase-js-sdk/commit/bb6b5abff6f89ce9ec1bd66ff4e795a059a98eec) [#5272](https://github.com/firebase/firebase-js-sdk/pull/5272) - Store instance initialization options on the Provider.
+
+- Updated dependencies [[`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131)]:
+  - @firebase/util@1.3.0
+
 ## 0.5.5
 
 ### Patch Changes

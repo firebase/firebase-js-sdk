@@ -1,5 +1,16 @@
 # @firebase/database-types
 
+## 0.8.0
+
+### Minor Changes
+
+- [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131) [#5282](https://github.com/firebase/firebase-js-sdk/pull/5282) - Implement mockUserToken for Storage and fix JWT format bugs.
+
+### Patch Changes
+
+- Updated dependencies [[`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131)]:
+  - @firebase/util@1.3.0
+
 ## 0.7.3
 
 ### Patch Changes

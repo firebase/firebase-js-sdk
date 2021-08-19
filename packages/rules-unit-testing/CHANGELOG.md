@@ -1,5 +1,16 @@
 # @firebase/rules-unit-testing
 
+## 1.3.15
+
+### Patch Changes
+
+- [`749f5a21c`](https://github.com/firebase/firebase-js-sdk/commit/749f5a21cb814064aba1af7fde9fb1a7cfc04575) [#5259](https://github.com/firebase/firebase-js-sdk/pull/5259) - Fix JWT format and interop with Storage Emulator. Fixes #3442.
+
+- Updated dependencies [[`d0710d500`](https://github.com/firebase/firebase-js-sdk/commit/d0710d5006a07318213163127051eebf0c339383), [`bb6b5abff`](https://github.com/firebase/firebase-js-sdk/commit/bb6b5abff6f89ce9ec1bd66ff4e795a059a98eec), [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131)]:
+  - firebase@8.10.0
+  - @firebase/component@0.5.6
+  - @firebase/util@1.3.0
+
 ## 1.3.14
 
 ### Patch Changes
