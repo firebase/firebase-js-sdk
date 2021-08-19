@@ -99,7 +99,7 @@ export interface TestEnvironmentConfig {
    * If specified either way, other running emulators can be automatically discovered, and thus do
    * not to be explicity specified.
    */
-  hub?: Pick<EmulatorConfig, 'host' | 'port'>;
+  hub?: HostAndPort;
 
   /**
    * The Database emulator. Its host and port can also be discovered automatically through the hub
@@ -121,25 +121,31 @@ export interface TestEnvironmentConfig {
 }
 
 /**
- * Configuration for a given emulator.
+ * An object containing the hostname and port number of an emulator.
  * @public
  */
-export interface EmulatorConfig {
-  /** The security rules source code under test for this emulator. Strongly recommended. */
-  rules?: string;
-
+export interface HostAndPort {
   /**
    * The host of the emulator. Can be omitted if discovered automatically through the hub or
    * specified via environment variables. See {@code TestEnvironmentConfig} for details.
    */
-  host?: string;
+  host: string;
 
   /**
    * The port of the emulator. Can be omitted if discovered automatically through the hub or
    * specified via environment variables. See {@code TestEnvironmentConfig} for details.
    */
-  port?: number;
+  port: number;
 }
+
+/**
+ * Configuration for a given emulator.
+ * @public
+ */
+export type EmulatorConfig = {
+  /** The security rules source code under test for this emulator. Strongly recommended. */
+  rules?: string;
+} & (HostAndPort | {}); // Both or none of host and port should be specified.
 
 /**
  * An object used to control the rules unit test environment. Can be used to create RulesTestContext
@@ -154,9 +160,9 @@ export interface RulesTestEnvironment {
    * A readonly copy of the emulator config specified or discovered at test environment creation.
    */
   readonly emulators: {
-    database?: { host: string; port: number };
-    firestore?: { host: string; port: number };
-    storage?: { host: string; port: number };
+    database?: HostAndPort;
+    firestore?: HostAndPort;
+    storage?: HostAndPort;
   };
 
   /**
