@@ -267,7 +267,7 @@ describe('core/user/token_manager', () => {
         );
       });
 
-      it('throws an error if the token is expired beyond the buffer window, even if provider is set', async () => {
+      it('refreshes the token when it is expired beyond the buffer window and the provider is set', async () => {
         Object.assign(stsTokenManager, {
           accessToken: 'old-access-token',
           expirationTime: now - 1,
@@ -278,10 +278,9 @@ describe('core/user/token_manager', () => {
           .stub(auth, '_refreshWithCustomTokenProvider')
           .returns(Promise.resolve('new-access-token'));
 
-        await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
-          FirebaseError,
-          'auth/user-token-expired'
-        );
+        const tokens = (await stsTokenManager.getToken(auth))!;
+
+        expect(tokens).to.eq('new-access-token');
       });
 
       it('returns access token when not expired, not refreshing', async () => {
