@@ -22,7 +22,6 @@ import {
   InstanceFactory
 } from '@firebase/component';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { _getProvider, _registerComponent } from '@firebase/app-exp';
 import { isSwSupported, isWindowSupported } from '../api/isSupported';
 import {
   onNotificationClick,
@@ -34,6 +33,7 @@ import { GetTokenOptions } from '../interfaces/public-types';
 import { MessagingInternal } from '../interfaces/internal-dependencies';
 import { MessagingService } from '../messaging-service';
 import { ServiceWorkerGlobalScope } from '../util/sw-types';
+import { _registerComponent } from '@firebase/app-exp';
 import { getToken } from '../api/getToken';
 import { messageEventListener } from '../listeners/window-listener';
 
