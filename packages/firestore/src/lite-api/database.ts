@@ -22,15 +22,11 @@ import {
   FirebaseApp,
   getApp
 } from '@firebase/app-exp';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { Provider } from '@firebase/component';
 import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
 
 import {
   CredentialsProvider,
-  EmptyCredentialsProvider,
   EmulatorCredentialsProvider,
-  FirebaseCredentialsProvider,
   makeCredentialsProvider,
   OAuthToken
 } from '../api/credentials';
@@ -67,7 +63,6 @@ export class Firestore implements FirestoreService {
 
   readonly _databaseId: DatabaseId;
   readonly _persistenceKey: string = '(lite)';
-  _credentials: CredentialsProvider;
 
   private _settings = new FirestoreSettingsImpl({});
   private _settingsFrozen = false;
@@ -81,15 +76,13 @@ export class Firestore implements FirestoreService {
   /** @hideconstructor */
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
+    public _credentials: CredentialsProvider
   ) {
     if (databaseIdOrApp instanceof DatabaseId) {
       this._databaseId = databaseIdOrApp;
-      this._credentials = new EmptyCredentialsProvider();
     } else {
       this._app = databaseIdOrApp as FirebaseApp;
       this._databaseId = databaseIdFromApp(databaseIdOrApp as FirebaseApp);
-      this._credentials = new FirebaseCredentialsProvider(authProvider);
     }
   }
 

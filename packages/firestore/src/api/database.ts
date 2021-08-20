@@ -22,8 +22,6 @@ import {
   FirebaseApp,
   getApp
 } from '@firebase/app-exp';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { Provider } from '@firebase/component';
 import { deepEqual } from '@firebase/util';
 
 import {
@@ -60,6 +58,7 @@ import { cast } from '../util/input_validation';
 import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
+import {CredentialsProvider} from "./credentials";
 import { PersistenceSettings, FirestoreSettings } from './settings';
 export {
   connectFirestoreEmulator,
@@ -103,9 +102,9 @@ export class Firestore extends LiteFirestore {
   /** @hideconstructor */
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
+    credentialsProvider: CredentialsProvider
   ) {
-    super(databaseIdOrApp, authProvider);
+    super(databaseIdOrApp, credentialsProvider);
     this._persistenceKey =
       'name' in databaseIdOrApp ? databaseIdOrApp.name : '[DEFAULT]';
   }
