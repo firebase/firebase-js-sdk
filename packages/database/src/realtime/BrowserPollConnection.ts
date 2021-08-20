@@ -209,9 +209,8 @@ export class BrowserPollConnection implements Transport {
         Math.random() * 100000000
       );
       if (this.scriptTagHolder.uniqueCallbackIdentifier) {
-        urlParams[
-          FIREBASE_LONGPOLL_CALLBACK_ID_PARAM
-        ] = this.scriptTagHolder.uniqueCallbackIdentifier;
+        urlParams[FIREBASE_LONGPOLL_CALLBACK_ID_PARAM] =
+          this.scriptTagHolder.uniqueCallbackIdentifier;
       }
       urlParams[VERSION_PARAM] = PROTOCOL_VERSION;
       if (this.transportSessionId) {
@@ -456,9 +455,8 @@ export class FirebaseIFrameScriptHolder {
       window[
         FIREBASE_LONGPOLL_COMMAND_CB_NAME + this.uniqueCallbackIdentifier
       ] = commandCB;
-      window[
-        FIREBASE_LONGPOLL_DATA_CB_NAME + this.uniqueCallbackIdentifier
-      ] = onMessageCB;
+      window[FIREBASE_LONGPOLL_DATA_CB_NAME + this.uniqueCallbackIdentifier] =
+        onMessageCB;
 
       //Create an iframe for us to add script tags to.
       this.myIFrame = FirebaseIFrameScriptHolder.createIFrame_();
@@ -721,18 +719,19 @@ export class FirebaseIFrameScriptHolder {
           newScript.async = true;
           newScript.src = url;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          newScript.onload = (newScript as any).onreadystatechange = function () {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const rstate = (newScript as any).readyState;
-            if (!rstate || rstate === 'loaded' || rstate === 'complete') {
+          newScript.onload = (newScript as any).onreadystatechange =
+            function () {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              newScript.onload = (newScript as any).onreadystatechange = null;
-              if (newScript.parentNode) {
-                newScript.parentNode.removeChild(newScript);
+              const rstate = (newScript as any).readyState;
+              if (!rstate || rstate === 'loaded' || rstate === 'complete') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                newScript.onload = (newScript as any).onreadystatechange = null;
+                if (newScript.parentNode) {
+                  newScript.parentNode.removeChild(newScript);
+                }
+                loadCB();
               }
-              loadCB();
-            }
-          };
+            };
           newScript.onerror = () => {
             log('Long-poll script failed to load: ' + url);
             this.sendNewPolls = false;
