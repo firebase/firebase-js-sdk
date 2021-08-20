@@ -56,7 +56,7 @@ const appBuilds = [
       { file: resolve('app', appPkg.module), format: 'es', sourcemap: true }
     ],
     plugins: [...plugins, typescriptPlugin],
-    external
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
@@ -81,7 +81,7 @@ const componentBuilds = pkg.components
           }
         ],
         plugins: [...plugins, typescriptPlugin],
-        external
+        external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
       }
     ];
   })
