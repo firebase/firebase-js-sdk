@@ -43,7 +43,8 @@ function createUmdOutputConfig(output) {
     extend: true,
     name: GLOBAL_NAME,
     globals: {
-      '@firebase/app-compat': GLOBAL_NAME
+      '@firebase/app-compat': GLOBAL_NAME,
+      '@firebase/app': `${GLOBAL_NAME}.INTERNAL.modularAPIs`
     },
 
     /**
@@ -53,23 +54,27 @@ function createUmdOutputConfig(output) {
      *
      */
     intro: `
-          try {
-            (function() {`,
+           try {
+             (function() {`,
     outro: `
-          }).apply(this, arguments);
-        } catch(err) {
-            console.error(err);
-            throw new Error(
-              'Cannot instantiate ${output} - ' +
-              'be sure to load firebase-app.js first.'
-            );
-          }`
+           }).apply(this, arguments);
+         } catch(err) {
+             console.error(err);
+             throw new Error(
+               'Cannot instantiate ${output} - ' +
+               'be sure to load firebase-app.js first.'
+             );
+           }`
   };
 }
 
 const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
 
 const typescriptPlugin = rollupTypescriptPlugin({
+  typescript
+});
+
+const typescriptPluginCDN = rollupTypescriptPlugin({
   typescript,
   tsconfigOverride: {
     compilerOptions: {
@@ -113,7 +118,7 @@ const appBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPlugin, uglify()]
+    plugins: [...plugins, typescriptPluginCDN, uglify()]
   }
 ];
 
@@ -143,8 +148,8 @@ const componentBuilds = compatPkg.components
       {
         input: `${__dirname}/${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}-compat.js`),
-        plugins: [...plugins, typescriptPlugin, uglify()],
-        external: ['@firebase/app-compat']
+        plugins: [...plugins, typescriptPluginCDN, uglify()],
+        external: ['@firebase/app-compat', '@firebase/app']
       }
     ];
   })
@@ -177,7 +182,7 @@ const completeBuilds = [
       sourcemap: true,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPlugin, uglify()]
+    plugins: [...plugins, typescriptPluginCDN, uglify()]
   },
   /**
    * App Node.js Builds
@@ -219,9 +224,9 @@ const completeBuilds = [
     plugins: [
       sourcemaps(),
       resolveModule({
-        mainFields: ['lite', 'module', 'main']
+        mainFields: ['lite-esm5', 'esm5', 'module']
       }),
-      typescriptPlugin,
+      typescriptPluginCDN,
       json(),
       commonjs(),
       uglify()
