@@ -25,9 +25,9 @@ import {
   ComponentType
 } from '@firebase/component';
 import {
-  FirebaseMessaging,
-  FirebaseMessagingName
-} from '@firebase/messaging-types';
+  MessagingInternal,
+  MessagingInternalComponentName
+} from '@firebase/messaging-interop-types';
 import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
@@ -139,15 +139,15 @@ describe('Firebase Functions > Call', () => {
       return;
     }
     // mock firebase messaging
-    const messagingMock: FirebaseMessaging = ({
+    const messagingMock: MessagingInternal = ({
       getToken: async () => 'iid'
-    } as unknown) as FirebaseMessaging;
-    const messagingProvider = new Provider<FirebaseMessagingName>(
-      'messaging',
+    } as unknown) as MessagingInternal;
+    const messagingProvider = new Provider<MessagingInternalComponentName>(
+      'messaging-internal',
       new ComponentContainer('test')
     );
     messagingProvider.setComponent(
-      new Component('messaging', () => messagingMock, ComponentType.PRIVATE)
+      new Component('messaging-internal', () => messagingMock, ComponentType.PRIVATE)
     );
 
     const functions = createTestService(
