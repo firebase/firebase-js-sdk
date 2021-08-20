@@ -55,21 +55,22 @@ const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
   return messaging;
 };
 
-const WindowMessagingInternalFactory: InstanceFactory<'messaging-exp-internal'> =
-  (container: ComponentContainer) => {
-    maybeThrowWindowError();
+const WindowMessagingInternalFactory: InstanceFactory<'messaging-internal'> = (
+  container: ComponentContainer
+) => {
+  maybeThrowWindowError();
 
-    const messaging = _getProvider(
-      container.getProvider('app-exp').getImmediate(),
-      'messaging-exp'
-    ).getImmediate() as MessagingService;
+  const messaging = _getProvider(
+    container.getProvider('app-exp').getImmediate(),
+    'messaging-exp'
+  ).getImmediate() as MessagingService;
 
-    const messagingInternal: MessagingInternal = {
-      getToken: (options?: GetTokenOptions) => getToken(messaging, options)
-    };
-
-    return messagingInternal;
+  const messagingInternal: MessagingInternal = {
+    getToken: (options?: GetTokenOptions) => getToken(messaging, options)
   };
+
+  return messagingInternal;
+};
 
 function maybeThrowWindowError(): void {
   // Conscious decision to make this async check non-blocking during the messaging instance
