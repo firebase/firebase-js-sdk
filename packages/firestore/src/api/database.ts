@@ -33,7 +33,6 @@ import {
   OnlineComponentProvider
 } from '../core/component_provider';
 import { DatabaseId } from '../core/database_info';
-<<<<<<< HEAD
 import {
   FirestoreClient,
   firestoreClientDisableNetwork,
@@ -53,12 +52,6 @@ import {
 } from '../local/indexeddb_persistence';
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../local/lru_garbage_collector_impl';
-=======
-import { PartialWithFieldValue, WithFieldValue } from '../lite/reference';
-import { UntypedFirestoreDataConverter } from '../lite/user_data_reader';
-import { DocumentKey } from '../model/document_key';
-import { FieldPath, ResourcePath } from '../model/path';
->>>>>>> 5bc6afb75 (Firestore: QoL improvements for converters (#5268))
 import { debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { newAsyncQueue } from '../util/async_queue_impl';
@@ -68,6 +61,7 @@ import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
 import { PersistenceSettings, FirestoreSettings } from './settings';
+import {CredentialsProvider} from "./credentials";
 export {
   connectFirestoreEmulator,
   EmulatorMockTokenOptions
@@ -110,9 +104,9 @@ export class Firestore extends LiteFirestore {
   /** @hideconstructor */
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
+    credentials: CredentialsProvider
   ) {
-    super(databaseIdOrApp, authProvider);
+    super(databaseIdOrApp, credentials);
     this._persistenceKey =
       'name' in databaseIdOrApp ? databaseIdOrApp.name : '[DEFAULT]';
   }
@@ -244,7 +238,6 @@ export function configureFirestore(firestore: Firestore): void {
  * persistence.
  * @returns A `Promise` that represents successfully enabling persistent storage.
  */
-<<<<<<< HEAD
 export function enableIndexedDbPersistence(
   firestore: Firestore,
   persistenceSettings?: PersistenceSettings
@@ -309,161 +302,6 @@ export function enableMultiTabIndexedDbPersistence(
     onlineComponentProvider,
     offlineComponentProvider
   );
-=======
-export class Transaction implements PublicTransaction, Compat<ExpTransaction> {
-  private _userDataWriter: UserDataWriter;
-
-  constructor(
-    private readonly _firestore: Firestore,
-    readonly _delegate: ExpTransaction
-  ) {
-    this._userDataWriter = new UserDataWriter(_firestore);
-  }
-
-  get<T>(
-    documentRef: PublicDocumentReference<T>
-  ): Promise<PublicDocumentSnapshot<T>> {
-    const ref = castReference(documentRef);
-    return this._delegate
-      .get(ref)
-      .then(
-        result =>
-          new DocumentSnapshot(
-            this._firestore,
-            new ExpDocumentSnapshot<T>(
-              this._firestore._delegate,
-              this._userDataWriter,
-              result._key,
-              result._document,
-              result.metadata,
-              ref.converter
-            )
-          )
-      );
-  }
-
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: Partial<T>,
-    options: PublicSetOptions
-  ): Transaction;
-  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
-  set<T>(
-    documentRef: PublicDocumentReference<T>,
-    data: T | Partial<T>,
-    options?: PublicSetOptions
-  ): Transaction {
-    const ref = castReference(documentRef);
-    if (options) {
-      validateSetOptions('Transaction.set', options);
-      this._delegate.set(ref, data as PartialWithFieldValue<T>, options);
-    } else {
-      this._delegate.set(ref, data as WithFieldValue<T>);
-    }
-    return this;
-  }
-
-  update(
-    documentRef: PublicDocumentReference<unknown>,
-    data: PublicUpdateData
-  ): Transaction;
-  update(
-    documentRef: PublicDocumentReference<unknown>,
-    field: string | PublicFieldPath,
-    value: unknown,
-    ...moreFieldsAndValues: unknown[]
-  ): Transaction;
-  update(
-    documentRef: PublicDocumentReference<unknown>,
-    dataOrField: unknown,
-    value?: unknown,
-    ...moreFieldsAndValues: unknown[]
-  ): Transaction {
-    const ref = castReference(documentRef);
-    if (arguments.length === 2) {
-      this._delegate.update(ref, dataOrField as PublicUpdateData);
-    } else {
-      this._delegate.update(
-        ref,
-        dataOrField as string | ExpFieldPath,
-        value,
-        ...moreFieldsAndValues
-      );
-    }
-
-    return this;
-  }
-
-  delete(documentRef: PublicDocumentReference<unknown>): Transaction {
-    const ref = castReference(documentRef);
-    this._delegate.delete(ref);
-    return this;
-  }
-}
-
-export class WriteBatch implements PublicWriteBatch, Compat<ExpWriteBatch> {
-  constructor(readonly _delegate: ExpWriteBatch) {}
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: Partial<T>,
-    options: PublicSetOptions
-  ): WriteBatch;
-  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
-  set<T>(
-    documentRef: PublicDocumentReference<T>,
-    data: T | Partial<T>,
-    options?: PublicSetOptions
-  ): WriteBatch {
-    const ref = castReference(documentRef);
-    if (options) {
-      validateSetOptions('WriteBatch.set', options);
-      this._delegate.set(ref, data as PartialWithFieldValue<T>, options);
-    } else {
-      this._delegate.set(ref, data as WithFieldValue<T>);
-    }
-    return this;
-  }
-
-  update(
-    documentRef: PublicDocumentReference<unknown>,
-    data: PublicUpdateData
-  ): WriteBatch;
-  update(
-    documentRef: PublicDocumentReference<unknown>,
-    field: string | PublicFieldPath,
-    value: unknown,
-    ...moreFieldsAndValues: unknown[]
-  ): WriteBatch;
-  update(
-    documentRef: PublicDocumentReference<unknown>,
-    dataOrField: string | PublicFieldPath | PublicUpdateData,
-    value?: unknown,
-    ...moreFieldsAndValues: unknown[]
-  ): WriteBatch {
-    const ref = castReference(documentRef);
-    if (arguments.length === 2) {
-      this._delegate.update(ref, dataOrField as PublicUpdateData);
-    } else {
-      this._delegate.update(
-        ref,
-        dataOrField as string | ExpFieldPath,
-        value,
-        ...moreFieldsAndValues
-      );
-    }
-    return this;
-  }
-
-  delete(documentRef: PublicDocumentReference<unknown>): WriteBatch {
-    const ref = castReference(documentRef);
-    this._delegate.delete(ref);
-    return this;
-  }
-
-  commit(): Promise<void> {
-    return this._delegate.commit();
-  }
->>>>>>> 5bc6afb75 (Firestore: QoL improvements for converters (#5268))
 }
 
 /**
@@ -534,52 +372,7 @@ function canFallbackFromIndexedDbError(
     );
   }
 
-<<<<<<< HEAD
   return true;
-=======
-  toFirestore(modelObject: WithFieldValue<U>): PublicDocumentData;
-  toFirestore(
-    modelObject: PartialWithFieldValue<U>,
-    options: PublicSetOptions
-  ): PublicDocumentData;
-  toFirestore(
-    modelObject: WithFieldValue<U> | PartialWithFieldValue<U>,
-    options?: PublicSetOptions
-  ): PublicDocumentData {
-    if (!options) {
-      return this._delegate.toFirestore(modelObject as U);
-    } else {
-      return this._delegate.toFirestore(modelObject as Partial<U>, options);
-    }
-  }
-
-  // Use the same instance of `FirestoreDataConverter` for the given instances
-  // of `Firestore` and `PublicFirestoreDataConverter` so that isEqual() will
-  // compare equal for two objects created with the same converter instance.
-  static getInstance<U>(
-    firestore: Firestore,
-    converter: PublicFirestoreDataConverter<U>
-  ): FirestoreDataConverter<U> {
-    const converterMapByFirestore = FirestoreDataConverter.INSTANCES;
-    let untypedConverterByConverter = converterMapByFirestore.get(firestore);
-    if (!untypedConverterByConverter) {
-      untypedConverterByConverter = new WeakMap();
-      converterMapByFirestore.set(firestore, untypedConverterByConverter);
-    }
-
-    let instance = untypedConverterByConverter.get(converter);
-    if (!instance) {
-      instance = new FirestoreDataConverter(
-        firestore,
-        new UserDataWriter(firestore),
-        converter
-      );
-      untypedConverterByConverter.set(converter, instance);
-    }
-
-    return instance;
-  }
->>>>>>> 5bc6afb75 (Firestore: QoL improvements for converters (#5268))
 }
 
 /**
@@ -623,151 +416,8 @@ export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
     } catch (e) {
       deferred.reject(e);
     }
-<<<<<<< HEAD
   });
   return deferred.promise;
-=======
-  }
-
-  isEqual(other: PublicDocumentReference<T>): boolean {
-    other = getModularInstance<PublicDocumentReference<T>>(other);
-
-    if (!(other instanceof ExpDocumentReference)) {
-      return false;
-    }
-    return refEqual(this._delegate, other);
-  }
-
-  set(value: Partial<T>, options: PublicSetOptions): Promise<void>;
-  set(value: T): Promise<void>;
-  set(value: T | Partial<T>, options?: PublicSetOptions): Promise<void> {
-    options = validateSetOptions('DocumentReference.set', options);
-    try {
-      if (options) {
-        return setDoc(
-          this._delegate,
-          value as PartialWithFieldValue<T>,
-          options
-        );
-      } else {
-        return setDoc(this._delegate, value as WithFieldValue<T>);
-      }
-    } catch (e) {
-      throw replaceFunctionName(e, 'setDoc()', 'DocumentReference.set()');
-    }
-  }
-
-  update(value: PublicUpdateData): Promise<void>;
-  update(
-    field: string | PublicFieldPath,
-    value: unknown,
-    ...moreFieldsAndValues: unknown[]
-  ): Promise<void>;
-  update(
-    fieldOrUpdateData: string | PublicFieldPath | PublicUpdateData,
-    value?: unknown,
-    ...moreFieldsAndValues: unknown[]
-  ): Promise<void> {
-    try {
-      if (arguments.length === 1) {
-        return updateDoc(this._delegate, fieldOrUpdateData as PublicUpdateData);
-      } else {
-        return updateDoc(
-          this._delegate,
-          fieldOrUpdateData as string | ExpFieldPath,
-          value,
-          ...moreFieldsAndValues
-        );
-      }
-    } catch (e) {
-      throw replaceFunctionName(e, 'updateDoc()', 'DocumentReference.update()');
-    }
-  }
-
-  delete(): Promise<void> {
-    return deleteDoc(this._delegate);
-  }
-
-  onSnapshot(observer: PartialObserver<PublicDocumentSnapshot<T>>): Unsubscribe;
-  onSnapshot(
-    options: PublicSnapshotListenOptions,
-    observer: PartialObserver<PublicDocumentSnapshot<T>>
-  ): Unsubscribe;
-  onSnapshot(
-    onNext: NextFn<PublicDocumentSnapshot<T>>,
-    onError?: ErrorFn,
-    onCompletion?: CompleteFn
-  ): Unsubscribe;
-  onSnapshot(
-    options: PublicSnapshotListenOptions,
-    onNext: NextFn<PublicDocumentSnapshot<T>>,
-    onError?: ErrorFn,
-    onCompletion?: CompleteFn
-  ): Unsubscribe;
-
-  onSnapshot(...args: unknown[]): Unsubscribe {
-    const options = extractSnapshotOptions(args);
-    const observer = wrapObserver<DocumentSnapshot<T>, ExpDocumentSnapshot<T>>(
-      args,
-      result =>
-        new DocumentSnapshot(
-          this.firestore,
-          new ExpDocumentSnapshot(
-            this.firestore._delegate,
-            this._userDataWriter,
-            result._key,
-            result._document,
-            result.metadata,
-            this._delegate.converter
-          )
-        )
-    );
-    return onSnapshot(this._delegate, options, observer);
-  }
-
-  get(options?: PublicGetOptions): Promise<PublicDocumentSnapshot<T>> {
-    let snap: Promise<ExpDocumentSnapshot<T>>;
-    if (options?.source === 'cache') {
-      snap = getDocFromCache(this._delegate);
-    } else if (options?.source === 'server') {
-      snap = getDocFromServer(this._delegate);
-    } else {
-      snap = getDoc(this._delegate);
-    }
-
-    return snap.then(
-      result =>
-        new DocumentSnapshot(
-          this.firestore,
-          new ExpDocumentSnapshot(
-            this.firestore._delegate,
-            this._userDataWriter,
-            result._key,
-            result._document,
-            result.metadata,
-            this._delegate.converter as UntypedFirestoreDataConverter<T>
-          )
-        )
-    );
-  }
-
-  withConverter(converter: null): PublicDocumentReference<PublicDocumentData>;
-  withConverter<U>(
-    converter: PublicFirestoreDataConverter<U>
-  ): PublicDocumentReference<U>;
-  withConverter<U>(
-    converter: PublicFirestoreDataConverter<U> | null
-  ): PublicDocumentReference<U> {
-    return new DocumentReference<U>(
-      this.firestore,
-      converter
-        ? this._delegate.withConverter(
-            FirestoreDataConverter.getInstance(this.firestore, converter)
-          )
-        : (this._delegate.withConverter(null) as ExpDocumentReference<U>)
-    );
-  }
->>>>>>> 5bc6afb75 (Firestore: QoL improvements for converters (#5268))
 }
 
 /**
@@ -894,7 +544,6 @@ export function namedQuery(
   });
 }
 
-<<<<<<< HEAD
 function verifyNotInitialized(firestore: Firestore): void {
   if (firestore._initialized || firestore._terminated) {
     throw new FirestoreError(
@@ -902,74 +551,6 @@ function verifyNotInitialized(firestore: Firestore): void {
       'Firestore has already been started and persistence can no longer be ' +
         'enabled. You can only enable persistence before calling any other ' +
         'methods on a Firestore object.'
-=======
-export class CollectionReference<T = PublicDocumentData>
-  extends Query<T>
-  implements PublicCollectionReference<T>
-{
-  constructor(
-    readonly firestore: Firestore,
-    readonly _delegate: ExpCollectionReference<T>
-  ) {
-    super(firestore, _delegate);
-  }
-
-  get id(): string {
-    return this._delegate.id;
-  }
-
-  get path(): string {
-    return this._delegate.path;
-  }
-
-  get parent(): DocumentReference<PublicDocumentData> | null {
-    const docRef = this._delegate.parent;
-    return docRef ? new DocumentReference(this.firestore, docRef) : null;
-  }
-
-  doc(documentPath?: string): DocumentReference<T> {
-    try {
-      if (documentPath === undefined) {
-        // Call `doc` without `documentPath` if `documentPath` is `undefined`
-        // as `doc` validates the number of arguments to prevent users from
-        // accidentally passing `undefined`.
-        return new DocumentReference(this.firestore, doc(this._delegate));
-      } else {
-        return new DocumentReference(
-          this.firestore,
-          doc(this._delegate, documentPath)
-        );
-      }
-    } catch (e) {
-      throw replaceFunctionName(e, 'doc()', 'CollectionReference.doc()');
-    }
-  }
-
-  add(data: T): Promise<DocumentReference<T>> {
-    return addDoc(this._delegate, data as WithFieldValue<T>).then(
-      docRef => new DocumentReference(this.firestore, docRef)
-    );
-  }
-
-  isEqual(other: CollectionReference<T>): boolean {
-    return refEqual(this._delegate, other._delegate);
-  }
-
-  withConverter(converter: null): CollectionReference<PublicDocumentData>;
-  withConverter<U>(
-    converter: PublicFirestoreDataConverter<U>
-  ): CollectionReference<U>;
-  withConverter<U>(
-    converter: PublicFirestoreDataConverter<U> | null
-  ): CollectionReference<U> {
-    return new CollectionReference<U>(
-      this.firestore,
-      converter
-        ? this._delegate.withConverter(
-            FirestoreDataConverter.getInstance(this.firestore, converter)
-          )
-        : (this._delegate.withConverter(null) as ExpCollectionReference<U>)
->>>>>>> 5bc6afb75 (Firestore: QoL improvements for converters (#5268))
     );
   }
 }

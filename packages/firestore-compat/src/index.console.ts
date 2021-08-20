@@ -23,6 +23,7 @@ import {
     FirestoreError
  } from '@firebase/firestore';
 
+import { EmptyCredentialsProvider } from './src/api/credentials';
 import {
   Firestore as FirestoreCompat,
   MemoryPersistenceProvider
@@ -55,7 +56,7 @@ export class Firestore extends FirestoreCompat {
       databaseIdFromFirestoreDatabase(firestoreDatabase),
       new FirestoreExp(
         databaseIdFromFirestoreDatabase(firestoreDatabase),
-        authProvider
+        new EmptyCredentialsProvider()
       ),
       new MemoryPersistenceProvider()
     );
