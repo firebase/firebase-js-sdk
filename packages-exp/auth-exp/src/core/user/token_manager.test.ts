@@ -267,12 +267,45 @@ describe('core/user/token_manager', () => {
         );
       });
 
+      it('throws an error if the token is expired beyond the buffer window, even if provider is set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'old-access-token',
+          expirationTime: now - 1,
+          isPassthroughMode: true
+        });
+        setCustomTokenProvider(auth, provider);
+        sinon
+          .stub(auth, '_refreshWithCustomTokenProvider')
+          .returns(Promise.resolve('new-access-token'));
+
+        await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
+          FirebaseError,
+          'auth/user-token-expired'
+        );
+      });
+
       it('returns access token when not expired, not refreshing', async () => {
         Object.assign(stsTokenManager, {
           accessToken: 'token',
           expirationTime: now + 100_000,
           isPassthroughMode: true
         });
+
+        const tokens = (await stsTokenManager.getToken(auth))!;
+
+        expect(tokens).to.eq('token');
+      });
+
+      it('returns access token when not expired, not refreshing, even if provider is set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'token',
+          expirationTime: now + 100_000,
+          isPassthroughMode: true
+        });
+        setCustomTokenProvider(auth, provider);
+        sinon
+          .stub(auth, '_refreshWithCustomTokenProvider')
+          .returns(Promise.resolve('new-access-token'));
 
         const tokens = (await stsTokenManager.getToken(auth))!;
 
