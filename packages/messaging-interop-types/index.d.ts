@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,21 @@
  * limitations under the License.
  */
 
-import { AppConfig } from './app-config';
-import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
-import { FirebaseApp } from '@firebase/app-exp';
-import { Provider } from '@firebase/component';
-import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
-
-export interface FirebaseInternalDependencies {
-  app: FirebaseApp;
-  appConfig: AppConfig;
-  installations: _FirebaseInstallationsInternal;
-  analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
+export interface MessagingInternal {
+  getToken(messaging: Messaging, options?: GetTokenOptions): Promise<string>;
 }
 
-export interface MessagingInternal {}
+interface Messaging {}
+
+interface GetTokenOptions {
+  vapidKey?: string;
+  serviceWorkerRegistration?: ServiceWorkerRegistration;
+}
+
+export type MessagingInternalComponentName = 'messaging-internal';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'messaging-internal': MessagingInternal;
+  }
+}
