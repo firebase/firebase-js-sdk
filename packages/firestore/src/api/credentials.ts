@@ -202,11 +202,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   constructor(private authProvider: Provider<FirebaseAuthInternalName>) {}
 
   getToken(): Promise<Token | null> {
-    debugAssert(
-      this.tokenListener != null,
-      'getToken cannot be called after listener removed.'
-    );
-
     // Take note of the current value of the tokenCounter so that this method
     // can fail (with an ABORTED error) if there is a token change while the
     // request is outstanding.
@@ -253,7 +248,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     let lastTokenId = -1;
 
     // A change listener that prevents double-firing for the same token change.
-    const guardedChangeListener : (user: User) => Promise<void> = user => {
+    const guardedChangeListener: (user: User) => Promise<void> = user => {
       if (this.tokenCounter !== lastTokenId) {
         lastTokenId = this.tokenCounter;
         return changeListener(user);
