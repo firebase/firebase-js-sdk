@@ -24,7 +24,7 @@ import { name as appCheckName } from '../../../packages/app-check/package.json';
 import { name as authName } from '../../../packages/auth/package.json';
 import { name as authCompatName } from '../../../packages/auth-compat/package.json';
 import { name as databaseName } from '../../../packages/database/package.json';
-import { name as databaseCompatName } from '../../../packages/database/compat/package.json';
+import { name as databaseCompatName } from '../../../packages/database-compat/package.json';
 import { name as functionsName } from '../../../packages/functions/package.json';
 import { name as functionsCompatName } from '../../../packages/functions-compat/package.json';
 import { name as installationsName } from '../../../packages/installations/package.json';
@@ -36,9 +36,9 @@ import { name as performanceCompatName } from '../../../packages/performance-com
 import { name as remoteConfigName } from '../../../packages/remote-config/package.json';
 import { name as remoteConfigCompatName } from '../../../packages/remote-config-compat/package.json';
 import { name as storageName } from '../../../packages/storage/package.json';
-import { name as storageCompatName } from '../../../packages/storage/compat/package.json';
+import { name as storageCompatName } from '../../../packages/storage-compat/package.json';
 import { name as firestoreName } from '../../../packages/firestore/package.json';
-import { name as firestoreCompatName } from '../../../packages/firestore/compat/package.json';
+import { name as firestoreCompatName } from '../../../packages/firestore-compat/package.json';
 import { name as packageName } from '../../../packages/firebase/package.json';
 
 /**
