@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { URL } from 'url';
 import { EmulatorConfig, HostAndPort } from '../public_types';
 import nodeFetch from 'node-fetch';
 
