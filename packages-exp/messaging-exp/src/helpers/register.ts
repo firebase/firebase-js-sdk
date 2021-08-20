@@ -30,7 +30,7 @@ import {
 } from '../listeners/sw-listeners';
 
 import { GetTokenOptions } from '../interfaces/public-types';
-import { MessagingInternal } from '../interfaces/internal-dependencies';
+import { MessagingInternal } from '@firebase/messaging-interop-types';
 import { MessagingService } from '../messaging-service';
 import { ServiceWorkerGlobalScope } from '../util/sw-types';
 import { _registerComponent } from '@firebase/app-exp';
