@@ -14,11 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import '../setup';
 import { expect } from 'chai';
-import { getStorage } from '../../exp/index';
-import { FirebaseStorageImpl } from '../../src/service';
+import '../../src/index';
+import firebase from '@firebase/app-compat';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp, deleteApp } from '@firebase/app-exp';
+import { StorageServiceCompat } from '../../src/service';
+import { _FirebaseStorageImpl } from '@firebase/storage';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../config/project.json');
@@ -30,29 +32,31 @@ export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
 
 describe('Firebase Storage > API', () => {
   it('getStorage() with no bucket url specified sets correct bucket', async () => {
-    const app = initializeApp({
+    const app = firebase.initializeApp({
       apiKey: API_KEY,
       projectId: PROJECT_ID,
       storageBucket: STORAGE_BUCKET,
       authDomain: AUTH_DOMAIN
     });
-    const storage = getStorage(app);
-    expect((storage as FirebaseStorageImpl)._bucket?.bucket).to.equal(
-      STORAGE_BUCKET
-    );
-    await deleteApp(app);
+    const storage = firebase.storage!();
+    expect(
+      ((storage as StorageServiceCompat)._delegate as _FirebaseStorageImpl)
+        ._bucket?.bucket
+    ).to.equal(STORAGE_BUCKET);
+    await app.delete();
   });
   it('getStorage() with custom bucket url sets correct bucket', async () => {
-    const app = initializeApp({
+    const app = firebase.initializeApp({
       apiKey: API_KEY,
       projectId: PROJECT_ID,
       storageBucket: STORAGE_BUCKET,
       authDomain: AUTH_DOMAIN
     });
-    const storage = getStorage(app, 'gs://foo-bar.appspot.com');
-    expect((storage as FirebaseStorageImpl)._bucket?.bucket).to.equal(
-      'foo-bar.appspot.com'
-    );
-    await deleteApp(app);
+    const storage = firebase.storage!(app, 'gs://foo-bar.appspot.com');
+    expect(
+      ((storage as StorageServiceCompat)._delegate as _FirebaseStorageImpl)
+        ._bucket?.bucket
+    ).to.equal(STORAGE_BUCKET);
+    await app.delete();
   });
 });

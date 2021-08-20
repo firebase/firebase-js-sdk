@@ -18,4 +18,4 @@
 /**
  * Type constant for Firebase Storage.
  */
-export const STORAGE_TYPE = 'storage-exp';
+export const STORAGE_TYPE = 'storage';

@@ -15,15 +15,17 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { StringFormat } from './src/implementation/string';
-import { TaskEvent, TaskState } from './src/implementation/taskenums';
+import {
+  StringFormat,
+  _TaskEvent as TaskEvent,
+  _TaskState as TaskState
+} from '@firebase/storage';
 
-import { ConnectionPool } from './src/implementation/connectionPool';
-import { ReferenceCompat } from './compat/reference';
-import { StorageServiceCompat } from './compat/service';
-import { FirebaseStorageImpl } from './src/service';
+import { ReferenceCompat } from './reference';
+import { StorageServiceCompat } from './service';
 import * as types from '@firebase/storage-types';
 import {
   Component,
@@ -32,37 +34,26 @@ import {
   InstanceFactoryOptions
 } from '@firebase/component';
 
-import { name, version } from './package.json';
-
-import './register-module';
+import { name, version } from '../package.json';
 
 /**
  * Type constant for Firebase Storage.
  */
-const STORAGE_TYPE = 'storage';
+const STORAGE_TYPE = 'storage-compat';
 
 function factory(
   container: ComponentContainer,
   { instanceIdentifier: url }: InstanceFactoryOptions
 ): types.FirebaseStorage {
   // Dependencies
-  // TODO: This should eventually be 'app-compat'
-  const app = container.getProvider('app').getImmediate();
-  const authProvider = container.getProvider('auth-internal');
-  const appCheckProvider = container.getProvider('app-check-internal');
+  const app = container.getProvider('app-compat').getImmediate();
+  const storageExp = container
+    .getProvider('storage')
+    .getImmediate({ identifier: url });
 
-  // TODO: get StorageService instance from component framework instead
-  // of creating a new one.
   const storageServiceCompat: StorageServiceCompat = new StorageServiceCompat(
     app,
-    new FirebaseStorageImpl(
-      app,
-      authProvider,
-      appCheckProvider,
-      new ConnectionPool(),
-      url,
-      firebase.SDK_VERSION
-    )
+    storageExp
   );
   return storageServiceCompat;
 }
@@ -73,7 +64,7 @@ export function registerStorage(instance: _FirebaseNamespace): void {
     TaskState,
     TaskEvent,
     StringFormat,
-    Storage: FirebaseStorageImpl,
+    Storage: StorageServiceCompat,
     Reference: ReferenceCompat
   };
   instance.INTERNAL.registerComponent(
@@ -85,4 +76,36 @@ export function registerStorage(instance: _FirebaseNamespace): void {
   instance.registerVersion(name, version);
 }
 
-registerStorage(firebase as _FirebaseNamespace);
+registerStorage(firebase as unknown as _FirebaseNamespace);
+
+/**
+ * Define extension behavior for `registerStorage`
+ */
+declare module '@firebase/app-compat' {
+  interface FirebaseNamespace {
+    storage?: {
+      (app?: FirebaseApp, url?: string): types.FirebaseStorage;
+      Storage: typeof types.FirebaseStorage;
+
+      StringFormat: {
+        BASE64: types.StringFormat;
+        BASE64URL: types.StringFormat;
+        DATA_URL: types.StringFormat;
+        RAW: types.StringFormat;
+      };
+      TaskEvent: {
+        STATE_CHANGED: types.TaskEvent;
+      };
+      TaskState: {
+        CANCELED: types.TaskState;
+        ERROR: types.TaskState;
+        PAUSED: types.TaskState;
+        RUNNING: types.TaskState;
+        SUCCESS: types.TaskState;
+      };
+    };
+  }
+  interface FirebaseApp {
+    storage?(storageBucket?: string): types.FirebaseStorage;
+  }
+}

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,14 @@
  * limitations under the License.
  */
 
-import { FullMetadata } from './public-types';
+import { use } from 'chai';
+import { restore } from 'sinon';
+import * as sinonChai from 'sinon-chai';
+import * as chaiAsPromised from 'chai-as-promised';
 
-/**
- * @fileoverview Documentation for the metadata format.
- */
+use(chaiAsPromised);
+use(sinonChai);
 
-/**
- * The full set of object metadata, including read-only properties.
- */
-interface Metadata extends FullMetadata {
-  [prop: string]: unknown;
-}
-
-export { Metadata };
+afterEach(async () => {
+  restore();
+});

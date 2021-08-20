@@ -21,7 +21,7 @@ import {
   ref as refInternal,
   FirebaseStorageImpl,
   connectStorageEmulator as connectEmulatorInternal
-} from '../src/service';
+} from './service';
 import { Provider } from '@firebase/component';
 
 import {
@@ -35,7 +35,7 @@ import {
   UploadMetadata,
   FullMetadata
 } from './public-types';
-import { Metadata as MetadataInternal } from '../src/metadata';
+import { Metadata as MetadataInternal } from './metadata';
 import {
   uploadBytes as uploadBytesInternal,
   uploadBytesResumable as uploadBytesResumableInternal,
@@ -48,7 +48,7 @@ import {
   deleteObject as deleteObjectInternal,
   Reference,
   _getChild as _getChildInternal
-} from '../src/reference';
+} from './reference';
 import { STORAGE_TYPE } from './constants';
 import { EmulatorMockTokenOptions, getModularInstance } from '@firebase/util';
 
@@ -57,10 +57,20 @@ import { EmulatorMockTokenOptions, getModularInstance } from '@firebase/util';
  */
 export * from './public-types';
 
-export { Location as _Location } from '../src/implementation/location';
-export { UploadTask as _UploadTask } from '../src/task';
-export type { Reference as _Reference } from '../src/reference';
-export { FbsBlob as _FbsBlob } from '../src/implementation/blob';
+export { Location as _Location } from './implementation/location';
+export { UploadTask as _UploadTask } from './task';
+export type { Reference as _Reference } from './reference';
+export type { FirebaseStorageImpl as _FirebaseStorageImpl } from './service';
+export { FbsBlob as _FbsBlob } from './implementation/blob';
+export { dataFromString as _dataFromString } from './implementation/string';
+export {
+  invalidRootOperation as _invalidRootOperation,
+  invalidArgument as _invalidArgument
+} from './implementation/error';
+export {
+  TaskEvent as _TaskEvent,
+  TaskState as _TaskState
+} from './implementation/taskenums';
 
 /**
  * Uploads data to this object's location.
@@ -277,7 +287,7 @@ export function _getChild(ref: StorageReference, childPath: string): Reference {
   return _getChildInternal(ref as Reference, childPath);
 }
 
-export { StringFormat } from '../src/implementation/string';
+export { StringFormat } from './implementation/string';
 
 /**
  * Gets a {@link FirebaseStorage} instance for the given Firebase app.
@@ -292,10 +302,7 @@ export function getStorage(
   bucketUrl?: string
 ): FirebaseStorage {
   app = getModularInstance(app);
-  const storageProvider: Provider<'storage-exp'> = _getProvider(
-    app,
-    STORAGE_TYPE
-  );
+  const storageProvider: Provider<'storage'> = _getProvider(app, STORAGE_TYPE);
   const storageInstance = storageProvider.getImmediate({
     identifier: bucketUrl
   });
