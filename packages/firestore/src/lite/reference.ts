@@ -78,8 +78,6 @@ export type WithFieldValue<T> = T extends Primitive
  */
 export type UpdateData<T> = T extends Primitive
   ? T
-  : T extends Map<infer K, infer V>
-  ? Map<UpdateData<K>, UpdateData<V>>
   : T extends {}
   ? { [K in keyof T]?: UpdateData<T[K]> | FieldValue } & NestedUpdateFields<T>
   : Partial<T>;
