@@ -229,6 +229,11 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   constructor(private authProvider: Provider<FirebaseAuthInternalName>) {}
 
   getToken(): Promise<Token | null> {
+    debugAssert(
+      this.tokenListener != null,
+      'FirebaseCredentialsProvider not started.'
+    );
+
     // Take note of the current value of the tokenCounter so that this method
     // can fail (with an ABORTED error) if there is a token change while the
     // request is outstanding.
