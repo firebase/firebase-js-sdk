@@ -182,7 +182,11 @@ export {
   linkWithCredential,
   reauthenticateWithCredential
 } from './strategies/credential';
-export { signInWithCustomToken } from './strategies/custom_token';
+export {
+  signInWithCustomToken,
+  setCustomTokenProvider,
+  clearCustomTokenProvider
+} from './strategies/custom_token';
 export {
   sendPasswordResetEmail,
   confirmPasswordReset,
