@@ -17,18 +17,26 @@
 
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
 import { OperationType } from '../../model/enums';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { UserCredentialInternal } from '../../model/user';
-import { signInWithCustomToken } from './custom_token';
+import {
+  clearCustomTokenProvider,
+  setCustomTokenProvider,
+  signInWithCustomToken
+} from './custom_token';
+import { FirebaseError } from '@firebase/util';
 
+use(sinonChai);
 use(chaiAsPromised);
 
 describe('core/strategies/signInWithCustomToken', () => {
@@ -65,33 +73,104 @@ describe('core/strategies/signInWithCustomToken', () => {
       users: [serverUser]
     });
   });
-  afterEach(mockFetch.tearDown);
-
-  it('should return a valid user credential', async () => {
-    const {
-      user,
-      operationType,
-      _tokenResponse
-    } = (await signInWithCustomToken(
-      auth,
-      'look-at-me-im-a-jwt'
-    )) as UserCredentialInternal;
-    expect(_tokenResponse).to.eql(idTokenResponse);
-    expect(user.uid).to.eq('local-id');
-    expect(user.displayName).to.eq('display-name');
-    expect(operationType).to.eq(OperationType.SIGN_IN);
+  afterEach(() => {
+    mockFetch.tearDown();
+    sinon.restore();
   });
 
-  it('should send with a valid request', async () => {
-    await signInWithCustomToken(auth, 'j.w.t');
-    expect(signInRoute.calls[0].request).to.eql({
-      token: 'j.w.t',
-      returnSecureToken: true
+  describe('#signInWithCustomToken', () => {
+    it('should return a valid user credential', async () => {
+      const { user, operationType, _tokenResponse } =
+        (await signInWithCustomToken(
+          auth,
+          'look-at-me-im-a-jwt'
+        )) as UserCredentialInternal;
+      expect(_tokenResponse).to.eql(idTokenResponse);
+      expect(user.uid).to.eq('local-id');
+      expect(user.displayName).to.eq('display-name');
+      expect(operationType).to.eq(OperationType.SIGN_IN);
+    });
+
+    it('should send with a valid request', async () => {
+      await signInWithCustomToken(auth, 'j.w.t');
+      expect(signInRoute.calls[0].request).to.eql({
+        token: 'j.w.t',
+        returnSecureToken: true
+      });
+    });
+
+    it('should update the current user', async () => {
+      const { user } = await signInWithCustomToken(auth, 'oh.no');
+      expect(auth.currentUser).to.eq(user);
     });
   });
 
-  it('should update the current user', async () => {
-    const { user } = await signInWithCustomToken(auth, 'oh.no');
-    expect(auth.currentUser).to.eq(user);
+  describe('#setCustomTokenProvider', () => {
+    it('sets a custom token provider', () => {
+      const provider = {
+        async getCustomToken(): Promise<string> {
+          return '';
+        }
+      };
+
+      setCustomTokenProvider(auth, provider);
+
+      expect(auth._refreshWithCustomTokenProvider).not.to.be.null;
+    });
+
+    it('_refreshWithCustomTokenProvider should send with a valid request and update the current user', async () => {
+      const provider = {
+        async getCustomToken(): Promise<string> {
+          return 'custom-token';
+        }
+      };
+      const user = testUser(auth, serverUser.localId!);
+      auth.currentUser = user;
+      sinon.spy(user.stsTokenManager, 'updateFromServerResponse');
+
+      setCustomTokenProvider(auth, provider);
+      const token = await auth._refreshWithCustomTokenProvider!();
+
+      expect(signInRoute.calls[0].request).to.eql({
+        token: 'custom-token',
+        returnSecureToken: true
+      });
+      expect(token).to.eq('my-id-token');
+      expect(
+        user.stsTokenManager.updateFromServerResponse
+      ).to.have.been.calledWith(idTokenResponse);
+    });
+
+    it('_refreshWithCustomTokenProvider should error when uid does not match localId', async () => {
+      const provider = {
+        async getCustomToken(): Promise<string> {
+          return 'custom-token';
+        }
+      };
+      const user = testUser(auth, 'not-matching-uid');
+      auth.currentUser = user;
+      sinon.spy(user.stsTokenManager, 'updateFromServerResponse');
+
+      setCustomTokenProvider(auth, provider);
+      await expect(auth._refreshWithCustomTokenProvider!()).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: Error (auth/internal-error).'
+      );
+    });
+  });
+
+  describe('#clearCustomTokenProvider', () => {
+    it('clears the custom token provider', () => {
+      const provider = {
+        async getCustomToken(): Promise<string> {
+          return '';
+        }
+      };
+      setCustomTokenProvider(auth, provider);
+
+      clearCustomTokenProvider(auth);
+
+      expect(auth._refreshWithCustomTokenProvider).to.be.null;
+    });
   });
 });

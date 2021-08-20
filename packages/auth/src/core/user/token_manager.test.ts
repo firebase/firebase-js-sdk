@@ -28,6 +28,7 @@ import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager, Buffer } from './token_manager';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { makeJWT } from '../../../test/helpers/jwt';
+import { setCustomTokenProvider } from '../strategies/custom_token';
 
 use(chaiAsPromised);
 
@@ -173,7 +174,7 @@ describe('core/user/token_manager', () => {
 
       await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
         FirebaseError,
-        "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
+        'auth/user-token-expired'
       );
     });
 
@@ -186,6 +187,129 @@ describe('core/user/token_manager', () => {
 
       const tokens = (await stsTokenManager.getToken(auth))!;
       expect(tokens).to.eql('token');
+    });
+
+    describe('in passthrough mode', () => {
+      const fakeCustomToken = 'fake-custom-token';
+      const provider = {
+        async getCustomToken(): Promise<string> {
+          return fakeCustomToken;
+        }
+      };
+
+      it('refreshes the token if forceRefresh is true and custom token provider is set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'old-access-token',
+          expirationTime: now + 100_000,
+          isPassthroughMode: true
+        });
+        setCustomTokenProvider(auth, provider);
+        sinon
+          .stub(auth, '_refreshWithCustomTokenProvider')
+          .returns(Promise.resolve('new-access-token'));
+
+        const tokens = (await stsTokenManager.getToken(auth, true))!;
+
+        expect(tokens).to.eq('new-access-token');
+      });
+
+      it('throws an error if forceRefresh is true and custom token provider is not set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'token',
+          expirationTime: now + 100_000,
+          isPassthroughMode: true
+        });
+
+        await expect(stsTokenManager.getToken(auth, true)).to.be.rejectedWith(
+          FirebaseError,
+          'auth/internal-error'
+        );
+      });
+
+      it('returns access token during buffer window if custom token provider is not set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'token',
+          expirationTime: now + Buffer.TOKEN_REFRESH,
+          isPassthroughMode: true
+        });
+
+        const tokens = (await stsTokenManager.getToken(auth))!;
+
+        expect(tokens).to.eq('token');
+      });
+
+      it('refreshes the token during buffer window if custom token provider is set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'old-access-token',
+          expirationTime: now + Buffer.TOKEN_REFRESH / 2,
+          isPassthroughMode: true
+        });
+        setCustomTokenProvider(auth, provider);
+        sinon
+          .stub(auth, '_refreshWithCustomTokenProvider')
+          .returns(Promise.resolve('new-access-token'));
+
+        const tokens = (await stsTokenManager.getToken(auth))!;
+
+        expect(tokens).to.eq('new-access-token');
+      });
+
+      it('throws an error if the token is expired beyond the buffer window', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'old-access-token',
+          expirationTime: now - 1,
+          isPassthroughMode: true
+        });
+
+        await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
+          FirebaseError,
+          'auth/user-token-expired'
+        );
+      });
+
+      it('refreshes the token when it is expired beyond the buffer window and the provider is set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'old-access-token',
+          expirationTime: now - 1,
+          isPassthroughMode: true
+        });
+        setCustomTokenProvider(auth, provider);
+        sinon
+          .stub(auth, '_refreshWithCustomTokenProvider')
+          .returns(Promise.resolve('new-access-token'));
+
+        const tokens = (await stsTokenManager.getToken(auth))!;
+
+        expect(tokens).to.eq('new-access-token');
+      });
+
+      it('returns access token when not expired, not refreshing', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'token',
+          expirationTime: now + 100_000,
+          isPassthroughMode: true
+        });
+
+        const tokens = (await stsTokenManager.getToken(auth))!;
+
+        expect(tokens).to.eq('token');
+      });
+
+      it('returns access token when not expired, not refreshing, even if provider is set', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'token',
+          expirationTime: now + 100_000,
+          isPassthroughMode: true
+        });
+        setCustomTokenProvider(auth, provider);
+        sinon
+          .stub(auth, '_refreshWithCustomTokenProvider')
+          .returns(Promise.resolve('new-access-token'));
+
+        const tokens = (await stsTokenManager.getToken(auth))!;
+
+        expect(tokens).to.eq('token');
+      });
     });
   });
 

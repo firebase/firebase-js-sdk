@@ -99,12 +99,35 @@ export class StsTokenManager {
     return null;
   }
 
-  // TODO(lisajian): Fill in once refresh listener is added
   private async getTokenAndTriggerCallback(
-    _auth: AuthInternal,
-    _forceRefresh = false
+    auth: AuthInternal,
+    forceRefresh = false
   ): Promise<string | null> {
-    return null;
+    if (forceRefresh) {
+      // TODO(lisajian): Add and use client error code - ERROR_TOKEN_REFRESH_UNAVAILABLE
+      _assert(
+        auth._refreshWithCustomTokenProvider,
+        auth,
+        AuthErrorCode.INTERNAL_ERROR
+      );
+      return auth._refreshWithCustomTokenProvider();
+    }
+
+    if (!this.isExpired) {
+      return this.accessToken;
+    }
+
+    // isExpired includes a buffer window, during which the access token will still be returned even
+    // if a customTokenProvider is not set yet.
+    if (!auth._refreshWithCustomTokenProvider) {
+      _assert(
+        this.expirationTime && Date.now() < this.expirationTime,
+        auth,
+        AuthErrorCode.TOKEN_EXPIRED
+      );
+      return this.accessToken;
+    }
+    return auth._refreshWithCustomTokenProvider();
   }
 
   clearRefreshToken(): void {
