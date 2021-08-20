@@ -67,11 +67,11 @@ describe('discoverEmulators()', () => {
     expect(emulators).to.deep.equal({});
   });
 
-  it('throws error if host is unreachable', async () => {
-    // connect to port:0 should always fail
+  it('throws error if emulator hub is unreachable', async () => {
+    // Connect to port:0. Should always fail (although error codes may differ among OSes).
     await expect(
       discoverEmulators({ host: '127.0.0.1', port: 0 })
-    ).to.be.rejectedWith(/EADDRNOTAVAIL/);
+    ).to.be.rejectedWith(/EADDRNOTAVAIL|ECONNREFUSED/);
   });
 
   it('throws if response status is not 2xx', async () => {
