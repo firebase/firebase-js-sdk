@@ -18,6 +18,7 @@
 import { AppConfig } from './app-config';
 import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { FirebaseApp } from '@firebase/app-exp';
+import { GetTokenOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { _FirebaseInstallationsInternal } from '@firebase/installations-exp';
 
@@ -28,4 +29,6 @@ export interface FirebaseInternalDependencies {
   analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 }
 
-export interface MessagingInternal {}
+export interface MessagingInternal {
+  getToken(options?: GetTokenOptions): Promise<string>;
+}
