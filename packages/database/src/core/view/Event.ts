@@ -17,7 +17,7 @@
 
 import { stringify } from '@firebase/util';
 
-import { DataSnapshot as ExpDataSnapshot } from '../../exp/Reference_impl';
+import { DataSnapshot as ExpDataSnapshot } from '../../api/Reference_impl';
 import { Path } from '../util/Path';
 
 import { EventRegistration } from './EventRegistration';

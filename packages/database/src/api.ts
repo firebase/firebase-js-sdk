@@ -21,17 +21,16 @@ export {
   getDatabase,
   goOffline,
   goOnline,
-  connectDatabaseEmulator,
-  repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp
-} from '../src/exp/Database';
+  connectDatabaseEmulator
+} from './api/Database';
 export {
   Query,
   DatabaseReference,
   ListenOptions,
   Unsubscribe,
   ThenableReference
-} from '../src/exp/Reference';
-export { OnDisconnect } from '../src/exp/OnDisconnect';
+} from './api/Reference';
+export { OnDisconnect } from './api/OnDisconnect';
 export {
   DataSnapshot,
   EventType,
@@ -65,13 +64,32 @@ export {
   startAfter,
   startAt,
   update,
-  child,
-  ReferenceImpl as _ReferenceImpl,
-  QueryImpl as _QueryImpl
-} from '../src/exp/Reference_impl';
-export { increment, serverTimestamp } from '../src/exp/ServerValue';
+  child
+} from './api/Reference_impl';
+export { increment, serverTimestamp } from './api/ServerValue';
 export {
   runTransaction,
   TransactionOptions,
   TransactionResult
-} from '../src/exp/Transaction';
+} from './api/Transaction';
+
+// internal exports
+export { setSDKVersion as _setSDKVersion } from './core/version';
+export {
+  ReferenceImpl as _ReferenceImpl,
+  QueryImpl as _QueryImpl
+} from './api/Reference_impl';
+export { repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp } from './api/Database';
+export {
+  validatePathString as _validatePathString,
+  validateWritablePath as _validateWritablePath
+} from './core/util/validation';
+export { UserCallback as _UserCallback } from './core/view/EventRegistration';
+export { QueryParams as _QueryParams } from './core/view/QueryParams';
+
+/* eslint-disable camelcase */
+export {
+  hijackHash as _TEST_ACCESS_hijackHash,
+  forceRestClient as _TEST_ACCESS_forceRestClient
+} from './api/test_access';
+/* eslint-enable camelcase */
