@@ -228,51 +228,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
 
   constructor(private authProvider: Provider<FirebaseAuthInternalName>) {}
 
-  getToken(): Promise<Token | null> {
-    debugAssert(
-      this.tokenListener != null,
-      'FirebaseCredentialsProvider not started.'
-    );
-
-    // Take note of the current value of the tokenCounter so that this method
-    // can fail (with an ABORTED error) if there is a token change while the
-    // request is outstanding.
-    const initialTokenCounter = this.tokenCounter;
-    const forceRefresh = this.forceRefresh;
-    this.forceRefresh = false;
-
-    if (!this.auth) {
-      return Promise.resolve(null);
-    }
-
-    return this.auth.getToken(forceRefresh).then(tokenData => {
-      // Cancel the request since the token changed while the request was
-      // outstanding so the response is potentially for a previous user (which
-      // user, we can't be sure).
-      if (this.tokenCounter !== initialTokenCounter) {
-        logDebug(
-          'FirebaseCredentialsProvider',
-          'getToken aborted due to token change.'
-        );
-        return this.getToken();
-      } else {
-        if (tokenData) {
-          hardAssert(
-            typeof tokenData.accessToken === 'string',
-            'Invalid tokenData returned from getToken():' + tokenData
-          );
-          return new OAuthToken(tokenData.accessToken, this.currentUser);
-        } else {
-          return null;
-        }
-      }
-    });
-  }
-
-  invalidateToken(): void {
-    this.forceRefresh = true;
-  }
-
   start(
     asyncQueue: AsyncQueue,
     changeListener: CredentialChangeListener
@@ -339,6 +294,51 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       await nextToken.promise;
       await guardedChangeListener(this.currentUser);
     });
+  }
+
+  getToken(): Promise<Token | null> {
+    debugAssert(
+      this.tokenListener != null,
+      'FirebaseCredentialsProvider not started.'
+    );
+
+    // Take note of the current value of the tokenCounter so that this method
+    // can fail (with an ABORTED error) if there is a token change while the
+    // request is outstanding.
+    const initialTokenCounter = this.tokenCounter;
+    const forceRefresh = this.forceRefresh;
+    this.forceRefresh = false;
+
+    if (!this.auth) {
+      return Promise.resolve(null);
+    }
+
+    return this.auth.getToken(forceRefresh).then(tokenData => {
+      // Cancel the request since the token changed while the request was
+      // outstanding so the response is potentially for a previous user (which
+      // user, we can't be sure).
+      if (this.tokenCounter !== initialTokenCounter) {
+        logDebug(
+          'FirebaseCredentialsProvider',
+          'getToken aborted due to token change.'
+        );
+        return this.getToken();
+      } else {
+        if (tokenData) {
+          hardAssert(
+            typeof tokenData.accessToken === 'string',
+            'Invalid tokenData returned from getToken():' + tokenData
+          );
+          return new OAuthToken(tokenData.accessToken, this.currentUser);
+        } else {
+          return null;
+        }
+      }
+    });
+  }
+
+  invalidateToken(): void {
+    this.forceRefresh = true;
   }
 
   shutdown(): void {
