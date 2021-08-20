@@ -36,7 +36,7 @@ export function registerFunctions(fetchImpl: typeof fetch): void {
     // Dependencies
     const app = container.getProvider('app').getImmediate();
     const authProvider = container.getProvider('auth-internal');
-    const messagingProvider = container.getProvider('messaging');
+    const messagingProvider = container.getProvider('messaging-compat');
     const appCheckProvider = container.getProvider(APP_CHECK_INTERNAL_NAME);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
