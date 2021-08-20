@@ -21,8 +21,8 @@
  * limitations under the License.
  */
 
-import { registerFirestore } from './register';
 import { Firestore } from './api/database';
+import { registerFirestore } from './register';
 
 registerFirestore();
 

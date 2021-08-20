@@ -18,8 +18,8 @@
 import firebase from '@firebase/app-compat';
 import { FirebaseNamespace } from '@firebase/app-types';
 
-import { registerFirestore } from '../src/register';
 import { registerFirestore as registerFirestoreCompat } from '../compat';
+import { registerFirestore } from '../src/register';
 
 registerFirestore();
 registerFirestoreCompat(firebase as unknown as FirebaseNamespace);

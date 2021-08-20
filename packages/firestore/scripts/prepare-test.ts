@@ -20,7 +20,7 @@ import * as path from 'path';
 
 prepareTest();
 
-function prepareTest() {
+function prepareTest(): void {
     // copy compat source code to ./compat
     const compatSrcDir = path.join(__dirname, '../../firestore-compat/src');
     const compatSrcDest = path.join(__dirname, '../compat');
@@ -35,7 +35,7 @@ function prepareTest() {
  * @param dir - the dir to traverse
  * @param level - the depth of the traversal at this point, starting from 0.
  */
-function traverseDirAndUpdateImportPath(dir: string, level: number) {
+function traverseDirAndUpdateImportPath(dir: string, level: number): void {
     const files = fs.readdirSync(dir);
     for (const file of files) {
         const curSource = path.join(dir, file);
@@ -54,17 +54,17 @@ function traverseDirAndUpdateImportPath(dir: string, level: number) {
  * @param filePath - the path to the file to update
  * @param level - the number of ".." to prepend to the import path
  */
-function updateImportPath(filePath: string, level: number) {
+function updateImportPath(filePath: string, level: number): void {
     const FIRESTORE_IMPORT = '\'@firebase/firestore\'';
     const BASE_IMPORT_PATH = '../src/api';
     const newImportPath = `'${[...Array(level).fill('..'), BASE_IMPORT_PATH].join('/')}'`;
     const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-    const modifierContent = content.replace(FIRESTORE_IMPORT, newImportPath)
+    const modifierContent = content.replace(FIRESTORE_IMPORT, newImportPath);
 
     fs.writeFileSync(filePath, modifierContent);
 }
 
-function copyDir(srcDir: string, destDir: string) {
+function copyDir(srcDir: string, destDir: string): void {
 
     if (!fs.existsSync(destDir)) {
         fs.mkdirSync(destDir);

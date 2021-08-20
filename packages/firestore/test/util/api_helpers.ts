@@ -30,13 +30,6 @@ import {
   QuerySnapshot,
   UserDataWriter
 } from '../../compat/api/database';
-import { DatabaseId } from '../../src/core/database_info';
-import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
-import {
-  ChangeType,
-  DocumentViewChange,
-  ViewSnapshot
-} from '../../src/core/view_snapshot';
 import {
   ensureFirestoreConfigured,
   Firestore as ExpFirestore
@@ -51,6 +44,13 @@ import {
   DocumentSnapshot as ExpDocumentSnapshot,
   SnapshotMetadata
 } from '../../src/api/snapshot';
+import { DatabaseId } from '../../src/core/database_info';
+import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
+import {
+  ChangeType,
+  DocumentViewChange,
+  ViewSnapshot
+} from '../../src/core/view_snapshot';
 import { DocumentKeySet } from '../../src/model/collections';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';

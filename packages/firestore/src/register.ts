@@ -24,6 +24,7 @@ import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
 import { setSDKVersion } from '../src/core/version';
+
 import { Firestore } from './api/database';
 import { PrivateSettings } from './lite-api/settings';
 

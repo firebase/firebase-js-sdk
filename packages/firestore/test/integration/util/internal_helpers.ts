@@ -17,12 +17,12 @@
 
 import * as firestore from '@firebase/firestore-types';
 
+import { Firestore } from '../../../compat/api/database';
 import {
   CredentialChangeListener,
   CredentialsProvider,
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
-import { Firestore } from '../../../compat/api/database';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { newConnection } from '../../../src/platform/connection';
