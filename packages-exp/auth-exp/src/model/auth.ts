@@ -48,6 +48,8 @@ export interface ConfigInternal extends Config {
   clientPlatform: ClientPlatform;
 }
 
+export type RefreshWithCustomToken = () => Promise<string | null>;
+
 /**
  * UserInternal and AuthInternal reference each other, so both of them are included in the public typings.
  * In order to exclude them, we mark them as internal explicitly.
@@ -60,6 +62,7 @@ export interface AuthInternal extends Auth {
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
+  _refreshWithCustomTokenProvider: RefreshWithCustomToken | null;
   _updateCurrentUser(user: UserInternal | null): Promise<void>;
 
   _onStorageEvent(): void;
