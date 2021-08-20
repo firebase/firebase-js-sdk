@@ -18,39 +18,6 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import {
-  CollectionReference as PublicCollectionReference,
-  DocumentChange as PublicDocumentChange,
-  DocumentChangeType as PublicDocumentChangeType,
-  DocumentData,
-  DocumentData as PublicDocumentData,
-  DocumentReference as PublicDocumentReference,
-  DocumentSnapshot as PublicDocumentSnapshot,
-  FieldPath as PublicFieldPath,
-  FirebaseFirestore as PublicFirestore,
-  FirestoreDataConverter as PublicFirestoreDataConverter,
-  GetOptions as PublicGetOptions,
-  LogLevel as PublicLogLevel,
-  OrderByDirection as PublicOrderByDirection,
-  PersistenceSettings as PublicPersistenceSettings,
-  Query as PublicQuery,
-  QueryDocumentSnapshot as PublicQueryDocumentSnapshot,
-  QuerySnapshot as PublicQuerySnapshot,
-  SetOptions as PublicSetOptions,
-  Settings as PublicSettings,
-  SnapshotListenOptions as PublicSnapshotListenOptions,
-  SnapshotOptions as PublicSnapshotOptions,
-  Transaction as PublicTransaction,
-  UpdateData as PublicUpdateData,
-  WhereFilterOp as PublicWhereFilterOp,
-  WriteBatch as PublicWriteBatch
-} from '@firebase/firestore-types';
-import {
-  Compat,
-  EmulatorMockTokenOptions,
-  getModularInstance
-} from '@firebase/util';
-
-import {
   LoadBundleTask,
   Bytes,
   clearIndexedDbPersistence,
@@ -121,6 +88,39 @@ import {
   PartialWithFieldValue,
   WithFieldValue
 } from '@firebase/firestore';
+import {
+  CollectionReference as PublicCollectionReference,
+  DocumentChange as PublicDocumentChange,
+  DocumentChangeType as PublicDocumentChangeType,
+  DocumentData,
+  DocumentData as PublicDocumentData,
+  DocumentReference as PublicDocumentReference,
+  DocumentSnapshot as PublicDocumentSnapshot,
+  FieldPath as PublicFieldPath,
+  FirebaseFirestore as PublicFirestore,
+  FirestoreDataConverter as PublicFirestoreDataConverter,
+  GetOptions as PublicGetOptions,
+  LogLevel as PublicLogLevel,
+  OrderByDirection as PublicOrderByDirection,
+  PersistenceSettings as PublicPersistenceSettings,
+  Query as PublicQuery,
+  QueryDocumentSnapshot as PublicQueryDocumentSnapshot,
+  QuerySnapshot as PublicQuerySnapshot,
+  SetOptions as PublicSetOptions,
+  Settings as PublicSettings,
+  SnapshotListenOptions as PublicSnapshotListenOptions,
+  SnapshotOptions as PublicSnapshotOptions,
+  Transaction as PublicTransaction,
+  UpdateData as PublicUpdateData,
+  WhereFilterOp as PublicWhereFilterOp,
+  WriteBatch as PublicWriteBatch
+} from '@firebase/firestore-types';
+import {
+  Compat,
+  EmulatorMockTokenOptions,
+  getModularInstance
+} from '@firebase/util';
+
 import { validateSetOptions } from '../util/input_validation';
 
 import { Blob } from './blob';
