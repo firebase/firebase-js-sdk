@@ -65,12 +65,13 @@ export async function signInWithCustomToken(
 }
 
 /**
- * Sets a custom token provider.
+ * Sets the custom token provider to be used by the given Auth instance.
  *
  * @remarks
  * The custom token provider is invoked when a new Firebase ID token is requested and no
- * refresh token is present (i.e., in passthrough mode). This callback should be implemented to
- * obtain a custom token to exchange for a new Firebase ID token. For instance,
+ * refresh token is present (such as in passthrough mode). The provider object must implement a
+ * `getCustomToken()` callback, which obtains a custom token to exchange for a new Firebase ID
+ * token. For instance:
  *
  * ```js
  * setCustomTokenProvider(auth, {
@@ -81,8 +82,8 @@ export async function signInWithCustomToken(
  * ```
  *
  * @param auth - The Auth instance.
- * @param provider - The callback that is invoked when a new Firebase ID token is requested and no
- * refresh token is present.
+ * @param provider - A `CustomTokenProvider` object, which implements a callback that is invoked
+ * when a new Firebase ID token is requested and no refresh token is present.
  */
 export function setCustomTokenProvider(
   auth: Auth,

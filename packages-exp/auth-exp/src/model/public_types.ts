@@ -1192,8 +1192,9 @@ export interface Dependencies {
 }
 
 /**
- * Custom token provider, which is invoked when a new Firebase ID token is requested and no refresh
- * token is present (i.e., in passthrough mode).
+ * Interface representing a custom token provider, which implements a callback that is invoked when
+ * a new Firebase ID token is requested and no refresh token is present (such as in passthrough
+ * mode).
  *
  * @public
  */
