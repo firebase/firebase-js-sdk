@@ -25,6 +25,7 @@
     "test:lite:browser": "karma start --single-run --lite",
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
     "pretest": "yarn test:prepare",
+    "pretest:ci": "yarn pretest",
     "test": "run-s lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p test:browser test:lite:browser test:travis test:minified",
