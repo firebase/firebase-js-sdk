@@ -23,7 +23,6 @@ import sinonChai from 'sinon-chai';
 import { UserInfo } from '../../model/public_types';
 import { ProviderId } from '../../model/enums';
 
-
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';

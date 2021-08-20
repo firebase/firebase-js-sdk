@@ -1199,3 +1199,17 @@ export interface Dependencies {
    */
   errorMap?: AuthErrorMap;
 }
+
+/**
+ * Interface representing a custom token provider, which implements a callback that is invoked when
+ * a new Firebase ID token is requested and no refresh token is present (such as in passthrough
+ * mode).
+ *
+ * @public
+ */
+export interface CustomTokenProvider {
+  /**
+   * The callback that is invoked to obtain a custom token in passthrough mode.
+   */
+  getCustomToken(): Promise<string>;
+}
