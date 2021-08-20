@@ -31,14 +31,6 @@ import { Functions as FunctionsServiceExp } from '@firebase/functions';
 
 const DEFAULT_REGION = 'us-central1';
 
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'app-compat': FirebaseApp;
-    'functions-compat': FunctionsService;
-    'functions': FunctionsServiceExp;
-  }
-}
-
 const factory: InstanceFactory<'functions-compat'> = (
   container: ComponentContainer,
   { instanceIdentifier: regionOrCustomDomain }: InstanceFactoryOptions
