@@ -23,6 +23,7 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
+import { FirebaseCredentialsProvider } from '../src/api/credentials';
 import { setSDKVersion } from '../src/core/version';
 import { Firestore } from '../src/exp/database';
 import { PrivateSettings } from '../src/lite/settings';
@@ -42,7 +43,9 @@ export function registerFirestore(variant?: string): void {
         const app = container.getProvider('app-exp').getImmediate()!;
         const firestoreInstance = new Firestore(
           app,
-          container.getProvider('auth-internal')
+          new FirebaseCredentialsProvider(
+            container.getProvider('auth-internal')
+          )
         );
         settings = { useFetchStreams: true, ...settings };
         firestoreInstance._setSettings(settings);

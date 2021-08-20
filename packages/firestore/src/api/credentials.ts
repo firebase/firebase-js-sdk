@@ -110,13 +110,6 @@ export interface CredentialsProvider {
 
 /** A CredentialsProvider that always yields an empty token. */
 export class EmptyCredentialsProvider implements CredentialsProvider {
-  /**
-   * Stores the listener registered with setChangeListener()
-   * This isn't actually necessary since the UID never changes, but we use this
-   * to verify the listen contract is adhered to in tests.
-   */
-  private changeListener: CredentialChangeListener | null = null;
-
   getToken(): Promise<Token | null> {
     return Promise.resolve<Token | null>(null);
   }
@@ -127,18 +120,11 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
     asyncQueue: AsyncQueue,
     changeListener: CredentialChangeListener
   ): void {
-    debugAssert(
-      !this.changeListener,
-      'Can only call setChangeListener() once.'
-    );
-    this.changeListener = changeListener;
     // Fire with initial user.
     asyncQueue.enqueueRetryable(() => changeListener(User.UNAUTHENTICATED));
   }
 
-  shutdown(): void {
-    this.changeListener = null;
-  }
+  shutdown(): void {}
 }
 
 /**
@@ -177,6 +163,47 @@ export class EmulatorCredentialsProvider implements CredentialsProvider {
   shutdown(): void {
     this.changeListener = null;
   }
+}
+
+/** Credential provider for the Lite SDK. */
+export class LiteCredentialsProvider implements CredentialsProvider {
+  private auth: FirebaseAuthInternal | null = null;
+
+  constructor(private authProvider: Provider<FirebaseAuthInternalName>) {}
+
+  getToken(): Promise<Token | null> {
+    if (!this.auth) {
+      this.auth = this.authProvider.getImmediate({ optional: true });
+    }
+
+    if (!this.auth) {
+      return Promise.resolve(null);
+    }
+
+    return this.auth.getToken().then(tokenData => {
+      if (tokenData) {
+        hardAssert(
+          typeof tokenData.accessToken === 'string',
+          'Invalid tokenData returned from getToken():' + tokenData
+        );
+        return new OAuthToken(
+          tokenData.accessToken,
+          new User(this.auth!.getUid())
+        );
+      } else {
+        return null;
+      }
+    });
+  }
+
+  invalidateToken(): void {}
+
+  start(
+    asyncQueue: AsyncQueue,
+    changeListener: CredentialChangeListener
+  ): void {}
+
+  shutdown(): void {}
 }
 
 export class FirebaseCredentialsProvider implements CredentialsProvider {

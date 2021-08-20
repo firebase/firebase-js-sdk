@@ -22,10 +22,9 @@ import {
   FirebaseApp,
   getApp
 } from '@firebase/app-exp';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { Provider } from '@firebase/component';
 import { deepEqual } from '@firebase/util';
 
+import { CredentialsProvider } from '../api/credentials';
 import {
   IndexedDbOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
@@ -94,9 +93,9 @@ export class Firestore extends LiteFirestore {
   /** @hideconstructor */
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
+    credentials: CredentialsProvider
   ) {
-    super(databaseIdOrApp, authProvider);
+    super(databaseIdOrApp, credentials);
     this._persistenceKey =
       'name' in databaseIdOrApp ? databaseIdOrApp.name : '[DEFAULT]';
   }

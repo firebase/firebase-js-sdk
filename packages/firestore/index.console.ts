@@ -18,6 +18,7 @@
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
+import { EmptyCredentialsProvider } from './src/api/credentials';
 import {
   Firestore as FirestoreCompat,
   MemoryPersistenceProvider
@@ -53,7 +54,7 @@ export class Firestore extends FirestoreCompat {
       databaseIdFromFirestoreDatabase(firestoreDatabase),
       new FirestoreExp(
         databaseIdFromFirestoreDatabase(firestoreDatabase),
-        authProvider
+        new EmptyCredentialsProvider()
       ),
       new MemoryPersistenceProvider()
     );
