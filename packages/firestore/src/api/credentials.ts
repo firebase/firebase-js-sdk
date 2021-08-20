@@ -169,13 +169,13 @@ export class EmulatorCredentialsProvider implements CredentialsProvider {
 export class LiteCredentialsProvider implements CredentialsProvider {
   private auth: FirebaseAuthInternal | null = null;
 
-  constructor(private authProvider: Provider<FirebaseAuthInternalName>) {}
+  constructor(authProvider: Provider<FirebaseAuthInternalName>) {
+    authProvider.onInit(auth => {
+      this.auth = auth;
+    });
+  }
 
   getToken(): Promise<Token | null> {
-    if (!this.auth) {
-      this.auth = this.authProvider.getImmediate({ optional: true });
-    }
-
     if (!this.auth) {
       return Promise.resolve(null);
     }
