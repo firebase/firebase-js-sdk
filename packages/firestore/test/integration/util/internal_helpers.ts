@@ -73,11 +73,8 @@ export class MockCredentialsProvider extends EmptyCredentialsProvider {
     this.asyncQueue!.enqueueRetryable(async () => this.listener!(newUser));
   }
 
-  setChangeListener(
-    asyncQueue: AsyncQueue,
-    listener: CredentialChangeListener
-  ): void {
-    super.setChangeListener(asyncQueue, listener);
+  start(asyncQueue: AsyncQueue, listener: CredentialChangeListener): void {
+    super.start(asyncQueue, listener);
     this.asyncQueue = asyncQueue;
     this.listener = listener;
   }

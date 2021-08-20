@@ -116,7 +116,7 @@ export class FirestoreClient {
     public asyncQueue: AsyncQueue,
     private databaseInfo: DatabaseInfo
   ) {
-    this.credentials.setChangeListener(asyncQueue, async user => {
+    this.credentials.start(asyncQueue, async user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
       await this.credentialListener(user);
       this.user = user;
@@ -163,10 +163,10 @@ export class FirestoreClient {
           await this.offlineComponents.terminate();
         }
 
-        // `removeChangeListener` must be called after shutting down the
-        // RemoteStore as it will prevent the RemoteStore from retrieving
-        // auth tokens.
-        this.credentials.removeChangeListener();
+        // The credentials provider must be terminated after shutting down the
+        // RemoteStore as it will prevent the RemoteStore from retrieving auth
+        // tokens.
+        this.credentials.shutdown();
         deferred.resolve();
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(
@@ -494,9 +494,9 @@ async function readDocumentFromCache(
         new FirestoreError(
           Code.UNAVAILABLE,
           'Failed to get document from cache. (However, this document may ' +
-            "exist on the server. Run again without setting 'source' in " +
-            'the GetOptions to attempt to retrieve the document from the ' +
-            'server.)'
+          "exist on the server. Run again without setting 'source' in " +
+          'the GetOptions to attempt to retrieve the document from the ' +
+          'server.)'
         )
       );
     }
@@ -553,9 +553,9 @@ function readDocumentViaSnapshotListener(
           new FirestoreError(
             Code.UNAVAILABLE,
             'Failed to get document from server. (However, this ' +
-              'document does exist in the local cache. Run again ' +
-              'without setting source to "server" to ' +
-              'retrieve the cached document.)'
+            'document does exist in the local cache. Run again ' +
+            'without setting source to "server" to ' +
+            'retrieve the cached document.)'
           )
         );
       } else {
@@ -589,13 +589,13 @@ async function executeQueryFromCache(
     const queryResult = await localStoreExecuteQuery(
       localStore,
       query,
-      /* usePreviousResults= */ true
+       /* usePreviousResults= */ true
     );
     const view = new View(query, queryResult.remoteKeys);
     const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const viewChange = view.applyChanges(
       viewDocChanges,
-      /* updateLimboDocuments= */ false
+       /* updateLimboDocuments= */ false
     );
     result.resolve(viewChange.snapshot!);
   } catch (e) {
@@ -631,9 +631,9 @@ function executeQueryViaSnapshotListener(
           new FirestoreError(
             Code.UNAVAILABLE,
             'Failed to get documents from server. (However, these ' +
-              'documents may exist in the local cache. Run again ' +
-              'without setting source to "server" to ' +
-              'retrieve the cached documents.)'
+            'documents may exist in the local cache. Run again ' +
+            'without setting source to "server" to ' +
+            'retrieve the cached documents.)'
           )
         );
       } else {
