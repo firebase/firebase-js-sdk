@@ -1,12 +1,10 @@
 name: Release
 
-on:
-  push:
-    branches:
-      - release
+on: push
 
 jobs:
   release:
+    if: github.ref == 'release' || contains(github.ref, '-release')
     name: Release
     runs-on: ubuntu-latest
     steps:
