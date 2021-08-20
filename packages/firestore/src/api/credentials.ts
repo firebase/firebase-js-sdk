@@ -253,8 +253,8 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     let lastTokenId = -1;
 
     // A change listener that prevents double-firing for the same token change.
-    const guardedChangeListener = (user: User) => {
-      if (this.tokenCounter != lastTokenId) {
+    const guardedChangeListener : (user: User) => Promise<void> = user => {
+      if (this.tokenCounter !== lastTokenId) {
         lastTokenId = this.tokenCounter;
         return changeListener(user);
       } else {
