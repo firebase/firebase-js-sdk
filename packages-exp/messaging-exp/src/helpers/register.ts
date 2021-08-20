@@ -60,10 +60,9 @@ const WindowMessagingInternalFactory: InstanceFactory<'messaging-internal'> = (
 ) => {
   maybeThrowWindowError();
 
-  const messaging = _getProvider(
-    container.getProvider('app-exp').getImmediate(),
-    'messaging-exp'
-  ).getImmediate() as MessagingService;
+  const messaging = container
+    .getProvider('messaging-exp')
+    .getImmediate() as MessagingService;
 
   const messagingInternal: MessagingInternal = {
     getToken: (options?: GetTokenOptions) => getToken(messaging, options)
