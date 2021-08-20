@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import { pathParent } from '../../../database/src/core/util/Path';
 import { Reference } from '../../src/api/Reference';
-import { pathParent } from '../../src/core/util/Path';
 
 import { TEST_PROJECT } from './util';
 

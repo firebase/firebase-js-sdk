@@ -20,9 +20,10 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies }),
+  '@firebase/app'
+];
 
 function onWarn(warning, defaultWarn) {
   if (warning.code === 'CIRCULAR_DEPENDENCY') {
@@ -36,7 +37,8 @@ function onWarn(warning, defaultWarn) {
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    abortOnError: false
   }),
   json()
 ];
@@ -46,27 +48,33 @@ const es5Builds = [
    * Node.js Build
    */
   {
-    input: 'index.node.ts',
+    input: 'src/index.node.ts',
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   },
   /**
    * Browser Builds
    */
   {
-    input: 'index.ts',
-    output: [{ file: pkg.module, format: 'es', sourcemap: true }],
+    input: 'src/index.ts',
+    output: [
+      {
+        file: pkg.esm5,
+        format: 'es',
+        sourcemap: true
+      }
+    ],
     plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   }
 ];
 
@@ -80,7 +88,8 @@ const es2017BuildPlugins = [
       compilerOptions: {
         target: 'es2017'
       }
-    }
+    },
+    abortOnError: false
   }),
   json({ preferConst: true })
 ];
@@ -90,14 +99,20 @@ const es2017Builds = [
    * Browser Build
    */
   {
-    input: 'index.ts',
-    output: [{ file: pkg.esm2017, format: 'es', sourcemap: true }],
+    input: 'src/index.ts',
+    output: [
+      {
+        file: pkg.browser,
+        format: 'es',
+        sourcemap: true
+      }
+    ],
     plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn,
     treeshake: {
       moduleSideEffects: false
-    }
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   }
 ];
 

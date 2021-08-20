@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
+
+import { DataSnapshot as ExpDataSnapshot } from '@firebase/database';
 import { expect } from 'chai';
 
+import { PRIORITY_INDEX } from '../../database/src/core/snap/indexes/PriorityIndex';
+import { nodeFromJSON } from '../../database/src/core/snap/nodeFromJSON';
 import { DataSnapshot, Reference } from '../src/api/Reference';
-import { PRIORITY_INDEX } from '../src/core/snap/indexes/PriorityIndex';
-import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
-import { DataSnapshot as ExpDataSnapshot } from '../src/exp/Reference_impl';
 
 import { getRandomNode } from './helpers/util';
 

@@ -15,17 +15,18 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import firebase from '@firebase/app-compat';
+import { _TEST_ACCESS_hijackHash as hijackHash } from '@firebase/database';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
-
-import { Reference } from '../src/api/Reference';
-import { hijackHash } from '../src/api/test_access';
 
 import {
   EventAccumulator,
   EventAccumulatorFactory
-} from './helpers/EventAccumulator';
+} from '../../database/test/helpers/EventAccumulator';
+import { Reference } from '../src/api/Reference';
+
+
 import { eventTestHelper } from './helpers/events';
 import {
   canCreateExtraConnections,
@@ -34,7 +35,7 @@ import {
   getVal
 } from './helpers/util';
 
-import '../index';
+import '../src/index';
 
 describe('Transaction Tests', () => {
   // Tests that use hijackHash() should set restoreHash to the restore function
