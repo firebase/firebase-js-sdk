@@ -81,8 +81,8 @@ export class Observer<T> implements StorageObserver<T> {
       isFunction(nextOrObserver) || error != null || complete != null;
     if (asFunctions) {
       this.next = nextOrObserver as NextFn<T>;
-      this.error = error;
-      this.complete = complete;
+      this.error = error ?? undefined;
+      this.complete = complete ?? undefined;
     } else {
       const observer = nextOrObserver as {
         next?: NextFn<T>;

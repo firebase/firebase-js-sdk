@@ -160,7 +160,7 @@ export type FirebaseEmulatorOptions = {
 
 function trimmedBase64Encode(val: string): string {
   // Use base64url encoding and remove padding in the end (dot characters).
-  return base64Encode(val).replace(/\./g, "");
+  return base64Encode(val).replace(/\./g, '');
 }
 
 function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
@@ -498,7 +498,7 @@ function initializeApp(
       ComponentType.PRIVATE
     );
 
-    ((app as unknown) as _FirebaseApp)._addOrOverwriteComponent(
+    (app as unknown as _FirebaseApp)._addOrOverwriteComponent(
       mockAuthComponent
     );
   }
@@ -703,7 +703,7 @@ export function assertFails(pr: Promise<any>): any {
         errCode === 'permission-denied' ||
         errCode === 'permission_denied' ||
         errMessage.indexOf('permission_denied') >= 0 ||
-        errMessage.indexOf('permission denied') >= 0 ||   
+        errMessage.indexOf('permission denied') >= 0 ||
         // Storage permission errors contain message: (storage/unauthorized)
         errMessage.indexOf('unauthorized') >= 0;
 

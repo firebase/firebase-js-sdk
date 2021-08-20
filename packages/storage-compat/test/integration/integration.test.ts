@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import '@firebase/auth';
+import firebase from '@firebase/app-compat';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import '@firebase/auth-compat';
 
 // See https://github.com/typescript-eslint/typescript-eslint/issues/363
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as storage from '@firebase/storage-types';
 
 import { expect } from 'chai';
-import '../../index';
+import '../../src/index';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../config/project.json');

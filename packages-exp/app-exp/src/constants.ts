@@ -36,7 +36,7 @@ import { name as performanceCompatName } from '../../../packages-exp/performance
 import { name as remoteConfigName } from '../../../packages-exp/remote-config-exp/package.json';
 import { name as remoteConfigCompatName } from '../../../packages-exp/remote-config-compat/package.json';
 import { name as storageName } from '../../../packages/storage/package.json';
-import { name as storageCompatName } from '../../../packages/storage/compat/package.json';
+import { name as storageCompatName } from '../../../packages/storage-compat/package.json';
 import { name as firestoreName } from '../../../packages/firestore/package.json';
 import { name as firestoreCompatName } from '../../../packages/firestore/compat/package.json';
 import { name as packageName } from '../../../packages-exp/firebase-exp/package.json';
