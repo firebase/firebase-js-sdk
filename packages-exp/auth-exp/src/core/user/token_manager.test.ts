@@ -263,7 +263,7 @@ describe('core/user/token_manager', () => {
 
         await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
           FirebaseError,
-          'auth/user-token-expired'
+          'auth/token-refresh-unavailable'
         );
       });
 

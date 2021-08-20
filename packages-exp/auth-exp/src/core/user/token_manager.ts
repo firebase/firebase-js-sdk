@@ -122,7 +122,7 @@ export class StsTokenManager {
       _assert(
         this.expirationTime && Date.now() < this.expirationTime,
         auth,
-        AuthErrorCode.TOKEN_EXPIRED
+        AuthErrorCode.TOKEN_REFRESH_UNAVAILABLE
       );
       return this.accessToken;
     }
