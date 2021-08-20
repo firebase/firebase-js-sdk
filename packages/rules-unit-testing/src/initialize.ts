@@ -38,8 +38,6 @@ import { RulesTestEnvironment, TestEnvironmentConfig } from './public_types';
  * });
  * ```
  */
-export async function initializeTestEnvironment(
-  config: TestEnvironmentConfig
-): Promise<RulesTestEnvironment> {
+export async function initializeTestEnvironment(): Promise<RulesTestEnvironment> {
   throw new Error('unimplemented');
 }

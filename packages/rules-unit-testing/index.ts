@@ -22,5 +22,5 @@
  */
 
 export * from './src/public_types';
-export * from './src/test_environment';
+export * from './src/initialize';
 export * from './src/util';
