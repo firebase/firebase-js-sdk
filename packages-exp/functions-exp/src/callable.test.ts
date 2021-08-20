@@ -108,9 +108,9 @@ describe('Firebase Functions > Call', () => {
 
   it('token', async () => {
     // mock auth-internal service
-    const authMock: FirebaseAuthInternal = ({
+    const authMock: FirebaseAuthInternal = {
       getToken: async () => ({ accessToken: 'token' })
-    } as unknown) as FirebaseAuthInternal;
+    } as unknown as FirebaseAuthInternal;
     const authProvider = new Provider<FirebaseAuthInternalName>(
       'auth-internal',
       new ComponentContainer('test')
@@ -139,15 +139,19 @@ describe('Firebase Functions > Call', () => {
       return;
     }
     // mock firebase messaging
-    const messagingMock: MessagingInternal = ({
+    const messagingMock: MessagingInternal = {
       getToken: async () => 'iid'
-    } as unknown) as MessagingInternal;
+    } as unknown as MessagingInternal;
     const messagingProvider = new Provider<MessagingInternalComponentName>(
       'messaging-internal',
       new ComponentContainer('test')
     );
     messagingProvider.setComponent(
-      new Component('messaging-internal', () => messagingMock, ComponentType.PRIVATE)
+      new Component(
+        'messaging-internal',
+        () => messagingMock,
+        ComponentType.PRIVATE
+      )
     );
 
     const functions = createTestService(

@@ -28,8 +28,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { MessagingInternalComponentName } from '@firebase/messaging-interop-types';
 
-const AUTH_INTERNAL_NAME: FirebaseAuthInternalName =
-  'auth-internal';
+const AUTH_INTERNAL_NAME: FirebaseAuthInternalName = 'auth-internal';
 const APP_CHECK_INTERNAL_NAME: AppCheckInternalComponentName =
   'app-check-internal';
 const MESSAGING_INTERNAL_NAME: MessagingInternalComponentName =
