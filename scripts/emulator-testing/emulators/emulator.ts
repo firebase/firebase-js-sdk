@@ -120,19 +120,17 @@ export abstract class Emulator {
           reject(`Emulator not ready after ${timeout}s. Exiting ...`);
         } else {
           console.log(`Ping emulator at [http://localhost:${this.port}] ...`);
-          request(`http://localhost:${this.port}`, (error, response) => {
-            if (error && error.code === 'ECONNREFUSED') {
-              setTimeout(wait, 1000, resolve, reject);
-            } else if (response) {
+          fetch(`http://localhost:${this.port}`).then(
+            () => {
               // Database and Firestore emulators will return 400 and 200 respectively.
               // As long as we get a response back, it means the emulator is ready.
               console.log(`Emulator has started up after ${elapsed}s!`);
               resolve();
-            } else {
-              // This should not happen.
-              reject({ error, response });
+            },
+            error => {
+              setTimeout(wait, 1000, resolve, reject);
             }
-          });
+          );
         }
       };
       setTimeout(wait, 1000, resolve, reject);
