@@ -70,7 +70,34 @@ export async function withFunctionTriggersDisabled<TResult>(
  * ```
  */
 export function assertFails(pr: Promise<any>): Promise<any> {
-  throw new Error('unimplemented');
+  return pr.then(
+    () => {
+      return Promise.reject(
+        new Error('Expected request to fail, but it succeeded.')
+      );
+    },
+    (err: any) => {
+      const errCode = (err && err.code && err.code.toLowerCase()) || '';
+      const errMessage =
+        (err && err.message && err.message.toLowerCase()) || '';
+      const isPermissionDenied =
+        errCode === 'permission-denied' ||
+        errCode === 'permission_denied' ||
+        errMessage.indexOf('permission_denied') >= 0 ||
+        errMessage.indexOf('permission denied') >= 0 ||
+        // Storage permission errors contain message: (storage/unauthorized)
+        errMessage.indexOf('unauthorized') >= 0;
+
+      if (!isPermissionDenied) {
+        return Promise.reject(
+          new Error(
+            `Expected PERMISSION_DENIED but got unexpected error: ${err}`
+          )
+        );
+      }
+      return err;
+    }
+  );
 }
 
 /**

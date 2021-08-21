@@ -21,6 +21,7 @@ import {
   discoverEmulators,
   getEmulatorHostAndPort
 } from './impl/discovery';
+import { RulesTestEnvironmentImpl } from './impl/test_environment';
 
 /**
  * Initializes a test environment for rules unit testing. Call this function first for test setup.
@@ -72,8 +73,8 @@ export async function initializeTestEnvironment(
     }
   }
 
-  // TODO: Create test env and set security rules.
-  throw new Error('unimplemented');
+  // TODO: Set security rules.
+  return new RulesTestEnvironmentImpl(projectId, emulators);
 }
 
 const SUPPORTED_EMULATORS = ['database', 'firestore', 'storage'] as const;
