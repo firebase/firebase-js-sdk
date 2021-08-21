@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
- import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
  // eslint-disable-next-line import/no-extraneous-dependencies
  import {
    _FirebaseService,
@@ -23,6 +21,7 @@
    FirebaseApp,
    getApp
  } from '@firebase/app';
+ import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
  import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
  import { Provider } from '@firebase/component';
  import {

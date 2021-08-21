@@ -22,11 +22,11 @@ import {
   basicFuncExternalDependenciesBar,
   BasicClassExportBar as BasicClassExportBarRenamed
 } from './bar';
-import defaultExport from '@firebase/app';
+// import defaultExport from '@firebase/app';
 console.log(
   fs,
   basicFuncExportEnumDependenciesBar,
   basicFuncExternalDependenciesBar,
   BasicClassExportBarRenamed,
-  defaultExport
+  // defaultExport
 );

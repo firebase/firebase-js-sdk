@@ -26,7 +26,6 @@ import {
 } from '@firebase/util';
 
 import { SessionStorage } from '../storage/storage';
-
 import { QueryContext } from '../view/EventRegistration';
 
 declare const window: Window;
