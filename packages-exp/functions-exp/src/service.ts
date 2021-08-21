@@ -26,7 +26,7 @@ import { ContextProvider } from './context';
 import { encode, decode } from './serializer';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { FirebaseMessagingName } from '@firebase/messaging-types';
+import { MessagingInternalComponentName } from '@firebase/messaging-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
 export const DEFAULT_REGION = 'us-central1';
@@ -86,7 +86,7 @@ export class FunctionsService implements _FirebaseService {
   constructor(
     readonly app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    messagingProvider: Provider<FirebaseMessagingName>,
+    messagingProvider: Provider<MessagingInternalComponentName>,
     appCheckProvider: Provider<AppCheckInternalComponentName>,
     regionOrCustomDomain: string = DEFAULT_REGION,
     readonly fetchImpl: typeof fetch

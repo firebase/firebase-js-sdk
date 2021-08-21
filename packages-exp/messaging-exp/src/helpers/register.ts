@@ -29,27 +29,18 @@ import {
   onSubChange
 } from '../listeners/sw-listeners';
 
+import { GetTokenOptions } from '../interfaces/public-types';
+import { MessagingInternal } from '@firebase/messaging-interop-types';
 import { MessagingService } from '../messaging-service';
 import { ServiceWorkerGlobalScope } from '../util/sw-types';
 import { _registerComponent } from '@firebase/app-exp';
+import { getToken } from '../api/getToken';
 import { messageEventListener } from '../listeners/window-listener';
 
 const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
   container: ComponentContainer
 ) => {
-  // Conscious decision to make this async check non-blocking during the messaging instance
-  // initialization phase for performance consideration. An error would be thrown latter for
-  // developer's information. Developers can then choose to import and call `isSupported` for
-  // special handling.
-  isWindowSupported()
-    .then(isSupported => {
-      if (!isSupported) {
-        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-      }
-    })
-    .catch(_ => {
-      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
-    });
+  maybeThrowWindowError();
 
   const messaging = new MessagingService(
     container.getProvider('app-exp').getImmediate(),
@@ -63,6 +54,38 @@ const WindowMessagingFactory: InstanceFactory<'messaging-exp'> = (
 
   return messaging;
 };
+
+const WindowMessagingInternalFactory: InstanceFactory<'messaging-internal'> = (
+  container: ComponentContainer
+) => {
+  maybeThrowWindowError();
+
+  const messaging = container
+    .getProvider('messaging-exp')
+    .getImmediate() as MessagingService;
+
+  const messagingInternal: MessagingInternal = {
+    getToken: (options?: GetTokenOptions) => getToken(messaging, options)
+  };
+
+  return messagingInternal;
+};
+
+function maybeThrowWindowError(): void {
+  // Conscious decision to make this async check non-blocking during the messaging instance
+  // initialization phase for performance consideration. An error would be thrown latter for
+  // developer's information. Developers can then choose to import and call `isSupported` for
+  // special handling.
+  isWindowSupported()
+    .then(isSupported => {
+      if (!isSupported) {
+        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+      }
+    })
+    .catch(_ => {
+      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
+    });
+}
 
 declare const self: ServiceWorkerGlobalScope;
 const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
@@ -104,6 +127,14 @@ const SwMessagingFactory: InstanceFactory<'messaging-exp'> = (
 export function registerMessagingInWindow(): void {
   _registerComponent(
     new Component('messaging-exp', WindowMessagingFactory, ComponentType.PUBLIC)
+  );
+
+  _registerComponent(
+    new Component(
+      'messaging-internal',
+      WindowMessagingInternalFactory,
+      ComponentType.PRIVATE
+    )
   );
 }
 
