@@ -23,6 +23,7 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../package.json';
+import { LiteCredentialsProvider } from '../src/api/credentials';
 import { setSDKVersion } from '../src/core/version';
 import { Firestore } from '../src/lite-api/database';
 import { FirestoreSettings } from '../src/lite-api/settings';
@@ -42,7 +43,7 @@ export function registerFirestore(): void {
         const app = container.getProvider('app-exp').getImmediate()!;
         const firestoreInstance = new Firestore(
           app,
-          container.getProvider('auth-internal')
+          new LiteCredentialsProvider(container.getProvider('auth-internal'))
         );
         if (settings) {
           firestoreInstance._setSettings(settings);
