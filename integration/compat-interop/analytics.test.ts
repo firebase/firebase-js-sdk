@@ -17,7 +17,7 @@
 
 import { getModularInstance } from '@firebase/util';
 import { expect } from 'chai';
-import { getAnalytics } from '@firebase/analytics-exp';
+import { getAnalytics } from '@firebase/analytics';
 import firebase from '@firebase/app-compat';
 import '@firebase/analytics-compat';
 
