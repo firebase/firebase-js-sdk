@@ -23,11 +23,11 @@ import {
   FirestoreError
 } from '@firebase/firestore';
 
-import { EmptyCredentialsProvider } from './src/api/credentials';
 import {
   Firestore as FirestoreCompat,
   MemoryPersistenceProvider
 } from './api/database';
+import { EmptyCredentialsProvider } from './src/api/credentials';
 
 export {
   CollectionReference,
