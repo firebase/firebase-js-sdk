@@ -58,7 +58,7 @@ import { cast } from '../util/input_validation';
 import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
-import {CredentialsProvider} from "./credentials";
+import { CredentialsProvider } from './credentials';
 import { PersistenceSettings, FirestoreSettings } from './settings';
 export {
   connectFirestoreEmulator,

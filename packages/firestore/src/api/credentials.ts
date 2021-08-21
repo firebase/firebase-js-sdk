@@ -232,7 +232,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     asyncQueue: AsyncQueue,
     changeListener: CredentialChangeListener
   ): void {
-    let lastTokenId = -1;
+    let lastTokenId = this.tokenCounter;
 
     // A change listener that prevents double-firing for the same token change.
     const guardedChangeListener: (user: User) => Promise<void> = user => {
@@ -290,9 +290,11 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     }, 0);
 
     asyncQueue.enqueueRetryable(async () => {
-      // Call the change listener inline to block on the user change.
-      await nextToken.promise;
-      await guardedChangeListener(this.currentUser);
+      // If we have not received a token, wait for the first one.
+      if (this.tokenCounter === 0) {
+        await nextToken.promise;
+        await guardedChangeListener(this.currentUser);
+      }
     });
   }
 
