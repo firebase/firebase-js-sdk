@@ -104,11 +104,10 @@ export class StsTokenManager {
     forceRefresh = false
   ): Promise<string | null> {
     if (forceRefresh) {
-      // TODO(lisajian): Add and use client error code - ERROR_TOKEN_REFRESH_UNAVAILABLE
       _assert(
         auth._refreshWithCustomTokenProvider,
         auth,
-        AuthErrorCode.INTERNAL_ERROR
+        AuthErrorCode.TOKEN_REFRESH_UNAVAILABLE
       );
       return auth._refreshWithCustomTokenProvider();
     }
@@ -123,7 +122,7 @@ export class StsTokenManager {
       _assert(
         this.expirationTime && Date.now() < this.expirationTime,
         auth,
-        AuthErrorCode.TOKEN_EXPIRED
+        AuthErrorCode.TOKEN_REFRESH_UNAVAILABLE
       );
       return this.accessToken;
     }
