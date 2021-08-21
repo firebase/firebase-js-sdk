@@ -34,12 +34,6 @@ import {
 } from '@firebase/analytics';
 import { EventName } from './constants';
 
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'analytics-compat': AnalyticsService;
-  }
-}
-
 const factory: InstanceFactory<'analytics-compat'> = (
   container: ComponentContainer
 ) => {

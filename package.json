@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
-    "build": "lerna run --scope @firebase/* --scope firebase --ignore @firebase/rules-unit-testing build",
+    "build": "lerna run --scope @firebase/* --scope firebase --ignore @firebase/rules-unit-testing --ignore @firebase/firestore build",
     "build:changed": "ts-node-script scripts/ci-test/build_changed.ts",
     "release:prepare": "lerna run --scope @firebase/* add-compat-overloads && lerna run --scope @firebase/* typings:public",
     "link:packages": "lerna exec --scope @firebase/* --scope firebase -- yarn link",

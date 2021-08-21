@@ -29,12 +29,6 @@ import {
 import { AppCheckService } from './service';
 import { FirebaseAppCheck } from '@firebase/app-check-types';
 
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'appCheck-compat': AppCheckService;
-  }
-}
-
 const factory: InstanceFactory<'appCheck-compat'> = (
   container: ComponentContainer
 ) => {

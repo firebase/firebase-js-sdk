@@ -19,7 +19,7 @@ import {
   _registerComponent,
   registerVersion,
   SDK_VERSION
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
@@ -33,7 +33,7 @@ export function registerDatabase(variant?: string): void {
     new Component(
       'database',
       (container, { instanceIdentifier: url }) => {
-        const app = container.getProvider('app-exp').getImmediate()!;
+        const app = container.getProvider('app').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
         const appCheckProvider = container.getProvider('app-check-internal');
         return repoManagerDatabaseFromApp(
