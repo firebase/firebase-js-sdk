@@ -40,13 +40,6 @@ window.legacyAuth = null;
 // The config and emulator URL are injected by the test. The test framework
 // calls this function after that injection.
 window.startAuth = async () => {
-  // Make sure we haven't confused our firebase with the old firebase
-  if (!firebase.SDK_VERSION.startsWith('9.')) {
-    throw new Error(
-      'Using legacy SDK version instead of compat version ' +
-        firebase.SDK_VERSION
-    );
-  }
   firebase.initializeApp(firebaseConfig);
   firebase.auth().useEmulator(emulatorUrl);
   window.compat = firebase;
