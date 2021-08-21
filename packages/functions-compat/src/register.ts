@@ -16,8 +16,7 @@
  */
 
 import firebase, {
-  _FirebaseNamespace,
-  FirebaseApp
+  _FirebaseNamespace
 } from '@firebase/app-compat';
 import { FunctionsService } from './service';
 import {
@@ -27,7 +26,6 @@ import {
   ComponentContainer,
   InstanceFactoryOptions
 } from '@firebase/component';
-import { Functions as FunctionsServiceExp } from '@firebase/functions';
 
 const DEFAULT_REGION = 'us-central1';
 
