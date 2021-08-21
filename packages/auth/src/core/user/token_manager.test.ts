@@ -222,7 +222,7 @@ describe('core/user/token_manager', () => {
 
         await expect(stsTokenManager.getToken(auth, true)).to.be.rejectedWith(
           FirebaseError,
-          'auth/internal-error'
+          'auth/token-refresh-unavailable'
         );
       });
 
@@ -263,7 +263,7 @@ describe('core/user/token_manager', () => {
 
         await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
           FirebaseError,
-          'auth/user-token-expired'
+          'auth/token-refresh-unavailable'
         );
       });
 
