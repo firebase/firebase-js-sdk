@@ -24,10 +24,16 @@ import {
   InstanceFactory
 } from '@firebase/component';
 import { FUNCTIONS_TYPE } from './constants';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { MessagingInternalComponentName } from '@firebase/messaging-interop-types';
 
+const AUTH_INTERNAL_NAME: FirebaseAuthInternalName = 'auth-internal';
 const APP_CHECK_INTERNAL_NAME: AppCheckInternalComponentName =
   'app-check-internal';
+const MESSAGING_INTERNAL_NAME: MessagingInternalComponentName =
+  'messaging-internal';
+
 export function registerFunctions(fetchImpl: typeof fetch): void {
   const factory: InstanceFactory<'functions-exp'> = (
     container: ComponentContainer,
@@ -35,8 +41,8 @@ export function registerFunctions(fetchImpl: typeof fetch): void {
   ) => {
     // Dependencies
     const app = container.getProvider('app-exp').getImmediate();
-    const authProvider = container.getProvider('auth-internal');
-    const messagingProvider = container.getProvider('messaging');
+    const authProvider = container.getProvider(AUTH_INTERNAL_NAME);
+    const messagingProvider = container.getProvider(MESSAGING_INTERNAL_NAME);
     const appCheckProvider = container.getProvider(APP_CHECK_INTERNAL_NAME);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

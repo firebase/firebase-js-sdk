@@ -18,16 +18,16 @@ import {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  FirebaseMessaging,
-  FirebaseMessagingName
-} from '@firebase/messaging-types';
 
 import { Provider } from '@firebase/component';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
 } from '@firebase/app-check-interop-types';
+import {
+  MessagingInternal,
+  MessagingInternalComponentName
+} from '@firebase/messaging-interop-types';
 
 /**
  * The metadata that should be supplied with function calls.
@@ -45,11 +45,11 @@ export interface Context {
  */
 export class ContextProvider {
   private auth: FirebaseAuthInternal | null = null;
-  private messaging: FirebaseMessaging | null = null;
+  private messaging: MessagingInternal | null = null;
   private appCheck: FirebaseAppCheckInternal | null = null;
   constructor(
     authProvider: Provider<FirebaseAuthInternalName>,
-    messagingProvider: Provider<FirebaseMessagingName>,
+    messagingProvider: Provider<MessagingInternalComponentName>,
     appCheckProvider: Provider<AppCheckInternalComponentName>
   ) {
     this.auth = authProvider.getImmediate({ optional: true });

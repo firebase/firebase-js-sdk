@@ -18,11 +18,11 @@
 import { FirebaseOptions, FirebaseApp } from '@firebase/app-exp';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { FirebaseMessagingName } from '@firebase/messaging-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FunctionsService } from '../src/service';
 import { connectFunctionsEmulator } from '../src/api';
 import nodeFetch from 'node-fetch';
+import { MessagingInternalComponentName } from '../../../packages/messaging-interop-types';
 
 export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
   options = {
@@ -49,8 +49,8 @@ export function createTestService(
     'auth-internal',
     new ComponentContainer('test')
   ),
-  messagingProvider = new Provider<FirebaseMessagingName>(
-    'messaging',
+  messagingProvider = new Provider<MessagingInternalComponentName>(
+    'messaging-internal',
     new ComponentContainer('test')
   ),
   appCheckProvider = new Provider<AppCheckInternalComponentName>(
