@@ -38,7 +38,7 @@ async function generateDocs(forDevsite: boolean = false) {
   const outputFolder = forDevsite ? 'docs-devsite' : 'docs-exp';
   const command = forDevsite ? 'api-documenter-devsite' : 'api-documenter';
 
-  await spawn('yarn', ['lerna', 'run', '--scope', '@firebase/*', 'build'], {
+  await spawn('yarn', ['build'], {
     stdio: 'inherit'
   });
 
