@@ -26,13 +26,6 @@ import { RemoteConfigCompatImpl } from './remoteConfig';
 import { name as packageName, version } from '../package.json';
 import { RemoteConfig as RemoteConfigCompat } from '@firebase/remote-config-types';
 
-// TODO: move it to remote-config-types package
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'remoteConfig-compat': RemoteConfigCompat;
-  }
-}
-
 function registerRemoteConfigCompat(
   firebaseInstance: _FirebaseNamespace
 ): void {

@@ -25,13 +25,6 @@ import { PerformanceCompatImpl } from './performance';
 import { name as packageName, version } from '../package.json';
 import { FirebasePerformance as FirebasePerformanceCompat } from '@firebase/performance-types';
 
-// TODO: move it to the future performance-compat-types package
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'performance-compat': FirebasePerformanceCompat;
-  }
-}
-
 function registerPerformanceCompat(firebaseInstance: _FirebaseNamespace): void {
   firebaseInstance.INTERNAL.registerComponent(
     new Component(
