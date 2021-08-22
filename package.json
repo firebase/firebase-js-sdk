@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
-    "build": "lerna run --scope @firebase/* --scope firebase --ignore @firebase/rules-unit-testing --ignore @firebase/firestore build",
+    "build": "lerna run --scope @firebase/* --scope firebase --ignore @firebase/rules-unit-testing build",
     "build:changed": "ts-node-script scripts/ci-test/build_changed.ts",
     "release:prepare": "lerna run --scope @firebase/* add-compat-overloads && lerna run --scope @firebase/* typings:public",
     "link:packages": "lerna exec --scope @firebase/* --scope firebase -- yarn link",
@@ -30,7 +30,7 @@
     "repl": "node tools/repl.js",
     "release": "ts-node-script scripts/release/cli.ts",
     "pretest": "node tools/pretest.js",
-    "test": "lerna run --ignore firebase-repo-scripts-prune-dts --ignore @firebase/rules-unit-testing --ignore @firebase/auth --ignore @firebase/database-compat --ignore firebase-messaging-integration-test --ignore firebase-namespace-integration-test --concurrency 4 --stream test",
+    "test": "lerna run --ignore firebase-repo-scripts-prune-dts --ignore @firebase/rules-unit-testing --ignore @firebase/auth --ignore @firebase/database-compat --ignore firebase-messaging-integration-test --concurrency 4 --stream test",
     "test:ci": "lerna run --concurrency 4 test:ci",
     "pretest:coverage": "mkdirp coverage",
     "ci:coverage": "lcov-result-merger 'packages/**/lcov.info' 'lcov-all.info'",
