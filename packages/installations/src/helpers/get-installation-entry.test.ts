@@ -17,8 +17,8 @@
 
 import { AssertionError, expect } from 'chai';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
-import * as createInstallationRequestModule from '../api/create-installation-request';
-import { AppConfig } from '../interfaces/app-config';
+import * as createInstallationRequestModule from '../functions/create-installation-request';
+import { AppConfig } from '../interfaces/installation-impl';
 import {
   InProgressInstallationEntry,
   RegisteredInstallationEntry,

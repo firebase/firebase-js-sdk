@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import { getState, setState } from './state';
 import { Deferred } from '@firebase/util';
 import { getRecaptcha, ensureActivated } from './util';

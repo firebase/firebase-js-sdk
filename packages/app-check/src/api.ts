@@ -16,74 +16,94 @@
  */
 
 import {
-  AppCheckProvider,
-  AppCheckTokenResult
-} from '@firebase/app-check-types';
-import { FirebaseApp } from '@firebase/app-types';
+  AppCheck,
+  AppCheckOptions,
+  AppCheckTokenResult,
+  Unsubscribe,
+  PartialObserver
+} from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { getState, setState, AppCheckState, ListenerType } from './state';
+import { getState, setState, AppCheckState } from './state';
+import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
+import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
+import { AppCheckService } from './factory';
+import { AppCheckProvider, ListenerType } from './types';
 import {
   getToken as getTokenInternal,
   addTokenListener,
   removeTokenListener,
   isValid
 } from './internal-api';
-import { Provider } from '@firebase/component';
-import { ErrorFn, NextFn, PartialObserver, Unsubscribe } from '@firebase/util';
-import { CustomProvider, ReCaptchaV3Provider } from './providers';
 import { readTokenFromStorage } from './storage';
 
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'app-check': AppCheckService;
+  }
+}
+
+export { ReCaptchaV3Provider, CustomProvider } from './providers';
+
 /**
- *
- * @param app
- * @param siteKeyOrProvider - optional custom attestation provider
- * or reCAPTCHA provider
- * @param isTokenAutoRefreshEnabled - if true, enables auto refresh
- * of appCheck token.
+ * Activate App Check for the given app. Can be called only once per app.
+ * @param app - the {@link @firebase/app#FirebaseApp} to activate App Check for
+ * @param options - App Check initialization options
+ * @public
  */
-export function activate(
+export function initializeAppCheck(
+  app: FirebaseApp = getApp(),
+  options: AppCheckOptions
+): AppCheck {
+  app = getModularInstance(app);
+  const provider = _getProvider(app, 'app-check');
+
+  if (provider.isInitialized()) {
+    const existingInstance = provider.getImmediate();
+    const initialOptions = provider.getOptions() as unknown as AppCheckOptions;
+    if (
+      initialOptions.isTokenAutoRefreshEnabled ===
+        options.isTokenAutoRefreshEnabled &&
+      initialOptions.provider.isEqual(options.provider)
+    ) {
+      return existingInstance;
+    } else {
+      throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
+        appName: app.name
+      });
+    }
+  }
+
+  const appCheck = provider.initialize({ options });
+  _activate(app, options.provider, options.isTokenAutoRefreshEnabled);
+
+  return appCheck;
+}
+
+/**
+ * Activate App Check
+ * @param app - Firebase app to activate App Check for.
+ * @param provider - reCAPTCHA v3 provider or
+ * custom token provider.
+ * @param isTokenAutoRefreshEnabled - If true, the SDK automatically
+ * refreshes App Check tokens as needed. If undefined, defaults to the
+ * value of `app.automaticDataCollectionEnabled`, which defaults to
+ * false and can be set in the app config.
+ */
+function _activate(
   app: FirebaseApp,
-  siteKeyOrProvider:
-    | ReCaptchaV3Provider
-    | CustomProvider
-    // This is the old interface for users to supply a custom provider.
-    | AppCheckProvider
-    | string,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  provider: AppCheckProvider,
   isTokenAutoRefreshEnabled?: boolean
 ): void {
   const state = getState(app);
-  if (state.activated) {
-    throw ERROR_FACTORY.create(AppCheckError.ALREADY_ACTIVATED, {
-      appName: app.name
-    });
-  }
 
   const newState: AppCheckState = { ...state, activated: true };
-
-  // Read cached token from storage if it exists and store it in memory.
+  newState.provider = provider; // Read cached token from storage if it exists and store it in memory.
   newState.cachedTokenPromise = readTokenFromStorage(app).then(cachedToken => {
     if (cachedToken && isValid(cachedToken)) {
       setState(app, { ...getState(app), token: cachedToken });
     }
     return cachedToken;
   });
-
-  if (typeof siteKeyOrProvider === 'string') {
-    newState.provider = new ReCaptchaV3Provider(siteKeyOrProvider);
-  } else if (
-    siteKeyOrProvider instanceof ReCaptchaV3Provider ||
-    siteKeyOrProvider instanceof CustomProvider
-  ) {
-    newState.provider = siteKeyOrProvider;
-  } else {
-    // Process "old" custom provider to avoid breaking previous users.
-    // This was defined at beta release as simply an object with a
-    // getToken() method.
-    newState.provider = new CustomProvider({
-      getToken: siteKeyOrProvider.getToken
-    });
-  }
 
   // Use value of global `automaticDataCollectionEnabled` (which
   // itself defaults to false if not specified in config) if
@@ -95,13 +115,23 @@ export function activate(
 
   setState(app, newState);
 
-  newState.provider.initialize(app, platformLoggerProvider);
+  newState.provider.initialize(app);
 }
 
+/**
+ * Set whether App Check will automatically refresh tokens as needed.
+ *
+ * @param appCheckInstance - The App Check service instance.
+ * @param isTokenAutoRefreshEnabled - If true, the SDK automatically
+ * refreshes App Check tokens as needed. This overrides any value set
+ * during `initializeAppCheck()`.
+ * @public
+ */
 export function setTokenAutoRefreshEnabled(
-  app: FirebaseApp,
+  appCheckInstance: AppCheck,
   isTokenAutoRefreshEnabled: boolean
 ): void {
+  const app = appCheckInstance.app;
   const state = getState(app);
   // This will exist if any product libraries have called
   // `addTokenListener()`
@@ -114,18 +144,22 @@ export function setTokenAutoRefreshEnabled(
   }
   setState(app, { ...state, isTokenAutoRefreshEnabled });
 }
-
 /**
- * Differs from internal getToken in that it throws the error.
+ * Get the current App Check token. Attaches to the most recent
+ * in-flight request if one is present. Returns null if no token
+ * is present and no token requests are in-flight.
+ *
+ * @param appCheckInstance - The App Check service instance.
+ * @param forceRefresh - If true, will always try to fetch a fresh token.
+ * If false, will use a cached token if found in storage.
+ * @public
  */
 export async function getToken(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  appCheckInstance: AppCheck,
   forceRefresh?: boolean
 ): Promise<AppCheckTokenResult> {
   const result = await getTokenInternal(
-    app,
-    platformLoggerProvider,
+    appCheckInstance as AppCheckService,
     forceRefresh
   );
   if (result.error) {
@@ -135,24 +169,53 @@ export async function getToken(
 }
 
 /**
- * Wraps addTokenListener/removeTokenListener methods in an Observer
- * pattern for public use.
+ * Registers a listener to changes in the token state. There can be more
+ * than one listener registered at the same time for one or more
+ * App Check instances. The listeners call back on the UI thread whenever
+ * the current token associated with this App Check instance changes.
+ *
+ * @param appCheckInstance - The App Check service instance.
+ * @param observer - An object with `next`, `error`, and `complete`
+ * properties. `next` is called with an
+ * {@link AppCheckTokenResult}
+ * whenever the token changes. `error` is optional and is called if an
+ * error is thrown by the listener (the `next` function). `complete`
+ * is unused, as the token stream is unending.
+ *
+ * @returns A function that unsubscribes this listener.
+ * @public
  */
 export function onTokenChanged(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  appCheckInstance: AppCheck,
   observer: PartialObserver<AppCheckTokenResult>
 ): Unsubscribe;
+/**
+ * Registers a listener to changes in the token state. There can be more
+ * than one listener registered at the same time for one or more
+ * App Check instances. The listeners call back on the UI thread whenever
+ * the current token associated with this App Check instance changes.
+ *
+ * @param appCheckInstance - The App Check service instance.
+ * @param onNext - When the token changes, this function is called with aa
+ * {@link AppCheckTokenResult}.
+ * @param onError - Optional. Called if there is an error thrown by the
+ * listener (the `onNext` function).
+ * @param onCompletion - Currently unused, as the token stream is unending.
+ * @returns A function that unsubscribes this listener.
+ * @public
+ */
 export function onTokenChanged(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  appCheckInstance: AppCheck,
   onNext: (tokenResult: AppCheckTokenResult) => void,
   onError?: (error: Error) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+/**
+ * Wraps `addTokenListener`/`removeTokenListener` methods in an `Observer`
+ * pattern for public use.
+ */
 export function onTokenChanged(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  appCheckInstance: AppCheck,
   onNextOrObserver:
     | ((tokenResult: AppCheckTokenResult) => void)
     | PartialObserver<AppCheckTokenResult>,
@@ -185,11 +248,10 @@ export function onTokenChanged(
     errorFn = onError;
   }
   addTokenListener(
-    app,
-    platformLoggerProvider,
+    appCheckInstance as AppCheckService,
     ListenerType.EXTERNAL,
     nextFn,
     errorFn
   );
-  return () => removeTokenListener(app, nextFn);
+  return () => removeTokenListener(appCheckInstance.app, nextFn);
 }

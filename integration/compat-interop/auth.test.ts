@@ -17,7 +17,7 @@
 
 import { getModularInstance } from '@firebase/util';
 import { expect } from 'chai';
-import { getAuth, signOut } from '@firebase/auth-exp';
+import { getAuth, signOut } from '@firebase/auth';
 import firebase from '@firebase/app-compat';
 import '@firebase/auth-compat';
 

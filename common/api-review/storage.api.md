@@ -10,7 +10,7 @@ import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
-import { _FirebaseService } from '@firebase/app-exp';
+import { _FirebaseService } from '@firebase/app';
 import { NextFn } from '@firebase/util';
 import { Provider } from '@firebase/component';
 import { Subscribe } from '@firebase/util';
@@ -97,6 +97,8 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     set maxOperationRetryTime(time: number);
     get maxUploadRetryTime(): number;
     set maxUploadRetryTime(time: number);
+    // (undocumented)
+    _overrideAuthToken?: string;
     // Warning: (ae-forgotten-export) The symbol "ConnectionPool" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)

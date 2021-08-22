@@ -10,227 +10,217 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or ied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 import '../test/setup';
 import { expect } from 'chai';
-import { stub, spy } from 'sinon';
+import { spy, stub } from 'sinon';
 import {
-  activate,
   setTokenAutoRefreshEnabled,
+  initializeAppCheck,
   getToken,
   onTokenChanged
 } from './api';
 import {
   FAKE_SITE_KEY,
+  getFullApp,
   getFakeApp,
-  getFakeCustomTokenProvider,
-  getFakePlatformLoggingProvider,
   getFakeGreCAPTCHA,
+  getFakeAppCheck,
   removegreCAPTCHAScriptsOnPage
 } from '../test/util';
 import { clearState, getState } from './state';
 import * as reCAPTCHA from './recaptcha';
-import { FirebaseApp } from '@firebase/app-types';
-import * as internalApi from './internal-api';
+import * as util from './util';
+import * as logger from './logger';
 import * as client from './client';
 import * as storage from './storage';
-import * as logger from './logger';
-import * as util from './util';
-import { ReCaptchaV3Provider } from './providers';
+import * as internalApi from './internal-api';
+import { deleteApp, FirebaseApp } from '@firebase/app';
+import { CustomProvider, ReCaptchaV3Provider } from './providers';
+import { AppCheckService } from './factory';
+import { AppCheckToken } from './public-types';
 
 describe('api', () => {
+  let app: FirebaseApp;
+
   beforeEach(() => {
+    app = getFullApp();
     stub(util, 'getRecaptcha').returns(getFakeGreCAPTCHA());
   });
-  describe('activate()', () => {
-    let app: FirebaseApp;
 
-    beforeEach(() => {
-      app = getFakeApp();
+  afterEach(() => {
+    clearState();
+    removegreCAPTCHAScriptsOnPage();
+    return deleteApp(app);
+  });
+
+  describe('initializeAppCheck()', () => {
+    it('can only be called once (if given different provider classes)', () => {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new CustomProvider({
+            getToken: () => Promise.resolve({ token: 'mm' } as AppCheckToken)
+          })
+        })
+      ).to.throw(/appCheck\/already-initialized/);
+    });
+    it('can only be called once (if given different ReCaptchaV3Providers)', () => {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY + 'X')
+        })
+      ).to.throw(/appCheck\/already-initialized/);
+    });
+    it('can only be called once (if given different CustomProviders)', () => {
+      initializeAppCheck(app, {
+        provider: new CustomProvider({
+          getToken: () => Promise.resolve({ token: 'ff' } as AppCheckToken)
+        })
+      });
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new CustomProvider({
+            getToken: () => Promise.resolve({ token: 'gg' } as AppCheckToken)
+          })
+        })
+      ).to.throw(/appCheck\/already-initialized/);
+    });
+    it('can be called multiple times (if given equivalent ReCaptchaV3Providers)', () => {
+      const appCheckInstance = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      expect(
+        initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        })
+      ).to.equal(appCheckInstance);
+    });
+    it('can be called multiple times (if given equivalent CustomProviders)', () => {
+      const appCheckInstance = initializeAppCheck(app, {
+        provider: new CustomProvider({
+          getToken: () => Promise.resolve({ token: 'ff' } as AppCheckToken)
+        })
+      });
+      expect(
+        initializeAppCheck(app, {
+          provider: new CustomProvider({
+            getToken: () => Promise.resolve({ token: 'ff' } as AppCheckToken)
+          })
+        })
+      ).to.equal(appCheckInstance);
+    });
+
+    it('initialize reCAPTCHA when a ReCaptchaV3Provider is provided', () => {
+      const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize').returns(
+        Promise.resolve({} as any)
+      );
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
+        app,
+        FAKE_SITE_KEY
+      );
     });
 
     it('sets activated to true', () => {
       expect(getState(app).activated).to.equal(false);
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        getFakePlatformLoggingProvider()
-      );
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
       expect(getState(app).activated).to.equal(true);
     });
 
     it('isTokenAutoRefreshEnabled value defaults to global setting', () => {
-      app = getFakeApp({ automaticDataCollectionEnabled: false });
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        getFakePlatformLoggingProvider()
-      );
+      app.automaticDataCollectionEnabled = false;
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
       expect(getState(app).isTokenAutoRefreshEnabled).to.equal(false);
     });
 
     it('sets isTokenAutoRefreshEnabled correctly, overriding global setting', () => {
-      app = getFakeApp({ automaticDataCollectionEnabled: false });
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        getFakePlatformLoggingProvider(),
-        true
-      );
+      app.automaticDataCollectionEnabled = false;
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
       expect(getState(app).isTokenAutoRefreshEnabled).to.equal(true);
     });
-
-    it('can only be called once', () => {
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        getFakePlatformLoggingProvider()
-      );
-      expect(() =>
-        activate(
-          app,
-          new ReCaptchaV3Provider(FAKE_SITE_KEY),
-          getFakePlatformLoggingProvider()
-        )
-      ).to.throw(/AppCheck can only be activated once/);
-    });
-
-    it('initialize reCAPTCHA when a sitekey string is provided', () => {
-      const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize').returns(
-        Promise.resolve({} as any)
-      );
-      activate(app, FAKE_SITE_KEY, getFakePlatformLoggingProvider());
-      expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
-        app,
-        FAKE_SITE_KEY
-      );
-    });
-
-    it('initialize reCAPTCHA when a ReCaptchaV3Provider instance is provided', () => {
-      const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize').returns(
-        Promise.resolve({} as any)
-      );
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        getFakePlatformLoggingProvider()
-      );
-      expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
-        app,
-        FAKE_SITE_KEY
-      );
-    });
-
-    it(
-      'creates CustomProvider instance if user provides an object containing' +
-        ' a getToken() method',
-      async () => {
-        const fakeCustomTokenProvider = getFakeCustomTokenProvider();
-        const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize');
-        activate(
-          app,
-          fakeCustomTokenProvider,
-          getFakePlatformLoggingProvider()
-        );
-        const result = await getState(app).provider?.getToken();
-        expect(result?.token).to.equal('fake-custom-app-check-token');
-        expect(initReCAPTCHAStub).to.have.not.been.called;
-      }
-    );
   });
   describe('setTokenAutoRefreshEnabled()', () => {
     it('sets isTokenAutoRefreshEnabled correctly', () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: false });
-      setTokenAutoRefreshEnabled(app, true);
+      const appCheck = getFakeAppCheck(app);
+      setTokenAutoRefreshEnabled(appCheck, true);
       expect(getState(app).isTokenAutoRefreshEnabled).to.equal(true);
     });
   });
   describe('getToken()', () => {
     it('getToken() calls the internal getToken() function', async () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: true });
-      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
+      const appCheck = getFakeAppCheck(app);
       const internalGetToken = stub(internalApi, 'getToken').resolves({
         token: 'a-token-string'
       });
-      await getToken(app, fakePlatformLoggingProvider, true);
-      expect(internalGetToken).to.be.calledWith(
-        app,
-        fakePlatformLoggingProvider,
-        true
-      );
+      await getToken(appCheck, true);
+      expect(internalGetToken).to.be.calledWith(appCheck, true);
     });
     it('getToken() throws errors returned with token', async () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: true });
-      const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
+      const appCheck = getFakeAppCheck(app);
       // If getToken() errors, it returns a dummy token with an error field
       // instead of throwing.
       stub(internalApi, 'getToken').resolves({
         token: 'a-dummy-token',
         error: Error('there was an error')
       });
-      await expect(
-        getToken(app, fakePlatformLoggingProvider, true)
-      ).to.be.rejectedWith('there was an error');
+      await expect(getToken(appCheck, true)).to.be.rejectedWith(
+        'there was an error'
+      );
     });
   });
   describe('onTokenChanged()', () => {
-    const fakePlatformLoggingProvider = getFakePlatformLoggingProvider();
-    const fakeRecaptchaToken = 'fake-recaptcha-token';
-    const fakeRecaptchaAppCheckToken = {
-      token: 'fake-recaptcha-app-check-token',
-      expireTimeMillis: Date.now() + 60000,
-      issuedAtTimeMillis: 0
-    };
-
-    beforeEach(() => {
-      stub(storage, 'readTokenFromStorage').resolves(undefined);
-      stub(storage, 'writeTokenToStorage');
-    });
-    afterEach(() => {
-      clearState();
-      removegreCAPTCHAScriptsOnPage();
-    });
     it('Listeners work when using top-level parameters pattern', async () => {
-      const app = getFakeApp();
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        fakePlatformLoggingProvider,
-        false
-      );
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+      const fakeRecaptchaToken = 'fake-recaptcha-token';
+      const fakeRecaptchaAppCheckToken = {
+        token: 'fake-recaptcha-app-check-token',
+        expireTimeMillis: 123,
+        issuedAtTimeMillis: 0
+      };
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
       );
+      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
 
-      const listener1 = (): void => {
-        throw new Error();
-      };
+      const listener1 = stub().throws(new Error());
       const listener2 = spy();
 
       const errorFn1 = spy();
       const errorFn2 = spy();
 
-      const unsubscribe1 = onTokenChanged(
-        app,
-        fakePlatformLoggingProvider,
-        listener1,
-        errorFn1
-      );
-      const unsubscribe2 = onTokenChanged(
-        app,
-        fakePlatformLoggingProvider,
-        listener2,
-        errorFn2
-      );
+      const unsubscribe1 = onTokenChanged(appCheck, listener1, errorFn1);
+      const unsubscribe2 = onTokenChanged(appCheck, listener2, errorFn2);
 
       expect(getState(app).tokenObservers.length).to.equal(2);
 
-      await internalApi.getToken(app, fakePlatformLoggingProvider);
+      await internalApi.getToken(appCheck as AppCheckService);
 
+      expect(listener1).to.be.called;
       expect(listener2).to.be.calledWith({
         token: fakeRecaptchaAppCheckToken.token
       });
@@ -243,21 +233,23 @@ describe('api', () => {
     });
 
     it('Listeners work when using Observer pattern', async () => {
-      const app = getFakeApp();
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        fakePlatformLoggingProvider,
-        false
-      );
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+      const fakeRecaptchaToken = 'fake-recaptcha-token';
+      const fakeRecaptchaAppCheckToken = {
+        token: 'fake-recaptcha-app-check-token',
+        expireTimeMillis: 123,
+        issuedAtTimeMillis: 0
+      };
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
       );
+      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
 
-      const listener1 = (): void => {
-        throw new Error();
-      };
+      const listener1 = stub().throws(new Error());
       const listener2 = spy();
 
       const errorFn1 = spy();
@@ -267,19 +259,20 @@ describe('api', () => {
        * Reverse the order of adding the failed and successful handler, for extra
        * testing.
        */
-      const unsubscribe2 = onTokenChanged(app, fakePlatformLoggingProvider, {
+      const unsubscribe2 = onTokenChanged(appCheck, {
         next: listener2,
         error: errorFn2
       });
-      const unsubscribe1 = onTokenChanged(app, fakePlatformLoggingProvider, {
+      const unsubscribe1 = onTokenChanged(appCheck, {
         next: listener1,
         error: errorFn1
       });
 
       expect(getState(app).tokenObservers.length).to.equal(2);
 
-      await internalApi.getToken(app, fakePlatformLoggingProvider);
+      await internalApi.getToken(appCheck as AppCheckService);
 
+      expect(listener1).to.be.called;
       expect(listener2).to.be.calledWith({
         token: fakeRecaptchaAppCheckToken.token
       });
@@ -293,28 +286,22 @@ describe('api', () => {
 
     it('onError() catches token errors', async () => {
       stub(logger.logger, 'error');
-      const app = getFakeApp();
-      activate(
-        app,
-        new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        fakePlatformLoggingProvider,
-        false
-      );
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: false
+      });
+      const fakeRecaptchaToken = 'fake-recaptcha-token';
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').rejects('exchange error');
+      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
 
       const listener1 = spy();
 
       const errorFn1 = spy();
 
-      const unsubscribe1 = onTokenChanged(
-        app,
-        fakePlatformLoggingProvider,
-        listener1,
-        errorFn1
-      );
+      const unsubscribe1 = onTokenChanged(appCheck, listener1, errorFn1);
 
-      await internalApi.getToken(app, fakePlatformLoggingProvider);
+      await internalApi.getToken(appCheck as AppCheckService);
 
       expect(getState(app).tokenObservers.length).to.equal(1);
 

@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { AppCheckProvider } from '@firebase/app-check-types';
+import {
+  FirebaseApp,
+  initializeApp,
+  _registerComponent
+} from '@firebase/app';
 import { GreCAPTCHA, RECAPTCHA_URL } from '../src/recaptcha';
 import {
   Provider,
@@ -24,38 +27,68 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
+import { AppCheckService } from '../src/factory';
+import { AppCheck, CustomProvider } from '../src';
 
 export const FAKE_SITE_KEY = 'fake-site-key';
+
+const fakeConfig = {
+  apiKey: 'apiKey',
+  projectId: 'projectId',
+  authDomain: 'authDomain',
+  messagingSenderId: 'messagingSenderId',
+  databaseURL: 'databaseUrl',
+  storageBucket: 'storageBucket',
+  appId: '1:777777777777:web:d93b5ca1475efe57'
+};
 
 export function getFakeApp(overrides: Record<string, any> = {}): FirebaseApp {
   return {
     name: 'appName',
-    options: {
-      apiKey: 'apiKey',
-      projectId: 'projectId',
-      authDomain: 'authDomain',
-      messagingSenderId: 'messagingSenderId',
-      databaseURL: 'databaseUrl',
-      storageBucket: 'storageBucket',
-      appId: '1:777777777777:web:d93b5ca1475efe57'
-    } as any,
-    automaticDataCollectionEnabled: false,
-    delete: async () => {},
-    // This won't be used in tests.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    appCheck: null as any,
+    options: fakeConfig,
+    automaticDataCollectionEnabled: true,
     ...overrides
   };
 }
 
-export function getFakeCustomTokenProvider(): AppCheckProvider {
+export function getFakeAppCheck(app: FirebaseApp): AppCheck {
   return {
+    app,
+    platformLoggerProvider: getFakePlatformLoggingProvider()
+  } as AppCheck;
+}
+
+export function getFullApp(): FirebaseApp {
+  const app = initializeApp(fakeConfig);
+  _registerComponent(
+    new Component(
+      'platform-logger',
+      () => {
+        return {} as any;
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  _registerComponent(
+    new Component(
+      'app-check',
+      () => {
+        return {} as AppCheckService;
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  return app;
+}
+
+export function getFakeCustomTokenProvider(): CustomProvider {
+  return new CustomProvider({
     getToken: () =>
       Promise.resolve({
         token: 'fake-custom-app-check-token',
         expireTimeMillis: 1
       })
-  };
+  });
 }
 
 export function getFakePlatformLoggingProvider(
