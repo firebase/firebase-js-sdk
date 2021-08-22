@@ -21,7 +21,7 @@ import {
   _removeServiceInstance,
   FirebaseApp,
   getApp
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
 
 import {

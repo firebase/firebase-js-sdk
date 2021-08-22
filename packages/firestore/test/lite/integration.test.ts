@@ -16,7 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp } from '@firebase/app-exp';
+import { initializeApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 

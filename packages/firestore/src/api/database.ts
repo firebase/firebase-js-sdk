@@ -21,7 +21,7 @@ import {
   _removeServiceInstance,
   FirebaseApp,
   getApp
-} from '@firebase/app-exp';
+} from '@firebase/app';
 import { deepEqual } from '@firebase/util';
 
 import {
