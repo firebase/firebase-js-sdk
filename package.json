@@ -30,7 +30,7 @@
     "repl": "node tools/repl.js",
     "release": "ts-node-script scripts/release/cli.ts",
     "pretest": "node tools/pretest.js",
-    "test": "lerna run --ignore firebase-repo-scripts-prune-dts --ignore @firebase/rules-unit-testing --ignore @firebase/auth --ignore @firebase/database-compat --ignore firebase-messaging-integration-test --concurrency 4 --stream test",
+    "test": "lerna run --ignore firebase-repo-scripts-prune-dts --ignore @firebase/rules-unit-testing --ignore @firebase/database-compat --ignore firebase-messaging-integration-test --concurrency 4 --stream test",
     "test:ci": "lerna run --concurrency 4 test:ci",
     "pretest:coverage": "mkdirp coverage",
     "ci:coverage": "lcov-result-merger 'packages/**/lcov.info' 'lcov-all.info'",
