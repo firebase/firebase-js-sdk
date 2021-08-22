@@ -41,6 +41,7 @@ const _assert: typeof exp._assert = exp._assert;
 export class Auth
   implements compat.FirebaseAuth, Wrapper<exp.Auth>, _FirebaseService
 {
+  static Persistence = Persistence;
   readonly _delegate: exp.AuthImpl;
 
   constructor(readonly app: FirebaseApp, provider: Provider<'auth'>) {
