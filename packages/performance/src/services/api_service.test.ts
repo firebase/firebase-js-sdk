@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import { stub } from 'sinon';
 import { expect } from 'chai';
 import { Api, setupApi } from './api_service';
 import '../../test/setup';
+
 describe('Firebase Performance > api_service', () => {
   const PAGE_URL = 'http://www.test.com/abcd?a=2';
   const PERFORMANCE_ENTRY: PerformanceEntry = {

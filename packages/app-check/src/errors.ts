@@ -18,7 +18,7 @@
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 
 export const enum AppCheckError {
-  ALREADY_ACTIVATED = 'already-activated',
+  ALREADY_INITIALIZED = 'already-initialized',
   USE_BEFORE_ACTIVATION = 'use-before-activation',
   FETCH_NETWORK_ERROR = 'fetch-network-error',
   FETCH_PARSE_ERROR = 'fetch-parse-error',
@@ -30,13 +30,14 @@ export const enum AppCheckError {
 }
 
 const ERRORS: ErrorMap<AppCheckError> = {
-  [AppCheckError.ALREADY_ACTIVATED]:
-    'You are trying to activate AppCheck for FirebaseApp {$appName}, ' +
-    'while it is already activated. ' +
-    'AppCheck can only be activated once.',
+  [AppCheckError.ALREADY_INITIALIZED]:
+    'You have already called initializeAppCheck() for FirebaseApp {$appName} with ' +
+    'different options. To avoid this error, call initializeAppCheck() with the ' +
+    'same options as when it was originally called. This will return the ' +
+    'already initialized instance.',
   [AppCheckError.USE_BEFORE_ACTIVATION]:
-    'AppCheck is being used before activate() is called for FirebaseApp {$appName}. ' +
-    'Please make sure you call activate() before instantiating other Firebase services.',
+    'App Check is being used before initializeAppCheck() is called for FirebaseApp {$appName}. ' +
+    'Call initializeAppCheck() before instantiating other Firebase services.',
   [AppCheckError.FETCH_NETWORK_ERROR]:
     'Fetch failed to connect to a network. Check Internet connection. ' +
     'Original error: {$originalErrorMessage}.',
@@ -55,7 +56,7 @@ const ERRORS: ErrorMap<AppCheckError> = {
 };
 
 interface ErrorParams {
-  [AppCheckError.ALREADY_ACTIVATED]: { appName: string };
+  [AppCheckError.ALREADY_INITIALIZED]: { appName: string };
   [AppCheckError.USE_BEFORE_ACTIVATION]: { appName: string };
   [AppCheckError.FETCH_NETWORK_ERROR]: { originalErrorMessage: string };
   [AppCheckError.FETCH_PARSE_ERROR]: { originalErrorMessage: string };

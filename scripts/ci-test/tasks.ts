@@ -122,7 +122,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
       }
     }
     // Check for changed files inside package dirs.
-    const match = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
+    const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const pkgJsonPath = resolve(root, match[1], 'package.json');
 

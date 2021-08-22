@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { createInstallationRequest } from '../api/create-installation-request';
-import { AppConfig } from '../interfaces/app-config';
+import { createInstallationRequest } from '../functions/create-installation-request';
+import { AppConfig } from '../interfaces/installation-impl';
 import {
   InProgressInstallationEntry,
   InstallationEntry,

@@ -41,7 +41,6 @@ export const testConfig: {
       '@firebase/rules-unit-testing',
       '@firebase/auth',
       'firebase',
-      'firebase-exp'
     ]
   },
   'firestore': {

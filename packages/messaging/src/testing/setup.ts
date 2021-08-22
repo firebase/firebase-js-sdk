@@ -18,7 +18,7 @@
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
-import { dbDelete } from '../helpers/idb-manager';
+import { dbDelete } from '../internals/idb-manager';
 import { deleteDb } from 'idb';
 import { restore } from 'sinon';
 import { use } from 'chai';

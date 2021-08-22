@@ -70,6 +70,9 @@ export class StringData {
   }
 }
 
+/**
+ * @internal
+ */
 export function dataFromString(
   format: StringFormat,
   stringData: string

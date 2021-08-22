@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,15 @@ import * as iidService from './iid_service';
 import { expect } from 'chai';
 import { Api, setupApi } from './api_service';
 import { SettingsService } from './settings_service';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import * as initializationService from './initialization_service';
 import { SDK_VERSION } from '../constants';
 import * as attributeUtils from '../utils/attributes_utils';
 import { createNetworkRequestEntry } from '../resources/network_request';
 import '../../test/setup';
 import { mergeStrings } from '../utils/string_merger';
+import { FirebaseInstallations } from '@firebase/installations-types';
+import { PerformanceController } from '../controllers/perf';
 
 describe('Performance Monitoring > perf_logger', () => {
   const IID = 'idasdfsffe';
@@ -68,6 +70,15 @@ describe('Performance Monitoring > perf_logger', () => {
   }
 
   setupApi(self);
+  const fakeFirebaseApp = ({
+    options: { appId: APP_ID }
+  } as unknown) as FirebaseApp;
+
+  const fakeInstallations = ({} as unknown) as FirebaseInstallations;
+  const performanceController = new PerformanceController(
+    fakeFirebaseApp,
+    fakeInstallations
+  );
 
   beforeEach(() => {
     getIidStub = stub(iidService, 'getIid');
@@ -81,9 +92,6 @@ describe('Performance Monitoring > perf_logger', () => {
     stub(attributeUtils, 'getServiceWorkerStatus').returns(
       SERVICE_WORKER_STATUS
     );
-    SettingsService.prototype.firebaseAppInstance = ({
-      options: { appId: APP_ID }
-    } as unknown) as FirebaseApp;
     clock = useFakeTimers();
   });
 
@@ -102,7 +110,7 @@ describe('Performance Monitoring > perf_logger', () => {
         initializationPromise
       );
 
-      const trace = new Trace(TRACE_NAME);
+      const trace = new Trace(performanceController, TRACE_NAME);
       trace.record(START_TIME, DURATION);
       await initializationPromise.then(() => {
         clock.tick(1);
@@ -123,7 +131,7 @@ describe('Performance Monitoring > perf_logger', () => {
       stub(initializationService, 'isPerfInitialized').returns(true);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
-      const trace = new Trace(TRACE_NAME);
+      const trace = new Trace(performanceController, TRACE_NAME);
       trace.putAttribute('attr', 'val');
       trace.putMetric('counter1', 3);
       trace.record(START_TIME, DURATION);
@@ -139,7 +147,7 @@ describe('Performance Monitoring > perf_logger', () => {
       stub(Api.prototype, 'requiredApisAvailable').returns(false);
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
       stub(initializationService, 'isPerfInitialized').returns(true);
-      const trace = new Trace(TRACE_NAME);
+      const trace = new Trace(performanceController, TRACE_NAME);
       trace.record(START_TIME, DURATION);
       clock.tick(1);
 
@@ -163,7 +171,7 @@ describe('Performance Monitoring > perf_logger', () => {
       stub(initializationService, 'isPerfInitialized').returns(true);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
-      const trace = new Trace(TRACE_NAME);
+      const trace = new Trace(performanceController, TRACE_NAME);
       for (let i = 1; i <= 32; i++) {
         trace.putMetric('counter' + i, i);
       }
@@ -188,7 +196,7 @@ describe('Performance Monitoring > perf_logger', () => {
       stub(initializationService, 'isPerfInitialized').returns(true);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
-      const trace = new Trace(TRACE_NAME);
+      const trace = new Trace(performanceController, TRACE_NAME);
       for (let i = 1; i <= 5; i++) {
         trace.putAttribute('attr' + i, 'val' + i);
       }
@@ -263,7 +271,12 @@ describe('Performance Monitoring > perf_logger', () => {
         firstContentfulPaint
       ];
 
-      Trace.createOobTrace(navigationTimings, paintTimings, 90);
+      Trace.createOobTrace(
+        performanceController,
+        navigationTimings,
+        paintTimings,
+        90
+      );
       clock.tick(1);
 
       expect(addToQueueStub).to.be.called;
@@ -322,7 +335,10 @@ describe('Performance Monitoring > perf_logger', () => {
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;
       // Calls logNetworkRequest under the hood.
-      createNetworkRequestEntry(RESOURCE_PERFORMANCE_ENTRY);
+      createNetworkRequestEntry(
+        performanceController,
+        RESOURCE_PERFORMANCE_ENTRY
+      );
       clock.tick(1);
 
       expect(addToQueueStub).to.be.called;
@@ -363,7 +379,10 @@ describe('Performance Monitoring > perf_logger', () => {
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;
       // Calls logNetworkRequest under the hood.
-      createNetworkRequestEntry(CC_NETWORK_PERFORMANCE_ENTRY);
+      createNetworkRequestEntry(
+        performanceController,
+        CC_NETWORK_PERFORMANCE_ENTRY
+      );
       clock.tick(1);
 
       expect(addToQueueStub).not.called;
@@ -404,7 +423,10 @@ describe('Performance Monitoring > perf_logger', () => {
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;
       // Calls logNetworkRequest under the hood.
-      createNetworkRequestEntry(FL_NETWORK_PERFORMANCE_ENTRY);
+      createNetworkRequestEntry(
+        performanceController,
+        FL_NETWORK_PERFORMANCE_ENTRY
+      );
       clock.tick(1);
 
       expect(addToQueueStub).not.called;

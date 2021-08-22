@@ -3,7 +3,6 @@
   "npmClient": "yarn",
   "packages": [
     "packages/*",
-    "packages-exp/*",
     "integration/*",
     "repo-scripts/*"
   ],

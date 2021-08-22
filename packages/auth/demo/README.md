@@ -1,4 +1,4 @@
-# Firebase-Auth for web - Auth Demo
+# Firebase-Auth for web - Auth Demo (Auth Next)
 
 ## Prerequisite
 
@@ -30,10 +30,10 @@ firebase use --add
 Select the project you have created in the prerequisite, and type in `default` or
 any other name as the alias to use for this project.
 
-Copy `public/sample-config.js` to `public/config.js`:
+Copy `src/sample-config.js` to `src/config.js`:
 
 ```bash
-cp public/sample-config.js public/config.js
+cp src/sample-config.js src/config.js
 ```
 
 Then copy and paste the Web snippet config found in the console (either by clicking "Add Firebase to
@@ -42,10 +42,14 @@ in the `config.js` file.
 
 ## Deploy
 
-### Option 1: Compile and use local Firebase Auth files
+Before deploying, you may need to build the auth package:
+```bash
+yarn build:deps
+```
 
-To deploy the demo app, run the following command in the root directory of Firebase Auth (use `cd ..`
-first if you are still in the `demo/` folder):
+This can take some time, and you only need to do it if you've modified the auth package.
+
+To run the app locally, simply issue the following command in the `auth/demo` directory:
 
 ```bash
 yarn run demo
@@ -54,28 +58,3 @@ yarn run demo
 This will compile all the files needed to run Firebase Auth, and start a Firebase server locally at
 [http://localhost:5000](http://localhost:5000).
 
-### Option 2: Use CDN hosted Firebase files
-
-If you would prefer to use a CDN instead of locally compiled Firebase Auth files, you can instead
-locate the following in the `<head>` tag of `public/index.html`:
-
-```html
-    <script src="dist/firebase-app.js"></script>
-    <script src="dist/firebase-auth.js"></script>
-    <script src="dist/firebase-database.js"></script>
-```
-
-Then replace that with the public CDN:
-
-```html
-    <script src="https://www.gstatic.com/firebasejs/4.6.0/firebase.js"></script>
-```
-
-Finally, ensure you are in the `demo/` folder (and not the root directory of Firebase Auth package),
-and run:
-
-```bash
-yarn run demo
-```
-
-This will start a Firebase server locally at [http://localhost:5000](http://localhost:5000).

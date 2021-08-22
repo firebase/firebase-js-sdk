@@ -20,10 +20,10 @@ import {
   EXCHANGE_DEBUG_TOKEN_METHOD,
   EXCHANGE_RECAPTCHA_TOKEN_METHOD
 } from './constants';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { Provider } from '@firebase/component';
-import { AppCheckTokenInternal } from './state';
+import { AppCheckTokenInternal } from './types';
 
 /**
  * Response JSON returned from AppCheck server endpoint.

@@ -15,35 +15,19 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { AppCheckToken, AppCheckTokenResult } from '@firebase/app-check-types';
-import { AppCheckTokenListener } from '@firebase/app-check-interop-types';
+import { FirebaseApp } from '@firebase/app';
+import {
+  AppCheckProvider,
+  AppCheckTokenInternal,
+  AppCheckTokenObserver
+} from './types';
 import { Refresher } from './proactive-refresh';
-import { Deferred, PartialObserver } from '@firebase/util';
+import { Deferred } from '@firebase/util';
 import { GreCAPTCHA } from './recaptcha';
-import { AppCheckProviderInternal } from './providers';
-
-export interface AppCheckTokenInternal extends AppCheckToken {
-  issuedAtTimeMillis: number;
-}
-
-export interface AppCheckTokenObserver
-  extends PartialObserver<AppCheckTokenResult> {
-  // required
-  next: AppCheckTokenListener;
-  type: ListenerType;
-}
-
-export const enum ListenerType {
-  'INTERNAL' = 'INTERNAL',
-  'EXTERNAL' = 'EXTERNAL'
-}
-
 export interface AppCheckState {
   activated: boolean;
   tokenObservers: AppCheckTokenObserver[];
-  provider?: AppCheckProviderInternal;
-  siteKey?: string;
+  provider?: AppCheckProvider;
   token?: AppCheckTokenInternal;
   cachedTokenPromise?: Promise<AppCheckTokenInternal | undefined>;
   tokenRefresher?: Refresher;
@@ -58,7 +42,6 @@ export interface ReCAPTCHAState {
 
 export interface DebugState {
   enabled: boolean;
-  // This is the debug token string the user interacts with.
   token?: Deferred<string>;
 }
 

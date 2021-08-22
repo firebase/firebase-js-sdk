@@ -1,8 +1,0 @@
-{
-  "name": "firebase-exp/auth/react-native",
-  "main": "dist/index.cjs",
-  "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "typings": "dist/auth/react-native/index.d.ts",
-  "type": "module"
-}

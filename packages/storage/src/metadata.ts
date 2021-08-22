@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FullMetadata } from '../exp/public-types';
+import { FullMetadata } from './public-types';
 
 /**
  * @fileoverview Documentation for the metadata format.

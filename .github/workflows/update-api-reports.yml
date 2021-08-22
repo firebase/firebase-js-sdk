@@ -21,7 +21,8 @@ jobs:
     - name: Yarn install
       run: yarn
     - name: Update API reports
-      run: yarn ts-node-script scripts/exp/update-api-reports.ts
+      # API reports are generated as part of the build
+      run: yarn build
       id: update-api-reports
     - name: Commit & Push changes
       uses: EndBug/add-and-commit@v7

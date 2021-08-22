@@ -15,37 +15,25 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { issuedAtTime } from '@firebase/util';
-import { CustomProviderOptions } from '../../app-check-types';
 import { exchangeToken, getExchangeRecaptchaTokenRequest } from './client';
-import { ERROR_FACTORY, AppCheckError } from './errors';
+import { AppCheckError, ERROR_FACTORY } from './errors';
+import { CustomProviderOptions } from './public-types';
 import {
   getToken as getReCAPTCHAToken,
   initialize as initializeRecaptcha
 } from './recaptcha';
-import { AppCheckTokenInternal } from './state';
-
-export interface AppCheckProviderInternal {
-  /**
-   * Returns an AppCheck token.
-   */
-  getToken(): Promise<AppCheckTokenInternal>;
-  /**
-   * Initialize the class once app and platformLoggerProvider are available.
-   */
-  initialize(
-    app: FirebaseApp,
-    platformLoggerProvider: Provider<'platform-logger'>
-  ): void;
-}
+import { AppCheckProvider, AppCheckTokenInternal } from './types';
 
 /**
  * App Check provider that can obtain a reCAPTCHA V3 token and exchange it
  * for an App Check token.
+ *
+ * @public
  */
-export class ReCaptchaV3Provider implements AppCheckProviderInternal {
+export class ReCaptchaV3Provider implements AppCheckProvider {
   private _app?: FirebaseApp;
   private _platformLoggerProvider?: Provider<'platform-logger'>;
   /**
@@ -53,6 +41,7 @@ export class ReCaptchaV3Provider implements AppCheckProviderInternal {
    * @param siteKey - ReCAPTCHA V3 siteKey.
    */
   constructor(private _siteKey: string) {}
+
   /**
    * Returns an App Check token.
    * @internal
@@ -66,35 +55,44 @@ export class ReCaptchaV3Provider implements AppCheckProviderInternal {
         appName: ''
       });
     }
-    let attestedClaimsToken;
-    try {
-      attestedClaimsToken = await getReCAPTCHAToken(this._app);
-    } catch (e) {
+    const attestedClaimsToken = await getReCAPTCHAToken(this._app).catch(_e => {
       // reCaptcha.execute() throws null which is not very descriptive.
       throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
-    }
+    });
     return exchangeToken(
       getExchangeRecaptchaTokenRequest(this._app, attestedClaimsToken),
       this._platformLoggerProvider
     );
   }
 
-  initialize(
-    app: FirebaseApp,
-    platformLoggerProvider: Provider<'platform-logger'>
-  ): void {
+  /**
+   * @internal
+   */
+  initialize(app: FirebaseApp): void {
     this._app = app;
-    this._platformLoggerProvider = platformLoggerProvider;
+    this._platformLoggerProvider = _getProvider(app, 'platform-logger');
     initializeRecaptcha(app, this._siteKey).catch(() => {
       /* we don't care about the initialization result */
     });
+  }
+
+  /**
+   * @internal
+   */
+  isEqual(otherProvider: unknown): boolean {
+    if (otherProvider instanceof ReCaptchaV3Provider) {
+      return this._siteKey === otherProvider._siteKey;
+    } else {
+      return false;
+    }
   }
 }
 
 /**
  * Custom provider class.
+ * @public
  */
-export class CustomProvider implements AppCheckProviderInternal {
+export class CustomProvider implements AppCheckProvider {
   private _app?: FirebaseApp;
 
   constructor(private _customProviderOptions: CustomProviderOptions) {}
@@ -133,5 +131,19 @@ export class CustomProvider implements AppCheckProviderInternal {
    */
   initialize(app: FirebaseApp): void {
     this._app = app;
+  }
+
+  /**
+   * @internal
+   */
+  isEqual(otherProvider: unknown): boolean {
+    if (otherProvider instanceof CustomProvider) {
+      return (
+        this._customProviderOptions.getToken.toString() ===
+        otherProvider._customProviderOptions.getToken.toString()
+      );
+    } else {
+      return false;
+    }
   }
 }

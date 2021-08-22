@@ -1,0 +1,1 @@
+# @firebase/messaging-interop-types
