@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import { getStorage } from '../../src/index';
 import { FirebaseStorageImpl } from '../../src/service';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp, deleteApp } from '@firebase/app-exp';
+import { initializeApp, deleteApp } from '@firebase/app';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../config/project.json');

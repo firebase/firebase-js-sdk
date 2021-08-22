@@ -25,7 +25,7 @@ import {
   _registerComponent,
   registerVersion,
   SDK_VERSION
-} from '@firebase/app-exp';
+} from '@firebase/app';
 
 import { ConnectionPool } from '../src/implementation/connectionPool';
 import { FirebaseStorageImpl } from '../src/service';
@@ -48,7 +48,7 @@ function factory(
   container: ComponentContainer,
   { instanceIdentifier: url }: InstanceFactoryOptions
 ): FirebaseStorage {
-  const app = container.getProvider('app-exp').getImmediate();
+  const app = container.getProvider('app').getImmediate();
   const authProvider = container.getProvider('auth-internal');
   const appCheckProvider = container.getProvider('app-check-internal');
 

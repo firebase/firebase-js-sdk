@@ -18,7 +18,7 @@
 import '../testing/setup';
 
 import { AppConfig } from '../interfaces/app-config';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import { expect } from 'chai';
 import { extractAppConfig } from './extract-app-config';
 import { getFakeApp } from '../testing/fakes/firebase-dependencies';
@@ -42,14 +42,12 @@ describe('extractAppConfig', () => {
     ).to.throw('Missing App configuration value: "App Configuration Object"');
 
     let firebaseApp = getFakeApp();
-    // @ts-expect-error
     delete firebaseApp.options;
     expect(() => extractAppConfig(firebaseApp)).to.throw(
       'Missing App configuration value: "App Configuration Object"'
     );
 
     firebaseApp = getFakeApp();
-    // @ts-expect-error
     delete firebaseApp.name;
     expect(() => extractAppConfig(firebaseApp)).to.throw(
       'Missing App configuration value: "App Name"'

@@ -18,7 +18,6 @@
 import { spawn } from 'child-process-promise';
 import { mapWorkspaceToPackages } from '../release/utils/workspace';
 import { projectRoot } from '../utils';
-import { removeExpSuffix } from './remove-exp';
 import fs from 'fs';
 import glob from 'glob';
 import * as yargs from 'yargs';
@@ -39,37 +38,9 @@ async function generateDocs(forDevsite: boolean = false) {
   const outputFolder = forDevsite ? 'docs-devsite' : 'docs-exp';
   const command = forDevsite ? 'api-documenter-devsite' : 'api-documenter';
 
-  // TODO: change yarn command once exp packages become official
-  await spawn('yarn', ['lerna', 'run', '--scope', '@firebase/*-exp', 'build'], {
+  await spawn('yarn', ['build'], {
     stdio: 'inherit'
   });
-
-  // build storage-exp
-  await spawn(
-    'yarn',
-    ['lerna', 'run', '--scope', '@firebase/storage', 'build:exp'],
-    {
-      stdio: 'inherit'
-    }
-  );
-
-  // build database-exp
-  await spawn(
-    'yarn',
-    ['lerna', 'run', '--scope', '@firebase/database', 'build:exp'],
-    {
-      stdio: 'inherit'
-    }
-  );
-
-  // generate public typings for firestore
-  await spawn(
-    'yarn',
-    ['lerna', 'run', '--scope', '@firebase/firestore', 'prebuild'],
-    {
-      stdio: 'inherit'
-    }
-  );
 
   await spawn('yarn', ['api-report'], {
     stdio: 'inherit'
@@ -82,8 +53,7 @@ async function generateDocs(forDevsite: boolean = false) {
   // TODO: Throw error if path doesn't exist once all packages add markdown support.
   const apiJsonDirectories = (
     await mapWorkspaceToPackages([
-      `${projectRoot}/packages/*`,
-      `${projectRoot}/packages-exp/*`
+      `${projectRoot}/packages/*`
     ])
   )
     .map(path => `${path}/temp`)
@@ -106,8 +76,6 @@ async function generateDocs(forDevsite: boolean = false) {
     fs.copyFileSync(paths[0], `${tmpDir}/${fileName}`);
   }
 
-  // Generate docs without the -exp suffix
-  removeExpSuffix(tmpDir);
   await spawn(
     'yarn',
     [command, 'markdown', '--input', 'temp', '--output', outputFolder],

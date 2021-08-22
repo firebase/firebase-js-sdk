@@ -18,7 +18,7 @@
 import '../test/setup';
 import { expect } from 'chai';
 import { stub, SinonStub, useFakeTimers } from 'sinon';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import { getFakeApp, getFakePlatformLoggingProvider } from '../test/util';
 import { getExchangeRecaptchaTokenRequest, exchangeToken } from './client';
 import { FirebaseError } from '@firebase/util';

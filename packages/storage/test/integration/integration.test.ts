@@ -16,9 +16,9 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app-exp';
+import { initializeApp, deleteApp, FirebaseApp } from '@firebase/app';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { getAuth, signInAnonymously } from '@firebase/auth-exp';
+import { getAuth, signInAnonymously } from '@firebase/auth';
 import {
   getDownloadURL,
   getStorage,

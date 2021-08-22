@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
  * @fileoverview Utilities for Auth test app features.
  */
 
-
 /**
  * Initializes the widget for toggling reCAPTCHA size.
  * @param {function(string):void} callback The callback to call when the
@@ -28,7 +27,7 @@
 function initRecaptchaToggle(callback) {
   // Listen to recaptcha config togglers.
   var $recaptchaConfigTogglers = $('.toggleRecaptcha');
-  $recaptchaConfigTogglers.click(function(e) {
+  $recaptchaConfigTogglers.click(function (e) {
     // Remove currently active option.
     $recaptchaConfigTogglers.removeClass('active');
     // Set currently selected option.
@@ -41,14 +40,16 @@ function initRecaptchaToggle(callback) {
 
 // Install servicerWorker if supported.
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js', {scope: '/'})
-      .then(function(reg) {
-        // Registration worked.
-        console.log('Registration succeeded. Scope is ' + reg.scope);
-      }).catch(function(error) {
-        // Registration failed.
-        console.log('Registration failed with ' + error.message);
-      });
+  navigator.serviceWorker
+    .register('/service-worker.js', { scope: '/' })
+    .then(function (reg) {
+      // Registration worked.
+      console.log('Registration succeeded. Scope is ' + reg.scope);
+    })
+    .catch(function (error) {
+      // Registration failed.
+      console.log('Registration failed with ' + error.message);
+    });
 }
 
 var webWorker = null;
@@ -58,12 +59,13 @@ if (window.Worker) {
    * Handles the incoming message from the web worker.
    * @param {!Object} e The message event received.
    */
-  webWorker.onmessage = function(e) {
-    console.log('User data passed through web worker: ',  e.data);
+  webWorker.onmessage = function (e) {
+    console.log('User data passed through web worker: ', e.data);
     switch (e.data.type) {
       case 'GET_USER_INFO':
         alertSuccess(
-            'User data passed through web worker: ' + JSON.stringify(e.data));
+          'User data passed through web worker: ' + JSON.stringify(e.data)
+        );
         break;
       case 'RUN_TESTS':
         if (e.data.status == 'success') {
@@ -84,7 +86,7 @@ if (window.Worker) {
  */
 function onGetCurrentUserDataFromWebWorker() {
   if (webWorker) {
-    webWorker.postMessage({type: 'GET_USER_INFO'});
+    webWorker.postMessage({ type: 'GET_USER_INFO' });
   } else {
     alertError('Error: Web workers are not supported in the current browser!');
   }

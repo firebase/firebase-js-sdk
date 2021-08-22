@@ -15,41 +15,38 @@
  * limitations under the License.
  */
 
-import { Service } from './api/service';
+import { _registerComponent } from '@firebase/app';
+import { FunctionsService } from './service';
 import {
   Component,
   ComponentType,
   ComponentContainer,
-  InstanceFactoryOptions
+  InstanceFactory
 } from '@firebase/component';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { FUNCTIONS_TYPE } from './constants';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { MessagingInternalComponentName } from '@firebase/messaging-interop-types';
 
-/**
- * Type constant for Firebase Functions.
- */
-const FUNCTIONS_TYPE = 'functions';
+const AUTH_INTERNAL_NAME: FirebaseAuthInternalName = 'auth-internal';
+const APP_CHECK_INTERNAL_NAME: AppCheckInternalComponentName =
+  'app-check-internal';
+const MESSAGING_INTERNAL_NAME: MessagingInternalComponentName =
+  'messaging-internal';
 
-export function registerFunctions(
-  instance: _FirebaseNamespace,
-  fetchImpl: typeof fetch
-): void {
-  const namespaceExports = {
-    // no-inline
-    Functions: Service
-  };
-
-  function factory(
+export function registerFunctions(fetchImpl: typeof fetch): void {
+  const factory: InstanceFactory<'functions'> = (
     container: ComponentContainer,
-    { instanceIdentifier: regionOrCustomDomain }: InstanceFactoryOptions
-  ): Service {
+    { instanceIdentifier: regionOrCustomDomain }
+  ) => {
     // Dependencies
     const app = container.getProvider('app').getImmediate();
-    const authProvider = container.getProvider('auth-internal');
-    const appCheckProvider = container.getProvider('app-check-internal');
-    const messagingProvider = container.getProvider('messaging');
+    const authProvider = container.getProvider(AUTH_INTERNAL_NAME);
+    const messagingProvider = container.getProvider(MESSAGING_INTERNAL_NAME);
+    const appCheckProvider = container.getProvider(APP_CHECK_INTERNAL_NAME);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new Service(
+    return new FunctionsService(
       app,
       authProvider,
       messagingProvider,
@@ -57,10 +54,13 @@ export function registerFunctions(
       regionOrCustomDomain,
       fetchImpl
     );
-  }
-  instance.INTERNAL.registerComponent(
-    new Component(FUNCTIONS_TYPE, factory, ComponentType.PUBLIC)
-      .setServiceProps(namespaceExports)
-      .setMultipleInstances(true)
+  };
+
+  _registerComponent(
+    new Component(
+      FUNCTIONS_TYPE,
+      factory,
+      ComponentType.PUBLIC
+    ).setMultipleInstances(true)
   );
 }

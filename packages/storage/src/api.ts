@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { _getProvider, FirebaseApp, getApp } from '@firebase/app-exp';
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 
 import {
   ref as refInternal,

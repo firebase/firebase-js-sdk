@@ -35,6 +35,7 @@
 
 # Database Code
 packages/database @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
+packages/database-compat @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
 packages/database-types @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
 
 # Firestore Code
@@ -45,36 +46,50 @@ integration/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approv
 
 # Storage Code
 packages/storage  @schmidt-sebastian @firebase/jssdk-global-approvers
+packages/storage-compat  @schmidt-sebastian @firebase/jssdk-global-approvers
 packages/storage-types  @schmidt-sebastian @firebase/jssdk-global-approvers
 
 # Messaging Code
 packages/messaging  @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
+packages/messaging-compat  @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
 packages/messaging-types @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
+packages/messaging-interop-types @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
 integration/messaging @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
 
 # Auth Code
 packages/auth  @bojeil-google @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
+packages/auth-compat @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
 packages/auth-types  @bojeil-google @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
+packages/auth-interop-types  @bojeil-google @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
 
 # Testing Code
-packages/testing  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
 packages/rules-unit-testing  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
 
 # Installations
-packages/installations @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
-packages/installations-types @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
+packages/installations @avolkovi @yoyomyo @firebase/jssdk-global-approvers
+packages/installations-compat @avolkovi @yoyomyo @firebase/jssdk-global-approvers
+packages/installations-types @avolkovi @yoyomyo @firebase/jssdk-global-approvers
 
 # Performance Code
-packages/performance  @alikn @zijianjoy @firebase/jssdk-global-approvers
-packages/performance-types  @alikn @zijianjoy @firebase/jssdk-global-approvers
+packages/performance @jposuna @firebase/jssdk-global-approvers
+packages/performance-compat @jposuna @firebase/jssdk-global-approvers
+packages/performance-types @jposuna @firebase/jssdk-global-approvers
 
 # Analytics Code
 packages/analytics @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
+packages/analytics-compat @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
 packages/analytics-types @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
 
 # Remote Config Code
 packages/remote-config @erikeldridge @firebase/jssdk-global-approvers
+packages/remote-config-compat  @erikeldridge @firebase/jssdk-global-approvers
 packages/remote-config-types @erikeldridge @firebase/jssdk-global-approvers
+
+# App Check Code
+packages/app-check @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
+packages/app-check-compat @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
+packages/app-check-types @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
+packages/app-check-interop-types @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
 
 # Documentation Changes
 packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
@@ -82,19 +97,3 @@ scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
 
 # Changeset
 .changeset @egilmorez @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers
-
-# Auth-Exp Code
-packages-exp/auth-exp  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
-packages-exp/auth-compat-exp @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
-
-# Installations-Exp Code
-packages/installations-exp @avolkovi @yoyomyo @firebase/jssdk-global-approvers
-packages/installations-types-exp @avolkovi @yoyomyo @firebase/jssdk-global-approvers
-
-# Perf-Exp Code
-packages/performance-exp  @alikn @zijianjoy @firebase/jssdk-global-approvers
-packages/performance-types-exp  @alikn @zijianjoy @firebase/jssdk-global-approvers
-
-# RC-Exp Code
-packages/remote-config-exp  @erikeldridge @firebase/jssdk-global-approvers
-packages/remote-config-compat  @erikeldridge @firebase/jssdk-global-approvers

@@ -27,8 +27,7 @@
 
 // Not the whole interface, just the parts we're currently using. If TS claims that something does
 // not exist on this, feel free to add it.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface ServiceWorkerGlobalScope {
+export interface ServiceWorkerGlobalScope {
   readonly location: WorkerLocation;
   readonly clients: Clients;
   readonly registration: ServiceWorkerRegistration;
@@ -42,62 +41,45 @@ interface ServiceWorkerGlobalScope {
   ): void;
 }
 
-// Only makes `clients` and `registration` optional because in tests, we reset them by calling
-// `delete` and TS2790 enforces The operand of a `delete'` operator must be optional.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface ServiceWorkerGlobalScopeForTesting {
-  readonly location: WorkerLocation;
-  readonly clients?: Clients;
-  readonly registration?: ServiceWorkerRegistration;
-  addEventListener<K extends keyof ServiceWorkerGlobalScopeEventMap>(
-    type: K,
-    listener: (
-      this: ServiceWorkerGlobalScope,
-      ev: ServiceWorkerGlobalScopeEventMap[K]
-    ) => any,
-    options?: boolean | AddEventListenerOptions
-  ): void;
-}
-
 // Same as the previous interface
-interface ServiceWorkerGlobalScopeEventMap {
+export interface ServiceWorkerGlobalScopeEventMap {
   notificationclick: NotificationEvent;
   push: PushEvent;
   pushsubscriptionchange: PushSubscriptionChangeEvent;
 }
 
-interface Client {
+export interface Client {
   readonly id: string;
   readonly type: ClientTypes;
   readonly url: string;
   postMessage(message: any, transfer?: Transferable[]): void;
 }
 
-interface ClientQueryOptions {
+export interface ClientQueryOptions {
   includeReserved?: boolean;
   includeUncontrolled?: boolean;
   type?: ClientTypes;
 }
 
-interface WindowClient extends Client {
+export interface WindowClient extends Client {
   readonly focused: boolean;
   readonly visibilityState: VisibilityState;
   focus(): Promise<WindowClient>;
   navigate(url: string): Promise<WindowClient>;
 }
 
-interface Clients {
+export interface Clients {
   claim(): Promise<void>;
   get(id: string): Promise<any>;
   matchAll(options?: ClientQueryOptions): Promise<Client[]>;
   openWindow(url: string): Promise<WindowClient | null>;
 }
 
-interface ExtendableEvent extends Event {
+export interface ExtendableEvent extends Event {
   waitUntil(f: Promise<any>): void;
 }
 
-interface NotificationEvent extends ExtendableEvent {
+export interface NotificationEvent extends ExtendableEvent {
   readonly action: string;
   readonly notification: Notification;
 }
@@ -109,11 +91,11 @@ interface PushMessageData {
   text(): string;
 }
 
-interface PushEvent extends ExtendableEvent {
+export interface PushEvent extends ExtendableEvent {
   readonly data: PushMessageData | null;
 }
 
-interface PushSubscriptionChangeEvent extends ExtendableEvent {
+export interface PushSubscriptionChangeEvent extends ExtendableEvent {
   readonly newSubscription: PushSubscription | null;
   readonly oldSubscription: PushSubscription | null;
 }

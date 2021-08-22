@@ -79,7 +79,7 @@ async function getDiffData(): Promise<{
       changesetFile = changesetMatch[0];
     }
     // Check for changed files inside package dirs.
-    const pkgMatch = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
+    const pkgMatch = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
     if (pkgMatch && pkgMatch[1]) {
       // skip packages without package.json
       // It could happen when we rename a package or remove a package from the repo
