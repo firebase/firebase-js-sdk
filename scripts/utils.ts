@@ -41,7 +41,7 @@ export async function getChangedPackages(
   const files = changedFiles || (await getChangedFiles());
   for (const filename of files) {
     // Check for changed files inside package dirs.
-    const match = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
+    const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const changedPackage = require(resolve(
         projectRoot,
