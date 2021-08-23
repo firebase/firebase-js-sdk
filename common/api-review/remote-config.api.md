@@ -44,6 +44,7 @@ export type LogLevel = 'debug' | 'error' | 'silent';
 
 // @public
 export interface RemoteConfig {
+    app: FirebaseApp;
     defaultConfig: {
         [key: string]: string | number | boolean;
     };

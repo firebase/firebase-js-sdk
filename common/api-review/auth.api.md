@@ -80,6 +80,7 @@ export function applyActionCode(auth: Auth, oobCode: string): Promise<void>;
 
 // @public
 export interface Auth {
+    readonly app: FirebaseApp;
     readonly config: Config;
     readonly currentUser: User | null;
     readonly emulatorConfig: EmulatorConfig | null;

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { FirebaseApp } from '@firebase/app';
+
 /**
  * Display notification details. They are sent through the
  * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification | Send API}
@@ -131,7 +133,12 @@ export interface GetTokenOptions {
  *
  * @public
  */
-export interface Messaging {}
+export interface Messaging {
+  /**
+   * The {@link @firebase/app#FirebaseApp} this `Messaging` instance is associated with.
+   */
+  app: FirebaseApp;
+}
 
 /**
  * @internal

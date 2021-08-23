@@ -32,6 +32,7 @@ export type IdChangeUnsubscribeFn = () => void;
 
 // @public
 export interface Installations {
+    app: FirebaseApp;
 }
 
 // @public

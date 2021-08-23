@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { FirebaseApp } from '@firebase/app';
+
 /**
  * Defines configuration options for the Performance Monitoring SDK.
  *
@@ -34,6 +36,11 @@ export interface PerformanceSettings {
  * @public
  */
 export interface FirebasePerformance {
+  /**
+   * The {@link @firebase/app#FirebaseApp} this `FirebasePerformance` instance is associated with.
+   */
+  app: FirebaseApp;
+
   /**
    * Controls the logging of automatic traces and HTTP/S network monitoring.
    */
