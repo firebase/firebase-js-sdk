@@ -31,7 +31,7 @@ import {
  */
 export interface FirebaseStorage extends _FirebaseService {
   /**
-   * FirebaseApp associated with this StorageService instance.
+   * The {@link @firebase/app#FirebaseApp} associated with this `FirebaseStorage` instance.
    */
   readonly app: FirebaseApp;
 

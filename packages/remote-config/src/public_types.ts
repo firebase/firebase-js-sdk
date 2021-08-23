@@ -15,12 +15,18 @@
  * limitations under the License.
  */
 
+import { FirebaseApp } from '@firebase/app';
+
 /**
  * The Firebase Remote Config service interface.
  *
  * @public
  */
 export interface RemoteConfig {
+  /**
+   * The {@link @firebase/app#FirebaseApp} this `RemoteConfig` instance is associated with.
+   */
+  app: FirebaseApp;
   /**
    * Defines configuration for the Remote Config SDK.
    */

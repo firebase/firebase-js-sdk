@@ -8,6 +8,7 @@ import { FirebaseApp } from '@firebase/app';
 
 // @public
 export interface FirebasePerformance {
+    app: FirebaseApp;
     dataCollectionEnabled: boolean;
     instrumentationEnabled: boolean;
 }

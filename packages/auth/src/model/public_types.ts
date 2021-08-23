@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseApp } from '@firebase/app';
 import {
   CompleteFn,
   ErrorFn,
@@ -170,12 +171,14 @@ export interface AuthSettings {
  * @public
  */
 export interface Auth {
-  /** The name of the app associated with the Auth service instance. */
+  /** The {@link @firebase/app#FirebaseApp} associated with the `Auth` service instance. */
+  readonly app: FirebaseApp;
+  /** The name of the app associated with the `Auth` service instance. */
   readonly name: string;
   /** The {@link Config} used to initialize this instance. */
   readonly config: Config;
   /**
-   * Changes the type of persistence on the {@link Auth} instance.
+   * Changes the type of persistence on the `Auth` instance.
    *
    * @remarks
    * This will affect the currently saved Auth session and applies this type of persistence for

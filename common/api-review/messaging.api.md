@@ -47,6 +47,7 @@ export interface MessagePayload {
 
 // @public
 export interface Messaging {
+    app: FirebaseApp;
 }
 
 export { NextFn }
