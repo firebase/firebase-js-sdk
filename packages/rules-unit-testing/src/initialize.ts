@@ -21,7 +21,15 @@ import {
   discoverEmulators,
   getEmulatorHostAndPort
 } from './impl/discovery';
-import { RulesTestEnvironmentImpl } from './impl/test_environment';
+import {
+  assertEmulatorRunning,
+  RulesTestEnvironmentImpl
+} from './impl/test_environment';
+import {
+  loadDatabaseRules,
+  loadFirestoreRules,
+  loadStorageRules
+} from './impl/rules';
 
 /**
  * Initializes a test environment for rules unit testing. Call this function first for test setup.
@@ -73,7 +81,19 @@ export async function initializeTestEnvironment(
     }
   }
 
-  // TODO: Set security rules.
+  if (config.database?.rules) {
+    assertEmulatorRunning(emulators, 'database');
+    loadDatabaseRules(emulators.database, projectId, config.database.rules);
+  }
+  if (config.firestore?.rules) {
+    assertEmulatorRunning(emulators, 'firestore');
+    loadFirestoreRules(emulators.firestore, projectId, config.firestore.rules);
+  }
+  if (config.storage?.rules) {
+    assertEmulatorRunning(emulators, 'storage');
+    loadStorageRules(emulators.storage, config.storage.rules);
+  }
+
   return new RulesTestEnvironmentImpl(projectId, emulators);
 }
 

@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
-import { assertFails, assertSucceeds } from '../src/util';
+import { expect } from 'chai';
+import * as sinon from 'sinon';
+import {
+  assertFails,
+  assertSucceeds,
+  withFunctionTriggersDisabled
+} from '../src/util';
+import { restoreEnvVars, stashEnvVars } from './test_utils';
 
 describe('assertSucceeds()', () => {
   it('returns a fulfilled promise iff success', async function () {
@@ -153,5 +160,45 @@ describe('assertFails()', () => {
         throw new Error('Expected otherFailure to fail.');
       })
       .catch(() => {});
+  });
+});
+
+describe('withFunctionTriggersDisabled()', () => {
+  it('disabling function triggers does not throw, returns value', async function () {
+    const fetchSpy = sinon.spy(require('node-fetch'), 'default');
+
+    const res = await withFunctionTriggersDisabled(() => {
+      return Promise.resolve(1234);
+    });
+
+    expect(res).to.eq(1234);
+    expect(fetchSpy.callCount).to.equal(2);
+  });
+
+  it('disabling function triggers always re-enables, event when the function throws', async function () {
+    const fetchSpy = sinon.spy(require('node-fetch'), 'default');
+
+    const res = withFunctionTriggersDisabled(() => {
+      throw new Error('I throw!');
+    });
+
+    await expect(res).to.eventually.be.rejectedWith('I throw!');
+    expect(fetchSpy.callCount).to.equal(2);
+  });
+
+  context('without env vars', () => {
+    beforeEach(() => {
+      stashEnvVars();
+    });
+    afterEach(() => {
+      restoreEnvVars();
+    });
+    it('throws if hub is not specified', async function () {
+      await expect(
+        withFunctionTriggersDisabled(() => {
+          return Promise.resolve(1234);
+        })
+      ).to.rejectedWith(/specify the Emulator Hub host and port/);
+    });
   });
 });

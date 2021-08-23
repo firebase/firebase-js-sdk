@@ -17,6 +17,7 @@
 
 import { EmulatorConfig, HostAndPort } from '../public_types';
 import nodeFetch from 'node-fetch';
+import { makeUrl, fixHostname } from './url';
 
 /**
  * Use the Firebase Emulator hub to discover other running emulators.
@@ -77,20 +78,6 @@ export interface DiscoveredEmulators {
   firestore?: HostAndPort;
   storage?: HostAndPort;
   hub?: HostAndPort;
-}
-
-function makeUrl(hostAndPort: HostAndPort | string, path: string): URL {
-  if (typeof hostAndPort === 'object') {
-    const { host, port } = hostAndPort;
-    if (host.includes(':')) {
-      hostAndPort = `[${host}]:${port}`;
-    } else {
-      hostAndPort = `${host}:${port}`;
-    }
-  }
-  const url = new URL(`http://${hostAndPort}/`);
-  url.pathname = path;
-  return url;
 }
 
 /**
@@ -168,22 +155,4 @@ function emulatorFromEnvVar(envVar: string): HostAndPort | undefined {
     );
   }
   return { host, port };
-}
-
-/**
- * Return a connectable hostname, replacing wildcard 0.0.0.0 or :: with loopback
- * addresses 127.0.0.1 / ::1 correspondingly. See below for why this is needed:
- * https://github.com/firebase/firebase-tools-ui/issues/286
- *
- * This assumes emulators are running on the same device as the Emulator UI
- * server, which should hold if both are started from the same CLI command.
- */
-function fixHostname(host: string, fallbackHost?: string): string {
-  host = host.replace('[', '').replace(']', ''); // Remove IPv6 brackets
-  if (host === '0.0.0.0') {
-    host = fallbackHost || '127.0.0.1';
-  } else if (host === '::') {
-    host = fallbackHost || '::1';
-  }
-  return host;
 }
