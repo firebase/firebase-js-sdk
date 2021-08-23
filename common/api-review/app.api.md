@@ -6,6 +6,7 @@
 
 import { Component } from '@firebase/component';
 import { ComponentContainer } from '@firebase/component';
+import { FirebaseError } from '@firebase/util';
 import { LogCallback } from '@firebase/logger';
 import { LogLevelString } from '@firebase/logger';
 import { LogOptions } from '@firebase/logger';
@@ -55,6 +56,8 @@ export interface FirebaseAppSettings {
     automaticDataCollectionEnabled?: boolean;
     name?: string;
 }
+
+export { FirebaseError }
 
 // @public
 export interface FirebaseOptions {
