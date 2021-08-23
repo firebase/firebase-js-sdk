@@ -1,6 +1,8 @@
 ---
 'firebase': major
 '@firebase/firestore': major
+'@firebase/firestore-compat': minor
+'@firebase/firestore-types': minor
 '@firebase/analytics': minor
 '@firebase/analytics-compat': minor
 '@firebase/analytics-types': minor
