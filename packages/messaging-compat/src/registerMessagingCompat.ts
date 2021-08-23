@@ -44,7 +44,7 @@ const messagingCompatFactory: InstanceFactory<'messaging-compat'> = (
     // in window
     return new MessagingCompatImpl(
       container.getProvider('app-compat').getImmediate(),
-      container.getProvider('messaging-exp').getImmediate()
+      container.getProvider('messaging').getImmediate()
     );
   }
 };
