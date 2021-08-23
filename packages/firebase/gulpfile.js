@@ -16,21 +16,23 @@
  */
 
 var gulp = require('gulp');
-var concat = require('gulp-concat');
 var sourcemaps = require('gulp-sourcemaps');
+const replace = require('gulp-replace');
 
-const OUTPUT_FILE = 'firebase.js';
 const pkgJson = require('./package.json');
 const files = pkgJson.components.map(component => {
   const componentName = component.replace('/', '-');
   return `firebase-${componentName}.js`;
 });
+const FIREBASE_APP_URL = `https://www.gstatic.com/firebasejs/${pkgJson.version}/firebase-app.js`;
 
-gulp.task('firebase-js', function () {
+gulp.task('cdn-type-module-path', function () {
   return gulp
     .src(files)
     .pipe(sourcemaps.init({ loadMaps: true }))
-    .pipe(concat(OUTPUT_FILE))
+    // gulp-replace doesn't work with gulp-sourcemaps, so no change is made to the existing sourcemap. 
+    // Therefore the sourcemap become slightly inaccurate
+    .pipe(replace('@firebase/app', FIREBASE_APP_URL))
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('.'));
 });

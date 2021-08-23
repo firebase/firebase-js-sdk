@@ -24,7 +24,6 @@ import resolveModule from '@rollup/plugin-node-resolve';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
-import alias from '@rollup/plugin-alias';
 
 const external = Object.keys(pkg.dependencies || {});
 const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
@@ -53,7 +52,8 @@ const appBuilds = [
     input: 'app/index.ts',
     output: [
       { file: resolve('app', appPkg.main), format: 'cjs', sourcemap: true },
-      { file: resolve('app', appPkg.module), format: 'es', sourcemap: true }
+      { file: resolve('app', appPkg.module), format: 'es', sourcemap: true },
+      { file: resolve('app', appPkg.browser), format: 'es', sourcemap: true }
     ],
     plugins: [...plugins, typescriptPlugin],
     external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -78,6 +78,11 @@ const componentBuilds = pkg.components
             file: resolve(component, pkg.module),
             format: 'es',
             sourcemap: true
+          },
+          {
+            file: resolve(component, pkg.browser),
+            format: 'es',
+            sourcemap: true
           }
         ],
         plugins: [...plugins, typescriptPlugin],
@@ -90,7 +95,6 @@ const componentBuilds = pkg.components
 /**
  * CDN script builds
  */
-const FIREBASE_APP_URL = `https://www.gstatic.com/firebasejs/${pkg.version}/firebase-app.js`;
 const cdnBuilds = [
   {
     input: 'app/index.cdn.ts',
@@ -117,14 +121,9 @@ const cdnBuilds = [
         },
         plugins: [
           ...plugins,
-          typescriptPluginCDN,
-          alias({
-            entries: {
-              '@firebase/app': FIREBASE_APP_URL
-            }
-          })
+          typescriptPluginCDN
         ],
-        external: [FIREBASE_APP_URL]
+        external: ['@firebase/app']
       };
     })
 ];

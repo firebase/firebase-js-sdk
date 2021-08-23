@@ -102,6 +102,11 @@ const appBuilds = [
         file: resolve(__dirname, 'app', appPkg.module),
         format: 'es',
         sourcemap: true
+      },
+      {
+        file: resolve(__dirname, 'app', appPkg.browser),
+        format: 'es',
+        sourcemap: true
       }
     ],
     plugins: [...plugins, typescriptPlugin],
@@ -138,6 +143,11 @@ const componentBuilds = compatPkg.components
           },
           {
             file: resolve(__dirname, component, pkg.module),
+            format: 'es',
+            sourcemap: true
+          },
+          {
+            file: resolve(__dirname, component, pkg.browser),
             format: 'es',
             sourcemap: true
           }
