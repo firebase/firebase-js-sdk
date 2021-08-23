@@ -24,7 +24,7 @@
     "rollup-plugin-typescript2": "0.30.0"
   },
   "peerDependencies": {
-    "firebase-exp": "^9.0.0-beta.8"
+    "firebase": "^8.10.0"
   },
   "repository": {
     "directory": "packages/rules-unit-testing",
