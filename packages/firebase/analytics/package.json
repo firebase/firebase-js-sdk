@@ -1,8 +1,7 @@
 {
   "name": "firebase/analytics",
-  "main": "dist/index.cjs",
+  "main": "dist/index.cjs.js",
   "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "typings": "dist/analytics/index.d.ts",
-  "type": "module"
+  "module": "dist/index.mjs",
+  "typings": "dist/analytics/index.d.ts"
 }

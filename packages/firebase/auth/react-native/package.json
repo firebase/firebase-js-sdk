@@ -1,8 +1,7 @@
 {
   "name": "firebase/auth/react-native",
-  "main": "dist/index.cjs",
+  "main": "dist/index.cjs.js",
   "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "typings": "dist/auth/react-native/index.d.ts",
-  "type": "module"
+  "module": "dist/index.mjs",
+  "typings": "dist/auth/react-native/index.d.ts"
 }
