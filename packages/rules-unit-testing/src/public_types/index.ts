@@ -16,9 +16,7 @@
  */
 
 import { FirebaseSignInProvider } from '@firebase/util';
-import { Firestore, FirestoreSettings } from '@firebase/firestore/exp';
-import { Database } from '@firebase/database/exp';
-import { FirebaseStorage } from '@firebase/storage/exp';
+import firebase from 'firebase/compat/app';
 
 /**
  * More options for the mock user token to be used for testing, including developer-specfied custom
@@ -251,7 +249,9 @@ export interface RulesTestContext {
    * @returns a Firestore instance configured to connect to the emulator
    * @public
    */
-  firestore(settings?: FirestoreSettings): Firestore;
+  firestore(
+    settings?: firebase.firestore.Settings
+  ): firebase.firestore.Firestore;
 
   /**
    * Get a Firestore instance for this test context. The returned Firebase JS Client SDK instance
@@ -263,7 +263,7 @@ export interface RulesTestContext {
    * @returns a Database instance configured to connect to the emulator. It never connects to
    *          production even if a production databaseURL is specified
    */
-  database(databaseURL?: string): Database;
+  database(databaseURL?: string): firebase.database.Database;
 
   /**
    * Get a Storage instance for this test context. The returned Firebase JS Client SDK instance
@@ -274,5 +274,5 @@ export interface RulesTestContext {
    *                 returns a Storage instance for an emulated version of the bucket name
    * @returns a Storage instance configured to connect to the emulator
    */
-  storage(bucketUrl?: string): FirebaseStorage;
+  storage(bucketUrl?: string): firebase.storage.Storage;
 }
