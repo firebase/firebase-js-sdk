@@ -38,6 +38,20 @@ async function generateDocs(forDevsite: boolean = false) {
   const outputFolder = forDevsite ? 'docs-devsite' : 'docs-exp';
   const command = forDevsite ? 'api-documenter-devsite' : 'api-documenter';
 
+  // Use a special d.ts file for auth for doc gen only.
+  const authApiConfigOriginal = fs.readFileSync(
+    `${projectRoot}/packages/auth/api-extractor.json`,
+    'utf8'
+  );
+  const authApiConfigModified = authApiConfigOriginal.replace(
+    `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.d.ts"`,
+    `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.doc.d.ts"`
+  );
+  fs.writeFileSync(
+    `${projectRoot}/packages/auth/api-extractor.json`,
+    authApiConfigModified
+  );
+
   await spawn('yarn', ['build'], {
     stdio: 'inherit'
   });
@@ -45,6 +59,12 @@ async function generateDocs(forDevsite: boolean = false) {
   await spawn('yarn', ['api-report'], {
     stdio: 'inherit'
   });
+
+  // Restore original auth api-extractor.json contents.
+  fs.writeFileSync(
+    `${projectRoot}/packages/auth/api-extractor.json`,
+    authApiConfigOriginal
+  );
 
   if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir);
