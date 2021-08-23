@@ -21,8 +21,6 @@ import {
   ComponentType,
   InstanceFactory
 } from '@firebase/component';
-import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { isSwSupported, isWindowSupported } from '../api/isSupported';
 import {
   onNotificationClick,
   onPush,
@@ -40,8 +38,6 @@ import { messageEventListener } from '../listeners/window-listener';
 const WindowMessagingFactory: InstanceFactory<'messaging'> = (
   container: ComponentContainer
 ) => {
-  maybeThrowWindowError();
-
   const messaging = new MessagingService(
     container.getProvider('app').getImmediate(),
     container.getProvider('installations-internal').getImmediate(),
@@ -58,8 +54,6 @@ const WindowMessagingFactory: InstanceFactory<'messaging'> = (
 const WindowMessagingInternalFactory: InstanceFactory<'messaging-internal'> = (
   container: ComponentContainer
 ) => {
-  maybeThrowWindowError();
-
   const messaging = container
     .getProvider('messaging')
     .getImmediate() as MessagingService;
@@ -71,40 +65,10 @@ const WindowMessagingInternalFactory: InstanceFactory<'messaging-internal'> = (
   return messagingInternal;
 };
 
-function maybeThrowWindowError(): void {
-  // Conscious decision to make this async check non-blocking during the messaging instance
-  // initialization phase for performance consideration. An error would be thrown latter for
-  // developer's information. Developers can then choose to import and call `isSupported` for
-  // special handling.
-  isWindowSupported()
-    .then(isSupported => {
-      if (!isSupported) {
-        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-      }
-    })
-    .catch(_ => {
-      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
-    });
-}
-
 declare const self: ServiceWorkerGlobalScope;
 const SwMessagingFactory: InstanceFactory<'messaging'> = (
   container: ComponentContainer
 ) => {
-  // Conscious decision to make this async check non-blocking during the messaging instance
-  // initialization phase for performance consideration. An error would be thrown latter for
-  // developer's information. Developers can then choose to import and call `isSupported` for
-  // special handling.
-  isSwSupported()
-    .then(isSupported => {
-      if (!isSupported) {
-        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-      }
-    })
-    .catch(_ => {
-      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
-    });
-
   const messaging = new MessagingService(
     container.getProvider('app').getImmediate(),
     container.getProvider('installations-internal').getImmediate(),

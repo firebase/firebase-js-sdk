@@ -31,9 +31,11 @@ import {
 import { MessagingService } from './messaging-service';
 import { deleteToken as _deleteToken } from './api/deleteToken';
 import { getToken as _getToken } from './api/getToken';
+import { isSwSupported, isWindowSupported } from './api/isSupported';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
 import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryMetricsExportedToBigQueryEnabled';
+import { ERROR_FACTORY, ErrorCode } from './util/errors';
 
 /**
  * Retrieves a Firebase Cloud Messaging instance.
@@ -43,6 +45,22 @@ import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryM
  * @public
  */
 export function getMessagingInWindow(app: FirebaseApp = getApp()): Messaging {
+  // Conscious decision to make this async check non-blocking during the messaging instance
+  // initialization phase for performance consideration. An error would be thrown latter for
+  // developer's information. Developers can then choose to import and call `isSupported` for
+  // special handling.
+  isWindowSupported()
+    .then(isSupported => {
+      if (!isSupported) {
+        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+      }
+    })
+    .catch((e: Error) => {
+      if (e.message.includes(ErrorCode.UNSUPPORTED_BROWSER)) {
+        throw e;
+      }
+      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
+    });
   return _getProvider(getModularInstance(app), 'messaging').getImmediate();
 }
 
@@ -54,10 +72,23 @@ export function getMessagingInWindow(app: FirebaseApp = getApp()): Messaging {
  * @public
  */
 export function getMessagingInSw(app: FirebaseApp = getApp()): Messaging {
-  return _getProvider(
-    getModularInstance(app),
-    'messaging-sw'
-  ).getImmediate();
+  // Conscious decision to make this async check non-blocking during the messaging instance
+  // initialization phase for performance consideration. An error would be thrown latter for
+  // developer's information. Developers can then choose to import and call `isSupported` for
+  // special handling.
+  isSwSupported()
+    .then(isSupported => {
+      if (!isSupported) {
+        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+      }
+    })
+    .catch((e: Error) => {
+      if (e.message.includes(ErrorCode.UNSUPPORTED_BROWSER)) {
+        throw e;
+      }
+      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
+    });
+  return _getProvider(getModularInstance(app), 'messaging-sw').getImmediate();
 }
 
 /**
