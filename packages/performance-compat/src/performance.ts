@@ -25,8 +25,7 @@ import { FirebasePerformance as FirebasePerformanceCompat } from '@firebase/perf
 import { FirebaseApp, _FirebaseService } from '@firebase/app-compat';
 
 export class PerformanceCompatImpl
-  implements FirebasePerformanceCompat, _FirebaseService
-{
+  implements FirebasePerformanceCompat, _FirebaseService {
   constructor(
     public app: FirebaseApp,
     readonly _delegate: FirebasePerformance

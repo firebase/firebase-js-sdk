@@ -57,9 +57,10 @@ describe('Installations Compat', () => {
   });
 
   it('delete calls modular deleteInstallations()', async () => {
-    const modularDeleteStub = stub(modularApi, 'deleteInstallations').callsFake(
-      () => Promise.resolve()
-    );
+    const modularDeleteStub = stub(
+      modularApi,
+      'deleteInstallations'
+    ).callsFake(() => Promise.resolve());
 
     await installationsCompat.delete();
 

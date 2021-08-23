@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
+import firebase, {
+  _FirebaseNamespace
+} from '@firebase/app-compat';
 import { FunctionsService } from './service';
 import {
   Component,
@@ -33,9 +35,11 @@ const factory: InstanceFactory<'functions-compat'> = (
 ) => {
   // Dependencies
   const app = container.getProvider('app-compat').getImmediate();
-  const functionsServiceExp = container.getProvider('functions').getImmediate({
-    identifier: regionOrCustomDomain ?? DEFAULT_REGION
-  });
+  const functionsServiceExp = container
+    .getProvider('functions')
+    .getImmediate({
+      identifier: regionOrCustomDomain ?? DEFAULT_REGION
+    });
 
   return new FunctionsService(app, functionsServiceExp);
 };

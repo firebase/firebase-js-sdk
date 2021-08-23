@@ -110,7 +110,7 @@ const appBuilds = [
       }
     ],
     plugins: [...plugins, typescriptPlugin],
-    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
   },
   /**
    * App UMD Builds
@@ -153,8 +153,7 @@ const componentBuilds = compatPkg.components
           }
         ],
         plugins: [...plugins, typescriptPlugin],
-        external: id =>
-          external.some(dep => id === dep || id.startsWith(`${dep}/`))
+        external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
       },
       {
         input: `${__dirname}/${component}/index.ts`,
@@ -183,7 +182,7 @@ const completeBuilds = [
       }
     ],
     plugins: [...plugins, typescriptPlugin],
-    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
   },
   {
     input: `${__dirname}/index.cdn.ts`,
@@ -206,7 +205,7 @@ const completeBuilds = [
       sourcemap: true
     },
     plugins: [...plugins, typescriptPlugin],
-    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
   },
   /**
    * App React Native Builds
@@ -219,7 +218,7 @@ const completeBuilds = [
       sourcemap: true
     },
     plugins: [...plugins, typescriptPlugin],
-    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
   },
   /**
    * Performance script Build

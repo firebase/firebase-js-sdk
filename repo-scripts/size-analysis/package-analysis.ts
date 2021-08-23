@@ -118,9 +118,7 @@ function mapWorkspaceToPackages(workspaces: string[]): Promise<string[]> {
       workspace =>
         new Promise(resolve => {
           glob(workspace, (err, paths) => {
-            if (err) {
-              throw err;
-            }
+            if (err) {throw err;}
             resolve(paths);
           });
         })
