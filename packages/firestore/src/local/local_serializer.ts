@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api/timestamp';
 import { BundleMetadata, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
-import { Timestamp } from '../exp/timestamp';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';

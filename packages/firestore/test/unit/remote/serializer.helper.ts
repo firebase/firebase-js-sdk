@@ -17,9 +17,12 @@
 
 import { expect } from 'chai';
 
-import { Blob } from '../../../src/api/blob';
-import { DocumentReference, UserDataWriter } from '../../../src/api/database';
-import { FieldValue } from '../../../src/api/field_value';
+import { Blob } from '../../../compat/api/blob';
+import {
+  DocumentReference,
+  UserDataWriter
+} from '../../../compat/api/database';
+import { FieldValue } from '../../../compat/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
 import { DatabaseId } from '../../../src/core/database_info';
@@ -46,7 +49,7 @@ import {
   targetEquals,
   TargetImpl
 } from '../../../src/core/target';
-import { parseQueryValue } from '../../../src/lite/user_data_reader';
+import { parseQueryValue } from '../../../src/lite-api/user_data_reader';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { FieldMask } from '../../../src/model/field_mask';
 import {

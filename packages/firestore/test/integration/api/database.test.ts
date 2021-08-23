@@ -42,10 +42,6 @@ const FieldValue = firebaseExport.FieldValue;
 const DocumentReference = firebaseExport.DocumentReference;
 const QueryDocumentSnapshot = firebaseExport.QueryDocumentSnapshot;
 
-const MEMORY_ONLY_BUILD =
-  typeof process !== 'undefined' &&
-  process.env?.INCLUDE_FIRESTORE_PERSISTENCE === 'false';
-
 apiDescribe('Database', (persistence: boolean) => {
   it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
@@ -1092,33 +1088,6 @@ apiDescribe('Database', (persistence: boolean) => {
       await db.terminate();
     });
   });
-
-  // eslint-disable-next-line no-restricted-properties
-  (MEMORY_ONLY_BUILD ? it : it.skip)(
-    'recovers when persistence is missing',
-    async () => {
-      await withTestDbs(/* persistence */ false, 2, async dbs => {
-        for (let i = 0; i < 2; ++i) {
-          const db = dbs[i];
-
-          try {
-            await (i === 0 ? db.enablePersistence() : db.clearPersistence());
-            expect.fail(
-              'Persistence operation should fail for memory-only build'
-            );
-          } catch (err) {
-            expect(err.code).to.equal('failed-precondition');
-            expect(err.message).to.match(
-              /You are using the memory-only build of Firestore./
-            );
-          }
-
-          // Verify client functionality after failed call
-          await db.doc('coll/doc').get();
-        }
-      });
-    }
-  );
 
   // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(

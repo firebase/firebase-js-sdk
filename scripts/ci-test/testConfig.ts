@@ -44,7 +44,7 @@ export const testConfig: {
     ]
   },
   'firestore': {
-    'onlyIncludePackages': ['@firebase/firestore']
+    'onlyIncludePackages': ['@firebase/firestore', '@firebase/firestore-compat']
   },
   'firestore-integration': {
     'onlyIncludePackages': ['firebase-firestore-integration-test']

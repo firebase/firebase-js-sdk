@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@firebase/app": "0.6.30",
-    "@firebase/firestore": "2.4.0",
+    "@firebase/firestore-compat": "0.0.900",
     "@types/mocha": "8.2.3",
     "gulp": "4.0.2",
     "gulp-filter": "7.0.0",

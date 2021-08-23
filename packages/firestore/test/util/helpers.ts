@@ -18,8 +18,8 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
-import { Blob } from '../../src/api/blob';
-import { DocumentReference } from '../../src/api/database';
+import { Blob } from '../../compat/api/blob';
+import { DocumentReference } from '../../compat/api/database';
 import { Timestamp } from '../../src/api/timestamp';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
@@ -53,7 +53,7 @@ import {
   parseSetData,
   parseUpdateData,
   UserDataReader
-} from '../../src/lite/user_data_reader';
+} from '../../src/lite-api/user_data_reader';
 import { LocalViewChanges } from '../../src/local/local_view_changes';
 import { TargetData, TargetPurpose } from '../../src/local/target_data';
 import {
