@@ -1,4 +1,10 @@
 /**
+ * Firebase Authentication
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2021 Google LLC
  *
