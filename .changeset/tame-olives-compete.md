@@ -1,6 +1,7 @@
 ---
 'firebase': major
 '@firebase/firestore': major
+'@firebase/rules-unit-testing': major
 '@firebase/firestore-compat': minor
 '@firebase/firestore-types': minor
 '@firebase/analytics': minor
@@ -15,7 +16,6 @@
 '@firebase/auth': minor
 '@firebase/auth-compat': minor
 '@firebase/auth-types': minor
-'@firebase/component': minor
 '@firebase/database': minor
 '@firebase/database-compat': minor
 '@firebase/database-types': minor
@@ -35,7 +35,6 @@
 '@firebase/remote-config': minor
 '@firebase/remote-config-compat': minor
 '@firebase/remote-config-types': minor
-'@firebase/rules-unit-testing': minor
 '@firebase/storage': minor
 '@firebase/storage-compat': minor
 '@firebase/storage-types': minor
