@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../lite/timestamp';
+import { Timestamp } from '../lite-api/timestamp';
 
 /**
  * A version of a document in Firestore. This corresponds to the version

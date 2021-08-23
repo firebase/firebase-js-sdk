@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import { LoadBundleTask } from '../api/bundle';
 import { User } from '../auth/user';
-import { LoadBundleTask } from '../exp/bundle';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
   localStoreAcknowledgeBatch,

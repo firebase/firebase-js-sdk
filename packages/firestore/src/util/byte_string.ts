@@ -26,6 +26,7 @@ import { primitiveComparator } from './misc';
  * sent on the wire. This class abstracts away this differentiation by holding
  * the proto byte string in a common class that must be converted into a string
  * before being sent as a proto.
+ * @internal
  */
 export class ByteString {
   static readonly EMPTY_BYTE_STRING = new ByteString('');

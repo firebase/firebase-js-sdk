@@ -24,11 +24,11 @@ import {
   ComponentType,
   InstantiationMode
 } from '@firebase/component';
+import { FirebaseError } from '@firebase/util';
 
 import * as types from '@firebase/auth-types';
 import { name, version } from './package.json';
 import { Auth } from './src/auth';
-import { Persistence } from './src/persistence';
 import { PhoneAuthProvider as CompatAuthProvider } from './src/phone_auth_provider';
 import { RecaptchaVerifier as CompatRecaptchaVerifier } from './src/recaptcha_verifier';
 
@@ -106,11 +106,9 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
         PhoneMultiFactorGenerator: impl.PhoneMultiFactorGenerator,
         RecaptchaVerifier: CompatRecaptchaVerifier,
         TwitterAuthProvider: impl.TwitterAuthProvider,
-        Auth: {
-          Persistence
-        },
-        AuthCredential: impl.AuthCredential
-        //   'Error': fireauth.AuthError
+        Auth,
+        AuthCredential: impl.AuthCredential,
+        Error: FirebaseError
       })
       .setInstantiationMode(InstantiationMode.LAZY)
       .setMultipleInstances(false)

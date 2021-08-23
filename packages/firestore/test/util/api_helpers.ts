@@ -18,8 +18,6 @@
 // Helpers here mock Firestore in order to unit-test API types. Do NOT use
 // these in any integration test, where we expect working Firestore object.
 
-import { Provider, ComponentContainer } from '@firebase/component';
-
 import {
   CollectionReference,
   DocumentReference,
@@ -29,7 +27,22 @@ import {
   Query,
   QuerySnapshot,
   UserDataWriter
+} from '../../compat/api/database';
+import { EmptyCredentialsProvider } from '../../src/api/credentials';
+import {
+  ensureFirestoreConfigured,
+  Firestore as ExpFirestore
 } from '../../src/api/database';
+import {
+  Query as ExpQuery,
+  CollectionReference as ExpCollectionReference
+} from '../../src/api/reference';
+import { ExpUserDataWriter } from '../../src/api/reference_impl';
+import {
+  QuerySnapshot as ExpQuerySnapshot,
+  DocumentSnapshot as ExpDocumentSnapshot,
+  SnapshotMetadata
+} from '../../src/api/snapshot';
 import { DatabaseId } from '../../src/core/database_info';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
@@ -37,20 +50,6 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from '../../src/core/view_snapshot';
-import {
-  ensureFirestoreConfigured,
-  Firestore as ExpFirestore
-} from '../../src/exp/database';
-import {
-  Query as ExpQuery,
-  CollectionReference as ExpCollectionReference
-} from '../../src/exp/reference';
-import { ExpUserDataWriter } from '../../src/exp/reference_impl';
-import {
-  QuerySnapshot as ExpQuerySnapshot,
-  DocumentSnapshot as ExpDocumentSnapshot,
-  SnapshotMetadata
-} from '../../src/exp/snapshot';
 import { DocumentKeySet } from '../../src/model/collections';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
@@ -70,10 +69,7 @@ export function firestore(): Firestore {
 export function newTestFirestore(projectId = 'new-project'): Firestore {
   return new Firestore(
     new DatabaseId(projectId),
-    new ExpFirestore(
-      new DatabaseId(projectId),
-      new Provider('auth-internal', new ComponentContainer('default'))
-    ),
+    new ExpFirestore(new DatabaseId(projectId), new EmptyCredentialsProvider()),
     new IndexedDbPersistenceProvider()
   );
 }

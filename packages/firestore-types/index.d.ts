@@ -507,6 +507,6 @@ export interface FirestoreError {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore': FirebaseFirestore;
+    'firestore-compat': FirebaseFirestore;
   }
 }

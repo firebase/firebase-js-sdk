@@ -55,9 +55,6 @@
     "removeApp": {
       "__type": "function"
     },
-    "components": {
-      "__type": "Map"
-    },
     "ErrorFactory": {
       "__type": "function"
     },
@@ -223,16 +220,10 @@
       "onMessage": {
         "__type": "function"
       },
-      "onTokenRefresh": {
-        "__type": "function"
-      },
-      "requestPermission": {
-        "__type": "function"
-      },
       "deleteToken": {
         "__type": "function"
       },
-      "setBackgroundMessageHandler": {
+      "onBackgroundMessage": {
         "__type": "function"
       }
     }

@@ -5,7 +5,7 @@
 ```ts
 
 import { EmulatorMockTokenOptions } from '@firebase/util';
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
 // @public
@@ -103,6 +103,8 @@ export class DocumentSnapshot<T = DocumentData> {
     get id(): string;
     get ref(): DocumentReference<T>;
 }
+
+export { EmulatorMockTokenOptions }
 
 // @public
 export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
