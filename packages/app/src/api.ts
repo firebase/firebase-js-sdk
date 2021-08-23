@@ -41,6 +41,8 @@ import {
 } from '@firebase/logger';
 import { deepEqual } from '@firebase/util';
 
+export { FirebaseError } from '@firebase/util';
+
 /**
  * The current SDK version.
  *
