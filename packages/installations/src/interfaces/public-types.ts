@@ -15,12 +15,19 @@
  * limitations under the License.
  */
 
+import { FirebaseApp } from '@firebase/app';
+
 /**
  * Public interface of the Firebase Installations SDK.
  *
  * @public
  */
-export interface Installations {}
+export interface Installations {
+  /**
+   * The {@link @firebase/app#FirebaseApp} this `Installations` instance is associated with.
+   */
+  app: FirebaseApp;
+}
 
 /**
  * An interface for Firebase internal SDKs use only.
