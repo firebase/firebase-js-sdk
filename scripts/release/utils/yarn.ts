@@ -35,10 +35,10 @@ export async function buildPackages() {
     cwd: root,
     stdio: 'inherit'
   });
-  await spawn('yarn', ["release:prepare"], {
+  await spawn('yarn', ['release:prepare'], {
     cwd: root,
     stdio: 'inherit'
-  })
+  });
   spinner.stopAndPersist({
     symbol: '✅'
   });

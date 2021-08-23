@@ -88,7 +88,7 @@ describe('Firebase Performance > api_service', () => {
     });
 
     it('does not throw if the browser does not include underlying api', () => {
-      api = new Api(({ performance: undefined } as unknown) as Window);
+      api = new Api({ performance: undefined } as unknown as Window);
 
       expect(() => {
         api.getEntriesByType('paint');
@@ -103,7 +103,7 @@ describe('Firebase Performance > api_service', () => {
     });
 
     it('does not throw if the browser does not include underlying api', () => {
-      api = new Api(({ performance: undefined } as any) as Window);
+      api = new Api({ performance: undefined } as any as Window);
 
       expect(() => {
         api.getEntriesByName('paint');

@@ -86,7 +86,8 @@ const componentBuilds = pkg.components
           }
         ],
         plugins: [...plugins, typescriptPlugin],
-        external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
+        external: id =>
+          external.some(dep => id === dep || id.startsWith(`${dep}/`))
       }
     ];
   })
@@ -119,10 +120,7 @@ const cdnBuilds = [
           sourcemap: true,
           format: 'es'
         },
-        plugins: [
-          ...plugins,
-          typescriptPluginCDN
-        ],
+        plugins: [...plugins, typescriptPluginCDN],
         external: ['@firebase/app']
       };
     })

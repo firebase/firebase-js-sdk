@@ -52,11 +52,11 @@ describe('Performance Monitoring > remote_config_service', () => {
   setupApi(self);
   const ApiInstance = Api.getInstance();
 
-  const fakeFirebaseApp = ({
+  const fakeFirebaseApp = {
     options: { projectId: PROJECT_ID, appId: APP_ID, apiKey: API_KEY }
-  } as unknown) as FirebaseApp;
+  } as unknown as FirebaseApp;
 
-  const fakeInstallations = ({} as unknown) as FirebaseInstallations;
+  const fakeInstallations = {} as unknown as FirebaseInstallations;
   const performanceController = new PerformanceController(
     fakeFirebaseApp,
     fakeInstallations

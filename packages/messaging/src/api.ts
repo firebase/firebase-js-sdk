@@ -54,10 +54,7 @@ export function getMessagingInWindow(app: FirebaseApp = getApp()): Messaging {
  * @public
  */
 export function getMessagingInSw(app: FirebaseApp = getApp()): Messaging {
-  return _getProvider(
-    getModularInstance(app),
-    'messaging-sw'
-  ).getImmediate();
+  return _getProvider(getModularInstance(app), 'messaging-sw').getImmediate();
 }
 
 /**

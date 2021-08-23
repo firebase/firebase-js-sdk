@@ -40,8 +40,7 @@ export function createTestComponent(
   const component = new Component(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     name as any,
-    container =>
-      new TestService(container.getProvider('app').getImmediate()),
+    container => new TestService(container.getProvider('app').getImmediate()),
     type
   );
   component.setMultipleInstances(multiInstances);

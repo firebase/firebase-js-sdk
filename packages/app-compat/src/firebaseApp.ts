@@ -132,9 +132,9 @@ export class FirebaseAppImpl implements Compat<_FirebaseAppExp>, _FirebaseApp {
     }
 
     // getImmediate will always succeed because _getService is only called for registered components.
-    return (provider.getImmediate({
+    return provider.getImmediate({
       identifier: instanceIdentifier
-    }) as unknown) as _FirebaseService;
+    }) as unknown as _FirebaseService;
   }
 
   /**

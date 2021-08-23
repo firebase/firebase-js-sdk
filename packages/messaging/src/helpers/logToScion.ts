@@ -33,7 +33,8 @@ export async function logToScion(
   data: ConsoleMessageData
 ): Promise<void> {
   const eventType = getEventType(messageType);
-  const analytics = await messaging.firebaseDependencies.analyticsProvider.get();
+  const analytics =
+    await messaging.firebaseDependencies.analyticsProvider.get();
   analytics.logEvent(eventType, {
     /* eslint-disable camelcase */
     message_id: data[CONSOLE_CAMPAIGN_ID],

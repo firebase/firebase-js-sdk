@@ -40,7 +40,7 @@ export const testConfig: {
       'firebase-compat-typings-test',
       '@firebase/rules-unit-testing',
       '@firebase/auth',
-      'firebase',
+      'firebase'
     ]
   },
   'firestore': {
