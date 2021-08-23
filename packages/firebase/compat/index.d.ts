@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ declare namespace firebase {
     /**
      * The name of the class of errors, which is `"FirebaseError"`.
      */
-    name: 'FirebaseError';
+    name: string;
     /**
      * A string value containing the execution backtrace when the error originally
      * occurred. This may not always be available.
@@ -1006,6 +1006,81 @@ declare namespace firebase {
     uid: string;
   }
 
+  type FirebaseSignInProvider =
+    | 'custom'
+    | 'email'
+    | 'password'
+    | 'phone'
+    | 'anonymous'
+    | 'google.com'
+    | 'facebook.com'
+    | 'github.com'
+    | 'twitter.com'
+    | 'microsoft.com'
+    | 'apple.com';
+
+  interface FirebaseIdToken {
+    /** Always set to https://securetoken.google.com/PROJECT_ID */
+    iss: string;
+
+    /** Always set to PROJECT_ID */
+    aud: string;
+
+    /** The user's unique ID */
+    sub: string;
+
+    /** The token issue time, in seconds since epoch */
+    iat: number;
+
+    /** The token expiry time, normally 'iat' + 3600 */
+    exp: number;
+
+    /** The user's unique ID. Must be equal to 'sub' */
+    user_id: string;
+
+    /** The time the user authenticated, normally 'iat' */
+    auth_time: number;
+
+    /** The sign in provider, only set when the provider is 'anonymous' */
+    provider_id?: 'anonymous';
+
+    /** The user's primary email */
+    email?: string;
+
+    /** The user's email verification status */
+    email_verified?: boolean;
+
+    /** The user's primary phone number */
+    phone_number?: string;
+
+    /** The user's display name */
+    name?: string;
+
+    /** The user's profile photo URL */
+    picture?: string;
+
+    /** Information on all identities linked to this user */
+    firebase: {
+      /** The primary sign-in provider */
+      sign_in_provider: FirebaseSignInProvider;
+
+      /** A map of providers to the user's list of unique identifiers from each provider */
+      identities?: { [provider in FirebaseSignInProvider]?: string[] };
+    };
+
+    /** Custom claims set by the developer */
+    [claim: string]: unknown;
+
+    // NO LONGER SUPPORTED. Use "sub" instead. (Not a jsdoc comment to avoid generating docs.)
+    uid?: never;
+  }
+
+  export type EmulatorMockTokenOptions = (
+    | { user_id: string }
+    | { sub: string }
+  ) &
+    Partial<FirebaseIdToken>;
+
   /**
    * Retrieves a Firebase {@link firebase.app.App app} instance.
    *
@@ -1192,8 +1267,6 @@ declare namespace firebase {
    * {@link firebase.storage.Storage `Storage`} service associated with a
    * specific app.
    *
-   * @webonly
-   *
    * @example
    * ```javascript
    * // Get the Storage service for the default app
@@ -1279,16 +1352,6 @@ declare namespace firebase {
 }
 
 declare namespace firebase.app {
-  interface FirebaseOptions {
-    apiKey?: string;
-    authDomain?: string;
-    databaseURL?: string;
-    projectId?: string;
-    storageBucket?: string;
-    messagingSenderId?: string;
-    appId?: string;
-    measurementId?: string;
-  }
   /**
    * A Firebase App holds the initialization information for a collection of
    * services.
@@ -1396,23 +1459,10 @@ declare namespace firebase.app {
      * console.log(app.options.databaseURL === config.databaseURL);  // true
      * ```
      */
-    options: FirebaseOptions;
-
-    /**
-     * The settable config flag for GDPR opt-in/opt-out
-     */
-    automaticDataCollectionEnabled: boolean;
-
-    /**
-     * Make the given App unusable and free resources.
-     */
-    delete(): Promise<void>;
-
+    options: Object;
     /**
      * Gets the {@link firebase.storage.Storage `Storage`} service for the current
      * app, optionally initialized with a custom storage bucket.
-     *
-     * @webonly
      *
      * @example
      * ```javascript
@@ -1477,6 +1527,9 @@ declare namespace firebase.app {
   }
 }
 
+/**
+ * @webonly
+ */
 declare namespace firebase.appCheck {
   /**
    * Result returned by
@@ -1485,6 +1538,35 @@ declare namespace firebase.appCheck {
   interface AppCheckTokenResult {
     token: string;
   }
+  /*
+   * ReCAPTCHA v3 token provider.
+   */
+  class ReCaptchaV3Provider {
+    /**
+     * @param siteKey - ReCAPTCHA v3 site key (public key).
+     */
+    constructor(siteKey: string);
+  }
+  /*
+   * Custom token provider.
+   */
+  class CustomProvider {
+    /**
+     * @param options - Options for creating the custom provider.
+     */
+    constructor(options: CustomProviderOptions);
+  }
+  /**
+   * Options when creating a CustomProvider.
+   */
+  interface CustomProviderOptions {
+    /**
+     * Function to get an App Check token through a custom provider
+     * service.
+     */
+    getToken: () => Promise<AppCheckToken>;
+  }
+
   /**
    * The Firebase AppCheck service interface.
    *
@@ -1494,15 +1576,18 @@ declare namespace firebase.appCheck {
   export interface AppCheck {
     /**
      * Activate AppCheck
-     * @param siteKeyOrProvider reCAPTCHA v3 site key (public key) or
-     * custom token provider.
+     * @param provider reCAPTCHA provider, custom token provider, or reCAPTCHA site key.
      * @param isTokenAutoRefreshEnabled If true, the SDK automatically
      * refreshes App Check tokens as needed. If undefined, defaults to the
      * value of `app.automaticDataCollectionEnabled`, which defaults to
      * false and can be set in the app config.
      */
     activate(
-      siteKeyOrProvider: string | AppCheckProvider,
+      provider:
+        | ReCaptchaV3Provider
+        | CustomProvider
+        | AppCheckProvider
+        | string,
       isTokenAutoRefreshEnabled?: boolean
     ): void;
 
@@ -1605,16 +1690,6 @@ declare namespace firebase.installations {
    */
   export interface Installations {
     /**
-     * The {@link firebase.app.App app} associated with the `Installations` service
-     * instance.
-     *
-     * @example
-     * ```javascript
-     * var app = analytics.app;
-     * ```
-     */
-    app: firebase.app.App;
-    /**
      * Creates a Firebase Installation if there isn't one for the app and
      * returns the Installation ID.
      *
@@ -1653,16 +1728,6 @@ declare namespace firebase.performance {
    * {@link firebase.performance `firebase.performance()`}.
    */
   export interface Performance {
-    /**
-     * The {@link firebase.app.App app} associated with the `Performance` service
-     * instance.
-     *
-     * @example
-     * ```javascript
-     * var app = analytics.app;
-     * ```
-     */
-    app: firebase.app.App;
     /**
      * Creates an uninitialized instance of {@link firebase.performance.Trace `trace`} and returns
      * it.
@@ -1776,16 +1841,6 @@ declare namespace firebase.remoteConfig {
    * {@link firebase.remoteConfig `firebase.remoteConfig()`}.
    */
   export interface RemoteConfig {
-    /**
-     * The {@link firebase.app.App app} associated with the `Performance` service
-     * instance.
-     *
-     * @example
-     * ```javascript
-     * var app = analytics.app;
-     * ```
-     */
-    app: firebase.app.App;
     /**
      * Defines configuration for the Remote Config SDK.
      */
@@ -2260,65 +2315,7 @@ declare namespace firebase.auth {
      */
     appVerificationDisabledForTesting: boolean;
   }
-  /**
-   * Interface representing the Auth config.
-   *
-   * @public
-   */
-  export interface Config {
-    /**
-     * The API Key used to communicate with the Firebase Auth backend.
-     */
-    apiKey: string;
-    /**
-     * The host at which the Firebase Auth backend is running.
-     */
-    apiHost: string;
-    /**
-     * The scheme used to communicate with the Firebase Auth backend.
-     */
-    apiScheme: string;
-    /**
-     * The host at which the Secure Token API is running.
-     */
-    tokenApiHost: string;
-    /**
-     * The SDK Client Version.
-     */
-    sdkClientVersion: string;
-    /**
-     * The domain at which the web widgets are hosted (provided via Firebase Config).
-     */
-    authDomain?: string;
-  }
 
-  /**
-   * Configuration of Firebase Authentication Emulator.
-   */
-  export interface EmulatorConfig {
-    /**
-     * The protocol used to communicate with the emulator ("http"/"https").
-     */
-    readonly protocol: string;
-    /**
-     * The hostname of the emulator, which may be a domain ("localhost"), IPv4 address ("127.0.0.1")
-     * or quoted IPv6 address ("[::1]").
-     */
-    readonly host: string;
-    /**
-     * The port of the emulator, or null if port isn't specified (i.e. protocol default).
-     */
-    readonly port: number | null;
-    /**
-     * The emulator-specific options.
-     */
-    readonly options: {
-      /**
-       * Whether the warning banner attached to the DOM was disabled.
-       */
-      readonly disableWarnings: boolean;
-    };
-  }
   /**
    * The Firebase Auth service interface.
    *
@@ -2331,12 +2328,6 @@ declare namespace firebase.auth {
    *
    */
   interface Auth {
-    /** The name of the app associated with the Auth service instance. */
-    readonly name: string;
-    /** The config used to initialize this instance. */
-    readonly config: Config;
-    /** The current emulator configuration (or null). */
-    readonly emulatorConfig: EmulatorConfig | null;
     /**
      * The {@link firebase.app.App app} associated with the `Auth` service
      * instance.
@@ -3616,7 +3607,6 @@ declare namespace firebase.auth {
    * </dl>
    */
   interface Error {
-    name: string;
     /**
      * Unique error code.
      */
@@ -5193,6 +5183,11 @@ declare namespace firebase.analytics {
     currency?: string;
     description?: string;
     fatal?: boolean;
+    items?: Item[];
+    method?: string;
+    number?: string;
+    promotions?: Promotion[];
+    screen_name?: string;
     /**
      * Firebase-specific. Use to log a `screen_name` to Firebase Analytics.
      */
@@ -5201,11 +5196,6 @@ declare namespace firebase.analytics {
      * Firebase-specific. Use to log a `screen_class` to Firebase Analytics.
      */
     firebase_screen_class?: string;
-    items?: Item[];
-    method?: string;
-    number?: string;
-    promotions?: Promotion[];
-    screen_name?: string;
     search_term?: string;
     shipping?: Currency;
     tax?: Currency;
@@ -5911,8 +5901,15 @@ declare namespace firebase.database {
      *
      * @param host the emulator host (ex: localhost)
      * @param port the emulator port (ex: 8080)
+     * @param options.mockUserToken the mock auth token to use for unit testing Security Rules
      */
-    useEmulator(host: string, port: number): void;
+    useEmulator(
+      host: string,
+      port: number,
+      options?: {
+        mockUserToken?: EmulatorMockTokenOptions | string;
+      }
+    ): void;
     /**
      * Disconnects from the server (all Database operations will be completed
      * offline).
@@ -7254,6 +7251,8 @@ declare namespace firebase.database {
     logger?: boolean | ((a: string) => any),
     persistent?: boolean
   ): any;
+
+  export type EmulatorMockTokenOptions = firebase.EmulatorMockTokenOptions;
 }
 
 declare namespace firebase.database.ServerValue {
@@ -7307,6 +7306,16 @@ declare namespace firebase.messaging {
     deleteToken(): Promise<boolean>;
 
     /**
+     * To forcibly stop a registration token from being used, delete it by calling this method.
+     *
+     * @param token The token to delete.
+     * @return The promise resolves when the token has been successfully deleted.
+     *
+     * @deprecated Use deleteToken() instead.
+     */
+    deleteToken(token: string): Promise<boolean>;
+
+    /**
      * Subscribes the messaging instance to push notifications. Returns an FCM registration token
      * that can be used to send push messages to that messaging instance.
      *
@@ -7348,9 +7357,9 @@ declare namespace firebase.messaging {
      * @return To stop listening for messages execute this returned function.
      */
     onMessage(
-      nextOrObserver:
-        | firebase.NextFn<MessagePayload>
-        | firebase.Observer<MessagePayload>
+      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
+      error?: firebase.ErrorFn,
+      completed?: firebase.CompleteFn
     ): firebase.Unsubscribe;
 
     /**
@@ -7366,8 +7375,75 @@ declare namespace firebase.messaging {
     onBackgroundMessage(
       nextOrObserver:
         | firebase.NextFn<MessagePayload>
-        | firebase.Observer<MessagePayload>
+        | firebase.Observer<MessagePayload>,
+      error?: firebase.ErrorFn,
+      completed?: firebase.CompleteFn
     ): firebase.Unsubscribe;
+
+    /**
+     * You should listen for token refreshes so your web app knows when FCM has invalidated your
+     * existing token and you need to call `getToken()` to get a new token.
+     *
+     * @param
+     *     nextOrObserver This function, or observer object with `next` defined,
+     *     is called when a token refresh has occurred.
+     * @return To stop listening for token refresh events execute this returned function.
+     *
+     * @deprecated There is no need to handle token rotation.
+     */
+    onTokenRefresh(
+      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
+      error?: firebase.ErrorFn,
+      completed?: firebase.CompleteFn
+    ): firebase.Unsubscribe;
+
+    /**
+     * Notification permissions are required to send a user push messages. Calling this method
+     * displays the permission dialog to the user and resolves if the permission is granted. It is
+     * not necessary to call this method, as `getToken()` will do this automatically if required.
+     *
+     * @return The promise resolves if permission is granted. Otherwise, the promise is rejected
+     * with an error.
+     *
+     * @deprecated Use
+     * {@link https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission Notification.requestPermission()}
+     * instead.
+     */
+    requestPermission(): Promise<void>;
+
+    /**
+     * FCM directs push messages to your web page's `onMessage()` callback if the user currently has
+     * it open. Otherwise, it calls your callback passed into `setBackgroundMessageHandler()`.
+     *
+     * Your callback should return a promise that, once resolved, has shown a notification.
+     *
+     * @param callback The function to handle the push message.
+     *
+     * @deprecated Use onBackgroundMessage(nextOrObserver: firebase.NextFn<MessagePayload> |
+     * firebase.Observer<MessagePayload>, error?: firebase.ErrorFn, completed?: firebase.CompleteFn):
+     * firebase.Unsubscribe.
+     */
+    setBackgroundMessageHandler(
+      callback: (payload: any) => Promise<any> | void
+    ): void;
+
+    /**
+     * To use your own service worker for receiving push messages, you can pass in your service
+     * worker registration in this method.
+     *
+     * @param registration The service worker registration you wish to use for push messaging.
+     *
+     * @deprecated Use getToken(options?: {vapidKey?: string; serviceWorkerRegistration?:
+     * ServiceWorkerRegistration;}: Promise<string>;.
+     */
+
+    useServiceWorker(registration: ServiceWorkerRegistration): void;
+
+    /**
+     * @deprecated Use getToken(options?: {vapidKey?: string; serviceWorkerRegistration?:
+     * ServiceWorkerRegistration;}): Promise<string>;.
+     */
+    usePublicVapidKey(b64PublicKey: string): void;
   }
 
   /**
@@ -7461,6 +7537,12 @@ declare namespace firebase.storage {
      */
     bucket: string;
     /**
+     * @deprecated
+     * Use Reference.getDownloadURL instead. This property will be removed in a
+     * future release.
+     */
+    downloadURLs: string[];
+    /**
      * The full path of this object.
      */
     fullPath: string;
@@ -7514,7 +7596,7 @@ declare namespace firebase.storage {
      * @return A Promise that resolves if the deletion
      *     succeeded and rejects if it failed, including if the object didn't exist.
      */
-    delete(): Promise<void>;
+    delete(): Promise<any>;
     /**
      * The full path of this object.
      */
@@ -7525,14 +7607,14 @@ declare namespace firebase.storage {
      *     URL or rejects if the fetch failed, including if the object did not
      *     exist.
      */
-    getDownloadURL(): Promise<string>;
+    getDownloadURL(): Promise<any>;
     /**
      * Fetches metadata for the object at this location, if one exists.
      * @return A Promise that
      *     resolves with the metadata, or rejects if the fetch failed, including if
      *     the object did not exist.
      */
-    getMetadata(): Promise<FullMetadata>;
+    getMetadata(): Promise<any>;
     /**
      * The short name of this object, which is the last component of the full path.
      * For example, if fullPath is 'full/path/image.png', name is 'image.png'.
@@ -7593,9 +7675,7 @@ declare namespace firebase.storage {
      *     resolves with the full updated metadata or rejects if the updated failed,
      *     including if the object did not exist.
      */
-    updateMetadata(
-      metadata: firebase.storage.SettableMetadata
-    ): Promise<FullMetadata>;
+    updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
     /**
      * List all items (files) and prefixes (folders) under this storage reference.
      *
@@ -7751,6 +7831,7 @@ declare namespace firebase.storage {
      * @param url A URL in the form: <br />
      *     1) a gs:// URL, for example `gs://bucket/files/image.png` <br />
      *     2) a download URL taken from object metadata. <br />
+     *     @see {@link firebase.storage.FullMetadata.downloadURLs}
      * @return A reference for the given URL.
      */
     refFromURL(url: string): firebase.storage.Reference;
@@ -7769,8 +7850,15 @@ declare namespace firebase.storage {
      *
      * @param host - The emulator host (ex: localhost)
      * @param port - The emulator port (ex: 5001)
+     * @param options.mockUserToken the mock auth token to use for unit testing Security Rules
      */
-    useEmulator(host: string, port: number): void;
+    useEmulator(
+      host: string,
+      port: number,
+      options?: {
+        mockUserToken?: EmulatorMockTokenOptions | string;
+      }
+    ): void;
   }
 
   /**
@@ -8042,6 +8130,12 @@ declare namespace firebase.storage {
      */
     bytesTransferred: number;
     /**
+     * @deprecated
+     * Use Reference.getDownloadURL instead. This property will be removed in a
+     * future release.
+     */
+    downloadURL: string | null;
+    /**
      * Before the upload completes, contains the metadata sent to the server.
      * After the upload completes, contains the metadata sent back from the server.
      */
@@ -8288,8 +8382,16 @@ declare namespace firebase.firestore {
      *
      * @param host the emulator host (ex: localhost).
      * @param port the emulator port (ex: 9000).
+     * @param options.mockUserToken - the mock auth token to use for unit
+     * testing Security Rules.
      */
-    useEmulator(host: string, port: number): void;
+    useEmulator(
+      host: string,
+      port: number,
+      options?: {
+        mockUserToken?: EmulatorMockTokenOptions | string;
+      }
+    ): void;
 
     /**
      * Attempts to enable persistent storage, if possible.
@@ -10085,6 +10187,8 @@ declare namespace firebase.firestore {
     name: string;
     stack?: string;
   }
+
+  export type EmulatorMockTokenOptions = firebase.EmulatorMockTokenOptions;
 }
 
 export default firebase;
