@@ -34,6 +34,7 @@ import {
   EmulatorMockTokenOptions
 } from '@firebase/util';
 
+
 import { Reference } from './Reference';
 
 /**

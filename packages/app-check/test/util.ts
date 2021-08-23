@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, initializeApp, _registerComponent } from '@firebase/app';
+import {
+  FirebaseApp,
+  initializeApp,
+  _registerComponent
+} from '@firebase/app';
 import { GreCAPTCHA, RECAPTCHA_URL } from '../src/recaptcha';
 import {
   Provider,

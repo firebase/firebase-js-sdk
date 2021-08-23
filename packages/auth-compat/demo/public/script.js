@@ -661,8 +661,9 @@ function onFinalizeEnrollWithPhoneMultiFactor() {
     verificationId,
     verificationCode
   );
-  var multiFactorAssertion =
-    firebase.auth.PhoneMultiFactorGenerator.assertion(credential);
+  var multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(
+    credential
+  );
   var displayName = $('#enroll-mfa-phone-display-name').val() || undefined;
 
   activeUser()

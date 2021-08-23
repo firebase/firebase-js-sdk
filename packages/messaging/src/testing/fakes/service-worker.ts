@@ -101,8 +101,7 @@ class FakeWindowClient implements WindowClient {
 }
 
 export class FakeServiceWorkerRegistration
-  implements ServiceWorkerRegistration
-{
+  implements ServiceWorkerRegistration {
   active = null;
   installing = null;
   waiting = null;
@@ -111,9 +110,9 @@ export class FakeServiceWorkerRegistration
   scope = '/scope-value';
 
   // Unused in FCM Web SDK, no need to mock these.
-  navigationPreload = null as unknown as NavigationPreloadManager;
-  sync = null as unknown as SyncManager;
-  updateViaCache = null as unknown as ServiceWorkerUpdateViaCache;
+  navigationPreload = (null as unknown) as NavigationPreloadManager;
+  sync = (null as unknown) as SyncManager;
+  updateViaCache = (null as unknown) as ServiceWorkerUpdateViaCache;
 
   async getNotifications() {
     return [];
@@ -169,8 +168,8 @@ export class FakePushSubscription implements PushSubscription {
   }
 
   // Unused in FCM
-  toJSON = null as unknown as () => PushSubscriptionJSON;
-  options = null as unknown as PushSubscriptionOptions;
+  toJSON = (null as unknown) as () => PushSubscriptionJSON;
+  options = (null as unknown) as PushSubscriptionOptions;
 }
 
 /**

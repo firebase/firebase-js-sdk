@@ -162,8 +162,7 @@ function sendEventsToFl(
 }
 
 function postToFlEndpoint(data: TransportBatchLogFormat): Promise<Response> {
-  const flTransportFullUrl =
-    SettingsService.getInstance().getFlTransportFullUrl();
+  const flTransportFullUrl = SettingsService.getInstance().getFlTransportFullUrl();
   return fetch(flTransportFullUrl, {
     method: 'POST',
     body: JSON.stringify(data)
