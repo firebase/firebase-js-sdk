@@ -16,6 +16,11 @@
  */
 
 import { RulesTestEnvironment, TestEnvironmentConfig } from './public_types';
+import {
+  DiscoveredEmulators,
+  discoverEmulators,
+  getEmulatorHostAndPort
+} from './impl/discovery';
 
 /**
  * Initializes a test environment for rules unit testing. Call this function first for test setup.
@@ -38,6 +43,37 @@ import { RulesTestEnvironment, TestEnvironmentConfig } from './public_types';
  * });
  * ```
  */
-export async function initializeTestEnvironment(): Promise<RulesTestEnvironment> {
+export async function initializeTestEnvironment(
+  config: TestEnvironmentConfig
+): Promise<RulesTestEnvironment> {
+  const projectId = config.projectId || process.env.GCLOUD_PROJECT;
+  if (!projectId) {
+    throw new Error(
+      'Missing projectId option or env var GCLOUD_PROJECT! Please specify the projectId either ' +
+        'way.\n(A demo-* projectId is strongly recommended for unit tests, such as "demo-test".)'
+    );
+  }
+  const hub = getEmulatorHostAndPort('hub', config.hub);
+  let discovered = hub ? { ...(await discoverEmulators(hub)), hub } : undefined;
+
+  const emulators: DiscoveredEmulators = {};
+  if (hub) {
+    emulators.hub = hub;
+  }
+
+  for (const emulator of SUPPORTED_EMULATORS) {
+    const hostAndPort = getEmulatorHostAndPort(
+      emulator,
+      config[emulator],
+      discovered
+    );
+    if (hostAndPort) {
+      emulators[emulator] = hostAndPort;
+    }
+  }
+
+  // TODO: Create test env and set security rules.
   throw new Error('unimplemented');
 }
+
+const SUPPORTED_EMULATORS = ['database', 'firestore', 'storage'] as const;
