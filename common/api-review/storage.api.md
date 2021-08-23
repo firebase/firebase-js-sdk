@@ -56,21 +56,19 @@ export interface FirebaseStorageError extends FirebaseError {
     serverResponse: string | null;
 }
 
-// @public
+// @internal
 export class _FirebaseStorageImpl implements FirebaseStorage {
     constructor(
     app: FirebaseApp, _authProvider: Provider<FirebaseAuthInternalName>,
     _appCheckProvider: Provider<AppCheckInternalComponentName>,
     _pool: ConnectionPool, _url?: string | undefined, _firebaseVersion?: string | undefined);
     readonly app: FirebaseApp;
-    // @internal (undocumented)
+    // (undocumented)
     readonly _appCheckProvider: Provider<AppCheckInternalComponentName>;
     // (undocumented)
     protected readonly _appId: string | null;
     // (undocumented)
     readonly _authProvider: Provider<FirebaseAuthInternalName>;
-    // Warning: (ae-incompatible-release-tags) The symbol "_bucket" is marked as @public, but its signature references "Location" which is marked as @internal
-    //
     // (undocumented)
     _bucket: _Location | null;
     _delete(): Promise<void>;
@@ -90,8 +88,6 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     _makeRequest<T>(requestInfo: RequestInfo_2<T>, authToken: string | null, appCheckToken: string | null): Request_2<T>;
     // (undocumented)
     makeRequestWithTokens<T>(requestInfo: RequestInfo_2<T>): Promise<Request_2<T>>;
-    // Warning: (ae-incompatible-release-tags) The symbol "_makeStorageReference" is marked as @public, but its signature references "Location" which is marked as @internal
-    // Warning: (ae-incompatible-release-tags) The symbol "_makeStorageReference" is marked as @public, but its signature references "Reference" which is marked as @internal
     _makeStorageReference(loc: _Location): _Reference;
     get maxOperationRetryTime(): number;
     set maxOperationRetryTime(time: number);
@@ -101,7 +97,7 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     _overrideAuthToken?: string;
     // Warning: (ae-forgotten-export) The symbol "ConnectionPool" needs to be exported by the entry point index.d.ts
     //
-    // @internal (undocumented)
+    // (undocumented)
     readonly _pool: ConnectionPool;
     // (undocumented)
     readonly _url?: string | undefined;
@@ -250,10 +246,10 @@ export const StringFormat: {
 // @public
 export type TaskEvent = 'state_changed';
 
-// @public
+// @internal
 export type _TaskEvent = string;
 
-// @public
+// @internal
 export const _TaskEvent: {
     STATE_CHANGED: string;
 };
@@ -261,10 +257,10 @@ export const _TaskEvent: {
 // @public
 export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
 
-// @public
+// @internal
 export type _TaskState = typeof _TaskState[keyof typeof _TaskState];
 
-// @public
+// @internal
 export const _TaskState: {
     readonly RUNNING: "running";
     readonly PAUSED: "paused";
