@@ -26,6 +26,7 @@
 '@firebase/messaging': minor
 '@firebase/messaging-compat': minor
 '@firebase/messaging-types': minor
+'@firebase/messaging-interop-types': minor
 '@firebase/performance': minor
 '@firebase/performance-compat': minor
 '@firebase/performance-types': minor
