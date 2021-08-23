@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,16 @@
  * limitations under the License.
  */
 
-/*
- * The testing module does not need to be registered since it should not ever
- * come by default. The only way to use the testing module is by explicitly
- * creating a dependency on @firebase/rules-unit-testing.
- */
+import { use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { restore } from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
-export * from './src/public_types';
-export * from './src/initialize';
-export * from './src/util';
+use(chaiAsPromised);
+use(sinonChai);
+
+export const mochaHooks = {
+  afterEach() {
+    restore();
+  }
+};
