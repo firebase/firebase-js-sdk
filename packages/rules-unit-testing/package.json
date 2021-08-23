@@ -14,12 +14,14 @@
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/rules-unit-testing --include-dependencies build",
     "dev": "rollup -c -w",
-    "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
-    "test": "FIREBASE_CLI_PREVIEWS=storageemulator STORAGE_EMULATOR_HOST=http://localhost:9199 firebase --project=foo --debug emulators:exec 'yarn test:nyc'",
+    "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ./mocharc.node.js",
+    "test": "firebase --project=demo-foo --debug emulators:exec 'yarn test:nyc'",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test"
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "firebase-admin": "9.11.1",
+    "firebase-functions": "3.15.4",
     "rollup": "2.52.2",
     "rollup-plugin-typescript2": "0.30.0"
   },
@@ -34,5 +36,8 @@
   "typings": "dist/index.d.ts",
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "dependencies": {
+    "node-fetch": "2.6.1"
   }
 }

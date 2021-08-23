@@ -15,12 +15,9 @@
  * limitations under the License.
  */
 
-/*
- * The testing module does not need to be registered since it should not ever
- * come by default. The only way to use the testing module is by explicitly
- * creating a dependency on @firebase/rules-unit-testing.
- */
+const base = require('../../config/mocharc.node.js');
 
-export * from './src/public_types';
-export * from './src/initialize';
-export * from './src/util';
+module.exports = {
+  ...base,
+  require: [base.require, 'test/setup.ts']
+};
