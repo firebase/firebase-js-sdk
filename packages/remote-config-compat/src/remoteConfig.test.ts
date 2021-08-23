@@ -147,10 +147,9 @@ describe('Remote Config Compat', () => {
   });
 
   it('setLogLevel() calls modular setLogLevel()', () => {
-    const modularSetLogLevel = stub(
-      modularApi,
-      'setLogLevel'
-    ).callsFake(() => {});
+    const modularSetLogLevel = stub(modularApi, 'setLogLevel').callsFake(
+      () => {}
+    );
     remoteConfig.setLogLevel('debug');
 
     expect(modularSetLogLevel).to.have.been.calledWithExactly(

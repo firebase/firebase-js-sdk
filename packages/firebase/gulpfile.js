@@ -27,12 +27,14 @@ const files = pkgJson.components.map(component => {
 const FIREBASE_APP_URL = `https://www.gstatic.com/firebasejs/${pkgJson.version}/firebase-app.js`;
 
 gulp.task('cdn-type-module-path', function () {
-  return gulp
-    .src(files)
-    .pipe(sourcemaps.init({ loadMaps: true }))
-    // gulp-replace doesn't work with gulp-sourcemaps, so no change is made to the existing sourcemap. 
-    // Therefore the sourcemap become slightly inaccurate
-    .pipe(replace('@firebase/app', FIREBASE_APP_URL))
-    .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest('.'));
+  return (
+    gulp
+      .src(files)
+      .pipe(sourcemaps.init({ loadMaps: true }))
+      // gulp-replace doesn't work with gulp-sourcemaps, so no change is made to the existing sourcemap.
+      // Therefore the sourcemap become slightly inaccurate
+      .pipe(replace('@firebase/app', FIREBASE_APP_URL))
+      .pipe(sourcemaps.write('.'))
+      .pipe(gulp.dest('.'))
+  );
 });

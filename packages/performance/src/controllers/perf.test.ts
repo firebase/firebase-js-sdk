@@ -39,11 +39,11 @@ describe('Firebase Performance Test', () => {
     appId: '1:111:web:a1234'
   };
 
-  const fakeFirebaseApp = ({
+  const fakeFirebaseApp = {
     options: fakeFirebaseConfig
-  } as unknown) as FirebaseApp;
+  } as unknown as FirebaseApp;
 
-  const fakeInstallations = ({} as unknown) as _FirebaseInstallationsInternal;
+  const fakeInstallations = {} as unknown as _FirebaseInstallationsInternal;
 
   describe('#constructor', () => {
     it('does not initialize performance if the required apis are not available', () => {
@@ -81,10 +81,10 @@ describe('Firebase Performance Test', () => {
     });
 
     it('uses defaults when settings are not provided', async () => {
-      const expectedInstrumentationEnabled = SettingsService.getInstance()
-        .instrumentationEnabled;
-      const expectedDataCollectionEnabled = SettingsService.getInstance()
-        .dataCollectionEnabled;
+      const expectedInstrumentationEnabled =
+        SettingsService.getInstance().instrumentationEnabled;
+      const expectedDataCollectionEnabled =
+        SettingsService.getInstance().dataCollectionEnabled;
 
       const performance = new PerformanceController(
         fakeFirebaseApp,

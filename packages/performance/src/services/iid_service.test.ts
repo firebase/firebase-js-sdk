@@ -34,10 +34,10 @@ describe('Firebase Perofmrance > iid_service', () => {
   before(() => {
     const getId = stub().resolves(IID);
     const getToken = stub().resolves(AUTH_TOKEN);
-    fakeInstallations = ({
+    fakeInstallations = {
       getId,
       getToken
-    } as unknown) as _FirebaseInstallationsInternal;
+    } as unknown as _FirebaseInstallationsInternal;
   });
 
   describe('getIidPromise', () => {

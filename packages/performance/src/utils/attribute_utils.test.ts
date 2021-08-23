@@ -33,31 +33,31 @@ import '../../test/setup';
 describe('Firebase Performance > attribute_utils', () => {
   describe('#getServiceWorkerStatus', () => {
     it('returns unsupported when service workers unsupported', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         navigator: {}
-      } as unknown) as Api);
+      } as unknown as Api);
 
       expect(getServiceWorkerStatus()).to.be.eql(1);
     });
 
     it('returns controlled when service workers controlled', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         navigator: {
           serviceWorker: {
             controller: {}
           }
         }
-      } as unknown) as Api);
+      } as unknown as Api);
 
       expect(getServiceWorkerStatus()).to.be.eql(2);
     });
 
     it('returns uncontrolled when service workers uncontrolled', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         navigator: {
           serviceWorker: {}
         }
-      } as unknown) as Api);
+      } as unknown as Api);
 
       expect(getServiceWorkerStatus()).to.be.eql(3);
     });
@@ -69,29 +69,29 @@ describe('Firebase Performance > attribute_utils', () => {
     });
 
     it('returns visible when document is visible', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         document: {
           visibilityState: 'visible'
         }
-      } as unknown) as Api);
+      } as unknown as Api);
       expect(getVisibilityState()).to.be.eql(VisibilityState.VISIBLE);
     });
 
     it('returns hidden when document is hidden', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         document: {
           visibilityState: 'hidden'
         }
-      } as unknown) as Api);
+      } as unknown as Api);
       expect(getVisibilityState()).to.be.eql(VisibilityState.HIDDEN);
     });
 
     it('returns unknown when document is unknown', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         document: {
           visibilityState: 'unknown'
         }
-      } as unknown) as Api);
+      } as unknown as Api);
       expect(getVisibilityState()).to.be.eql(VisibilityState.UNKNOWN);
     });
   });
@@ -102,66 +102,66 @@ describe('Firebase Performance > attribute_utils', () => {
     });
 
     it('returns EffectiveConnectionType.CONNECTION_SLOW_2G when slow-2g', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         navigator: {
           connection: {
             effectiveType: 'slow-2g'
           }
         }
-      } as unknown) as Api);
+      } as unknown as Api);
       expect(getEffectiveConnectionType()).to.be.eql(1);
     });
 
     it('returns EffectiveConnectionType.CONNECTION_2G when 2g', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         navigator: {
           connection: {
             effectiveType: '2g'
           }
         }
-      } as unknown) as Api);
+      } as unknown as Api);
       expect(getEffectiveConnectionType()).to.be.eql(2);
     });
 
     it('returns EffectiveConnectionType.CONNECTION_3G when 3g', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         navigator: {
           connection: {
             effectiveType: '3g'
           }
         }
-      } as unknown) as Api);
+      } as unknown as Api);
       expect(getEffectiveConnectionType()).to.be.eql(3);
     });
 
     it('returns EffectiveConnectionType.CONNECTION_4G when 4g', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         navigator: {
           connection: {
             effectiveType: '4g'
           }
         }
-      } as unknown) as Api);
+      } as unknown as Api);
       expect(getEffectiveConnectionType()).to.be.eql(4);
     });
 
     it('returns EffectiveConnectionType.UNKNOWN when unknown connection type', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         navigator: {
           connection: {
             effectiveType: '5g'
           }
         }
-      } as unknown) as Api);
+      } as unknown as Api);
       expect(getEffectiveConnectionType()).to.be.eql(0);
     });
 
     it('returns EffectiveConnectionType.UNKNOWN when no effective type', () => {
-      stub(Api, 'getInstance').returns(({
+      stub(Api, 'getInstance').returns({
         navigator: {
           connection: {}
         }
-      } as unknown) as Api);
+      } as unknown as Api);
       expect(getEffectiveConnectionType()).to.be.eql(0);
     });
   });

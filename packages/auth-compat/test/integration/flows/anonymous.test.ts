@@ -84,9 +84,9 @@ describe('Integration test: anonymous auth', () => {
 
       await firebase.auth().signOut();
 
-      const {
-        user: emailPassUser
-      } = await firebase.auth().signInWithEmailAndPassword(email, 'password');
+      const { user: emailPassUser } = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
       expect(emailPassUser!.uid).to.eq(anonUser!.uid);
     });
 
@@ -99,9 +99,9 @@ describe('Integration test: anonymous auth', () => {
       await anonUser!.linkWithCredential(cred);
       await firebase.auth().signOut();
 
-      const {
-        user: emailPassUser
-      } = await firebase.auth().signInWithEmailAndPassword(email, 'password');
+      const { user: emailPassUser } = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
       expect(emailPassUser!.uid).to.eq(anonUser!.uid);
     });
 

@@ -31,8 +31,8 @@ function credentialFromResponse(
 function attachExtraErrorFields(auth: exp.Auth, e: FirebaseError): void {
   // The response contains all fields from the server which may or may not
   // actually match the underlying type
-  const response = ((e.customData as exp.TaggedWithTokenResponse | undefined)
-    ?._tokenResponse as unknown) as Record<string, string>;
+  const response = (e.customData as exp.TaggedWithTokenResponse | undefined)
+    ?._tokenResponse as unknown as Record<string, string>;
   if (e.code === 'auth/multi-factor-auth-required') {
     const mfaErr = e as compat.MultiFactorError;
     mfaErr.resolver = new MultiFactorResolver(
@@ -54,9 +54,9 @@ function attachExtraErrorFields(auth: exp.Auth, e: FirebaseError): void {
 function credentialFromObject(
   object: FirebaseError | exp.UserCredential
 ): exp.AuthCredential | null {
-  const { _tokenResponse } = (object instanceof FirebaseError
-    ? object.customData
-    : object) as exp.TaggedWithTokenResponse;
+  const { _tokenResponse } = (
+    object instanceof FirebaseError ? object.customData : object
+  ) as exp.TaggedWithTokenResponse;
   if (!_tokenResponse) {
     return null;
   }

@@ -72,9 +72,8 @@ describe('Integration test: headless IdP', () => {
   });
 
   it('allows the user to update profile', async () => {
-    const credential = firebase.auth.GithubAuthProvider.credential(
-      oauthIdToken
-    );
+    const credential =
+      firebase.auth.GithubAuthProvider.credential(oauthIdToken);
     const { user } = await firebase.auth().signInWithCredential(credential);
 
     await user!.updateProfile({
@@ -97,9 +96,8 @@ describe('Integration test: headless IdP', () => {
   });
 
   it('allows the user to change the email', async () => {
-    const credential = firebase.auth.FacebookAuthProvider.credential(
-      oauthIdToken
-    );
+    const credential =
+      firebase.auth.FacebookAuthProvider.credential(oauthIdToken);
     const { user } = await firebase.auth().signInWithCredential(credential);
 
     expect(user!.email).to.eq(email);
@@ -120,9 +118,8 @@ describe('Integration test: headless IdP', () => {
   });
 
   it('allows the user to set a password', async () => {
-    const credential = firebase.auth.GoogleAuthProvider.credential(
-      oauthIdToken
-    );
+    const credential =
+      firebase.auth.GoogleAuthProvider.credential(oauthIdToken);
     const { user } = await firebase.auth().signInWithCredential(credential);
 
     expect(user!.providerData.length).to.eq(1);
@@ -199,12 +196,11 @@ describe('Integration test: headless IdP', () => {
   });
 
   it('IdP account takes over unverified email', async () => {
-    const credential = firebase.auth.GoogleAuthProvider.credential(
-      oauthIdToken
-    );
-    const {
-      user: emailUser
-    } = await firebase.auth().createUserWithEmailAndPassword(email, 'password');
+    const credential =
+      firebase.auth.GoogleAuthProvider.credential(oauthIdToken);
+    const { user: emailUser } = await firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, 'password');
 
     // Check early state
     expect(emailUser!.emailVerified).to.be.false;

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import { uglify } from 'rollup-plugin-uglify';
@@ -24,7 +23,7 @@ import typescript from 'typescript';
 import pkg from './package.json';
 
 const deps = Object.keys(
-    Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
 /**
@@ -36,63 +35,63 @@ const commonPlugins = [json(), resolve()];
  * ES5 Builds
  */
 const es5BuildPlugins = [
-    ...commonPlugins,
-    typescriptPlugin({
-        typescript
-    })
+  ...commonPlugins,
+  typescriptPlugin({
+    typescript
+  })
 ];
 
 const es5Builds = [
-    /**
-     * Browser Builds
-     */
-    {
-        input: 'index.ts',
-        output: [{ file: pkg.esm5, format: 'esm', sourcemap: true }],
-        plugins: es5BuildPlugins,
-        external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-        treeshake: {
-            moduleSideEffects: false
-        }
-    },
-    /**
-     * Node.js Build
-     */
-    {
-        input: 'index.node.ts',
-        output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-        plugins: es5BuildPlugins,
-        external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-        treeshake: {
-            moduleSideEffects: true
-        }
-    },
-    /**
-     * UMD build
-     */
-    {
-        input: `./index.ts`,
-        output: {
-            compact: true,
-            file: `dist/firebase-auth.js`,
-            format: 'umd',
-            sourcemap: true,
-            extend: true,
-            name: 'firebase',
-            globals: {
-                '@firebase/app-compat': 'firebase',
-                '@firebase/app': 'firebase.INTERNAL.modularAPIs'
-            },
-            /**
-             * use iife to avoid below error in the old Safari browser
-             * SyntaxError: Functions cannot be declared in a nested block in strict mode
-             * https://github.com/firebase/firebase-js-sdk/issues/1228
-             *
-             */
-            intro: `
+  /**
+   * Browser Builds
+   */
+  {
+    input: 'index.ts',
+    output: [{ file: pkg.esm5, format: 'esm', sourcemap: true }],
+    plugins: es5BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  /**
+   * Node.js Build
+   */
+  {
+    input: 'index.node.ts',
+    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    plugins: es5BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: true
+    }
+  },
+  /**
+   * UMD build
+   */
+  {
+    input: `./index.ts`,
+    output: {
+      compact: true,
+      file: `dist/firebase-auth.js`,
+      format: 'umd',
+      sourcemap: true,
+      extend: true,
+      name: 'firebase',
+      globals: {
+        '@firebase/app-compat': 'firebase',
+        '@firebase/app': 'firebase.INTERNAL.modularAPIs'
+      },
+      /**
+       * use iife to avoid below error in the old Safari browser
+       * SyntaxError: Functions cannot be declared in a nested block in strict mode
+       * https://github.com/firebase/firebase-js-sdk/issues/1228
+       *
+       */
+      intro: `
              try {
                (function() {`,
-            outro: `
+      outro: `
              }).apply(this, arguments);
            } catch(err) {
                console.error(err);
@@ -101,47 +100,43 @@ const es5Builds = [
                  'be sure to load firebase-app.js first.'
                );
              }`
-        },
-        plugins: [...es5BuildPlugins, uglify()],
-        external: ['@firebase/app-compat', '@firebase/app']
-    }
+    },
+    plugins: [...es5BuildPlugins, uglify()],
+    external: ['@firebase/app-compat', '@firebase/app']
+  }
 ];
 
 /**
  * ES2017 Builds
  */
 const es2017BuildPlugins = [
-    ...commonPlugins,
-    typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-            compilerOptions: {
-                target: 'es2017'
-            }
-        }
-    })
+  ...commonPlugins,
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    }
+  })
 ];
 const es2017Builds = [
-    /**
-     *  Browser Builds
-     */
-    {
-        input: 'index.ts',
-        output: {
-            file: pkg.browser,
-            format: 'es',
-            sourcemap: true
-        },
-        plugins: es2017BuildPlugins,
-        external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-        treeshake: {
-            moduleSideEffects: false
-        }
+  /**
+   *  Browser Builds
+   */
+  {
+    input: 'index.ts',
+    output: {
+      file: pkg.browser,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
     }
+  }
 ];
 
-export default [
-    ...es5Builds,
-    ...es2017Builds
-];
-
+export default [...es5Builds, ...es2017Builds];

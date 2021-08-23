@@ -110,7 +110,7 @@ export class User implements compat.User, Compat<exp.User> {
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      (this.auth as unknown) as exp.Auth,
+      this.auth as unknown as exp.Auth,
       exp.reauthenticateWithCredential(
         this._delegate,
         credential as exp.AuthCredential
@@ -226,6 +226,6 @@ export class User implements compat.User, Compat<exp.User> {
     return this._delegate.uid;
   }
   private get auth(): exp.Auth {
-    return ((this._delegate as exp.UserImpl).auth as unknown) as exp.Auth;
+    return (this._delegate as exp.UserImpl).auth as unknown as exp.Auth;
   }
 }

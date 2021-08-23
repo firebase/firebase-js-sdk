@@ -39,9 +39,8 @@ let rcInstance;
 const outputBox = document.getElementById('output-box');
 
 window.onload = function () {
-  document.querySelector(
-    '#firebase-config'
-  ).placeholder = FB_CONFIG_PLACEHOLDER;
+  document.querySelector('#firebase-config').placeholder =
+    FB_CONFIG_PLACEHOLDER;
   document.querySelector('#rc-defaults').placeholder = DEFAULTS_PLACEHOLDER;
   document.querySelector('#rc-settings').placeholder = SETTINGS_PLACEHOLDER;
 };
