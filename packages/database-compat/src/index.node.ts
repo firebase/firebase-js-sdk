@@ -124,7 +124,7 @@ try {
 // Types to export for the admin SDK
 export { Database, Query, Reference, enableLogging, ServerValue };
 
-export { OnDisconnect } from '@firebase/database/src/api/OnDisconnect';
+export { OnDisconnect } from '@firebase/database';
 
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
