@@ -253,7 +253,7 @@ export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
  * An error returned by the Firebase Storage SDK.
  * @public
  */
-export interface FirebaseStorageError extends FirebaseError {
+export interface StorageError extends FirebaseError {
   /**
    * A server response message for the error, if applicable.
    */
@@ -266,7 +266,7 @@ export interface FirebaseStorageError extends FirebaseError {
  */
 export interface StorageObserver<T> {
   next?: NextFn<T> | null;
-  error?: (error: FirebaseStorageError) => void | null;
+  error?: (error: StorageError) => void | null;
   complete?: CompleteFn | null;
 }
 
@@ -284,7 +284,7 @@ export interface UploadTask {
   /**
    * Equivalent to calling `then(null, onRejected)`.
    */
-  catch(onRejected: (error: FirebaseStorageError) => unknown): Promise<unknown>;
+  catch(onRejected: (error: StorageError) => unknown): Promise<unknown>;
   /**
    * Listens for events on this task.
    *
@@ -384,7 +384,7 @@ export interface UploadTask {
    *     The `next` function, which gets called for each item in
    *     the event stream, or an observer object with some or all of these three
    *     properties (`next`, `error`, `complete`).
-   * @param error - A function that gets called with a `FirebaseStorageError`
+   * @param error - A function that gets called with a `StorageError`
    *     if the event stream ends due to an error.
    * @param completed - A function that gets called if the
    *     event stream ends normally.
@@ -400,7 +400,7 @@ export interface UploadTask {
       | StorageObserver<UploadTaskSnapshot>
       | null
       | ((snapshot: UploadTaskSnapshot) => unknown),
-    error?: ((a: FirebaseStorageError) => unknown) | null,
+    error?: ((a: StorageError) => unknown) | null,
     complete?: Unsubscribe | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot>;
 
@@ -428,7 +428,7 @@ export interface UploadTask {
    */
   then(
     onFulfilled?: ((snapshot: UploadTaskSnapshot) => unknown) | null,
-    onRejected?: ((error: FirebaseStorageError) => unknown) | null
+    onRejected?: ((error: StorageError) => unknown) | null
   ): Promise<unknown>;
 }
 

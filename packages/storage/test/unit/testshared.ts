@@ -21,7 +21,7 @@ use(chaiAsPromised);
 
 import { FirebaseApp } from '@firebase/app-types';
 import { CONFIG_STORAGE_BUCKET_KEY } from '../../src/implementation/constants';
-import { FirebaseStorageError } from '../../src/implementation/error';
+import { StorageError } from '../../src/implementation/error';
 import { Headers, Connection } from '../../src/implementation/connection';
 import { ConnectionPool } from '../../src/implementation/connectionPool';
 import { SendHook, TestingConnection } from './connection';
@@ -155,8 +155,8 @@ export function bind(f: Function, ctx: any, ...args: any[]): () => void {
 export function assertThrows(
   f: () => void,
   code: string
-): FirebaseStorageError {
-  let captured: FirebaseStorageError | null = null;
+): StorageError {
+  let captured: StorageError | null = null;
   expect(() => {
     try {
       f();
@@ -168,11 +168,11 @@ export function assertThrows(
   // @ts-ignore Compiler does not know callback is invoked immediately and
   // thinks catch block is unreachable. This is an open TS issue:
   // https://github.com/microsoft/TypeScript/issues/11498
-  expect(captured).to.be.an.instanceof(FirebaseStorageError);
+  expect(captured).to.be.an.instanceof(StorageError);
   // @ts-ignore See above.
   expect(captured.code).to.equal(code);
   // @ts-ignore See above.
-  return captured as FirebaseStorageError;
+  return captured as StorageError;
 }
 
 export function assertUint8ArrayEquals(
