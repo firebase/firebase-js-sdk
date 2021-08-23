@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,4 @@
  * creating a dependency on @firebase/rules-unit-testing.
  */
 
-export {
-  apps,
-  assertFails,
-  assertSucceeds,
-  discoverEmulators,
-  clearFirestoreData,
-  database,
-  firestore,
-  initializeAdminApp,
-  initializeTestApp,
-  loadDatabaseRules,
-  loadFirestoreRules,
-  loadStorageRules,
-  useEmulators,
-  withFunctionTriggersDisabled
-} from './src/api';
+export const TODO = 'TODO';
