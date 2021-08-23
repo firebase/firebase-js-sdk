@@ -77,9 +77,8 @@ export function assertFails(pr: Promise<any>): Promise<any> {
       );
     },
     (err: any) => {
-      const errCode = (err && err.code && err.code.toLowerCase()) || '';
-      const errMessage =
-        (err && err.message && err.message.toLowerCase()) || '';
+      const errCode = err?.code?.toLowerCase() || '';
+      const errMessage = err?.message?.toLowerCase() || '';
       const isPermissionDenied =
         errCode === 'permission-denied' ||
         errCode === 'permission_denied' ||

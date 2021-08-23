@@ -15,33 +15,17 @@
  * limitations under the License.
  */
 
-import { createMockUserToken } from '@firebase/util';
+import firebase from 'firebase/compat/app';
+import 'firebase/firestore/compat';
+import 'firebase/database/compat';
+import 'firebase/storage/compat';
 
-// TODO: Change these imports to firebase/* once exp packages are moved into their places.
-import {
-  connectDatabaseEmulator,
-  Database,
-  set,
-  ref
-} from '@firebase/database/dist/exp';
-import {
-  FirestoreSettings,
-  Firestore,
-  connectFirestoreEmulator
-} from '@firebase/firestore/dist/exp';
-import { connectStorageEmulator, FirebaseStorage } from '@firebase/storage/exp';
-
-import { FirebaseApp } from '@firebase/app-types';
 import {
   HostAndPort,
   RulesTestContext,
   RulesTestEnvironment,
   TokenOptions
 } from '../public_types';
-import firebase from '@firebase/app-compat';
-import '@firebase/firestore/dist/compat/esm2017/firestore/index';
-import '@firebase/database/dist/compat/esm2017/index';
-import '@firebase/storage/dist/compat/esm2017/index';
 
 import { DiscoveredEmulators } from './discovery';
 
@@ -64,15 +48,11 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
     tokenOptions?: TokenOptions
   ): RulesTestContext {
     this.checkNotDestroyed();
-    const token = createMockUserToken(
-      {
-        ...tokenOptions,
-        sub: user_id,
-        user_id: user_id
-      },
-      this.projectId
-    );
-    return this.createContext(token);
+    return this.createContext({
+      ...tokenOptions,
+      sub: user_id,
+      user_id: user_id
+    });
   }
 
   unauthenticatedContext(): RulesTestContext {
@@ -101,7 +81,9 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
     }
   }
 
-  private createContext(authToken: string | undefined): RulesTestContextImpl {
+  private createContext(
+    authToken: string | firebase.EmulatorMockTokenOptions | undefined
+  ): RulesTestContextImpl {
     const context = new RulesTestContextImpl(
       this.projectId,
       this.emulators,
@@ -114,7 +96,7 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
   clearDatabase(): Promise<void> {
     this.checkNotDestroyed();
     return this.withSecurityRulesDisabled(context => {
-      return set(ref(context.database(), '/'), null);
+      return context.database().ref('/').set(null);
     });
   }
 
@@ -153,14 +135,14 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
  * @private
  */
 class RulesTestContextImpl implements RulesTestContext {
-  private app?: FirebaseApp;
+  private app?: firebase.app.App;
   private destroyed = false;
   envDestroyed = false;
 
   constructor(
     readonly projectId: string,
     readonly emulators: DiscoveredEmulators,
-    readonly authToken: string | undefined
+    readonly authToken: firebase.EmulatorMockTokenOptions | string | undefined
   ) {}
 
   cleanup() {
@@ -170,41 +152,35 @@ class RulesTestContextImpl implements RulesTestContext {
     this.app = undefined;
   }
 
-  firestore(settings?: FirestoreSettings): Firestore {
+  firestore(
+    settings?: firebase.firestore.Settings
+  ): firebase.firestore.Firestore {
     assertEmulatorRunning(this.emulators, 'firestore');
-    const firestoreCompat = this.getApp().firestore!();
+    const firestore = this.getApp().firestore();
     if (settings) {
-      firestoreCompat.settings(settings);
+      firestore.settings(settings);
     }
-    const firestore = firestoreCompat as unknown as Firestore;
-    connectFirestoreEmulator(
-      firestore,
+    firestore.useEmulator(
       this.emulators.firestore.host,
       this.emulators.firestore.port,
       { mockUserToken: this.authToken }
     );
     return firestore;
   }
-  database(databaseURL?: string): Database {
+  database(databaseURL?: string): firebase.database.Database {
     assertEmulatorRunning(this.emulators, 'database');
-    const database = this.getApp().database!(
-      databaseURL
-    ) as unknown as Database;
-    connectDatabaseEmulator(
-      database,
+    const database = this.getApp().database(databaseURL);
+    database.useEmulator(
       this.emulators.database.host,
       this.emulators.database.port,
       { mockUserToken: this.authToken }
     );
     return database;
   }
-  storage(bucketUrl?: string): FirebaseStorage {
+  storage(bucketUrl?: string): firebase.storage.Storage {
     assertEmulatorRunning(this.emulators, 'storage');
-    const storage = this.getApp().storage!(
-      bucketUrl
-    ) as unknown as FirebaseStorage;
-    connectStorageEmulator(
-      storage,
+    const storage = this.getApp().storage(bucketUrl);
+    storage.useEmulator(
       this.emulators.storage.host,
       this.emulators.storage.port,
       { mockUserToken: this.authToken }
@@ -212,7 +188,7 @@ class RulesTestContextImpl implements RulesTestContext {
     return storage;
   }
 
-  private getApp(): FirebaseApp {
+  private getApp(): firebase.app.App {
     if (this.envDestroyed) {
       throw new Error(
         'This RulesTestContext is no longer valid because its RulesTestEnvironment has been ' +
