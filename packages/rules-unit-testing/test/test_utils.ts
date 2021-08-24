@@ -15,12 +15,23 @@
  * limitations under the License.
  */
 
-/*
- * The testing module does not need to be registered since it should not ever
- * come by default. The only way to use the testing module is by explicitly
- * creating a dependency on @firebase/rules-unit-testing.
- */
+import { EMULATOR_HOST_ENV_VARS } from '../src/impl/discovery';
 
-export * from './src/public_types';
-export * from './src/initialize';
-export * from './src/util';
+let envVars: Record<string, string | undefined>;
+export function stashEnvVars() {
+  envVars = {};
+  for (const envVar of Object.values(EMULATOR_HOST_ENV_VARS)) {
+    envVars[envVar] = process.env[envVar];
+    delete process.env[envVar];
+  }
+}
+
+export function restoreEnvVars() {
+  for (const envVar of Object.values(EMULATOR_HOST_ENV_VARS)) {
+    if (envVars[envVar] === undefined) {
+      delete process.env[envVar];
+    } else {
+      process.env[envVar] = envVars[envVar];
+    }
+  }
+}

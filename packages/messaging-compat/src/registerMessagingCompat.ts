@@ -34,17 +34,17 @@ declare module '@firebase/component' {
 const messagingCompatFactory: InstanceFactory<'messaging-compat'> = (
   container: ComponentContainer
 ) => {
-  if (!!navigator) {
+  if (self && 'ServiceWorkerGlobalScope' in self) {
+    // in sw
+    return new MessagingCompatImpl(
+      container.getProvider('app-compat').getImmediate(),
+      container.getProvider('messaging-sw-exp').getImmediate()
+    );
+  } else {
     // in window
     return new MessagingCompatImpl(
       container.getProvider('app-compat').getImmediate(),
       container.getProvider('messaging').getImmediate()
-    );
-  } else {
-    // in sw
-    return new MessagingCompatImpl(
-      container.getProvider('app-compat').getImmediate(),
-      container.getProvider('messaging-sw').getImmediate()
     );
   }
 };

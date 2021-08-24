@@ -149,6 +149,8 @@ export function connectStorageEmulator(
 /**
  * A service that provides Firebase Storage Reference instances.
  * @param opt_url - gs:// url to a custom Storage Bucket
+ * 
+ * @internal
  */
 export class FirebaseStorageImpl implements FirebaseStorage {
   _bucket: Location | null = null;

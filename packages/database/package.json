@@ -25,7 +25,8 @@
     "test:emulator": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/database-test-runner.ts",
     "api-report": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package database --packageRoot . --typescriptDts ./dist/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/public.d.ts && yarn api-report:api-json",
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
-    "doc": "api-documenter markdown --input temp --output docs"
+    "doc": "api-documenter markdown --input temp --output docs",
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/public.d.ts"
   },
   "license": "Apache-2.0",
   "peerDependencies": {},
