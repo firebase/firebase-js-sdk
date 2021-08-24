@@ -15,6 +15,14 @@
  * limitations under the License.
  */
 
+import {
+  EMULATOR_HOST_ENV_VARS,
+  getEmulatorHostAndPort
+} from './impl/discovery';
+import { fixHostname, makeUrl } from './impl/url';
+import { HostAndPort } from './public_types';
+import fetch from 'node-fetch';
+
 /**
  * Run a setup function with background Cloud Functions triggers disabled. This can be used to
  * import data into the Realtime Database or Cloud Firestore emulator without triggering locally
@@ -41,7 +49,8 @@ export async function withFunctionTriggersDisabled<TResult>(
  * @param fn an function which may be sync or async (returns a promise)
  * @param hub the host and port of the Emulator Hub (ex: `{host: 'localhost', port: 4400}`)
  * @public
- */ export async function withFunctionTriggersDisabled<TResult>(
+ */
+export async function withFunctionTriggersDisabled<TResult>(
   hub: { host: string; port: number },
   fn: () => TResult | Promise<TResult>
 ): Promise<TResult>;
@@ -50,7 +59,60 @@ export async function withFunctionTriggersDisabled<TResult>(
   fnOrHub: { host: string; port: number } | (() => TResult | Promise<TResult>),
   maybeFn?: () => TResult | Promise<TResult>
 ): Promise<TResult> {
-  throw new Error('unimplemented');
+  let hub: HostAndPort | undefined;
+  if (typeof fnOrHub === 'function') {
+    maybeFn = fnOrHub;
+    hub = getEmulatorHostAndPort('hub');
+  } else {
+    hub = getEmulatorHostAndPort('hub', fnOrHub);
+    if (!maybeFn) {
+      throw new Error('The callback function must be specified!');
+    }
+  }
+  if (!hub) {
+    throw new Error(
+      'Please specify the Emulator Hub host and port via arguments or set the environment ' +
+        `varible ${EMULATOR_HOST_ENV_VARS.hub}!`
+    );
+  }
+
+  hub.host = fixHostname(hub.host);
+  makeUrl(hub, '/functions/disableBackgroundTriggers');
+  // Disable background triggers
+  const disableRes = await fetch(
+    makeUrl(hub, '/functions/disableBackgroundTriggers'),
+    {
+      method: 'PUT'
+    }
+  );
+  if (!disableRes.ok) {
+    throw new Error(
+      `HTTP Error ${disableRes.status} when disabling functions triggers, are you using firebase-tools 8.13.0 or higher?`
+    );
+  }
+
+  // Run the user's function
+  let result: TResult | undefined = undefined;
+  try {
+    result = await maybeFn();
+  } finally {
+    // Re-enable background triggers
+    const enableRes = await fetch(
+      makeUrl(hub, '/functions/enableBackgroundTriggers'),
+      {
+        method: 'PUT'
+      }
+    );
+
+    if (!enableRes.ok) {
+      throw new Error(
+        `HTTP Error ${enableRes.status} when enabling functions triggers, are you using firebase-tools 8.13.0 or higher?`
+      );
+    }
+  }
+
+  // Return the user's function result
+  return result;
 }
 
 /**

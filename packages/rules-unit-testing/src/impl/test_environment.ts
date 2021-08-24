@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import fetch from 'node-fetch';
 import firebase from 'firebase/compat/app';
 import 'firebase/firestore/compat';
 import 'firebase/database/compat';
@@ -28,6 +29,7 @@ import {
 } from '../public_types';
 
 import { DiscoveredEmulators } from './discovery';
+import { makeUrl } from './url';
 
 /**
  * An implementation of {@code RulesTestEnvironment}. This is private to hide the constructor,
@@ -100,14 +102,35 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
     });
   }
 
-  clearFirestore(): Promise<void> {
+  async clearFirestore(): Promise<void> {
     this.checkNotDestroyed();
-    throw new Error('Method not implemented.');
+    assertEmulatorRunning(this.emulators, 'firestore');
+
+    const resp = await fetch(
+      makeUrl(
+        this.emulators.firestore,
+        `/emulator/v1/projects/${this.projectId}/databases/(default)/documents`
+      ),
+      {
+        method: 'DELETE'
+      }
+    );
+
+    if (!resp.ok) {
+      throw new Error(await resp.text());
+    }
   }
 
   clearStorage(): Promise<void> {
     this.checkNotDestroyed();
-    throw new Error('Method not implemented.');
+    return this.withSecurityRulesDisabled(async context => {
+      const { items } = await context.storage().ref().listAll();
+      await Promise.all(
+        items.map(item => {
+          return item.delete();
+        })
+      );
+    });
   }
 
   async cleanup(): Promise<void> {
@@ -177,7 +200,7 @@ class RulesTestContextImpl implements RulesTestContext {
     );
     return database;
   }
-  storage(bucketUrl?: string): firebase.storage.Storage {
+  storage(bucketUrl = `gs://${this.projectId}`): firebase.storage.Storage {
     assertEmulatorRunning(this.emulators, 'storage');
     const storage = this.getApp().storage(bucketUrl);
     storage.useEmulator(
