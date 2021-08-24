@@ -237,14 +237,14 @@ export interface StorageReference {
 }
 
 // @public
-export type StringFormat = string;
+export type StringFormat = typeof StringFormat[keyof typeof StringFormat];
 
 // @public
 export const StringFormat: {
-    RAW: string;
-    BASE64: string;
-    BASE64URL: string;
-    DATA_URL: string;
+    readonly RAW: "raw";
+    readonly BASE64: "base64";
+    readonly BASE64URL: "base64url";
+    readonly DATA_URL: "data_url";
 };
 
 // @public
