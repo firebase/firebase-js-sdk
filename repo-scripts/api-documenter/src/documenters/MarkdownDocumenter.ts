@@ -918,6 +918,11 @@ export class MarkdownDocumenter {
       }
     }
 
+    if (functionsTable.rows.length > 0) {
+      output.push(new DocHeading({ configuration, title: 'Functions' }));
+      output.push(functionsTable);
+    }
+
     if (classesTable.rows.length > 0) {
       output.push(new DocHeading({ configuration, title: 'Classes' }));
       output.push(classesTable);
@@ -926,10 +931,6 @@ export class MarkdownDocumenter {
     if (enumerationsTable.rows.length > 0) {
       output.push(new DocHeading({ configuration, title: 'Enumerations' }));
       output.push(enumerationsTable);
-    }
-    if (functionsTable.rows.length > 0) {
-      output.push(new DocHeading({ configuration, title: 'Functions' }));
-      output.push(functionsTable);
     }
 
     if (interfacesTable.rows.length > 0) {
