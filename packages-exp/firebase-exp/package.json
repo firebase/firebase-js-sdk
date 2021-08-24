@@ -24,6 +24,10 @@
     "compat/index.d.ts"
   ],
   "exports": {
+    ".": {
+      "node": "./app/dist/index.cjs.js",
+      "default": "./app/dist/index.esm.js"
+    },
     "./analytics": {
       "node": {
         "require": "./analytics/dist/index.cjs",
