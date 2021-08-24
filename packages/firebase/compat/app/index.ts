@@ -15,8 +15,14 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app-compat';
+import _firebase from '@firebase/app-compat';
 import { name, version } from '../../package.json';
+
+// Quick fix for the app-compat bundling issue
+// TODO(feiyangc) figure out why this is failing to rollup correctly in
+//                this package specifically
+// @ts-ignore
+const firebase = _firebase.default;
 
 firebase.registerVersion(name, version, 'app-compat');
 
