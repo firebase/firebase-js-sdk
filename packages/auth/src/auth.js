@@ -1621,6 +1621,22 @@ fireauth.Auth.prototype.onAuthStateChanged = function(
       opt_completed);
 };
 
+/**
+ * Returns the user if successfully logged in.s
+ * Returns null if the user is logged out.
+ * @return {Promise<fireauth.AuthUser>}
+ */
+fireauth.Auth.prototype.getSignedInUser = function() {
+  return new Promise((resolve, reject) => {
+    if (this.currentUser_()) {
+      resolve(this.currentUser_());
+    }
+    const unsubscribe = this.onAuthStateChanged(user => {
+      unsubscribe();
+      resolve(user);
+    }, reject);
+  });
+}
 
 /**
  * Returns an STS token. If the cached one is unexpired it is directly returned.
