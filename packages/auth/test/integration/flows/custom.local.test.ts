@@ -194,7 +194,7 @@ describe('Integration test: custom auth', () => {
           return JSON.stringify({
             uid,
             claims: {
-              customClaim: 'some-claim'
+              customClaim: 'other-claim'
             }
           });
         }
@@ -203,6 +203,9 @@ describe('Integration test: custom auth', () => {
       const origToken = await user.getIdToken();
       await new Promise(resolve => setTimeout(resolve, 1000));
       expect(await user.getIdToken(true)).not.to.eq(origToken);
+      expect((await user.getIdTokenResult(false)).claims.customClaim).to.eq(
+        'other-claim'
+      );
     });
   });
 
