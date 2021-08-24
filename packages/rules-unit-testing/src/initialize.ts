@@ -83,15 +83,23 @@ export async function initializeTestEnvironment(
 
   if (config.database?.rules) {
     assertEmulatorRunning(emulators, 'database');
-    loadDatabaseRules(emulators.database, projectId, config.database.rules);
+    await loadDatabaseRules(
+      emulators.database,
+      projectId,
+      config.database.rules
+    );
   }
   if (config.firestore?.rules) {
     assertEmulatorRunning(emulators, 'firestore');
-    loadFirestoreRules(emulators.firestore, projectId, config.firestore.rules);
+    await loadFirestoreRules(
+      emulators.firestore,
+      projectId,
+      config.firestore.rules
+    );
   }
   if (config.storage?.rules) {
     assertEmulatorRunning(emulators, 'storage');
-    loadStorageRules(emulators.storage, config.storage.rules);
+    await loadStorageRules(emulators.storage, config.storage.rules);
   }
 
   return new RulesTestEnvironmentImpl(projectId, emulators);
