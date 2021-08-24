@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { UserDataWriter } from '../../../src/api/database';
+import { UserDataWriter } from '../../../compat/api/database';
 import {
   hasLimitToFirst,
   hasLimitToLast,

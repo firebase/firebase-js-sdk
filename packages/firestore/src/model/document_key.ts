@@ -19,6 +19,9 @@ import { debugAssert } from '../util/assert';
 
 import { ResourcePath } from './path';
 
+/**
+ * @internal
+ */
 export class DocumentKey {
   constructor(readonly path: ResourcePath) {
     debugAssert(

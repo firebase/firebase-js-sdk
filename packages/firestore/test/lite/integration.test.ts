@@ -16,26 +16,26 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp } from '@firebase/app-exp';
+import { initializeApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { Bytes } from '../../src/lite/bytes';
+import { Bytes } from '../../src/lite-api/bytes';
 import {
   Firestore,
   getFirestore,
   initializeFirestore,
   terminate
-} from '../../src/lite/database';
-import { FieldPath } from '../../src/lite/field_path';
-import { FieldValue } from '../../src/lite/field_value';
+} from '../../src/lite-api/database';
+import { FieldPath } from '../../src/lite-api/field_path';
+import { FieldValue } from '../../src/lite-api/field_value';
 import {
   arrayRemove,
   arrayUnion,
   deleteField,
   increment,
   serverTimestamp
-} from '../../src/lite/field_value_impl';
+} from '../../src/lite-api/field_value_impl';
 import {
   endAt,
   endBefore,
@@ -46,7 +46,7 @@ import {
   startAfter,
   startAt,
   where
-} from '../../src/lite/query';
+} from '../../src/lite-api/query';
 import {
   collection,
   CollectionReference,
@@ -60,7 +60,7 @@ import {
   WithFieldValue,
   PartialWithFieldValue,
   UpdateData
-} from '../../src/lite/reference';
+} from '../../src/lite-api/reference';
 import {
   addDoc,
   deleteDoc,
@@ -68,15 +68,15 @@ import {
   getDocs,
   setDoc,
   updateDoc
-} from '../../src/lite/reference_impl';
+} from '../../src/lite-api/reference_impl';
 import {
   snapshotEqual,
   QuerySnapshot,
   QueryDocumentSnapshot
-} from '../../src/lite/snapshot';
-import { Timestamp } from '../../src/lite/timestamp';
-import { runTransaction } from '../../src/lite/transaction';
-import { writeBatch } from '../../src/lite/write_batch';
+} from '../../src/lite-api/snapshot';
+import { Timestamp } from '../../src/lite-api/timestamp';
+import { runTransaction } from '../../src/lite-api/transaction';
+import { writeBatch } from '../../src/lite-api/write_batch';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS

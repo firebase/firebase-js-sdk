@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 const LONG_TYPE = 'type.googleapis.com/google.protobuf.Int64Value';
 const UNSIGNED_LONG_TYPE = 'type.googleapis.com/google.protobuf.UInt64Value';
 
@@ -33,72 +32,78 @@ function mapValues(
   return result;
 }
 
-export class Serializer {
-  // Takes data and encodes it in a JSON-friendly way, such that types such as
-  // Date are preserved.
-  encode(data: unknown): unknown {
-    if (data == null) {
-      return null;
-    }
-    if (data instanceof Number) {
-      data = data.valueOf();
-    }
-    if (typeof data === 'number' && isFinite(data)) {
-      // Any number in JS is safe to put directly in JSON and parse as a double
-      // without any loss of precision.
-      return data;
-    }
-    if (data === true || data === false) {
-      return data;
-    }
-    if (Object.prototype.toString.call(data) === '[object String]') {
-      return data;
-    }
-    if (data instanceof Date) {
-      return data.toISOString();
-    }
-    if (Array.isArray(data)) {
-      return data.map(x => this.encode(x));
-    }
-    if (typeof data === 'function' || typeof data === 'object') {
-      return mapValues(data!, x => this.encode(x));
-    }
-    // If we got this far, the data is not encodable.
-    throw new Error('Data cannot be encoded in JSON: ' + data);
+/**
+ * Takes data and encodes it in a JSON-friendly way, such that types such as
+ * Date are preserved.
+ * @internal
+ * @param data - Data to encode.
+ */
+export function encode(data: unknown): unknown {
+  if (data == null) {
+    return null;
   }
+  if (data instanceof Number) {
+    data = data.valueOf();
+  }
+  if (typeof data === 'number' && isFinite(data)) {
+    // Any number in JS is safe to put directly in JSON and parse as a double
+    // without any loss of precision.
+    return data;
+  }
+  if (data === true || data === false) {
+    return data;
+  }
+  if (Object.prototype.toString.call(data) === '[object String]') {
+    return data;
+  }
+  if (data instanceof Date) {
+    return data.toISOString();
+  }
+  if (Array.isArray(data)) {
+    return data.map(x => encode(x));
+  }
+  if (typeof data === 'function' || typeof data === 'object') {
+    return mapValues(data!, x => encode(x));
+  }
+  // If we got this far, the data is not encodable.
+  throw new Error('Data cannot be encoded in JSON: ' + data);
+}
 
-  // Takes data that's been encoded in a JSON-friendly form and returns a form
-  // with richer datatypes, such as Dates, etc.
-  decode(json: unknown): unknown {
-    if (json == null) {
-      return json;
-    }
-    if ((json as { [key: string]: unknown })['@type']) {
-      switch ((json as { [key: string]: unknown })['@type']) {
-        case LONG_TYPE:
-        // Fall through and handle this the same as unsigned.
-        case UNSIGNED_LONG_TYPE: {
-          // Technically, this could work return a valid number for malformed
-          // data if there was a number followed by garbage. But it's just not
-          // worth all the extra code to detect that case.
-          const value = Number((json as { [key: string]: unknown })['value']);
-          if (isNaN(value)) {
-            throw new Error('Data cannot be decoded from JSON: ' + json);
-          }
-          return value;
-        }
-        default: {
-          throw new Error('Data cannot be decoded from JSON: ' + json);
-        }
-      }
-    }
-    if (Array.isArray(json)) {
-      return json.map(x => this.decode(x));
-    }
-    if (typeof json === 'function' || typeof json === 'object') {
-      return mapValues(json!, x => this.decode(x));
-    }
-    // Anything else is safe to return.
+/**
+ * Takes data that's been encoded in a JSON-friendly form and returns a form
+ * with richer datatypes, such as Dates, etc.
+ * @internal
+ * @param json - JSON to convert.
+ */
+export function decode(json: unknown): unknown {
+  if (json == null) {
     return json;
   }
+  if ((json as { [key: string]: unknown })['@type']) {
+    switch ((json as { [key: string]: unknown })['@type']) {
+      case LONG_TYPE:
+      // Fall through and handle this the same as unsigned.
+      case UNSIGNED_LONG_TYPE: {
+        // Technically, this could work return a valid number for malformed
+        // data if there was a number followed by garbage. But it's just not
+        // worth all the extra code to detect that case.
+        const value = Number((json as { [key: string]: unknown })['value']);
+        if (isNaN(value)) {
+          throw new Error('Data cannot be decoded from JSON: ' + json);
+        }
+        return value;
+      }
+      default: {
+        throw new Error('Data cannot be decoded from JSON: ' + json);
+      }
+    }
+  }
+  if (Array.isArray(json)) {
+    return json.map(x => decode(x));
+  }
+  if (typeof json === 'function' || typeof json === 'object') {
+    return mapValues(json!, x => decode(x));
+  }
+  // Anything else is safe to return.
+  return json;
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { MessagePayload } from '@firebase/messaging-types';
+import { MessagePayload } from '../interfaces/public-types';
 import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
 import { expect } from 'chai';
 import { externalizePayload } from './externalizePayload';
@@ -35,13 +35,13 @@ describe('externalizePayload', () => {
       fcm_message_id: 'mid'
     };
 
-    const expected: MessagePayload = {
+    const payload: MessagePayload = {
       notification: { title: 'title', body: 'body', image: 'image' },
       from: 'from',
       collapseKey: 'collapse',
       messageId: 'mid'
     };
-    expect(externalizePayload(internalPayload)).to.deep.equal(expected);
+    expect(externalizePayload(internalPayload)).to.deep.equal(payload);
   });
 
   it('externalizes internalMessage with only data payload', () => {
@@ -58,13 +58,13 @@ describe('externalizePayload', () => {
       fcm_message_id: 'mid'
     };
 
-    const expected: MessagePayload = {
+    const payload: MessagePayload = {
       data: { foo: 'foo', bar: 'bar', baz: 'baz' },
       from: 'from',
       collapseKey: 'collapse',
       messageId: 'mid'
     };
-    expect(externalizePayload(internalPayload)).to.deep.equal(expected);
+    expect(externalizePayload(internalPayload)).to.deep.equal(payload);
   });
 
   it('externalizes internalMessage with all three payloads', () => {
@@ -91,7 +91,7 @@ describe('externalizePayload', () => {
       fcm_message_id: 'mid'
     };
 
-    const expected: MessagePayload = {
+    const payload: MessagePayload = {
       notification: {
         title: 'title',
         body: 'body',
@@ -110,6 +110,6 @@ describe('externalizePayload', () => {
       collapseKey: 'collapse',
       messageId: 'mid'
     };
-    expect(externalizePayload(internalPayload)).to.deep.equal(expected);
+    expect(externalizePayload(internalPayload)).to.deep.equal(payload);
   });
 });

@@ -17,7 +17,7 @@
 
 import { assert } from '@firebase/util';
 
-import { DataSnapshot } from '../../exp/Reference_impl';
+import { DataSnapshot } from '../../api/Reference_impl';
 import { Repo } from '../Repo';
 import { Path } from '../util/Path';
 
@@ -30,6 +30,8 @@ import { QueryParams } from './QueryParams';
  *  to the original user-issued callbacks, which allows equality
  * comparison by reference even though this callbacks are wrapped before
  * they can be passed to the firebase@exp SDK.
+ *
+ * @internal
  */
 export interface UserCallback {
   (dataSnapshot: DataSnapshot, previousChildName?: string | null): unknown;

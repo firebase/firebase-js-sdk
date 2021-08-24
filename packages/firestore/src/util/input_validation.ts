@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { SetOptions } from '@firebase/firestore-types';
-
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 
@@ -46,29 +44,9 @@ export function validateNonEmptyArgument(
   }
 }
 
-export function validateSetOptions(
-  methodName: string,
-  options: SetOptions | undefined
-): SetOptions {
-  if (options === undefined) {
-    return {
-      merge: false
-    };
-  }
-
-  if (options.mergeFields !== undefined && options.merge !== undefined) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid options passed to function ${methodName}(): You cannot ` +
-        'specify both "merge" and "mergeFields".'
-    );
-  }
-
-  return options;
-}
-
 /**
  * Validates that two boolean options are not set at the same time.
+ * @internal
  */
 export function validateIsNotUsedTogether(
   optionName1: string,
@@ -172,6 +150,7 @@ export function tryGetCustomObjectType(input: object): string | null {
  *
  * This cast is used in the Lite and Full SDK to verify instance types for
  * arguments passed to the public API.
+ * @internal
  */
 export function cast<T>(
   obj: object,

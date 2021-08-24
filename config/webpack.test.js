@@ -82,7 +82,7 @@ module.exports = {
       {
         test: /\.js$/,
         include: function (modulePath) {
-          const match = /node_modules\/@firebase.*/.test(modulePath);
+          const match = /node_modules\/@firebase.*/.test(modulePath) && !modulePath.includes('-compat');
           return match;
         },
         use: {

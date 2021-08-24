@@ -22,7 +22,7 @@
 
 import { start, stop, id as backoffId } from './backoff';
 import {
-  FirebaseStorageError,
+  StorageError,
   unknown,
   appDeleted,
   canceled,
@@ -63,7 +63,7 @@ class NetworkRequest<T> implements Request<T> {
   private appDelete_: boolean = false;
   private callback_: (p1: Connection, p2: string) => T;
   private errorCallback_:
-    | ((p1: Connection, p2: FirebaseStorageError) => FirebaseStorageError)
+    | ((p1: Connection, p2: StorageError) => StorageError)
     | null;
   private progressCallback_: ((p1: number, p2: number) => void) | null;
   private timeout_: number;
@@ -79,7 +79,7 @@ class NetworkRequest<T> implements Request<T> {
     additionalRetryCodes: number[],
     callback: (p1: Connection, p2: string) => T,
     errorCallback:
-      | ((p1: Connection, p2: FirebaseStorageError) => FirebaseStorageError)
+      | ((p1: Connection, p2: StorageError) => StorageError)
       | null,
     timeout: number,
     progressCallback: ((p1: number, p2: number) => void) | null,

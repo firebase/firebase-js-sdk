@@ -35,7 +35,7 @@ import {
   Target
 } from '../core/target';
 import { TargetId } from '../core/types';
-import { Timestamp } from '../lite/timestamp';
+import { Timestamp } from '../lite-api/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';

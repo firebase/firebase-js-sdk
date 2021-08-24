@@ -15,10 +15,18 @@
  * limitations under the License.
  */
 
+import {
+  Client,
+  Clients,
+  ExtendableEvent,
+  ServiceWorkerGlobalScope,
+  WindowClient
+} from '../../util/sw-types';
+
 import { Writable } from 'ts-essentials';
 
 // Add fake SW types.
-declare const self: Window & Writable<ServiceWorkerGlobalScopeForTesting>;
+declare const self: Window & Writable<ServiceWorkerGlobalScope>;
 
 // When trying to stub self.clients self.registration, Sinon complains that these properties do not
 // exist. This is because we're not actually running these tests in a service worker context.
@@ -39,8 +47,8 @@ export function mockServiceWorker(): void {
 }
 
 export function restoreServiceWorker(): void {
-  delete self.clients;
-  delete self.registration;
+  self.clients = new FakeClients();
+  self.registration = new FakeServiceWorkerRegistration();
 }
 
 class FakeClients implements Clients {
@@ -93,8 +101,7 @@ class FakeWindowClient implements WindowClient {
 }
 
 export class FakeServiceWorkerRegistration
-  implements ServiceWorkerRegistration
-{
+  implements ServiceWorkerRegistration {
   active = null;
   installing = null;
   waiting = null;
@@ -103,9 +110,9 @@ export class FakeServiceWorkerRegistration
   scope = '/scope-value';
 
   // Unused in FCM Web SDK, no need to mock these.
-  navigationPreload = null as unknown as NavigationPreloadManager;
-  sync = null as unknown as SyncManager;
-  updateViaCache = null as unknown as ServiceWorkerUpdateViaCache;
+  navigationPreload = (null as unknown) as NavigationPreloadManager;
+  sync = (null as unknown) as SyncManager;
+  updateViaCache = (null as unknown) as ServiceWorkerUpdateViaCache;
 
   async getNotifications() {
     return [];
@@ -161,8 +168,8 @@ export class FakePushSubscription implements PushSubscription {
   }
 
   // Unused in FCM
-  toJSON = null as unknown as () => PushSubscriptionJSON;
-  options = null as unknown as PushSubscriptionOptions;
+  toJSON = (null as unknown) as () => PushSubscriptionJSON;
+  options = (null as unknown) as PushSubscriptionOptions;
 }
 
 /**

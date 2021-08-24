@@ -86,10 +86,10 @@ export interface FirebaseMessaging {
   usePublicVapidKey(b64PublicKey: string): void;
 }
 
-export type FirebaseMessagingName = 'messaging';
+export type FirebaseMessagingName = 'messaging-compat';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging': FirebaseMessaging;
+    'messaging-compat': FirebaseMessaging;
   }
 }

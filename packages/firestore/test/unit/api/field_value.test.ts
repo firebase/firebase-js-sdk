@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { FieldValue } from '../../../src/api/field_value';
+import { FieldValue } from '../../../compat/api/field_value';
 import { expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('FieldValue', () => {

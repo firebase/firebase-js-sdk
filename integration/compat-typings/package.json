@@ -7,7 +7,7 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test"
   },
   "dependencies": {
-    "firebase-exp": "file:../../packages-exp/firebase-exp"
+    "firebase": "*"
   },
   "devDependencies": {
     "typescript": "4.2.2"

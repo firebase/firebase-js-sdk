@@ -17,7 +17,7 @@
 
 import { getModularInstance } from '@firebase/util';
 import { expect } from 'chai';
-import { getMessaging } from '@firebase/messaging-exp';
+import { getMessaging } from '@firebase/messaging';
 import firebase from '@firebase/app-compat';
 import '@firebase/messaging-compat';
 

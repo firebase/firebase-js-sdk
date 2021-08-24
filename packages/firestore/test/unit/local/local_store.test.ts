@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { FieldValue } from '../../../src/api/field_value';
+import { FieldValue } from '../../../compat/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
