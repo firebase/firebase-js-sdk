@@ -49,16 +49,18 @@ export function getMessagingInWindow(app: FirebaseApp = getApp()): Messaging {
   // initialization phase for performance consideration. An error would be thrown latter for
   // developer's information. Developers can then choose to import and call `isSupported` for
   // special handling.
-  isWindowSupported()
-    .then(isSupported => {
+  isWindowSupported().then(
+    isSupported => {
       // If `isWindowSupported()` resolved, but returned false.
       if (!isSupported) {
         throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
       }
-    }, _ => {
+    },
+    _ => {
       // If `isWindowSupported()` rejected.
       throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
-    });
+    }
+  );
   return _getProvider(getModularInstance(app), 'messaging').getImmediate();
 }
 
@@ -74,16 +76,18 @@ export function getMessagingInSw(app: FirebaseApp = getApp()): Messaging {
   // initialization phase for performance consideration. An error would be thrown latter for
   // developer's information. Developers can then choose to import and call `isSupported` for
   // special handling.
-  isSwSupported()
-  .then(isSupported => {
-    // If `isSwSupported()` resolved, but returned false.
-    if (!isSupported) {
-      throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+  isSwSupported().then(
+    isSupported => {
+      // If `isSwSupported()` resolved, but returned false.
+      if (!isSupported) {
+        throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
+      }
+    },
+    _ => {
+      // If `isSwSupported()` rejected.
+      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
     }
-  }, _ => {
-    // If `isSwSupported()` rejected.
-    throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
-  });
+  );
   return _getProvider(getModularInstance(app), 'messaging-sw').getImmediate();
 }
 
