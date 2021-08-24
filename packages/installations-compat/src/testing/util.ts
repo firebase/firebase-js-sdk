@@ -52,5 +52,5 @@ export function getFakeInstallations(): Installations {
     },
     platformLoggerProvider: null,
     _delete: () => Promise.resolve()
-  };
+  } as Installations;
 }
