@@ -17,13 +17,13 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { mock } from 'sinon';
 import {
   discoverEmulators,
   EMULATOR_HOST_ENV_VARS,
   getEmulatorHostAndPort
 } from '../../src/impl/discovery';
 import { HostAndPort } from '../../src/public_types';
+import { restoreEnvVars, stashEnvVars } from '../test_utils';
 
 describe('discoverEmulators()', () => {
   it('finds all running emulators', async () => {
@@ -335,23 +335,3 @@ describe('getEmulatorHostAndPort()', () => {
     });
   });
 });
-
-let envVars: Record<string, string | undefined>;
-function stashEnvVars() {
-  envVars = {};
-  for (const envVar of Object.values(EMULATOR_HOST_ENV_VARS)) {
-    envVars[envVar] = process.env[envVar];
-    delete process.env[envVar];
-  }
-}
-
-function restoreEnvVars() {
-  envVars = {};
-  for (const envVar of Object.values(EMULATOR_HOST_ENV_VARS)) {
-    if (envVars[envVar] === undefined) {
-      delete process.env[envVar];
-    } else {
-      process.env[envVar] = envVars[envVar];
-    }
-  }
-}
