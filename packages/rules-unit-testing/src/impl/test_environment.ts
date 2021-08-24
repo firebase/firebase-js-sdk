@@ -123,8 +123,13 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
 
   clearStorage(): Promise<void> {
     this.checkNotDestroyed();
-    return this.withSecurityRulesDisabled(context => {
-      return context.storage().ref().delete();
+    return this.withSecurityRulesDisabled(async context => {
+      const { items } = await context.storage().ref().listAll();
+      await Promise.all(
+        items.map(item => {
+          return item.delete();
+        })
+      );
     });
   }
 
