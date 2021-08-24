@@ -7717,7 +7717,7 @@ fined@^1.0.1:
     object.pick "^1.2.0"
     parse-filepath "^1.0.1"
 
-firebase-admin@9.11.1:
+firebase-admin@^9.11.1:
   version "9.11.1"
   resolved "https://registry.npmjs.org/firebase-admin/-/firebase-admin-9.11.1.tgz#b4f472ed51951937f333a4d88a0693ad37ffc90a"
   integrity sha512-Y9fjelljy6MKqwsSbM/UN1k8gBQh5zfm5fCTe0Z6Gch2T3nDUIPsTcf+jfe4o40/MPYuybili9XJjTMmM2e5MQ==
@@ -7743,7 +7743,7 @@ firebase-functions@3.14.1:
     express "^4.17.1"
     lodash "^4.17.14"
 
-firebase-functions@3.15.4:
+firebase-functions@^3.15.4:
   version "3.15.4"
   resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.15.4.tgz#c9309a565abb1f57a1e50d41b3e54bcee6a3ee51"
   integrity sha512-6Zq+QIqdslZLsSwWg25Hv39cgFBZr0oUAbCjfe/MXqSHMy8ZK/1Vdy/WKx5IRC6hE7+JrmfVylIyEonTyNcheA==
