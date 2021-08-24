@@ -38,7 +38,7 @@ const messagingCompatFactory: InstanceFactory<'messaging-compat'> = (
     // in sw
     return new MessagingCompatImpl(
       container.getProvider('app-compat').getImmediate(),
-      container.getProvider('messaging-sw-exp').getImmediate()
+      container.getProvider('messaging-sw').getImmediate()
     );
   } else {
     // in window
