@@ -22,7 +22,7 @@ import { FbsBlob } from './implementation/blob';
 import {
   canceled,
   StorageErrorCode,
-  FirebaseStorageError
+  StorageError
 } from './implementation/error';
 import {
   InternalTaskState,
@@ -81,14 +81,14 @@ export class UploadTask {
    * Upload state.
    */
   _state: InternalTaskState;
-  private _error?: FirebaseStorageError = undefined;
+  private _error?: StorageError = undefined;
   private _uploadUrl?: string = undefined;
   private _request?: Request<unknown> = undefined;
   private _chunkMultiplier: number = 1;
-  private _errorHandler: (p1: FirebaseStorageError) => void;
-  private _metadataErrorHandler: (p1: FirebaseStorageError) => void;
+  private _errorHandler: (p1: StorageError) => void;
+  private _metadataErrorHandler: (p1: StorageError) => void;
   private _resolve?: (p1: UploadTaskSnapshot) => void = undefined;
-  private _reject?: (p1: FirebaseStorageError) => void = undefined;
+  private _reject?: (p1: StorageError) => void = undefined;
   private _promise: Promise<UploadTaskSnapshot>;
 
   /**
@@ -468,7 +468,7 @@ export class UploadTask {
    *     The `next` function, which gets called for each item in
    *     the event stream, or an observer object with some or all of these three
    *     properties (`next`, `error`, `complete`).
-   * @param error - A function that gets called with a `FirebaseStorageError`
+   * @param error - A function that gets called with a `StorageError`
    *     if the event stream ends due to an error.
    * @param completed - A function that gets called if the
    *     event stream ends normally.
@@ -484,7 +484,7 @@ export class UploadTask {
       | StorageObserver<UploadTaskSnapshot>
       | null
       | ((snapshot: UploadTaskSnapshot) => unknown),
-    error?: ((a: FirebaseStorageError) => unknown) | null,
+    error?: ((a: StorageError) => unknown) | null,
     completed?: Unsubscribe | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
     const observer = new Observer(
@@ -508,7 +508,7 @@ export class UploadTask {
    */
   then<U>(
     onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null,
-    onRejected?: ((error: FirebaseStorageError) => U | Promise<U>) | null
+    onRejected?: ((error: StorageError) => U | Promise<U>) | null
   ): Promise<U> {
     // These casts are needed so that TypeScript can infer the types of the
     // resulting Promise.
@@ -522,7 +522,7 @@ export class UploadTask {
    * Equivalent to calling `then(null, onRejected)`.
    */
   catch<T>(
-    onRejected: (p1: FirebaseStorageError) => T | Promise<T>
+    onRejected: (p1: StorageError) => T | Promise<T>
   ): Promise<T> {
     return this.then(null, onRejected);
   }
@@ -562,8 +562,8 @@ export class UploadTask {
           break;
         case TaskState.CANCELED:
         case TaskState.ERROR:
-          const toCall = this._reject as (p1: FirebaseStorageError) => void;
-          fbsAsync(toCall.bind(null, this._error as FirebaseStorageError))();
+          const toCall = this._reject as (p1: StorageError) => void;
+          fbsAsync(toCall.bind(null, this._error as StorageError))();
           break;
         default:
           triggered = false;
@@ -594,7 +594,7 @@ export class UploadTask {
       case TaskState.ERROR:
         if (observer.error) {
           fbsAsync(
-            observer.error.bind(observer, this._error as FirebaseStorageError)
+            observer.error.bind(observer, this._error as StorageError)
           )();
         }
         break;
@@ -602,7 +602,7 @@ export class UploadTask {
         // TODO(andysoto): assert(false);
         if (observer.error) {
           fbsAsync(
-            observer.error.bind(observer, this._error as FirebaseStorageError)
+            observer.error.bind(observer, this._error as StorageError)
           )();
         }
     }

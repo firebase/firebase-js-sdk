@@ -25,7 +25,7 @@ import {
 } from '../../src/service';
 import * as testShared from './testshared';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
-import { FirebaseStorageError } from '../../src/implementation/error';
+import { StorageError } from '../../src/implementation/error';
 import {
   Reference,
   getMetadata,
@@ -402,8 +402,8 @@ GOOG4-RSA-SHA256`
         uploadBytesResumable(reference, new Uint8Array([97])).on(
           TaskEvent.STATE_CHANGED,
           undefined,
-          (err: FirebaseStorageError | Error) => {
-            expect((err as FirebaseStorageError).code).to.equal(
+          (err: StorageError | Error) => {
+            expect((err as StorageError).code).to.equal(
               'storage/app-deleted'
             );
             resolve();

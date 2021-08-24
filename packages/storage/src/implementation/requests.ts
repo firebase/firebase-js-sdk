@@ -23,7 +23,7 @@ import { Metadata } from '../metadata';
 import { ListResult } from '../list';
 import { FbsBlob } from './blob';
 import {
-  FirebaseStorageError,
+  StorageError,
   cannotSliceBlob,
   unauthenticated,
   quotaExceeded,
@@ -48,7 +48,7 @@ import { Connection } from './connection';
 import { FirebaseStorageImpl } from '../service';
 
 /**
- * Throws the UNKNOWN FirebaseStorageError if cndn is false.
+ * Throws the UNKNOWN StorageError if cndn is false.
  */
 export function handlerCheck(cndn: boolean): void {
   if (!cndn) {
@@ -98,11 +98,11 @@ export function downloadUrlHandler(
 
 export function sharedErrorHandler(
   location: Location
-): (p1: Connection, p2: FirebaseStorageError) => FirebaseStorageError {
+): (p1: Connection, p2: StorageError) => StorageError {
   function errorHandler(
     xhr: Connection,
-    err: FirebaseStorageError
-  ): FirebaseStorageError {
+    err: StorageError
+  ): StorageError {
     let newErr;
     if (xhr.getStatus() === 401) {
       if (
@@ -133,13 +133,13 @@ export function sharedErrorHandler(
 
 export function objectErrorHandler(
   location: Location
-): (p1: Connection, p2: FirebaseStorageError) => FirebaseStorageError {
+): (p1: Connection, p2: StorageError) => StorageError {
   const shared = sharedErrorHandler(location);
 
   function errorHandler(
     xhr: Connection,
-    err: FirebaseStorageError
-  ): FirebaseStorageError {
+    err: StorageError
+  ): StorageError {
     let newErr = shared(xhr, err);
     if (xhr.getStatus() === 404) {
       newErr = objectNotFound(location.path);
