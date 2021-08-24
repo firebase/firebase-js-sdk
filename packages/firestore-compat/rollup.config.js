@@ -75,7 +75,7 @@ const nodeBuilds = [
     input: './src/index.node.ts',
     output: {
       file: pkg.main,
-      format: 'es',
+      format: 'cjs',
       sourcemap: true
     },
     plugins: es2017Plugins,
