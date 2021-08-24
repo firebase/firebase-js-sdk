@@ -21,9 +21,8 @@ import {
   ComponentType,
   InstanceFactory
 } from '@firebase/component';
+import { MessagingCompatImpl, isSupported } from './messaging-compat';
 import firebase, { _FirebaseNamespace } from '@firebase/app-compat';
-
-import { MessagingCompatImpl } from './messaging-compat';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -49,12 +48,16 @@ const messagingCompatFactory: InstanceFactory<'messaging-compat'> = (
   }
 };
 
+const NAMESPACE_EXPORTS = {
+  isSupported
+};
+
 export function registerMessagingCompat(): void {
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'messaging-compat',
       messagingCompatFactory,
       ComponentType.PUBLIC
-    )
+    ).setServiceProps(NAMESPACE_EXPORTS)
   );
 }
