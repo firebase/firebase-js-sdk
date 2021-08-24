@@ -197,6 +197,7 @@ class RulesTestContextImpl implements RulesTestContext {
   }
   storage(bucketUrl?: string): firebase.storage.Storage {
     assertEmulatorRunning(this.emulators, 'storage');
+    bucketUrl ||= `gs://${this.projectId}`;
     const storage = this.getApp().storage(bucketUrl);
     storage.useEmulator(
       this.emulators.storage.host,
