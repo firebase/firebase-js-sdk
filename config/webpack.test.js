@@ -80,7 +80,7 @@ module.exports = {
        * Transform firebase packages to cjs, so they can be stubbed in tests
        */
       {
-        test: /\.js$/,
+        test: /\.[m]js$/,
         include: function (modulePath) {
           const match = /node_modules\/@firebase.*/.test(modulePath);
           return match;
