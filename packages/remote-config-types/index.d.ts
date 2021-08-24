@@ -75,6 +75,13 @@ export interface RemoteConfig {
   getBoolean(key: string): boolean;
 
   /**
+   * Gets the value for the given key as a json.
+   *
+   * Convenience method for calling <code>remoteConfig.getValue(key).asJSON()</code>.
+   */
+  getJSON(key: string): unknown;
+
+  /**
    * Gets the value for the given key as a number.
    *
    * Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>.
@@ -121,6 +128,11 @@ export interface Value {
    * "1", "true", "t", "yes", "y", "on". Other values are interpreted as false.
    */
   asBoolean(): boolean;
+
+  /**
+   * Gets the value as a json. Comparable to calling <code>JSON.parse(value) || null</code>.
+   */
+  asJSON(): unknown;
 
   /**
    * Gets the value as a number. Comparable to calling <code>Number(value) || 0</code>.
