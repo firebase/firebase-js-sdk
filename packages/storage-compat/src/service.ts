@@ -25,7 +25,7 @@ import {
   _Location,
   _invalidArgument,
   _FirebaseStorageImpl
-} from '@firebase/storage'; // import from the exp public API
+} from '@firebase/storage';
 import { ReferenceCompat } from './reference';
 import { Compat, EmulatorMockTokenOptions } from '@firebase/util';
 

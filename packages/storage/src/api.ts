@@ -52,6 +52,8 @@ import {
 import { STORAGE_TYPE } from './constants';
 import { EmulatorMockTokenOptions, getModularInstance } from '@firebase/util';
 
+export { EmulatorMockTokenOptions } from '@firebase/util';
+
 /**
  * Public types.
  */
