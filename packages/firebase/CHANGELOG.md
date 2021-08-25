@@ -1,5 +1,45 @@
 # firebase
 
+## 9.0.0
+
+### Major Changes
+
+- [`5bc6afb75`](https://github.com/firebase/firebase-js-sdk/commit/5bc6afb75b5267bad5940c32458c315e5394321d) [#5268](https://github.com/firebase/firebase-js-sdk/pull/5268) (fixes [#4277](https://github.com/firebase/firebase-js-sdk/issues/4277)) - This change contains multiple quality-of-life improvements when using the `FirestoreDataConverter` in `@firebase/firestore/lite` and `@firebase/firestore`:
+  - Support for passing in `FieldValue` property values when using a converter (via `WithFieldValue<T>` and `PartialWithFieldValue<T>`).
+  - Support for omitting properties in nested fields when performing a set operation with `{merge: true}` with a converter (via `PartialWithFieldValue<T>`).
+  - Support for typed update operations when using a converter (via the newly typed `UpdateData`). Improperly typed fields in
+    update operations on typed document references will no longer compile.
+
+* [`cdada6c68`](https://github.com/firebase/firebase-js-sdk/commit/cdada6c68f9740d13dd6674bcb658e28e68253b6) [#5345](https://github.com/firebase/firebase-js-sdk/pull/5345) (fixes [#5015](https://github.com/firebase/firebase-js-sdk/issues/5015)) - Release modularized SDKs
+
+### Patch Changes
+
+- Updated dependencies [[`5bc6afb75`](https://github.com/firebase/firebase-js-sdk/commit/5bc6afb75b5267bad5940c32458c315e5394321d), [`cdada6c68`](https://github.com/firebase/firebase-js-sdk/commit/cdada6c68f9740d13dd6674bcb658e28e68253b6)]:
+  - @firebase/firestore@3.0.0
+  - @firebase/firestore-compat@0.1.0
+  - @firebase/analytics@0.7.0
+  - @firebase/analytics-compat@0.1.0
+  - @firebase/app@0.7.0
+  - @firebase/app-check@0.4.0
+  - @firebase/app-check-compat@0.1.0
+  - @firebase/app-compat@0.1.0
+  - @firebase/app-types@0.7.0
+  - @firebase/auth@0.17.0
+  - @firebase/auth-compat@0.1.0
+  - @firebase/database@0.12.0
+  - @firebase/database-compat@0.1.0
+  - @firebase/functions@0.7.0
+  - @firebase/functions-compat@0.1.0
+  - @firebase/installations@0.5.0
+  - @firebase/messaging@0.9.0
+  - @firebase/messaging-compat@0.1.0
+  - @firebase/performance@0.5.0
+  - @firebase/performance-compat@0.1.0
+  - @firebase/remote-config@0.2.0
+  - @firebase/remote-config-compat@0.1.0
+  - @firebase/storage@0.8.0
+  - @firebase/storage-compat@0.1.0
+
 ## 8.10.0
 
 ### Minor Changes
