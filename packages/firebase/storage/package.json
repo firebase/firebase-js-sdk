@@ -2,6 +2,6 @@
   "name": "firebase/storage",
   "main": "dist/index.cjs.js",
   "browser": "dist/index.esm.js",
-  "module": "dist/index.mjs",
+  "module": "dist/index.esm.js",
   "typings": "dist/storage/index.d.ts"
 }

@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c rollup.config.js && yarn add-compat-overloads",
+    "build": "rollup -c rollup.config.js",
     "build:deps": "lerna run --scope @firebase/storage-compat --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p test:browser test:node lint",

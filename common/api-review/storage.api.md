@@ -29,6 +29,8 @@ export function _dataFromString(format: StringFormat, stringData: string): Strin
 // @public
 export function deleteObject(ref: StorageReference): Promise<void>;
 
+export { EmulatorMockTokenOptions }
+
 // @internal (undocumented)
 export class _FbsBlob {
     constructor(data: Blob | Uint8Array | ArrayBuffer, elideCopy?: boolean);

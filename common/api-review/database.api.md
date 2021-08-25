@@ -44,6 +44,8 @@ export class DataSnapshot {
     val(): any;
 }
 
+export { EmulatorMockTokenOptions }
+
 // @public
 export function enableLogging(enabled: boolean, persistent?: boolean): any;
 
