@@ -176,11 +176,6 @@ const completeBuilds = [
     input: `${__dirname}/index.ts`,
     output: [
       {
-        file: resolve(__dirname, compatPkg.module),
-        format: 'es',
-        sourcemap: true
-      },
-      {
         file: resolve(__dirname, compatPkg.browser),
         format: 'es',
         sourcemap: true
