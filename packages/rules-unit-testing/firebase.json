@@ -1,6 +1,6 @@
 {
   "functions": {
-    "source": "."
+    "source": "./functions"
   },
   "storage": {
     "rules": "test/storage.rules"

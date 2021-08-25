@@ -17,9 +17,9 @@
 
 import fetch from 'node-fetch';
 import firebase from 'firebase/compat/app';
-import 'firebase/firestore/compat';
-import 'firebase/database/compat';
-import 'firebase/storage/compat';
+import 'firebase/compat/firestore';
+import 'firebase/compat/database';
+import 'firebase/compat/storage';
 
 import {
   HostAndPort,
