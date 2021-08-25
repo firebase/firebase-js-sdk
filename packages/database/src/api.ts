@@ -17,6 +17,7 @@
 
 export {
   Database,
+  EmulatorMockTokenOptions,
   enableLogging,
   getDatabase,
   goOffline,

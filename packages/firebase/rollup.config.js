@@ -52,7 +52,7 @@ const appBuilds = [
     input: 'app/index.ts',
     output: [
       { file: resolve('app', appPkg.main), format: 'cjs', sourcemap: true },
-      { file: resolve('app', appPkg.module), format: 'es', sourcemap: true },
+      { file: resolve('app', appPkg.main.replace('.cjs.js', '.mjs')), format: 'es', sourcemap: true },
       { file: resolve('app', appPkg.browser), format: 'es', sourcemap: true }
     ],
     plugins: [...plugins, typescriptPlugin],
@@ -75,7 +75,7 @@ const componentBuilds = pkg.components
             sourcemap: true
           },
           {
-            file: resolve(component, pkg.module),
+            file: resolve(component, pkg.main.replace('.cjs.js', '.mjs')),
             format: 'es',
             sourcemap: true
           },

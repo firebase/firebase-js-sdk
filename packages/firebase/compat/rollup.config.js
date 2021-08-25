@@ -99,7 +99,7 @@ const appBuilds = [
         sourcemap: true
       },
       {
-        file: resolve(__dirname, 'app', appPkg.module),
+        file: resolve(__dirname, 'app', appPkg.main.replace('.cjs.js', '.mjs')),
         format: 'es',
         sourcemap: true
       },
@@ -142,7 +142,7 @@ const componentBuilds = compatPkg.components
             sourcemap: true
           },
           {
-            file: resolve(__dirname, component, pkg.module),
+            file: resolve(__dirname, component, pkg.main.replace('.cjs.js', '.mjs')),
             format: 'es',
             sourcemap: true
           },
@@ -176,7 +176,7 @@ const completeBuilds = [
     input: `${__dirname}/index.ts`,
     output: [
       {
-        file: resolve(__dirname, compatPkg.module),
+        file: resolve(__dirname, compatPkg.browser),
         format: 'es',
         sourcemap: true
       }

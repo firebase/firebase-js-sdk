@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ declare namespace firebase {
     /**
      * The name of the class of errors, which is `"FirebaseError"`.
      */
-    name: string;
+    name: 'FirebaseError';
     /**
      * A string value containing the execution backtrace when the error originally
      * occurred. This may not always be available.
@@ -1449,6 +1449,10 @@ declare namespace firebase.app {
      */
     name: string;
     /**
+     * The settable config flag for GDPR opt-in/opt-out
+     */
+    automaticDataCollectionEnabled: boolean;
+    /**
      * The (read-only) configuration options for this app. These are the original
      * parameters given in
      * {@link firebase.initializeApp `firebase.initializeApp()`}.
@@ -1690,6 +1694,16 @@ declare namespace firebase.installations {
    */
   export interface Installations {
     /**
+     * The {@link firebase.app.App app} associated with the `Installations` service
+     * instance.
+     *
+     * @example
+     * ```javascript
+     * var app = analytics.app;
+     * ```
+     */
+    app: firebase.app.App;
+    /**
      * Creates a Firebase Installation if there isn't one for the app and
      * returns the Installation ID.
      *
@@ -1728,6 +1742,16 @@ declare namespace firebase.performance {
    * {@link firebase.performance `firebase.performance()`}.
    */
   export interface Performance {
+    /**
+     * The {@link firebase.app.App app} associated with the `Performance` service
+     * instance.
+     *
+     * @example
+     * ```javascript
+     * var app = analytics.app;
+     * ```
+     */
+    app: firebase.app.App;
     /**
      * Creates an uninitialized instance of {@link firebase.performance.Trace `trace`} and returns
      * it.
@@ -1841,6 +1865,16 @@ declare namespace firebase.remoteConfig {
    * {@link firebase.remoteConfig `firebase.remoteConfig()`}.
    */
   export interface RemoteConfig {
+    /**
+     * The {@link firebase.app.App app} associated with the `Performance` service
+     * instance.
+     *
+     * @example
+     * ```javascript
+     * var app = analytics.app;
+     * ```
+     */
+    app: firebase.app.App;
     /**
      * Defines configuration for the Remote Config SDK.
      */
@@ -2317,6 +2351,66 @@ declare namespace firebase.auth {
   }
 
   /**
+   * Interface representing the Auth config.
+   *
+   * @public
+   */
+  export interface Config {
+    /**
+     * The API Key used to communicate with the Firebase Auth backend.
+     */
+    apiKey: string;
+    /**
+     * The host at which the Firebase Auth backend is running.
+     */
+    apiHost: string;
+    /**
+     * The scheme used to communicate with the Firebase Auth backend.
+     */
+    apiScheme: string;
+    /**
+     * The host at which the Secure Token API is running.
+     */
+    tokenApiHost: string;
+    /**
+     * The SDK Client Version.
+     */
+    sdkClientVersion: string;
+    /**
+     * The domain at which the web widgets are hosted (provided via Firebase Config).
+     */
+    authDomain?: string;
+  }
+
+  /**
+   * Configuration of Firebase Authentication Emulator.
+   */
+  export interface EmulatorConfig {
+    /**
+     * The protocol used to communicate with the emulator ("http"/"https").
+     */
+    readonly protocol: string;
+    /**
+     * The hostname of the emulator, which may be a domain ("localhost"), IPv4 address ("127.0.0.1")
+     * or quoted IPv6 address ("[::1]").
+     */
+    readonly host: string;
+    /**
+     * The port of the emulator, or null if port isn't specified (i.e. protocol default).
+     */
+    readonly port: number | null;
+    /**
+     * The emulator-specific options.
+     */
+    readonly options: {
+      /**
+       * Whether the warning banner attached to the DOM was disabled.
+       */
+      readonly disableWarnings: boolean;
+    };
+  }
+
+  /**
    * The Firebase Auth service interface.
    *
    * Do not call this constructor directly. Instead, use
@@ -2328,6 +2422,12 @@ declare namespace firebase.auth {
    *
    */
   interface Auth {
+    /** The name of the app associated with the Auth service instance. */
+    readonly name: string;
+    /** The config used to initialize this instance. */
+    readonly config: Config;
+    /** The current emulator configuration (or null). */
+    readonly emulatorConfig: EmulatorConfig | null;
     /**
      * The {@link firebase.app.App app} associated with the `Auth` service
      * instance.
@@ -3607,6 +3707,7 @@ declare namespace firebase.auth {
    * </dl>
    */
   interface Error {
+    name: string;
     /**
      * Unique error code.
      */
@@ -4522,14 +4623,13 @@ declare namespace firebase.auth {
    *     instance must be initialized with an API key, otherwise an error will be
    *     thrown.
    */
-  class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
+  class RecaptchaVerifier extends RecaptchaVerifier_Instance { }
   /**
    * @webonly
    * @hidden
    */
   class RecaptchaVerifier_Instance
-    implements firebase.auth.ApplicationVerifier
-  {
+    implements firebase.auth.ApplicationVerifier {
     constructor(
       container: any | string,
       parameters?: Object | null,
@@ -7210,7 +7310,7 @@ declare namespace firebase.database {
 
   interface ThenableReference
     extends firebase.database.Reference,
-      Pick<Promise<Reference>, 'then' | 'catch'> {}
+    Pick<Promise<Reference>, 'then' | 'catch'> { }
 
   /**
    * Logs debugging information to the console.
@@ -7306,16 +7406,6 @@ declare namespace firebase.messaging {
     deleteToken(): Promise<boolean>;
 
     /**
-     * To forcibly stop a registration token from being used, delete it by calling this method.
-     *
-     * @param token The token to delete.
-     * @return The promise resolves when the token has been successfully deleted.
-     *
-     * @deprecated Use deleteToken() instead.
-     */
-    deleteToken(token: string): Promise<boolean>;
-
-    /**
      * Subscribes the messaging instance to push notifications. Returns an FCM registration token
      * that can be used to send push messages to that messaging instance.
      *
@@ -7357,9 +7447,7 @@ declare namespace firebase.messaging {
      * @return To stop listening for messages execute this returned function.
      */
     onMessage(
-      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
-      error?: firebase.ErrorFn,
-      completed?: firebase.CompleteFn
+      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>
     ): firebase.Unsubscribe;
 
     /**
@@ -7375,75 +7463,8 @@ declare namespace firebase.messaging {
     onBackgroundMessage(
       nextOrObserver:
         | firebase.NextFn<MessagePayload>
-        | firebase.Observer<MessagePayload>,
-      error?: firebase.ErrorFn,
-      completed?: firebase.CompleteFn
+        | firebase.Observer<MessagePayload>
     ): firebase.Unsubscribe;
-
-    /**
-     * You should listen for token refreshes so your web app knows when FCM has invalidated your
-     * existing token and you need to call `getToken()` to get a new token.
-     *
-     * @param
-     *     nextOrObserver This function, or observer object with `next` defined,
-     *     is called when a token refresh has occurred.
-     * @return To stop listening for token refresh events execute this returned function.
-     *
-     * @deprecated There is no need to handle token rotation.
-     */
-    onTokenRefresh(
-      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
-      error?: firebase.ErrorFn,
-      completed?: firebase.CompleteFn
-    ): firebase.Unsubscribe;
-
-    /**
-     * Notification permissions are required to send a user push messages. Calling this method
-     * displays the permission dialog to the user and resolves if the permission is granted. It is
-     * not necessary to call this method, as `getToken()` will do this automatically if required.
-     *
-     * @return The promise resolves if permission is granted. Otherwise, the promise is rejected
-     * with an error.
-     *
-     * @deprecated Use
-     * {@link https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission Notification.requestPermission()}
-     * instead.
-     */
-    requestPermission(): Promise<void>;
-
-    /**
-     * FCM directs push messages to your web page's `onMessage()` callback if the user currently has
-     * it open. Otherwise, it calls your callback passed into `setBackgroundMessageHandler()`.
-     *
-     * Your callback should return a promise that, once resolved, has shown a notification.
-     *
-     * @param callback The function to handle the push message.
-     *
-     * @deprecated Use onBackgroundMessage(nextOrObserver: firebase.NextFn<MessagePayload> |
-     * firebase.Observer<MessagePayload>, error?: firebase.ErrorFn, completed?: firebase.CompleteFn):
-     * firebase.Unsubscribe.
-     */
-    setBackgroundMessageHandler(
-      callback: (payload: any) => Promise<any> | void
-    ): void;
-
-    /**
-     * To use your own service worker for receiving push messages, you can pass in your service
-     * worker registration in this method.
-     *
-     * @param registration The service worker registration you wish to use for push messaging.
-     *
-     * @deprecated Use getToken(options?: {vapidKey?: string; serviceWorkerRegistration?:
-     * ServiceWorkerRegistration;}: Promise<string>;.
-     */
-
-    useServiceWorker(registration: ServiceWorkerRegistration): void;
-
-    /**
-     * @deprecated Use getToken(options?: {vapidKey?: string; serviceWorkerRegistration?:
-     * ServiceWorkerRegistration;}): Promise<string>;.
-     */
-    usePublicVapidKey(b64PublicKey: string): void;
   }
 
   /**
@@ -7537,12 +7558,6 @@ declare namespace firebase.storage {
      */
     bucket: string;
     /**
-     * @deprecated
-     * Use Reference.getDownloadURL instead. This property will be removed in a
-     * future release.
-     */
-    downloadURLs: string[];
-    /**
      * The full path of this object.
      */
     fullPath: string;
@@ -7596,7 +7611,7 @@ declare namespace firebase.storage {
      * @return A Promise that resolves if the deletion
      *     succeeded and rejects if it failed, including if the object didn't exist.
      */
-    delete(): Promise<any>;
+    delete(): Promise<void>;
     /**
      * The full path of this object.
      */
@@ -7607,14 +7622,14 @@ declare namespace firebase.storage {
      *     URL or rejects if the fetch failed, including if the object did not
      *     exist.
      */
-    getDownloadURL(): Promise<any>;
+    getDownloadURL(): Promise<string>;
     /**
      * Fetches metadata for the object at this location, if one exists.
      * @return A Promise that
      *     resolves with the metadata, or rejects if the fetch failed, including if
      *     the object did not exist.
      */
-    getMetadata(): Promise<any>;
+    getMetadata(): Promise<FullMetadata>;
     /**
      * The short name of this object, which is the last component of the full path.
      * For example, if fullPath is 'full/path/image.png', name is 'image.png'.
@@ -7675,7 +7690,7 @@ declare namespace firebase.storage {
      *     resolves with the full updated metadata or rejects if the updated failed,
      *     including if the object did not exist.
      */
-    updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
+    updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<FullMetadata>;
     /**
      * List all items (files) and prefixes (folders) under this storage reference.
      *
@@ -7831,7 +7846,6 @@ declare namespace firebase.storage {
      * @param url A URL in the form: <br />
      *     1) a gs:// URL, for example `gs://bucket/files/image.png` <br />
      *     2) a download URL taken from object metadata. <br />
-     *     @see {@link firebase.storage.FullMetadata.downloadURLs}
      * @return A reference for the given URL.
      */
     refFromURL(url: string): firebase.storage.Reference;
@@ -8129,12 +8143,6 @@ declare namespace firebase.storage {
      * The number of bytes that have been successfully uploaded so far.
      */
     bytesTransferred: number;
-    /**
-     * @deprecated
-     * Use Reference.getDownloadURL instead. This property will be removed in a
-     * future release.
-     */
-    downloadURL: string | null;
     /**
      * Before the upload completes, contains the metadata sent to the server.
      * After the upload completes, contains the metadata sent back from the server.
@@ -9512,7 +9520,7 @@ declare namespace firebase.firestore {
    */
   export class QueryDocumentSnapshot<
     T = DocumentData
-  > extends DocumentSnapshot<T> {
+    > extends DocumentSnapshot<T> {
     private constructor();
 
     /**
