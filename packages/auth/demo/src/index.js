@@ -91,7 +91,6 @@ let multiFactorErrorResolver = null;
 let selectedMultiFactorHint = null;
 let recaptchaSize = 'normal';
 let webWorker = null;
-let customTokenProvider = null;
 
 // The corresponding Font Awesome icons for each provider.
 const providersIcons = {

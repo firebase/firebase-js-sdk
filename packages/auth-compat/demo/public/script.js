@@ -447,6 +447,31 @@ function onSignInWithCustomToken(event) {
 }
 
 /**
+ * Sets a custom token provider that simply returns the custom token provided
+ * in the #user-custom-token-for-provider field.
+ * @param {DOMEvent} _event HTML DOM event returned by the listener.
+ */
+function onSetCustomTokenProvider(event) {
+  const nextRefreshToken = $('#user-custom-token-for-provider').val();
+  auth.setCustomTokenProvider({
+    async getCustomToken() {
+      return nextRefreshToken;
+    }
+  });
+  log(
+    `On next refresh, custom token provider will use token:\n${nextRefreshToken}`
+  );
+}
+
+/**
+ * Clears the custom token provider.
+ */
+function onClearCustomTokenProvider() {
+  auth.clearCustomTokenProvider();
+  log('Cleared custom token provider');
+}
+
+/**
  * Signs in anonymously.
  */
 function onSignInAnonymously() {
@@ -661,9 +686,8 @@ function onFinalizeEnrollWithPhoneMultiFactor() {
     verificationId,
     verificationCode
   );
-  var multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(
-    credential
-  );
+  var multiFactorAssertion =
+    firebase.auth.PhoneMultiFactorGenerator.assertion(credential);
   var displayName = $('#enroll-mfa-phone-display-name').val() || undefined;
 
   activeUser()
@@ -1754,6 +1778,8 @@ function initApp() {
   $('#sign-up-with-email-and-password').click(onSignUp);
   $('#sign-in-with-email-and-password').click(onSignInWithEmailAndPassword);
   $('.sign-in-with-custom-token').click(onSignInWithCustomToken);
+  $('#set-custom-token-provider').click(onSetCustomTokenProvider);
+  $('#clear-custom-token-provider').click(onClearCustomTokenProvider);
   $('#sign-in-anonymously').click(onSignInAnonymously);
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
