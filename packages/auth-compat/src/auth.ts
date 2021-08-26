@@ -280,6 +280,12 @@ export class Auth
       exp.signInWithCustomToken(this._delegate, token)
     );
   }
+  setCustomTokenProvider(provider: compat.CustomTokenProvider): void {
+    exp.setCustomTokenProvider(this._delegate, provider);
+  }
+  clearCustomTokenProvider(): void {
+    exp.clearCustomTokenProvider(this._delegate);
+  }
   signInWithEmailAndPassword(
     email: string,
     password: string
