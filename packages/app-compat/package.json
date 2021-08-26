@@ -14,7 +14,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
-    "build": "rollup -c",
+    "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/app-compat --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
@@ -22,7 +22,9 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* src/**/*.test.ts --config ../../config/mocharc.node.js"
+    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* src/**/*.test.ts --config ../../config/mocharc.node.js",
+    "api-report": "api-extractor run --local --verbose",
+    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/app-compat-public.d.ts"
   },
   "license": "Apache-2.0",
   "dependencies": {
