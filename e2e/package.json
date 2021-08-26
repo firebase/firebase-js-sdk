@@ -10,12 +10,13 @@
     "test:exp": "yarn setup && karma start --exp",
     "watch": "webpack --watch",
     "build": "webpack",
-    "start": "webpack serve"
+    "start:exp": "webpack serve --config-name exp",
+    "start:compat": "webpack serve --config-name compat"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "firebase": "^9.0.0"
+    "firebase": "9.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.6",
