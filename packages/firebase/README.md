@@ -1,6 +1,5 @@
 <!-- BADGES -->
 ![Build Status](https://img.shields.io/github/workflow/status/firebase/firebase-js-sdk/Run%20All%20Tests.svg)
-[![Build Status](https://saucelabs.com/buildstatus/firebase-oss)](https://saucelabs.com/u/firebase-oss)
 [![Version](https://img.shields.io/npm/v/firebase.svg?label=version)](https://www.npmjs.com/package/firebase)
 [![Coverage Status](https://coveralls.io/repos/github/firebase/firebase-js-sdk/badge.svg?branch=master)](https://coveralls.io/github/firebase/firebase-js-sdk?branch=master)
 <!-- END BADGES -->
@@ -27,6 +26,8 @@ For more information, visit:
 - [Firebase Storage](https://firebase.google.com/docs/storage/web/start) -
   Firebase Storage lets you upload and store user generated content, such as
   files, and images.
+- [Cloud Functions for Firebase](https://firebase.google.com/docs/functions) -
+   Cloud Functions for Firebase is a serverless framework that lets you automatically run backend code in response to events triggered by Firebase features and HTTPS requests.
 - [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging/js/client) -
   Firebase Cloud Messaging is a cross-platform messaging solution that lets you
   reliably deliver messages at no cost.
@@ -111,10 +112,10 @@ React App](//reactjs.org/docs/create-a-new-react-app.html) automatically
 handle module bundling for libraries installed through npm and imported into
 your codebase.
 
-See our guide [Using module bundlers with Firebase](/docs/web/module-bundling) for more information.
+See [Using module bundlers with Firebase](/docs/web/module-bundling) for more information.
 
 ### Script include
-You can also load Firebase packages as script modules in browsers that support native ES module.
+You can also load Firebase packages as script modules in browsers that support native ES modules.
 
 ```html
 <!-- use script module by specifying type="module" -->
