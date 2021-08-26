@@ -51,7 +51,8 @@ import {
   set,
   update,
   remove,
-  onValue, off
+  onValue,
+  off
 } from 'firebase/database';
 /**
  * The config file should look like:
@@ -79,7 +80,7 @@ import { config, testAccount } from '../firebase-config';
 
 /**
  * Quick sample app to debug and explore basic Firebase API usage/problems.
- * 
+ *
  * In order for app check to work, add the app check debug token to
  * build/index.html and uncomment the line.
  */
@@ -122,9 +123,12 @@ async function callFunctions(app) {
   try {
     const result = await callTest({ data: 'blah' });
     console.log('[FUNCTIONS] result:', result.data);
-  } catch(e) {
+  } catch (e) {
     if (e.message.includes('Unauthenticated')) {
-      console.warn('Functions blocked by App Check. ' + 'Activate app check with a live sitekey to allow Functions calls');
+      console.warn(
+        'Functions blocked by App Check. ' +
+          'Activate app check with a live sitekey to allow Functions calls'
+      );
     } else {
       throw e;
     }
