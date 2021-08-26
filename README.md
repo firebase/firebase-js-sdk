@@ -19,6 +19,8 @@ To get started using Firebase, see
 
 [![Release Notes](https://img.shields.io/npm/v/firebase.svg?style=flat-square&label=Release%20Notes%20for&labelColor=039be5&color=666)](https://firebase.google.com/support/release-notes/js)
 
+## Upgrade to Version 9
+Version 9 has a redesigned API that supports tree-shaking. Read the [Upgrade Guide](https://firebase.google.com/docs/web/modular-upgrade) to learn more.
 ## Supported Environments
 Please see [Environment Support](https://firebase.google.com/support/guides/environments_js-sdk).
 
