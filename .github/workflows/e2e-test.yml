@@ -4,7 +4,7 @@ on: workflow_dispatch
 
 jobs:
   test-v9:
-    name: Run E2E Smoke Tests (v9)
+    name: Run E2E Smoke Tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -35,39 +35,5 @@ jobs:
       run: |
         yarn add firebase@beta
         yarn
-    - name: Run tests
-      run: xvfb-run yarn test
-  test-staging:
-    name: Run E2E Smoke Tests (v8)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        # Run any command steps in the /e2e subdir
-        working-directory: './e2e'
-
-    steps:
-    - name: Checkout Repo
-      uses: actions/checkout@master
-    - name: Set up Node (12)
-      uses: actions/setup-node@v2
-      with:
-        node-version: 12.x
-    - name: install Chrome stable
-      run: |
-        sudo apt-get update
-        sudo apt-get install google-chrome-stable
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
-    - name: Write project config
-      env:
-        PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
-        TEST_ACCOUNT: ${{ secrets.TEST_ACCOUNT }}
-        RECAPTCHA_SITE_KEY: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
-      run: |
-        echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
-    - name: Yarn install
-      run: |
-        yarn add firebase@next
-        yarn test:v8
     - name: Run tests
       run: xvfb-run yarn test

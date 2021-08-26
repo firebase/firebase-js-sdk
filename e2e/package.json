@@ -8,7 +8,6 @@
     "test": "yarn setup && karma start --compat --exp",
     "test:compat": "yarn setup && yarn karma start --compat",
     "test:exp": "yarn setup && karma start --exp",
-    "test:v8": "yarn setup && karma start --v8",
     "watch": "webpack --watch",
     "build": "webpack",
     "start": "webpack serve"
@@ -16,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "firebase": "^9.0.0-beta.6"
+    "firebase": "^9.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.6",
