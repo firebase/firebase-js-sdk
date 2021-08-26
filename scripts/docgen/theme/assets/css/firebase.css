@@ -39,6 +39,10 @@
     color: #333;
 }
 
+.firebase-docs .tsd-breadcrumb li {
+    margin-right: 0;
+}
+
 .firebase-docs .tsd-signature {
     border-bottom: 1px solid #eee;
 }
