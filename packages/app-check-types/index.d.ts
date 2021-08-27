@@ -145,6 +145,6 @@ interface AppCheckTokenResult {
 export type AppCheckComponentName = 'appCheck';
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'appCheck': FirebaseAppCheck;
+    'appCheck-compat': FirebaseAppCheck;
   }
 }

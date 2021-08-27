@@ -315,31 +315,6 @@ export const validatePriority = function (
   }
 };
 
-export const validateEventType = function (
-  fnName: string,
-  eventType: string,
-  optional: boolean
-) {
-  if (optional && eventType === undefined) {
-    return;
-  }
-
-  switch (eventType) {
-    case 'value':
-    case 'child_added':
-    case 'child_removed':
-    case 'child_changed':
-    case 'child_moved':
-      break;
-    default:
-      throw new Error(
-        errorPrefixFxn(fnName, 'eventType') +
-          'must be a valid event type = "value", "child_added", "child_removed", ' +
-          '"child_changed", or "child_moved".'
-      );
-  }
-};
-
 export const validateKey = function (
   fnName: string,
   argumentName: string,
@@ -360,6 +335,9 @@ export const validateKey = function (
   }
 };
 
+/**
+ * @internal
+ */
 export const validatePathString = function (
   fnName: string,
   argumentName: string,
@@ -395,6 +373,9 @@ export const validateRootPathString = function (
   validatePathString(fnName, argumentName, pathString, optional);
 };
 
+/**
+ * @internal
+ */
 export const validateWritablePath = function (fnName: string, path: Path) {
   if (pathGetFront(path) === '.info') {
     throw new Error(fnName + " failed = Can't modify data under /.info/");
@@ -418,22 +399,6 @@ export const validateUrl = function (
       errorPrefixFxn(fnName, 'url') +
         'must be a valid firebase URL and ' +
         'the path can\'t contain ".", "#", "$", "[", or "]".'
-    );
-  }
-};
-
-export const validateBoolean = function (
-  fnName: string,
-  argumentName: string,
-  bool: unknown,
-  optional: boolean
-) {
-  if (optional && bool === undefined) {
-    return;
-  }
-  if (typeof bool !== 'boolean') {
-    throw new Error(
-      errorPrefixFxn(fnName, argumentName) + 'must be a boolean.'
     );
   }
 };

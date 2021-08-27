@@ -31,7 +31,7 @@ import {
   deleteObject as requestsDeleteObject,
   multipartUpload
 } from './implementation/requests';
-import { ListOptions } from '../exp/public-types';
+import { ListOptions, UploadResult } from './public-types';
 import { StringFormat, dataFromString } from './implementation/string';
 import { Metadata } from './metadata';
 import { FirebaseStorageImpl } from './service';
@@ -39,7 +39,6 @@ import { ListResult } from './list';
 import { UploadTask } from './task';
 import { invalidRootOperation, noDownloadURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
-import { UploadResult } from './tasksnapshot';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.

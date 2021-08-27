@@ -20,10 +20,7 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
+const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
 /**
  * ES5 Builds
  */
@@ -39,13 +36,13 @@ const es5Builds = [
    * Browser Builds
    */
   {
-    input: 'index.ts',
+    input: 'src/index.ts',
     output: [
       { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
+      { file: pkg.esm5, format: 'es', sourcemap: true }
     ],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    plugins: es5BuildPlugins
   }
 ];
 
@@ -65,18 +62,18 @@ const es2017BuildPlugins = [
 ];
 
 const es2017Builds = [
-  /**
-   *  Browser Builds
-   */
   {
-    input: 'index.ts',
+    /**
+     * Browser Build
+     */
+    input: 'src/index.ts',
     output: {
-      file: pkg.esm2017,
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    plugins: es2017BuildPlugins
   }
 ];
 

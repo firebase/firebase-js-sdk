@@ -15,17 +15,22 @@
  * limitations under the License.
  */
 
-import {
-  DynamicConfig,
-  DataLayer,
-  Gtag,
-  CustomParams,
-  ControlParams,
-  EventParams,
-  MinimalDynamicConfig
-} from '@firebase/analytics-types';
+import { CustomParams, ControlParams, EventParams } from './public-types';
+import { DynamicConfig, DataLayer, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
+
+/**
+ * Makeshift polyfill for Promise.allSettled(). Resolves when all promises
+ * have either resolved or rejected.
+ *
+ * @param promises Array of promises to wait for.
+ */
+export function promiseAllSettled<T>(
+  promises: Array<Promise<T>>
+): Promise<T[]> {
+  return Promise.all(promises.map(promise => promise.catch(e => e)));
+}
 
 /**
  * Inserts gtag script tag into the page to asynchronously download gtag.
@@ -36,6 +41,8 @@ export function insertScriptTag(
   measurementId: string
 ): void {
   const script = document.createElement('script');
+  // We are not providing an analyticsId in the URL because it would trigger a `page_view`
+  // without fid. We will initialize ga-id using gtag (config) command together with fid.
   script.src = `${GTAG_URL}?l=${dataLayerName}&id=${measurementId}`;
   script.async = true;
   document.head.appendChild(script);
@@ -87,7 +94,9 @@ async function gtagOnConfig(
       // find the appId (if any) corresponding to this measurementId. If there is one, wait on
       // that appId's initialization promise. If there is none, promise resolves and gtag
       // call goes through.
-      const dynamicConfigResults = await Promise.all(dynamicConfigPromisesList);
+      const dynamicConfigResults = await promiseAllSettled(
+        dynamicConfigPromisesList
+      );
       const foundConfig = dynamicConfigResults.find(
         config => config.measurementId === measurementId
       );
@@ -132,7 +141,9 @@ async function gtagOnEvent(
       }
       // Checking 'send_to' fields requires having all measurement ID results back from
       // the dynamic config fetch.
-      const dynamicConfigResults = await Promise.all(dynamicConfigPromisesList);
+      const dynamicConfigResults = await promiseAllSettled(
+        dynamicConfigPromisesList
+      );
       for (const sendToId of gaSendToList) {
         // Any fetched dynamic measurement ID that matches this 'send_to' ID
         const foundConfig = dynamicConfigResults.find(
@@ -241,7 +252,7 @@ function wrapGtag(
       logger.error(e);
     }
   }
-  return gtagWrapper;
+  return gtagWrapper as Gtag;
 }
 
 /**

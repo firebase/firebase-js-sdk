@@ -16,10 +16,11 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp, deleteApp } from '@firebase/app-exp';
+import { initializeApp, deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
+import { onValue, set } from '../../src/api/Reference_impl';
 import {
   get,
   getDatabase,
@@ -29,8 +30,7 @@ import {
   ref,
   refFromURL,
   runTransaction
-} from '../../exp/index';
-import { onValue, set } from '../../src/exp/Reference_impl';
+} from '../../src/index';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
 import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
 

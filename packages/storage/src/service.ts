@@ -25,7 +25,7 @@ import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-exp';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app';
 import {
   CONFIG_STORAGE_BUCKET_KEY,
   DEFAULT_HOST,
@@ -38,7 +38,7 @@ import {
   noDefaultBucket
 } from './implementation/error';
 import { validateNumber } from './implementation/type';
-import { FirebaseStorage } from '../exp/public-types';
+import { FirebaseStorage } from './public-types';
 import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
 
 export function isUrl(path?: string): boolean {
@@ -148,8 +148,9 @@ export function connectStorageEmulator(
 
 /**
  * A service that provides Firebase Storage Reference instances.
- * @public
  * @param opt_url - gs:// url to a custom Storage Bucket
+ * 
+ * @internal
  */
 export class FirebaseStorageImpl implements FirebaseStorage {
   _bucket: Location | null = null;

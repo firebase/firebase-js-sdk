@@ -1,0 +1,54 @@
+{
+  "name": "@firebase/messaging-compat",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/index.esm2017.js",
+  "module": "dist/index.esm2017.js",
+  "typings": "dist/src/index.d.ts",
+  "sw": "dist/index.sw.esm2017.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "rollup -c",
+    "build:deps": "lerna run --scope @firebase/'messaging-compat' --include-dependencies build",
+    "build:release": "yarn build && yarn add-compat-overloads",
+    "dev": "rollup -c -w",
+    "test": "run-p test:karma",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:karma": "karma start --single-run",
+    "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "type-check": "tsc --noEmit",
+    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../messaging/dist/index-public.d.ts -o dist/src/index.d.ts -a -r Messaging:MessagingCompat -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/messaging"
+  },
+  "peerDependencies": {
+    "@firebase/app-compat": "0.x"
+  },
+  "dependencies": {
+    "@firebase/messaging": "0.9.0",
+    "@firebase/component": "0.5.6",
+    "@firebase/util": "1.3.0",
+    "tslib": "^2.1.0"
+  },
+  "devDependencies": {
+    "@firebase/app-compat": "0.1.0",
+    "@rollup/plugin-json": "4.1.0",
+    "rollup-plugin-typescript2": "0.30.0",
+    "ts-essentials": "7.0.1",
+    "typescript": "4.2.2"
+  },
+  "repository": {
+    "directory": "packages/messaging",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "esm5": "dist/index.esm.js"
+}

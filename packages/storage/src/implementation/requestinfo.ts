@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FirebaseStorageError } from './error';
+import { StorageError } from './error';
 import { Headers, Connection } from './connection';
 
 /**
@@ -30,7 +30,7 @@ export class RequestInfo<T> {
   body: Blob | string | Uint8Array | null = null;
 
   errorHandler:
-    | ((p1: Connection, p2: FirebaseStorageError) => FirebaseStorageError)
+    | ((p1: Connection, p2: StorageError) => StorageError)
     | null = null;
 
   /**

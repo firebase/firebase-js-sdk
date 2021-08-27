@@ -1,0 +1,11 @@
+{
+    "extends": "../../config/api-extractor.json",
+    // If this path ever changes, make sure to change scripts/exp/docgen.ts
+    // accordingly.
+    "mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.d.ts",
+    "dtsRollup": {
+        "enabled": true,
+        "untrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>.d.ts",
+        "publicTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts"
+    }
+}

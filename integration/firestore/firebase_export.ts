@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import '@firebase/firestore';
-import '@firebase/firestore/bundle';
+import firebase from '@firebase/app-compat';
+import '@firebase/firestore-compat';
 import { FirebaseApp } from '@firebase/app-types';
 import { Settings, FirebaseFirestore } from '@firebase/firestore-types';
 

@@ -29,7 +29,10 @@ export function encodeBase64(raw: string): string {
   return platform.encodeBase64(raw);
 }
 
-/** True if and only if the Base64 conversion functions are available. */
+/**
+ * True if and only if the Base64 conversion functions are available.
+ * @internal
+ */
 export function isBase64Available(): boolean {
   return platform.isBase64Available();
 }

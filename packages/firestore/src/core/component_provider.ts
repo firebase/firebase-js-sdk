@@ -187,7 +187,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     // set it after localStore / remoteStore are started.
     await this.persistence.setPrimaryStateListener(() => {
       if (this.gcScheduler && !this.gcScheduler.started) {
-          this.gcScheduler.start(this.localStore);
+        this.gcScheduler.start(this.localStore);
       }
       return Promise.resolve();
     });

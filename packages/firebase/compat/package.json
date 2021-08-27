@@ -1,0 +1,21 @@
+{
+  "name": "firebase/compat",
+  "main": "dist/index.node.cjs",
+  "browser": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
+  "react-native": "dist/index.rn.cjs.js",
+  "typings": "index.d.ts",
+  "components": [
+    "app",
+    "analytics",
+    "app-check",
+    "auth",
+    "functions",
+    "messaging",
+    "performance",
+    "remote-config",
+    "firestore",
+    "storage",
+    "database"
+  ]
+}

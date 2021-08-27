@@ -15,8 +15,22 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import {
+  FirebaseApp,
+  initializeApp,
+  _registerComponent
+} from '@firebase/app';
+import { Component, ComponentType } from '@firebase/component';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { AnalyticsService } from '../src/factory';
+
+const fakeConfig = {
+  projectId: 'projectId',
+  authDomain: 'authDomain',
+  messagingSenderId: 'messagingSenderId',
+  databaseURL: 'databaseUrl',
+  storageBucket: 'storageBucket'
+};
 
 export function getFakeApp(fakeAppParams?: {
   appId?: string;
@@ -25,22 +39,8 @@ export function getFakeApp(fakeAppParams?: {
 }): FirebaseApp {
   return {
     name: 'appName',
-    options: {
-      apiKey: fakeAppParams?.apiKey,
-      projectId: 'projectId',
-      authDomain: 'authDomain',
-      messagingSenderId: 'messagingSenderId',
-      databaseURL: 'databaseUrl',
-      storageBucket: 'storageBucket',
-      appId: fakeAppParams?.appId,
-      measurementId: fakeAppParams?.measurementId
-    },
-    automaticDataCollectionEnabled: true,
-    delete: async () => {},
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    installations: null as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    analytics: null as any
+    options: { ...fakeConfig, ...fakeAppParams },
+    automaticDataCollectionEnabled: true
   };
 }
 
@@ -48,14 +48,39 @@ export function getFakeInstallations(
   fid: string = 'fid-1234',
   // eslint-disable-next-line @typescript-eslint/ban-types
   onFidResolve?: Function
-): FirebaseInstallations {
+): _FirebaseInstallationsInternal {
   return {
     getId: async () => {
       onFidResolve && onFidResolve();
       return fid;
     },
-    getToken: async () => 'authToken',
-    onIdChange: () => () => undefined,
-    delete: async () => undefined
+    getToken: async () => 'authToken'
   };
+}
+
+export function getFullApp(fakeAppParams?: {
+  appId?: string;
+  apiKey?: string;
+  measurementId?: string;
+}): FirebaseApp {
+  _registerComponent(
+    new Component(
+      'installations-internal',
+      () => {
+        return {} as _FirebaseInstallationsInternal;
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  _registerComponent(
+    new Component(
+      'analytics',
+      () => {
+        return {} as AnalyticsService;
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  const app = initializeApp({ ...fakeConfig, ...fakeAppParams });
+  return app;
 }

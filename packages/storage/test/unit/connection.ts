@@ -20,7 +20,7 @@ import {
   Connection
 } from '../../src/implementation/connection';
 import {
-  FirebaseStorageError,
+  StorageError,
   StorageErrorCode
 } from '../../src/implementation/error';
 
@@ -67,7 +67,7 @@ export class TestingConnection implements Connection {
     headers?: Headers
   ): Promise<void> {
     if (this.state !== State.START) {
-      throw new FirebaseStorageError(
+      throw new StorageError(
         StorageErrorCode.UNKNOWN,
         "Can't send again"
       );
@@ -87,7 +87,7 @@ export class TestingConnection implements Connection {
     headers: { [key: string]: string }
   ): void {
     if (this.state !== State.SENT) {
-      throw new FirebaseStorageError(
+      throw new StorageError(
         StorageErrorCode.UNKNOWN,
         "Can't simulate response before send/more than once"
       );

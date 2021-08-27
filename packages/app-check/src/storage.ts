@@ -16,7 +16,7 @@
  */
 
 import { uuidv4 } from './util';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import { isIndexedDBAvailable } from '@firebase/util';
 import {
   readDebugTokenFromIndexedDB,
@@ -25,7 +25,7 @@ import {
   writeTokenToIndexedDB
 } from './indexeddb';
 import { logger } from './logger';
-import { AppCheckTokenInternal } from './state';
+import { AppCheckTokenInternal } from './types';
 
 /**
  * Always resolves. In case of an error reading from indexeddb, resolve with undefined
@@ -39,7 +39,7 @@ export async function readTokenFromStorage(
       token = await readTokenFromIndexedDB(app);
     } catch (e) {
       // swallow the error and return undefined
-      logger.warn(`Failed to read token from indexeddb. Error: ${e}`);
+      logger.warn(`Failed to read token from IndexedDB. Error: ${e}`);
     }
     return token;
   }
@@ -57,7 +57,7 @@ export function writeTokenToStorage(
   if (isIndexedDBAvailable()) {
     return writeTokenToIndexedDB(app, token).catch(e => {
       // swallow the error and resolve the promise
-      logger.warn(`Failed to write token to indexeddb. Error: ${e}`);
+      logger.warn(`Failed to write token to IndexedDB. Error: ${e}`);
     });
   }
 
@@ -85,11 +85,11 @@ export async function readOrCreateDebugTokenFromStorage(): Promise<string> {
     // If you see this error trying to use debug token, it probably means you are using a browser that doesn't support indexeddb.
     // You should switch to a different browser that supports indexeddb
     writeDebugTokenToIndexedDB(newToken).catch(e =>
-      logger.warn(`Failed to persist debug token to indexeddb. Error: ${e}`)
+      logger.warn(`Failed to persist debug token to IndexedDB. Error: ${e}`)
     );
     // Not using logger because I don't think we ever want this accidentally hidden?
     console.log(
-      `AppCheck debug token: ${newToken}. You will need to whitelist it in the Firebase console for it to work`
+      `App Check debug token: ${newToken}. You will need to add it to your app's App Check settings in the Firebase console for it to work`
     );
     return newToken;
   } else {

@@ -35,7 +35,7 @@ const SETTINGS_PLACEHOLDER = `{
 }`;
 const SUCCESS_MESSAGE = 'Done <span class="done-checkmark"> &#10004;</span>';
 
-let remoteConfig;
+let rcInstance;
 const outputBox = document.getElementById('output-box');
 
 window.onload = function () {
@@ -48,13 +48,13 @@ window.onload = function () {
 
 function initializeFirebase() {
   const val = document.querySelector('#firebase-config').value;
-  firebase.initializeApp(parseObjFromStr(val));
-  remoteConfig = firebase.remoteConfig();
+  const app = firebase.app.initializeApp(parseObjFromStr(val));
+  rcInstance = firebase.remoteConfig.getRemoteConfig(app);
   return Promise.resolve();
 }
 
 function setDefaults() {
-  remoteConfig.defaultConfig = parseObjFromStr(
+  rcInstance.defaultConfig = parseObjFromStr(
     document.querySelector('#rc-defaults').value
   );
   return SUCCESS_MESSAGE;
@@ -65,64 +65,64 @@ function setSettings() {
     document.querySelector('#rc-settings').value,
     true
   );
-  const currentSettings = remoteConfig.settings;
-  remoteConfig.settings = Object.assign({}, currentSettings, newSettings);
+  const currentSettings = rcInstance.settings;
+  rcInstance.settings = Object.assign({}, currentSettings, newSettings);
   return SUCCESS_MESSAGE;
 }
 
 function setLogLevel() {
   const newLogLevel = document.querySelector('#log-level-input').value;
-  remoteConfig.setLogLevel(newLogLevel);
+  firebase.remoteConfig.setLogLevel(rcInstance, newLogLevel);
   return SUCCESS_MESSAGE;
 }
 
 function activate() {
-  return remoteConfig.activate();
+  return firebase.remoteConfig.activate(rcInstance);
 }
 
 function ensureInitialized() {
-  return remoteConfig.ensureInitialized();
+  return firebase.remoteConfig.ensureInitialized(rcInstance);
 }
 
 // Prefixed to avoid clobbering the browser's fetch function.
 function rcFetch() {
-  return remoteConfig.fetch();
+  return firebase.remoteConfig.fetchConfig(rcInstance);
 }
 
 function fetchAndActivate() {
-  return remoteConfig.fetchAndActivate();
+  return firebase.remoteConfig.fetchAndActivate(rcInstance);
 }
 
 function getString() {
-  return remoteConfig.getString(getKey());
+  return firebase.remoteConfig.getString(rcInstance, getKey());
 }
 
 function getBoolean() {
-  return remoteConfig.getBoolean(getKey());
+  return firebase.remoteConfig.getBoolean(rcInstance, getKey());
 }
 
 function getNumber() {
-  return remoteConfig.getNumber(getKey());
+  return firebase.remoteConfig.getNumber(rcInstance, getKey());
 }
 
 function getValue() {
-  return remoteConfig.getValue(getKey());
+  return firebase.remoteConfig.getValue(rcInstance, getKey());
 }
 
 function getAll() {
-  return remoteConfig.getAll();
+  return firebase.remoteConfig.getAll(rcInstance);
 }
 
 function getFetchTimeMillis() {
-  return remoteConfig.fetchTimeMillis;
+  return rcInstance.fetchTimeMillis;
 }
 
 function getLastFetchStatus() {
-  return remoteConfig.lastFetchStatus;
+  return rcInstance.lastFetchStatus;
 }
 
 function getSettings() {
-  return remoteConfig.settings;
+  return rcInstance.settings;
 }
 
 // Helper functions

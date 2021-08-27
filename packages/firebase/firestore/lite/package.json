@@ -1,0 +1,7 @@
+{
+  "name": "firebase/firestore/lite",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/firestore/lite/index.d.ts"
+}

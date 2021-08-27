@@ -18,12 +18,13 @@
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import '../testing/setup';
-import { DataLayer, Gtag, DynamicConfig } from '@firebase/analytics-types';
+import { DataLayer, Gtag, DynamicConfig } from './types';
 import {
   getOrCreateDataLayer,
   insertScriptTag,
   wrapOrCreateGtag,
-  findGtagScriptOnPage
+  findGtagScriptOnPage,
+  promiseAllSettled
 } from './helpers';
 import { GtagCommand } from './constants';
 import { Deferred } from '@firebase/util';
@@ -100,7 +101,7 @@ describe('Gtag wrapping functions', () => {
 
       initPromise2.resolve('other-measurement-id'); // Resolves second initialization promise.
       await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
-      await Promise.all(fakeDynamicConfigPromises);
+      await promiseAllSettled(fakeDynamicConfigPromises);
 
       expect((window['dataLayer'] as DataLayer).length).to.equal(1);
     });
@@ -133,7 +134,7 @@ describe('Gtag wrapping functions', () => {
 
         initPromise2.resolve(); // Resolves second initialization promise.
         await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
-        await Promise.all(fakeDynamicConfigPromises);
+        await promiseAllSettled(fakeDynamicConfigPromises);
 
         expect((window['dataLayer'] as DataLayer).length).to.equal(1);
       }
@@ -195,7 +196,7 @@ describe('Gtag wrapping functions', () => {
         expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
         initPromise1.resolve(); // Resolves first initialization promise.
-        await Promise.all(fakeDynamicConfigPromises);
+        await promiseAllSettled(fakeDynamicConfigPromises);
         await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
 
         expect((window['dataLayer'] as DataLayer).length).to.equal(1);
@@ -241,7 +242,7 @@ describe('Gtag wrapping functions', () => {
       expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
       initPromise1.resolve(fakeMeasurementId);
-      await Promise.all(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
+      await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
       expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
       await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
@@ -255,7 +256,7 @@ describe('Gtag wrapping functions', () => {
       (window['gtag'] as Gtag)(GtagCommand.CONFIG, fakeMeasurementId, {
         'transaction_id': 'abcd123'
       });
-      await Promise.all(fakeDynamicConfigPromises);
+      await promiseAllSettled(fakeDynamicConfigPromises);
       await Promise.resolve(); // Config call is always chained onto initialization promise list, even if empty.
       expect((window['dataLayer'] as DataLayer).length).to.equal(1);
     });
@@ -295,7 +296,7 @@ describe('Gtag wrapping functions', () => {
       expect(existingGtagStub).to.not.be.called;
 
       initPromise2.resolve(); // Resolves second initialization promise.
-      await Promise.all(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
+      await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
       expect(existingGtagStub).to.not.be.called;
 
       await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
@@ -332,7 +333,7 @@ describe('Gtag wrapping functions', () => {
         expect(existingGtagStub).to.not.be.called;
 
         initPromise2.resolve(); // Resolves second initialization promise.
-        await Promise.all(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
+        await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
         expect(existingGtagStub).to.not.be.called;
 
         await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
@@ -407,7 +408,7 @@ describe('Gtag wrapping functions', () => {
         expect(existingGtagStub).to.not.be.called;
 
         initPromise1.resolve(); // Resolves first initialization promise.
-        await Promise.all(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
+        await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
         expect(existingGtagStub).to.not.be.called;
 
         await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
@@ -463,7 +464,7 @@ describe('Gtag wrapping functions', () => {
       expect(existingGtagStub).to.not.be.called;
 
       initPromise1.resolve(fakeMeasurementId);
-      await Promise.all(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
+      await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
       expect(existingGtagStub).to.not.be.called;
 
       await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
@@ -483,7 +484,7 @@ describe('Gtag wrapping functions', () => {
       (window['gtag'] as Gtag)(GtagCommand.CONFIG, fakeMeasurementId, {
         'transaction_id': 'abcd123'
       });
-      await Promise.all(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
+      await promiseAllSettled(fakeDynamicConfigPromises); // Resolves dynamic config fetches.
       expect(existingGtagStub).to.not.be.called;
       await Promise.resolve(); // Config call is always chained onto initialization promise list, even if empty.
       expect(existingGtagStub).to.be.calledWith(

@@ -17,7 +17,7 @@
 
 import { getModularInstance } from '@firebase/util';
 import { expect } from 'chai';
-import { getPerformance } from '@firebase/performance-exp';
+import { getPerformance } from '@firebase/performance';
 import firebase from '@firebase/app-compat';
 import '@firebase/performance-compat';
 

@@ -41,11 +41,10 @@ export const testConfig: {
       '@firebase/rules-unit-testing',
       '@firebase/auth',
       'firebase',
-      'firebase-exp'
     ]
   },
   'firestore': {
-    'onlyIncludePackages': ['@firebase/firestore']
+    'onlyIncludePackages': ['@firebase/firestore', '@firebase/firestore-compat']
   },
   'firestore-integration': {
     'onlyIncludePackages': ['firebase-firestore-integration-test']

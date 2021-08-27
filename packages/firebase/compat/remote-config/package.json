@@ -1,0 +1,7 @@
+{
+  "name": "firebase/compat/remote-config",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/compat/remote-config/index.d.ts"
+}

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,52 +15,4 @@
  * limitations under the License.
  */
 
-import { FieldValue as PublicFieldValue } from '@firebase/firestore-types';
-import { Compat } from '@firebase/util';
-
-import {
-  arrayRemove,
-  arrayUnion,
-  deleteField,
-  FieldValue as FieldValue1,
-  increment,
-  serverTimestamp
-} from '../../exp/index';
-
-export class FieldValue implements PublicFieldValue, Compat<FieldValue1> {
-  static serverTimestamp(): FieldValue {
-    const delegate = serverTimestamp();
-    delegate._methodName = 'FieldValue.serverTimestamp';
-    return new FieldValue(delegate);
-  }
-
-  static delete(): FieldValue {
-    const delegate = deleteField();
-    delegate._methodName = 'FieldValue.delete';
-    return new FieldValue(delegate);
-  }
-
-  static arrayUnion(...elements: unknown[]): FieldValue {
-    const delegate = arrayUnion(...elements);
-    delegate._methodName = 'FieldValue.arrayUnion';
-    return new FieldValue(delegate);
-  }
-
-  static arrayRemove(...elements: unknown[]): FieldValue {
-    const delegate = arrayRemove(...elements);
-    delegate._methodName = 'FieldValue.arrayRemove';
-    return new FieldValue(delegate);
-  }
-
-  static increment(n: number): FieldValue {
-    const delegate = increment(n);
-    delegate._methodName = 'FieldValue.increment';
-    return new FieldValue(delegate);
-  }
-
-  constructor(readonly _delegate: FieldValue1) {}
-
-  isEqual(other: FieldValue): boolean {
-    return this._delegate.isEqual(other._delegate);
-  }
-}
+export { FieldValue } from '../lite-api/field_value';

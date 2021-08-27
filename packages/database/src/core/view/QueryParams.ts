@@ -63,6 +63,8 @@ const enum REST_QUERY_CONSTANTS {
  * This class is an immutable-from-the-public-api struct containing a set of query parameters defining a
  * range to be returned for a particular location. It is assumed that validation of parameters is done at the
  * user-facing API level, so it is not done here.
+ *
+ * @internal
  */
 export class QueryParams {
   limitSet_ = false;
