@@ -103,7 +103,7 @@ export interface ParsedToken {
     'sign_in_second_factor'?: string;
   };
   /** Map of any additional custom claims. */
-  [key: string]: string | object | undefined;
+  [key: string]: string | object | number | boolean | undefined;
 }
 
 /**
