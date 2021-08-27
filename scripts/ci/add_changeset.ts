@@ -23,7 +23,7 @@
  */
 
 import { writeFileSync } from 'fs';
-import { projectRoot } from './utils';
+import { projectRoot } from '../utils';
 import { exec } from 'child-process-promise';
 
 const CONTENT = `

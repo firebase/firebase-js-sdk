@@ -25,8 +25,8 @@
  * Example: node scripts/exp/update-internal-dep-versions.js --file packages-exp/functions-exp/package.json
  */
 
-import { projectRoot } from '../utils';
-import { mapPkgNameToPkgJson } from '../release/utils/workspace';
+import { projectRoot } from './utils';
+import { mapPkgNameToPkgJson } from './release/utils/workspace';
 import { argv } from 'yargs';
 import fs from 'mz/fs';
 

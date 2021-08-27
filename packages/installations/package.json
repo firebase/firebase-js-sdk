@@ -28,8 +28,8 @@
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/installations-public.d.ts",
-    "typings:internal": "node ../../scripts/exp/use_typings.js ./dist/src/index.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/installations-public.d.ts",
+    "typings:internal": "node ../../scripts/build/use_typings.js ./dist/src/index.d.ts"
   },
   "repository": {
     "directory": "packages/installations",
