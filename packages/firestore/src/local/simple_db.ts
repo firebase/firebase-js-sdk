@@ -322,6 +322,16 @@ export class SimpleDb {
                   'data for your app to start fresh.'
               )
             );
+          } else if (error.name === 'InvalidStateError') {
+            reject(
+              new FirestoreError(
+                Code.FAILED_PRECONDITION,
+                'Unable to open an IndexedDb connection; this may be due to running in a ' +
+                  'Firefox private browsing session, in which IndexedDb is not supported ' +
+                  '(https://goo.gle/3ymSNyf): ' +
+                  error
+              )
+            );
           } else {
             reject(new IndexedDbTransactionError(action, error));
           }
