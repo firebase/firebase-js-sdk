@@ -36,7 +36,7 @@
     ]
   },
   "dependencies": {
-    "@firebase/app": "0.0.900",
+    "@firebase/app": "0.0.900-exp.f919db6a9",
     "@firebase/auth": "0.0.900",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "1.1.0",
