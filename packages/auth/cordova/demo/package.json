@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@firebase/app": "0.0.900",
-    "@firebase/auth": "0.0.900",
+    "@firebase/auth": "0.0.900-exp.f919db6a9",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "1.1.0",
     "cordova-plugin-browsertab": "0.2.0",
