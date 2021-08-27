@@ -35,7 +35,7 @@ export type NestedUpdateFields<T extends Record<string, unknown>> =
   UnionToIntersection<
     {
       // Check that T[K] extends Record to only allow nesting for map values.
-      [K in keyof T & string]: T[K] extends Record<string, unknown>
+      [K in keyof T & string]: T[K] extends Record<string, unknown> | undefined
         ? // Recurse into the map and add the prefix in front of each key
           // (e.g. Prefix 'bar.' to create: 'bar.baz' and 'bar.qux'.
           AddPrefixToKeys<K, UpdateData<T[K]>>

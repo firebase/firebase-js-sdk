@@ -1542,6 +1542,49 @@ describe('withConverter() support', () => {
         });
       });
 
+      it('supports optional fields', () => {
+        interface TestObjectOptional {
+          optionalStr?: string;
+          nested?: {
+            requiredStr: string;
+          };
+        }
+
+        const testConverterOptional = {
+          toFirestore(testObj: WithFieldValue<TestObjectOptional>) {
+            return { ...testObj };
+          },
+          fromFirestore(snapshot: QueryDocumentSnapshot): TestObjectOptional {
+            const data = snapshot.data();
+            return {
+              optionalStr: data.optionalStr,
+              nested: data.nested
+            };
+          }
+        };
+
+        return withTestDocAndInitialData(initialData, async docRef => {
+          const testDocRef: DocumentReference<TestObjectOptional> =
+            docRef.withConverter(testConverterOptional);
+
+          await updateDoc(testDocRef, {
+            optionalStr: 'foo'
+          });
+          await updateDoc(testDocRef, {
+            'optionalStr': 'foo'
+          });
+
+          await updateDoc(testDocRef, {
+            nested: {
+              requiredStr: 'foo'
+            }
+          });
+          await updateDoc(testDocRef, {
+            'nested.requiredStr': 'foo'
+          });
+        });
+      });
+
       it('checks for nonexistent fields', () => {
         return withTestDocAndInitialData(initialData, async docRef => {
           const testDocRef: DocumentReference<TestObject> =
