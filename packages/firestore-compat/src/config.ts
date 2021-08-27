@@ -25,7 +25,7 @@ import {
   CACHE_SIZE_UNLIMITED,
   GeoPoint,
   Timestamp
-} from '@firebase/firestore'; // import from the exp public API
+} from '@firebase/firestore';
 
 import { Blob } from './api/blob';
 import {

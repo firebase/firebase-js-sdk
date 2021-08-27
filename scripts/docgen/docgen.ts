@@ -35,7 +35,7 @@ yargs
 const tmpDir = `${projectRoot}/temp`;
 // create *.api.json files
 async function generateDocs(forDevsite: boolean = false) {
-  const outputFolder = forDevsite ? 'docs-devsite' : 'docs-exp';
+  const outputFolder = forDevsite ? 'docs-devsite' : 'docs';
   const command = forDevsite ? 'api-documenter-devsite' : 'api-documenter';
 
   // Use a special d.ts file for auth for doc gen only.

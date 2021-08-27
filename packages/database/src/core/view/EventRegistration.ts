@@ -27,7 +27,7 @@ import { QueryParams } from './QueryParams';
 
 /**
  * A user callback. Callbacks issues from the Legacy SDK maintain references
- *  to the original user-issued callbacks, which allows equality
+ * to the original user-issued callbacks, which allows equality
  * comparison by reference even though this callbacks are wrapped before
  * they can be passed to the firebase@exp SDK.
  *
