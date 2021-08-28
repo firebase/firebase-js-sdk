@@ -3,7 +3,6 @@
 '@firebase/app-check-compat': patch
 '@firebase/app-compat': patch
 '@firebase/functions-compat': patch
-'@firebase/firestore': patch
 ---
 
-cjs build
+Fix cjs builds by removing the named export from app-compat
