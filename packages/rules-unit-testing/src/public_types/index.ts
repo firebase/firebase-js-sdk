@@ -131,13 +131,13 @@ export interface TestEnvironmentConfig {
 export interface HostAndPort {
   /**
    * The host of the emulator. Can be omitted if discovered automatically through the hub or
-   * specified via environment variables. See {@code TestEnvironmentConfig} for details.
+   * specified via environment variables. See `TestEnvironmentConfig` for details.
    */
   host: string;
 
   /**
    * The port of the emulator. Can be omitted if discovered automatically through the hub or
-   * specified via environment variables. See {@code TestEnvironmentConfig} for details.
+   * specified via environment variables. See `TestEnvironmentConfig` for details.
    */
   port: number;
 }
@@ -170,12 +170,12 @@ export interface RulesTestEnvironment {
   };
 
   /**
-   * Create a {@code RulesTestContext} which behaves like an authenticated Firebase Auth user.
+   * Create a `RulesTestContext` which behaves like an authenticated Firebase Auth user.
    *
    * Requests created via the returned context will have a mock Firebase Auth token attached.
    *
-   * @param user_id the User ID of the user. Specifies the value of "user_id" and "sub" on the token
-   * @param tokenOptions custom claims or overrides for Firebase Auth token payloads
+   * @param user_id - the User ID of the user. Specifies the value of "user_id" and "sub" on the token
+   * @param tokenOptions - custom claims or overrides for Firebase Auth token payloads
    *
    * @example
    * ```javascript
@@ -189,7 +189,7 @@ export interface RulesTestEnvironment {
   ): RulesTestContext;
 
   /**
-   * Create a {@code RulesTestContext} which behaves like client that is NOT logged in via Firebase
+   * Create a `RulesTestContext` which behaves like client that is NOT logged in via Firebase
    * Auth.
    *
    * Requests created via the returned context will not have Firebase Auth tokens attached.
@@ -222,7 +222,7 @@ export interface RulesTestEnvironment {
   clearDatabase(): Promise<void>;
 
   /**
-   * Clear data in the Firestore that belongs to the {@code projectId} in the Firestore emulator.
+   * Clear data in the Firestore that belongs to the `projectId` in the Firestore emulator.
    */
   clearFirestore(): Promise<void>;
 
@@ -236,7 +236,7 @@ export interface RulesTestEnvironment {
    * created in test environment and clean up the underlying resources, allowing a clean exit.
    *
    * This method does not change the state in emulators in any way. To reset data between tests,
-   * see {@code clearDatabase()}, {@code clearFirestore()} and {@code clearStorage()}.
+   * see `clearDatabase()`, `clearFirestore()` and `clearStorage()`.
    */
   cleanup(): Promise<void>;
 }
@@ -247,12 +247,12 @@ export interface RulesTestEnvironment {
  */
 export interface RulesTestContext {
   /**
-   * Get a Firestore instance for this test context. The returned Firebase JS Client SDK instance
+   * Get a `Firestore` instance for this test context. The returned Firebase JS Client SDK instance
    * can be used with the client SDK APIs (v9 modular or v9 compat).
    *
    * See: https://firebase.google.com/docs/reference/js/v9/firestore_
-   * @param settings a settings object to configure the {@code Firestore} instance
-   * @returns a Firestore instance configured to connect to the emulator
+   * @param settings - a settings object to configure the `Firestore` instance
+   * @returns a `Firestore` instance configured to connect to the emulator
    * @public
    */
   firestore(
@@ -264,7 +264,7 @@ export interface RulesTestContext {
    * can be used with the client SDK APIs (v9 modular or v9 compat).
    *
    * See: https://firebase.google.com/docs/reference/js/v9/firestore_
-   * @param databaseURL the URL of the Realtime Database instance. If specified, returns an instance
+   * @param databaseURL - the URL of the Realtime Database instance. If specified, returns an instance
    *                    for an emulated version of the namespace with parameters extracted from URL
    * @returns a Database instance configured to connect to the emulator. It never connects to
    *          production even if a production databaseURL is specified
@@ -276,7 +276,7 @@ export interface RulesTestContext {
    * can be used with the client SDK APIs (v9 modular or v9 compat).
    *
    * See: https://firebase.google.com/docs/reference/js/v9/firestore_
-   * @param settings the gs:// url to the Firebase Storage Bucket for testing. If specified,
+   * @param settings - the gs:// url to the Firebase Storage Bucket for testing. If specified,
    *                 returns a Storage instance for an emulated version of the bucket name
    * @returns a Storage instance configured to connect to the emulator
    */

@@ -38,7 +38,7 @@ import {
  * variables or through the Firebase Emulator hub if hosts and ports are unspecified. It is strongly
  * recommended to specify security rules for emulators used for testing. See minimal example below.
  *
- * @param config the configuration for emulators. most fields are optional if they can be discovered
+ * @param config - the configuration for emulators. most fields are optional if they can be discovered
  * @returns a promise that resolves with an environment ready for testing, or rejects on error.
  * @public
  * @example
