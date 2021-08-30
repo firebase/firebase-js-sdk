@@ -8444,10 +8444,10 @@ google-closure-compiler@20210601.0.0:
     google-closure-compiler-osx "^20210601.0.0"
     google-closure-compiler-windows "^20210601.0.0"
 
-google-closure-library@20210406.0.0:
-  version "20210406.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20210406.0.0.tgz#47d6036c1704661ad47cde2e35f19cc55e33e775"
-  integrity sha512-1lAC/KC9R2QM6nygniM0pRcGrv5bkCUrIZb2hXFxLtAkA+zRiVeWtRYpFWDHXXJzkavKjsn9upiffL4x/nmmVg==
+google-closure-library@20210808.0.0:
+  version "20210808.0.0"
+  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20210808.0.0.tgz#cc30efc13b56ddb99b44160c171adb8bdd0c884b"
+  integrity sha512-cAXXRjl81ccXpDrC+gjMnQ/1wi8Gfp93Wm3DvIdIJexgTqfosS+Y6N9L/nmhQOSLglbAYbTfIotMlbScE+Qpww==
 
 google-gax@^2.12.0:
   version "2.13.0"
