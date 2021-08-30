@@ -326,10 +326,11 @@ export class SimpleDb {
             reject(
               new FirestoreError(
                 Code.FAILED_PRECONDITION,
-                'Unable to open an IndexedDb connection; this may be due to running in a ' +
-                  'Firefox private browsing session, in which IndexedDb is not supported ' +
-                  '(https://goo.gle/3ymSNyf): ' +
-                  error
+                'Unable to open an IndexedDb connection. This could be due to running in a ' +
+                  'private browsing session on a browser whose private browsing sessions do not ' +
+                  'support IndexedDb. (' +
+                  error +
+                  ')'
               )
             );
           } else {
