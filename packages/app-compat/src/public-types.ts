@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { LogCallback, LogLevelString, LogOptions } from '@firebase/logger';
-import { FirebaseAppImpl, _FirebaseApp } from './firebaseApp';
+import { _FirebaseApp } from './firebaseApp';
 
 export interface FirebaseOptions {
   apiKey?: string;
@@ -31,6 +31,10 @@ export interface FirebaseOptions {
 export interface FirebaseAppConfig {
   name?: string;
   automaticDataCollectionEnabled?: boolean;
+}    
+
+interface FirebaseAppContructor {
+  new (): FirebaseApp;
 }
 
 /**
@@ -81,7 +85,7 @@ export interface FirebaseNamespace {
      *
      * DO NOT call this constuctor directly (use firebase.app() instead).
      */
-    App: typeof FirebaseAppImpl;
+    App: FirebaseAppContructor;
   };
 
   /**
