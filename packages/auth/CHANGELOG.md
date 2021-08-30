@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.17.1
+
+### Patch Changes
+
+- [`66596f3f8`](https://github.com/firebase/firebase-js-sdk/commit/66596f3f8c747158bf30b62d8f579f7eecf97081) [#5397](https://github.com/firebase/firebase-js-sdk/pull/5397) (fixes [#5392](https://github.com/firebase/firebase-js-sdk/issues/5392)) - Fix typings where the constructor of `OAuthProvider` was missing.
+
 ## 0.17.0
 
 ### Minor Changes
