@@ -1,6 +1,6 @@
 {
   "name": "@firebase/analytics-compat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -14,7 +14,7 @@
     "@firebase/app-compat": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.0",
+    "@firebase/app-compat": "0.1.1",
     "rollup": "2.52.2",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.30.0",
