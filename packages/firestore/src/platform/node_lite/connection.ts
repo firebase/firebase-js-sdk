@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as nodeFetch from 'node-fetch';
+import nodeFetch from 'node-fetch';
 
 import { DatabaseInfo } from '../../core/database_info';
 import { Connection } from '../../remote/connection';
