@@ -28,8 +28,6 @@ import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
-import { FunctionsError } from './error';
-import { logger } from './logger';
 
 /**
  * The metadata that should be supplied with function calls.
