@@ -17,7 +17,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "google-closure-compiler": "20210601.0.0",
+    "google-closure-compiler": "20210808.0.0",
     "google-closure-library": "20210406.0.0",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "3.0.0",
