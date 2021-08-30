@@ -45,6 +45,16 @@
     "test:prepare": "node ./scripts/prepare-test.js",
     "typings:public": "node ../../scripts/exp/use_typings.js ./dist/index.d.ts"
   },
+  "exports": {
+    ".": {
+      "node": "./dist/index.node.cjs.js",
+      "default": "./dist/index.esm2017.js"
+    },
+    "./lite": {
+      "node": "./dist/lite/index.node.cjs.js",
+      "default": "./dist/lite/index.browser.esm2017.js"
+    }
+  },
   "main": "dist/index.node.cjs.js",
   "main-esm": "dist/index.node.cjs.esm2017.js",
   "react-native": "dist/index.rn.js",

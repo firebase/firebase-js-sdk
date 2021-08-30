@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import { FunctionsErrorCode } from '@firebase/functions';
 import { createTestService } from '../test/utils';
-import { firebase, FirebaseApp } from '@firebase/app-compat';
+import firebase, { FirebaseApp } from '@firebase/app-compat';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
