@@ -61,7 +61,9 @@ import {
   linkWithRedirect,
   reauthenticateWithRedirect,
   getRedirectResult,
-  cordovaPopupRedirectResolver
+  cordovaPopupRedirectResolver,
+  clearCustomTokenProvider,
+  setCustomTokenProvider
 } from '@firebase/auth/dist/cordova';
 
 import { config } from './config';
@@ -411,6 +413,29 @@ function onSignInWithCustomToken(_event) {
     onAuthUserCredentialSuccess,
     onAuthError
   );
+}
+
+/**
+ * Sets a custom token provider that simply returns the custom token provided
+ * in the #user-custom-token-for-provider field.
+ * @param {DOMEvent} _event HTML DOM event returned by the listener.
+ */
+ function onSetCustomTokenProvider(_event) {
+  const nextCustomToken = $('#user-custom-token-for-provider').val();
+  setCustomTokenProvider(auth, {
+    async getCustomToken() {
+      return nextCustomToken;
+    }
+  });
+  log(`On next refresh, custom token provider will use token:\n${nextCustomToken}`)
+}
+
+/**
+ * Clears the custom token provider.
+ */
+function onClearCustomTokenProvider() {
+  clearCustomTokenProvider(auth);
+  log('Cleared custom token provider');
 }
 
 /**
@@ -1498,6 +1523,8 @@ function initApp() {
   $('#sign-up-with-email-and-password').click(onSignUp);
   $('#sign-in-with-email-and-password').click(onSignInWithEmailAndPassword);
   $('.sign-in-with-custom-token').click(onSignInWithCustomToken);
+  $('#set-custom-token-provider').click(onSetCustomTokenProvider);
+  $('#clear-custom-token-provider').click(onClearCustomTokenProvider);
   $('#sign-in-anonymously').click(onSignInAnonymously);
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
