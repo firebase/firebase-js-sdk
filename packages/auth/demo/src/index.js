@@ -427,13 +427,13 @@ function onSignInWithCustomToken(_event) {
  * @param {DOMEvent} _event HTML DOM event returned by the listener.
  */
 function onSetCustomTokenProvider(_event) {
-  const nextRefreshToken = $('#user-custom-token-for-provider').val();
+  const nextCustomToken = $('#user-custom-token-for-provider').val();
   setCustomTokenProvider(auth, {
     async getCustomToken() {
-      return nextRefreshToken;
+      return nextCustomToken;
     }
   });
-  log(`On next refresh, custom token provider will use token:\n${nextRefreshToken}`)
+  log(`On next refresh, custom token provider will use token:\n${nextCustomToken}`)
 }
 
 /**
