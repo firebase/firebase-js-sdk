@@ -24,6 +24,7 @@ import {
   linkWithCredential,
   OperationType,
   reload,
+  setCustomTokenProvider,
   signInAnonymously,
   signInWithCustomToken,
   signInWithEmailAndPassword,
@@ -34,11 +35,14 @@ import {
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import { updateEmulatorProjectConfig } from '../../helpers/integration/emulator_rest_helpers';
 import {
   cleanUpTestInstance,
   getTestInstance,
   randomEmail
 } from '../../helpers/integration/helpers';
+
+declare const xit: typeof it;
 
 use(chaiAsPromised);
 
@@ -144,6 +148,65 @@ describe('Integration test: custom auth', () => {
     const { user: customUser } = await signInWithCustomToken(auth, customToken);
     expect(auth.currentUser).to.eql(customUser);
     expect(customUser.uid).not.to.eql(anonUser.uid);
+  });
+
+  context('in passthrough mode', () => {
+    beforeEach(async () => {
+      const updatedConfig = await updateEmulatorProjectConfig(
+        JSON.stringify({
+          usageMode: 'PASSTHROUGH'
+        })
+      );
+      expect(updatedConfig).to.eql({
+        signIn: { allowDuplicateEmails: false },
+        usageMode: 'PASSTHROUGH'
+      });
+    });
+
+    afterEach(async () => {
+      await updateEmulatorProjectConfig(
+        JSON.stringify({
+          usageMode: 'DEFAULT'
+        })
+      );
+    });
+
+    xit('signs in with custom token in passthrough mode', async () => {
+      const cred = await signInWithCustomToken(auth, customToken);
+      expect(auth.currentUser).to.eq(cred.user);
+      expect(cred.operationType).to.eq(OperationType.SIGN_IN);
+
+      const { user } = cred;
+      expect(user.isAnonymous).to.be.false;
+      expect(user.uid).to.eq(uid);
+      expect((await user.getIdTokenResult(false)).claims.customClaim).to.eq(
+        'some-claim'
+      );
+      expect(user.providerId).to.eq('firebase');
+      const additionalUserInfo = await getAdditionalUserInfo(cred)!;
+      expect(additionalUserInfo.providerId).to.be.null;
+      expect(additionalUserInfo.isNewUser).to.be.false;
+    });
+
+    xit('token can be refreshed in passthrough mode', async () => {
+      setCustomTokenProvider(auth, {
+        async getCustomToken(): Promise<string> {
+          return JSON.stringify({
+            uid,
+            claims: {
+              customClaim: 'other-claim'
+            }
+          });
+        }
+      });
+      const { user } = await signInWithCustomToken(auth, customToken);
+      const origToken = await user.getIdToken();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      expect(await user.getIdToken(true)).not.to.eq(origToken);
+      expect((await user.getIdTokenResult(false)).claims.customClaim).to.eq(
+        'other-claim'
+      );
+    });
   });
 
   context('email/password interaction', () => {
