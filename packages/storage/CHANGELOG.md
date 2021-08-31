@@ -1,5 +1,11 @@
 #Unreleased
 
+## 0.8.1
+
+### Patch Changes
+
+- [`6163bb282`](https://github.com/firebase/firebase-js-sdk/commit/6163bb282b4e3b6fe5f405c3b3e35d5691d41677) [#5399](https://github.com/firebase/firebase-js-sdk/pull/5399) - Addressed incorrect use of the `node-fetch` polyfill
+
 ## 0.8.0
 
 ### Minor Changes

@@ -18,7 +18,7 @@
 import { createFirebaseNamespaceLite } from './lite/firebaseNamespaceLite';
 import { registerCoreComponents } from './registerCoreComponents';
 
-export const firebase = createFirebaseNamespaceLite();
+const firebase = createFirebaseNamespaceLite();
 
 registerCoreComponents('lite');
 

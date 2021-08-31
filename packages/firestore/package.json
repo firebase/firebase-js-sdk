@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -45,6 +45,16 @@
     "test:prepare": "node ./scripts/prepare-test.js",
     "typings:public": "node ../../scripts/exp/use_typings.js ./dist/index.d.ts"
   },
+  "exports": {
+    ".": {
+      "node": "./dist/index.node.cjs.js",
+      "default": "./dist/index.esm2017.js"
+    },
+    "./lite": {
+      "node": "./dist/lite/index.node.cjs.js",
+      "default": "./dist/lite/index.browser.esm2017.js"
+    }
+  },
   "main": "dist/index.node.cjs.js",
   "main-esm": "dist/index.node.cjs.esm2017.js",
   "react-native": "dist/index.rn.js",
@@ -71,7 +81,7 @@
   },
   "devDependencies": {
     "@firebase/app": "0.7.0",
-    "@firebase/app-compat": "0.1.0",
+    "@firebase/app-compat": "0.1.1",
     "@rollup/plugin-alias": "3.1.2",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.2.10",
