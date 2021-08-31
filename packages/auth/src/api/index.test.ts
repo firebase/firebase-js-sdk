@@ -198,6 +198,37 @@ describe('api/_performApiRequest', () => {
       expect(mock.calls[0].request).to.eql(request);
     });
 
+    it('should pass through server messages if applicable', async () => {
+      mockEndpoint(
+        Endpoint.SIGN_UP,
+        {
+          error: {
+            code: 400,
+            message: `${ServerError.BLOCKING_FUNCTION_ERROR_RESPONSE} : Text text text`,
+            errors: [
+              {
+                message: 'Text text text'
+              }
+            ]
+          }
+        },
+        400
+      );
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      let error: FirebaseError;
+      try {
+        await promise;
+      } catch (e) {
+        error = e;
+      }
+      expect(error!.customData!.message).to.eql('Text text text');
+    });
+
     it('should handle unknown server errors', async () => {
       const mock = mockEndpoint(
         Endpoint.SIGN_UP,
