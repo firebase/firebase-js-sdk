@@ -35,6 +35,7 @@ import {
   signInWithCustomToken
 } from './custom_token';
 import { FirebaseError } from '@firebase/util';
+import { makeJWT } from '../../../test/helpers/jwt';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -52,7 +53,7 @@ describe('core/strategies/signInWithCustomToken', () => {
   };
 
   const idTokenResponse: IdTokenResponse = {
-    idToken: 'my-id-token',
+    idToken: makeJWT({ sub: 'local-id' }),
     refreshToken: 'my-refresh-token',
     expiresIn: '1234',
     localId: serverUser.localId!,
@@ -135,7 +136,7 @@ describe('core/strategies/signInWithCustomToken', () => {
         token: 'custom-token',
         returnSecureToken: true
       });
-      expect(token).to.eq('my-id-token');
+      expect(token).to.eq(idTokenResponse.idToken);
       expect(
         user.stsTokenManager.updateFromServerResponse
       ).to.have.been.calledWith(idTokenResponse);
