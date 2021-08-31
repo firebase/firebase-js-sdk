@@ -39,6 +39,15 @@ interface OobCodesResponse {
   oobCodes: OobCodeSession[];
 }
 
+interface SignInConfig {
+  allowDuplicateEmails?: boolean;
+}
+
+export interface EmulatorProjectsConfig {
+  signIn?: SignInConfig;
+  usageMode?: 'USAGE_MODE_UNSPECIFIED' | 'DEFAULT' | 'PASSTHROUGH';
+}
+
 export async function getPhoneVerificationCodes(): Promise<
   Record<string, VerificationSession>
 > {
@@ -78,6 +87,20 @@ export async function createAnonAccount(): Promise<{
   return response;
 }
 
+export async function updateEmulatorProjectConfig(
+  body: string
+): Promise<EmulatorProjectsConfig> {
+  const url = buildEmulatorUrlForPath('config');
+  const response: EmulatorProjectsConfig = await (
+    await doFetch(url, {
+      method: 'PATCH',
+      body,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  ).json();
+  return response;
+}
+
 function buildEmulatorUrlForPath(endpoint: string): string {
   const emulatorBaseUrl = getEmulatorUrl();
   const projectId = getAppConfig().projectId;
@@ -89,8 +112,8 @@ function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {
     return fetch(url, request);
   }
 
-  return (fetchImpl.default(
+  return fetchImpl.default(
     url,
     request as fetchImpl.RequestInit
-  ) as unknown) as ReturnType<typeof fetch>;
+  ) as unknown as ReturnType<typeof fetch>;
 }

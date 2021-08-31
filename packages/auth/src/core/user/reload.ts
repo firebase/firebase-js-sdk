@@ -28,6 +28,7 @@ import { _assert } from '../util/assert';
 import { _logoutIfInvalidated } from './invalidation';
 import { UserMetadata } from './user_metadata';
 import { getModularInstance } from '@firebase/util';
+import { _parseToken } from './id_token_result';
 
 export async function _reloadWithoutSaving(user: UserInternal): Promise<void> {
   const auth = user.auth;
@@ -35,7 +36,9 @@ export async function _reloadWithoutSaving(user: UserInternal): Promise<void> {
 
   if (user.stsTokenManager.isPassthroughMode) {
     // The uid === localId === id token's `sub` claim
-    coreAccount.localId = user.uid;
+    const idToken = await user.getIdToken();
+    const parsedToken = _parseToken(idToken);
+    coreAccount.localId = parsedToken?.sub;
   } else {
     const idToken = await user.getIdToken();
     const response = await _logoutIfInvalidated(
