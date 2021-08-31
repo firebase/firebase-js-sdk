@@ -39,7 +39,7 @@ if (isBrowser() && (self as any).firebase !== undefined) {
   }
 }
 
-export const firebase = firebaseNamespace;
+const firebase = firebaseNamespace;
 
 registerCoreComponents();
 

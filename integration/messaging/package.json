@@ -13,7 +13,7 @@
     "chai": "4.3.4",
     "chromedriver": "91.0.0",
     "express": "4.17.1",
-    "geckodriver": "1.22.3",
+    "geckodriver": "2.0.3",
     "mocha": "7.2.0",
     "node-fetch": "2.6.1",
     "selenium-assistant": "6.1.0"
