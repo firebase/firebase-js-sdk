@@ -34,6 +34,7 @@ import {
 import { _reloadWithoutSaving, reload } from './reload';
 import { UserMetadata } from './user_metadata';
 import { UserInternal } from '../../model/user';
+import { makeJWT } from '../../../test/helpers/jwt';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -172,11 +173,12 @@ describe('core/user/reload', () => {
   it('nulls out properties in passthrough mode', async () => {
     const user = testUser(auth, 'abc', '');
     user.stsTokenManager.isPassthroughMode = true;
-    const getIdTokenSpy = sinon.spy(user, 'getIdToken');
+    user.stsTokenManager.expirationTime = Date.now() + 300_000;
+    user.stsTokenManager.accessToken = makeJWT({ sub: 'uid' });
 
     await _reloadWithoutSaving(user);
 
-    expect(user.uid).to.eq('abc');
+    expect(user.uid).to.eq('uid');
     expect(user.displayName).to.be.null;
     expect(user.photoURL).to.be.null;
     expect(user.email).to.be.null;
@@ -188,7 +190,6 @@ describe('core/user/reload', () => {
       createdAt: undefined,
       lastLoginAt: undefined
     });
-    expect(getIdTokenSpy).not.to.have.been.called;
   });
 
   context('anonymous carryover', () => {
