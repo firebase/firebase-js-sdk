@@ -29,6 +29,7 @@ import { OperationType } from '../../model/enums';
 import { _assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
 import { UserInternal } from '../../model/user';
+import { _parseToken } from '../user/id_token_result';
 
 /**
  * Asynchronously signs in using a custom token.
@@ -96,8 +97,9 @@ export function setCustomTokenProvider(
       token,
       returnSecureToken: true
     });
+    const responseToken = _parseToken(response.idToken!);
     _assert(
-      response.localId === authInternal.currentUser?.uid,
+      responseToken?.sub === authInternal.currentUser?.uid,
       AuthErrorCode.INTERNAL_ERROR
     );
     const user = authInternal.currentUser as UserInternal;
