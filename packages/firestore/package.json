@@ -43,7 +43,7 @@
     "api-report": "run-s api-report:main api-report:lite && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
     "test:prepare": "node ./scripts/prepare-test.js",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/index.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts"
   },
   "exports": {
     ".": {

@@ -24,7 +24,7 @@ jobs:
     - name: Yarn install
       run: yarn
     - name: Run changeset script
-      run: yarn ts-node-script scripts/check_changeset.ts
+      run: yarn ts-node-script scripts/ci/check_changeset.ts
       id: check-changeset
     - name: Print changeset checker output
       run: echo "${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}"

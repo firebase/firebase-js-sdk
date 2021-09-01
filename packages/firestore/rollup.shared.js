@@ -120,16 +120,6 @@ const removeAssertTransformer = service => ({
 exports.removeAssertTransformer = removeAssertTransformer;
 
 /**
- * Transformer that coverts import paths that match `exp/index` to `@firebase/firestore`
- * and `lite/index` to `@firebase/firestore/lite`
- */
-const importTransformer = service => ({
-  before: [removeAsserts(service.getProgram())],
-  after: []
-});
-exports.importTransformer = importTransformer;
-
-/**
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
  * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */

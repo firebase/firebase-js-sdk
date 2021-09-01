@@ -22,7 +22,7 @@
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
-    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../performance/dist/src/index.d.ts -o dist/src/index.d.ts -a -r FirebasePerformance:FirebasePerformanceCompat -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/performance"
+    "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../performance/dist/src/index.d.ts -o dist/src/index.d.ts -a -r FirebasePerformance:FirebasePerformanceCompat -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/performance"
   },
   "license": "Apache-2.0",
   "peerDependencies": {

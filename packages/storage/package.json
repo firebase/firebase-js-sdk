@@ -26,7 +26,7 @@
     "test:debug": "karma start --browser=Chrome",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input dist/storage-public.d.ts --output dist/storage-public.d.ts",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/storage-public.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/storage-public.d.ts"
   },
   "license": "Apache-2.0",
   "dependencies": {

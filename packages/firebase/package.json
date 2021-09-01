@@ -248,7 +248,6 @@
   "devDependencies": {
     "rollup": "2.52.2",
     "@rollup/plugin-commonjs": "17.1.0",
-    "rollup-plugin-license": "2.5.0",
     "@rollup/plugin-node-resolve": "11.2.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-terser": "7.0.2",

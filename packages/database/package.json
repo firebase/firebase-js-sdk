@@ -13,7 +13,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.js' '*.ts' '@(exp|src|test)/**/*.ts'",
+    "prettier": "prettier --write '*.js' '*.ts' '@(src|test)/**/*.ts'",
     "build": "rollup -c rollup.config.js && yarn api-report",
     "build:deps": "lerna run --scope @firebase/'{app,database}' --include-dependencies build",
     "dev": "rollup -c -w",
@@ -26,7 +26,7 @@
     "api-report": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package database --packageRoot . --typescriptDts ./dist/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/public.d.ts && yarn api-report:api-json",
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/public.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/public.d.ts"
   },
   "license": "Apache-2.0",
   "peerDependencies": {},
