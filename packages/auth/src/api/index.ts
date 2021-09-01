@@ -152,7 +152,7 @@ export async function _performFetchWithErrorHandling<V>(
       return json;
     } else {
       const errorMessage = response.ok ? json.errorMessage : json.error.message;
-      const serverErrorCode = errorMessage.split(' : ')[0] as ServerError;
+      const [serverErrorCode, serverErrorMessage] = errorMessage.split(' : ');
       if (serverErrorCode === ServerError.FEDERATED_USER_ID_ALREADY_LINKED) {
         throw _makeTaggedError(
           auth,
@@ -163,11 +163,15 @@ export async function _performFetchWithErrorHandling<V>(
         throw _makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
       }
       const authError =
-        errorMap[serverErrorCode] ||
+        errorMap[serverErrorCode as ServerError] ||
         ((serverErrorCode
           .toLowerCase()
           .replace(/[_\s]+/g, '-') as unknown) as AuthErrorCode);
-      _fail(auth, authError);
+      if (serverErrorMessage) {
+        _fail(auth, authError, {message: serverErrorMessage});
+      } else {
+        _fail(auth, authError);
+      }
     }
   } catch (e) {
     if (e instanceof FirebaseError) {
