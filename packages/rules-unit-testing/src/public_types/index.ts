@@ -272,10 +272,10 @@ export interface RulesTestContext {
   database(databaseURL?: string): firebase.database.Database;
 
   /**
-   * Get a {@link @firebase/storage#Storage} instance for this test context. The returned Firebase JS Client SDK instance
+   * Get a {@link @firebase/storage#FirebaseStorage} instance for this test context. The returned Firebase JS Client SDK instance
    * can be used with the client SDK APIs (v9 modular or v9 compat).
    *
-   * See: {@link @firebase/storage#Storage}
+   * See: {@link @firebase/storage#FirebaseStorage}
    * @param settings - the gs:// url to the Firebase Storage Bucket for testing. If specified,
    *                 returns a `Storage` instance for an emulated version of the bucket name
    * @returns a `Storage` instance configured to connect to the emulator

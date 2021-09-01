@@ -100,4 +100,57 @@ async function generateDocs(forDevsite: boolean = false) {
     [command, 'markdown', '--input', 'temp', '--output', outputFolder],
     { stdio: 'inherit' }
   );
+
+  moveRulesUnitTestingDocs(outputFolder, command);
+}
+
+async function moveRulesUnitTestingDocs(
+  mainDocsFolder: string,
+  command: string
+) {
+  const rulesOutputFolder = `${projectRoot}/docs-rut`;
+
+  // Generate from rules-unit-testing.api.json only, to get an index.md.
+  // Hide output warnings about being unable to link to external packages.
+  await spawn(
+    'yarn',
+    [
+      command,
+      'markdown',
+      '--input',
+      'packages/rules-unit-testing/temp',
+      '--output',
+      rulesOutputFolder
+    ],
+    { stdio: ['inherit', 'ignore', 'inherit'] }
+  );
+
+  const rulesDocPaths = await new Promise<string[]>(resolve =>
+    glob(`${mainDocsFolder}/rules-unit-testing.*`, (err, paths) => {
+      if (err) throw err;
+      resolve(paths);
+    })
+  );
+
+  // Overwrite non-index files with files generated from global docgen script,
+  // which have links to external packages.
+  // These paths also need to be adjusted to point to a sibling directory.
+  for (const sourcePath of rulesDocPaths) {
+    const destinationPath = sourcePath.replace(
+      mainDocsFolder,
+      rulesOutputFolder
+    );
+    const originalText = fs.readFileSync(sourcePath, 'utf-8');
+    let alteredPathText = originalText.replace(
+      /\.\/database/g,
+      '../js/database'
+    );
+    alteredPathText = alteredPathText.replace(/\.\/storage/g, '../js/storage');
+    alteredPathText = alteredPathText.replace(
+      /\.\/firestore/g,
+      '../js/firestore'
+    );
+    fs.writeFileSync(destinationPath, alteredPathText);
+    fs.unlinkSync(sourcePath);
+  }
 }
