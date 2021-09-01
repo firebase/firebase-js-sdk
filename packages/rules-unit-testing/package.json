@@ -17,9 +17,7 @@
     "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ./mocharc.node.js",
     "test": "(cd functions && yarn) && firebase --project=demo-foo --debug emulators:exec 'yarn test:nyc'",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
-    "api-report-rut": "api-extractor run --local --verbose",
-    "generate-html": "yarn ts-node-script ../../repo-scripts/api-documenter/src/start.ts markdown --input temp  --output docs",
-    "docgen": "yarn build && yarn api-report-rut && yarn generate-html"
+    "api-report": "api-extractor run --local --verbose"
   },
   "license": "Apache-2.0",
   "devDependencies": {

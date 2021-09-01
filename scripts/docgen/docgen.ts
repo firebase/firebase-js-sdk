@@ -22,6 +22,8 @@ import fs from 'fs';
 import glob from 'glob';
 import * as yargs from 'yargs';
 
+const tmpDir = `${projectRoot}/temp`;
+
 yargs
   .command('$0', 'generate standard reference docs', {}, _argv =>
     generateDocs(/* forDevsite */ false)
@@ -32,7 +34,6 @@ yargs
   .demandCommand()
   .help().argv;
 
-const tmpDir = `${projectRoot}/temp`;
 // create *.api.json files
 async function generateDocs(forDevsite: boolean = false) {
   const outputFolder = forDevsite ? 'docs-devsite' : 'docs';

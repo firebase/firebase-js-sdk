@@ -247,11 +247,11 @@ export interface RulesTestEnvironment {
  */
 export interface RulesTestContext {
   /**
-   * Get a `Firestore` instance for this test context. The returned Firebase JS Client SDK instance
+   * Get a {@link @firebase/firestore#Firestore} instance for this test context. The returned Firebase JS Client SDK instance
    * can be used with the client SDK APIs (v9 modular or v9 compat).
    *
-   * See: https://firebase.google.com/docs/reference/js/v9/firestore_
-   * @param settings - a settings object to configure the `Firestore` instance
+   * See: {@link @firebase/firestore#Firestore}
+   * @param settings - a settings object to configure the {@link @firebase/firestore#Firestore} instance
    * @returns a `Firestore` instance configured to connect to the emulator
    * @public
    */
@@ -260,25 +260,25 @@ export interface RulesTestContext {
   ): firebase.firestore.Firestore;
 
   /**
-   * Get a Firestore instance for this test context. The returned Firebase JS Client SDK instance
+   * Get a {@link @firebase/database#Database} instance for this test context. The returned Firebase JS Client SDK instance
    * can be used with the client SDK APIs (v9 modular or v9 compat).
    *
-   * See: https://firebase.google.com/docs/reference/js/v9/firestore_
+   * See: {@link @firebase/database#Database}
    * @param databaseURL - the URL of the Realtime Database instance. If specified, returns an instance
    *                    for an emulated version of the namespace with parameters extracted from URL
-   * @returns a Database instance configured to connect to the emulator. It never connects to
-   *          production even if a production databaseURL is specified
+   * @returns a `Database` instance configured to connect to the emulator. It never connects to
+   *          production even if a production `databaseURL` is specified
    */
   database(databaseURL?: string): firebase.database.Database;
 
   /**
-   * Get a Storage instance for this test context. The returned Firebase JS Client SDK instance
+   * Get a {@link @firebase/storage#Storage} instance for this test context. The returned Firebase JS Client SDK instance
    * can be used with the client SDK APIs (v9 modular or v9 compat).
    *
-   * See: https://firebase.google.com/docs/reference/js/v9/firestore_
+   * See: {@link @firebase/storage#Storage}
    * @param settings - the gs:// url to the Firebase Storage Bucket for testing. If specified,
-   *                 returns a Storage instance for an emulated version of the bucket name
-   * @returns a Storage instance configured to connect to the emulator
+   *                 returns a `Storage` instance for an emulated version of the bucket name
+   * @returns a `Storage` instance configured to connect to the emulator
    */
   storage(bucketUrl?: string): firebase.storage.Storage;
 }
