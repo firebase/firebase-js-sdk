@@ -73,9 +73,7 @@ async function generateDocs(forDevsite: boolean = false) {
 
   // TODO: Throw error if path doesn't exist once all packages add markdown support.
   const apiJsonDirectories = (
-    await mapWorkspaceToPackages([
-      `${projectRoot}/packages/*`
-    ])
+    await mapWorkspaceToPackages([`${projectRoot}/packages/*`])
   )
     .map(path => `${path}/temp`)
     .filter(path => fs.existsSync(path));
