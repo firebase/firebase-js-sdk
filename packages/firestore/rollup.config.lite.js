@@ -69,10 +69,7 @@ const browserPlugins = function () {
       },
       cacheDir: tmp.dirSync(),
       abortOnError: false,
-      transformers: [
-        util.removeAssertAndPrefixInternalTransformer,
-        importPathTransformer
-      ]
+      transformers: [util.removeAssertAndPrefixInternalTransformer]
     }),
     json({ preferConst: true }),
     terser(util.manglePrivatePropertiesOptions)
