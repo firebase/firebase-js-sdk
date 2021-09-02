@@ -15,6 +15,7 @@
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
     "build:main": "rollup -c rollup.config.js",
     "build:lite": "rollup -c rollup.config.lite.js",
+    "build:debug": "rollup -c rollup.config.debug.js",
     "predev": "yarn prebuild",
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
