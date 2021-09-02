@@ -141,14 +141,15 @@ async function moveRulesUnitTestingDocs(
       rulesOutputFolder
     );
     const originalText = fs.readFileSync(sourcePath, 'utf-8');
+    const jsReferencePath = '/docs/reference/js';
     let alteredPathText = originalText.replace(
       /\.\/database/g,
-      '../js/database'
+      `${jsReferencePath}/database`
     );
-    alteredPathText = alteredPathText.replace(/\.\/storage/g, '../js/storage');
+    alteredPathText = alteredPathText.replace(/\.\/storage/g, `${jsReferencePath}/storage`);
     alteredPathText = alteredPathText.replace(
       /\.\/firestore/g,
-      '../js/firestore'
+      `${jsReferencePath}/firestore`
     );
     fs.writeFileSync(destinationPath, alteredPathText);
     fs.unlinkSync(sourcePath);
