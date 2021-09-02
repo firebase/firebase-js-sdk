@@ -146,7 +146,10 @@ async function moveRulesUnitTestingDocs(
       /\.\/database/g,
       `${jsReferencePath}/database`
     );
-    alteredPathText = alteredPathText.replace(/\.\/storage/g, `${jsReferencePath}/storage`);
+    alteredPathText = alteredPathText.replace(
+      /\.\/storage/g,
+      `${jsReferencePath}/storage`
+    );
     alteredPathText = alteredPathText.replace(
       /\.\/firestore/g,
       `${jsReferencePath}/firestore`
