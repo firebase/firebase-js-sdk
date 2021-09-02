@@ -258,16 +258,19 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       );
     };
 
-    const registerAuth = (auth: FirebaseAuthInternal): void => {
+    const awaitNextToken : () => void = () => {
+      const currentTokenAttempt = nextToken;
       asyncQueue.enqueueRetryable(async () => {
-        logDebug('FirebaseCredentialsProvider', 'Auth detected');
-        this.auth = auth;
-        this.auth.addAuthTokenListener(this.tokenListener);
-
-        // Call the change listener inline to block on the user change.
-        await nextToken.promise;
+        await currentTokenAttempt.promise;
         await guardedChangeListener(this.currentUser);
       });
+    };
+
+    const registerAuth = (auth: FirebaseAuthInternal): void => {
+      logDebug('FirebaseCredentialsProvider', 'Auth detected');
+      this.auth = auth;
+      this.auth.addAuthTokenListener(this.tokenListener);
+      awaitNextToken();
     };
 
     this.authProvider.onInit(auth => registerAuth(auth));
@@ -289,13 +292,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       }
     }, 0);
 
-    asyncQueue.enqueueRetryable(async () => {
-      // If we have not received a token, wait for the first one.
-      if (this.tokenCounter === 0) {
-        await nextToken.promise;
-        await guardedChangeListener(this.currentUser);
-      }
-    });
+    awaitNextToken();
   }
 
   getToken(): Promise<Token | null> {
