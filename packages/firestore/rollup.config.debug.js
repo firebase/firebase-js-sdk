@@ -47,13 +47,13 @@ const browserPlugins = function () {
 };
 
 const aliasConfig = {
-    entries: [
-      {
-        find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
-        replacement: `$1\/platform/browser/$2.ts`
-      }
-    ]
-  };
+  entries: [
+    {
+      find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
+      replacement: `$1\/platform/browser/$2.ts`
+    }
+  ]
+};
 
 const browserDeps = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
@@ -64,16 +64,16 @@ export default [
   {
     input: './src/index.ts',
     output: {
-      file: pkg.esm5,
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },
     plugins: [alias(aliasConfig), ...browserPlugins()],
-    external: (id) => {
-        return [...browserDeps, '@firebase/firestore'].some(
-          dep => id === dep || id.startsWith(`${dep}/`)
-        );
-      },
+    external: id => {
+      return [...browserDeps, '@firebase/firestore'].some(
+        dep => id === dep || id.startsWith(`${dep}/`)
+      );
+    },
     treeshake: {
       moduleSideEffects: false
     }
