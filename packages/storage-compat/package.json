@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage-compat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The Firebase Firestore compatibility package",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "./dist/index.cjs.js",
@@ -23,21 +23,21 @@
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
-    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../storage/dist/storage-public.d.ts -o dist/src/index.d.ts -a -r FirebaseStorage:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
+    "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../storage/dist/storage-public.d.ts -o dist/src/index.d.ts -a -r FirebaseStorage:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
   },
   "peerDependencies": {
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/storage": "0.8.0",
+    "@firebase/storage": "0.8.1",
     "@firebase/storage-types": "0.6.0",
     "@firebase/util": "1.3.0",
     "@firebase/component": "0.5.6",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.0",
-    "@firebase/auth-compat": "0.1.0",
+    "@firebase/app-compat": "0.1.1",
+    "@firebase/auth-compat": "0.1.1",
     "rollup": "2.52.2",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.30.0",

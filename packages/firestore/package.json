@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -43,7 +43,7 @@
     "api-report": "run-s api-report:main api-report:lite && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
     "test:prepare": "node ./scripts/prepare-test.js",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/index.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts"
   },
   "exports": {
     ".": {
@@ -81,7 +81,7 @@
   },
   "devDependencies": {
     "@firebase/app": "0.7.0",
-    "@firebase/app-compat": "0.1.0",
+    "@firebase/app-compat": "0.1.1",
     "@rollup/plugin-alias": "3.1.2",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.2.10",

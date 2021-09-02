@@ -20,13 +20,13 @@
  * These can get out of sync when working on a new unreleased component in a branch while the
  * already-released component versions in its deps keep being updated with each release.
  *
- * Usage: node scripts/exp/update-internal-dep-versions.js --file [package.json file path]
+ * Usage: node scripts/update-internal-dep-versions.js --file [package.json file path]
  *
- * Example: node scripts/exp/update-internal-dep-versions.js --file packages-exp/functions-exp/package.json
+ * Example: node scripts/update-internal-dep-versions.js --file packages/functions/package.json
  */
 
-import { projectRoot } from '../utils';
-import { mapPkgNameToPkgJson } from '../release/utils/workspace';
+import { projectRoot } from './utils';
+import { mapPkgNameToPkgJson } from './release/utils/workspace';
 import { argv } from 'yargs';
 import fs from 'mz/fs';
 

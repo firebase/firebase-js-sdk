@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-check-compat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A compat App Check package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -19,7 +19,7 @@
     "test": "run-p lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run --nocache",
-    "add-compat-overloads": "ts-node-script ../../scripts/exp/create-overloads.ts -i ../app-check/dist/app-check-public.d.ts -o dist/src/index.d.ts -a -r AppCheck:FirebaseAppCheck -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/app-check"
+    "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../app-check/dist/app-check-public.d.ts -o dist/src/index.d.ts -a -r AppCheck:FirebaseAppCheck -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/app-check"
   },
   "peerDependencies": {
     "@firebase/app-compat": "0.x"
@@ -33,7 +33,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.1.0",
+    "@firebase/app-compat": "0.1.1",
     "rollup": "2.52.2",
     "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-json": "4.1.0",

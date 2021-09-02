@@ -35,7 +35,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.0",
+    "@firebase/app-compat": "0.1.1",
     "rollup": "2.52.2",
     "@rollup/plugin-commonjs": "17.1.0",
     "@rollup/plugin-json": "4.1.0",

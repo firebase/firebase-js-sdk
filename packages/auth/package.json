@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",
@@ -44,7 +44,7 @@
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/auth-public.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/auth-public.d.ts"
   },
   "peerDependencies": {
     "@firebase/app": "0.x"
