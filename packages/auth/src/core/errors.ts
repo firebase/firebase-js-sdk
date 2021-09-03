@@ -359,7 +359,7 @@ export interface ErrorMapRetriever extends AuthErrorMap {
   (): ErrorMap<AuthErrorCode>;
 }
 
-export function _prodErrorMap(): ErrorMap<AuthErrorCode> {
+function _prodErrorMap(): ErrorMap<AuthErrorCode> {
   // We will include this one message in the prod error map since by the very
   // nature of this error, developers will never be able to see the message
   // using the debugErrorMap (which is installed during auth initialization).

@@ -22,7 +22,8 @@ import {
   _DEFAULT_AUTH_ERROR_FACTORY,
   AuthErrorCode,
   AuthErrorParams,
-  _prodErrorMap
+  prodErrorMap,
+  ErrorMapRetriever
 } from '../errors';
 import { _logError } from './log';
 
@@ -83,7 +84,7 @@ export function _createError<K extends AuthErrorCode>(
 }
 
 export function _errorWithCustomMessage(auth: Auth, code: AuthErrorCode, message: string): FirebaseError {
-  const errorMap = {..._prodErrorMap(), [code]: message};
+  const errorMap = {...(prodErrorMap as ErrorMapRetriever)(), [code]: message};
   const factory = new ErrorFactory<AuthErrorCode, AuthErrorParams>(
     'auth',
     'Firebase',
