@@ -258,7 +258,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       );
     };
 
-    const awaitNextToken : () => void = () => {
+    const awaitNextToken: () => void = () => {
       const currentTokenAttempt = nextToken;
       asyncQueue.enqueueRetryable(async () => {
         await currentTokenAttempt.promise;
