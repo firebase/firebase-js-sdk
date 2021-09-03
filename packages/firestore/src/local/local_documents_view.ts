@@ -32,7 +32,7 @@ import {
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { applyMutationToLocalView, PatchMutation } from '../model/mutation';
+import { mutationApplyToLocalView, PatchMutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
@@ -251,7 +251,7 @@ export class LocalDocumentsView {
                 document = MutableDocument.newInvalidDocument(key);
                 results = results.insert(key, document);
               }
-              applyMutationToLocalView(
+              mutationApplyToLocalView(
                 mutation,
                 document,
                 batch.localWriteTime
