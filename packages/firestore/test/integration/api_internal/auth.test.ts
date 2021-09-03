@@ -16,8 +16,9 @@
  */
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { getAuth, signInAnonymously } from '@firebase/auth';
+// We need to use the JS sources here as '@firebase/auth' fails to run under
+// ts-node
+import { getAuth, signInAnonymously } from '../../../../auth/dist/node';
 import { expect } from 'chai';
 
 import {
