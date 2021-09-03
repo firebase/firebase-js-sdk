@@ -385,10 +385,9 @@ export function collection(
           'a DocumentReference or FirebaseFirestore'
       );
     }
-    const absolutePath = ResourcePath.fromString(
-      parent.path,
-      ...pathSegments
-    ).child(ResourcePath.fromString(path));
+    const absolutePath = parent._path.child(
+      ResourcePath.fromString(path, ...pathSegments)
+    );
     validateCollectionPath(absolutePath);
     return new CollectionReference(
       parent.firestore,
