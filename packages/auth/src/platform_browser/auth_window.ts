@@ -16,7 +16,6 @@
  */
 
 import { Recaptcha } from './recaptcha/recaptcha';
-import 'iframe/gapi.iframes'; // Import the GAPI namespace
 
 /**
  * A specialized window type that melds the normal window type plus the
