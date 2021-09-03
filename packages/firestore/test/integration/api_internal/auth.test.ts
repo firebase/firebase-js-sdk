@@ -16,11 +16,11 @@
  */
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
+import { expect } from 'chai';
+
 // We need to use the JS sources here as '@firebase/auth' fails to run under
 // ts-node
 import { getAuth, signInAnonymously } from '../../../../auth/dist/node';
-import { expect } from 'chai';
-
 import {
   getDoc,
   getFirestore,
