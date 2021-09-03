@@ -20,14 +20,14 @@ import { Provider } from '@firebase/component';
 import {
   _DatabaseId,
   Firestore as FirestoreExp,
-  FirestoreError
+  FirestoreError,
+  _EmptyCredentialsProvider
 } from '@firebase/firestore';
 
 import {
   Firestore as FirestoreCompat,
   MemoryPersistenceProvider
 } from './api/database';
-import { EmptyCredentialsProvider } from './src/api/credentials';
 
 export {
   CollectionReference,
@@ -56,7 +56,7 @@ export class Firestore extends FirestoreCompat {
       databaseIdFromFirestoreDatabase(firestoreDatabase),
       new FirestoreExp(
         databaseIdFromFirestoreDatabase(firestoreDatabase),
-        new EmptyCredentialsProvider()
+        new _EmptyCredentialsProvider()
       ),
       new MemoryPersistenceProvider()
     );

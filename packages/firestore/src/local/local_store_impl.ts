@@ -34,7 +34,7 @@ import {
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
-  extractMutationBaseValue,
+  mutationExtractBaseValue,
   Mutation,
   PatchMutation,
   Precondition
@@ -318,7 +318,7 @@ export function localStoreWriteLocally(
           const baseMutations: Mutation[] = [];
 
           for (const mutation of mutations) {
-            const baseValue = extractMutationBaseValue(
+            const baseValue = mutationExtractBaseValue(
               mutation,
               existingDocs.get(mutation.key)!
             );
