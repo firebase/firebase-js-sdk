@@ -43,7 +43,7 @@
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "api-report": "run-s api-report:main api-report:lite && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
-    "test:prepare": "node ./scripts/prepare-test.js",
+    "test:prepare": "node ./scripts/prepare-test.js && (cd ../auth ; yarn build)",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts"
   },
   "exports": {

@@ -108,8 +108,8 @@ export interface CredentialsProvider {
   shutdown(): void;
 }
 
-/** 
- * A CredentialsProvider that always yields an empty token. 
+/**
+ * A CredentialsProvider that always yields an empty token.
  * @internal
  */
 export class EmptyCredentialsProvider implements CredentialsProvider {
