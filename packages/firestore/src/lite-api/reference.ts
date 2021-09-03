@@ -517,7 +517,7 @@ export function doc<T>(
     ) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Expected first argument to collection() to be a CollectionReference, ' +
+        'Expected first argument to doc() to be a CollectionReference, ' +
           'a DocumentReference or FirebaseFirestore'
       );
     }
