@@ -220,13 +220,8 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      let error: FirebaseError;
-      try {
-        await promise;
-      } catch (e) {
-        error = e;
-      }
-      expect(error!.customData!.message).to.eql('Text text text');
+      await expect(promise)
+        .to.be.rejectedWith(FirebaseError, 'Text text text');
     });
 
     it('should handle unknown server errors', async () => {

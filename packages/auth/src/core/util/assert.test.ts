@@ -19,7 +19,9 @@ import { expect } from 'chai';
 
 import { FirebaseError } from '@firebase/util';
 
-import { assertTypes, opt } from './assert';
+import { assertTypes, opt, _assertInstanceOf } from './assert';
+import { Auth } from '../../model/public_types';
+import { testAuth } from '../../../test/helpers/mock_auth';
 
 class Parent {}
 class Child extends Parent {}
@@ -145,5 +147,45 @@ describe('assertTypes', () => {
         })
       ).to.throw(FirebaseError, 'auth/argument-error');
     });
+  });
+});
+
+describe('_assertInstanceOf', () => {
+  interface Constructable {
+    new (): object;
+  }
+
+  let auth: Auth;
+  beforeEach(async () => {
+    auth = await testAuth();
+  });
+
+  function makeClass(): Constructable {
+    class Test {};
+    return Test;
+  };
+
+  class WrongClass {}
+
+  it('fails with the wrong class', () => {
+    expect(() => {
+      const foo = new WrongClass();
+      _assertInstanceOf(auth, foo, makeClass());
+    }).to.throw(FirebaseError, 'auth/argument-error');
+  });
+
+  it('fails with the right class wrong instance with custom message', () => {
+    expect(() => {
+      const a = makeClass();
+      const b = makeClass();
+      _assertInstanceOf(auth, new a(), b);
+    }).to.throw(FirebaseError, 'Type of Test does not match');
+  });
+
+  it('passes if all is well', () => {
+    expect(() => {
+      const a = makeClass();
+      _assertInstanceOf(auth, new a(), a);
+    }).not.to.throw();
   });
 });

@@ -24,9 +24,8 @@ import {
 } from '../../model/public_types';
 
 import { _castAuth } from '../../core/auth/auth_impl';
-import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
-import { _assert } from '../../core/util/assert';
+import { _assertInstanceOf } from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
 import { AuthEventType } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
@@ -91,12 +90,7 @@ export async function _signInWithRedirect(
   resolver?: PopupRedirectResolver
 ): Promise<void | never> {
   const authInternal = _castAuth(auth);
-  _assert(
-    provider instanceof FederatedAuthProvider,
-    auth,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
-
+  _assertInstanceOf(auth, provider, FederatedAuthProvider);
   const resolverInternal = _withDefaultResolver(authInternal, resolver);
   await _setPendingRedirectStatus(resolverInternal, authInternal);
 
@@ -152,12 +146,7 @@ export async function _reauthenticateWithRedirect(
   resolver?: PopupRedirectResolver
 ): Promise<void | never> {
   const userInternal = getModularInstance(user) as UserInternal;
-  _assert(
-    provider instanceof FederatedAuthProvider,
-    userInternal.auth,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
-
+  _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   await _setPendingRedirectStatus(resolverInternal, userInternal.auth);
@@ -209,12 +198,7 @@ export async function _linkWithRedirect(
   resolver?: PopupRedirectResolver
 ): Promise<void | never> {
   const userInternal = getModularInstance(user) as UserInternal;
-  _assert(
-    provider instanceof FederatedAuthProvider,
-    userInternal.auth,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
-
+  _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   await _assertLinkedStatus(false, userInternal, provider.providerId);
