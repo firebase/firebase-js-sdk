@@ -136,7 +136,8 @@ export function connectStorageEmulator(
     mockUserToken?: EmulatorMockTokenOptions | string;
   } = {}
 ): void {
-  storage.host = `http://${host}:${port}`;
+  storage.host = `${host}:${port}`;
+  storage.protocol = 'http';
   const { mockUserToken } = options;
   if (mockUserToken) {
     storage._overrideAuthToken =
@@ -158,9 +159,9 @@ export class FirebaseStorageImpl implements FirebaseStorage {
    * This string can be in the formats:
    * - host
    * - host:port
-   * - protocol://host:port
    */
   private _host: string = DEFAULT_HOST;
+  protocol: string = 'https';
   protected readonly _appId: string | null = null;
   private readonly _requests: Set<Request<unknown>>;
   private _deleted: boolean = false;
@@ -201,8 +202,7 @@ export class FirebaseStorageImpl implements FirebaseStorage {
 
   /**
    * Set host string for this service.
-   * @param host - host string in the form of host, host:port,
-   * or protocol://host:port
+   * @param host - host string in the form of host or host:port
    */
   set host(host: string) {
     this._host = host;

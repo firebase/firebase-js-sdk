@@ -97,6 +97,8 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     // (undocumented)
     readonly _pool: ConnectionPool;
     // (undocumented)
+    protocol: string;
+    // (undocumented)
     readonly _url?: string | undefined;
 }
 
@@ -292,7 +294,7 @@ export interface UploadResult {
 }
 
 // @public
-export function uploadString(ref: StorageReference, value: string, format?: string, metadata?: UploadMetadata): Promise<UploadResult>;
+export function uploadString(ref: StorageReference, value: string, format?: StringFormat, metadata?: UploadMetadata): Promise<UploadResult>;
 
 // @public
 export interface UploadTask {

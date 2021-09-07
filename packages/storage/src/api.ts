@@ -51,6 +51,7 @@ import {
 } from './reference';
 import { STORAGE_TYPE } from './constants';
 import { EmulatorMockTokenOptions, getModularInstance } from '@firebase/util';
+import { StringFormat } from './implementation/string';
 
 export { EmulatorMockTokenOptions } from '@firebase/util';
 
@@ -109,7 +110,7 @@ export function uploadBytes(
 export function uploadString(
   ref: StorageReference,
   value: string,
-  format?: string,
+  format?: StringFormat,
   metadata?: UploadMetadata
 ): Promise<UploadResult> {
   ref = getModularInstance(ref);
