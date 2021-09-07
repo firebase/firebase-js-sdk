@@ -20,7 +20,11 @@
  */
 import { UrlParams } from './requestinfo';
 
-export function makeUrl(urlPart: string, host: string, protocol: string): string {
+export function makeUrl(
+  urlPart: string,
+  host: string,
+  protocol: string
+): string {
   let origin = host;
   if (protocol == null) {
     origin = `https://${host}`;

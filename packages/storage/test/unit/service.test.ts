@@ -406,9 +406,7 @@ GOOG4-RSA-SHA256`
           TaskEvent.STATE_CHANGED,
           undefined,
           (err: StorageError | Error) => {
-            expect((err as StorageError).code).to.equal(
-              'storage/app-deleted'
-            );
+            expect((err as StorageError).code).to.equal('storage/app-deleted');
             resolve();
           },
           () => {

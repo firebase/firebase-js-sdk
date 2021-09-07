@@ -100,10 +100,7 @@ export function downloadUrlHandler(
 export function sharedErrorHandler(
   location: Location
 ): (p1: Connection, p2: StorageError) => StorageError {
-  function errorHandler(
-    xhr: Connection,
-    err: StorageError
-  ): StorageError {
+  function errorHandler(xhr: Connection, err: StorageError): StorageError {
     let newErr;
     if (xhr.getStatus() === 401) {
       if (
@@ -137,10 +134,7 @@ export function objectErrorHandler(
 ): (p1: Connection, p2: StorageError) => StorageError {
   const shared = sharedErrorHandler(location);
 
-  function errorHandler(
-    xhr: Connection,
-    err: StorageError
-  ): StorageError {
+  function errorHandler(xhr: Connection, err: StorageError): StorageError {
     let newErr = shared(xhr, err);
     if (xhr.getStatus() === 404) {
       newErr = objectNotFound(location.path);
