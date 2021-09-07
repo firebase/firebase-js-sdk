@@ -24,7 +24,7 @@ export * from './interfaces/public-types';
 export {
   onBackgroundMessage,
   getMessagingInSw as getMessaging,
-  setDeliveryMetricsExportedToBigQueryEnabled as experimentalSetDeliveryMetricsExportedToBigQueryEnabled
+  experimentalSetDeliveryMetricsExportedToBigQueryEnabled
 } from './api';
 export { isSwSupported as isSupported } from './api/isSupported';
 
