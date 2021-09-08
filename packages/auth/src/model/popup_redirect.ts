@@ -41,6 +41,9 @@ export interface GapiAuthEvent extends gapi.iframes.Message {
   authEvent: AuthEvent;
 }
 
+/**
+ * @internal
+ */
 export const enum AuthEventType {
   LINK_VIA_POPUP = 'linkViaPopup',
   LINK_VIA_REDIRECT = 'linkViaRedirect',
@@ -57,6 +60,9 @@ export interface AuthEventError extends Error {
   message: string;
 }
 
+/**
+ * @internal
+ */
 export interface AuthEvent {
   type: AuthEventType;
   eventId: string | null;
@@ -67,6 +73,9 @@ export interface AuthEvent {
   error?: AuthEventError;
 }
 
+/**
+ * @internal
+ */
 export interface AuthEventConsumer {
   readonly filter: AuthEventType[];
   eventId: string | null;
@@ -74,6 +83,9 @@ export interface AuthEventConsumer {
   onError(error: FirebaseError): unknown;
 }
 
+/**
+ * @internal
+ */
 export interface EventManager {
   registerConsumer(authEventConsumer: AuthEventConsumer): void;
   unregisterConsumer(authEventConsumer: AuthEventConsumer): void;

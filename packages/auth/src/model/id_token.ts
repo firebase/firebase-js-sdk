@@ -47,6 +47,7 @@ export interface ParsedIdToken {
 /**
  * IdToken as returned by the API
  *
+ * @internal
  */
 export interface IdTokenResponse {
   localId: string;
@@ -67,6 +68,7 @@ export interface IdTokenResponse {
 /**
  * The possible types of the `IdTokenResponse`
  *
+ * @internal
  */
 export const enum IdTokenResponseKind {
   CreateAuthUri = 'identitytoolkit#CreateAuthUriResponse',
