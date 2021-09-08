@@ -34,6 +34,9 @@ export type AppName = string;
 export type ApiKey = string;
 export type AuthDomain = string;
 
+/**
+ * @internal
+ */
 export interface ConfigInternal extends Config {
   /**
    * @readonly

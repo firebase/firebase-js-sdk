@@ -53,6 +53,9 @@ export async function sendPhoneVerificationCode(
   );
 }
 
+/**
+ * @internal
+ */
 export interface SignInWithPhoneNumberRequest {
   temporaryProof?: string;
   phoneNumber?: string;
@@ -66,6 +69,9 @@ export interface LinkWithPhoneNumberRequest
   idToken: string;
 }
 
+/**
+ * @internal
+ */
 export interface SignInWithPhoneNumberResponse extends IdTokenResponse {
   temporaryProof?: string;
   phoneNumber?: string;

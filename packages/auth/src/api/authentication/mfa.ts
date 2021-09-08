@@ -30,6 +30,9 @@ export interface FinalizeMfaResponse {
   refreshToken: string;
 }
 
+/**
+ * @internal
+ */
 export interface IdTokenMfaResponse extends IdTokenResponse {
   mfaPendingCredential?: string;
   mfaInfo?: MfaEnrollment[];
@@ -84,6 +87,9 @@ export function finalizeSignInPhoneMfa(
   });
 }
 
+/**
+ * @internal
+ */
 export type PhoneOrOauthTokenResponse =
   | SignInWithPhoneNumberResponse
   | SignInWithIdpResponse

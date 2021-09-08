@@ -36,6 +36,9 @@ export interface SignInWithIdpRequest {
   pendingToken?: string;
 }
 
+/**
+ * @internal
+ */
 export interface SignInWithIdpResponse extends IdTokenResponse {
   oauthAccessToken?: string;
   oauthTokenSecret?: string;
