@@ -18,7 +18,7 @@
 import { FirebaseError, querystring } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
-import { _createError, _fail } from '../core/util/assert';
+import { _createError, _errorWithCustomMessage, _fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
@@ -168,7 +168,7 @@ export async function _performFetchWithErrorHandling<V>(
           .toLowerCase()
           .replace(/[_\s]+/g, '-') as unknown) as AuthErrorCode);
       if (serverErrorMessage) {
-        _fail(auth, authError, {message: serverErrorMessage});
+        throw _errorWithCustomMessage(auth, authError, serverErrorMessage);
       } else {
         _fail(auth, authError);
       }

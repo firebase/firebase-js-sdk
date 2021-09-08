@@ -16,12 +16,14 @@
  */
 
 import { Auth } from '../../model/public_types';
-import { FirebaseError } from '@firebase/util';
+import { ErrorFactory, FirebaseError } from '@firebase/util';
 import { AuthInternal } from '../../model/auth';
 import {
   _DEFAULT_AUTH_ERROR_FACTORY,
   AuthErrorCode,
-  AuthErrorParams
+  AuthErrorParams,
+  prodErrorMap,
+  ErrorMapRetriever
 } from '../errors';
 import { _logError } from './log';
 
@@ -79,6 +81,31 @@ export function _createError<K extends AuthErrorCode>(
   ...rest: unknown[]
 ): FirebaseError {
   return createErrorInternal(authOrCode, ...rest);
+}
+
+export function _errorWithCustomMessage(auth: Auth, code: AuthErrorCode, message: string): FirebaseError {
+  const errorMap = {...(prodErrorMap as ErrorMapRetriever)(), [code]: message};
+  const factory = new ErrorFactory<AuthErrorCode, AuthErrorParams>(
+    'auth',
+    'Firebase',
+    errorMap
+  );
+  return factory.create(code, {
+    appName: auth.name,
+  });
+}
+
+export function _assertInstanceOf(auth: Auth, object: object, instance: unknown): void {
+  const constructorInstance =  (instance as { new (...args: unknown[]): unknown });
+  if (!(object instanceof constructorInstance)) {
+    if (constructorInstance.name !== object.constructor.name) {
+      _fail(auth, AuthErrorCode.ARGUMENT_ERROR);
+    }
+
+    throw _errorWithCustomMessage(auth, AuthErrorCode.ARGUMENT_ERROR,
+      `Type of ${object.constructor.name} does not match expected instance.` +
+      `Did you pass a reference from a different Auth SDK?`);
+  }
 }
 
 function createErrorInternal<K extends AuthErrorCode>(
@@ -244,3 +271,4 @@ export function debugAssert(
     debugFail(message);
   }
 }
+
