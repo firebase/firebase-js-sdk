@@ -16,7 +16,6 @@
  */
 
 import { FirebaseApp, initializeApp } from '@firebase/app';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { getAuth, signInAnonymously } from '@firebase/auth';
 import { expect } from 'chai';
 
