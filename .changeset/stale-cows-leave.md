@@ -1,5 +1,5 @@
 ---
-'@firebase/app-check': patch
+'@firebase/functions': patch
 ---
 
-Do not send dummy token to functions endpoint.
+Do not send App Check dummy token to functions endpoint.
