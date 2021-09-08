@@ -68,6 +68,14 @@ describe('Initialization', () => {
     return getDoc(testDoc);
   });
 
+  it('getDoc() before getAuth()', () => {
+    const firestore = getFirestore(app);
+    const testDoc = doc(firestore, 'coll/doc');
+    const promise = getDoc(testDoc);
+    getAuth(app);
+    return promise;
+  });
+
   it('uses user from getAuth()', async () => {
     const firestore = getFirestore(app);
     const testDoc = doc(firestore, 'coll/doc');
