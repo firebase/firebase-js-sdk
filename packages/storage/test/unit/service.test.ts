@@ -258,7 +258,7 @@ GOOG4-RSA-SHA256`
       );
       connectStorageEmulator(service, 'test.host.org', 1234);
       expect(service.host).to.equal('test.host.org:1234');
-      expect(service.protocol).to.equal('http');
+      expect(service._protocol).to.equal('http');
       void getDownloadURL(ref(service, 'test.png'));
     });
     it('sets mock user token string if specified', done => {
@@ -285,7 +285,7 @@ GOOG4-RSA-SHA256`
       );
       connectStorageEmulator(service, 'test.host.org', 1234, { mockUserToken });
       expect(service.host).to.equal('test.host.org:1234');
-      expect(service.protocol).to.equal('http');
+      expect(service._protocol).to.equal('http');
       expect(service._overrideAuthToken).to.equal(mockUserToken);
       void getDownloadURL(ref(service, 'test.png'));
     });
@@ -316,7 +316,7 @@ GOOG4-RSA-SHA256`
         mockUserToken: { sub: 'alice' }
       });
       expect(service.host).to.equal('test.host.org:1234');
-      expect(service.protocol).to.equal('http');
+      expect(service._protocol).to.equal('http');
       token = service._overrideAuthToken;
       // Token should be an unsigned JWT with header { "alg": "none", "type": "JWT" } (base64url):
       expect(token).to.match(/^eyJhbGciOiJub25lIiwidHlwZSI6IkpXVCJ9\./);

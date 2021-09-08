@@ -91,7 +91,7 @@ export function downloadUrlHandler(
       metadata as Metadata,
       text,
       service.host,
-      service.protocol
+      service._protocol
     );
   }
   return handler;
@@ -151,7 +151,7 @@ export function getMetadata(
   mappings: Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart, service.host, service.protocol);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -187,7 +187,7 @@ export function list(
     urlParams['maxResults'] = maxResults;
   }
   const urlPart = location.bucketOnlyServerUrl();
-  const url = makeUrl(urlPart, service.host, service.protocol);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -207,7 +207,7 @@ export function getDownloadUrl(
   mappings: Mappings
 ): RequestInfo<string | null> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart, service.host, service.protocol);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -227,7 +227,7 @@ export function updateMetadata(
   mappings: Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart, service.host, service.protocol);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'PATCH';
   const body = toResourceString(metadata, mappings);
   const headers = { 'Content-Type': 'application/json; charset=utf-8' };
@@ -249,7 +249,7 @@ export function deleteObject(
   location: Location
 ): RequestInfo<void> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart, service.host, service.protocol);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'DELETE';
   const timeout = service.maxOperationRetryTime;
 
@@ -329,7 +329,7 @@ export function multipartUpload(
     throw cannotSliceBlob();
   }
   const urlParams: UrlParams = { name: metadata_['fullPath']! };
-  const url = makeUrl(urlPart, service.host, service.protocol);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'POST';
   const timeout = service.maxUploadRetryTime;
   const requestInfo = new RequestInfo(
@@ -392,7 +392,7 @@ export function createResumableUpload(
   const urlPart = location.bucketOnlyServerUrl();
   const metadataForUpload = metadataForUpload_(location, blob, metadata);
   const urlParams: UrlParams = { name: metadataForUpload['fullPath']! };
-  const url = makeUrl(urlPart, service.host, service.protocol);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'POST';
   const headers = {
     'X-Goog-Upload-Protocol': 'resumable',

@@ -79,7 +79,7 @@ export {
  * Uploads data to this object's location.
  * The upload is not resumable.
  * @public
- * @param ref - StorageReference where data should be uploaded.
+ * @param ref - {@link StorageReference} where data should be uploaded.
  * @param data - The data to upload.
  * @param metadata - Metadata for the data to upload.
  * @returns A Promise containing an UploadResult
@@ -101,7 +101,7 @@ export function uploadBytes(
  * Uploads a string to this object's location.
  * The upload is not resumable.
  * @public
- * @param ref - StorageReference where string should be uploaded.
+ * @param ref - {@link StorageReference} where string should be uploaded.
  * @param value - The string to upload.
  * @param format - The format of the string to upload.
  * @param metadata - Metadata for the string to upload.
@@ -126,7 +126,7 @@ export function uploadString(
  * Uploads data to this object's location.
  * The upload can be paused and resumed, and exposes progress updates.
  * @public
- * @param ref - StorageReference where data should be uploaded.
+ * @param ref - {@link StorageReference} where data should be uploaded.
  * @param data - The data to upload.
  * @param metadata - Metadata for the data to upload.
  * @returns An UploadTask
@@ -318,7 +318,8 @@ export function getStorage(
  * @param storage - The {@link FirebaseStorage} instance
  * @param host - The emulator host (ex: localhost)
  * @param port - The emulator port (ex: 5001)
- * @param options.mockUserToken - the mock auth token to use for unit testing Security Rules.
+ * @param options - Emulator options. `options.mockUserToken` is the mock auth
+ * token to use for unit testing Security Rules.
  * @public
  */
 export function connectStorageEmulator(
