@@ -35,7 +35,7 @@ const argv = yargs.options({
   persistence: {
     type: 'boolean'
   }
-}).argv;
+}).parseSync();
 
 const nyc = resolve(__dirname, '../../../node_modules/.bin/nyc');
 const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');

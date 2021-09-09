@@ -35,7 +35,7 @@ const argv = yargs.options({
     demandOption: true,
     desc: 'The location for the transpiled JavaScript bundle'
   }
-}).argv;
+}).parseSync();
 
 /**
  * Builds an ESM bundle for the Typescript file at `index` and writes it the

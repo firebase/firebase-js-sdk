@@ -30,7 +30,7 @@ const argv = yargs.options({
   webdriver: {
     type: 'boolean'
   }
-}).argv;
+}).parseSync();
 
 const nyc = resolve(__dirname, '../../../node_modules/.bin/nyc');
 const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');
