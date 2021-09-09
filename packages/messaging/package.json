@@ -48,7 +48,7 @@
     "rollup": "2.52.2",
     "rollup-plugin-typescript2": "0.30.0",
     "@rollup/plugin-json": "4.1.0",
-    "ts-essentials": "7.0.1",
+    "ts-essentials": "8.1.0",
     "typescript": "4.2.2"
   },
   "repository": {
