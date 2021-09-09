@@ -28,7 +28,7 @@ import {
   canceled,
   retryLimitExceeded
 } from './error';
-import { RequestInfo } from './requestinfo';
+import { RequestHandler, RequestInfo } from './requestinfo';
 import { isJustDef } from './type';
 import { makeQueryString } from './url';
 import { Headers, Connection, ErrorCode } from './connection';
@@ -48,12 +48,6 @@ export interface Request<T> {
 }
 
 class NetworkRequest<T> implements Request<T> {
-  private url_: string;
-  private method_: string;
-  private headers_: Headers;
-  private body_: string | Blob | Uint8Array | null;
-  private successCodes_: number[];
-  private additionalRetryCodes_: number[];
   private pendingConnection_: Connection | null = null;
   private backoffId_: backoffId | null = null;
   private resolve_!: (value?: T | PromiseLike<T>) => void;
@@ -61,41 +55,21 @@ class NetworkRequest<T> implements Request<T> {
   private reject_!: (reason?: any) => void;
   private canceled_: boolean = false;
   private appDelete_: boolean = false;
-  private callback_: (p1: Connection, p2: string) => T;
-  private errorCallback_:
-    | ((p1: Connection, p2: StorageError) => StorageError)
-    | null;
-  private progressCallback_: ((p1: number, p2: number) => void) | null;
-  private timeout_: number;
-  private pool_: ConnectionPool;
   promise_: Promise<T>;
 
   constructor(
-    url: string,
-    method: string,
-    headers: Headers,
-    body: string | Blob | Uint8Array | null,
-    successCodes: number[],
-    additionalRetryCodes: number[],
-    callback: (p1: Connection, p2: string) => T,
-    errorCallback:
-      | ((p1: Connection, p2: StorageError) => StorageError)
-      | null,
-    timeout: number,
-    progressCallback: ((p1: number, p2: number) => void) | null,
-    pool: ConnectionPool
+    private url_: string,
+    private method_: string,
+    private headers_: Headers,
+    private body_: string | Blob | Uint8Array | null,
+    private successCodes_: number[],
+    private additionalRetryCodes_: number[],
+    private callback_: RequestHandler<string, T>,
+    private errorCallback_: RequestHandler<StorageError, StorageError> | null,
+    private timeout_: number,
+    private progressCallback_: ((p1: number, p2: number) => void) | null,
+    private pool_: ConnectionPool
   ) {
-    this.url_ = url;
-    this.method_ = method;
-    this.headers_ = headers;
-    this.body_ = body;
-    this.successCodes_ = successCodes.slice();
-    this.additionalRetryCodes_ = additionalRetryCodes.slice();
-    this.callback_ = callback;
-    this.errorCallback_ = errorCallback;
-    this.progressCallback_ = progressCallback;
-    this.timeout_ = timeout;
-    this.pool_ = pool;
     this.promise_ = new Promise((resolve, reject) => {
       this.resolve_ = resolve as (value?: T | PromiseLike<T>) => void;
       this.reject_ = reject;
@@ -107,41 +81,42 @@ class NetworkRequest<T> implements Request<T> {
    * Actually starts the retry loop.
    */
   private start_(): void {
-    const self = this;
-
-    function doTheRequest(
-      backoffCallback: (p1: boolean, ...p2: unknown[]) => void,
+    const doTheRequest: (
+      backoffCallback: (success: boolean, ...p2: unknown[]) => void,
       canceled: boolean
-    ): void {
+    ) => void = (backoffCallback, canceled) => {
       if (canceled) {
         backoffCallback(false, new RequestEndStatus(false, null, true));
         return;
       }
-      const connection = self.pool_.createConnection();
-      self.pendingConnection_ = connection;
+      const connection = this.pool_.createConnection();
+      this.pendingConnection_ = connection;
 
-      function progressListener(progressEvent: ProgressEvent): void {
-        const loaded = progressEvent.loaded;
-        const total = progressEvent.lengthComputable ? progressEvent.total : -1;
-        if (self.progressCallback_ !== null) {
-          self.progressCallback_(loaded, total);
-        }
-      }
-      if (self.progressCallback_ !== null) {
+      const progressListener: (progressEvent: ProgressEvent) => void =
+        progressEvent => {
+          const loaded = progressEvent.loaded;
+          const total = progressEvent.lengthComputable
+            ? progressEvent.total
+            : -1;
+          if (this.progressCallback_ !== null) {
+            this.progressCallback_(loaded, total);
+          }
+        };
+      if (this.progressCallback_ !== null) {
         connection.addUploadProgressListener(progressListener);
       }
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       connection
-        .send(self.url_, self.method_, self.body_, self.headers_)
+        .send(this.url_, this.method_, this.body_, this.headers_)
         .then(() => {
-          if (self.progressCallback_ !== null) {
+          if (this.progressCallback_ !== null) {
             connection.removeUploadProgressListener(progressListener);
           }
-          self.pendingConnection_ = null;
+          this.pendingConnection_ = null;
           const hitServer = connection.getErrorCode() === ErrorCode.NO_ERROR;
           const status = connection.getStatus();
-          if (!hitServer || self.isRetryStatusCode_(status)) {
+          if (!hitServer || this.isRetryStatusCode_(status)) {
             const wasCanceled = connection.getErrorCode() === ErrorCode.ABORT;
             backoffCallback(
               false,
@@ -149,25 +124,25 @@ class NetworkRequest<T> implements Request<T> {
             );
             return;
           }
-          const successCode = self.successCodes_.indexOf(status) !== -1;
+          const successCode = this.successCodes_.indexOf(status) !== -1;
           backoffCallback(true, new RequestEndStatus(successCode, connection));
         });
-    }
+    };
 
     /**
      * @param requestWentThrough - True if the request eventually went
      *     through, false if it hit the retry limit or was canceled.
      */
-    function backoffDone(
+    const backoffDone: (
       requestWentThrough: boolean,
       status: RequestEndStatus
-    ): void {
-      const resolve = self.resolve_;
-      const reject = self.reject_;
+    ) => void = (requestWentThrough, status) => {
+      const resolve = this.resolve_;
+      const reject = this.reject_;
       const connection = status.connection as Connection;
       if (status.wasSuccessCode) {
         try {
-          const result = self.callback_(
+          const result = this.callback_(
             connection,
             connection.getResponseText()
           );
@@ -183,14 +158,14 @@ class NetworkRequest<T> implements Request<T> {
         if (connection !== null) {
           const err = unknown();
           err.serverResponse = connection.getResponseText();
-          if (self.errorCallback_) {
-            reject(self.errorCallback_(connection, err));
+          if (this.errorCallback_) {
+            reject(this.errorCallback_(connection, err));
           } else {
             reject(err);
           }
         } else {
           if (status.canceled) {
-            const err = self.appDelete_ ? appDeleted() : canceled();
+            const err = this.appDelete_ ? appDeleted() : canceled();
             reject(err);
           } else {
             const err = retryLimitExceeded();
@@ -198,7 +173,7 @@ class NetworkRequest<T> implements Request<T> {
           }
         }
       }
-    }
+    };
     if (this.canceled_) {
       backoffDone(false, new RequestEndStatus(false, null, true));
     } else {
