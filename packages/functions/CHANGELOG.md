@@ -1,5 +1,11 @@
 # @firebase/functions
 
+## 0.7.1
+
+### Patch Changes
+
+- [`deda8cd85`](https://github.com/firebase/firebase-js-sdk/commit/deda8cd85e365c36b657dbe8a233b16bcf751ea7) [#5459](https://github.com/firebase/firebase-js-sdk/pull/5459) - Do not send App Check dummy token to functions endpoint.
+
 ## 0.7.0
 
 ### Minor Changes

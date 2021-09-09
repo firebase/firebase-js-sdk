@@ -1,5 +1,19 @@
 # firebase
 
+## 9.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`08ec55d6d`](https://github.com/firebase/firebase-js-sdk/commit/08ec55d6dfcc85207fbdcdde77d6508f27998603), [`8180a2b77`](https://github.com/firebase/firebase-js-sdk/commit/8180a2b77d331c4d01a000e35f51dc61af660eb7), [`b8462f248`](https://github.com/firebase/firebase-js-sdk/commit/b8462f2489fb6f37691b136c9a5d453207dccc06), [`271303f3c`](https://github.com/firebase/firebase-js-sdk/commit/271303f3ca6fa47c646177a41d7a3e3f31e1d296), [`bf5772f64`](https://github.com/firebase/firebase-js-sdk/commit/bf5772f645207c24f3218914d27fdbe4e76584a2), [`dca28a10d`](https://github.com/firebase/firebase-js-sdk/commit/dca28a10dac4409c84d5a991094f7b5a4f3e5c7f), [`deda8cd85`](https://github.com/firebase/firebase-js-sdk/commit/deda8cd85e365c36b657dbe8a233b16bcf751ea7), [`66d4a1e5d`](https://github.com/firebase/firebase-js-sdk/commit/66d4a1e5d8e1b8b952e21fc3190ec7076d8161ea)]:
+  - @firebase/auth@0.17.2
+  - @firebase/firestore@3.0.2
+  - @firebase/functions@0.7.1
+  - @firebase/storage@0.8.2
+  - @firebase/auth-compat@0.1.2
+  - @firebase/firestore-compat@0.1.2
+  - @firebase/functions-compat@0.1.2
+  - @firebase/storage-compat@0.1.2
+
 ## 9.0.1
 
 ### Patch Changes
