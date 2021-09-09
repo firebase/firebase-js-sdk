@@ -1,5 +1,13 @@
 # @firebase/auth
 
+## 0.17.2
+
+### Patch Changes
+
+- [`08ec55d6d`](https://github.com/firebase/firebase-js-sdk/commit/08ec55d6dfcc85207fbdcdde77d6508f27998603) [#5423](https://github.com/firebase/firebase-js-sdk/pull/5423) - Fix bug where custom errors from blocking functions were being dropped.
+
+* [`271303f3c`](https://github.com/firebase/firebase-js-sdk/commit/271303f3ca6fa47c646177a41d7a3e3f31e1d296) [#5460](https://github.com/firebase/firebase-js-sdk/pull/5460) - Remove `const enum`s from the public typing file.
+
 ## 0.17.1
 
 ### Patch Changes
