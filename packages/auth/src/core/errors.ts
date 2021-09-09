@@ -24,6 +24,8 @@ import { AuthCredential } from './credentials';
 
 /**
  * Enumeration of Firebase Auth error codes.
+ * 
+ * @internal
  */
 export const enum AuthErrorCode {
   ADMIN_ONLY_OPERATION = 'admin-restricted-operation',
@@ -399,6 +401,9 @@ export interface NamedErrorParams {
   serverResponse?: object;
 }
 
+/**
+ * @internal
+ */
 type GenericAuthErrorParams = {
   [key in Exclude<
     AuthErrorCode,
@@ -415,6 +420,9 @@ type GenericAuthErrorParams = {
   };
 };
 
+/**
+ * @internal
+ */
 export interface AuthErrorParams extends GenericAuthErrorParams {
   [AuthErrorCode.ARGUMENT_ERROR]: { appName?: AppName };
   [AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH]: { appName?: AppName };

@@ -23,6 +23,9 @@ export const enum ClientImplementation {
   CORE = 'JsCore'
 }
 
+/**
+ * @internal
+ */
 export const enum ClientPlatform {
   BROWSER = 'Browser',
   NODE = 'Node',

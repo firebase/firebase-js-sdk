@@ -75,7 +75,6 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     _getAppCheckToken(): Promise<string | null>;
     // (undocumented)
     _getAuthToken(): Promise<string | null>;
-    // (undocumented)
     get host(): string;
     set host(host: string);
     // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
@@ -96,6 +95,8 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     //
     // (undocumented)
     readonly _pool: ConnectionPool;
+    // (undocumented)
+    _protocol: string;
     // (undocumented)
     readonly _url?: string | undefined;
 }
@@ -292,7 +293,7 @@ export interface UploadResult {
 }
 
 // @public
-export function uploadString(ref: StorageReference, value: string, format?: string, metadata?: UploadMetadata): Promise<UploadResult>;
+export function uploadString(ref: StorageReference, value: string, format?: StringFormat, metadata?: UploadMetadata): Promise<UploadResult>;
 
 // @public
 export interface UploadTask {

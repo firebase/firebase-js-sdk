@@ -17,7 +17,7 @@
 
 /**
  * Enumeration of supported providers.
- *
+ * @internal
  */
 export const enum ProviderId {
   /** @internal */
@@ -42,7 +42,7 @@ export const enum ProviderId {
 
 /**
  * Enumeration of supported sign-in methods.
- *
+ * @internal
  */
 export const enum SignInMethod {
   /** @internal */
@@ -65,7 +65,7 @@ export const enum SignInMethod {
 
 /**
  * Enumeration of supported operation types.
- *
+ * @internal
  */
 export const enum OperationType {
   /** Operation involving linking an additional provider to an already signed-in user. */
