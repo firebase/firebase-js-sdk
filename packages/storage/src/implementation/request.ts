@@ -32,7 +32,6 @@ import { RequestInfo } from './requestinfo';
 import { isJustDef } from './type';
 import { makeQueryString } from './url';
 import { Headers, Connection, ErrorCode } from './connection';
-import { ConnectionPool } from './connectionPool';
 
 export interface Request<T> {
   getPromise(): Promise<T>;
@@ -67,7 +66,6 @@ class NetworkRequest<T> implements Request<T> {
     | null;
   private progressCallback_: ((p1: number, p2: number) => void) | null;
   private timeout_: number;
-  private pool_: ConnectionPool;
   promise_: Promise<T>;
 
   constructor(
@@ -78,12 +76,10 @@ class NetworkRequest<T> implements Request<T> {
     successCodes: number[],
     additionalRetryCodes: number[],
     callback: (p1: Connection, p2: string) => T,
-    errorCallback:
-      | ((p1: Connection, p2: StorageError) => StorageError)
-      | null,
+    errorCallback: ((p1: Connection, p2: StorageError) => StorageError) | null,
     timeout: number,
     progressCallback: ((p1: number, p2: number) => void) | null,
-    pool: ConnectionPool
+    private connectionFactory_: () => Connection
   ) {
     this.url_ = url;
     this.method_ = method;
@@ -95,7 +91,6 @@ class NetworkRequest<T> implements Request<T> {
     this.errorCallback_ = errorCallback;
     this.progressCallback_ = progressCallback;
     this.timeout_ = timeout;
-    this.pool_ = pool;
     this.promise_ = new Promise((resolve, reject) => {
       this.resolve_ = resolve as (value?: T | PromiseLike<T>) => void;
       this.reject_ = reject;
@@ -117,7 +112,7 @@ class NetworkRequest<T> implements Request<T> {
         backoffCallback(false, new RequestEndStatus(false, null, true));
         return;
       }
-      const connection = self.pool_.createConnection();
+      const connection = self.connectionFactory_();
       self.pendingConnection_ = connection;
 
       function progressListener(progressEvent: ProgressEvent): void {
@@ -296,7 +291,7 @@ export function makeRequest<T>(
   appId: string | null,
   authToken: string | null,
   appCheckToken: string | null,
-  pool: ConnectionPool,
+  requestFactory: () => Connection,
   firebaseVersion?: string
 ): Request<T> {
   const queryPart = makeQueryString(requestInfo.urlParams);
@@ -317,6 +312,6 @@ export function makeRequest<T>(
     requestInfo.errorHandler,
     requestInfo.timeout,
     requestInfo.progressCallback,
-    pool
+    requestFactory
   );
 }

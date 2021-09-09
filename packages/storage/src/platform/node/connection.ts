@@ -22,6 +22,9 @@ import nodeFetch from 'node-fetch';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetch: typeof window.fetch = nodeFetch as any;
 
+/** An override for the text-based Connection. Used in tests. */
+let connectionFactoryOverride: (() => Connection) | null = null;
+
 /**
  * Network layer that works in Node.
  *
@@ -114,5 +117,11 @@ export class FetchConnection implements Connection {
 }
 
 export function newConnection(): Connection {
-  return new FetchConnection();
+  return connectionFactoryOverride
+    ? connectionFactoryOverride()
+    : new FetchConnection();
+}
+
+export function injectTestConnection(factory: (() => Connection) | null): void {
+  connectionFactoryOverride = factory;
 }

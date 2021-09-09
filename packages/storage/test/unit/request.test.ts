@@ -19,8 +19,7 @@ import * as sinon from 'sinon';
 import { makeRequest } from '../../src/implementation/request';
 import { RequestInfo } from '../../src/implementation/requestinfo';
 import { Connection } from '../../src/implementation/connection';
-import { makePool } from './testshared';
-import { TestingConnection } from './connection';
+import { TestingConnection, newTestConnection } from './connection';
 
 const TEST_VERSION = '1.2.3';
 
@@ -64,7 +63,7 @@ describe('Firebase Storage > Request', () => {
       null,
       null,
       null,
-      makePool(spiedSend),
+      () => newTestConnection(spiedSend),
       TEST_VERSION
     )
       .getPromise()
@@ -108,7 +107,9 @@ describe('Firebase Storage > Request', () => {
     requestInfo.urlParams[p1] = v1;
     requestInfo.urlParams[p2] = v2;
     requestInfo.body = 'thisistherequestbody';
-    return makeRequest(requestInfo, null, null, null, makePool(spiedSend))
+    return makeRequest(requestInfo, null, null, null, () =>
+      newTestConnection(spiedSend)
+    )
       .getPromise()
       .then(
         () => {
@@ -151,7 +152,9 @@ describe('Firebase Storage > Request', () => {
       timeout
     );
 
-    return makeRequest(requestInfo, null, null, null, makePool(newSend))
+    return makeRequest(requestInfo, null, null, null, () =>
+      newTestConnection(newSend)
+    )
       .getPromise()
       .then(
         () => {
@@ -173,7 +176,13 @@ describe('Firebase Storage > Request', () => {
       handler,
       timeout
     );
-    const request = makeRequest(requestInfo, null, null, null, makePool(null));
+    const request = makeRequest(
+      requestInfo,
+      null,
+      null,
+      null,
+      newTestConnection
+    );
     const promise = request.getPromise().then(
       () => {
         assert.fail('Succeeded when handler gave error');
@@ -205,7 +214,7 @@ describe('Firebase Storage > Request', () => {
       /* appId= */ null,
       authToken,
       null,
-      makePool(spiedSend),
+      () => newTestConnection(spiedSend),
       TEST_VERSION
     );
     return request.getPromise().then(
@@ -246,7 +255,7 @@ describe('Firebase Storage > Request', () => {
       appId,
       null,
       null,
-      makePool(spiedSend),
+      () => newTestConnection(spiedSend),
       TEST_VERSION
     );
     return request.getPromise().then(
@@ -287,7 +296,7 @@ describe('Firebase Storage > Request', () => {
       null,
       null,
       appCheckToken,
-      makePool(spiedSend),
+      () => newTestConnection(spiedSend),
       TEST_VERSION
     );
     return request.getPromise().then(

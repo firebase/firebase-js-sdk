@@ -39,6 +39,7 @@ import { ListResult } from './list';
 import { UploadTask } from './task';
 import { invalidRootOperation, noDownloadURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
+import { newConnection } from './platform/connection';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -165,7 +166,7 @@ export function uploadBytes(
     metadata
   );
   return ref.storage
-    .makeRequestWithTokens(requestInfo)
+    .makeRequestWithTokens(requestInfo, newConnection)
     .then(request => request.getPromise())
     .then(finalMetadata => {
       return {
@@ -312,7 +313,9 @@ export async function list(
     op.pageToken,
     op.maxResults
   );
-  return (await ref.storage.makeRequestWithTokens(requestInfo)).getPromise();
+  return (
+    await ref.storage.makeRequestWithTokens(requestInfo, newConnection)
+  ).getPromise();
 }
 
 /**
@@ -329,7 +332,9 @@ export async function getMetadata(ref: Reference): Promise<Metadata> {
     ref._location,
     getMappings()
   );
-  return (await ref.storage.makeRequestWithTokens(requestInfo)).getPromise();
+  return (
+    await ref.storage.makeRequestWithTokens(requestInfo, newConnection)
+  ).getPromise();
 }
 
 /**
@@ -354,7 +359,9 @@ export async function updateMetadata(
     metadata,
     getMappings()
   );
-  return (await ref.storage.makeRequestWithTokens(requestInfo)).getPromise();
+  return (
+    await ref.storage.makeRequestWithTokens(requestInfo, newConnection)
+  ).getPromise();
 }
 
 /**
@@ -370,7 +377,7 @@ export async function getDownloadURL(ref: Reference): Promise<string> {
     ref._location,
     getMappings()
   );
-  return (await ref.storage.makeRequestWithTokens(requestInfo))
+  return (await ref.storage.makeRequestWithTokens(requestInfo, newConnection))
     .getPromise()
     .then(url => {
       if (url === null) {
@@ -389,7 +396,9 @@ export async function getDownloadURL(ref: Reference): Promise<string> {
 export async function deleteObject(ref: Reference): Promise<void> {
   ref._throwIfRoot('deleteObject');
   const requestInfo = requestsDeleteObject(ref.storage, ref._location);
-  return (await ref.storage.makeRequestWithTokens(requestInfo)).getPromise();
+  return (
+    await ref.storage.makeRequestWithTokens(requestInfo, newConnection)
+  ).getPromise();
 }
 
 /**

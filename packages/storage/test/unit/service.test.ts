@@ -17,7 +17,6 @@
 import { expect } from 'chai';
 import { TaskEvent } from '../../src/implementation/taskenums';
 import { Headers } from '../../src/implementation/connection';
-import { ConnectionPool } from '../../src/implementation/connectionPool';
 import {
   FirebaseStorageImpl,
   ref,
@@ -33,12 +32,12 @@ import {
   getDownloadURL
 } from '../../src/reference';
 import { Location } from '../../src/implementation/location';
-import { TestingConnection } from './connection';
+import { newTestConnection, TestingConnection } from './connection';
+import { injectTestConnection } from '../../src/platform/connection';
 
 const fakeAppGs = testShared.makeFakeApp('gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp('gs://mybucket/');
 const fakeAppInvalidGs = testShared.makeFakeApp('gs://mybucket/hello');
-const connectionPool = new ConnectionPool();
 const testLocation = new Location('bucket', 'object');
 
 function makeGsUrl(child: string = ''): string {
@@ -46,12 +45,14 @@ function makeGsUrl(child: string = ''): string {
 }
 
 describe('Firebase Storage > Service', () => {
+  before(() => injectTestConnection(newTestConnection));
+  after(() => injectTestConnection(null));
+
   describe('simple constructor', () => {
     const service = new FirebaseStorageImpl(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
-      testShared.fakeAppCheckTokenProvider,
-      connectionPool
+      testShared.fakeAppCheckTokenProvider
     );
     it('Root refs point to the right place', () => {
       const reference = ref(service);
@@ -68,7 +69,6 @@ describe('Firebase Storage > Service', () => {
         testShared.fakeApp,
         testShared.fakeAuthProvider,
         testShared.fakeAppCheckTokenProvider,
-        connectionPool,
         'gs://foo-bar.appspot.com'
       );
       const reference = ref(service);
@@ -79,7 +79,6 @@ describe('Firebase Storage > Service', () => {
         testShared.fakeApp,
         testShared.fakeAuthProvider,
         testShared.fakeAppCheckTokenProvider,
-        connectionPool,
         `http://${DEFAULT_HOST}/v1/b/foo-bar.appspot.com/o`
       );
       const reference = ref(service);
@@ -90,7 +89,6 @@ describe('Firebase Storage > Service', () => {
         testShared.fakeApp,
         testShared.fakeAuthProvider,
         testShared.fakeAppCheckTokenProvider,
-        connectionPool,
         `https://${DEFAULT_HOST}/v1/b/foo-bar.appspot.com/o`
       );
       const reference = ref(service);
@@ -102,7 +100,6 @@ describe('Firebase Storage > Service', () => {
         testShared.fakeApp,
         testShared.fakeAuthProvider,
         testShared.fakeAppCheckTokenProvider,
-        connectionPool,
         'foo-bar.appspot.com'
       );
       const reference = ref(service);
@@ -113,7 +110,6 @@ describe('Firebase Storage > Service', () => {
         testShared.fakeApp,
         testShared.fakeAuthProvider,
         testShared.fakeAppCheckTokenProvider,
-        connectionPool,
         'foo-bar.appspot.com'
       );
       const reference = ref(service, 'path/to/child');
@@ -127,7 +123,6 @@ describe('Firebase Storage > Service', () => {
           testShared.fakeApp,
           testShared.fakeAuthProvider,
           testShared.fakeAppCheckTokenProvider,
-          connectionPool,
           'gs://bucket/object/'
         );
       }, 'storage/invalid-default-bucket');
@@ -139,8 +134,7 @@ describe('Firebase Storage > Service', () => {
       const service = new FirebaseStorageImpl(
         fakeAppGs,
         testShared.fakeAuthProvider,
-        testShared.fakeAppCheckTokenProvider,
-        connectionPool
+        testShared.fakeAppCheckTokenProvider
       );
       expect(ref(service)?.toString()).to.equal('gs://mybucket/');
     });
@@ -148,8 +142,7 @@ describe('Firebase Storage > Service', () => {
       const service = new FirebaseStorageImpl(
         fakeAppGsEndingSlash,
         testShared.fakeAuthProvider,
-        testShared.fakeAppCheckTokenProvider,
-        connectionPool
+        testShared.fakeAppCheckTokenProvider
       );
       expect(ref(service)?.toString()).to.equal('gs://mybucket/');
     });
@@ -158,8 +151,7 @@ describe('Firebase Storage > Service', () => {
         new FirebaseStorageImpl(
           fakeAppInvalidGs,
           testShared.fakeAuthProvider,
-          testShared.fakeAppCheckTokenProvider,
-          connectionPool
+          testShared.fakeAppCheckTokenProvider
         );
       }, 'storage/invalid-default-bucket');
     });
@@ -168,8 +160,7 @@ describe('Firebase Storage > Service', () => {
     const service = new FirebaseStorageImpl(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
-      testShared.fakeAppCheckTokenProvider,
-      connectionPool
+      testShared.fakeAppCheckTokenProvider
     );
     it('Works with gs:// URLs', () => {
       const reference = ref(service, 'gs://mybucket/child/path/image.png');
@@ -237,24 +228,20 @@ GOOG4-RSA-SHA256`
   });
   describe('connectStorageEmulator(service, host, port, options)', () => {
     it('sets emulator host correctly', done => {
-      function newSend(
-        connection: TestingConnection,
-        url: string,
-        method: string,
-        body?: ArrayBufferView | Blob | string | null,
-        headers?: Headers
-      ): void {
+      function newSend(connection: TestingConnection, url: string): void {
         // Expect emulator host to be in url of storage operations requests,
         // in this case getDownloadURL.
         expect(url).to.match(/^http:\/\/test\.host\.org:1234.+/);
         connection.abort();
+        injectTestConnection(null);
         done();
       }
+
+      injectTestConnection(() => newTestConnection(newSend));
       const service = new FirebaseStorageImpl(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
-        testShared.fakeAppCheckTokenProvider,
-        testShared.makePool(newSend)
+        testShared.fakeAppCheckTokenProvider
       );
       connectStorageEmulator(service, 'test.host.org', 1234);
       expect(service.host).to.equal('test.host.org:1234');
@@ -275,13 +262,14 @@ GOOG4-RSA-SHA256`
         expect(url).to.match(/^http:\/\/test\.host\.org:1234.+/);
         expect(headers?.['Authorization']).to.eql(`Firebase ${mockUserToken}`);
         connection.abort();
+        injectTestConnection(null);
         done();
       }
+      injectTestConnection(() => newTestConnection(newSend));
       const service = new FirebaseStorageImpl(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
-        testShared.fakeAppCheckTokenProvider,
-        testShared.makePool(newSend)
+        testShared.fakeAppCheckTokenProvider
       );
       connectStorageEmulator(service, 'test.host.org', 1234, { mockUserToken });
       expect(service.host).to.equal('test.host.org:1234');
@@ -303,14 +291,14 @@ GOOG4-RSA-SHA256`
         expect(url).to.match(/^http:\/\/test\.host\.org:1234.+/);
         expect(headers?.['Authorization']).to.eql(`Firebase ${token}`);
         connection.abort();
+        injectTestConnection(null);
         done();
       }
-
+      injectTestConnection(() => newTestConnection(newSend));
       const service = new FirebaseStorageImpl(
         testShared.fakeApp,
         testShared.fakeAuthProvider,
-        testShared.fakeAppCheckTokenProvider,
-        testShared.makePool(newSend)
+        testShared.fakeAppCheckTokenProvider
       );
       connectStorageEmulator(service, 'test.host.org', 1234, {
         mockUserToken: { sub: 'alice' }
@@ -327,8 +315,7 @@ GOOG4-RSA-SHA256`
     const service = new FirebaseStorageImpl(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
-      testShared.fakeAppCheckTokenProvider,
-      connectionPool
+      testShared.fakeAppCheckTokenProvider
     );
     it('Works with non URL paths', () => {
       const newRef = ref(service, 'child/path/image.png');
@@ -343,8 +330,7 @@ GOOG4-RSA-SHA256`
     const service = new FirebaseStorageImpl(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
-      testShared.fakeAppCheckTokenProvider,
-      connectionPool
+      testShared.fakeAppCheckTokenProvider
     );
     const reference = new Reference(service, testLocation);
     it('Throws calling ref(reference, path) with a gs:// URL', () => {
@@ -381,8 +367,7 @@ GOOG4-RSA-SHA256`
     const service = new FirebaseStorageImpl(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
-      testShared.fakeAppCheckTokenProvider,
-      connectionPool
+      testShared.fakeAppCheckTokenProvider
     );
     it('In-flight requests are canceled when the service is deleted', async () => {
       const reference = ref(service, 'gs://mybucket/image.jpg');
@@ -424,8 +409,7 @@ GOOG4-RSA-SHA256`
     const service = new FirebaseStorageImpl(
       testShared.fakeApp,
       testShared.fakeAuthProvider,
-      testShared.fakeAppCheckTokenProvider,
-      connectionPool
+      testShared.fakeAppCheckTokenProvider
     );
     describe('setMaxUploadRetryTime', () => {
       it('Throws on negative arg', () => {

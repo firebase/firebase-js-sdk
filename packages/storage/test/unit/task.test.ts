@@ -22,12 +22,15 @@ import { TaskEvent, TaskState } from '../../src/implementation/taskenums';
 import { Reference } from '../../src/reference';
 import { UploadTask } from '../../src/task';
 import { fakeServerHandler, storageServiceWithHandler } from './testshared';
+import { injectTestConnection } from '../../src/platform/connection';
 
 const testLocation = new Location('bucket', 'object');
 const smallBlob = new FbsBlob(new Uint8Array([97]));
 const bigBlob = new FbsBlob(new ArrayBuffer(1024 * 1024));
 
 describe('Firebase Storage > Upload Task', () => {
+  after(() => injectTestConnection(null));
+
   it('Works for a small upload w/ an observer', done => {
     const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(

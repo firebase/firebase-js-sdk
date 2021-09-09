@@ -27,7 +27,6 @@ import {
   SDK_VERSION
 } from '@firebase/app';
 
-import { ConnectionPool } from '../src/implementation/connectionPool';
 import { FirebaseStorageImpl } from '../src/service';
 import {
   Component,
@@ -56,7 +55,6 @@ function factory(
     app,
     authProvider,
     appCheckProvider,
-    new ConnectionPool(),
     url,
     SDK_VERSION
   );
