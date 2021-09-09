@@ -33,7 +33,7 @@ export class Bytes {
 }
 
 // @public
-export type ChildUpdateFields<T, K extends string> = T extends Record<string, any> ? AddPrefixToKeys<K, UpdateData<T>> : never;
+export type ChildUpdateFields<T1, K extends string> = T1 extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<T1>> : never;
 
 // @public
 export function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
