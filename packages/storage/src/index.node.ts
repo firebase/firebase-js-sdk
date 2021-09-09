@@ -6,7 +6,7 @@
 
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   _registerComponent,
@@ -27,7 +28,7 @@ import {
   SDK_VERSION
 } from '@firebase/app';
 
-import { FirebaseStorageImpl } from '../src/service';
+import { FirebaseStorageImpl } from './service';
 import {
   Component,
   ComponentType,
@@ -39,9 +40,10 @@ import { name, version } from '../package.json';
 
 import { FirebaseStorage } from './public-types';
 import { STORAGE_TYPE } from './constants';
+import { ConnectionPool } from './implementation/connectionPool';
 
 export * from './api';
-export * from './api.browser';
+export * from './api.node';
 
 function factory(
   container: ComponentContainer,
@@ -55,6 +57,7 @@ function factory(
     app,
     authProvider,
     appCheckProvider,
+    new ConnectionPool(),
     url,
     SDK_VERSION
   );

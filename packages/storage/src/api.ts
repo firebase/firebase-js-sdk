@@ -74,6 +74,7 @@ export {
   TaskEvent as _TaskEvent,
   TaskState as _TaskState
 } from './implementation/taskenums';
+export { StringFormat };
 
 /**
  * Uploads data to this object's location.
@@ -289,8 +290,6 @@ export function ref(
 export function _getChild(ref: StorageReference, childPath: string): Reference {
   return _getChildInternal(ref as Reference, childPath);
 }
-
-export { StringFormat } from './implementation/string';
 
 /**
  * Gets a {@link FirebaseStorage} instance for the given Firebase app.
