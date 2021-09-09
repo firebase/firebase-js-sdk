@@ -48,7 +48,7 @@ export type NestedUpdateFields<T extends Record<string, unknown>> =
  */
 export type ChildUpdateFields<T, K extends string> =
   // Only allow nesting for map values
-  T extends Record<string, any>
+  T extends Record<string, unknown>
     ? // Recurse into the map and add the prefix in front of each key
       // (e.g. Prefix 'bar.' to create: 'bar.baz' and 'bar.qux'.
       AddPrefixToKeys<K, UpdateData<T>>
