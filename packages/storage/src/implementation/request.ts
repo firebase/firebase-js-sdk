@@ -67,7 +67,7 @@ class NetworkRequest<T> implements Request<T> {
     private errorCallback_: RequestHandler<StorageError, StorageError> | null,
     private timeout_: number,
     private progressCallback_: ((p1: number, p2: number) => void) | null,
-      private connectionFactory_: () => Connection
+    private connectionFactory_: () => Connection
   ) {
     this.promise_ = new Promise((resolve, reject) => {
       this.resolve_ = resolve as (value?: T | PromiseLike<T>) => void;
