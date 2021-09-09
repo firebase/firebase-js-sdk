@@ -1,5 +1,17 @@
 # @firebase/firestore
 
+## 3.0.2
+
+### Patch Changes
+
+- [`8180a2b77`](https://github.com/firebase/firebase-js-sdk/commit/8180a2b77d331c4d01a000e35f51dc61af660eb7) [#5396](https://github.com/firebase/firebase-js-sdk/pull/5396) - Improved the error handling when opening IndexedDb fails in a Firefox private browsing session.
+
+* [`b8462f248`](https://github.com/firebase/firebase-js-sdk/commit/b8462f2489fb6f37691b136c9a5d453207dccc06) [#5434](https://github.com/firebase/firebase-js-sdk/pull/5434) - Fixes a deadlock during asynchronous initialization of both Firestore and Auth.
+
+- [`bf5772f64`](https://github.com/firebase/firebase-js-sdk/commit/bf5772f645207c24f3218914d27fdbe4e76584a2) [#5440](https://github.com/firebase/firebase-js-sdk/pull/5440) - Fix the implementation of `collection()` with multiple path segments.
+
+* [`dca28a10d`](https://github.com/firebase/firebase-js-sdk/commit/dca28a10dac4409c84d5a991094f7b5a4f3e5c7f) [#5461](https://github.com/firebase/firebase-js-sdk/pull/5461) - Temporary fix for a bug causing `initializeFirestore()` to not work with certain bundling pipelines.
+
 ## 3.0.1
 
 ### Patch Changes

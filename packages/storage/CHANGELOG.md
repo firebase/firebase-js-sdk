@@ -1,5 +1,11 @@
 #Unreleased
 
+## 0.8.2
+
+### Patch Changes
+
+- [`66d4a1e5d`](https://github.com/firebase/firebase-js-sdk/commit/66d4a1e5d8e1b8b952e21fc3190ec7076d8161ea) [#5453](https://github.com/firebase/firebase-js-sdk/pull/5453) - Store protocol and host separately on Storage service instance. Fixes a bug when generating url strings.
+
 ## 0.8.1
 
 ### Patch Changes
