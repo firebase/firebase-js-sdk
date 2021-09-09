@@ -150,6 +150,7 @@ const manglePrivatePropertiesOptions = {
     // This can be removed if the problem in the downstream library is fixed
     // or if terser's mangler provides an option to avoid mangling everything
     // that isn't a property.
+    // See issue: https://github.com/firebase/firebase-js-sdk/issues/5384
     reserved: ['_getProvider'],
     properties: {
       regex: /^__PRIVATE_/,
