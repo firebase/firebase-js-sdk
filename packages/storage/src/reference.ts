@@ -167,7 +167,6 @@ export function uploadBytes(
   );
   return ref.storage
     .makeRequestWithTokens(requestInfo, newConnection)
-    .then(request => request.getPromise())
     .then(finalMetadata => {
       return {
         metadata: finalMetadata,
@@ -291,7 +290,7 @@ async function listAllHelper(
  *      contains references to objects in this folder. `nextPageToken`
  *      can be used to get the rest of the results.
  */
-export async function list(
+export function list(
   ref: Reference,
   options?: ListOptions | null
 ): Promise<ListResult> {
@@ -313,9 +312,7 @@ export async function list(
     op.pageToken,
     op.maxResults
   );
-  return (
-    await ref.storage.makeRequestWithTokens(requestInfo, newConnection)
-  ).getPromise();
+  return ref.storage.makeRequestWithTokens(requestInfo, newConnection);
 }
 
 /**
@@ -325,16 +322,14 @@ export async function list(
  * @public
  * @param ref - StorageReference to get metadata from.
  */
-export async function getMetadata(ref: Reference): Promise<Metadata> {
+export function getMetadata(ref: Reference): Promise<Metadata> {
   ref._throwIfRoot('getMetadata');
   const requestInfo = requestsGetMetadata(
     ref.storage,
     ref._location,
     getMappings()
   );
-  return (
-    await ref.storage.makeRequestWithTokens(requestInfo, newConnection)
-  ).getPromise();
+  return ref.storage.makeRequestWithTokens(requestInfo, newConnection);
 }
 
 /**
@@ -348,7 +343,7 @@ export async function getMetadata(ref: Reference): Promise<Metadata> {
  *     with the new metadata for this object.
  *     See `firebaseStorage.Reference.prototype.getMetadata`
  */
-export async function updateMetadata(
+export function updateMetadata(
   ref: Reference,
   metadata: Partial<Metadata>
 ): Promise<Metadata> {
@@ -359,9 +354,7 @@ export async function updateMetadata(
     metadata,
     getMappings()
   );
-  return (
-    await ref.storage.makeRequestWithTokens(requestInfo, newConnection)
-  ).getPromise();
+  return ref.storage.makeRequestWithTokens(requestInfo, newConnection);
 }
 
 /**
@@ -370,15 +363,15 @@ export async function updateMetadata(
  * @returns A `Promise` that resolves with the download
  *     URL for this object.
  */
-export async function getDownloadURL(ref: Reference): Promise<string> {
+export function getDownloadURL(ref: Reference): Promise<string> {
   ref._throwIfRoot('getDownloadURL');
   const requestInfo = requestsGetDownloadUrl(
     ref.storage,
     ref._location,
     getMappings()
   );
-  return (await ref.storage.makeRequestWithTokens(requestInfo, newConnection))
-    .getPromise()
+  return ref.storage
+    .makeRequestWithTokens(requestInfo, newConnection)
     .then(url => {
       if (url === null) {
         throw noDownloadURL();
@@ -393,12 +386,10 @@ export async function getDownloadURL(ref: Reference): Promise<string> {
  * @param ref - StorageReference for object to delete.
  * @returns A `Promise` that resolves if the deletion succeeds.
  */
-export async function deleteObject(ref: Reference): Promise<void> {
+export function deleteObject(ref: Reference): Promise<void> {
   ref._throwIfRoot('deleteObject');
   const requestInfo = requestsDeleteObject(ref.storage, ref._location);
-  return (
-    await ref.storage.makeRequestWithTokens(requestInfo, newConnection)
-  ).getPromise();
+  return ref.storage.makeRequestWithTokens(requestInfo, newConnection);
 }
 
 /**

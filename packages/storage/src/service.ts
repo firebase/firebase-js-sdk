@@ -328,7 +328,7 @@ export class FirebaseStorageImpl implements FirebaseStorage {
   async makeRequestWithTokens<T>(
     requestInfo: RequestInfo<T>,
     requestFactory: () => Connection
-  ): Promise<Request<T>> {
+  ): Promise<T> {
     const [authToken, appCheckToken] = await Promise.all([
       this._getAuthToken(),
       this._getAppCheckToken()
@@ -339,6 +339,6 @@ export class FirebaseStorageImpl implements FirebaseStorage {
       requestFactory,
       authToken,
       appCheckToken
-    );
+    ).getPromise();
   }
 }
