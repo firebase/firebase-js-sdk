@@ -53,9 +53,6 @@ export class XhrConnection implements Connection {
     });
   }
 
-  /**
-   * @override
-   */
   send(
     url: string,
     method: string,
@@ -82,9 +79,6 @@ export class XhrConnection implements Connection {
     return this.sendPromise_;
   }
 
-  /**
-   * @override
-   */
   getErrorCode(): ErrorCode {
     if (!this.sent_) {
       throw internalError('cannot .getErrorCode() before sending');
@@ -92,9 +86,6 @@ export class XhrConnection implements Connection {
     return this.errorCode_;
   }
 
-  /**
-   * @override
-   */
   getStatus(): number {
     if (!this.sent_) {
       throw internalError('cannot .getStatus() before sending');
@@ -106,9 +97,6 @@ export class XhrConnection implements Connection {
     }
   }
 
-  /**
-   * @override
-   */
   getResponseText(): string {
     if (!this.sent_) {
       throw internalError('cannot .getResponseText() before sending');
@@ -116,33 +104,21 @@ export class XhrConnection implements Connection {
     return this.xhr_.responseText;
   }
 
-  /**
-   * Aborts the request.
-   * @override
-   */
+  /** Aborts the request. */
   abort(): void {
     this.xhr_.abort();
   }
 
-  /**
-   * @override
-   */
   getResponseHeader(header: string): string | null {
     return this.xhr_.getResponseHeader(header);
   }
 
-  /**
-   * @override
-   */
   addUploadProgressListener(listener: (p1: ProgressEvent) => void): void {
     if (this.xhr_.upload != null) {
       this.xhr_.upload.addEventListener('progress', listener);
     }
   }
 
-  /**
-   * @override
-   */
   removeUploadProgressListener(listener: (p1: ProgressEvent) => void): void {
     if (this.xhr_.upload != null) {
       this.xhr_.upload.removeEventListener('progress', listener);
