@@ -23,16 +23,16 @@
   "dependencies": {
     "api-extractor-model-me": "0.1.1",
     "@microsoft/tsdoc": "0.12.24",
-    "@rushstack/node-core-library": "3.39.0",
-    "@rushstack/ts-command-line": "4.7.8",
+    "@rushstack/node-core-library": "3.40.0",
+    "@rushstack/ts-command-line": "4.9.0",
     "colors": "~1.4.0",
     "resolve": "~1.20.0",
     "tslib": "^2.1.0",
     "js-yaml": "4.1.0"
   },
   "devDependencies": {
-    "@types/js-yaml": "4.0.0",
-    "@types/resolve": "1.20.0",
-    "mocha-chai-jest-snapshot": "1.1.1"
+    "@types/js-yaml": "4.0.3",
+    "@types/resolve": "1.20.1",
+    "mocha-chai-jest-snapshot": "1.1.3"
   }
 }

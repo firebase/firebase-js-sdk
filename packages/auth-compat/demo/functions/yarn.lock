@@ -212,6 +212,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/cors@^2.8.5":
+  version "2.8.12"
+  resolved "https://registry.npmjs.org/@types/cors/-/cors-2.8.12.tgz#6b2c510a7ad7039e98e7b8d3d6598f4359e5c080"
+  integrity sha512-vt+kDhq/M2ayberEtJcIN/hxXy1Pk+59g2FV/ZQceeaTyCtCucjL2Q7FXlFjtWn4n15KCr1NE2lNNFhp0lEThw==
+
 "@types/express-serve-static-core@*":
   version "4.17.18"
   resolved "https://registry.npmjs.org/@types/express-serve-static-core/-/express-serve-static-core-4.17.18.tgz#8371e260f40e0e1ca0c116a9afcd9426fa094c40"
@@ -702,11 +707,12 @@ firebase-admin@8.13.0:
     "@google-cloud/firestore" "^3.0.0"
     "@google-cloud/storage" "^4.1.2"
 
-firebase-functions@3.14.1:
-  version "3.14.1"
-  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.14.1.tgz#3ac5bc70989365874f41d06bca3b42a233dd6039"
-  integrity sha512-hL/qm+i5i1qKYmAFMlQ4mwRngDkP+3YT3F4E4Nd5Hj2QKeawBdZiMGgEt6zqTx08Zq04vHiSnSM0z75UJRSg6Q==
+firebase-functions@3.15.5:
+  version "3.15.5"
+  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.15.5.tgz#d0b9d719c88332048f59ee3ecda5755cb0dabda2"
+  integrity sha512-w5Twk7txwfPFasx+i25f0U4fLiSa06XvwOIoEwazGYLPOLe18b2jCDQ9X8aeJm8S7FZE40ODWGVTLtF6dX6xHg==
   dependencies:
+    "@types/cors" "^2.8.5"
     "@types/express" "4.17.3"
     cors "^2.8.5"
     express "^4.17.1"
