@@ -216,7 +216,7 @@ const argv = yargs.options({
       'includes the public APIs',
     require: true
   }
-}).argv;
+}).parseSync();
 
 void generateApi(
   argv.package,
