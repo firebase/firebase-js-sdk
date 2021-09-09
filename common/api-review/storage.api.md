@@ -84,7 +84,7 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     // (undocumented)
     _makeRequest<T>(requestInfo: RequestInfo_2<T>, requestFactory: () => Connection, authToken: string | null, appCheckToken: string | null): Request_2<T>;
     // (undocumented)
-    makeRequestWithTokens<T>(requestInfo: RequestInfo_2<T>, requestFactory: () => Connection): Promise<Request_2<T>>;
+    makeRequestWithTokens<T>(requestInfo: RequestInfo_2<T>, requestFactory: () => Connection): Promise<T>;
     _makeStorageReference(loc: _Location): _Reference;
     get maxOperationRetryTime(): number;
     set maxOperationRetryTime(time: number);
