@@ -30,9 +30,9 @@ import {
 } from './collections';
 import { MutableDocument } from './document';
 import {
-  applyMutationToLocalView,
-  applyMutationToRemoteDocument,
   Mutation,
+  mutationApplyToLocalView,
+  mutationApplyToRemoteDocument,
   mutationEquals,
   MutationResult
 } from './mutation';
@@ -85,7 +85,7 @@ export class MutationBatch {
       const mutation = this.mutations[i];
       if (mutation.key.isEqual(document.key)) {
         const mutationResult = mutationResults[i];
-        applyMutationToRemoteDocument(mutation, document, mutationResult);
+        mutationApplyToRemoteDocument(mutation, document, mutationResult);
       }
     }
   }
@@ -101,14 +101,14 @@ export class MutationBatch {
     // transform against a consistent set of values.
     for (const mutation of this.baseMutations) {
       if (mutation.key.isEqual(document.key)) {
-        applyMutationToLocalView(mutation, document, this.localWriteTime);
+        mutationApplyToLocalView(mutation, document, this.localWriteTime);
       }
     }
 
     // Second, apply all user-provided mutations.
     for (const mutation of this.mutations) {
       if (mutation.key.isEqual(document.key)) {
-        applyMutationToLocalView(mutation, document, this.localWriteTime);
+        mutationApplyToLocalView(mutation, document, this.localWriteTime);
       }
     }
   }

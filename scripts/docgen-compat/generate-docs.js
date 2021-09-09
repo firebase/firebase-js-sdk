@@ -32,7 +32,7 @@ const { api: apiType, source: sourceFile } = yargs
     type: 'string'
   })
   .option('source', {
-    default: `${repoPath}/packages/firebase/index.d.ts`,
+    default: `${repoPath}/packages/firebase/compat/index.d.ts`,
     describe: 'Typescript source file(s)',
     type: 'string'
   })

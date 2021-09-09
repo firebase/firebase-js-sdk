@@ -250,6 +250,15 @@ describe('collection', () => {
     });
   });
 
+  it('can be used relative to Firestore root with multiple arguments', () => {
+    return withTestDb(db => {
+      const result = collection(db, 'coll1/doc1', '/coll2', 'doc2/', '/coll3/');
+      expect(result).to.be.an.instanceOf(CollectionReference);
+      expect(result.id).to.equal('coll3');
+      expect(result.path).to.equal('coll1/doc1/coll2/doc2/coll3');
+    });
+  });
+
   it('can be used relative to collection', () => {
     return withTestDb(db => {
       const result = collection(collection(db, 'coll'), 'doc/subcoll');
@@ -268,12 +277,19 @@ describe('collection', () => {
     });
   });
 
-  it('can be used with multiple arguments', () => {
+  it('can be used relative to collection with multiple arguments', () => {
     return withTestDb(db => {
-      const result = collection(db, 'coll1/doc1', 'coll2');
+      const col = collection(db, 'coll1');
+      const result = collection(
+        col,
+        '/doc1/coll2/doc2/',
+        '/coll3',
+        'doc3/',
+        '/coll4/'
+      );
       expect(result).to.be.an.instanceOf(CollectionReference);
-      expect(result.id).to.equal('coll2');
-      expect(result.path).to.equal('coll1/doc1/coll2');
+      expect(result.id).to.equal('coll4');
+      expect(result.path).to.equal('coll1/doc1/coll2/doc2/coll3/doc3/coll4');
     });
   });
 

@@ -17,7 +17,7 @@
 
 import { ErrorCode, Connection } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
-import * as nodeFetch from 'node-fetch';
+import nodeFetch from 'node-fetch';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetch: typeof window.fetch = nodeFetch as any;

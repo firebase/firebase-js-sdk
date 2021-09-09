@@ -25,7 +25,7 @@ import {
 
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
-import { _assert, debugAssert, _createError } from '../../core/util/assert';
+import { _assert, debugAssert, _createError, _assertInstanceOf } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
 import { AuthInternal } from '../../model/auth';
@@ -83,12 +83,7 @@ export async function signInWithPopup(
   resolver?: PopupRedirectResolver
 ): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
-  _assert(
-    provider instanceof FederatedAuthProvider,
-    auth,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
-
+  _assertInstanceOf(auth, provider, FederatedAuthProvider);
   const resolverInternal = _withDefaultResolver(authInternal, resolver);
   const action = new PopupOperation(
     authInternal,
@@ -130,12 +125,7 @@ export async function reauthenticateWithPopup(
   resolver?: PopupRedirectResolver
 ): Promise<UserCredential> {
   const userInternal = getModularInstance(user) as UserInternal;
-  _assert(
-    provider instanceof FederatedAuthProvider,
-    userInternal.auth,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
-
+  _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   const action = new PopupOperation(
     userInternal.auth,
@@ -177,12 +167,7 @@ export async function linkWithPopup(
   resolver?: PopupRedirectResolver
 ): Promise<UserCredential> {
   const userInternal = getModularInstance(user) as UserInternal;
-  _assert(
-    provider instanceof FederatedAuthProvider,
-    userInternal.auth,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
-
+  _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
 
   const action = new PopupOperation(

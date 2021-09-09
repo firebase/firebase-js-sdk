@@ -21,9 +21,9 @@ import { FieldValue } from '../../../compat/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { MutableDocument } from '../../../src/model/document';
 import {
-  applyMutationToLocalView,
-  applyMutationToRemoteDocument,
-  extractMutationBaseValue,
+  mutationApplyToLocalView,
+  mutationApplyToRemoteDocument,
+  mutationExtractBaseValue,
   Mutation,
   MutationResult,
   Precondition
@@ -61,7 +61,7 @@ describe('Mutation', () => {
     const document = doc('collection/key', 0, docData);
 
     const set = setMutation('collection/key', { bar: 'bar-value' });
-    applyMutationToLocalView(set, document, timestamp);
+    mutationApplyToLocalView(set, document, timestamp);
     expect(document).to.deep.equal(
       doc('collection/key', 0, { bar: 'bar-value' }).setHasLocalMutations()
     );
@@ -75,7 +75,7 @@ describe('Mutation', () => {
       'foo.bar': 'new-bar-value'
     });
 
-    applyMutationToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(patch, document, timestamp);
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' },
@@ -94,7 +94,7 @@ describe('Mutation', () => {
       Precondition.none()
     );
 
-    applyMutationToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(patch, document, timestamp);
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' }
@@ -112,7 +112,7 @@ describe('Mutation', () => {
       Precondition.none()
     );
 
-    applyMutationToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(patch, document, timestamp);
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' }
@@ -128,7 +128,7 @@ describe('Mutation', () => {
       'foo.bar': FieldValue.delete()
     });
 
-    applyMutationToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(patch, document, timestamp);
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { baz: 'baz-value' }
@@ -145,7 +145,7 @@ describe('Mutation', () => {
       'foo.bar': 'new-bar-value'
     });
 
-    applyMutationToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(patch, document, timestamp);
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' },
@@ -157,7 +157,7 @@ describe('Mutation', () => {
   it('patching a NoDocument yields a NoDocument', () => {
     const document = deletedDoc('collection/key', 0);
     const patch = patchMutation('collection/key', { foo: 'bar' });
-    applyMutationToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(patch, document, timestamp);
     expect(document).to.deep.equal(deletedDoc('collection/key', 0));
   });
 
@@ -169,7 +169,7 @@ describe('Mutation', () => {
       'foo.bar': FieldValue.serverTimestamp()
     });
 
-    applyMutationToLocalView(transform, document, timestamp);
+    mutationApplyToLocalView(transform, document, timestamp);
 
     // Server timestamps aren't parsed, so we manually insert it.
     const data = wrapObject({
@@ -334,7 +334,7 @@ describe('Mutation', () => {
 
     for (const transformData of transforms) {
       const transform = patchMutation('collection/key', transformData);
-      applyMutationToLocalView(transform, document, timestamp);
+      mutationApplyToLocalView(transform, document, timestamp);
     }
 
     const expectedDoc = doc(
@@ -361,7 +361,7 @@ describe('Mutation', () => {
         }
       }
     ]);
-    applyMutationToRemoteDocument(transform, document, mutationResult);
+    mutationApplyToRemoteDocument(transform, document, mutationResult);
 
     expect(document).to.deep.equal(
       doc('collection/key', 1, {
@@ -381,7 +381,7 @@ describe('Mutation', () => {
 
     // Server just sends null transform results for array operations.
     const mutationResult = new MutationResult(version(1), [null, null]);
-    applyMutationToRemoteDocument(transform, document, mutationResult);
+    mutationApplyToRemoteDocument(transform, document, mutationResult);
 
     expect(document).to.deep.equal(
       doc('collection/key', 1, {
@@ -462,7 +462,7 @@ describe('Mutation', () => {
     const mutationResult = new MutationResult(version(1), [
       { integerValue: 3 }
     ]);
-    applyMutationToRemoteDocument(transform, document, mutationResult);
+    mutationApplyToRemoteDocument(transform, document, mutationResult);
 
     expect(document).to.deep.equal(
       doc('collection/key', 1, { sum: 3 }).setHasCommittedMutations()
@@ -473,7 +473,7 @@ describe('Mutation', () => {
     const document = doc('collection/key', 0, { foo: 'bar' });
 
     const mutation = deleteMutation('collection/key');
-    applyMutationToLocalView(mutation, document, Timestamp.now());
+    mutationApplyToLocalView(mutation, document, Timestamp.now());
     expect(document).to.deep.equal(deletedDoc('collection/key', 0));
   });
 
@@ -482,7 +482,7 @@ describe('Mutation', () => {
 
     const docSet = setMutation('collection/key', { foo: 'new-bar' });
     const setResult = mutationResult(4);
-    applyMutationToRemoteDocument(docSet, document, setResult);
+    mutationApplyToRemoteDocument(docSet, document, setResult);
     expect(document).to.deep.equal(
       doc('collection/key', 4, { foo: 'new-bar' }).setHasCommittedMutations()
     );
@@ -493,7 +493,7 @@ describe('Mutation', () => {
 
     const mutation = patchMutation('collection/key', { foo: 'new-bar' });
     const result = mutationResult(5);
-    applyMutationToRemoteDocument(mutation, document, result);
+    mutationApplyToRemoteDocument(mutation, document, result);
     expect(document).to.deep.equal(
       doc('collection/key', 5, { foo: 'new-bar' }).setHasCommittedMutations()
     );
@@ -506,7 +506,7 @@ describe('Mutation', () => {
     expected: MutableDocument
   ): void {
     const documentCopy = base.clone();
-    applyMutationToRemoteDocument(mutation, documentCopy, mutationResult);
+    mutationApplyToRemoteDocument(mutation, documentCopy, mutationResult);
     expect(documentCopy).to.deep.equal(expected);
   }
 
@@ -552,13 +552,13 @@ describe('Mutation', () => {
     const baseDoc = doc('collection/key', 0, data);
 
     const set = setMutation('collection/key', { foo: 'bar' });
-    expect(extractMutationBaseValue(set, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(set, baseDoc)).to.be.null;
 
     const patch = patchMutation('collection/key', { foo: 'bar' });
-    expect(extractMutationBaseValue(patch, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(patch, baseDoc)).to.be.null;
 
     const deleter = deleteMutation('collection/key');
-    expect(extractMutationBaseValue(deleter, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(deleter, baseDoc)).to.be.null;
   });
 
   it('extracts null base value for ServerTimestamp', () => {
@@ -572,7 +572,7 @@ describe('Mutation', () => {
 
     // Server timestamps are idempotent and don't have base values.
     const transform = patchMutation('collection/key', allTransforms);
-    expect(extractMutationBaseValue(transform, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(transform, baseDoc)).to.be.null;
   });
 
   it('extracts base value for increment', () => {
@@ -610,7 +610,7 @@ describe('Mutation', () => {
       missing: 0,
       nested: { double: 42.0, long: 42, text: 0, map: 0, missing: 0 }
     });
-    const actualBaseValue = extractMutationBaseValue(transform, baseDoc);
+    const actualBaseValue = mutationExtractBaseValue(transform, baseDoc);
 
     expect(expectedBaseValue.isEqual(actualBaseValue!)).to.be.true;
   });
@@ -621,8 +621,8 @@ describe('Mutation', () => {
     const increment = { sum: FieldValue.increment(1) };
     const transform = setMutation('collection/key', increment);
 
-    applyMutationToLocalView(transform, document, Timestamp.now());
-    applyMutationToLocalView(transform, document, Timestamp.now());
+    mutationApplyToLocalView(transform, document, Timestamp.now());
+    mutationApplyToLocalView(transform, document, Timestamp.now());
 
     expect(document.isFoundDocument()).to.be.true;
     expect(document.data.field(field('sum'))).to.deep.equal(wrap(2));

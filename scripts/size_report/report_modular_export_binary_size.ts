@@ -33,7 +33,7 @@ interface ModularExportBinarySizeRequestBody extends RequestBody {
 
 async function generateReport(): Promise<ModularExportBinarySizeRequestBody> {
   let allModulesLocation: string[] = await mapWorkspaceToPackages([
-    `${projectRoot}/packages-exp/*`
+    `${projectRoot}/packages/*`
   ]);
 
   allModulesLocation = allModulesLocation.filter(path => {

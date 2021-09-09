@@ -122,10 +122,12 @@ export class ContextProvider {
   async getAppCheckToken(): Promise<string | null> {
     if (this.appCheck) {
       const result = await this.appCheck.getToken();
-      // If getToken() fails, it will still return a dummy token that also has
-      // an error field containing the error message. We will send any token
-      // provided here and show an error if/when it is rejected by the functions
-      // endpoint.
+      if (result.error) {
+        // Do not send the App Check header to the functions endpoint if
+        // there was an error from the App Check exchange endpoint. The App
+        // Check SDK will already have logged the error to console.
+        return null;
+      }
       return result.token;
     }
     return null;

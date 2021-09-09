@@ -25,7 +25,6 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import copy from 'rollup-plugin-copy';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
-import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 import pkg from './lite/package.json';
 
@@ -42,7 +41,7 @@ const nodePlugins = function () {
       },
       cacheDir: tmp.dirSync(),
       abortOnError: false,
-      transformers: [util.removeAssertTransformer, importPathTransformer]
+      transformers: [util.removeAssertTransformer]
     }),
     json({ preferConst: true }),
     copy({
@@ -70,10 +69,7 @@ const browserPlugins = function () {
       },
       cacheDir: tmp.dirSync(),
       abortOnError: false,
-      transformers: [
-        util.removeAssertAndPrefixInternalTransformer,
-        importPathTransformer
-      ]
+      transformers: [util.removeAssertAndPrefixInternalTransformer]
     }),
     json({ preferConst: true }),
     terser(util.manglePrivatePropertiesOptions)

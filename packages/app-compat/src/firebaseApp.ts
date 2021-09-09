@@ -59,6 +59,9 @@ export interface _FirebaseApp {
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
+ * 
+ * marked as internal because it references internal types exported from @firebase/app
+ * @internal
  */
 export class FirebaseAppImpl implements Compat<_FirebaseAppExp>, _FirebaseApp {
   private container: ComponentContainer;

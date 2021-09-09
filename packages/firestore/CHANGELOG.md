@@ -1,5 +1,13 @@
 # @firebase/firestore
 
+## 3.0.1
+
+### Patch Changes
+
+- [`cd15df0d1`](https://github.com/firebase/firebase-js-sdk/commit/cd15df0d1f51110f448e4284244b06be8d37f1c3) [#5400](https://github.com/firebase/firebase-js-sdk/pull/5400) (fixes [#2903](https://github.com/firebase/firebase-js-sdk/issues/2903)) - Make firestore/lite available in nodejs
+
+* [`6163bb282`](https://github.com/firebase/firebase-js-sdk/commit/6163bb282b4e3b6fe5f405c3b3e35d5691d41677) [#5399](https://github.com/firebase/firebase-js-sdk/pull/5399) - Addressed incorrect use of the `node-fetch` polyfill
+
 ## 3.0.0
 
 ### Major Changes

@@ -16,7 +16,7 @@
  */
 import { expect, use } from 'chai';
 import { AnalyticsService } from './service';
-import { firebase, FirebaseApp } from '@firebase/app-compat';
+import firebase, { FirebaseApp } from '@firebase/app-compat';
 import * as analyticsExp from '@firebase/analytics';
 import { stub, match, SinonStub } from 'sinon';
 import * as sinonChai from 'sinon-chai';

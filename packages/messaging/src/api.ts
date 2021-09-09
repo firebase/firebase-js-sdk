@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ERROR_FACTORY, ErrorCode } from './util/errors';
 import { FirebaseApp, _getProvider, getApp } from '@firebase/app';
 import {
   GetTokenOptions,
@@ -27,15 +28,14 @@ import {
   Unsubscribe,
   getModularInstance
 } from '@firebase/util';
+import { isSwSupported, isWindowSupported } from './api/isSupported';
 
 import { MessagingService } from './messaging-service';
 import { deleteToken as _deleteToken } from './api/deleteToken';
 import { getToken as _getToken } from './api/getToken';
-import { isSwSupported, isWindowSupported } from './api/isSupported';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
 import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryMetricsExportedToBigQueryEnabled';
-import { ERROR_FACTORY, ErrorCode } from './util/errors';
 
 /**
  * Retrieves a Firebase Cloud Messaging instance.
@@ -181,7 +181,7 @@ export function onBackgroundMessage(
  *
  * @public
  */
-export function setDeliveryMetricsExportedToBigQueryEnabled(
+export function experimentalSetDeliveryMetricsExportedToBigQueryEnabled(
   messaging: Messaging,
   enable: boolean
 ): void {

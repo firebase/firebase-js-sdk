@@ -24,8 +24,8 @@
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ../../scripts/exp/use_typings.js ./dist/app-public.d.ts",
-    "typings:internal": "node ../../scripts/exp/use_typings.js ./dist/app.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/app-public.d.ts",
+    "typings:internal": "node ../../scripts/build/use_typings.js ./dist/app.d.ts"
   },
   "dependencies": {
     "@firebase/util": "1.3.0",
