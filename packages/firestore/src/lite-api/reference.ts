@@ -76,14 +76,11 @@ export type WithFieldValue<T> = T extends Primitive
  * reference nested fields within the document. FieldValues can be passed in
  * as property values.
  */
-export type UpdateData<T> = T extends undefined
-  ? never
-  : T extends Primitive
+export type UpdateData<T> = T extends Primitive
   ? T
   : T extends {}
   ? { [K in keyof T]?: UpdateData<T[K]> | FieldValue } & NestedUpdateFields<T>
   : Partial<T>;
-
 /**
  * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link
  * @firebase/firestore/lite#(WriteBatch.set:1)} and {@link @firebase/firestore/lite#(Transaction.set:1)} calls. These calls can be

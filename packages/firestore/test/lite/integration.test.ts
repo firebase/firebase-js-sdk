@@ -1585,6 +1585,63 @@ describe('withConverter() support', () => {
         });
       });
 
+      it('supports union fields', () => {
+        interface TestObjectUnion {
+          optionalStr?: string;
+          nested?:
+            | {
+                requiredStr: string;
+              }
+            | { requiredStrObject: string };
+        }
+
+        const testConverterUnion = {
+          toFirestore(testObj: WithFieldValue<TestObjectUnion>) {
+            return { ...testObj };
+          },
+          fromFirestore(snapshot: QueryDocumentSnapshot): TestObjectUnion {
+            const data = snapshot.data();
+            return {
+              optionalStr: data.optionalStr,
+              nested: data.nested
+            };
+          }
+        };
+
+        return withTestDocAndInitialData(initialData, async docRef => {
+          const testDocRef: DocumentReference<TestObjectUnion> =
+            docRef.withConverter(testConverterUnion);
+
+          await updateDoc(testDocRef, {
+            optionalStr: 'foo'
+          });
+          await updateDoc(testDocRef, {
+            'optionalStr': 'foo'
+          });
+
+          await updateDoc(testDocRef, {
+            nested: {
+              requiredStr: 'foo'
+            }
+          });
+          await updateDoc(testDocRef, {
+            'nested.requiredStr': 'foo'
+          });
+          await updateDoc(testDocRef, {
+            // @ts-expect-error
+            'nested.requiredStr': 1
+          });
+          await updateDoc(testDocRef, {
+            'nested.requiredStrObject': 'foo'
+          });
+
+          await updateDoc(testDocRef, {
+            // @ts-expect-error
+            'nested.requiredStringObject': 1
+          });
+        });
+      });
+
       it('checks for nonexistent fields', () => {
         return withTestDocAndInitialData(initialData, async docRef => {
           const testDocRef: DocumentReference<TestObject> =
