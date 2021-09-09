@@ -34,24 +34,26 @@ export type Primitive = string | number | boolean | undefined | null;
 export type NestedUpdateFields<T extends Record<string, unknown>> =
   UnionToIntersection<
     {
-      // Check that T[K] extends Record to only allow nesting for map values.
-      // Union with `undefined` to allow for optional nested fields
       [K in keyof T & string]: ChildUpdateFields<T[K], K>;
     }[keyof T & string] // Also include the generated prefix-string keys.
   >;
 
 /**
- * Helper for calculating the nested fields for a given type T. This is needed
+ * Helper for calculating the nested fields for a given type T1. This is needed
  * to distribute union types such as `undefined | {...}` (happens for optional
  * props) or `{a: A} | {b: B}`.
- * https://www.typescriptlang.org/docs/handbook/advanced-types.html#distributive-conditional-types
+ *
+ * In this use case, `T1` is used to distribute the union types of `T[K]` on
+ * `Record`, since `T[K]` is evaluated as an expression and not distributed.
+ *
+ * See https://www.typescriptlang.org/docs/handbook/advanced-types.html#distributive-conditional-types
  */
-export type ChildUpdateFields<T, K extends string> =
+export type ChildUpdateFields<T1, K extends string> =
   // Only allow nesting for map values
-  T extends Record<string, unknown>
+  T1 extends Record<string, unknown>
     ? // Recurse into the map and add the prefix in front of each key
       // (e.g. Prefix 'bar.' to create: 'bar.baz' and 'bar.qux'.
-      AddPrefixToKeys<K, UpdateData<T>>
+      AddPrefixToKeys<K, UpdateData<T1>>
     : // UpdateData is always a map of values.
       never;
 

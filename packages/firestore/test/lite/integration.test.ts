@@ -1592,7 +1592,7 @@ describe('withConverter() support', () => {
             | {
                 requiredStr: string;
               }
-            | { requiredStrObject: string };
+            | { requiredNumber: number };
         }
 
         const testConverterUnion = {
@@ -1624,6 +1624,7 @@ describe('withConverter() support', () => {
               requiredStr: 'foo'
             }
           });
+
           await updateDoc(testDocRef, {
             'nested.requiredStr': 'foo'
           });
@@ -1631,13 +1632,14 @@ describe('withConverter() support', () => {
             // @ts-expect-error
             'nested.requiredStr': 1
           });
+
           await updateDoc(testDocRef, {
-            'nested.requiredStrObject': 'foo'
+            'nested.requiredNumber': 1
           });
 
           await updateDoc(testDocRef, {
             // @ts-expect-error
-            'nested.requiredStringObject': 1
+            'nested.requiredNumber': 'foo'
           });
         });
       });
