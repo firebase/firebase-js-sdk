@@ -322,13 +322,13 @@ describe('Firebase Storage > Reference', () => {
   describe('Argument verification', () => {
     describe('list', () => {
       it('throws on invalid maxResults', async () => {
-        await expect(list(child, { maxResults: 0 })).to.be.rejectedWith(
+        expect(() => list(child, { maxResults: 0 })).to.throw(
           'storage/invalid-argument'
         );
-        await expect(list(child, { maxResults: -4 })).to.be.rejectedWith(
+        expect(() => list(child, { maxResults: -4 })).to.throw(
           'storage/invalid-argument'
         );
-        await expect(list(child, { maxResults: 1001 })).to.be.rejectedWith(
+        expect(() => list(child, { maxResults: 1001 })).to.throw(
           'storage/invalid-argument'
         );
       });
@@ -352,22 +352,22 @@ describe('Firebase Storage > Reference', () => {
       );
     });
     it('deleteObject throws', async () => {
-      await expect(deleteObject(root)).to.be.rejectedWith(
+      expect(() => deleteObject(root)).to.throw(
         'storage/invalid-root-operation'
       );
     });
     it('getMetadata throws', async () => {
-      await expect(getMetadata(root)).to.be.rejectedWith(
+      expect(() => getMetadata(root)).to.throw(
         'storage/invalid-root-operation'
       );
     });
     it('updateMetadata throws', async () => {
-      await expect(updateMetadata(root, {} as Metadata)).to.be.rejectedWith(
+      expect(() => updateMetadata(root, {} as Metadata)).to.throw(
         'storage/invalid-root-operation'
       );
     });
     it('getDownloadURL throws', async () => {
-      await expect(getDownloadURL(root)).to.be.rejectedWith(
+      expect(() => getDownloadURL(root)).to.throw(
         'storage/invalid-root-operation'
       );
     });
