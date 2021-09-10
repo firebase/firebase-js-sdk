@@ -32,7 +32,8 @@ import {
   getResumableUploadStatus,
   ResumableUploadStatus,
   continueResumableUpload,
-  RESUMABLE_UPLOAD_CHUNK_SIZE
+  RESUMABLE_UPLOAD_CHUNK_SIZE,
+  getBytes
 } from '../../src/implementation/requests';
 import { makeUrl } from '../../src/implementation/url';
 import { unknown, StorageErrorCode } from '../../src/implementation/error';
@@ -178,12 +179,14 @@ describe('Firebase Storage > Requests', () => {
     }
   }
 
-  function checkMetadataHandler(requestInfo: RequestInfo<Metadata>): void {
+  function checkMetadataHandler(
+    requestInfo: RequestInfo<string, Metadata>
+  ): void {
     const metadata = requestInfo.handler(fakeXhrIo({}), serverResourceString);
     assert.deepEqual(metadata, metadataFromServerResource);
   }
 
-  function checkNoOpHandler<T>(requestInfo: RequestInfo<T>): void {
+  function checkNoOpHandler<T>(requestInfo: RequestInfo<string, T>): void {
     try {
       requestInfo.handler(fakeXhrIo({}), '');
     } catch (e) {
@@ -343,6 +346,14 @@ describe('Firebase Storage > Requests', () => {
     );
     const url = requestInfo.handler(fakeXhrIo({}), serverResourceString);
     assert.equal(url, downloadUrlFromServerResource);
+  });
+  it('getBytes handler', () => {
+    const requestInfo = getBytes(storageService, locationNormal);
+    const bytes = requestInfo.handler(
+      fakeXhrIo({}),
+      new Uint8Array([1, 128, 255])
+    );
+    assert.deepEqual(new Uint8Array(bytes), new Uint8Array([1, 128, 255]));
   });
   it('updateMetadata requestinfo', () => {
     const maps = [

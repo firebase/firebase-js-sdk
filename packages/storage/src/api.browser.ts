@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,30 @@
  * limitations under the License.
  */
 
-// TODO(mrschmidt): Add getBlob()
+import { StorageReference } from './public-types';
+import { Reference, getBlobInternal } from '../src/reference';
+import { getModularInstance } from '@firebase/util';
 
-export {};
+/**
+ * Downloads the data at the object's location. Returns an error if the object
+ * is not found.
+ *
+ * To use this functionality, you have to whitelist your app's origin in your
+ * Cloud Storage bucket. See also
+ * https://cloud.google.com/storage/docs/configuring-cors
+ *
+ * This API is not available in Node.
+ *
+ * @public
+ * @param ref - StorageReference where data should be download.
+ * @param maxDownloadSizeBytes - If set, the maximum allowed size in bytes to
+ * retrieve.
+ * @returns A Promise that resolves with a Blob containing the object's bytes
+ */
+export function getBlob(
+  ref: StorageReference,
+  maxDownloadSizeBytes?: number
+): Promise<Blob> {
+  ref = getModularInstance(ref);
+  return getBlobInternal(ref as Reference, maxDownloadSizeBytes);
+}

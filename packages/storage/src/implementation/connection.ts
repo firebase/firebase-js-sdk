@@ -21,8 +21,12 @@ export type Headers = Record<string, string>;
 /**
  * A lightweight wrapper around XMLHttpRequest with a
  * goog.net.XhrIo-like interface.
+ *
+ * ResponseType is generally either `string`, `ArrayBuffer` or `ReadableSteam`.
+ * You can create a new connection by invoking `newTextConnection()`,
+ * `newBytesConnection()` or `newStreamConnection()`.
  */
-export interface Connection {
+export interface Connection<ResponseType> {
   send(
     url: string,
     method: string,
@@ -34,7 +38,9 @@ export interface Connection {
 
   getStatus(): number;
 
-  getResponseText(): string;
+  getResponse(): ResponseType;
+
+  getErrorText(): string;
 
   /**
    * Abort the request.

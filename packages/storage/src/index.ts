@@ -27,7 +27,7 @@ import {
   SDK_VERSION
 } from '@firebase/app';
 
-import { FirebaseStorageImpl } from '../src/service';
+import { FirebaseStorageImpl } from './service';
 import {
   Component,
   ComponentType,

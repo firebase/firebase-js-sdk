@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,26 @@
  * limitations under the License.
  */
 
-// TODO(mrschmidt): Add getStream()
+import { StorageReference } from './public-types';
+import { Reference, getStreamInternal } from '../src/reference';
+import { getModularInstance } from '@firebase/util';
 
-export {};
+/**
+ * Downloads the data at the object's location. Raises an error event if the
+ * object is not found.
+ *
+ * This API is only available in Node.
+ *
+ * @public
+ * @param ref - StorageReference where data should be download.
+ * @param maxDownloadSizeBytes - If set, the maximum allowed size in bytes to
+ * retrieve.
+ * @returns A stream with the object's data as bytes
+ */
+export function getStream(
+  ref: StorageReference,
+  maxDownloadSizeBytes?: number
+): NodeJS.ReadableStream {
+  ref = getModularInstance(ref);
+  return getStreamInternal(ref as Reference, maxDownloadSizeBytes);
+}

@@ -21,11 +21,6 @@ export function connectStorageEmulator(storage: FirebaseStorage, host: string, p
     mockUserToken?: EmulatorMockTokenOptions | string;
 }): void;
 
-// Warning: (ae-forgotten-export) The symbol "StringData" needs to be exported by the entry point index.d.ts
-//
-// @internal (undocumented)
-export function _dataFromString(format: StringFormat, stringData: string): StringData;
-
 // @public
 export function deleteObject(ref: StorageReference): Promise<void>;
 
@@ -53,51 +48,6 @@ export interface FirebaseStorage extends _FirebaseService {
     maxUploadRetryTime: number;
 }
 
-// @internal
-export class _FirebaseStorageImpl implements FirebaseStorage {
-    constructor(
-    app: FirebaseApp, _authProvider: Provider<FirebaseAuthInternalName>,
-    _appCheckProvider: Provider<AppCheckInternalComponentName>,
-    _url?: string | undefined, _firebaseVersion?: string | undefined);
-    readonly app: FirebaseApp;
-    // (undocumented)
-    readonly _appCheckProvider: Provider<AppCheckInternalComponentName>;
-    // (undocumented)
-    protected readonly _appId: string | null;
-    // (undocumented)
-    readonly _authProvider: Provider<FirebaseAuthInternalName>;
-    // (undocumented)
-    _bucket: _Location | null;
-    _delete(): Promise<void>;
-    // (undocumented)
-    readonly _firebaseVersion?: string | undefined;
-    // (undocumented)
-    _getAppCheckToken(): Promise<string | null>;
-    // (undocumented)
-    _getAuthToken(): Promise<string | null>;
-    get host(): string;
-    set host(host: string);
-    // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Connection" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "Request" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    _makeRequest<T>(requestInfo: RequestInfo_2<T>, requestFactory: () => Connection, authToken: string | null, appCheckToken: string | null): Request_2<T>;
-    // (undocumented)
-    makeRequestWithTokens<T>(requestInfo: RequestInfo_2<T>, requestFactory: () => Connection): Promise<Request_2<T>>;
-    _makeStorageReference(loc: _Location): _Reference;
-    get maxOperationRetryTime(): number;
-    set maxOperationRetryTime(time: number);
-    get maxUploadRetryTime(): number;
-    set maxUploadRetryTime(time: number);
-    // (undocumented)
-    _overrideAuthToken?: string;
-    // (undocumented)
-    _protocol: string;
-    // (undocumented)
-    readonly _url?: string | undefined;
-}
-
 // @public
 export interface FullMetadata extends UploadMetadata {
     bucket: string;
@@ -112,6 +62,12 @@ export interface FullMetadata extends UploadMetadata {
     updated: string;
 }
 
+// @public
+export function getBlob(ref: StorageReference, maxDownloadSizeBytes?: number): Promise<Blob>;
+
+// @public
+export function getBytes(ref: StorageReference, maxDownloadSizeBytes?: number): Promise<ArrayBuffer>;
+
 // @internal (undocumented)
 export function _getChild(ref: StorageReference, childPath: string): _Reference;
 
@@ -123,14 +79,6 @@ export function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 
 // @public
 export function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStorage;
-
-// Warning: (ae-forgotten-export) The symbol "StorageError" needs to be exported by the entry point index.d.ts
-//
-// @internal (undocumented)
-export function _invalidArgument(message: string): StorageError_2;
-
-// @internal (undocumented)
-export function _invalidRootOperation(name: string): StorageError_2;
 
 // @public
 export function list(ref: StorageReference, options?: ListOptions): Promise<ListResult>;
@@ -176,19 +124,25 @@ export function ref(storage: FirebaseStorage, url?: string): StorageReference;
 // @public
 export function ref(storageOrRef: FirebaseStorage | StorageReference, path?: string): StorageReference;
 
-// @internal
+// @public (undocumented)
 export class _Reference {
-    constructor(_service: _FirebaseStorageImpl, location: string | _Location);
+    // Warning: (ae-forgotten-export) The symbol "FirebaseStorageImpl" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "Location" which is marked as @internal
+    constructor(_service: FirebaseStorageImpl, location: string | _Location);
     get bucket(): string;
     get fullPath(): string;
+    // Warning: (ae-incompatible-release-tags) The symbol "_location" is marked as @public, but its signature references "Location" which is marked as @internal
+    //
     // (undocumented)
     _location: _Location;
     get name(): string;
+    // Warning: (ae-incompatible-release-tags) The symbol "_newRef" is marked as @public, but its signature references "Location" which is marked as @internal
+    //
     // (undocumented)
-    protected _newRef(service: _FirebaseStorageImpl, location: _Location): _Reference;
+    protected _newRef(service: FirebaseStorageImpl, location: _Location): _Reference;
     get parent(): _Reference | null;
     get root(): _Reference;
-    get storage(): _FirebaseStorageImpl;
+    get storage(): FirebaseStorageImpl;
     _throwIfRoot(name: string): void;
     // @override
     toString(): string;
@@ -233,41 +187,10 @@ export interface StorageReference {
 }
 
 // @public
-export type StringFormat = typeof StringFormat[keyof typeof StringFormat];
-
-// @public
-export const StringFormat: {
-    readonly RAW: "raw";
-    readonly BASE64: "base64";
-    readonly BASE64URL: "base64url";
-    readonly DATA_URL: "data_url";
-};
-
-// @public
 export type TaskEvent = 'state_changed';
-
-// @internal
-export type _TaskEvent = string;
-
-// @internal
-export const _TaskEvent: {
-    STATE_CHANGED: string;
-};
 
 // @public
 export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
-
-// @internal
-export type _TaskState = typeof _TaskState[keyof typeof _TaskState];
-
-// @internal
-export const _TaskState: {
-    readonly RUNNING: "running";
-    readonly PAUSED: "paused";
-    readonly SUCCESS: "success";
-    readonly CANCELED: "canceled";
-    readonly ERROR: "error";
-};
 
 // @public
 export function updateMetadata(ref: StorageReference, metadata: SettableMetadata): Promise<FullMetadata>;
@@ -289,6 +212,8 @@ export interface UploadResult {
     readonly ref: StorageReference;
 }
 
+// Warning: (ae-forgotten-export) The symbol "StringFormat" needs to be exported by the entry point index.d.ts
+//
 // @public
 export function uploadString(ref: StorageReference, value: string, format?: StringFormat, metadata?: UploadMetadata): Promise<UploadResult>;
 
@@ -311,9 +236,11 @@ export class _UploadTask {
     catch<T>(onRejected: (p1: StorageError_2) => T | Promise<T>): Promise<T>;
     // Warning: (ae-forgotten-export) The symbol "Metadata" needs to be exported by the entry point index.d.ts
     _metadata: Metadata | null;
+    // Warning: (ae-forgotten-export) The symbol "TaskEvent" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "StorageError" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Unsubscribe" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Subscribe" needs to be exported by the entry point index.d.ts
-    on(type: _TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: StorageError_2) => unknown) | null, completed?: Unsubscribe_2 | null): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot>;
+    on(type: TaskEvent_2, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: StorageError_2) => unknown) | null, completed?: Unsubscribe_2 | null): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot>;
     pause(): boolean;
     resume(): boolean;
     get snapshot(): UploadTaskSnapshot;
