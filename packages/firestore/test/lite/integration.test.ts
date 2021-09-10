@@ -1585,6 +1585,42 @@ describe('withConverter() support', () => {
         });
       });
 
+      it('supports null fields', () => {
+        interface TestObjectOptional {
+          optionalStr?: string;
+          nested?: {
+            strOrNull: string | null;
+          };
+        }
+
+        const testConverterOptional = {
+          toFirestore(testObj: WithFieldValue<TestObjectOptional>) {
+            return { ...testObj };
+          },
+          fromFirestore(snapshot: QueryDocumentSnapshot): TestObjectOptional {
+            const data = snapshot.data();
+            return {
+              optionalStr: data.optionalStr,
+              nested: data.nested
+            };
+          }
+        };
+
+        return withTestDocAndInitialData(initialData, async docRef => {
+          const testDocRef: DocumentReference<TestObjectOptional> =
+            docRef.withConverter(testConverterOptional);
+
+          await updateDoc(testDocRef, {
+            nested: {
+              strOrNull: null
+            }
+          });
+          await updateDoc(testDocRef, {
+            'nested.strOrNull': null
+          });
+        });
+      });
+
       it('supports union fields', () => {
         interface TestObjectUnion {
           optionalStr?: string;
@@ -1613,13 +1649,6 @@ describe('withConverter() support', () => {
             docRef.withConverter(testConverterUnion);
 
           await updateDoc(testDocRef, {
-            optionalStr: 'foo'
-          });
-          await updateDoc(testDocRef, {
-            'optionalStr': 'foo'
-          });
-
-          await updateDoc(testDocRef, {
             nested: {
               requiredStr: 'foo'
             }
@@ -1640,6 +1669,10 @@ describe('withConverter() support', () => {
           await updateDoc(testDocRef, {
             // @ts-expect-error
             'nested.requiredNumber': 'foo'
+          });
+          await updateDoc(testDocRef, {
+            // @ts-expect-error
+            'nested.requiredNumber': null
           });
         });
       });
