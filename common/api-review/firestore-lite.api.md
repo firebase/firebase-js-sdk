@@ -33,7 +33,7 @@ export class Bytes {
 }
 
 // @public
-export type ChildUpdateFields<T1, K extends string> = T1 extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<T1>> : never;
+export type ChildUpdateFields<K extends string, V> = V extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<V>> : never;
 
 // @public
 export function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
@@ -194,7 +194,7 @@ export { LogLevel }
 
 // @public
 export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToIntersection<{
-    [K in keyof T & string]: ChildUpdateFields<T[K], K>;
+    [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
 }[keyof T & string]>;
 
 // @public
