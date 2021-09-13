@@ -1,12 +1,10 @@
 name: Release
 
-on:
-  push:
-    branches:
-      - release
+on: push
 
 jobs:
   release:
+    if: github.ref == 'refs/heads/release' || endsWith(github.ref, '-releasebranch')
     name: Release
     runs-on: ubuntu-latest
     steps:
