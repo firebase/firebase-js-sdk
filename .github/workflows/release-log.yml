@@ -19,4 +19,4 @@ jobs:
           node-version: 14.x
 
       - name: Get PR number and send to tracker.
-        run: npx ts-node-script scripts/ci/log-changesets.ts
+        run: npx ts-node scripts/ci/log-changesets.ts
