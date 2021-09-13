@@ -59,7 +59,7 @@ async function logChangesets() {
   };
 
   return new Promise((resolve, reject) => {
-    console.log(`Logging PR ${data.pr} with version ${data.version}.`)
+    console.log(`Logging PR ${data.pr} with version ${data.version}.`);
     const req = https.request(options, res => {
       res.on('data', d => {
         process.stdout.write(d);
