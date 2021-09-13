@@ -28,7 +28,11 @@ async function logChangesets() {
   console.log(prPayload.pull_request.number);
   console.log(prPayload.pull_request.body);
 
-  // if (prPayload.pull_request.title !== 'Version Packages') return;
+  if (
+    prPayload.pull_request.title !== 'Version Packages' &&
+    !prPayload.pull_request.title.includes('WIP')
+  )
+    return;
 
   const matches = prPayload.pull_request.body.match(/## firebase@([\d\.]+)/);
   const version = matches[1];
