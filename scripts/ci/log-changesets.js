@@ -47,15 +47,12 @@ async function logChangesets() {
   };
 
   return new Promise((resolve, reject) => {
-    const req = https.request(
-      options,
-      (res) => {
-        res.on('data', d => {
-          process.stdout.write(d);
-        });
-        res.on('end', resolve);
-      }
-    );
+    const req = https.request(options, res => {
+      res.on('data', d => {
+        process.stdout.write(d);
+      });
+      res.on('end', resolve);
+    });
 
     req.on('error', error => reject(error));
 
