@@ -26,7 +26,7 @@ async function logChangesets() {
 
   const prPayload = require(process.env.GITHUB_EVENT_PATH);
 
-  console.log(prPayload.title);
+  console.log('prPayload', JSON.stringify(prPayload));
 
   // if (prPayload.title !== 'Version Packages') return;
 
