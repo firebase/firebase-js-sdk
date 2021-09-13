@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    name: Release
+    name: Send PR number to tracker endpoint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo

@@ -24,16 +24,18 @@ async function logChangesets() {
 
   const prPayload = require(process.env.GITHUB_EVENT_PATH);
 
-  console.log('prPayload', JSON.stringify(prPayload));
+  console.log(prPayload.pull_request.title);
+  console.log(prPayload.pull_request.number);
+  console.log(prPayload.pull_request.body);
 
-  // if (prPayload.title !== 'Version Packages') return;
+  // if (prPayload.pull_request.title !== 'Version Packages') return;
 
-  const matches = prPayload.body.match(/## firebase@([\d\.]+)/);
+  const matches = prPayload.pull_request.body.match(/## firebase@([\d\.]+)/);
   const version = matches[1];
 
   const data = JSON.stringify({
     version,
-    pr: prPayload.number
+    pr: prPayload.pull_request.number
   });
 
   const options = {
