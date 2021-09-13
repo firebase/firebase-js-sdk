@@ -18,24 +18,30 @@
 const https = require('https');
 
 async function logChangesets() {
-  console.log(process.env.GITHUB_EVENT_PATH);
-
-  if (!process.env.GITHUB_EVENT_PATH) return;
+  if (!process.env.GITHUB_EVENT_PATH) {
+    console.log(`Couldn't find PR event payload.`);
+    return;
+  }
 
   const prPayload = require(process.env.GITHUB_EVENT_PATH);
 
-  console.log(prPayload.pull_request.title);
-  console.log(prPayload.pull_request.number);
-  console.log(prPayload.pull_request.body);
-
-  if (
-    prPayload.pull_request.title !== 'Version Packages' &&
-    !prPayload.pull_request.title.includes('WIP')
-  )
+  if (prPayload.pull_request.title !== 'Version Packages') {
+    console.log(`Title of PR is not 'Version Packages'. Not logging.`);
     return;
+  }
 
+  // The PR's "Description" field.
+  if (!prPayload.pull_request.body) {
+    console.log(`Unable to find PR description.`);
+    return;
+  }
   const matches = prPayload.pull_request.body.match(/## firebase@([\d\.]+)/);
   const version = matches[1];
+
+  if (!version) {
+    console.log(`Unable to extract Firebase version from PR description.`);
+    return;
+  }
 
   const data = JSON.stringify({
     version,
@@ -53,6 +59,7 @@ async function logChangesets() {
   };
 
   return new Promise((resolve, reject) => {
+    console.log(`Logging PR ${data.pr} with version ${data.version}.`)
     const req = https.request(options, res => {
       res.on('data', d => {
         process.stdout.write(d);
