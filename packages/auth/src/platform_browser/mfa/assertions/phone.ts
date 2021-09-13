@@ -90,4 +90,9 @@ export class PhoneMultiFactorGenerator {
   static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion {
     return PhoneMultiFactorAssertionImpl._fromCredential(credential);
   }
+
+  /**
+   * The identifier of the phone second factor: `phone`.
+   */
+  static FACTOR_ID = 'phone';
 }
