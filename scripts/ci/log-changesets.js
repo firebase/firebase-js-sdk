@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { ClientRequest, IncomingMessage } from 'http';
-
 const https = require('https');
 
 async function logChangesets() {
@@ -49,9 +47,9 @@ async function logChangesets() {
   };
 
   return new Promise((resolve, reject) => {
-    const req: ClientRequest = https.request(
+    const req = https.request(
       options,
-      (res: IncomingMessage) => {
+      (res) => {
         res.on('data', d => {
           process.stdout.write(d);
         });
