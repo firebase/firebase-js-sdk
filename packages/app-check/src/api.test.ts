@@ -121,15 +121,14 @@ describe('api', () => {
       ).to.equal(appCheckInstance);
     });
     it('starts debug mode on first call', async () => {
-      const fakeWrite = ():Promise<void> => Promise.resolve();
+      const fakeWrite = (): Promise<void> => Promise.resolve();
       const writeToIndexedDBStub = stub(
         indexeddb,
         'writeDebugTokenToIndexedDB'
       ).callsFake(fakeWrite);
-      stub(
-        indexeddb,
-        'readDebugTokenFromIndexedDB'
-      ).callsFake(() => Promise.resolve(undefined));
+      stub(indexeddb, 'readDebugTokenFromIndexedDB').callsFake(() =>
+        Promise.resolve(undefined)
+      );
       const logStub = stub(logger.logger, 'warn');
       const consoleStub = stub(console, 'log');
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
