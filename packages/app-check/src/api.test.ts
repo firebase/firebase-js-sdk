@@ -16,7 +16,7 @@
  */
 import '../test/setup';
 import { expect } from 'chai';
-import { spy, stub } from 'sinon';
+import { match, spy, stub } from 'sinon';
 import {
   setTokenAutoRefreshEnabled,
   initializeAppCheck,
@@ -38,10 +38,12 @@ import * as logger from './logger';
 import * as client from './client';
 import * as storage from './storage';
 import * as internalApi from './internal-api';
+import * as indexeddb from './indexeddb';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 import { CustomProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
 import { AppCheckToken } from './public-types';
+import { getDebugToken } from './debug';
 
 describe('api', () => {
   let app: FirebaseApp;
@@ -117,6 +119,42 @@ describe('api', () => {
           })
         })
       ).to.equal(appCheckInstance);
+    });
+    it('starts debug mode on first call', async () => {
+      const fakeWrite = ():Promise<void> => Promise.resolve();
+      const writeToIndexedDBStub = stub(
+        indexeddb,
+        'writeDebugTokenToIndexedDB'
+      ).callsFake(fakeWrite);
+      stub(
+        indexeddb,
+        'readDebugTokenFromIndexedDB'
+      ).callsFake(() => Promise.resolve(undefined));
+      const logStub = stub(logger.logger, 'warn');
+      const consoleStub = stub(console, 'log');
+      self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      await fakeWrite();
+      const token = writeToIndexedDBStub.args[0];
+      expect(logStub).to.not.be.called;
+      expect(consoleStub.args[0][0]).to.include(token);
+      self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
+    });
+    it('warns about debug mode on second call', async () => {
+      const logStub = stub(logger.logger, 'warn');
+      self.FIREBASE_APPCHECK_DEBUG_TOKEN = 'abcdefg';
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      const token = await getDebugToken();
+      expect(token).to.equal('abcdefg');
+      expect(logStub).to.be.calledWith(match('abcdefg'));
+      self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
     });
 
     it('initialize reCAPTCHA when a ReCaptchaV3Provider is provided', () => {

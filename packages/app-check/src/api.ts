@@ -35,6 +35,8 @@ import {
   isValid
 } from './internal-api';
 import { readTokenFromStorage } from './storage';
+import { getDebugToken, initializeDebugMode, isDebugMode } from './debug';
+import { logger } from './logger';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -65,6 +67,21 @@ export function initializeAppCheck(
         options.isTokenAutoRefreshEnabled &&
       initialOptions.provider.isEqual(options.provider)
     ) {
+      // Log a warning if `initializeAppCheck()` is called after the first time
+      // if this app is still in debug mode, and show the token.
+      // If it's the first time, `initializeDebugMode()` already logs a message.
+      if (isDebugMode()) {
+        logger.warn(
+          `App Check is in debug mode. To turn off debug mode, unset ` +
+            `the global variable FIREBASE_APPCHECK_DEBUG_TOKEN and ` +
+            `restart the app.`
+        );
+        // Make this a separate console statement so user will at least have the
+        // first message if the token promise doesn't resolve in time.
+        void getDebugToken().then(token =>
+          logger.warn(`Debug token is ${token}.`)
+        );
+      }
       return existingInstance;
     } else {
       throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
@@ -72,6 +89,9 @@ export function initializeAppCheck(
       });
     }
   }
+
+  // Only read global variable on first call to `initializeAppCheck()`.
+  initializeDebugMode();
 
   const appCheck = provider.initialize({ options });
   _activate(app, options.provider, options.isTokenAutoRefreshEnabled);
