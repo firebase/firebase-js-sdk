@@ -42,7 +42,7 @@ async function addChangeSet() {
     // The way actions/checkout works, there is no local `master` branch, but it
     // has access to the remote origin/master.
     const { stdout } = await exec(
-      'yarn changeset status --since origin/master'
+      'yarn changeset status'
     );
     // only add a changeset for @firebase/app if
     // 1. we are publishing a new firebase version. and
