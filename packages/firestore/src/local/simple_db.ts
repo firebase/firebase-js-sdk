@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { getUA } from '@firebase/util';
+import { getUA, isIndexedDBAvailable } from '@firebase/util';
 
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -158,7 +158,7 @@ export class SimpleDb {
 
   /** Returns true if IndexedDB is available in the current environment. */
   static isAvailable(): boolean {
-    if (typeof indexedDB === 'undefined') {
+    if (!isIndexedDBAvailable()) {
       return false;
     }
 

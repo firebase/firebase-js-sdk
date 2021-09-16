@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { validateIndexedDBOpenable } from '@firebase/util';
+import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable
+} from '@firebase/util';
 
 /**
  * Checks if all required APIs exist in the browser.
@@ -29,7 +32,7 @@ export async function isWindowSupported(): Promise<boolean> {
   // instantiating phase, informing the developers to import/call isSupported for special handling.
   return (
     typeof window !== 'undefined' &&
-    typeof indexedDB !== 'undefined' &&
+    isIndexedDBAvailable() &&
     (await validateIndexedDBOpenable()) &&
     navigator.cookieEnabled &&
     'serviceWorker' in navigator &&
@@ -52,9 +55,8 @@ export async function isSwSupported(): Promise<boolean> {
   // might be prohibited to run. In these contexts, an error would be thrown during the messaging
   // instantiating phase, informing the developers to import/call isSupported for special handling.
   return (
+    isIndexedDBAvailable() &&
     (await validateIndexedDBOpenable()) &&
-    'indexedDB' in self &&
-    indexedDB !== null &&
     'PushManager' in self &&
     'Notification' in self &&
     ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
