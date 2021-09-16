@@ -192,6 +192,14 @@ class RulesTestContextImpl implements RulesTestContext {
   }
   database(databaseURL?: string): firebase.database.Database {
     assertEmulatorRunning(this.emulators, 'database');
+    if (!databaseURL) {
+      const url = makeUrl(this.emulators.database, '');
+      // Make sure to set the namespace equal to projectId -- otherwise the RTDB SDK will by default
+      // use `${projectId}-default-rtdb`, which is treated as a different DB by the RTDB emulator
+      // (and thus WON'T apply any rules set for the `projectId` DB during initialization).
+      url.searchParams.append('ns', this.projectId);
+      databaseURL = url.toString();
+    }
     const database = this.getApp().database(databaseURL);
     database.useEmulator(
       this.emulators.database.host,
