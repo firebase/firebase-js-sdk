@@ -62,7 +62,7 @@ function stripPath(path) {
 function runTypedoc() {
   const typeSource = apiType === 'node' ? tempNodeSourcePath : sourceFile;
   const command = `${repoPath}/node_modules/.bin/typedoc ${typeSource} \
-  --tsconfig ${repoPath}/scripts/docgen/tsconfig.json \
+  --tsconfig ${__dirname}/tsconfig.json \
   --out ${docPath} \
   --readme ${tempHomePath} \
   --options ${__dirname}/typedoc.js \
