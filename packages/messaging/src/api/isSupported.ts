@@ -28,9 +28,9 @@ export async function isWindowSupported(): Promise<boolean> {
   // might be prohibited to run. In these contexts, an error would be thrown during the messaging
   // instantiating phase, informing the developers to import/call isSupported for special handling.
   return (
+    typeof window !== 'undefined' &&
+    typeof indexedDB !== 'undefined' &&
     (await validateIndexedDBOpenable()) &&
-    'indexedDB' in window &&
-    indexedDB !== null &&
     navigator.cookieEnabled &&
     'serviceWorker' in navigator &&
     'PushManager' in window &&
