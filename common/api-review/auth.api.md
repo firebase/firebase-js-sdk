@@ -596,6 +596,7 @@ export interface PhoneMultiFactorEnrollInfoOptions {
 // @public
 export class PhoneMultiFactorGenerator {
     static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion;
+    static FACTOR_ID: string;
 }
 
 // @public
