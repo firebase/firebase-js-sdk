@@ -68,6 +68,7 @@ export function isSupported(): boolean {
  */
 function isWindowSupported(): boolean {
   return (
+    typeof window !== 'undefined' &&
     isIndexedDBAvailable() &&
     areCookiesEnabled() &&
     'serviceWorker' in navigator &&
