@@ -218,13 +218,13 @@ export function extractDeclarations(
     MemberList
   > = new Map(); // key: module location, value: a list of all exported symbols of the module
   ts.forEachChild(sourceFile, node => {
-    if (ts.isFunctionDeclaration(node)) {
+    if (ts.isFunctionDeclaration(node) && isExported(node)) {
       declarations.functions.push(node.name!.text);
-    } else if (ts.isClassDeclaration(node)) {
+    } else if (ts.isClassDeclaration(node) && isExported(node)) {
       declarations.classes.push(node.name!.text);
-    } else if (ts.isVariableDeclaration(node)) {
+    } else if (ts.isVariableDeclaration(node) && isExported(node)) {
       declarations.variables.push(node.name!.getText());
-    } else if (ts.isEnumDeclaration(node)) {
+    } else if (ts.isEnumDeclaration(node) && isExported(node)) {
       // `const enum`s should not be analyzed. They do not add to bundle size and
       // creating a file that imports them causes an error during the rollup step.
       if (
@@ -233,7 +233,7 @@ export function extractDeclarations(
       ) {
         declarations.enums.push(node.name.escapedText.toString());
       }
-    } else if (ts.isVariableStatement(node)) {
+    } else if (ts.isVariableStatement(node) && isExported(node)) {
       const variableDeclarations = node.declarationList.declarations;
 
       variableDeclarations.forEach(variableDeclaration => {
@@ -350,6 +350,10 @@ export function extractDeclarations(
     each.sort();
   });
   return declarations;
+}
+
+function isExported(node: ts.Node):boolean {
+  return (node.modifiers?.length ?? 0) > 0 && node.modifiers![0].kind === ts.SyntaxKind.ExportKeyword;
 }
 /**
  *
