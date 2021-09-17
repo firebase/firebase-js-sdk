@@ -3,7 +3,8 @@ name: Log Release PR
 on:
   pull_request:
     branches:
-      - release, v8-releasebranch
+      - release
+      - v8-releasebranch
 
 jobs:
   release:
