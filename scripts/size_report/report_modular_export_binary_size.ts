@@ -51,7 +51,7 @@ async function generateReport(): Promise<ModularExportBinarySizeRequestBody> {
     );
   });
 
-  const reports: Report[] = await generateReportForModules(['packages/auth']);
+  const reports: Report[] = await generateReportForModules(allModulesLocation);
   return {
     log: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`,
     modules: reports

@@ -16,6 +16,7 @@
  */
 
 import * as yargs from 'yargs';
+import { extractAllTopLevelSymbols, extractExports } from './analysis-helper';
 import { run as runBundleAnalysis } from './bundle-analysis';
 import { analyzePackageSize } from './package-analysis';
 
@@ -29,7 +30,7 @@ yargs
         type: 'array',
         alias: 'im',
         desc:
-          'The name of the module(s) to be analyzed. example: --inputModule "@firebase/functions-exp" "firebase/auth-exp"'
+          'The name of the module(s) to be analyzed. example: --inputModule "@firebase/functions" "firebase/auth"'
       },
       inputDtsFile: {
         type: 'string',
@@ -89,5 +90,9 @@ yargs
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     argv => runBundleAnalysis(argv as any)
+  ).command(
+    'test',
+    'test desc',
+    argv => extractAllTopLevelSymbols('./test.js')
   )
   .help().argv;
