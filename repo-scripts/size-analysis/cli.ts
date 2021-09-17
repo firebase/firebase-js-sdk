@@ -90,9 +90,5 @@ yargs
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     argv => runBundleAnalysis(argv as any)
-  ).command(
-    'test',
-    'test desc',
-    argv => extractAllTopLevelSymbols('./test.js')
   )
   .help().argv;
