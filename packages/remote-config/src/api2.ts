@@ -41,12 +41,14 @@ export async function fetchAndActivate(
 }
 
 /**
- * This is a public static method provided to users that wraps two different checks:
+ * This method provides two different checks:
  *
- * 1. check if IndexedDB is supported by the browser environment.
- * 2. check if the current browser context is valid for using IndexedDB.
+ * 1. Check if IndexedDB exists in the browser environment.
+ * 2. Check if the current browser context allows IndexedDB `open()` calls.
+ * 
+ * @returns A `Promise` which resolves to true if a {@link RemoteConfig} instance
+ * can be initialized in this environment, or false if it cannot.
  * @public
- *
  */
  export async function isSupported(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {

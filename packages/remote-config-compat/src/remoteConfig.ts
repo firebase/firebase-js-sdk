@@ -34,8 +34,11 @@ import {
   getBoolean,
   getNumber,
   getString,
-  getValue
+  getValue,
+  isSupported
 } from '@firebase/remote-config';
+
+export { isSupported };
 
 export class RemoteConfigCompatImpl
   implements RemoteConfigCompat, _FirebaseService {
