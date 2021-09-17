@@ -45,18 +45,21 @@ function generateReportForCDNScripts(): Report[] {
   const reports = [];
   const firebaseRoot = path.resolve(__dirname, '../../packages/firebase');
   const pkgJson = require(`${firebaseRoot}/package.json`);
+  const compatPkgJson = require(`${firebaseRoot}/compat/package.json`);
 
   const special_files = [
-    'firebase-performance-standalone.es2017.js',
-    'firebase-performance-standalone.js',
-    'firebase-firestore.memory.js',
-    'firebase.js'
+    'firebase-performance-standalone-compat.es2017.js',
+    'firebase-performance-standalone-compat.js',
+    'firebase-compat.js'
   ];
 
   const files = [
     ...special_files.map((file: string) => `${firebaseRoot}/${file}`),
     ...pkgJson.components.map(
-      (component: string) => `${firebaseRoot}/firebase-${component}.js`
+      (component: string) => `${firebaseRoot}/firebase-${component.replace('/', '-')}.js`
+    ),
+    ...compatPkgJson.components.map(
+      (component: string) => `${firebaseRoot}/firebase-${component}-compat.js`
     )
   ];
 
@@ -77,7 +80,16 @@ async function generateReportForNPMPackages(): Promise<Report[]> {
   for (const info of packageInfo) {
     const packages = await findAllPackages(info.location);
     for (const pkg of packages) {
-      reports.push(...(await collectBinarySize(pkg)));
+      try {
+        reports.push(...(await collectBinarySize(pkg)));
+      } catch (e) {
+        // log errors and continue to the next package
+        console.log(
+          `failed to generate report for ${pkg}.
+           error: ${e}`
+        );
+      }
+
     }
   }
   return reports;
@@ -104,11 +116,12 @@ async function collectBinarySize(pkg: string): Promise<Report[]> {
   const fields = [
     'main',
     'module',
-    'esm2017',
     'browser',
+    'esm5',
     'react-native',
+    'cordova',
     'lite',
-    'lite-esm2017'
+    'lite-esm5'
   ];
   const json = require(pkg);
   for (const field of fields) {
