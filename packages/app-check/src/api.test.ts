@@ -126,10 +126,7 @@ describe('api', () => {
         token = tokenToWrite;
         return Promise.resolve();
       };
-      stub(
-        indexeddb,
-        'writeDebugTokenToIndexedDB'
-      ).callsFake(fakeWrite);
+      stub(indexeddb, 'writeDebugTokenToIndexedDB').callsFake(fakeWrite);
       stub(indexeddb, 'readDebugTokenFromIndexedDB').resolves(token);
       const logStub = stub(logger.logger, 'warn');
       const consoleStub = stub(console, 'log');

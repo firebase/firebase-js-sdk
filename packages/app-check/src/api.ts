@@ -74,9 +74,7 @@ export function initializeAppCheck(
     );
     // Make this a separate console statement so user will at least have the
     // first message if the token promise doesn't resolve in time.
-    void getDebugToken().then(token =>
-      logger.warn(`Debug token is ${token}.`)
-    );
+    void getDebugToken().then(token => logger.warn(`Debug token is ${token}.`));
   }
 
   if (provider.isInitialized()) {
