@@ -121,24 +121,29 @@ describe('api', () => {
       ).to.equal(appCheckInstance);
     });
     it('starts debug mode on first call', async () => {
-      const fakeWrite = (): Promise<void> => Promise.resolve();
-      const writeToIndexedDBStub = stub(
+      let token: string = '';
+      const fakeWrite = (tokenToWrite: string): Promise<void> => {
+        token = tokenToWrite;
+        return Promise.resolve();
+      };
+      stub(
         indexeddb,
         'writeDebugTokenToIndexedDB'
       ).callsFake(fakeWrite);
-      stub(indexeddb, 'readDebugTokenFromIndexedDB').callsFake(() =>
-        Promise.resolve(undefined)
-      );
+      stub(indexeddb, 'readDebugTokenFromIndexedDB').resolves(token);
       const logStub = stub(logger.logger, 'warn');
       const consoleStub = stub(console, 'log');
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-      await fakeWrite();
-      const token = writeToIndexedDBStub.args[0];
-      expect(logStub).to.not.be.called;
+      // Ensure getDebugToken() call inside `initializeAppCheck()`
+      // has time to resolve, and double check its value matches that
+      // written to indexedDB.
+      expect(await getDebugToken()).to.equal(token);
       expect(consoleStub.args[0][0]).to.include(token);
+      expect(logStub).to.be.calledWith(match('is in debug mode'));
+      expect(logStub).to.be.calledWith(match(token));
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
     });
     it('warns about debug mode on second call', async () => {

@@ -23,7 +23,7 @@ import {
   PartialObserver
 } from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { getState, setState, AppCheckState } from './state';
+import { getState, setState, AppCheckState, getDebugState } from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
 import { AppCheckService } from './factory';
@@ -59,6 +59,26 @@ export function initializeAppCheck(
   app = getModularInstance(app);
   const provider = _getProvider(app, 'app-check');
 
+  // Ensure initializeDebugMode() is only called once.
+  if (!getDebugState().initialized) {
+    initializeDebugMode();
+  }
+
+  // Log a warning when `initializeAppCheck()` is called in debug mode,
+  // and show the token.
+  if (isDebugMode()) {
+    logger.warn(
+      `App Check is in debug mode. To turn off debug mode, unset ` +
+        `the global variable FIREBASE_APPCHECK_DEBUG_TOKEN and ` +
+        `restart the app.`
+    );
+    // Make this a separate console statement so user will at least have the
+    // first message if the token promise doesn't resolve in time.
+    void getDebugToken().then(token =>
+      logger.warn(`Debug token is ${token}.`)
+    );
+  }
+
   if (provider.isInitialized()) {
     const existingInstance = provider.getImmediate();
     const initialOptions = provider.getOptions() as unknown as AppCheckOptions;
@@ -67,21 +87,6 @@ export function initializeAppCheck(
         options.isTokenAutoRefreshEnabled &&
       initialOptions.provider.isEqual(options.provider)
     ) {
-      // Log a warning if `initializeAppCheck()` is called after the first time
-      // if this app is still in debug mode, and show the token.
-      // If it's the first time, `initializeDebugMode()` already logs a message.
-      if (isDebugMode()) {
-        logger.warn(
-          `App Check is in debug mode. To turn off debug mode, unset ` +
-            `the global variable FIREBASE_APPCHECK_DEBUG_TOKEN and ` +
-            `restart the app.`
-        );
-        // Make this a separate console statement so user will at least have the
-        // first message if the token promise doesn't resolve in time.
-        void getDebugToken().then(token =>
-          logger.warn(`Debug token is ${token}.`)
-        );
-      }
       return existingInstance;
     } else {
       throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
@@ -89,9 +94,6 @@ export function initializeAppCheck(
       });
     }
   }
-
-  // Only read global variable on first call to `initializeAppCheck()`.
-  initializeDebugMode();
 
   const appCheck = provider.initialize({ options });
   _activate(app, options.provider, options.isTokenAutoRefreshEnabled);
