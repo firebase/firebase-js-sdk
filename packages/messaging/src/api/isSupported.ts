@@ -16,6 +16,7 @@
  */
 
 import {
+  areCookiesEnabled,
   isIndexedDBAvailable,
   validateIndexedDBOpenable
 } from '@firebase/util';
@@ -34,7 +35,7 @@ export async function isWindowSupported(): Promise<boolean> {
     typeof window !== 'undefined' &&
     isIndexedDBAvailable() &&
     (await validateIndexedDBOpenable()) &&
-    navigator.cookieEnabled &&
+    areCookiesEnabled() &&
     'serviceWorker' in navigator &&
     'PushManager' in window &&
     'Notification' in window &&
