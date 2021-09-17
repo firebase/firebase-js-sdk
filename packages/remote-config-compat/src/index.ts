@@ -34,8 +34,9 @@ function registerRemoteConfigCompat(
       'remoteConfig-compat',
       remoteConfigFactory,
       ComponentType.PUBLIC
-    ).setMultipleInstances(true)
-    .setServiceProps({ isSupported })
+    )
+      .setMultipleInstances(true)
+      .setServiceProps({ isSupported })
   );
 
   firebaseInstance.registerVersion(packageName, version);

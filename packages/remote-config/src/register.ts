@@ -19,9 +19,7 @@ import {
   registerVersion,
   SDK_VERSION
 } from '@firebase/app';
-import {
-  isIndexedDBAvailable
-} from '@firebase/util';
+import { isIndexedDBAvailable } from '@firebase/util';
 import {
   Component,
   ComponentType,
