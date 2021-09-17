@@ -236,32 +236,30 @@ export function extractAllTopLevelSymbols(filePath: string) {
  * Extract exports of a module
  */
 export function extractExports(filePath: string) {
-  const input = tmp.fileSync({}).name + '.js';
-  const exportStatement = `export * from '${path.resolve(
-    filePath
-  )}';`;
-  fs.writeFileSync(input, exportStatement);
-  const program = ts.createProgram([input], {
-    allowJs: true,
-    baseUrl: path.resolve(`${projectRoot}/node_modules`)
-  });
-  const checker = program.getTypeChecker();
-  const sourceFile = program.getSourceFile(input);
-  const module = checker.getSymbolAtLocation((sourceFile?.statements[0] as ts.ExportDeclaration).moduleSpecifier!)!;
-  const exports = checker.getExportsOfModule(module);
-
-  let exportDeclarations: MemberList = {
+  const exportDeclarations: MemberList = {
     functions: [],
     classes: [],
     variables: [],
     enums: []
   };
 
+  const program = ts.createProgram([filePath], {
+    allowJs: true,
+    baseUrl: path.resolve(`${projectRoot}/node_modules`)
+  });
+  const checker = program.getTypeChecker();
+  const sourceFile = program.getSourceFile(filePath)!;
+  const module = checker.getSymbolAtLocation(sourceFile);
+  // no export from the file
+  if(!module) {
+    return exportDeclarations;
+  }
+
+  const exports = checker.getExportsOfModule(module);
+
+
   for (const expt of exports) {
     // get the source declaration where we can determine the type of the export. e.g. class vs function
-    if (expt.name === 'Config') {
-      console.log('stop');
-    }
     let sourceSymbol = expt;
     if (sourceSymbol.declarations[0].kind === ts.SyntaxKind.ExportSpecifier) {
       sourceSymbol = checker.getAliasedSymbol(expt);
@@ -280,7 +278,7 @@ export function extractExports(filePath: string) {
     } else if (ts.isVariableDeclaration(sourceDeclaration)) {
       exportDeclarations.variables.push(expt.name);
     } else {
-      console.log('unhandled export type', expt.name);
+      console.log('unhandled export:', expt.name);
     }
   }
 
@@ -658,6 +656,7 @@ export async function generateReport(
     throw new Error(ErrorCode.INPUT_BUNDLE_FILE_DOES_NOT_EXIST);
   }
 
+  console.log('generating report for ', name);
   const publicAPI = extractExports(resolvedBundleFile);
   const map: Map<string, string> = buildMap(publicAPI);
   return buildJsonReport(name, publicAPI, bundleFile, map);
