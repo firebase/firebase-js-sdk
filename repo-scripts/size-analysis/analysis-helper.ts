@@ -251,7 +251,7 @@ export function extractExports(filePath: string) {
   const sourceFile = program.getSourceFile(filePath)!;
   const module = checker.getSymbolAtLocation(sourceFile);
   // no export from the file
-  if(!module) {
+  if (!module) {
     return exportDeclarations;
   }
 
@@ -266,7 +266,7 @@ export function extractExports(filePath: string) {
     }
 
     if (!sourceSymbol.declarations || sourceSymbol.declarations.length === 0) {
-      console.log('moo, could not find the source symbol for ', expt.name);
+      console.log('Could not find the source symbol for ', expt.name);
       continue;
     }
     const sourceDeclaration = sourceSymbol.declarations[0];
