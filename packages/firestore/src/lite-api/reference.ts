@@ -78,12 +78,9 @@ export type WithFieldValue<T> = T extends Primitive
  */
 export type UpdateData<T> = T extends Primitive
   ? T
-  : T extends Map<infer K, infer V>
-  ? Map<UpdateData<K>, UpdateData<V>>
   : T extends {}
   ? { [K in keyof T]?: UpdateData<T[K]> | FieldValue } & NestedUpdateFields<T>
   : Partial<T>;
-
 /**
  * An options object that configures the behavior of {@link @firebase/firestore/lite#(setDoc:1)}, {@link
  * @firebase/firestore/lite#(WriteBatch.set:1)} and {@link @firebase/firestore/lite#(Transaction.set:1)} calls. These calls can be

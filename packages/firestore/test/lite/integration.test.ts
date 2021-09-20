@@ -1558,6 +1558,141 @@ describe('withConverter() support', () => {
         });
       });
 
+      it('supports optional fields', () => {
+        interface TestObjectOptional {
+          optionalStr?: string;
+          nested?: {
+            requiredStr: string;
+          };
+        }
+
+        const testConverterOptional = {
+          toFirestore(testObj: WithFieldValue<TestObjectOptional>) {
+            return { ...testObj };
+          },
+          fromFirestore(snapshot: QueryDocumentSnapshot): TestObjectOptional {
+            const data = snapshot.data();
+            return {
+              optionalStr: data.optionalStr,
+              nested: data.nested
+            };
+          }
+        };
+
+        return withTestDocAndInitialData(initialData, async docRef => {
+          const testDocRef: DocumentReference<TestObjectOptional> =
+            docRef.withConverter(testConverterOptional);
+
+          await updateDoc(testDocRef, {
+            optionalStr: 'foo'
+          });
+          await updateDoc(testDocRef, {
+            'optionalStr': 'foo'
+          });
+
+          await updateDoc(testDocRef, {
+            nested: {
+              requiredStr: 'foo'
+            }
+          });
+          await updateDoc(testDocRef, {
+            'nested.requiredStr': 'foo'
+          });
+        });
+      });
+
+      it('supports null fields', () => {
+        interface TestObjectOptional {
+          optionalStr?: string;
+          nested?: {
+            strOrNull: string | null;
+          };
+        }
+
+        const testConverterOptional = {
+          toFirestore(testObj: WithFieldValue<TestObjectOptional>) {
+            return { ...testObj };
+          },
+          fromFirestore(snapshot: QueryDocumentSnapshot): TestObjectOptional {
+            const data = snapshot.data();
+            return {
+              optionalStr: data.optionalStr,
+              nested: data.nested
+            };
+          }
+        };
+
+        return withTestDocAndInitialData(initialData, async docRef => {
+          const testDocRef: DocumentReference<TestObjectOptional> =
+            docRef.withConverter(testConverterOptional);
+
+          await updateDoc(testDocRef, {
+            nested: {
+              strOrNull: null
+            }
+          });
+          await updateDoc(testDocRef, {
+            'nested.strOrNull': null
+          });
+        });
+      });
+
+      it('supports union fields', () => {
+        interface TestObjectUnion {
+          optionalStr?: string;
+          nested?:
+            | {
+                requiredStr: string;
+              }
+            | { requiredNumber: number };
+        }
+
+        const testConverterUnion = {
+          toFirestore(testObj: WithFieldValue<TestObjectUnion>) {
+            return { ...testObj };
+          },
+          fromFirestore(snapshot: QueryDocumentSnapshot): TestObjectUnion {
+            const data = snapshot.data();
+            return {
+              optionalStr: data.optionalStr,
+              nested: data.nested
+            };
+          }
+        };
+
+        return withTestDocAndInitialData(initialData, async docRef => {
+          const testDocRef: DocumentReference<TestObjectUnion> =
+            docRef.withConverter(testConverterUnion);
+
+          await updateDoc(testDocRef, {
+            nested: {
+              requiredStr: 'foo'
+            }
+          });
+
+          await updateDoc(testDocRef, {
+            'nested.requiredStr': 'foo'
+          });
+          await updateDoc(testDocRef, {
+            // @ts-expect-error
+            'nested.requiredStr': 1
+          });
+
+          await updateDoc(testDocRef, {
+            'nested.requiredNumber': 1
+          });
+
+          await updateDoc(testDocRef, {
+            // @ts-expect-error
+            'nested.requiredNumber': 'foo'
+          });
+          await updateDoc(testDocRef, {
+            // @ts-expect-error
+            'nested.requiredNumber': null
+          });
+        });
+      });
+
       it('checks for nonexistent fields', () => {
         return withTestDocAndInitialData(initialData, async docRef => {
           const testDocRef: DocumentReference<TestObject> =
