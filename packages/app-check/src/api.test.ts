@@ -16,7 +16,7 @@
  */
 import '../test/setup';
 import { expect } from 'chai';
-import { match, spy, stub } from 'sinon';
+import { spy, stub } from 'sinon';
 import {
   setTokenAutoRefreshEnabled,
   initializeAppCheck,
@@ -128,7 +128,6 @@ describe('api', () => {
       };
       stub(indexeddb, 'writeDebugTokenToIndexedDB').callsFake(fakeWrite);
       stub(indexeddb, 'readDebugTokenFromIndexedDB').resolves(token);
-      const logStub = stub(logger.logger, 'warn');
       const consoleStub = stub(console, 'log');
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
       initializeAppCheck(app, {
@@ -139,13 +138,11 @@ describe('api', () => {
       // written to indexedDB.
       expect(await getDebugToken()).to.equal(token);
       expect(consoleStub.args[0][0]).to.include(token);
-      expect(logStub).to.be.calledWith(match('is in debug mode'));
-      expect(logStub).to.be.calledWith(match(token));
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
     });
     it('warns about debug mode on second call', async () => {
-      const logStub = stub(logger.logger, 'warn');
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = 'abcdefg';
+      const consoleStub = stub(console, 'log');
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
@@ -154,7 +151,7 @@ describe('api', () => {
       });
       const token = await getDebugToken();
       expect(token).to.equal('abcdefg');
-      expect(logStub).to.be.calledWith(match('abcdefg'));
+      expect(consoleStub.args[0][0]).to.include(token);
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
     });
 

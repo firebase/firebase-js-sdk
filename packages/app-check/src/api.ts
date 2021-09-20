@@ -36,7 +36,6 @@ import {
 } from './internal-api';
 import { readTokenFromStorage } from './storage';
 import { getDebugToken, initializeDebugMode, isDebugMode } from './debug';
-import { logger } from './logger';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -67,14 +66,13 @@ export function initializeAppCheck(
   // Log a warning when `initializeAppCheck()` is called in debug mode,
   // and show the token.
   if (isDebugMode()) {
-    logger.warn(
-      `App Check is in debug mode. To turn off debug mode, unset ` +
-        `the global variable FIREBASE_APPCHECK_DEBUG_TOKEN and ` +
-        `restart the app.`
+    // Do not block initialization to get the token for the message.
+    void getDebugToken().then(token =>
+      // Not using logger because I don't think we ever want this accidentally hidden.
+      console.log(
+        `App Check debug token: ${token}. You will need to add it to your app's App Check settings in the Firebase console for it to work.`
+      )
     );
-    // Make this a separate console statement so user will at least have the
-    // first message if the token promise doesn't resolve in time.
-    void getDebugToken().then(token => logger.warn(`Debug token is ${token}.`));
   }
 
   if (provider.isInitialized()) {
