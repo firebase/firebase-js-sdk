@@ -189,7 +189,6 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
       expect(withdrawMfaEnrollmentMock.calls[0].request).to.eql({
         idToken: 'access-token',
         mfaEnrollmentId: mfaInfo.uid,
-        tenantId: auth.tenantId
       });
     });
 
@@ -205,7 +204,6 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
       expect(withdrawMfaEnrollmentMock.calls[0].request).to.eql({
         idToken: 'access-token',
         mfaEnrollmentId: mfaInfo.uid,
-        tenantId: auth.tenantId
       });
     });
 

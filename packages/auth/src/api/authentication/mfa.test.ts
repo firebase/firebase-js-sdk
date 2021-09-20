@@ -56,10 +56,7 @@ describe('api/authentication/startSignInPhoneMfa', () => {
 
     const response = await startSignInPhoneMfa(auth, request);
     expect(response.phoneResponseInfo.sessionInfo).to.eq('session-info');
-    expect(mock.calls[0].request).to.eql({
-      tenantId: null,
-      ...request
-    });
+    expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -90,10 +87,7 @@ describe('api/authentication/startSignInPhoneMfa', () => {
       FirebaseError,
       'Firebase: The supplied auth credential is malformed or has expired. (auth/invalid-credential).'
     );
-    expect(mock.calls[0].request).to.eql({
-      tenantId: null,
-      ...request
-    });
+    expect(mock.calls[0].request).to.eql(request);
   });
 });
 
@@ -126,10 +120,7 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
     const response = await finalizeSignInPhoneMfa(auth, request);
     expect(response.idToken).to.eq('id-token');
     expect(response.refreshToken).to.eq('refresh-token');
-    expect(mock.calls[0].request).to.eql({
-      tenantId: null,
-      ...request
-    });
+    expect(mock.calls[0].request).to.eql(request);
     expect(mock.calls[0].method).to.eq('POST');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -160,9 +151,6 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
       FirebaseError,
       'Firebase: The SMS verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure to use the verification code provided by the user. (auth/invalid-verification-code).'
     );
-    expect(mock.calls[0].request).to.eql({
-      tenantId: null,
-      ...request
-    });
+    expect(mock.calls[0].request).to.eql(request);
   });
 });
