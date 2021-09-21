@@ -36,9 +36,6 @@ export class Bytes {
 export const CACHE_SIZE_UNLIMITED = -1;
 
 // @public
-export type ChildUpdateFields<K extends string, V> = V extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<V>> : never;
-
-// @public
 export function clearIndexedDbPersistence(firestore: Firestore): Promise<void>;
 
 // @public
@@ -268,7 +265,7 @@ export function namedQuery(firestore: Firestore, name: string): Promise<Query | 
 
 // @public
 export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToIntersection<{
-    [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
+    [K in keyof T & string]: T[K] extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<T[K]>> : never;
 }[keyof T & string]>;
 
 // @public
@@ -484,7 +481,7 @@ export interface Unsubscribe {
 }
 
 // @public
-export type UpdateData<T> = T extends Primitive ? T : T extends {} ? {
+export type UpdateData<T> = T extends Primitive ? T : T extends Map<infer K, infer V> ? Map<UpdateData<K>, UpdateData<V>> : T extends {} ? {
     [K in keyof T]?: UpdateData<T[K]> | FieldValue;
 } & NestedUpdateFields<T> : Partial<T>;
 
