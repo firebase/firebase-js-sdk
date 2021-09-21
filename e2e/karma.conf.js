@@ -19,10 +19,8 @@ function getTestFiles(argv) {
   const files = [];
   if (argv.includes('--compat')) {
     files.push('./tests/compat.test.ts');
-  } else if (argv.includes('--exp')) {
-    files.push('./tests/exp.test.ts');
-  } else if (argv.includes('--v8')) files.push('./tests/v8.test.ts');
-  {
+  } else if (argv.includes('--modular')) {
+    files.push('./tests/modular.test.ts');
   }
   return files;
 }

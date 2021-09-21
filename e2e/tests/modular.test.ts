@@ -49,7 +49,7 @@ import {
   update,
   remove,
   set,
-  FirebaseDatabase
+  Database
 } from 'firebase/database';
 import {
   collection,
@@ -62,7 +62,7 @@ import {
   where,
   query,
   deleteDoc,
-  FirebaseFirestore,
+  Firestore,
   initializeFirestore
 } from 'firebase/firestore';
 import { Functions, getFunctions, httpsCallable } from 'firebase/functions';
@@ -74,7 +74,7 @@ import {
 } from 'firebase/performance';
 import {
   getStorage,
-  StorageService,
+  FirebaseStorage,
   ref as storageRef,
   uploadString,
   getDownloadURL,
@@ -85,7 +85,7 @@ import { config, testAccount } from '../firebase-config';
 import 'chai/register-expect';
 import { expect } from 'chai';
 
-describe('EXP', () => {
+describe('MODULAR', () => {
   let app: FirebaseApp;
   before(() => {
     console.log('FIREBASE VERSION', SDK_VERSION);
@@ -147,7 +147,7 @@ describe('EXP', () => {
   });
 
   describe('STORAGE', async () => {
-    let storage: StorageService;
+    let storage: FirebaseStorage;
     let sRef: StorageReference;
     let url: string;
     it('getStorage()', () => {
@@ -170,7 +170,7 @@ describe('EXP', () => {
   });
 
   describe('FIRESTORE', async () => {
-    let firestore: FirebaseFirestore;
+    let firestore: Firestore;
     it('initializeFirestore()', () => {
       firestore = initializeFirestore(app, {});
     });
@@ -215,7 +215,7 @@ describe('EXP', () => {
   });
 
   describe('DATABASE', async () => {
-    let db: FirebaseDatabase;
+    let db: Database;
     it('getDatabase', () => {
       db = getDatabase(app);
     });

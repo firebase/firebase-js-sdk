@@ -5,12 +5,12 @@
   "main": "index.js",
   "scripts": {
     "setup": "node test-setup.js",
-    "test": "yarn setup && karma start --compat --exp",
+    "test": "yarn setup && karma start --compat --modular",
     "test:compat": "yarn setup && yarn karma start --compat",
-    "test:exp": "yarn setup && karma start --exp",
+    "test:modular": "yarn setup && karma start --modular",
     "watch": "webpack --watch",
     "build": "webpack",
-    "start:exp": "webpack serve --config-name exp",
+    "start:modular": "webpack serve --config-name modular",
     "start:compat": "webpack serve --config-name compat"
   },
   "author": "",
