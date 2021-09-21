@@ -104,26 +104,16 @@ async function generateDocs(forDevsite: boolean = false) {
   moveRulesUnitTestingDocs(outputFolder, command);
 }
 
+// Create a docs-rut folder and move rules-unit-testing docs into it.
 async function moveRulesUnitTestingDocs(
   mainDocsFolder: string,
   command: string
 ) {
   const rulesOutputFolder = `${projectRoot}/docs-rut`;
 
-  // Generate from rules-unit-testing.api.json only, to get an index.md.
-  // Hide output warnings about being unable to link to external packages.
-  await spawn(
-    'yarn',
-    [
-      command,
-      'markdown',
-      '--input',
-      'packages/rules-unit-testing/temp',
-      '--output',
-      rulesOutputFolder
-    ],
-    { stdio: ['inherit', 'ignore', 'inherit'] }
-  );
+  if (!fs.existsSync(rulesOutputFolder)) {
+    fs.mkdirSync(rulesOutputFolder);
+  }
 
   const rulesDocPaths = await new Promise<string[]>(resolve =>
     glob(`${mainDocsFolder}/rules-unit-testing.*`, (err, paths) => {
@@ -131,15 +121,17 @@ async function moveRulesUnitTestingDocs(
       resolve(paths);
     })
   );
-
-  // Overwrite non-index files with files generated from global docgen script,
-  // which have links to external packages.
+  // Move rules-unit-testing docs into the new folder.
   // These paths also need to be adjusted to point to a sibling directory.
   for (const sourcePath of rulesDocPaths) {
-    const destinationPath = sourcePath.replace(
+    let destinationPath = sourcePath.replace(
       mainDocsFolder,
       rulesOutputFolder
     );
+    // For devsite 
+    if (destinationPath === `${rulesOutputFolder}/rules-unit-testing.md`) {
+      destinationPath = `${rulesOutputFolder}/index.md`;
+    }
     const originalText = fs.readFileSync(sourcePath, 'utf-8');
     const jsReferencePath = '/docs/reference/js';
     let alteredPathText = originalText.replace(
