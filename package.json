@@ -72,7 +72,7 @@
     "@types/child-process-promise": "2.2.2",
     "@types/clone": "2.1.1",
     "@types/eslint": "7.28.0",
-    "@types/inquirer": "7.3.3",
+    "@types/inquirer": "8.1.2",
     "@types/listr": "0.14.4",
     "@types/long": "4.0.1",
     "@types/mocha": "9.0.0",
