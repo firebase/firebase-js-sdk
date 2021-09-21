@@ -45,6 +45,7 @@ export interface MemberList {
   functions: string[];
   variables: string[];
   enums: string[];
+  unknown: string[];
 }
 /** Contains the dependencies and the size of their code for a single export. */
 export interface ExportData {
@@ -53,6 +54,7 @@ export interface ExportData {
   functions: string[];
   variables: string[];
   enums: string[];
+  unknown: string[];
   externals: { [key: string]: string[] };
   size: number;
   sizeWithExtDeps: number;
@@ -141,6 +143,7 @@ export async function extractDependenciesAndSize(
     functions: [],
     variables: [],
     enums: [],
+    unknown: [],
     externals: {},
     size: 0,
     sizeWithExtDeps: 0
@@ -181,7 +184,8 @@ export function extractAllTopLevelSymbols(filePath: string): MemberList {
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    unknown: []
   };
 
   ts.forEachChild(sourceFile, node => {
@@ -238,7 +242,8 @@ export function extractExports(filePath: string): MemberList {
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    unknown: []
   };
 
   const program = ts.createProgram([filePath], {
@@ -275,8 +280,18 @@ export function extractExports(filePath: string): MemberList {
       exportDeclarations.classes.push(expt.name);
     } else if (ts.isVariableDeclaration(sourceDeclaration)) {
       exportDeclarations.variables.push(expt.name);
+    } else if (ts.isEnumDeclaration(sourceDeclaration)) {
+      // `const enum`s should not be analyzed. They do not add to bundle size and
+      // creating a file that imports them causes an error during the rollup step.
+      if (
+        // Identifies if this enum had a "const" modifier attached.
+        !sourceDeclaration.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ConstKeyword)
+      ) {
+        exportDeclarations.enums.push(expt.name);
+      }
     } else {
-      console.log('unhandled export:', expt.name);
+      console.log(`export of unknown type: ${expt.name}`);
+      exportDeclarations.unknown.push(expt.name);
     }
   }
 
@@ -306,7 +321,8 @@ export function mapSymbolToType(
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    unknown: []
   };
 
   for (const key of Object.keys(memberList) as Array<keyof MemberList>) {

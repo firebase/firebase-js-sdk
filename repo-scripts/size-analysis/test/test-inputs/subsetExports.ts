@@ -14,13 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 export {
   aVar,
   LogLevel2,
-  Logger1,
   tarr1,
-  fs1,
   basicFuncExportEnumDependencies,
-  basicFuncExportFuncDependenciesBar
+  basicFuncExportFuncDependenciesBar,
+  BasicClassExport
 } from './index';
