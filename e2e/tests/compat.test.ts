@@ -57,8 +57,7 @@ describe('COMPAT', () => {
   });
 
   describe('APP CHECK', async () => {
-    // @ts-ignore
-    let appCheck: firebase.appCheck.appCheck;
+    let appCheck: firebase.appCheck.AppCheck;
     it('init appCheck', () => {
       // @ts-ignore
       appCheck = firebase.appCheck();

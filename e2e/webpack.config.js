@@ -61,9 +61,9 @@ module.exports = [
     }
   },
   {
-    name: 'exp',
+    name: 'modular',
     mode: 'development',
-    entry: './sample-apps/exp.js',
+    entry: './sample-apps/modular.js',
     output: {
       path: path.resolve(__dirname, 'build'),
       filename: 'app.bundle.js'

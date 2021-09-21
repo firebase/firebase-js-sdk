@@ -19,7 +19,8 @@ function getTestFiles(argv) {
   const files = [];
   if (argv.includes('--compat')) {
     files.push('./tests/compat.test.ts');
-  } else if (argv.includes('--modular')) {
+  }
+  if (argv.includes('--modular')) {
     files.push('./tests/modular.test.ts');
   }
   return files;
@@ -37,7 +38,7 @@ module.exports = function (config) {
     singleRun: true,
     client: {
       mocha: {
-        timeout: 5000
+        timeout: 10000
       }
     },
     customContextFile: './context.html',

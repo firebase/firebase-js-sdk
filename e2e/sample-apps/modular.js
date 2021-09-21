@@ -43,7 +43,7 @@ import {
   where,
   onSnapshot
 } from 'firebase/firestore';
-import { getMessaging } from 'firebase/messaging';
+import { getMessaging, getToken } from 'firebase/messaging';
 import { getPerformance, trace as perfTrace } from 'firebase/performance';
 import {
   getDatabase,
@@ -113,8 +113,8 @@ async function authLogout(app) {
  * Functions smoke test.
  *
  * Call a deployed function.
- * This cloud function must be deployed in this project first. It can be
- * found in this repo's /functions folder.
+ * This cloud function must be deployed in this project first. The code
+ * for the function can be found in sample-apps/functions.
  */
 async function callFunctions(app) {
   console.log('[FUNCTIONS] start');
@@ -221,10 +221,22 @@ async function callDatabase(app) {
 
 /**
  * Messaging smoke test.
+ * Call getToken(), it may be blocked if user does not click "Allow" for
+ * notification permissions, or has blocked it on this same host in the past.
  */
 async function callMessaging(app) {
   console.log('[MESSAGING] start');
-  getMessaging(app);
+  const messaging = getMessaging(app);
+  try {
+    const token = await getToken(messaging);
+    console.log(`[MESSAGING] Got token: ${token}`)
+  } catch(e) {
+    if (e.message.includes('messaging/permission-blocked')) {
+      console.log('[MESSAGING] Permission blocked (expected on localhost)');
+    } else {
+      throw e;
+    }
+  }
 }
 
 /**
@@ -271,7 +283,8 @@ function callPerformance(app) {
 }
 
 /**
- * Run all smoke tests.
+ * Run smoke tests for all products.
+ * Comment out any products you want to ignore.
  */
 async function main() {
   console.log('FIREBASE VERSION', SDK_VERSION);

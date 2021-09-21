@@ -81,8 +81,8 @@ async function authLogout() {
  * Functions smoke test.
  *
  * Call a deployed function.
- * This cloud function must be deployed in this project first. It can be
- * found in this repo's /functions folder.
+ * This cloud function must be deployed in this project first. The code
+ * for the function can be found in sample-apps/functions.
  */
 async function callFunctions() {
   console.log('[FUNCTIONS] start');
@@ -187,8 +187,8 @@ async function callDatabase() {
 
 /**
  * Messaging smoke test.
- * Call getToken(), it won't work on localhost, just a minimal test to make
- * sure library has registered and initialized.
+ * Call getToken(), it may be blocked if user does not click "Allow" for
+ * notification permissions, or has blocked it on this same host in the past.
  */
 async function callMessaging() {
   console.log('[MESSAGING] start');
@@ -247,7 +247,8 @@ function callPerformance() {
 }
 
 /**
- * Run all smoke tests.
+ * Run smoke tests for all products.
+ * Comment out any products you want to ignore.
  */
 async function main() {
   console.log('FIREBASE VERSION', firebase.SDK_VERSION);
