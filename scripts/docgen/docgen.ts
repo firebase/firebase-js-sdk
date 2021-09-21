@@ -124,11 +124,8 @@ async function moveRulesUnitTestingDocs(
   // Move rules-unit-testing docs into the new folder.
   // These paths also need to be adjusted to point to a sibling directory.
   for (const sourcePath of rulesDocPaths) {
-    let destinationPath = sourcePath.replace(
-      mainDocsFolder,
-      rulesOutputFolder
-    );
-    // For devsite 
+    let destinationPath = sourcePath.replace(mainDocsFolder, rulesOutputFolder);
+    // For devsite
     if (destinationPath === `${rulesOutputFolder}/rules-unit-testing.md`) {
       destinationPath = `${rulesOutputFolder}/index.md`;
     }
