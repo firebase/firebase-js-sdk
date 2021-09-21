@@ -17,7 +17,11 @@
 
 import { RemoteConfig } from './public_types';
 import { activate, fetchConfig } from './api';
-import { getModularInstance } from '@firebase/util';
+import {
+  getModularInstance,
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable
+} from '@firebase/util';
 
 // This API is put in a separate file, so we can stub fetchConfig and activate in tests.
 // It's not possible to stub standalone functions from the same module.
@@ -38,4 +42,27 @@ export async function fetchAndActivate(
   remoteConfig = getModularInstance(remoteConfig);
   await fetchConfig(remoteConfig);
   return activate(remoteConfig);
+}
+
+/**
+ * This method provides two different checks:
+ *
+ * 1. Check if IndexedDB exists in the browser environment.
+ * 2. Check if the current browser context allows IndexedDB `open()` calls.
+ *
+ * @returns A `Promise` which resolves to true if a {@link RemoteConfig} instance
+ * can be initialized in this environment, or false if it cannot.
+ * @public
+ */
+export async function isSupported(): Promise<boolean> {
+  if (!isIndexedDBAvailable()) {
+    return false;
+  }
+
+  try {
+    const isDBOpenable: boolean = await validateIndexedDBOpenable();
+    return isDBOpenable;
+  } catch (error) {
+    return false;
+  }
 }

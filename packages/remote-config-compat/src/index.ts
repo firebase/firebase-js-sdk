@@ -22,7 +22,7 @@ import {
   ComponentType,
   InstanceFactoryOptions
 } from '@firebase/component';
-import { RemoteConfigCompatImpl } from './remoteConfig';
+import { RemoteConfigCompatImpl, isSupported } from './remoteConfig';
 import { name as packageName, version } from '../package.json';
 import { RemoteConfig as RemoteConfigCompat } from '@firebase/remote-config-types';
 
@@ -34,7 +34,9 @@ function registerRemoteConfigCompat(
       'remoteConfig-compat',
       remoteConfigFactory,
       ComponentType.PUBLIC
-    ).setMultipleInstances(true)
+    )
+      .setMultipleInstances(true)
+      .setServiceProps({ isSupported })
   );
 
   firebaseInstance.registerVersion(packageName, version);

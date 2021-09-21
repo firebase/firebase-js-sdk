@@ -2031,6 +2031,16 @@ declare namespace firebase.remoteConfig {
    * Defines levels of Remote Config logging.
    */
   export type LogLevel = 'debug' | 'error' | 'silent';
+  /**
+   * This method provides two different checks:
+   *
+   * 1. Check if IndexedDB exists in the browser environment.
+   * 2. Check if the current browser context allows IndexedDB `open()` calls.
+   *
+   * It returns a `Promise` which resolves to true if a {@link RemoteConfig} instance
+   * can be initialized in this environment, or false if it cannot.
+   */
+  export function isSupported(): Promise<boolean>;
 }
 
 declare namespace firebase.functions {
@@ -4623,13 +4633,14 @@ declare namespace firebase.auth {
    *     instance must be initialized with an API key, otherwise an error will be
    *     thrown.
    */
-  class RecaptchaVerifier extends RecaptchaVerifier_Instance { }
+  class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
   /**
    * @webonly
    * @hidden
    */
   class RecaptchaVerifier_Instance
-    implements firebase.auth.ApplicationVerifier {
+    implements firebase.auth.ApplicationVerifier
+  {
     constructor(
       container: any | string,
       parameters?: Object | null,
@@ -7310,7 +7321,7 @@ declare namespace firebase.database {
 
   interface ThenableReference
     extends firebase.database.Reference,
-    Pick<Promise<Reference>, 'then' | 'catch'> { }
+      Pick<Promise<Reference>, 'then' | 'catch'> {}
 
   /**
    * Logs debugging information to the console.
@@ -7690,7 +7701,9 @@ declare namespace firebase.storage {
      *     resolves with the full updated metadata or rejects if the updated failed,
      *     including if the object did not exist.
      */
-    updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<FullMetadata>;
+    updateMetadata(
+      metadata: firebase.storage.SettableMetadata
+    ): Promise<FullMetadata>;
     /**
      * List all items (files) and prefixes (folders) under this storage reference.
      *
@@ -9520,7 +9533,7 @@ declare namespace firebase.firestore {
    */
   export class QueryDocumentSnapshot<
     T = DocumentData
-    > extends DocumentSnapshot<T> {
+  > extends DocumentSnapshot<T> {
     private constructor();
 
     /**
