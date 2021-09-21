@@ -229,8 +229,8 @@ async function callMessaging(app) {
   const messaging = getMessaging(app);
   try {
     const token = await getToken(messaging);
-    console.log(`[MESSAGING] Got token: ${token}`)
-  } catch(e) {
+    console.log(`[MESSAGING] Got token: ${token}`);
+  } catch (e) {
     if (e.message.includes('messaging/permission-blocked')) {
       console.log('[MESSAGING] Permission blocked (expected on localhost)');
     } else {
