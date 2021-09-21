@@ -23,7 +23,6 @@ import * as terser from 'terser';
 import * as ts from 'typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import { deepCopy } from '@firebase/util';
 import { projectRoot } from '../../scripts/utils';
 
 export const enum ErrorCode {
@@ -69,8 +68,7 @@ export interface Report {
  */
 export async function extractDependenciesAndSize(
   exportName: string,
-  jsBundle: string,
-  map: Map<string, string>
+  jsBundle: string
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
   const externalDepsResolvedOutput = tmp.fileSync().name + '.js';
@@ -172,14 +170,14 @@ export async function extractDependenciesAndSize(
 /**
  * Check what symbols are being pulled into a bundle
  */
-export function extractAllTopLevelSymbols(filePath: string) {
+export function extractAllTopLevelSymbols(filePath: string): MemberList {
   const program = ts.createProgram([filePath], { allowJs: true });
   const sourceFile = program.getSourceFile(filePath);
   if (!sourceFile) {
     throw new Error(`${ErrorCode.FILE_PARSING_ERROR} ${filePath}`);
   }
 
-  let declarations: MemberList = {
+  const declarations: MemberList = {
     functions: [],
     classes: [],
     variables: [],
@@ -235,7 +233,7 @@ export function extractAllTopLevelSymbols(filePath: string) {
 /**
  * Extract exports of a module
  */
-export function extractExports(filePath: string) {
+export function extractExports(filePath: string): MemberList {
   const exportDeclarations: MemberList = {
     functions: [],
     classes: [],
@@ -323,23 +321,6 @@ export function mapSymbolToType(
   return newMemberList;
 }
 
-function extractOriginalSymbolName(
-  exportSpecifier: ts.ExportSpecifier
-): string {
-  // if symbol is renamed, then exportSpecifier.propertyName is not null and stores the orignal name, exportSpecifier.name stores the renamed name.
-  // if symbol is not renamed, then exportSpecifier.propertyName is null, exportSpecifier.name stores the orignal name.
-  if (exportSpecifier.propertyName) {
-    return exportSpecifier.propertyName.escapedText.toString();
-  }
-  return exportSpecifier.name.escapedText.toString();
-}
-
-function filterAllBy(memberList: MemberList, keep: string[]): void {
-  for (const key of Object.keys(memberList) as Array<keyof MemberList>) {
-    memberList[key] = memberList[key].filter(each => keep.includes(each));
-  }
-}
-
 export function replaceAll(
   memberList: MemberList,
   original: string,
@@ -364,10 +345,6 @@ function replaceWith(
     }
   }
   return rv;
-}
-
-function isExportRenamed(exportSpecifier: ts.ExportSpecifier): boolean {
-  return exportSpecifier.propertyName != null;
 }
 
 /**
@@ -523,21 +500,6 @@ function retrieveBundleFileLocation(pkgJson: {
   }
   return '';
 }
-/**
- *
- * This function creates a map from a MemberList object which maps symbol names (key) listed
- * to its type (value)
- */
-export function buildMap(api: MemberList): Map<string, string> {
-  const map: Map<string, string> = new Map();
-
-  for (const type of Object.keys(api) as Array<keyof MemberList>) {
-    api[type].forEach((element: string) => {
-      map.set(element, type);
-    });
-  }
-  return map;
-}
 
 /**
  * A recursive function that locates and generates reports for sub-modules
@@ -596,8 +558,7 @@ async function traverseDirs(
 export async function buildJsonReport(
   moduleName: string,
   publicApi: MemberList,
-  jsFile: string,
-  map: Map<string, string>
+  jsFile: string
 ): Promise<Report> {
   const result: Report = {
     name: moduleName,
@@ -605,7 +566,7 @@ export async function buildJsonReport(
   };
   for (const exp of publicApi.classes) {
     try {
-      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile));
     } catch (e) {
       console.log(e);
     }
@@ -613,14 +574,14 @@ export async function buildJsonReport(
 
   for (const exp of publicApi.functions) {
     try {
-      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile));
     } catch (e) {
       console.log(e);
     }
   }
   for (const exp of publicApi.variables) {
     try {
-      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile));
     } catch (e) {
       console.log(e);
     }
@@ -628,7 +589,7 @@ export async function buildJsonReport(
 
   for (const exp of publicApi.enums) {
     try {
-      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile));
     } catch (e) {
       console.log(e);
     }
@@ -658,8 +619,7 @@ export async function generateReport(
 
   console.log('generating report for ', name);
   const publicAPI = extractExports(resolvedBundleFile);
-  const map: Map<string, string> = buildMap(publicAPI);
-  return buildJsonReport(name, publicAPI, bundleFile, map);
+  return buildJsonReport(name, publicAPI, bundleFile);
 }
 
 /**

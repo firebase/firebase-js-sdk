@@ -16,7 +16,6 @@
  */
 
 import * as yargs from 'yargs';
-import { extractAllTopLevelSymbols, extractExports } from './analysis-helper';
 import { run as runBundleAnalysis } from './bundle-analysis';
 import { analyzePackageSize } from './package-analysis';
 
@@ -91,4 +90,4 @@ yargs
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     argv => runBundleAnalysis(argv as any)
   )
-  .help().argv;
+  .help().parseSync();
