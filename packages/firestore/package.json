@@ -49,16 +49,22 @@
   },
   "exports": {
     ".": {
-      "node": "./dist/index.node.cjs.js",
+      "node": {
+        "require": "./dist/index.node.cjs.js",
+        "import": "./dist/index.node.mjs"
+      },
       "default": "./dist/index.esm2017.js"
     },
     "./lite": {
-      "node": "./dist/lite/index.node.cjs.js",
+      "node": {
+        "require": "./dist/lite/index.node.cjs.js",
+        "import": "./dist/lite/index.node.esm2017.js"
+      },
       "default": "./dist/lite/index.browser.esm2017.js"
     }
   },
   "main": "dist/index.node.cjs.js",
-  "main-esm": "dist/index.node.cjs.esm2017.js",
+  "main-esm": "dist/index.node.mjs",
   "react-native": "dist/index.rn.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
