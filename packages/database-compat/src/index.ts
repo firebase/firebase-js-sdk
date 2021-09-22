@@ -67,6 +67,11 @@ export function registerDatabase(instance: FirebaseNamespace) {
 
 registerDatabase(firebase);
 
+// Types to export for the admin SDK. They are exported in the browser entry point only for typings
+// The same symbol should be exported from the node entry point so their values can be accessed at runtime by admin SDK
+export type { Database, Query, Reference, enableLogging, ServerValue, DataSnapshot };
+export type { OnDisconnect } from '@firebase/database';
+
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
     database?: {
