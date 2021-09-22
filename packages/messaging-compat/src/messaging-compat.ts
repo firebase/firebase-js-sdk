@@ -26,7 +26,13 @@ import {
   getToken,
   onMessage
 } from '@firebase/messaging';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import {
+  areCookiesEnabled,
+  isIndexedDBAvailable,
+  NextFn,
+  Observer,
+  Unsubscribe
+} from '@firebase/util';
 
 import { onBackgroundMessage } from '@firebase/messaging/sw';
 
@@ -62,9 +68,9 @@ export function isSupported(): boolean {
  */
 function isWindowSupported(): boolean {
   return (
-    'indexedDB' in window &&
-    indexedDB !== null &&
-    navigator.cookieEnabled &&
+    typeof window !== 'undefined' &&
+    isIndexedDBAvailable() &&
+    areCookiesEnabled() &&
     'serviceWorker' in navigator &&
     'PushManager' in window &&
     'Notification' in window &&
@@ -79,8 +85,7 @@ function isWindowSupported(): boolean {
  */
 function isSwSupported(): boolean {
   return (
-    'indexedDB' in self &&
-    indexedDB !== null &&
+    isIndexedDBAvailable() &&
     'PushManager' in self &&
     'Notification' in self &&
     ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&

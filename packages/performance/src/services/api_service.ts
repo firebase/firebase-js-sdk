@@ -16,7 +16,7 @@
  */
 
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
-import { isIndexedDBAvailable } from '@firebase/util';
+import { isIndexedDBAvailable, areCookiesEnabled } from '@firebase/util';
 import { consoleLogger } from '../utils/console_logger';
 
 declare global {
@@ -112,12 +112,7 @@ export class Api {
   }
 
   requiredApisAvailable(): boolean {
-    if (
-      !fetch ||
-      !Promise ||
-      !this.navigator ||
-      !this.navigator.cookieEnabled
-    ) {
+    if (!fetch || !Promise || !areCookiesEnabled()) {
       consoleLogger.info(
         'Firebase Performance cannot start if browser does not support fetch and Promise or cookie is disabled.'
       );
