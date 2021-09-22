@@ -72,10 +72,14 @@ toc:
     path: /docs/reference/js/firebase.auth.AuthProvider
   - title: "AuthSettings"
     path: /docs/reference/js/firebase.auth.AuthSettings
+  - title: "Config"
+    path: /docs/reference/js/firebase.auth.Config
   - title: "ConfirmationResult"
     path: /docs/reference/js/firebase.auth.ConfirmationResult
   - title: "EmailAuthProvider"
     path: /docs/reference/js/firebase.auth.EmailAuthProvider
+  - title: "EmulatorConfig"
+    path: /docs/reference/js/firebase.auth.EmulatorConfig
   - title: "Error"
     path: /docs/reference/js/firebase.auth.Error
   - title: "FacebookAuthProvider"

@@ -65,6 +65,7 @@ describe('core/user/user_impl', () => {
         stsTokenManager,
         displayName: 'displayName',
         email: 'email',
+        emailVerified: true,
         phoneNumber: 'phoneNumber',
         photoURL: 'photoURL'
       });
@@ -73,6 +74,7 @@ describe('core/user/user_impl', () => {
       expect(user.email).to.eq('email');
       expect(user.phoneNumber).to.eq('phoneNumber');
       expect(user.photoURL).to.eq('photoURL');
+      expect(user.emailVerified).to.be.true;
     });
 
     it('sets optional fields to null if not provided', () => {
@@ -81,6 +83,7 @@ describe('core/user/user_impl', () => {
       expect(user.email).to.eq(null);
       expect(user.phoneNumber).to.eq(null);
       expect(user.photoURL).to.eq(null);
+      expect(user.emailVerified).to.be.false;
     });
   });
 

@@ -4,7 +4,7 @@ dist
 .awcache
 .cache
 /config/project.json
-scripts/docgen/html
+scripts/docgen-compat/html
 
 # OS Specific Files
 .DS_Store

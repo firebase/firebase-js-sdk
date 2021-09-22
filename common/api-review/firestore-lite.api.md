@@ -33,6 +33,9 @@ export class Bytes {
 }
 
 // @public
+export type ChildUpdateFields<K extends string, V> = V extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<V>> : never;
+
+// @public
 export function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
 // @public
@@ -191,7 +194,7 @@ export { LogLevel }
 
 // @public
 export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToIntersection<{
-    [K in keyof T & string]: T[K] extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<T[K]>> : never;
+    [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
 }[keyof T & string]>;
 
 // @public
@@ -332,7 +335,7 @@ export class Transaction {
 export type UnionToIntersection<U> = (U extends unknown ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
 // @public
-export type UpdateData<T> = T extends Primitive ? T : T extends Map<infer K, infer V> ? Map<UpdateData<K>, UpdateData<V>> : T extends {} ? {
+export type UpdateData<T> = T extends Primitive ? T : T extends {} ? {
     [K in keyof T]?: UpdateData<T[K]> | FieldValue;
 } & NestedUpdateFields<T> : Partial<T>;
 
