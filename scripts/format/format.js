@@ -50,7 +50,7 @@ const format = async () => {
       '--name-only',
       '--diff-filter=d',
       baseSha,
-        headSha
+      headSha
     ]);
     const changedFiles = diff.split('\n');
 
