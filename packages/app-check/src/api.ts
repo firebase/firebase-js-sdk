@@ -63,8 +63,8 @@ export function initializeAppCheck(
     initializeDebugMode();
   }
 
-  // Log a warning when `initializeAppCheck()` is called in debug mode,
-  // and show the token.
+  // Log a message containing the debug token when `initializeAppCheck()`
+  // is called in debug mode.
   if (isDebugMode()) {
     // Do not block initialization to get the token for the message.
     void getDebugToken().then(token =>

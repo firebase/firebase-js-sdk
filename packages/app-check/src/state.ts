@@ -70,6 +70,7 @@ export function clearState(): void {
   APP_CHECK_STATES.clear();
   DEBUG_STATE.enabled = false;
   DEBUG_STATE.token = undefined;
+  DEBUG_STATE.initialized = false;
 }
 
 export function getDebugState(): DebugState {

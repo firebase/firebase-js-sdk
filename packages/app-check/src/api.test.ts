@@ -39,6 +39,7 @@ import * as client from './client';
 import * as storage from './storage';
 import * as internalApi from './internal-api';
 import * as indexeddb from './indexeddb';
+import * as debug from './debug';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 import { CustomProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
@@ -140,18 +141,27 @@ describe('api', () => {
       expect(consoleStub.args[0][0]).to.include(token);
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
     });
-    it('warns about debug mode on second call', async () => {
+    it('does not call initializeDebugMode on second call', async () => {
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = 'abcdefg';
       const consoleStub = stub(console, 'log');
+      const initializeDebugModeSpy = spy(debug, 'initializeDebugMode');
+      // First call, should call initializeDebugMode()
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
+      expect(initializeDebugModeSpy).to.be.called;
+      initializeDebugModeSpy.resetHistory();
+      // Second call, should not call initializeDebugMode()
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
       const token = await getDebugToken();
       expect(token).to.equal('abcdefg');
+      // Two console logs of the token, for each initializeAppCheck call.
       expect(consoleStub.args[0][0]).to.include(token);
+      expect(consoleStub.args[1][0]).to.include(token);
+      expect(consoleStub.args[1][0]).to.equal(consoleStub.args[0][0]);
+      expect(initializeDebugModeSpy).to.not.be.called;
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
     });
 
