@@ -25,7 +25,7 @@ import * as types from '@firebase/database-types';
 import { name, version } from '../package.json';
 import { Database as DatabaseCompat } from '../src/api/Database';
 import * as INTERNAL from '../src/api/internal';
-// rename the imports to avoid conflicts with imports that will be added by "yarn add-compat-overloads"
+// rename the imports to avoid conflicts with imports that will be added by "yarn add-compat-overloads" during a release build
 import { DataSnapshot as DataSnapshotCompat, Query as QueryCompat, Reference } from '../src/api/Reference';
 
 const ServerValue = DatabaseCompat.ServerValue;
