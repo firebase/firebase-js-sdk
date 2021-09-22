@@ -73,6 +73,11 @@ export async function analyzePackageSize(
       `${projectRoot}/packages/*`
     ]);
     allModulesLocation = allModulesLocation.filter(path => {
+      const pkgJsonPath = `${path}/package.json`;
+      if (!fs.existsSync(pkgJsonPath)){
+        return false;
+      }
+      
       const json = JSON.parse(
         fs.readFileSync(`${path}/package.json`, { encoding: 'utf-8' })
       );

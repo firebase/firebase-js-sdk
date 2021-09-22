@@ -18,7 +18,6 @@
 import { expect } from 'chai';
 
 import {
-  extractDeclarations,
   MemberList,
   dedup,
   mapSymbolToType,
@@ -27,8 +26,9 @@ import {
   ErrorCode,
   writeReportToDirectory,
   extractExternalDependencies,
-  buildMap,
-  Report
+  Report,
+  extractExports,
+  extractAllTopLevelSymbols
 } from '../analysis-helper';
 
 import {
@@ -39,14 +39,14 @@ import {
 import * as fs from 'fs';
 import { resolve } from 'path';
 
-describe('extractDeclarations on .d.ts file', () => {
+describe('extractExports', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
   before(() => {
     const start = Date.now();
     testModuleDtsFile = getTestModuleDtsFilePath();
-    extractedDeclarations = extractDeclarations(testModuleDtsFile);
-    console.log('extractDeclarations on .d.ts file took ', Date.now() - start);
+    extractedDeclarations = extractExports(testModuleDtsFile);
+    console.log('extractExports took ', Date.now() - start);
   });
   // export {tar as tarr, tar1 as tarr1} from '..'
   it('test export rename', () => {
@@ -187,42 +187,34 @@ describe('extractDeclarations on .d.ts file', () => {
   });
 
   // import * as fs from 'fs'
-  // import * as tmp from 'tmp'
-  // export declare const aVar: tmp.FileOptions;
   // export { fs as fs1 };
   it('test namespace export', () => {
-    expect(extractedDeclarations.variables).to.include.members(['fs1']);
-    expect(extractedDeclarations.variables).to.not.include.members(['tmp']);
-    expect(extractedDeclarations.variables).to.include.members(['aVar']);
+    expect(extractedDeclarations.unknown).to.include.members(['fs1']);
   });
 });
-describe('extractDeclarations on js bundle file', () => {
+
+describe('extractAllTopLevelSymbols', () => {
   let subsetExportsBundleFile: string;
   let extractedDeclarations: MemberList;
   before(function () {
-    this.timeout(120000);
     const start = Date.now();
-    const testModuleDtsFile: string = getTestModuleDtsFilePath();
-    const map: Map<string, string> = buildMap(
-      extractDeclarations(testModuleDtsFile)
-    );
     subsetExportsBundleFile = getSubsetExportsBundleFilePath();
-    extractedDeclarations = extractDeclarations(subsetExportsBundleFile, map);
+    extractedDeclarations = extractAllTopLevelSymbols(subsetExportsBundleFile);
     console.log(
       'extractDeclarations on js bundle file took ',
       Date.now() - start
     );
   });
   it('test variable extractions', () => {
-    const variablesArray = ['aVar', 'fs1'];
+    const variablesArray = ['aVar'];
     variablesArray.sort();
-    expect(extractedDeclarations.variables).to.have.members(variablesArray);
+    expect(extractedDeclarations.variables).to.include.members(variablesArray);
   });
 
   it('test functions extractions', () => {
     const functionsArray = [
       'tar',
-      'tarr1',
+      'tar1',
       'basicFuncExportEnumDependencies',
       'd1',
       'd2',
@@ -236,16 +228,15 @@ describe('extractDeclarations on js bundle file', () => {
   it('test enums extractions', () => {
     const enumsArray = [
       'BasicEnumExport',
-      'LogLevel2',
       'BasicEnumExportBar',
       'BasicEnumExportFar'
     ];
     enumsArray.sort();
-    expect(extractedDeclarations.enums).to.have.members(enumsArray);
+    expect(extractedDeclarations.variables).to.include.members(enumsArray);
   });
 
   it('test classes extractions', () => {
-    const classesArray = ['Logger1'];
+    const classesArray = ['BasicClassExport'];
     classesArray.sort();
     expect(extractedDeclarations.classes).to.have.members(classesArray);
   });
@@ -257,7 +248,8 @@ describe('test dedup helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
+      unknown: []
     };
     memberList = dedup(memberList);
 
@@ -287,7 +279,8 @@ describe('test dedup helper function', () => {
       functions: [],
       classes: [],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: []
+      enums: [],
+      unknown: []
     };
     memberList = dedup(memberList);
     expect(memberList.functions).to.have.length(0);
@@ -308,7 +301,8 @@ describe('test replaceAll helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
+      unknown: []
     };
     const original: string = 'aFunc';
     const replaceTo: string = 'replacedFunc';
@@ -331,7 +325,8 @@ describe('test replaceAll helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
+      unknown: []
     };
     const replaceTo: string = 'replacedClass';
     const original: string = 'bClass';
@@ -354,7 +349,8 @@ describe('test replaceAll helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
+      unknown: []
     };
     const replaceTo: string = 'replacedEnum';
     const original: string = 'eEnum';
@@ -377,7 +373,8 @@ describe('test mapSymbolToType helper function', () => {
       functions: ['aVar', 'bFunc', 'cFunc'],
       classes: ['bClass', 'cClass'],
       variables: ['aClass', 'bVar', 'cVar', 'aEnum'],
-      enums: ['bEnum', 'cEnum', 'dEnum', 'aFunc']
+      enums: ['bEnum', 'cEnum', 'dEnum', 'aFunc'],
+      unknown: []
     };
 
     const map: Map<string, string> = new Map([
