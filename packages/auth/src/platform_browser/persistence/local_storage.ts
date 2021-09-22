@@ -52,13 +52,9 @@ class BrowserLocalPersistence
 
   constructor() {
     super(window.localStorage, PersistenceType.LOCAL);
-    this.boundEventHandler = this.onStorageEvent.bind(this);
   }
 
-  private readonly boundEventHandler: (
-    event: StorageEvent,
-    poll?: boolean
-  ) => void;
+  private readonly boundEventHandler = (event: StorageEvent, poll?: boolean): void => this.onStorageEvent(event, poll);
   private readonly listeners: Record<string, Set<StorageEventListener>> = {};
   private readonly localCache: Record<string, string | null> = {};
   // setTimeout return value is platform specific
@@ -88,7 +84,7 @@ class BrowserLocalPersistence
     }
   }
 
-  private onStorageEvent(event: StorageEvent, poll: boolean = false): void {
+  private onStorageEvent(event: StorageEvent, poll = false): void {
     // Key would be null in some situations, like when localStorage is cleared
     if (!event.key) {
       this.forAllChangedKeys(

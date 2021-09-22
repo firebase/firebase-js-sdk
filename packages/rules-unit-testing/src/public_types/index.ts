@@ -18,6 +18,12 @@
 import { FirebaseSignInProvider } from '@firebase/util';
 import firebase from 'firebase/compat/app';
 
+// These import statements allow v9 compat instances (created by RulesTestContext) to be used in v9
+// modular APIs, e.g. `doc(context.firestore(), 'a/b')` in developer code. (a.k.a. "interop mode".)
+import 'firebase/compat/database';
+import 'firebase/compat/firestore';
+import 'firebase/compat/storage';
+
 /**
  * More options for the mock user token to be used for testing, including developer-specfied custom
  * claims or optional overrides for Firebase Auth token payloads.

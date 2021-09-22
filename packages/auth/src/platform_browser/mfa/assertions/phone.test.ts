@@ -70,7 +70,6 @@ describe('platform_browser/mfa/phone', () => {
       expect(response).to.eql(serverResponse);
       expect(mock.calls[0].request).to.eql({
         idToken: 'enrollment-id-token',
-        tenantId: auth.tenantId,
         phoneVerificationInfo: {
           code: 'verification-code',
           sessionInfo: 'verification-id'
@@ -93,7 +92,6 @@ describe('platform_browser/mfa/phone', () => {
         expect(mock.calls[0].request).to.eql({
           idToken: 'enrollment-id-token',
           displayName: 'display-name',
-          tenantId: auth.tenantId,
           phoneVerificationInfo: {
             code: 'verification-code',
             sessionInfo: 'verification-id'
@@ -119,7 +117,6 @@ describe('platform_browser/mfa/phone', () => {
       expect(response).to.eql(serverResponse);
       expect(mock.calls[0].request).to.eql({
         mfaPendingCredential: 'mfa-pending-credential',
-        tenantId: null,
         phoneVerificationInfo: {
           code: 'verification-code',
           sessionInfo: 'verification-id'

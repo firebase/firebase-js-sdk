@@ -23,7 +23,9 @@ jobs:
         run: yarn
 
       - name: Add a changeset for @firebase/app
-        run: yarn ts-node-script scripts/ci/add_changeset.ts
+        run: |
+          git pull -f origin master:master
+          yarn ts-node-script scripts/ci/add_changeset.ts
 
       - name: Create Release Pull Request
         uses: changesets/action@master

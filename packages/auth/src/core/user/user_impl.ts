@@ -83,6 +83,7 @@ export class UserImpl implements UserInternal {
     this.accessToken = stsTokenManager.accessToken;
     this.displayName = opt.displayName || null;
     this.email = opt.email || null;
+    this.emailVerified = opt.emailVerified || false;
     this.phoneNumber = opt.phoneNumber || null;
     this.photoURL = opt.photoURL || null;
     this.isAnonymous = opt.isAnonymous || false;

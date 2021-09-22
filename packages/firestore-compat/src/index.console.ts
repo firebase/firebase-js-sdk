@@ -26,7 +26,7 @@ import {
 
 import {
   Firestore as FirestoreCompat,
-  MemoryPersistenceProvider
+  PersistenceProvider
 } from './api/database';
 
 export {
@@ -44,6 +44,41 @@ export { Timestamp } from './api/timestamp';
 export interface FirestoreDatabase {
   projectId: string;
   database?: string;
+}
+
+const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
+  'You are using the memory-only build of Firestore. Persistence support is ' +
+  'only available via the @firebase/firestore bundle or the ' +
+  'firebase-firestore.js build.';
+
+/**
+ * The persistence provider included with the memory-only SDK. This provider
+ * errors for all attempts to access persistence.
+ */
+export class MemoryPersistenceProvider implements PersistenceProvider {
+  enableIndexedDbPersistence(
+    firestore: FirestoreCompat,
+    forceOwnership: boolean
+  ): Promise<void> {
+    throw new FirestoreError(
+      'failed-precondition',
+      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    );
+  }
+
+  enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void> {
+    throw new FirestoreError(
+      'failed-precondition',
+      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    );
+  }
+
+  clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
+    throw new FirestoreError(
+      'failed-precondition',
+      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    );
+  }
 }
 
 /** Firestore class that exposes the constructor expected by the Console. */
