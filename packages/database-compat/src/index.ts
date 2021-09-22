@@ -67,7 +67,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
 
 registerDatabase(firebase);
 
-// Types to export for the admin SDK. They are exported here n the browser entry point only for types
+// Types to export for the admin SDK. They are exported here in the browser entry point only for types
 // The same symbol should be exported from the node entry point so their values can be accessed at runtime by admin SDK
 export { Database, Query, Reference, enableLogging, ServerValue, DataSnapshot };
 export { OnDisconnect } from '@firebase/database';
