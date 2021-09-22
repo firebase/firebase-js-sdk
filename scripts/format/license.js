@@ -126,13 +126,6 @@ async function doLicense(changedFiles) {
       `License script modified ${stageDiff.split('\n').length - 1} files.`
     );
   }
-
-  const gitSpinner = ora(' Git staging license text modifications.').start();
-  await git.add('.');
-
-  gitSpinner.stopAndPersist({
-    symbol: '▶️'
-  });
 }
 
 module.exports = {

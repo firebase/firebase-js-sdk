@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ const { doPrettier } = require('./prettier');
 const { doLicense } = require('./license');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
-const ora = require('ora');
 const chalk = require('chalk');
 
 // Computed Deps
@@ -36,15 +35,7 @@ $ git stash -u
 $ git stash pop
 `;
 
-const FETCH_TIMEOUT = 10 * 1000; // 10 seconds
-
-function timeoutPromise(millis) {
-  return new Promise((resolve, reject) => {
-    setTimeout(reject, millis);
-  });
-}
-
-(async () => {
+const format = async () => {
   try {
     const hasDiff = !!(await git.diff());
 
@@ -53,36 +44,14 @@ function timeoutPromise(millis) {
       return process.exit(1);
     }
 
-    // Try to get most current origin/master.
-    const fetchSpinner = ora(
-      ' Fetching latest version of master branch.'
-    ).start();
-    try {
-      await Promise.race([
-        git.fetch('origin', 'master'),
-        timeoutPromise(FETCH_TIMEOUT)
-      ]);
-      fetchSpinner.stopAndPersist({
-        symbol: '✅'
-      });
-    } catch (e) {
-      fetchSpinner.stopAndPersist({
-        symbol: '⚠️'
-      });
-      console.warn(
-        chalk`\n{yellow WARNING: Unable to fetch latest version of master, diff may be stale.}`
-      );
-    }
-
-    // Diff staged changes against origin/master...HEAD (common ancestor of HEAD and origin/master).
-    const mergeBase = await git.raw(['merge-base', 'origin/master', 'HEAD']);
-    let diffOptions = ['--name-only', '--diff-filter=d', '--cached'];
-    if (mergeBase) {
-      diffOptions.push(mergeBase.trim());
-    } else {
-      diffOptions.push('origin/master');
-    }
-    const diff = await git.diff(diffOptions);
+    const headSha = process.env.GITHUB_PULL_REQUEST_HEAD_SHA || 'HEAD';
+    const baseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
+    const diff = await git.diff([
+      '--name-only',
+      '--diff-filter=d',
+      baseSha,
+      headSha
+    ]);
     const changedFiles = diff.split('\n');
 
     // Style the code
@@ -91,17 +60,15 @@ function timeoutPromise(millis) {
     // Validate License headers exist
     await doLicense(changedFiles);
 
-    console.log(chalk`
-Pre-Push Validation Succeeded
-
-`);
     process.exit();
   } catch (err) {
     console.error(chalk`
-{red Pre-Push Validation Failed, error body below}
+{red Formatting failed, error body below}
 
 `);
     console.error(err);
     return process.exit(1);
   }
-})();
+};
+
+format();

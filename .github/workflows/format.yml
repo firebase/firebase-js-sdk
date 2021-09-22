@@ -1,0 +1,34 @@
+name: Format Files
+
+on: pull_request
+
+env:
+  GITHUB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+  GITHUB_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+
+jobs:
+  format:
+    name: Run license and prettier formatting tasks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@master
+      with:
+        ref: ${{ github.head_ref }}
+        # get all history for the diff
+        fetch-depth: 0
+    - name: Set up Node (14)
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - name: Yarn install
+      run: yarn
+    - name: Run formatting script
+      run: node scripts/format/format.js
+    - name: Add, Commit & Push changes
+      uses: EndBug/add-and-commit@v7
+      with:
+        add: '.'
+        message: 'Automatic formatting'
+        default_author: github_actor

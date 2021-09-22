@@ -155,10 +155,5 @@
     "watch": "1.0.2",
     "webpack": "4.46.0",
     "yargs": "17.2.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "node tools/gitHooks/precommit.js"
-    }
   }
 }

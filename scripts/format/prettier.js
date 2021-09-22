@@ -99,12 +99,6 @@ async function doPrettier(changedFiles) {
   } else {
     console.log(`Prettier modified ${stageDiff.split('\n').length - 1} files.`);
   }
-
-  const gitSpinner = ora(' Git staging prettier formatting changes.').start();
-  await git.add(targetFiles);
-  gitSpinner.stopAndPersist({
-    symbol: '▶️'
-  });
 }
 
 module.exports = {
