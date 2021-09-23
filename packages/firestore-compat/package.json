@@ -8,6 +8,9 @@
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
   "esm5": "dist/index.esm5.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
