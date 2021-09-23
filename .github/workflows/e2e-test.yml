@@ -46,8 +46,8 @@ jobs:
     - name: Run modular tests
       env:
         APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
-      run: xvfb-run yarn test --modular
+      run: xvfb-run yarn test:modular
     - name: Run compat tests
       env:
         APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
-      run: xvfb-run yarn test --compat
+      run: xvfb-run yarn test:compat
