@@ -23,11 +23,12 @@ import { enableLogging } from '@firebase/database';
 import * as types from '@firebase/database-types';
 
 import { name, version } from '../package.json';
-import { Database } from '../src/api/Database';
+import { Database as DatabaseCompat } from '../src/api/Database';
 import * as INTERNAL from '../src/api/internal';
-import { DataSnapshot, Query, Reference } from '../src/api/Reference';
+// rename the imports to avoid conflicts with imports that will be added by "yarn add-compat-overloads" during a release build
+import { DataSnapshot as DataSnapshotCompat, Query as QueryCompat, Reference } from '../src/api/Reference';
 
-const ServerValue = Database.ServerValue;
+const ServerValue = DatabaseCompat.ServerValue;
 
 export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
@@ -43,7 +44,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
         const databaseExp = container
           .getProvider('database')
           .getImmediate({ identifier: url });
-        return new Database(databaseExp, app);
+        return new DatabaseCompat(databaseExp, app);
       },
       ComponentType.PUBLIC
     )
@@ -51,9 +52,9 @@ export function registerDatabase(instance: FirebaseNamespace) {
         // firebase.database namespace properties
         {
           Reference,
-          Query,
-          Database,
-          DataSnapshot,
+          Query: QueryCompat,
+          Database: DatabaseCompat,
+          DataSnapshot: DataSnapshotCompat,
           enableLogging,
           INTERNAL,
           ServerValue
@@ -69,7 +70,7 @@ registerDatabase(firebase);
 
 // Types to export for the admin SDK. They are exported here in the browser entry point only for types
 // The same symbol should be exported from the node entry point so their values can be accessed at runtime by admin SDK
-export { Database, Query, Reference, enableLogging, ServerValue, DataSnapshot };
+export { DatabaseCompat as Database, QueryCompat as Query, Reference, enableLogging, ServerValue, DataSnapshotCompat as DataSnapshot };
 export { OnDisconnect } from '@firebase/database';
 
 declare module '@firebase/app-compat' {
