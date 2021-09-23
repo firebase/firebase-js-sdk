@@ -27,7 +27,6 @@ import 'firebase/compat/performance';
 import 'firebase/compat/database';
 import { config, testAccount } from '../firebase-config';
 import { expect } from 'chai';
-import { removegreCAPTCHAScriptsOnPage } from './test-helper';
 
 describe('COMPAT', () => {
   let app: firebase.app.App;
@@ -38,7 +37,6 @@ describe('COMPAT', () => {
   });
 
   after(async () => {
-    removegreCAPTCHAScriptsOnPage();
     await firebase.auth().signOut();
     await app.delete();
   });
