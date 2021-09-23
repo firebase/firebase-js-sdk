@@ -142,3 +142,8 @@ exports.timeoutTest = functions.https.onRequest((request, response) => {
     setTimeout(() => response.send({ data: true }), 500);
   });
 });
+
+// Used by E2E test.
+exports.callTest = functions.https.onCall((data, context) => {
+  return { word: 'hellooo' };
+});

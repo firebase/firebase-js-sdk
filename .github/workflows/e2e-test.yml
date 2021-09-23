@@ -3,7 +3,7 @@ name: E2E Smoke Tests
 on: workflow_dispatch
 
 jobs:
-  test-v9:
+  test:
     name: Run E2E Smoke Tests
     runs-on: ubuntu-latest
     defaults:
@@ -32,8 +32,13 @@ jobs:
         echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
     - name: Yarn install
       run: |
-        yarn add firebase@beta
+        yarn add firebase
         yarn
+    - name: Deploy "callTest" cloud function
+      run: |
+        pushd config
+        yarn firebase deploy --only functions:callTest --token $FIREBASE_CLI_TOKEN
+        popd
     - name: Run tests
       env:
         APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
