@@ -1,4 +1,5 @@
 import { Client } from 'faye-websocket';
+
 import { setWebSocketImpl } from './realtime/WebSocketConnection';
 
 setWebSocketImpl(Client);
