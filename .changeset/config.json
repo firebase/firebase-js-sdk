@@ -16,7 +16,9 @@
     "firebase-compat-interop-test",
     "firebase-compat-typings-test",
     "@firebase/changelog-generator",
-    "firebase-size-analysis"
+    "firebase-size-analysis",
+    "@firebase/api-documenter",
+    "firebase-repo-scripts-prune-dts"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true,
