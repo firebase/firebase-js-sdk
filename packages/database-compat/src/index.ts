@@ -23,16 +23,15 @@ import { enableLogging } from '@firebase/database';
 import * as types from '@firebase/database-types';
 
 import { name, version } from '../package.json';
-import { Database as DatabaseCompat } from '../src/api/Database';
+import { Database } from '../src/api/Database';
 import * as INTERNAL from '../src/api/internal';
-// rename the imports to avoid conflicts with imports that will be added by "yarn add-compat-overloads" during a release build
-import { DataSnapshot as DataSnapshotCompat, Query as QueryCompat, Reference } from '../src/api/Reference';
+import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 
-const ServerValue = DatabaseCompat.ServerValue;
+const ServerValue = Database.ServerValue;
 
 export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
-  const namespace = (
+  (
     instance as unknown as _FirebaseNamespace
   ).INTERNAL.registerComponent(
     new Component(
@@ -44,7 +43,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
         const databaseExp = container
           .getProvider('database')
           .getImmediate({ identifier: url });
-        return new DatabaseCompat(databaseExp, app);
+        return new Database(databaseExp, app);
       },
       ComponentType.PUBLIC
     )
@@ -52,9 +51,9 @@ export function registerDatabase(instance: FirebaseNamespace) {
         // firebase.database namespace properties
         {
           Reference,
-          Query: QueryCompat,
-          Database: DatabaseCompat,
-          DataSnapshot: DataSnapshotCompat,
+          Query,
+          Database,
+          DataSnapshot,
           enableLogging,
           INTERNAL,
           ServerValue
@@ -67,11 +66,6 @@ export function registerDatabase(instance: FirebaseNamespace) {
 }
 
 registerDatabase(firebase);
-
-// Types to export for the admin SDK. They are exported here in the browser entry point only for types
-// The same symbol should be exported from the node entry point so their values can be accessed at runtime by admin SDK
-export { DatabaseCompat as Database, QueryCompat as Query, Reference, enableLogging, ServerValue, DataSnapshotCompat as DataSnapshot };
-export { OnDisconnect } from '@firebase/database';
 
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
