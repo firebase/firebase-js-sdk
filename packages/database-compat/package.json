@@ -9,6 +9,19 @@
   "esm5": "dist/index.esm5.js",
   "license": "Apache-2.0",
   "typings": "dist/database-compat/src/index.d.ts",
+  "files": [
+    "dist",
+    "standalone/package.json"
+  ],
+  "exports": {
+    ".": {
+      "node": "./dist/index.js",
+      "default": "./dist/index.esm2017.js"
+    },
+    "./standalone": {
+      "node": "./dist/index.standalone.js"
+    }
+  },
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
