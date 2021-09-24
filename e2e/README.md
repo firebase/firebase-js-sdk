@@ -13,7 +13,7 @@ Before running the tests, you will need:
 - an App Check debug token
 - to deploy the `callTest` Cloud Function
 
-## Project Config and Test User
+#### Project Config and Test User
 
 Create a file named `firebase-config.js` in the top level of this `e2e/` directory. The contents of the file should be:
 
@@ -38,11 +38,11 @@ export const testAccount = {
 }
 ```
 
-## App Check Debug Token
+#### App Check Debug Token
 
 Create an App Check debug token in the Firebase Console. Assign it to an environment variable in your shell named `APP_CHECK_DEBUG_TOKEN`.
 
-## Deploy `callTest` Cloud Function
+#### Deploy `callTest` Cloud Function
 
 From the top level of the firebase repo, ensure you have the Firebase CLI (`firebase-tools`) installed (if not, `npm install -g firebase-tools`).
 
