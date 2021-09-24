@@ -35,11 +35,11 @@
   "devDependencies": {
     "@firebase/app-compat": "0.1.2",
     "@types/eslint": "7.28.0",
-    "rollup": "2.56.3",
+    "rollup": "2.57.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.30.0",
-    "@rollup/plugin-node-resolve": "13.0.4",
+    "@rollup/plugin-node-resolve": "13.0.5",
     "ts-node": "10.2.1",
     "typescript": "4.2.2"
   },

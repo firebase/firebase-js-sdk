@@ -53,7 +53,7 @@
     "@firebase/component": "0.5.7",
     "@firebase/logger": "0.3.0",
     "@firebase/util": "1.4.0",
-    "node-fetch": "2.6.2",
+    "node-fetch": "2.6.5",
     "selenium-webdriver": "4.0.0-rc-1",
     "tslib": "^2.1.0"
   },
@@ -61,7 +61,7 @@
   "devDependencies": {
     "@firebase/app": "0.7.1",
     "@rollup/plugin-json": "4.1.0",
-    "rollup": "2.56.3",
+    "rollup": "2.57.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.30.0",
     "@rollup/plugin-strip": "2.1.0",
