@@ -2,4 +2,4 @@
 "@firebase/firestore": patch
 ---
 
-use `constructor.name` for Object name
+use `constructor.name` for Object type
