@@ -1,5 +1,24 @@
 # @firebase/auth
 
+## 0.18.0
+
+### Minor Changes
+
+- [`4d2a54fb0`](https://github.com/firebase/firebase-js-sdk/commit/4d2a54fb0611ab1987ad415c265440b9bbbc28c6) [#5527](https://github.com/firebase/firebase-js-sdk/pull/5527) - Update all persistences to map to `inMemoryPersistence` in Node, to avoid errors with server-side rendering
+
+### Patch Changes
+
+- [`a5d87bc5c`](https://github.com/firebase/firebase-js-sdk/commit/a5d87bc5c5d6360d5fa2386fe351937463bc45b8) [#5511](https://github.com/firebase/firebase-js-sdk/pull/5511) - Fix bug with the user `emailVerified` field persistence across tabs
+
+* [`07b88e6e8`](https://github.com/firebase/firebase-js-sdk/commit/07b88e6e80f60525c66bf330d28160dbef2d0a2c) [#5487](https://github.com/firebase/firebase-js-sdk/pull/5487) - Add missing phone FACTOR_ID static property to the PhoneMultiFactorGenerator class
+
+- [`c2362214a`](https://github.com/firebase/firebase-js-sdk/commit/c2362214ad6154ce013d3815a6f1ccd061679f66) [#5522](https://github.com/firebase/firebase-js-sdk/pull/5522) - Fix wrongly-typed tenantId fields in requests to some endpoints
+
+- Updated dependencies [[`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422)]:
+  - @firebase/logger@0.3.0
+  - @firebase/util@1.4.0
+  - @firebase/component@0.5.7
+
 ## 0.17.2
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @firebase/rules-unit-testing
 
+## 2.0.1
+
+### Patch Changes
+
+- [`46d26ff96`](https://github.com/firebase/firebase-js-sdk/commit/46d26ff969c08b6fc8486f0c4b8fa8fc5a6c81d9) [#5500](https://github.com/firebase/firebase-js-sdk/pull/5500) - Fix typing issues where Database/Firestore/Storage compat instances returned by RulesTestContext are not compatible with v9 modular APIs.
+
+* [`29e0be2cb`](https://github.com/firebase/firebase-js-sdk/commit/29e0be2cb25338bb667ccb3bf63cd8bd0d1b3dc8) [#5501](https://github.com/firebase/firebase-js-sdk/pull/5501) - Set RTDB namespace to be same as projectId by default instead of `${projectId}-default-rtdb`. This fixes rules not being applied and other issues related to namespace mismatch.
+
 ## 2.0.0
 
 ### Major Changes

@@ -1,5 +1,16 @@
 # @firebase/firestore-compat
 
+## 0.1.3
+
+### Patch Changes
+
+- [`08c098211`](https://github.com/firebase/firebase-js-sdk/commit/08c098211f44a79a5b8d30c6b4222d560ff522a3) [#5538](https://github.com/firebase/firebase-js-sdk/pull/5538) - only publish dist folder to npm for @firebase/firestore-compat
+
+- Updated dependencies [[`f78ceca1c`](https://github.com/firebase/firebase-js-sdk/commit/f78ceca1cf9198f5d371320e8814c859c261cf67), [`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422), [`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39)]:
+  - @firebase/firestore@3.1.0
+  - @firebase/util@1.4.0
+  - @firebase/component@0.5.7
+
 ## 0.1.2
 
 ### Patch Changes
