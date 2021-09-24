@@ -1,5 +1,39 @@
 # firebase
 
+## 9.1.0
+
+### Minor Changes
+
+- [`f90c1d081`](https://github.com/firebase/firebase-js-sdk/commit/f90c1d081ee6be472b3a372e1f01f7a5cace3155) [#3623](https://github.com/firebase/firebase-js-sdk/pull/3623) - Issue 2393 - Add environment check to Remote-Config Module
+
+### Patch Changes
+
+- Updated dependencies [[`dfe65ff9b`](https://github.com/firebase/firebase-js-sdk/commit/dfe65ff9bfa66d318d45e2a666e302867ae53a01), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422), [`f90c1d081`](https://github.com/firebase/firebase-js-sdk/commit/f90c1d081ee6be472b3a372e1f01f7a5cace3155), [`08c098211`](https://github.com/firebase/firebase-js-sdk/commit/08c098211f44a79a5b8d30c6b4222d560ff522a3), [`f78ceca1c`](https://github.com/firebase/firebase-js-sdk/commit/f78ceca1cf9198f5d371320e8814c859c261cf67), [`e62d02e52`](https://github.com/firebase/firebase-js-sdk/commit/e62d02e52e50fe53b3db90e9641df25a42742b15), [`a5d87bc5c`](https://github.com/firebase/firebase-js-sdk/commit/a5d87bc5c5d6360d5fa2386fe351937463bc45b8), [`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422), [`07b88e6e8`](https://github.com/firebase/firebase-js-sdk/commit/07b88e6e80f60525c66bf330d28160dbef2d0a2c), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422), [`4d2a54fb0`](https://github.com/firebase/firebase-js-sdk/commit/4d2a54fb0611ab1987ad415c265440b9bbbc28c6), [`c2362214a`](https://github.com/firebase/firebase-js-sdk/commit/c2362214ad6154ce013d3815a6f1ccd061679f66), [`b79bd33e4`](https://github.com/firebase/firebase-js-sdk/commit/b79bd33e4d3fe6c051b29a85d5141fcb8dcc8d2d), [`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39)]:
+  - @firebase/database-compat@0.1.1
+  - @firebase/database@0.12.1
+  - @firebase/app-check@0.4.1
+  - @firebase/app-check-compat@0.1.2
+  - @firebase/remote-config@0.3.0
+  - @firebase/firestore-compat@0.1.3
+  - @firebase/firestore@3.1.0
+  - @firebase/auth@0.18.0
+  - @firebase/util@1.4.0
+  - @firebase/performance@0.5.1
+  - @firebase/performance-compat@0.1.1
+  - @firebase/messaging@0.9.1
+  - @firebase/analytics@0.7.1
+  - @firebase/messaging-compat@0.1.1
+  - @firebase/analytics-compat@0.1.2
+  - @firebase/remote-config-compat@0.1.1
+  - @firebase/auth-compat@0.1.3
+  - @firebase/storage@0.8.3
+  - @firebase/app@0.7.1
+  - @firebase/app-compat@0.1.2
+  - @firebase/functions@0.7.2
+  - @firebase/functions-compat@0.1.3
+  - @firebase/installations@0.5.1
+  - @firebase/storage-compat@0.1.3
+
 ## 9.0.2
 
 ### Patch Changes

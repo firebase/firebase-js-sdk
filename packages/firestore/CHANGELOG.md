@@ -1,5 +1,21 @@
 # @firebase/firestore
 
+## 3.1.0
+
+### Minor Changes
+
+- [`f78ceca1c`](https://github.com/firebase/firebase-js-sdk/commit/f78ceca1cf9198f5d371320e8814c859c261cf67) [#5394](https://github.com/firebase/firebase-js-sdk/pull/5394) - Fixed a bug where `UpdateData` did not recognize union types or optional, dot-separated string fields.
+
+### Patch Changes
+
+- [`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39) [#5539](https://github.com/firebase/firebase-js-sdk/pull/5539) - use `constructor.name` for Object type
+
+- Updated dependencies [[`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`456d664ae`](https://github.com/firebase/firebase-js-sdk/commit/456d664aef582fc18326ffbd418de0d7d3ef86b7), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422)]:
+  - @firebase/logger@0.3.0
+  - @firebase/util@1.4.0
+  - @firebase/webchannel-wrapper@0.6.0
+  - @firebase/component@0.5.7
+
 ## 3.0.2
 
 ### Patch Changes
