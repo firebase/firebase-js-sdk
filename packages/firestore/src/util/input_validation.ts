@@ -132,14 +132,10 @@ export function valueDescription(input: unknown): string {
   }
 }
 
-/** Hacky method to try to get the constructor name for an object. */
+/** try to get the constructor name for an object. */
 export function tryGetCustomObjectType(input: object): string | null {
   if (input.constructor) {
-    const funcNameRegex = /function\s+([^\s(]+)\s*\(/;
-    const results = funcNameRegex.exec(input.constructor.toString());
-    if (results && results.length > 1) {
-      return results[1];
-    }
+    return input.constructor.name;
   }
   return null;
 }
