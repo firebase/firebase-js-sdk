@@ -2702,13 +2702,13 @@
   resolved "https://registry.npmjs.org/@types/http-cache-semantics/-/http-cache-semantics-4.0.1.tgz#0ea7b61496902b95890dc4c3a116b60cb8dae812"
   integrity sha512-SZs7ekbP8CN0txVG2xVRH6EgKmEm31BOxA07vkFaETzZz1xh+cbt8BcI0slpymvwhx5dlFnQG2rTlPVQn+iRPQ==
 
-"@types/inquirer@7.3.3":
-  version "7.3.3"
-  resolved "https://registry.npmjs.org/@types/inquirer/-/inquirer-7.3.3.tgz#92e6676efb67fa6925c69a2ee638f67a822952ac"
-  integrity sha512-HhxyLejTHMfohAuhRun4csWigAMjXTmRyiJTU1Y/I1xmggikFMkOUoMQRlFm+zQcPEGHSs3io/0FAmNZf8EymQ==
+"@types/inquirer@8.1.2":
+  version "8.1.2"
+  resolved "https://registry.npmjs.org/@types/inquirer/-/inquirer-8.1.2.tgz#48be1d741fa39ade7ce099dbdb8a077eee8f5090"
+  integrity sha512-TYNYd9YEb1SdEo71AJ2sSYSS22gYiLV1/UzDjGY51Tx0LuVSbY3ftFR+eOP8qjowFKvDUnC2jmQP3hLulg6y6Q==
   dependencies:
     "@types/through" "*"
-    rxjs "^6.4.0"
+    rxjs "^7.2.0"
 
 "@types/istanbul-lib-coverage@*", "@types/istanbul-lib-coverage@^2.0.0":
   version "2.0.3"
