@@ -171,7 +171,7 @@ describe('core/strategies/sendEmailVerification', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iosBundleId: 'my-bundle'
+        iOSBundleId: 'my-bundle'
       });
     });
   });
@@ -280,7 +280,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iosBundleId: 'my-bundle'
+        iOSBundleId: 'my-bundle'
       });
     });
   });

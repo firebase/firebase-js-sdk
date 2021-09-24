@@ -119,7 +119,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iosBundleId: 'my-bundle'
+        iOSBundleId: 'my-bundle'
       });
     });
   });
