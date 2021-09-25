@@ -697,10 +697,10 @@ firebase-admin@8.13.0:
     "@google-cloud/firestore" "^3.0.0"
     "@google-cloud/storage" "^4.1.2"
 
-firebase-functions@3.15.5:
-  version "3.15.5"
-  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.15.5.tgz#d0b9d719c88332048f59ee3ecda5755cb0dabda2"
-  integrity sha512-w5Twk7txwfPFasx+i25f0U4fLiSa06XvwOIoEwazGYLPOLe18b2jCDQ9X8aeJm8S7FZE40ODWGVTLtF6dX6xHg==
+firebase-functions@3.15.7:
+  version "3.15.7"
+  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.15.7.tgz#ac88657e7e28f5a5926d41ae3e8fae9c94621ccd"
+  integrity sha512-ZD7r8eoWWebgs+mTqfH8NLUT2C0f7/cyAvIA1RSUdBVQZN7MBBt3oSlN/rL3e+m6tdlJz6YbQ3hrOKOGjOVYvQ==
   dependencies:
     "@types/cors" "^2.8.5"
     "@types/express" "4.17.3"

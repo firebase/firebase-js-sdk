@@ -19,10 +19,10 @@
     "build": "rollup -c"
   },
   "dependencies": {
-    "rollup": "2.56.3",
+    "rollup": "2.57.0",
     "@rollup/plugin-commonjs": "20.0.0",
     "@rollup/plugin-json": "4.1.0",
-    "@rollup/plugin-node-resolve": "13.0.4",
+    "@rollup/plugin-node-resolve": "13.0.5",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.30.0",
     "@rollup/plugin-virtual": "2.0.3",
@@ -30,14 +30,14 @@
     "@types/webpack": "5.28.0",
     "webpack-virtual-modules": "0.4.3",
     "child-process-promise": "2.2.1",
-    "memfs": "3.2.4",
+    "memfs": "3.3.0",
     "tmp": "0.2.1",
     "typescript": "4.2.2",
-    "terser": "5.7.2",
-    "yargs": "17.1.1",
+    "terser": "5.9.0",
+    "yargs": "17.2.0",
     "@firebase/util": "1.4.0",
     "gzip-size": "6.0.0",
-    "glob": "7.1.7"
+    "glob": "7.2.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {

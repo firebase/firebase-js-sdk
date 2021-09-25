@@ -14,8 +14,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "eslint": "7.32.0",
-    "eslint-plugin-unused-imports": "1.1.4",
-    "prettier": "2.4.0"
+    "eslint-plugin-unused-imports": "1.1.5",
+    "prettier": "2.4.1"
   },
   "repository": {
     "directory": "repo-scripts/prune-dts",
