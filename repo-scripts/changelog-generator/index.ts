@@ -89,7 +89,8 @@ const changelogFunctions: ChangelogFunctions = {
   }
 };
 
-const fixedIssueRegex = /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) [^\s]*(#|issues\/)([\d]+)/i;
+const fixedIssueRegex =
+  /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) [^\s]*(#|issues\/)([\d]+)/i;
 async function getFixedIssueLink(
   prNumber: number,
   repo: string
