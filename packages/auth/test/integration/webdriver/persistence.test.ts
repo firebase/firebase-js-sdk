@@ -204,34 +204,34 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
     });
 
-    it('use in-memory and clear all persistences if indexedDB and localStorage are both broken', async () => {
-      await driver.webDriver.navigate().refresh();
-      // Simulate browsers that do not support indexedDB.
-      await driver.webDriver.executeScript('delete window.indexedDB;');
-      // Simulate browsers denying writes to localStorage (e.g. Safari private browsing).
-      await driver.webDriver.executeScript(
-        'Storage.prototype.setItem = () => { throw new Error("setItem disabled for testing"); };'
-      );
-      await driver.injectConfigAndInitAuth();
-      await driver.waitForAuthInit();
+    // it('use in-memory and clear all persistences if indexedDB and localStorage are both broken', async () => {
+    //   await driver.webDriver.navigate().refresh();
+    //   // Simulate browsers that do not support indexedDB.
+    //   await driver.webDriver.executeScript('delete window.indexedDB;');
+    //   // Simulate browsers denying writes to localStorage (e.g. Safari private browsing).
+    //   await driver.webDriver.executeScript(
+    //     'Storage.prototype.setItem = () => { throw new Error("setItem disabled for testing"); };'
+    //   );
+    //   await driver.injectConfigAndInitAuth();
+    //   await driver.waitForAuthInit();
 
-      // User should exist in memory storage only
-      await driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY);
-      const user = await driver.getUserSnapshot();
-      expect(user.uid).to.be.a('string');
+    //   // User should exist in memory storage only
+    //   await driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY);
+    //   const user = await driver.getUserSnapshot();
+    //   expect(user.uid).to.be.a('string');
 
-      // Both storage should be cleared.
-      expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).to.eql(
-        {}
-      );
-      expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
+    //   // Both storage should be cleared.
+    //   expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).to.eql(
+    //     {}
+    //   );
+    //   expect(await driver.call(PersistenceFunction.INDEXED_DB_SNAP)).to.eql({});
 
-      // User will be gone (a.k.a. logged out) after refresh.
-      await driver.webDriver.navigate().refresh();
-      await driver.injectConfigAndInitAuth();
-      await driver.waitForAuthInit();
-      expect(await driver.getUserSnapshot()).to.equal(null);
-    });
+    //   // User will be gone (a.k.a. logged out) after refresh.
+    //   await driver.webDriver.navigate().refresh();
+    //   await driver.injectConfigAndInitAuth();
+    //   await driver.waitForAuthInit();
+    //   expect(await driver.getUserSnapshot()).to.equal(null);
+    // });
   });
 
   context('setPersistence(...)', () => {
