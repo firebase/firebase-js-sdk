@@ -95,9 +95,12 @@ async function getFixedIssueLink(
   repo: string
 ): Promise<string> {
   const { body }: { body: string } = await fetch(
-    `https://api.github.com/repos/${repo}/pulls/${prNumber}?access_token=${process.env.GITHUB_TOKEN}`,
+    `https://api.github.com/repos/${repo}/pulls/${prNumber}`,
     {
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`
+      }
     }
   ).then(data => data.json());
 
