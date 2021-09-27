@@ -23,6 +23,7 @@ jobs:
         run: yarn
 
       - name: Add a changeset for @firebase/app
+        # pull master so changeset can diff against it
         run: |
           git pull -f origin master:master
           yarn ts-node-script scripts/ci/add_changeset.ts
