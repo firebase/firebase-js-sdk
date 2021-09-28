@@ -51,8 +51,10 @@ jobs:
       env:
         APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
       run: xvfb-run yarn test:compat
-  notify-failure:
+  notify:
+    - name: Notify Chat with Test Status
     - needs: test
+    steps:
     - name: Tests succeeded
       if: success()
       run: |
