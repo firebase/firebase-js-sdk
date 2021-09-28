@@ -58,7 +58,7 @@
     "./lite": {
       "node": {
         "require": "./dist/lite/index.node.cjs.js",
-        "import": "./dist/lite/index.node.esm2017.js"
+        "import": "./dist/lite/index.node.mjs"
       },
       "default": "./dist/lite/index.browser.esm2017.js"
     }
