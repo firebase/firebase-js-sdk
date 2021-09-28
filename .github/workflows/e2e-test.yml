@@ -54,12 +54,12 @@ jobs:
     - name: Tests succeeded
       if: success()
       run: |
-        curl -d "{\"text\": \"E2E Tests Succeded - https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} \"}" -H "Content-Type: application/json" $JSCORE_CHAT_WEBHOOK_URL
+        curl -d "{\"text\": \"E2E Tests Succeded - https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} \"}" -H "Content-Type: application/json" $WEBHOOK_URL
       env:
         WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
     - name: Tests failed
       if: failure()
       run: |
-        curl -d "{\"text\": \"E2E Tests Failed - https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} \"}" -H "Content-Type: application/json" $JSCORE_CHAT_WEBHOOK_URL
+        curl -d "{\"text\": \"E2E Tests Failed - https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} \"}" -H "Content-Type: application/json" $WEBHOOK_URL
       env:
         WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
