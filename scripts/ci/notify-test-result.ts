@@ -26,7 +26,7 @@ async function notifyTestResults() {
     console.log(`Couldn't find WEBHOOK_URL env variable.`);
     return;
   }
-  
+
   // URL of this workflow run.
   const workflowUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
   let status = 'did not log a status correctly';
