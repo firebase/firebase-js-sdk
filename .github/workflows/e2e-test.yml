@@ -1,7 +1,12 @@
 name: E2E Smoke Tests
 
 # Allows REST trigger. Currently triggered by release-cli script during a staging run.
-on: [push, workflow_dispatch]
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: 'true'
 
 jobs:
   test:
