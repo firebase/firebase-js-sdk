@@ -1,6 +1,6 @@
 name: E2E Smoke Tests
 
-on: push, workflow_dispatch
+on: [push, workflow_dispatch]
 
 jobs:
   test:
