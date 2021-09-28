@@ -42,7 +42,7 @@ async function notifyTestResults() {
   // Add version if it can find it in the workflow_dispatch event data.
   if (process.env.GITHUB_EVENT_PATH) {
     const wrPayload = require(process.env.GITHUB_EVENT_PATH);
-    if (wrPayload.inputs?.version) {
+    if (wrPayload.inputs && wrPayload.inputs.version) {
       message += ` for release ${wrPayload.inputs.version}.`;
     } else {
       console.log(`Couldn't find version in event payload.`);
