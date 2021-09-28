@@ -1,6 +1,6 @@
 name: E2E Smoke Tests
 
-on: workflow_dispatch
+on: push, workflow_dispatch
 
 jobs:
   test:
@@ -51,3 +51,17 @@ jobs:
       env:
         APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
       run: xvfb-run yarn test:compat
+  notify-failure:
+    - needs: test
+    - name: Tests succeeded
+      if: success()
+      run: |
+        curl -d "{\"text\": \"E2E Tests Succeded - https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} \"}" -H "Content-Type: application/json" $JSCORE_CHAT_WEBHOOK_URL
+      env:
+        WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
+    - name: Tests failed
+      if: failure()
+      run: |
+        curl -d "{\"text\": \"E2E Tests Failed - https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} \"}" -H "Content-Type: application/json" $JSCORE_CHAT_WEBHOOK_URL
+      env:
+        WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
