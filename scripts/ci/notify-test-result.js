@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import fetch from 'node-fetch';
+const https = require('https');
 
 /**
  * Sends result of E2E staging test to JSCore chat.
@@ -57,12 +57,26 @@ async function notifyTestResults() {
     text: message
   });
 
-  return fetch(process.env.WEBHOOK_URL, {
+  const options = {
     method: 'POST',
-    body: data,
     headers: {
       'Content-Type': 'application/json'
     }
+  };
+
+  return new Promise((resolve, reject) => {
+    console.log(`Sending message to chat: ${message}`);
+    const req = https.request(process.env.WEBHOOK_URL, options, res => {
+      res.on('data', d => {
+        process.stdout.write(d);
+      });
+      res.on('end', resolve);
+    });
+
+    req.on('error', error => reject(error));
+
+    req.write(data);
+    req.end();
   });
 }
 

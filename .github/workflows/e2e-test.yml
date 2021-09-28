@@ -54,11 +54,15 @@ jobs:
       run: xvfb-run yarn test:compat
     - name: Tests succeeded
       if: success()
-      run: yarn ts-node-script scripts/ci/notify-test-result.ts success
+      run: node scripts/ci/notify-test-result.js success
       env:
         WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
+      # run in root
+      working-directory: '.'
     - name: Tests failed
       if: failure()
-      run: yarn ts-node-script scripts/ci/notify-test-result.ts fail
+      run: node scripts/ci/notify-test-result.js fail
       env:
         WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
+      # run in root
+      working-directory: '.'
