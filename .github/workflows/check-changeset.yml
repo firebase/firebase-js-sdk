@@ -26,7 +26,7 @@ jobs:
     - name: Run changeset script
       # pull master so changeset can diff against it
       run: |
-        git pull -f origin master:master
+        git pull -f --ff-only origin master:master
         yarn ts-node-script scripts/ci/check_changeset.ts
       id: check-changeset
     - name: Print changeset checker output
