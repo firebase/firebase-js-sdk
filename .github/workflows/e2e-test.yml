@@ -53,7 +53,7 @@ jobs:
       run: xvfb-run yarn test:compat
   notify:
     - name: Notify Chat with Test Status
-    - needs: test
+    needs: test
     steps:
     - name: Tests succeeded
       if: success()
