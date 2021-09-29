@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version'
-        required: 'true'
+        description: 'release version'
+        required: false
         default: 'unknown'
 
 jobs:
