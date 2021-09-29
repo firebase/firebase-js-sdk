@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
+import module from 'module';
+
 import {
   Metadata,
   GrpcObject,
   credentials as GrpcCredentials,
   ServiceError
 } from '@grpc/grpc-js';
-import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 
 import { Token } from '../../api/credentials';
 import { DatabaseInfo } from '../../core/database_info';
@@ -34,6 +35,11 @@ import { FirestoreError } from '../../util/error';
 import { logError, logDebug, logWarn } from '../../util/log';
 import { NodeCallback, nodePromise } from '../../util/node_api';
 import { Deferred } from '../../util/promise';
+
+const require = module.createRequire(import.meta.url);
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { version: grpcVersion } = require('@grpc/grpc-js/package.json');
 
 const LOG_TAG = 'Connection';
 const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${grpcVersion}`;
