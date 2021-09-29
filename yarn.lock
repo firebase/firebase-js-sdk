@@ -15053,6 +15053,7 @@ symbol-observable@^1.1.0:
 
 "sync-promise@git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features":
   version "1.0.1"
+  uid "25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
   resolved "git+https://github.com/brettz9/sync-promise.git#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
 
 table@^6.0.9:
@@ -16409,6 +16410,7 @@ websocket-extensions@>=0.1.1:
 
 "websql@git+https://github.com/brettz9/node-websql.git#configurable-secure3":
   version "2.0.1"
+  uid "73f7e4051cda5e58de7669a54ab184d387b2f98d"
   resolved "git+https://github.com/brettz9/node-websql.git#73f7e4051cda5e58de7669a54ab184d387b2f98d"
   dependencies:
     argsarray "^0.0.1"
