@@ -138,31 +138,30 @@ function credentialFromObject(
     : provider.credentialFromResult(object);
 }
 
-export async function convertCredential(
+export function convertCredential(
   auth: exp.Auth,
   credentialPromise: Promise<exp.UserCredential>
 ): Promise<compat.UserCredential> {
-  let credential: exp.UserCredential;
-  try {
-    credential = await credentialPromise;
-  } catch (e) {
+  return credentialPromise.catch(e => {
     if (e instanceof FirebaseError) {
       attachExtraErrorFields(auth, e);
     }
     throw e;
-  }
-  const { operationType, user } = credential;
+  }).then(credential => {
+    const operationType = credential.operationType;
+    const user = credential.user;
 
-  return {
-    operationType,
-    credential: credentialFromResponse(
-      credential as exp.UserCredentialInternal
-    ),
-    additionalUserInfo: exp.getAdditionalUserInfo(
-      credential as exp.UserCredential
-    ),
-    user: User.getOrCreate(user)
-  };
+    return {
+      operationType,
+      credential: credentialFromResponse(
+        credential as exp.UserCredentialInternal
+      ),
+      additionalUserInfo: exp.getAdditionalUserInfo(
+        credential as exp.UserCredential
+      ),
+      user: User.getOrCreate(user)
+    };
+  });
 }
 
 export async function convertConfirmationResult(
