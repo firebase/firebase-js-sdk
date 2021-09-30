@@ -3,4 +3,3 @@ src/config.js
 public/config.js
 public/service-worker.*
 public/web-worker.*
-public/index.*
