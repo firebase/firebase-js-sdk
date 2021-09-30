@@ -75,7 +75,9 @@ export function connectAuthEmulator(
     options: Object.freeze({ disableWarnings })
   });
 
-  emitEmulatorWarning(disableWarnings);
+  if (!disableWarnings) {
+    emitEmulatorWarning();
+  }
 }
 
 function extractProtocol(url: string): string {
@@ -114,7 +116,7 @@ function parsePort(portStr: string): number | null {
   return port;
 }
 
-function emitEmulatorWarning(disableBanner: boolean): void {
+function emitEmulatorWarning(): void {
   function attachBanner(): void {
     const el = document.createElement('p');
     const sty = el.style;
@@ -143,8 +145,7 @@ function emitEmulatorWarning(disableBanner: boolean): void {
   }
   if (
     typeof window !== 'undefined' &&
-    typeof document !== 'undefined' &&
-    !disableBanner
+    typeof document !== 'undefined'
   ) {
     if (document.readyState === 'loading') {
       window.addEventListener('DOMContentLoaded', attachBanner);
