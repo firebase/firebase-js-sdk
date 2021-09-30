@@ -31,8 +31,8 @@ function credentialFromResponse(
 function attachExtraErrorFields(auth: exp.Auth, e: FirebaseError): void {
   // The response contains all fields from the server which may or may not
   // actually match the underlying type
-  const response = ((e.customData as exp.TaggedWithTokenResponse | undefined)
-    ?._tokenResponse as unknown) as Record<string, string>;
+  const response = (e.customData as exp.TaggedWithTokenResponse | undefined)
+    ?._tokenResponse as unknown as Record<string, string>;
   if (e.code === 'auth/multi-factor-auth-required') {
     const mfaErr = e as compat.MultiFactorError;
     mfaErr.resolver = new MultiFactorResolver(
@@ -54,9 +54,9 @@ function attachExtraErrorFields(auth: exp.Auth, e: FirebaseError): void {
 function credentialFromObject(
   object: FirebaseError | exp.UserCredential
 ): exp.AuthCredential | null {
-  const { _tokenResponse } = (object instanceof FirebaseError
-    ? object.customData
-    : object) as exp.TaggedWithTokenResponse;
+  const { _tokenResponse } = (
+    object instanceof FirebaseError ? object.customData : object
+  ) as exp.TaggedWithTokenResponse;
   if (!_tokenResponse) {
     return null;
   }
@@ -138,31 +138,32 @@ function credentialFromObject(
     : provider.credentialFromResult(object);
 }
 
-export async function convertCredential(
+export function convertCredential(
   auth: exp.Auth,
   credentialPromise: Promise<exp.UserCredential>
 ): Promise<compat.UserCredential> {
-  let credential: exp.UserCredential;
-  try {
-    credential = await credentialPromise;
-  } catch (e) {
-    if (e instanceof FirebaseError) {
-      attachExtraErrorFields(auth, e);
-    }
-    throw e;
-  }
-  const { operationType, user } = credential;
+  return credentialPromise
+    .catch(e => {
+      if (e instanceof FirebaseError) {
+        attachExtraErrorFields(auth, e);
+      }
+      throw e;
+    })
+    .then(credential => {
+      const operationType = credential.operationType;
+      const user = credential.user;
 
-  return {
-    operationType,
-    credential: credentialFromResponse(
-      credential as exp.UserCredentialInternal
-    ),
-    additionalUserInfo: exp.getAdditionalUserInfo(
-      credential as exp.UserCredential
-    ),
-    user: User.getOrCreate(user)
-  };
+      return {
+        operationType,
+        credential: credentialFromResponse(
+          credential as exp.UserCredentialInternal
+        ),
+        additionalUserInfo: exp.getAdditionalUserInfo(
+          credential as exp.UserCredential
+        ),
+        user: User.getOrCreate(user)
+      };
+    });
 }
 
 export async function convertConfirmationResult(
