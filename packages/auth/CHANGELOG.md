@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.18.1
+
+### Patch Changes
+
+- [`49b0406ab`](https://github.com/firebase/firebase-js-sdk/commit/49b0406abb9b211c5b75325b0383539ac03358d1) [#5542](https://github.com/firebase/firebase-js-sdk/pull/5542) (fixes [#5541](https://github.com/firebase/firebase-js-sdk/issues/5541)) - Fix incorrectly-cased parameter in out-of-band request that was causing incorrect behavior in some cases
+
 ## 0.18.0
 
 ### Minor Changes
