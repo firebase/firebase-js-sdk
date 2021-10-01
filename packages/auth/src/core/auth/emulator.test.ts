@@ -130,16 +130,12 @@ describe('core/auth/emulator', () => {
       );
     });
 
-    it('logs out the warning but has no banner if disableBanner true', () => {
+    it('skips console info and has no banner if warnings disabled', () => {
       sinon.stub(console, 'info');
       connectAuthEmulator(auth, 'http://localhost:2020', {
         disableWarnings: true
       });
-      expect(console.info).to.have.been.calledWith(
-        'WARNING: You are using the Auth Emulator,' +
-          ' which is intended for local testing only.  Do not use with' +
-          ' production credentials.'
-      );
+      expect(console.info).not.to.have.been.called;
       if (typeof document !== 'undefined') {
         expect(document.querySelector('.firebase-emulator-warning')).to.be.null;
       }
