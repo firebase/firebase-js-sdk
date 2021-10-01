@@ -52,7 +52,9 @@ const closureDefines = [
   // Disables IE8-specific event fallback code (saves 523 bytes).
   'goog.events.CAPTURE_SIMULATION_MODE=0',
   // Disable IE-Specific ActiveX fallback for XHRs (saves 524 bytes).
-  'goog.net.XmlHttpDefines.ASSUME_NATIVE_XHR=true'
+  'goog.net.XmlHttpDefines.ASSUME_NATIVE_XHR=true',
+  // Disable Origin Trials code for WebChannel (saves 1786 bytes).
+  'goog.net.webChannel.ALLOW_ORIGIN_TRIAL_FEATURES=false',
 ];
 
 /**
