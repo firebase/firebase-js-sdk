@@ -105,15 +105,16 @@ export async function exchangeToken(
 
 export function getExchangeRecaptchaTokenRequest(
   app: FirebaseApp,
-  reCAPTCHAToken: string
+  reCAPTCHAToken: string,
+  isEnterprise: boolean = false
 ): AppCheckRequest {
   const { projectId, appId, apiKey } = app.options;
+  const fieldName = isEnterprise ? 'recaptcha_enterprise_token' : 'recaptcha_token';
 
   return {
     url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${EXCHANGE_RECAPTCHA_TOKEN_METHOD}?key=${apiKey}`,
     body: {
-      // eslint-disable-next-line
-      recaptcha_token: reCAPTCHAToken
+      [fieldName]: reCAPTCHAToken
     }
   };
 }

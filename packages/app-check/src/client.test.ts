@@ -51,6 +51,23 @@ describe('client', () => {
     });
   });
 
+  it('creates exchange recaptcha enterprise token request correctly', () => {
+    const request = getExchangeRecaptchaTokenRequest(
+      app,
+      'fake-recaptcha-token',
+      true
+    );
+    const { projectId, appId, apiKey } = app.options;
+
+    expect(request).to.deep.equal({
+      url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:exchangeRecaptchaToken?key=${apiKey}`,
+      body: {
+        // eslint-disable-next-line camelcase
+        recaptcha_enterprise_token: 'fake-recaptcha-token'
+      }
+    });
+  });
+
   it('returns a AppCheck token', async () => {
     // To get a consistent expireTime/issuedAtTime.
     const clock = useFakeTimers();

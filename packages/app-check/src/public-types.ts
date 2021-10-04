@@ -16,7 +16,11 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
-import { CustomProvider, ReCaptchaV3Provider } from './providers';
+import {
+  CustomProvider,
+  ReCaptchaEnterpriseProvider,
+  ReCaptchaV3Provider
+} from './providers';
 export { Unsubscribe, PartialObserver } from '@firebase/util';
 
 /**
@@ -56,7 +60,7 @@ export interface AppCheckOptions {
   /**
    * reCAPTCHA provider or custom provider.
    */
-  provider: CustomProvider | ReCaptchaV3Provider;
+  provider: CustomProvider | ReCaptchaV3Provider | ReCaptchaEnterpriseProvider;
   /**
    * If set to true, enables automatic background refresh of App Check token.
    */

@@ -16,7 +16,11 @@
  */
 
 import { FirebaseApp, initializeApp, _registerComponent } from '@firebase/app';
-import { GreCAPTCHA, RECAPTCHA_URL } from '../src/recaptcha';
+import {
+  GreCAPTCHA,
+  GreCAPTCHATopLevel,
+  RECAPTCHA_URL
+} from '../src/recaptcha';
 import {
   Provider,
   ComponentContainer,
@@ -102,12 +106,19 @@ export function getFakePlatformLoggingProvider(
   return container.getProvider('platform-logger');
 }
 
-export function getFakeGreCAPTCHA(): GreCAPTCHA {
-  return {
+export function getFakeGreCAPTCHA(
+  isTopLevel: boolean = true
+): GreCAPTCHATopLevel | GreCAPTCHA {
+  const greCaptchaTopLevel: GreCAPTCHA = {
     ready: callback => callback(),
     render: (_container, _parameters) => 'fake_widget_1',
     execute: (_siteKey, _options) => Promise.resolve('fake_recaptcha_token')
   };
+  if (isTopLevel) {
+    (greCaptchaTopLevel as GreCAPTCHATopLevel).enterprise =
+      getFakeGreCAPTCHA(false);
+  }
+  return greCaptchaTopLevel;
 }
 
 /**

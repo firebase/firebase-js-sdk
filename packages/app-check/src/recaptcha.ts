@@ -24,7 +24,8 @@ export const RECAPTCHA_URL = 'https://www.google.com/recaptcha/api.js';
 
 export function initialize(
   app: FirebaseApp,
-  siteKey: string
+  siteKey: string,
+  isEnterprise: boolean = false
 ): Promise<GreCAPTCHA> {
   const state = getState(app);
   const initialized = new Deferred<GreCAPTCHA>();
@@ -38,10 +39,10 @@ export function initialize(
 
   document.body.appendChild(invisibleDiv);
 
-  const grecaptcha = getRecaptcha();
+  const grecaptcha = getRecaptcha(isEnterprise);
   if (!grecaptcha) {
     loadReCAPTCHAScript(() => {
-      const grecaptcha = getRecaptcha();
+      const grecaptcha = getRecaptcha(isEnterprise);
 
       if (!grecaptcha) {
         // it shouldn't happen.
@@ -120,8 +121,12 @@ function loadReCAPTCHAScript(onload: () => void): void {
 
 declare global {
   interface Window {
-    grecaptcha: GreCAPTCHA | undefined;
+    grecaptcha: GreCAPTCHATopLevel | undefined;
   }
+}
+
+export interface GreCAPTCHATopLevel extends GreCAPTCHA {
+  enterprise: GreCAPTCHA;
 }
 
 export interface GreCAPTCHA {
