@@ -109,7 +109,9 @@ export function getExchangeRecaptchaTokenRequest(
   isEnterprise: boolean = false
 ): AppCheckRequest {
   const { projectId, appId, apiKey } = app.options;
-  const fieldName = isEnterprise ? 'recaptcha_enterprise_token' : 'recaptcha_token';
+  const fieldName = isEnterprise
+    ? 'recaptcha_enterprise_token'
+    : 'recaptcha_token';
 
   return {
     url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${EXCHANGE_RECAPTCHA_TOKEN_METHOD}?key=${apiKey}`,

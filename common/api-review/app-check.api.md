@@ -22,7 +22,7 @@ export type _AppCheckInternalComponentName = 'app-check-internal';
 // @public
 export interface AppCheckOptions {
     isTokenAutoRefreshEnabled?: boolean;
-    provider: CustomProvider | ReCaptchaV3Provider;
+    provider: CustomProvider | ReCaptchaV3Provider | ReCaptchaEnterpriseProvider;
 }
 
 // @public
@@ -73,6 +73,17 @@ export function onTokenChanged(appCheckInstance: AppCheck, observer: PartialObse
 export function onTokenChanged(appCheckInstance: AppCheck, onNext: (tokenResult: AppCheckTokenResult) => void, onError?: (error: Error) => void, onCompletion?: () => void): Unsubscribe;
 
 export { PartialObserver }
+
+// @public
+export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
+    constructor(_siteKey: string);
+    // @internal
+    getToken(): Promise<AppCheckTokenInternal>;
+    // @internal (undocumented)
+    initialize(app: FirebaseApp): void;
+    // @internal (undocumented)
+    isEqual(otherProvider: unknown): boolean;
+    }
 
 // @public
 export class ReCaptchaV3Provider implements AppCheckProvider {

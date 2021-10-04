@@ -117,7 +117,10 @@ describe('recaptcha', () => {
 
     it('creates invisible widget', async () => {
       const grecaptchaFake = getFakeGreCAPTCHA() as GreCAPTCHATopLevel;
-      const renderStub = stub(grecaptchaFake.enterprise, 'render').callThrough();
+      const renderStub = stub(
+        grecaptchaFake.enterprise,
+        'render'
+      ).callThrough();
       self.grecaptcha = grecaptchaFake;
 
       await initialize(app, FAKE_SITE_KEY, true);
