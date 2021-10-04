@@ -65,7 +65,7 @@ describe('Firebase App Check > Service', () => {
 
   it(
     'activate("string") calls modular initializeAppCheck() with a ' +
-    'ReCaptchaV3Provider',
+      'ReCaptchaV3Provider',
     () => {
       const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
       service = new AppCheckService(app);
@@ -80,7 +80,7 @@ describe('Firebase App Check > Service', () => {
 
   it(
     'activate({getToken: () => token}) calls modular initializeAppCheck() with' +
-    ' a CustomProvider',
+      ' a CustomProvider',
     () => {
       const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
       service = new AppCheckService(app);
@@ -105,7 +105,7 @@ describe('Firebase App Check > Service', () => {
 
   it(
     'activate(new RecaptchaV3Provider(...)) calls modular initializeAppCheck() with' +
-    ' a RecaptchaV3Provider',
+      ' a RecaptchaV3Provider',
     () => {
       const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
       service = new AppCheckService(app);
@@ -120,7 +120,7 @@ describe('Firebase App Check > Service', () => {
 
   it(
     'activate(new CustomProvider(...)) calls modular initializeAppCheck() with' +
-    ' a CustomProvider',
+      ' a CustomProvider',
     () => {
       const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
       service = new AppCheckService(app);
@@ -198,7 +198,7 @@ describe('Firebase App Check > Service', () => {
 
   it('onTokenChanged() throws if activate() has not been called', async () => {
     service = createTestService(app);
-    expect(() => service.onTokenChanged(() => { })).to.throw(
+    expect(() => service.onTokenChanged(() => {})).to.throw(
       AppCheckError.USE_BEFORE_ACTIVATION
     );
   });
