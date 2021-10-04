@@ -43,9 +43,16 @@ export class AppCheckService
     siteKeyOrProvider: string | AppCheckProvider,
     isTokenAutoRefreshEnabled?: boolean
   ): void {
-    let provider: ReCaptchaV3Provider | CustomProvider;
+    let provider:
+      | ReCaptchaV3Provider
+      | CustomProvider;
     if (typeof siteKeyOrProvider === 'string') {
       provider = new ReCaptchaV3Provider(siteKeyOrProvider);
+    } else if (
+      siteKeyOrProvider instanceof ReCaptchaV3Provider ||
+      siteKeyOrProvider instanceof CustomProvider
+    ) {
+      provider = siteKeyOrProvider;
     } else {
       provider = new CustomProvider({ getToken: siteKeyOrProvider.getToken });
     }

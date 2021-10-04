@@ -79,7 +79,7 @@ describe('Firebase App Check > Service', () => {
   );
 
   it(
-    'activate(CustomProvider) calls modular initializeAppCheck() with' +
+    'activate({getToken: () => token}) calls modular initializeAppCheck() with' +
     ' a CustomProvider',
     () => {
       const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
@@ -97,6 +97,37 @@ describe('Firebase App Check > Service', () => {
               customGetTokenStub
             )
           ),
+        isTokenAutoRefreshEnabled: undefined
+      });
+      initializeAppCheckStub.restore();
+    }
+  );
+
+  it(
+    'activate(new RecaptchaV3Provider(...)) calls modular initializeAppCheck() with' +
+    ' a RecaptchaV3Provider',
+    () => {
+      const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
+      service = new AppCheckService(app);
+      service.activate(new ReCaptchaV3Provider('a-site-key'));
+      expect(initializeAppCheckStub).to.be.calledWith(app, {
+        provider: match.instanceOf(ReCaptchaV3Provider),
+        isTokenAutoRefreshEnabled: undefined
+      });
+      initializeAppCheckStub.restore();
+    }
+  );
+
+  it(
+    'activate(new CustomProvider(...)) calls modular initializeAppCheck() with' +
+    ' a CustomProvider',
+    () => {
+      const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
+      service = new AppCheckService(app);
+      const customGetTokenStub = stub();
+      service.activate(new CustomProvider({ getToken: customGetTokenStub }));
+      expect(initializeAppCheckStub).to.be.calledWith(app, {
+        provider: match.instanceOf(CustomProvider),
         isTokenAutoRefreshEnabled: undefined
       });
       initializeAppCheckStub.restore();
