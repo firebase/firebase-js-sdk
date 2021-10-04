@@ -69,7 +69,7 @@ describe('core/credentials/oauth', () => {
         nonce: 'nonce'
       });
 
-      expect(cred.nonce).to.eq('nonce');
+      expect((cred.toJSON() as {nonce: string}).nonce).to.eq('nonce');
     });
 
     it('ignores the nonce if pendingToken set', () => {
@@ -81,7 +81,7 @@ describe('core/credentials/oauth', () => {
         pendingToken: 'pending-token'
       });
 
-      expect(cred.nonce).to.be.undefined;
+      expect((cred.toJSON() as {nonce?: string}).nonce).to.be.undefined;
     });
 
     it('handles oauth1 and oauth with token secret', () => {
