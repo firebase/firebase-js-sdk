@@ -61,8 +61,12 @@ export interface AppCheckTokenInternal extends AppCheckToken {
 export interface AppCheckProvider {
   /**
    * Returns an App Check token.
+   * @internal
    */
   getToken: () => Promise<AppCheckTokenInternal>;
+  /**
+   * @internal
+   */
   initialize(app: FirebaseApp): void;
 }
 
