@@ -125,7 +125,7 @@ async function moveRulesUnitTestingDocs(
   // These paths also need to be adjusted to point to a sibling directory.
   for (const sourcePath of rulesDocPaths) {
     let destinationPath = sourcePath.replace(mainDocsFolder, rulesOutputFolder);
-    
+
     const originalText = fs.readFileSync(sourcePath, 'utf-8');
     const jsReferencePath = '/docs/reference/js';
     let alteredPathText = originalText.replace(
