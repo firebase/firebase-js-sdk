@@ -164,12 +164,12 @@ export class OAuthProvider extends BaseOAuthProvider {
    * or the ID token string.
    */
   credential(params: OAuthCredentialOptions): OAuthCredential {
-    return this._credential(params);
+    return this._credential({...params, nonce: params.rawNonce});
   }
 
   /** An internal credential method that accepts more permissive options */
   private _credential(
-    params: OAuthCredentialOptions | OAuthCredentialParams
+    params: Omit<OAuthCredentialParams, 'signInMethod' | 'providerId'>
   ): OAuthCredential {
     _assert(params.idToken || params.accessToken, AuthErrorCode.ARGUMENT_ERROR);
     // For OAuthCredential, sign in method is same as providerId.
@@ -236,7 +236,7 @@ export class OAuthProvider extends BaseOAuthProvider {
       return new OAuthProvider(providerId)._credential({
         idToken: oauthIdToken,
         accessToken: oauthAccessToken,
-        rawNonce: nonce,
+        nonce,
         pendingToken
       });
     } catch (e) {
