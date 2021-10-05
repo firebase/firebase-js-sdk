@@ -28,7 +28,6 @@ import {
 } from '@firebase/component';
 import { _AppCheckComponentName } from './public-types';
 import { factory, internalFactory } from './factory';
-import { initializeDebugMode } from './debug';
 import { _AppCheckInternalComponentName } from './types';
 import { name, version } from '../package.json';
 
@@ -82,4 +81,3 @@ function registerAppCheck(): void {
 }
 
 registerAppCheck();
-initializeDebugMode();

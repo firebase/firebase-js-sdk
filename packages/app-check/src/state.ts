@@ -41,6 +41,7 @@ export interface ReCAPTCHAState {
 }
 
 export interface DebugState {
+  initialized: boolean;
   enabled: boolean;
   token?: Deferred<string>;
 }
@@ -52,6 +53,7 @@ export const DEFAULT_STATE: AppCheckState = {
 };
 
 const DEBUG_STATE: DebugState = {
+  initialized: false,
   enabled: false
 };
 
@@ -68,6 +70,7 @@ export function clearState(): void {
   APP_CHECK_STATES.clear();
   DEBUG_STATE.enabled = false;
   DEBUG_STATE.token = undefined;
+  DEBUG_STATE.initialized = false;
 }
 
 export function getDebugState(): DebugState {

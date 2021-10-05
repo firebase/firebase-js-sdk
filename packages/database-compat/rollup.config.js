@@ -18,12 +18,13 @@
 import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import commonjs from '@rollup/plugin-commonjs';
+import resolveModule from '@rollup/plugin-node-resolve';
 
 import pkg from './package.json';
+import standalonePkg from './standalone/package.json';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 
 function onWarn(warning, defaultWarn) {
   if (warning.code === 'CIRCULAR_DEPENDENCY') {
@@ -80,6 +81,33 @@ const es5Builds = [
       moduleSideEffects: false
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
+  },
+  /**
+   * Standalone Build (used by Admin SDK). 
+   * @firebase/database and only @firebase/database is bundled in this build.
+   */
+  {
+    input: 'src/index.standalone.ts',
+    output: [
+      {
+        file: standalonePkg.main.replace('../', ''),
+        format: 'cjs',
+        sourcemap: true
+      }
+    ],
+    plugins: [
+      ...es5BuildPlugins,
+      resolveModule({
+        mainFields: ['standalone'],
+        preferBuiltins: true
+      }),
+      commonjs()
+    ],
+    treeshake: {
+      moduleSideEffects: false
+    },
+    external: id => deps.filter(dep => dep !== '@firebase/database').some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
   }
 ];

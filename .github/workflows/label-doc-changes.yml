@@ -29,7 +29,7 @@ jobs:
     - name: Print if doc changed output
       run: echo "${{steps.check-doc-changes.outputs.DOC_CHANGED}}"
     - name: Add label if there are doc changes
-      uses: actions-ecosystem/action-add-labels@v1.1.0
+      uses: actions-ecosystem/action-add-labels@v1.1.3
       if: ${{steps.check-doc-changes.outputs.DOC_CHANGED == 'true'}}
       with:
         labels: doc-changes

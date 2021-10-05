@@ -25,9 +25,10 @@
 #  (secret team to avoid review requests)
 #
 # - @schmidt-sebastian
-# - @wilhuff
-# - @var-const
-# - @zxu123
+# - @thebrianchen
+# - @wu-hui
+# - @ehsannas
+# - @dconeybe
 
 
 # These owners will be the default owners for everything in the repo.
@@ -40,6 +41,7 @@ packages/database-types @schmidt-sebastian @jsdt @firebase/jssdk-global-approver
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
+packages/firestore-compat  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 packages/webchannel-wrapper  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 packages/firestore-types  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 integration/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers

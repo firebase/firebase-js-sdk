@@ -152,10 +152,7 @@ export function bind(f: Function, ctx: any, ...args: any[]): () => void {
   };
 }
 
-export function assertThrows(
-  f: () => void,
-  code: string
-): StorageError {
+export function assertThrows(f: () => void, code: string): StorageError {
   let captured: StorageError | null = null;
   expect(() => {
     try {

@@ -1,0 +1,53 @@
+name: E2E Smoke Tests
+
+on: workflow_dispatch
+
+jobs:
+  test:
+    name: Run E2E Smoke Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # Run any command steps in the /e2e subdir
+        working-directory: './e2e'
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@master
+    - name: Set up Node (12)
+      uses: actions/setup-node@v2
+      with:
+        node-version: 12.x
+    - name: install Chrome stable
+      run: |
+        sudo apt-get update
+        sudo apt-get install google-chrome-stable
+    - name: Bump Node memory limit
+      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
+    - name: Write project config
+      env:
+        PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
+        TEST_ACCOUNT: ${{ secrets.TEST_ACCOUNT }}
+      run: |
+        echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
+    - name: Yarn install
+      run: |
+        yarn add firebase
+        yarn
+    - name: Deploy "callTest" cloud function
+      run: |
+        pushd functions
+        npm install
+        popd
+        npx firebase-tools deploy --only functions:callTest --project jscore-sandbox-141b5 --token $FIREBASE_CLI_TOKEN
+      working-directory: ./config
+      env:
+        FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+    - name: Run modular tests
+      env:
+        APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
+      run: xvfb-run yarn test:modular
+    - name: Run compat tests
+      env:
+        APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
+      run: xvfb-run yarn test:compat

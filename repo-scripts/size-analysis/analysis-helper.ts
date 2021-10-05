@@ -23,7 +23,7 @@ import * as terser from 'terser';
 import * as ts from 'typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import { deepCopy } from '@firebase/util';
+import { projectRoot } from '../../scripts/utils';
 
 export const enum ErrorCode {
   INVALID_FLAG_COMBINATION = 'Invalid command flag combinations!',
@@ -45,6 +45,7 @@ export interface MemberList {
   functions: string[];
   variables: string[];
   enums: string[];
+  unknown: string[];
 }
 /** Contains the dependencies and the size of their code for a single export. */
 export interface ExportData {
@@ -53,6 +54,7 @@ export interface ExportData {
   functions: string[];
   variables: string[];
   enums: string[];
+  unknown: string[];
   externals: { [key: string]: string[] };
   size: number;
   sizeWithExtDeps: number;
@@ -68,8 +70,7 @@ export interface Report {
  */
 export async function extractDependenciesAndSize(
   exportName: string,
-  jsBundle: string,
-  map: Map<string, string>
+  jsBundle: string
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
   const externalDepsResolvedOutput = tmp.fileSync().name + '.js';
@@ -103,9 +104,8 @@ export async function extractDependenciesAndSize(
     file: externalDepsNotResolvedOutput,
     format: 'es'
   });
-  const dependencies: MemberList = extractDeclarations(
-    externalDepsNotResolvedOutput,
-    map
+  const dependencies: MemberList = extractAllTopLevelSymbols(
+    externalDepsNotResolvedOutput
   );
 
   const externalDepsResolvedOutputContent = fs.readFileSync(
@@ -143,6 +143,7 @@ export async function extractDependenciesAndSize(
     functions: [],
     variables: [],
     enums: [],
+    unknown: [],
     externals: {},
     size: 0,
     sizeWithExtDeps: 0
@@ -170,53 +171,23 @@ export async function extractDependenciesAndSize(
 }
 
 /**
- * Extracts all function, class and variable declarations using the TypeScript
- * compiler API.
- * @param map maps every symbol listed in dts file to its type. eg: aVariable -> variable.
- * map is null when given filePath is a path to d.ts file.
- * map is populated when given filePath points to a .js bundle file.
- *
- * Examples of Various Type of Exports
- * FunctionDeclaration: export function aFunc(): string {...};
- * ClassDeclaration: export class aClass {};
- * EnumDeclaration: export enum aEnum {};
- * VariableDeclaration: export let aVariable: string; import * as tmp from 'tmp'; export declare const aVar: tmp.someType.
- * VariableStatement: export const aVarStatement: string = "string"; export const { a, b } = { a: 'a', b: 'b' };
- * ExportDeclaration:
- *      named exports: export {foo, bar} from '...'; export {foo as foo1, bar} from '...'; export {LogLevel};
- *      export everything: export * from '...';
+ * Check what symbols are being pulled into a bundle
  */
-export function extractDeclarations(
-  filePath: string,
-  map?: Map<string, string>
-): MemberList {
+export function extractAllTopLevelSymbols(filePath: string): MemberList {
   const program = ts.createProgram([filePath], { allowJs: true });
-  const checker = program.getTypeChecker();
-
   const sourceFile = program.getSourceFile(filePath);
   if (!sourceFile) {
     throw new Error(`${ErrorCode.FILE_PARSING_ERROR} ${filePath}`);
   }
 
-  let declarations: MemberList = {
+  const declarations: MemberList = {
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    unknown: []
   };
-  const namespaceImportSet: Set<string> = new Set();
-  // define a map here which is used to handle export statements that have no from clause.
-  // As there is no from clause in such export statements, we retrieve symbol location by parsing the corresponding import
-  // statements. We store the symbol and its defined location as key value pairs in the map.
-  const importSymbolCurrentNameToModuleLocation: Map<
-    string,
-    string
-  > = new Map();
-  const importSymbolCurrentNameToOriginalName: Map<string, string> = new Map(); // key: current name value: original name
-  const importModuleLocationToExportedSymbolsList: Map<
-    string,
-    MemberList
-  > = new Map(); // key: module location, value: a list of all exported symbols of the module
+
   ts.forEachChild(sourceFile, node => {
     if (ts.isFunctionDeclaration(node)) {
       declarations.functions.push(node.name!.text);
@@ -253,304 +224,82 @@ export function extractDeclarations(
           });
         }
       });
-    } else if (ts.isImportDeclaration(node) && node.importClause) {
-      const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
-      if (symbol && symbol.valueDeclaration) {
-        const importFilePath = symbol.valueDeclaration.getSourceFile().fileName;
-        // import { a, b } from '@firebase/dummy-exp'
-        // import {a as A, b as B} from '@firebase/dummy-exp'
-        if (
-          node.importClause.namedBindings &&
-          ts.isNamedImports(node.importClause.namedBindings)
-        ) {
-          node.importClause.namedBindings.elements.forEach(each => {
-            const symbolName: string = each.name.getText(sourceFile); // import symbol current name
-            importSymbolCurrentNameToModuleLocation.set(
-              symbolName,
-              importFilePath
-            );
-            // if imported symbols are renamed, insert an entry to importSymbolCurrentNameToOriginalName Map
-            // with key the current name, value the original name
-            if (each.propertyName) {
-              importSymbolCurrentNameToOriginalName.set(
-                symbolName,
-                each.propertyName.getText(sourceFile)
-              );
-            }
-          });
-
-          // import * as fs from 'fs'
-        } else if (
-          node.importClause.namedBindings &&
-          ts.isNamespaceImport(node.importClause.namedBindings)
-        ) {
-          const symbolName: string = node.importClause.namedBindings.name.getText(
-            sourceFile
-          );
-          namespaceImportSet.add(symbolName);
-
-          // import a from '@firebase/dummy-exp'
-        } else if (
-          node.importClause.name &&
-          ts.isIdentifier(node.importClause.name)
-        ) {
-          const symbolName: string = node.importClause.name.getText(sourceFile);
-          importSymbolCurrentNameToModuleLocation.set(
-            symbolName,
-            importFilePath
-          );
-        }
-      }
-    }
-    // re-exports handler: handles cases like :
-    // export {LogLevel};
-    // export * from '..';
-    // export {foo, bar} from '..';
-    // export {foo as foo1, bar} from '...';
-    else if (ts.isExportDeclaration(node)) {
-      // this clause handles the export statements that have a from clause (referred to as moduleSpecifier in ts compiler).
-      // examples are "export {foo as foo1, bar} from '...';"
-      // and "export * from '..';"
-      if (node.moduleSpecifier) {
-        if (ts.isStringLiteral(node.moduleSpecifier)) {
-          const reExportsWithFromClause: MemberList = handleExportStatementsWithFromClause(
-            checker,
-            node,
-            node.moduleSpecifier.getText(sourceFile)
-          );
-          // concatenate re-exported MemberList with MemberList of the dts file
-          for (const key of Object.keys(declarations) as Array<
-            keyof MemberList
-          >) {
-            declarations[key].push(...reExportsWithFromClause[key]);
-          }
-        }
-      } else {
-        // export {LogLevel};
-        // exclusively handles named export statements that has no from clause.
-        handleExportStatementsWithoutFromClause(
-          node,
-          importSymbolCurrentNameToModuleLocation,
-          importSymbolCurrentNameToOriginalName,
-          importModuleLocationToExportedSymbolsList,
-          namespaceImportSet,
-          declarations
-        );
-      }
     }
   });
-  declarations = dedup(declarations);
-
-  if (map) {
-    declarations = mapSymbolToType(map, declarations);
-  }
 
   //Sort to ensure stable output
-  Object.values(declarations).map(each => {
+  Object.values(declarations).forEach(each => {
     each.sort();
   });
   return declarations;
 }
+
 /**
- *
- * @param node compiler representation of an export statement
- *
- * This function exclusively handles export statements that have a from clause. The function uses checker argument to resolve
- * module name specified in from clause to its actual location. It then retrieves all exported symbols from the module.
- * If the statement is a named export, the function does an extra step, that is, filtering out the symbols that are not listed
- * in exportClause.
+ * Extract exports of a module
  */
-function handleExportStatementsWithFromClause(
-  checker: ts.TypeChecker,
-  node: ts.ExportDeclaration,
-  moduleName: string
-): MemberList {
-  const symbol = checker.getSymbolAtLocation(node.moduleSpecifier!);
-  let declarations: MemberList = {
+export function extractExports(filePath: string): MemberList {
+  const exportDeclarations: MemberList = {
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    unknown: []
   };
-  if (symbol && symbol.valueDeclaration) {
-    const reExportFullPath = symbol.valueDeclaration.getSourceFile().fileName;
-    // first step: always retrieve all exported symbols from the source location of the re-export.
-    declarations = extractDeclarations(reExportFullPath);
-    // if it's a named export statement, filter the MemberList to keep only those listed in exportClause.
-    // named exports: eg: export {foo, bar} from '...'; and export {foo as foo1, bar} from '...';
-    declarations = extractSymbolsFromNamedExportStatement(node, declarations);
-  }
-  // if the module name in the from clause cant be resolved to actual module location,
-  // just extract symbols listed in the exportClause for named exports, put them in variables first, as
-  // they will be categorized later using map argument.
-  else if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-    node.exportClause.elements.forEach(exportSpecifier => {
-      declarations.variables.push(exportSpecifier.name.escapedText.toString());
-    });
-  }
-  // handles the case when exporting * from a module whose location can't be resolved
-  else {
-    console.log(
-      `The public API extraction of ${moduleName} is not complete, because it re-exports from ${moduleName} using * export but we couldn't resolve ${moduleName}`
-    );
+
+  const program = ts.createProgram([filePath], {
+    allowJs: true,
+    baseUrl: path.resolve(`${projectRoot}/node_modules`)
+  });
+  const checker = program.getTypeChecker();
+  const sourceFile = program.getSourceFile(filePath)!;
+  const module = checker.getSymbolAtLocation(sourceFile);
+  // no export from the file
+  if (!module) {
+    return exportDeclarations;
   }
 
-  return declarations;
-}
+  const exports = checker.getExportsOfModule(module);
 
-/**
- *
- * @param node compiler representation of a named export statement
- * @param exportsFullList a list of all exported symbols retrieved from the location given in the export statement.
- *
- * This function filters on exportsFullList and keeps only those symbols that are listed in the given named export statement.
- */
-function extractSymbolsFromNamedExportStatement(
-  node: ts.ExportDeclaration,
-  exportsFullList: MemberList
-): MemberList {
-  if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-    const actualExports: string[] = [];
-    node.exportClause.elements.forEach(exportSpecifier => {
-      const reExportedSymbol: string = extractOriginalSymbolName(
-        exportSpecifier
-      );
-      // eg: export {foo as foo1 } from '...';
-      // if export is renamed, replace with new name
-      // reExportedSymbol: stores the original symbol name
-      // exportSpecifier.name: stores the renamed symbol name
-      if (isExportRenamed(exportSpecifier)) {
-        actualExports.push(exportSpecifier.name.escapedText.toString());
-        // reExportsMember stores all re-exported symbols in its orignal name. However, these re-exported symbols
-        // could be renamed by the re-export. We want to show the renamed name of the symbols in the final analysis report.
-        // Therefore, replaceAll simply replaces the original name of the symbol with the new name defined in re-export.
-        replaceAll(
-          exportsFullList,
-          reExportedSymbol,
-          exportSpecifier.name.escapedText.toString()
-        );
-      } else {
-        actualExports.push(reExportedSymbol);
-      }
-    });
-    // for named exports: requires a filter step which keeps only the symbols listed in the export statement.
-    filterAllBy(exportsFullList, actualExports);
-  }
-  return exportsFullList;
-}
-/**
- * @param node compiler representation of a named export statement
- * @param importSymbolCurrentNameToModuleLocation a map with imported symbol current name as key and the resolved module location as value. (map is populated by parsing import statements)
- * @param importSymbolCurrentNameToOriginalName as imported symbols can be renamed, this map stores imported symbols current name and original name as key value pairs.
- * @param importModuleLocationToExportedSymbolsList a map that maps module location to a list of its exported symbols.
- * @param namespaceImportSymbolSet a set of namespace import symbols.
- * @param parentDeclarations a list of exported symbols extracted from the module so far
- * This function exclusively handles named export statements that has no from clause, i.e: statements like export {LogLevel};
- * first case: namespace export
- * example: import * as fs from 'fs'; export {fs};
- * The function checks if namespaceImportSymbolSet has a namespace import symbol that of the same name, append the symbol to declarations.variables if exists.
- *
- * second case: import then export
- * example: import {a} from '...'; export {a}
- * The function retrieves the location where the exported symbol is defined from the corresponding import statements.
- *
- * third case: declare first then export
- * examples: declare const apps: Map<string, number>; export { apps };
- * function foo(){} ; export {foo as bar};
- * The function parses export clause of the statement and replaces symbol with its current name (if the symbol is renamed) from the declaration argument.
- */
-function handleExportStatementsWithoutFromClause(
-  node: ts.ExportDeclaration,
-  importSymbolCurrentNameToModuleLocation: Map<string, string>,
-  importSymbolCurrentNameToOriginalName: Map<string, string>,
-  importModuleLocationToExportedSymbolsList: Map<string, MemberList>,
-  namespaceImportSymbolSet: Set<string>,
-  parentDeclarations: MemberList
-): void {
-  if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-    node.exportClause.elements.forEach(exportSpecifier => {
-      // export symbol could be renamed, we retrieve both its current/renamed name and original name
-      const exportSymbolCurrentName = exportSpecifier.name.escapedText.toString();
-      const exportSymbolOriginalName = extractOriginalSymbolName(
-        exportSpecifier
-      );
-      // import * as fs from 'fs';  export {fs};
-      if (namespaceImportSymbolSet.has(exportSymbolOriginalName)) {
-        parentDeclarations.variables.push(exportSymbolOriginalName);
-        replaceAll(
-          parentDeclarations,
-          exportSymbolOriginalName,
-          exportSymbolCurrentName
-        );
-      }
-      // handles import then exports
-      // import {a as A , b as B} from '...'
-      // export {A as AA , B as BB };
-      else if (
-        importSymbolCurrentNameToModuleLocation.has(exportSymbolOriginalName)
+
+  for (const expt of exports) {
+    // get the source declaration where we can determine the type of the export. e.g. class vs function
+    let sourceSymbol = expt;
+    if (sourceSymbol.declarations[0].kind === ts.SyntaxKind.ExportSpecifier) {
+      sourceSymbol = checker.getAliasedSymbol(expt);
+    }
+
+    if (!sourceSymbol.declarations || sourceSymbol.declarations.length === 0) {
+      console.log('Could not find the source symbol for ', expt.name);
+      continue;
+    }
+    const sourceDeclaration = sourceSymbol.declarations[0];
+
+    if (ts.isFunctionDeclaration(sourceDeclaration)) {
+      exportDeclarations.functions.push(expt.name);
+    } else if (ts.isClassDeclaration(sourceDeclaration)) {
+      exportDeclarations.classes.push(expt.name);
+    } else if (ts.isVariableDeclaration(sourceDeclaration)) {
+      exportDeclarations.variables.push(expt.name);
+    } else if (ts.isEnumDeclaration(sourceDeclaration)) {
+      // `const enum`s should not be analyzed. They do not add to bundle size and
+      // creating a file that imports them causes an error during the rollup step.
+      if (
+        // Identifies if this enum had a "const" modifier attached.
+        !sourceDeclaration.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ConstKeyword)
       ) {
-        const moduleLocation: string = importSymbolCurrentNameToModuleLocation.get(
-          exportSymbolOriginalName
-        )!;
-        let reExportedSymbols: MemberList;
-        if (importModuleLocationToExportedSymbolsList.has(moduleLocation)) {
-          reExportedSymbols = deepCopy(
-            importModuleLocationToExportedSymbolsList.get(moduleLocation)!
-          );
-        } else {
-          reExportedSymbols = extractDeclarations(
-            importSymbolCurrentNameToModuleLocation.get(
-              exportSymbolOriginalName
-            )!
-          );
-          importModuleLocationToExportedSymbolsList.set(
-            moduleLocation,
-            deepCopy(reExportedSymbols)
-          );
-        }
-
-        let nameToBeReplaced = exportSymbolOriginalName;
-        // if current exported symbol is renamed in import clause. then we retrieve its original name from
-        // importSymbolCurrentNameToOriginalName map
-        if (
-          importSymbolCurrentNameToOriginalName.has(exportSymbolOriginalName)
-        ) {
-          nameToBeReplaced = importSymbolCurrentNameToOriginalName.get(
-            exportSymbolOriginalName
-          )!;
-        }
-
-        filterAllBy(reExportedSymbols, [nameToBeReplaced]);
-        // replace with new name
-        replaceAll(
-          reExportedSymbols,
-          nameToBeReplaced,
-          exportSymbolCurrentName
-        );
-
-        // concatenate re-exported MemberList with MemberList of the dts file
-        for (const key of Object.keys(parentDeclarations) as Array<
-          keyof MemberList
-        >) {
-          parentDeclarations[key].push(...reExportedSymbols[key]);
-        }
+        exportDeclarations.enums.push(expt.name);
       }
-      // handles declare first then export
-      // declare const apps: Map<string, number>;
-      // export { apps as apps1};
-      // function a() {};
-      // export {a};
-      else {
-        if (isExportRenamed(exportSpecifier)) {
-          replaceAll(
-            parentDeclarations,
-            exportSymbolOriginalName,
-            exportSymbolCurrentName
-          );
-        }
-      }
-    });
+    } else {
+      console.log(`export of unknown type: ${expt.name}`);
+      exportDeclarations.unknown.push(expt.name);
+    }
   }
+
+  Object.values(exportDeclarations).forEach(each => {
+    each.sort();
+  });
+
+  return exportDeclarations;
 }
 
 /**
@@ -572,7 +321,8 @@ export function mapSymbolToType(
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    unknown: []
   };
 
   for (const key of Object.keys(memberList) as Array<keyof MemberList>) {
@@ -585,23 +335,6 @@ export function mapSymbolToType(
     });
   }
   return newMemberList;
-}
-
-function extractOriginalSymbolName(
-  exportSpecifier: ts.ExportSpecifier
-): string {
-  // if symbol is renamed, then exportSpecifier.propertyName is not null and stores the orignal name, exportSpecifier.name stores the renamed name.
-  // if symbol is not renamed, then exportSpecifier.propertyName is null, exportSpecifier.name stores the orignal name.
-  if (exportSpecifier.propertyName) {
-    return exportSpecifier.propertyName.escapedText.toString();
-  }
-  return exportSpecifier.name.escapedText.toString();
-}
-
-function filterAllBy(memberList: MemberList, keep: string[]): void {
-  for (const key of Object.keys(memberList) as Array<keyof MemberList>) {
-    memberList[key] = memberList[key].filter(each => keep.includes(each));
-  }
 }
 
 export function replaceAll(
@@ -628,10 +361,6 @@ function replaceWith(
     }
   }
   return rv;
-}
-
-function isExportRenamed(exportSpecifier: ts.ExportSpecifier): boolean {
-  return exportSpecifier.propertyName != null;
 }
 
 /**
@@ -787,21 +516,6 @@ function retrieveBundleFileLocation(pkgJson: {
   }
   return '';
 }
-/**
- *
- * This function creates a map from a MemberList object which maps symbol names (key) listed
- * to its type (value)
- */
-export function buildMap(api: MemberList): Map<string, string> {
-  const map: Map<string, string> = new Map();
-
-  for (const type of Object.keys(api) as Array<keyof MemberList>) {
-    api[type].forEach((element: string) => {
-      map.set(element, type);
-    });
-  }
-  return map;
-}
 
 /**
  * A recursive function that locates and generates reports for sub-modules
@@ -833,7 +547,7 @@ async function traverseDirs(
       fs.lstatSync(p).isDirectory() &&
       fs.existsSync(`${p}/package.json`) &&
       JSON.parse(fs.readFileSync(`${p}/package.json`, { encoding: 'utf-8' }))[
-        generateSizeAnalysisReportPkgJsonField
+      generateSizeAnalysisReportPkgJsonField
       ]
     ) {
       const subModuleReports: Report[] = await traverseDirs(
@@ -860,8 +574,7 @@ async function traverseDirs(
 export async function buildJsonReport(
   moduleName: string,
   publicApi: MemberList,
-  jsFile: string,
-  map: Map<string, string>
+  jsFile: string
 ): Promise<Report> {
   const result: Report = {
     name: moduleName,
@@ -869,7 +582,7 @@ export async function buildJsonReport(
   };
   for (const exp of publicApi.classes) {
     try {
-      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile));
     } catch (e) {
       console.log(e);
     }
@@ -877,14 +590,14 @@ export async function buildJsonReport(
 
   for (const exp of publicApi.functions) {
     try {
-      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile));
     } catch (e) {
       console.log(e);
     }
   }
   for (const exp of publicApi.variables) {
     try {
-      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile));
     } catch (e) {
       console.log(e);
     }
@@ -892,7 +605,7 @@ export async function buildJsonReport(
 
   for (const exp of publicApi.enums) {
     try {
-      result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
+      result.symbols.push(await extractDependenciesAndSize(exp, jsFile));
     } catch (e) {
       console.log(e);
     }
@@ -920,9 +633,9 @@ export async function generateReport(
     throw new Error(ErrorCode.INPUT_BUNDLE_FILE_DOES_NOT_EXIST);
   }
 
-  const publicAPI = extractDeclarations(resolvedDtsFile);
-  const map: Map<string, string> = buildMap(publicAPI);
-  return buildJsonReport(name, publicAPI, bundleFile, map);
+  console.log('generating report for ', name);
+  const publicAPI = extractExports(resolvedBundleFile);
+  return buildJsonReport(name, publicAPI, bundleFile);
 }
 
 /**

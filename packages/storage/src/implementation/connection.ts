@@ -15,12 +15,8 @@
  * limitations under the License.
  */
 
-/**
- * Network headers
- */
-export interface Headers {
-  [name: string]: string;
-}
+/** Network headers */
+export type Headers = Record<string, string>;
 
 /**
  * A lightweight wrapper around XMLHttpRequest with a

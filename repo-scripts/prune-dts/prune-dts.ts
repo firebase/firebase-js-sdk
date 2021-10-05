@@ -529,7 +529,7 @@ const argv = yargs.options({
     type: 'string',
     desc: 'The location for the index.d.ts file'
   }
-}).argv;
+}).parseSync();
 
 if (argv.input && argv.output) {
   console.log('Removing private exports...');

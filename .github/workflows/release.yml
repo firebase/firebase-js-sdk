@@ -1,12 +1,10 @@
 name: Release
 
-on:
-  push:
-    branches:
-      - release
+on: push
 
 jobs:
   release:
+    if: github.ref == 'refs/heads/release' || endsWith(github.ref, '-releasebranch')
     name: Release
     runs-on: ubuntu-latest
     steps:
@@ -25,7 +23,10 @@ jobs:
         run: yarn
 
       - name: Add a changeset for @firebase/app
-        run: yarn ts-node-script scripts/ci/add_changeset.ts
+        # pull master so changeset can diff against it
+        run: |
+          git pull -f --no-rebase origin master:master
+          yarn ts-node-script scripts/ci/add_changeset.ts
 
       - name: Create Release Pull Request
         uses: changesets/action@master

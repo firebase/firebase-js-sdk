@@ -46,7 +46,7 @@ const argv = yargs.options({
     demandOption: true,
     desc: 'The location to write the JSON output to'
   }
-}).argv;
+}).parseSync();
 
 async function buildJson(
   publicApi: MemberList,

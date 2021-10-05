@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performApiRequest } from '../index';
+import { Endpoint, HttpMethod, _addTidIfNecessary, _performApiRequest } from '../index';
 import { SignInWithPhoneNumberRequest } from '../authentication/sms';
 import { FinalizeMfaResponse } from '../authentication/mfa';
 import { AuthInternal } from '../../model/auth';
@@ -47,7 +47,7 @@ export interface StartPhoneMfaEnrollmentRequest {
     phoneNumber: string;
     recaptchaToken: string;
   };
-  tenantId: string | null;
+  tenantId?: string;
 }
 
 export interface StartPhoneMfaEnrollmentResponse {
@@ -58,22 +58,19 @@ export interface StartPhoneMfaEnrollmentResponse {
 
 export function startEnrollPhoneMfa(
   auth: AuthInternal,
-  request: Omit<StartPhoneMfaEnrollmentRequest, 'tenantId'>
+  request: StartPhoneMfaEnrollmentRequest
 ): Promise<StartPhoneMfaEnrollmentResponse> {
   return _performApiRequest<
     StartPhoneMfaEnrollmentRequest,
     StartPhoneMfaEnrollmentResponse
-  >(auth, HttpMethod.POST, Endpoint.START_PHONE_MFA_ENROLLMENT, {
-    tenantId: auth.tenantId,
-    ...request
-  });
+  >(auth, HttpMethod.POST, Endpoint.START_PHONE_MFA_ENROLLMENT, _addTidIfNecessary(auth, request));
 }
 
 export interface FinalizePhoneMfaEnrollmentRequest {
   idToken: string;
   phoneVerificationInfo: SignInWithPhoneNumberRequest;
   displayName?: string | null;
-  tenantId: string | null;
+  tenantId?: string;
 }
 
 export interface FinalizePhoneMfaEnrollmentResponse
@@ -81,36 +78,30 @@ export interface FinalizePhoneMfaEnrollmentResponse
 
 export function finalizeEnrollPhoneMfa(
   auth: AuthInternal,
-  request: Omit<FinalizePhoneMfaEnrollmentRequest, 'tenantId'>
+  request: FinalizePhoneMfaEnrollmentRequest
 ): Promise<FinalizePhoneMfaEnrollmentResponse> {
   return _performApiRequest<
     FinalizePhoneMfaEnrollmentRequest,
     FinalizePhoneMfaEnrollmentResponse
-  >(auth, HttpMethod.POST, Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT, {
-    tenantId: auth.tenantId,
-    ...request
-  });
+  >(auth, HttpMethod.POST, Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT, _addTidIfNecessary(auth, request));
 }
 
 export interface WithdrawMfaRequest {
   idToken: string;
   mfaEnrollmentId: string;
-  tenantId: string | null;
+  tenantId?: string;
 }
 
 export interface WithdrawMfaResponse extends FinalizeMfaResponse {}
 
 export function withdrawMfa(
   auth: AuthInternal,
-  request: Omit<WithdrawMfaRequest, 'tenantId'>
+  request: WithdrawMfaRequest
 ): Promise<WithdrawMfaResponse> {
   return _performApiRequest<WithdrawMfaRequest, WithdrawMfaResponse>(
     auth,
     HttpMethod.POST,
     Endpoint.WITHDRAW_MFA,
-    {
-      tenantId: auth.tenantId,
-      ...request
-    }
+    _addTidIfNecessary(auth, request)
   );
 }

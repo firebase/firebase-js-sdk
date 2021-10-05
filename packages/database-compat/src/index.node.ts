@@ -14,14 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import firebase from '@firebase/app-compat';
+import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import { Component, ComponentType } from '@firebase/component';
 import { enableLogging } from '@firebase/database';
 import * as types from '@firebase/database-types';
-import { CONSTANTS, isNodeSdk } from '@firebase/util';
 
 import { name, version } from '../package.json';
 import { Database } from '../src/api/Database';
@@ -30,45 +28,9 @@ import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 
 const ServerValue = Database.ServerValue;
 
-/**
- * A one off register function which returns a database based on the app and
- * passed database URL. (Used by the Admin SDK)
- *
- * @param app - A valid FirebaseApp-like object
- * @param url - A valid Firebase databaseURL
- * @param version - custom version e.g. firebase-admin version
- * @param nodeAdmin - true if the SDK is being initialized from Firebase Admin.
- */
-export function initStandalone(
-  app: FirebaseApp,
-  url: string,
-  version: string,
-  nodeAdmin = true
-) {
-  CONSTANTS.NODE_ADMIN = nodeAdmin;
-  return INTERNAL.initStandalone({
-    app,
-    url,
-    version,
-    // firebase-admin-node's app.INTERNAL implements FirebaseAuthInternal interface
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    customAuthImpl: (app as any).INTERNAL as FirebaseAuthInternal,
-    namespace: {
-      Reference,
-      Query,
-      Database,
-      DataSnapshot,
-      enableLogging,
-      INTERNAL,
-      ServerValue
-    },
-    nodeAdmin
-  });
-}
-
-export function registerDatabase(instance: FirebaseNamespace) {
+function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
-  const namespace = (instance as _FirebaseNamespace).INTERNAL.registerComponent(
+  (instance as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'database-compat',
       (container, { instanceIdentifier: url }) => {
@@ -98,33 +60,9 @@ export function registerDatabase(instance: FirebaseNamespace) {
   );
 
   instance.registerVersion(name, version, 'node');
-
-  if (isNodeSdk()) {
-    module.exports = Object.assign({}, namespace, { initStandalone });
-  }
 }
 
-try {
-  // If @firebase/app is not present, skip registering database.
-  // It could happen when this package is used in firebase-admin which doesn't depend on @firebase/app.
-  // Previously firebase-admin depends on @firebase/app, which causes version conflict on
-  // @firebase/app when used together with the js sdk. More detail:
-  // https://github.com/firebase/firebase-js-sdk/issues/1696#issuecomment-501546596
-  // eslint-disable-next-line import/no-extraneous-dependencies, @typescript-eslint/no-require-imports
-  const firebase = require('@firebase/app-compat').default;
-  registerDatabase(firebase);
-} catch (err) {
-  // catch and ignore 'MODULE_NOT_FOUND' error in firebase-admin context
-  // we can safely ignore this error because RTDB in firebase-admin works without @firebase/app
-  if (err.code !== 'MODULE_NOT_FOUND') {
-    throw err;
-  }
-}
-
-// Types to export for the admin SDK
-export { Database, Query, Reference, enableLogging, ServerValue };
-
-export { OnDisconnect } from '@firebase/database';
+registerDatabase(firebase);
 
 declare module '@firebase/app-compat' {
   interface FirebaseNamespace {
@@ -139,4 +77,3 @@ declare module '@firebase/app-compat' {
     database?(): types.FirebaseDatabase;
   }
 }
-export { DataSnapshot } from '../src/api/Reference';

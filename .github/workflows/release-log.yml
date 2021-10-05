@@ -1,0 +1,23 @@
+name: Log Release PR
+
+on:
+  pull_request:
+    branches:
+      - release
+      - v8-releasebranch
+
+jobs:
+  release:
+    name: Send PR number to tracker endpoint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Setup Node.js 14.x
+        uses: actions/setup-node@master
+        with:
+          node-version: 14.x
+
+      - name: Get PR number and send to tracker.
+        run: node scripts/ci/log-changesets.js
