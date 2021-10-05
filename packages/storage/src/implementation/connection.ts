@@ -23,6 +23,10 @@ export type Headers = Record<string, string>;
  * goog.net.XhrIo-like interface.
  */
 export interface Connection {
+  /**
+   * This method should never reject. In case of encountering an error, set an error code internally which can be accessed
+   * by calling getErrorCode() by callers. 
+   */
   send(
     url: string,
     method: string,

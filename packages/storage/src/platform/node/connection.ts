@@ -17,7 +17,7 @@
 
 import { ErrorCode, Connection } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
-import nodeFetch from 'node-fetch';
+import nodeFetch, { FetchError } from 'node-fetch';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetch: typeof window.fetch = nodeFetch as any;
@@ -58,10 +58,13 @@ export class FetchConnection implements Connection {
       .then(resp => {
         this.headers_ = resp.headers;
         this.statusCode_ = resp.status;
-        return resp.text();
-      })
-      .then(body => {
-        this.body_ = body;
+        return resp.text().then(body => {
+          this.body_ = body;
+        });
+      }, (_err: FetchError) => {
+        this.errorCode_ = ErrorCode.NETWORK_ERROR;
+        // emulate XHR which sets status to 0 when encountering a network error
+        this.statusCode_ = 0;
       });
   }
 
