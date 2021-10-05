@@ -87,6 +87,7 @@ export class UserImpl implements UserInternal {
     this.phoneNumber = opt.phoneNumber || null;
     this.photoURL = opt.photoURL || null;
     this.isAnonymous = opt.isAnonymous || false;
+    this.tenantId = opt.tenantId || null;
     this.metadata = new UserMetadata(
       opt.createdAt || undefined,
       opt.lastLoginAt || undefined
