@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.4.2
+
+### Patch Changes
+
+- [`a4e770e58`](https://github.com/firebase/firebase-js-sdk/commit/a4e770e58d03d75a63f1ed7845589b863573b76e) [#5576](https://github.com/firebase/firebase-js-sdk/pull/5576) - Fix incorrect App Check typings that caused users to see TypeScript compile errors.
+
 ## 0.4.1
 
 ### Patch Changes
