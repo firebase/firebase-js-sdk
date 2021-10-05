@@ -263,7 +263,8 @@ describe('core/user/user_impl', () => {
         phoneNumber: 'number',
         photoURL: 'photo',
         emailVerified: false,
-        isAnonymous: true
+        isAnonymous: true,
+        tenantId: 'tenant-id'
       });
 
       const newAuth = await testAuth();
@@ -272,6 +273,7 @@ describe('core/user/user_impl', () => {
       expect(copy.stsTokenManager).not.to.eq(user.stsTokenManager);
       expect(copy.toJSON()).to.eql(user.toJSON());
       expect(copy.auth).to.eq(newAuth);
+      expect(copy.tenantId).to.eq('tenant-id');
     });
   });
 });
