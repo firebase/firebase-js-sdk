@@ -19,9 +19,6 @@ import { ErrorCode, Connection } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
 import nodeFetch, { FetchError } from 'node-fetch';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const fetch: typeof window.fetch = nodeFetch as any;
-
 /**
  * Network layer that works in Node.
  *
@@ -34,6 +31,8 @@ export class FetchConnection implements Connection {
   private body_: string | undefined;
   private headers_: Headers | undefined;
   private sent_: boolean = false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private fetch_: typeof window.fetch = nodeFetch as any;
 
   constructor() {
     this.errorCode_ = ErrorCode.NO_ERROR;
@@ -50,7 +49,7 @@ export class FetchConnection implements Connection {
     }
     this.sent_ = true;
 
-    return fetch(url, {
+    return this.fetch_(url, {
       method,
       headers: headers || {},
       body
