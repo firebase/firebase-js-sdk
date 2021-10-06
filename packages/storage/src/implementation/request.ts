@@ -106,6 +106,7 @@ class NetworkRequest<T> implements Request<T> {
         connection.addUploadProgressListener(progressListener);
       }
 
+      // connection.send() never rejects, so we don't need to have a error handler or use catch on the returned promise.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       connection
         .send(this.url_, this.method_, this.body_, this.headers_)
