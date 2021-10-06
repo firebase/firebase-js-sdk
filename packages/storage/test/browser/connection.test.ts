@@ -8,7 +8,7 @@ describe('Connections', () => {
         const fakeXHR = useFakeXMLHttpRequest();
         const connection = new XhrConnection();
         const sendPromise = connection.send('testurl', 'GET');
-        // simulate an network error
+        // simulate a network error
         ((connection as any).xhr_ as SinonFakeXMLHttpRequest).error();
         await sendPromise;
         expect(connection.getErrorCode()).to.equal(ErrorCode.NETWORK_ERROR);
