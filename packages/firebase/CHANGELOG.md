@@ -1,5 +1,19 @@
 # firebase
 
+## 9.1.2
+
+### Patch Changes
+
+- [`3e920c888`](https://github.com/firebase/firebase-js-sdk/commit/3e920c8880ed72e86c85f64b23836d95a3246491) [#5573](https://github.com/firebase/firebase-js-sdk/pull/5573) - Fixed App Check compat package to correctly export and handle `ReCaptchaV3Provider` and `CustomProvider` classes.
+
+- Updated dependencies [[`a4e770e58`](https://github.com/firebase/firebase-js-sdk/commit/a4e770e58d03d75a63f1ed7845589b863573b76e), [`1b0e7af13`](https://github.com/firebase/firebase-js-sdk/commit/1b0e7af130c59b867e84b3f2615248fedad5b83d), [`e1d551ddb`](https://github.com/firebase/firebase-js-sdk/commit/e1d551ddb29db0f1fdf25c986cfcae6804bc8e79), [`f7d8324a1`](https://github.com/firebase/firebase-js-sdk/commit/f7d8324a188f013f7875cf6c35fc4beb2c78c0ae), [`e456d00a7`](https://github.com/firebase/firebase-js-sdk/commit/e456d00a7d054b2e95476562a087f2b12301e800), [`3e920c888`](https://github.com/firebase/firebase-js-sdk/commit/3e920c8880ed72e86c85f64b23836d95a3246491)]:
+  - @firebase/app@0.7.3
+  - @firebase/app-check@0.4.2
+  - @firebase/auth@0.18.2
+  - @firebase/auth-compat@0.1.5
+  - @firebase/app-check-compat@0.1.3
+  - @firebase/app-compat@0.1.4
+
 ## 9.1.1
 
 ### Patch Changes
