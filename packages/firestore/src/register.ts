@@ -50,4 +50,5 @@ export function registerFirestore(variant?: string): void {
     )
   );
   registerVersion(name, version, variant);
+  registerVersion(name, version, '__BUILD_TARGET__');
 }

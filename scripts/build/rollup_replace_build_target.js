@@ -3,7 +3,7 @@
  * @param {'esm'|'cjs'} moduleFormat valid values are esm and cjs
  * @param {number} languageTarget valid values are 5, 2015, 2016 ... 2020
  */
-export function generateReplaceConfig(moduleFormat, languageTarget) {
+export function generateBuildTargetReplaceConfig(moduleFormat, languageTarget) {
     let buildTarget = '';
 
     switch (moduleFormat.toLowerCase()) {
