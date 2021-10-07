@@ -44,7 +44,10 @@ const es5Builds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
       ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 5))
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 5),
+        '__RUNTIME_ENV__': ''
+      })
     ]
   },
   /**
@@ -54,7 +57,13 @@ const es5Builds = [
     input: 'src/index.ts',
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [...es5BuildPlugins, replace(generateBuildTargetReplaceConfig('cjs', 5))]
+    plugins: [
+      ...es5BuildPlugins, 
+      replace({
+        ...generateBuildTargetReplaceConfig('cjs', 5),
+        '__RUNTIME_ENV__': 'node'
+      })
+    ]
   }
 ];
 
@@ -87,7 +96,13 @@ const es2017Builds = [
       sourcemap: true
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [...es2017BuildPlugins, replace(generateBuildTargetReplaceConfig('esm', 2017))]
+    plugins: [
+      ...es2017BuildPlugins, 
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 2017),
+        '__RUNTIME_ENV__': ''
+      })
+    ]
   }
 ];
 
