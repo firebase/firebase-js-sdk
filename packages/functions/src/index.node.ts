@@ -23,5 +23,4 @@ import { name, version } from '../package.json';
 export * from './api';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-registerFunctions(nodeFetch as any);
-registerVersion(name, version, 'node');
+registerFunctions(nodeFetch as any, 'node');
