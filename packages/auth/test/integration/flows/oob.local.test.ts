@@ -45,6 +45,7 @@ import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import {
+  createNewTenant,
   getOobCodes,
   OobCodeSession
 } from '../../helpers/integration/emulator_rest_helpers';
@@ -76,8 +77,8 @@ describe('Integration test: oob codes', () => {
     await cleanUpTestInstance(auth);
   });
 
-  async function code(toEmail: string): Promise<OobCodeSession> {
-    const codes = await getOobCodes();
+  async function code(toEmail: string, tenant?: string): Promise<OobCodeSession> {
+    const codes = await getOobCodes(tenant);
     return codes.reverse().find(({ email }) => email === toEmail)!;
   }
 
@@ -288,6 +289,30 @@ describe('Integration test: oob codes', () => {
     expect(user.emailVerified).to.be.true;
   });
 
+  it('can be used to verify email in tenant', async () => {
+    // Create an unverified user
+    const tenantId =await createNewTenant(); 
+    auth.tenantId = tenantId;
+    const { user } = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      'password'
+    );
+    expect(user.emailVerified).to.be.false;
+    console.log(user.email);
+    console.log(tenantId);
+    expect(await fetchSignInMethodsForEmail(auth, email)).to.eql([
+      SignInMethod.EMAIL_PASSWORD
+    ]);
+    await sendEmailVerification(user);
+
+    // Apply the email verification code
+    await applyActionCode(auth, (await code(email, tenantId)).oobCode);
+    await user.reload();
+    expect(user.emailVerified).to.be.true;
+    expect(user.tenantId).to.eq(tenantId);
+  });
+
   it('can be used to initiate password reset', async () => {
     const { user: original } = await createUserWithEmailAndPassword(
       auth,
@@ -311,6 +336,41 @@ describe('Integration test: oob codes', () => {
     );
     expect(user.uid).to.eq(original.uid);
     expect(user.emailVerified).to.be.true;
+    expect(await fetchSignInMethodsForEmail(auth, email)).to.eql([
+      SignInMethod.EMAIL_PASSWORD
+    ]);
+
+    await expect(
+      signInWithEmailAndPassword(auth, email, 'password')
+    ).to.be.rejectedWith(FirebaseError, 'auth/wrong-password');
+  });
+
+  it('can be used to initiate password reset in tenant', async () => {
+    const tenantId = await createNewTenant();
+    auth.tenantId = tenantId;
+    const { user: original } = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      'password'
+    );
+    await sendEmailVerification(original); // Can only reset verified user emails
+    await applyActionCode(auth, (await code(email, tenantId)).oobCode);
+
+    // Send and confirm the password reset
+    await sendPasswordResetEmail(auth, email);
+    const oobCode = (await code(email, tenantId)).oobCode;
+    expect(await verifyPasswordResetCode(auth, oobCode)).to.eq(email);
+    await confirmPasswordReset(auth, oobCode, 'new-password');
+
+    // Make sure the new password works and the old one doesn't
+    const { user } = await signInWithEmailAndPassword(
+      auth,
+      email,
+      'new-password'
+    );
+    expect(user.uid).to.eq(original.uid);
+    expect(user.emailVerified).to.be.true;
+    expect(user.tenantId).to.eq(tenantId);
     expect(await fetchSignInMethodsForEmail(auth, email)).to.eql([
       SignInMethod.EMAIL_PASSWORD
     ]);

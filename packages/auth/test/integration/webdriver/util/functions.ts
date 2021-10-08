@@ -59,7 +59,8 @@ export enum CoreFunction {
   AUTH_SNAPSHOT = 'core.authSnap',
   SIGN_OUT = 'core.signOut',
   AWAIT_LEGACY_AUTH_INIT = 'core.legacyAuthInit',
-  LEGACY_USER_SNAPSHOT = 'core.legacyUserSnap'
+  LEGACY_USER_SNAPSHOT = 'core.legacyUserSnap',
+  SET_TENANT_ID = 'core.setTenantId',
 }
 
 /** Available persistence functions within the browser. See static/persistence.js */

@@ -36,6 +36,7 @@ import {
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import { createNewTenant } from '../../helpers/integration/emulator_rest_helpers';
 import {
   cleanUpTestInstance,
   getTestInstance,
@@ -89,6 +90,31 @@ describe('Integration test: headless IdP', () => {
     expect(additionalUserInfo.providerId).to.eq('google.com');
   });
 
+  it('signs in with an OAuth token in a tenant', async () => {
+    const tenantId = await createNewTenant();
+    auth.tenantId = tenantId;
+    const cred = await signInWithCredential(
+      auth,
+      GoogleAuthProvider.credential(oauthIdToken)
+    );
+    expect(auth.currentUser).to.eq(cred.user);
+    expect(cred.operationType).to.eq(OperationType.SIGN_IN);
+
+    // Make sure the user is setup correctly
+    const { user } = cred;
+    expect(user.isAnonymous).to.be.false;
+    expect(user.emailVerified).to.be.true;
+    expect(user.providerData.length).to.eq(1);
+    expect(user.providerData[0].providerId).to.eq('google.com');
+    expect(user.providerData[0].email).to.eq(email);
+    expect(user.tenantId).to.eq(tenantId);
+
+    // Make sure the additional user info is good
+    const additionalUserInfo = getAdditionalUserInfo(cred)!;
+    expect(additionalUserInfo.isNewUser).to.be.true;
+    expect(additionalUserInfo.providerId).to.eq('google.com');
+  });
+
   it('allows the user to update profile', async () => {
     const credential = GithubAuthProvider.credential(oauthIdToken);
     const { user } = await signInWithCredential(auth, credential);
@@ -108,6 +134,30 @@ describe('Integration test: headless IdP', () => {
     await signInWithCredential(auth, credential);
     expect(auth.currentUser!.displayName).to.eq('David Copperfield');
     expect(auth.currentUser!.photoURL).to.eq('http://photo.test/david.png');
+  });
+
+  it('allows the user to update profile in a tenant', async () => {
+    const tenantId = await createNewTenant();
+    auth.tenantId = tenantId;
+    const credential = GithubAuthProvider.credential(oauthIdToken);
+    const { user } = await signInWithCredential(auth, credential);
+
+    await updateProfile(user, {
+      displayName: 'David Copperfield',
+      photoURL: 'http://photo.test/david.png'
+    });
+
+    // Check everything first
+    expect(user.displayName).to.eq('David Copperfield');
+    expect(user.photoURL).to.eq('http://photo.test/david.png');
+
+    await auth.signOut();
+
+    // Sign in again and double check; look at current user this time
+    await signInWithCredential(auth, credential);
+    expect(auth.currentUser!.displayName).to.eq('David Copperfield');
+    expect(auth.currentUser!.photoURL).to.eq('http://photo.test/david.png');
+    expect(auth.currentUser!.tenantId).to.eq(tenantId);
   });
 
   it('allows the user to change the email', async () => {
@@ -204,6 +254,51 @@ describe('Integration test: headless IdP', () => {
     expect(user.providerData.length).to.eq(1);
     expect(user.providerData[0].email).to.eq(facebookEmail);
     expect(user.providerData[0].providerId).to.eq('facebook.com');
+  });
+
+  it('can link with multiple idps within a tenant', async () => {
+    const tenantId = await createNewTenant();
+    auth.tenantId = tenantId;
+    const googleEmail = randomEmail();
+    const facebookEmail = randomEmail();
+
+    const googleCredential = GoogleAuthProvider.credential(
+      JSON.stringify({
+        sub: googleEmail,
+        email: googleEmail,
+        'email_verified': true
+      })
+    );
+
+    const facebookCredential = FacebookAuthProvider.credential(
+      JSON.stringify({
+        sub: facebookEmail,
+        email: facebookEmail
+      })
+    );
+
+    // Link and then test everything
+    const { user } = await signInWithCredential(auth, facebookCredential);
+    await linkWithCredential(user, googleCredential);
+    expect(user.email).to.eq(facebookEmail);
+    expect(user.emailVerified).to.be.false;
+    expect(user.providerData.length).to.eq(2);
+    expect(
+      user.providerData.find(p => p.providerId === 'google.com')!.email
+    ).to.eq(googleEmail);
+    expect(
+      user.providerData.find(p => p.providerId === 'facebook.com')!.email
+    ).to.eq(facebookEmail);
+    expect(user.tenantId).to.eq(tenantId);
+
+    // Unlink Google and check everything again
+    await unlink(user, ProviderId.GOOGLE);
+    expect(user.email).to.eq(facebookEmail);
+    expect(user.emailVerified).to.be.false;
+    expect(user.providerData.length).to.eq(1);
+    expect(user.providerData[0].email).to.eq(facebookEmail);
+    expect(user.providerData[0].providerId).to.eq('facebook.com');
+    expect(user.tenantId).to.eq(tenantId);
   });
 
   it('IdP account takes over unverified email', async () => {

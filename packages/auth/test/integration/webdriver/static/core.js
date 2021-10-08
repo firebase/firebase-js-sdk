@@ -47,3 +47,7 @@ export async function authSnap() {
 export function signOut() {
   return auth.signOut();
 }
+
+export async function setTenantId(tid) {
+  auth.tenantId = tid;
+}

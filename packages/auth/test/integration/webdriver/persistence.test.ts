@@ -18,7 +18,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { UserCredential } from '@firebase/auth';
 import { expect } from 'chai';
-import { createAnonAccount } from '../../helpers/integration/emulator_rest_helpers';
+import { createAnonAccount, createNewTenant } from '../../helpers/integration/emulator_rest_helpers';
 import { API_KEY } from '../../helpers/integration/settings';
 import { START_FUNCTION } from './util/auth_driver';
 import {
@@ -429,6 +429,8 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
 
   context('persistence sync across windows and tabs', () => {
     it('sync current user across windows with indexedDB', async () => {
+      const tenantId = await createNewTenant();
+      await driver.call(CoreFunction.SET_TENANT_ID, tenantId);
       const cred: UserCredential = await driver.call(
         AnonFunction.SIGN_IN_ANONYMOUSLY
       );
@@ -438,9 +440,11 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.webDriver.wait(new JsLoadCondition(START_FUNCTION));
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
+      await driver.call(CoreFunction.SET_TENANT_ID, tenantId);
       const userInPopup = await driver.getUserSnapshot();
       expect(userInPopup).not.to.be.null;
       expect(userInPopup.uid).to.equal(uid);
+      expect(userInPopup.tenantId).to.equal(tenantId);
 
       await driver.call(CoreFunction.SIGN_OUT);
       expect(await driver.getUserSnapshot()).to.be.null;
@@ -494,5 +498,31 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.pause(500);
       expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
     });
+  });
+
+  it('tenant user persists across reloads', async () => {
+    const tenantId = await createNewTenant();
+    await driver.call(CoreFunction.SET_TENANT_ID, tenantId);
+    const cred: UserCredential = await driver.call(
+      AnonFunction.SIGN_IN_ANONYMOUSLY
+    );
+    const uid = cred.user.uid;
+
+    expect(await driver.getUserSnapshot()).to.eql(cred.user);
+    expect(await driver.call(PersistenceFunction.LOCAL_STORAGE_SNAP)).to.eql(
+      {}
+    );
+    expect(
+      await driver.call(PersistenceFunction.SESSION_STORAGE_SNAP)
+    ).to.eql({});
+
+    const snap = await driver.call(PersistenceFunction.INDEXED_DB_SNAP);
+    expect(snap).to.have.property(fullPersistenceKey).that.contains({ uid });
+
+    // Persistence should survive a refresh:
+    await driver.webDriver.navigate().refresh();
+    await driver.injectConfigAndInitAuth();
+    await driver.waitForAuthInit();
+    expect(await driver.getUserSnapshot()).to.contain({ uid, tenantId });
   });
 });
