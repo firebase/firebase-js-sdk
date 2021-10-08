@@ -18,8 +18,7 @@
 import firebase from '@firebase/app-compat';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { createNewTenant, initializeTestInstance } from '../../helpers/helpers';
-import { cleanUpTestInstance } from '../../helpers/helpers';
+import { createNewTenant, initializeTestInstance, cleanUpTestInstance } from '../../helpers/helpers';
 
 use(chaiAsPromised);
 

@@ -18,32 +18,15 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   Auth,
-  createUserWithEmailAndPassword,
-  FacebookAuthProvider,
-  getAdditionalUserInfo,
-  GithubAuthProvider,
-  GoogleAuthProvider,
-  linkWithCredential,
-  OperationType,
-  ProviderId,
   signInAnonymously,
-  signInWithCredential,
-  signInWithEmailAndPassword,
-  signInWithPhoneNumber,
-  unlink,
-  updateEmail,
-  updatePassword,
-  updateProfile
 } from '@firebase/auth';
 
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { createNewTenant } from '../../helpers/integration/emulator_rest_helpers';
 import {
   cleanUpTestInstance,
   getTestInstance,
-  randomEmail
 } from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);

@@ -16,7 +16,7 @@
  */
 
 import * as fetchImpl from 'node-fetch';
-import { API_KEY, getAppConfig, getEmulatorUrl, PROJECT_ID } from './settings';
+import { API_KEY, getAppConfig, getEmulatorUrl } from './settings';
 
 export interface VerificationSession {
   code: string;
@@ -79,7 +79,8 @@ export async function createAnonAccount(): Promise<{
 }
 
 export async function createNewTenant(): Promise<string> {
-  const url = `${getEmulatorUrl()}/identitytoolkit.googleapis.com/v2/projects/${PROJECT_ID}/tenants?key=${API_KEY}`;
+  const projectId = getAppConfig().projectId;
+  const url = `${getEmulatorUrl()}/identitytoolkit.googleapis.com/v2/projects/${projectId}/tenants?key=${API_KEY}`;
   const request = {
     name: 'tenant',
     allowPasswordSignup: true,
