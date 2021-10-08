@@ -21,6 +21,7 @@ import { Deferred } from '@firebase/util';
 import { getRecaptcha, ensureActivated } from './util';
 
 export const RECAPTCHA_URL = 'https://www.google.com/recaptcha/api.js';
+export const RECAPTCHA_ENTERPRISE_URL = 'https://www.google.com/recaptcha/enterprise.js';
 
 export function initialize(
   app: FirebaseApp,
@@ -53,7 +54,7 @@ export function initialize(
         renderInvisibleWidget(app, siteKey, grecaptcha, divId);
         initialized.resolve(grecaptcha);
       });
-    });
+    }, isEnterprise);
   } else {
     grecaptcha.ready(() => {
       renderInvisibleWidget(app, siteKey, grecaptcha, divId);
@@ -112,9 +113,9 @@ function renderInvisibleWidget(
   });
 }
 
-function loadReCAPTCHAScript(onload: () => void): void {
+function loadReCAPTCHAScript(onload: () => void, isEnterprise: boolean = false): void {
   const script = document.createElement('script');
-  script.src = `${RECAPTCHA_URL}`;
+  script.src = isEnterprise ? RECAPTCHA_ENTERPRISE_URL : RECAPTCHA_URL;
   script.onload = onload;
   document.head.appendChild(script);
 }
