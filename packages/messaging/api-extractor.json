@@ -1,10 +1,10 @@
 {
   "extends": "../../config/api-extractor.json",
   // Point it to your entry point d.ts file.
-  "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/dist/src/index.d.ts",
   "additionalEntryPoints": [{
     "modulePath": "sw",
-    "filePath": "<projectFolder>/dist/index.sw.d.ts"
+    "filePath": "<projectFolder>/dist/src/index.sw.d.ts"
   }],
   "dtsRollup": {
     /** 
