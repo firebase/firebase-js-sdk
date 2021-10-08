@@ -19,9 +19,7 @@ import firebase from '@firebase/app-compat';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { createNewTenant, initializeTestInstance } from '../../helpers/helpers';
-import {
-  cleanUpTestInstance,
-} from '../../helpers/helpers';
+import { cleanUpTestInstance } from '../../helpers/helpers';
 
 use(chaiAsPromised);
 
@@ -41,26 +39,28 @@ describe('Integration test: multi-tenant', () => {
 
   it('sets the correct tenantId on the underlying user', async () => {
     firebase.auth().tenantId = tenantA;
-    const {user} = await firebase.auth().signInAnonymously();
+    const { user } = await firebase.auth().signInAnonymously();
     expect(user!.tenantId).to.eq(tenantA);
   });
 
   it('allows updateCurrentUser to be called when TID matches', async () => {
     firebase.auth().tenantId = tenantA;
-    const {user} = await firebase.auth().signInAnonymously();
+    const { user } = await firebase.auth().signInAnonymously();
     await expect(firebase.auth().updateCurrentUser(user)).not.to.be.rejected;
   });
 
   it('throws for mismatched TID', async () => {
     firebase.auth().tenantId = tenantA;
-    const {user} = await firebase.auth().signInAnonymously();
+    const { user } = await firebase.auth().signInAnonymously();
     firebase.auth().tenantId = tenantB;
-    await expect(firebase.auth().updateCurrentUser(user)).to.be.rejectedWith('auth/tenant-id-mismatch');
+    await expect(firebase.auth().updateCurrentUser(user)).to.be.rejectedWith(
+      'auth/tenant-id-mismatch'
+    );
   });
 
   it('allows users to be deleted', async () => {
     firebase.auth().tenantId = tenantA;
-    const {user} = await firebase.auth().signInAnonymously();
+    const { user } = await firebase.auth().signInAnonymously();
     await user!.delete();
     expect(firebase.auth().currentUser).to.be.null;
   });
