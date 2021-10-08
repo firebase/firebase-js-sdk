@@ -21,7 +21,8 @@ import { Deferred } from '@firebase/util';
 import { getRecaptcha, ensureActivated } from './util';
 
 export const RECAPTCHA_URL = 'https://www.google.com/recaptcha/api.js';
-export const RECAPTCHA_ENTERPRISE_URL = 'https://www.google.com/recaptcha/enterprise.js';
+export const RECAPTCHA_ENTERPRISE_URL =
+  'https://www.google.com/recaptcha/enterprise.js';
 
 export function initialize(
   app: FirebaseApp,
@@ -113,7 +114,10 @@ function renderInvisibleWidget(
   });
 }
 
-function loadReCAPTCHAScript(onload: () => void, isEnterprise: boolean = false): void {
+function loadReCAPTCHAScript(
+  onload: () => void,
+  isEnterprise: boolean = false
+): void {
   const script = document.createElement('script');
   script.src = isEnterprise ? RECAPTCHA_ENTERPRISE_URL : RECAPTCHA_URL;
   script.onload = onload;
