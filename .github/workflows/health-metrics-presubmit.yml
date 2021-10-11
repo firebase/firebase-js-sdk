@@ -3,6 +3,10 @@ name: Health Metrics
 on: [push, pull_request]
 
 env:
+<<<<<<< HEAD:.github/workflows/health-metrics-test.yml
+=======
+  METRICS_SERVICE_URL: "https://api.firebase-sdk-health-metrics.com"
+>>>>>>> 7b37f3376 (Add GHA workflow for submitting tags to metric service.):.github/workflows/health-metrics-presubmit.yml
   GITHUB_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
   # TODO(yifany): parse from git commit history directly
   #   Reason: actions/checkout@v2 does not always honor ${{ github.event.pull_request.base.sha }},
