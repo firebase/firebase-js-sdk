@@ -45,5 +45,13 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "repository": {
+    "directory": "packages/storage-compat",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  }
 }
