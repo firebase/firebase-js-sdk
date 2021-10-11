@@ -39,18 +39,20 @@ const es5BuildPlugins = [
 const es5Builds = [
   {
     input: 'src/index.ts',
-    output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true }
+    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 5))
     ],
-    plugins: [...es5BuildPlugins, replace(generateBuildTargetReplaceConfig('cjs', 5))],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'src/index.ts',
-    output: [
-      { file: pkg.esm5, format: 'es', sourcemap: true }
+    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 5))
     ],
-    plugins: [...es5BuildPlugins, replace(generateBuildTargetReplaceConfig('esm', 5))],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -78,7 +80,10 @@ const es2017Builds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...es2017BuildPlugins, replace(generateBuildTargetReplaceConfig('esm', 2017))],
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   // sw builds

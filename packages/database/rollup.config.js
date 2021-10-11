@@ -52,7 +52,10 @@ const es5Builds = [
   {
     input: 'src/index.node.ts',
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: [...es5BuildPlugins, replace(generateBuildTargetReplaceConfig('cjs', 5))],
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 5))
+    ],
     treeshake: {
       moduleSideEffects: false
     },
@@ -71,7 +74,10 @@ const es5Builds = [
         sourcemap: true
       }
     ],
-    plugins: [...es5BuildPlugins, replace(generateBuildTargetReplaceConfig('esm', 5))],
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 5))
+    ],
     treeshake: {
       moduleSideEffects: false
     },
@@ -81,7 +87,7 @@ const es5Builds = [
   /**
    * Standalone Build
    */
-   {
+  {
     input: 'src/index.standalone.ts',
     output: [{ file: pkg.standalone, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
@@ -90,7 +96,7 @@ const es5Builds = [
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
-  },
+  }
 ];
 
 /**
@@ -122,7 +128,10 @@ const es2017Builds = [
         sourcemap: true
       }
     ],
-    plugins: [...es2017BuildPlugins, replace(generateBuildTargetReplaceConfig('esm', 2017))],
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ],
     treeshake: {
       moduleSideEffects: false
     },

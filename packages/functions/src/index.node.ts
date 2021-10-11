@@ -17,7 +17,6 @@
 import { registerFunctions } from './config';
 import nodeFetch from 'node-fetch';
 
-
 export * from './api';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

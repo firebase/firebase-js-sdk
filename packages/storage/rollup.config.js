@@ -57,7 +57,7 @@ const es5Builds = [
       { file: pkg.esm5, format: 'es', sourcemap: true }
     ],
     plugins: [
-      alias(generateAliasConfig('browser')), 
+      alias(generateAliasConfig('browser')),
       ...es5Plugins,
       replace({
         ...generateBuildTargetReplaceConfig('esm', 5),
@@ -70,13 +70,13 @@ const es5Builds = [
     }
   },
   {
-    // needed by Emulator UI 
+    // needed by Emulator UI
     input: './src/index.ts',
     output: [
       { file: 'dist/index.browser.cjs.js', format: 'cjs', sourcemap: true }
     ],
     plugins: [
-      alias(generateAliasConfig('browser')), 
+      alias(generateAliasConfig('browser')),
       ...es5Plugins,
       replace({
         ...generateBuildTargetReplaceConfig('cjs', 5),
@@ -113,7 +113,7 @@ const es2017Builds = [
       sourcemap: true
     },
     plugins: [
-      alias(generateAliasConfig('node')), 
+      alias(generateAliasConfig('node')),
       ...es2017Plugins,
       replace({
         ...generateBuildTargetReplaceConfig('cjs', 2017),

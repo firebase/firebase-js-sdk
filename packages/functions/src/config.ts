@@ -35,7 +35,10 @@ const APP_CHECK_INTERNAL_NAME: AppCheckInternalComponentName =
 const MESSAGING_INTERNAL_NAME: MessagingInternalComponentName =
   'messaging-internal';
 
-export function registerFunctions(fetchImpl: typeof fetch, variant?: string): void {
+export function registerFunctions(
+  fetchImpl: typeof fetch,
+  variant?: string
+): void {
   const factory: InstanceFactory<'functions'> = (
     container: ComponentContainer,
     { instanceIdentifier: regionOrCustomDomain }

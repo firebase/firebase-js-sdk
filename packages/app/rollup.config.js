@@ -22,7 +22,9 @@ import json from '@rollup/plugin-json';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import pkg from './package.json';
 
-const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
+const deps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
 
 /**
  * ES5 Builds
@@ -58,7 +60,7 @@ const es5Builds = [
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
-      ...es5BuildPlugins, 
+      ...es5BuildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('cjs', 5),
         '__RUNTIME_ENV__': 'node'
@@ -97,7 +99,7 @@ const es2017Builds = [
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
-      ...es2017BuildPlugins, 
+      ...es2017BuildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2017),
         '__RUNTIME_ENV__': ''

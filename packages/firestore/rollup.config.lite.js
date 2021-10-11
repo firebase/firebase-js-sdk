@@ -89,7 +89,7 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('node_lite')), 
+      alias(util.generateAliasConfig('node_lite')),
       ...nodePlugins(),
       replace({
         '__RUNTIME_ENV__': 'node'
@@ -135,9 +135,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
-    ],
+    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
@@ -195,9 +193,7 @@ const allBuilds = [
         sourcemap: true
       }
     ],
-    plugins: [
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
-    ],
+    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -212,7 +208,7 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('rn_lite')), 
+      alias(util.generateAliasConfig('rn_lite')),
       ...browserPlugins(),
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2017),

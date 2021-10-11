@@ -88,10 +88,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [
-      alias(util.generateAliasConfig('node')),
-      ...nodePlugins()
-    ],
+    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins()],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
@@ -174,9 +171,7 @@ const allBuilds = [
         sourcemap: true
       }
     ],
-    plugins: [
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
-    ],
+    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -191,7 +186,7 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('rn')), 
+      alias(util.generateAliasConfig('rn')),
       ...browserPlugins(),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
