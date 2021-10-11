@@ -6,7 +6,7 @@
   "main": "dist/index.cjs.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
-  "typings": "dist/index.d.ts",
+  "typings": "dist/src/index.d.ts",
   "sw": "dist/index.sw.esm2017.js",
   "files": [
     "dist",

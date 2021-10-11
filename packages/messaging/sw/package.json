@@ -3,5 +3,5 @@
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "module": "../dist/index.sw.esm2017.js",
-  "typings": "../dist/index.sw.d.ts"
+  "typings": "../dist/src/index.sw.d.ts"
 }
