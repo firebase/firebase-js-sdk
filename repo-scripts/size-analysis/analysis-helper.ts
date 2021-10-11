@@ -260,7 +260,6 @@ export function extractExports(filePath: string): MemberList {
 
   const exports = checker.getExportsOfModule(module);
 
-
   for (const expt of exports) {
     // get the source declaration where we can determine the type of the export. e.g. class vs function
     let sourceSymbol = expt;
@@ -285,7 +284,9 @@ export function extractExports(filePath: string): MemberList {
       // creating a file that imports them causes an error during the rollup step.
       if (
         // Identifies if this enum had a "const" modifier attached.
-        !sourceDeclaration.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ConstKeyword)
+        !sourceDeclaration.modifiers?.some(
+          mod => mod.kind === ts.SyntaxKind.ConstKeyword
+        )
       ) {
         exportDeclarations.enums.push(expt.name);
       }
@@ -400,9 +401,9 @@ export function writeReportToDirectory(
  * This function extract unresolved external module symbols from bundle file import statements.
  *
  */
-export function extractExternalDependencies(
-  minimizedBundleFile: string
-): { [key: string]: string[] } {
+export function extractExternalDependencies(minimizedBundleFile: string): {
+  [key: string]: string[];
+} {
   const program = ts.createProgram([minimizedBundleFile], { allowJs: true });
 
   const sourceFile = program.getSourceFile(minimizedBundleFile);
@@ -547,7 +548,7 @@ async function traverseDirs(
       fs.lstatSync(p).isDirectory() &&
       fs.existsSync(`${p}/package.json`) &&
       JSON.parse(fs.readFileSync(`${p}/package.json`, { encoding: 'utf-8' }))[
-      generateSizeAnalysisReportPkgJsonField
+        generateSizeAnalysisReportPkgJsonField
       ]
     ) {
       const subModuleReports: Report[] = await traverseDirs(

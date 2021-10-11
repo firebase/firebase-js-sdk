@@ -27,6 +27,6 @@ console.log(
   fs,
   basicFuncExportEnumDependenciesBar,
   basicFuncExternalDependenciesBar,
-  BasicClassExportBarRenamed,
+  BasicClassExportBarRenamed
   // defaultExport
 );

@@ -55,7 +55,8 @@ const argv = yargs
       };
     });
   })
-  .help().parseSync();
+  .help()
+  .parseSync();
 
 interface Options {
   input: string;

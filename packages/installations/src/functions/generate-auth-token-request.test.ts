@@ -71,10 +71,11 @@ describe('generateAuthTokenRequest', () => {
     });
 
     it('fetches a new Authentication Token', async () => {
-      const completedAuthToken: CompletedAuthToken = await generateAuthTokenRequest(
-        installations,
-        registeredInstallationEntry
-      );
+      const completedAuthToken: CompletedAuthToken =
+        await generateAuthTokenRequest(
+          installations,
+          registeredInstallationEntry
+        );
       expect(completedAuthToken.requestStatus).to.equal(
         RequestStatus.COMPLETED
       );

@@ -53,18 +53,20 @@ export class FetchConnection implements Connection {
       method,
       headers: headers || {},
       body
-    })
-      .then(resp => {
+    }).then(
+      resp => {
         this.headers_ = resp.headers;
         this.statusCode_ = resp.status;
         return resp.text().then(body => {
           this.body_ = body;
         });
-      }, (_err: FetchError) => {
+      },
+      (_err: FetchError) => {
         this.errorCode_ = ErrorCode.NETWORK_ERROR;
         // emulate XHR which sets status to 0 when encountering a network error
         this.statusCode_ = 0;
-      });
+      }
+    );
   }
 
   getErrorCode(): ErrorCode {

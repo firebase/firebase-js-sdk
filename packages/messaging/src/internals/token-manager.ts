@@ -98,7 +98,8 @@ export async function deleteTokenInternal(
   }
 
   // Unsubscribe from the push subscription.
-  const pushSubscription = await messaging.swRegistration!.pushManager.getSubscription();
+  const pushSubscription =
+    await messaging.swRegistration!.pushManager.getSubscription();
   if (pushSubscription) {
     return pushSubscription.unsubscribe();
   }

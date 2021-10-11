@@ -20,7 +20,9 @@ import typescript from 'typescript';
 import json from '@rollup/plugin-json';
 import pkg from './package.json';
 
-const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
+const deps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
 /**
  * ES5 Builds
  */

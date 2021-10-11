@@ -84,7 +84,7 @@ const es5Builds = [
     onwarn: onWarn
   },
   /**
-   * Standalone Build (used by Admin SDK). 
+   * Standalone Build (used by Admin SDK).
    * @firebase/database and only @firebase/database is bundled in this build.
    */
   {
@@ -107,7 +107,10 @@ const es5Builds = [
     treeshake: {
       moduleSideEffects: false
     },
-    external: id => deps.filter(dep => dep !== '@firebase/database').some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id =>
+      deps
+        .filter(dep => dep !== '@firebase/database')
+        .some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
   }
 ];

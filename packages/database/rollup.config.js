@@ -79,7 +79,7 @@ const es5Builds = [
   /**
    * Standalone Build
    */
-   {
+  {
     input: 'src/index.standalone.ts',
     output: [{ file: pkg.standalone, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
@@ -88,7 +88,7 @@ const es5Builds = [
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
-  },
+  }
 ];
 
 /**

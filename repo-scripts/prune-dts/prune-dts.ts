@@ -40,10 +40,10 @@ export function pruneDts(inputLocation: string, outputLocation: string): void {
   const printer: ts.Printer = ts.createPrinter();
   const sourceFile = program.getSourceFile(inputLocation)!;
 
-  const result: ts.TransformationResult<ts.SourceFile> = ts.transform<ts.SourceFile>(
-    sourceFile,
-    [dropPrivateApiTransformer.bind(null, program, host)]
-  );
+  const result: ts.TransformationResult<ts.SourceFile> =
+    ts.transform<ts.SourceFile>(sourceFile, [
+      dropPrivateApiTransformer.bind(null, program, host)
+    ]);
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
   let content = printer.printFile(transformedSourceFile);
 
@@ -520,16 +520,18 @@ function dropPrivateApiTransformer(
   };
 }
 
-const argv = yargs.options({
-  input: {
-    type: 'string',
-    desc: 'The location of the index.ts file'
-  },
-  output: {
-    type: 'string',
-    desc: 'The location for the index.d.ts file'
-  }
-}).parseSync();
+const argv = yargs
+  .options({
+    input: {
+      type: 'string',
+      desc: 'The location of the index.ts file'
+    },
+    output: {
+      type: 'string',
+      desc: 'The location for the index.d.ts file'
+    }
+  })
+  .parseSync();
 
 if (argv.input && argv.output) {
   console.log('Removing private exports...');

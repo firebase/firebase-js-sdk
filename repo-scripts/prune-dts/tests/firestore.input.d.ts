@@ -2426,7 +2426,8 @@ export declare function loadBundle(
  * The API is compatible with `Promise<LoadBundleTaskProgress>`.
  */
 export declare class LoadBundleTask
-  implements PromiseLike<LoadBundleTaskProgress> {
+  implements PromiseLike<LoadBundleTaskProgress>
+{
   private _progressObserver;
   private _taskCompletionResolver;
   private _lastProgress;

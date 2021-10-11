@@ -36,30 +36,30 @@ const ServerValue = Database.ServerValue;
  * @param nodeAdmin - true if the SDK is being initialized from Firebase Admin.
  */
 export function initStandalone(
-    app: FirebaseApp,
-    url: string,
-    version: string,
-    nodeAdmin = true
+  app: FirebaseApp,
+  url: string,
+  version: string,
+  nodeAdmin = true
 ) {
-    CONSTANTS.NODE_ADMIN = nodeAdmin;
-    return INTERNAL.initStandalone({
-        app,
-        url,
-        version,
-        // firebase-admin-node's app.INTERNAL implements FirebaseAuthInternal interface
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        customAuthImpl: (app as any).INTERNAL as FirebaseAuthInternal,
-        namespace: {
-            Reference,
-            Query,
-            Database,
-            DataSnapshot,
-            enableLogging,
-            INTERNAL,
-            ServerValue
-        },
-        nodeAdmin
-    });
+  CONSTANTS.NODE_ADMIN = nodeAdmin;
+  return INTERNAL.initStandalone({
+    app,
+    url,
+    version,
+    // firebase-admin-node's app.INTERNAL implements FirebaseAuthInternal interface
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    customAuthImpl: (app as any).INTERNAL as FirebaseAuthInternal,
+    namespace: {
+      Reference,
+      Query,
+      Database,
+      DataSnapshot,
+      enableLogging,
+      INTERNAL,
+      ServerValue
+    },
+    nodeAdmin
+  });
 }
 
 // Types to export for the admin SDK

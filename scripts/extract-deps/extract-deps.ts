@@ -29,24 +29,25 @@ import {
 // dependencies for each individual exported type. This can then be used to
 // verify dependencies in tree-shakeable SDKs.
 
-const argv = yargs.options({
-  types: {
-    type: 'string',
-    demandOption: true,
-    desc: 'The location of the index.d.ts file that describes the Public API'
-  },
-  bundle: {
-    type: 'string',
-    demandOption: true,
-    desc:
-      'The location of transpiled JavaScript bundle that contains all code for the SDK'
-  },
-  output: {
-    type: 'string',
-    demandOption: true,
-    desc: 'The location to write the JSON output to'
-  }
-}).parseSync();
+const argv = yargs
+  .options({
+    types: {
+      type: 'string',
+      demandOption: true,
+      desc: 'The location of the index.d.ts file that describes the Public API'
+    },
+    bundle: {
+      type: 'string',
+      demandOption: true,
+      desc: 'The location of transpiled JavaScript bundle that contains all code for the SDK'
+    },
+    output: {
+      type: 'string',
+      demandOption: true,
+      desc: 'The location to write the JSON output to'
+    }
+  })
+  .parseSync();
 
 async function buildJson(
   publicApi: MemberList,
