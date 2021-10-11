@@ -1,6 +1,13 @@
 name: E2E Smoke Tests
 
-on: workflow_dispatch
+# Allows REST trigger. Currently triggered by release-cli script during a staging run.
+on:
+  workflow_dispatch:
+    inputs:
+      versionOrTag:
+        description: 'release version or tag'
+        required: true
+        default: 'next'
 
 jobs:
   test:
@@ -32,7 +39,8 @@ jobs:
         echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
     - name: Yarn install
       run: |
-        yarn add firebase
+        echo "Installing firebase@${{ github.event.inputs.versionOrTag }}"
+        yarn add firebase@${{ github.event.inputs.versionOrTag }}
         yarn
     - name: Deploy "callTest" cloud function
       run: |
@@ -51,3 +59,17 @@ jobs:
       env:
         APP_CHECK_DEBUG_TOKEN: ${{ secrets.APP_CHECK_DEBUG_TOKEN }}
       run: xvfb-run yarn test:compat
+    - name: Tests succeeded
+      if: success()
+      run: node scripts/ci/notify-test-result.js success
+      env:
+        WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
+      # run in root
+      working-directory: '.'
+    - name: Tests failed
+      if: failure()
+      run: node scripts/ci/notify-test-result.js fail
+      env:
+        WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
+      # run in root
+      working-directory: '.'
