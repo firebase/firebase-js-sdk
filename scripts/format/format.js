@@ -25,40 +25,34 @@ const chalk = require('chalk');
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 
-const notCleanTreeString = chalk`
-{red Can only push a clean git tree. Please stash your changes and try again}
-
-{yellow You can stash your changes by running:}
-$ git stash -u
-
-{yellow You can then unstash your changes by running:}
-$ git stash pop
-`;
-
 const format = async () => {
   try {
-    const hasDiff = !!(await git.diff());
-
-    if (hasDiff) {
-      console.error(notCleanTreeString);
-      return process.exit(1);
-    }
-
-    const headSha = process.env.GITHUB_PULL_REQUEST_HEAD_SHA || 'HEAD';
     const baseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
-    const diff = await git.diff([
-      '--name-only',
-      '--diff-filter=d',
-      baseSha,
-      headSha
-    ]);
+    const diff = await git.diff(['--name-only', '--diff-filter=d', baseSha]);
     const changedFiles = diff.split('\n');
+
+    if (changedFiles.length === 0) {
+      console.log(`{green No files changed since ${baseSha}.}`);
+      return;
+    }
 
     // Style the code
     await doPrettier(changedFiles);
 
     // Validate License headers exist
     await doLicense(changedFiles);
+
+    // Diff unstaged (license writes) against staged.
+    const stageDiff = await git.diff(['--name-only']);
+
+    if (!stageDiff) {
+      console.log(chalk`\n{red Formatting pass caused no changes.}\n`);
+      return;
+    } else {
+      console.log(
+        `Formatting scripts modified ${stageDiff.split('\n').length - 1} files.`
+      );
+    }
 
     process.exit();
   } catch (err) {

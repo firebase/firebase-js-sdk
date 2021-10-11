@@ -16,44 +16,44 @@
  */
 
 const { resolve } = require('path');
-const { spawn } = require('child-process-promise');
-const fs = require('mz/fs');
-const glob = require('glob');
+const { exec, spawn } = require('child-process-promise');
 const simpleGit = require('simple-git/promise');
 const ora = require('ora');
 const chalk = require('chalk');
 
-// Computed Deps
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 const packageJson = require(root + '/package.json');
 
-function checkVersion() {
-  return new Promise((resolvePromise, reject) => {
-    const versionCheckCommand = spawn('prettier', ['--version'], {
-      stdio: ['ignore', 'pipe', process.stderr],
-      cwd: root,
-      env: {
-        PATH: `${resolve(root, 'node_modules/.bin')}:${process.env.PATH}`
-      }
-    }).catch(e => reject(e));
-    versionCheckCommand.childProcess.stdout.on('data', data => {
-      const runtimeVersion = data.toString().trim();
-      const packageVersion = packageJson.devDependencies.prettier;
-      if (packageVersion !== runtimeVersion) {
-        const mismatchText =
-          `Installed version of prettier (${runtimeVersion}) does not match ` +
-          `required version (${packageVersion}).`;
-        const versionMismatchMessage = chalk`
-          {red ${mismatchText}}
-          
-          {yellow Please re-run {reset 'yarn'} from the root of the repo and try again.}
-          `;
-        reject(versionMismatchMessage);
-      }
-      resolvePromise();
-    });
+async function checkVersion() {
+  const { stdout } = await exec('yarn prettier --version', {
+    stdio: 'inherit',
+    cwd: root
   });
+  const lines = stdout.split('\n');
+  let runtimeVersion;
+  for (const line of lines) {
+    if (line.match(/^\d+\.\d+\.\d+$/)) {
+      runtimeVersion = line;
+      break;
+    }
+  }
+  if (!runtimeVersion) {
+    console.warn('Was not able to find runtime version of prettier.');
+    return;
+  }
+  const packageVersion = packageJson.devDependencies.prettier;
+  if (packageVersion !== runtimeVersion) {
+    const mismatchText =
+      `Installed version of prettier (${runtimeVersion}) does not match ` +
+      `required version (${packageVersion}).`;
+    const versionMismatchMessage = chalk`
+      {red ${mismatchText}}
+
+      {yellow Please re-run {reset 'yarn'} from the root of the repo and try again.}
+      `;
+    throw new Error(versionMismatchMessage);
+  }
 }
 
 async function doPrettier(changedFiles) {
@@ -67,38 +67,26 @@ async function doPrettier(changedFiles) {
   // Only run on .js or .ts files.
   const targetFiles = changedFiles.filter(line => line.match(/\.(js|ts)$/));
 
-  if (targetFiles.length === 0) {
-    console.log('No files changed.');
-    return;
-  }
-
   const stylingSpinner = ora(
     ` Checking ${targetFiles.length} files with prettier`
   ).start();
   await spawn(
-    'prettier',
-    ['--config', `${resolve(root, '.prettierrc')}`, '--write', ...targetFiles],
+    'yarn',
+    [
+      'prettier',
+      '--config',
+      `${resolve(root, '.prettierrc')}`,
+      '--write',
+      ...targetFiles
+    ],
     {
-      stdio: ['ignore', 'ignore', process.stderr],
-      cwd: root,
-      env: {
-        PATH: `${resolve(root, 'node_modules/.bin')}:${process.env.PATH}`
-      }
+      stdio: 'inherit',
+      cwd: root
     }
   );
   stylingSpinner.stopAndPersist({
     symbol: '✅'
   });
-
-  // Diff unstaged (prettier writes) against staged.
-  const stageDiff = await git.diff(['--name-only']);
-
-  if (!stageDiff) {
-    console.log(chalk`\n{red Prettier formatting caused no changes.}\n`);
-    return;
-  } else {
-    console.log(`Prettier modified ${stageDiff.split('\n').length - 1} files.`);
-  }
 }
 
 module.exports = {

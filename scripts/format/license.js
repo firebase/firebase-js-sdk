@@ -114,18 +114,6 @@ async function doLicense(changedFiles) {
   licenseSpinner.stopAndPersist({
     symbol: '✅'
   });
-
-  // Diff unstaged (license writes) against staged.
-  const stageDiff = await git.diff(['--name-only']);
-
-  if (!stageDiff) {
-    console.log(chalk`\n{red License pass caused no changes.}\n`);
-    return;
-  } else {
-    console.log(
-      `License script modified ${stageDiff.split('\n').length - 1} files.`
-    );
-  }
 }
 
 module.exports = {
