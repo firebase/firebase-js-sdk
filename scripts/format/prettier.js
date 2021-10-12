@@ -17,12 +17,9 @@
 
 const { resolve } = require('path');
 const { exec, spawn } = require('child-process-promise');
-const simpleGit = require('simple-git/promise');
-const ora = require('ora');
 const chalk = require('chalk');
 
 const root = resolve(__dirname, '../..');
-const git = simpleGit(root);
 const packageJson = require(root + '/package.json');
 
 async function checkVersion() {
@@ -67,9 +64,9 @@ async function doPrettier(changedFiles) {
   // Only run on .js or .ts files.
   const targetFiles = changedFiles.filter(line => line.match(/\.(js|ts)$/));
 
-  const stylingSpinner = ora(
-    ` Checking ${targetFiles.length} files with prettier`
-  ).start();
+  console.log(
+    chalk`{green Checking ${targetFiles.length} files with prettier}`
+  );
   await spawn(
     'yarn',
     [
@@ -84,9 +81,6 @@ async function doPrettier(changedFiles) {
       cwd: root
     }
   );
-  stylingSpinner.stopAndPersist({
-    symbol: '✅'
-  });
 }
 
 module.exports = {

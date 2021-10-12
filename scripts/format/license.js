@@ -15,14 +15,9 @@
  * limitations under the License.
  */
 
-const { resolve } = require('path');
-const simpleGit = require('simple-git/promise');
 const fs = require('mz/fs');
-const ora = require('ora');
 const chalk = require('chalk');
 
-const root = resolve(__dirname, '../..');
-const git = simpleGit(root);
 const licenseHeader = `/**
  * @license
  * Copyright 2021 Google LLC
@@ -77,7 +72,8 @@ function rewriteCopyrightLine(contents) {
 }
 
 async function doLicense(changedFiles) {
-  const licenseSpinner = ora(' Validating License Headers').start();
+  console.log(chalk`{green Validating License Headers}`);
+  let count = 0;
 
   const paths = changedFiles.filter(line => line.match(/(js|ts)$/));
   if (paths.length === 0) return;
@@ -91,29 +87,34 @@ async function doLicense(changedFiles) {
       // Files with no license block at all.
       if (result.match(copyrightPattern) == null) {
         result = licenseHeader + result;
+        console.log(`Adding license to ${path}.`);
       }
 
       // Files with no @license tag.
       if (result.match(/@license/) == null) {
         result = addLicenceTag(result);
+        console.log(`Adding @license tag to ${path}.`);
       }
 
       // Files with the old form of copyright notice.
       if (result.match(oldCopyrightPattern) != null) {
         result = rewriteCopyrightLine(result);
+        console.log(`Updating old copyright notice found in ${path}.`);
       }
 
       if (contents !== result) {
+        count++;
         return fs.writeFile(path, result, 'utf8');
       } else {
         return Promise.resolve();
       }
     })
   );
-
-  licenseSpinner.stopAndPersist({
-    symbol: '✅'
-  });
+  if (count === 0) {
+    console.log(chalk`{green No files needed license changes.}`);
+  } else {
+    console.log(chalk`{green ${count} files had license headers updated.}`);
+  }
 }
 
 module.exports = {

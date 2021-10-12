@@ -32,7 +32,7 @@ const format = async () => {
     const changedFiles = diff.split('\n');
 
     if (changedFiles.length === 0) {
-      console.log(`{green No files changed since ${baseSha}.}`);
+      console.log(chalk`{green No files changed since ${baseSha}.}`);
       return;
     }
 
@@ -41,18 +41,6 @@ const format = async () => {
 
     // Validate License headers exist
     await doLicense(changedFiles);
-
-    // Diff unstaged (license writes) against staged.
-    const stageDiff = await git.diff(['--name-only']);
-
-    if (!stageDiff) {
-      console.log(chalk`\n{red Formatting pass caused no changes.}\n`);
-      return;
-    } else {
-      console.log(
-        `Formatting scripts modified ${stageDiff.split('\n').length - 1} files.`
-      );
-    }
 
     process.exit();
   } catch (err) {

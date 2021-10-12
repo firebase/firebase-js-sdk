@@ -49,7 +49,8 @@
     "api-report": "lerna run --scope @firebase/* api-report",
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
     "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
-    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts"
+    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts",
+    "format": "node ./scripts/format/format.js"
   },
   "repository": {
     "type": "git",
