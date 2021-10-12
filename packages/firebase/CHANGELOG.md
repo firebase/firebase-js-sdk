@@ -1,5 +1,32 @@
 # firebase
 
+## 9.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`a7e00b9eb`](https://github.com/firebase/firebase-js-sdk/commit/a7e00b9ebbb05b094a8bf620790146e750463c12), [`352cc2647`](https://github.com/firebase/firebase-js-sdk/commit/352cc26476a0c249f89d19eb371ecdcbbd067e5f), [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f)]:
+  - @firebase/storage@0.8.4
+  - @firebase/database-compat@0.1.2
+  - @firebase/firestore-compat@0.1.4
+  - @firebase/storage-compat@0.1.4
+  - @firebase/analytics@0.7.2
+  - @firebase/app@0.7.4
+  - @firebase/auth@0.18.3
+  - @firebase/database@0.12.2
+  - @firebase/firestore@3.1.1
+  - @firebase/functions@0.7.3
+  - @firebase/installations@0.5.2
+  - @firebase/messaging@0.9.2
+  - @firebase/performance@0.5.2
+  - @firebase/remote-config@0.3.1
+  - @firebase/analytics-compat@0.1.3
+  - @firebase/app-compat@0.1.5
+  - @firebase/auth-compat@0.1.6
+  - @firebase/functions-compat@0.1.4
+  - @firebase/messaging-compat@0.1.2
+  - @firebase/performance-compat@0.1.2
+  - @firebase/remote-config-compat@0.1.2
+
 ## 9.1.2
 
 ### Patch Changes
