@@ -116,38 +116,29 @@ export interface ParsedToken {
 export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 
 /**
- * customData for AuthError
- * 
- * @public
- */
-export declare interface AuthErrorData
-  extends Record<string, string | undefined> {
-  /** The name of the Firebase App which triggered this error.  */
-  readonly appName: string;
-  /** The email of the user's account, used for sign-in/linking. */
-  readonly email?: string;
-  /** The phone number of the user's account, used for sign-in/linking. */
-  readonly phoneNumber?: string;
-  /**
-   * The tenant ID being used for sign-in/linking.
-   *
-   * @remarks
-   * If you use {@link signInWithRedirect} to sign in,
-   * you have to set the tenant ID on {@link Auth} instance again as the tenant ID is not persisted
-   * after redirection.
-   */
-  readonly tenantId?: string; // other tenantId are formatted like this. And It's better than smallcase since ID is a "word" 
-}
-
-/**
  * Interface for an `Auth` error.
  * 
  * @public
  */
 export declare interface AuthError extends FirebaseError {
   /** The detailed Data of the Firebase Auth error.  */
-  readonly customData: AuthErrorData;
-}
+  readonly customData: {
+    /** The name of the Firebase App which triggered this error.  */
+    readonly appName: string;
+    /** The email of the user's account, used for sign-in/linking. */
+    readonly email?: string;
+    /** The phone number of the user's account, used for sign-in/linking. */
+    readonly phoneNumber?: string;
+    /**
+     * The tenant ID being used for sign-in/linking.
+     *
+     * @remarks
+     * If you use {@link signInWithRedirect} to sign in,
+     * you have to set the tenant ID on {@link Auth} instance again as the tenant ID is not persisted
+     * after redirection.
+     */
+    readonly tenantId?: string;
+  };}
 
 /**
  * Interface representing an {@link Auth} instance's settings.
