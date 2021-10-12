@@ -29,7 +29,13 @@ interface IntegrationTestAuth extends Auth {
 }
 
 export function randomEmail(): string {
-  return `${_generateEventId('test.email.')}@test.com`;
+  return `${_generateEventId('test.email.')}@sdk.test`;
+}
+
+export function randomPhone(): string {
+  const area = Math.floor(Math.random() * 999).toString().padStart(3, '0');
+  const num = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+  return `+1${area}555${num}`;
 }
 
 export function getTestInstance(requireEmulator = false): Auth {

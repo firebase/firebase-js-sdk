@@ -18,15 +18,13 @@
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import firebase from '@firebase/app-compat';
-import {
-  getOobCodes,
-  OobCodeSession
-} from '../../../../auth/test/helpers/integration/emulator_rest_helpers';
+import firebase from '@firebase/app-compat';  
 import {
   cleanUpTestInstance,
   initializeTestInstance,
-  randomEmail
+  randomEmail,
+  getOobCodes,
+  OobCodeSession
 } from '../../helpers/helpers';
 import { ActionCodeSettings } from '@firebase/auth-types';
 

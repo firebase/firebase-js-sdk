@@ -39,10 +39,10 @@ interface OobCodesResponse {
   oobCodes: OobCodeSession[];
 }
 
-export async function getPhoneVerificationCodes(): Promise<
+export async function getPhoneVerificationCodes(tenantId?: string): Promise<
   Record<string, VerificationSession>
 > {
-  const url = buildEmulatorUrlForPath('verificationCodes');
+  const url = buildEmulatorUrlForPath('verificationCodes', tenantId);
   const response: VerificationCodesResponse = await (await doFetch(url)).json();
 
   return response.verificationCodes.reduce((accum, session) => {
