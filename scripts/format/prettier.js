@@ -61,26 +61,33 @@ async function doPrettier(changedFiles) {
     return process.exit(1);
   }
 
-  console.log(chalk`{green Validating ${changedFiles.length} files with Prettier}`);
+  let prettierArgs = [
+    'prettier',
+    '--config',
+    `${resolve(root, '.prettierrc')}`,
+    '--write'
+  ];
+
+  if (changedFiles) {
+    prettierArgs = [...prettierArgs, ...changedFiles];
+    console.log(
+      chalk`{green Validating ${changedFiles.length} files with Prettier}`
+    );
+  } else {
+    prettierArgs.push('{,!(node_modules)/}**/*.{js,ts}');
+    console.log(chalk`{green Validating all .js and .ts files with Prettier}`);
+  }
 
   try {
-    await spawn(
-      'yarn',
-      [
-        'prettier',
-        '--config',
-        `${resolve(root, '.prettierrc')}`,
-        '--write',
-        ...changedFiles
-      ],
-      {
-        stdio: 'inherit',
-        cwd: root
-      }
-    );
+    await spawn('yarn', prettierArgs, {
+      stdio: 'inherit',
+      cwd: root
+    });
   } catch (e) {
     if (e.code === 'E2BIG') {
-      console.error(chalk`{red Too many files, use a smaller pattern.}`);
+      console.error(
+        chalk`{red Too many files, use a smaller pattern or use the --all flag.}`
+      );
       process.exit();
     } else {
       throw e;

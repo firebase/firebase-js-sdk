@@ -17,6 +17,7 @@
 
 const fs = require('mz/fs');
 const chalk = require('chalk');
+const glob = require('glob');
 
 const licenseHeader = `/**
  * @license
@@ -72,10 +73,24 @@ function rewriteCopyrightLine(contents) {
 }
 
 async function doLicense(changedFiles) {
-  console.log(chalk`{green Validating License Headers}`);
   let count = 0;
 
-  const files = await readFiles(changedFiles);
+  let filesToChange = changedFiles;
+
+  if (!filesToChange) {
+    filesToChange = await new Promise(resolve => {
+      glob(
+        '+(packages|repo-scripts)/**/*.+(ts|js)',
+        { ignore: ['**/node_modules/**', './node_modules/**', '**/dist/**'] },
+        (err, res) => resolve(res)
+      );
+    });
+  }
+  console.log(
+    chalk`{green Validating license headers in ${filesToChange.length} files.}`
+  );
+
+  const files = await readFiles(filesToChange);
 
   await Promise.all(
     files.map(({ contents, path }) => {

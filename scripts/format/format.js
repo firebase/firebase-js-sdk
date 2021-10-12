@@ -24,39 +24,55 @@ const glob = require('glob');
 const { join } = require('path');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
-const argv = yargs(hideBin(process.argv)).argv;
 
 // Computed Deps
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
-const targetPath = argv._[0];
+
+const { path: targetPath, all: runOnAll } = yargs(hideBin(process.argv))
+  .option('all', {
+    describe: 'Run on all js/ts files in repo',
+    type: 'boolean'
+  })
+  .option('path', {
+    describe: 'Specific directory to run on',
+    type: 'string'
+  })
+  .help()
+  .argv;
 
 const format = async () => {
   let changedFiles;
   try {
-    // If a file pattern is provided, get the individual files.
-    if (targetPath) {
-      changedFiles = await new Promise(resolve => {
-        glob(join(targetPath, '/**/*'), (err, res) => resolve(res));
-      });
-    } else {
-      // Otherwise get all files changed since master.
-      const baseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
-      const diff = await git.diff(['--name-only', '--diff-filter=d', baseSha]);
-      changedFiles = diff.split('\n');
+    if (!runOnAll) {
+      // If a file pattern is provided, get the individual files.
+      if (targetPath) {
+        changedFiles = await new Promise(resolve => {
+          glob(join(targetPath, '/**/*'), (err, res) => resolve(res));
+        });
+      } else {
+        // Otherwise get all files changed since master.
+        const baseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
+        const diff = await git.diff([
+          '--name-only',
+          '--diff-filter=d',
+          baseSha
+        ]);
+        changedFiles = diff.split('\n');
+
+        if (changedFiles.length === 0) {
+          console.log(chalk`{green No files changed since ${baseSha}.}`);
+          return;
+        }
+      }
+
+      // Only run on .js or .ts files.
+      changedFiles = changedFiles.filter(line => line.match(/\.(js|ts)$/));
 
       if (changedFiles.length === 0) {
-        console.log(chalk`{green No files changed since ${baseSha}.}`);
+        console.log(chalk`{green No .js or .ts files found in list.`);
         return;
       }
-    }
-
-    // Only run on .js or .ts files.
-    changedFiles = changedFiles.filter(line => line.match(/\.(js|ts)$/));
-
-    if (changedFiles.length === 0) {
-      console.log(chalk`{green No .js or .ts files found in list.`);
-      return;
     }
 
     await doPrettier(changedFiles);
