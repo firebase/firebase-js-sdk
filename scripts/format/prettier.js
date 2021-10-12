@@ -62,20 +62,30 @@ async function doPrettier(changedFiles) {
   }
 
   console.log(chalk`{green Validating ${changedFiles.length} files with Prettier}`);
-  await spawn(
-    'yarn',
-    [
-      'prettier',
-      '--config',
-      `${resolve(root, '.prettierrc')}`,
-      '--write',
-      ...changedFiles
-    ],
-    {
-      stdio: 'inherit',
-      cwd: root
+
+  try {
+    await spawn(
+      'yarn',
+      [
+        'prettier',
+        '--config',
+        `${resolve(root, '.prettierrc')}`,
+        '--write',
+        ...changedFiles
+      ],
+      {
+        stdio: 'inherit',
+        cwd: root
+      }
+    );
+  } catch (e) {
+    if (e.code === 'E2BIG') {
+      console.error(chalk`{red Too many files, use a smaller pattern.}`);
+      process.exit();
+    } else {
+      throw e;
     }
-  );
+  }
 }
 
 module.exports = {
