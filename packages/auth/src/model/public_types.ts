@@ -117,7 +117,8 @@ export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 
 /**
  * Interface for an `Auth` error.
- * 
+ *
+ *
  * @public
  */
 export declare interface AuthError extends FirebaseError {
@@ -138,7 +139,8 @@ export declare interface AuthError extends FirebaseError {
      * after redirection.
      */
     readonly tenantId?: string;
-  };}
+  };
+}
 
 /**
  * Interface representing an {@link Auth} instance's settings.
