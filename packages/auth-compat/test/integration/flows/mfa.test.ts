@@ -1,5 +1,29 @@
+/**
+ * @license
+ * Copyright 2021 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import firebase from '@firebase/app-compat';
-import { AuthError, ConfirmationResult, MultiFactorError, MultiFactorResolver, RecaptchaVerifier, User } from '@firebase/auth-types';
+import {
+  AuthError,
+  ConfirmationResult,
+  MultiFactorError,
+  MultiFactorResolver,
+  RecaptchaVerifier,
+  User
+} from '@firebase/auth-types';
 import { assert, expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import {
@@ -29,7 +53,7 @@ describe('Integration test: multi-factor', () => {
     document.body.appendChild(fakeRecaptchaContainer);
     verifier = new firebase.auth.RecaptchaVerifier(
       fakeRecaptchaContainer,
-      undefined as any,
+      undefined as any
     );
   });
 
@@ -52,11 +76,15 @@ describe('Integration test: multi-factor', () => {
     verifier.clear();
     verifier = new firebase.auth.RecaptchaVerifier(
       fakeRecaptchaContainer,
-      undefined as any,
+      undefined as any
     );
   }
 
-  async function enroll(user: User, phoneNumber: string, displayName: string): Promise<void> {
+  async function enroll(
+    user: User,
+    phoneNumber: string,
+    displayName: string
+  ): Promise<void> {
     const mfaUser = user.multiFactor;
     const mfaSession = await mfaUser.getSession();
 
@@ -66,9 +94,16 @@ describe('Integration test: multi-factor', () => {
       phoneNumber,
       session: mfaSession
     };
-    const verificationId = await phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, verifier);
-    const phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, await phoneCode(verificationId, user.tenantId || undefined));
-    const multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+    const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+      phoneInfoOptions,
+      verifier
+    );
+    const phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(
+      verificationId,
+      await phoneCode(verificationId, user.tenantId || undefined)
+    );
+    const multiFactorAssertion =
+      firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
     await mfaUser.enroll(multiFactorAssertion, displayName);
   }
 
@@ -77,10 +112,15 @@ describe('Integration test: multi-factor', () => {
     let user: User;
 
     beforeEach(async () => {
-      user = (await firebase.auth().createUserWithEmailAndPassword(email, password)).user!;
+      user = (
+        await firebase.auth().createUserWithEmailAndPassword(email, password)
+      ).user!;
     });
 
-    async function oobCode(toEmail: string, tenant?: string): Promise<OobCodeSession> {
+    async function oobCode(
+      toEmail: string,
+      tenant?: string
+    ): Promise<OobCodeSession> {
       const codes = await getOobCodes(tenant);
       return codes.reverse().find(({ email }) => email === toEmail)!;
     }
@@ -88,13 +128,19 @@ describe('Integration test: multi-factor', () => {
     async function verify() {
       await user.sendEmailVerification();
       // Apply the email verification code
-      await firebase.auth().applyActionCode((await oobCode(email, user.tenantId || undefined)).oobCode);
+      await firebase
+        .auth()
+        .applyActionCode(
+          (
+            await oobCode(email, user.tenantId || undefined)
+          ).oobCode
+        );
       await user.reload();
     }
 
     it('allows enrollment, sign in, and unenrollment', async () => {
       await verify();
-      
+
       await enroll(user, phone, 'Display name');
 
       // Log out and try logging in
@@ -116,13 +162,21 @@ describe('Integration test: multi-factor', () => {
       expect(resolver.hints.length).to.eq(1);
       expect(resolver.hints[0].displayName).to.eq('Display name');
       resetVerifier();
-      const verificationId = await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber({
-        multiFactorUid: resolver.hints[0].uid,
-        session: resolver.session
-      }, verifier);
+      const verificationId =
+        await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber(
+          {
+            multiFactorUid: resolver.hints[0].uid,
+            session: resolver.session
+          },
+          verifier
+        );
 
-      const phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, await phoneCode(verificationId));
-      const multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+      const phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(
+        verificationId,
+        await phoneCode(verificationId)
+      );
+      const multiFactorAssertion =
+        firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
       const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
       expect(userCredential.operationType).to.eq('signIn');
       expect(userCredential.user).to.eq(firebase.auth().currentUser);
@@ -132,7 +186,8 @@ describe('Integration test: multi-factor', () => {
       await mfaUser.unenroll(resolver.hints[0].uid);
 
       // Sign in should happen without MFA
-      user = (await firebase.auth().signInWithEmailAndPassword(email, password)).user!;
+      user = (await firebase.auth().signInWithEmailAndPassword(email, password))
+        .user!;
       expect(user).to.eq(firebase.auth().currentUser);
     });
 
@@ -140,7 +195,7 @@ describe('Integration test: multi-factor', () => {
       await verify();
 
       const secondaryPhone = randomPhone();
-      
+
       await enroll(user, phone, 'Main phone');
       resetVerifier();
       await enroll(user, secondaryPhone, 'Backup phone');
@@ -163,12 +218,20 @@ describe('Integration test: multi-factor', () => {
       // Use the primary phone
       let hint = resolver.hints.find(h => h.displayName === 'Main phone')!;
       resetVerifier();
-      let verificationId = await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber({
-        multiFactorHint: hint,
-        session: resolver.session
-      }, verifier);
-      let phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, await phoneCode(verificationId));
-      let multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+      let verificationId =
+        await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber(
+          {
+            multiFactorHint: hint,
+            session: resolver.session
+          },
+          verifier
+        );
+      let phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(
+        verificationId,
+        await phoneCode(verificationId)
+      );
+      let multiFactorAssertion =
+        firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
       let userCredential = await resolver.resolveSignIn(multiFactorAssertion);
       expect(userCredential.operationType).to.eq('signIn');
       expect(userCredential.user).to.eq(firebase.auth().currentUser);
@@ -193,20 +256,30 @@ describe('Integration test: multi-factor', () => {
       // Use the secondary phone now
       hint = resolver.hints.find(h => h.displayName === 'Backup phone')!;
       resetVerifier();
-      verificationId = await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber({
-        multiFactorHint: hint,
-        session: resolver.session
-      }, verifier);
+      verificationId =
+        await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber(
+          {
+            multiFactorHint: hint,
+            session: resolver.session
+          },
+          verifier
+        );
 
-      phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, await phoneCode(verificationId));
-      multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+      phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(
+        verificationId,
+        await phoneCode(verificationId)
+      );
+      multiFactorAssertion =
+        firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
       userCredential = await resolver.resolveSignIn(multiFactorAssertion);
       expect(userCredential.operationType).to.eq('signIn');
       expect(userCredential.user).to.eq(firebase.auth().currentUser);
     });
 
     it('fails if the email is not verified', async () => {
-      await expect(enroll(user, phone, 'nope')).to.be.rejectedWith('auth/unverified-email');
+      await expect(enroll(user, phone, 'nope')).to.be.rejectedWith(
+        'auth/unverified-email'
+      );
     });
 
     it('fails reauth if wrong code given', async () => {
@@ -229,23 +302,35 @@ describe('Integration test: multi-factor', () => {
       expect(resolver.hints.length).to.eq(1);
       expect(resolver.hints[0].displayName).to.eq('Display name');
       resetVerifier();
-      const verificationId = await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber({
-        multiFactorUid: resolver.hints[0].uid,
-        session: resolver.session
-      }, verifier);
+      const verificationId =
+        await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber(
+          {
+            multiFactorUid: resolver.hints[0].uid,
+            session: resolver.session
+          },
+          verifier
+        );
 
-      const phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, 'not-code');
-      const multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
-      await expect(resolver.resolveSignIn(multiFactorAssertion)).to.be.rejectedWith('auth/invalid-verification-code');
+      const phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(
+        verificationId,
+        'not-code'
+      );
+      const multiFactorAssertion =
+        firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+      await expect(
+        resolver.resolveSignIn(multiFactorAssertion)
+      ).to.be.rejectedWith('auth/invalid-verification-code');
     });
 
     it('works in a multi-tenant context', async () => {
       const tenantId = await createNewTenant();
       firebase.auth().tenantId = tenantId;
       // Need to create a new user for this
-      user = (await firebase.auth().createUserWithEmailAndPassword(email, password)).user!;
+      user = (
+        await firebase.auth().createUserWithEmailAndPassword(email, password)
+      ).user!;
       await verify();
-      
+
       await enroll(user, phone, 'Display name');
 
       // Log out and try logging in
@@ -267,13 +352,21 @@ describe('Integration test: multi-factor', () => {
       expect(resolver.hints.length).to.eq(1);
       expect(resolver.hints[0].displayName).to.eq('Display name');
       resetVerifier();
-      const verificationId = await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber({
-        multiFactorUid: resolver.hints[0].uid,
-        session: resolver.session
-      }, verifier);
+      const verificationId =
+        await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber(
+          {
+            multiFactorUid: resolver.hints[0].uid,
+            session: resolver.session
+          },
+          verifier
+        );
 
-      const phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, await phoneCode(verificationId, tenantId));
-      const multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+      const phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(
+        verificationId,
+        await phoneCode(verificationId, tenantId)
+      );
+      const multiFactorAssertion =
+        firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
       const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
       expect(userCredential.operationType).to.eq('signIn');
       expect(userCredential.user).to.eq(firebase.auth().currentUser);
@@ -283,7 +376,8 @@ describe('Integration test: multi-factor', () => {
       await mfaUser.unenroll(resolver.hints[0].uid);
 
       // Sign in should happen without MFA
-      user = (await firebase.auth().signInWithEmailAndPassword(email, password)).user!;
+      user = (await firebase.auth().signInWithEmailAndPassword(email, password))
+        .user!;
       expect(user).to.eq(firebase.auth().currentUser);
       expect(user.tenantId).to.eq(tenantId);
     });
@@ -296,14 +390,22 @@ describe('Integration test: multi-factor', () => {
         'email_verified': true,
         sub: `oauthidp--${email}--oauthidp`
       });
-      let {user} = await firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(oauthIdToken));
+      let { user } = await firebase
+        .auth()
+        .signInWithCredential(
+          firebase.auth.GoogleAuthProvider.credential(oauthIdToken)
+        );
       await enroll(user!, phone, 'Display name');
 
       // Log out and try logging in
       await firebase.auth().signOut();
       let resolver!: MultiFactorResolver;
       try {
-        await firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(oauthIdToken));
+        await firebase
+          .auth()
+          .signInWithCredential(
+            firebase.auth.GoogleAuthProvider.credential(oauthIdToken)
+          );
         // Previous line should throw an error.
         assert.fail('Multi factor check not triggered');
       } catch (e) {
@@ -318,13 +420,21 @@ describe('Integration test: multi-factor', () => {
       expect(resolver.hints.length).to.eq(1);
       expect(resolver.hints[0].displayName).to.eq('Display name');
       resetVerifier();
-      const verificationId = await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber({
-        multiFactorUid: resolver.hints[0].uid,
-        session: resolver.session
-      }, verifier);
+      const verificationId =
+        await new firebase.auth.PhoneAuthProvider().verifyPhoneNumber(
+          {
+            multiFactorUid: resolver.hints[0].uid,
+            session: resolver.session
+          },
+          verifier
+        );
 
-      const phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(verificationId, await phoneCode(verificationId));
-      const multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+      const phoneAuthCredential = firebase.auth.PhoneAuthProvider.credential(
+        verificationId,
+        await phoneCode(verificationId)
+      );
+      const multiFactorAssertion =
+        firebase.auth.PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
       const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
       expect(userCredential.operationType).to.eq('signIn');
       expect(userCredential.user).to.eq(firebase.auth().currentUser);
@@ -334,7 +444,11 @@ describe('Integration test: multi-factor', () => {
       await mfaUser.unenroll(resolver.hints[0].uid);
 
       // Sign in should happen without MFA
-      ({user} = await firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(oauthIdToken)));
+      ({ user } = await firebase
+        .auth()
+        .signInWithCredential(
+          firebase.auth.GoogleAuthProvider.credential(oauthIdToken)
+        ));
       expect(user).to.eq(firebase.auth().currentUser);
     });
   });

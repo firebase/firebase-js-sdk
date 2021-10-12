@@ -24,9 +24,16 @@ import {
   getEmulatorUrl
 } from '../../../auth/test/helpers/integration/settings';
 import { resetEmulator } from '../../../auth/test/helpers/integration/emulator_rest_helpers';
-export { createNewTenant, getOobCodes, getPhoneVerificationCodes, OobCodeSession } from '../../../auth/test/helpers/integration/emulator_rest_helpers';
-export { randomEmail, randomPhone } from '../../../auth/test/helpers/integration/helpers';
-
+export {
+  createNewTenant,
+  getOobCodes,
+  getPhoneVerificationCodes,
+  OobCodeSession
+} from '../../../auth/test/helpers/integration/emulator_rest_helpers';
+export {
+  randomEmail,
+  randomPhone
+} from '../../../auth/test/helpers/integration/helpers';
 
 export function initializeTestInstance(): void {
   firebase.initializeApp(getAppConfig());
