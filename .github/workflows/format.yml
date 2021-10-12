@@ -26,5 +26,10 @@ jobs:
     - name: Run formatting script
       run: yarn format
     - name: Check for changes (fail if so)
-      run: |
-        ! git diff --quiet
+      run: git diff --exit-code
+    - name: Success?
+      if: ${{ success() }}
+      run: echo success
+    - name: Failure??
+      if: ${{ failure() }}
+      run: echo failure
