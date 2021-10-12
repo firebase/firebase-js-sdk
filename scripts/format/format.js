@@ -39,7 +39,10 @@ const { path: targetPath, all: runOnAll } = yargs(hideBin(process.argv))
     type: 'string'
   })
   .help()
-  .argv;
+  .usage(
+    `Runs prettier formatting and updates license headers. ` +
+      `If no arguments are provided it will run formatting on any `+`files changed since master.`
+  ).argv;
 
 const format = async () => {
   let changedFiles;
