@@ -19,19 +19,27 @@ import * as sinon from 'sinon';
 import firebase from '@firebase/app-compat';
 import '../..';
 
-import * as exp from '@firebase/auth/internal';
 import {
   getAppConfig,
   getEmulatorUrl
 } from '../../../auth/test/helpers/integration/settings';
 import { resetEmulator } from '../../../auth/test/helpers/integration/emulator_rest_helpers';
-export { createNewTenant } from '../../../auth/test/helpers/integration/emulator_rest_helpers';
+export {
+  createNewTenant,
+  getOobCodes,
+  getPhoneVerificationCodes,
+  OobCodeSession
+} from '../../../auth/test/helpers/integration/emulator_rest_helpers';
+export {
+  randomEmail,
+  randomPhone
+} from '../../../auth/test/helpers/integration/helpers';
 
 export function initializeTestInstance(): void {
   firebase.initializeApp(getAppConfig());
-  const stub = stubConsoleToSilenceEmulatorWarnings();
-  firebase.auth().useEmulator(getEmulatorUrl()!);
-  stub.restore();
+  firebase.auth().useEmulator(getEmulatorUrl()!, {
+    disableWarnings: true
+  });
 }
 
 export async function cleanUpTestInstance(): Promise<void> {
@@ -40,21 +48,4 @@ export async function cleanUpTestInstance(): Promise<void> {
     await app.delete();
   }
   await resetEmulator();
-}
-
-export function randomEmail(): string {
-  return `${exp._generateEventId('test.email.')}@integration.test`;
-}
-
-function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
-  const originalConsoleInfo = console.info.bind(console);
-  return sinon.stub(console, 'info').callsFake((...args: unknown[]) => {
-    if (
-      !JSON.stringify(args[0]).includes(
-        'WARNING: You are using the Auth Emulator'
-      )
-    ) {
-      originalConsoleInfo(...args);
-    }
-  });
 }

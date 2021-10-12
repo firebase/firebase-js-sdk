@@ -21,9 +21,9 @@ import { FirebaseError } from '@firebase/util';
 import firebase from '@firebase/app-compat';
 import {
   cleanUpTestInstance,
-  initializeTestInstance
+  initializeTestInstance,
+  getPhoneVerificationCodes
 } from '../../helpers/helpers';
-import { getPhoneVerificationCodes } from '../../../../auth/test/helpers/integration/emulator_rest_helpers';
 import {
   ConfirmationResult,
   RecaptchaVerifier,
