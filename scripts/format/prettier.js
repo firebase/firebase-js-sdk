@@ -61,12 +61,7 @@ async function doPrettier(changedFiles) {
     return process.exit(1);
   }
 
-  // Only run on .js or .ts files.
-  const targetFiles = changedFiles.filter(line => line.match(/\.(js|ts)$/));
-
-  console.log(
-    chalk`{green Checking ${targetFiles.length} files with prettier}`
-  );
+  console.log(chalk`{green Validating ${changedFiles.length} files with Prettier}`);
   await spawn(
     'yarn',
     [
@@ -74,7 +69,7 @@ async function doPrettier(changedFiles) {
       '--config',
       `${resolve(root, '.prettierrc')}`,
       '--write',
-      ...targetFiles
+      ...changedFiles
     ],
     {
       stdio: 'inherit',

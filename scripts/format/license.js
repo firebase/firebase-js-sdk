@@ -20,7 +20,7 @@ const chalk = require('chalk');
 
 const licenseHeader = `/**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright ${new Date().getFullYear()} Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ async function readFiles(paths) {
   }));
 }
 
-function addLicenceTag(contents) {
+function addLicenseTag(contents) {
   const lines = contents.split('\n');
   let newLines = [];
   for (const line of lines) {
@@ -75,10 +75,7 @@ async function doLicense(changedFiles) {
   console.log(chalk`{green Validating License Headers}`);
   let count = 0;
 
-  const paths = changedFiles.filter(line => line.match(/(js|ts)$/));
-  if (paths.length === 0) return;
-
-  const files = await readFiles(paths);
+  const files = await readFiles(changedFiles);
 
   await Promise.all(
     files.map(({ contents, path }) => {
@@ -92,7 +89,7 @@ async function doLicense(changedFiles) {
 
       // Files with no @license tag.
       if (result.match(/@license/) == null) {
-        result = addLicenceTag(result);
+        result = addLicenseTag(result);
         console.log(`Adding @license tag to ${path}.`);
       }
 

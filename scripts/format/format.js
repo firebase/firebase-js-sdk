@@ -20,26 +20,47 @@ const { doLicense } = require('./license');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
 const chalk = require('chalk');
+const glob = require('glob');
+const { join } = require('path');
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
+const argv = yargs(hideBin(process.argv)).argv;
 
 // Computed Deps
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
+const targetPath = argv._[0];
 
 const format = async () => {
+  let changedFiles;
   try {
-    const baseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
-    const diff = await git.diff(['--name-only', '--diff-filter=d', baseSha]);
-    const changedFiles = diff.split('\n');
+    // If a file pattern is provided, get the individual files.
+    if (targetPath) {
+      changedFiles = await new Promise(resolve => {
+        glob(join(targetPath, '/**/*'), (err, res) => resolve(res));
+      });
+    } else {
+      // Otherwise get all files changed since master.
+      const baseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
+      const diff = await git.diff(['--name-only', '--diff-filter=d', baseSha]);
+      changedFiles = diff.split('\n');
+
+      if (changedFiles.length === 0) {
+        console.log(chalk`{green No files changed since ${baseSha}.}`);
+        return;
+      }
+    }
+
+    // Only run on .js or .ts files.
+    changedFiles = changedFiles.filter(line => line.match(/\.(js|ts)$/));
 
     if (changedFiles.length === 0) {
-      console.log(chalk`{green No files changed since ${baseSha}.}`);
+      console.log(chalk`{green No .js or .ts files found in list.`);
       return;
     }
 
-    // Style the code
     await doPrettier(changedFiles);
 
-    // Validate License headers exist
     await doLicense(changedFiles);
 
     process.exit();
