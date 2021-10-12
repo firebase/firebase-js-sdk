@@ -43,14 +43,14 @@ describe('Firebase Perofmrance > initialization_service', () => {
     appId: '1:111:web:a1234'
   };
 
-  const fakeFirebaseApp = ({
+  const fakeFirebaseApp = {
     options: fakeFirebaseConfig
-  } as unknown) as FirebaseApp;
+  } as unknown as FirebaseApp;
 
-  const fakeInstallations = ({
+  const fakeInstallations = {
     getId,
     getToken
-  } as unknown) as FirebaseInstallations;
+  } as unknown as FirebaseInstallations;
   const performanceController = new PerformanceController(
     fakeFirebaseApp,
     fakeInstallations

@@ -74,10 +74,10 @@ export async function analyzePackageSize(
     ]);
     allModulesLocation = allModulesLocation.filter(path => {
       const pkgJsonPath = `${path}/package.json`;
-      if (!fs.existsSync(pkgJsonPath)){
+      if (!fs.existsSync(pkgJsonPath)) {
         return false;
       }
-      
+
       const json = JSON.parse(
         fs.readFileSync(`${path}/package.json`, { encoding: 'utf-8' })
       );
@@ -123,7 +123,9 @@ function mapWorkspaceToPackages(workspaces: string[]): Promise<string[]> {
       workspace =>
         new Promise(resolve => {
           glob(workspace, (err, paths) => {
-            if (err) {throw err;}
+            if (err) {
+              throw err;
+            }
             resolve(paths);
           });
         })

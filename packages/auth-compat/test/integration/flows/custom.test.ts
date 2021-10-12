@@ -173,9 +173,9 @@ describe('Integration test: custom auth', () => {
 
       await firebase.auth().signOut();
 
-      const {
-        user: emailPassUser
-      } = await firebase.auth().signInWithEmailAndPassword(email, 'password');
+      const { user: emailPassUser } = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
       expect(emailPassUser!.uid).to.eq(customUser!.uid);
     });
 
@@ -190,9 +190,9 @@ describe('Integration test: custom auth', () => {
       await customUser!.linkWithCredential(cred);
       await firebase.auth().signOut();
 
-      const {
-        user: emailPassUser
-      } = await firebase.auth().signInWithEmailAndPassword(email, 'password');
+      const { user: emailPassUser } = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, 'password');
       expect(emailPassUser!.uid).to.eq(customUser!.uid);
     });
 

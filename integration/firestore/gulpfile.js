@@ -63,7 +63,8 @@ function copyTests() {
          */
         /import\s+\* as firebaseExport\s+from\s+('|")[^\1]+firebase_export\1;?/,
         `import * as firebaseExport from '${resolve(
-          __dirname, './firebase_export'
+          __dirname,
+          './firebase_export'
         )}';
         
          if (typeof process === 'undefined') {

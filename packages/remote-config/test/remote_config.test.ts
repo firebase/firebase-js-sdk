@@ -351,7 +351,8 @@ describe('RemoteConfig', () => {
       setActiveConfigEtagStub = sinon.stub();
       setActiveConfigStub = sinon.stub();
 
-      storage.getLastSuccessfulFetchResponse = getLastSuccessfulFetchResponseStub;
+      storage.getLastSuccessfulFetchResponse =
+        getLastSuccessfulFetchResponseStub;
       storage.getActiveConfigEtag = getActiveConfigEtagStub;
       storage.setActiveConfigEtag = setActiveConfigEtagStub;
       storageCache.setActiveConfig = setActiveConfigStub;

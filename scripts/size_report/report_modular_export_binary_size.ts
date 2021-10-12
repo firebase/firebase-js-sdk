@@ -39,7 +39,7 @@ async function generateReport(): Promise<ModularExportBinarySizeRequestBody> {
 
   allModulesLocation = allModulesLocation.filter(path => {
     const pkgJsonPath = `${path}/package.json`;
-    if (!existsSync(pkgJsonPath)){
+    if (!existsSync(pkgJsonPath)) {
       return false;
     }
 

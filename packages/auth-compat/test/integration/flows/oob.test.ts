@@ -90,10 +90,9 @@ describe('Integration test: oob codes', () => {
         email,
         oobSession.oobLink
       );
-      const {
-        user,
-        operationType
-      } = await firebase.auth().signInWithCredential(cred);
+      const { user, operationType } = await firebase
+        .auth()
+        .signInWithCredential(cred);
 
       expect(operationType).to.eq('signIn');
       expect(user).to.eq(firebase.auth().currentUser);
@@ -117,10 +116,8 @@ describe('Integration test: oob codes', () => {
         email,
         reauthSession.oobLink
       );
-      const {
-        user: newUser,
-        operationType
-      } = await oldUser!.reauthenticateWithCredential(cred);
+      const { user: newUser, operationType } =
+        await oldUser!.reauthenticateWithCredential(cred);
 
       expect(newUser!.uid).to.eq(oldUser!.uid);
       expect(operationType).to.eq('reauthenticate');
@@ -177,10 +174,8 @@ describe('Integration test: oob codes', () => {
       const { user: original } = await firebase.auth().signInAnonymously();
 
       expect(original!.isAnonymous).to.be.true;
-      const {
-        user: linked,
-        operationType
-      } = await original!.linkWithCredential(cred);
+      const { user: linked, operationType } =
+        await original!.linkWithCredential(cred);
 
       expect(operationType).to.eq('link');
       expect(linked!.uid).to.eq(original!.uid);
@@ -275,9 +270,9 @@ describe('Integration test: oob codes', () => {
   });
 
   it('can be used to initiate password reset', async () => {
-    const {
-      user: original
-    } = await firebase.auth().createUserWithEmailAndPassword(email, 'password');
+    const { user: original } = await firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, 'password');
     await original!.sendEmailVerification(); // Can only reset verified user emails
     await firebase.auth().applyActionCode((await code(email)).oobCode);
 
@@ -326,9 +321,7 @@ describe('Integration test: oob codes', () => {
     await expect(
       firebase.auth().signInWithEmailAndPassword(email, 'password')
     ).to.be.rejectedWith(FirebaseError, 'auth/alskdjf');
-    const {
-      user: newSignIn
-    } = await firebase
+    const { user: newSignIn } = await firebase
       .auth()
       .signInWithEmailAndPassword(updatedEmail, 'password');
     expect(newSignIn!.uid).to.eq(user!.uid);

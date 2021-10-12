@@ -15,68 +15,67 @@
  * limitations under the License.
  */
 
- import { FirebaseOptions, FirebaseApp } from '@firebase/app';
- import { Provider, ComponentContainer } from '@firebase/component';
- import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
- import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
- import { FunctionsService } from '../src/service';
- import { connectFunctionsEmulator } from '../src/api';
- import nodeFetch from 'node-fetch';
- import { MessagingInternalComponentName } from '../../../packages/messaging-interop-types';
- 
- export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
-   options = {
-     apiKey: 'apiKey',
-     projectId: 'projectId',
-     authDomain: 'authDomain',
-     messagingSenderId: '1234567890',
-     databaseURL: 'databaseUrl',
-     storageBucket: 'storageBucket',
-     appId: '1:777777777777:web:d93b5ca1475efe57',
-     ...options
-   };
-   return {
-     name: 'appName',
-     options,
-     automaticDataCollectionEnabled: true
-   };
- }
- 
- export function createTestService(
-   app: FirebaseApp,
-   region?: string,
-   authProvider = new Provider<FirebaseAuthInternalName>(
-     'auth-internal',
-     new ComponentContainer('test')
-   ),
-   messagingProvider = new Provider<MessagingInternalComponentName>(
-     'messaging-internal',
-     new ComponentContainer('test')
-   ),
-   appCheckProvider = new Provider<AppCheckInternalComponentName>(
-     'app-check-internal',
-     new ComponentContainer('test')
-   )
- ): FunctionsService {
-   const fetchImpl: typeof fetch =
-     typeof window !== 'undefined' ? fetch.bind(window) : (nodeFetch as any);
-   const functions = new FunctionsService(
-     app,
-     authProvider,
-     messagingProvider,
-     appCheckProvider,
-     region,
-     fetchImpl
-   );
-   const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
-   if (useEmulator) {
-     const url = new URL(process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!);
-     connectFunctionsEmulator(
-       functions,
-       url.hostname,
-       Number.parseInt(url.port, 10)
-     );
-   }
-   return functions;
- }
- 
+import { FirebaseOptions, FirebaseApp } from '@firebase/app';
+import { Provider, ComponentContainer } from '@firebase/component';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { FunctionsService } from '../src/service';
+import { connectFunctionsEmulator } from '../src/api';
+import nodeFetch from 'node-fetch';
+import { MessagingInternalComponentName } from '../../../packages/messaging-interop-types';
+
+export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
+  options = {
+    apiKey: 'apiKey',
+    projectId: 'projectId',
+    authDomain: 'authDomain',
+    messagingSenderId: '1234567890',
+    databaseURL: 'databaseUrl',
+    storageBucket: 'storageBucket',
+    appId: '1:777777777777:web:d93b5ca1475efe57',
+    ...options
+  };
+  return {
+    name: 'appName',
+    options,
+    automaticDataCollectionEnabled: true
+  };
+}
+
+export function createTestService(
+  app: FirebaseApp,
+  region?: string,
+  authProvider = new Provider<FirebaseAuthInternalName>(
+    'auth-internal',
+    new ComponentContainer('test')
+  ),
+  messagingProvider = new Provider<MessagingInternalComponentName>(
+    'messaging-internal',
+    new ComponentContainer('test')
+  ),
+  appCheckProvider = new Provider<AppCheckInternalComponentName>(
+    'app-check-internal',
+    new ComponentContainer('test')
+  )
+): FunctionsService {
+  const fetchImpl: typeof fetch =
+    typeof window !== 'undefined' ? fetch.bind(window) : (nodeFetch as any);
+  const functions = new FunctionsService(
+    app,
+    authProvider,
+    messagingProvider,
+    appCheckProvider,
+    region,
+    fetchImpl
+  );
+  const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
+  if (useEmulator) {
+    const url = new URL(process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!);
+    connectFunctionsEmulator(
+      functions,
+      url.hostname,
+      Number.parseInt(url.port, 10)
+    );
+  }
+  return functions;
+}

@@ -70,7 +70,7 @@ describe('FirebaseAppNext', () => {
     );
 
     expect(() => app.name).to.not.throw();
-    ((app as unknown) as FirebaseAppImpl).isDeleted = true;
+    (app as unknown as FirebaseAppImpl).isDeleted = true;
 
     expect(() => {
       app.name;

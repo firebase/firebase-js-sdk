@@ -56,7 +56,8 @@ function generateReportForCDNScripts(): Report[] {
   const files = [
     ...special_files.map((file: string) => `${firebaseRoot}/${file}`),
     ...pkgJson.components.map(
-      (component: string) => `${firebaseRoot}/firebase-${component.replace('/', '-')}.js`
+      (component: string) =>
+        `${firebaseRoot}/firebase-${component.replace('/', '-')}.js`
     ),
     ...compatPkgJson.components.map(
       (component: string) => `${firebaseRoot}/firebase-${component}-compat.js`
@@ -89,7 +90,6 @@ async function generateReportForNPMPackages(): Promise<Report[]> {
            error: ${e}`
         );
       }
-
     }
   }
   return reports;

@@ -31,9 +31,7 @@ const ServerValue = Database.ServerValue;
 
 export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
-  (
-    instance as unknown as _FirebaseNamespace
-  ).INTERNAL.registerComponent(
+  (instance as unknown as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
       'database-compat',
       (container, { instanceIdentifier: url }) => {

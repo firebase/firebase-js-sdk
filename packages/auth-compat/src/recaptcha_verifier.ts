@@ -23,7 +23,8 @@ import { Compat } from '@firebase/util';
 const _assert: typeof exp._assert = exp._assert;
 
 export class RecaptchaVerifier
-  implements compat.RecaptchaVerifier, Compat<exp.ApplicationVerifier> {
+  implements compat.RecaptchaVerifier, Compat<exp.ApplicationVerifier>
+{
   readonly _delegate: exp.RecaptchaVerifier;
   type: string;
   constructor(

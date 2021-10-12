@@ -119,10 +119,11 @@ export abstract class BaseAction extends CommandLineAction {
 
         if (inheritDocTag && inheritDocTag.declarationReference) {
           // Attempt to resolve the declaration reference
-          const result: IResolveDeclarationReferenceResult = apiModel.resolveDeclarationReference(
-            inheritDocTag.declarationReference,
-            apiItem
-          );
+          const result: IResolveDeclarationReferenceResult =
+            apiModel.resolveDeclarationReference(
+              inheritDocTag.declarationReference,
+              apiItem
+            );
 
           if (result.errorMessage) {
             console.log(

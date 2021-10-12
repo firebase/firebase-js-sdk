@@ -76,15 +76,13 @@ yargs
         type: 'string',
         alias: 'p',
         demandOption: true,
-        desc:
-          'The prerelease label used in verison number. e.g. 1.0.0-<prereleaseName>'
+        desc: 'The prerelease label used in verison number. e.g. 1.0.0-<prereleaseName>'
       },
       npmTag: {
         type: 'string',
         alias: 't',
         demandOption: true,
-        desc:
-          'The npm tag the packages are published to. e.g. npm install firebase@<npmTag>'
+        desc: 'The npm tag the packages are published to. e.g. npm install firebase@<npmTag>'
       },
       dryRun: {
         type: 'boolean',

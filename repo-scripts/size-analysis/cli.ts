@@ -28,8 +28,7 @@ yargs
       inputModule: {
         type: 'array',
         alias: 'im',
-        desc:
-          'The name of the module(s) to be analyzed. example: --inputModule "@firebase/functions" "firebase/auth"'
+        desc: 'The name of the module(s) to be analyzed. example: --inputModule "@firebase/functions" "firebase/auth"'
       },
       inputDtsFile: {
         type: 'string',
@@ -45,8 +44,7 @@ yargs
         type: 'string',
         alias: 'o',
         required: true,
-        desc:
-          'The location where report(s) will be generated, a directory path if module(s) are analyzed; a file path if ad hoc analysis is to be performed'
+        desc: 'The location where report(s) will be generated, a directory path if module(s) are analyzed; a file path if ad hoc analysis is to be performed'
       }
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,4 +88,5 @@ yargs
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     argv => runBundleAnalysis(argv as any)
   )
-  .help().parseSync();
+  .help()
+  .parseSync();

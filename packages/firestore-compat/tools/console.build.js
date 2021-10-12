@@ -49,7 +49,7 @@ const es5InputOptions = {
       }
     })
   ]
-}
+};
 
 const es5OutputOptions = {
   file: `${OUTPUT_FOLDER}/${OUTPUT_FILE}`,

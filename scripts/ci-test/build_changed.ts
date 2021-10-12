@@ -23,12 +23,14 @@ import * as yargs from 'yargs';
 import { testConfig, TestConfig } from './testConfig';
 const root = resolve(__dirname, '../..');
 
-const argv = yargs.options({
-  buildAll: {
-    type: 'boolean',
-    desc: 'if true, build all packages. Used in Test Auth workflow because Auth tests depends on the firebase package'
-  }
-}).parseSync();
+const argv = yargs
+  .options({
+    buildAll: {
+      type: 'boolean',
+      desc: 'if true, build all packages. Used in Test Auth workflow because Auth tests depends on the firebase package'
+    }
+  })
+  .parseSync();
 
 const allTestConfigNames = Object.keys(testConfig);
 const inputTestConfigName = argv._[0].toString();
