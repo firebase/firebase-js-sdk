@@ -1,4 +1,4 @@
-name: Format Files
+name: Formatting Check (Run yarn format locally if this fails)
 
 on: pull_request
 
@@ -27,9 +27,6 @@ jobs:
       run: yarn format
     - name: Check for changes (fail if so)
       run: git diff --exit-code
-    - name: Success?
-      if: ${{ success() }}
-      run: echo success
-    - name: Failure??
+    - name: Formatting needs to be updated. See message below.
       if: ${{ failure() }}
-      run: echo failure
+      run: echo "Something was changed by formatting. Run `yarn format` locally to do a prettier/license pass. Use `yarn format --help` to see options."
