@@ -39,11 +39,12 @@ const { api: apiType, source: sourceFile } = yargs
   .version(false)
   .help().argv;
 
-const docPath = path.resolve(`${__dirname}/html/${apiType}`);
+const destinationDir = apiType === 'js' ? 'js/v8' : apiType;
+const docPath = path.resolve(`${__dirname}/html/${destinationDir}`);
 const contentPath = path.resolve(`${__dirname}/content-sources/${apiType}`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
 const tempNodeSourcePath = path.resolve(`${__dirname}/index.node.d.ts`);
-const devsitePath = `/docs/reference/${apiType}/`;
+const devsitePath = `/docs/reference/${destinationDir}/`;
 
 /**
  * Strips path prefix and returns only filename.
