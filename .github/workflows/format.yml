@@ -29,4 +29,4 @@ jobs:
       run: git diff --exit-code
     - name: Formatting needs to be updated. See message below.
       if: ${{ failure() }}
-      run: echo "Something was changed by formatting. Run `yarn format` locally to do a prettier/license pass. Use `yarn format --help` to see options."
+      run: echo "Something was changed by formatting. Run \`yarn format\` locally to do a prettier/license pass. Use \`yarn format --help\` to see options."
