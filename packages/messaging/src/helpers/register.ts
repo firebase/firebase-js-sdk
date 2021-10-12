@@ -31,9 +31,11 @@ import { GetTokenOptions } from '../interfaces/public-types';
 import { MessagingInternal } from '@firebase/messaging-interop-types';
 import { MessagingService } from '../messaging-service';
 import { ServiceWorkerGlobalScope } from '../util/sw-types';
-import { _registerComponent } from '@firebase/app';
+import { _registerComponent, registerVersion } from '@firebase/app';
 import { getToken } from '../api/getToken';
 import { messageEventListener } from '../listeners/window-listener';
+
+import { name, version } from '../../package.json';
 
 const WindowMessagingFactory: InstanceFactory<'messaging'> = (
   container: ComponentContainer
@@ -100,6 +102,10 @@ export function registerMessagingInWindow(): void {
       ComponentType.PRIVATE
     )
   );
+
+  registerVersion(name, version);
+  // BUILD_TARGET will be replaced by values like esm5, esm2017, cjs5, etc during the compilation
+  registerVersion(name, version, '__BUILD_TARGET__');
 }
 
 /**

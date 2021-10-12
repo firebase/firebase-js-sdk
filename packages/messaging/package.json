@@ -6,7 +6,7 @@
   "main": "dist/index.cjs.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
-  "typings": "dist/index.d.ts",
+  "typings": "dist/src/index.d.ts",
   "sw": "dist/index.sw.esm2017.js",
   "files": [
     "dist",
@@ -25,8 +25,8 @@
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "api-report": "yarn api-report:main && yarn api-report:sw && yarn api-report:api-json",
-    "api-report:main": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
-    "api-report:sw": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging-sw --packageRoot . --typescriptDts ./dist/index.sw.d.ts --rollupDts ./dist/sw/private.d.ts --untrimmedRollupDts ./dist/sw/internal.d.ts --publicDts ./dist/sw/index-public.d.ts",
+    "api-report:main": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging --packageRoot . --typescriptDts ./dist/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
+    "api-report:sw": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging-sw --packageRoot . --typescriptDts ./dist/src/index.sw.d.ts --rollupDts ./dist/sw/private.d.ts --untrimmedRollupDts ./dist/sw/internal.d.ts --publicDts ./dist/sw/index-public.d.ts",
     "api-report:api-json": "api-extractor run --local --verbose",
     "type-check": "tsc --noEmit",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts"

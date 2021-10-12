@@ -17,7 +17,9 @@
 
 import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
+import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import pkg from './package.json';
 
 const deps = Object.keys(
@@ -31,12 +33,21 @@ const es5BuildPlugins = [typescriptPlugin({ typescript }), json()];
 const es5Builds = [
   {
     input: 'src/index.ts',
-    output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.esm5, format: 'es', sourcemap: true }
-    ],
+    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: es5BuildPlugins
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 5))
+    ]
+  },
+  {
+    input: 'src/index.ts',
+    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 5))
+    ]
   }
 ];
 
@@ -60,7 +71,10 @@ const es2017Builds = [
     input: 'src/index.ts',
     output: [{ file: pkg.browser, format: 'es', sourcemap: true }],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: es2017BuildPlugins
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ]
   }
 ];
 

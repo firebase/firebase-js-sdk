@@ -53,5 +53,7 @@ export function registerFirestore(): void {
       ComponentType.PUBLIC
     )
   );
-  registerVersion('firestore-lite', version, 'node');
+  // RUNTIME_ENV and BUILD_TARGET are replaced by real values during the compilation
+  registerVersion('firestore-lite', version, '__RUNTIME_ENV__');
+  registerVersion('firestore-lite', version, '__BUILD_TARGET__');
 }

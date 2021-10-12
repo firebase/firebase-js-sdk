@@ -20,12 +20,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { registerVersion } from '@firebase/app';
 import { registerFunctions } from './config';
-
-import { name, version } from '../package.json';
 
 export * from './api';
 
 registerFunctions(fetch.bind(self));
-registerVersion(name, version);

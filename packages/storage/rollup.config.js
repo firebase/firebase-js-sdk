@@ -17,8 +17,10 @@
 
 import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
+import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
 import alias from '@rollup/plugin-alias';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import pkg from './package.json';
 
 function generateAliasConfig(platform) {
@@ -54,7 +56,33 @@ const es5Builds = [
       { file: 'dist/index.browser.cjs.js', format: 'cjs', sourcemap: true },
       { file: pkg.esm5, format: 'es', sourcemap: true }
     ],
-    plugins: [alias(generateAliasConfig('browser')), ...es5Plugins],
+    plugins: [
+      alias(generateAliasConfig('browser')),
+      ...es5Plugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 5),
+        '__RUNTIME_ENV__': ''
+      })
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  {
+    // needed by Emulator UI
+    input: './src/index.ts',
+    output: [
+      { file: 'dist/index.browser.cjs.js', format: 'cjs', sourcemap: true }
+    ],
+    plugins: [
+      alias(generateAliasConfig('browser')),
+      ...es5Plugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('cjs', 5),
+        '__RUNTIME_ENV__': ''
+      })
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false
@@ -84,7 +112,14 @@ const es2017Builds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: [alias(generateAliasConfig('node')), ...es2017Plugins],
+    plugins: [
+      alias(generateAliasConfig('node')),
+      ...es2017Plugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('cjs', 2017),
+        '__RUNTIME_ENV__': 'node'
+      })
+    ],
     external: id =>
       nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
@@ -100,7 +135,14 @@ const es2017Builds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(generateAliasConfig('browser')), ...es2017Plugins],
+    plugins: [
+      alias(generateAliasConfig('browser')),
+      ...es2017Plugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 2017),
+        '__RUNTIME_ENV__': ''
+      })
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false

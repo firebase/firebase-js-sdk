@@ -17,7 +17,9 @@
 
 import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
+import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import pkg from './package.json';
 
 const deps = [
@@ -50,7 +52,10 @@ const es5Builds = [
   {
     input: 'src/index.node.ts',
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: es5BuildPlugins,
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 5))
+    ],
     treeshake: {
       moduleSideEffects: false
     },
@@ -69,7 +74,10 @@ const es5Builds = [
         sourcemap: true
       }
     ],
-    plugins: es5BuildPlugins,
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 5))
+    ],
     treeshake: {
       moduleSideEffects: false
     },
@@ -120,7 +128,10 @@ const es2017Builds = [
         sourcemap: true
       }
     ],
-    plugins: es2017BuildPlugins,
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ],
     treeshake: {
       moduleSideEffects: false
     },

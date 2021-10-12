@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _registerComponent } from '@firebase/app';
+import { _registerComponent, registerVersion } from '@firebase/app';
 import { FunctionsService } from './service';
 import {
   Component,
@@ -27,6 +27,7 @@ import { FUNCTIONS_TYPE } from './constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { MessagingInternalComponentName } from '@firebase/messaging-interop-types';
+import { name, version } from '../package.json';
 
 const AUTH_INTERNAL_NAME: FirebaseAuthInternalName = 'auth-internal';
 const APP_CHECK_INTERNAL_NAME: AppCheckInternalComponentName =
@@ -34,7 +35,10 @@ const APP_CHECK_INTERNAL_NAME: AppCheckInternalComponentName =
 const MESSAGING_INTERNAL_NAME: MessagingInternalComponentName =
   'messaging-internal';
 
-export function registerFunctions(fetchImpl: typeof fetch): void {
+export function registerFunctions(
+  fetchImpl: typeof fetch,
+  variant?: string
+): void {
   const factory: InstanceFactory<'functions'> = (
     container: ComponentContainer,
     { instanceIdentifier: regionOrCustomDomain }
@@ -63,4 +67,8 @@ export function registerFunctions(fetchImpl: typeof fetch): void {
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
   );
+
+  registerVersion(name, version, variant);
+  // BUILD_TARGET will be replaced by values like esm5, esm2017, cjs5, etc during the compilation
+  registerVersion(name, version, '__BUILD_TARGET__');
 }

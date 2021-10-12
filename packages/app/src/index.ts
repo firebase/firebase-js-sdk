@@ -28,4 +28,4 @@ export * from './api';
 export * from './internal';
 export * from './public-types';
 
-registerCoreComponents();
+registerCoreComponents('__RUNTIME_ENV__');
