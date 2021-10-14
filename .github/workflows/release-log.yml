@@ -21,3 +21,5 @@ jobs:
 
       - name: Get PR number and send to tracker.
         run: node scripts/ci/log-changesets.js
+        env:
+          RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
