@@ -603,6 +603,7 @@ export interface MultiFactorAssertion {
  * @public
  */
  export interface MultiFactorError extends AuthError {
+   /** The detailed Data of the MultiFactorError. */
   readonly customData: AuthError['customData'] & {
     /**
      * The type of operation (e.g., sign-in, link, or reauthenticate) during which the error was raised.

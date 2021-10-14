@@ -445,7 +445,6 @@ export interface MultiFactorAssertion {
 
 // @public
 export interface MultiFactorError extends AuthError {
-    // (undocumented)
     readonly customData: AuthError['customData'] & {
         readonly operationType: typeof OperationType[keyof typeof OperationType];
     };
