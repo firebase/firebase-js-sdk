@@ -120,7 +120,7 @@ export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
  *
  * @public
  */
-export declare interface AuthError extends FirebaseError {
+export interface AuthError extends FirebaseError {
   /** The detailed Data of the Firebase Auth error.  */
   readonly customData: {
     /** The name of the Firebase App which triggered this error.  */
