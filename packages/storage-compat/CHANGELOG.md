@@ -1,5 +1,14 @@
 # @firebase/storage-compat
 
+## 0.1.4
+
+### Patch Changes
+
+- [`352cc2647`](https://github.com/firebase/firebase-js-sdk/commit/352cc26476a0c249f89d19eb371ecdcbbd067e5f) [#5587](https://github.com/firebase/firebase-js-sdk/pull/5587) - Add "repository" field to package.json files that were missing it.
+
+- Updated dependencies [[`a7e00b9eb`](https://github.com/firebase/firebase-js-sdk/commit/a7e00b9ebbb05b094a8bf620790146e750463c12), [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f)]:
+  - @firebase/storage@0.8.4
+
 ## 0.1.3
 
 ### Patch Changes

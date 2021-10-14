@@ -1,5 +1,13 @@
 #Unreleased
 
+## 0.8.4
+
+### Patch Changes
+
+- [`a7e00b9eb`](https://github.com/firebase/firebase-js-sdk/commit/a7e00b9ebbb05b094a8bf620790146e750463c12) [#5578](https://github.com/firebase/firebase-js-sdk/pull/5578) (fixes [#5372](https://github.com/firebase/firebase-js-sdk/issues/5372)) - Do not throw from `connection.send` to enable retries in Node.js.
+
+* [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f) [#5596](https://github.com/firebase/firebase-js-sdk/pull/5596) - report build variants for packages
+
 ## 0.8.3
 
 ### Patch Changes

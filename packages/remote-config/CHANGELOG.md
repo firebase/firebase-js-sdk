@@ -1,5 +1,14 @@
 # @firebase/remote-config
 
+## 0.3.1
+
+### Patch Changes
+
+- [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f) [#5596](https://github.com/firebase/firebase-js-sdk/pull/5596) - report build variants for packages
+
+- Updated dependencies [[`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f)]:
+  - @firebase/installations@0.5.2
+
 ## 0.3.0
 
 ### Minor Changes

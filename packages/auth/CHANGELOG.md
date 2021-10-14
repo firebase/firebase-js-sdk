@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.18.3
+
+### Patch Changes
+
+- [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f) [#5596](https://github.com/firebase/firebase-js-sdk/pull/5596) - report build variants for packages
+
 ## 0.18.2
 
 ### Patch Changes
@@ -8,7 +14,7 @@
 
 * [`e1d551ddb`](https://github.com/firebase/firebase-js-sdk/commit/e1d551ddb29db0f1fdf25c986cfcae6804bc8e79) [#5574](https://github.com/firebase/firebase-js-sdk/pull/5574) (fixes [#5553](https://github.com/firebase/firebase-js-sdk/issues/5553)) - Fix bug in the `OAuthProvider.prototype.credential` method that was preventing the `rawNonce` field from being populated in the returned `OAuthCredential`.
 
-- [`f7d8324a1`](https://github.com/firebase/firebase-js-sdk/commit/f7d8324a188f013f7875cf6c35fc4beb2c78c0ae) [#5562](https://github.com/firebase/firebase-js-sdk/pull/5562) - Attempt to fix bug in compatability layer in Safari ("Right side of assignment cannot be destructured") 
+- [`f7d8324a1`](https://github.com/firebase/firebase-js-sdk/commit/f7d8324a188f013f7875cf6c35fc4beb2c78c0ae) [#5562](https://github.com/firebase/firebase-js-sdk/pull/5562) - Attempt to fix bug in compatability layer in Safari ("Right side of assignment cannot be destructured")
 
 * [`e456d00a7`](https://github.com/firebase/firebase-js-sdk/commit/e456d00a7d054b2e95476562a087f2b12301e800) [#5577](https://github.com/firebase/firebase-js-sdk/pull/5577) - Fix bug where `user.tenantId` wasn't being carried over in `updateCurrentUser` function
 
