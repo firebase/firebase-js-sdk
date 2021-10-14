@@ -25,6 +25,7 @@ import copy from 'rollup-plugin-copy';
 import { terser } from 'rollup-plugin-terser';
 
 import pkg from './package.json';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 const util = require('./rollup.shared');
 
@@ -77,7 +78,9 @@ const browserPlugins = function () {
 };
 
 const allBuilds = [
-  // Node ESM build
+  // Intermidiate Node ESM build without build target reporting
+  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // which add build target reporting
   {
     input: './src/index.node.ts',
     output: {
@@ -100,13 +103,32 @@ const allBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: util.es2017ToEs5Plugins(/* mangled= */ false),
+    plugins: [
+      ...util.es2017ToEs5Plugins(/* mangled= */ false),
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+    ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
   },
-  // Browser build
+  // Node ESM build with build target reporting
+  {
+    input: pkg['main-esm'],
+    output: {
+      file: pkg['main-esm'],
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Intermidiate browser build without build target reporting
+  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // which add build target reporting
   {
     input: './src/index.ts',
     output: {
@@ -130,7 +152,26 @@ const allBuilds = [
         sourcemap: true
       }
     ],
-    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
+    plugins: [
+      ...util.es2017ToEs5Plugins(/* mangled= */ true),
+      replace(generateBuildTargetReplaceConfig('esm', 5))
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // es2017 build with build target reporting
+  {
+    input: pkg['browser'],
+    output: [
+      {
+        file: pkg['browser'],
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -144,7 +185,11 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('rn')), ...browserPlugins()],
+    plugins: [
+      alias(util.generateAliasConfig('rn')),
+      ...browserPlugins(),
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false

@@ -48,7 +48,7 @@ export function _setActionCodeSettingsOnRequest(
       auth,
       AuthErrorCode.MISSING_IOS_BUNDLE_ID
     );
-    request.iosBundleId = actionCodeSettings.iOS.bundleId;
+    request.iOSBundleId = actionCodeSettings.iOS.bundleId;
   }
 
   if (actionCodeSettings.android) {

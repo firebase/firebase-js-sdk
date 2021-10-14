@@ -18,8 +18,10 @@
 import strip from '@rollup/plugin-strip';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
+import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
 import alias from '@rollup/plugin-alias';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import pkg from './package.json';
 
 const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies));
@@ -30,14 +32,14 @@ const deps = Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencie
  * more info. This regex tests explicitly ./src/platform_browser so that the
  * only impacted file is the main index.ts
  */
- const nodeAliasPlugin = alias({
+const nodeAliasPlugin = alias({
     entries: [
-      {
-        find: /^\.\/src\/platform_browser(\/.*)?$/,
-        replacement: `./src/platform_node`
-      }
+        {
+            find: /^\.\/src\/platform_browser(\/.*)?$/,
+            replacement: `./src/platform_node`
+        }
     ]
-  });
+});
 /**
  * ES5 Builds
  */
@@ -60,8 +62,8 @@ const es5Builds = [
             index: 'index.ts',
             internal: 'internal/index.ts'
         },
-        output: [{ dir: 'dist/esm5', format: 'esm', sourcemap: true }],
-        plugins: es5BuildPlugins,
+        output: [{ dir: 'dist/esm5', format: 'es', sourcemap: true }],
+        plugins: [...es5BuildPlugins, replace(generateBuildTargetReplaceConfig('esm', 5))],
         external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
     },
     /**
@@ -86,7 +88,8 @@ const es5Builds = [
                     ]
                 }
 
-            })
+            }),
+            replace(generateBuildTargetReplaceConfig('esm', 5))
         ],
         external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
     },
@@ -99,7 +102,11 @@ const es5Builds = [
             internal: 'internal/index.ts'
         },
         output: [{ dir: 'dist/node', format: 'cjs', sourcemap: true }],
-        plugins: [nodeAliasPlugin, ...es5BuildPlugins],
+        plugins: [
+            nodeAliasPlugin,
+            ...es5BuildPlugins,
+            replace(generateBuildTargetReplaceConfig('cjs', 5))
+        ],
         external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
     },
     /**
@@ -111,7 +118,10 @@ const es5Builds = [
             internal: 'internal/index.ts'
         },
         output: [{ dir: 'dist/cordova', format: 'es', sourcemap: true }],
-        plugins: es5BuildPlugins,
+        plugins: [
+            ...es5BuildPlugins,
+            replace(generateBuildTargetReplaceConfig('esm', 5))
+        ],
         external: id =>
             [...deps, 'cordova'].some(dep => id === dep || id.startsWith(`${dep}/`))
     },
@@ -124,7 +134,10 @@ const es5Builds = [
             internal: 'internal/index.ts'
         },
         output: [{ dir: 'dist/rn', format: 'cjs', sourcemap: true }],
-        plugins: es5BuildPlugins,
+        plugins: [
+            ...es5BuildPlugins,
+            replace(generateBuildTargetReplaceConfig('cjs', 5))
+        ],
         external: id =>
             [...deps, 'react-native'].some(
                 dep => id === dep || id.startsWith(`${dep}/`)
@@ -164,7 +177,10 @@ const es2017Builds = [
             format: 'es',
             sourcemap: true
         },
-        plugins: es2017BuildPlugins,
+        plugins: [
+            ...es2017BuildPlugins,
+            replace(generateBuildTargetReplaceConfig('esm', 2017))
+        ],
         external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
     }
 ];

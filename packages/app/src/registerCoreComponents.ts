@@ -32,6 +32,8 @@ export function registerCoreComponents(variant?: string): void {
 
   // Register `app` package.
   registerVersion(name, version, variant);
+  // BUILD_TARGET will be replaced by values like esm5, esm2017, cjs5, etc during the compilation
+  registerVersion(name, version, '__BUILD_TARGET__');
   // Register platform SDK identifier (no version).
   registerVersion('fire-js', '');
 }

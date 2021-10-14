@@ -29,11 +29,11 @@ import '../../test/setup';
 describe('Firebase Performance > network_request', () => {
   setupApi(window);
 
-  const fakeFirebaseApp = ({
+  const fakeFirebaseApp = {
     options: {}
-  } as unknown) as FirebaseApp;
+  } as unknown as FirebaseApp;
 
-  const fakeInstallations = ({} as unknown) as FirebaseInstallations;
+  const fakeInstallations = {} as unknown as FirebaseInstallations;
   const performanceController = new PerformanceController(
     fakeFirebaseApp,
     fakeInstallations
@@ -50,13 +50,13 @@ describe('Firebase Performance > network_request', () => {
 
   describe('#createNetworkRequestEntry', () => {
     it('logs network request when all required fields present', () => {
-      const PERFORMANCE_ENTRY = ({
+      const PERFORMANCE_ENTRY = {
         name: 'http://some.test.website.com',
         transferSize: 500,
         startTime: 1645352.632345,
         responseStart: 1645360.244323,
         responseEnd: 1645360.832443
-      } as unknown) as PerformanceResourceTiming;
+      } as unknown as PerformanceResourceTiming;
 
       const EXPECTED_NETWORK_REQUEST = {
         performanceController,
@@ -77,12 +77,12 @@ describe('Firebase Performance > network_request', () => {
     });
 
     it('doesnt log network request when responseStart is absent', () => {
-      const PERFORMANCE_ENTRY = ({
+      const PERFORMANCE_ENTRY = {
         name: 'http://some.test.website.com',
         transferSize: 500,
         startTime: 1645352.632345,
         responseEnd: 1645360.832443
-      } as unknown) as PerformanceResourceTiming;
+      } as unknown as PerformanceResourceTiming;
 
       createNetworkRequestEntry(performanceController, PERFORMANCE_ENTRY);
 

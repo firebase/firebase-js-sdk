@@ -56,7 +56,7 @@ export async function signInWithPassword(
 export interface GetOobCodeRequest {
   email?: string; // Everything except VERIFY_AND_CHANGE_EMAIL
   continueUrl?: string;
-  iosBundleId?: string;
+  iOSBundleId?: string;
   iosAppStoreId?: string;
   androidPackageName?: string;
   androidInstallApp?: boolean;

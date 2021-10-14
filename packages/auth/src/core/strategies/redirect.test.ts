@@ -116,7 +116,7 @@ describe('core/strategies/redirect', () => {
     expect(await promise).to.eq(cred);
   });
 
-  it('returns the same value if called multiple times', async () => {
+  it('returns null after the first call', async () => {
     const cred = new UserCredentialImpl({
       user: testUser(auth, 'uid'),
       providerId: ProviderId.GOOGLE,
@@ -128,7 +128,7 @@ describe('core/strategies/redirect', () => {
       type: AuthEventType.SIGN_IN_VIA_REDIRECT
     });
     expect(await promise).to.eq(cred);
-    expect(await redirectAction.execute()).to.eq(cred);
+    expect(await redirectAction.execute()).to.be.null;
   });
 
   it('interacts with redirectUser loading from auth object', async () => {
@@ -192,6 +192,8 @@ describe('core/strategies/redirect', () => {
       type: AuthEventType.REAUTH_VIA_REDIRECT
     });
     expect(await promise).to.eq(cred);
+
+    // In this case, bypassAuthState is true... The value won't be cleared
     expect(await redirectAction.execute()).to.eq(cred);
   });
 

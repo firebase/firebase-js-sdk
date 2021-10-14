@@ -1,5 +1,50 @@
 # @firebase/auth
 
+## 0.18.2
+
+### Patch Changes
+
+- [`1b0e7af13`](https://github.com/firebase/firebase-js-sdk/commit/1b0e7af130c59b867e84b3f2615248fedad5b83d) [#5564](https://github.com/firebase/firebase-js-sdk/pull/5564) - Calls to `connectAuthEmulator` with the `disableWarnings` flag set to true will no longer cause a `console.info` warning to be printed
+
+* [`e1d551ddb`](https://github.com/firebase/firebase-js-sdk/commit/e1d551ddb29db0f1fdf25c986cfcae6804bc8e79) [#5574](https://github.com/firebase/firebase-js-sdk/pull/5574) (fixes [#5553](https://github.com/firebase/firebase-js-sdk/issues/5553)) - Fix bug in the `OAuthProvider.prototype.credential` method that was preventing the `rawNonce` field from being populated in the returned `OAuthCredential`.
+
+- [`f7d8324a1`](https://github.com/firebase/firebase-js-sdk/commit/f7d8324a188f013f7875cf6c35fc4beb2c78c0ae) [#5562](https://github.com/firebase/firebase-js-sdk/pull/5562) - Attempt to fix bug in compatability layer in Safari ("Right side of assignment cannot be destructured") 
+
+* [`e456d00a7`](https://github.com/firebase/firebase-js-sdk/commit/e456d00a7d054b2e95476562a087f2b12301e800) [#5577](https://github.com/firebase/firebase-js-sdk/pull/5577) - Fix bug where `user.tenantId` wasn't being carried over in `updateCurrentUser` function
+
+## 0.18.1
+
+### Patch Changes
+
+- [`49b0406ab`](https://github.com/firebase/firebase-js-sdk/commit/49b0406abb9b211c5b75325b0383539ac03358d1) [#5542](https://github.com/firebase/firebase-js-sdk/pull/5542) (fixes [#5541](https://github.com/firebase/firebase-js-sdk/issues/5541)) - Fix incorrectly-cased parameter in out-of-band request that was causing incorrect behavior in some cases
+
+## 0.18.0
+
+### Minor Changes
+
+- [`4d2a54fb0`](https://github.com/firebase/firebase-js-sdk/commit/4d2a54fb0611ab1987ad415c265440b9bbbc28c6) [#5527](https://github.com/firebase/firebase-js-sdk/pull/5527) - Update all persistences to map to `inMemoryPersistence` in Node, to avoid errors with server-side rendering
+
+### Patch Changes
+
+- [`a5d87bc5c`](https://github.com/firebase/firebase-js-sdk/commit/a5d87bc5c5d6360d5fa2386fe351937463bc45b8) [#5511](https://github.com/firebase/firebase-js-sdk/pull/5511) - Fix bug with the user `emailVerified` field persistence across tabs
+
+* [`07b88e6e8`](https://github.com/firebase/firebase-js-sdk/commit/07b88e6e80f60525c66bf330d28160dbef2d0a2c) [#5487](https://github.com/firebase/firebase-js-sdk/pull/5487) - Add missing phone FACTOR_ID static property to the PhoneMultiFactorGenerator class
+
+- [`c2362214a`](https://github.com/firebase/firebase-js-sdk/commit/c2362214ad6154ce013d3815a6f1ccd061679f66) [#5522](https://github.com/firebase/firebase-js-sdk/pull/5522) - Fix wrongly-typed tenantId fields in requests to some endpoints
+
+- Updated dependencies [[`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422)]:
+  - @firebase/logger@0.3.0
+  - @firebase/util@1.4.0
+  - @firebase/component@0.5.7
+
+## 0.17.2
+
+### Patch Changes
+
+- [`08ec55d6d`](https://github.com/firebase/firebase-js-sdk/commit/08ec55d6dfcc85207fbdcdde77d6508f27998603) [#5423](https://github.com/firebase/firebase-js-sdk/pull/5423) - Fix bug where custom errors from blocking functions were being dropped.
+
+* [`271303f3c`](https://github.com/firebase/firebase-js-sdk/commit/271303f3ca6fa47c646177a41d7a3e3f31e1d296) [#5460](https://github.com/firebase/firebase-js-sdk/pull/5460) - Remove `const enum`s from the public typing file.
+
 ## 0.17.1
 
 ### Patch Changes

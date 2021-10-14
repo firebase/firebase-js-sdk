@@ -21,7 +21,7 @@ import { _createError } from '../core/util/assert';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Auth } from '../model/public_types';
 
-import { initializeAuth } from '..';
+import { initializeAuth, inMemoryPersistence } from '..';
 import { registerAuth } from '../core/auth/register';
 import { ClientPlatform } from '../core/util/version';
 import { AuthImpl } from '../core/auth/auth_impl';
@@ -76,9 +76,9 @@ class FailClass {
   }
 }
 
-export const browserLocalPersistence = NOT_AVAILABLE_ERROR;
-export const browserSessionPersistence = NOT_AVAILABLE_ERROR;
-export const indexedDBLocalPersistence = NOT_AVAILABLE_ERROR;
+export const browserLocalPersistence = inMemoryPersistence;
+export const browserSessionPersistence = inMemoryPersistence;
+export const indexedDBLocalPersistence = inMemoryPersistence;
 export const browserPopupRedirectResolver = NOT_AVAILABLE_ERROR;
 export const PhoneAuthProvider = FailClass;
 export const signInWithPhoneNumber = fail;

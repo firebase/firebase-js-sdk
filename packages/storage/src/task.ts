@@ -521,9 +521,7 @@ export class UploadTask {
   /**
    * Equivalent to calling `then(null, onRejected)`.
    */
-  catch<T>(
-    onRejected: (p1: StorageError) => T | Promise<T>
-  ): Promise<T> {
+  catch<T>(onRejected: (p1: StorageError) => T | Promise<T>): Promise<T> {
     return this.then(null, onRejected);
   }
 

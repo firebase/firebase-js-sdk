@@ -97,10 +97,8 @@ describe('getInstallationEntry', () => {
   });
 
   it('saves the InstallationEntry in the database when registration completes', async () => {
-    const {
-      installationEntry,
-      registrationPromise
-    } = await getInstallationEntry(appConfig);
+    const { installationEntry, registrationPromise } =
+      await getInstallationEntry(appConfig);
     expect(installationEntry.registrationStatus).to.equal(
       RequestStatus.IN_PROGRESS
     );
@@ -127,10 +125,8 @@ describe('getInstallationEntry', () => {
       });
     });
 
-    const {
-      installationEntry,
-      registrationPromise
-    } = await getInstallationEntry(appConfig);
+    const { installationEntry, registrationPromise } =
+      await getInstallationEntry(appConfig);
     expect(installationEntry.registrationStatus).to.equal(
       RequestStatus.IN_PROGRESS
     );
@@ -157,10 +153,8 @@ describe('getInstallationEntry', () => {
       });
     });
 
-    const {
-      installationEntry,
-      registrationPromise
-    } = await getInstallationEntry(appConfig);
+    const { installationEntry, registrationPromise } =
+      await getInstallationEntry(appConfig);
     expect(installationEntry.registrationStatus).to.equal(
       RequestStatus.IN_PROGRESS
     );
@@ -192,10 +186,8 @@ describe('getInstallationEntry', () => {
     });
 
     it('returns a new pending InstallationEntry and triggers createInstallation', async () => {
-      const {
-        installationEntry,
-        registrationPromise
-      } = await getInstallationEntry(appConfig);
+      const { installationEntry, registrationPromise } =
+        await getInstallationEntry(appConfig);
 
       if (installationEntry.registrationStatus !== RequestStatus.IN_PROGRESS) {
         throw new AssertionError('InstallationEntry is not IN_PROGRESS.');
@@ -267,7 +259,8 @@ describe('getInstallationEntry', () => {
       clock.restore();
       clock = useFakeTimers({
         now: 1_000_000,
-        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
+        shouldAdvanceTime:
+          true /* Needed to allow the createInstallation request to complete. */
       });
 
       // FID generation fails.
@@ -275,10 +268,8 @@ describe('getInstallationEntry', () => {
 
       const getInstallationEntryPromise = getInstallationEntry(appConfig);
 
-      const {
-        installationEntry,
-        registrationPromise
-      } = await getInstallationEntryPromise;
+      const { installationEntry, registrationPromise } =
+        await getInstallationEntryPromise;
 
       expect(installationEntry.fid).to.equal(FID);
       expect(registrationPromise).to.be.undefined;
@@ -295,10 +286,8 @@ describe('getInstallationEntry', () => {
     });
 
     it('returns a pending InstallationEntry and triggers createInstallation', async () => {
-      const {
-        installationEntry,
-        registrationPromise
-      } = await getInstallationEntry(appConfig);
+      const { installationEntry, registrationPromise } =
+        await getInstallationEntry(appConfig);
 
       if (installationEntry.registrationStatus !== RequestStatus.IN_PROGRESS) {
         throw new AssertionError('InstallationEntry is not IN_PROGRESS.');
@@ -354,7 +343,8 @@ describe('getInstallationEntry', () => {
       clock.restore();
       clock = useFakeTimers({
         now: 1_001_000 /* One second after the request was initiated. */,
-        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
+        shouldAdvanceTime:
+          true /* Needed to allow the createInstallation request to complete. */
       });
 
       const installationEntryPromise = getInstallationEntry(appConfig);
@@ -395,7 +385,8 @@ describe('getInstallationEntry', () => {
       clock.restore();
       clock = useFakeTimers({
         now: 1_001_000 /* One second after the request was initiated. */,
-        shouldAdvanceTime: true /* Needed to allow the createInstallation request to complete. */
+        shouldAdvanceTime:
+          true /* Needed to allow the createInstallation request to complete. */
       });
 
       const installationEntryPromise = getInstallationEntry(appConfig);

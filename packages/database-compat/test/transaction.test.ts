@@ -26,7 +26,6 @@ import {
 } from '../../database/test/helpers/EventAccumulator';
 import { Reference } from '../src/api/Reference';
 
-
 import { eventTestHelper } from './helpers/events';
 import {
   canCreateExtraConnections,

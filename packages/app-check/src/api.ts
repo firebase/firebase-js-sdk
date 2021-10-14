@@ -23,7 +23,7 @@ import {
   PartialObserver
 } from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { getState, setState, AppCheckState } from './state';
+import { getState, setState, AppCheckState, getDebugState } from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
 import { AppCheckService } from './factory';
@@ -35,6 +35,7 @@ import {
   isValid
 } from './internal-api';
 import { readTokenFromStorage } from './storage';
+import { getDebugToken, initializeDebugMode, isDebugMode } from './debug';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -56,6 +57,23 @@ export function initializeAppCheck(
 ): AppCheck {
   app = getModularInstance(app);
   const provider = _getProvider(app, 'app-check');
+
+  // Ensure initializeDebugMode() is only called once.
+  if (!getDebugState().initialized) {
+    initializeDebugMode();
+  }
+
+  // Log a message containing the debug token when `initializeAppCheck()`
+  // is called in debug mode.
+  if (isDebugMode()) {
+    // Do not block initialization to get the token for the message.
+    void getDebugToken().then(token =>
+      // Not using logger because I don't think we ever want this accidentally hidden.
+      console.log(
+        `App Check debug token: ${token}. You will need to add it to your app's App Check settings in the Firebase console for it to work.`
+      )
+    );
+  }
 
   if (provider.isInitialized()) {
     const existingInstance = provider.getImmediate();

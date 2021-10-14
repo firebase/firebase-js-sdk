@@ -87,10 +87,6 @@ export async function readOrCreateDebugTokenFromStorage(): Promise<string> {
     writeDebugTokenToIndexedDB(newToken).catch(e =>
       logger.warn(`Failed to persist debug token to IndexedDB. Error: ${e}`)
     );
-    // Not using logger because I don't think we ever want this accidentally hidden?
-    console.log(
-      `App Check debug token: ${newToken}. You will need to add it to your app's App Check settings in the Firebase console for it to work`
-    );
     return newToken;
   } else {
     return existingDebugToken;

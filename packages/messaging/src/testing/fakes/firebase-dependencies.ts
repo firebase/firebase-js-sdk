@@ -71,8 +71,8 @@ export function getFakeAnalyticsProvider(): Provider<FirebaseAnalyticsInternalNa
     logEvent() {}
   };
 
-  return ({
+  return {
     get: async () => analytics,
     getImmediate: () => analytics
-  } as unknown) as Provider<FirebaseAnalyticsInternalName>;
+  } as unknown as Provider<FirebaseAnalyticsInternalName>;
 }

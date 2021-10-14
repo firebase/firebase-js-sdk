@@ -31,7 +31,7 @@ import fetch from 'node-fetch';
  * This method only works with Firebase CLI version 8.13.0 or higher. This overload works only if
  * the Emulator hub host:port is specified by the environment variable FIREBASE_EMULATOR_HUB.
  *
- * @param fn an function which may be sync or async (returns a promise)
+ * @param fn - a function which may be sync or async (returns a promise)
  * @public
  */
 export async function withFunctionTriggersDisabled<TResult>(
@@ -46,8 +46,8 @@ export async function withFunctionTriggersDisabled<TResult>(
  * This method only works with Firebase CLI version 8.13.0 or higher. The Emulator hub must be
  * running, which host and port are specified in this overload.
  *
- * @param fn an function which may be sync or async (returns a promise)
- * @param hub the host and port of the Emulator Hub (ex: `{host: 'localhost', port: 4400}`)
+ * @param fn - a function which may be sync or async (returns a promise)
+ * @param hub - the host and port of the Emulator Hub (ex: `{host: 'localhost', port: 4400}`)
  * @public
  */
 export async function withFunctionTriggersDisabled<TResult>(
@@ -121,7 +121,7 @@ export async function withFunctionTriggersDisabled<TResult>(
  * Useful to assert a certain request to be denied by Security Rules. See example below.
  * This function recognizes permission-denied errors from Database, Firestore, and Storage JS SDKs.
  *
- * @param pr the promise to be asserted
+ * @param pr - the promise to be asserted
  * @returns a Promise that is fulfilled if pr is rejected with "permission denied". If pr is
  *          rejected with any other error or resolved, the returned promise rejects.
  * @public

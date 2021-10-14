@@ -114,8 +114,7 @@ describe('RestClient', () => {
       expect(fetchStub).to.be.calledWith(
         sinon.match.string,
         sinon.match({
-          body:
-            '{"sdk_version":"sdk-version","app_instance_id":"fis-id","app_instance_id_token":"fis-token","app_id":"app-id","language_code":"en-US"}'
+          body: '{"sdk_version":"sdk-version","app_instance_id":"fis-id","app_instance_id_token":"fis-token","app_id":"app-id","language_code":"en-US"}'
         })
       );
     });

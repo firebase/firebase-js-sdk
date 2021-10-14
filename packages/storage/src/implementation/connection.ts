@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-/**
- * Network headers
- */
-export interface Headers {
-  [name: string]: string;
-}
+/** Network headers */
+export type Headers = Record<string, string>;
 
 /**
  * A lightweight wrapper around XMLHttpRequest with a
  * goog.net.XhrIo-like interface.
  */
 export interface Connection {
+  /**
+   * This method should never reject. In case of encountering an error, set an error code internally which can be accessed
+   * by calling getErrorCode() by callers.
+   */
   send(
     url: string,
     method: string,

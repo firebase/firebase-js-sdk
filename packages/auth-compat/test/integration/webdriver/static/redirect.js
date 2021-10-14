@@ -39,8 +39,14 @@ export function idpLinkRedirect() {
     .currentUser.linkWithRedirect(new compat.auth.GoogleAuthProvider());
 }
 
-export function redirectResult() {
-  return compat.auth().getRedirectResult();
+export async function redirectResult() {
+  const result = await compat.auth().getRedirectResult();
+  if (result.user === null && result.credential === null) {
+    // In the new SDK (and consequently the tests), null is returned instead of
+    // a credential with a null user/cred
+    return null;
+  }
+  return result;
 }
 
 export async function generateCredentialFromRedirectResultAndStore() {

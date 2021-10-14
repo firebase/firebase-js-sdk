@@ -82,9 +82,8 @@ describe('Dynamic Config Fetch Functions', () => {
     it('successfully request and receives dynamic config JSON data', async () => {
       stubFetch(200, successObject);
       const app = getFakeApp(fakeAppParams);
-      const config:
-        | DynamicConfig
-        | MinimalDynamicConfig = await fetchDynamicConfigWithRetry(app);
+      const config: DynamicConfig | MinimalDynamicConfig =
+        await fetchDynamicConfigWithRetry(app);
       expect(fetchStub.args[0][0]).to.equal(fakeUrl);
       expect(fetchStub.args[0][1].headers.get('x-goog-api-key')).to.equal(
         fakeAppParams.apiKey
@@ -152,12 +151,8 @@ describe('Dynamic Config Fetch Functions', () => {
       fetchStub.onCall(retriableStatuses.length).resolves(successResponse);
 
       const app = getFakeApp(fakeAppParams);
-      const config:
-        | DynamicConfig
-        | MinimalDynamicConfig = await fetchDynamicConfigWithRetry(
-        app,
-        fakeRetryData
-      );
+      const config: DynamicConfig | MinimalDynamicConfig =
+        await fetchDynamicConfigWithRetry(app, fakeRetryData);
 
       // Verify retryData.setThrottleMetadata() was called on each retry.
       for (let i = 0; i < retriableStatuses.length; i++) {

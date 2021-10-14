@@ -493,8 +493,6 @@ export class OAuthCredential extends AuthCredential {
     idToken?: string;
     // @internal (undocumented)
     _linkToIdToken(auth: AuthInternal, idToken: string): Promise<IdTokenResponse>;
-    // @internal (undocumented)
-    nonce?: string;
     secret?: string;
     toJSON(): object;
 }
@@ -596,6 +594,7 @@ export interface PhoneMultiFactorEnrollInfoOptions {
 // @public
 export class PhoneMultiFactorGenerator {
     static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion;
+    static FACTOR_ID: string;
 }
 
 // @public

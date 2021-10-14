@@ -54,8 +54,6 @@ goog.net.WebChannel.Options.httpSessionIdParam;
 /** @type {string|undefined} */
 goog.net.WebChannel.Options.httpHeadersOverwriteParam;
 
-goog.net.WebChannel.Options.backgroundChannelTest;
-
 /** @type {boolean|undefined} */
 goog.net.WebChannel.Options.fastHandshake;
 

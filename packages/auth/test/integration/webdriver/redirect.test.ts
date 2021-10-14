@@ -64,6 +64,10 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     );
     expect(redirectResult.operationType).to.eq(OperationType.SIGN_IN);
     expect(redirectResult.user).to.eql(currentUser);
+
+    // After the first call to redirect result, redirect result should be
+    // null
+    expect(await driver.call(RedirectFunction.REDIRECT_RESULT)).to.be.null;
   });
 
   it('can link with another account account', async () => {

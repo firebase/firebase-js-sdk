@@ -46,6 +46,11 @@ export async function getDebugToken(): Promise<string> {
 
 export function initializeDebugMode(): void {
   const globals = getGlobal();
+  const debugState = getDebugState();
+  // Set to true if this function has been called, whether or not
+  // it enabled debug mode.
+  debugState.initialized = true;
+
   if (
     typeof globals.FIREBASE_APPCHECK_DEBUG_TOKEN !== 'string' &&
     globals.FIREBASE_APPCHECK_DEBUG_TOKEN !== true
@@ -53,7 +58,6 @@ export function initializeDebugMode(): void {
     return;
   }
 
-  const debugState = getDebugState();
   debugState.enabled = true;
   const deferredToken = new Deferred<string>();
   debugState.token = deferredToken;

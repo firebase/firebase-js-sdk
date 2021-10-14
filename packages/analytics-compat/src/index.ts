@@ -39,9 +39,7 @@ const factory: InstanceFactory<'analytics-compat'> = (
 ) => {
   // Dependencies
   const app = container.getProvider('app-compat').getImmediate();
-  const analyticsServiceExp = container
-    .getProvider('analytics')
-    .getImmediate();
+  const analyticsServiceExp = container.getProvider('analytics').getImmediate();
 
   return new AnalyticsService(app as FirebaseApp, analyticsServiceExp);
 };

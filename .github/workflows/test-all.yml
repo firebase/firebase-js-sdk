@@ -1,6 +1,9 @@
 name: Test All Packages
 
 on: push
+env:
+  # make chromedriver detect installed Chrome version and download the corresponding driver
+  DETECT_CHROMEDRIVER_VERSION: true
 
 jobs:
   test:
@@ -8,15 +11,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
+    - name: install Chrome stable
+      run: |
+        sudo apt-get update
+        sudo apt-get install google-chrome-stable
     - uses: actions/checkout@v2
     - name: Set up Node (14)
       uses: actions/setup-node@v2
       with:
         node-version: 14.x
-    - name: install Chrome stable
-      run: |
-        sudo apt-get update
-        sudo apt-get install google-chrome-stable
     - name: Bump Node memory limit
       run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install

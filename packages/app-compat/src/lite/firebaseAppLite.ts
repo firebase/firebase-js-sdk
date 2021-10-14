@@ -31,7 +31,8 @@ import { Compat } from '@firebase/util';
  * a shared authentication state.
  */
 export class FirebaseAppLiteImpl
-  implements FirebaseApp, Compat<FirebaseAppExp> {
+  implements FirebaseApp, Compat<FirebaseAppExp>
+{
   constructor(
     readonly _delegate: FirebaseAppExp,
     private readonly firebase: _FirebaseNamespace
@@ -85,8 +86,8 @@ export class FirebaseAppLiteImpl
     this._delegate.checkDestroyed();
 
     // getImmediate will always succeed because _getService is only called for registered components.
-    return (this._delegate.container.getProvider(name as Name).getImmediate({
+    return this._delegate.container.getProvider(name as Name).getImmediate({
       identifier: instanceIdentifier
-    }) as unknown) as _FirebaseService;
+    }) as unknown as _FirebaseService;
   }
 }

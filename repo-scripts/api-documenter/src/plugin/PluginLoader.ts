@@ -88,10 +88,8 @@ export class PluginLoader {
           manifest
         };
 
-        const featureDefinitionsByName: Map<
-          string,
-          IFeatureDefinition
-        > = new Map<string, IFeatureDefinition>();
+        const featureDefinitionsByName: Map<string, IFeatureDefinition> =
+          new Map<string, IFeatureDefinition>();
         for (const featureDefinition of manifest.features) {
           featureDefinitionsByName.set(
             featureDefinition.featureName,
@@ -100,9 +98,8 @@ export class PluginLoader {
         }
 
         for (const featureName of configPlugin.enabledFeatureNames) {
-          const featureDefinition:
-            | IFeatureDefinition
-            | undefined = featureDefinitionsByName.get(featureName);
+          const featureDefinition: IFeatureDefinition | undefined =
+            featureDefinitionsByName.get(featureName);
           if (!featureDefinition) {
             throw new Error(
               `The plugin ${loadedPlugin.packageName} does not have a feature with name "${featureName}"`
@@ -114,7 +111,8 @@ export class PluginLoader {
               throw new Error('A MarkdownDocumenterFeature is already loaded');
             }
 
-            const initialization: PluginFeatureInitialization = new PluginFeatureInitialization();
+            const initialization: PluginFeatureInitialization =
+              new PluginFeatureInitialization();
             initialization._context = createContext();
 
             let markdownDocumenterFeature:

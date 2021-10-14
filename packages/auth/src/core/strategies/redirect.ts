@@ -79,6 +79,12 @@ export class RedirectAction extends AbstractPopupRedirectOperation {
       redirectOutcomeMap.set(this.auth._key(), readyOutcome);
     }
 
+    // If we're not bypassing auth state, the ready outcome should be set to
+    // null.
+    if (!this.bypassAuthState) {
+      redirectOutcomeMap.set(this.auth._key(), () => Promise.resolve(null));
+    }
+
     return readyOutcome();
   }
 

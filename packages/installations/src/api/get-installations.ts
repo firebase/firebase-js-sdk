@@ -26,9 +26,6 @@ import { Installations } from '../interfaces/public-types';
  * @public
  */
 export function getInstallations(app: FirebaseApp = getApp()): Installations {
-  const installationsImpl = _getProvider(
-    app,
-    'installations'
-  ).getImmediate();
+  const installationsImpl = _getProvider(app, 'installations').getImmediate();
   return installationsImpl;
 }

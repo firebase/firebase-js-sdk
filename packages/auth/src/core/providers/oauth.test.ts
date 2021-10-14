@@ -117,4 +117,16 @@ describe('core/providers/oauth', () => {
     expect(cred.providerId).to.eq(ProviderId.FACEBOOK);
     expect(cred.signInMethod).to.eq(SignInMethod.FACEBOOK);
   });
+
+  it('credential generates the cred with the correct fields', () => {
+    const provider = new OAuthProvider('foo.test');
+    const cred = provider.credential({
+      idToken: 'foo',
+      rawNonce: 'i-am-a-nonce',
+    });
+    expect(cred.idToken).to.eq('foo');
+    expect(cred.providerId).to.eq('foo.test');
+    expect(cred.signInMethod).to.eq('foo.test');
+    expect((cred.toJSON() as {nonce: string}).nonce).to.eq('i-am-a-nonce');
+  });
 });

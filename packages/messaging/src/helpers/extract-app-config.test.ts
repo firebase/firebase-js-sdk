@@ -38,7 +38,7 @@ describe('extractAppConfig', () => {
 
   it('throws if a necessary value is missing', () => {
     expect(() =>
-      extractAppConfig((undefined as unknown) as FirebaseApp)
+      extractAppConfig(undefined as unknown as FirebaseApp)
     ).to.throw('Missing App configuration value: "App Configuration Object"');
 
     let firebaseApp = getFakeApp();

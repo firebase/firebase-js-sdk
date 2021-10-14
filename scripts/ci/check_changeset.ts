@@ -123,7 +123,7 @@ async function parseChangesetFile(changesetFile: string) {
 async function main() {
   const errors = [];
   try {
-    await exec(`yarn changeset status --since ${baseRef}`);
+    await exec(`yarn changeset status`);
     console.log(`::set-output name=BLOCKING_FAILURE::false`);
   } catch (e) {
     if (e.message.match('No changesets present')) {
