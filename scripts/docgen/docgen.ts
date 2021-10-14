@@ -22,6 +22,8 @@ import fs from 'fs';
 import glob from 'glob';
 import * as yargs from 'yargs';
 
+const tmpDir = `${projectRoot}/temp`;
+
 yargs
   .command('$0', 'generate standard reference docs', {}, _argv =>
     generateDocs(/* forDevsite */ false)
@@ -32,7 +34,6 @@ yargs
   .demandCommand()
   .help().argv;
 
-const tmpDir = `${projectRoot}/temp`;
 // create *.api.json files
 async function generateDocs(forDevsite: boolean = false) {
   const outputFolder = forDevsite ? 'docs-devsite' : 'docs';
@@ -99,4 +100,47 @@ async function generateDocs(forDevsite: boolean = false) {
     [command, 'markdown', '--input', 'temp', '--output', outputFolder],
     { stdio: 'inherit' }
   );
+
+  moveRulesUnitTestingDocs(outputFolder, command);
+}
+
+// Create a docs-rut folder and move rules-unit-testing docs into it.
+async function moveRulesUnitTestingDocs(
+  mainDocsFolder: string,
+  command: string
+) {
+  const rulesOutputFolder = `${projectRoot}/docs-rut`;
+
+  if (!fs.existsSync(rulesOutputFolder)) {
+    fs.mkdirSync(rulesOutputFolder);
+  }
+
+  const rulesDocPaths = await new Promise<string[]>(resolve =>
+    glob(`${mainDocsFolder}/rules-unit-testing.*`, (err, paths) => {
+      if (err) throw err;
+      resolve(paths);
+    })
+  );
+  // Move rules-unit-testing docs into the new folder.
+  // These paths also need to be adjusted to point to a sibling directory.
+  for (const sourcePath of rulesDocPaths) {
+    let destinationPath = sourcePath.replace(mainDocsFolder, rulesOutputFolder);
+
+    const originalText = fs.readFileSync(sourcePath, 'utf-8');
+    const jsReferencePath = '/docs/reference/js';
+    let alteredPathText = originalText.replace(
+      /\.\/database/g,
+      `${jsReferencePath}/database`
+    );
+    alteredPathText = alteredPathText.replace(
+      /\.\/storage/g,
+      `${jsReferencePath}/storage`
+    );
+    alteredPathText = alteredPathText.replace(
+      /\.\/firestore/g,
+      `${jsReferencePath}/firestore`
+    );
+    fs.writeFileSync(destinationPath, alteredPathText);
+    fs.unlinkSync(sourcePath);
+  }
 }
