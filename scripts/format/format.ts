@@ -43,7 +43,8 @@ const { path: targetPath, all: runOnAll } = yargs(hideBin(process.argv))
     `Runs prettier formatting and updates license headers. ` +
       `If no arguments are provided it will run formatting on any ` +
       `files changed since master.`
-  ).parseSync();
+  )
+  .parseSync();
 
 const format = async () => {
   let changedFiles: string[] | undefined;

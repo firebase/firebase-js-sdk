@@ -50,7 +50,7 @@
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
     "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
     "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts",
-    "format": "npx ts-node ./scripts/format/format.ts"
+    "format": "ts-node ./scripts/format/format.ts"
   },
   "repository": {
     "type": "git",
