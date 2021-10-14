@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-const fs = require('mz/fs');
-const chalk = require('chalk');
-const glob = require('glob');
+import fs from 'mz/fs';
+import chalk from 'chalk';
+import glob from 'glob';
 
 const licenseHeader = `/**
  * @license
@@ -41,7 +41,7 @@ const licenseHeader = `/**
 const copyrightPattern = /Copyright \d{4} Google (Inc\.|LLC)/;
 const oldCopyrightPattern = /(\s*\*\s*Copyright \d{4}) Google Inc\./;
 
-async function readFiles(paths) {
+async function readFiles(paths: string[]) {
   const fileContents = await Promise.all(paths.map(path => fs.readFile(path)));
   return fileContents.map((buffer, idx) => ({
     contents: String(buffer),
@@ -49,7 +49,7 @@ async function readFiles(paths) {
   }));
 }
 
-function addLicenseTag(contents) {
+function addLicenseTag(contents: string) {
   const lines = contents.split('\n');
   let newLines = [];
   for (const line of lines) {
@@ -62,7 +62,7 @@ function addLicenseTag(contents) {
   return newLines.join('\n');
 }
 
-function rewriteCopyrightLine(contents) {
+function rewriteCopyrightLine(contents: string) {
   const lines = contents.split('\n');
   let newLines = lines.map(line => {
     return line.replace(oldCopyrightPattern, (_, leader) => {
@@ -72,12 +72,12 @@ function rewriteCopyrightLine(contents) {
   return newLines.join('\n');
 }
 
-async function doLicense(changedFiles) {
+export async function doLicense(changedFiles?: string[]) {
   let count = 0;
 
-  let filesToChange = changedFiles;
+  let filesToChange: string[] = changedFiles ?? [];
 
-  if (!filesToChange) {
+  if (!changedFiles) {
     filesToChange = await new Promise(resolve => {
       glob(
         '+(packages|repo-scripts)/**/*.+(ts|js)',
@@ -86,10 +86,10 @@ async function doLicense(changedFiles) {
       );
     });
   }
+
   console.log(
     chalk`{green Validating license headers in ${filesToChange.length} files.}`
   );
-
   const files = await readFiles(filesToChange);
 
   await Promise.all(
@@ -128,7 +128,3 @@ async function doLicense(changedFiles) {
     console.log(chalk`{green ${count} files had license headers updated.}`);
   }
 }
-
-module.exports = {
-  doLicense
-};

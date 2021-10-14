@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-const { doPrettier } = require('./prettier');
-const { doLicense } = require('./license');
-const { resolve } = require('path');
-const simpleGit = require('simple-git/promise');
-const chalk = require('chalk');
-const glob = require('glob');
-const { join } = require('path');
-const yargs = require('yargs/yargs');
-const { hideBin } = require('yargs/helpers');
+import { doPrettier } from './prettier';
+import { doLicense } from './license';
+import { resolve } from 'path';
+import simpleGit from 'simple-git/promise';
+import chalk from 'chalk';
+import glob from 'glob';
+import { join } from 'path';
+import yargs from 'yargs/yargs';
+import { hideBin } from 'yargs/helpers';
 
 // Computed Deps
 const root = resolve(__dirname, '../..');
@@ -43,10 +43,10 @@ const { path: targetPath, all: runOnAll } = yargs(hideBin(process.argv))
     `Runs prettier formatting and updates license headers. ` +
       `If no arguments are provided it will run formatting on any ` +
       `files changed since master.`
-  ).argv;
+  ).parseSync();
 
 const format = async () => {
-  let changedFiles;
+  let changedFiles: string[] | undefined;
   try {
     if (!runOnAll) {
       // If a file pattern is provided, get the individual files.
@@ -71,7 +71,7 @@ const format = async () => {
       }
 
       // Only run on .js or .ts files.
-      changedFiles = changedFiles.filter(line => line.match(/\.(js|ts)$/));
+      changedFiles = changedFiles!.filter(line => line.match(/\.(js|ts)$/));
 
       if (changedFiles.length === 0) {
         console.log(chalk`{green No .js or .ts files found in list.`);

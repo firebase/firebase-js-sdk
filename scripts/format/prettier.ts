@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-const { resolve } = require('path');
-const { exec, spawn } = require('child-process-promise');
-const chalk = require('chalk');
+import { resolve } from 'path';
+import { exec, spawn } from 'child-process-promise';
+import chalk from 'chalk';
 
 const root = resolve(__dirname, '../..');
 const packageJson = require(root + '/package.json');
 
 async function checkVersion() {
   const { stdout } = await exec('yarn prettier --version', {
-    stdio: 'inherit',
     cwd: root
   });
   const lines = stdout.split('\n');
@@ -53,7 +52,7 @@ async function checkVersion() {
   }
 }
 
-async function doPrettier(changedFiles) {
+export async function doPrettier(changedFiles?: string[]) {
   try {
     await checkVersion();
   } catch (e) {
@@ -84,7 +83,7 @@ async function doPrettier(changedFiles) {
       cwd: root
     });
   } catch (e) {
-    if (e.code === 'E2BIG') {
+    if ((e as NodeJS.ErrnoException).code === 'E2BIG') {
       console.error(
         chalk`{red Too many files, use a smaller pattern or use the --all flag.}`
       );
@@ -94,7 +93,3 @@ async function doPrettier(changedFiles) {
     }
   }
 }
-
-module.exports = {
-  doPrettier
-};
