@@ -121,21 +121,24 @@ export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
  * @public
  */
 export interface AuthError extends FirebaseError {
-  /** The name of the Firebase App which triggered this error.  */
-  readonly appName: string;
-  /** The email of the user's account, used for sign-in/linking. */
-  readonly email?: string;
-  /** The phone number of the user's account, used for sign-in/linking. */
-  readonly phoneNumber?: string;
-  /**
-   * The tenant ID being used for sign-in/linking.
-   *
-   * @remarks
-   * If you use {@link signInWithRedirect} to sign in,
-   * you have to set the tenant ID on {@link Auth} instance again as the tenant ID is not persisted
-   * after redirection.
-   */
-  readonly tenantid?: string;
+  /** The detailed Data of the Firebase Auth error.  */
+  readonly customData: {
+    /** The name of the Firebase App which triggered this error.  */
+    readonly appName: string;
+    /** The email of the user's account, used for sign-in/linking. */
+    readonly email?: string;
+    /** The phone number of the user's account, used for sign-in/linking. */
+    readonly phoneNumber?: string;
+    /**
+     * The tenant ID being used for sign-in/linking.
+     *
+     * @remarks
+     * If you use {@link signInWithRedirect} to sign in,
+     * you have to set the tenant ID on {@link Auth} instance again as the tenant ID is not persisted
+     * after redirection.
+     */
+    readonly tenantId?: string;
+  };
 }
 
 /**
