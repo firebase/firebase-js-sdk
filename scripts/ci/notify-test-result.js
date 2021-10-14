@@ -72,9 +72,11 @@ async function notifyTestResults() {
 
     req.on('error', error => reject(error));
 
-    req.write(JSON.stringify({
-      text: message
-    }));
+    req.write(
+      JSON.stringify({
+        text: message
+      })
+    );
     req.end();
   });
 
