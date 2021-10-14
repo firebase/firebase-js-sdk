@@ -15,6 +15,50 @@
  * limitations under the License.
  */
 
-// TODO(mrschmidt): Add getStream()
+import {StorageReference} from "./public-types";
+
+/**
+ * Downloads the data at the object's location. Returns an error if the object
+ * is not found.
+ *
+ * To use this functionality, you have to whitelist your app's origin in your
+ * Cloud Storage bucket. See also
+ * https://cloud.google.com/storage/docs/configuring-cors
+ *
+ * This API is not available in Node.
+ *
+ * @public
+ * @param ref - StorageReference where data should be download.
+ * @param maxDownloadSizeBytes - If set, the maximum allowed size in bytes to
+ * retrieve.
+ * @returns A Promise that resolves with a Blob containing the object's bytes
+ */
+function getBlob(
+  ref: StorageReference,
+  maxDownloadSizeBytes?: number
+): Promise<Blob> {
+  throw new Error("getBlob() is only available in Browser-like environments");
+}
+
+/**
+ * Downloads the data at the object's location. Raises an error event if the
+ * object is not found.
+ *
+ * This API is only available in Node.
+ *
+ * @public
+ * @param ref - StorageReference where data should be download.
+ * @param maxDownloadSizeBytes - If set, the maximum allowed size in bytes to
+ * retrieve.
+ * @returns A stream with the object's data as bytes
+ */
+export function getStream(
+  ref: StorageReference,
+  maxDownloadSizeBytes?: number
+): NodeJS.ReadableStream {
+  throw new Error("Not implemented");
+}
+
+// TODO(getbytes): Export getBlob/getStream
 
 export {};
