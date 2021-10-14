@@ -148,16 +148,15 @@ describe('core/user/reauthenticate', () => {
     stub(credential, '_getReauthenticationResolver').returns(
       Promise.reject(
         _createError(user.auth, AuthErrorCode.MFA_REQUIRED, {
-          serverResponse
+          _serverResponse: serverResponse
         })
       )
     );
     const error = await expect(
       _reauthenticate(user, credential)
     ).to.be.rejectedWith(MultiFactorError);
-    expect(error.operationType).to.eq(OperationType.REAUTHENTICATE);
-    expect(error.serverResponse).to.eql(serverResponse);
-    expect(error.user).to.eq(user);
+    expect(error.customData.operationType).to.eq(OperationType.REAUTHENTICATE);
+    expect(error.customData._serverResponse).to.eql(serverResponse);
   });
 
   it('should return a valid user credential', async () => {

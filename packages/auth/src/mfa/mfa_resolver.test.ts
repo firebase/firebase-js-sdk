@@ -54,7 +54,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
     auth = await testAuth();
     auth.tenantId = 'tenant-id';
     underlyingError = _createError(auth, AuthErrorCode.MFA_REQUIRED, {
-      serverResponse: {
+      _serverResponse: {
         localId: 'local-id',
         mfaPendingCredential: 'mfa-pending-credential',
         mfaInfo: [

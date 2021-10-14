@@ -602,11 +602,13 @@ export interface MultiFactorAssertion {
  *
  * @public
  */
-export interface MultiFactorError extends AuthError {
-  /**
-   * The type of operation (e.g., sign-in, link, or reauthenticate) during which the error was raised.
-   */
-  readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+ export interface MultiFactorError extends AuthError {
+  readonly customData: AuthError['customData'] & {
+    /**
+     * The type of operation (e.g., sign-in, link, or reauthenticate) during which the error was raised.
+     */
+    readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+  }
 }
 
 /**

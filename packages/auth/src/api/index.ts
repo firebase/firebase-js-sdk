@@ -197,7 +197,7 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   )) as V;
   if ('mfaPendingCredential' in serverResponse) {
     _fail(auth, AuthErrorCode.MFA_REQUIRED, {
-      serverResponse
+      _serverResponse: serverResponse
     });
   }
 

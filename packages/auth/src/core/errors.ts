@@ -398,7 +398,7 @@ export interface NamedErrorParams {
   phoneNumber?: string;
   tenantId?: string;
   user?: User;
-  serverResponse?: object;
+  _serverResponse?: object;
 }
 
 /**
@@ -431,7 +431,7 @@ export interface AuthErrorParams extends GenericAuthErrorParams {
   [AuthErrorCode.NO_AUTH_EVENT]: { appName?: AppName };
   [AuthErrorCode.MFA_REQUIRED]: {
     appName: AppName;
-    serverResponse: IdTokenMfaResponse;
+    _serverResponse: IdTokenMfaResponse;
   };
   [AuthErrorCode.INVALID_CORDOVA_CONFIGURATION]: {
     appName: AppName;
