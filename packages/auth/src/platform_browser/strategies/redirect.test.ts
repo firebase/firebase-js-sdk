@@ -329,7 +329,7 @@ describe('platform_browser/strategies/redirect', () => {
       expect(await promise).to.eq(cred);
     });
 
-    it('returns the same value if called multiple times', async () => {
+    it('returns null after the first call', async () => {
       const cred = new UserCredentialImpl({
         user: testUser(auth, 'uid'),
         providerId: ProviderId.GOOGLE,
@@ -341,7 +341,7 @@ describe('platform_browser/strategies/redirect', () => {
         type: AuthEventType.SIGN_IN_VIA_REDIRECT
       });
       expect(await promise).to.eq(cred);
-      expect(await getRedirectResult(auth, resolver)).to.eq(cred);
+      expect(await getRedirectResult(auth, resolver)).to.be.null;
     });
 
     it('interacts with redirectUser loading from auth object', async () => {
@@ -405,7 +405,7 @@ describe('platform_browser/strategies/redirect', () => {
         type: AuthEventType.REAUTH_VIA_REDIRECT
       });
       expect(await promise).to.eq(cred);
-      expect(await getRedirectResult(auth, resolver)).to.eq(cred);
+      expect(await getRedirectResult(auth, resolver)).to.be.null;
     });
 
     it('removes the redirect user and clears eventId from currentuser', async () => {
