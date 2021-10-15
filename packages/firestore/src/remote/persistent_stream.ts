@@ -306,7 +306,6 @@ export abstract class PersistentStream<
   /** Sends a message to the underlying stream. */
   protected sendRequest(msg: SendType): void {
     this.cancelIdleCheck();
-    this.cancelHealthCheck();
     this.stream!.send(msg);
   }
 
@@ -360,6 +359,7 @@ export abstract class PersistentStream<
 
     // Cancel any outstanding timers (they're guaranteed not to execute).
     this.cancelIdleCheck();
+    this.cancelHealthCheck();
     this.backoff.cancel();
 
     // Invalidates any stream-related callbacks (e.g. from auth or the
