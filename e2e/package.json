@@ -22,7 +22,7 @@
     "@babel/core": "7.14.6",
     "@babel/preset-env": "7.14.4",
     "@types/chai": "4.2.18",
-    "@types/mocha": "8.2.2",
+    "@types/mocha": "9.0.0",
     "babel-loader": "8.0.5",
     "chai": "4.3.4",
     "karma": "6.3.4",
