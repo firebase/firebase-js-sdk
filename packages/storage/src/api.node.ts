@@ -33,6 +33,7 @@ import {StorageReference} from "./public-types";
  * retrieve.
  * @returns A Promise that resolves with a Blob containing the object's bytes
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getBlob(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
@@ -52,7 +53,8 @@ function getBlob(
  * retrieve.
  * @returns A stream with the object's data as bytes
  */
-export function getStream(
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getStream(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
 ): NodeJS.ReadableStream {
