@@ -127,9 +127,6 @@ export function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 // @public
 export function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStorage;
 
-// @public
-export function getStream(ref: StorageReference, maxDownloadSizeBytes?: number): NodeJS.ReadableStream;
-
 // Warning: (ae-forgotten-export) The symbol "StorageError" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
