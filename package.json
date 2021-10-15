@@ -42,7 +42,6 @@
     "docgen:compat": "yarn docgen:compat:js; yarn docgen:compat:node",
     "docgen:compat:js": "node scripts/docgen-compat/generate-docs.js --api js",
     "docgen:compat:node": "node scripts/docgen-compat/generate-docs.js --api node",
-    "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'",
     "lint": "lerna run --scope @firebase/* lint",
     "lint:fix": "lerna run --scope @firebase/* lint:fix",
     "size-report": "ts-node-script scripts/size_report/report_binary_size.ts",
@@ -50,7 +49,8 @@
     "api-report": "lerna run --scope @firebase/* api-report",
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
     "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
-    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts"
+    "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts",
+    "format": "ts-node ./scripts/format/format.ts"
   },
   "repository": {
     "type": "git",
@@ -155,10 +155,5 @@
     "watch": "1.0.2",
     "webpack": "4.46.0",
     "yargs": "17.2.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "node tools/gitHooks/precommit.js"
-    }
   }
 }
