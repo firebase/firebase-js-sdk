@@ -475,15 +475,7 @@ export abstract class PersistentStream<
     this.stream = this.startRpc(token);
     this.stream.onOpen(() => {
       dispatchIfNotClosed(() => {
-        debugAssert(
-          this.state === PersistentStreamState.Starting,
-          'Expected stream to be in state Starting, but was ' + this.state
-        );
-        this.state = PersistentStreamState.Open;
-        return this.listener!.onOpen();
-      });
-
-      if (this.healthCheck === null) {
+        debugAssert(this.healthCheck === null, 'Expected healthCheck to be null');
         this.healthCheck = this.queue.enqueueAfterDelay(
           this.healthTimerId,
           HEALTHY_TIMEOUT_MS,
@@ -494,7 +486,13 @@ export abstract class PersistentStream<
             return Promise.resolve();
           }
         );
-      }
+        debugAssert(
+          this.state === PersistentStreamState.Starting,
+          'Expected stream to be in state Starting, but was ' + this.state
+        );
+        this.state = PersistentStreamState.Open;
+        return this.listener!.onOpen();
+      });
     });
     this.stream.onClose((error?: FirestoreError) => {
       dispatchIfNotClosed(() => {
