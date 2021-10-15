@@ -225,8 +225,10 @@ export abstract class PersistentStream<
    * called) and the stream is ready for outbound requests.
    */
   isOpen(): boolean {
-    return this.state === PersistentStreamState.Open ||
-      this.state === PersistentStreamState.Healthy;
+    return (
+      this.state === PersistentStreamState.Open ||
+      this.state === PersistentStreamState.Healthy
+    );
   }
 
   /**
@@ -374,8 +376,11 @@ export abstract class PersistentStream<
         'Using maximum backoff delay to prevent overloading the backend.'
       );
       this.backoff.resetToMax();
-    } else if (error && error.code === Code.UNAUTHENTICATED &&
-      this.state !== PersistentStreamState.Healthy) {
+    } else if (
+      error &&
+      error.code === Code.UNAUTHENTICATED &&
+      this.state !== PersistentStreamState.Healthy
+    ) {
       // "unauthenticated" error means the token was rejected. This should rarely
       // happen since both Auth and AppCheck ensure a sufficient TTL when we
       // request a token. If a user manually resets their system clock this can

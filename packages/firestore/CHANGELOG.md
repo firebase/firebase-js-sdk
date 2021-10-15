@@ -1,5 +1,8 @@
 # @firebase/firestore
 
+# Unreleased
+- [added] Added Healthy state to streams.
+
 ## 3.1.1
 
 ### Patch Changes
