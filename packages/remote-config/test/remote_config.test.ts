@@ -90,7 +90,7 @@ describe('RemoteConfig', () => {
 
   afterEach(() => {
     loggerDebugSpy.restore();
-    loggerLogLevelSpy.restore();
+    loggerLogLevelSpy.set.restore();
   });
 
   // Adapts getUserLanguage tests from packages/auth/test/utils_test.js for TypeScript.
