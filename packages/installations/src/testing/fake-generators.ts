@@ -15,15 +15,17 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import {
   Component,
   ComponentContainer,
   ComponentType
 } from '@firebase/component';
 import { extractAppConfig } from '../helpers/extract-app-config';
-import { AppConfig } from '../interfaces/app-config';
-import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import {
+  FirebaseInstallationsImpl,
+  AppConfig
+} from '../interfaces/installation-impl';
 
 export function getFakeApp(): FirebaseApp {
   return {
@@ -37,11 +39,7 @@ export function getFakeApp(): FirebaseApp {
       storageBucket: 'storageBucket',
       appId: '1:777777777777:web:d93b5ca1475efe57'
     },
-    automaticDataCollectionEnabled: true,
-    delete: async () => {},
-    // This won't be used in tests.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    installations: null as any
+    automaticDataCollectionEnabled: true
   };
 }
 
@@ -51,7 +49,7 @@ export function getFakeAppConfig(
   return { ...extractAppConfig(getFakeApp()), ...customValues };
 }
 
-export function getFakeDependencies(): FirebaseDependencies {
+export function getFakeInstallations(): FirebaseInstallationsImpl {
   const container = new ComponentContainer('test');
   container.addComponent(
     new Component(
@@ -62,7 +60,11 @@ export function getFakeDependencies(): FirebaseDependencies {
   );
 
   return {
+    app: getFakeApp(),
     appConfig: getFakeAppConfig(),
-    platformLoggerProvider: container.getProvider('platform-logger')
+    platformLoggerProvider: container.getProvider('platform-logger'),
+    _delete: () => {
+      return Promise.resolve();
+    }
   };
 }

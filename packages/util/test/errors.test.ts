@@ -64,7 +64,7 @@ describe('FirebaseError', () => {
 
   it('uses "Error" as template when template is missing', () => {
     // Cast to avoid compile-time error.
-    const e = ERROR_FACTORY.create(('no-such-code' as any) as ErrorCode);
+    const e = ERROR_FACTORY.create('no-such-code' as any as ErrorCode);
     assert.equal(e.code, 'fake/no-such-code');
     assert.equal(e.message, 'Fake: Error (fake/no-such-code).');
   });

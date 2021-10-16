@@ -1,6 +1,12 @@
 /**
+ * Firebase App Check
+ *
+ * @packageDocumentation
+ */
+
+/**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +20,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import firebase from '@firebase/app';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { registerVersion, _registerComponent } from '@firebase/app';
 import {
   Component,
   ComponentType,
   InstantiationMode
 } from '@firebase/component';
-import {
-  FirebaseAppCheck,
-  AppCheckComponentName
-} from '@firebase/app-check-types';
+import { _AppCheckComponentName } from './public-types';
 import { factory, internalFactory } from './factory';
-import { initializeDebugMode } from './debug';
-import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { _AppCheckInternalComponentName } from './types';
 import { name, version } from '../package.json';
 
-const APP_CHECK_NAME: AppCheckComponentName = 'appCheck';
-const APP_CHECK_NAME_INTERNAL: AppCheckInternalComponentName =
+// Used by other Firebase packages.
+export { _AppCheckInternalComponentName };
+
+export * from './api';
+export * from './public-types';
+
+const APP_CHECK_NAME: _AppCheckComponentName = 'app-check';
+const APP_CHECK_NAME_INTERNAL: _AppCheckInternalComponentName =
   'app-check-internal';
-function registerAppCheck(firebase: _FirebaseNamespace): void {
+function registerAppCheck(): void {
   // The public interface
-  firebase.INTERNAL.registerComponent(
+  _registerComponent(
     new Component(
       APP_CHECK_NAME,
       container => {
@@ -46,56 +53,31 @@ function registerAppCheck(firebase: _FirebaseNamespace): void {
       },
       ComponentType.PUBLIC
     )
-      /**
-       * AppCheck can only be initialized by explicitly calling firebase.appCheck()
-       * We don't want firebase products that consume AppCheck to gate on AppCheck
-       * if the user doesn't intend them to, just because the AppCheck component
-       * is registered.
-       */
       .setInstantiationMode(InstantiationMode.EXPLICIT)
       /**
-       * Because all firebase products that depend on app-check depend on app-check-internal directly,
-       * we need to initialize app-check-internal after app-check is initialized to make it
-       * available to other firebase products.
+       * Initialize app-check-internal after app-check is initialized to make AppCheck available to
+       * other Firebase SDKs
        */
       .setInstanceCreatedCallback(
-        (container, _instanceIdentifier, _instance) => {
-          const appCheckInternalProvider = container.getProvider(
-            APP_CHECK_NAME_INTERNAL
-          );
-          appCheckInternalProvider.initialize();
+        (container, _identifier, _appcheckService) => {
+          container.getProvider(APP_CHECK_NAME_INTERNAL).initialize();
         }
       )
   );
 
   // The internal interface used by other Firebase products
-  firebase.INTERNAL.registerComponent(
+  _registerComponent(
     new Component(
       APP_CHECK_NAME_INTERNAL,
       container => {
-        // getImmediate for FirebaseApp will always succeed
-        const app = container.getProvider('app').getImmediate();
-        const platformLoggerProvider = container.getProvider('platform-logger');
-        return internalFactory(app, platformLoggerProvider);
+        const appCheck = container.getProvider('app-check').getImmediate();
+        return internalFactory(appCheck);
       },
       ComponentType.PUBLIC
     ).setInstantiationMode(InstantiationMode.EXPLICIT)
   );
 
-  firebase.registerVersion(name, version);
+  registerVersion(name, version);
 }
 
-registerAppCheck(firebase as _FirebaseNamespace);
-initializeDebugMode();
-
-/**
- * Define extension behavior of `registerAnalytics`
- */
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    appCheck(app?: FirebaseApp): FirebaseAppCheck;
-  }
-  interface FirebaseApp {
-    appCheck(): FirebaseAppCheck;
-  }
-}
+registerAppCheck();

@@ -52,7 +52,8 @@ export class StorageCache {
    */
   async loadFromStorage(): Promise<void> {
     const lastFetchStatusPromise = this.storage.getLastFetchStatus();
-    const lastSuccessfulFetchTimestampMillisPromise = this.storage.getLastSuccessfulFetchTimestampMillis();
+    const lastSuccessfulFetchTimestampMillisPromise =
+      this.storage.getLastSuccessfulFetchTimestampMillis();
     const activeConfigPromise = this.storage.getActiveConfig();
 
     // Note:
@@ -66,9 +67,11 @@ export class StorageCache {
       this.lastFetchStatus = lastFetchStatus;
     }
 
-    const lastSuccessfulFetchTimestampMillis = await lastSuccessfulFetchTimestampMillisPromise;
+    const lastSuccessfulFetchTimestampMillis =
+      await lastSuccessfulFetchTimestampMillisPromise;
     if (lastSuccessfulFetchTimestampMillis) {
-      this.lastSuccessfulFetchTimestampMillis = lastSuccessfulFetchTimestampMillis;
+      this.lastSuccessfulFetchTimestampMillis =
+        lastSuccessfulFetchTimestampMillis;
     }
 
     const activeConfig = await activeConfigPromise;

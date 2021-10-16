@@ -17,11 +17,11 @@
 
 import {
   AnalyticsCallOptions,
-  Gtag,
   CustomParams,
   ControlParams,
   EventParams
-} from '@firebase/analytics-types';
+} from './public-types';
+import { Gtag } from './types';
 import { GtagCommand } from './constants';
 /**
  * Logs an analytics event through the Firebase SDK.

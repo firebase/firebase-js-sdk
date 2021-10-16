@@ -1,0 +1,7 @@
+{
+  "name": "@firebase/messaging-sw",
+  "description": "",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "module": "../dist/index.sw.esm2017.js",
+  "typings": "../dist/src/index.sw.d.ts"
+}

@@ -40,12 +40,11 @@ export const testConfig: {
       'firebase-compat-typings-test',
       '@firebase/rules-unit-testing',
       '@firebase/auth',
-      'firebase',
-      'firebase-exp'
+      'firebase'
     ]
   },
   'firestore': {
-    'onlyIncludePackages': ['@firebase/firestore']
+    'onlyIncludePackages': ['@firebase/firestore', '@firebase/firestore-compat']
   },
   'firestore-integration': {
     'onlyIncludePackages': ['firebase-firestore-integration-test']

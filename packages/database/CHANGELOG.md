@@ -1,5 +1,56 @@
 # Unreleased
 
+## 0.12.2
+
+### Patch Changes
+
+- [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f) [#5596](https://github.com/firebase/firebase-js-sdk/pull/5596) - report build variants for packages
+
+## 0.12.1
+
+### Patch Changes
+
+- [`dfe65ff9b`](https://github.com/firebase/firebase-js-sdk/commit/dfe65ff9bfa66d318d45e2a666e302867ae53a01) [#5537](https://github.com/firebase/firebase-js-sdk/pull/5537) - Added an entry point `@firebase/database-compat/standalone` to share code with Admin SDK properly
+
+- Updated dependencies [[`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422)]:
+  - @firebase/logger@0.3.0
+  - @firebase/util@1.4.0
+  - @firebase/component@0.5.7
+
+## 0.12.0
+
+### Minor Changes
+
+- [`cdada6c68`](https://github.com/firebase/firebase-js-sdk/commit/cdada6c68f9740d13dd6674bcb658e28e68253b6) [#5345](https://github.com/firebase/firebase-js-sdk/pull/5345) (fixes [#5015](https://github.com/firebase/firebase-js-sdk/issues/5015)) - Release modularized SDKs
+
+## 0.11.0
+
+### Minor Changes
+
+- [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131) [#5282](https://github.com/firebase/firebase-js-sdk/pull/5282) - Implement mockUserToken for Storage and fix JWT format bugs.
+
+### Patch Changes
+
+- Updated dependencies [[`bb6b5abff`](https://github.com/firebase/firebase-js-sdk/commit/bb6b5abff6f89ce9ec1bd66ff4e795a059a98eec), [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131)]:
+  - @firebase/component@0.5.6
+  - @firebase/database-types@0.8.0
+  - @firebase/util@1.3.0
+
+## 0.10.9
+
+### Patch Changes
+
+- Updated dependencies [[`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c)]:
+  - @firebase/util@1.2.0
+  - @firebase/component@0.5.5
+  - @firebase/database-types@0.7.3
+
+## 0.10.8
+
+### Patch Changes
+
+- [`fb3e35965`](https://github.com/firebase/firebase-js-sdk/commit/fb3e35965b23f88e318dd877fabade16cdcb6385) [#5146](https://github.com/firebase/firebase-js-sdk/pull/5146) - Fix sending of auth tokens on node.
+
 ## 0.10.7
 
 ### Patch Changes

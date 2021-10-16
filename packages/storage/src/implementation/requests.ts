@@ -23,7 +23,7 @@ import { Metadata } from '../metadata';
 import { ListResult } from '../list';
 import { FbsBlob } from './blob';
 import {
-  FirebaseStorageError,
+  StorageError,
   cannotSliceBlob,
   unauthenticated,
   quotaExceeded,
@@ -45,10 +45,10 @@ import { RequestInfo, UrlParams } from './requestinfo';
 import { isString } from './type';
 import { makeUrl } from './url';
 import { Connection } from './connection';
-import { StorageService } from '../service';
+import { FirebaseStorageImpl } from '../service';
 
 /**
- * Throws the UNKNOWN FirebaseStorageError if cndn is false.
+ * Throws the UNKNOWN StorageError if cndn is false.
  */
 export function handlerCheck(cndn: boolean): void {
   if (!cndn) {
@@ -57,7 +57,7 @@ export function handlerCheck(cndn: boolean): void {
 }
 
 export function metadataHandler(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   mappings: Mappings
 ): (p1: Connection, p2: string) => Metadata {
   function handler(xhr: Connection, text: string): Metadata {
@@ -69,7 +69,7 @@ export function metadataHandler(
 }
 
 export function listHandler(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   bucket: string
 ): (p1: Connection, p2: string) => ListResult {
   function handler(xhr: Connection, text: string): ListResult {
@@ -81,7 +81,7 @@ export function listHandler(
 }
 
 export function downloadUrlHandler(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   mappings: Mappings
 ): (p1: Connection, p2: string) => string | null {
   function handler(xhr: Connection, text: string): string | null {
@@ -90,7 +90,8 @@ export function downloadUrlHandler(
     return downloadUrlFromResourceString(
       metadata as Metadata,
       text,
-      service.host
+      service.host,
+      service._protocol
     );
   }
   return handler;
@@ -98,11 +99,8 @@ export function downloadUrlHandler(
 
 export function sharedErrorHandler(
   location: Location
-): (p1: Connection, p2: FirebaseStorageError) => FirebaseStorageError {
-  function errorHandler(
-    xhr: Connection,
-    err: FirebaseStorageError
-  ): FirebaseStorageError {
+): (p1: Connection, p2: StorageError) => StorageError {
+  function errorHandler(xhr: Connection, err: StorageError): StorageError {
     let newErr;
     if (xhr.getStatus() === 401) {
       if (
@@ -133,13 +131,10 @@ export function sharedErrorHandler(
 
 export function objectErrorHandler(
   location: Location
-): (p1: Connection, p2: FirebaseStorageError) => FirebaseStorageError {
+): (p1: Connection, p2: StorageError) => StorageError {
   const shared = sharedErrorHandler(location);
 
-  function errorHandler(
-    xhr: Connection,
-    err: FirebaseStorageError
-  ): FirebaseStorageError {
+  function errorHandler(xhr: Connection, err: StorageError): StorageError {
     let newErr = shared(xhr, err);
     if (xhr.getStatus() === 404) {
       newErr = objectNotFound(location.path);
@@ -151,12 +146,12 @@ export function objectErrorHandler(
 }
 
 export function getMetadata(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   mappings: Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart, service.host);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -170,7 +165,7 @@ export function getMetadata(
 }
 
 export function list(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   delimiter?: string,
   pageToken?: string | null,
@@ -192,7 +187,7 @@ export function list(
     urlParams['maxResults'] = maxResults;
   }
   const urlPart = location.bucketOnlyServerUrl();
-  const url = makeUrl(urlPart, service.host);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -207,12 +202,12 @@ export function list(
 }
 
 export function getDownloadUrl(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   mappings: Mappings
 ): RequestInfo<string | null> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart, service.host);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
@@ -226,13 +221,13 @@ export function getDownloadUrl(
 }
 
 export function updateMetadata(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   metadata: Partial<Metadata>,
   mappings: Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart, service.host);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'PATCH';
   const body = toResourceString(metadata, mappings);
   const headers = { 'Content-Type': 'application/json; charset=utf-8' };
@@ -250,11 +245,11 @@ export function updateMetadata(
 }
 
 export function deleteObject(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location
 ): RequestInfo<void> {
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart, service.host);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'DELETE';
   const timeout = service.maxOperationRetryTime;
 
@@ -294,7 +289,7 @@ export function metadataForUpload_(
  * Prepare RequestInfo for uploads as Content-Type: multipart.
  */
 export function multipartUpload(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   mappings: Mappings,
   blob: FbsBlob,
@@ -334,7 +329,7 @@ export function multipartUpload(
     throw cannotSliceBlob();
   }
   const urlParams: UrlParams = { name: metadata_['fullPath']! };
-  const url = makeUrl(urlPart, service.host);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'POST';
   const timeout = service.maxUploadRetryTime;
   const requestInfo = new RequestInfo(
@@ -388,7 +383,7 @@ export function checkResumeHeader_(
 }
 
 export function createResumableUpload(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   mappings: Mappings,
   blob: FbsBlob,
@@ -397,7 +392,7 @@ export function createResumableUpload(
   const urlPart = location.bucketOnlyServerUrl();
   const metadataForUpload = metadataForUpload_(location, blob, metadata);
   const urlParams: UrlParams = { name: metadataForUpload['fullPath']! };
-  const url = makeUrl(urlPart, service.host);
+  const url = makeUrl(urlPart, service.host, service._protocol);
   const method = 'POST';
   const headers = {
     'X-Goog-Upload-Protocol': 'resumable',
@@ -432,7 +427,7 @@ export function createResumableUpload(
  * @param url From a call to fbs.requests.createResumableUpload.
  */
 export function getResumableUploadStatus(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   location: Location,
   url: string,
   blob: FbsBlob
@@ -482,7 +477,7 @@ export const RESUMABLE_UPLOAD_CHUNK_SIZE: number = 256 * 1024;
  */
 export function continueResumableUpload(
   location: Location,
-  service: StorageService,
+  service: FirebaseStorageImpl,
   url: string,
   blob: FbsBlob,
   chunkSize: number,

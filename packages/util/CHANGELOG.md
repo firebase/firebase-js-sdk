@@ -1,5 +1,27 @@
 # @firebase/util
 
+## 1.4.0
+
+### Minor Changes
+
+- [`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39) [#5539](https://github.com/firebase/firebase-js-sdk/pull/5539) - Use esm2017 builds by default
+
+### Patch Changes
+
+- [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422) [#5506](https://github.com/firebase/firebase-js-sdk/pull/5506) - areCookiesEnabled could encounter runtime errors in certain enviornments
+
+## 1.3.0
+
+### Minor Changes
+
+- [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131) [#5282](https://github.com/firebase/firebase-js-sdk/pull/5282) - Implement mockUserToken for Storage and fix JWT format bugs.
+
+## 1.2.0
+
+### Minor Changes
+
+- [`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c) [#5207](https://github.com/firebase/firebase-js-sdk/pull/5207) - Added deepEqual for comparing objects
+
 ## 1.1.0
 
 ### Minor Changes

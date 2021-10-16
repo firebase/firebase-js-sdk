@@ -158,11 +158,27 @@ apiDescribe('Validation:', (persistence: boolean) => {
       }
     );
 
-    validationIt(persistence, 'useEmulator can set mockUserToken', () => {
-      const db = newTestFirestore('test-project');
-      // Verify that this doesn't throw.
-      db.useEmulator('localhost', 9000, { mockUserToken: { sub: 'foo' } });
-    });
+    validationIt(
+      persistence,
+      'useEmulator can set mockUserToken object',
+      () => {
+        const db = newTestFirestore('test-project');
+        // Verify that this doesn't throw.
+        db.useEmulator('localhost', 9000, { mockUserToken: { sub: 'foo' } });
+      }
+    );
+
+    validationIt(
+      persistence,
+      'useEmulator can set mockUserToken string',
+      () => {
+        const db = newTestFirestore('test-project');
+        // Verify that this doesn't throw.
+        db.useEmulator('localhost', 9000, {
+          mockUserToken: 'my-mock-user-token'
+        });
+      }
+    );
 
     validationIt(
       persistence,
@@ -1143,19 +1159,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           db
             .collection('test')
-            .where('foo', 'array-contains-any', [
-              1,
-              2,
-              3,
-              4,
-              5,
-              6,
-              7,
-              8,
-              9,
-              9,
-              9
-            ])
+            .where(
+              'foo',
+              'array-contains-any',
+              [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9]
+            )
         ).to.throw(
           "Invalid Query. 'array-contains-any' filters support a maximum of " +
             '10 elements in the value array.'

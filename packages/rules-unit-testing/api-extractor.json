@@ -1,0 +1,5 @@
+{
+    "extends": "../../config/api-extractor.json",
+    // Point it to your entry point d.ts file. 
+    "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts"
+}

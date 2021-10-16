@@ -17,12 +17,12 @@
 
 import * as firestore from '@firebase/firestore-types';
 
+import { Firestore } from '../../../compat/api/database';
 import {
   CredentialChangeListener,
   CredentialsProvider,
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
-import { Firestore } from '../../../src/api/database';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { newConnection } from '../../../src/platform/connection';
@@ -73,11 +73,8 @@ export class MockCredentialsProvider extends EmptyCredentialsProvider {
     this.asyncQueue!.enqueueRetryable(async () => this.listener!(newUser));
   }
 
-  setChangeListener(
-    asyncQueue: AsyncQueue,
-    listener: CredentialChangeListener
-  ): void {
-    super.setChangeListener(asyncQueue, listener);
+  start(asyncQueue: AsyncQueue, listener: CredentialChangeListener): void {
+    super.start(asyncQueue, listener);
     this.asyncQueue = asyncQueue;
     this.listener = listener;
   }
@@ -129,18 +126,22 @@ function bundleWithTestDocsAndQueries(
   builder.addNamedQuery(
     'limit',
     { seconds: 1000, nanos: 9999 },
-    (collectionReference('coll-1')
-      .orderBy('bar', 'desc')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .limit(1) as any)._query
+    (
+      collectionReference('coll-1')
+        .orderBy('bar', 'desc')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .limit(1) as any
+    )._query
   );
   builder.addNamedQuery(
     'limit-to-last',
     { seconds: 1000, nanos: 9999 },
-    (collectionReference('coll-1')
-      .orderBy('bar', 'desc')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .limitToLast(1) as any)._query
+    (
+      collectionReference('coll-1')
+        .orderBy('bar', 'desc')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .limitToLast(1) as any
+    )._query
   );
 
   builder.addDocumentMetadata(a, { seconds: 1000, nanos: 9999 }, true);

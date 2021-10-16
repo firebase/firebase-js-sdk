@@ -235,7 +235,7 @@ export interface Persistence {
    * be acquired and the returned promise will be rejected with a
    * FAILED_PRECONDITION error.
    * @param transactionOperation - The operation to run inside a transaction.
-   * @returns A promise that is resolved once the transaction completes.
+   * @returns A `Promise` that is resolved once the transaction completes.
    */
   runTransaction<T>(
     action: string,

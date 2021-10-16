@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { MessagePayload } from '@firebase/messaging-types';
+import { MessagePayload } from '../interfaces/public-types';
 import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
 
 export function externalizePayload(
@@ -24,7 +24,9 @@ export function externalizePayload(
   const payload: MessagePayload = {
     from: internalPayload.from,
     // eslint-disable-next-line camelcase
-    collapseKey: internalPayload.collapse_key
+    collapseKey: internalPayload.collapse_key,
+    // eslint-disable-next-line camelcase
+    messageId: internalPayload.fcm_message_id
   } as MessagePayload;
 
   propagateNotificationPayload(payload, internalPayload);

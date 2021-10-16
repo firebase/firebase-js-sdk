@@ -19,10 +19,7 @@ import {
   Headers,
   Connection
 } from '../../src/implementation/connection';
-import {
-  FirebaseStorageError,
-  StorageErrorCode
-} from '../../src/implementation/error';
+import { StorageError, StorageErrorCode } from '../../src/implementation/error';
 
 export type SendHook = (
   connection: TestingConnection,
@@ -67,10 +64,7 @@ export class TestingConnection implements Connection {
     headers?: Headers
   ): Promise<void> {
     if (this.state !== State.START) {
-      throw new FirebaseStorageError(
-        StorageErrorCode.UNKNOWN,
-        "Can't send again"
-      );
+      throw new StorageError(StorageErrorCode.UNKNOWN, "Can't send again");
     }
 
     this.state = State.SENT;
@@ -87,7 +81,7 @@ export class TestingConnection implements Connection {
     headers: { [key: string]: string }
   ): void {
     if (this.state !== State.SENT) {
-      throw new FirebaseStorageError(
+      throw new StorageError(
         StorageErrorCode.UNKNOWN,
         "Can't simulate response before send/more than once"
       );

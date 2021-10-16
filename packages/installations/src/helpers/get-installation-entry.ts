@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { createInstallationRequest } from '../api/create-installation-request';
-import { AppConfig } from '../interfaces/app-config';
+import { createInstallationRequest } from '../functions/create-installation-request';
+import { AppConfig } from '../interfaces/installation-impl';
 import {
   InProgressInstallationEntry,
   InstallationEntry,
@@ -171,10 +171,8 @@ async function waitUntilFidRegistration(
 
   if (entry.registrationStatus === RequestStatus.NOT_STARTED) {
     // The request timed out or failed in a different call. Try again.
-    const {
-      installationEntry,
-      registrationPromise
-    } = await getInstallationEntry(appConfig);
+    const { installationEntry, registrationPromise } =
+      await getInstallationEntry(appConfig);
 
     if (registrationPromise) {
       return registrationPromise;

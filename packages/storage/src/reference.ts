@@ -31,15 +31,14 @@ import {
   deleteObject as requestsDeleteObject,
   multipartUpload
 } from './implementation/requests';
-import { ListOptions } from '../exp/public-types';
+import { ListOptions, UploadResult } from './public-types';
 import { StringFormat, dataFromString } from './implementation/string';
 import { Metadata } from './metadata';
-import { StorageService } from './service';
+import { FirebaseStorageImpl } from './service';
 import { ListResult } from './list';
 import { UploadTask } from './task';
 import { invalidRootOperation, noDownloadURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
-import { UploadResult } from './tasksnapshot';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -56,7 +55,10 @@ import { UploadResult } from './tasksnapshot';
 export class Reference {
   _location: Location;
 
-  constructor(private _service: StorageService, location: string | Location) {
+  constructor(
+    private _service: FirebaseStorageImpl,
+    location: string | Location
+  ) {
     if (location instanceof Location) {
       this._location = location;
     } else {
@@ -73,7 +75,10 @@ export class Reference {
     return 'gs://' + this._location.bucket + '/' + this._location.path;
   }
 
-  protected _newRef(service: StorageService, location: Location): Reference {
+  protected _newRef(
+    service: FirebaseStorageImpl,
+    location: Location
+  ): Reference {
     return new Reference(service, location);
   }
 
@@ -110,7 +115,7 @@ export class Reference {
   /**
    * The `StorageService` instance this `StorageReference` is associated with.
    */
-  get storage(): StorageService {
+  get storage(): FirebaseStorageImpl {
     return this._service;
   }
 
@@ -311,7 +316,7 @@ export async function list(
 }
 
 /**
- * A promise that resolves with the metadata for this object. If this
+ * A `Promise` that resolves with the metadata for this object. If this
  * object doesn't exist or metadata cannot be retreived, the promise is
  * rejected.
  * @public
@@ -334,7 +339,7 @@ export async function getMetadata(ref: Reference): Promise<Metadata> {
  * @param metadata - The new metadata for the object.
  *     Only values that have been explicitly set will be changed. Explicitly
  *     setting a value to null will remove the metadata.
- * @returns A promise that resolves
+ * @returns A `Promise` that resolves
  *     with the new metadata for this object.
  *     See `firebaseStorage.Reference.prototype.getMetadata`
  */
@@ -355,7 +360,7 @@ export async function updateMetadata(
 /**
  * Returns the download URL for the given Reference.
  * @public
- * @returns A promise that resolves with the download
+ * @returns A `Promise` that resolves with the download
  *     URL for this object.
  */
 export async function getDownloadURL(ref: Reference): Promise<string> {
@@ -379,7 +384,7 @@ export async function getDownloadURL(ref: Reference): Promise<string> {
  * Deletes the object at this location.
  * @public
  * @param ref - StorageReference for object to delete.
- * @returns A promise that resolves if the deletion succeeds.
+ * @returns A `Promise` that resolves if the deletion succeeds.
  */
 export async function deleteObject(ref: Reference): Promise<void> {
   ref._throwIfRoot('deleteObject');

@@ -120,16 +120,6 @@ const removeAssertTransformer = service => ({
 exports.removeAssertTransformer = removeAssertTransformer;
 
 /**
- * Transformer that coverts import paths that match `exp/index` to `@firebase/firestore`
- * and `lite/index` to `@firebase/firestore/lite`
- */
-const importTransformer = service => ({
-  before: [removeAsserts(service.getProgram())],
-  after: []
-});
-exports.importTransformer = importTransformer;
-
-/**
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
  * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
@@ -143,7 +133,8 @@ const removeAssertAndPrefixInternalTransformer = service => ({
   ],
   after: []
 });
-exports.removeAssertAndPrefixInternalTransformer = removeAssertAndPrefixInternalTransformer;
+exports.removeAssertAndPrefixInternalTransformer =
+  removeAssertAndPrefixInternalTransformer;
 
 /**
  * Terser options that mangle all properties prefixed with __PRIVATE_.
@@ -154,6 +145,13 @@ const manglePrivatePropertiesOptions = {
     beautify: true
   },
   mangle: {
+    // Temporary hack fix for an issue where mangled code causes some downstream
+    // bundlers (Babel?) to confuse the same variable name in different scopes.
+    // This can be removed if the problem in the downstream library is fixed
+    // or if terser's mangler provides an option to avoid mangling everything
+    // that isn't a property.
+    // See issue: https://github.com/firebase/firebase-js-sdk/issues/5384
+    reserved: ['_getProvider'],
     properties: {
       regex: /^__PRIVATE_/,
       // All JS Keywords are reserved. Although this should be taken cared of by
@@ -293,7 +291,12 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
           comments: 'all',
           beautify: true
         },
-        mangle: true
+        // See comment above `manglePrivatePropertiesOptions`. This build did
+        // not have the identical variable name issue but we should be
+        // consistent.
+        mangle: {
+          reserved: ['_getProvider']
+        }
       }),
       sourcemaps()
     ];

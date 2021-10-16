@@ -102,7 +102,8 @@ export interface OfflineComponentProvider {
  * Uses EagerGC garbage collection.
  */
 export class MemoryOfflineComponentProvider
-  implements OfflineComponentProvider {
+  implements OfflineComponentProvider
+{
   persistence!: Persistence;
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
@@ -181,6 +182,15 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       this.onlineComponentProvider.syncEngine
     );
     await fillWritePipeline(this.onlineComponentProvider.remoteStore);
+
+    // NOTE: This will immediately call the listener, so we make sure to
+    // set it after localStore / remoteStore are started.
+    await this.persistence.setPrimaryStateListener(() => {
+      if (this.gcScheduler && !this.gcScheduler.started) {
+        this.gcScheduler.start(this.localStore);
+      }
+      return Promise.resolve();
+    });
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
@@ -195,8 +205,8 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration
   ): GarbageCollectionScheduler | null {
-    const garbageCollector = this.persistence.referenceDelegate
-      .garbageCollector;
+    const garbageCollector =
+      this.persistence.referenceDelegate.garbageCollector;
     return new LruScheduler(garbageCollector, cfg.asyncQueue);
   }
 
@@ -261,10 +271,8 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
           syncEngine
         ),
         getActiveClients: syncEngineGetActiveClients.bind(null, syncEngine),
-        synchronizeWithChangedDocuments: syncEngineSynchronizeWithChangedDocuments.bind(
-          null,
-          syncEngine
-        )
+        synchronizeWithChangedDocuments:
+          syncEngineSynchronizeWithChangedDocuments.bind(null, syncEngine)
       };
       await this.sharedClientState.start();
     }
@@ -347,10 +355,8 @@ export class OnlineComponentProvider {
         OnlineStateSource.SharedClientState
       );
 
-    this.remoteStore.remoteSyncer.handleCredentialChange = syncEngineHandleCredentialChange.bind(
-      null,
-      this.syncEngine
-    );
+    this.remoteStore.remoteSyncer.handleCredentialChange =
+      syncEngineHandleCredentialChange.bind(null, this.syncEngine);
 
     await remoteStoreApplyPrimaryState(
       this.remoteStore,

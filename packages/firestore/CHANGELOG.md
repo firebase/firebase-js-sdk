@@ -1,5 +1,90 @@
 # @firebase/firestore
 
+## 3.1.1
+
+### Patch Changes
+
+- [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f) [#5596](https://github.com/firebase/firebase-js-sdk/pull/5596) - report build variants for packages
+
+## 3.1.0
+
+### Minor Changes
+
+- [`f78ceca1c`](https://github.com/firebase/firebase-js-sdk/commit/f78ceca1cf9198f5d371320e8814c859c261cf67) [#5394](https://github.com/firebase/firebase-js-sdk/pull/5394) - Fixed a bug where `UpdateData` did not recognize union types or optional, dot-separated string fields.
+
+### Patch Changes
+
+- [`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39) [#5539](https://github.com/firebase/firebase-js-sdk/pull/5539) - use `constructor.name` for Object type
+
+- Updated dependencies [[`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`456d664ae`](https://github.com/firebase/firebase-js-sdk/commit/456d664aef582fc18326ffbd418de0d7d3ef86b7), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422)]:
+  - @firebase/logger@0.3.0
+  - @firebase/util@1.4.0
+  - @firebase/webchannel-wrapper@0.6.0
+  - @firebase/component@0.5.7
+
+## 3.0.2
+
+### Patch Changes
+
+- [`8180a2b77`](https://github.com/firebase/firebase-js-sdk/commit/8180a2b77d331c4d01a000e35f51dc61af660eb7) [#5396](https://github.com/firebase/firebase-js-sdk/pull/5396) - Improved the error handling when opening IndexedDb fails in a Firefox private browsing session.
+
+* [`b8462f248`](https://github.com/firebase/firebase-js-sdk/commit/b8462f2489fb6f37691b136c9a5d453207dccc06) [#5434](https://github.com/firebase/firebase-js-sdk/pull/5434) - Fixes a deadlock during asynchronous initialization of both Firestore and Auth.
+
+- [`bf5772f64`](https://github.com/firebase/firebase-js-sdk/commit/bf5772f645207c24f3218914d27fdbe4e76584a2) [#5440](https://github.com/firebase/firebase-js-sdk/pull/5440) - Fix the implementation of `collection()` with multiple path segments.
+
+* [`dca28a10d`](https://github.com/firebase/firebase-js-sdk/commit/dca28a10dac4409c84d5a991094f7b5a4f3e5c7f) [#5461](https://github.com/firebase/firebase-js-sdk/pull/5461) - Temporary fix for a bug causing `initializeFirestore()` to not work with certain bundling pipelines.
+
+## 3.0.1
+
+### Patch Changes
+
+- [`cd15df0d1`](https://github.com/firebase/firebase-js-sdk/commit/cd15df0d1f51110f448e4284244b06be8d37f1c3) [#5400](https://github.com/firebase/firebase-js-sdk/pull/5400) (fixes [#2903](https://github.com/firebase/firebase-js-sdk/issues/2903)) - Make firestore/lite available in nodejs
+
+* [`6163bb282`](https://github.com/firebase/firebase-js-sdk/commit/6163bb282b4e3b6fe5f405c3b3e35d5691d41677) [#5399](https://github.com/firebase/firebase-js-sdk/pull/5399) - Addressed incorrect use of the `node-fetch` polyfill
+
+## 3.0.0
+
+### Major Changes
+
+- [`5bc6afb75`](https://github.com/firebase/firebase-js-sdk/commit/5bc6afb75b5267bad5940c32458c315e5394321d) [#5268](https://github.com/firebase/firebase-js-sdk/pull/5268) (fixes [#4277](https://github.com/firebase/firebase-js-sdk/issues/4277)) - This change contains multiple quality-of-life improvements when using the `FirestoreDataConverter` in `@firebase/firestore/lite` and `@firebase/firestore`:
+  - Support for passing in `FieldValue` property values when using a converter (via `WithFieldValue<T>` and `PartialWithFieldValue<T>`).
+  - Support for omitting properties in nested fields when performing a set operation with `{merge: true}` with a converter (via `PartialWithFieldValue<T>`).
+  - Support for typed update operations when using a converter (via the newly typed `UpdateData`). Improperly typed fields in
+    update operations on typed document references will no longer compile.
+
+* [`cdada6c68`](https://github.com/firebase/firebase-js-sdk/commit/cdada6c68f9740d13dd6674bcb658e28e68253b6) [#5345](https://github.com/firebase/firebase-js-sdk/pull/5345) (fixes [#5015](https://github.com/firebase/firebase-js-sdk/issues/5015)) - Release modularized SDKs
+
+## 2.4.0
+
+### Minor Changes
+
+- [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131) [#5282](https://github.com/firebase/firebase-js-sdk/pull/5282) - Implement mockUserToken for Storage and fix JWT format bugs.
+
+### Patch Changes
+
+- [`f825b1d83`](https://github.com/firebase/firebase-js-sdk/commit/f825b1d83228747e404aaefd9f3948d12257d0fc) [#5288](https://github.com/firebase/firebase-js-sdk/pull/5288) - Fixed a regression that prevented the garbage collector from running if multi-tab was disabled.
+
+- Updated dependencies [[`bb6b5abff`](https://github.com/firebase/firebase-js-sdk/commit/bb6b5abff6f89ce9ec1bd66ff4e795a059a98eec), [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131)]:
+  - @firebase/component@0.5.6
+  - @firebase/firestore-types@2.4.0
+  - @firebase/util@1.3.0
+
+## 2.3.10
+
+### Patch Changes
+
+- Updated dependencies [[`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c)]:
+  - @firebase/util@1.2.0
+  - @firebase/component@0.5.5
+
+## 2.3.9
+
+### Patch Changes
+
+- [`b51be1da3`](https://github.com/firebase/firebase-js-sdk/commit/b51be1da318a8f79ff159bcb8be9797d192519fd) [#5166](https://github.com/firebase/firebase-js-sdk/pull/5166) (fixes [#4076](https://github.com/firebase/firebase-js-sdk/issues/4076)) - The SDK no longer accesses IndexedDB during a page unload event on Safari 14. This aims to reduce the occurrence of an IndexedDB bug in Safari (https://bugs.webkit.org/show_bug.cgi?id=226547).
+
+* [`2cd9d7c39`](https://github.com/firebase/firebase-js-sdk/commit/2cd9d7c394dd0c84f285fbcfa4b0a5d79509451f) [#5147](https://github.com/firebase/firebase-js-sdk/pull/5147) (fixes [#5047](https://github.com/firebase/firebase-js-sdk/issues/5047)) - Fixed an issue that prevented Timestamps from being used via `update()` when connected to the Emulator
+
 ## 2.3.8
 
 ### Patch Changes

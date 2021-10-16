@@ -1,5 +1,55 @@
 # @firebase/app
 
+## 0.7.4
+
+### Patch Changes
+
+- [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f) [#5596](https://github.com/firebase/firebase-js-sdk/pull/5596) - report build variants for packages
+
+## 0.7.3
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.2
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies [[`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422)]:
+  - @firebase/logger@0.3.0
+  - @firebase/util@1.4.0
+  - @firebase/component@0.5.7
+
+## 0.7.0
+
+### Minor Changes
+
+- [`cdada6c68`](https://github.com/firebase/firebase-js-sdk/commit/cdada6c68f9740d13dd6674bcb658e28e68253b6) [#5345](https://github.com/firebase/firebase-js-sdk/pull/5345) (fixes [#5015](https://github.com/firebase/firebase-js-sdk/issues/5015)) - Release modularized SDKs
+
+## 0.6.30
+
+### Patch Changes
+
+- Updated dependencies [[`bb6b5abff`](https://github.com/firebase/firebase-js-sdk/commit/bb6b5abff6f89ce9ec1bd66ff4e795a059a98eec), [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131)]:
+  - @firebase/component@0.5.6
+  - @firebase/util@1.3.0
+
+## 0.6.29
+
+### Patch Changes
+
+- Updated dependencies [[`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c), [`3d10d33bc`](https://github.com/firebase/firebase-js-sdk/commit/3d10d33bc167177fecbf86d2a6574af2e4e210f9)]:
+  - @firebase/util@1.2.0
+  - @firebase/app-types@0.6.3
+  - @firebase/component@0.5.5
+
 ## 0.6.28
 
 ### Patch Changes

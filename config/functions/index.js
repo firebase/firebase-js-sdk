@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,4 +141,9 @@ exports.timeoutTest = functions.https.onRequest((request, response) => {
     // Wait for longer than 500ms.
     setTimeout(() => response.send({ data: true }), 500);
   });
+});
+
+// Used by E2E test.
+exports.callTest = functions.https.onCall((data, context) => {
+  return { word: 'hellooo' };
 });

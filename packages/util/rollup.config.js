@@ -39,7 +39,7 @@ const es5Builds = [
    */
   {
     input: 'index.ts',
-    output: [{ file: pkg.module, format: 'es', sourcemap: true }],
+    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -72,7 +72,7 @@ const es2017Builds = [
   {
     input: 'index.ts',
     output: {
-      file: pkg.esm2017,
+      file: pkg.module,
       format: 'es',
       sourcemap: true
     },

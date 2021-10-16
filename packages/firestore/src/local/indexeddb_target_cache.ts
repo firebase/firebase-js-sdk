@@ -19,7 +19,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
-import { Timestamp } from '../lite/timestamp';
+import { Timestamp } from '../lite-api/timestamp';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { hardAssert } from '../util/assert';
@@ -101,7 +101,8 @@ export class IndexedDbTargetCache implements TargetCache {
     return this.retrieveMetadata(transaction).next(metadata => {
       metadata.highestListenSequenceNumber = highestListenSequenceNumber;
       if (lastRemoteSnapshotVersion) {
-        metadata.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion.toTimestamp();
+        metadata.lastRemoteSnapshotVersion =
+          lastRemoteSnapshotVersion.toTimestamp();
       }
       if (highestListenSequenceNumber > metadata.highestListenSequenceNumber) {
         metadata.highestListenSequenceNumber = highestListenSequenceNumber;

@@ -274,6 +274,24 @@ describe('Write Stream', () => {
   });
 });
 
+it('token is not invalidated once the stream is healthy', () => {
+  const credentials = new MockCredentialsProvider();
+
+  return withTestWriteStream(async (writeStream, streamListener, queue) => {
+    await streamListener.awaitCallback('open');
+
+    await queue.runAllDelayedOperationsUntil(TimerId.HealthCheckTimeout);
+
+    // Simulate callback from GRPC with an unauthenticated error -- this should
+    // NOT invalidate the token.
+    await writeStream.handleStreamClose(
+      new FirestoreError(Code.UNAUTHENTICATED, '')
+    );
+    await streamListener.awaitCallback('close');
+    expect(credentials.observedStates).to.deep.equal(['getToken']);
+  }, credentials);
+});
+
 export async function withTestWriteStream(
   fn: (
     writeStream: PersistentWriteStream,

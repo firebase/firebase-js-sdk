@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { Blob } from '../../../src/api/blob';
+import { Blob } from '../../../compat/api/blob';
 import { blob, expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('Blob', () => {

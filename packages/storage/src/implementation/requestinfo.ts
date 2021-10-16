@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FirebaseStorageError } from './error';
+import { StorageError } from './error';
 import { Headers, Connection } from './connection';
 
 /**
@@ -24,14 +24,20 @@ export interface UrlParams {
   [name: string]: string | number;
 }
 
+/**
+ * A function that converts a server response to the API type expected by the
+ * SDK.
+ *
+ * @param I - the type of the backend's network response
+ * @param O - the output response type used by the rest of the SDK.
+ */
+export type RequestHandler<I, O> = (connection: Connection, response: I) => O;
+
 export class RequestInfo<T> {
   urlParams: UrlParams = {};
   headers: Headers = {};
   body: Blob | string | Uint8Array | null = null;
-
-  errorHandler:
-    | ((p1: Connection, p2: FirebaseStorageError) => FirebaseStorageError)
-    | null = null;
+  errorHandler: RequestHandler<StorageError, StorageError> | null = null;
 
   /**
    * Called with the current number of bytes uploaded and total size (-1 if not
@@ -51,7 +57,7 @@ export class RequestInfo<T> {
      * Note: The XhrIo passed to this function may be reused after this callback
      * returns. Do not keep a reference to it in any way.
      */
-    public handler: (p1: Connection, p2: string) => T,
+    public handler: RequestHandler<string, T>,
     public timeout: number
   ) {}
 }

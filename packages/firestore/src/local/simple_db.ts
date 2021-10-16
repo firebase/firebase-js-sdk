@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { getUA } from '@firebase/util';
+import { getUA, isIndexedDBAvailable } from '@firebase/util';
 
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -55,7 +55,7 @@ export class SimpleDbTransaction {
   private aborted = false;
 
   /**
-   * A promise that resolves with the result of the IndexedDb transaction.
+   * A `Promise` that resolves with the result of the IndexedDb transaction.
    */
   private readonly completionDeferred = new Deferred<void>();
 
@@ -158,7 +158,7 @@ export class SimpleDb {
 
   /** Returns true if IndexedDB is available in the current environment. */
   static isAvailable(): boolean {
-    if (typeof indexedDB === 'undefined') {
+    if (!isIndexedDBAvailable()) {
       return false;
     }
 
@@ -320,6 +320,16 @@ export class SimpleDb {
                   'will operate with persistence disabled. If you need persistence, please ' +
                   're-upgrade to a newer version of the SDK or else clear the persisted IndexedDB ' +
                   'data for your app to start fresh.'
+              )
+            );
+          } else if (error.name === 'InvalidStateError') {
+            reject(
+              new FirestoreError(
+                Code.FAILED_PRECONDITION,
+                'Unable to open an IndexedDB connection. This could be due to running in a ' +
+                  'private browsing session on a browser whose private browsing sessions do not ' +
+                  'support IndexedDB: ' +
+                  error
               )
             );
           } else {

@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { Blob } from '../../../src/api/blob';
+import { Blob } from '../../../compat/api/blob';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
 import {

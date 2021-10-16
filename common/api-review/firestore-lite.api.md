@@ -4,11 +4,17 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app-exp';
+import { EmulatorMockTokenOptions } from '@firebase/util';
+import { FirebaseApp } from '@firebase/app';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
 // @public
-export function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
+export function addDoc<T>(reference: CollectionReference<T>, data: WithFieldValue<T>): Promise<DocumentReference<T>>;
+
+// @public
+export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unknown>> = {
+    [K in keyof T & string as `${Prefix}.${K}`]+?: T[K];
+};
 
 // @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
@@ -27,7 +33,10 @@ export class Bytes {
 }
 
 // @public
-export function collection(firestore: FirebaseFirestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export type ChildUpdateFields<K extends string, V> = V extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<V>> : never;
+
+// @public
+export function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
 // @public
 export function collection(reference: CollectionReference<unknown>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
@@ -36,7 +45,7 @@ export function collection(reference: CollectionReference<unknown>, path: string
 export function collection(reference: DocumentReference, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
 // @public
-export function collectionGroup(firestore: FirebaseFirestore, collectionId: string): Query<DocumentData>;
+export function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData>;
 
 // @public
 export class CollectionReference<T = DocumentData> extends Query<T> {
@@ -49,13 +58,18 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 }
 
 // @public
+export function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+}): void;
+
+// @public
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 
 // @public
 export function deleteField(): FieldValue;
 
 // @public
-export function doc(firestore: FirebaseFirestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
+export function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
 
 // @public
 export function doc<T>(reference: CollectionReference<T>, path?: string, ...pathSegments: string[]): DocumentReference<T>;
@@ -73,7 +87,8 @@ export function documentId(): FieldPath;
 
 // @public
 export class DocumentReference<T = DocumentData> {
-    readonly firestore: FirebaseFirestore;
+    readonly converter: FirestoreDataConverter<T> | null;
+    readonly firestore: Firestore;
     get id(): string;
     get parent(): CollectionReference<T>;
     get path(): string;
@@ -91,6 +106,8 @@ export class DocumentSnapshot<T = DocumentData> {
     get id(): string;
     get ref(): DocumentReference<T>;
 }
+
+export { EmulatorMockTokenOptions }
 
 // @public
 export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
@@ -116,16 +133,17 @@ export abstract class FieldValue {
 }
 
 // @public
-export class FirebaseFirestore {
+export class Firestore {
     get app(): FirebaseApp;
     toJSON(): object;
+    type: 'firestore-lite' | 'firestore';
 }
 
 // @public
 export interface FirestoreDataConverter<T> {
     fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
-    toFirestore(modelObject: T): DocumentData;
-    toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+    toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+    toFirestore(modelObject: PartialWithFieldValue<T>, options: SetOptions): DocumentData;
 }
 
 // @public
@@ -158,13 +176,13 @@ export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnap
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // @public
-export function getFirestore(app?: FirebaseApp): FirebaseFirestore;
+export function getFirestore(app?: FirebaseApp): Firestore;
 
 // @public
 export function increment(n: number): FieldValue;
 
 // @public
-export function initializeFirestore(app: FirebaseApp, settings: Settings): FirebaseFirestore;
+export function initializeFirestore(app: FirebaseApp, settings: Settings): Firestore;
 
 // @public
 export function limit(limit: number): QueryConstraint;
@@ -175,15 +193,29 @@ export function limitToLast(limit: number): QueryConstraint;
 export { LogLevel }
 
 // @public
+export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToIntersection<{
+    [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
+}[keyof T & string]>;
+
+// @public
 export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryConstraint;
 
 // @public
 export type OrderByDirection = 'desc' | 'asc';
 
 // @public
+export type PartialWithFieldValue<T> = T extends Primitive ? T : T extends {} ? {
+    [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
+} : Partial<T>;
+
+// @public
+export type Primitive = string | number | boolean | undefined | null;
+
+// @public
 export class Query<T = DocumentData> {
     protected constructor();
-    readonly firestore: FirebaseFirestore;
+    readonly converter: FirestoreDataConverter<T> | null;
+    readonly firestore: Firestore;
     readonly type: 'query' | 'collection';
     withConverter(converter: null): Query<DocumentData>;
     withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
@@ -222,16 +254,16 @@ export class QuerySnapshot<T = DocumentData> {
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
 // @public
-export function runTransaction<T>(firestore: FirebaseFirestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
+export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
 
 // @public
 export function serverTimestamp(): FieldValue;
 
 // @public
-export function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<void>;
+export function setDoc<T>(reference: DocumentReference<T>, data: WithFieldValue<T>): Promise<void>;
 
 // @public
-export function setDoc<T>(reference: DocumentReference<T>, data: Partial<T>, options: SetOptions): Promise<void>;
+export function setDoc<T>(reference: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): Promise<void>;
 
 // @public
 export function setLogLevel(logLevel: LogLevel): void;
@@ -266,7 +298,7 @@ export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 export function startAt(...fieldValues: unknown[]): QueryConstraint;
 
 // @public
-export function terminate(firestore: FirebaseFirestore): Promise<void>;
+export function terminate(firestore: Firestore): Promise<void>;
 
 // @public
 export class Timestamp {
@@ -293,25 +325,25 @@ export class Timestamp {
 export class Transaction {
     delete(documentRef: DocumentReference<unknown>): this;
     get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
-    set<T>(documentRef: DocumentReference<T>, data: T): this;
-    set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): this;
-    update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
+    set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): this;
+    set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): this;
+    update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 }
 
 // @public
-export interface UpdateData {
-    [fieldPath: string]: any;
-}
+export type UnionToIntersection<U> = (U extends unknown ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
 // @public
-export function updateDoc(reference: DocumentReference<unknown>, data: UpdateData): Promise<void>;
+export type UpdateData<T> = T extends Primitive ? T : T extends {} ? {
+    [K in keyof T]?: UpdateData<T[K]> | FieldValue;
+} & NestedUpdateFields<T> : Partial<T>;
+
+// @public
+export function updateDoc<T>(reference: DocumentReference<T>, data: UpdateData<T>): Promise<void>;
 
 // @public
 export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
-
-// @public
-export function useFirestoreEmulator(firestore: FirebaseFirestore, host: string, port: number): void;
 
 // @public
 export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryConstraint;
@@ -320,19 +352,22 @@ export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value
 export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
 
 // @public
+export type WithFieldValue<T> = T extends Primitive ? T : T extends {} ? {
+    [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
+} : Partial<T>;
+
+// @public
 export class WriteBatch {
     commit(): Promise<void>;
     delete(documentRef: DocumentReference<unknown>): WriteBatch;
-    set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
-    set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): WriteBatch;
-    update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
+    set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): WriteBatch;
+    set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): WriteBatch;
+    update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
 }
 
 // @public
-export function writeBatch(firestore: FirebaseFirestore): WriteBatch;
+export function writeBatch(firestore: Firestore): WriteBatch;
 
-
-// (No @packageDocumentation comment for this package)
 
 ```

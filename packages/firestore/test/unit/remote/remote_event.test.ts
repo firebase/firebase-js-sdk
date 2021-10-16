@@ -374,11 +374,10 @@ describe('RemoteEvent', () => {
     const doc2 = doc('docs/2', 2, { value: 2 });
 
     const change1 = new DocumentWatchChange([1, 3], [2], doc1.key, doc1);
-    const change2 = new WatchTargetChange(WatchTargetChangeState.Current, [
-      1,
-      2,
-      3
-    ]);
+    const change2 = new WatchTargetChange(
+      WatchTargetChangeState.Current,
+      [1, 2, 3]
+    );
     const change3 = new WatchTargetChange(WatchTargetChangeState.Removed, [1]);
     const change4 = new WatchTargetChange(WatchTargetChangeState.Removed, [2]);
     const change5 = new WatchTargetChange(WatchTargetChangeState.Added, [1]);

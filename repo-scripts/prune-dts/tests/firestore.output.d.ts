@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 import { DocumentData as DocumentData_2 } from '@firebase/firestore-types';
-import { FirebaseApp } from '@firebase/app-exp';
+import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { _FirebaseService } from '@firebase/app-exp';
+import { _FirebaseService } from '@firebase/app';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';
@@ -956,7 +956,8 @@ export declare function loadBundle(
  * The API is compatible with `Promise<LoadBundleTaskProgress>`.
  */
 export declare class LoadBundleTask
-  implements PromiseLike<LoadBundleTaskProgress> {
+  implements PromiseLike<LoadBundleTaskProgress>
+{
   /**
    * Registers functions to listen to bundle loading progress events.
    * @param next - Called when there is a progress update from bundle loading. Typically `next` calls occur

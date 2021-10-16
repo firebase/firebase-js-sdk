@@ -41,8 +41,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'add_payment_info',
@@ -62,8 +62,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'add_shipping_info',
@@ -83,8 +83,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart',
@@ -102,8 +102,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'begin_checkout',
@@ -122,8 +122,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'checkout_progress',
@@ -143,9 +143,9 @@ export interface FirebaseAnalytics {
    * Sends analytics event with given `eventParams`. This method
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
-   * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * See
+   * {@link https://developers.google.com/analytics/devguides/collection/ga4/exceptions
+   * | Measure exceptions}.
    */
   logEvent(
     eventName: 'exception',
@@ -162,15 +162,14 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'generate_lead',
     eventParams?: {
       value?: EventParams['value'];
       currency?: EventParams['currency'];
-      transaction_id?: EventParams['transaction_id'];
       [key: string]: any;
     },
     options?: AnalyticsCallOptions
@@ -181,8 +180,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'login',
@@ -197,9 +196,9 @@ export interface FirebaseAnalytics {
    * Sends analytics event with given `eventParams`. This method
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
-   * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * See
+   * {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view
+   * | Page views}.
    */
   logEvent(
     eventName: 'page_view',
@@ -217,8 +216,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'purchase' | 'refund',
@@ -240,18 +239,14 @@ export interface FirebaseAnalytics {
    * Sends analytics event with given `eventParams`. This method
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
-   * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * See {@link https://firebase.google.com/docs/analytics/screenviews
+   * | Track Screenviews}.
    */
   logEvent(
     eventName: 'screen_view',
     eventParams?: {
-      app_name: string;
-      screen_name: EventParams['screen_name'];
-      app_id?: string;
-      app_version?: string;
-      app_installer_id?: string;
+      firebase_screen: EventParams['firebase_screen'];
+      firebase_screen_class: EventParams['firebase_screen_class'];
       [key: string]: any;
     },
     options?: AnalyticsCallOptions
@@ -262,8 +257,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'search' | 'view_search_results',
@@ -279,16 +274,14 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'select_content',
     eventParams?: {
-      items?: EventParams['items'];
-      promotions?: EventParams['promotions'];
       content_type?: EventParams['content_type'];
-      content_id?: EventParams['content_id'];
+      item_id?: EventParams['item_id'];
       [key: string]: any;
     },
     options?: AnalyticsCallOptions
@@ -299,8 +292,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'select_item',
@@ -318,8 +311,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'select_promotion' | 'view_promotion',
@@ -337,8 +330,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'set_checkout_option',
@@ -355,15 +348,15 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'share',
     eventParams?: {
       method?: EventParams['method'];
       content_type?: EventParams['content_type'];
-      content_id?: EventParams['content_id'];
+      item_id?: EventParams['item_id'];
       [key: string]: any;
     },
     options?: AnalyticsCallOptions
@@ -374,8 +367,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'sign_up',
@@ -391,8 +384,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'timing_complete',
@@ -411,8 +404,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'view_cart' | 'view_item',
@@ -430,8 +423,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent(
     eventName: 'view_item_list',
@@ -449,8 +442,8 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * List of recommended event parameters can be found in
-   * {@link https://developers.google.com/gtagjs/reference/event
-   * the gtag.js reference documentation}.
+   * {@link https://developers.google.com/gtagjs/reference/ga4-events
+   * | the GA4 reference documentation}.
    */
   logEvent<T extends string>(
     eventName: CustomEventName<T>,
@@ -535,7 +528,7 @@ export interface ControlParams {
 export interface EventParams {
   checkout_option?: string;
   checkout_step?: number;
-  content_id?: string;
+  item_id?: string;
   content_type?: string;
   coupon?: string;
   currency?: string;
@@ -546,6 +539,14 @@ export interface EventParams {
   number?: string;
   promotions?: Promotion[];
   screen_name?: string;
+  /**
+   * Firebase-specific. Use to log a `screen_name` to Firebase Analytics.
+   */
+  firebase_screen?: string;
+  /**
+   * Firebase-specific. Use to log a `screen_class` to Firebase Analytics.
+   */
+  firebase_screen_class?: string;
   search_term?: string;
   shipping?: Currency;
   tax?: Currency;
@@ -678,6 +679,6 @@ export interface ThrottleMetadata {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'analytics': FirebaseAnalytics;
+    'analytics-compat': FirebaseAnalytics;
   }
 }

@@ -27,6 +27,7 @@ export class User {
   // non-FirebaseAuth providers.
   static readonly GOOGLE_CREDENTIALS = new User('google-credentials-uid');
   static readonly FIRST_PARTY = new User('first-party-uid');
+  static readonly MOCK_USER = new User('mock-user');
 
   constructor(readonly uid: string | null) {}
 

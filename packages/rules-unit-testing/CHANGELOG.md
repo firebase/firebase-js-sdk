@@ -1,5 +1,67 @@
 # @firebase/rules-unit-testing
 
+## 2.0.1
+
+### Patch Changes
+
+- [`46d26ff96`](https://github.com/firebase/firebase-js-sdk/commit/46d26ff969c08b6fc8486f0c4b8fa8fc5a6c81d9) [#5500](https://github.com/firebase/firebase-js-sdk/pull/5500) - Fix typing issues where Database/Firestore/Storage compat instances returned by RulesTestContext are not compatible with v9 modular APIs.
+
+* [`29e0be2cb`](https://github.com/firebase/firebase-js-sdk/commit/29e0be2cb25338bb667ccb3bf63cd8bd0d1b3dc8) [#5501](https://github.com/firebase/firebase-js-sdk/pull/5501) - Set RTDB namespace to be same as projectId by default instead of `${projectId}-default-rtdb`. This fixes rules not being applied and other issues related to namespace mismatch.
+
+## 2.0.0
+
+### Major Changes
+
+- [`cdada6c68`](https://github.com/firebase/firebase-js-sdk/commit/cdada6c68f9740d13dd6674bcb658e28e68253b6) [#5345](https://github.com/firebase/firebase-js-sdk/pull/5345) (fixes [#5015](https://github.com/firebase/firebase-js-sdk/issues/5015)) - BREAKING: Implement Rules Unit Testing v2 with new design and APIs.
+
+* [`cdada6c68`](https://github.com/firebase/firebase-js-sdk/commit/cdada6c68f9740d13dd6674bcb658e28e68253b6) [#5345](https://github.com/firebase/firebase-js-sdk/pull/5345) (fixes [#5015](https://github.com/firebase/firebase-js-sdk/issues/5015)) - Release modularized SDKs
+
+### Patch Changes
+
+- Updated dependencies [[`5bc6afb75`](https://github.com/firebase/firebase-js-sdk/commit/5bc6afb75b5267bad5940c32458c315e5394321d), [`cdada6c68`](https://github.com/firebase/firebase-js-sdk/commit/cdada6c68f9740d13dd6674bcb658e28e68253b6)]:
+  - firebase@9.0.0
+
+## 1.3.15
+
+### Patch Changes
+
+- [`749f5a21c`](https://github.com/firebase/firebase-js-sdk/commit/749f5a21cb814064aba1af7fde9fb1a7cfc04575) [#5259](https://github.com/firebase/firebase-js-sdk/pull/5259) - Fix JWT format and interop with Storage Emulator. Fixes #3442.
+
+- Updated dependencies [[`d0710d500`](https://github.com/firebase/firebase-js-sdk/commit/d0710d5006a07318213163127051eebf0c339383), [`bb6b5abff`](https://github.com/firebase/firebase-js-sdk/commit/bb6b5abff6f89ce9ec1bd66ff4e795a059a98eec), [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131)]:
+  - firebase@8.10.0
+  - @firebase/component@0.5.6
+  - @firebase/util@1.3.0
+
+## 1.3.14
+
+### Patch Changes
+
+- Updated dependencies [[`f1027e3c2`](https://github.com/firebase/firebase-js-sdk/commit/f1027e3c24cab52046766a898c6702860f5ad3f6)]:
+  - firebase@8.9.1
+
+## 1.3.13
+
+### Patch Changes
+
+- Updated dependencies [[`8599d9141`](https://github.com/firebase/firebase-js-sdk/commit/8599d91416ae8ac5202742f11cee00666d3360ec), [`bd50d8310`](https://github.com/firebase/firebase-js-sdk/commit/bd50d83107be3d87064f72800c608abc94ae3456)]:
+  - firebase@8.9.0
+
+## 1.3.12
+
+### Patch Changes
+
+- Updated dependencies [[`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c)]:
+  - @firebase/util@1.2.0
+  - @firebase/component@0.5.5
+  - firebase@8.8.1
+
+## 1.3.11
+
+### Patch Changes
+
+- Updated dependencies [[`b3caa5158`](https://github.com/firebase/firebase-js-sdk/commit/b3caa515846d2bfcf4a95dedff69f08d503cbfc2), [`02586c975`](https://github.com/firebase/firebase-js-sdk/commit/02586c9754318b01a0051561d2c7c4906059b5af), [`2cd9d7c39`](https://github.com/firebase/firebase-js-sdk/commit/2cd9d7c394dd0c84f285fbcfa4b0a5d79509451f)]:
+  - firebase@8.8.0
+
 ## 1.3.10
 
 ### Patch Changes

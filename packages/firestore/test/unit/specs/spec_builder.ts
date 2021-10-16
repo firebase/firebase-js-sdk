@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { UserDataWriter } from '../../../src/api/database';
+import { UserDataWriter } from '../../../compat/api/database';
 import {
   hasLimitToFirst,
   hasLimitToLast,
@@ -190,7 +190,8 @@ export class SpecBuilder {
 
   private queryIdGenerator = new CachedTargetIdGenerator();
 
-  private readonly currentClientState: ClientMemoryState = new ClientMemoryState();
+  private readonly currentClientState: ClientMemoryState =
+    new ClientMemoryState();
 
   // Accessor function that can be overridden to return a different
   // `ClientMemoryState`.

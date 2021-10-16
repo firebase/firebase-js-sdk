@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api/timestamp';
 import { BundleMetadata, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
-import { Timestamp } from '../exp/timestamp';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
@@ -209,7 +209,8 @@ export function fromDbMutationBatch(
         'TransformMutation should be preceded by a patch or set mutation'
       );
       const transformMutation = dbBatch.mutations[i + 1];
-      currentMutation.updateTransforms = transformMutation.transform!.fieldTransforms;
+      currentMutation.updateTransforms =
+        transformMutation.transform!.fieldTransforms;
       dbBatch.mutations.splice(i + 1, 1);
       ++i;
     }

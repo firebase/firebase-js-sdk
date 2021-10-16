@@ -172,7 +172,7 @@ export class WebSocketConnection implements Transport {
         // Note that this header is just used to bypass appcheck, and the token should still be sent
         // through the websocket connection once it is established.
         if (this.authToken) {
-          options.headers['Authorization'] = this.authToken;
+          options.headers['Authorization'] = `Bearer ${this.authToken}`;
         }
         if (this.appCheckToken) {
           options.headers['X-Firebase-AppCheck'] = this.appCheckToken;
@@ -238,7 +238,7 @@ export class WebSocketConnection implements Transport {
   /**
    * No-op for websockets, we don't need to do anything once the connection is confirmed as open
    */
-  start() { }
+  start() {}
 
   static forceDisallow_: boolean;
 

@@ -26,7 +26,7 @@ import { lastComponent } from './path';
 import { isString } from './type';
 import { makeUrl, makeQueryString } from './url';
 import { Reference } from '../reference';
-import { StorageService } from '../service';
+import { FirebaseStorageImpl } from '../service';
 
 export function noXform_<T>(metadata: Metadata, value: T): T {
   return value;
@@ -111,7 +111,7 @@ export function getMappings(): Mappings {
   return mappings_;
 }
 
-export function addRef(metadata: Metadata, service: StorageService): void {
+export function addRef(metadata: Metadata, service: FirebaseStorageImpl): void {
   function generateRef(): Reference {
     const bucket: string = metadata['bucket'] as string;
     const path: string = metadata['fullPath'] as string;
@@ -122,7 +122,7 @@ export function addRef(metadata: Metadata, service: StorageService): void {
 }
 
 export function fromResource(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   resource: { [name: string]: unknown },
   mappings: Mappings
 ): Metadata {
@@ -141,7 +141,7 @@ export function fromResource(
 }
 
 export function fromResourceString(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   resourceString: string,
   mappings: Mappings
 ): Metadata | null {
@@ -156,7 +156,8 @@ export function fromResourceString(
 export function downloadUrlFromResourceString(
   metadata: Metadata,
   resourceString: string,
-  host: string
+  host: string,
+  protocol: string
 ): string | null {
   const obj = jsonObjectOrNull(resourceString);
   if (obj === null) {
@@ -177,7 +178,7 @@ export function downloadUrlFromResourceString(
     const bucket: string = metadata['bucket'] as string;
     const path: string = metadata['fullPath'] as string;
     const urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
-    const base = makeUrl(urlPart, host);
+    const base = makeUrl(urlPart, host, protocol);
     const queryString = makeQueryString({
       alt: 'media',
       token

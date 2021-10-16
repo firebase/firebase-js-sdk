@@ -17,33 +17,72 @@
 
 import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
+import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
 import alias from '@rollup/plugin-alias';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import pkg from './package.json';
 
-const { generateAliasConfig } = require('./rollup.shared');
+function generateAliasConfig(platform) {
+  return {
+    entries: [
+      {
+        find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
+        replacement: `$1\/platform/${platform}/$2.ts`
+      }
+    ]
+  };
+}
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
-/**
- * ES5 Builds
- */
-const es5BuildPlugins = [
+
+const nodeDeps = [...deps, 'util'];
+
+const es5Plugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    abortOnError: false
   }),
   json()
 ];
 
 const es5Builds = [
+  // Browser
   {
-    input: './index.ts',
+    input: './src/index.ts',
     output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
+      { file: 'dist/index.browser.cjs.js', format: 'cjs', sourcemap: true },
+      { file: pkg.esm5, format: 'es', sourcemap: true }
     ],
-    plugins: [alias(generateAliasConfig('browser')), ...es5BuildPlugins],
+    plugins: [
+      alias(generateAliasConfig('browser')),
+      ...es5Plugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 5),
+        '__RUNTIME_ENV__': ''
+      })
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  {
+    // needed by Emulator UI
+    input: './src/index.ts',
+    output: [
+      { file: 'dist/index.browser.cjs.js', format: 'cjs', sourcemap: true }
+    ],
+    plugins: [
+      alias(generateAliasConfig('browser')),
+      ...es5Plugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('cjs', 5),
+        '__RUNTIME_ENV__': ''
+      })
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false
@@ -51,30 +90,59 @@ const es5Builds = [
   }
 ];
 
-/**
- * ES2017 Builds
- */
-const es2017BuildPlugins = [
+const es2017Plugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
       compilerOptions: {
         target: 'es2017'
       }
-    }
+    },
+    abortOnError: false
   }),
   json({ preferConst: true })
 ];
 
 const es2017Builds = [
+  // Node
   {
-    input: './index.ts',
+    input: './src/index.ts',
     output: {
-      file: pkg.esm2017,
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [
+      alias(generateAliasConfig('node')),
+      ...es2017Plugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('cjs', 2017),
+        '__RUNTIME_ENV__': 'node'
+      })
+    ],
+    external: id =>
+      nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+
+  // Browser
+  {
+    input: './src/index.ts',
+    output: {
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(generateAliasConfig('browser')), ...es2017BuildPlugins],
+    plugins: [
+      alias(generateAliasConfig('browser')),
+      ...es2017Plugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 2017),
+        '__RUNTIME_ENV__': ''
+      })
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false

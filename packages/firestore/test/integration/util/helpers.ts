@@ -16,6 +16,7 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+import { isIndexedDBAvailable } from '@firebase/util';
 
 import * as firebaseExport from './firebase_export';
 import {
@@ -44,7 +45,7 @@ function isIeOrEdge(): boolean {
 export function isPersistenceAvailable(): boolean {
   return (
     typeof window === 'object' &&
-    typeof window.indexedDB === 'object' &&
+    isIndexedDBAvailable() &&
     !isIeOrEdge() &&
     (typeof process === 'undefined' ||
       process.env?.INCLUDE_FIRESTORE_PERSISTENCE !== 'false')
@@ -104,9 +105,9 @@ export function toChangesArray(
   return docSet.docChanges(options).map(d => d.doc.data());
 }
 
-export function toDataMap(
-  docSet: firestore.QuerySnapshot
-): { [field: string]: firestore.DocumentData } {
+export function toDataMap(docSet: firestore.QuerySnapshot): {
+  [field: string]: firestore.DocumentData;
+} {
   const docsData: { [field: string]: firestore.DocumentData } = {};
   docSet.forEach(doc => {
     docsData[doc.id] = doc.data();

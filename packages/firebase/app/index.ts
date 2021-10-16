@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import firebase from '@firebase/app';
+import { registerVersion } from '@firebase/app';
 import { name, version } from '../package.json';
 
-firebase.registerVersion(name, version, 'app');
-firebase.SDK_VERSION = version;
-
-export default firebase;
+registerVersion(name, version, 'app');
+export * from '@firebase/app';

@@ -15,39 +15,21 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import {
   AppCheckProvider,
-  AppCheckToken,
-  AppCheckTokenResult
-} from '@firebase/app-check-types';
-import { AppCheckTokenListener } from '@firebase/app-check-interop-types';
+  AppCheckTokenInternal,
+  AppCheckTokenObserver
+} from './types';
 import { Refresher } from './proactive-refresh';
-import { Deferred, PartialObserver } from '@firebase/util';
+import { Deferred } from '@firebase/util';
 import { GreCAPTCHA } from './recaptcha';
-
-export interface AppCheckTokenInternal extends AppCheckToken {
-  issuedAtTimeMillis: number;
-}
-
-export interface AppCheckTokenObserver
-  extends PartialObserver<AppCheckTokenResult> {
-  // required
-  next: AppCheckTokenListener;
-  type: ListenerType;
-}
-
-export const enum ListenerType {
-  'INTERNAL' = 'INTERNAL',
-  'EXTERNAL' = 'EXTERNAL'
-}
-
 export interface AppCheckState {
   activated: boolean;
   tokenObservers: AppCheckTokenObserver[];
-  customProvider?: AppCheckProvider;
-  siteKey?: string;
+  provider?: AppCheckProvider;
   token?: AppCheckTokenInternal;
+  cachedTokenPromise?: Promise<AppCheckTokenInternal | undefined>;
   tokenRefresher?: Refresher;
   reCAPTCHAState?: ReCAPTCHAState;
   isTokenAutoRefreshEnabled?: boolean;
@@ -59,8 +41,8 @@ export interface ReCAPTCHAState {
 }
 
 export interface DebugState {
+  initialized: boolean;
   enabled: boolean;
-  // This is the debug token string the user interacts with.
   token?: Deferred<string>;
 }
 
@@ -71,6 +53,7 @@ export const DEFAULT_STATE: AppCheckState = {
 };
 
 const DEBUG_STATE: DebugState = {
+  initialized: false,
   enabled: false
 };
 
@@ -87,6 +70,7 @@ export function clearState(): void {
   APP_CHECK_STATES.clear();
   DEBUG_STATE.enabled = false;
   DEBUG_STATE.token = undefined;
+  DEBUG_STATE.initialized = false;
 }
 
 export function getDebugState(): DebugState {

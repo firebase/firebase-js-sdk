@@ -117,9 +117,7 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  getNewDocumentChanges(
-    sinceReadTime: SnapshotVersion
-  ): Promise<{
+  getNewDocumentChanges(sinceReadTime: SnapshotVersion): Promise<{
     changedDocs: MutableDocumentMap;
     readTime: SnapshotVersion;
   }> {

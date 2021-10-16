@@ -38,15 +38,17 @@ export const enum TimerId {
   All = 'all',
 
   /**
-   * The following 4 timers are used in persistent_stream.ts for the listen and
+   * The following 5 timers are used in persistent_stream.ts for the listen and
    * write streams. The "Idle" timer is used to close the stream due to
    * inactivity. The "ConnectionBackoff" timer is used to restart a stream once
-   * the appropriate backoff delay has elapsed.
+   * the appropriate backoff delay has elapsed. The health check is used to mark
+   * a stream healthy if it has not received an error during its initial setup.
    */
   ListenStreamIdle = 'listen_stream_idle',
   ListenStreamConnectionBackoff = 'listen_stream_connection_backoff',
   WriteStreamIdle = 'write_stream_idle',
   WriteStreamConnectionBackoff = 'write_stream_connection_backoff',
+  HealthCheckTimeout = 'health_check_timeout',
 
   /**
    * A timer used in online_state_tracker.ts to transition from
@@ -223,8 +225,13 @@ export interface AsyncQueue {
    * Initialize the shutdown of this queue. Once this method is called, the
    * only possible way to request running an operation is through
    * `enqueueEvenWhileRestricted()`.
+   *
+   * @param purgeExistingTasks Whether already enqueued tasked should be
+   * rejected (unless enqueued wih `enqueueEvenWhileRestricted()`). Defaults
+   * to false.
    */
-  enterRestrictedMode(): void;
+  enterRestrictedMode(purgeExistingTasks?: boolean): void;
+
   /**
    * Adds a new operation to the queue. Returns a promise that will be resolved
    * when the promise returned by the new operation is (with its value).

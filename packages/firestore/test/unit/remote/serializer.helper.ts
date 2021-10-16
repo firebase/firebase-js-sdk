@@ -17,9 +17,12 @@
 
 import { expect } from 'chai';
 
-import { Blob } from '../../../src/api/blob';
-import { DocumentReference, UserDataWriter } from '../../../src/api/database';
-import { FieldValue } from '../../../src/api/field_value';
+import { Blob } from '../../../compat/api/blob';
+import {
+  DocumentReference,
+  UserDataWriter
+} from '../../../compat/api/database';
+import { FieldValue } from '../../../compat/api/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
 import { DatabaseId } from '../../../src/core/database_info';
@@ -46,7 +49,7 @@ import {
   targetEquals,
   TargetImpl
 } from '../../../src/core/target';
-import { parseQueryValue } from '../../../src/lite/user_data_reader';
+import { parseQueryValue } from '../../../src/lite-api/user_data_reader';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { FieldMask } from '../../../src/model/field_mask';
 import {
@@ -179,9 +182,8 @@ export function serializerTest(
           value
         );
         expect(actualJsonProto).to.deep.equal({ [valueType]: jsonValue });
-        const actualReturnFieldValue = userDataWriter.convertValue(
-          actualJsonProto
-        );
+        const actualReturnFieldValue =
+          userDataWriter.convertValue(actualJsonProto);
 
         if (
           actualReturnFieldValue instanceof DocumentReference &&
@@ -199,9 +201,8 @@ export function serializerTest(
           value
         );
         expect(actualProtoJsProto).to.deep.equal({ [valueType]: protoJsValue });
-        const actualProtoJsReturnFieldValue = userDataWriter.convertValue(
-          actualProtoJsProto
-        );
+        const actualProtoJsReturnFieldValue =
+          userDataWriter.convertValue(actualProtoJsProto);
         expect(actualProtoJsReturnFieldValue).to.deep.equal(value);
 
         // If we're using protobufJs JSON (not Proto3Json), then round-trip through protobufjs.
@@ -1505,10 +1506,10 @@ export function serializerTest(
 
       // TODO(dimond): RPC status cause
       it('converts target change with added', () => {
-        const expected = new WatchTargetChange(WatchTargetChangeState.Added, [
-          1,
-          4
-        ]);
+        const expected = new WatchTargetChange(
+          WatchTargetChangeState.Added,
+          [1, 4]
+        );
         const actual = fromWatchChange(s, {
           targetChange: { targetChangeType: 'ADD', targetIds: [1, 4] }
         });

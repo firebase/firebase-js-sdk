@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FirebaseStorageError } from './error';
+import { StorageError } from './error';
 import { Request } from './request';
 
 /**
@@ -23,7 +23,7 @@ import { Request } from './request';
 export class FailRequest<T> implements Request<T> {
   promise_: Promise<T>;
 
-  constructor(error: FirebaseStorageError) {
+  constructor(error: StorageError) {
     this.promise_ = Promise.reject<T>(error);
   }
 

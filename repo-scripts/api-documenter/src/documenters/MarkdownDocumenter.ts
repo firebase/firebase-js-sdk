@@ -708,10 +708,11 @@ export class MarkdownDocumenter {
         token.kind === ExcerptTokenKind.Reference &&
         token.canonicalReference
       ) {
-        const apiItemResult: IResolveDeclarationReferenceResult = this._apiModel.resolveDeclarationReference(
-          token.canonicalReference,
-          undefined
-        );
+        const apiItemResult: IResolveDeclarationReferenceResult =
+          this._apiModel.resolveDeclarationReference(
+            token.canonicalReference,
+            undefined
+          );
 
         if (apiItemResult.resolvedApiItem) {
           docNodeContainer.appendNode(
@@ -918,6 +919,11 @@ export class MarkdownDocumenter {
       }
     }
 
+    if (functionsTable.rows.length > 0) {
+      output.push(new DocHeading({ configuration, title: 'Functions' }));
+      output.push(functionsTable);
+    }
+
     if (classesTable.rows.length > 0) {
       output.push(new DocHeading({ configuration, title: 'Classes' }));
       output.push(classesTable);
@@ -926,10 +932,6 @@ export class MarkdownDocumenter {
     if (enumerationsTable.rows.length > 0) {
       output.push(new DocHeading({ configuration, title: 'Enumerations' }));
       output.push(enumerationsTable);
-    }
-    if (functionsTable.rows.length > 0) {
-      output.push(new DocHeading({ configuration, title: 'Functions' }));
-      output.push(functionsTable);
     }
 
     if (interfacesTable.rows.length > 0) {

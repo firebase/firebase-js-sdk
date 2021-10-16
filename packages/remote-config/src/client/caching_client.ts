@@ -75,13 +75,11 @@ export class CachingClient implements RemoteConfigFetchClient {
 
   async fetch(request: FetchRequest): Promise<FetchResponse> {
     // Reads from persisted storage to avoid cache miss if callers don't wait on initialization.
-    const [
-      lastSuccessfulFetchTimestampMillis,
-      lastSuccessfulFetchResponse
-    ] = await Promise.all([
-      this.storage.getLastSuccessfulFetchTimestampMillis(),
-      this.storage.getLastSuccessfulFetchResponse()
-    ]);
+    const [lastSuccessfulFetchTimestampMillis, lastSuccessfulFetchResponse] =
+      await Promise.all([
+        this.storage.getLastSuccessfulFetchTimestampMillis(),
+        this.storage.getLastSuccessfulFetchResponse()
+      ]);
 
     // Exits early on cache hit.
     if (

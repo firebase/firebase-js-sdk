@@ -24,7 +24,7 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const nodeInternals = ['fs', 'path'];
+const nodeInternals = ['fs', 'path', 'util'];
 
 export default [
   {

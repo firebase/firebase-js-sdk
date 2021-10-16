@@ -17,12 +17,12 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
+import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { LoadBundleTask } from '../exp/bundle';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -116,7 +116,7 @@ export class FirestoreClient {
     public asyncQueue: AsyncQueue,
     private databaseInfo: DatabaseInfo
   ) {
-    this.credentials.setChangeListener(asyncQueue, async user => {
+    this.credentials.start(asyncQueue, async user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
       await this.credentialListener(user);
       this.user = user;
@@ -163,10 +163,10 @@ export class FirestoreClient {
           await this.offlineComponents.terminate();
         }
 
-        // `removeChangeListener` must be called after shutting down the
-        // RemoteStore as it will prevent the RemoteStore from retrieving
-        // auth tokens.
-        this.credentials.removeChangeListener();
+        // The credentials provider must be terminated after shutting down the
+        // RemoteStore as it will prevent the RemoteStore from retrieving auth
+        // tokens.
+        this.credentials.shutdown();
         deferred.resolve();
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(

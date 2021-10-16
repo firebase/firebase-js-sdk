@@ -18,7 +18,7 @@
 import { GreCAPTCHA } from './recaptcha';
 import { getState } from './state';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 
 export function getRecaptcha(): GreCAPTCHA | undefined {
   return self.grecaptcha;

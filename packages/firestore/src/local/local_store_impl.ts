@@ -21,7 +21,7 @@ import { newQueryForPath, Query, queryToTarget } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
-import { Timestamp } from '../lite/timestamp';
+import { Timestamp } from '../lite-api/timestamp';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -34,7 +34,7 @@ import {
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
-  extractMutationBaseValue,
+  mutationExtractBaseValue,
   Mutation,
   PatchMutation,
   Precondition
@@ -318,7 +318,7 @@ export function localStoreWriteLocally(
           const baseMutations: Mutation[] = [];
 
           for (const mutation of mutations) {
-            const baseValue = extractMutationBaseValue(
+            const baseValue = mutationExtractBaseValue(
               mutation,
               existingDocs.get(mutation.key)!
             );
@@ -775,10 +775,8 @@ export async function localStoreNotifyLocalViewChanges(
       const updatedTargetData = targetData.withLastLimboFreeSnapshotVersion(
         lastLimboFreeSnapshotVersion
       );
-      localStoreImpl.targetDataByTarget = localStoreImpl.targetDataByTarget.insert(
-        targetId,
-        updatedTargetData
-      );
+      localStoreImpl.targetDataByTarget =
+        localStoreImpl.targetDataByTarget.insert(targetId, updatedTargetData);
     }
   }
 }
@@ -878,10 +876,11 @@ export function localStoreAllocateTarget(
         targetData.snapshotVersion.compareTo(cachedTargetData.snapshotVersion) >
           0
       ) {
-        localStoreImpl.targetDataByTarget = localStoreImpl.targetDataByTarget.insert(
-          targetData.targetId,
-          targetData
-        );
+        localStoreImpl.targetDataByTarget =
+          localStoreImpl.targetDataByTarget.insert(
+            targetData.targetId,
+            targetData
+          );
         localStoreImpl.targetIdByTarget.set(target, targetData.targetId);
       }
       return targetData;
@@ -960,9 +959,8 @@ export async function localStoreReleaseTarget(
     }
   }
 
-  localStoreImpl.targetDataByTarget = localStoreImpl.targetDataByTarget.remove(
-    targetId
-  );
+  localStoreImpl.targetDataByTarget =
+    localStoreImpl.targetDataByTarget.remove(targetId);
   localStoreImpl.targetIdByTarget.delete(targetData!.target);
 }
 
@@ -1361,10 +1359,11 @@ export async function localStoreSaveNamedQuery(
         ByteString.EMPTY_BYTE_STRING,
         readTime
       );
-      localStoreImpl.targetDataByTarget = localStoreImpl.targetDataByTarget.insert(
-        newTargetData.targetId,
-        newTargetData
-      );
+      localStoreImpl.targetDataByTarget =
+        localStoreImpl.targetDataByTarget.insert(
+          newTargetData.targetId,
+          newTargetData
+        );
       return localStoreImpl.targetCache
         .updateTargetData(transaction, newTargetData)
         .next(() =>

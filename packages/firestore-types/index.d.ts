@@ -65,7 +65,7 @@ export class FirebaseFirestore {
     host: string,
     port: number,
     options?: {
-      mockUserToken?: EmulatorMockTokenOptions;
+      mockUserToken?: EmulatorMockTokenOptions | string;
     }
   ): void;
 
@@ -507,6 +507,6 @@ export interface FirestoreError {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore': FirebaseFirestore;
+    'firestore-compat': FirebaseFirestore;
   }
 }

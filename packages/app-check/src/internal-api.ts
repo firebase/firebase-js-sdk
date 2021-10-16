@@ -15,33 +15,24 @@
  * limitations under the License.
  */
 
-import { getToken as getReCAPTCHAToken } from './recaptcha';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app';
 import {
-  AppCheckTokenListener,
-  AppCheckTokenResult
-} from '@firebase/app-check-interop-types';
-import {
+  AppCheckTokenResult,
   AppCheckTokenInternal,
   AppCheckTokenObserver,
-  getState,
-  ListenerType,
-  setState
-} from './state';
+  ListenerType
+} from './types';
+import { AppCheckTokenListener } from './public-types';
+import { getState, setState } from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
 import { ensureActivated } from './util';
-import {
-  exchangeToken,
-  getExchangeDebugTokenRequest,
-  getExchangeRecaptchaTokenRequest
-} from './client';
-import { writeTokenToStorage, readTokenFromStorage } from './storage';
+import { exchangeToken, getExchangeDebugTokenRequest } from './client';
+import { writeTokenToStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
-import { base64, issuedAtTime } from '@firebase/util';
-import { ERROR_FACTORY, AppCheckError } from './errors';
+import { base64 } from '@firebase/util';
 import { logger } from './logger';
-import { Provider } from '@firebase/component';
+import { AppCheckService } from './factory';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
@@ -62,15 +53,15 @@ export function formatDummyToken(
 }
 
 /**
- * This function will always resolve.
+ * This function always resolves.
  * The result will contain an error field if there is any error.
  * In case there is an error, the token field in the result will be populated with a dummy value
  */
 export async function getToken(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  appCheck: AppCheckService,
   forceRefresh = false
 ): Promise<AppCheckTokenResult> {
+  const app = appCheck.app;
   ensureActivated(app);
 
   const state = getState(app);
@@ -85,8 +76,8 @@ export async function getToken(
    * If there is no token in memory, try to load token from indexedDB.
    */
   if (!token) {
-    // readTokenFromStorage() always resolves. In case of an error, it resolves with `undefined`.
-    const cachedToken = await readTokenFromStorage(app);
+    // cachedTokenPromise contains the token found in IndexedDB or undefined if not found.
+    const cachedToken = await state.cachedTokenPromise;
     if (cachedToken && isValid(cachedToken)) {
       token = cachedToken;
 
@@ -111,7 +102,7 @@ export async function getToken(
   if (isDebugMode()) {
     const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
       getExchangeDebugTokenRequest(app, await getDebugToken()),
-      platformLoggerProvider
+      appCheck.platformLoggerProvider
     );
     // Write debug token to indexedDB.
     await writeTokenToStorage(app, tokenFromDebugExchange);
@@ -124,31 +115,10 @@ export async function getToken(
    * request a new token
    */
   try {
-    if (state.customProvider) {
-      const customToken = await state.customProvider.getToken();
-      // Try to extract IAT from custom token, in case this token is not
-      // being newly issued. JWT timestamps are in seconds since epoch.
-      const issuedAtTimeSeconds = issuedAtTime(customToken.token);
-      // Very basic validation, use current timestamp as IAT if JWT
-      // has no `iat` field or value is out of bounds.
-      const issuedAtTimeMillis =
-        issuedAtTimeSeconds !== null &&
-        issuedAtTimeSeconds < Date.now() &&
-        issuedAtTimeSeconds > 0
-          ? issuedAtTimeSeconds * 1000
-          : Date.now();
-
-      token = { ...customToken, issuedAtTimeMillis };
-    } else {
-      const attestedClaimsToken = await getReCAPTCHAToken(app).catch(_e => {
-        // reCaptcha.execute() throws null which is not very descriptive.
-        throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
-      });
-      token = await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, attestedClaimsToken),
-        platformLoggerProvider
-      );
-    }
+    // state.provider is populated in initializeAppCheck()
+    // ensureActivated() at the top of this function checks that
+    // initializeAppCheck() has been called.
+    token = await state.provider!.getToken();
   } catch (e) {
     // `getToken()` should never throw, but logging error text to console will aid debugging.
     logger.error(e);
@@ -175,28 +145,27 @@ export async function getToken(
 }
 
 export function addTokenListener(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>,
+  appCheck: AppCheckService,
   type: ListenerType,
   listener: AppCheckTokenListener,
   onError?: (error: Error) => void
 ): void {
+  const { app } = appCheck;
   const state = getState(app);
-  const tokenListener: AppCheckTokenObserver = {
+  const tokenObserver: AppCheckTokenObserver = {
     next: listener,
     error: onError,
     type
   };
   const newState = {
     ...state,
-    tokenObservers: [...state.tokenObservers, tokenListener]
+    tokenObservers: [...state.tokenObservers, tokenObserver]
   };
-
   /**
    * Invoke the listener with the valid token, then start the token refresher
    */
   if (!newState.tokenRefresher) {
-    const tokenRefresher = createTokenRefresher(app, platformLoggerProvider);
+    const tokenRefresher = createTokenRefresher(appCheck);
     newState.tokenRefresher = tokenRefresher;
   }
 
@@ -206,11 +175,25 @@ export function addTokenListener(
     newState.tokenRefresher.start();
   }
 
-  // invoke the listener async immediately if there is a valid token
+  // Invoke the listener async immediately if there is a valid token
+  // in memory.
   if (state.token && isValid(state.token)) {
     const validToken = state.token;
     Promise.resolve()
       .then(() => listener({ token: validToken.token }))
+      .catch(() => {
+        /* we don't care about exceptions thrown in listeners */
+      });
+  } else if (state.token == null) {
+    // Only check cache if there was no token. If the token was invalid,
+    // skip this and rely on exchange endpoint.
+    void state
+      .cachedTokenPromise! // Storage token promise. Always populated in `activate()`.
+      .then(cachedToken => {
+        if (cachedToken && isValid(cachedToken)) {
+          listener({ token: cachedToken.token });
+        }
+      })
       .catch(() => {
         /** Ignore errors in listeners. */
       });
@@ -221,7 +204,7 @@ export function addTokenListener(
 
 export function removeTokenListener(
   app: FirebaseApp,
-  listener: (token: AppCheckTokenResult) => void
+  listener: AppCheckTokenListener
 ): void {
   const state = getState(app);
 
@@ -242,10 +225,8 @@ export function removeTokenListener(
   });
 }
 
-function createTokenRefresher(
-  app: FirebaseApp,
-  platformLoggerProvider: Provider<'platform-logger'>
-): Refresher {
+function createTokenRefresher(appCheck: AppCheckService): Refresher {
+  const { app } = appCheck;
   return new Refresher(
     // Keep in mind when this fails for any reason other than the ones
     // for which we should retry, it will effectively stop the proactive refresh.
@@ -255,9 +236,9 @@ function createTokenRefresher(
       // If there is a token, we force refresh it because we know it's going to expire soon
       let result;
       if (!state.token) {
-        result = await getToken(app, platformLoggerProvider);
+        result = await getToken(appCheck);
       } else {
-        result = await getToken(app, platformLoggerProvider, true);
+        result = await getToken(appCheck, true);
       }
 
       // getToken() always resolves. In case the result has an error field defined, it means the operation failed, and we should retry.
@@ -315,13 +296,13 @@ function notifyTokenListeners(
         // has an error field.
         observer.next(token);
       }
-    } catch (ignored) {
+    } catch (e) {
       // Errors in the listener function itself are always ignored.
     }
   }
 }
 
-function isValid(token: AppCheckTokenInternal): boolean {
+export function isValid(token: AppCheckTokenInternal): boolean {
   return token.expireTimeMillis - Date.now() > 0;
 }
 
