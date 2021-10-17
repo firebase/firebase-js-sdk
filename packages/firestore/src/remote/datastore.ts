@@ -46,6 +46,7 @@ import {
   toName,
   toQueryTarget
 } from './serializer';
+import { User } from '../auth/user';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google
@@ -64,7 +65,8 @@ class DatastoreImpl extends Datastore {
   terminated = false;
 
   constructor(
-    readonly credentials: CredentialsProvider,
+    readonly authCredentials: CredentialsProvider<User>,
+    readonly appCheckCredentials: CredentialsProvider<String>,
     readonly connection: Connection,
     readonly serializer: JsonProtoSerializer
   ) {
@@ -88,7 +90,7 @@ class DatastoreImpl extends Datastore {
     request: Req
   ): Promise<Resp> {
     this.verifyInitialized();
-    return this.credentials
+    return this.authCredentials
       .getToken()
       .then(token => {
         return this.connection.invokeRPC<Req, Resp>(
@@ -101,7 +103,7 @@ class DatastoreImpl extends Datastore {
       .catch((error: FirestoreError) => {
         if (error.name === 'FirebaseError') {
           if (error.code === Code.UNAUTHENTICATED) {
-            this.credentials.invalidateToken();
+            this.authCredentials.invalidateToken();
           }
           throw error;
         } else {
@@ -117,7 +119,7 @@ class DatastoreImpl extends Datastore {
     request: Req
   ): Promise<Resp[]> {
     this.verifyInitialized();
-    return this.credentials
+    return this.authCredentials
       .getToken()
       .then(token => {
         return this.connection.invokeStreamingRPC<Req, Resp>(
@@ -130,7 +132,7 @@ class DatastoreImpl extends Datastore {
       .catch((error: FirestoreError) => {
         if (error.name === 'FirebaseError') {
           if (error.code === Code.UNAUTHENTICATED) {
-            this.credentials.invalidateToken();
+            this.authCredentials.invalidateToken();
           }
           throw error;
         } else {
@@ -147,11 +149,17 @@ class DatastoreImpl extends Datastore {
 // TODO(firestorexp): Make sure there is only one Datastore instance per
 // firestore-exp client.
 export function newDatastore(
-  credentials: CredentialsProvider,
+  authCredentials: CredentialsProvider<User>,
+  appCheckCredentials: CredentialsProvider<String>,
   connection: Connection,
   serializer: JsonProtoSerializer
 ): Datastore {
-  return new DatastoreImpl(credentials, connection, serializer);
+  return new DatastoreImpl(
+    authCredentials,
+    appCheckCredentials,
+    connection,
+    serializer
+  );
 }
 
 export async function invokeCommitRpc(
@@ -224,7 +232,8 @@ export function newPersistentWriteStream(
   return new PersistentWriteStream(
     queue,
     datastoreImpl.connection,
-    datastoreImpl.credentials,
+    datastoreImpl.authCredentials,
+    datastoreImpl.appCheckCredentials,
     datastoreImpl.serializer,
     listener
   );
@@ -240,7 +249,8 @@ export function newPersistentWatchStream(
   return new PersistentListenStream(
     queue,
     datastoreImpl.connection,
-    datastoreImpl.credentials,
+    datastoreImpl.authCredentials,
+    datastoreImpl.appCheckCredentials,
     datastoreImpl.serializer,
     listener
   );

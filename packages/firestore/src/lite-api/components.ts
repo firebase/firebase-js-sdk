@@ -27,6 +27,7 @@ import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 
 import { FirestoreSettingsImpl } from './settings';
+import { User } from '../auth/user';
 
 export const LOG_TAG = 'ComponentProvider';
 
@@ -41,7 +42,8 @@ export const LOG_TAG = 'ComponentProvider';
  * This interface mainly exists to remove a cyclic dependency.
  */
 export interface FirestoreService extends _FirebaseService {
-  _credentials: CredentialsProvider;
+  _authCredentials: CredentialsProvider<User>;
+  _appCheckCredentials: CredentialsProvider<String>;
   _persistenceKey: string;
   _databaseId: DatabaseId;
   _terminated: boolean;
@@ -77,7 +79,8 @@ export function getDatastore(firestore: FirestoreService): Datastore {
     const connection = newConnection(databaseInfo);
     const serializer = newSerializer(firestore._databaseId);
     const datastore = newDatastore(
-      firestore._credentials,
+      firestore._authCredentials,
+      firestore._appCheckCredentials,
       connection,
       serializer
     );

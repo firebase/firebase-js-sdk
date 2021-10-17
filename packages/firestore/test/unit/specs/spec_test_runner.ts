@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 
 import { LoadBundleTask } from '../../../src/api/bundle';
-import { EmptyCredentialsProvider } from '../../../src/api/credentials';
+import {EmptyAppCheckTokenProvider, EmptyCredentialsProvider} from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
@@ -286,7 +286,8 @@ abstract class TestRunner {
     const configuration = {
       asyncQueue: this.queue,
       databaseInfo: this.databaseInfo,
-      credentials: new EmptyCredentialsProvider(),
+      authCredentials: new EmptyCredentialsProvider(),
+      appCheckCredentials: new EmptyAppCheckTokenProvider(),
       clientId: this.clientId,
       initialUser: this.user,
       maxConcurrentLimboResolutions:

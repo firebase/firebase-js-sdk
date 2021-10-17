@@ -60,6 +60,7 @@ import { Deferred } from '../util/promise';
 import { LoadBundleTask } from './bundle';
 import { CredentialsProvider } from './credentials';
 import { PersistenceSettings, FirestoreSettings } from './settings';
+import { User } from '../auth/user';
 export {
   connectFirestoreEmulator,
   EmulatorMockTokenOptions
@@ -102,9 +103,14 @@ export class Firestore extends LiteFirestore {
   /** @hideconstructor */
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
-    credentialsProvider: CredentialsProvider
+    authCredentialsProvider: CredentialsProvider<User>,
+    appCheckCredentialsProvider: CredentialsProvider<String>
   ) {
-    super(databaseIdOrApp, credentialsProvider);
+    super(
+      databaseIdOrApp,
+      authCredentialsProvider,
+      appCheckCredentialsProvider
+    );
     this._persistenceKey =
       'name' in databaseIdOrApp ? databaseIdOrApp.name : '[DEFAULT]';
   }
@@ -207,7 +213,8 @@ export function configureFirestore(firestore: Firestore): void {
     settings
   );
   firestore._firestoreClient = new FirestoreClient(
-    firestore._credentials,
+    firestore._authCredentials,
+    firestore._appCheckCredentials,
     firestore._queue,
     databaseInfo
   );

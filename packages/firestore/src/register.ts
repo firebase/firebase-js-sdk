@@ -23,7 +23,10 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 
 import { name, version } from '../package.json';
-import { FirebaseCredentialsProvider } from '../src/api/credentials';
+import {
+  FirebaseAppCheckTokenProvider,
+  FirebaseCredentialsProvider
+} from '../src/api/credentials';
 import { setSDKVersion } from '../src/core/version';
 
 import { Firestore } from './api/database';
@@ -43,6 +46,9 @@ export function registerFirestore(
           app,
           new FirebaseCredentialsProvider(
             container.getProvider('auth-internal')
+          ),
+          new FirebaseAppCheckTokenProvider(
+            container.getProvider('app-check-internal')
           )
         );
         settings = { useFetchStreams, ...settings };

@@ -46,6 +46,7 @@ import {
   versionFromListenResponse
 } from './serializer';
 import { WatchChange } from './watch_change';
+import { User } from '../auth/user';
 
 const LOG_TAG = 'PersistentStream';
 
@@ -199,7 +200,8 @@ export abstract class PersistentStream<
     private idleTimerId: TimerId,
     private healthTimerId: TimerId,
     protected connection: Connection,
-    private credentialsProvider: CredentialsProvider,
+    private authCredentialsProvider: CredentialsProvider<User>,
+    private appCheckCredentialsProvider: CredentialsProvider<String>,
     protected listener: ListenerType
   ) {
     this.backoff = new ExponentialBackoff(queue, connectionTimerId);
@@ -387,7 +389,8 @@ export abstract class PersistentStream<
       // fail, however. In this case, we should get a Code.UNAUTHENTICATED error
       // before we received the first message and we need to invalidate the token
       // to ensure that we fetch a new token.
-      this.credentialsProvider.invalidateToken();
+      this.authCredentialsProvider.invalidateToken();
+      this.appCheckCredentialsProvider.invalidateToken();
     }
 
     // Clean up the underlying stream because we are no longer interested in events.
@@ -439,7 +442,7 @@ export abstract class PersistentStream<
     // TODO(mikelehen): Just use dispatchIfNotClosed, but see TODO below.
     const closeCount = this.closeCount;
 
-    this.credentialsProvider.getToken().then(
+    this.authCredentialsProvider.getToken().then(
       token => {
         // Stream can be stopped while waiting for authentication.
         // TODO(mikelehen): We really should just use dispatchIfNotClosed
@@ -597,7 +600,8 @@ export class PersistentListenStream extends PersistentStream<
   constructor(
     queue: AsyncQueue,
     connection: Connection,
-    credentials: CredentialsProvider,
+    authCredentials: CredentialsProvider<User>,
+    appCheckCredentials: CredentialsProvider<String>,
     private serializer: JsonProtoSerializer,
     listener: WatchStreamListener
   ) {
@@ -607,7 +611,8 @@ export class PersistentListenStream extends PersistentStream<
       TimerId.ListenStreamIdle,
       TimerId.HealthCheckTimeout,
       connection,
-      credentials,
+      authCredentials,
+      appCheckCredentials,
       listener
     );
   }
@@ -706,7 +711,8 @@ export class PersistentWriteStream extends PersistentStream<
   constructor(
     queue: AsyncQueue,
     connection: Connection,
-    credentials: CredentialsProvider,
+    authCredentials: CredentialsProvider<User>,
+    appCheckCredentials: CredentialsProvider<String>,
     private serializer: JsonProtoSerializer,
     listener: WriteStreamListener
   ) {
@@ -716,7 +722,8 @@ export class PersistentWriteStream extends PersistentStream<
       TimerId.WriteStreamIdle,
       TimerId.HealthCheckTimeout,
       connection,
-      credentials,
+      authCredentials,
+      appCheckCredentials,
       listener
     );
   }

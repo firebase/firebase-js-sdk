@@ -21,6 +21,7 @@ import { Firestore } from '../../../compat/api/database';
 import {
   CredentialChangeListener,
   CredentialsProvider,
+  EmptyAppCheckTokenProvider,
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
@@ -56,24 +57,33 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 
 export function withTestDatastore(
   fn: (datastore: Datastore) => Promise<void>,
-  credentialsProvider: CredentialsProvider = new EmptyCredentialsProvider()
+  authCredentialsProvider: CredentialsProvider<User> = new EmptyCredentialsProvider(),
+  appCheckTokenProvider: CredentialsProvider<String> = new EmptyAppCheckTokenProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
   const connection = newConnection(databaseInfo);
   const serializer = newSerializer(databaseInfo.databaseId);
-  const datastore = newDatastore(credentialsProvider, connection, serializer);
+  const datastore = newDatastore(
+    authCredentialsProvider,
+    appCheckTokenProvider,
+    connection,
+    serializer
+  );
   return fn(datastore);
 }
 
 export class MockCredentialsProvider extends EmptyCredentialsProvider {
-  private listener: CredentialChangeListener | null = null;
+  private listener: CredentialChangeListener<User> | null = null;
   private asyncQueue: AsyncQueue | null = null;
 
   triggerUserChange(newUser: User): void {
     this.asyncQueue!.enqueueRetryable(async () => this.listener!(newUser));
   }
 
-  start(asyncQueue: AsyncQueue, listener: CredentialChangeListener): void {
+  start(
+    asyncQueue: AsyncQueue,
+    listener: CredentialChangeListener<User>
+  ): void {
     super.start(asyncQueue, listener);
     this.asyncQueue = asyncQueue;
     this.listener = listener;

@@ -259,7 +259,7 @@ describe('Settings', () => {
     const mockUserToken = { sub: 'foobar' };
     db.useEmulator('localhost', 9000, { mockUserToken });
 
-    const credentials = db._delegate._credentials;
+    const credentials = db._delegate._authCredentials;
     expect(credentials).to.be.instanceOf(EmulatorCredentialsProvider);
     const token = await credentials.getToken();
     expect(token!.type).to.eql('OAuth');
@@ -273,7 +273,7 @@ describe('Settings', () => {
       mockUserToken: 'my-custom-mock-user-token'
     });
 
-    const credentials = db._delegate._credentials;
+    const credentials = db._delegate._authCredentials;
     expect(credentials).to.be.instanceOf(EmulatorCredentialsProvider);
     const token = await credentials.getToken();
     expect(token!.type).to.eql('OAuth');
