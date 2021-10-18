@@ -93,7 +93,7 @@ describe('RestConnection', () => {
         authHeaders: { 'Authorization': 'Bearer owner' }
       },
       {
-        user: null as any,
+        user: new User(null),
         type: 'AppCheck',
         authHeaders: { 'x-firebase-appcheck': 'some-app-check-token' }
       }

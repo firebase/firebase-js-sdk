@@ -16,16 +16,15 @@
  */
 
 import {
-  FirebaseAuthInternal,
-  FirebaseAuthInternalName
-} from '@firebase/auth-interop-types';
-
-import {
   AppCheckInternalComponentName,
   AppCheckTokenListener,
   AppCheckTokenResult,
   FirebaseAppCheckInternal
 } from '@firebase/app-check-interop-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
 import { User } from '../auth/user';
@@ -451,7 +450,7 @@ export class FirstPartyCredentialsProvider
 
 export class AppCheckToken implements Token {
   type = 'AppCheck' as TokenType;
-  user = null as any;
+  user = new User(null);
   authHeaders: { [header: string]: string };
 
   constructor(value: string) {
@@ -462,7 +461,7 @@ export class AppCheckToken implements Token {
 }
 
 export class FirebaseAppCheckTokenProvider
-  implements CredentialsProvider<String>
+  implements CredentialsProvider<string>
 {
   /**
    * The AppCheck token listener registered with FirebaseApp, retained here so
@@ -480,7 +479,7 @@ export class FirebaseAppCheckTokenProvider
 
   start(
     asyncQueue: AsyncQueue,
-    changeListener: CredentialChangeListener<String>
+    changeListener: CredentialChangeListener<string>
   ): void {
     const onTokenChanged: (tokenResult: AppCheckTokenResult) => Promise<void> =
       tokenResult => {
@@ -564,7 +563,7 @@ export class FirebaseAppCheckTokenProvider
  * An AppCheck token provider that always yields an empty token.
  * @internal
  */
-export class EmptyAppCheckTokenProvider implements CredentialsProvider<String> {
+export class EmptyAppCheckTokenProvider implements CredentialsProvider<string> {
   getToken(): Promise<Token | null> {
     return Promise.resolve<Token | null>(new AppCheckToken(''));
   }
@@ -573,7 +572,7 @@ export class EmptyAppCheckTokenProvider implements CredentialsProvider<String> {
 
   start(
     asyncQueue: AsyncQueue,
-    changeListener: CredentialChangeListener<String>
+    changeListener: CredentialChangeListener<string>
   ): void {}
 
   shutdown(): void {}

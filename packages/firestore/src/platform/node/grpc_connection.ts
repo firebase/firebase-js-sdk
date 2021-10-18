@@ -59,7 +59,7 @@ function createMetadata(
   );
 
   const metadata = new Metadata();
-  for (let token of [authToken, appCheckToken]) {
+  for (const token of [authToken, appCheckToken]) {
     if (token) {
       for (const header in token.authHeaders) {
         if (token.authHeaders.hasOwnProperty(header)) {

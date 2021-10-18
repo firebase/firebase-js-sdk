@@ -16,6 +16,7 @@
  */
 
 import { CredentialsProvider, Token } from '../api/credentials';
+import { User } from '../auth/user';
 import { Query, queryToTarget } from '../core/query';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -46,7 +47,6 @@ import {
   toName,
   toQueryTarget
 } from './serializer';
-import { User } from '../auth/user';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google
@@ -66,7 +66,7 @@ class DatastoreImpl extends Datastore {
 
   constructor(
     readonly authCredentials: CredentialsProvider<User>,
-    readonly appCheckCredentials: CredentialsProvider<String>,
+    readonly appCheckCredentials: CredentialsProvider<string>,
     readonly connection: Connection,
     readonly serializer: JsonProtoSerializer
   ) {
@@ -153,7 +153,7 @@ class DatastoreImpl extends Datastore {
 // firestore-exp client.
 export function newDatastore(
   authCredentials: CredentialsProvider<User>,
-  appCheckCredentials: CredentialsProvider<String>,
+  appCheckCredentials: CredentialsProvider<string>,
   connection: Connection,
   serializer: JsonProtoSerializer
 ): Datastore {

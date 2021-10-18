@@ -58,7 +58,7 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 export function withTestDatastore(
   fn: (datastore: Datastore) => Promise<void>,
   authCredentialsProvider: CredentialsProvider<User> = new EmptyCredentialsProvider(),
-  appCheckTokenProvider: CredentialsProvider<String> = new EmptyAppCheckTokenProvider()
+  appCheckTokenProvider: CredentialsProvider<string> = new EmptyAppCheckTokenProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
   const connection = newConnection(databaseInfo);

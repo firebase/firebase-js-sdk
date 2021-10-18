@@ -105,7 +105,7 @@ export class FirestoreClient {
 
   constructor(
     private authCredentials: CredentialsProvider<User>,
-    private appCheckCredentials: CredentialsProvider<String>,
+    private appCheckCredentials: CredentialsProvider<string>,
     /**
      * Asynchronous queue responsible for all of our internal processing. When
      * we get incoming work from the user (via public API) or the network

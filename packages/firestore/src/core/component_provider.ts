@@ -76,7 +76,7 @@ export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
   databaseInfo: DatabaseInfo;
   authCredentials: CredentialsProvider<User>;
-  appCheckCredentials: CredentialsProvider<String>;
+  appCheckCredentials: CredentialsProvider<string>;
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;

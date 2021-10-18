@@ -24,6 +24,7 @@ import {
 } from '@firebase/app';
 import { deepEqual } from '@firebase/util';
 
+import { User } from '../auth/user';
 import {
   IndexedDbOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
@@ -60,7 +61,6 @@ import { Deferred } from '../util/promise';
 import { LoadBundleTask } from './bundle';
 import { CredentialsProvider } from './credentials';
 import { PersistenceSettings, FirestoreSettings } from './settings';
-import { User } from '../auth/user';
 export {
   connectFirestoreEmulator,
   EmulatorMockTokenOptions
@@ -104,7 +104,7 @@ export class Firestore extends LiteFirestore {
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
     authCredentialsProvider: CredentialsProvider<User>,
-    appCheckCredentialsProvider: CredentialsProvider<String>
+    appCheckCredentialsProvider: CredentialsProvider<string>
   ) {
     super(
       databaseIdOrApp,

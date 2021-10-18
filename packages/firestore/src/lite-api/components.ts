@@ -19,6 +19,7 @@
 import { _FirebaseService } from '@firebase/app';
 
 import { CredentialsProvider } from '../api/credentials';
+import { User } from '../auth/user';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { newConnection } from '../platform/connection';
 import { newSerializer } from '../platform/serializer';
@@ -27,7 +28,6 @@ import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 
 import { FirestoreSettingsImpl } from './settings';
-import { User } from '../auth/user';
 
 export const LOG_TAG = 'ComponentProvider';
 
@@ -43,7 +43,7 @@ export const LOG_TAG = 'ComponentProvider';
  */
 export interface FirestoreService extends _FirebaseService {
   _authCredentials: CredentialsProvider<User>;
-  _appCheckCredentials: CredentialsProvider<String>;
+  _appCheckCredentials: CredentialsProvider<string>;
   _persistenceKey: string;
   _databaseId: DatabaseId;
   _terminated: boolean;

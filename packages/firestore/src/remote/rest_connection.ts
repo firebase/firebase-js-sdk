@@ -143,7 +143,7 @@ export abstract class RestConnection implements Connection {
     if (this.databaseInfo.appId) {
       headers['X-Firebase-GMPID'] = this.databaseInfo.appId;
     }
-    for (let token of [authToken, appCheckToken]) {
+    for (const token of [authToken, appCheckToken]) {
       if (token) {
         for (const header in token.authHeaders) {
           if (token.authHeaders.hasOwnProperty(header)) {

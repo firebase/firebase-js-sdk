@@ -16,6 +16,7 @@
  */
 
 import { CredentialsProvider, Token } from '../api/credentials';
+import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetId } from '../core/types';
 import { TargetData } from '../local/target_data';
@@ -46,7 +47,6 @@ import {
   versionFromListenResponse
 } from './serializer';
 import { WatchChange } from './watch_change';
-import { User } from '../auth/user';
 
 const LOG_TAG = 'PersistentStream';
 
@@ -201,7 +201,7 @@ export abstract class PersistentStream<
     private healthTimerId: TimerId,
     protected connection: Connection,
     private authCredentialsProvider: CredentialsProvider<User>,
-    private appCheckCredentialsProvider: CredentialsProvider<String>,
+    private appCheckCredentialsProvider: CredentialsProvider<string>,
     protected listener: ListenerType
   ) {
     this.backoff = new ExponentialBackoff(queue, connectionTimerId);
@@ -608,7 +608,7 @@ export class PersistentListenStream extends PersistentStream<
     queue: AsyncQueue,
     connection: Connection,
     authCredentials: CredentialsProvider<User>,
-    appCheckCredentials: CredentialsProvider<String>,
+    appCheckCredentials: CredentialsProvider<string>,
     private serializer: JsonProtoSerializer,
     listener: WatchStreamListener
   ) {
@@ -721,7 +721,7 @@ export class PersistentWriteStream extends PersistentStream<
     queue: AsyncQueue,
     connection: Connection,
     authCredentials: CredentialsProvider<User>,
-    appCheckCredentials: CredentialsProvider<String>,
+    appCheckCredentials: CredentialsProvider<string>,
     private serializer: JsonProtoSerializer,
     listener: WriteStreamListener
   ) {

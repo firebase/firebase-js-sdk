@@ -27,7 +27,6 @@ import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
 import {
   CredentialsProvider,
   EmulatorCredentialsProvider,
-  FirebaseAppCheckTokenProvider,
   makeCredentialsProvider,
   OAuthToken
 } from '../api/credentials';
@@ -78,7 +77,7 @@ export class Firestore implements FirestoreService {
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
     public _authCredentials: CredentialsProvider<User>,
-    public _appCheckCredentials: CredentialsProvider<String>
+    public _appCheckCredentials: CredentialsProvider<string>
   ) {
     if (databaseIdOrApp instanceof DatabaseId) {
       this._databaseId = databaseIdOrApp;
