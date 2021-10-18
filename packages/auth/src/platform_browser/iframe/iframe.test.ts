@@ -84,7 +84,8 @@ describe('platform_browser/iframe/iframe', () => {
         top: '-100px',
         width: '1px',
         height: '1px'
-      }
+      },
+      'aria-hidden': 'true',
     });
     expect(iframeSettings.dontclear).to.be.true;
   });
