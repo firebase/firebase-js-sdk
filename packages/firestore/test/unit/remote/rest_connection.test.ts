@@ -35,7 +35,8 @@ export class TestRestConnection extends RestConnection {
 
   openStream<Req, Resp>(
     rpcName: string,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<Req, Resp> {
     throw new Error('Not Implemented');
   }
@@ -73,6 +74,7 @@ describe('RestConnection', () => {
       'Commit',
       'projects/testproject/databases/(default)/documents',
       {},
+      null,
       null
     );
     expect(connection.lastUrl).to.equal(
@@ -89,13 +91,19 @@ describe('RestConnection', () => {
         user: User.UNAUTHENTICATED,
         type: 'OAuth',
         authHeaders: { 'Authorization': 'Bearer owner' }
+      },
+      {
+        user: null as any,
+        type: 'AppCheck',
+        authHeaders: { 'x-firebase-appcheck': 'some-app-check-token' }
       }
     );
     expect(connection.lastHeaders).to.deep.equal({
       'Authorization': 'Bearer owner',
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
-      'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`
+      'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
+      'x-firebase-appcheck': 'some-app-check-token'
     });
   });
 
@@ -105,6 +113,7 @@ describe('RestConnection', () => {
       'RunQuery',
       'projects/testproject/databases/(default)/documents/coll',
       {},
+      null,
       null
     );
     expect(response).to.deep.equal({ response: true });
@@ -118,6 +127,7 @@ describe('RestConnection', () => {
         'RunQuery',
         'projects/testproject/databases/(default)/documents/coll',
         {},
+        null,
         null
       )
     ).to.be.eventually.rejectedWith(error);
