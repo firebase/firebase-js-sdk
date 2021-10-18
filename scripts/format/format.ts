@@ -75,7 +75,7 @@ const format = async () => {
       changedFiles = changedFiles!.filter(line => line.match(/\.(js|ts)$/));
 
       if (changedFiles.length === 0) {
-        console.log(chalk`{green No .js or .ts files found in list.`);
+        console.log(chalk`{green No .js or .ts files found in list.}`);
         return;
       }
     }
