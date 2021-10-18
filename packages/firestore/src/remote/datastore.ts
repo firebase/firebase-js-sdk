@@ -83,18 +83,9 @@ class DatastoreImpl extends Datastore {
     }
   }
 
-  /** Gets an auth token and AppCheck token and invokes the provided RPC. */
-  invokeWithTokens<Req, Resp, T>(
-    rpcName: string,
-    path: string,
-    request: Req,
-    func: <Req, Resp>(
-      rpcName: string,
-      path: string,
-      request: Req,
-      authToken: Token | null,
-      appCheckToken: Token | null
-    ) => Promise<T>
+  /** Gets an auth token and AppCheck token and invokes the provided callback. */
+  invokeWithTokens<T>(
+    func: (authToken: Token | null, appCheckToken: Token | null) => Promise<T>
   ): Promise<T> {
     this.verifyInitialized();
     return Promise.all([
@@ -104,13 +95,7 @@ class DatastoreImpl extends Datastore {
       .then(values => {
         const authToken = values[0];
         const appCheckToken = values[1];
-        return func<Req, Resp>(
-          rpcName,
-          path,
-          request,
-          authToken,
-          appCheckToken
-        );
+        return func(authToken, appCheckToken);
       })
       .catch((error: FirestoreError) => {
         if (error.name === 'FirebaseError') {
@@ -131,39 +116,15 @@ class DatastoreImpl extends Datastore {
     path: string,
     request: Req
   ): Promise<Resp> {
-    return this.invokeWithTokens<Req, Resp, Resp>(
-      rpcName,
-      path,
-      request,
-      this.connection.invokeRPC
+    return this.invokeWithTokens<Resp>((authToken, appCheckToken) =>
+      this.connection.invokeRPC<Req, Resp>(
+        rpcName,
+        path,
+        request,
+        authToken,
+        appCheckToken
+      )
     );
-    // this.verifyInitialized();
-    // return Promise.all([
-    //   this.authCredentials.getToken(),
-    //   this.appCheckCredentials.getToken()
-    // ])
-    //   .then(values => {
-    //     const authToken = values[0];
-    //     const appCheckToken = values[1];
-    //     return this.connection.invokeRPC<Req, Resp>(
-    //       rpcName,
-    //       path,
-    //       request,
-    //       authToken,
-    //       appCheckToken
-    //     );
-    //   })
-    //   .catch((error: FirestoreError) => {
-    //     if (error.name === 'FirebaseError') {
-    //       if (error.code === Code.UNAUTHENTICATED) {
-    //         this.authCredentials.invalidateToken();
-    //         this.appCheckCredentials.invalidateToken();
-    //       }
-    //       throw error;
-    //     } else {
-    //       throw new FirestoreError(Code.UNKNOWN, error.toString());
-    //     }
-    //   });
   }
 
   /** Gets an auth token and invokes the provided RPC with streamed results. */
@@ -172,39 +133,15 @@ class DatastoreImpl extends Datastore {
     path: string,
     request: Req
   ): Promise<Resp[]> {
-    return this.invokeWithTokens<Req, Resp, Resp[]>(
-      rpcName,
-      path,
-      request,
-      this.connection.invokeStreamingRPC
+    return this.invokeWithTokens<Resp[]>((authToken, appCheckToken) =>
+      this.connection.invokeStreamingRPC<Req, Resp>(
+        rpcName,
+        path,
+        request,
+        authToken,
+        appCheckToken
+      )
     );
-    // this.verifyInitialized();
-    // return Promise.all([
-    //   this.authCredentials.getToken(),
-    //   this.appCheckCredentials.getToken()
-    // ])
-    //   .then(values => {
-    //     const authToken = values[0];
-    //     const appCheckToken = values[1];
-    //     return this.connection.invokeStreamingRPC<Req, Resp>(
-    //       rpcName,
-    //       path,
-    //       request,
-    //       authToken,
-    //       appCheckToken
-    //     );
-    //   })
-    //   .catch((error: FirestoreError) => {
-    //     if (error.name === 'FirebaseError') {
-    //       if (error.code === Code.UNAUTHENTICATED) {
-    //         this.authCredentials.invalidateToken();
-    //         this.appCheckCredentials.invalidateToken();
-    //       }
-    //       throw error;
-    //     } else {
-    //       throw new FirestoreError(Code.UNKNOWN, error.toString());
-    //     }
-    //   });
   }
 
   terminate(): void {
