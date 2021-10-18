@@ -47,7 +47,8 @@ export interface Connection {
     rpcName: string,
     path: string,
     request: Req,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Promise<Resp>;
 
   /**
@@ -66,7 +67,8 @@ export interface Connection {
     rpcName: string,
     path: string,
     request: Req,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Promise<Resp[]>;
 
   /**
@@ -77,7 +79,8 @@ export interface Connection {
    */
   openStream<Req, Resp>(
     rpcName: string,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<Req, Resp>;
 
   // TODO(mcg): subscribe to connection state changes.

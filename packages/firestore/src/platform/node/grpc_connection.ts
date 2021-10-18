@@ -49,19 +49,22 @@ const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VER
 
 function createMetadata(
   databasePath: string,
-  token: Token | null,
+  authToken: Token | null,
+  appCheckToken: Token | null,
   appId: string
 ): Metadata {
   hardAssert(
-    token === null || token.type === 'OAuth',
+    authToken === null || authToken.type === 'OAuth',
     'If provided, token must be OAuth'
   );
 
   const metadata = new Metadata();
-  if (token) {
-    for (const header in token.authHeaders) {
-      if (token.authHeaders.hasOwnProperty(header)) {
-        metadata.set(header, token.authHeaders[header]);
+  for (let token of [authToken, appCheckToken]) {
+    if (token) {
+      for (const header in token.authHeaders) {
+        if (token.authHeaders.hasOwnProperty(header)) {
+          metadata.set(header, token.authHeaders[header]);
+        }
       }
     }
   }
@@ -115,12 +118,14 @@ export class GrpcConnection implements Connection {
     rpcName: string,
     path: string,
     request: Req,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Promise<Resp> {
     const stub = this.ensureActiveStub();
     const metadata = createMetadata(
       this.databasePath,
-      token,
+      authToken,
+      appCheckToken,
       this.databaseInfo.appId
     );
     const jsonRequest = { database: this.databasePath, ...request };
@@ -156,7 +161,8 @@ export class GrpcConnection implements Connection {
     rpcName: string,
     path: string,
     request: Req,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Promise<Resp[]> {
     const results: Resp[] = [];
     const responseDeferred = new Deferred<Resp[]>();
@@ -169,7 +175,8 @@ export class GrpcConnection implements Connection {
     const stub = this.ensureActiveStub();
     const metadata = createMetadata(
       this.databasePath,
-      token,
+      authToken,
+      appCheckToken,
       this.databaseInfo.appId
     );
     const jsonRequest = { ...request, database: this.databasePath };
@@ -194,12 +201,14 @@ export class GrpcConnection implements Connection {
   // TODO(mikelehen): This "method" is a monster. Should be refactored.
   openStream<Req, Resp>(
     rpcName: string,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<Req, Resp> {
     const stub = this.ensureActiveStub();
     const metadata = createMetadata(
       this.databasePath,
-      token,
+      authToken,
+      appCheckToken,
       this.databaseInfo.appId
     );
     const grpcStream = stub[rpcName](metadata);

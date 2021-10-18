@@ -419,7 +419,8 @@ export abstract class PersistentStream<
    * connection stream.
    */
   protected abstract startRpc(
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<SendType, ReceiveType>;
 
   /**
@@ -442,8 +443,11 @@ export abstract class PersistentStream<
     // TODO(mikelehen): Just use dispatchIfNotClosed, but see TODO below.
     const closeCount = this.closeCount;
 
-    this.authCredentialsProvider.getToken().then(
-      token => {
+    Promise.all([
+      this.authCredentialsProvider.getToken(),
+      this.appCheckCredentialsProvider.getToken()
+    ]).then(
+      tokens => {
         // Stream can be stopped while waiting for authentication.
         // TODO(mikelehen): We really should just use dispatchIfNotClosed
         // and let this dispatch onto the queue, but that opened a spec test can
@@ -452,7 +456,7 @@ export abstract class PersistentStream<
           // Normally we'd have to schedule the callback on the AsyncQueue.
           // However, the following calls are safe to be called outside the
           // AsyncQueue since they don't chain asynchronous calls
-          this.startStream(token);
+          this.startStream(tokens[0], tokens[1]);
         }
       },
       (error: Error) => {
@@ -467,7 +471,10 @@ export abstract class PersistentStream<
     );
   }
 
-  private startStream(token: Token | null): void {
+  private startStream(
+    authToken: Token | null,
+    appCheckToken: Token | null
+  ): void {
     debugAssert(
       this.state === PersistentStreamState.Starting,
       'Trying to start stream in a non-starting state'
@@ -475,7 +482,7 @@ export abstract class PersistentStream<
 
     const dispatchIfNotClosed = this.getCloseGuardedDispatcher(this.closeCount);
 
-    this.stream = this.startRpc(token);
+    this.stream = this.startRpc(authToken, appCheckToken);
     this.stream.onOpen(() => {
       dispatchIfNotClosed(() => {
         debugAssert(
@@ -618,11 +625,13 @@ export class PersistentListenStream extends PersistentStream<
   }
 
   protected startRpc(
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<ProtoListenRequest, ProtoListenResponse> {
     return this.connection.openStream<ProtoListenRequest, ProtoListenResponse>(
       'Listen',
-      token
+      authToken,
+      appCheckToken
     );
   }
 
@@ -760,11 +769,13 @@ export class PersistentWriteStream extends PersistentStream<
   }
 
   protected startRpc(
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<ProtoWriteRequest, ProtoWriteResponse> {
     return this.connection.openStream<ProtoWriteRequest, ProtoWriteResponse>(
       'Write',
-      token
+      authToken,
+      appCheckToken
     );
   }
 

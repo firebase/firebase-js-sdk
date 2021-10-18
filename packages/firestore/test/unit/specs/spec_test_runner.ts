@@ -18,7 +18,10 @@
 import { expect } from 'chai';
 
 import { LoadBundleTask } from '../../../src/api/bundle';
-import {EmptyAppCheckTokenProvider, EmptyCredentialsProvider} from '../../../src/api/credentials';
+import {
+  EmptyAppCheckTokenProvider,
+  EmptyCredentialsProvider
+} from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
