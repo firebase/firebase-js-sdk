@@ -447,7 +447,7 @@ export abstract class PersistentStream<
       this.authCredentialsProvider.getToken(),
       this.appCheckCredentialsProvider.getToken()
     ]).then(
-      tokens => {
+      ([authToken, appCheckToken]) => {
         // Stream can be stopped while waiting for authentication.
         // TODO(mikelehen): We really should just use dispatchIfNotClosed
         // and let this dispatch onto the queue, but that opened a spec test can
@@ -456,7 +456,7 @@ export abstract class PersistentStream<
           // Normally we'd have to schedule the callback on the AsyncQueue.
           // However, the following calls are safe to be called outside the
           // AsyncQueue since they don't chain asynchronous calls
-          this.startStream(tokens[0], tokens[1]);
+          this.startStream(authToken, appCheckToken);
         }
       },
       (error: Error) => {

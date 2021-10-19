@@ -122,11 +122,8 @@ export class FirestoreClient {
       await this.authCredentialListener(user);
       this.user = user;
     });
-    this.appCheckCredentials.start(asyncQueue, async token => {
-      logDebug(LOG_TAG, 'Received new AppCheck token');
-      // Register an empty credentials change listener to activate token
-      // refresh.
-    });
+    // Register an empty credentials change listener to activate token refresh.
+    this.appCheckCredentials.start(asyncQueue, () => Promise.resolve());
   }
 
   async getConfiguration(): Promise<ComponentConfiguration> {

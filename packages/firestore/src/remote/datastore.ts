@@ -84,19 +84,15 @@ class DatastoreImpl extends Datastore {
   }
 
   /** Gets an auth token and AppCheck token and invokes the provided callback. */
-  invokeWithTokens<T>(
-    func: (authToken: Token | null, appCheckToken: Token | null) => Promise<T>
+  private invokeWithTokens<T>(
+    callback: (authToken: Token | null, appCheckToken: Token | null) => Promise<T>
   ): Promise<T> {
     this.verifyInitialized();
     return Promise.all([
       this.authCredentials.getToken(),
       this.appCheckCredentials.getToken()
     ])
-      .then(values => {
-        const authToken = values[0];
-        const appCheckToken = values[1];
-        return func(authToken, appCheckToken);
-      })
+      .then(([authToken, appCheckToken]) => callback(authToken, appCheckToken))
       .catch((error: FirestoreError) => {
         if (error.name === 'FirebaseError') {
           if (error.code === Code.UNAUTHENTICATED) {
@@ -110,7 +106,7 @@ class DatastoreImpl extends Datastore {
       });
   }
 
-  /** Gets an auth token and invokes the provided RPC. */
+  /** Invokes the provided RPC with auth and AppCheck tokens. */
   invokeRPC<Req, Resp>(
     rpcName: string,
     path: string,
@@ -127,7 +123,7 @@ class DatastoreImpl extends Datastore {
     );
   }
 
-  /** Gets an auth token and invokes the provided RPC with streamed results. */
+  /** Invokes the provided RPC with streamed results with auth and AppCheck tokens. */
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
     path: string,
