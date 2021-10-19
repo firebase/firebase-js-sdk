@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { CredentialsProvider, Token } from '../api/credentials';
+import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { Query, queryToTarget } from '../core/query';
 import { Document } from '../model/document';
@@ -83,19 +83,26 @@ class DatastoreImpl extends Datastore {
     }
   }
 
-  /** Gets an auth token and AppCheck token and invokes the provided callback. */
-  private invokeWithTokens<T>(
-    callback: (
-      authToken: Token | null,
-      appCheckToken: Token | null
-    ) => Promise<T>
-  ): Promise<T> {
+  /** Invokes the provided RPC with auth and AppCheck tokens. */
+  invokeRPC<Req, Resp>(
+    rpcName: string,
+    path: string,
+    request: Req
+  ): Promise<Resp> {
     this.verifyInitialized();
     return Promise.all([
       this.authCredentials.getToken(),
       this.appCheckCredentials.getToken()
     ])
-      .then(([authToken, appCheckToken]) => callback(authToken, appCheckToken))
+      .then(([authToken, appCheckToken]) => {
+        return this.connection.invokeRPC<Req, Resp>(
+          rpcName,
+          path,
+          request,
+          authToken,
+          appCheckToken
+        );
+      })
       .catch((error: FirestoreError) => {
         if (error.name === 'FirebaseError') {
           if (error.code === Code.UNAUTHENTICATED) {
@@ -109,38 +116,37 @@ class DatastoreImpl extends Datastore {
       });
   }
 
-  /** Invokes the provided RPC with auth and AppCheck tokens. */
-  invokeRPC<Req, Resp>(
-    rpcName: string,
-    path: string,
-    request: Req
-  ): Promise<Resp> {
-    return this.invokeWithTokens<Resp>((authToken, appCheckToken) =>
-      this.connection.invokeRPC<Req, Resp>(
-        rpcName,
-        path,
-        request,
-        authToken,
-        appCheckToken
-      )
-    );
-  }
-
   /** Invokes the provided RPC with streamed results with auth and AppCheck tokens. */
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
     path: string,
     request: Req
   ): Promise<Resp[]> {
-    return this.invokeWithTokens<Resp[]>((authToken, appCheckToken) =>
-      this.connection.invokeStreamingRPC<Req, Resp>(
-        rpcName,
-        path,
-        request,
-        authToken,
-        appCheckToken
-      )
-    );
+    this.verifyInitialized();
+    return Promise.all([
+      this.authCredentials.getToken(),
+      this.appCheckCredentials.getToken()
+    ])
+      .then(([authToken, appCheckToken]) => {
+        return this.connection.invokeStreamingRPC<Req, Resp>(
+          rpcName,
+          path,
+          request,
+          authToken,
+          appCheckToken
+        );
+      })
+      .catch((error: FirestoreError) => {
+        if (error.name === 'FirebaseError') {
+          if (error.code === Code.UNAUTHENTICATED) {
+            this.authCredentials.invalidateToken();
+            this.appCheckCredentials.invalidateToken();
+          }
+          throw error;
+        } else {
+          throw new FirestoreError(Code.UNKNOWN, error.toString());
+        }
+      });
   }
 
   terminate(): void {
