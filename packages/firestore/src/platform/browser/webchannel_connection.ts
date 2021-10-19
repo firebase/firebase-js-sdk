@@ -202,7 +202,11 @@ export class WebChannelConnection extends RestConnection {
       request.xmlHttpFactory = new FetchXmlHttpFactory({});
     }
 
-    this.modifyHeadersForRequest(request.initMessageHeaders!, authToken, appCheckToken);
+    this.modifyHeadersForRequest(
+      request.initMessageHeaders!,
+      authToken,
+      appCheckToken
+    );
 
     // Sending the custom headers we just added to request.initMessageHeaders
     // (Authorization, etc.) will trigger the browser to make a CORS preflight

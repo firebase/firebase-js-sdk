@@ -85,7 +85,10 @@ class DatastoreImpl extends Datastore {
 
   /** Gets an auth token and AppCheck token and invokes the provided callback. */
   private invokeWithTokens<T>(
-    callback: (authToken: Token | null, appCheckToken: Token | null) => Promise<T>
+    callback: (
+      authToken: Token | null,
+      appCheckToken: Token | null
+    ) => Promise<T>
   ): Promise<T> {
     this.verifyInitialized();
     return Promise.all([
