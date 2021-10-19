@@ -49,17 +49,18 @@ export class MultiFactorResolverImpl implements MultiFactorResolver {
     error: MultiFactorErrorInternal
   ): MultiFactorResolverImpl {
     const auth = _castAuth(authExtern);
-    const hints = (error.serverResponse.mfaInfo || []).map(enrollment =>
+    const serverResponse = error.customData._serverResponse;
+    const hints = (serverResponse.mfaInfo || []).map(enrollment =>
       MultiFactorInfoImpl._fromServerResponse(auth, enrollment)
     );
 
     _assert(
-      error.serverResponse.mfaPendingCredential,
+      serverResponse.mfaPendingCredential,
       auth,
       AuthErrorCode.INTERNAL_ERROR
     );
     const session = MultiFactorSessionImpl._fromMfaPendingCredential(
-      error.serverResponse.mfaPendingCredential
+      serverResponse.mfaPendingCredential
     );
 
     return new MultiFactorResolverImpl(
@@ -70,12 +71,12 @@ export class MultiFactorResolverImpl implements MultiFactorResolver {
       ): Promise<UserCredentialInternal> => {
         const mfaResponse = await assertion._process(auth, session);
         // Clear out the unneeded fields from the old login response
-        delete error.serverResponse.mfaInfo;
-        delete error.serverResponse.mfaPendingCredential;
+        delete serverResponse.mfaInfo;
+        delete serverResponse.mfaPendingCredential;
 
         // Use in the new token & refresh token in the old response
         const idTokenResponse = {
-          ...error.serverResponse,
+          ...serverResponse,
           idToken: mfaResponse.idToken,
           refreshToken: mfaResponse.refreshToken
         };
@@ -129,9 +130,9 @@ export function getMultiFactorResolver(
 ): MultiFactorResolver {
   const authModular = getModularInstance(auth);
   const errorInternal = error as MultiFactorErrorInternal;
-  _assert(error.operationType, authModular, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(error.customData.operationType, authModular, AuthErrorCode.ARGUMENT_ERROR);
   _assert(
-    errorInternal.serverResponse?.mfaPendingCredential,
+    errorInternal.customData._serverResponse?.mfaPendingCredential,
     authModular,
     AuthErrorCode.ARGUMENT_ERROR
   );
