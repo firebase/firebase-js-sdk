@@ -1,5 +1,5 @@
 ---
-"@firebase/firestore": patch
+"@firebase/firestore": minor
 ---
 
 AppCheck integration for Firestore
