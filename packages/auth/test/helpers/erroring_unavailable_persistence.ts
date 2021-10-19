@@ -18,7 +18,7 @@
  import { PersistenceInternal, PersistenceType, PersistenceValue } from '../../src/core/persistence';
 
  const PERMISSION_ERROR = typeof window !== 'undefined' ? new DOMException(
-     'Failed to read this storage class from the Window object; access is denied')
+     'Failed to read this storage class from the Window; access is denied')
      : new Error('This is Node.');
 
  /**
