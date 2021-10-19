@@ -66,7 +66,7 @@ export interface Token {
    * state on disk, etc.).
    * This will be null for Tokens of the type 'AppCheck'.
    */
-  user: User;
+  user?: User;
 
   /** Extra header values to be passed along with a request */
   authHeaders: { [header: string]: string };
@@ -170,7 +170,7 @@ export class EmulatorCredentialsProvider implements CredentialsProvider<User> {
     );
     this.changeListener = changeListener;
     // Fire with initial user.
-    asyncQueue.enqueueRetryable(() => changeListener(this.token.user));
+    asyncQueue.enqueueRetryable(() => changeListener(this.token.user!));
   }
 
   shutdown(): void {
@@ -450,7 +450,6 @@ export class FirstPartyCredentialsProvider
 
 export class AppCheckToken implements Token {
   type = 'AppCheck' as TokenType;
-  user = new User(null);
   authHeaders: { [header: string]: string };
 
   constructor(value: string) {
@@ -582,7 +581,7 @@ export class EmptyAppCheckTokenProvider implements CredentialsProvider<string> {
  * Builds a CredentialsProvider depending on the type of
  * the credentials passed in.
  */
-export function makeCredentialsProvider(
+export function makeAuthCredentialsProvider(
   credentials?: CredentialsSettings
 ): CredentialsProvider<User> {
   if (!credentials) {
@@ -614,7 +613,7 @@ export function makeCredentialsProvider(
     default:
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'makeCredentialsProvider failed due to invalid credential type'
+        'makeAuthCredentialsProvider failed due to invalid credential type'
       );
   }
 }

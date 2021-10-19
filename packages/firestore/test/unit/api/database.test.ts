@@ -263,7 +263,7 @@ describe('Settings', () => {
     expect(credentials).to.be.instanceOf(EmulatorCredentialsProvider);
     const token = await credentials.getToken();
     expect(token!.type).to.eql('OAuth');
-    expect(token!.user.uid).to.eql(mockUserToken.sub);
+    expect(token!.user!.uid).to.eql(mockUserToken.sub);
   });
 
   it('sets credentials based on mockUserToken string', async () => {

@@ -27,7 +27,7 @@ import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
 import {
   CredentialsProvider,
   EmulatorCredentialsProvider,
-  makeCredentialsProvider,
+  makeAuthCredentialsProvider,
   OAuthToken
 } from '../api/credentials';
 import { User } from '../auth/user';
@@ -121,7 +121,7 @@ export class Firestore implements FirestoreService {
     }
     this._settings = new FirestoreSettingsImpl(settings);
     if (settings.credentials !== undefined) {
-      this._authCredentials = makeCredentialsProvider(settings.credentials);
+      this._authCredentials = makeAuthCredentialsProvider(settings.credentials);
     }
   }
 
