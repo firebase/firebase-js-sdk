@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {StorageReference} from "./public-types";
+import { StorageReference } from './public-types';
 
 /**
  * Downloads the data at the object's location. Returns an error if the object
@@ -38,7 +38,7 @@ function getBlob(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
 ): Promise<Blob> {
-  throw new Error("Not implemented");
+  throw new Error('Not implemented');
 }
 
 /**
@@ -58,7 +58,7 @@ function getStream(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
 ): NodeJS.ReadableStream {
-  throw new Error("getStream() is only supported by NodeJS builds");
+  throw new Error('getStream() is only supported by NodeJS builds');
 }
 
 // TODO(getbytes): Export getBlob/getStream
