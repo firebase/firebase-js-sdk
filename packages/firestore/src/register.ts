@@ -29,7 +29,10 @@ import { setSDKVersion } from '../src/core/version';
 import { Firestore } from './api/database';
 import { PrivateSettings } from './lite-api/settings';
 
-export function registerFirestore(variant?: string): void {
+export function registerFirestore(
+  variant?: string,
+  useFetchStreams = true
+): void {
   setSDKVersion(SDK_VERSION);
   _registerComponent(
     new Component(
@@ -42,7 +45,7 @@ export function registerFirestore(variant?: string): void {
             container.getProvider('auth-internal')
           )
         );
-        settings = { useFetchStreams: true, ...settings };
+        settings = { useFetchStreams, ...settings };
         firestoreInstance._setSettings(settings);
         return firestoreInstance;
       },
