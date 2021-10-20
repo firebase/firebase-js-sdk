@@ -21,7 +21,8 @@ import {
   _DatabaseId,
   Firestore as FirestoreExp,
   FirestoreError,
-  _EmptyCredentialsProvider
+  _EmptyCredentialsProvider,
+  _EmptyAppCheckTokenProvider
 } from '@firebase/firestore';
 
 import {
@@ -91,7 +92,8 @@ export class Firestore extends FirestoreCompat {
       databaseIdFromFirestoreDatabase(firestoreDatabase),
       new FirestoreExp(
         databaseIdFromFirestoreDatabase(firestoreDatabase),
-        new _EmptyCredentialsProvider()
+        new _EmptyCredentialsProvider(),
+        new _EmptyAppCheckTokenProvider(),
       ),
       new MemoryPersistenceProvider()
     );
