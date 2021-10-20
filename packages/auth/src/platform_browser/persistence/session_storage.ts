@@ -31,7 +31,7 @@ class BrowserSessionPersistence
   static type: 'SESSION' = 'SESSION';
 
   constructor() {
-    super(window.sessionStorage, PersistenceType.SESSION);
+    super(() => window.sessionStorage, PersistenceType.SESSION);
   }
 
   _addListener(_key: string, _listener: StorageEventListener): void {

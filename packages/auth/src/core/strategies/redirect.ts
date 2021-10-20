@@ -118,9 +118,13 @@ export async function _getAndClearPendingRedirectStatus(
   auth: AuthInternal
 ): Promise<boolean> {
   const key = pendingRedirectKey(auth);
+  const persistence = resolverPersistence(resolver);
+  if (!(await persistence._isAvailable())) {
+    return false;
+  }
   const hasPendingRedirect =
-    (await resolverPersistence(resolver)._get(key)) === 'true';
-  await resolverPersistence(resolver)._remove(key);
+    (await persistence._get(key)) === 'true';
+  await persistence._remove(key);
   return hasPendingRedirect;
 }
 
