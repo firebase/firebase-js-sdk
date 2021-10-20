@@ -4,9 +4,15 @@
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "browser": "dist/esm/index.esm2017.js",
+  "module": "dist/esm/index.esm2017.js",
+  "esm5": "dist/esm/index.esm5.js",
+  "exports": {
+    "import": "./dist/esm/index.esm2017.js",
+    "browser": "./dist/esm/index.esm2017.js",
+    "module": "./dist/esm/index.esm2017.js",
+    "default": "./dist/index.cjs.js"
+  },
   "files": [
     "dist"
   ],
