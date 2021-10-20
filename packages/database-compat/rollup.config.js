@@ -23,6 +23,7 @@ import resolveModule from '@rollup/plugin-node-resolve';
 
 import pkg from './package.json';
 import standalonePkg from './standalone/package.json';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
 const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 
@@ -33,9 +34,6 @@ function onWarn(warning, defaultWarn) {
   defaultWarn(warning);
 }
 
-/**
- * ES5 Builds
- */
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
@@ -44,7 +42,20 @@ const es5BuildPlugins = [
   json()
 ];
 
-const es5Builds = [
+const es2017BuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
+    abortOnError: false
+  }),
+  json({ preferConst: true })
+];
+
+const esmBuilds = [
   /**
    * Node.js Build
    */
@@ -52,12 +63,12 @@ const es5Builds = [
     input: 'src/index.node.ts',
     output: [
       {
-        file: pkg.main,
-        format: 'cjs',
+        file: pkg.exports['.'].node.import,
+        format: 'es',
         sourcemap: true
       }
     ],
-    plugins: es5BuildPlugins,
+    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
     treeshake: {
       moduleSideEffects: false
     },
@@ -73,6 +84,44 @@ const es5Builds = [
       {
         file: pkg.esm5,
         format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: es5BuildPlugins,
+    treeshake: {
+      moduleSideEffects: false
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
+  },
+  {
+    input: 'src/index.ts',
+    output: [
+      {
+        file: pkg.browser,
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: es2017BuildPlugins,
+    treeshake: {
+      moduleSideEffects: false
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
+  }
+];
+
+const cjsBuilds = [
+  /**
+   * Node.js Build
+   */
+  {
+    input: 'src/index.node.ts',
+    output: [
+      {
+        file: pkg.main,
+        format: 'cjs',
         sourcemap: true
       }
     ],
@@ -115,42 +164,4 @@ const es5Builds = [
   }
 ];
 
-/**
- * ES2017 Builds
- */
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
-    abortOnError: false
-  }),
-  json({ preferConst: true })
-];
-
-const es2017Builds = [
-  /**
-   * Browser Build
-   */
-  {
-    input: 'src/index.ts',
-    output: [
-      {
-        file: pkg.browser,
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: es2017BuildPlugins,
-    treeshake: {
-      moduleSideEffects: false
-    },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn
-  }
-];
-
-export default [...es5Builds, ...es2017Builds];
+export default [...esmBuilds, ...cjsBuilds];
