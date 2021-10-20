@@ -46,7 +46,9 @@ export function registerFirestore(): void {
         const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
           app,
-          new LiteAuthCredentialsProvider(container.getProvider('auth-internal')),
+          new LiteAuthCredentialsProvider(
+            container.getProvider('auth-internal')
+          ),
           new LiteAppCheckTokenProvider(
             container.getProvider('app-check-internal')
           )

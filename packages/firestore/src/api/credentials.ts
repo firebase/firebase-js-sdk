@@ -69,16 +69,16 @@ export interface Token {
   user?: User;
 
   /** Extra header values to be passed along with a request */
-  authHeaders: { [header: string]: string };
+  headers: { [header: string]: string };
 }
 
 export class OAuthToken implements Token {
   type = 'OAuth' as TokenType;
-  authHeaders: { [header: string]: string };
+  headers: { [header: string]: string };
   constructor(value: string, public user: User) {
-    this.authHeaders = {};
+    this.headers = {};
     // Set the headers using Object Literal notation to avoid minification
-    this.authHeaders['Authorization'] = `Bearer ${value}`;
+    this.headers['Authorization'] = `Bearer ${value}`;
   }
 }
 
@@ -144,7 +144,9 @@ export class EmptyAuthCredentialsProvider implements CredentialsProvider<User> {
  * A CredentialsProvider that always returns a constant token. Used for
  * emulator token mocking.
  */
-export class EmulatorAuthCredentialsProvider implements CredentialsProvider<User> {
+export class EmulatorAuthCredentialsProvider
+  implements CredentialsProvider<User>
+{
   constructor(private token: Token) {}
 
   /**
@@ -219,7 +221,9 @@ export class LiteAuthCredentialsProvider implements CredentialsProvider<User> {
   shutdown(): void {}
 }
 
-export class FirebaseAuthCredentialsProvider implements CredentialsProvider<User> {
+export class FirebaseAuthCredentialsProvider
+  implements CredentialsProvider<User>
+{
   /**
    * The auth token listener registered with FirebaseApp, retained here so we
    * can unregister it.
@@ -399,19 +403,19 @@ export class FirstPartyToken implements Token {
     private iamToken: string | null
   ) {}
 
-  get authHeaders(): { [header: string]: string } {
-    const headers: { [header: string]: string } = {
+  get headers(): { [header: string]: string } {
+    const result: { [header: string]: string } = {
       'X-Goog-AuthUser': this.sessionIndex
     };
     // Use array notation to prevent minification
     const authHeader = this.gapi['auth']['getAuthHeaderValueForFirstParty']([]);
     if (authHeader) {
-      headers['Authorization'] = authHeader;
+      result['Authorization'] = authHeader;
     }
     if (this.iamToken) {
-      headers['X-Goog-Iam-Authorization-Token'] = this.iamToken;
+      result['X-Goog-Iam-Authorization-Token'] = this.iamToken;
     }
-    return headers;
+    return result;
   }
 }
 
@@ -450,13 +454,13 @@ export class FirstPartyAuthCredentialsProvider
 
 export class AppCheckToken implements Token {
   type = 'AppCheck' as TokenType;
-  authHeaders: { [header: string]: string };
+  headers: { [header: string]: string };
 
   constructor(value: string) {
-    this.authHeaders = {};
+    this.headers = {};
     if (value && value.length > 0) {
       // Set the headers using Object Literal notation to avoid minification
-      this.authHeaders['x-firebase-appcheck'] = value;
+      this.headers['x-firebase-appcheck'] = value;
     }
   }
 }

@@ -145,9 +145,9 @@ export abstract class RestConnection implements Connection {
     }
     for (const token of [authToken, appCheckToken]) {
       if (token) {
-        for (const header in token.authHeaders) {
-          if (token.authHeaders.hasOwnProperty(header)) {
-            headers[header] = token.authHeaders[header];
+        for (const header in token.headers) {
+          if (token.headers.hasOwnProperty(header)) {
+            headers[header] = token.headers[header];
           }
         }
       }

@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { Token } from '../../../src/api/credentials';
+import { AppCheckToken, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { SDK_VERSION } from '../../../src/core/version';
@@ -90,11 +90,11 @@ describe('RestConnection', () => {
       {
         user: User.UNAUTHENTICATED,
         type: 'OAuth',
-        authHeaders: { 'Authorization': 'Bearer owner' }
+        headers: { 'Authorization': 'Bearer owner' }
       },
       {
         type: 'AppCheck',
-        authHeaders: { 'x-firebase-appcheck': 'some-app-check-token' }
+        headers: { 'x-firebase-appcheck': 'some-app-check-token' }
       }
     );
     expect(connection.lastHeaders).to.deep.equal({
@@ -103,6 +103,22 @@ describe('RestConnection', () => {
       'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
       'x-firebase-appcheck': 'some-app-check-token'
+    });
+  });
+
+  it('empty app check token is not added to headers', async () => {
+    await connection.invokeRPC(
+      'RunQuery',
+      'projects/testproject/databases/(default)/documents/foo',
+      {},
+      null,
+      new AppCheckToken('')
+    );
+    expect(connection.lastHeaders).to.deep.equal({
+      'Content-Type': 'text/plain',
+      'X-Firebase-GMPID': 'test-app-id',
+      'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`
+      // Note: AppCheck token should not exist here.
     });
   });
 

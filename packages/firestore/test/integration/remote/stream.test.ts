@@ -17,7 +17,10 @@
 
 import { expect } from 'chai';
 
-import { EmptyAuthCredentialsProvider, Token } from '../../../src/api/credentials';
+import {
+  EmptyAuthCredentialsProvider,
+  Token
+} from '../../../src/api/credentials';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { MutationResult } from '../../../src/model/mutation';
 import {
