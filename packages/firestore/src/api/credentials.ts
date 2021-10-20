@@ -580,7 +580,7 @@ export class EmptyAppCheckTokenProvider implements CredentialsProvider<string> {
 }
 
 /** AppCheck token provider for the Lite SDK. */
-export class LiteAppCheckTokenProvider implements CredentialsProvider<String> {
+export class LiteAppCheckTokenProvider implements CredentialsProvider<string> {
   private appCheck: FirebaseAppCheckInternal | null = null;
 
   constructor(
