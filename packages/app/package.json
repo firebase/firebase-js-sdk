@@ -8,12 +8,10 @@
   "module": "dist/esm/index.esm2017.js",
   "esm5": "dist/esm/index.esm5.js",
   "exports": {
-    ".": {
-      "import": "./dist/esm/index.esm2017.js",
-      "browser": "./dist/esm/index.esm2017.js",
-      "module": "./dist/esm/index.esm2017.js",
-      "default": "./dist/index.cjs.js"
-    }
+    "import": "./dist/esm/index.esm2017.js",
+    "browser": "./dist/esm/index.esm2017.js",
+    "module": "./dist/esm/index.esm2017.js",
+    "default": "./dist/index.cjs.js"
   },
   "files": [
     "dist"
