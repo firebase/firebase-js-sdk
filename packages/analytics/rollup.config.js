@@ -27,9 +27,6 @@ const deps = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies))
 ];
 
-/**
- * ES5 Builds
- */
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript
@@ -37,9 +34,6 @@ const es5BuildPlugins = [
   json()
 ];
 
-/**
- * ES2017 Builds
- */
 const es2017BuildPlugins = [
   typescriptPlugin({
     typescript,
