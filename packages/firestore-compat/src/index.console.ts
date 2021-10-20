@@ -93,7 +93,7 @@ export class Firestore extends FirestoreCompat {
       new FirestoreExp(
         databaseIdFromFirestoreDatabase(firestoreDatabase),
         new _EmptyCredentialsProvider(),
-        new _EmptyAppCheckTokenProvider(),
+        new _EmptyAppCheckTokenProvider()
       ),
       new MemoryPersistenceProvider()
     );
