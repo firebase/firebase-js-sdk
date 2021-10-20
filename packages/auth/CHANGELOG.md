@@ -1,5 +1,17 @@
 # @firebase/auth
 
+## 0.19.0
+
+### Minor Changes
+
+- [`b6f30c24f`](https://github.com/firebase/firebase-js-sdk/commit/b6f30c24fdf096ac4e8bdba32b9c1380903a7507) [#5617](https://github.com/firebase/firebase-js-sdk/pull/5617) (fixes [#5610](https://github.com/firebase/firebase-js-sdk/issues/5610)) - Fix behavior on subsequent calls to `getRedirectResult()`
+
+### Patch Changes
+
+- [`69ff8eb54`](https://github.com/firebase/firebase-js-sdk/commit/69ff8eb549e49de51cae11a04bce023bb6e1fc02) [#5616](https://github.com/firebase/firebase-js-sdk/pull/5616) - Fix the public `AuthError` typing, and update the `MultiFactorError` implementation to follow the new standard (all fields listed under `customData`)
+
+* [`2429ac105`](https://github.com/firebase/firebase-js-sdk/commit/2429ac105b0aeb15eb8c362665448c209887bada) [#5633](https://github.com/firebase/firebase-js-sdk/pull/5633) (fixes [#5631](https://github.com/firebase/firebase-js-sdk/issues/5631)) - Add the attribute `aria-hidden="true"` to the embedded iframe
+
 ## 0.18.3
 
 ### Patch Changes
