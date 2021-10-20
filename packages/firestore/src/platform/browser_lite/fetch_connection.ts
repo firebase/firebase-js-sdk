@@ -74,7 +74,6 @@ export class FetchConnection extends RestConnection {
         'Request failed with error: ' + response.statusText
       );
     }
-
     return response.json();
   }
 }

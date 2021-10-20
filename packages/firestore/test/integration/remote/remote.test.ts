@@ -53,7 +53,7 @@ describe('Remote Storage', () => {
     });
   });
 
-  it('can read deleted documents', () => {
+  it.only('can read deleted documents', () => {
     return withTestDatastore(async ds => {
       const k = key('docs/2');
 
