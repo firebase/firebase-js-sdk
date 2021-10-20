@@ -579,6 +579,46 @@ export class EmptyAppCheckTokenProvider implements CredentialsProvider<string> {
   shutdown(): void {}
 }
 
+/** AppCheck token provider for the Lite SDK. */
+export class LiteAppCheckTokenProvider implements CredentialsProvider<String> {
+  private appCheck: FirebaseAppCheckInternal | null = null;
+
+  constructor(
+    private appCheckProvider: Provider<AppCheckInternalComponentName>
+  ) {
+    appCheckProvider.onInit(appCheck => {
+      this.appCheck = appCheck;
+    });
+  }
+
+  getToken(): Promise<Token | null> {
+    if (!this.appCheck) {
+      return Promise.resolve(null);
+    }
+
+    return this.appCheck.getToken().then(tokenResult => {
+      if (tokenResult) {
+        hardAssert(
+          typeof tokenResult.token === 'string',
+          'Invalid tokenResult returned from getToken():' + tokenResult
+        );
+        return new AppCheckToken(tokenResult.token);
+      } else {
+        return null;
+      }
+    });
+  }
+
+  invalidateToken(): void {}
+
+  start(
+    asyncQueue: AsyncQueue,
+    changeListener: CredentialChangeListener<string>
+  ): void {}
+
+  shutdown(): void {}
+}
+
 /**
  * Builds a CredentialsProvider depending on the type of
  * the credentials passed in.
