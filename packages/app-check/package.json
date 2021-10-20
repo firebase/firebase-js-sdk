@@ -4,8 +4,17 @@
   "description": "The App Check component of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
+  "browser": "dist/esm/index.esm2017.js",
+  "module": "dist/esm/index.esm2017.js",
+  "esm5": "dist/esm/index.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.esm2017.js",
+      "browser": "./dist/esm/index.esm2017.js",
+      "module": "./dist/esm/index.esm2017.js",
+      "default": "./dist/index.cjs.js"
+    }
+  },
   "files": [
     "dist"
   ],
@@ -57,6 +66,5 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
-  },
-  "esm5": "dist/index.esm.js"
+  }
 }
