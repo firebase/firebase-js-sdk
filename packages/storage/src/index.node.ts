@@ -6,7 +6,7 @@
 
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   _registerComponent,
@@ -27,8 +28,7 @@ import {
   SDK_VERSION
 } from '@firebase/app';
 
-import { ConnectionPool } from '../src/implementation/connectionPool';
-import { FirebaseStorageImpl } from '../src/service';
+import { FirebaseStorageImpl } from './service';
 import {
   Component,
   ComponentType,
@@ -40,9 +40,10 @@ import { name, version } from '../package.json';
 
 import { FirebaseStorage } from './public-types';
 import { STORAGE_TYPE } from './constants';
+import { ConnectionPool } from './implementation/connectionPool';
 
 export * from './api';
-export * from './api.browser';
+export * from './api.node';
 
 function factory(
   container: ComponentContainer,
@@ -70,10 +71,8 @@ function registerStorage(): void {
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
   );
-  //RUNTIME_ENV will be replaced during the compilation to "node" for nodejs and an empty string for browser
-  registerVersion(name, version, '__RUNTIME_ENV__');
-  // BUILD_TARGET will be replaced by values like esm5, esm2017, cjs5, etc during the compilation
-  registerVersion(name, version, '__BUILD_TARGET__');
+
+  registerVersion(name, version);
 }
 
 registerStorage();

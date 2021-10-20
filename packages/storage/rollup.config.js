@@ -106,7 +106,7 @@ const es2017Plugins = [
 const es2017Builds = [
   // Node
   {
-    input: './src/index.ts',
+    input: './src/index.node.ts',
     output: {
       file: pkg.main,
       format: 'cjs',
