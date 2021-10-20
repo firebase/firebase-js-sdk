@@ -454,7 +454,7 @@ export class AppCheckToken implements Token {
 
   constructor(value: string) {
     this.authHeaders = {};
-    if(value && value.length > 0) {
+    if (value && value.length > 0) {
       // Set the headers using Object Literal notation to avoid minification
       this.authHeaders['x-firebase-appcheck'] = value;
     }
