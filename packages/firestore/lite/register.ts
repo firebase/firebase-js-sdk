@@ -25,7 +25,7 @@ import { Component, ComponentType } from '@firebase/component';
 import { version } from '../package.json';
 import {
   LiteAppCheckTokenProvider,
-  LiteCredentialsProvider
+  LiteAuthCredentialsProvider
 } from '../src/api/credentials';
 import { setSDKVersion } from '../src/core/version';
 import { Firestore } from '../src/lite-api/database';
@@ -46,7 +46,7 @@ export function registerFirestore(): void {
         const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
           app,
-          new LiteCredentialsProvider(container.getProvider('auth-internal')),
+          new LiteAuthCredentialsProvider(container.getProvider('auth-internal')),
           new LiteAppCheckTokenProvider(
             container.getProvider('app-check-internal')
           )

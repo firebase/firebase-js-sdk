@@ -22,7 +22,7 @@ import {
   CredentialChangeListener,
   CredentialsProvider,
   EmptyAppCheckTokenProvider,
-  EmptyCredentialsProvider
+  EmptyAuthCredentialsProvider
 } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
@@ -57,7 +57,7 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 
 export function withTestDatastore(
   fn: (datastore: Datastore) => Promise<void>,
-  authCredentialsProvider: CredentialsProvider<User> = new EmptyCredentialsProvider(),
+  authCredentialsProvider: CredentialsProvider<User> = new EmptyAuthCredentialsProvider(),
   appCheckTokenProvider: CredentialsProvider<string> = new EmptyAppCheckTokenProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
@@ -72,7 +72,7 @@ export function withTestDatastore(
   return fn(datastore);
 }
 
-export class MockCredentialsProvider extends EmptyCredentialsProvider {
+export class MockAuthCredentialsProvider extends EmptyAuthCredentialsProvider {
   private listener: CredentialChangeListener<User> | null = null;
   private asyncQueue: AsyncQueue | null = null;
 
@@ -94,10 +94,10 @@ export function withMockCredentialProviderTestDb(
   persistence: boolean,
   fn: (
     db: firestore.FirebaseFirestore,
-    mockCredential: MockCredentialsProvider
+    mockCredential: MockAuthCredentialsProvider
   ) => Promise<void>
 ): Promise<void> {
-  const mockCredentialsProvider = new MockCredentialsProvider();
+  const mockCredentialsProvider = new MockAuthCredentialsProvider();
   const settings = {
     ...DEFAULT_SETTINGS,
     credentials: { client: mockCredentialsProvider, type: 'provider' }

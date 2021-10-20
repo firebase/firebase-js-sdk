@@ -30,7 +30,7 @@ import {
 } from '../../compat/api/database';
 import {
   EmptyAppCheckTokenProvider,
-  EmptyCredentialsProvider
+  EmptyAuthCredentialsProvider
 } from '../../src/api/credentials';
 import {
   ensureFirestoreConfigured,
@@ -74,7 +74,7 @@ export function newTestFirestore(projectId = 'new-project'): Firestore {
     new DatabaseId(projectId),
     new ExpFirestore(
       new DatabaseId(projectId),
-      new EmptyCredentialsProvider(),
+      new EmptyAuthCredentialsProvider(),
       new EmptyAppCheckTokenProvider()
     ),
     new IndexedDbPersistenceProvider()

@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { EmulatorCredentialsProvider } from '../../../src/api/credentials';
+import { EmulatorAuthCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import {
   collectionReference,
@@ -260,7 +260,7 @@ describe('Settings', () => {
     db.useEmulator('localhost', 9000, { mockUserToken });
 
     const credentials = db._delegate._authCredentials;
-    expect(credentials).to.be.instanceOf(EmulatorCredentialsProvider);
+    expect(credentials).to.be.instanceOf(EmulatorAuthCredentialsProvider);
     const token = await credentials.getToken();
     expect(token!.type).to.eql('OAuth');
     expect(token!.user!.uid).to.eql(mockUserToken.sub);
@@ -274,7 +274,7 @@ describe('Settings', () => {
     });
 
     const credentials = db._delegate._authCredentials;
-    expect(credentials).to.be.instanceOf(EmulatorCredentialsProvider);
+    expect(credentials).to.be.instanceOf(EmulatorAuthCredentialsProvider);
     const token = await credentials.getToken();
     expect(token!.type).to.eql('OAuth');
     expect(token!.user).to.eql(User.MOCK_USER);

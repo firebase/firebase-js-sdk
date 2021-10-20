@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import { LoadBundleTask } from '../../../src/api/bundle';
 import {
   EmptyAppCheckTokenProvider,
-  EmptyCredentialsProvider
+  EmptyAuthCredentialsProvider
 } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
@@ -289,7 +289,7 @@ abstract class TestRunner {
     const configuration = {
       asyncQueue: this.queue,
       databaseInfo: this.databaseInfo,
-      authCredentials: new EmptyCredentialsProvider(),
+      authCredentials: new EmptyAuthCredentialsProvider(),
       appCheckCredentials: new EmptyAppCheckTokenProvider(),
       clientId: this.clientId,
       initialUser: this.user,

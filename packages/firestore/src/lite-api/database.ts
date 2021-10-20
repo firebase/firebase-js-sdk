@@ -26,7 +26,7 @@ import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
 
 import {
   CredentialsProvider,
-  EmulatorCredentialsProvider,
+  EmulatorAuthCredentialsProvider,
   makeAuthCredentialsProvider,
   OAuthToken
 } from '../api/credentials';
@@ -275,7 +275,7 @@ export function connectFirestoreEmulator(
       user = new User(uid);
     }
 
-    firestore._authCredentials = new EmulatorCredentialsProvider(
+    firestore._authCredentials = new EmulatorAuthCredentialsProvider(
       new OAuthToken(token, user)
     );
   }

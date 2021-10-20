@@ -122,7 +122,7 @@ export interface CredentialsProvider<T> {
  * A CredentialsProvider that always yields an empty token.
  * @internal
  */
-export class EmptyCredentialsProvider implements CredentialsProvider<User> {
+export class EmptyAuthCredentialsProvider implements CredentialsProvider<User> {
   getToken(): Promise<Token | null> {
     return Promise.resolve<Token | null>(null);
   }
@@ -144,7 +144,7 @@ export class EmptyCredentialsProvider implements CredentialsProvider<User> {
  * A CredentialsProvider that always returns a constant token. Used for
  * emulator token mocking.
  */
-export class EmulatorCredentialsProvider implements CredentialsProvider<User> {
+export class EmulatorAuthCredentialsProvider implements CredentialsProvider<User> {
   constructor(private token: Token) {}
 
   /**
@@ -179,7 +179,7 @@ export class EmulatorCredentialsProvider implements CredentialsProvider<User> {
 }
 
 /** Credential provider for the Lite SDK. */
-export class LiteCredentialsProvider implements CredentialsProvider<User> {
+export class LiteAuthCredentialsProvider implements CredentialsProvider<User> {
   private auth: FirebaseAuthInternal | null = null;
 
   constructor(authProvider: Provider<FirebaseAuthInternalName>) {
@@ -219,7 +219,7 @@ export class LiteCredentialsProvider implements CredentialsProvider<User> {
   shutdown(): void {}
 }
 
-export class FirebaseCredentialsProvider implements CredentialsProvider<User> {
+export class FirebaseAuthCredentialsProvider implements CredentialsProvider<User> {
   /**
    * The auth token listener registered with FirebaseApp, retained here so we
    * can unregister it.
@@ -280,7 +280,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider<User> {
     };
 
     const registerAuth = (auth: FirebaseAuthInternal): void => {
-      logDebug('FirebaseCredentialsProvider', 'Auth detected');
+      logDebug('FirebaseAuthCredentialsProvider', 'Auth detected');
       this.auth = auth;
       this.auth.addAuthTokenListener(this.tokenListener);
       awaitNextToken();
@@ -298,7 +298,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider<User> {
           registerAuth(auth);
         } else {
           // If auth is still not available, proceed with `null` user
-          logDebug('FirebaseCredentialsProvider', 'Auth not yet detected');
+          logDebug('FirebaseAuthCredentialsProvider', 'Auth not yet detected');
           nextToken.resolve();
           nextToken = new Deferred<void>();
         }
@@ -311,7 +311,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider<User> {
   getToken(): Promise<Token | null> {
     debugAssert(
       this.tokenListener != null,
-      'FirebaseCredentialsProvider not started.'
+      'FirebaseAuthCredentialsProvider not started.'
     );
 
     // Take note of the current value of the tokenCounter so that this method
@@ -331,7 +331,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider<User> {
       // user, we can't be sure).
       if (this.tokenCounter !== initialTokenCounter) {
         logDebug(
-          'FirebaseCredentialsProvider',
+          'FirebaseAuthCredentialsProvider',
           'getToken aborted due to token change.'
         );
         return this.getToken();
@@ -420,7 +420,7 @@ export class FirstPartyToken implements Token {
  * to authenticate the user, using technique that is only available
  * to applications hosted by Google.
  */
-export class FirstPartyCredentialsProvider
+export class FirstPartyAuthCredentialsProvider
   implements CredentialsProvider<User>
 {
   constructor(
@@ -627,7 +627,7 @@ export function makeAuthCredentialsProvider(
   credentials?: CredentialsSettings
 ): CredentialsProvider<User> {
   if (!credentials) {
-    return new EmptyCredentialsProvider();
+    return new EmptyAuthCredentialsProvider();
   }
 
   switch (credentials['type']) {
@@ -643,7 +643,7 @@ export function makeAuthCredentialsProvider(
         ),
         'unexpected gapi interface'
       );
-      return new FirstPartyCredentialsProvider(
+      return new FirstPartyAuthCredentialsProvider(
         client,
         credentials['sessionIndex'] || '0',
         credentials['iamToken'] || null
