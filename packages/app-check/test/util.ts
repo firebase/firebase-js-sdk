@@ -19,6 +19,7 @@ import { FirebaseApp, initializeApp, _registerComponent } from '@firebase/app';
 import {
   GreCAPTCHA,
   GreCAPTCHATopLevel,
+  RECAPTCHA_ENTERPRISE_URL,
   RECAPTCHA_URL
 } from '../src/recaptcha';
 import {
@@ -130,7 +131,11 @@ export function findgreCAPTCHAScriptsOnPage(): HTMLScriptElement[] {
   const scriptTags = window.document.getElementsByTagName('script');
   const tags = [];
   for (const tag of Object.values(scriptTags)) {
-    if (tag.src && tag.src.includes(RECAPTCHA_URL)) {
+    if (
+      tag.src &&
+      (tag.src.includes(RECAPTCHA_URL) ||
+        tag.src.includes(RECAPTCHA_ENTERPRISE_URL))
+    ) {
       tags.push(tag);
     }
   }
