@@ -18,6 +18,7 @@
 import {
   BASE_ENDPOINT,
   EXCHANGE_DEBUG_TOKEN_METHOD,
+  EXCHANGE_RECAPTCHA_ENTERPRISE_TOKEN_METHOD,
   EXCHANGE_RECAPTCHA_TOKEN_METHOD
 } from './constants';
 import { FirebaseApp } from '@firebase/app';
@@ -112,9 +113,12 @@ export function getExchangeRecaptchaTokenRequest(
   const fieldName = isEnterprise
     ? 'recaptcha_enterprise_token'
     : 'recaptcha_token';
+  const exchangeMethod = isEnterprise
+    ? EXCHANGE_RECAPTCHA_ENTERPRISE_TOKEN_METHOD
+    : EXCHANGE_RECAPTCHA_TOKEN_METHOD;
 
   return {
-    url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${EXCHANGE_RECAPTCHA_TOKEN_METHOD}?key=${apiKey}`,
+    url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${exchangeMethod}?key=${apiKey}`,
     body: {
       [fieldName]: reCAPTCHAToken
     }
