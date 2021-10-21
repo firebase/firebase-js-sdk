@@ -1552,6 +1552,15 @@ declare namespace firebase.appCheck {
     constructor(siteKey: string);
   }
   /*
+   * ReCAPTCHA Enterprise token provider.
+   */
+  class ReCaptchaEnterpriseProvider {
+    /**
+     * @param keyId - ReCAPTCHA Enterprise key ID.
+     */
+    constructor(keyId: string);
+  }
+  /*
    * Custom token provider.
    */
   class CustomProvider {
@@ -1581,8 +1590,8 @@ declare namespace firebase.appCheck {
     /**
      * Activate AppCheck
      * @param provider This can be a `ReCaptchaV3Provider` instance,
-     * a `CustomProvider` instance, an object with a custom `getToken()`
-     * method, or a reCAPTCHA site key.
+     * a `ReCaptchaEnterpriseProvider` instance, a `CustomProvider` instance,
+     * an object with a custom `getToken()` method, or a reCAPTCHA site key.
      * @param isTokenAutoRefreshEnabled If true, the SDK automatically
      * refreshes App Check tokens as needed. If undefined, defaults to the
      * value of `app.automaticDataCollectionEnabled`, which defaults to
@@ -1591,6 +1600,7 @@ declare namespace firebase.appCheck {
     activate(
       provider:
         | ReCaptchaV3Provider
+        | ReCaptchaEnterpriseProvider
         | CustomProvider
         | AppCheckProvider
         | { getToken: () => AppCheckToken }
