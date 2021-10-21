@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { AppCheckToken, Token } from '../../../src/api/credentials';
+import { AppCheckToken, OAuthToken, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { SDK_VERSION } from '../../../src/core/version';
@@ -87,15 +87,8 @@ describe('RestConnection', () => {
       'RunQuery',
       'projects/testproject/databases/(default)/documents/foo',
       {},
-      {
-        user: User.UNAUTHENTICATED,
-        type: 'OAuth',
-        headers: { 'Authorization': 'Bearer owner' }
-      },
-      {
-        type: 'AppCheck',
-        headers: { 'x-firebase-appcheck': 'some-app-check-token' }
-      }
+      new OAuthToken('owner', User.UNAUTHENTICATED),
+      new AppCheckToken('some-app-check-token')
     );
     expect(connection.lastHeaders).to.deep.equal({
       'Authorization': 'Bearer owner',

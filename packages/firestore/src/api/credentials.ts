@@ -68,17 +68,16 @@ export interface Token {
    */
   user?: User;
 
-  /** Extra header values to be passed along with a request */
-  headers: { [header: string]: string };
+  /** Invokes the given callback with the token's key and value. */
+  applyHeaders(callback: (tokenKey: string, tokenValue: string) => void): void;
 }
 
 export class OAuthToken implements Token {
   type = 'OAuth' as TokenType;
-  headers: { [header: string]: string };
-  constructor(value: string, public user: User) {
-    this.headers = {};
-    // Set the headers using Object Literal notation to avoid minification
-    this.headers['Authorization'] = `Bearer ${value}`;
+  constructor(private value: string, public user: User) {}
+
+  applyHeaders(callback: (tokenKey: string, tokenValue: string) => void): void {
+    callback('Authorization', `Bearer ${this.value}`);
   }
 }
 
@@ -403,19 +402,15 @@ export class FirstPartyToken implements Token {
     private iamToken: string | null
   ) {}
 
-  get headers(): { [header: string]: string } {
-    const result: { [header: string]: string } = {
-      'X-Goog-AuthUser': this.sessionIndex
-    };
-    // Use array notation to prevent minification
+  applyHeaders(callback: (tokenKey: string, tokenValue: string) => void): void {
+    callback('X-Goog-AuthUser', this.sessionIndex);
     const authHeader = this.gapi['auth']['getAuthHeaderValueForFirstParty']([]);
     if (authHeader) {
-      result['Authorization'] = authHeader;
+      callback('Authorization', authHeader);
     }
     if (this.iamToken) {
-      result['X-Goog-Iam-Authorization-Token'] = this.iamToken;
+      callback('X-Goog-Iam-Authorization-Token', this.iamToken);
     }
-    return result;
   }
 }
 
@@ -454,13 +449,11 @@ export class FirstPartyAuthCredentialsProvider
 
 export class AppCheckToken implements Token {
   type = 'AppCheck' as TokenType;
-  headers: { [header: string]: string };
+  constructor(private value: string) {}
 
-  constructor(value: string) {
-    this.headers = {};
-    if (value && value.length > 0) {
-      // Set the headers using Object Literal notation to avoid minification
-      this.headers['x-firebase-appcheck'] = value;
+  applyHeaders(callback: (tokenKey: string, tokenValue: string) => void): void {
+    if (this.value && this.value.length > 0) {
+      callback('x-firebase-appcheck', this.value);
     }
   }
 }

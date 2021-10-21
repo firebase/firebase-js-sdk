@@ -57,16 +57,16 @@ function createMetadata(
     authToken === null || authToken.type === 'OAuth',
     'If provided, token must be OAuth'
   );
-
   const metadata = new Metadata();
-  for (const token of [authToken, appCheckToken]) {
-    if (token) {
-      for (const header in token.headers) {
-        if (token.headers.hasOwnProperty(header)) {
-          metadata.set(header, token.headers[header]);
-        }
-      }
-    }
+  if (authToken) {
+    authToken.applyHeaders((tokenKey, tokenValue) =>
+      metadata.set(tokenKey, tokenValue)
+    );
+  }
+  if (appCheckToken) {
+    appCheckToken.applyHeaders((tokenKey, tokenValue) =>
+      metadata.set(tokenKey, tokenValue)
+    );
   }
   if (appId) {
     metadata.set('X-Firebase-GMPID', appId);
