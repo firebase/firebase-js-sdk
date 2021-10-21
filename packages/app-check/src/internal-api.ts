@@ -30,9 +30,10 @@ import { ensureActivated } from './util';
 import { exchangeToken, getExchangeDebugTokenRequest } from './client';
 import { writeTokenToStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
-import { base64 } from '@firebase/util';
+import { base64, FirebaseError } from '@firebase/util';
 import { logger } from './logger';
 import { AppCheckService } from './factory';
+import { AppCheckError } from './errors';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
@@ -120,9 +121,15 @@ export async function getToken(
     // initializeAppCheck() has been called.
     token = await state.provider!.getToken();
   } catch (e) {
-    // `getToken()` should never throw, but logging error text to console will aid debugging.
-    logger.error(e);
-    error = e;
+    if ((e as FirebaseError).code === AppCheckError.THROTTLED) {
+      // Warn if throttled, but do not treat it as an error.
+      logger.warn((e as FirebaseError).message);
+    } else {
+      // `getToken()` should never throw, but logging error text to console will aid debugging.
+      logger.error(e);
+    }
+    // Always save error to be added to dummy token.
+    error = e as FirebaseError;
   }
 
   let interopTokenResult: AppCheckTokenResult | undefined;

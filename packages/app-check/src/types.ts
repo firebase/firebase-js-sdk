@@ -75,6 +75,12 @@ export interface AppCheckProvider {
  */
 export type _AppCheckInternalComponentName = 'app-check-internal';
 
+export interface ThrottleData {
+  allowRequestsAfter: number;
+  backoffCount: number;
+  httpStatus: number;
+}
+
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'app-check-internal': FirebaseAppCheckInternal;

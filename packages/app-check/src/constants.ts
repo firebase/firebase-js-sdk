@@ -38,3 +38,8 @@ export const TOKEN_REFRESH_TIME = {
    */
   RETRIAL_MAX_WAIT: 16 * 60 * 1000
 };
+
+/**
+ * One day in millis, for certain error code backoffs.
+ */
+ export const ONE_DAY = 24 * 60 * 60 * 1000;
