@@ -17,6 +17,6 @@
 
 import { registerFirestore } from './register';
 
-registerFirestore('rn');
+registerFirestore('rn', /* useFetchStreams= */ false);
 
 export * from './api';
