@@ -97,6 +97,12 @@ export function initializeAppCheck(
 
   const appCheck = provider.initialize({ options });
   _activate(app, options.provider, options.isTokenAutoRefreshEnabled);
+  // Adding a listener will start the refresher and fetch a token if needed.
+  // This gets a token ready and prevents a delay when an internal library
+  // requests the token.
+  // Listener function does not need to do anything, its base functionality
+  // of calling getToken() already fetches token and writes it to memory/storage.
+  addTokenListener(appCheck, ListenerType.INTERNAL, () => {});
 
   return appCheck;
 }
