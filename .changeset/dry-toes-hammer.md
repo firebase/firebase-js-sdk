@@ -1,6 +1,6 @@
 ---
 "@firebase/auth-compat": minor
-"@firebase/auth": minor,
+"@firebase/auth": minor
 "firebase": minor
 ---
 
