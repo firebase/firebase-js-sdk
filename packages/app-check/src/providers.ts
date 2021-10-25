@@ -117,7 +117,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
   /**
    * Set throttle data to block requests until after a certain time
    * depending on the failed request's status code.
-   * @param httpStatus Status code of failed request.
+   * @param httpStatus - Status code of failed request.
    * @returns Data about current throttle state and expiration time.
    */
   private _setBackoff(httpStatus: number): ThrottleData {

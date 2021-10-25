@@ -168,19 +168,8 @@ export function addTokenListener(
     ...state,
     tokenObservers: [...state.tokenObservers, tokenObserver]
   };
-  /**
-   * Invoke the listener with the valid token, then start the token refresher
-   */
-  if (!newState.tokenRefresher) {
-    const tokenRefresher = createTokenRefresher(appCheck);
-    newState.tokenRefresher = tokenRefresher;
-  }
 
-  // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
-  // is not true.
-  if (!newState.tokenRefresher.isRunning() && state.isTokenAutoRefreshEnabled) {
-    newState.tokenRefresher.start();
-  }
+  let cacheCheckPromise = Promise.resolve();
 
   // Invoke the listener async immediately if there is a valid token
   // in memory.
@@ -194,7 +183,7 @@ export function addTokenListener(
   } else if (state.token == null) {
     // Only check cache if there was no token. If the token was invalid,
     // skip this and rely on exchange endpoint.
-    void state
+    cacheCheckPromise = state
       .cachedTokenPromise! // Storage token promise. Always populated in `activate()`.
       .then(cachedToken => {
         if (cachedToken && isValid(cachedToken)) {
@@ -205,6 +194,25 @@ export function addTokenListener(
         /** Ignore errors in listeners. */
       });
   }
+
+  // Wait for any cached token promise to resolve before starting the token
+  // refresher. The refresher checks to see if there is an existing token
+  // in state and calls the exchange endpoint if not. We should first let the
+  // IndexedDB check have a chance to populate state if it can.
+  void cacheCheckPromise.then(() => {
+    if (!newState.tokenRefresher) {
+      const tokenRefresher = createTokenRefresher(appCheck);
+      newState.tokenRefresher = tokenRefresher;
+    }
+    // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
+    // is not true.
+    if (
+      !newState.tokenRefresher.isRunning() &&
+      state.isTokenAutoRefreshEnabled
+    ) {
+      newState.tokenRefresher.start();
+    }
+  });
 
   setState(app, newState);
 }
