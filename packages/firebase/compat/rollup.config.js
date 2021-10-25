@@ -31,8 +31,8 @@ import appPkg from './app/package.json';
 const external = Object.keys(pkg.dependencies || {});
 const uglifyOptions = {
   mangle: true,
-  webkit: true,  // Necessary to avoid https://bugs.webkit.org/show_bug.cgi?id=223533
-}
+  webkit: true // Necessary to avoid https://bugs.webkit.org/show_bug.cgi?id=223533
+};
 
 /**
  * Global UMD Build
