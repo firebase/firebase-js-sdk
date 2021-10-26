@@ -32,7 +32,8 @@ import {
   getToken as getTokenInternal,
   addTokenListener,
   removeTokenListener,
-  isValid
+  isValid,
+  notifyTokenListeners
 } from './internal-api';
 import { readTokenFromStorage } from './storage';
 import { getDebugToken, initializeDebugMode, isDebugMode } from './debug';
@@ -129,6 +130,9 @@ function _activate(
   newState.cachedTokenPromise = readTokenFromStorage(app).then(cachedToken => {
     if (cachedToken && isValid(cachedToken)) {
       setState(app, { ...getState(app), token: cachedToken });
+      console.log('notifying token listeners');
+      // notify all listeners with the cached token
+      notifyTokenListeners(app, { token: cachedToken.token });
     }
     return cachedToken;
   });
