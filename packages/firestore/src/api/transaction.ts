@@ -24,6 +24,7 @@ import { validateReference } from '../lite-api/write_batch';
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { ExpUserDataWriter } from './reference_impl';
 import { DocumentSnapshot, SnapshotMetadata } from './snapshot';
+import {cast} from '../util/input_validation';
 
 /**
  * A reference to a transaction.
@@ -93,6 +94,7 @@ export function runTransaction<T>(
   firestore: Firestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
+  firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientTransaction(client, internalTransaction =>
     updateFunction(new Transaction(firestore, internalTransaction))
