@@ -91,7 +91,10 @@ export async function getToken(
     };
   }
 
-  let waitedForInFlightRequest = false;
+  // Only set to true if this `getToken()` call is making the actual
+  // REST call to the exchange endpoint, versus waiting for an already
+  // in-flight call (see debug and regular exchange endpoint paths below)
+  let shouldCallListeners = false;
 
   /**
    * DEBUG MODE
@@ -108,8 +111,7 @@ export async function getToken(
         state.exchangeTokenPromise = undefined;
         return token;
       });
-    } else {
-      waitedForInFlightRequest = true;
+      shouldCallListeners = true;
     }
     const tokenFromDebugExchange: AppCheckTokenInternal =
       await state.exchangeTokenPromise;
@@ -133,8 +135,7 @@ export async function getToken(
         state.exchangeTokenPromise = undefined;
         return token;
       });
-    } else {
-      waitedForInFlightRequest = true;
+      shouldCallListeners = true;
     }
     token = await state.exchangeTokenPromise;
   } catch (e) {
@@ -164,7 +165,7 @@ export async function getToken(
     await writeTokenToStorage(app, token);
   }
 
-  if (!waitedForInFlightRequest) {
+  if (!shouldCallListeners) {
     notifyTokenListeners(app, interopTokenResult);
   }
   return interopTokenResult;
