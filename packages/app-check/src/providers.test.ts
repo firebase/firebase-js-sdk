@@ -41,7 +41,7 @@ import * as util from './util';
 import { getState, clearState, setState, getDebugState } from './state';
 import { AppCheckTokenListener } from './public-types';
 import { Deferred, FirebaseError } from '@firebase/util';
-import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
+import { ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
 import { ListenerType } from './types';
 
@@ -77,64 +77,24 @@ describe('internal api', () => {
   });
   // TODO: test error conditions
   describe('getToken()', () => {
-    it('uses customTokenProvider to get an AppCheck token', async () => {
-      const customTokenProvider = getFakeCustomTokenProvider();
-      const customProviderSpy = spy(customTokenProvider, 'getToken');
-
-      const appCheck = initializeAppCheck(app, {
-        provider: customTokenProvider
-      });
-      const token = await getToken(appCheck as AppCheckService);
-
-      expect(customProviderSpy).to.be.called;
-      expect(token).to.deep.equal({
-        token: 'fake-custom-app-check-token'
-      });
-    });
-
-    it('uses reCAPTCHA (V3) token to exchange for AppCheck token', async () => {
+    it('uses reCAPTCHA token to exchange for AppCheck token', async () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-
-      const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').returns(
-        Promise.resolve(fakeRecaptchaToken)
-      );
       const exchangeTokenStub: SinonStub = stub(
         client,
         'exchangeToken'
-      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+      ).returns(
+        Promise.reject(
+          new FirebaseError('test-error', 'test error msg', { httpStatus: 503 })
+        )
+      );
 
       const token = await getToken(appCheck as AppCheckService);
-
-      expect(reCAPTCHASpy).to.be.called;
 
       expect(exchangeTokenStub.args[0][0].body['recaptcha_token']).to.equal(
         fakeRecaptchaToken
       );
-      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
-    });
-
-    it('uses reCAPTCHA (Enterprise) token to exchange for AppCheck token', async () => {
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
-      });
-
-      const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').returns(
-        Promise.resolve(fakeRecaptchaToken)
-      );
-      const exchangeTokenStub: SinonStub = stub(
-        client,
-        'exchangeToken'
-      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
-
-      const token = await getToken(appCheck as AppCheckService);
-
-      expect(reCAPTCHASpy).to.be.called;
-
-      expect(
-        exchangeTokenStub.args[0][0].body['recaptcha_enterprise_token']
-      ).to.equal(fakeRecaptchaToken);
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
 
@@ -384,163 +344,6 @@ describe('internal api', () => {
         'my-debug-token'
       );
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
-    });
-    it('throttle', async () => {
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
-      });
-      stub(
-        client,
-        'exchangeToken'
-      ).returns(
-        Promise.reject(
-          new FirebaseError('test-error', 'test error msg', { httpStatus: 503 })
-        )
-      );
-
-      const token = await getToken(appCheck as AppCheckService);
-
-      expect(token.error?.message).to.equal(
-        'sdfa'
-      );
-    });
-  });
-
-  describe('addTokenListener', () => {
-    it('adds token listeners', () => {
-      const listener = (): void => {};
-      setState(app, {
-        ...getState(app),
-        cachedTokenPromise: Promise.resolve(undefined)
-      });
-
-      addTokenListener(
-        { app } as AppCheckService,
-        ListenerType.INTERNAL,
-        listener
-      );
-
-      expect(getState(app).tokenObservers[0].next).to.equal(listener);
-    });
-
-    it('starts proactively refreshing token after adding the first listener', async () => {
-      const listener = (): void => {};
-      setState(app, {
-        ...getState(app),
-        isTokenAutoRefreshEnabled: true,
-        cachedTokenPromise: Promise.resolve(undefined)
-      });
-      expect(getState(app).tokenObservers.length).to.equal(0);
-      expect(getState(app).tokenRefresher).to.equal(undefined);
-
-      addTokenListener(
-        { app } as AppCheckService,
-        ListenerType.INTERNAL,
-        listener
-      );
-
-      // addTokenListener() waits for the result of cachedTokenPromise
-      // before starting the refresher
-      await getState(app).cachedTokenPromise;
-
-      expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
-    });
-
-    it('notifies the listener with the valid token in memory immediately', async () => {
-      const clock = useFakeTimers();
-
-      const listener = stub();
-
-      setState(app, {
-        ...getState(app),
-        cachedTokenPromise: Promise.resolve(undefined),
-        token: {
-          token: `fake-memory-app-check-token`,
-          expireTimeMillis: Date.now() + 60000,
-          issuedAtTimeMillis: 0
-        }
-      });
-
-      addTokenListener(
-        { app } as AppCheckService,
-        ListenerType.INTERNAL,
-        listener
-      );
-      await clock.runAllAsync();
-      expect(listener).to.be.calledWith({
-        token: 'fake-memory-app-check-token'
-      });
-      clock.restore();
-    });
-
-    it('notifies the listener with the valid token in storage', done => {
-      storageReadStub.resolves({
-        token: `fake-cached-app-check-token`,
-        expireTimeMillis: Date.now() + 60000,
-        issuedAtTimeMillis: 0
-      });
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
-        isTokenAutoRefreshEnabled: true
-      });
-
-      const fakeListener: AppCheckTokenListener = token => {
-        expect(token).to.deep.equal({
-          token: `fake-cached-app-check-token`
-        });
-        done();
-      };
-
-      addTokenListener(
-        appCheck as AppCheckService,
-        ListenerType.INTERNAL,
-        fakeListener
-      );
-    });
-  });
-
-  describe('removeTokenListener', () => {
-    it('should remove token listeners', () => {
-      const listener = (): void => {};
-      setState(app, {
-        ...getState(app),
-        cachedTokenPromise: Promise.resolve(undefined)
-      });
-      addTokenListener(
-        { app } as AppCheckService,
-        ListenerType.INTERNAL,
-        listener
-      );
-      expect(getState(app).tokenObservers.length).to.equal(1);
-
-      removeTokenListener(app, listener);
-      expect(getState(app).tokenObservers.length).to.equal(0);
-    });
-
-    it('should stop proactively refreshing token after deleting the last listener', async () => {
-      const listener = (): void => {};
-      setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
-      setState(app, {
-        ...getState(app),
-        cachedTokenPromise: Promise.resolve(undefined)
-      });
-
-      addTokenListener(
-        { app } as AppCheckService,
-        ListenerType.INTERNAL,
-        listener
-      );
-
-      // addTokenListener() waits for the result of cachedTokenPromise
-      // before starting the refresher
-      await getState(app).cachedTokenPromise;
-
-      expect(getState(app).tokenObservers.length).to.equal(1);
-      expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
-
-      removeTokenListener(app, listener);
-      expect(getState(app).tokenObservers.length).to.equal(0);
-      expect(getState(app).tokenRefresher?.isRunning()).to.be.false;
     });
   });
 });
