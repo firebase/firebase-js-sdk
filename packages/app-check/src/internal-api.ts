@@ -165,7 +165,7 @@ export async function getToken(
     await writeTokenToStorage(app, token);
   }
 
-  if (!shouldCallListeners) {
+  if (shouldCallListeners) {
     notifyTokenListeners(app, interopTokenResult);
   }
   return interopTokenResult;
@@ -184,17 +184,20 @@ export function addTokenListener(
     error: onError,
     type
   };
-  const newState = {
+  setState(app, {
     ...state,
     tokenObservers: [...state.tokenObservers, tokenObserver]
-  };
+  });
 
   // Invoke the listener async immediately if there is a valid token
   // in memory.
   if (state.token && isValid(state.token)) {
     const validToken = state.token;
     Promise.resolve()
-      .then(() => listener({ token: validToken.token }))
+      .then(() => {
+        listener({ token: validToken.token });
+        initTokenRefresher(appCheck);
+      })
       .catch(() => {
         /* we don't care about exceptions thrown in listeners */
       });
@@ -206,28 +209,12 @@ export function addTokenListener(
    * in state and calls the exchange endpoint if not. We should first let the
    * IndexedDB check have a chance to populate state if it can.
    *
-   * We want to call the listener if the cached token check returns something
-   * but cachedTokenPromise handler already will notify all listeners on the
-   * first fetch, and we don't want duplicate calls to the listener.
+   * Listener call isn't needed here because cachedTokenPromise will call any
+   * listeners that exist when it resolves.
    */
 
   // state.cachedTokenPromise is always populated in `activate()`.
-  void state.cachedTokenPromise!.then(() => {
-    if (!newState.tokenRefresher) {
-      const tokenRefresher = createTokenRefresher(appCheck);
-      newState.tokenRefresher = tokenRefresher;
-    }
-    // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
-    // is not true.
-    if (
-      !newState.tokenRefresher.isRunning() &&
-      state.isTokenAutoRefreshEnabled
-    ) {
-      newState.tokenRefresher.start();
-    }
-  });
-
-  setState(app, newState);
+  void state.cachedTokenPromise!.then(() => initTokenRefresher(appCheck));
 }
 
 export function removeTokenListener(
@@ -251,6 +238,24 @@ export function removeTokenListener(
     ...state,
     tokenObservers: newObservers
   });
+}
+
+/**
+ * Logic to create and start refresher as needed.
+ */
+function initTokenRefresher(appCheck: AppCheckService): void {
+  const { app } = appCheck;
+  const state = getState(app);
+  // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
+  // is not true.
+  let refresher: Refresher | undefined = state.tokenRefresher;
+  if (!refresher) {
+    refresher = createTokenRefresher(appCheck);
+    setState(app, { ...state, tokenRefresher: refresher });
+  }
+  if (!refresher.isRunning() && state.isTokenAutoRefreshEnabled) {
+    refresher.start();
+  }
 }
 
 function createTokenRefresher(appCheck: AppCheckService): Refresher {

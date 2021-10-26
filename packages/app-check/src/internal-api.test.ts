@@ -404,7 +404,7 @@ describe('internal api', () => {
       expect(getState(app).tokenObservers[0].next).to.equal(listener);
     });
 
-    it('starts proactively refreshing token after adding the first listener', () => {
+    it('starts proactively refreshing token after adding the first listener', async () => {
       const listener = (): void => {};
       setState(app, {
         ...getState(app),
@@ -420,6 +420,10 @@ describe('internal api', () => {
         listener
       );
 
+      // addTokenListener() waits for the result of cachedTokenPromise
+      // before starting the refresher
+      await getState(app).cachedTokenPromise;
+
       expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
     });
 
@@ -430,6 +434,7 @@ describe('internal api', () => {
 
       setState(app, {
         ...getState(app),
+        cachedTokenPromise: Promise.resolve(undefined),
         token: {
           token: `fake-memory-app-check-token`,
           expireTimeMillis: Date.now() + 60000,
@@ -493,7 +498,7 @@ describe('internal api', () => {
       expect(getState(app).tokenObservers.length).to.equal(0);
     });
 
-    it('should stop proactively refreshing token after deleting the last listener', () => {
+    it('should stop proactively refreshing token after deleting the last listener', async () => {
       const listener = (): void => {};
       setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
       setState(app, {
@@ -506,6 +511,11 @@ describe('internal api', () => {
         ListenerType.INTERNAL,
         listener
       );
+
+      // addTokenListener() waits for the result of cachedTokenPromise
+      // before starting the refresher
+      await getState(app).cachedTokenPromise;
+
       expect(getState(app).tokenObservers.length).to.equal(1);
       expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
 
