@@ -38,12 +38,14 @@ import * as reCAPTCHA from './recaptcha';
 import * as client from './client';
 import * as storage from './storage';
 import * as util from './util';
+import { logger } from './logger';
 import { getState, clearState, setState, getDebugState } from './state';
 import { AppCheckTokenListener } from './public-types';
 import { Deferred, FirebaseError } from '@firebase/util';
 import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
 import { ListenerType } from './types';
+import { AppCheckError } from './errors';
 
 const fakeRecaptchaToken = 'fake-recaptcha-token';
 const fakeRecaptchaAppCheckToken = {
@@ -385,24 +387,47 @@ describe('internal api', () => {
       );
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
-    it('throttle', async () => {
+    it('throttles exponentially on 503', async () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-      stub(
-        client,
-        'exchangeToken'
-      ).returns(
+      const warnStub = stub(logger, 'warn');
+      stub(client, 'exchangeToken').returns(
         Promise.reject(
-          new FirebaseError('test-error', 'test error msg', { httpStatus: 503 })
+          new FirebaseError(
+            AppCheckError.FETCH_STATUS_ERROR,
+            'test error msg',
+            { httpStatus: 503 }
+          )
         )
       );
 
       const token = await getToken(appCheck as AppCheckService);
 
-      expect(token.error?.message).to.equal(
-        'sdfa'
+      expect(token.error?.message).to.include('503');
+      expect(token.error?.message).to.include('00m');
+      expect(warnStub.args[0][0]).to.include('503');
+    });
+    it('throttles 1d on 403', async () => {
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      const warnStub = stub(logger, 'warn');
+      stub(client, 'exchangeToken').returns(
+        Promise.reject(
+          new FirebaseError(
+            AppCheckError.FETCH_STATUS_ERROR,
+            'test error msg',
+            { httpStatus: 403 }
+          )
+        )
       );
+
+      const token = await getToken(appCheck as AppCheckService);
+
+      expect(token.error?.message).to.include('403');
+      expect(token.error?.message).to.include('1d');
+      expect(warnStub.args[0][0]).to.include('403');
     });
   });
 

@@ -139,7 +139,7 @@ export async function getToken(
     }
     token = await state.exchangeTokenPromise;
   } catch (e) {
-    if ((e as FirebaseError).code === AppCheckError.THROTTLED) {
+    if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
       // Warn if throttled, but do not treat it as an error.
       logger.warn((e as FirebaseError).message);
     } else {
