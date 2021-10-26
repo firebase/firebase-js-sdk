@@ -54,7 +54,7 @@ const ERRORS: ErrorMap<AppCheckError> = {
   [AppCheckError.STORAGE_WRITE]:
     'Error thrown when writing to storage. Original error: {$originalErrorMessage}.',
   [AppCheckError.RECAPTCHA_ERROR]: 'ReCAPTCHA error.',
-  [AppCheckError.THROTTLED]: `Requests throttled until {$time} due to {$httpStatus} error.`
+  [AppCheckError.THROTTLED]: `Requests throttled due to {$httpStatus} error. Attempts allowed again after {$time}`
 };
 
 interface ErrorParams {
@@ -66,7 +66,7 @@ interface ErrorParams {
   [AppCheckError.STORAGE_OPEN]: { originalErrorMessage?: string };
   [AppCheckError.STORAGE_GET]: { originalErrorMessage?: string };
   [AppCheckError.STORAGE_WRITE]: { originalErrorMessage?: string };
-  [AppCheckError.THROTTLED]: { time: string, httpStatus: number };
+  [AppCheckError.THROTTLED]: { time: string; httpStatus: number };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AppCheckError, ErrorParams>(

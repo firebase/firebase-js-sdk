@@ -63,20 +63,8 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    * @internal
    */
   async getToken(): Promise<AppCheckTokenInternal> {
-    if (this._throttleData) {
-      if (Date.now() - this._throttleData.allowRequestsAfter > 0) {
-        // If after throttle timestamp, clear throttle data.
-        this._throttleData = null;
-      } else {
-        // If before, throw.
-        throw ERROR_FACTORY.create(AppCheckError.THROTTLED, {
-          time: new Date(
-            this._throttleData.allowRequestsAfter
-          ).toLocaleString(),
-          httpStatus: this._throttleData.httpStatus
-        });
-      }
-    }
+    throwIfThrottled(this._throttleData);
+
     if (!this._app || !this._platformLoggerProvider) {
       // This should only occur if user has not called initializeAppCheck().
       // We don't have an appName to provide if so.
@@ -101,59 +89,23 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
       );
     } catch (e) {
       if ((e as FirebaseError).code === AppCheckError.FETCH_STATUS_ERROR) {
-        const throttleData = this._setBackoff(
-          Number((e as FirebaseError).customData?.httpStatus)
+        this._throttleData = setBackoff(
+          Number((e as FirebaseError).customData?.httpStatus),
+          this._throttleData
         );
         throw ERROR_FACTORY.create(AppCheckError.THROTTLED, {
-          time: getDurationString(throttleData.allowRequestsAfter - Date.now()),
-          httpStatus: throttleData.httpStatus
+          time: getDurationString(
+            this._throttleData.allowRequestsAfter - Date.now()
+          ),
+          httpStatus: this._throttleData.httpStatus
         });
       } else {
         throw e;
       }
     }
+    // If successful, clear throttle data.
+    this._throttleData = null;
     return result;
-  }
-
-  /**
-   * Set throttle data to block requests until after a certain time
-   * depending on the failed request's status code.
-   * @param httpStatus - Status code of failed request.
-   * @returns Data about current throttle state and expiration time.
-   */
-  private _setBackoff(httpStatus: number): ThrottleData {
-    /**
-     * Block retries for 1 day for the following error codes:
-     *
-     * 404: Likely malformed URL.
-     *
-     * 403:
-     * - Attestation failed
-     * - Wrong API key
-     * - Project deleted
-     */
-    if (httpStatus === 404 || httpStatus === 403) {
-      this._throttleData = {
-        backoffCount: 1,
-        allowRequestsAfter: Date.now() + ONE_DAY,
-        httpStatus
-      };
-    } else {
-      /**
-       * For all other error codes, the time when it is ok to retry again
-       * is based on exponential backoff.
-       */
-      const backoffCount = this._throttleData
-        ? this._throttleData.backoffCount
-        : 0;
-      const backoffMillis = calculateBackoffMillis(backoffCount, 1000, 2);
-      this._throttleData = {
-        backoffCount: backoffCount + 1,
-        allowRequestsAfter: Date.now() + backoffMillis,
-        httpStatus
-      };
-    }
-    return this._throttleData;
   }
 
   /**
@@ -287,6 +239,59 @@ export class CustomProvider implements AppCheckProvider {
       );
     } else {
       return false;
+    }
+  }
+}
+
+/**
+ * Set throttle data to block requests until after a certain time
+ * depending on the failed request's status code.
+ * @param httpStatus - Status code of failed request.
+ * @returns Data about current throttle state and expiration time.
+ */
+function setBackoff(
+  httpStatus: number,
+  throttleData: ThrottleData | null
+): ThrottleData {
+  /**
+   * Block retries for 1 day for the following error codes:
+   *
+   * 404: Likely malformed URL.
+   *
+   * 403:
+   * - Attestation failed
+   * - Wrong API key
+   * - Project deleted
+   */
+  if (httpStatus === 404 || httpStatus === 403) {
+    return {
+      backoffCount: 1,
+      allowRequestsAfter: Date.now() + ONE_DAY,
+      httpStatus
+    };
+  } else {
+    /**
+     * For all other error codes, the time when it is ok to retry again
+     * is based on exponential backoff.
+     */
+    const backoffCount = throttleData ? throttleData.backoffCount : 0;
+    const backoffMillis = calculateBackoffMillis(backoffCount, 1000, 2);
+    return {
+      backoffCount: backoffCount + 1,
+      allowRequestsAfter: Date.now() + backoffMillis,
+      httpStatus
+    };
+  }
+}
+
+function throwIfThrottled(throttleData: ThrottleData | null): void {
+  if (throttleData) {
+    if (Date.now() - throttleData.allowRequestsAfter <= 0) {
+      // If before, throw.
+      throw ERROR_FACTORY.create(AppCheckError.THROTTLED, {
+        time: getDurationString(throttleData.allowRequestsAfter - Date.now()),
+        httpStatus: throttleData.httpStatus
+      });
     }
   }
 }
