@@ -64,9 +64,8 @@ export async function generateAuthTokenRequest(
   const response = await retryIfServerError(() => fetch(endpoint, request));
   if (response.ok) {
     const responseValue: GenerateAuthTokenResponse = await response.json();
-    const completedAuthToken: CompletedAuthToken = extractAuthTokenInfoFromResponse(
-      responseValue
-    );
+    const completedAuthToken: CompletedAuthToken =
+      extractAuthTokenInfoFromResponse(responseValue);
     return completedAuthToken;
   } else {
     throw await getErrorFromResponse('Generate Auth Token', response);

@@ -139,16 +139,15 @@ describe('core/strategies/credential', () => {
       stub(authCredential, '_getIdTokenResponse').returns(
         Promise.reject(
           _createError(auth, AuthErrorCode.MFA_REQUIRED, {
-            serverResponse
+            _serverResponse: serverResponse
           })
         )
       );
       const error = await expect(
         signInWithCredential(auth, authCredential)
       ).to.be.rejectedWith(MultiFactorError);
-      expect(error.operationType).to.eq(OperationType.SIGN_IN);
-      expect(error.serverResponse).to.eql(serverResponse);
-      expect(error.user).to.be.undefined;
+      expect(error.customData.operationType).to.eq(OperationType.SIGN_IN);
+      expect(error.customData._serverResponse).to.eql(serverResponse);
     });
   });
 

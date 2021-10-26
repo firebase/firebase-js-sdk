@@ -312,10 +312,7 @@ export function invalidRootOperation(name: string): StorageError {
  * @param format - The format that was not valid.
  * @param message - A message describing the format violation.
  */
-export function invalidFormat(
-  format: string,
-  message: string
-): StorageError {
+export function invalidFormat(format: string, message: string): StorageError {
   return new StorageError(
     StorageErrorCode.INVALID_FORMAT,
     "String does not match format '" + format + "': " + message
@@ -326,10 +323,7 @@ export function invalidFormat(
  * @param message - A message describing the internal error.
  */
 export function unsupportedEnvironment(message: string): StorageError {
-  throw new StorageError(
-    StorageErrorCode.UNSUPPORTED_ENVIRONMENT,
-    message
-  );
+  throw new StorageError(StorageErrorCode.UNSUPPORTED_ENVIRONMENT, message);
 }
 
 /**

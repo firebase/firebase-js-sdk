@@ -27,7 +27,7 @@ import * as fetchImpl from 'node-fetch';
 import './index';
 
 FetchProvider.initialize(
-  (fetchImpl.default as unknown) as typeof fetch,
-  (fetchImpl.Headers as unknown) as typeof Headers,
-  (fetchImpl.Response as unknown) as typeof Response
+  fetchImpl.default as unknown as typeof fetch,
+  fetchImpl.Headers as unknown as typeof Headers,
+  fetchImpl.Response as unknown as typeof Response
 );

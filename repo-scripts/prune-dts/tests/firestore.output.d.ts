@@ -956,7 +956,8 @@ export declare function loadBundle(
  * The API is compatible with `Promise<LoadBundleTaskProgress>`.
  */
 export declare class LoadBundleTask
-  implements PromiseLike<LoadBundleTaskProgress> {
+  implements PromiseLike<LoadBundleTaskProgress>
+{
   /**
    * Registers functions to listen to bundle loading progress events.
    * @param next - Called when there is a progress update from bundle loading. Typically `next` calls occur

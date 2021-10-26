@@ -76,8 +76,9 @@ function generateTocRecursively(
   // generate toc item only for entry points
   if (apiItem.kind === ApiItemKind.EntryPoint) {
     // Entry point
-    const entryPointName = (apiItem.canonicalReference
-      .source! as ModuleSource).escapedPath.replace('@firebase/', '');
+    const entryPointName = (
+      apiItem.canonicalReference.source! as ModuleSource
+    ).escapedPath.replace('@firebase/', '');
     const entryPointToc: ITocItem = {
       title: entryPointName,
       path: `${g3Path}/${getFilenameForApiItem(apiItem, addFileNameSuffix)}`,

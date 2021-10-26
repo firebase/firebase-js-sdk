@@ -31,7 +31,7 @@ export interface FirebaseOptions {
 export interface FirebaseAppConfig {
   name?: string;
   automaticDataCollectionEnabled?: boolean;
-}    
+}
 
 interface FirebaseAppContructor {
   new (): FirebaseApp;

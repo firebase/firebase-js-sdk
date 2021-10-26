@@ -70,11 +70,11 @@ describe('Performance Monitoring > perf_logger', () => {
   }
 
   setupApi(self);
-  const fakeFirebaseApp = ({
+  const fakeFirebaseApp = {
     options: { appId: APP_ID }
-  } as unknown) as FirebaseApp;
+  } as unknown as FirebaseApp;
 
-  const fakeInstallations = ({} as unknown) as FirebaseInstallations;
+  const fakeInstallations = {} as unknown as FirebaseInstallations;
   const performanceController = new PerformanceController(
     fakeFirebaseApp,
     fakeInstallations

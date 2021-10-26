@@ -27,6 +27,7 @@ import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 
 import pkg from './lite/package.json';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 const util = require('./rollup.shared');
 
@@ -77,7 +78,9 @@ const browserPlugins = function () {
 };
 
 const allBuilds = [
-  // Node ESM build
+  // Intermidiate Node ESM build without build target reporting
+  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // which add build target reporting
   {
     input: './lite/index.ts',
     output: {
@@ -85,7 +88,13 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('node_lite')), ...nodePlugins()],
+    plugins: [
+      alias(util.generateAliasConfig('node_lite')),
+      ...nodePlugins(),
+      replace({
+        '__RUNTIME_ENV__': 'node'
+      })
+    ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
@@ -110,14 +119,31 @@ const allBuilds = [
         include: ['dist/lite/*.js']
       }),
       json(),
-      sourcemaps()
+      sourcemaps(),
+      replace(generateBuildTargetReplaceConfig('cjs', 5))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
   },
-  // Browser build
+  // Node ESM build
+  {
+    input: path.resolve('./lite', pkg['main-esm']),
+    output: {
+      file: path.resolve('./lite', pkg['main-esm']),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Intermidiate browser build without build target reporting
+  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // which add build target reporting
   {
     input: './lite/index.ts',
     output: {
@@ -127,7 +153,11 @@ const allBuilds = [
     },
     plugins: [
       alias(util.generateAliasConfig('browser_lite')),
-      ...browserPlugins()
+      ...browserPlugins(),
+      // setting it to empty string because browser is the default env
+      replace({
+        '__RUNTIME_ENV__': ''
+      })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -144,7 +174,26 @@ const allBuilds = [
         sourcemap: true
       }
     ],
-    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
+    plugins: [
+      ...util.es2017ToEs5Plugins(/* mangled= */ true),
+      replace(generateBuildTargetReplaceConfig('esm', 5))
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Browser es2017 build
+  {
+    input: path.resolve('./lite', pkg.browser),
+    output: [
+      {
+        file: path.resolve('./lite', pkg.browser),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -158,7 +207,14 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('rn_lite')), ...browserPlugins()],
+    plugins: [
+      alias(util.generateAliasConfig('rn_lite')),
+      ...browserPlugins(),
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 2017),
+        '__RUNTIME_ENV__': 'rn'
+      })
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false

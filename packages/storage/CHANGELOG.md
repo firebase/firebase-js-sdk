@@ -1,5 +1,27 @@
 #Unreleased
 
+## 0.8.4
+
+### Patch Changes
+
+- [`a7e00b9eb`](https://github.com/firebase/firebase-js-sdk/commit/a7e00b9ebbb05b094a8bf620790146e750463c12) [#5578](https://github.com/firebase/firebase-js-sdk/pull/5578) (fixes [#5372](https://github.com/firebase/firebase-js-sdk/issues/5372)) - Do not throw from `connection.send` to enable retries in Node.js.
+
+* [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f) [#5596](https://github.com/firebase/firebase-js-sdk/pull/5596) - report build variants for packages
+
+## 0.8.3
+
+### Patch Changes
+
+- Updated dependencies [[`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422)]:
+  - @firebase/util@1.4.0
+  - @firebase/component@0.5.7
+
+## 0.8.2
+
+### Patch Changes
+
+- [`66d4a1e5d`](https://github.com/firebase/firebase-js-sdk/commit/66d4a1e5d8e1b8b952e21fc3190ec7076d8161ea) [#5453](https://github.com/firebase/firebase-js-sdk/pull/5453) - Store protocol and host separately on Storage service instance. Fixes a bug when generating url strings.
+
 ## 0.8.1
 
 ### Patch Changes

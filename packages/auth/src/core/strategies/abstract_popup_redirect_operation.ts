@@ -58,7 +58,7 @@ export abstract class AbstractPopupRedirectOperation
     filter: AuthEventType | AuthEventType[],
     protected readonly resolver: PopupRedirectResolverInternal,
     protected user?: UserInternal,
-    private readonly bypassAuthState = false
+    protected readonly bypassAuthState = false
   ) {
     this.filter = Array.isArray(filter) ? filter : [filter];
   }

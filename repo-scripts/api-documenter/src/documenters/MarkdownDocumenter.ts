@@ -708,10 +708,11 @@ export class MarkdownDocumenter {
         token.kind === ExcerptTokenKind.Reference &&
         token.canonicalReference
       ) {
-        const apiItemResult: IResolveDeclarationReferenceResult = this._apiModel.resolveDeclarationReference(
-          token.canonicalReference,
-          undefined
-        );
+        const apiItemResult: IResolveDeclarationReferenceResult =
+          this._apiModel.resolveDeclarationReference(
+            token.canonicalReference,
+            undefined
+          );
 
         if (apiItemResult.resolvedApiItem) {
           docNodeContainer.appendNode(

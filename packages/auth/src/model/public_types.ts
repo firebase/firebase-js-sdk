@@ -121,21 +121,24 @@ export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
  * @public
  */
 export interface AuthError extends FirebaseError {
-  /** The name of the Firebase App which triggered this error.  */
-  readonly appName: string;
-  /** The email of the user's account, used for sign-in/linking. */
-  readonly email?: string;
-  /** The phone number of the user's account, used for sign-in/linking. */
-  readonly phoneNumber?: string;
-  /**
-   * The tenant ID being used for sign-in/linking.
-   *
-   * @remarks
-   * If you use {@link signInWithRedirect} to sign in,
-   * you have to set the tenant ID on {@link Auth} instance again as the tenant ID is not persisted
-   * after redirection.
-   */
-  readonly tenantid?: string;
+  /** Details about the Firebase Auth error.  */
+  readonly customData: {
+    /** The name of the Firebase App which triggered this error.  */
+    readonly appName: string;
+    /** The email address of the user's account, used for sign-in and linking. */
+    readonly email?: string;
+    /** The phone number of the user's account, used for sign-in and linking. */
+    readonly phoneNumber?: string;
+    /**
+     * The tenant ID being used for sign-in and linking.
+     *
+     * @remarks
+     * If you use {@link signInWithRedirect} to sign in,
+     * you have to set the tenant ID on the {@link Auth} instance again as the tenant ID is not persisted
+     * after redirection.
+     */
+    readonly tenantId?: string;
+  };
 }
 
 /**
@@ -599,11 +602,14 @@ export interface MultiFactorAssertion {
  *
  * @public
  */
-export interface MultiFactorError extends AuthError {
-  /**
-   * The type of operation (e.g., sign-in, link, or reauthenticate) during which the error was raised.
-   */
-  readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+ export interface MultiFactorError extends AuthError {
+   /** Details about the MultiFactorError. */
+  readonly customData: AuthError['customData'] & {
+    /**
+     * The type of operation (sign-in, linking, or re-authentication) that raised the error.
+     */
+    readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+  }
 }
 
 /**

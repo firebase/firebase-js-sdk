@@ -75,8 +75,8 @@ export class OAuthCredential extends AuthCredential {
    * @readonly
    */
   secret?: string;
-  /** @internal */
-  nonce?: string;
+  
+  private nonce?: string;
   private pendingToken: string | null = null;
 
   /** @internal */
@@ -136,13 +136,17 @@ export class OAuthCredential extends AuthCredential {
    */
   static fromJSON(json: string | object): OAuthCredential | null {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
-    const { providerId, signInMethod, ...rest }: Partial<OAuthCredential> = obj;
+    const { providerId, signInMethod, ...rest }: OAuthCredentialParams = obj;
     if (!providerId || !signInMethod) {
       return null;
     }
 
     const cred = new OAuthCredential(providerId, signInMethod);
-    Object.assign(cred, rest);
+    cred.idToken = rest.idToken || undefined;
+    cred.accessToken = rest.accessToken || undefined;
+    cred.secret = rest.secret;
+    cred.nonce = rest.nonce;
+    cred.pendingToken = rest.pendingToken || null;
     return cred;
   }
 

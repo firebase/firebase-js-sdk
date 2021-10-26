@@ -25,16 +25,15 @@ import { AuthCredential } from '../core/credentials';
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
 import { OperationType } from '../model/enums';
 
+export type MultiFactorErrorData = MultiFactorErrorPublic['customData'] & {
+  _serverResponse: IdTokenMfaResponse;
+};
+
 export class MultiFactorError
   extends FirebaseError
   implements MultiFactorErrorPublic
 {
-  readonly name = 'FirebaseError';
-  readonly code: string;
-  readonly appName: string;
-  readonly serverResponse: IdTokenMfaResponse;
-
-  readonly tenantId?: string;
+  readonly customData: MultiFactorErrorData;
 
   private constructor(
     auth: AuthInternal,
@@ -45,11 +44,12 @@ export class MultiFactorError
     super(error.code, error.message);
     // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
     Object.setPrototypeOf(this, MultiFactorError.prototype);
-    this.appName = auth.name;
-    this.code = error.code;
-    this.tenantId = auth.tenantId ?? undefined;
-    this.serverResponse = error.customData!
-      .serverResponse as IdTokenMfaResponse;
+    this.customData = {
+      appName: auth.name,
+      tenantId: auth.tenantId ?? undefined,
+      _serverResponse: error.customData!._serverResponse as IdTokenMfaResponse,
+      operationType,
+    };
   }
 
   static _fromErrorAndOperation(

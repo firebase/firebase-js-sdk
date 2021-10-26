@@ -145,41 +145,6 @@ export interface PersistenceProvider {
   clearIndexedDbPersistence(firestore: Firestore): Promise<void>;
 }
 
-const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
-  'You are using the memory-only build of Firestore. Persistence support is ' +
-  'only available via the @firebase/firestore bundle or the ' +
-  'firebase-firestore.js build.';
-
-/**
- * The persistence provider included with the memory-only SDK. This provider
- * errors for all attempts to access persistence.
- */
-export class MemoryPersistenceProvider implements PersistenceProvider {
-  enableIndexedDbPersistence(
-    firestore: Firestore,
-    forceOwnership: boolean
-  ): Promise<void> {
-    throw new FirestoreError(
-      'failed-precondition',
-      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
-    );
-  }
-
-  enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void> {
-    throw new FirestoreError(
-      'failed-precondition',
-      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
-    );
-  }
-
-  clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
-    throw new FirestoreError(
-      'failed-precondition',
-      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
-    );
-  }
-}
-
 /**
  * The persistence provider included with the full Firestore SDK.
  */

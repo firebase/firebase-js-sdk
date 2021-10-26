@@ -17,6 +17,7 @@
 
 import {
   AuthError,
+  Persistence,
   PopupRedirectResolver
 } from '../../model/public_types';
 import { OperationType, ProviderId } from '../../model/enums';
@@ -32,7 +33,7 @@ import {
 import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
 import { AuthInternal } from '../../model/auth';
 import { AuthEventManager } from '../auth/auth_event_manager';
-import { RedirectAction, _clearRedirectOutcomes } from './redirect';
+import { RedirectAction, _clearRedirectOutcomes, _getAndClearPendingRedirectStatus } from './redirect';
 import {
   AuthEvent,
   AuthEventType,
@@ -44,6 +45,7 @@ import * as idpTasks from '../strategies/idp';
 import { expect, use } from 'chai';
 import { AuthErrorCode } from '../errors';
 import { RedirectPersistence } from '../../../test/helpers/redirect_persistence';
+import { ErroringUnavailablePersistence } from '../../../test/helpers/erroring_unavailable_persistence';
 
 use(sinonChai);
 
@@ -116,7 +118,7 @@ describe('core/strategies/redirect', () => {
     expect(await promise).to.eq(cred);
   });
 
-  it('returns the same value if called multiple times', async () => {
+  it('returns null after the first call', async () => {
     const cred = new UserCredentialImpl({
       user: testUser(auth, 'uid'),
       providerId: ProviderId.GOOGLE,
@@ -128,7 +130,7 @@ describe('core/strategies/redirect', () => {
       type: AuthEventType.SIGN_IN_VIA_REDIRECT
     });
     expect(await promise).to.eq(cred);
-    expect(await redirectAction.execute()).to.eq(cred);
+    expect(await redirectAction.execute()).to.be.null;
   });
 
   it('interacts with redirectUser loading from auth object', async () => {
@@ -192,6 +194,8 @@ describe('core/strategies/redirect', () => {
       type: AuthEventType.REAUTH_VIA_REDIRECT
     });
     expect(await promise).to.eq(cred);
+
+    // In this case, bypassAuthState is true... The value won't be cleared
     expect(await redirectAction.execute()).to.eq(cred);
   });
 
@@ -207,5 +211,27 @@ describe('core/strategies/redirect', () => {
     expect(await redirectAction.execute()).to.eq(null);
     expect(await redirectAction.execute()).to.eq(null);
     expect(resolverInstance._initialize).not.to.have.been.called;
+  });
+
+  context('_getAndClearPendingRedirectStatus', () => {
+    // Do not run these tests in node
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    it('returns false if the key is not set', async () => {
+      redirectPersistence.hasPendingRedirect = false;
+      expect(await _getAndClearPendingRedirectStatus(_getInstance(resolver), auth)).to.be.false;
+    });
+
+    it('returns true if the key is found', async () => {
+      redirectPersistence.hasPendingRedirect = true;
+      expect(await _getAndClearPendingRedirectStatus(_getInstance(resolver), auth)).to.be.true;
+    });
+
+    it('returns false if sessionStorage is permission denied', async () => {
+      _getInstance<PopupRedirectResolverInternal>(resolver)._redirectPersistence = ErroringUnavailablePersistence as unknown as Persistence;
+      expect(await _getAndClearPendingRedirectStatus(_getInstance(resolver), auth)).to.be.false;
+    });
   });
 });

@@ -27,11 +27,11 @@ import {
 
 export abstract class BrowserPersistenceClass {
   protected constructor(
-    protected readonly storage: Storage,
+    protected readonly storageRetriever: () => Storage,
     readonly type: PersistenceType
   ) {}
 
-  _isAvailable(this: BrowserPersistenceClass): Promise<boolean> {
+  _isAvailable(): Promise<boolean> {
     try {
       if (!this.storage) {
         return Promise.resolve(false);
@@ -57,5 +57,9 @@ export abstract class BrowserPersistenceClass {
   _remove(key: string): Promise<void> {
     this.storage.removeItem(key);
     return Promise.resolve();
+  }
+
+  protected get storage(): Storage {
+    return this.storageRetriever();
   }
 }

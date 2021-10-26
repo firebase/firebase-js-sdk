@@ -29,6 +29,10 @@ import compatPkg from './package.json';
 import appPkg from './app/package.json';
 
 const external = Object.keys(pkg.dependencies || {});
+const uglifyOptions = {
+  mangle: true,
+  webkit: true // Necessary to avoid https://bugs.webkit.org/show_bug.cgi?id=223533
+};
 
 /**
  * Global UMD Build
@@ -110,7 +114,7 @@ const appBuilds = [
       }
     ],
     plugins: [...plugins, typescriptPlugin],
-    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   /**
    * App UMD Builds
@@ -123,7 +127,7 @@ const appBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPluginCDN, uglify()]
+    plugins: [...plugins, typescriptPluginCDN, uglify(uglifyOptions)]
   }
 ];
 
@@ -142,7 +146,11 @@ const componentBuilds = compatPkg.components
             sourcemap: true
           },
           {
-            file: resolve(__dirname, component, pkg.main.replace('.cjs.js', '.mjs')),
+            file: resolve(
+              __dirname,
+              component,
+              pkg.main.replace('.cjs.js', '.mjs')
+            ),
             format: 'es',
             sourcemap: true
           },
@@ -153,12 +161,13 @@ const componentBuilds = compatPkg.components
           }
         ],
         plugins: [...plugins, typescriptPlugin],
-        external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
+        external: id =>
+          external.some(dep => id === dep || id.startsWith(`${dep}/`))
       },
       {
         input: `${__dirname}/${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}-compat.js`),
-        plugins: [...plugins, typescriptPluginCDN, uglify()],
+        plugins: [...plugins, typescriptPluginCDN, uglify(uglifyOptions)],
         external: ['@firebase/app-compat', '@firebase/app']
       }
     ];
@@ -182,7 +191,7 @@ const completeBuilds = [
       }
     ],
     plugins: [...plugins, typescriptPlugin],
-    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: `${__dirname}/index.cdn.ts`,
@@ -192,7 +201,7 @@ const completeBuilds = [
       sourcemap: true,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPluginCDN, uglify()]
+    plugins: [...plugins, typescriptPluginCDN, uglify(uglifyOptions)]
   },
   /**
    * App Node.js Builds
@@ -205,7 +214,7 @@ const completeBuilds = [
       sourcemap: true
     },
     plugins: [...plugins, typescriptPlugin],
-    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   /**
    * App React Native Builds
@@ -218,7 +227,7 @@ const completeBuilds = [
       sourcemap: true
     },
     plugins: [...plugins, typescriptPlugin],
-    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   /**
    * Performance script Build
@@ -239,7 +248,7 @@ const completeBuilds = [
       typescriptPluginCDN,
       json(),
       commonjs(),
-      uglify()
+      uglify(uglifyOptions)
     ]
   },
   /**

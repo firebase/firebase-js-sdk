@@ -40,6 +40,9 @@ export function getString(remoteConfig: RemoteConfig, key: string): string;
 export function getValue(remoteConfig: RemoteConfig, key: string): Value;
 
 // @public
+export function isSupported(): Promise<boolean>;
+
+// @public
 export type LogLevel = 'debug' | 'error' | 'silent';
 
 // @public

@@ -336,7 +336,6 @@ describe('platform_browser/strategies/phone', () => {
         );
         expect(sessionInfo).to.eq('session-info');
         expect(endpoint.calls[0].request).to.eql({
-          tenantId: auth.tenantId,
           idToken: session.credential,
           phoneEnrollmentInfo: {
             phoneNumber: 'number',
@@ -369,7 +368,6 @@ describe('platform_browser/strategies/phone', () => {
         );
         expect(sessionInfo).to.eq('session-info');
         expect(endpoint.calls[0].request).to.eql({
-          tenantId: auth.tenantId,
           mfaPendingCredential: 'mfa-pending-credential',
           mfaEnrollmentId: 'mfa-enrollment-id',
           phoneSignInInfo: {

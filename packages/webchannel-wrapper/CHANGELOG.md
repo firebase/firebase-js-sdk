@@ -1,5 +1,15 @@
 # @firebase/webchannel-wrapper
 
+## 0.6.0
+
+### Minor Changes
+
+- [`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39) [#5539](https://github.com/firebase/firebase-js-sdk/pull/5539) - Use esm2017 builds by default
+
+### Patch Changes
+
+- [`456d664ae`](https://github.com/firebase/firebase-js-sdk/commit/456d664aef582fc18326ffbd418de0d7d3ef86b7) [#5485](https://github.com/firebase/firebase-js-sdk/pull/5485) - Remove an unused option (`backgroundChannelTest`).
+
 ## 0.5.1
 
 ### Patch Changes

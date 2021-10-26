@@ -120,10 +120,12 @@ export class AuthCredential {
 
 // @public
 export interface AuthError extends FirebaseError {
-    readonly appName: string;
-    readonly email?: string;
-    readonly phoneNumber?: string;
-    readonly tenantid?: string;
+    readonly customData: {
+        readonly appName: string;
+        readonly email?: string;
+        readonly phoneNumber?: string;
+        readonly tenantId?: string;
+    };
 }
 
 // @public
@@ -443,7 +445,9 @@ export interface MultiFactorAssertion {
 
 // @public
 export interface MultiFactorError extends AuthError {
-    readonly operationType: typeof OperationType[keyof typeof OperationType];
+    readonly customData: AuthError['customData'] & {
+        readonly operationType: typeof OperationType[keyof typeof OperationType];
+    };
 }
 
 // @public
@@ -493,8 +497,6 @@ export class OAuthCredential extends AuthCredential {
     idToken?: string;
     // @internal (undocumented)
     _linkToIdToken(auth: AuthInternal, idToken: string): Promise<IdTokenResponse>;
-    // @internal (undocumented)
-    nonce?: string;
     secret?: string;
     toJSON(): object;
 }
@@ -596,6 +598,7 @@ export interface PhoneMultiFactorEnrollInfoOptions {
 // @public
 export class PhoneMultiFactorGenerator {
     static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion;
+    static FACTOR_ID: string;
 }
 
 // @public

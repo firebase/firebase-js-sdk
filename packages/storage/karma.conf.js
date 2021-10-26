@@ -32,7 +32,7 @@ module.exports = function (config) {
 
 function getTestFiles(argv) {
   let unitTestFiles = ['test/unit/*'];
-  let integrationTestFiles = ['test/integration/*'];
+  let integrationTestFiles = ['test/integration/*', 'test/browser/*'];
 
   if (argv.unit) {
     return unitTestFiles;

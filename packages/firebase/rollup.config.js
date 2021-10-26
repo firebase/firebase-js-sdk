@@ -52,7 +52,11 @@ const appBuilds = [
     input: 'app/index.ts',
     output: [
       { file: resolve('app', appPkg.main), format: 'cjs', sourcemap: true },
-      { file: resolve('app', appPkg.main.replace('.cjs.js', '.mjs')), format: 'es', sourcemap: true },
+      {
+        file: resolve('app', appPkg.main.replace('.cjs.js', '.mjs')),
+        format: 'es',
+        sourcemap: true
+      },
       { file: resolve('app', appPkg.browser), format: 'es', sourcemap: true }
     ],
     plugins: [...plugins, typescriptPlugin],
@@ -86,7 +90,8 @@ const componentBuilds = pkg.components
           }
         ],
         plugins: [...plugins, typescriptPlugin],
-        external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`)),
+        external: id =>
+          external.some(dep => id === dep || id.startsWith(`${dep}/`))
       }
     ];
   })
@@ -119,10 +124,7 @@ const cdnBuilds = [
           sourcemap: true,
           format: 'es'
         },
-        plugins: [
-          ...plugins,
-          typescriptPluginCDN
-        ],
+        plugins: [...plugins, typescriptPluginCDN],
         external: ['@firebase/app']
       };
     })

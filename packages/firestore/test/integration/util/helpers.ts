@@ -16,6 +16,7 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+import { isIndexedDBAvailable } from '@firebase/util';
 
 import * as firebaseExport from './firebase_export';
 import {
@@ -44,7 +45,7 @@ function isIeOrEdge(): boolean {
 export function isPersistenceAvailable(): boolean {
   return (
     typeof window === 'object' &&
-    typeof window.indexedDB === 'object' &&
+    isIndexedDBAvailable() &&
     !isIeOrEdge() &&
     (typeof process === 'undefined' ||
       process.env?.INCLUDE_FIRESTORE_PERSISTENCE !== 'false')

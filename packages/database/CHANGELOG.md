@@ -1,5 +1,22 @@
 # Unreleased
 
+## 0.12.2
+
+### Patch Changes
+
+- [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f) [#5596](https://github.com/firebase/firebase-js-sdk/pull/5596) - report build variants for packages
+
+## 0.12.1
+
+### Patch Changes
+
+- [`dfe65ff9b`](https://github.com/firebase/firebase-js-sdk/commit/dfe65ff9bfa66d318d45e2a666e302867ae53a01) [#5537](https://github.com/firebase/firebase-js-sdk/pull/5537) - Added an entry point `@firebase/database-compat/standalone` to share code with Admin SDK properly
+
+- Updated dependencies [[`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422)]:
+  - @firebase/logger@0.3.0
+  - @firebase/util@1.4.0
+  - @firebase/component@0.5.7
+
 ## 0.12.0
 
 ### Minor Changes

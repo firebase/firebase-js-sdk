@@ -29,7 +29,10 @@ import { setSDKVersion } from '../src/core/version';
 import { Firestore } from './api/database';
 import { PrivateSettings } from './lite-api/settings';
 
-export function registerFirestore(variant?: string): void {
+export function registerFirestore(
+  variant?: string,
+  useFetchStreams = true
+): void {
   setSDKVersion(SDK_VERSION);
   _registerComponent(
     new Component(
@@ -42,7 +45,7 @@ export function registerFirestore(variant?: string): void {
             container.getProvider('auth-internal')
           )
         );
-        settings = { useFetchStreams: true, ...settings };
+        settings = { useFetchStreams, ...settings };
         firestoreInstance._setSettings(settings);
         return firestoreInstance;
       },
@@ -50,4 +53,6 @@ export function registerFirestore(variant?: string): void {
     )
   );
   registerVersion(name, version, variant);
+  // BUILD_TARGET will be replaced by values like esm5, esm2017, cjs5, etc during the compilation
+  registerVersion(name, version, '__BUILD_TARGET__');
 }

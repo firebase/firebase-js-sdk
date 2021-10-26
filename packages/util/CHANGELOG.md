@@ -1,5 +1,15 @@
 # @firebase/util
 
+## 1.4.0
+
+### Minor Changes
+
+- [`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39) [#5539](https://github.com/firebase/firebase-js-sdk/pull/5539) - Use esm2017 builds by default
+
+### Patch Changes
+
+- [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422) [#5506](https://github.com/firebase/firebase-js-sdk/pull/5506) - areCookiesEnabled could encounter runtime errors in certain enviornments
+
 ## 1.3.0
 
 ### Minor Changes

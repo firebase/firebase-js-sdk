@@ -1,5 +1,19 @@
 # @firebase/installations
 
+## 0.5.2
+
+### Patch Changes
+
+- [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f) [#5596](https://github.com/firebase/firebase-js-sdk/pull/5596) - report build variants for packages
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422)]:
+  - @firebase/util@1.4.0
+  - @firebase/component@0.5.7
+
 ## 0.5.0
 
 ### Minor Changes
