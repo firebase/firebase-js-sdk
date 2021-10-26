@@ -20,11 +20,11 @@ import { Transaction as InternalTransaction } from '../core/transaction';
 import { DocumentReference } from '../lite-api/reference';
 import { Transaction as LiteTransaction } from '../lite-api/transaction';
 import { validateReference } from '../lite-api/write_batch';
+import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { ExpUserDataWriter } from './reference_impl';
 import { DocumentSnapshot, SnapshotMetadata } from './snapshot';
-import {cast} from '../util/input_validation';
 
 /**
  * A reference to a transaction.
