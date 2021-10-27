@@ -178,9 +178,7 @@ export class XhrBytesConnection extends XhrConnection<ArrayBuffer> {
     headers?: Headers
   ): Promise<void> {
     return super.send(url, method, body, headers).then(async () => {
-      if (this.getErrorCode() === ErrorCode.NO_ERROR) {
-        this.data_ = await (this.xhr_.response as Blob).arrayBuffer();
-      }
+      this.data_ = await (this.xhr_.response as Blob).arrayBuffer();
     });
   }
 }
@@ -220,14 +218,12 @@ export class XhrBlobConnection extends XhrConnection<Blob> {
     headers?: Headers
   ): Promise<void> {
     return super.send(url, method, body, headers).then(async () => {
-      if (this.getErrorCode() === ErrorCode.NO_ERROR) {
-        this.data_ = this.xhr_.response;
-        this.text_ = await this.data_!.slice(
-          0,
-          MAX_ERROR_MSG_LENGTH,
-          'string'
-        ).text();
-      }
+      this.data_ = this.xhr_.response;
+      this.text_ = await this.data_!.slice(
+        0,
+        MAX_ERROR_MSG_LENGTH,
+        'string'
+      ).text();
     });
   }
 }

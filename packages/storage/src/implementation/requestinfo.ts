@@ -28,8 +28,8 @@ export interface UrlParams {
  * A function that converts a server response to the API type expected by the
  * SDK.
  *
- * @param I - the type of the backend's network response (always `string` or
- * `ArrayBuffer`).
+ * @param I - the type of the backend's network response (always `string`,
+ * `ArrayBuffer` or `ReadableStream`).
  * @param O - the output response type used by the rest of the SDK.
  */
 export type RequestHandler<I, O> = (
@@ -46,8 +46,8 @@ export type ErrorHandler = (
 /**
  * Contains a fully specified request.
  *
- * @param I - the type of the backend's network response (always `string` or
- * `ArrayBuffer`).
+ * @param I - the type of the backend's network response (always `string`,
+ * `ArrayBuffer` or `ReadableStream`).
  * @param O - the output response type used by the rest of the SDK.
  */
 export class RequestInfo<I, O> {

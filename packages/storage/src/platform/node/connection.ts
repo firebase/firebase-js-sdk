@@ -98,9 +98,7 @@ abstract class FetchConnection<ResponseType>
 
   getResponseHeader(header: string): string | null {
     if (!this.headers_) {
-      throw internalError(
-        'cannot .getResponseText() before receiving response'
-      );
+      throw internalError('cannot .getResponse() before receiving response');
     }
     return this.headers_.get(header);
   }
@@ -120,9 +118,7 @@ abstract class FetchConnection<ResponseType>
 export class FetchTextConnection extends FetchConnection<string> {
   getResponse(): string {
     if (!this.body_) {
-      throw internalError(
-        'cannot .getResponseText() before receiving response'
-      );
+      throw internalError('cannot .getResponse() before receiving response');
     }
     return Buffer.from(this.body_).toString('utf-8');
   }

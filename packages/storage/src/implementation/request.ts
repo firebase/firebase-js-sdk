@@ -44,8 +44,8 @@ export interface Request<T> {
  * Handles network logic for all Storage Requests, including error reporting and
  * retries with backoff.
  *
- * @param I - the type of the backend's network response (always `string` or
- * `ArrayBuffer`).
+ * @param I - the type of the backend's network response (always `string`,
+ * `ArrayBuffer` or `ReadableStream`).
  * @param - O the output type used by the rest of the SDK. The conversion
  * happens in the specified `callback_`.
  */
