@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-import { Client } from 'faye-websocket';
+// Use default import to import a cjs library, so we can provide a esm entrypoint for Nodejs.
+// We can't use named import here because otherwise you will get the following error:
+// "SyntaxError: Named export 'Client' not found. The requested module 'faye-websocket' is a CommonJS module".
+// We can change back to using named imports once the lib provides an esm build, however they are not planning to.
+// see https://github.com/faye/faye-websocket-node/issues/82
+import Websocket from 'faye-websocket';
 
 import { setWebSocketImpl } from '../src/realtime/WebSocketConnection';
 
 import { registerDatabase } from './register';
 
-setWebSocketImpl(Client);
+setWebSocketImpl(Websocket.Client);
 
 export * from './api';
 
