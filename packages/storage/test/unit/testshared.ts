@@ -110,7 +110,10 @@ export function makeFakeAppCheckProvider(tokenResult: {
  * Returns something that looks like an fbs.XhrIo with the given headers
  * and status.
  */
-export function fakeXhrIo(headers: Headers, status: number = 200): Connection {
+export function fakeXhrIo<I = string>(
+  headers: Headers,
+  status: number = 200
+): Connection<I> {
   const lower: Headers = {};
   for (const [key, value] of Object.entries(headers)) {
     lower[key.toLowerCase()] = value.toString();
@@ -130,7 +133,7 @@ export function fakeXhrIo(headers: Headers, status: number = 200): Connection {
     }
   };
 
-  return fakeConnection as Connection;
+  return fakeConnection as Connection<I>;
 }
 
 /**

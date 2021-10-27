@@ -16,27 +16,28 @@
  */
 
 import {
-  Headers,
   Connection,
-  ErrorCode
+  ErrorCode,
+  Headers
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
 
 /** An override for the text-based Connection. Used in tests. */
-let connectionFactoryOverride: (() => Connection) | null = null;
+let textFactoryOverride: (() => Connection<string>) | null = null;
 
 /**
  * Network layer for browsers. We use this instead of goog.net.XhrIo because
  * goog.net.XhrIo is hyuuuuge and doesn't work in React Native on Android.
  */
-export class XhrConnection implements Connection {
-  private xhr_: XMLHttpRequest;
+abstract class XhrConnection<ResponseType> implements Connection<ResponseType> {
+  protected xhr_: XMLHttpRequest;
   private errorCode_: ErrorCode;
   private sendPromise_: Promise<void>;
-  private sent_: boolean = false;
+  protected sent_: boolean = false;
 
   constructor() {
     this.xhr_ = new XMLHttpRequest();
+    this.initXhr();
     this.errorCode_ = ErrorCode.NO_ERROR;
     this.sendPromise_ = new Promise(resolve => {
       this.xhr_.addEventListener('abort', () => {
@@ -52,6 +53,8 @@ export class XhrConnection implements Connection {
       });
     });
   }
+
+  abstract initXhr(): void;
 
   send(
     url: string,
@@ -97,7 +100,9 @@ export class XhrConnection implements Connection {
     }
   }
 
-  getResponseText(): string {
+  abstract getResponse(): ResponseType;
+
+  getErrorText(): string {
     if (!this.sent_) {
       throw internalError('cannot .getResponseText() before sending');
     }
@@ -126,12 +131,117 @@ export class XhrConnection implements Connection {
   }
 }
 
-export function newConnection(): Connection {
-  return connectionFactoryOverride
-    ? connectionFactoryOverride()
-    : new XhrConnection();
+export class XhrTextConnection extends XhrConnection<string> {
+  initXhr(): void {
+    this.xhr_.responseType = 'text';
+  }
+
+  getResponse(): string {
+    if (!this.sent_) {
+      throw internalError('cannot .getResponse() before sending');
+    }
+    return this.xhr_.response;
+  }
 }
 
-export function injectTestConnection(factory: (() => Connection) | null): void {
-  connectionFactoryOverride = factory;
+export function newTextConnection(): Connection<string> {
+  return textFactoryOverride ? textFactoryOverride() : new XhrTextConnection();
+}
+
+export class XhrBytesConnection extends XhrConnection<ArrayBuffer> {
+  private data_?: ArrayBuffer;
+
+  initXhr(): void {
+    // We use Blob here instead of ArrayBuffer to ensure that this code works
+    // in Opera.
+    this.xhr_.responseType = 'blob';
+  }
+
+  getErrorText(): string {
+    if (!this.sent_) {
+      throw internalError('cannot .getResponseText() before sending');
+    }
+    return new TextDecoder().decode(this.data_);
+  }
+
+  getResponse(): ArrayBuffer {
+    if (!this.sent_) {
+      throw internalError('cannot .getResponse() before sending');
+    }
+    return this.data_!;
+  }
+
+  send(
+    url: string,
+    method: string,
+    body?: ArrayBufferView | Blob | string,
+    headers?: Headers
+  ): Promise<void> {
+    return super.send(url, method, body, headers).then(async () => {
+      if (this.getErrorCode() === ErrorCode.NO_ERROR) {
+        this.data_ = await (this.xhr_.response as Blob).arrayBuffer();
+      }
+    });
+  }
+}
+
+export function newBytesConnection(): Connection<ArrayBuffer> {
+  return new XhrBytesConnection();
+}
+
+const MAX_ERROR_MSG_LENGTH = 512;
+
+export class XhrBlobConnection extends XhrConnection<Blob> {
+  private data_?: Blob;
+  private text_?: string;
+
+  initXhr(): void {
+    this.xhr_.responseType = 'blob';
+  }
+
+  getErrorText(): string {
+    if (!this.sent_) {
+      throw internalError('cannot .getResponseText() before sending');
+    }
+    return this.text_!;
+  }
+
+  getResponse(): Blob {
+    if (!this.sent_) {
+      throw internalError('cannot .getResponse() before sending');
+    }
+    return this.data_!;
+  }
+
+  send(
+    url: string,
+    method: string,
+    body?: ArrayBufferView | Blob | string,
+    headers?: Headers
+  ): Promise<void> {
+    return super.send(url, method, body, headers).then(async () => {
+      if (this.getErrorCode() === ErrorCode.NO_ERROR) {
+        this.data_ = this.xhr_.response;
+        this.text_ = await this.data_!.slice(
+          0,
+          MAX_ERROR_MSG_LENGTH,
+          'string'
+        ).text();
+      }
+    });
+  }
+}
+
+export function newBlobConnection(): Connection<Blob> {
+  return new XhrBlobConnection();
+}
+
+export function newStreamConnection(): Connection<NodeJS.ReadableStream> {
+  throw new Error('Streams are only supported on Node');
+}
+
+export function injectTestConnection(
+  factory: (() => Connection<string>) | null
+): void {
+  textFactoryOverride = factory;
 }

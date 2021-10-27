@@ -18,11 +18,11 @@
 import { stub } from 'sinon';
 import { expect } from 'chai';
 import { ErrorCode } from '../../src/implementation/connection';
-import { FetchConnection } from '../../src/platform/node/connection';
+import { FetchBytesConnection } from '../../src/platform/node/connection';
 
 describe('Connections', () => {
   it('FetchConnection.send() should not reject on network errors', async () => {
-    const connection = new FetchConnection();
+    const connection = new FetchBytesConnection();
 
     // need the casting here because fetch_ is a private member
     stub(connection as any, 'fetch_').rejects();

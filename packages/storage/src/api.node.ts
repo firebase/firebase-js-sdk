@@ -16,6 +16,8 @@
  */
 
 import { StorageReference } from './public-types';
+import { Reference, getStreamInternal } from './reference';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Downloads the data at the object's location. Returns an error if the object
@@ -34,7 +36,7 @@ import { StorageReference } from './public-types';
  * @returns A Promise that resolves with a Blob containing the object's bytes
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getBlob(
+export function getBlob(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
 ): Promise<Blob> {
@@ -53,14 +55,10 @@ function getBlob(
  * retrieve.
  * @returns A stream with the object's data as bytes
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getStream(
+export function getStream(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
 ): NodeJS.ReadableStream {
-  throw new Error('Not implemented');
+  ref = getModularInstance(ref);
+  return getStreamInternal(ref as Reference, maxDownloadSizeBytes);
 }
-
-// TODO(getbytes): Export getBlob/getStream
-
-export {};

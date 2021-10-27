@@ -11,7 +11,7 @@
       <env name="TS_NODE_CACHE" value="NO" />
     </envs>
     <ui>bdd</ui>
-    <extra-mocha-options>--require ts-node/register/type-check --require index.node.ts</extra-mocha-options>
+    <extra-mocha-options>--require ts-node/register/type-check --require src/index.node.ts</extra-mocha-options>
     <test-kind>PATTERN</test-kind>
     <test-pattern>test/{,!(browser)/**/}*.test.ts</test-pattern>
     <method v="2" />

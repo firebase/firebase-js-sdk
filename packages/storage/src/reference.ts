@@ -19,6 +19,8 @@
  * @fileoverview Defines the Firebase StorageReference class.
  */
 
+import { Transform, TransformOptions, PassThrough } from 'stream';
+
 import { FbsBlob } from './implementation/blob';
 import { Location } from './implementation/location';
 import { getMappings } from './implementation/metadata';
@@ -29,7 +31,10 @@ import {
   updateMetadata as requestsUpdateMetadata,
   getDownloadUrl as requestsGetDownloadUrl,
   deleteObject as requestsDeleteObject,
-  multipartUpload
+  multipartUpload,
+  getBytes,
+  getBlob,
+  getStream
 } from './implementation/requests';
 import { ListOptions, UploadResult } from './public-types';
 import { StringFormat, dataFromString } from './implementation/string';
@@ -39,7 +44,12 @@ import { ListResult } from './list';
 import { UploadTask } from './task';
 import { invalidRootOperation, noDownloadURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
-import { newConnection } from './platform/connection';
+import {
+  newBytesConnection,
+  newTextConnection,
+  newBlobConnection,
+  newStreamConnection
+} from './platform/connection';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -144,6 +154,92 @@ export class Reference {
 }
 
 /**
+ * Download the bytes at the object's location.
+ * @returns A Promise containing the downloaded bytes.
+ */
+export function getBytesInternal(
+  ref: Reference,
+  maxDownloadSizeBytes?: number
+): Promise<ArrayBuffer> {
+  ref._throwIfRoot('getBytes');
+  const requestInfo = getBytes(
+    ref.storage,
+    ref._location,
+    maxDownloadSizeBytes
+  );
+  return ref.storage
+    .makeRequestWithTokens(requestInfo, newBytesConnection)
+    .then(bytes =>
+      maxDownloadSizeBytes !== undefined
+        ? // GCS may not honor the Range header for small files
+          bytes.slice(0, maxDownloadSizeBytes)
+        : bytes
+    );
+}
+
+/**
+ * Download the bytes at the object's location.
+ * @returns A Promise containing the downloaded blob.
+ */
+export function getBlobInternal(
+  ref: Reference,
+  maxDownloadSizeBytes?: number
+): Promise<Blob> {
+  ref._throwIfRoot('getBlob');
+  const requestInfo = getBlob(ref.storage, ref._location, maxDownloadSizeBytes);
+  return ref.storage
+    .makeRequestWithTokens(requestInfo, newBlobConnection)
+    .then(blob =>
+      maxDownloadSizeBytes !== undefined
+        ? // GCS may not honor the Range header for small files
+          blob.slice(0, maxDownloadSizeBytes)
+        : blob
+    );
+}
+
+/** Stream the bytes at the object's location. */
+export function getStreamInternal(
+  ref: Reference,
+  maxDownloadSizeBytes?: number
+): NodeJS.ReadableStream {
+  ref._throwIfRoot('getStream');
+  const requestInfo = getStream(
+    ref.storage,
+    ref._location,
+    maxDownloadSizeBytes
+  );
+
+  /** A transformer that passes through the first n bytes. */
+  const newMaxSizeTransform: (n: number) => TransformOptions = n => {
+    let missingBytes = n;
+    return {
+      transform(chunk, encoding, callback) {
+        // GCS may not honor the Range header for small files
+        if (chunk.length < missingBytes) {
+          this.push(chunk);
+          missingBytes -= chunk.length;
+        } else {
+          this.push(chunk.slice(0, missingBytes));
+          this.emit('end');
+        }
+        callback();
+      }
+    } as TransformOptions;
+  };
+
+  const result =
+    maxDownloadSizeBytes !== undefined
+      ? new Transform(newMaxSizeTransform(maxDownloadSizeBytes))
+      : new PassThrough();
+
+  ref.storage
+    .makeRequestWithTokens(requestInfo, newStreamConnection)
+    .then(stream => stream.pipe(result))
+    .catch(e => result.destroy(e));
+  return result;
+}
+
+/**
  * Uploads data to this object's location.
  * The upload is not resumable.
  *
@@ -166,7 +262,7 @@ export function uploadBytes(
     metadata
   );
   return ref.storage
-    .makeRequestWithTokens(requestInfo, newConnection)
+    .makeRequestWithTokens(requestInfo, newTextConnection)
     .then(finalMetadata => {
       return {
         metadata: finalMetadata,
@@ -312,7 +408,7 @@ export function list(
     op.pageToken,
     op.maxResults
   );
-  return ref.storage.makeRequestWithTokens(requestInfo, newConnection);
+  return ref.storage.makeRequestWithTokens(requestInfo, newTextConnection);
 }
 
 /**
@@ -329,7 +425,7 @@ export function getMetadata(ref: Reference): Promise<Metadata> {
     ref._location,
     getMappings()
   );
-  return ref.storage.makeRequestWithTokens(requestInfo, newConnection);
+  return ref.storage.makeRequestWithTokens(requestInfo, newTextConnection);
 }
 
 /**
@@ -354,7 +450,7 @@ export function updateMetadata(
     metadata,
     getMappings()
   );
-  return ref.storage.makeRequestWithTokens(requestInfo, newConnection);
+  return ref.storage.makeRequestWithTokens(requestInfo, newTextConnection);
 }
 
 /**
@@ -371,7 +467,7 @@ export function getDownloadURL(ref: Reference): Promise<string> {
     getMappings()
   );
   return ref.storage
-    .makeRequestWithTokens(requestInfo, newConnection)
+    .makeRequestWithTokens(requestInfo, newTextConnection)
     .then(url => {
       if (url === null) {
         throw noDownloadURL();
@@ -389,7 +485,7 @@ export function getDownloadURL(ref: Reference): Promise<string> {
 export function deleteObject(ref: Reference): Promise<void> {
   ref._throwIfRoot('deleteObject');
   const requestInfo = requestsDeleteObject(ref.storage, ref._location);
-  return ref.storage.makeRequestWithTokens(requestInfo, newConnection);
+  return ref.storage.makeRequestWithTokens(requestInfo, newTextConnection);
 }
 
 /**
