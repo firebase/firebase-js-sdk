@@ -1,5 +1,17 @@
 # @firebase/firestore
 
+## 3.2.0
+
+### Minor Changes
+
+- [`4d3640481`](https://github.com/firebase/firebase-js-sdk/commit/4d36404812a7ca24ced5e1aabf6d8aa03de4e08a) [#5532](https://github.com/firebase/firebase-js-sdk/pull/5532) (fixes [#5499](https://github.com/firebase/firebase-js-sdk/issues/5499)) - Fix exports field to also point to Node ESM builds. This change requires Node.js version 10+.
+
+### Patch Changes
+
+- [`f48527617`](https://github.com/firebase/firebase-js-sdk/commit/f485276173ac0f6fb212328d00334892f4b33a9a) [#5668](https://github.com/firebase/firebase-js-sdk/pull/5668) - Add missing compat Firestore conversion for runTransaction
+
+* [`c75bbe957`](https://github.com/firebase/firebase-js-sdk/commit/c75bbe9574133ce6d1487a601c7acb4204e417aa) [#5643](https://github.com/firebase/firebase-js-sdk/pull/5643) - Change the networking API to use XHR instead of `fetch()` for ReactNative.
+
 ## 3.1.1
 
 ### Patch Changes
