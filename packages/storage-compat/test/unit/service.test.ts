@@ -19,11 +19,7 @@ import { expect } from 'chai';
 import { stub } from 'sinon';
 import * as modularStorage from '@firebase/storage';
 import { makeTestCompatStorage, fakeApp, fakeStorage } from '../utils';
-import {
-  FirebaseStorage,
-  getStorage,
-  FirebaseStorageError
-} from '@firebase/storage';
+import { FirebaseStorage, getStorage, StorageError } from '@firebase/storage';
 import firebase from '@firebase/app-compat';
 import { StorageServiceCompat } from '../../src/service';
 import { FirebaseApp } from '@firebase/app-types';
@@ -215,10 +211,8 @@ GOOG4-RSA-SHA256`
         ref.put(new Uint8Array([97])).on(
           'state_changed',
           null,
-          (err: FirebaseStorageError | Error) => {
-            expect((err as FirebaseStorageError).code).to.equal(
-              'storage/app-deleted'
-            );
+          (err: StorageError | Error) => {
+            expect((err as StorageError).code).to.equal('storage/app-deleted');
             resolve();
           },
           () => {

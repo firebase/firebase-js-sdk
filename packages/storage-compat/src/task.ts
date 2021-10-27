@@ -17,7 +17,7 @@
 
 import {
   UploadTask,
-  FirebaseStorageError,
+  StorageError,
   UploadTaskSnapshot,
   TaskEvent,
   StorageObserver
@@ -48,7 +48,7 @@ export class UploadTaskCompat implements types.UploadTask, Compat<UploadTask> {
 
   then(
     onFulfilled?: ((a: UploadTaskSnapshotCompat) => unknown) | null,
-    onRejected?: ((a: FirebaseStorageError) => unknown) | null
+    onRejected?: ((a: StorageError) => unknown) | null
   ): Promise<unknown> {
     return this._delegate.then(snapshot => {
       if (onFulfilled) {
@@ -65,7 +65,7 @@ export class UploadTaskCompat implements types.UploadTask, Compat<UploadTask> {
       | types.StorageObserver<UploadTaskSnapshotCompat>
       | null
       | ((a: UploadTaskSnapshotCompat) => unknown),
-    error?: (error: FirebaseStorageError) => void | null,
+    error?: (error: StorageError) => void | null,
     completed?: () => void | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshotCompat> {
     let wrappedNextOrObserver:
@@ -123,7 +123,7 @@ export type NextFn<T> = (value: T) => void;
  * A function that is called with a `FirebaseStorageError`
  * if the event stream ends due to an error.
  */
-export type ErrorFn = (error: FirebaseStorageError) => void;
+export type ErrorFn = (error: StorageError) => void;
 
 /**
  * A function that is called if the event stream ends normally.

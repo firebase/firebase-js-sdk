@@ -19,7 +19,6 @@ import { Location } from './implementation/location';
 import { FailRequest } from './implementation/failrequest';
 import { Request, makeRequest } from './implementation/request';
 import { RequestInfo } from './implementation/requestinfo';
-import { ConnectionPool } from './implementation/connectionPool';
 import { Reference, _getChild } from './reference';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
@@ -31,7 +30,7 @@ import {
   DEFAULT_HOST,
   DEFAULT_MAX_OPERATION_RETRY_TIME,
   DEFAULT_MAX_UPLOAD_RETRY_TIME
-} from '../src/implementation/constants';
+} from './implementation/constants';
 import {
   invalidArgument,
   appDeleted,
@@ -40,6 +39,7 @@ import {
 import { validateNumber } from './implementation/type';
 import { FirebaseStorage } from './public-types';
 import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
+import { Connection } from './implementation/connection';
 
 export function isUrl(path?: string): boolean {
   return /^[A-Za-z]+:\/\//.test(path as string);
@@ -182,7 +182,6 @@ export class FirebaseStorageImpl implements FirebaseStorage {
     /**
      * @internal
      */
-    readonly _pool: ConnectionPool,
     readonly _url?: string,
     readonly _firebaseVersion?: string
   ) {
@@ -301,6 +300,7 @@ export class FirebaseStorageImpl implements FirebaseStorage {
    */
   _makeRequest<T>(
     requestInfo: RequestInfo<T>,
+    requestFactory: () => Connection,
     authToken: string | null,
     appCheckToken: string | null
   ): Request<T> {
@@ -310,7 +310,7 @@ export class FirebaseStorageImpl implements FirebaseStorage {
         this._appId,
         authToken,
         appCheckToken,
-        this._pool,
+        requestFactory,
         this._firebaseVersion
       );
       this._requests.add(request);
@@ -326,13 +326,19 @@ export class FirebaseStorageImpl implements FirebaseStorage {
   }
 
   async makeRequestWithTokens<T>(
-    requestInfo: RequestInfo<T>
-  ): Promise<Request<T>> {
+    requestInfo: RequestInfo<T>,
+    requestFactory: () => Connection
+  ): Promise<T> {
     const [authToken, appCheckToken] = await Promise.all([
       this._getAuthToken(),
       this._getAppCheckToken()
     ]);
 
-    return this._makeRequest(requestInfo, authToken, appCheckToken);
+    return this._makeRequest(
+      requestInfo,
+      requestFactory,
+      authToken,
+      appCheckToken
+    ).getPromise();
   }
 }

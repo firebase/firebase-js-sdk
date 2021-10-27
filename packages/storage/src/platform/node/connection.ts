@@ -19,6 +19,9 @@ import { ErrorCode, Connection } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
 import nodeFetch, { FetchError } from 'node-fetch';
 
+/** An override for the text-based Connection. Used in tests. */
+let connectionFactoryOverride: (() => Connection) | null = null;
+
 /**
  * Network layer that works in Node.
  *
@@ -118,5 +121,11 @@ export class FetchConnection implements Connection {
 }
 
 export function newConnection(): Connection {
-  return new FetchConnection();
+  return connectionFactoryOverride
+    ? connectionFactoryOverride()
+    : new FetchConnection();
+}
+
+export function injectTestConnection(factory: (() => Connection) | null): void {
+  connectionFactoryOverride = factory;
 }

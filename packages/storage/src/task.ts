@@ -52,6 +52,7 @@ import {
   multipartUpload
 } from './implementation/requests';
 import { Reference } from './reference';
+import { newConnection } from './platform/connection';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -207,6 +208,7 @@ export class UploadTask {
       );
       const createRequest = this._ref.storage._makeRequest(
         requestInfo,
+        newConnection,
         authToken,
         appCheckToken
       );
@@ -232,6 +234,7 @@ export class UploadTask {
       );
       const statusRequest = this._ref.storage._makeRequest(
         requestInfo,
+        newConnection,
         authToken,
         appCheckToken
       );
@@ -278,6 +281,7 @@ export class UploadTask {
       }
       const uploadRequest = this._ref.storage._makeRequest(
         requestInfo,
+        newConnection,
         authToken,
         appCheckToken
       );
@@ -314,6 +318,7 @@ export class UploadTask {
       );
       const metadataRequest = this._ref.storage._makeRequest(
         requestInfo,
+        newConnection,
         authToken,
         appCheckToken
       );
@@ -337,6 +342,7 @@ export class UploadTask {
       );
       const multipartRequest = this._ref.storage._makeRequest(
         requestInfo,
+        newConnection,
         authToken,
         appCheckToken
       );

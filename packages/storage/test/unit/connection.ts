@@ -134,3 +134,7 @@ export class TestingConnection implements Connection {
     // TODO(andysoto): impl
   }
 }
+
+export function newTestConnection(sendHook?: SendHook | null): Connection {
+  return new TestingConnection(sendHook ?? null);
+}

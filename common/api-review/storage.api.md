@@ -58,7 +58,7 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     constructor(
     app: FirebaseApp, _authProvider: Provider<FirebaseAuthInternalName>,
     _appCheckProvider: Provider<AppCheckInternalComponentName>,
-    _pool: ConnectionPool, _url?: string | undefined, _firebaseVersion?: string | undefined);
+    _url?: string | undefined, _firebaseVersion?: string | undefined);
     readonly app: FirebaseApp;
     // (undocumented)
     readonly _appCheckProvider: Provider<AppCheckInternalComponentName>;
@@ -78,12 +78,13 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     get host(): string;
     set host(host: string);
     // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Connection" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Request" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    _makeRequest<T>(requestInfo: RequestInfo_2<T>, authToken: string | null, appCheckToken: string | null): Request_2<T>;
+    _makeRequest<T>(requestInfo: RequestInfo_2<T>, requestFactory: () => Connection, authToken: string | null, appCheckToken: string | null): Request_2<T>;
     // (undocumented)
-    makeRequestWithTokens<T>(requestInfo: RequestInfo_2<T>): Promise<Request_2<T>>;
+    makeRequestWithTokens<T>(requestInfo: RequestInfo_2<T>, requestFactory: () => Connection): Promise<T>;
     _makeStorageReference(loc: _Location): _Reference;
     get maxOperationRetryTime(): number;
     set maxOperationRetryTime(time: number);
@@ -91,10 +92,6 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     set maxUploadRetryTime(time: number);
     // (undocumented)
     _overrideAuthToken?: string;
-    // Warning: (ae-forgotten-export) The symbol "ConnectionPool" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    readonly _pool: ConnectionPool;
     // (undocumented)
     _protocol: string;
     // (undocumented)

@@ -37,7 +37,6 @@ import {
 import { makeUrl } from '../../src/implementation/url';
 import { unknown, StorageErrorCode } from '../../src/implementation/error';
 import { RequestInfo } from '../../src/implementation/requestinfo';
-import { ConnectionPool } from '../../src/implementation/connectionPool';
 import { Metadata } from '../../src/metadata';
 import { FirebaseStorageImpl } from '../../src/service';
 import {
@@ -82,8 +81,7 @@ describe('Firebase Storage > Requests', () => {
   const storageService = new FirebaseStorageImpl(
     mockApp,
     fakeAuthProvider,
-    fakeAppCheckTokenProvider,
-    new ConnectionPool()
+    fakeAppCheckTokenProvider
   );
 
   const contentTypeInMetadata = 'application/jason';

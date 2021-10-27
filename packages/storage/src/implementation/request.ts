@@ -32,7 +32,6 @@ import { RequestHandler, RequestInfo } from './requestinfo';
 import { isJustDef } from './type';
 import { makeQueryString } from './url';
 import { Headers, Connection, ErrorCode } from './connection';
-import { ConnectionPool } from './connectionPool';
 
 export interface Request<T> {
   getPromise(): Promise<T>;
@@ -68,7 +67,7 @@ class NetworkRequest<T> implements Request<T> {
     private errorCallback_: RequestHandler<StorageError, StorageError> | null,
     private timeout_: number,
     private progressCallback_: ((p1: number, p2: number) => void) | null,
-    private pool_: ConnectionPool
+    private connectionFactory_: () => Connection
   ) {
     this.promise_ = new Promise((resolve, reject) => {
       this.resolve_ = resolve as (value?: T | PromiseLike<T>) => void;
@@ -89,7 +88,7 @@ class NetworkRequest<T> implements Request<T> {
         backoffCallback(false, new RequestEndStatus(false, null, true));
         return;
       }
-      const connection = this.pool_.createConnection();
+      const connection = this.connectionFactory_();
       this.pendingConnection_ = connection;
 
       const progressListener: (progressEvent: ProgressEvent) => void =
@@ -272,7 +271,7 @@ export function makeRequest<T>(
   appId: string | null,
   authToken: string | null,
   appCheckToken: string | null,
-  pool: ConnectionPool,
+  requestFactory: () => Connection,
   firebaseVersion?: string
 ): Request<T> {
   const queryPart = makeQueryString(requestInfo.urlParams);
@@ -293,6 +292,6 @@ export function makeRequest<T>(
     requestInfo.errorHandler,
     requestInfo.timeout,
     requestInfo.progressCallback,
-    pool
+    requestFactory
   );
 }
