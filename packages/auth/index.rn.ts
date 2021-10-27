@@ -35,6 +35,21 @@ import { getReactNativePersistence } from './src/platform_react_native/persisten
 // Core functionality shared by all clients
 export * from './index.shared';
 
+// Export some Phone symbols
+// providers
+export { PhoneAuthProvider } from './src/platform_browser/providers/phone';
+
+// strategies
+export {
+  signInWithPhoneNumber,
+  linkWithPhoneNumber,
+  reauthenticateWithPhoneNumber,
+  updatePhoneNumber
+} from './src/platform_browser/strategies/phone';
+
+// MFA
+export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
+
 /**
  * An implementation of {@link Persistence} of type 'LOCAL' for use in React
  * Native environments.
