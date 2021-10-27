@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import { join, resolve, isAbsolute } from 'path';
+import { join, resolve, isAbsolute, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// __filename and __dirname globals are unavailable in ES modules
+// @ts-ignore To avoid using `--module es2020` flag.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 import { loadPackageDefinition, GrpcObject } from '@grpc/grpc-js';
 import { loadSync } from '@grpc/proto-loader';
