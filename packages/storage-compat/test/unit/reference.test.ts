@@ -164,13 +164,13 @@ describe('Firebase Storage > Reference', () => {
     describe('list', () => {
       it('throws on invalid maxResults', () => {
         const child = service.refFromURL('gs://test-bucket/hello');
-        expect(child.list({ maxResults: 0 })).to.throw(
+        expect(() => child.list({ maxResults: 0 })).to.throw(
           'storage/invalid-argument'
         );
-        expect(child.list({ maxResults: -4 })).to.throw(
+        expect(() => child.list({ maxResults: -4 })).to.throw(
           'storage/invalid-argument'
         );
-        expect(child.list({ maxResults: 1001 })).to.throw(
+        expect(() => child.list({ maxResults: 1001 })).to.throw(
           'storage/invalid-argument'
         );
       });
@@ -196,15 +196,19 @@ describe('Firebase Storage > Reference', () => {
       expect(() => root.delete()).to.throw('storage/invalid-root-operation');
     });
     it('getMetadata throws', () => {
-      expect(root.getMetadata()).to.throw('storage/invalid-root-operation');
+      expect(() => root.getMetadata()).to.throw(
+        'storage/invalid-root-operation'
+      );
     });
     it('updateMetadata throws', () => {
-      expect(root.updateMetadata({})).to.throw(
+      expect(() => root.updateMetadata({})).to.throw(
         'storage/invalid-root-operation'
       );
     });
     it('getDownloadURL throws', async () => {
-      expect(root.getDownloadURL()).to.throw('storage/invalid-root-operation');
+      expect(() => root.getDownloadURL()).to.throw(
+        'storage/invalid-root-operation'
+      );
     });
   });
 });
