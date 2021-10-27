@@ -274,5 +274,6 @@
     "messaging",
     "messaging/sw",
     "database"
-  ]
+  ],
+  "typings": "empty.d.ts"
 }
