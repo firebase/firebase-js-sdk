@@ -104,9 +104,9 @@ abstract class XhrConnection<ResponseType> implements Connection<ResponseType> {
 
   getErrorText(): string {
     if (!this.sent_) {
-      throw internalError('cannot .getResponseText() before sending');
+      throw internalError('cannot .getErrorText() before sending');
     }
-    return this.xhr_.responseText;
+    return this.xhr_.statusText;
   }
 
   /** Aborts the request. */
@@ -157,13 +157,6 @@ export class XhrBytesConnection extends XhrConnection<ArrayBuffer> {
     this.xhr_.responseType = 'blob';
   }
 
-  getErrorText(): string {
-    if (!this.sent_) {
-      throw internalError('cannot .getResponseText() before sending');
-    }
-    return new TextDecoder().decode(this.data_);
-  }
-
   getResponse(): ArrayBuffer {
     if (!this.sent_) {
       throw internalError('cannot .getResponse() before sending');
@@ -178,7 +171,9 @@ export class XhrBytesConnection extends XhrConnection<ArrayBuffer> {
     headers?: Headers
   ): Promise<void> {
     return super.send(url, method, body, headers).then(async () => {
-      this.data_ = await (this.xhr_.response as Blob).arrayBuffer();
+      if (this.getErrorCode() === ErrorCode.NO_ERROR) {
+        this.data_ = await (this.xhr_.response as Blob).arrayBuffer();
+      }
     });
   }
 }
@@ -218,12 +213,14 @@ export class XhrBlobConnection extends XhrConnection<Blob> {
     headers?: Headers
   ): Promise<void> {
     return super.send(url, method, body, headers).then(async () => {
-      this.data_ = this.xhr_.response;
-      this.text_ = await this.data_!.slice(
-        0,
-        MAX_ERROR_MSG_LENGTH,
-        'string'
-      ).text();
+      if (this.getErrorCode() === ErrorCode.NO_ERROR) {
+        this.data_ = this.xhr_.response;
+        this.text_ = await this.data_!.slice(
+          0,
+          MAX_ERROR_MSG_LENGTH,
+          'string'
+        ).text();
+      }
     });
   }
 }
