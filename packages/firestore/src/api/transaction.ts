@@ -20,6 +20,7 @@ import { Transaction as InternalTransaction } from '../core/transaction';
 import { DocumentReference } from '../lite-api/reference';
 import { Transaction as LiteTransaction } from '../lite-api/transaction';
 import { validateReference } from '../lite-api/write_batch';
+import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { ExpUserDataWriter } from './reference_impl';
@@ -93,6 +94,7 @@ export function runTransaction<T>(
   firestore: Firestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
+  firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientTransaction(client, internalTransaction =>
     updateFunction(new Transaction(firestore, internalTransaction))
