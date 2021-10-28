@@ -62,7 +62,7 @@ const esmBuilds = [
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [...es2017BuildPlugins, emitModulePackageFile()]
-  },
+  }
 ];
 
 const cjsBuilds = [

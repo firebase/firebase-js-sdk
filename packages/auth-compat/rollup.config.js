@@ -131,6 +131,6 @@ const umdBuild = {
   },
   plugins: [...es5BuildPlugins, uglify()],
   external: ['@firebase/app-compat', '@firebase/app']
-}
+};
 
 export default [...browserBuilds, ...nodeBuilds, umdBuild];

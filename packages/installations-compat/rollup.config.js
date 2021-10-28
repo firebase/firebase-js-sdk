@@ -55,7 +55,6 @@ const esmBuilds = [
   }
 ];
 
-
 const cjsBuilds = [
   {
     input: 'src/index.ts',

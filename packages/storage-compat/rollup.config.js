@@ -49,8 +49,7 @@ const es2017BuildPlugins = [
 const esmBuilds = [
   {
     input: './src/index.ts',
-    output:
-    {
+    output: {
       file: pkg.esm5,
       format: 'es',
       sourcemap: true
@@ -73,15 +72,14 @@ const esmBuilds = [
 const cjsBuilds = [
   {
     input: './src/index.ts',
-    output:
-    {
+    output: {
       file: pkg.main,
       format: 'cjs',
       sourcemap: true
     },
     plugins: [...es5BuildPlugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
+  }
 ];
 
 // eslint-disable-next-line import/no-default-export

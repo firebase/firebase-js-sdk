@@ -42,7 +42,6 @@ const es2017BuildPlugins = [
 ];
 
 const browserBuilds = [
-
   {
     input: 'index.ts',
     output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],

@@ -93,7 +93,7 @@ const cjsBuilds = [
     output: { file: pkg.main, format: 'cjs', sourcemap: true },
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
+  }
 ];
 
 export default [...esmBuilds, ...cjsBuilds];

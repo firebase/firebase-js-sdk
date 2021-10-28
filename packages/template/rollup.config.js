@@ -58,7 +58,6 @@ const browserBuilds = [
     plugins: es2017BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
-
 ];
 
 const nodeBuilds = [
