@@ -63,9 +63,6 @@ const esmBuilds = [
   }
 ];
 
-/**
- * ES2017 Builds
- */
 const cjsBuilds = [
   {
     input: 'src/index.ts',

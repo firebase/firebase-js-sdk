@@ -10,7 +10,6 @@
   "lite": "dist/index.lite.js",
   "lite-esm5": "dist/index.lite.esm5.js",
   "exports": {
-    "import": "./dist/esm/index.esm2017.js",
     "browser": "./dist/esm/index.esm2017.js",
     "module": "./dist/esm/index.esm2017.js",
     "default": "./dist/index.cjs.js"
