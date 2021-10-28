@@ -58,7 +58,7 @@ export type _AppCheckComponentName = 'app-check';
  */
 export interface AppCheckOptions {
   /**
-   * reCAPTCHA provider or custom provider.
+   * reCAPTCHA V3 provider, reCAPTCHA Enterprise provider,  or custom provider.
    */
   provider: CustomProvider | ReCaptchaV3Provider | ReCaptchaEnterpriseProvider;
   /**
