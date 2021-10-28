@@ -279,11 +279,7 @@ function createTokenRefresher(appCheck: AppCheckService): Refresher {
         throw result.error;
       }
     },
-    (error: unknown) => {
-      // Do not queue up retries if it's in a throttled state.
-      if ((error as FirebaseError).code === AppCheckError.THROTTLED) {
-        return false;
-      }
+    () => {
       return true;
     },
     () => {
