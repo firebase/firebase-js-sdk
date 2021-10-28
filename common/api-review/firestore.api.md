@@ -328,9 +328,7 @@ export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDir
 export type OrderByDirection = 'desc' | 'asc';
 
 // @public
-export type PartialWithFieldValue<T> = T extends Primitive ? T : T extends {} ? {
-    [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
-} : Partial<T>;
+export type PartialWithFieldValue<T> = Partial<WithFieldValue<T>>;
 
 // @public
 export interface PersistenceSettings {
@@ -504,9 +502,9 @@ export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value
 export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
 
 // @public
-export type WithFieldValue<T> = T extends Primitive ? T : T extends {} ? {
+export type WithFieldValue<T> = T | (T extends Primitive ? T : T extends {} ? {
     [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
-} : Partial<T>;
+} : Partial<T>);
 
 // @public
 export class WriteBatch {

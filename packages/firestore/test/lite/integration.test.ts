@@ -1286,7 +1286,7 @@ describe('withConverter() support', () => {
       }
     };
 
-    describe('NestedPartial', () => {
+    describe('nested partial support', () => {
       const testConverterMerge = {
         toFirestore(
           testObj: PartialWithFieldValue<TestObject>,
@@ -1494,6 +1494,51 @@ describe('withConverter() support', () => {
               timestamp: serverTimestamp()
             }
           });
+        });
+      });
+
+      describe('used as a type', () => {
+        class ObjectWrapper<T> {
+          withFieldValueT(value: WithFieldValue<T>): void {
+            // eslint-disable-next-line no-console
+            console.log(value);
+          }
+
+          withPartialFieldValueT(value: PartialWithFieldValue<T>): void {
+            // eslint-disable-next-line no-console
+            console.log(value);
+          }
+
+          // Wrapper to avoid having Firebase types in non-Firebase code.
+          withT(value: T): void {
+            this.withFieldValueT(value);
+          }
+
+          // Wrapper to avoid having Firebase types in non-Firebase code.
+          withPartialT(value: Partial<T>): void {
+            this.withPartialFieldValueT(value);
+          }
+        }
+
+        it('supports passing in the object as `T`', () => {
+          interface Foo {
+            id: string;
+            foo: number;
+          }
+          const foo = new ObjectWrapper<Foo>();
+          foo.withFieldValueT({ id: '', foo: increment(1) });
+          foo.withPartialFieldValueT({ foo: increment(1) });
+          foo.withT({ id: '', foo: 1 });
+          foo.withPartialT({ foo: 1 });
+        });
+
+        it('does not allow primitive types to use FieldValue', () => {
+          type Bar = number;
+          const bar = new ObjectWrapper<Bar>();
+          // @ts-expect-error
+          bar.withFieldValueT(increment(1));
+          // @ts-expect-error
+          bar.withPartialFieldValueT(increment(1));
         });
       });
     });
