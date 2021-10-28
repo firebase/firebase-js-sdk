@@ -1543,20 +1543,20 @@ declare namespace firebase.appCheck {
     token: string;
   }
   /*
-   * ReCAPTCHA v3 token provider.
+   * reCAPTCHA v3 token provider.
    */
   class ReCaptchaV3Provider {
     /**
-     * @param siteKey - ReCAPTCHA v3 site key (public key).
+     * @param siteKey - reCAPTCHA v3 site key (public key).
      */
     constructor(siteKey: string);
   }
   /*
-   * ReCAPTCHA Enterprise token provider.
+   * reCAPTCHA Enterprise token provider.
    */
   class ReCaptchaEnterpriseProvider {
     /**
-     * @param keyId - ReCAPTCHA Enterprise key ID.
+     * @param keyId - reCAPTCHA Enterprise key ID.
      */
     constructor(keyId: string);
   }
