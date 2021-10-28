@@ -22,6 +22,9 @@ import {
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
 
+/** An override for the text-based Connection. Used in tests. */
+let connectionFactoryOverride: (() => Connection) | null = null;
+
 /**
  * Network layer for browsers. We use this instead of goog.net.XhrIo because
  * goog.net.XhrIo is hyuuuuge and doesn't work in React Native on Android.
@@ -124,5 +127,11 @@ export class XhrConnection implements Connection {
 }
 
 export function newConnection(): Connection {
-  return new XhrConnection();
+  return connectionFactoryOverride
+    ? connectionFactoryOverride()
+    : new XhrConnection();
+}
+
+export function injectTestConnection(factory: (() => Connection) | null): void {
+  connectionFactoryOverride = factory;
 }

@@ -40,7 +40,6 @@ import { name, version } from '../package.json';
 
 import { FirebaseStorage } from './public-types';
 import { STORAGE_TYPE } from './constants';
-import { ConnectionPool } from './implementation/connectionPool';
 
 export * from './api';
 export * from './api.node';
@@ -57,7 +56,6 @@ function factory(
     app,
     authProvider,
     appCheckProvider,
-    new ConnectionPool(),
     url,
     SDK_VERSION
   );

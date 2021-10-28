@@ -23,8 +23,7 @@ import { FirebaseApp } from '@firebase/app-types';
 import { CONFIG_STORAGE_BUCKET_KEY } from '../../src/implementation/constants';
 import { StorageError } from '../../src/implementation/error';
 import { Headers, Connection } from '../../src/implementation/connection';
-import { ConnectionPool } from '../../src/implementation/connectionPool';
-import { SendHook, TestingConnection } from './connection';
+import { newTestConnection, TestingConnection } from './connection';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   Provider,
@@ -35,6 +34,7 @@ import {
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseStorageImpl } from '../../src/service';
 import { Metadata } from '../../src/metadata';
+import { injectTestConnection } from '../../src/platform/connection';
 
 export const authToken = 'totally-legit-auth-token';
 export const appCheckToken = 'totally-shady-token';
@@ -104,15 +104,6 @@ export function makeFakeAppCheckProvider(tokenResult: {
   );
 
   return provider as Provider<AppCheckInternalComponentName>;
-}
-
-export function makePool(sendHook: SendHook | null): ConnectionPool {
-  const pool: any = {
-    createConnection() {
-      return new TestingConnection(sendHook);
-    }
-  };
-  return pool as ConnectionPool;
 }
 
 /**
@@ -224,11 +215,11 @@ export function storageServiceWithHandler(
     );
   }
 
+  injectTestConnection(() => newTestConnection(newSend));
   return new FirebaseStorageImpl(
     {} as FirebaseApp,
     emptyAuthProvider,
-    fakeAppCheckTokenProvider,
-    makePool(newSend)
+    fakeAppCheckTokenProvider
   );
 }
 
