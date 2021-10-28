@@ -56,27 +56,7 @@ const es2017BuildPlugins = [
   json({ preferConst: true })
 ];
 
-const esmBuilds = [
-  /**
-   * Node.js Build
-   */
-  {
-    input: 'src/index.node.ts',
-    output: { file: pkg.exports.node.import, format: 'es', sourcemap: true },
-    plugins: [
-      ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017)),
-      emitModulePackageFile()
-    ],
-    treeshake: {
-      moduleSideEffects: false
-    },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn
-  },
-  /**
-   * Browser Builds
-   */
+const browserBuilds = [
   {
     input: 'src/index.ts',
     output: [
@@ -117,10 +97,7 @@ const esmBuilds = [
   }
 ];
 
-const cjsBuilds = [
-  /**
-   * Node.js Build
-   */
+const nodeBuilds = [
   {
     input: 'src/index.node.ts',
     output: { file: pkg.main, format: 'cjs', sourcemap: true },
@@ -134,8 +111,22 @@ const cjsBuilds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
   },
+  {
+    input: 'src/index.node.ts',
+    output: { file: pkg.exports.node.import, format: 'es', sourcemap: true },
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      emitModulePackageFile()
+    ],
+    treeshake: {
+      moduleSideEffects: false
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
+  },
   /**
-   * Standalone Build
+   * Standalone Build for Admin SDK
    */
   {
     input: 'src/index.standalone.ts',
@@ -149,4 +140,4 @@ const cjsBuilds = [
   }
 ];
 
-export default [...esmBuilds, ...cjsBuilds];
+export default [...browserBuilds, ...nodeBuilds];

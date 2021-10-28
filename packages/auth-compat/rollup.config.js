@@ -51,10 +51,7 @@ const es2017BuildPlugins = [
   })
 ];
 
-const esmBuilds = [
-  /**
-   * Browser Builds
-   */
+const browserBuilds = [
   {
     input: 'index.ts',
     output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
@@ -76,10 +73,19 @@ const esmBuilds = [
     treeshake: {
       moduleSideEffects: false
     }
+  }
+];
+
+const nodeBuilds = [
+  {
+    input: 'index.node.ts',
+    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    plugins: es5BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: true
+    }
   },
-  /**
-   * Node.js Build
-   */
   {
     input: 'index.node.ts',
     output: [{ file: pkg.exports.node.import, format: 'es', sourcemap: true }],
@@ -91,22 +97,7 @@ const esmBuilds = [
   }
 ];
 
-const cjsBuilds = [
-  /**
-   *  Node Builds
-   */
-   {
-    input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    treeshake: {
-      moduleSideEffects: true
-    }
-  },
-];
-
-const umdBuild =  {
+const umdBuild = {
   input: `./index.ts`,
   output: {
     compact: true,
@@ -142,4 +133,4 @@ const umdBuild =  {
   external: ['@firebase/app-compat', '@firebase/app']
 }
 
-export default [...esmBuilds, ...cjsBuilds, umdBuild];
+export default [...browserBuilds, ...nodeBuilds, umdBuild];
