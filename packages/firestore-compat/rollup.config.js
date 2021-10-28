@@ -38,7 +38,7 @@ const es2017Plugins = [
   json({ preferConst: true })
 ];
 
-const es5Plugings = [
+const es5Plugins = [
   typescriptPlugin({
     typescript,
     transformers: [util.removeAssertTransformer]
@@ -66,7 +66,7 @@ const browserBuilds = [
         sourcemap: true
       }
     ],
-    plugins: es5Plugings,
+    plugins: es5Plugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
