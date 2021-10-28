@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import { stub, SinonStub, useFakeTimers } from 'sinon';
 import { FirebaseApp } from '@firebase/app';
 import { getFakeApp, getFakePlatformLoggingProvider } from '../test/util';
-import { getExchangeRecaptchaTokenRequest, exchangeToken } from './client';
+import { getExchangeRecaptchaV3TokenRequest, exchangeToken, getExchangeRecaptchaEnterpriseTokenRequest } from './client';
 import { FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { BASE_ENDPOINT } from './constants';
@@ -36,7 +36,7 @@ describe('client', () => {
   });
 
   it('creates exchange recaptcha token request correctly', () => {
-    const request = getExchangeRecaptchaTokenRequest(
+    const request = getExchangeRecaptchaV3TokenRequest(
       app,
       'fake-recaptcha-token'
     );
@@ -52,10 +52,9 @@ describe('client', () => {
   });
 
   it('creates exchange recaptcha enterprise token request correctly', () => {
-    const request = getExchangeRecaptchaTokenRequest(
+    const request = getExchangeRecaptchaEnterpriseTokenRequest(
       app,
-      'fake-recaptcha-token',
-      true
+      'fake-recaptcha-token'
     );
     const { projectId, appId, apiKey } = app.options;
 
@@ -82,7 +81,7 @@ describe('client', () => {
     );
 
     const response = await exchangeToken(
-      getExchangeRecaptchaTokenRequest(app, 'fake-custom-token'),
+      getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
       getFakePlatformLoggingProvider('a/1.2.3 fire-app-check/2.3.4')
     );
 
@@ -110,7 +109,7 @@ describe('client', () => {
 
     try {
       await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token'),
+        getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
         getFakePlatformLoggingProvider()
       );
     } catch (e) {
@@ -139,7 +138,7 @@ describe('client', () => {
 
     try {
       await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token'),
+        getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
         getFakePlatformLoggingProvider()
       );
     } catch (e) {
@@ -167,7 +166,7 @@ describe('client', () => {
 
     try {
       await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token'),
+        getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
         getFakePlatformLoggingProvider()
       );
     } catch (e) {
@@ -201,7 +200,7 @@ describe('client', () => {
 
     try {
       await exchangeToken(
-        getExchangeRecaptchaTokenRequest(app, 'fake-custom-token'),
+        getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
         getFakePlatformLoggingProvider()
       );
     } catch (e) {

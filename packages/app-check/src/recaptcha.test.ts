@@ -26,7 +26,7 @@ import {
   findgreCAPTCHAScriptsOnPage,
   FAKE_SITE_KEY
 } from '../test/util';
-import { initialize, getToken, GreCAPTCHATopLevel } from './recaptcha';
+import { initializeV3, initializeEnterprise, getToken, GreCAPTCHATopLevel } from './recaptcha';
 import * as utils from './util';
 import { getState } from './state';
 import { Deferred } from '@firebase/util';
@@ -49,7 +49,7 @@ describe('recaptcha', () => {
     it('sets reCAPTCHAState', async () => {
       self.grecaptcha = getFakeGreCAPTCHA() as GreCAPTCHATopLevel;
       expect(getState(app).reCAPTCHAState).to.equal(undefined);
-      await initialize(app, FAKE_SITE_KEY);
+      await initializeV3(app, FAKE_SITE_KEY);
       expect(getState(app).reCAPTCHAState?.initialized).to.be.instanceof(
         Deferred
       );
@@ -68,7 +68,7 @@ describe('recaptcha', () => {
       });
 
       expect(findgreCAPTCHAScriptsOnPage().length).to.equal(0);
-      await initialize(app, FAKE_SITE_KEY);
+      await initializeV3(app, FAKE_SITE_KEY);
       expect(findgreCAPTCHAScriptsOnPage().length).to.equal(1);
     });
 
@@ -77,7 +77,7 @@ describe('recaptcha', () => {
       const renderStub = stub(grecaptchaFake, 'render').callThrough();
       self.grecaptcha = grecaptchaFake as GreCAPTCHATopLevel;
 
-      await initialize(app, FAKE_SITE_KEY);
+      await initializeV3(app, FAKE_SITE_KEY);
 
       expect(renderStub).to.be.calledWith(`fire_app_check_${app.name}`, {
         sitekey: FAKE_SITE_KEY,
@@ -92,7 +92,7 @@ describe('recaptcha', () => {
     it('sets reCAPTCHAState', async () => {
       self.grecaptcha = getFakeGreCAPTCHA() as GreCAPTCHATopLevel;
       expect(getState(app).reCAPTCHAState).to.equal(undefined);
-      await initialize(app, FAKE_SITE_KEY, true);
+      await initializeEnterprise(app, FAKE_SITE_KEY);
       expect(getState(app).reCAPTCHAState?.initialized).to.be.instanceof(
         Deferred
       );
@@ -111,7 +111,7 @@ describe('recaptcha', () => {
       });
 
       expect(findgreCAPTCHAScriptsOnPage().length).to.equal(0);
-      await initialize(app, FAKE_SITE_KEY, true);
+      await initializeEnterprise(app, FAKE_SITE_KEY);
       expect(findgreCAPTCHAScriptsOnPage().length).to.equal(1);
     });
 
@@ -123,7 +123,7 @@ describe('recaptcha', () => {
       ).callThrough();
       self.grecaptcha = grecaptchaFake;
 
-      await initialize(app, FAKE_SITE_KEY, true);
+      await initializeEnterprise(app, FAKE_SITE_KEY);
 
       expect(renderStub).to.be.calledWith(`fire_app_check_${app.name}`, {
         sitekey: FAKE_SITE_KEY,

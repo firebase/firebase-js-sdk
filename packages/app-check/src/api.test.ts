@@ -186,7 +186,7 @@ describe('api', () => {
     });
 
     it('initialize reCAPTCHA when a ReCaptchaV3Provider is provided', () => {
-      const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize').returns(
+      const initReCAPTCHAStub = stub(reCAPTCHA, 'initializeV3').returns(
         Promise.resolve({} as any)
       );
       initializeAppCheck(app, {
@@ -199,7 +199,7 @@ describe('api', () => {
     });
 
     it('initialize reCAPTCHA when a ReCaptchaEnterpriseProvider is provided', () => {
-      const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize').returns(
+      const initReCAPTCHAStub = stub(reCAPTCHA, 'initializeEnterprise').returns(
         Promise.resolve({} as any)
       );
       initializeAppCheck(app, {
@@ -207,8 +207,7 @@ describe('api', () => {
       });
       expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
         app,
-        FAKE_SITE_KEY,
-        true
+        FAKE_SITE_KEY
       );
     });
 

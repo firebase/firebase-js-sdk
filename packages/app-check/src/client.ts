@@ -104,23 +104,30 @@ export async function exchangeToken(
   };
 }
 
-export function getExchangeRecaptchaTokenRequest(
+export function getExchangeRecaptchaV3TokenRequest(
   app: FirebaseApp,
-  reCAPTCHAToken: string,
-  isEnterprise: boolean = false
+  reCAPTCHAToken: string
 ): AppCheckRequest {
   const { projectId, appId, apiKey } = app.options;
-  const fieldName = isEnterprise
-    ? 'recaptcha_enterprise_token'
-    : 'recaptcha_token';
-  const exchangeMethod = isEnterprise
-    ? EXCHANGE_RECAPTCHA_ENTERPRISE_TOKEN_METHOD
-    : EXCHANGE_RECAPTCHA_TOKEN_METHOD;
 
   return {
-    url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${exchangeMethod}?key=${apiKey}`,
+    url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${EXCHANGE_RECAPTCHA_TOKEN_METHOD}?key=${apiKey}`,
     body: {
-      [fieldName]: reCAPTCHAToken
+      'recaptcha_token': reCAPTCHAToken
+    }
+  };
+}
+
+export function getExchangeRecaptchaEnterpriseTokenRequest(
+  app: FirebaseApp,
+  reCAPTCHAToken: string
+): AppCheckRequest {
+  const { projectId, appId, apiKey } = app.options;
+
+  return {
+    url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${EXCHANGE_RECAPTCHA_ENTERPRISE_TOKEN_METHOD}?key=${apiKey}`,
+    body: {
+      'recaptcha_enterprise_token': reCAPTCHAToken
     }
   };
 }
