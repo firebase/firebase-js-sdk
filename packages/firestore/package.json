@@ -67,7 +67,8 @@
       "browser": "./dist/lite/index.browser.esm2017.js",
       "react-native": "./dist/lite/index.rn.esm2017.js",
       "default": "./dist/lite/index.browser.esm2017.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "main": "dist/index.node.cjs.js",
   "main-esm": "dist/index.node.mjs",

@@ -204,7 +204,8 @@
         "import": "./compat/storage/dist/index.mjs"
       },
       "default": "./compat/storage/dist/index.esm.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "repository": {
     "type": "git",

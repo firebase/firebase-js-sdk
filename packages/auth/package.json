@@ -33,7 +33,8 @@
       "browser": "./dist/esm2017/internal.js",
       "cordova": "./dist/cordova/internal.js",
       "default": "./dist/esm2017/internal.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
