@@ -12,7 +12,7 @@
       "import": "./dist/esm/index.esm2017.js",
       "browser": "./dist/esm/index.esm2017.js",
       "module": "./dist/esm/index.esm2017.js",
-      "default": "./dist/index.cjs.js",
+      "default": "./dist/index.cjs.js"
     },
     "./package.json": "./package.json"
   },
