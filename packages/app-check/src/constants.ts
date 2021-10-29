@@ -42,4 +42,4 @@ export const TOKEN_REFRESH_TIME = {
 /**
  * One day in millis, for certain error code backoffs.
  */
- export const ONE_DAY = 24 * 60 * 60 * 1000;
+export const ONE_DAY = 24 * 60 * 60 * 1000;

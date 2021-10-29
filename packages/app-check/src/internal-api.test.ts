@@ -409,7 +409,7 @@ describe('internal api', () => {
       expect(token.error?.message).to.include('00m');
       expect(warnStub.args[0][0]).to.include('503');
     });
-    
+
     it('throttles 1d on 403', async () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
