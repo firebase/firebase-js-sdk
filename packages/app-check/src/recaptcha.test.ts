@@ -26,7 +26,12 @@ import {
   findgreCAPTCHAScriptsOnPage,
   FAKE_SITE_KEY
 } from '../test/util';
-import { initializeV3, initializeEnterprise, getToken, GreCAPTCHATopLevel } from './recaptcha';
+import {
+  initializeV3,
+  initializeEnterprise,
+  getToken,
+  GreCAPTCHATopLevel
+} from './recaptcha';
 import * as utils from './util';
 import { getState } from './state';
 import { Deferred } from '@firebase/util';

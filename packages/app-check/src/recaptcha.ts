@@ -86,7 +86,8 @@ function queueWidgetRender(
   siteKey: string,
   grecaptcha: GreCAPTCHA,
   container: string,
-  initialized: Deferred<GreCAPTCHA>): void {
+  initialized: Deferred<GreCAPTCHA>
+): void {
   grecaptcha.ready(() => {
     // Invisible widgets allow us to set a different siteKey for each widget,
     // so we use them to support multiple apps
@@ -98,16 +99,14 @@ function queueWidgetRender(
 /**
  * Add invisible div to page.
  */
-function makeDiv(
-  app: FirebaseApp): string {
+function makeDiv(app: FirebaseApp): string {
+  const divId = `fire_app_check_${app.name}`;
+  const invisibleDiv = document.createElement('div');
+  invisibleDiv.id = divId;
+  invisibleDiv.style.display = 'none';
 
-    const divId = `fire_app_check_${app.name}`;
-    const invisibleDiv = document.createElement('div');
-    invisibleDiv.id = divId;
-    invisibleDiv.style.display = 'none';
-  
-    document.body.appendChild(invisibleDiv);
-    return divId;
+  document.body.appendChild(invisibleDiv);
+  return divId;
 }
 
 export async function getToken(app: FirebaseApp): Promise<string> {
@@ -158,18 +157,14 @@ function renderInvisibleWidget(
   });
 }
 
-function loadReCAPTCHAV3Script(
-  onload: () => void
-): void {
+function loadReCAPTCHAV3Script(onload: () => void): void {
   const script = document.createElement('script');
   script.src = RECAPTCHA_URL;
   script.onload = onload;
   document.head.appendChild(script);
 }
 
-function loadReCAPTCHAEnterpriseScript(
-  onload: () => void
-): void {
+function loadReCAPTCHAEnterpriseScript(onload: () => void): void {
   const script = document.createElement('script');
   script.src = RECAPTCHA_ENTERPRISE_URL;
   script.onload = onload;

@@ -18,7 +18,11 @@
 import { FirebaseApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { issuedAtTime } from '@firebase/util';
-import { exchangeToken, getExchangeRecaptchaEnterpriseTokenRequest, getExchangeRecaptchaV3TokenRequest } from './client';
+import {
+  exchangeToken,
+  getExchangeRecaptchaEnterpriseTokenRequest,
+  getExchangeRecaptchaV3TokenRequest
+} from './client';
 import { AppCheckError, ERROR_FACTORY } from './errors';
 import { CustomProviderOptions } from './public-types';
 import {
@@ -50,10 +54,12 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
   async getToken(): Promise<AppCheckTokenInternal> {
     // Top-level `getToken()` has already checked that App Check is initialized
     // and therefore this._app and this._platformLoggerProvider are available.
-    const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(_e => {
-      // reCaptcha.execute() throws null which is not very descriptive.
-      throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
-    });
+    const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
+      _e => {
+        // reCaptcha.execute() throws null which is not very descriptive.
+        throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
+      }
+    );
     return exchangeToken(
       getExchangeRecaptchaV3TokenRequest(this._app!, attestedClaimsToken),
       this._platformLoggerProvider!
@@ -105,12 +111,17 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
   async getToken(): Promise<AppCheckTokenInternal> {
     // Top-level `getToken()` has already checked that App Check is initialized
     // and therefore this._app and this._platformLoggerProvider are available.
-    const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(_e => {
-      // reCaptcha.execute() throws null which is not very descriptive.
-      throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
-    });
+    const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
+      _e => {
+        // reCaptcha.execute() throws null which is not very descriptive.
+        throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
+      }
+    );
     return exchangeToken(
-      getExchangeRecaptchaEnterpriseTokenRequest(this._app!, attestedClaimsToken),
+      getExchangeRecaptchaEnterpriseTokenRequest(
+        this._app!,
+        attestedClaimsToken
+      ),
       this._platformLoggerProvider!
     );
   }

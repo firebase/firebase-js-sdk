@@ -41,7 +41,11 @@ import * as internalApi from './internal-api';
 import * as indexeddb from './indexeddb';
 import * as debug from './debug';
 import { deleteApp, FirebaseApp } from '@firebase/app';
-import { CustomProvider, ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
+import {
+  CustomProvider,
+  ReCaptchaEnterpriseProvider,
+  ReCaptchaV3Provider
+} from './providers';
 import { AppCheckService } from './factory';
 import { AppCheckToken } from './public-types';
 import { getDebugToken } from './debug';

@@ -132,9 +132,9 @@ describe('internal api', () => {
 
       expect(reCAPTCHASpy).to.be.called;
 
-      expect(exchangeTokenStub.args[0][0].body['recaptcha_enterprise_token']).to.equal(
-        fakeRecaptchaToken
-      );
+      expect(
+        exchangeTokenStub.args[0][0].body['recaptcha_enterprise_token']
+      ).to.equal(fakeRecaptchaToken);
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
 

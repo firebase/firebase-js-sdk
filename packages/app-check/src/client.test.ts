@@ -20,7 +20,11 @@ import { expect } from 'chai';
 import { stub, SinonStub, useFakeTimers } from 'sinon';
 import { FirebaseApp } from '@firebase/app';
 import { getFakeApp, getFakePlatformLoggingProvider } from '../test/util';
-import { getExchangeRecaptchaV3TokenRequest, exchangeToken, getExchangeRecaptchaEnterpriseTokenRequest } from './client';
+import {
+  getExchangeRecaptchaV3TokenRequest,
+  exchangeToken,
+  getExchangeRecaptchaEnterpriseTokenRequest
+} from './client';
 import { FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { BASE_ENDPOINT } from './constants';
