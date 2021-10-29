@@ -319,6 +319,22 @@ describe('core/auth/initializeAuth', () => {
       });
     });
 
+    it('initialization sets the callback UID correctly', async () => {
+      const stub = sinon.stub(
+        _getInstance<PersistenceInternal>(inMemoryPersistence)
+      );
+      stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
+      let authStateChangeCalls = 0;
+
+      const auth = await initAndWait(inMemoryPersistence) as AuthInternal;
+      auth.onAuthStateChanged(() => {
+        authStateChangeCalls++;
+      });
+
+      await auth._updateCurrentUser(testUser(auth, 'uid'));
+      expect(authStateChangeCalls).to.eq(1);
+    });
+
     context('#tryRedirectSignIn', () => {
       it('returns null and clears the redirect user in case of error', async () => {
         const stub = sinon.stub(
