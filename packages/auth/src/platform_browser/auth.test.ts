@@ -332,6 +332,9 @@ describe('core/auth/initializeAuth', () => {
       });
 
       await auth._updateCurrentUser(testUser(auth, 'uid'));
+      await new Promise(resolve => {
+        setTimeout(resolve, 200);
+      });
       expect(authStateChangeCalls).to.eq(1);
     });
 
