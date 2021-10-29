@@ -139,6 +139,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
+      this.lastNotifiedUid = this.currentUser?.uid || null;
 
       if (this._deleted) {
         return;
