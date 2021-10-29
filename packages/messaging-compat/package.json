@@ -10,9 +10,8 @@
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
-      "browser": "./dist/esm/index.esm2017.js",
-      "module": "./dist/esm/index.esm2017.js",
-      "default": "./dist/index.cjs.js"
+      "require": "./dist/index.cjs.js",
+      "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },

@@ -8,8 +8,8 @@
   "esm5": "dist/index.esm.js",
   "exports": {
     ".": {
-      "module": "./dist/index.esm2017.js",
-      "default": "./dist/index.js"
+      "require": "./dist/index.js",
+      "default": "./dist/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },

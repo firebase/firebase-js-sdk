@@ -17,8 +17,6 @@
         "require": "./dist/node/index.js"
       },
       "react-native": "./dist/rn/index.js",
-      "browser": "./dist/esm2017/index.js",
-      "module": "./dist/esm2017/index.js",
       "cordova": "./dist/cordova/index.esm5.js",
       "webworker": "./dist/index.webworker.esm5.js",
       "default": "./dist/esm2017/index.js"
@@ -29,8 +27,6 @@
         "require": "./dist/node/internal.js"
       },
       "react-native": "./dist/rn/internal.js",
-      "module": "./dist/esm2017/internal.js",
-      "browser": "./dist/esm2017/internal.js",
       "cordova": "./dist/cordova/internal.js",
       "default": "./dist/esm2017/internal.js"
     },

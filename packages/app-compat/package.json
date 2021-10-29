@@ -11,9 +11,8 @@
   "lite-esm5": "dist/index.lite.esm5.js",
   "exports": {
     ".": {
-      "browser": "./dist/esm/index.esm2017.js",
-      "module": "./dist/esm/index.esm2017.js",
-      "default": "./dist/index.cjs.js"
+      "require": "./dist/index.cjs.js",
+      "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },

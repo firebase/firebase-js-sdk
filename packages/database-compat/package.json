@@ -19,8 +19,6 @@
         "import": "./dist/node-esm/index.js",
         "require": "./dist/index.js"
       },
-      "browser": "./dist/index.esm2017.js",
-      "module": "./dist/index.esm2017.js",
       "default": "./dist/index.esm2017.js"
     },
     "./standalone": {
