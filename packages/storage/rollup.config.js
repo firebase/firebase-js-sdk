@@ -145,7 +145,7 @@ const nodeBuilds = [
   {
     input: './src/index.ts',
     output: {
-      file: pkg.exports.node.import,
+      file: pkg.exports['.'].node.import,
       format: 'esm',
       sourcemap: true
     },

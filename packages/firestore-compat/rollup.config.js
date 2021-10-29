@@ -85,7 +85,7 @@ const nodeBuilds = [
   {
     input: './src/index.node.ts',
     output: {
-      file: pkg.exports.node.import,
+      file: pkg.exports['.'].node.import,
       format: 'es',
       sourcemap: true
     },

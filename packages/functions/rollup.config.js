@@ -83,7 +83,7 @@ const nodeBuilds = [
   },
   {
     input: 'src/index.node.ts',
-    output: [{ file: pkg.exports.node.import, format: 'es', sourcemap: true }],
+    output: [{ file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
       ...es2017BuildPlugins,
