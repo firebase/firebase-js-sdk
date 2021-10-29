@@ -1,0 +1,70 @@
+[
+  {
+    "name": "Read data once",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "firestore/lite",
+            "imports": [
+              "getFirestore",
+              "collection",
+              "getDocs",
+              "doc",
+              "setDoc",
+              "getDoc"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Query",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "firestore/lite",
+            "imports": [
+              "getFirestore",
+              "collection",
+              "query",
+              "where",
+              "orderBy",
+              "getDocs"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

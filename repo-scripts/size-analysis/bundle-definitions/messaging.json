@@ -1,0 +1,33 @@
+[
+  {
+    "name": "send + receive",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "messaging",
+            "imports": [
+              "getMessaging",
+              "getToken",
+              "onMessage"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

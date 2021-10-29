@@ -89,4 +89,4 @@ yargs
     argv => runBundleAnalysis(argv as any)
   )
   .help()
-  .parseSync();
+  .parse();

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "logEvent",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "analytics",
+            "imports": [
+              "getAnalytics",
+              "logEvent"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

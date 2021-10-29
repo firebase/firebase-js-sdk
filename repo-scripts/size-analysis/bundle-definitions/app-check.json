@@ -1,0 +1,92 @@
+[
+  {
+    "name": "ReCaptchaV3Provider",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app-check",
+            "imports": [
+              "initializeAppCheck",
+              "ReCaptchaV3Provider"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ReCaptchaEnterpriseProvider",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app-check",
+            "imports": [
+              "initializeAppCheck",
+              "ReCaptchaEnterpriseProvider"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "CustomProvider",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app-check",
+            "imports": [
+              "initializeAppCheck",
+              "CustomProvider"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

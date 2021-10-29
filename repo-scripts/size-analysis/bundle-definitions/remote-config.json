@@ -1,0 +1,33 @@
+[
+  {
+    "name": "getAndFetch",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "remote-config",
+            "imports": [
+              "getRemoteConfig",
+              "getValue",
+              "fetchAndActivate"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,256 @@
+[
+  {
+    "name": "Read data once",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "database",
+            "imports": [
+              "getDatabase",
+              "ref",
+              "child",
+              "get"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Write data",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "database",
+            "imports": [
+              "getDatabase",
+              "ref",
+              "set"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Save data as transactions",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "database",
+            "imports": [
+              "getDatabase",
+              "ref",
+              "runTransaction"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Append to a list of data",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "database",
+            "imports": [
+              "getDatabase",
+              "ref",
+              "push",
+              "set"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Listen for child events",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "database",
+            "imports": [
+              "getDatabase",
+              "ref",
+              "onChildAdded",
+              "onChildChanged",
+              "onChildRemoved"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Listen for value events",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "database",
+            "imports": [
+              "getDatabase",
+              "ref",
+              "onValue"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Sort data",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "database",
+            "imports": [
+              "getDatabase",
+              "ref",
+              "query",
+              "orderByChild"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Filtering data",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "database",
+            "imports": [
+              "getDatabase",
+              "ref",
+              "query",
+              "limitToLast"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

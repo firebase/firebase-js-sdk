@@ -1,0 +1,220 @@
+[
+  {
+    "name": "uploadBytes",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "storage",
+            "imports": [
+              "getStorage",
+              "ref",
+              "uploadBytes"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "uploadString",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "storage",
+            "imports": [
+              "getStorage",
+              "ref",
+              "uploadString"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "uploadBytesResumable",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "storage",
+            "imports": [
+              "getStorage",
+              "ref",
+              "uploadBytesResumable"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "getDownloadURL",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "storage",
+            "imports": [
+              "getStorage",
+              "ref",
+              "getDownloadURL"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "list + listAll",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "storage",
+            "imports": [
+              "getStorage",
+              "ref",
+              "list",
+              "listAll"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "getMetadata",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "storage",
+            "imports": [
+              "getStorage",
+              "ref",
+              "getMetadata"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "updateMetadata",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "storage",
+            "imports": [
+              "getStorage",
+              "ref",
+              "updateMetadata"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

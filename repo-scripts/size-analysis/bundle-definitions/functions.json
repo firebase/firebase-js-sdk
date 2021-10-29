@@ -1,0 +1,32 @@
+[
+  {
+    "name": "call",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "functions",
+            "imports": [
+              "getFunctions",
+              "httpsCallable"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

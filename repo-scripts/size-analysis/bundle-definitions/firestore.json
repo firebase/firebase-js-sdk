@@ -1,0 +1,102 @@
+[
+  {
+    "name": "Read data once",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore",
+              "doc",
+              "getDoc",
+              "setDoc",
+              "collection",
+              "getDocs"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Realtime updates",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore",
+              "doc",
+              "onSnapshot"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Query",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "exp",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore",
+              "onSnapshot",
+              "collection",
+              "query",
+              "where",
+              "orderBy",
+              "getDocs"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
