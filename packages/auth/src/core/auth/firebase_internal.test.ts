@@ -18,7 +18,7 @@
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { AuthInternal } from '../../model/auth';

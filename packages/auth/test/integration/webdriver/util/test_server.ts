@@ -16,7 +16,7 @@
  */
 
 import * as path from 'path';
-import * as express from 'express';
+import express from 'express';
 import { Server } from 'http';
 
 const PORT_NUMBER = '4100';

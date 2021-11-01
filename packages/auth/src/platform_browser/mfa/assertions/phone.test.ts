@@ -17,7 +17,7 @@
 
 import { ProviderId } from '../../../model/enums';
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 
 import { mockEndpoint } from '../../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../../test/helpers/mock_auth';

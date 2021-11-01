@@ -19,7 +19,7 @@ import { AppCheckService } from './service';
 import firebase, { FirebaseApp } from '@firebase/app-compat';
 import * as appCheckExp from '@firebase/app-check';
 import { stub, match, SinonStub } from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 import {
   AppCheck,
   CustomProvider,

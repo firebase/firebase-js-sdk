@@ -22,7 +22,7 @@ import {
 } from '../../model/public_types';
 import { OperationType, ProviderId } from '../../model/enums';
 import * as sinon from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 import { _clearInstanceMap, _getInstance } from '../util/instantiator';
 import {
   MockPersistenceLayer,

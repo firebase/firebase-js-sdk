@@ -17,7 +17,7 @@
 
 import { isSafari } from '@firebase/util';
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
 import { fail } from '../../../src/util/assert';

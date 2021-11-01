@@ -16,8 +16,8 @@
  */
 
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
-import * as sinonChai from 'sinon-chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 
 import { ActionCodeOperation } from '../../model/public_types';
 import { OperationType } from '../../model/enums';

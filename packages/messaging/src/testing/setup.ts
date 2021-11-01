@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import * as chaiAsPromised from 'chai-as-promised';
-import * as sinonChai from 'sinon-chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 
 import { dbDelete } from '../internals/idb-manager';
 import { deleteDb } from 'idb';
