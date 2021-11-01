@@ -48,7 +48,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.5"
+    "@firebase/app-compat": "0.1.6"
   },
   "repository": {
     "directory": "packages/database-compat",

@@ -1,5 +1,25 @@
 # firebase
 
+## 9.2.0
+
+### Minor Changes
+
+- [`4d3640481`](https://github.com/firebase/firebase-js-sdk/commit/4d36404812a7ca24ced5e1aabf6d8aa03de4e08a) [#5532](https://github.com/firebase/firebase-js-sdk/pull/5532) (fixes [#5499](https://github.com/firebase/firebase-js-sdk/issues/5499)) - Fix exports field to also point to Node ESM builds. This change requires Node.js version 10+.
+
+* [`b6f30c24f`](https://github.com/firebase/firebase-js-sdk/commit/b6f30c24fdf096ac4e8bdba32b9c1380903a7507) [#5617](https://github.com/firebase/firebase-js-sdk/pull/5617) (fixes [#5610](https://github.com/firebase/firebase-js-sdk/issues/5610)) - Fix behavior on subsequent calls to `getRedirectResult()`
+
+### Patch Changes
+
+- [`f0f6d74b5`](https://github.com/firebase/firebase-js-sdk/commit/f0f6d74b58312f7e577743e58abb030ffe38c295) [#5664](https://github.com/firebase/firebase-js-sdk/pull/5664) (fixes [#5644](https://github.com/firebase/firebase-js-sdk/issues/5644)) - Fix compatability layer errors that were being thrown in Safari
+
+- Updated dependencies [[`4d3640481`](https://github.com/firebase/firebase-js-sdk/commit/4d36404812a7ca24ced5e1aabf6d8aa03de4e08a), [`b6f30c24f`](https://github.com/firebase/firebase-js-sdk/commit/b6f30c24fdf096ac4e8bdba32b9c1380903a7507), [`69ff8eb54`](https://github.com/firebase/firebase-js-sdk/commit/69ff8eb549e49de51cae11a04bce023bb6e1fc02), [`2429ac105`](https://github.com/firebase/firebase-js-sdk/commit/2429ac105b0aeb15eb8c362665448c209887bada), [`4594d3fd6`](https://github.com/firebase/firebase-js-sdk/commit/4594d3fd6c7f7680b877aa2017ba35084ef6af96), [`6dacc2400`](https://github.com/firebase/firebase-js-sdk/commit/6dacc2400fdcf4432ed1977ca1eb148da6db3fc5), [`f48527617`](https://github.com/firebase/firebase-js-sdk/commit/f485276173ac0f6fb212328d00334892f4b33a9a), [`c75bbe957`](https://github.com/firebase/firebase-js-sdk/commit/c75bbe9574133ce6d1487a601c7acb4204e417aa)]:
+  - @firebase/firestore@3.2.0
+  - @firebase/app@0.7.5
+  - @firebase/auth-compat@0.2.0
+  - @firebase/auth@0.19.0
+  - @firebase/firestore-compat@0.1.5
+  - @firebase/app-compat@0.1.6
+
 ## 9.1.3
 
 ### Patch Changes
