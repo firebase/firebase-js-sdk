@@ -99,8 +99,8 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
   private _app?: FirebaseApp;
   private _platformLoggerProvider?: Provider<'platform-logger'>;
   /**
-   * Create a ReCaptchaV3Provider instance.
-   * @param siteKey - ReCAPTCHA V3 siteKey.
+   * Create a ReCaptchaEnterpriseProvider instance.
+   * @param siteKey - reCAPTCHA Enterprise score-based site key.
    */
   constructor(private _siteKey: string) {}
 
