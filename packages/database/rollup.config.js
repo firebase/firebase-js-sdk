@@ -113,7 +113,11 @@ const nodeBuilds = [
   },
   {
     input: 'src/index.node.ts',
-    output: { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true },
+    output: {
+      file: pkg.exports['.'].node.import,
+      format: 'es',
+      sourcemap: true
+    },
     plugins: [
       ...es2017BuildPlugins,
       replace(generateBuildTargetReplaceConfig('esm', 2017)),
