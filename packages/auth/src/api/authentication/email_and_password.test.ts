@@ -16,7 +16,7 @@
  */
 
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 
 import { ActionCodeOperation } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';

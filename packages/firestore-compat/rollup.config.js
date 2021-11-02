@@ -19,6 +19,7 @@ import pkg from './package.json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
 const util = require('../firestore/rollup.shared');
 
@@ -37,7 +38,7 @@ const es2017Plugins = [
   json({ preferConst: true })
 ];
 
-const es5Plugings = [
+const es5Plugins = [
   typescriptPlugin({
     typescript,
     transformers: [util.removeAssertTransformer]
@@ -65,7 +66,7 @@ const browserBuilds = [
         sourcemap: true
       }
     ],
-    plugins: es5Plugings,
+    plugins: es5Plugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -79,6 +80,16 @@ const nodeBuilds = [
       sourcemap: true
     },
     plugins: es2017Plugins,
+    external: deps
+  },
+  {
+    input: './src/index.node.ts',
+    output: {
+      file: pkg.exports['.'].node.import,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [...es2017Plugins, emitModulePackageFile()],
     external: deps
   }
 ];

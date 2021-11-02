@@ -15,12 +15,16 @@
   ],
   "exports": {
     ".": {
-      "node": "./dist/index.js",
+      "node": {
+        "import": "./dist/node-esm/index.js",
+        "require": "./dist/index.js"
+      },
       "default": "./dist/index.esm2017.js"
     },
     "./standalone": {
       "node": "./dist/index.standalone.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",

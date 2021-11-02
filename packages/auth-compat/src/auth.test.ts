@@ -20,7 +20,7 @@ import * as exp from '@firebase/auth/internal';
 import { Provider } from '@firebase/component';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 import { Auth } from './auth';
 import { CompatPopupRedirectResolver } from './popup_redirect';
 

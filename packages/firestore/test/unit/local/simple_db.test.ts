@@ -16,7 +16,7 @@
  */
 
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 import { Context } from 'mocha';
 
 import { PersistencePromise } from '../../../src/local/persistence_promise';

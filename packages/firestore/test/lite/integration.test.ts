@@ -18,7 +18,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp } from '@firebase/app';
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 
 import { Bytes } from '../../src/lite-api/bytes';
 import {

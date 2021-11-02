@@ -6,9 +6,32 @@
   "main": "dist/node/index.js",
   "react-native": "dist/rn/index.js",
   "browser": "dist/esm2017/index.js",
-  "cordova": "dist/cordova/index.esm5.js",
   "module": "dist/esm2017/index.js",
+  "cordova": "dist/cordova/index.esm5.js",
   "webworker": "dist/index.webworker.esm5.js",
+  "esm5": "dist/esm5/index.js",
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/node-esm/index.js",
+        "require": "./dist/node/index.js"
+      },
+      "react-native": "./dist/rn/index.js",
+      "cordova": "./dist/cordova/index.esm5.js",
+      "webworker": "./dist/index.webworker.esm5.js",
+      "default": "./dist/esm2017/index.js"
+    },
+    "./internal": {
+      "node": {
+        "import": "./dist/node-esm/internal.js",
+        "require": "./dist/node/internal.js"
+      },
+      "react-native": "./dist/rn/internal.js",
+      "cordova": "./dist/cordova/internal.js",
+      "default": "./dist/esm2017/internal.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "cordova/package.json",
@@ -81,6 +104,5 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
-  },
-  "esm5": "dist/esm5/index.js"
+  }
 }

@@ -16,10 +16,10 @@
  */
 
 import { assert, expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import { useFakeTimers } from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 
 import { FirebaseError, getUA } from '@firebase/util';
 

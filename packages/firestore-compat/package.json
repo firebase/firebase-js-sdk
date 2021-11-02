@@ -8,6 +8,17 @@
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
   "esm5": "dist/index.esm5.js",
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/node-esm/index.node.esm.js",
+        "require": "./dist/index.node.cjs.js"
+      },
+      "react-native": "./dist/index.rn.js",
+      "default": "./dist/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],

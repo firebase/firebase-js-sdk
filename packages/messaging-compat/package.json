@@ -5,10 +5,17 @@
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
+  "browser": "dist/esm/index.esm2017.js",
+  "module": "dist/esm/index.esm2017.js",
+  "esm5": "dist/esm/index.esm.js",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "default": "./dist/esm/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
   "typings": "dist/src/index.d.ts",
-  "sw": "dist/index.sw.esm2017.js",
   "files": [
     "dist"
   ],
@@ -49,6 +56,5 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
-  },
-  "esm5": "dist/index.esm.js"
+  }
 }

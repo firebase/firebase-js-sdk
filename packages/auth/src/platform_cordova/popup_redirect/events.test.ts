@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 import * as sinon from 'sinon';
 import { FirebaseError, querystring } from '@firebase/util';
 import { expect, use } from 'chai';

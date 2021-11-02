@@ -24,7 +24,7 @@ import {
 } from '@firebase/auth';
 import { expect, use } from 'chai';
 import { IdPPage } from './util/idp_page';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 import { browserDescribe } from './util/test_runner';
 import {
   AnonFunction,

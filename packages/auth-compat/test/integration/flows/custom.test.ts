@@ -21,7 +21,7 @@ import firebase from '@firebase/app-compat';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import '@firebase/auth-compat';
 
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 import {
   cleanUpTestInstance,
   initializeTestInstance,

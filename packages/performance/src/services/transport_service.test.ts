@@ -17,7 +17,7 @@
 
 import { stub, useFakeTimers, SinonStub, SinonFakeTimers, match } from 'sinon';
 import { use, expect } from 'chai';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 import {
   transportHandler,
   setupTransportService,

@@ -20,7 +20,7 @@ import { FunctionsService } from './service';
 import firebase, { FirebaseApp } from '@firebase/app-compat';
 import * as functionsExp from '@firebase/functions';
 import { stub, match, SinonStub } from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 
 use(sinonChai);
 

@@ -19,29 +19,11 @@ import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
 const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 
-/**
- * ES5 Builds
- */
 const es5BuildPlugins = [typescriptPlugin({ typescript }), json()];
-
-const es5Builds = [
-  {
-    input: 'src/index.ts',
-    output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.esm5, format: 'es', sourcemap: true }
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: es5BuildPlugins
-  }
-];
-
-/**
- * ES2017 Builds
- */
 const es2017BuildPlugins = [
   typescriptPlugin({
     typescript,
@@ -54,7 +36,13 @@ const es2017BuildPlugins = [
   json({ preferConst: true })
 ];
 
-const es2017Builds = [
+const esmBuilds = [
+  {
+    input: 'src/index.ts',
+    output: { file: pkg.esm5, format: 'es', sourcemap: true },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    plugins: [...es5BuildPlugins, emitModulePackageFile()]
+  },
   {
     input: 'src/index.ts',
     output: {
@@ -63,8 +51,17 @@ const es2017Builds = [
       sourcemap: true
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: es2017BuildPlugins
+    plugins: [...es2017BuildPlugins, emitModulePackageFile()]
   }
 ];
 
-export default [...es5Builds, ...es2017Builds];
+const cjsBuilds = [
+  {
+    input: 'src/index.ts',
+    output: { file: pkg.main, format: 'cjs', sourcemap: true },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    plugins: es5BuildPlugins
+  }
+];
+
+export default [...esmBuilds, ...cjsBuilds];

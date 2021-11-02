@@ -16,7 +16,7 @@
  */
 
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 
 import { ProviderId, SignInMethod } from '../../model/enums';
 // eslint-disable-next-line import/no-extraneous-dependencies

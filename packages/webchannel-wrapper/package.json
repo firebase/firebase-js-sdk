@@ -6,6 +6,13 @@
   "main": "dist/index.js",
   "module": "dist/index.esm2017.js",
   "esm5": "dist/index.esm.js",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "default": "./dist/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],

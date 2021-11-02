@@ -79,7 +79,7 @@ const browserDeps = [
   '@firebase/app'
 ];
 
-const nodeDeps = [...browserDeps, 'util', 'path'];
+const nodeDeps = [...browserDeps, 'util', 'path', 'url'];
 
 /** Resolves the external dependencies for the browser build. */
 exports.resolveBrowserExterns = function (id) {

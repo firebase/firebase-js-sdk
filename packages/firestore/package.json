@@ -53,6 +53,7 @@
         "require": "./dist/index.node.cjs.js",
         "import": "./dist/index.node.mjs"
       },
+      "react-native": "./dist/index.rn.js",
       "default": "./dist/index.esm2017.js"
     },
     "./lite": {
@@ -60,8 +61,10 @@
         "require": "./dist/lite/index.node.cjs.js",
         "import": "./dist/lite/index.node.mjs"
       },
+      "react-native": "./dist/lite/index.rn.esm2017.js",
       "default": "./dist/lite/index.browser.esm2017.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "main": "dist/index.node.cjs.js",
   "main-esm": "dist/index.node.mjs",
