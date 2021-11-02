@@ -38,6 +38,7 @@ import {
   getTestInstance,
   randomEmail
 } from '../../helpers/integration/helpers';
+import { createNewTenant } from '../../helpers/integration/emulator_rest_helpers';
 
 use(chaiAsPromised);
 
@@ -68,6 +69,32 @@ describe('Integration test: email/password auth', () => {
     expect(user.providerData.length).to.eq(1);
     expect(user.providerData[0].providerId).to.eq('password');
     expect(user.providerData[0].email).to.eq(email);
+
+    const additionalUserInfo = getAdditionalUserInfo(userCred)!;
+    expect(additionalUserInfo.isNewUser).to.be.true;
+    expect(additionalUserInfo.providerId).to.eq('password');
+  });
+
+  it('allows user to sign up in tenant project', async () => {
+    const tenantId = await createNewTenant();
+    auth.tenantId = tenantId;
+    const userCred = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      'password'
+    );
+    expect(auth.currentUser).to.eq(userCred.user);
+    expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+
+    const user = userCred.user;
+    expect(user.isAnonymous).to.be.false;
+    expect(user.uid).to.be.a('string');
+    expect(user.email).to.eq(email);
+    expect(user.emailVerified).to.be.false;
+    expect(user.providerData.length).to.eq(1);
+    expect(user.providerData[0].providerId).to.eq('password');
+    expect(user.providerData[0].email).to.eq(email);
+    expect(user.tenantId).to.eq(tenantId);
 
     const additionalUserInfo = getAdditionalUserInfo(userCred)!;
     expect(additionalUserInfo.isNewUser).to.be.true;

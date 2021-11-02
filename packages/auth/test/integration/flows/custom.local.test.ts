@@ -34,6 +34,7 @@ import {
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import { createNewTenant } from '../../helpers/integration/emulator_rest_helpers';
 import {
   cleanUpTestInstance,
   getTestInstance,
@@ -70,6 +71,26 @@ describe('Integration test: custom auth', () => {
     const { user } = cred;
     expect(user.isAnonymous).to.be.false;
     expect(user.uid).to.eq(uid);
+    expect((await user.getIdTokenResult(false)).claims.customClaim).to.eq(
+      'some-claim'
+    );
+    expect(user.providerId).to.eq('firebase');
+    const additionalUserInfo = await getAdditionalUserInfo(cred)!;
+    expect(additionalUserInfo.providerId).to.be.null;
+    expect(additionalUserInfo.isNewUser).to.be.true;
+  });
+
+  it('signs in with custom token in tenant project', async () => {
+    const tenantId = await createNewTenant();
+    auth.tenantId = tenantId;
+    const cred = await signInWithCustomToken(auth, customToken);
+    expect(auth.currentUser).to.eq(cred.user);
+    expect(cred.operationType).to.eq(OperationType.SIGN_IN);
+
+    const { user } = cred;
+    expect(user.isAnonymous).to.be.false;
+    expect(user.uid).to.eq(uid);
+    expect(user.tenantId).to.eq(tenantId);
     expect((await user.getIdTokenResult(false)).claims.customClaim).to.eq(
       'some-claim'
     );

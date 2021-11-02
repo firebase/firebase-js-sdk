@@ -55,6 +55,8 @@ describe('Integration test: anonymous auth', () => {
     expect(user.uid).to.be.a('string');
   });
 
+  // Multi-tenancy for anon auth covered by multi_tenant.local.test.ts
+
   it('second sign in on the same device yields same user', async () => {
     const { user: userA } = await signInAnonymously(auth);
     const { user: userB } = await signInAnonymously(auth);

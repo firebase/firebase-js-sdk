@@ -16,7 +16,7 @@
  */
 
 import * as fetchImpl from 'node-fetch';
-import { getAppConfig, getEmulatorUrl } from './settings';
+import { API_KEY, getAppConfig, getEmulatorUrl } from './settings';
 
 export interface VerificationSession {
   code: string;
@@ -51,8 +51,8 @@ export async function getPhoneVerificationCodes(): Promise<
   }, {} as Record<string, VerificationSession>);
 }
 
-export async function getOobCodes(): Promise<OobCodeSession[]> {
-  const url = buildEmulatorUrlForPath('oobCodes');
+export async function getOobCodes(tenantId?: string): Promise<OobCodeSession[]> {
+  const url = buildEmulatorUrlForPath('oobCodes', tenantId);
   const response: OobCodesResponse = await (await doFetch(url)).json();
   return response.oobCodes;
 }
@@ -78,10 +78,31 @@ export async function createAnonAccount(): Promise<{
   return response;
 }
 
-function buildEmulatorUrlForPath(endpoint: string): string {
+export async function createNewTenant(): Promise<string> {
+  const projectId = getAppConfig().projectId;
+  const url = `${getEmulatorUrl()}/identitytoolkit.googleapis.com/v2/projects/${projectId}/tenants?key=${API_KEY}`;
+  const request = {
+    name: 'tenant',
+    allowPasswordSignup: true,
+    enableEmailLinkSignin: true,
+    disableAuth: false,
+    enableAnonymousUser: true,
+  };
+  const response = await (
+    await doFetch(url, {
+      method: 'POST',
+      body: JSON.stringify(request),
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer owner'}
+    })
+  ).json();
+  return response.tenantId;
+}
+
+function buildEmulatorUrlForPath(endpoint: string, tenantId?: string): string {
   const emulatorBaseUrl = getEmulatorUrl();
   const projectId = getAppConfig().projectId;
-  return `${emulatorBaseUrl}/emulator/v1/projects/${projectId}/${endpoint}`;
+  const tenantScope = tenantId ? `/tenants/${tenantId}` : '';
+  return `${emulatorBaseUrl}/emulator/v1/projects/${projectId}${tenantScope}/${endpoint}`;
 }
 
 function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {

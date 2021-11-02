@@ -34,6 +34,10 @@ export function legacyAuthInit() {
   });
 }
 
+export async function setTenantId(tid) {
+  compat.auth().tenantId = tid;
+}
+
 export async function userSnap() {
   return compat.auth().currentUser;
 }

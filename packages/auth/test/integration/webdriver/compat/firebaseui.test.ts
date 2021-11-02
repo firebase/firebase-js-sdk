@@ -22,7 +22,7 @@ import { expect } from 'chai';
 import { browserDescribe } from '../util/test_runner';
 import { UiPage } from '../util/ui_page';
 import { IdPPage } from '../util/idp_page';
-import { getPhoneVerificationCodes } from '../../../helpers/integration/emulator_rest_helpers';
+import { createNewTenant, getPhoneVerificationCodes } from '../../../helpers/integration/emulator_rest_helpers';
 
 // These tests only run using the compat layer. Due to npm dependency issues,
 // this code needs to stay with the modular tests
@@ -49,6 +49,16 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     const snap = (await driver.getUserSnapshot()) as User;
     expect(snap.isAnonymous).to.be.true;
     expect(snap.uid).to.be.a('string');
+  });
+
+  it('can handle multi-tenancy', async () => {
+    const tenantId = await createNewTenant();
+    await driver.call(CoreFunction.SET_TENANT_ID, tenantId);
+    const page = await startUi();
+    await page.clickGuestSignIn();
+    await waitForLoggedInPage();
+    const snap = (await driver.getUserSnapshot()) as User;
+    expect(snap.tenantId).to.eq(tenantId);
   });
 
   it('allows google redirect sign in', async () => {
@@ -103,6 +113,36 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     expect(snap.email).to.eq('bob@bob.test');
     expect(snap.photoURL).to.eq('http://bob.test/bob.png');
     expect(snap.uid).to.be.a('string');
+    expect(snap.providerData[0]!.providerId).to.eq('google.com');
+  });
+
+  it('allows google popup sign in with multi-tenancy', async () => {
+    const tenantId = await createNewTenant();
+    await driver.call(CoreFunction.SET_TENANT_ID, tenantId);
+    const page = await startUi('popup');
+    await page.clickGoogleSignIn();
+    const widget = new IdPPage(driver.webDriver);
+    await driver.selectPopupWindow();
+
+    // We're now on the widget page; wait for load
+    await widget.pageLoad();
+    await widget.clickAddAccount();
+    await widget.fillEmail('bob@bob.test');
+    await widget.fillDisplayName('Bob Test');
+    await widget.fillScreenName('bob.test');
+    await widget.fillProfilePhoto('http://bob.test/bob.png');
+    await widget.clickSignIn();
+
+    // Now we're back. Firebase UI should handle the redirect result handoff
+    await driver.selectMainWindow();
+    await waitForLoggedInPage();
+    const snap = (await driver.getUserSnapshot()) as User;
+    expect(snap.isAnonymous).to.be.false;
+    expect(snap.displayName).to.eq('Bob Test');
+    expect(snap.email).to.eq('bob@bob.test');
+    expect(snap.photoURL).to.eq('http://bob.test/bob.png');
+    expect(snap.uid).to.be.a('string');
+    expect(snap.tenantId).to.eq(tenantId);
     expect(snap.providerData[0]!.providerId).to.eq('google.com');
   });
 

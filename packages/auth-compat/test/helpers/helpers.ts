@@ -25,6 +25,7 @@ import {
   getEmulatorUrl
 } from '../../../auth/test/helpers/integration/settings';
 import { resetEmulator } from '../../../auth/test/helpers/integration/emulator_rest_helpers';
+export { createNewTenant } from '../../../auth/test/helpers/integration/emulator_rest_helpers';
 
 export function initializeTestInstance(): void {
   firebase.initializeApp(getAppConfig());
@@ -34,6 +35,7 @@ export function initializeTestInstance(): void {
 }
 
 export async function cleanUpTestInstance(): Promise<void> {
+  await firebase.auth().signOut();
   for (const app of firebase.apps) {
     await app.delete();
   }
