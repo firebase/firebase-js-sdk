@@ -1,5 +1,20 @@
 # @firebase/auth
 
+## 0.19.1
+
+### Patch Changes
+
+- [`31bd6f27f`](https://github.com/firebase/firebase-js-sdk/commit/31bd6f27f965a561f814bad1110a43849a6a9cbf) [#5689](https://github.com/firebase/firebase-js-sdk/pull/5689) - Add SAMLAuthProvider to the compatability layer (it was missing before)
+
+* [`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684) [#5693](https://github.com/firebase/firebase-js-sdk/pull/5693) - Add exports field to all packages
+
+- [`0765b5e19`](https://github.com/firebase/firebase-js-sdk/commit/0765b5e19c3e949bb33233ee52c8e33f01418e54) [#5686](https://github.com/firebase/firebase-js-sdk/pull/5686) (fixes [#5685](https://github.com/firebase/firebase-js-sdk/issues/5685)) - Fix bug that caused onAuthStateChanged to be fired twice
+
+- Updated dependencies [[`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684)]:
+  - @firebase/component@0.5.8
+  - @firebase/logger@0.3.1
+  - @firebase/util@1.4.1
+
 ## 0.19.0
 
 ### Minor Changes

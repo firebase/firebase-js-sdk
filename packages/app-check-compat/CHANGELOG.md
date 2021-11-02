@@ -1,5 +1,21 @@
 # @firebase/app-check-compat
 
+## 0.2.0
+
+### Minor Changes
+
+- [`61604979c`](https://github.com/firebase/firebase-js-sdk/commit/61604979cb35647610ea385a6ba0ca67cb03f5d1) [#5595](https://github.com/firebase/firebase-js-sdk/pull/5595) - Add ReCAPTCHA Enterprise as an attestation option for App Check.
+
+### Patch Changes
+
+- [`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684) [#5693](https://github.com/firebase/firebase-js-sdk/pull/5693) - Add exports field to all packages
+
+- Updated dependencies [[`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684), [`61604979c`](https://github.com/firebase/firebase-js-sdk/commit/61604979cb35647610ea385a6ba0ca67cb03f5d1)]:
+  - @firebase/app-check@0.5.0
+  - @firebase/component@0.5.8
+  - @firebase/logger@0.3.1
+  - @firebase/util@1.4.1
+
 ## 0.1.3
 
 ### Patch Changes

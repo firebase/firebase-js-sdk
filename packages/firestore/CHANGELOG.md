@@ -1,5 +1,15 @@
 # @firebase/firestore
 
+## 3.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684)]:
+  - @firebase/component@0.5.8
+  - @firebase/logger@0.3.1
+  - @firebase/util@1.4.1
+  - @firebase/webchannel-wrapper@0.6.1
+
 ## 3.2.0
 
 ### Minor Changes
