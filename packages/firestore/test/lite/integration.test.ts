@@ -1553,13 +1553,17 @@ describe('withConverter() support', () => {
         });
       });
 
-      it('allows certain types but not others (prevent breaking changes)', () => {
+      it('allows certain types but not others', () => {
         const withTryCatch = async (fn: () => Promise<void>): Promise<void> => {
           try {
             await fn();
           } catch {}
         };
 
+        // These tests exist to establish which object types are allowed to be
+        // passed in by default when `T = DocumentData`. Some objects extend
+        // the Javascript `{}`, which is why they're allowed whereas others
+        // throw an error.
         return withTestDoc(async doc => {
           // @ts-expect-error
           await withTryCatch(() => setDoc(doc, 1));
