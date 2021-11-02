@@ -204,7 +204,9 @@ export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDir
 export type OrderByDirection = 'desc' | 'asc';
 
 // @public
-export type PartialWithFieldValue<T> = Partial<WithFieldValue<T>>;
+export type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
+    [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
+} : never);
 
 // @public
 export type Primitive = string | number | boolean | undefined | null;
@@ -352,7 +354,7 @@ export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-conta
 // @public
 export type WithFieldValue<T> = T | (T extends Primitive ? T : T extends {} ? {
     [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
-} : Partial<T>);
+} : never);
 
 // @public
 export class WriteBatch {
