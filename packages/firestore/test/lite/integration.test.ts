@@ -1399,6 +1399,44 @@ describe('withConverter() support', () => {
           );
         });
       });
+
+      it('allows omitting fields', async () => {
+        return withTestDoc(async doc => {
+          const ref = doc.withConverter(testConverterMerge);
+
+          // Omit outer fields
+          await setDoc(
+            ref,
+            {
+              outerString: deleteField(),
+              nested: {
+                innerNested: {
+                  innerNestedNum: increment(1)
+                },
+                innerArr: arrayUnion(2),
+                timestamp: serverTimestamp()
+              }
+            },
+            { merge: true }
+          );
+
+          // Omit inner fields
+          await setDoc(
+            ref,
+            {
+              outerString: deleteField(),
+              outerArr: [],
+              nested: {
+                innerNested: {
+                  innerNestedNum: increment(1)
+                },
+                timestamp: serverTimestamp()
+              }
+            },
+            { merge: true }
+          );
+        });
+      });
     });
 
     describe('WithFieldValue', () => {
@@ -1421,7 +1459,7 @@ describe('withConverter() support', () => {
         });
       });
 
-      it('requires all fields to be present', async () => {
+      it('requires all outer fields to be present', async () => {
         return withTestDoc(async doc => {
           const ref = doc.withConverter(testConverter);
 
@@ -1434,6 +1472,24 @@ describe('withConverter() support', () => {
                 innerNestedNum: increment(1)
               },
               innerArr: arrayUnion(2),
+              timestamp: serverTimestamp()
+            }
+          });
+        });
+      });
+
+      it('requires all nested fields to be present', async () => {
+        return withTestDoc(async doc => {
+          const ref = doc.withConverter(testConverter);
+
+          await setDoc(ref, {
+            outerString: 'foo',
+            outerArr: [],
+            // @ts-expect-error
+            nested: {
+              innerNested: {
+                innerNestedNum: increment(1)
+              },
               timestamp: serverTimestamp()
             }
           });
@@ -1497,16 +1553,38 @@ describe('withConverter() support', () => {
         });
       });
 
+      it('allows certain types but not others (prevent breaking changes)', () => {
+        const withTryCatch = async (fn: () => Promise<void>): Promise<void> => {
+          try {
+            await fn();
+          } catch {}
+        };
+
+        return withTestDoc(async doc => {
+          // @ts-expect-error
+          await withTryCatch(() => setDoc(doc, 1));
+          // @ts-expect-error
+          await withTryCatch(() => setDoc(doc, 'foo'));
+          // @ts-expect-error
+          await withTryCatch(() => setDoc(doc, false));
+          await withTryCatch(() => setDoc(doc, undefined));
+          await withTryCatch(() => setDoc(doc, null));
+          await withTryCatch(() => setDoc(doc, [0]));
+          await withTryCatch(() => setDoc(doc, new Set<string>()));
+          await withTryCatch(() => setDoc(doc, new Map<string, number>()));
+        });
+      });
+
       describe('used as a type', () => {
         class ObjectWrapper<T> {
-          withFieldValueT(value: WithFieldValue<T>): void {
-            // eslint-disable-next-line no-console
-            console.log(value);
+          withFieldValueT(value: WithFieldValue<T>): WithFieldValue<T> {
+            return value;
           }
 
-          withPartialFieldValueT(value: PartialWithFieldValue<T>): void {
-            // eslint-disable-next-line no-console
-            console.log(value);
+          withPartialFieldValueT(
+            value: PartialWithFieldValue<T>
+          ): PartialWithFieldValue<T> {
+            return value;
           }
 
           // Wrapper to avoid having Firebase types in non-Firebase code.
