@@ -43,7 +43,11 @@ declare module '@firebase/component' {
   }
 }
 
-export { ReCaptchaV3Provider, CustomProvider } from './providers';
+export {
+  ReCaptchaV3Provider,
+  CustomProvider,
+  ReCaptchaEnterpriseProvider
+} from './providers';
 
 /**
  * Activate App Check for the given app. Can be called only once per app.

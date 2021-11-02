@@ -18,6 +18,7 @@
 import {
   BASE_ENDPOINT,
   EXCHANGE_DEBUG_TOKEN_METHOD,
+  EXCHANGE_RECAPTCHA_ENTERPRISE_TOKEN_METHOD,
   EXCHANGE_RECAPTCHA_TOKEN_METHOD
 } from './constants';
 import { FirebaseApp } from '@firebase/app';
@@ -103,7 +104,7 @@ export async function exchangeToken(
   };
 }
 
-export function getExchangeRecaptchaTokenRequest(
+export function getExchangeRecaptchaV3TokenRequest(
   app: FirebaseApp,
   reCAPTCHAToken: string
 ): AppCheckRequest {
@@ -112,8 +113,21 @@ export function getExchangeRecaptchaTokenRequest(
   return {
     url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${EXCHANGE_RECAPTCHA_TOKEN_METHOD}?key=${apiKey}`,
     body: {
-      // eslint-disable-next-line
-      recaptcha_token: reCAPTCHAToken
+      'recaptcha_token': reCAPTCHAToken
+    }
+  };
+}
+
+export function getExchangeRecaptchaEnterpriseTokenRequest(
+  app: FirebaseApp,
+  reCAPTCHAToken: string
+): AppCheckRequest {
+  const { projectId, appId, apiKey } = app.options;
+
+  return {
+    url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${EXCHANGE_RECAPTCHA_ENTERPRISE_TOKEN_METHOD}?key=${apiKey}`,
+    body: {
+      'recaptcha_enterprise_token': reCAPTCHAToken
     }
   };
 }

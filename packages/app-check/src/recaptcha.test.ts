@@ -26,12 +26,17 @@ import {
   findgreCAPTCHAScriptsOnPage,
   FAKE_SITE_KEY
 } from '../test/util';
-import { initialize, getToken } from './recaptcha';
+import {
+  initializeV3,
+  initializeEnterprise,
+  getToken,
+  GreCAPTCHATopLevel
+} from './recaptcha';
 import * as utils from './util';
 import { getState } from './state';
 import { Deferred } from '@firebase/util';
 import { initializeAppCheck } from './api';
-import { ReCaptchaV3Provider } from './providers';
+import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 
 describe('recaptcha', () => {
   let app: FirebaseApp;
@@ -45,11 +50,11 @@ describe('recaptcha', () => {
     return deleteApp(app);
   });
 
-  describe('initialize()', () => {
+  describe('initialize() - V3', () => {
     it('sets reCAPTCHAState', async () => {
-      self.grecaptcha = getFakeGreCAPTCHA();
+      self.grecaptcha = getFakeGreCAPTCHA() as GreCAPTCHATopLevel;
       expect(getState(app).reCAPTCHAState).to.equal(undefined);
-      await initialize(app, FAKE_SITE_KEY);
+      await initializeV3(app, FAKE_SITE_KEY);
       expect(getState(app).reCAPTCHAState?.initialized).to.be.instanceof(
         Deferred
       );
@@ -68,16 +73,16 @@ describe('recaptcha', () => {
       });
 
       expect(findgreCAPTCHAScriptsOnPage().length).to.equal(0);
-      await initialize(app, FAKE_SITE_KEY);
+      await initializeV3(app, FAKE_SITE_KEY);
       expect(findgreCAPTCHAScriptsOnPage().length).to.equal(1);
     });
 
     it('creates invisible widget', async () => {
       const grecaptchaFake = getFakeGreCAPTCHA();
       const renderStub = stub(grecaptchaFake, 'render').callThrough();
-      self.grecaptcha = grecaptchaFake;
+      self.grecaptcha = grecaptchaFake as GreCAPTCHATopLevel;
 
-      await initialize(app, FAKE_SITE_KEY);
+      await initializeV3(app, FAKE_SITE_KEY);
 
       expect(renderStub).to.be.calledWith(`fire_app_check_${app.name}`, {
         sitekey: FAKE_SITE_KEY,
@@ -88,7 +93,53 @@ describe('recaptcha', () => {
     });
   });
 
-  describe('getToken()', () => {
+  describe('initialize() - Enterprise', () => {
+    it('sets reCAPTCHAState', async () => {
+      self.grecaptcha = getFakeGreCAPTCHA() as GreCAPTCHATopLevel;
+      expect(getState(app).reCAPTCHAState).to.equal(undefined);
+      await initializeEnterprise(app, FAKE_SITE_KEY);
+      expect(getState(app).reCAPTCHAState?.initialized).to.be.instanceof(
+        Deferred
+      );
+    });
+
+    it('loads reCAPTCHA script if it was not loaded already', async () => {
+      const fakeRecaptcha = getFakeGreCAPTCHA();
+      let count = 0;
+      stub(utils, 'getRecaptcha').callsFake(() => {
+        count++;
+        if (count === 1) {
+          return undefined;
+        }
+
+        return fakeRecaptcha;
+      });
+
+      expect(findgreCAPTCHAScriptsOnPage().length).to.equal(0);
+      await initializeEnterprise(app, FAKE_SITE_KEY);
+      expect(findgreCAPTCHAScriptsOnPage().length).to.equal(1);
+    });
+
+    it('creates invisible widget', async () => {
+      const grecaptchaFake = getFakeGreCAPTCHA() as GreCAPTCHATopLevel;
+      const renderStub = stub(
+        grecaptchaFake.enterprise,
+        'render'
+      ).callThrough();
+      self.grecaptcha = grecaptchaFake;
+
+      await initializeEnterprise(app, FAKE_SITE_KEY);
+
+      expect(renderStub).to.be.calledWith(`fire_app_check_${app.name}`, {
+        sitekey: FAKE_SITE_KEY,
+        size: 'invisible'
+      });
+
+      expect(getState(app).reCAPTCHAState?.widgetId).to.equal('fake_widget_1');
+    });
+  });
+
+  describe('getToken() - V3', () => {
     it('throws if AppCheck has not been activated yet', () => {
       return expect(getToken(app)).to.eventually.rejectedWith(
         /appCheck\/use-before-activation/
@@ -100,7 +151,7 @@ describe('recaptcha', () => {
       const executeStub = stub(grecaptchaFake, 'execute').returns(
         Promise.resolve('fake-recaptcha-token')
       );
-      self.grecaptcha = grecaptchaFake;
+      self.grecaptcha = grecaptchaFake as GreCAPTCHATopLevel;
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
@@ -116,9 +167,41 @@ describe('recaptcha', () => {
       stub(grecaptchaFake, 'execute').returns(
         Promise.resolve('fake-recaptcha-token')
       );
-      self.grecaptcha = grecaptchaFake;
+      self.grecaptcha = grecaptchaFake as GreCAPTCHATopLevel;
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      const token = await getToken(app);
+
+      expect(token).to.equal('fake-recaptcha-token');
+    });
+  });
+
+  describe('getToken() - Enterprise', () => {
+    it('calls recaptcha.execute with correct widgetId', async () => {
+      const grecaptchaFake = getFakeGreCAPTCHA() as GreCAPTCHATopLevel;
+      const executeStub = stub(grecaptchaFake.enterprise, 'execute').returns(
+        Promise.resolve('fake-recaptcha-token')
+      );
+      self.grecaptcha = grecaptchaFake;
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+      });
+      await getToken(app);
+
+      expect(executeStub).to.have.been.calledWith('fake_widget_1', {
+        action: 'fire_app_check'
+      });
+    });
+
+    it('resolves with token returned by recaptcha.execute', async () => {
+      const grecaptchaFake = getFakeGreCAPTCHA() as GreCAPTCHATopLevel;
+      stub(grecaptchaFake.enterprise, 'execute').returns(
+        Promise.resolve('fake-recaptcha-token')
+      );
+      self.grecaptcha = grecaptchaFake;
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
       });
       const token = await getToken(app);
 

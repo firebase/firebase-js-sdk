@@ -41,7 +41,11 @@ import * as internalApi from './internal-api';
 import * as indexeddb from './indexeddb';
 import * as debug from './debug';
 import { deleteApp, FirebaseApp } from '@firebase/app';
-import { CustomProvider, ReCaptchaV3Provider } from './providers';
+import {
+  CustomProvider,
+  ReCaptchaEnterpriseProvider,
+  ReCaptchaV3Provider
+} from './providers';
 import { AppCheckService } from './factory';
 import { AppCheckToken } from './public-types';
 import { getDebugToken } from './debug';
@@ -83,6 +87,16 @@ describe('api', () => {
         })
       ).to.throw(/appCheck\/already-initialized/);
     });
+    it('can only be called once (if given different ReCaptchaEnterpriseProviders)', () => {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+      });
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY + 'X')
+        })
+      ).to.throw(/appCheck\/already-initialized/);
+    });
     it('can only be called once (if given different CustomProviders)', () => {
       initializeAppCheck(app, {
         provider: new CustomProvider({
@@ -104,6 +118,16 @@ describe('api', () => {
       expect(
         initializeAppCheck(app, {
           provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        })
+      ).to.equal(appCheckInstance);
+    });
+    it('can be called multiple times (if given equivalent ReCaptchaEnterpriseProviders)', () => {
+      const appCheckInstance = initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+      });
+      expect(
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
         })
       ).to.equal(appCheckInstance);
     });
@@ -166,11 +190,24 @@ describe('api', () => {
     });
 
     it('initialize reCAPTCHA when a ReCaptchaV3Provider is provided', () => {
-      const initReCAPTCHAStub = stub(reCAPTCHA, 'initialize').returns(
+      const initReCAPTCHAStub = stub(reCAPTCHA, 'initializeV3').returns(
         Promise.resolve({} as any)
       );
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
+        app,
+        FAKE_SITE_KEY
+      );
+    });
+
+    it('initialize reCAPTCHA when a ReCaptchaEnterpriseProvider is provided', () => {
+      const initReCAPTCHAStub = stub(reCAPTCHA, 'initializeEnterprise').returns(
+        Promise.resolve({} as any)
+      );
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
       });
       expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
         app,

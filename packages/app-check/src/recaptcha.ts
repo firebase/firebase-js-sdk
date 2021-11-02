@@ -21,8 +21,10 @@ import { Deferred } from '@firebase/util';
 import { getRecaptcha, ensureActivated } from './util';
 
 export const RECAPTCHA_URL = 'https://www.google.com/recaptcha/api.js';
+export const RECAPTCHA_ENTERPRISE_URL =
+  'https://www.google.com/recaptcha/enterprise.js';
 
-export function initialize(
+export function initializeV3(
   app: FirebaseApp,
   siteKey: string
 ): Promise<GreCAPTCHA> {
@@ -30,37 +32,81 @@ export function initialize(
   const initialized = new Deferred<GreCAPTCHA>();
 
   setState(app, { ...state, reCAPTCHAState: { initialized } });
+  const divId = makeDiv(app);
 
+  const grecaptcha = getRecaptcha(false);
+  if (!grecaptcha) {
+    loadReCAPTCHAV3Script(() => {
+      const grecaptcha = getRecaptcha(false);
+
+      if (!grecaptcha) {
+        // it shouldn't happen.
+        throw new Error('no recaptcha');
+      }
+      queueWidgetRender(app, siteKey, grecaptcha, divId, initialized);
+    });
+  } else {
+    queueWidgetRender(app, siteKey, grecaptcha, divId, initialized);
+  }
+  return initialized.promise;
+}
+export function initializeEnterprise(
+  app: FirebaseApp,
+  siteKey: string
+): Promise<GreCAPTCHA> {
+  const state = getState(app);
+  const initialized = new Deferred<GreCAPTCHA>();
+
+  setState(app, { ...state, reCAPTCHAState: { initialized } });
+  const divId = makeDiv(app);
+
+  const grecaptcha = getRecaptcha(true);
+  if (!grecaptcha) {
+    loadReCAPTCHAEnterpriseScript(() => {
+      const grecaptcha = getRecaptcha(true);
+
+      if (!grecaptcha) {
+        // it shouldn't happen.
+        throw new Error('no recaptcha');
+      }
+      queueWidgetRender(app, siteKey, grecaptcha, divId, initialized);
+    });
+  } else {
+    queueWidgetRender(app, siteKey, grecaptcha, divId, initialized);
+  }
+  return initialized.promise;
+}
+
+/**
+ * Add listener to render the widget and resolve the promise when
+ * the grecaptcha.ready() event fires.
+ */
+function queueWidgetRender(
+  app: FirebaseApp,
+  siteKey: string,
+  grecaptcha: GreCAPTCHA,
+  container: string,
+  initialized: Deferred<GreCAPTCHA>
+): void {
+  grecaptcha.ready(() => {
+    // Invisible widgets allow us to set a different siteKey for each widget,
+    // so we use them to support multiple apps
+    renderInvisibleWidget(app, siteKey, grecaptcha, container);
+    initialized.resolve(grecaptcha);
+  });
+}
+
+/**
+ * Add invisible div to page.
+ */
+function makeDiv(app: FirebaseApp): string {
   const divId = `fire_app_check_${app.name}`;
   const invisibleDiv = document.createElement('div');
   invisibleDiv.id = divId;
   invisibleDiv.style.display = 'none';
 
   document.body.appendChild(invisibleDiv);
-
-  const grecaptcha = getRecaptcha();
-  if (!grecaptcha) {
-    loadReCAPTCHAScript(() => {
-      const grecaptcha = getRecaptcha();
-
-      if (!grecaptcha) {
-        // it shouldn't happen.
-        throw new Error('no recaptcha');
-      }
-      grecaptcha.ready(() => {
-        // Invisible widgets allow us to set a different siteKey for each widget, so we use them to support multiple apps
-        renderInvisibleWidget(app, siteKey, grecaptcha, divId);
-        initialized.resolve(grecaptcha);
-      });
-    });
-  } else {
-    grecaptcha.ready(() => {
-      renderInvisibleWidget(app, siteKey, grecaptcha, divId);
-      initialized.resolve(grecaptcha);
-    });
-  }
-
-  return initialized.promise;
+  return divId;
 }
 
 export async function getToken(app: FirebaseApp): Promise<string> {
@@ -111,17 +157,28 @@ function renderInvisibleWidget(
   });
 }
 
-function loadReCAPTCHAScript(onload: () => void): void {
+function loadReCAPTCHAV3Script(onload: () => void): void {
   const script = document.createElement('script');
-  script.src = `${RECAPTCHA_URL}`;
+  script.src = RECAPTCHA_URL;
+  script.onload = onload;
+  document.head.appendChild(script);
+}
+
+function loadReCAPTCHAEnterpriseScript(onload: () => void): void {
+  const script = document.createElement('script');
+  script.src = RECAPTCHA_ENTERPRISE_URL;
   script.onload = onload;
   document.head.appendChild(script);
 }
 
 declare global {
   interface Window {
-    grecaptcha: GreCAPTCHA | undefined;
+    grecaptcha: GreCAPTCHATopLevel | undefined;
   }
+}
+
+export interface GreCAPTCHATopLevel extends GreCAPTCHA {
+  enterprise: GreCAPTCHA;
 }
 
 export interface GreCAPTCHA {
