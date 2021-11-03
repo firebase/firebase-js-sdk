@@ -12,7 +12,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
-      - uses: yifanyang/github-actions/health-metrics/release-diffing@master
+      - uses: FirebaseExtended/github-actions/health-metrics/release-diffing@master
         with:
           repo: ${{ github.repository }}
           ref: ${{ github.ref }}
