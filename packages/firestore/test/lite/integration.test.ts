@@ -1249,6 +1249,43 @@ describe('withConverter() support', () => {
     });
   });
 
+  it('supports primitive types with valid converter', () => {
+    type Primitive = number;
+    const primitiveConverter = {
+      toFirestore(value: Primitive): DocumentData {
+        return { value };
+      },
+      fromFirestore(snapshot: QueryDocumentSnapshot): Primitive {
+        const data = snapshot.data();
+        return data.value;
+      }
+    };
+
+    type ArrayValue = number[];
+    const arrayConverter = {
+      toFirestore(value: ArrayValue): DocumentData {
+        return { values: value };
+      },
+      fromFirestore(snapshot: QueryDocumentSnapshot): ArrayValue {
+        const data = snapshot.data();
+        return data.values;
+      }
+    };
+
+    return withTestDb(async db => {
+      const coll = collection(db, 'tests');
+      const ref = doc(coll, 'number').withConverter(primitiveConverter);
+      await setDoc(ref, 3);
+      const result = await getDoc(ref);
+      expect(result.data()).to.equal(3);
+
+      const ref2 = doc(coll, 'array').withConverter(arrayConverter);
+      await setDoc(ref2, [1, 2, 3]);
+      const result2 = await getDoc(ref2);
+      expect(result2.data()).to.deep.equal([1, 2, 3]);
+    });
+  });
+
   describe('types test', () => {
     class TestObject {
       constructor(
