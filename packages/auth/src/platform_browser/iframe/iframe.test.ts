@@ -86,6 +86,7 @@ describe('platform_browser/iframe/iframe', () => {
         height: '1px'
       },
       'aria-hidden': 'true',
+      tabindex: '-1'
     });
     expect(iframeSettings.dontclear).to.be.true;
   });
