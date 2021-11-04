@@ -263,7 +263,7 @@ async function call(
   // Default timeout to 70s, but let the options override it.
   const timeout = options.timeout || 70000;
 
-  const failAfterHandle = failAfter(timeout)
+  const failAfterHandle = failAfter(timeout);
   const response = await Promise.race([
     postJSON(url, body, headers, functionsInstance.fetchImpl),
     failAfterHandle.promise,
