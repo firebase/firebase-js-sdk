@@ -1,5 +1,18 @@
 # @firebase/database-compat
 
+## 0.1.3
+
+### Patch Changes
+
+- [`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684) [#5693](https://github.com/firebase/firebase-js-sdk/pull/5693) - Add exports field to all packages
+
+- Updated dependencies [[`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684)]:
+  - @firebase/component@0.5.8
+  - @firebase/database@0.12.3
+  - @firebase/logger@0.3.1
+  - @firebase/util@1.4.1
+  - @firebase/database-types@0.9.2
+
 ## 0.1.2
 
 ### Patch Changes

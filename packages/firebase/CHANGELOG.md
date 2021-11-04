@@ -1,5 +1,39 @@
 # firebase
 
+## 9.3.0
+
+### Minor Changes
+
+- [`61604979c`](https://github.com/firebase/firebase-js-sdk/commit/61604979cb35647610ea385a6ba0ca67cb03f5d1) [#5595](https://github.com/firebase/firebase-js-sdk/pull/5595) - Add ReCAPTCHA Enterprise as an attestation option for App Check.
+
+### Patch Changes
+
+- Updated dependencies [[`31bd6f27f`](https://github.com/firebase/firebase-js-sdk/commit/31bd6f27f965a561f814bad1110a43849a6a9cbf), [`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684), [`61604979c`](https://github.com/firebase/firebase-js-sdk/commit/61604979cb35647610ea385a6ba0ca67cb03f5d1), [`0765b5e19`](https://github.com/firebase/firebase-js-sdk/commit/0765b5e19c3e949bb33233ee52c8e33f01418e54)]:
+  - @firebase/auth-compat@0.2.1
+  - @firebase/auth@0.19.1
+  - @firebase/analytics@0.7.3
+  - @firebase/analytics-compat@0.1.4
+  - @firebase/app@0.7.6
+  - @firebase/app-check@0.5.0
+  - @firebase/app-check-compat@0.2.0
+  - @firebase/app-compat@0.1.7
+  - @firebase/database@0.12.3
+  - @firebase/database-compat@0.1.3
+  - @firebase/firestore-compat@0.1.6
+  - @firebase/functions@0.7.4
+  - @firebase/functions-compat@0.1.5
+  - @firebase/installations@0.5.3
+  - @firebase/messaging@0.9.3
+  - @firebase/messaging-compat@0.1.3
+  - @firebase/performance@0.5.3
+  - @firebase/performance-compat@0.1.3
+  - @firebase/remote-config@0.3.2
+  - @firebase/remote-config-compat@0.1.3
+  - @firebase/storage@0.8.5
+  - @firebase/storage-compat@0.1.5
+  - @firebase/util@1.4.1
+  - @firebase/firestore@3.2.1
+
 ## 9.2.0
 
 ### Minor Changes
