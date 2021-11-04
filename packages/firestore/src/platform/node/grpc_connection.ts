@@ -59,14 +59,10 @@ function createMetadata(
   );
   const metadata = new Metadata();
   if (authToken) {
-    authToken.applyHeaders((tokenKey, tokenValue) =>
-      metadata.set(tokenKey, tokenValue)
-    );
+    authToken.headers.forEach((value, key) => metadata.set(key, value));
   }
   if (appCheckToken) {
-    appCheckToken.applyHeaders((tokenKey, tokenValue) =>
-      metadata.set(tokenKey, tokenValue)
-    );
+    appCheckToken.headers.forEach((value, key) => metadata.set(key, value));
   }
   if (appId) {
     metadata.set('X-Firebase-GMPID', appId);

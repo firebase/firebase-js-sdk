@@ -68,16 +68,16 @@ export interface Token {
    */
   user?: User;
 
-  /** Invokes the given callback with the token's key and value. */
-  applyHeaders(callback: (tokenKey: string, tokenValue: string) => void): void;
+  /** Header values to set for this token */
+  headers: Map<string, string>;
 }
 
 export class OAuthToken implements Token {
   type = 'OAuth' as TokenType;
-  constructor(private value: string, public user: User) {}
+  headers = new Map();
 
-  applyHeaders(callback: (tokenKey: string, tokenValue: string) => void): void {
-    callback('Authorization', `Bearer ${this.value}`);
+  constructor(value: string, public user: User) {
+    this.headers.set('Authorization', `Bearer ${value}`);
   }
 }
 
@@ -395,21 +395,16 @@ interface Gapi {
 export class FirstPartyToken implements Token {
   type = 'FirstParty' as TokenType;
   user = User.FIRST_PARTY;
+  headers = new Map();
 
-  constructor(
-    private gapi: Gapi,
-    private sessionIndex: string,
-    private iamToken: string | null
-  ) {}
-
-  applyHeaders(callback: (tokenKey: string, tokenValue: string) => void): void {
-    callback('X-Goog-AuthUser', this.sessionIndex);
-    const authHeader = this.gapi['auth']['getAuthHeaderValueForFirstParty']([]);
+  constructor(gapi: Gapi, sessionIndex: string, iamToken: string | null) {
+    this.headers.set('X-Goog-AuthUser', sessionIndex);
+    const authHeader = gapi['auth']['getAuthHeaderValueForFirstParty']([]);
     if (authHeader) {
-      callback('Authorization', authHeader);
+      this.headers.set('Authorization', authHeader);
     }
-    if (this.iamToken) {
-      callback('X-Goog-Iam-Authorization-Token', this.iamToken);
+    if (iamToken) {
+      this.headers.set('X-Goog-Iam-Authorization-Token', iamToken);
     }
   }
 }
@@ -449,11 +444,11 @@ export class FirstPartyAuthCredentialsProvider
 
 export class AppCheckToken implements Token {
   type = 'AppCheck' as TokenType;
-  constructor(private value: string) {}
+  headers = new Map();
 
-  applyHeaders(callback: (tokenKey: string, tokenValue: string) => void): void {
-    if (this.value && this.value.length > 0) {
-      callback('x-firebase-appcheck', this.value);
+  constructor(private value: string) {
+    if (value && value.length > 0) {
+      this.headers.set('x-firebase-appcheck', this.value);
     }
   }
 }

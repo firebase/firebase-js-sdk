@@ -145,14 +145,10 @@ export abstract class RestConnection implements Connection {
     }
 
     if (authToken) {
-      authToken.applyHeaders(
-        (tokenKey, tokenValue) => (headers[tokenKey] = tokenValue)
-      );
+      authToken.headers.forEach((value, key) => (headers[key] = value));
     }
     if (appCheckToken) {
-      appCheckToken.applyHeaders(
-        (tokenKey, tokenValue) => (headers[tokenKey] = tokenValue)
-      );
+      appCheckToken.headers.forEach((value, key) => (headers[key] = value));
     }
   }
 
