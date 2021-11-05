@@ -19,6 +19,7 @@
         "import": "./dist/node-esm/index.js",
         "require": "./dist/index.js"
       },
+      "esm5": "./dist/index.esm5.js",
       "default": "./dist/index.esm2017.js"
     },
     "./standalone": {

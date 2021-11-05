@@ -9,6 +9,7 @@
   "exports": {
     ".": {
       "require": "./dist/index.js",
+      "esm5": "./dist/index.esm.js",
       "default": "./dist/index.esm2017.js"
     },
     "./package.json": "./package.json"

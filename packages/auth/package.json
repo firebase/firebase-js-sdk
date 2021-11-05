@@ -19,6 +19,7 @@
       "react-native": "./dist/rn/index.js",
       "cordova": "./dist/cordova/index.esm5.js",
       "webworker": "./dist/index.webworker.esm5.js",
+      "esm5": "./dist/esm5/index.js",
       "default": "./dist/esm2017/index.js"
     },
     "./internal": {
@@ -28,6 +29,7 @@
       },
       "react-native": "./dist/rn/internal.js",
       "cordova": "./dist/cordova/internal.js",
+      "esm5": "./dist/esm5/internal.js",
       "default": "./dist/esm2017/internal.js"
     },
     "./package.json": "./package.json"

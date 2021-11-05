@@ -13,6 +13,7 @@
         "import": "./dist/esm-node/index.node.esm.js",
         "require": "./dist/index.node.cjs.js"
       },
+      "esm5": "./dist/index.esm.js",
       "default": "./dist/index.esm2017.js"
     },
     "./package.json": "./package.json"
