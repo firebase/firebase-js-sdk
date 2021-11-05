@@ -7,6 +7,8 @@
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
   "esm5": "dist/esm/index.esm5.js",
+  "lite": "dist/index.lite.js",
+  "lite-esm5": "dist/index.lite.esm5.js",
   "exports": {
     ".": {
       "require": "./dist/index.cjs.js",
