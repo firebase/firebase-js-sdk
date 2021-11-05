@@ -148,7 +148,7 @@ const cjsBuilds = [
     plugins: [
       ...es5BuildPlugins,
       resolveModule({
-        mainFields: ['standalone'],
+        exportConditions: ['standalone'],
         preferBuiltins: true
       }),
       commonjs()
