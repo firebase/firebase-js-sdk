@@ -66,8 +66,8 @@ export function start(
     }, millis);
   }
 
-  function clearGlobalTimeout() {
-    if(globalTimeoutId){
+  function clearGlobalTimeout(): void {
+    if (globalTimeoutId) {
       clearTimeout(globalTimeoutId);
     }
   }
