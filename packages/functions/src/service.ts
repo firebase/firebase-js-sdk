@@ -54,8 +54,8 @@ export interface HttpResponseBody {
 }
 
 interface CancellablePromise<T> {
-  promise: Promise<T>
-  cancel: () => void
+  promise: Promise<T>;
+  cancel: () => void;
 }
 
 /**
