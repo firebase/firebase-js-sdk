@@ -185,25 +185,22 @@ export function newBytesConnection(): Connection<ArrayBuffer> {
 const MAX_ERROR_MSG_LENGTH = 512;
 
 export class XhrBlobConnection extends XhrConnection<Blob> {
-  private data_?: Blob;
-  private text_?: string;
-
   initXhr(): void {
     this.xhr_.responseType = 'blob';
   }
 
   getErrorText(): string {
     if (!this.sent_) {
-      throw internalError('cannot .getResponseText() before sending');
+      throw internalError('cannot .getErrorText() before sending');
     }
-    return this.text_!;
+    return this.xhr_.responseText;
   }
 
   getResponse(): Blob {
     if (!this.sent_) {
       throw internalError('cannot .getResponse() before sending');
     }
-    return this.data_!;
+    return this.xhr_.response;
   }
 
   send(
@@ -212,16 +209,7 @@ export class XhrBlobConnection extends XhrConnection<Blob> {
     body?: ArrayBufferView | Blob | string,
     headers?: Headers
   ): Promise<void> {
-    return super.send(url, method, body, headers).then(async () => {
-      if (this.getErrorCode() === ErrorCode.NO_ERROR) {
-        this.data_ = this.xhr_.response;
-        this.text_ = await this.data_!.slice(
-          0,
-          MAX_ERROR_MSG_LENGTH,
-          'string'
-        ).text();
-      }
-    });
+    return super.send(url, method, body, headers);
   }
 }
 
