@@ -182,8 +182,6 @@ export function newBytesConnection(): Connection<ArrayBuffer> {
   return new XhrBytesConnection();
 }
 
-const MAX_ERROR_MSG_LENGTH = 512;
-
 export class XhrBlobConnection extends XhrConnection<Blob> {
   initXhr(): void {
     this.xhr_.responseType = 'blob';
