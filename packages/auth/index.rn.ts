@@ -59,6 +59,8 @@ export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions
 export const reactNativeLocalPersistence: Persistence =
   getReactNativePersistence(AsyncStorage);
 
+export {getReactNativePersistence};
+
 export function getAuth(app: FirebaseApp = getApp()): Auth {
   const provider = _getProvider(app, 'auth');
 
