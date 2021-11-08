@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -12,7 +12,7 @@
       "node": {
         "import": "./dist/node-esm/index.node.esm.js",
         "default": "./dist/index.node.cjs.js"
-      }, 
+      },
       "esm5": "./dist/index.esm5.js",
       "default": "./dist/index.esm2017.js"
     },
@@ -41,8 +41,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/util": "1.4.1",
-    "@firebase/component": "0.5.8",
+    "@firebase/util": "1.4.2",
+    "@firebase/component": "0.5.9",
     "node-fetch": "2.6.5",
     "tslib": "^2.1.0"
   },
@@ -50,8 +50,8 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.6",
-    "@firebase/auth": "0.19.1",
+    "@firebase/app": "0.7.7",
+    "@firebase/auth": "0.19.2",
     "rollup": "2.57.0",
     "@rollup/plugin-alias": "3.1.5",
     "@rollup/plugin-json": "4.1.0",

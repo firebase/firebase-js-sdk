@@ -1,5 +1,18 @@
 # @firebase/auth
 
+## 0.19.2
+
+### Patch Changes
+
+- [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a) [#5708](https://github.com/firebase/firebase-js-sdk/pull/5708) (fixes [#1487](https://github.com/firebase/firebase-js-sdk/issues/1487)) - Update build scripts to work with the exports field
+
+* [`dbd54f7c9`](https://github.com/firebase/firebase-js-sdk/commit/dbd54f7c9ef0b5d78d491e26d816084a478bdf04) [#5700](https://github.com/firebase/firebase-js-sdk/pull/5700) (fixes [#5631](https://github.com/firebase/firebase-js-sdk/issues/5631)) - Fix lighthouse issues related to the embedded iframe used to perform OAuth sign in.
+
+* Updated dependencies [[`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a)]:
+  - @firebase/component@0.5.9
+  - @firebase/logger@0.3.2
+  - @firebase/util@1.4.2
+
 ## 0.19.1
 
 ### Patch Changes
