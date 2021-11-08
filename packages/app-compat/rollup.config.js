@@ -58,7 +58,7 @@ const esmBuilds = [
   {
     input: 'src/index.lite.ts',
     output: {
-      file: pkg['lite-esm5'],
+      file: pkg['liteesm5'],
       format: 'es',
       sourcemap: true
     },

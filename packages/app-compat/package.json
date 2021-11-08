@@ -8,10 +8,13 @@
   "module": "dist/esm/index.esm2017.js",
   "esm5": "dist/esm/index.esm5.js",
   "lite": "dist/index.lite.js",
-  "lite-esm5": "dist/index.lite.esm5.js",
+  "liteesm5": "dist/index.lite.esm5.js",
   "exports": {
     ".": {
       "require": "./dist/index.cjs.js",
+      "esm5": "./dist/esm/index.esm5.js",
+      "lite": "./dist/index.lite.js",
+      "liteesm5": "./dist/index.lite.esm5.js",
       "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
