@@ -1,5 +1,41 @@
 # firebase
 
+## 9.4.0
+
+### Minor Changes
+
+- [`532b3cd93`](https://github.com/firebase/firebase-js-sdk/commit/532b3cd939c5a2c13987a21e38a0a121c5dfca04) [#5675](https://github.com/firebase/firebase-js-sdk/pull/5675) (fixes [#5661](https://github.com/firebase/firebase-js-sdk/issues/5661)) - Expanded `Firestore.WithFieldValue<T>` to include `T`. This allows developers to delegate `WithFieldValue<T>` inside wrappers of type `T` to avoid exposing Firebase types beyond Firebase-specific logic.
+
+### Patch Changes
+
+- [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a) [#5708](https://github.com/firebase/firebase-js-sdk/pull/5708) (fixes [#1487](https://github.com/firebase/firebase-js-sdk/issues/1487)) - Update build scripts to work with the exports field
+
+- Updated dependencies [[`532b3cd93`](https://github.com/firebase/firebase-js-sdk/commit/532b3cd939c5a2c13987a21e38a0a121c5dfca04), [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a), [`dbd54f7c9`](https://github.com/firebase/firebase-js-sdk/commit/dbd54f7c9ef0b5d78d491e26d816084a478bdf04)]:
+  - @firebase/firestore@3.3.0
+  - @firebase/analytics-compat@0.1.5
+  - @firebase/analytics@0.7.4
+  - @firebase/app-check-compat@0.2.1
+  - @firebase/app-check@0.5.1
+  - @firebase/app-compat@0.1.8
+  - @firebase/app@0.7.7
+  - @firebase/auth-compat@0.2.2
+  - @firebase/auth@0.19.2
+  - @firebase/database-compat@0.1.4
+  - @firebase/database@0.12.4
+  - @firebase/firestore-compat@0.1.7
+  - @firebase/functions-compat@0.1.6
+  - @firebase/functions@0.7.5
+  - @firebase/installations@0.5.4
+  - @firebase/messaging-compat@0.1.4
+  - @firebase/messaging@0.9.4
+  - @firebase/performance-compat@0.1.4
+  - @firebase/performance@0.5.4
+  - @firebase/remote-config-compat@0.1.4
+  - @firebase/remote-config@0.3.3
+  - @firebase/storage-compat@0.1.6
+  - @firebase/storage@0.8.6
+  - @firebase/util@1.4.2
+
 ## 9.3.0
 
 ### Minor Changes
