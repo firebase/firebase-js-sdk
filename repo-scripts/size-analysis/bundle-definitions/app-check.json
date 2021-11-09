@@ -22,7 +22,8 @@
             "path": "app-check",
             "imports": [
               "initializeAppCheck",
-              "ReCaptchaV3Provider"
+              "ReCaptchaV3Provider",
+              "getToken"
             ]
           }
         ]
@@ -52,7 +53,8 @@
             "path": "app-check",
             "imports": [
               "initializeAppCheck",
-              "ReCaptchaEnterpriseProvider"
+              "ReCaptchaEnterpriseProvider",
+              "getToken"
             ]
           }
         ]
@@ -82,7 +84,8 @@
             "path": "app-check",
             "imports": [
               "initializeAppCheck",
-              "CustomProvider"
+              "CustomProvider",
+              "getToken"
             ]
           }
         ]
