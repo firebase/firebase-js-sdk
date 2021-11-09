@@ -111,9 +111,6 @@ abstract class FetchConnection<T extends ConnectionType>
     // Not supported
   }
 
-  /**
-   * @override
-   */
   removeUploadProgressListener(listener: (p1: ProgressEvent) => void): void {
     // Not supported
   }
@@ -184,10 +181,6 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
       throw internalError('cannot .getResponse() before sending');
     }
     return this.stream_;
-  }
-
-  getErrorText(): string {
-    return this.errorText_;
   }
 }
 

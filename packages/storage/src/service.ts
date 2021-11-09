@@ -39,7 +39,7 @@ import {
 import { validateNumber } from './implementation/type';
 import { FirebaseStorage } from './public-types';
 import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
-import { Connection } from './implementation/connection';
+import { Connection, ConnectionType } from './implementation/connection';
 
 export function isUrl(path?: string): boolean {
   return /^[A-Za-z]+:\/\//.test(path as string);
@@ -298,7 +298,7 @@ export class FirebaseStorageImpl implements FirebaseStorage {
    * @param requestInfo - HTTP RequestInfo object
    * @param authToken - Firebase auth token
    */
-  _makeRequest<I, O>(
+  _makeRequest<I extends ConnectionType, O>(
     requestInfo: RequestInfo<I, O>,
     requestFactory: () => Connection<I>,
     authToken: string | null,
@@ -325,7 +325,7 @@ export class FirebaseStorageImpl implements FirebaseStorage {
     }
   }
 
-  async makeRequestWithTokens<I, O>(
+  async makeRequestWithTokens<I extends ConnectionType, O>(
     requestInfo: RequestInfo<I, O>,
     requestFactory: () => Connection<I>
   ): Promise<O> {

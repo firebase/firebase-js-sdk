@@ -103,7 +103,12 @@ abstract class XhrConnection<T extends ConnectionType>
     }
   }
 
-  abstract getResponse(): T;
+  getResponse(): T {
+    if (!this.sent_) {
+      throw internalError('cannot .getResponse() before sending');
+    }
+    return this.xhr_.response;
+  }
 
   getErrorText(): string {
     if (!this.sent_) {
@@ -138,13 +143,6 @@ export class XhrTextConnection extends XhrConnection<string> {
   initXhr(): void {
     this.xhr_.responseType = 'text';
   }
-
-  getResponse(): string {
-    if (!this.sent_) {
-      throw internalError('cannot .getResponse() before sending');
-    }
-    return this.xhr_.response;
-  }
 }
 
 export function newTextConnection(): Connection<string> {
@@ -157,26 +155,6 @@ export class XhrBytesConnection extends XhrConnection<ArrayBuffer> {
   initXhr(): void {
     this.xhr_.responseType = 'arraybuffer';
   }
-
-  getResponse(): ArrayBuffer {
-    if (!this.sent_) {
-      throw internalError('cannot .getResponse() before sending');
-    }
-    return this.data_!;
-  }
-
-  send(
-    url: string,
-    method: string,
-    body?: ArrayBufferView | Blob | string,
-    headers?: Headers
-  ): Promise<void> {
-    return super.send(url, method, body, headers).then(async () => {
-      if (this.getErrorCode() === ErrorCode.NO_ERROR) {
-        this.data_ = this.xhr_.response as ArrayBuffer;
-      }
-    });
-  }
 }
 
 export function newBytesConnection(): Connection<ArrayBuffer> {
@@ -186,29 +164,6 @@ export function newBytesConnection(): Connection<ArrayBuffer> {
 export class XhrBlobConnection extends XhrConnection<Blob> {
   initXhr(): void {
     this.xhr_.responseType = 'blob';
-  }
-
-  getErrorText(): string {
-    if (!this.sent_) {
-      throw internalError('cannot .getErrorText() before sending');
-    }
-    return this.xhr_.responseText;
-  }
-
-  getResponse(): Blob {
-    if (!this.sent_) {
-      throw internalError('cannot .getResponse() before sending');
-    }
-    return this.xhr_.response;
-  }
-
-  send(
-    url: string,
-    method: string,
-    body?: ArrayBufferView | Blob | string,
-    headers?: Headers
-  ): Promise<void> {
-    return super.send(url, method, body, headers);
   }
 }
 
