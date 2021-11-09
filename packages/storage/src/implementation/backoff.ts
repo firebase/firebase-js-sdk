@@ -42,6 +42,7 @@ export function start(
   // TODO: find a way to exclude Node type definition for storage because storage only works in browser
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let timeoutId: any = null;
+  let hitTimeoutId: any = null;
   let hitTimeout = false;
   let cancelState = 0;
 
@@ -69,6 +70,9 @@ export function start(
       return;
     }
     if (success) {
+      if (hitTimeoutId !== null) {
+        clearTimeout(hitTimeoutId);
+      }
       triggerCallback.call(null, success, ...args);
       return;
     }
@@ -113,7 +117,8 @@ export function start(
     }
   }
   callWithDelay(0);
-  setTimeout(() => {
+  hitTimeoutId = setTimeout(function () {
+    hitTimeoutId = null;
     hitTimeout = true;
     stop(true);
   }, timeout);
