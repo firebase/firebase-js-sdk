@@ -59,7 +59,7 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  *   // This is the signed-in user
  *   const user = result.user;
  *   // This gives you a Twitter Access Token and Secret.
- *   const credential = provider.credentialFromResult(auth, result);
+ *   const credential = TwitterAuthProvider.credentialFromResult(result);
  *   const token = credential.accessToken;
  *   const secret = credential.secret;
  * }
@@ -74,7 +74,7 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  * // The signed-in user info.
  * const user = result.user;
  * // This gives you a Twitter Access Token and Secret.
- * const credential = provider.credentialFromResult(auth, result);
+ * const credential = TwitterAuthProvider.credentialFromResult(result);
  * const token = credential.accessToken;
  * const secret = credential.secret;
  * ```
