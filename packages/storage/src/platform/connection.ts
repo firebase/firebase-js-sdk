@@ -46,6 +46,6 @@ export function newBlobConnection(): Connection<Blob> {
 }
 
 export function newStreamConnection(): Connection<NodeJS.ReadableStream> {
-  // This file is only used under ts-node.
+  // This file is only used in Node.js tests using ts-node.
   return nodeNewStreamConnection();
 }
