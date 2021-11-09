@@ -212,16 +212,7 @@ export function getBytes(
   location: Location,
   maxDownloadSizeBytes?: number
 ): RequestInfo<ArrayBuffer, ArrayBuffer> {
-  return createDownloadRequest(
-    location,
-    service,
-    getBytesHandler(),
-    maxDownloadSizeBytes
-  );
-}
-
-export function getBytesHandler(): RequestHandler<ArrayBuffer, ArrayBuffer> {
-  return (xhr: Connection<ArrayBuffer>, data: ArrayBuffer) => data;
+  return createDownloadRequest(location, service, maxDownloadSizeBytes);
 }
 
 export function getBlob(
@@ -229,16 +220,7 @@ export function getBlob(
   location: Location,
   maxDownloadSizeBytes?: number
 ): RequestInfo<Blob, Blob> {
-  return createDownloadRequest(
-    location,
-    service,
-    getBlobHandler(),
-    maxDownloadSizeBytes
-  );
-}
-
-export function getBlobHandler(): RequestHandler<Blob, Blob> {
-  return (xhr: Connection<Blob>, data: Blob) => data;
+  return createDownloadRequest(location, service, maxDownloadSizeBytes);
 }
 
 export function getStream(
@@ -246,36 +228,25 @@ export function getStream(
   location: Location,
   maxDownloadSizeBytes?: number
 ): RequestInfo<NodeJS.ReadableStream, NodeJS.ReadableStream> {
-  return createDownloadRequest(
-    location,
-    service,
-    getStreamHandler(),
-    maxDownloadSizeBytes
-  );
-}
-
-export function getStreamHandler(): RequestHandler<
-  NodeJS.ReadableStream,
-  NodeJS.ReadableStream
-> {
-  return (
-    xhr: Connection<NodeJS.ReadableStream>,
-    data: NodeJS.ReadableStream
-  ) => data;
+  return createDownloadRequest(location, service, maxDownloadSizeBytes);
 }
 
 /** Creates a new request to download an object. */
-function createDownloadRequest<I extends ConnectionType, O>(
+function createDownloadRequest<I extends ConnectionType>(
   location: Location,
   service: FirebaseStorageImpl,
-  handler: RequestHandler<I, O>,
   maxDownloadSizeBytes?: number
-): RequestInfo<I, O> {
+): RequestInfo<I, I> {
   const urlPart = location.fullServerUrl();
   const url = makeUrl(urlPart, service.host, service._protocol) + '?alt=media';
   const method = 'GET';
   const timeout = service.maxOperationRetryTime;
-  const requestInfo = new RequestInfo(url, method, handler, timeout);
+  const requestInfo = new RequestInfo(
+    url,
+    method,
+    (_: Connection<I>, data: I) => data,
+    timeout
+  );
   requestInfo.errorHandler = objectErrorHandler(location);
   if (maxDownloadSizeBytes !== undefined) {
     requestInfo.headers['Range'] = `bytes=0-${maxDownloadSizeBytes}`;

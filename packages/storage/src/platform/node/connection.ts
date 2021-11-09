@@ -102,7 +102,9 @@ abstract class FetchConnection<T extends ConnectionType>
 
   getResponseHeader(header: string): string | null {
     if (!this.headers_) {
-      throw internalError('cannot .getResponse() before receiving response');
+      throw internalError(
+        'cannot .getResponseHeader() before receiving response'
+      );
     }
     return this.headers_.get(header);
   }
