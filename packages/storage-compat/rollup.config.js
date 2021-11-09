@@ -19,13 +19,12 @@ import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
-/**
- * ES5 Builds
- */
+
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
@@ -34,29 +33,6 @@ const es5BuildPlugins = [
   json()
 ];
 
-const es5Builds = [
-  {
-    input: './src/index.ts',
-    output: [
-      {
-        file: pkg.main,
-        format: 'cjs',
-        sourcemap: true
-      },
-      {
-        file: pkg.esm5,
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: [...es5BuildPlugins],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
-
-/**
- * ES2017 Builds
- */
 const es2017BuildPlugins = [
   typescriptPlugin({
     typescript,
@@ -70,7 +46,17 @@ const es2017BuildPlugins = [
   json({ preferConst: true })
 ];
 
-const es2017Builds = [
+const esmBuilds = [
+  {
+    input: './src/index.ts',
+    output: {
+      file: pkg.esm5,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [...es5BuildPlugins, emitModulePackageFile()],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
   {
     input: './src/index.ts',
     output: {
@@ -78,10 +64,23 @@ const es2017Builds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...es2017BuildPlugins],
+    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const cjsBuilds = [
+  {
+    input: './src/index.ts',
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [...es5BuildPlugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
 // eslint-disable-next-line import/no-default-export
-export default [...es5Builds, ...es2017Builds];
+export default [...esmBuilds, ...cjsBuilds];

@@ -445,7 +445,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.call(CoreFunction.SIGN_OUT);
       expect(await driver.getUserSnapshot()).to.be.null;
       await driver.selectMainWindow({ noWait: true });
-      await driver.pause(500);
+      await driver.pause(700);
       expect(await driver.getUserSnapshot()).to.be.null;
 
       const cred2: UserCredential = await driver.call(

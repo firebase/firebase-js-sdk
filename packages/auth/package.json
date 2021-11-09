@@ -1,14 +1,39 @@
 {
   "name": "@firebase/auth",
-  "version": "0.18.3",
+  "version": "0.19.2",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",
   "react-native": "dist/rn/index.js",
   "browser": "dist/esm2017/index.js",
-  "cordova": "dist/cordova/index.esm5.js",
   "module": "dist/esm2017/index.js",
+  "cordova": "dist/cordova/index.esm5.js",
   "webworker": "dist/index.webworker.esm5.js",
+  "esm5": "dist/esm5/index.js",
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/node-esm/index.js",
+        "require": "./dist/node/index.js"
+      },
+      "react-native": "./dist/rn/index.js",
+      "cordova": "./dist/cordova/index.esm5.js",
+      "webworker": "./dist/index.webworker.esm5.js",
+      "esm5": "./dist/esm5/index.js",
+      "default": "./dist/esm2017/index.js"
+    },
+    "./internal": {
+      "node": {
+        "import": "./dist/node-esm/internal.js",
+        "require": "./dist/node/internal.js"
+      },
+      "react-native": "./dist/rn/internal.js",
+      "cordova": "./dist/cordova/internal.js",
+      "esm5": "./dist/esm5/internal.js",
+      "default": "./dist/esm2017/internal.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "cordova/package.json",
@@ -50,16 +75,16 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/component": "0.5.7",
-    "@firebase/logger": "0.3.0",
-    "@firebase/util": "1.4.0",
+    "@firebase/component": "0.5.9",
+    "@firebase/logger": "0.3.2",
+    "@firebase/util": "1.4.2",
     "node-fetch": "2.6.5",
     "selenium-webdriver": "4.0.0-rc-1",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.7.4",
+    "@firebase/app": "0.7.7",
     "@rollup/plugin-json": "4.1.0",
     "rollup": "2.57.0",
     "rollup-plugin-sourcemaps": "0.6.3",
@@ -81,6 +106,5 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
-  },
-  "esm5": "dist/esm5/index.js"
+  }
 }

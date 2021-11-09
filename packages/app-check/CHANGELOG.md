@@ -1,5 +1,31 @@
 # @firebase/app-check
 
+## 0.5.1
+
+### Patch Changes
+
+- [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a) [#5708](https://github.com/firebase/firebase-js-sdk/pull/5708) (fixes [#1487](https://github.com/firebase/firebase-js-sdk/issues/1487)) - Update build scripts to work with the exports field
+
+- Updated dependencies [[`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a)]:
+  - @firebase/component@0.5.9
+  - @firebase/logger@0.3.2
+  - @firebase/util@1.4.2
+
+## 0.5.0
+
+### Minor Changes
+
+- [`61604979c`](https://github.com/firebase/firebase-js-sdk/commit/61604979cb35647610ea385a6ba0ca67cb03f5d1) [#5595](https://github.com/firebase/firebase-js-sdk/pull/5595) - Add ReCAPTCHA Enterprise as an attestation option for App Check.
+
+### Patch Changes
+
+- [`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684) [#5693](https://github.com/firebase/firebase-js-sdk/pull/5693) - Add exports field to all packages
+
+- Updated dependencies [[`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684)]:
+  - @firebase/component@0.5.8
+  - @firebase/logger@0.3.1
+  - @firebase/util@1.4.1
+
 ## 0.4.2
 
 ### Patch Changes

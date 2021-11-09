@@ -1,5 +1,34 @@
 # @firebase/firestore-compat
 
+## 0.1.7
+
+### Patch Changes
+
+- [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a) [#5708](https://github.com/firebase/firebase-js-sdk/pull/5708) (fixes [#1487](https://github.com/firebase/firebase-js-sdk/issues/1487)) - Update build scripts to work with the exports field
+
+- Updated dependencies [[`532b3cd93`](https://github.com/firebase/firebase-js-sdk/commit/532b3cd939c5a2c13987a21e38a0a121c5dfca04), [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a)]:
+  - @firebase/firestore@3.3.0
+  - @firebase/component@0.5.9
+  - @firebase/util@1.4.2
+
+## 0.1.6
+
+### Patch Changes
+
+- [`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684) [#5693](https://github.com/firebase/firebase-js-sdk/pull/5693) - Add exports field to all packages
+
+- Updated dependencies [[`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684)]:
+  - @firebase/component@0.5.8
+  - @firebase/util@1.4.1
+  - @firebase/firestore@3.2.1
+
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies [[`4d3640481`](https://github.com/firebase/firebase-js-sdk/commit/4d36404812a7ca24ced5e1aabf6d8aa03de4e08a), [`f48527617`](https://github.com/firebase/firebase-js-sdk/commit/f485276173ac0f6fb212328d00334892f4b33a9a), [`c75bbe957`](https://github.com/firebase/firebase-js-sdk/commit/c75bbe9574133ce6d1487a601c7acb4204e417aa)]:
+  - @firebase/firestore@3.2.0
+
 ## 0.1.4
 
 ### Patch Changes

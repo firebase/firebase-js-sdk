@@ -78,6 +78,9 @@ class ConfirmationResultImpl implements ConfirmationResult {
  *
  * For abuse prevention, this method also requires a {@link ApplicationVerifier}.
  * This SDK includes a reCAPTCHA-based implementation, {@link RecaptchaVerifier}.
+ * This function can work on other platforms that do not support the
+ * {@link RecaptchaVerifier} (like React Native), but you need to use a
+ * third-party {@link ApplicationVerifier} implementation.
  *
  * @example
  * ```javascript

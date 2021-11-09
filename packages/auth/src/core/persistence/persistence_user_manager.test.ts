@@ -18,7 +18,7 @@
 import * as chai from 'chai';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { UserImpl } from '../user/user_impl';

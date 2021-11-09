@@ -34,7 +34,7 @@ import {
 } from '../../src';
 
 import { use, expect } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 import * as types from '../../src/public-types';
 
 use(chaiAsPromised);

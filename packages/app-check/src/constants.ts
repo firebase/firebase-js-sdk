@@ -18,6 +18,8 @@ export const BASE_ENDPOINT =
   'https://content-firebaseappcheck.googleapis.com/v1beta';
 
 export const EXCHANGE_RECAPTCHA_TOKEN_METHOD = 'exchangeRecaptchaToken';
+export const EXCHANGE_RECAPTCHA_ENTERPRISE_TOKEN_METHOD =
+  'exchangeRecaptchaEnterpriseToken';
 export const EXCHANGE_DEBUG_TOKEN_METHOD = 'exchangeDebugToken';
 
 export const TOKEN_REFRESH_TIME = {

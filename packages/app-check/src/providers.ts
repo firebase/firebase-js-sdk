@@ -18,12 +18,17 @@
 import { FirebaseApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { issuedAtTime } from '@firebase/util';
-import { exchangeToken, getExchangeRecaptchaTokenRequest } from './client';
+import {
+  exchangeToken,
+  getExchangeRecaptchaEnterpriseTokenRequest,
+  getExchangeRecaptchaV3TokenRequest
+} from './client';
 import { AppCheckError, ERROR_FACTORY } from './errors';
 import { CustomProviderOptions } from './public-types';
 import {
   getToken as getReCAPTCHAToken,
-  initialize as initializeRecaptcha
+  initializeV3 as initializeRecaptchaV3,
+  initializeEnterprise as initializeRecaptchaEnterprise
 } from './recaptcha';
 import { AppCheckProvider, AppCheckTokenInternal } from './types';
 
@@ -47,21 +52,17 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    * @internal
    */
   async getToken(): Promise<AppCheckTokenInternal> {
-    if (!this._app || !this._platformLoggerProvider) {
-      // This should only occur if user has not called initializeAppCheck().
-      // We don't have an appName to provide if so.
-      // This should already be caught in the top level `getToken()` function.
-      throw ERROR_FACTORY.create(AppCheckError.USE_BEFORE_ACTIVATION, {
-        appName: ''
-      });
-    }
-    const attestedClaimsToken = await getReCAPTCHAToken(this._app).catch(_e => {
-      // reCaptcha.execute() throws null which is not very descriptive.
-      throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
-    });
+    // Top-level `getToken()` has already checked that App Check is initialized
+    // and therefore this._app and this._platformLoggerProvider are available.
+    const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
+      _e => {
+        // reCaptcha.execute() throws null which is not very descriptive.
+        throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
+      }
+    );
     return exchangeToken(
-      getExchangeRecaptchaTokenRequest(this._app, attestedClaimsToken),
-      this._platformLoggerProvider
+      getExchangeRecaptchaV3TokenRequest(this._app!, attestedClaimsToken),
+      this._platformLoggerProvider!
     );
   }
 
@@ -71,7 +72,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
   initialize(app: FirebaseApp): void {
     this._app = app;
     this._platformLoggerProvider = _getProvider(app, 'platform-logger');
-    initializeRecaptcha(app, this._siteKey).catch(() => {
+    initializeRecaptchaV3(app, this._siteKey).catch(() => {
       /* we don't care about the initialization result */
     });
   }
@@ -81,6 +82,66 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    */
   isEqual(otherProvider: unknown): boolean {
     if (otherProvider instanceof ReCaptchaV3Provider) {
+      return this._siteKey === otherProvider._siteKey;
+    } else {
+      return false;
+    }
+  }
+}
+
+/**
+ * App Check provider that can obtain a reCAPTCHA Enterprise token and exchange it
+ * for an App Check token.
+ *
+ * @public
+ */
+export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
+  private _app?: FirebaseApp;
+  private _platformLoggerProvider?: Provider<'platform-logger'>;
+  /**
+   * Create a ReCaptchaEnterpriseProvider instance.
+   * @param siteKey - reCAPTCHA Enterprise score-based site key.
+   */
+  constructor(private _siteKey: string) {}
+
+  /**
+   * Returns an App Check token.
+   * @internal
+   */
+  async getToken(): Promise<AppCheckTokenInternal> {
+    // Top-level `getToken()` has already checked that App Check is initialized
+    // and therefore this._app and this._platformLoggerProvider are available.
+    const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
+      _e => {
+        // reCaptcha.execute() throws null which is not very descriptive.
+        throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
+      }
+    );
+    return exchangeToken(
+      getExchangeRecaptchaEnterpriseTokenRequest(
+        this._app!,
+        attestedClaimsToken
+      ),
+      this._platformLoggerProvider!
+    );
+  }
+
+  /**
+   * @internal
+   */
+  initialize(app: FirebaseApp): void {
+    this._app = app;
+    this._platformLoggerProvider = _getProvider(app, 'platform-logger');
+    initializeRecaptchaEnterprise(app, this._siteKey).catch(() => {
+      /* we don't care about the initialization result */
+    });
+  }
+
+  /**
+   * @internal
+   */
+  isEqual(otherProvider: unknown): boolean {
+    if (otherProvider instanceof ReCaptchaEnterpriseProvider) {
       return this._siteKey === otherProvider._siteKey;
     } else {
       return false;
@@ -101,14 +162,6 @@ export class CustomProvider implements AppCheckProvider {
    * @internal
    */
   async getToken(): Promise<AppCheckTokenInternal> {
-    if (!this._app) {
-      // This should only occur if user has not called initializeAppCheck().
-      // We don't have an appName to provide if so.
-      // This should already be caught in the top level `getToken()` function.
-      throw ERROR_FACTORY.create(AppCheckError.USE_BEFORE_ACTIVATION, {
-        appName: ''
-      });
-    }
     // custom provider
     const customToken = await this._customProviderOptions.getToken();
     // Try to extract IAT from custom token, in case this token is not

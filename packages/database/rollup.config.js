@@ -20,6 +20,7 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
 
 const deps = [
@@ -34,9 +35,6 @@ function onWarn(warning, defaultWarn) {
   defaultWarn(warning);
 }
 
-/**
- * ES5 Builds
- */
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript,
@@ -45,26 +43,20 @@ const es5BuildPlugins = [
   json()
 ];
 
-const es5Builds = [
-  /**
-   * Node.js Build
-   */
-  {
-    input: 'src/index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
-    ],
-    treeshake: {
-      moduleSideEffects: false
+const es2017BuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn
-  },
-  /**
-   * Browser Builds
-   */
+    abortOnError: false
+  }),
+  json({ preferConst: true })
+];
+
+const browserBuilds = [
   {
     input: 'src/index.ts',
     output: [
@@ -84,46 +76,11 @@ const es5Builds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
   },
-  /**
-   * Standalone Build
-   */
-  {
-    input: 'src/index.standalone.ts',
-    output: [{ file: pkg.standalone, format: 'cjs', sourcemap: true }],
-    plugins: es5BuildPlugins,
-    treeshake: {
-      moduleSideEffects: false
-    },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    onwarn: onWarn
-  }
-];
-
-/**
- * ES2017 Builds
- */
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
-    abortOnError: false
-  }),
-  json({ preferConst: true })
-];
-
-const es2017Builds = [
-  /**
-   * Browser Build
-   */
   {
     input: 'src/index.ts',
     output: [
       {
-        file: pkg.browser,
+        file: pkg.module,
         format: 'es',
         sourcemap: true
       }
@@ -140,4 +97,51 @@ const es2017Builds = [
   }
 ];
 
-export default [...es5Builds, ...es2017Builds];
+const nodeBuilds = [
+  {
+    input: 'src/index.node.ts',
+    output: { file: pkg.main, format: 'cjs', sourcemap: true },
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 5))
+    ],
+    treeshake: {
+      moduleSideEffects: false
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
+  },
+  {
+    input: 'src/index.node.ts',
+    output: {
+      file: pkg.exports['.'].node.import,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      emitModulePackageFile()
+    ],
+    treeshake: {
+      moduleSideEffects: false
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
+  },
+  /**
+   * Standalone Build for Admin SDK
+   */
+  {
+    input: 'src/index.standalone.ts',
+    output: [{ file: pkg.standalone, format: 'cjs', sourcemap: true }],
+    plugins: es5BuildPlugins,
+    treeshake: {
+      moduleSideEffects: false
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
+  }
+];
+
+export default [...browserBuilds, ...nodeBuilds];

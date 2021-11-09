@@ -243,7 +243,7 @@ const completeBuilds = [
     plugins: [
       sourcemaps(),
       resolveModule({
-        mainFields: ['lite-esm5', 'esm5', 'module']
+        exportConditions: ['liteesm5', 'esm5']
       }),
       typescriptPluginCDN,
       json(),
@@ -265,7 +265,7 @@ const completeBuilds = [
     plugins: [
       sourcemaps(),
       resolveModule({
-        mainFields: ['lite', 'module', 'main']
+        exportConditions: ['lite']
       }),
       rollupTypescriptPlugin({
         typescript,

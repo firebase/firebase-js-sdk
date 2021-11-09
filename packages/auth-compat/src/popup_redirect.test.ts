@@ -16,7 +16,7 @@
  */
 
 import { expect, use } from 'chai';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 import * as sinon from 'sinon';
 import * as exp from '@firebase/auth/internal';
 import * as platform from './platform';

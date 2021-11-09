@@ -17,7 +17,7 @@
 
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 
 import { FirebaseError } from '@firebase/util';
 import * as utils from '@firebase/util';

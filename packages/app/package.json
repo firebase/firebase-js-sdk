@@ -1,11 +1,20 @@
 {
   "name": "@firebase/app",
-  "version": "0.7.4",
+  "version": "0.7.7",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
+  "browser": "dist/esm/index.esm2017.js",
+  "module": "dist/esm/index.esm2017.js",
+  "esm5": "dist/esm/index.esm5.js",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "esm5": "./dist/esm/index.esm5.js",
+      "default": "./dist/esm/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],
@@ -28,9 +37,9 @@
     "typings:internal": "node ../../scripts/build/use_typings.js ./dist/app.d.ts"
   },
   "dependencies": {
-    "@firebase/util": "1.4.0",
-    "@firebase/logger": "0.3.0",
-    "@firebase/component": "0.5.7",
+    "@firebase/util": "1.4.2",
+    "@firebase/logger": "0.3.2",
+    "@firebase/component": "0.5.9",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
@@ -55,6 +64,5 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
-  },
-  "esm5": "dist/index.esm5.js"
+  }
 }

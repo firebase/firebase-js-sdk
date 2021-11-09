@@ -18,7 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 
 import { EventsAccumulator } from '../util/events_accumulator';
 import * as firebaseExport from '../util/firebase_export';

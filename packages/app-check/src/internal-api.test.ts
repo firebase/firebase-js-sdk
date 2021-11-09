@@ -41,7 +41,7 @@ import * as util from './util';
 import { getState, clearState, setState, getDebugState } from './state';
 import { AppCheckTokenListener } from './public-types';
 import { Deferred } from '@firebase/util';
-import { ReCaptchaV3Provider } from './providers';
+import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
 import { ListenerType } from './types';
 
@@ -92,7 +92,7 @@ describe('internal api', () => {
       });
     });
 
-    it('uses reCAPTCHA token to exchange for AppCheck token', async () => {
+    it('uses reCAPTCHA (V3) token to exchange for AppCheck token', async () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
@@ -112,6 +112,29 @@ describe('internal api', () => {
       expect(exchangeTokenStub.args[0][0].body['recaptcha_token']).to.equal(
         fakeRecaptchaToken
       );
+      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+    });
+
+    it('uses reCAPTCHA (Enterprise) token to exchange for AppCheck token', async () => {
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+      });
+
+      const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').returns(
+        Promise.resolve(fakeRecaptchaToken)
+      );
+      const exchangeTokenStub: SinonStub = stub(
+        client,
+        'exchangeToken'
+      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+
+      const token = await getToken(appCheck as AppCheckService);
+
+      expect(reCAPTCHASpy).to.be.called;
+
+      expect(
+        exchangeTokenStub.args[0][0].body['recaptcha_enterprise_token']
+      ).to.equal(fakeRecaptchaToken);
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
 

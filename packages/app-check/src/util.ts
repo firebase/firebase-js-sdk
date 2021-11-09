@@ -20,7 +20,12 @@ import { getState } from './state';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { FirebaseApp } from '@firebase/app';
 
-export function getRecaptcha(): GreCAPTCHA | undefined {
+export function getRecaptcha(
+  isEnterprise: boolean = false
+): GreCAPTCHA | undefined {
+  if (isEnterprise) {
+    return self.grecaptcha?.enterprise;
+  }
   return self.grecaptcha;
 }
 

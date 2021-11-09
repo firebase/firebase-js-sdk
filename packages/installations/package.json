@@ -1,10 +1,19 @@
 {
   "name": "@firebase/installations",
-  "version": "0.5.2",
+  "version": "0.5.4",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "module": "dist/index.esm2017.js",
-  "browser": "dist/index.esm2017.js",
+  "module": "dist/esm/index.esm2017.js",
+  "browser": "dist/esm/index.esm2017.js",
+  "esm5": "dist/esm/index.esm.js",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "esm5": "./dist/esm/index.esm.js",
+      "default": "./dist/esm/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
   "typings": "dist/src/index.d.ts",
   "license": "Apache-2.0",
   "files": [
@@ -40,7 +49,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.4",
+    "@firebase/app": "0.7.7",
     "rollup": "2.57.0",
     "@rollup/plugin-commonjs": "21.0.0",
     "@rollup/plugin-json": "4.1.0",
@@ -53,10 +62,9 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/util": "1.4.0",
-    "@firebase/component": "0.5.7",
+    "@firebase/util": "1.4.2",
+    "@firebase/component": "0.5.9",
     "idb": "3.0.2",
     "tslib": "^2.1.0"
-  },
-  "esm5": "dist/index.esm.js"
+  }
 }

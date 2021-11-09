@@ -1,12 +1,20 @@
 {
   "name": "@firebase/component",
-  "version": "0.5.7",
+  "version": "0.5.9",
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "browser": "dist/esm/index.esm2017.js",
+  "module": "dist/esm/index.esm2017.js",
+  "esm5": "dist/esm/index.esm5.js",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "esm5": "./dist/esm/index.esm5.js",
+      "default": "./dist/esm/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],
@@ -23,7 +31,7 @@
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js"
   },
   "dependencies": {
-    "@firebase/util": "1.4.0",
+    "@firebase/util": "1.4.2",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",

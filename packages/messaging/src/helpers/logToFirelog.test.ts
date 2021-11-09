@@ -16,8 +16,8 @@
  */
 
 import * as LogModule from './logToFirelog';
-import * as chaiAsPromised from 'chai-as-promised';
-import * as sinonChai from 'sinon-chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 
 import { expect, use } from 'chai';
 import {

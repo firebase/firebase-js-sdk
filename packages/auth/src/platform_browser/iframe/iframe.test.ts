@@ -16,9 +16,9 @@
  */
 
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 
 import { SDK_VERSION } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
@@ -86,6 +86,7 @@ describe('platform_browser/iframe/iframe', () => {
         height: '1px'
       },
       'aria-hidden': 'true',
+      tabindex: '-1'
     });
     expect(iframeSettings.dontclear).to.be.true;
   });

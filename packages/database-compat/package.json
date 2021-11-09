@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database-compat",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "The Realtime Database component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
@@ -15,12 +15,17 @@
   ],
   "exports": {
     ".": {
-      "node": "./dist/index.js",
+      "node": {
+        "import": "./dist/node-esm/index.js",
+        "require": "./dist/index.js"
+      },
+      "esm5": "./dist/index.esm5.js",
       "default": "./dist/index.esm2017.js"
     },
     "./standalone": {
       "node": "./dist/index.standalone.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -40,15 +45,15 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/database": "0.12.2",
-    "@firebase/database-types": "0.9.1",
-    "@firebase/logger": "0.3.0",
-    "@firebase/util": "1.4.0",
-    "@firebase/component": "0.5.7",
+    "@firebase/database": "0.12.4",
+    "@firebase/database-types": "0.9.3",
+    "@firebase/logger": "0.3.2",
+    "@firebase/util": "1.4.2",
+    "@firebase/component": "0.5.9",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.5"
+    "@firebase/app-compat": "0.1.8"
   },
   "repository": {
     "directory": "packages/database-compat",

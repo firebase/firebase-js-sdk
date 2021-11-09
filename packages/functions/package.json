@@ -1,11 +1,23 @@
 {
   "name": "@firebase/functions",
-  "version": "0.7.3",
+  "version": "0.7.5",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
+  "esm5": "dist/index.esm.js",
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/esm-node/index.node.esm.js",
+        "require": "./dist/index.node.cjs.js"
+      },
+      "esm5": "./dist/index.esm.js",
+      "default": "./dist/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],
@@ -33,7 +45,7 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.4",
+    "@firebase/app": "0.7.7",
     "rollup": "2.57.0",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.30.0",
@@ -49,11 +61,11 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.5.7",
+    "@firebase/component": "0.5.9",
     "@firebase/messaging-interop-types": "0.1.0",
     "@firebase/auth-interop-types": "0.1.6",
     "@firebase/app-check-interop-types": "0.1.0",
-    "@firebase/util": "1.4.0",
+    "@firebase/util": "1.4.2",
     "node-fetch": "2.6.5",
     "tslib": "^2.1.0"
   },
@@ -62,6 +74,5 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
-  },
-  "esm5": "dist/index.esm.js"
+  }
 }

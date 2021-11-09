@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { Client } from 'faye-websocket';
+import Websocket from 'faye-websocket';
 
 import { setWebSocketImpl } from './realtime/WebSocketConnection';
 
-setWebSocketImpl(Client);
+setWebSocketImpl(Websocket.Client);
 
 // This entry point should only be consumed by Admin SDK
 export * from './api.standalone';

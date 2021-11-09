@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database",
-  "version": "0.12.2",
+  "version": "0.12.4",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -8,6 +8,18 @@
   "module": "dist/index.esm2017.js",
   "esm5": "dist/index.esm5.js",
   "standalone": "dist/index.standalone.js",
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/node-esm/index.node.esm.js",
+        "require": "./dist/index.node.cjs.js"
+      },
+      "esm5": "./dist/index.esm5.js",
+      "standalone": "./dist/index.standalone.js",
+      "default": "./dist/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],
@@ -32,15 +44,15 @@
   "license": "Apache-2.0",
   "peerDependencies": {},
   "dependencies": {
-    "@firebase/logger": "0.3.0",
-    "@firebase/util": "1.4.0",
-    "@firebase/component": "0.5.7",
+    "@firebase/logger": "0.3.2",
+    "@firebase/util": "1.4.2",
+    "@firebase/component": "0.5.9",
     "@firebase/auth-interop-types": "0.1.6",
     "faye-websocket": "0.11.4",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.4",
+    "@firebase/app": "0.7.7",
     "rollup": "2.57.0",
     "rollup-plugin-typescript2": "0.30.0",
     "typescript": "4.2.2"

@@ -1,5 +1,42 @@
 # @firebase/firestore
 
+## 3.3.0
+
+### Minor Changes
+
+- [`532b3cd93`](https://github.com/firebase/firebase-js-sdk/commit/532b3cd939c5a2c13987a21e38a0a121c5dfca04) [#5675](https://github.com/firebase/firebase-js-sdk/pull/5675) (fixes [#5661](https://github.com/firebase/firebase-js-sdk/issues/5661)) - Expanded `Firestore.WithFieldValue<T>` to include `T`. This allows developers to delegate `WithFieldValue<T>` inside wrappers of type `T` to avoid exposing Firebase types beyond Firebase-specific logic.
+
+### Patch Changes
+
+- [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a) [#5708](https://github.com/firebase/firebase-js-sdk/pull/5708) (fixes [#1487](https://github.com/firebase/firebase-js-sdk/issues/1487)) - Update build scripts to work with the exports field
+
+- Updated dependencies [[`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a)]:
+  - @firebase/component@0.5.9
+  - @firebase/logger@0.3.2
+  - @firebase/util@1.4.2
+
+## 3.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684)]:
+  - @firebase/component@0.5.8
+  - @firebase/logger@0.3.1
+  - @firebase/util@1.4.1
+  - @firebase/webchannel-wrapper@0.6.1
+
+## 3.2.0
+
+### Minor Changes
+
+- [`4d3640481`](https://github.com/firebase/firebase-js-sdk/commit/4d36404812a7ca24ced5e1aabf6d8aa03de4e08a) [#5532](https://github.com/firebase/firebase-js-sdk/pull/5532) (fixes [#5499](https://github.com/firebase/firebase-js-sdk/issues/5499)) - Fix exports field to also point to Node ESM builds. This change requires Node.js version 10+.
+
+### Patch Changes
+
+- [`f48527617`](https://github.com/firebase/firebase-js-sdk/commit/f485276173ac0f6fb212328d00334892f4b33a9a) [#5668](https://github.com/firebase/firebase-js-sdk/pull/5668) - Add missing compat Firestore conversion for runTransaction
+
+* [`c75bbe957`](https://github.com/firebase/firebase-js-sdk/commit/c75bbe9574133ce6d1487a601c7acb4204e417aa) [#5643](https://github.com/firebase/firebase-js-sdk/pull/5643) - Change the networking API to use XHR instead of `fetch()` for ReactNative.
+
 ## 3.1.1
 
 ### Patch Changes

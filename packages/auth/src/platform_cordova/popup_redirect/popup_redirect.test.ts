@@ -17,8 +17,8 @@
 
 import { AuthProvider } from '../../model/public_types';
 import * as sinon from 'sinon';
-import * as chaiAsPromised from 'chai-as-promised';
-import * as sinonChai from 'sinon-chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 import { expect, use } from 'chai';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { SingletonInstantiator } from '../../core/util/instantiator';

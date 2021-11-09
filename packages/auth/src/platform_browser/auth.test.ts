@@ -16,9 +16,9 @@
  */
 
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 
 import { FirebaseApp } from '@firebase/app';
 import {
@@ -317,6 +317,25 @@ describe('core/auth/initializeAuth', () => {
         clientPlatform: ClientPlatform.BROWSER,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
+    });
+
+    it('initialization sets the callback UID correctly', async () => {
+      const stub = sinon.stub(
+        _getInstance<PersistenceInternal>(inMemoryPersistence)
+      );
+      stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
+      let authStateChangeCalls = 0;
+
+      const auth = await initAndWait(inMemoryPersistence) as AuthInternal;
+      auth.onAuthStateChanged(() => {
+        authStateChangeCalls++;
+      });
+
+      await auth._updateCurrentUser(testUser(auth, 'uid'));
+      await new Promise(resolve => {
+        setTimeout(resolve, 200);
+      });
+      expect(authStateChangeCalls).to.eq(1);
     });
 
     context('#tryRedirectSignIn', () => {

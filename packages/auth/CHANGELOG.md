@@ -1,5 +1,49 @@
 # @firebase/auth
 
+## 0.19.2
+
+### Patch Changes
+
+- [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a) [#5708](https://github.com/firebase/firebase-js-sdk/pull/5708) (fixes [#1487](https://github.com/firebase/firebase-js-sdk/issues/1487)) - Update build scripts to work with the exports field
+
+* [`dbd54f7c9`](https://github.com/firebase/firebase-js-sdk/commit/dbd54f7c9ef0b5d78d491e26d816084a478bdf04) [#5700](https://github.com/firebase/firebase-js-sdk/pull/5700) (fixes [#5631](https://github.com/firebase/firebase-js-sdk/issues/5631)) - Fix lighthouse issues related to the embedded iframe used to perform OAuth sign in.
+
+* Updated dependencies [[`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a)]:
+  - @firebase/component@0.5.9
+  - @firebase/logger@0.3.2
+  - @firebase/util@1.4.2
+
+## 0.19.1
+
+### Patch Changes
+
+- [`31bd6f27f`](https://github.com/firebase/firebase-js-sdk/commit/31bd6f27f965a561f814bad1110a43849a6a9cbf) [#5689](https://github.com/firebase/firebase-js-sdk/pull/5689) - Add SAMLAuthProvider to the compatability layer (it was missing before)
+
+* [`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684) [#5693](https://github.com/firebase/firebase-js-sdk/pull/5693) - Add exports field to all packages
+
+- [`0765b5e19`](https://github.com/firebase/firebase-js-sdk/commit/0765b5e19c3e949bb33233ee52c8e33f01418e54) [#5686](https://github.com/firebase/firebase-js-sdk/pull/5686) (fixes [#5685](https://github.com/firebase/firebase-js-sdk/issues/5685)) - Fix bug that caused onAuthStateChanged to be fired twice
+
+- Updated dependencies [[`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684)]:
+  - @firebase/component@0.5.8
+  - @firebase/logger@0.3.1
+  - @firebase/util@1.4.1
+
+## 0.19.0
+
+### Minor Changes
+
+- [`b6f30c24f`](https://github.com/firebase/firebase-js-sdk/commit/b6f30c24fdf096ac4e8bdba32b9c1380903a7507) [#5617](https://github.com/firebase/firebase-js-sdk/pull/5617) (fixes [#5610](https://github.com/firebase/firebase-js-sdk/issues/5610)) - Fix behavior on subsequent calls to `getRedirectResult()`
+
+### Patch Changes
+
+- [`69ff8eb54`](https://github.com/firebase/firebase-js-sdk/commit/69ff8eb549e49de51cae11a04bce023bb6e1fc02) [#5616](https://github.com/firebase/firebase-js-sdk/pull/5616) - Fix the public `AuthError` typing, and update the `MultiFactorError` implementation to follow the new standard (all fields listed under `customData`)
+
+* [`2429ac105`](https://github.com/firebase/firebase-js-sdk/commit/2429ac105b0aeb15eb8c362665448c209887bada) [#5633](https://github.com/firebase/firebase-js-sdk/pull/5633) (fixes [#5631](https://github.com/firebase/firebase-js-sdk/issues/5631)) - Add the attribute `aria-hidden="true"` to the embedded iframe
+
+- [`4594d3fd6`](https://github.com/firebase/firebase-js-sdk/commit/4594d3fd6c7f7680b877aa2017ba35084ef6af96) [#5673](https://github.com/firebase/firebase-js-sdk/pull/5673) - Export Phone sign in functionality in React Native entrypoint (except for RecaptchaVerifier)
+
+* [`6dacc2400`](https://github.com/firebase/firebase-js-sdk/commit/6dacc2400fdcf4432ed1977ca1eb148da6db3fc5) [#5635](https://github.com/firebase/firebase-js-sdk/pull/5635) (fixes [#5618](https://github.com/firebase/firebase-js-sdk/issues/5618)) - Make the library resilient against localStorage and sessionStorage permissions errors
+
 ## 0.18.3
 
 ### Patch Changes

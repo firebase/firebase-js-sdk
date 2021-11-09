@@ -1,5 +1,95 @@
 # firebase
 
+## 9.4.0
+
+### Minor Changes
+
+- [`532b3cd93`](https://github.com/firebase/firebase-js-sdk/commit/532b3cd939c5a2c13987a21e38a0a121c5dfca04) [#5675](https://github.com/firebase/firebase-js-sdk/pull/5675) (fixes [#5661](https://github.com/firebase/firebase-js-sdk/issues/5661)) - Expanded `Firestore.WithFieldValue<T>` to include `T`. This allows developers to delegate `WithFieldValue<T>` inside wrappers of type `T` to avoid exposing Firebase types beyond Firebase-specific logic.
+
+### Patch Changes
+
+- [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a) [#5708](https://github.com/firebase/firebase-js-sdk/pull/5708) (fixes [#1487](https://github.com/firebase/firebase-js-sdk/issues/1487)) - Update build scripts to work with the exports field
+
+- Updated dependencies [[`532b3cd93`](https://github.com/firebase/firebase-js-sdk/commit/532b3cd939c5a2c13987a21e38a0a121c5dfca04), [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a), [`dbd54f7c9`](https://github.com/firebase/firebase-js-sdk/commit/dbd54f7c9ef0b5d78d491e26d816084a478bdf04)]:
+  - @firebase/firestore@3.3.0
+  - @firebase/analytics-compat@0.1.5
+  - @firebase/analytics@0.7.4
+  - @firebase/app-check-compat@0.2.1
+  - @firebase/app-check@0.5.1
+  - @firebase/app-compat@0.1.8
+  - @firebase/app@0.7.7
+  - @firebase/auth-compat@0.2.2
+  - @firebase/auth@0.19.2
+  - @firebase/database-compat@0.1.4
+  - @firebase/database@0.12.4
+  - @firebase/firestore-compat@0.1.7
+  - @firebase/functions-compat@0.1.6
+  - @firebase/functions@0.7.5
+  - @firebase/installations@0.5.4
+  - @firebase/messaging-compat@0.1.4
+  - @firebase/messaging@0.9.4
+  - @firebase/performance-compat@0.1.4
+  - @firebase/performance@0.5.4
+  - @firebase/remote-config-compat@0.1.4
+  - @firebase/remote-config@0.3.3
+  - @firebase/storage-compat@0.1.6
+  - @firebase/storage@0.8.6
+  - @firebase/util@1.4.2
+
+## 9.3.0
+
+### Minor Changes
+
+- [`61604979c`](https://github.com/firebase/firebase-js-sdk/commit/61604979cb35647610ea385a6ba0ca67cb03f5d1) [#5595](https://github.com/firebase/firebase-js-sdk/pull/5595) - Add ReCAPTCHA Enterprise as an attestation option for App Check.
+
+### Patch Changes
+
+- Updated dependencies [[`31bd6f27f`](https://github.com/firebase/firebase-js-sdk/commit/31bd6f27f965a561f814bad1110a43849a6a9cbf), [`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684), [`61604979c`](https://github.com/firebase/firebase-js-sdk/commit/61604979cb35647610ea385a6ba0ca67cb03f5d1), [`0765b5e19`](https://github.com/firebase/firebase-js-sdk/commit/0765b5e19c3e949bb33233ee52c8e33f01418e54)]:
+  - @firebase/auth-compat@0.2.1
+  - @firebase/auth@0.19.1
+  - @firebase/analytics@0.7.3
+  - @firebase/analytics-compat@0.1.4
+  - @firebase/app@0.7.6
+  - @firebase/app-check@0.5.0
+  - @firebase/app-check-compat@0.2.0
+  - @firebase/app-compat@0.1.7
+  - @firebase/database@0.12.3
+  - @firebase/database-compat@0.1.3
+  - @firebase/firestore-compat@0.1.6
+  - @firebase/functions@0.7.4
+  - @firebase/functions-compat@0.1.5
+  - @firebase/installations@0.5.3
+  - @firebase/messaging@0.9.3
+  - @firebase/messaging-compat@0.1.3
+  - @firebase/performance@0.5.3
+  - @firebase/performance-compat@0.1.3
+  - @firebase/remote-config@0.3.2
+  - @firebase/remote-config-compat@0.1.3
+  - @firebase/storage@0.8.5
+  - @firebase/storage-compat@0.1.5
+  - @firebase/util@1.4.1
+  - @firebase/firestore@3.2.1
+
+## 9.2.0
+
+### Minor Changes
+
+- [`4d3640481`](https://github.com/firebase/firebase-js-sdk/commit/4d36404812a7ca24ced5e1aabf6d8aa03de4e08a) [#5532](https://github.com/firebase/firebase-js-sdk/pull/5532) (fixes [#5499](https://github.com/firebase/firebase-js-sdk/issues/5499)) - Fix exports field to also point to Node ESM builds. This change requires Node.js version 10+.
+
+* [`b6f30c24f`](https://github.com/firebase/firebase-js-sdk/commit/b6f30c24fdf096ac4e8bdba32b9c1380903a7507) [#5617](https://github.com/firebase/firebase-js-sdk/pull/5617) (fixes [#5610](https://github.com/firebase/firebase-js-sdk/issues/5610)) - Fix behavior on subsequent calls to `getRedirectResult()`
+
+### Patch Changes
+
+- [`f0f6d74b5`](https://github.com/firebase/firebase-js-sdk/commit/f0f6d74b58312f7e577743e58abb030ffe38c295) [#5664](https://github.com/firebase/firebase-js-sdk/pull/5664) (fixes [#5644](https://github.com/firebase/firebase-js-sdk/issues/5644)) - Fix compatability layer errors that were being thrown in Safari
+
+- Updated dependencies [[`4d3640481`](https://github.com/firebase/firebase-js-sdk/commit/4d36404812a7ca24ced5e1aabf6d8aa03de4e08a), [`b6f30c24f`](https://github.com/firebase/firebase-js-sdk/commit/b6f30c24fdf096ac4e8bdba32b9c1380903a7507), [`69ff8eb54`](https://github.com/firebase/firebase-js-sdk/commit/69ff8eb549e49de51cae11a04bce023bb6e1fc02), [`2429ac105`](https://github.com/firebase/firebase-js-sdk/commit/2429ac105b0aeb15eb8c362665448c209887bada), [`4594d3fd6`](https://github.com/firebase/firebase-js-sdk/commit/4594d3fd6c7f7680b877aa2017ba35084ef6af96), [`6dacc2400`](https://github.com/firebase/firebase-js-sdk/commit/6dacc2400fdcf4432ed1977ca1eb148da6db3fc5), [`f48527617`](https://github.com/firebase/firebase-js-sdk/commit/f485276173ac0f6fb212328d00334892f4b33a9a), [`c75bbe957`](https://github.com/firebase/firebase-js-sdk/commit/c75bbe9574133ce6d1487a601c7acb4204e417aa)]:
+  - @firebase/firestore@3.2.0
+  - @firebase/app@0.7.5
+  - @firebase/auth-compat@0.2.0
+  - @firebase/auth@0.19.0
+  - @firebase/firestore-compat@0.1.5
+  - @firebase/app-compat@0.1.6
+
 ## 9.1.3
 
 ### Patch Changes

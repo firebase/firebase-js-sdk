@@ -17,39 +17,19 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-/**
- * ES5 Builds
- */
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript
   })
 ];
 
-const es5Builds = [
-  /**
-   * Browser Builds
-   */
-  {
-    input: 'index.ts',
-    output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
-    ],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
-
-/**
- * ES2017 Builds
- */
 const es2017BuildPlugins = [
   typescriptPlugin({
     typescript,
@@ -61,20 +41,32 @@ const es2017BuildPlugins = [
   })
 ];
 
-const es2017Builds = [
-  /**
-   *  Browser Builds
-   */
+const esmBuilds = [
+  {
+    input: 'index.ts',
+    output: { file: pkg.module, format: 'es', sourcemap: true },
+    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
   {
     input: 'index.ts',
     output: {
-      file: pkg.esm2017,
+      file: pkg.esm5,
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: [...es5BuildPlugins, emitModulePackageFile()],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
-export default [...es5Builds, ...es2017Builds];
+const cjsBuilds = [
+  {
+    input: 'index.ts',
+    output: { file: pkg.main, format: 'cjs', sourcemap: true },
+    plugins: es5BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default [...esmBuilds, ...cjsBuilds];

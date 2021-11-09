@@ -1,13 +1,24 @@
 {
   "name": "@firebase/template",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "A template package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.esm.js",
-  "module": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "browser": "dist/index.esm2017.js",
+  "module": "dist/index.esm2017.js",
+  "esm5": "dist/index.esm5.js",
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/node-esm/index.node.esm.js",
+        "require": "./dist/index.node.cjs.js"
+      },
+      "esm5": "./dist/index.esm5.js",
+      "default": "./dist/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],
@@ -33,7 +44,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.7.4",
+    "@firebase/app": "0.7.7",
     "rollup": "2.57.0",
     "rollup-plugin-typescript2": "0.30.0",
     "typescript": "4.2.2"
