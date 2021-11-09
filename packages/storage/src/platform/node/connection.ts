@@ -158,7 +158,7 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
     this.sent_ = true;
 
     try {
-      const response = await nodeFetch(url, {
+      const response = await this.fetch_(url, {
         method,
         headers: headers || {},
         body: body as ArrayBufferView | string
