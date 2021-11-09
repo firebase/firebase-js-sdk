@@ -100,27 +100,6 @@ describeSpec('Queries:', [], () => {
       });
   });
 
-  Caused by: java.lang.AssertionError: expected:<
-    [DocumentViewChange(Document{key=cg/1, version=SnapshotVersion(seconds=0, nanos=1000000), re
-    adTime=SnapshotVersion(seconds=0, nanos=0), type=FOUND_DOCUMENT, documentState=SYNCED, value=ObjectValue{internalValue={val:1}}},ADDED),
-  DocumentViewChange(Document{key=cg/2, version=SnapshotVersion(seconds=0, nanos=0), readTime=SnapshotVersion(seconds=0, nanos=0),
-    type=FOUND_DOCUMENT, documentState=HAS_LOCAL_MUTATIONS, value=ObjectValue{internalValue={val:2}}},ADDED),
-  \DocumentViewChange(Document{key=not-cg/nope/cg/3, version=SnapshotVersion(seconds=0, nanos=0),
-    readTime=SnapshotVersion(seconds=0, nanos=0), type=FOUND_DOCUMENT, documentState=HAS_LOCAL_MUTATIONS,
-    value=ObjectValue{internalValue={val:1}}},ADDED)]>
-
-
-  but was:<[DocumentViewChange(Document{key=cg/1, version=SnapshotVersion(seconds=0, nanos=1000000),
-    readTime=SnapshotVersion(seconds=0, nanos=0), type=FOUND_DOCUMENT, documentState=SYNCED,
-    value=ObjectValue{internalValue={val:1}}},ADDED), DocumentViewChange(Document{key=cg/2,
-    version=SnapshotVersion(seconds=0, nanos=0), readTime=SnapshotVersion(seconds=0, nanos=0),
-    type=FOUND_DOCUMENT, documentState=HAS_LOCAL_MUTATIONS, value=ObjectValue{internalValue={val:2}}},ADDED)]>
-  at org.junit.Assert.fail(Assert.java:88)
-  at org.junit.Assert.failNotEquals(Assert.java:834)
-  at org.junit.Assert.assertEquals(Assert.java:118)
-  at org.junit.Assert.assertEquals(Assert.java:144)
-
-
   specTest(
     'Latency-compensated updates are included in query results',
     [],
