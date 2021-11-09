@@ -1,5 +1,5 @@
 ---
-"@firebase/storage": patch
+"@firebase/storage": minor
 ---
 
 Adds `getBytes()`, `getStream()` and `getBlob()`, which allow direct file downloads from the SDK.
