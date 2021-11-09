@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { StorageError } from './error';
-import { Headers, Connection } from './connection';
+import { Headers, Connection, ConnectionType } from './connection';
 
 /**
  * Type for url params stored in RequestInfo.
@@ -28,29 +28,27 @@ export interface UrlParams {
  * A function that converts a server response to the API type expected by the
  * SDK.
  *
- * @param I - the type of the backend's network response (always `string`,
- * `ArrayBuffer` or `ReadableStream`).
+ * @param I - the type of the backend's network response .
  * @param O - the output response type used by the rest of the SDK.
  */
-export type RequestHandler<I, O> = (
+export type RequestHandler<I extends ConnectionType, O> = (
   connection: Connection<I>,
   response: I
 ) => O;
 
 /** A function to handle an error. */
 export type ErrorHandler = (
-  connection: Connection<unknown>,
+  connection: Connection<ConnectionType>,
   response: StorageError
 ) => StorageError;
 
 /**
  * Contains a fully specified request.
  *
- * @param I - the type of the backend's network response (always `string`,
- * `ArrayBuffer` or `ReadableStream`).
+ * @param I - the type of the backend's network response.
  * @param O - the output response type used by the rest of the SDK.
  */
-export class RequestInfo<I, O> {
+export class RequestInfo<I extends ConnectionType, O> {
   urlParams: UrlParams = {};
   headers: Headers = {};
   body: Blob | string | Uint8Array | null = null;

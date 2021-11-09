@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { Connection, ErrorCode } from '../../implementation/connection';
+import {
+  Connection,
+  ConnectionType,
+  ErrorCode
+} from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
 import nodeFetch, { Headers } from 'node-fetch';
 
@@ -28,8 +32,8 @@ let textFactoryOverride: (() => Connection<string>) | null = null;
  * This network implementation should not be used in browsers as it does not
  * support progress updates.
  */
-abstract class FetchConnection<ResponseType>
-  implements Connection<ResponseType>
+abstract class FetchConnection<T extends ConnectionType>
+  implements Connection<T>
 {
   protected errorCode_: ErrorCode;
   protected statusCode_: number | undefined;
@@ -37,7 +41,7 @@ abstract class FetchConnection<ResponseType>
   protected errorText_ = '';
   protected headers_: Headers | undefined;
   protected sent_: boolean = false;
-  private fetch_ = nodeFetch;
+  protected fetch_ = nodeFetch;
 
   constructor() {
     this.errorCode_ = ErrorCode.NO_ERROR;
@@ -86,7 +90,7 @@ abstract class FetchConnection<ResponseType>
     return this.statusCode_;
   }
 
-  abstract getResponse(): ResponseType;
+  abstract getResponse(): T;
 
   getErrorText(): string {
     return this.errorText_;

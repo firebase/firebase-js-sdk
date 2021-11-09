@@ -25,7 +25,7 @@ import { appDeleted, canceled, retryLimitExceeded, unknown } from './error';
 import { ErrorHandler, RequestHandler, RequestInfo } from './requestinfo';
 import { isJustDef } from './type';
 import { makeQueryString } from './url';
-import { Connection, ErrorCode, Headers } from './connection';
+import { Connection, ErrorCode, Headers, ConnectionType } from './connection';
 
 export interface Request<T> {
   getPromise(): Promise<T>;
@@ -44,12 +44,11 @@ export interface Request<T> {
  * Handles network logic for all Storage Requests, including error reporting and
  * retries with backoff.
  *
- * @param I - the type of the backend's network response (always `string`,
- * `ArrayBuffer` or `ReadableStream`).
+ * @param I - the type of the backend's network response.
  * @param - O the output type used by the rest of the SDK. The conversion
  * happens in the specified `callback_`.
  */
-class NetworkRequest<I, O> implements Request<O> {
+class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
   private pendingConnection_: Connection<I> | null = null;
   private backoffId_: backoffId | null = null;
   private resolve_!: (value?: O | PromiseLike<O>) => void;
@@ -219,7 +218,7 @@ class NetworkRequest<I, O> implements Request<O> {
  * A collection of information about the result of a network request.
  * @param opt_canceled - Defaults to false.
  */
-export class RequestEndStatus<I> {
+export class RequestEndStatus<I extends ConnectionType> {
   /**
    * True if the request was canceled.
    */
@@ -266,7 +265,7 @@ export function addAppCheckHeader_(
   }
 }
 
-export function makeRequest<I, O>(
+export function makeRequest<I extends ConnectionType, O>(
   requestInfo: RequestInfo<I, O>,
   appId: string | null,
   authToken: string | null,

@@ -18,15 +18,21 @@
 /** Network headers */
 export type Headers = Record<string, string>;
 
+/** Response type exposed by the networking APIs. */
+export type ConnectionType =
+  | string
+  | ArrayBuffer
+  | Blob
+  | NodeJS.ReadableStream;
+
 /**
  * A lightweight wrapper around XMLHttpRequest with a
  * goog.net.XhrIo-like interface.
  *
- * ResponseType is generally either `string`, `ArrayBuffer` or `ReadableSteam`.
  * You can create a new connection by invoking `newTextConnection()`,
  * `newBytesConnection()` or `newStreamConnection()`.
  */
-export interface Connection<ResponseType> {
+export interface Connection<T extends ConnectionType> {
   /**
    * Sends a request to the provided URL.
    *
@@ -45,7 +51,7 @@ export interface Connection<ResponseType> {
 
   getStatus(): number;
 
-  getResponse(): ResponseType;
+  getResponse(): T;
 
   getErrorText(): string;
 

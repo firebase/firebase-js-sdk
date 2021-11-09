@@ -44,7 +44,7 @@ import { fromResponseString } from './list';
 import { RequestHandler, RequestInfo, UrlParams } from './requestinfo';
 import { isString } from './type';
 import { makeUrl } from './url';
-import { Connection } from './connection';
+import { Connection, ConnectionType } from './connection';
 import { FirebaseStorageImpl } from '../service';
 
 /**
@@ -99,9 +99,9 @@ export function downloadUrlHandler(
 
 export function sharedErrorHandler(
   location: Location
-): (p1: Connection<unknown>, p2: StorageError) => StorageError {
+): (p1: Connection<ConnectionType>, p2: StorageError) => StorageError {
   function errorHandler(
-    xhr: Connection<unknown>,
+    xhr: Connection<ConnectionType>,
     err: StorageError
   ): StorageError {
     let newErr;
@@ -134,11 +134,11 @@ export function sharedErrorHandler(
 
 export function objectErrorHandler(
   location: Location
-): (p1: Connection<unknown>, p2: StorageError) => StorageError {
+): (p1: Connection<ConnectionType>, p2: StorageError) => StorageError {
   const shared = sharedErrorHandler(location);
 
   function errorHandler(
-    xhr: Connection<unknown>,
+    xhr: Connection<ConnectionType>,
     err: StorageError
   ): StorageError {
     let newErr = shared(xhr, err);
@@ -265,7 +265,7 @@ export function getStreamHandler(): RequestHandler<
 }
 
 /** Creates a new request to download an object. */
-function createDownloadRequest<I, O>(
+function createDownloadRequest<I extends ConnectionType, O>(
   location: Location,
   service: FirebaseStorageImpl,
   handler: RequestHandler<I, O>,

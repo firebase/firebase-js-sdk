@@ -17,6 +17,7 @@
 
 import {
   Connection,
+  ConnectionType,
   ErrorCode,
   Headers
 } from '../../implementation/connection';
@@ -29,7 +30,9 @@ let textFactoryOverride: (() => Connection<string>) | null = null;
  * Network layer for browsers. We use this instead of goog.net.XhrIo because
  * goog.net.XhrIo is hyuuuuge and doesn't work in React Native on Android.
  */
-abstract class XhrConnection<ResponseType> implements Connection<ResponseType> {
+abstract class XhrConnection<T extends ConnectionType>
+  implements Connection<T>
+{
   protected xhr_: XMLHttpRequest;
   private errorCode_: ErrorCode;
   private sendPromise_: Promise<void>;
@@ -100,7 +103,7 @@ abstract class XhrConnection<ResponseType> implements Connection<ResponseType> {
     }
   }
 
-  abstract getResponse(): ResponseType;
+  abstract getResponse(): T;
 
   getErrorText(): string {
     if (!this.sent_) {
@@ -152,9 +155,7 @@ export class XhrBytesConnection extends XhrConnection<ArrayBuffer> {
   private data_?: ArrayBuffer;
 
   initXhr(): void {
-    // We use Blob here instead of ArrayBuffer to ensure that this code works
-    // in Opera.
-    this.xhr_.responseType = 'blob';
+    this.xhr_.responseType = 'arraybuffer';
   }
 
   getResponse(): ArrayBuffer {
@@ -172,7 +173,7 @@ export class XhrBytesConnection extends XhrConnection<ArrayBuffer> {
   ): Promise<void> {
     return super.send(url, method, body, headers).then(async () => {
       if (this.getErrorCode() === ErrorCode.NO_ERROR) {
-        this.data_ = await (this.xhr_.response as Blob).arrayBuffer();
+        this.data_ = this.xhr_.response as ArrayBuffer;
       }
     });
   }
