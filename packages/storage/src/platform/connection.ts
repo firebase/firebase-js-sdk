@@ -41,7 +41,7 @@ export function newBytesConnection(): Connection<ArrayBuffer> {
 }
 
 export function newBlobConnection(): Connection<Blob> {
-  // This file is only used under ts-node.
+  // This file is only used in Node.js tests using ts-node.
   return nodeNewBlobConnection();
 }
 
