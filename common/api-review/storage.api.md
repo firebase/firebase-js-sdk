@@ -77,14 +77,15 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     _getAuthToken(): Promise<string | null>;
     get host(): string;
     set host(host: string);
+    // Warning: (ae-forgotten-export) The symbol "ConnectionType" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Connection" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Request" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    _makeRequest<I, O>(requestInfo: RequestInfo_2<I, O>, requestFactory: () => Connection<I>, authToken: string | null, appCheckToken: string | null): Request_2<O>;
+    _makeRequest<I extends ConnectionType, O>(requestInfo: RequestInfo_2<I, O>, requestFactory: () => Connection<I>, authToken: string | null, appCheckToken: string | null): Request_2<O>;
     // (undocumented)
-    makeRequestWithTokens<I, O>(requestInfo: RequestInfo_2<I, O>, requestFactory: () => Connection<I>): Promise<O>;
+    makeRequestWithTokens<I extends ConnectionType, O>(requestInfo: RequestInfo_2<I, O>, requestFactory: () => Connection<I>): Promise<O>;
     _makeStorageReference(loc: _Location): _Reference;
     get maxOperationRetryTime(): number;
     set maxOperationRetryTime(time: number);
