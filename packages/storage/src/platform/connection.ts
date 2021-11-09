@@ -36,7 +36,7 @@ export function newTextConnection(): Connection<string> {
 }
 
 export function newBytesConnection(): Connection<ArrayBuffer> {
-  // This file is only used under ts-node.
+  // This file is only used in Node.js tests using ts-node.
   return nodeNewBytesConnection();
 }
 
