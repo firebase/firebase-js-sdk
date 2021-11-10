@@ -4,7 +4,7 @@
     "dependencies": [
       {
         "packageName": "firebase",
-        "versionOrTag": "exp",
+        "versionOrTag": "latest",
         "imports": [
           {
             "path": "app",
@@ -16,7 +16,7 @@
       },
       {
         "packageName": "firebase",
-        "versionOrTag": "exp",
+        "versionOrTag": "latest",
         "imports": [
           {
             "path": "functions",
