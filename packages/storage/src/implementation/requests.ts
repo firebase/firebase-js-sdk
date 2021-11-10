@@ -207,36 +207,11 @@ export function list(
   return requestInfo;
 }
 
-export function getBytes(
+export function getBytes<I extends ConnectionType>(
   service: FirebaseStorageImpl,
   location: Location,
   maxDownloadSizeBytes?: number
-): RequestInfo<ArrayBuffer, ArrayBuffer> {
-  return createDownloadRequest(location, service, maxDownloadSizeBytes);
-}
-
-export function getBlob(
-  service: FirebaseStorageImpl,
-  location: Location,
-  maxDownloadSizeBytes?: number
-): RequestInfo<Blob, Blob> {
-  return createDownloadRequest(location, service, maxDownloadSizeBytes);
-}
-
-export function getStream(
-  service: FirebaseStorageImpl,
-  location: Location,
-  maxDownloadSizeBytes?: number
-): RequestInfo<NodeJS.ReadableStream, NodeJS.ReadableStream> {
-  return createDownloadRequest(location, service, maxDownloadSizeBytes);
-}
-
-/** Creates a new request to download an object. */
-function createDownloadRequest<I extends ConnectionType>(
-  location: Location,
-  service: FirebaseStorageImpl,
-  maxDownloadSizeBytes?: number
-): RequestInfo<I, I> {
+): RequestInfo<I, I>  {
   const urlPart = location.fullServerUrl();
   const url = makeUrl(urlPart, service.host, service._protocol) + '?alt=media';
   const method = 'GET';
