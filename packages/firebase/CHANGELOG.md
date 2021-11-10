@@ -1,5 +1,19 @@
 # firebase
 
+## 9.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`3b338dbd8`](https://github.com/firebase/firebase-js-sdk/commit/3b338dbd8cdfdc73267cd052b1852a1358b05eaf), [`1583a8202`](https://github.com/firebase/firebase-js-sdk/commit/1583a82022bfd404e94f28d1786e596d6b5a9f43), [`e0fe2b668`](https://github.com/firebase/firebase-js-sdk/commit/e0fe2b668b64b64d842988c2c147d3de66148f48)]:
+  - @firebase/app@0.7.8
+  - @firebase/functions@0.7.6
+  - @firebase/auth@0.19.3
+  - @firebase/storage@0.8.7
+  - @firebase/app-compat@0.1.9
+  - @firebase/functions-compat@0.1.7
+  - @firebase/auth-compat@0.2.3
+  - @firebase/storage-compat@0.1.7
+
 ## 9.4.0
 
 ### Minor Changes
