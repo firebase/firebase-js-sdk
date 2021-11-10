@@ -64,7 +64,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    */
   async getToken(): Promise<AppCheckTokenInternal> {
     throwIfThrottled(this._throttleData);
-  
+
     // Top-level `getToken()` has already checked that App Check is initialized
     // and therefore this._app and this._platformLoggerProvider are available.
     const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
@@ -160,7 +160,10 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
     let result;
     try {
       result = await exchangeToken(
-        getExchangeRecaptchaEnterpriseTokenRequest(this._app!, attestedClaimsToken),
+        getExchangeRecaptchaEnterpriseTokenRequest(
+          this._app!,
+          attestedClaimsToken
+        ),
         this._platformLoggerProvider!
       );
     } catch (e) {

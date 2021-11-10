@@ -199,4 +199,3 @@ describe('ReCaptchaEnterpriseProvider', () => {
     expect(token.token).to.equal('fake-exchange-token');
   });
 });
-

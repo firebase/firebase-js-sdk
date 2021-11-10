@@ -432,7 +432,6 @@ describe('internal api', () => {
 
       const token = await getToken(appCheck as AppCheckService);
 
-
       // ReCaptchaV3Provider's _throttleData is private so checking
       // the resulting error message to be sure it has roughly the
       // correct throttle time. This also tests the time formatter.
