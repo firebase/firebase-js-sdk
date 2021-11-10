@@ -106,6 +106,10 @@ export function _getProvider<T extends Name>(
   app: FirebaseApp,
   name: T
 ): Provider<T> {
+  const heartbeatController = (app as FirebaseAppImpl).container
+    .getProvider('heartbeat')
+    .getImmediate();
+  void heartbeatController.triggerHeartbeat();
   return (app as FirebaseAppImpl).container.getProvider(name);
 }
 

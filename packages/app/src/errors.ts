@@ -23,7 +23,11 @@ export const enum AppError {
   DUPLICATE_APP = 'duplicate-app',
   APP_DELETED = 'app-deleted',
   INVALID_APP_ARGUMENT = 'invalid-app-argument',
-  INVALID_LOG_ARGUMENT = 'invalid-log-argument'
+  INVALID_LOG_ARGUMENT = 'invalid-log-argument',
+  STORAGE_OPEN = 'storage-open',
+  STORAGE_GET = 'storage-get',
+  STORAGE_WRITE = 'storage-set',
+  STORAGE_DELETE = 'storage-delete'
 }
 
 const ERRORS: ErrorMap<AppError> = {
@@ -38,7 +42,15 @@ const ERRORS: ErrorMap<AppError> = {
     'firebase.{$appName}() takes either no argument or a ' +
     'Firebase App instance.',
   [AppError.INVALID_LOG_ARGUMENT]:
-    'First argument to `onLog` must be null or a function.'
+    'First argument to `onLog` must be null or a function.',
+  [AppError.STORAGE_OPEN]:
+    'Error thrown when opening storage. Original error: {$originalErrorMessage}.',
+  [AppError.STORAGE_GET]:
+    'Error thrown when reading from storage. Original error: {$originalErrorMessage}.',
+  [AppError.STORAGE_WRITE]:
+    'Error thrown when writing to storage. Original error: {$originalErrorMessage}.',
+  [AppError.STORAGE_DELETE]:
+    'Error thrown when deleting from storage. Original error: {$originalErrorMessage}.'
 };
 
 interface ErrorParams {
@@ -47,6 +59,10 @@ interface ErrorParams {
   [AppError.DUPLICATE_APP]: { appName: string };
   [AppError.APP_DELETED]: { appName: string };
   [AppError.INVALID_APP_ARGUMENT]: { appName: string };
+  [AppError.STORAGE_OPEN]: { originalErrorMessage?: string };
+  [AppError.STORAGE_GET]: { originalErrorMessage?: string };
+  [AppError.STORAGE_WRITE]: { originalErrorMessage?: string };
+  [AppError.STORAGE_DELETE]: { originalErrorMessage?: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AppError, ErrorParams>(
