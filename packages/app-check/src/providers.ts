@@ -64,15 +64,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    */
   async getToken(): Promise<AppCheckTokenInternal> {
     throwIfThrottled(this._throttleData);
-
-    if (!this._app || !this._platformLoggerProvider) {
-      // This should only occur if user has not called initializeAppCheck().
-      // We don't have an appName to provide if so.
-      // This should already be caught in the top level `getToken()` function.
-      throw ERROR_FACTORY.create(AppCheckError.USE_BEFORE_ACTIVATION, {
-        appName: ''
-      });
-    }
+  
     // Top-level `getToken()` has already checked that App Check is initialized
     // and therefore this._app and this._platformLoggerProvider are available.
     const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
@@ -84,8 +76,8 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
     let result;
     try {
       result = await exchangeToken(
-        getExchangeRecaptchaV3TokenRequest(this._app, attestedClaimsToken),
-        this._platformLoggerProvider
+        getExchangeRecaptchaV3TokenRequest(this._app!, attestedClaimsToken),
+        this._platformLoggerProvider!
       );
     } catch (e) {
       if ((e as FirebaseError).code === AppCheckError.FETCH_STATUS_ERROR) {
@@ -93,7 +85,6 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
           Number((e as FirebaseError).customData?.httpStatus),
           this._throttleData
         );
-        console.log('next interval', this._throttleData.allowRequestsAfter - Date.now());
         throw ERROR_FACTORY.create(AppCheckError.THROTTLED, {
           time: getDurationString(
             this._throttleData.allowRequestsAfter - Date.now()
@@ -142,6 +133,11 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
   private _app?: FirebaseApp;
   private _platformLoggerProvider?: Provider<'platform-logger'>;
   /**
+   * Throttle requests on certain error codes to prevent too many retries
+   * in a short time.
+   */
+  private _throttleData: ThrottleData | null = null;
+  /**
    * Create a ReCaptchaEnterpriseProvider instance.
    * @param siteKey - reCAPTCHA Enterprise score-based site key.
    */
@@ -152,6 +148,7 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
    * @internal
    */
   async getToken(): Promise<AppCheckTokenInternal> {
+    throwIfThrottled(this._throttleData);
     // Top-level `getToken()` has already checked that App Check is initialized
     // and therefore this._app and this._platformLoggerProvider are available.
     const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
@@ -160,13 +157,31 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
         throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
       }
     );
-    return exchangeToken(
-      getExchangeRecaptchaEnterpriseTokenRequest(
-        this._app!,
-        attestedClaimsToken
-      ),
-      this._platformLoggerProvider!
-    );
+    let result;
+    try {
+      result = await exchangeToken(
+        getExchangeRecaptchaEnterpriseTokenRequest(this._app!, attestedClaimsToken),
+        this._platformLoggerProvider!
+      );
+    } catch (e) {
+      if ((e as FirebaseError).code === AppCheckError.FETCH_STATUS_ERROR) {
+        this._throttleData = setBackoff(
+          Number((e as FirebaseError).customData?.httpStatus),
+          this._throttleData
+        );
+        throw ERROR_FACTORY.create(AppCheckError.THROTTLED, {
+          time: getDurationString(
+            this._throttleData.allowRequestsAfter - Date.now()
+          ),
+          httpStatus: this._throttleData.httpStatus
+        });
+      } else {
+        throw e;
+      }
+    }
+    // If successful, clear throttle data.
+    this._throttleData = null;
+    return result;
   }
 
   /**
