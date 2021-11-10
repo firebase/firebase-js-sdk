@@ -211,7 +211,7 @@ export function getBytes<I extends ConnectionType>(
   service: FirebaseStorageImpl,
   location: Location,
   maxDownloadSizeBytes?: number
-): RequestInfo<I, I>  {
+): RequestInfo<I, I> {
   const urlPart = location.fullServerUrl();
   const url = makeUrl(urlPart, service.host, service._protocol) + '?alt=media';
   const method = 'GET';

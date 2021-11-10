@@ -19,12 +19,12 @@
  * @fileoverview Defines the Firebase StorageReference class.
  */
 
-import {PassThrough, Transform, TransformOptions} from 'stream';
+import { PassThrough, Transform, TransformOptions } from 'stream';
 
-import {FbsBlob} from './implementation/blob';
-import {Location} from './implementation/location';
-import {getMappings} from './implementation/metadata';
-import {child, lastComponent, parent} from './implementation/path';
+import { FbsBlob } from './implementation/blob';
+import { Location } from './implementation/location';
+import { getMappings } from './implementation/metadata';
+import { child, lastComponent, parent } from './implementation/path';
 import {
   deleteObject as requestsDeleteObject,
   getBytes,
@@ -34,14 +34,14 @@ import {
   multipartUpload,
   updateMetadata as requestsUpdateMetadata
 } from './implementation/requests';
-import {ListOptions, UploadResult} from './public-types';
-import {dataFromString, StringFormat} from './implementation/string';
-import {Metadata} from './metadata';
-import {FirebaseStorageImpl} from './service';
-import {ListResult} from './list';
-import {UploadTask} from './task';
-import {invalidRootOperation, noDownloadURL} from './implementation/error';
-import {validateNumber} from './implementation/type';
+import { ListOptions, UploadResult } from './public-types';
+import { dataFromString, StringFormat } from './implementation/string';
+import { Metadata } from './metadata';
+import { FirebaseStorageImpl } from './service';
+import { ListResult } from './list';
+import { UploadTask } from './task';
+import { invalidRootOperation, noDownloadURL } from './implementation/error';
+import { validateNumber } from './implementation/type';
 import {
   newBlobConnection,
   newBytesConnection,
@@ -184,7 +184,11 @@ export function getBlobInternal(
   maxDownloadSizeBytes?: number
 ): Promise<Blob> {
   ref._throwIfRoot('getBlob');
-  const requestInfo = getBytes(ref.storage, ref._location, maxDownloadSizeBytes);
+  const requestInfo = getBytes(
+    ref.storage,
+    ref._location,
+    maxDownloadSizeBytes
+  );
   return ref.storage
     .makeRequestWithTokens(requestInfo, newBlobConnection)
     .then(blob =>
@@ -201,7 +205,11 @@ export function getStreamInternal(
   maxDownloadSizeBytes?: number
 ): NodeJS.ReadableStream {
   ref._throwIfRoot('getStream');
-  const requestInfo = getBytes(ref.storage, ref._location, maxDownloadSizeBytes);
+  const requestInfo = getBytes(
+    ref.storage,
+    ref._location,
+    maxDownloadSizeBytes
+  );
 
   /** A transformer that passes through the first n bytes. */
   const newMaxSizeTransform: (n: number) => TransformOptions = n => {
