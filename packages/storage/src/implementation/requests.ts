@@ -41,7 +41,7 @@ import {
   toResourceString
 } from './metadata';
 import { fromResponseString } from './list';
-import { RequestHandler, RequestInfo, UrlParams } from './requestinfo';
+import { RequestInfo, UrlParams } from './requestinfo';
 import { isString } from './type';
 import { makeUrl } from './url';
 import { Connection, ConnectionType } from './connection';
