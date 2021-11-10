@@ -87,20 +87,22 @@ describe('ReCaptchaV3Provider', () => {
     await expect(provider.getToken()).to.be.rejectedWith('503');
     expect(exchangeTokenStub).not.to.be.called;
     exchangeTokenStub.resetHistory();
+    // Times below are max range of each random exponential wait,
+    // the possible range is 2^(backoff_count) plus or minus 50%
     // Wait for 1.5 seconds to pass, should call exchange endpoint again
     // (and be rejected again)
     clock.tick(1500);
     await expect(provider.getToken()).to.be.rejectedWith('503');
     expect(exchangeTokenStub).to.be.called;
     exchangeTokenStub.resetHistory();
-    // Wait for 10 seconds to pass, should call exchange endpoint again
+    // Wait for 3 seconds to pass, should call exchange endpoint again
     // (and be rejected again)
-    clock.tick(10000);
+    clock.tick(3000);
     await expect(provider.getToken()).to.be.rejectedWith('503');
     expect(exchangeTokenStub).to.be.called;
-    // Wait for 10 seconds to pass, should call exchange endpoint again
+    // Wait for 6 seconds to pass, should call exchange endpoint again
     // (and succeed)
-    clock.tick(10000);
+    clock.tick(6000);
     exchangeTokenStub.restore();
     exchangeTokenStub = stub(client, 'exchangeToken').resolves({
       token: 'fake-exchange-token',

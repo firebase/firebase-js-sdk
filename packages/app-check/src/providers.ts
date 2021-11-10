@@ -93,6 +93,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
           Number((e as FirebaseError).customData?.httpStatus),
           this._throttleData
         );
+        console.log('next interval', this._throttleData.allowRequestsAfter - Date.now());
         throw ERROR_FACTORY.create(AppCheckError.THROTTLED, {
           time: getDurationString(
             this._throttleData.allowRequestsAfter - Date.now()
@@ -247,6 +248,8 @@ export class CustomProvider implements AppCheckProvider {
  * Set throttle data to block requests until after a certain time
  * depending on the failed request's status code.
  * @param httpStatus - Status code of failed request.
+ * @param throttleData - `ThrottleData` object containing previous throttle
+ * data state.
  * @returns Data about current throttle state and expiration time.
  */
 function setBackoff(

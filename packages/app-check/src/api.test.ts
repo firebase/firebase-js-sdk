@@ -380,7 +380,7 @@ describe('api', () => {
         isTokenAutoRefreshEnabled: false
       });
 
-      expect(getState(app).tokenObservers.length).to.equal(1);
+      expect(getState(app).tokenObservers.length).to.equal(0);
 
       const fakeRecaptchaToken = 'fake-recaptcha-token';
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
@@ -395,13 +395,13 @@ describe('api', () => {
 
       await internalApi.getToken(appCheck as AppCheckService);
 
-      expect(getState(app).tokenObservers.length).to.equal(2);
+      expect(getState(app).tokenObservers.length).to.equal(1);
 
       expect(errorFn1).to.be.calledOnce;
       expect(errorFn1.args[0][0].name).to.include('exchange error');
 
       unsubscribe1();
-      expect(getState(app).tokenObservers.length).to.equal(1);
+      expect(getState(app).tokenObservers.length).to.equal(0);
     });
   });
 });

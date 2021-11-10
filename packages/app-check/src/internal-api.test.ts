@@ -405,6 +405,11 @@ describe('internal api', () => {
 
       const token = await getToken(appCheck as AppCheckService);
 
+      // ReCaptchaV3Provider's _throttleData is private so checking
+      // the resulting error message to be sure it has roughly the
+      // correct throttle time. This also tests the time formatter.
+      // Check both the error itself and that it makes it through to
+      // console.warn
       expect(token.error?.message).to.include('503');
       expect(token.error?.message).to.include('00m');
       expect(warnStub.args[0][0]).to.include('503');
@@ -427,6 +432,12 @@ describe('internal api', () => {
 
       const token = await getToken(appCheck as AppCheckService);
 
+
+      // ReCaptchaV3Provider's _throttleData is private so checking
+      // the resulting error message to be sure it has roughly the
+      // correct throttle time. This also tests the time formatter.
+      // Check both the error itself and that it makes it through to
+      // console.warn
       expect(token.error?.message).to.include('403');
       expect(token.error?.message).to.include('1d');
       expect(warnStub.args[0][0]).to.include('403');
@@ -465,6 +476,8 @@ describe('internal api', () => {
         ListenerType.INTERNAL,
         listener
       );
+
+      expect(getState(app).tokenRefresher?.isRunning()).to.be.undefined;
 
       // addTokenListener() waits for the result of cachedTokenPromise
       // before starting the refresher
