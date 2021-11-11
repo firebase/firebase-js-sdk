@@ -41,7 +41,9 @@ import { Report } from '../../scripts/size_report/report_binary_size';
  * @param version - If present, the SDK version to run measurement against
  * @returns A list of bundle size measurements
  */
-export async function generateReportForBundles(version?: string): Promise<Report[]> {
+export async function generateReportForBundles(
+  version?: string
+): Promise<Report[]> {
   const definitionDir = `${__dirname}/bundle-definitions`;
   const outputDir = tmp.dirSync().name;
   console.log(`Bundle definitions are located at "${definitionDir}".`);
