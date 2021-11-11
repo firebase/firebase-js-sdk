@@ -30,7 +30,7 @@ import { getModularInstance } from '@firebase/util';
  * This API is not available in Node.
  *
  * @public
- * @param ref - StorageReference where data should be download.
+ * @param ref - StorageReference where data should be downloaded.
  * @param maxDownloadSizeBytes - If set, the maximum allowed size in bytes to
  * retrieve.
  * @returns A Promise that resolves with a Blob containing the object's bytes
@@ -50,7 +50,7 @@ export function getBlob(
  * This API is only available in Node.
  *
  * @public
- * @param ref - StorageReference where data should be download.
+ * @param ref - StorageReference where data should be downloaded.
  * @param maxDownloadSizeBytes - If set, the maximum allowed size in bytes to
  * retrieve.
  * @returns A stream with the object's data as bytes

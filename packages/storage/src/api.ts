@@ -86,7 +86,7 @@ export { StringFormat };
  * https://cloud.google.com/storage/docs/configuring-cors
  *
  * @public
- * @param ref - StorageReference where data should be download.
+ * @param ref - StorageReference where data should be downloaded.
  * @param maxDownloadSizeBytes - If set, the maximum allowed size in bytes to
  * retrieve.
  * @returns A Promise containing the object's bytes
