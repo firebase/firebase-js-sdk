@@ -388,7 +388,8 @@ describe('internal api', () => {
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
 
-    it('throttles exponentially on 503', async () => {
+    it('throttles for a period less than 1d on 503', async () => {
+      // More detailed check of exponential backoff in providers.test.ts
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
@@ -412,6 +413,7 @@ describe('internal api', () => {
       // console.warn
       expect(token.error?.message).to.include('503');
       expect(token.error?.message).to.include('00m');
+      expect(token.error?.message).to.not.include('1d');
       expect(warnStub.args[0][0]).to.include('503');
     });
 
