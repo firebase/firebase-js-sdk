@@ -16,8 +16,11 @@
  */
 
 import { ComponentContainer } from '@firebase/component';
-import { HeartbeatServiceImpl } from './heartbeatService';
-import { PlatformLoggerService, VersionService } from './types';
+import {
+  PlatformLoggerService,
+  VersionService,
+  HeartbeatService
+} from './types';
 
 /**
  * A {@link @firebase/app#FirebaseApp} holds the initialization information for a collection of
@@ -163,7 +166,7 @@ declare module '@firebase/component' {
   interface NameServiceMapping {
     'app': FirebaseApp;
     'app-version': VersionService;
-    'heartbeat': HeartbeatServiceImpl;
+    'heartbeat': HeartbeatService;
     'platform-logger': PlatformLoggerService;
   }
 }

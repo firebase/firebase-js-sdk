@@ -84,9 +84,7 @@ export function writeHeartbeatsToIndexedDB(
   return write(computeKey(app), heartbeatObject);
 }
 
-export function deleteHeartbeatsFromIndexedDB(
-  app: FirebaseApp
-): Promise<void> {
+export function deleteHeartbeatsFromIndexedDB(app: FirebaseApp): Promise<void> {
   return deleteEntry(computeKey(app));
 }
 

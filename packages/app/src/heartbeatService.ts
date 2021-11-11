@@ -21,12 +21,12 @@ import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable
 } from '@firebase/util';
-import { FirebaseApp } from '../dist/app/src';
 import {
   deleteHeartbeatsFromIndexedDB,
   readHeartbeatsFromIndexedDB,
   writeHeartbeatsToIndexedDB
 } from './indexeddb';
+import { FirebaseApp } from './public-types';
 import {
   HeartbeatsByUserAgent,
   HeartbeatService,
