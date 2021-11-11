@@ -38,10 +38,10 @@ import { Report } from '../../scripts/size_report/report_binary_size';
  *
  * More details on how a test bundle is built can be found in `bundle-analysis.ts`.
  *
- * @param {string} [version] - If present, the SDK version to run measurement against
- * @returns {Promise<Report[]>} A list of bundle size measurements
+ * @param version - If present, the SDK version to run measurement against
+ * @returns A list of bundle size measurements
  */
-export async function generateReportForBundles(version?: string) {
+export async function generateReportForBundles(version?: string): Promise<Report[]> {
   const definitionDir = `${__dirname}/bundle-definitions`;
   const outputDir = tmp.dirSync().name;
   console.log(`Bundle definitions are located at "${definitionDir}".`);
@@ -95,7 +95,18 @@ function parseAnalysisOutput(product: string, output: string) {
   const analyses = JSON.parse(fs.readFileSync(output, { encoding: 'utf-8' }));
   const results: Report[] = [];
   for (const analysis of analyses) {
-    const sdk = 'bundle';
+    // The API of the backend for persisting size measurements currently requires data to be
+    // organized strictly in the below json format:
+    //
+    //   {
+    //     sdk: <some-string>,
+    //     type: <some-string>,
+    //     value: <some-integer>
+    //   }
+    //
+    // We are reusing this API here, although its semantics does not make sense in the context of
+    // bundle-analysis.
+    const sdk = 'bundle'; // to accommodate above API syntax, can be any string
     const value = analysis.results[0].size;
     const type = `${product} (${analysis.name})`;
     results.push({ sdk, type, value });
