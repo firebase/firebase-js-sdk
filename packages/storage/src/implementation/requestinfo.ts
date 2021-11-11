@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { StorageError } from './error';
-import { Headers, Connection } from './connection';
+import { Headers, Connection, ConnectionType } from './connection';
 
 /**
  * Type for url params stored in RequestInfo.
@@ -31,13 +31,28 @@ export interface UrlParams {
  * @param I - the type of the backend's network response
  * @param O - the output response type used by the rest of the SDK.
  */
-export type RequestHandler<I, O> = (connection: Connection, response: I) => O;
+export type RequestHandler<I extends ConnectionType, O> = (
+  connection: Connection<I>,
+  response: I
+) => O;
 
-export class RequestInfo<T> {
+/** A function to handle an error. */
+export type ErrorHandler = (
+  connection: Connection<ConnectionType>,
+  response: StorageError
+) => StorageError;
+
+/**
+ * Contains a fully specified request.
+ *
+ * @param I - the type of the backend's network response.
+ * @param O - the output response type used by the rest of the SDK.
+ */
+export class RequestInfo<I extends ConnectionType, O> {
   urlParams: UrlParams = {};
   headers: Headers = {};
   body: Blob | string | Uint8Array | null = null;
-  errorHandler: RequestHandler<StorageError, StorageError> | null = null;
+  errorHandler: ErrorHandler | null = null;
 
   /**
    * Called with the current number of bytes uploaded and total size (-1 if not
@@ -57,7 +72,7 @@ export class RequestInfo<T> {
      * Note: The XhrIo passed to this function may be reused after this callback
      * returns. Do not keep a reference to it in any way.
      */
-    public handler: RequestHandler<string, T>,
+    public handler: RequestHandler<I, O>,
     public timeout: number
   ) {}
 }

@@ -16,6 +16,8 @@
  */
 
 import { StorageReference } from './public-types';
+import { Reference, getBlobInternal } from './reference';
+import { getModularInstance } from '@firebase/util';
 
 /**
  * Downloads the data at the object's location. Returns an error if the object
@@ -28,17 +30,17 @@ import { StorageReference } from './public-types';
  * This API is not available in Node.
  *
  * @public
- * @param ref - StorageReference where data should be download.
+ * @param ref - StorageReference where data should be downloaded.
  * @param maxDownloadSizeBytes - If set, the maximum allowed size in bytes to
  * retrieve.
  * @returns A Promise that resolves with a Blob containing the object's bytes
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getBlob(
+export function getBlob(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
 ): Promise<Blob> {
-  throw new Error('Not implemented');
+  ref = getModularInstance(ref);
+  return getBlobInternal(ref as Reference, maxDownloadSizeBytes);
 }
 
 /**
@@ -48,19 +50,14 @@ function getBlob(
  * This API is only available in Node.
  *
  * @public
- * @param ref - StorageReference where data should be download.
+ * @param ref - StorageReference where data should be downloaded.
  * @param maxDownloadSizeBytes - If set, the maximum allowed size in bytes to
  * retrieve.
  * @returns A stream with the object's data as bytes
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getStream(
+export function getStream(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
 ): NodeJS.ReadableStream {
   throw new Error('getStream() is only supported by NodeJS builds');
 }
-
-// TODO(getbytes): Export getBlob/getStream
-
-export {};

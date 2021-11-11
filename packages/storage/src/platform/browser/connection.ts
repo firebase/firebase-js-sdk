@@ -16,27 +16,31 @@
  */
 
 import {
-  Headers,
   Connection,
-  ErrorCode
+  ConnectionType,
+  ErrorCode,
+  Headers
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
 
 /** An override for the text-based Connection. Used in tests. */
-let connectionFactoryOverride: (() => Connection) | null = null;
+let textFactoryOverride: (() => Connection<string>) | null = null;
 
 /**
  * Network layer for browsers. We use this instead of goog.net.XhrIo because
  * goog.net.XhrIo is hyuuuuge and doesn't work in React Native on Android.
  */
-export class XhrConnection implements Connection {
-  private xhr_: XMLHttpRequest;
+abstract class XhrConnection<T extends ConnectionType>
+  implements Connection<T>
+{
+  protected xhr_: XMLHttpRequest;
   private errorCode_: ErrorCode;
   private sendPromise_: Promise<void>;
-  private sent_: boolean = false;
+  protected sent_: boolean = false;
 
   constructor() {
     this.xhr_ = new XMLHttpRequest();
+    this.initXhr();
     this.errorCode_ = ErrorCode.NO_ERROR;
     this.sendPromise_ = new Promise(resolve => {
       this.xhr_.addEventListener('abort', () => {
@@ -52,6 +56,8 @@ export class XhrConnection implements Connection {
       });
     });
   }
+
+  abstract initXhr(): void;
 
   send(
     url: string,
@@ -97,11 +103,18 @@ export class XhrConnection implements Connection {
     }
   }
 
-  getResponseText(): string {
+  getResponse(): T {
     if (!this.sent_) {
-      throw internalError('cannot .getResponseText() before sending');
+      throw internalError('cannot .getResponse() before sending');
     }
-    return this.xhr_.responseText;
+    return this.xhr_.response;
+  }
+
+  getErrorText(): string {
+    if (!this.sent_) {
+      throw internalError('cannot .getErrorText() before sending');
+    }
+    return this.xhr_.statusText;
   }
 
   /** Aborts the request. */
@@ -126,12 +139,44 @@ export class XhrConnection implements Connection {
   }
 }
 
-export function newConnection(): Connection {
-  return connectionFactoryOverride
-    ? connectionFactoryOverride()
-    : new XhrConnection();
+export class XhrTextConnection extends XhrConnection<string> {
+  initXhr(): void {
+    this.xhr_.responseType = 'text';
+  }
 }
 
-export function injectTestConnection(factory: (() => Connection) | null): void {
-  connectionFactoryOverride = factory;
+export function newTextConnection(): Connection<string> {
+  return textFactoryOverride ? textFactoryOverride() : new XhrTextConnection();
+}
+
+export class XhrBytesConnection extends XhrConnection<ArrayBuffer> {
+  private data_?: ArrayBuffer;
+
+  initXhr(): void {
+    this.xhr_.responseType = 'arraybuffer';
+  }
+}
+
+export function newBytesConnection(): Connection<ArrayBuffer> {
+  return new XhrBytesConnection();
+}
+
+export class XhrBlobConnection extends XhrConnection<Blob> {
+  initXhr(): void {
+    this.xhr_.responseType = 'blob';
+  }
+}
+
+export function newBlobConnection(): Connection<Blob> {
+  return new XhrBlobConnection();
+}
+
+export function newStreamConnection(): Connection<NodeJS.ReadableStream> {
+  throw new Error('Streams are only supported on Node');
+}
+
+export function injectTestConnection(
+  factory: (() => Connection<string>) | null
+): void {
+  textFactoryOverride = factory;
 }

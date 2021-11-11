@@ -18,14 +18,27 @@
 /** Network headers */
 export type Headers = Record<string, string>;
 
+/** Response type exposed by the networking APIs. */
+export type ConnectionType =
+  | string
+  | ArrayBuffer
+  | Blob
+  | NodeJS.ReadableStream;
+
 /**
  * A lightweight wrapper around XMLHttpRequest with a
  * goog.net.XhrIo-like interface.
+ *
+ * You can create a new connection by invoking `newTextConnection()`,
+ * `newBytesConnection()` or `newStreamConnection()`.
  */
-export interface Connection {
+export interface Connection<T extends ConnectionType> {
   /**
-   * This method should never reject. In case of encountering an error, set an error code internally which can be accessed
-   * by calling getErrorCode() by callers.
+   * Sends a request to the provided URL.
+   *
+   * This method never rejects its promise. In case of encountering an error,
+   * it sets an error code internally which can be accessed by calling
+   * getErrorCode() by callers.
    */
   send(
     url: string,
@@ -38,7 +51,9 @@ export interface Connection {
 
   getStatus(): number;
 
-  getResponseText(): string;
+  getResponse(): T;
+
+  getErrorText(): string;
 
   /**
    * Abort the request.
