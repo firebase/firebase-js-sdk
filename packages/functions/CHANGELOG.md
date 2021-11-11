@@ -1,5 +1,11 @@
 # @firebase/functions
 
+## 0.7.6
+
+### Patch Changes
+
+- [`3b338dbd8`](https://github.com/firebase/firebase-js-sdk/commit/3b338dbd8cdfdc73267cd052b1852a1358b05eaf) [#5701](https://github.com/firebase/firebase-js-sdk/pull/5701) (fixes [#5692](https://github.com/firebase/firebase-js-sdk/issues/5692)) - Clear pending timeout after promise.race. It allows the process to exit immediately in case the SDK is used in Node.js, otherwise the process will wait for the timeout to finish before exiting.
+
 ## 0.7.5
 
 ### Patch Changes

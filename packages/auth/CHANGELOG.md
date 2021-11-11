@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.19.3
+
+### Patch Changes
+
+- [`1583a8202`](https://github.com/firebase/firebase-js-sdk/commit/1583a82022bfd404e94f28d1786e596d6b5a9f43) [#5715](https://github.com/firebase/firebase-js-sdk/pull/5715) - Fix Provider.credentialFromResult documentation snippets
+
 ## 0.19.2
 
 ### Patch Changes
