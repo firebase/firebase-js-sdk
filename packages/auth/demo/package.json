@@ -11,6 +11,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../../.gitignore'",
     "demo": "rollup -c && firebase serve",
+    "demo:emulator": "rollup -c && firebase emulators:start",
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/'{app,auth}' --include-dependencies build",
     "dev": "rollup -c -w"

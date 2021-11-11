@@ -67,7 +67,8 @@ import {
   linkWithRedirect,
   reauthenticateWithRedirect,
   getRedirectResult,
-  browserPopupRedirectResolver
+  browserPopupRedirectResolver,
+  connectAuthEmulator
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -79,6 +80,12 @@ import {
   log,
   logAtLevel_
 } from './logging';
+
+/** 
+ * Constants that are used when connecting to the Auth Emulator.
+ */
+const USE_AUTH_EMULATOR = false;
+const AUTH_EMULATOR_URL = 'http://localhost:9099';
 
 let app = null;
 let auth = null;
@@ -1643,6 +1650,10 @@ function initApp() {
   log('Initializing app...');
   app = initializeApp(config);
   auth = getAuth(app);
+  if (USE_AUTH_EMULATOR) {
+    connectAuthEmulator(auth, AUTH_EMULATOR_URL);
+  }
+  
 
   tempApp = initializeApp(
     {
@@ -1655,6 +1666,9 @@ function initApp() {
     persistence: inMemoryPersistence,
     popupRedirectResolver: browserPopupRedirectResolver
   });
+  if (USE_AUTH_EMULATOR) {
+    connectAuthEmulator(tempAuth, AUTH_EMULATOR_URL);
+  }
 
   // Listen to reCAPTCHA config togglers.
   initRecaptchaToggle(size => {
