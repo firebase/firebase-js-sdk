@@ -990,8 +990,7 @@ export interface User extends UserInfo {
 }
 
 /**
- * A structure containing a {@link User}, an {@link AuthCredential}, the {@link OperationType},
- * and any additional user information that was returned from the identity provider.
+ * A structure containing a {@link User}, the {@link OperationType}, and the provider ID.
  *
  * @remarks
  * `operationType` could be {@link OperationType}.SIGN_IN for a sign-in operation,
