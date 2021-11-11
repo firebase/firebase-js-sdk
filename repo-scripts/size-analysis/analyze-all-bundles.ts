@@ -22,6 +22,25 @@ import * as tmp from 'tmp';
 import { Bundler, Mode, run as runBundleAnalysis } from './bundle-analysis';
 import { Report } from '../../scripts/size_report/report_binary_size';
 
+/**
+ * Runs bundle analysis for all bundle definition files under:
+ *
+ *   `firebase-js-sdk/repo-scripts/size-analysis/bundle-definitions`
+ *
+ * The method accepts an optional parameter `version`:
+ * 1. when presented (for example, `version` = '9.0.0'), this method measures the bundle size by
+ *    building test bundles with dependencies at that specific version downloaded from npm
+ * 2. when omitted (in this case, `version` = null), this method measures the bundle size by
+ *    building test bundles with dependencies from local artifacts (e.g. produced by `yarn build`)
+ *
+ * #1 is intended only for manual runs for the purpose of back-filling historical size data. #2 is
+ * intended for CI runs that measure size for the current commit.
+ *
+ * More details on how a test bundle is built can be found in `bundle-analysis.ts`.
+ *
+ * @param {string} [version] - If present, the SDK version to run measurement against
+ * @returns {Promise<Report[]>} A list of bundle size measurements
+ */
 export async function generateReportForBundles(version?: string) {
   const definitionDir = `${__dirname}/bundle-definitions`;
   const outputDir = tmp.dirSync().name;
