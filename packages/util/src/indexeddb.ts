@@ -58,7 +58,7 @@ export class IndexedDbDatabaseService {
   }
 }
 
-export async function write(
+export async function idbWrite(
   dbService: IndexedDbDatabaseService,
   key: string,
   value: unknown
@@ -83,7 +83,7 @@ export async function write(
   });
 }
 
-export async function read(
+export async function idbRead(
   dbService: IndexedDbDatabaseService,
   key: string
 ): Promise<unknown> {
@@ -110,13 +110,13 @@ export async function read(
   });
 }
 
-export async function deleteEntry(
+export async function idbDelete(
   dbService: IndexedDbDatabaseService,
   key: string
 ): Promise<void> {
   const db = await dbService.dbPromise;
 
-  const transaction = db.transaction(dbService.storeName, 'readonly');
+  const transaction = db.transaction(dbService.storeName, 'readwrite');
   const store = transaction.objectStore(dbService.storeName);
   const request = store.delete(key);
 

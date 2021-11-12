@@ -34,28 +34,35 @@ import {
 } from './types';
 
 export class HeartbeatServiceImpl implements HeartbeatService {
-  // The persistence layer for heartbeats
-  private _storage: HeartbeatStorageImpl;
+  /**
+   * The persistence layer for heartbeats
+   * Leave public for easier testing.
+   */
+  _storage: HeartbeatStorageImpl;
 
   /**
-   * in-memory cache for heartbeats, used by getHeartbeatsHeader() to generate
+   * In-memory cache for heartbeats, used by getHeartbeatsHeader() to generate
    * the header string.
    * Populated from indexedDB when the controller is instantiated and should
    * be kept in sync with indexedDB.
+   * Leave public for easier testing.
    */
-  private _heartbeatsCache: HeartbeatsByUserAgent[] | null = null;
+  _heartbeatsCache: HeartbeatsByUserAgent[] | null = null;
 
   /**
    * the initialization promise for populating heartbeatCache.
-   * If getHeartbeatsHeader() is called before the promise resolves (hearbeatsCache == null), it should wait for this promise
+   * If getHeartbeatsHeader() is called before the promise resolves
+   * (hearbeatsCache == null), it should wait for this promise
+   * Leave public for easier testing.
    */
-  private _heartbeatsCachePromise: Promise<HeartbeatsByUserAgent[]>;
+  _heartbeatsCachePromise: Promise<HeartbeatsByUserAgent[]>;
   constructor(private readonly container: ComponentContainer) {
     const app = this.container.getProvider('app').getImmediate();
     this._storage = new HeartbeatStorageImpl(app);
-    this._heartbeatsCachePromise = this._storage
-      .read()
-      .then(result => (this._heartbeatsCache = result));
+    this._heartbeatsCachePromise = this._storage.read().then(result => {
+      this._heartbeatsCache = result;
+      return result;
+    });
   }
 
   /**
@@ -74,7 +81,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     // service, not the browser user agent.
     const userAgent = platformLogger.getPlatformInfoString();
     const date = getUTCDateString();
-    if (!this._heartbeatsCache) {
+    if (this._heartbeatsCache === null) {
       await this._heartbeatsCachePromise;
     }
     let heartbeatsEntry = this._heartbeatsCache!.find(
@@ -106,12 +113,17 @@ export class HeartbeatServiceImpl implements HeartbeatService {
    * NOTE: It will read heartbeats from the heartbeatsCache, instead of from indexedDB to reduce latency
    */
   async getHeartbeatsHeader(): Promise<string> {
-    if (!this._heartbeatsCache) {
+    if (this._heartbeatsCache === null) {
       await this._heartbeatsCachePromise;
     }
-    const headerString =  base64Encode(JSON.stringify(this._heartbeatsCache!));
+    // If it's still null, it's been cleared and has not been repopulated.
+    if (this._heartbeatsCache === null) {
+      return '';
+    }
+    const headerString = base64Encode(JSON.stringify(this._heartbeatsCache));
     this._heartbeatsCache = null;
     // Do not wait for this, to reduce latency.
+    console.log('calling deleteAll');
     void this._storage.deleteAll();
     return headerString;
   }

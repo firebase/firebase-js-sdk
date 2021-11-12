@@ -17,9 +17,9 @@
 
 import {
   IndexedDbDatabaseService,
-  write,
-  read,
-  deleteEntry
+  idbWrite,
+  idbRead,
+  idbDelete
 } from '@firebase/util';
 import { AppError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from './public-types';
@@ -43,7 +43,7 @@ export function readHeartbeatsFromIndexedDB(
   app: FirebaseApp
 ): Promise<HeartbeatsInIndexedDB | undefined> {
   try {
-    return read(dbService, computeKey(app)) as Promise<
+    return idbRead(dbService, computeKey(app)) as Promise<
       HeartbeatsInIndexedDB | undefined
     >;
   } catch (e) {
@@ -58,7 +58,7 @@ export function writeHeartbeatsToIndexedDB(
   heartbeatObject: HeartbeatsInIndexedDB
 ): Promise<void> {
   try {
-    return write(dbService, computeKey(app), heartbeatObject);
+    return idbWrite(dbService, computeKey(app), heartbeatObject);
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_WRITE, {
       originalErrorMessage: e.message
@@ -68,7 +68,7 @@ export function writeHeartbeatsToIndexedDB(
 
 export function deleteHeartbeatsFromIndexedDB(app: FirebaseApp): Promise<void> {
   try {
-    return deleteEntry(dbService, computeKey(app));
+    return idbDelete(dbService, computeKey(app));
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_DELETE, {
       originalErrorMessage: e.message
