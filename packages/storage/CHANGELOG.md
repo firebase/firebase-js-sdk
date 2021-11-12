@@ -1,5 +1,11 @@
 #Unreleased
 
+## 0.8.7
+
+### Patch Changes
+
+- [`e0fe2b668`](https://github.com/firebase/firebase-js-sdk/commit/e0fe2b668b64b64d842988c2c147d3de66148f48) [#5703](https://github.com/firebase/firebase-js-sdk/pull/5703) (fixes [#5628](https://github.com/firebase/firebase-js-sdk/issues/5628)) - Clear the global timeout once an operation is done in the Storage SDK. Otherwise it may prevent Node.js from exiting.
+
 ## 0.8.6
 
 ### Patch Changes
