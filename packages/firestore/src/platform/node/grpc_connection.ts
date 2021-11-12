@@ -17,7 +17,6 @@
 
 // This is a hack fix for Node ES modules to use `require`.
 // @ts-ignore To avoid using `allowSyntheticDefaultImports` flag.
-import module from 'module';
 
 import {
   Metadata,
@@ -25,6 +24,7 @@ import {
   credentials as GrpcCredentials,
   ServiceError
 } from '@grpc/grpc-js';
+import * as pgkJson from '@grpc/grpc-js/package.json';
 
 import { Token } from '../../api/credentials';
 import { DatabaseInfo } from '../../core/database_info';
@@ -38,14 +38,8 @@ import { logError, logDebug, logWarn } from '../../util/log';
 import { NodeCallback, nodePromise } from '../../util/node_api';
 import { Deferred } from '../../util/promise';
 
-// This is a hack fix for Node ES modules to use `require`.
-// @ts-ignore To avoid using `--module es2020` flag.
-const require = module.createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { version: grpcVersion } = require('@grpc/grpc-js/package.json');
-
 const LOG_TAG = 'Connection';
-const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${grpcVersion}`;
+const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${pgkJson.version}`;
 
 function createMetadata(
   databasePath: string,

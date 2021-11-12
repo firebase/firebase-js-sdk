@@ -109,6 +109,16 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  it('can update a document that is not cached', async () => {
+    return withTestDoc(persistence, async docRef => {
+      // Update document out-of-band so it is not persisted to the cache.
+      void docRef.firestore.runTransaction(async t => t.set(docRef, {}));
+      void docRef.update({ foo: 'bar' });
+      const docSnap = await docRef.get();
+      expect(docSnap.exists).to.be.true;
+    });
+  });
+
   it('can retrieve document that does not exist', () => {
     return withTestDoc(persistence, doc => {
       return doc.get().then(snapshot => {

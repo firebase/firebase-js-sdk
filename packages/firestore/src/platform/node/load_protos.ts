@@ -15,13 +15,7 @@
  * limitations under the License.
  */
 
-import { join, resolve, isAbsolute, dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-// __filename and __dirname globals are unavailable in ES modules
-// @ts-ignore To avoid using `--module es2020` flag.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { join, resolve, isAbsolute } from 'path';
 
 import { loadPackageDefinition, GrpcObject } from '@grpc/grpc-js';
 import { loadSync } from '@grpc/proto-loader';
@@ -43,10 +37,7 @@ export const protoLoaderOptions: IConversionOptions = {
  * @returns The GrpcObject representing our protos.
  */
 export function loadProtos(): GrpcObject {
-  const root = resolve(
-    __dirname,
-    process.env.FIRESTORE_PROTO_ROOT || '../../protos'
-  );
+  const root = resolve(process.env.FIRESTORE_PROTO_ROOT || 'protos');
   const firestoreProtoFile = join(root, 'google/firestore/v1/firestore.proto');
 
   const packageDefinition = loadSync(firestoreProtoFile, {

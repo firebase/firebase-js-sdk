@@ -252,7 +252,7 @@ export function describeSpec(
     // Note: We use json-stable-stringify instead of JSON.stringify() to ensure
     // that the generated JSON does not produce diffs merely due to the order
     // of the keys in an object changing.
-    const output = stringify(specsInThisTest, {
+    const output = stringify.default(specsInThisTest, {
       space: 2,
       cmp: stringifyComparator
     });

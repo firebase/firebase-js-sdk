@@ -1383,6 +1383,26 @@ describeSpec('Writes:', [], () => {
   );
 
   specTest(
+    'Delete for non-existing document does not raise snapshot',
+    [],
+    () => {
+      const queryA = query('collection/docA');
+      const docA = doc('collection/docA', 1000, {
+        a: 'a'
+      });
+      const docAUpdated = doc('collection/docA', 1000, {
+        a: 'a',
+        b: 'b'
+      }).setHasLocalMutations();
+      return spec()
+        .userListens(queryA)
+        .userPatches('collection/docA', { b: 'b' })
+        .watchAcksFull(queryA, 1000, docA)
+        .expectEvents(queryA, { added: [docAUpdated], hasPendingWrites: true });
+    }
+  );
+
+  specTest(
     'Wait for pending writes waits after restart',
     ['durable-persistence'],
     () => {
