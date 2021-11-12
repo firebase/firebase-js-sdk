@@ -1,0 +1,19 @@
+name: Health Metrics
+
+on:
+  push:
+    tags: ['**']
+
+jobs:
+  release-diffing:
+    name: Release Diffing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      - uses: FirebaseExtended/github-actions/health-metrics/release-diffing@master
+        with:
+          repo: ${{ github.repository }}
+          ref: ${{ github.ref }}
+          commit: ${{ github.sha }}
