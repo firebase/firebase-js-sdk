@@ -34,56 +34,95 @@ import {
 } from './types';
 
 export class HeartbeatServiceImpl implements HeartbeatService {
-  storage: HeartbeatStorageImpl;
-  heartbeatsCache: HeartbeatsByUserAgent[] | null = null;
-  heartbeatsCachePromise: Promise<HeartbeatsByUserAgent[]>;
+  // The persistence layer for heartbeats
+  private _storage: HeartbeatStorageImpl;
+
+  /**
+   * in-memory cache for heartbeats, used by getHeartbeatsHeader() to generate
+   * the header string.
+   * Populated from indexedDB when the controller is instantiated and should
+   * be kept in sync with indexedDB.
+   */
+  private _heartbeatsCache: HeartbeatsByUserAgent[] | null = null;
+
+  /**
+   * the initialization promise for populating heartbeatCache.
+   * If getHeartbeatsHeader() is called before the promise resolves (hearbeatsCache == null), it should wait for this promise
+   */
+  private _heartbeatsCachePromise: Promise<HeartbeatsByUserAgent[]>;
   constructor(private readonly container: ComponentContainer) {
     const app = this.container.getProvider('app').getImmediate();
-    this.storage = new HeartbeatStorageImpl(app);
-    this.heartbeatsCachePromise = this.storage
+    this._storage = new HeartbeatStorageImpl(app);
+    this._heartbeatsCachePromise = this._storage
       .read()
-      .then(result => (this.heartbeatsCache = result));
+      .then(result => (this._heartbeatsCache = result));
   }
+
+  /**
+   * Called to report a heartbeat. The function will generate
+   * a HeartbeatsByUserAgent object, update heartbeatsCache, and persist it
+   * to IndexedDB.
+   * Note that we only store one heartbeat per day. So if a heartbeat for today is
+   * already logged, subsequent calls to this function in the same day will be ignored.
+   */
   async triggerHeartbeat(): Promise<void> {
     const platformLogger = this.container
       .getProvider('platform-logger')
       .getImmediate();
+
+    // This is the "Firebase user agent" string from the platform logger
+    // service, not the browser user agent.
     const userAgent = platformLogger.getPlatformInfoString();
-    const date = getDateString();
-    if (!this.heartbeatsCache) {
-      await this.heartbeatsCachePromise;
+    const date = getUTCDateString();
+    if (!this._heartbeatsCache) {
+      await this._heartbeatsCachePromise;
     }
-    let heartbeatsEntry = this.heartbeatsCache!.find(
+    let heartbeatsEntry = this._heartbeatsCache!.find(
       heartbeats => heartbeats.userAgent === userAgent
     );
     if (heartbeatsEntry) {
       if (heartbeatsEntry.dates.includes(date)) {
+        // Only one per day.
         return;
       } else {
+        // Modify in-place in this.heartbeatsCache
         heartbeatsEntry.dates.push(date);
       }
     } else {
+      // There is no entry for this Firebase user agent. Create one.
       heartbeatsEntry = {
         userAgent,
         dates: [date]
       };
+      this._heartbeatsCache!.push(heartbeatsEntry);
     }
-    return this.storage.overwrite([]);
+    return this._storage.overwrite(this._heartbeatsCache!);
   }
+
+  /**
+   * Returns a base64 encoded string which can be attached to the heartbeat-specific header directly.
+   * It also clears all heartbeats from memory as well as in IndexedDB.
+   *
+   * NOTE: It will read heartbeats from the heartbeatsCache, instead of from indexedDB to reduce latency
+   */
   async getHeartbeatsHeader(): Promise<string> {
-    if (!this.heartbeatsCache) {
-      await this.heartbeatsCachePromise;
+    if (!this._heartbeatsCache) {
+      await this._heartbeatsCachePromise;
     }
-    return base64Encode(JSON.stringify(this.heartbeatsCache!));
+    const headerString =  base64Encode(JSON.stringify(this._heartbeatsCache!));
+    this._heartbeatsCache = null;
+    // Do not wait for this, to reduce latency.
+    void this._storage.deleteAll();
+    return headerString;
   }
 }
 
-function getDateString(): string {
+function getUTCDateString(): string {
   const today = new Date();
-  const yearString = today.getFullYear().toString();
-  const month = today.getMonth() + 1;
+  const yearString = today.getUTCFullYear().toString();
+  const month = today.getUTCMonth() + 1;
   const monthString = month < 10 ? '0' + month : month.toString();
-  const date = today.getDate();
+  const date = today.getUTCDate();
   const dayString = date < 10 ? '0' + date : date.toString();
   return `${yearString}-${monthString}-${dayString}`;
 }
