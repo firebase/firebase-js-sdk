@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
 import {
   IndexedDbDatabaseService,
   write,
@@ -23,6 +22,7 @@ import {
   deleteEntry
 } from '@firebase/util';
 import { AppError, ERROR_FACTORY } from './errors';
+import { FirebaseApp } from './public-types';
 import { HeartbeatsInIndexedDB } from './types';
 const DB_NAME = 'firebase-heartbeat-database';
 const DB_VERSION = 1;
