@@ -18,7 +18,7 @@
     "./sw": "./dist/index.sw.esm2017.js",
     "./package.json": "./package.json"
   },
-  "typings": "dist/src/index.d.ts",
+  "typings": "./dist/index-public.d.ts",
   "files": [
     "dist",
     "sw/package.json"
@@ -47,18 +47,18 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
+    "@firebase/component": "0.5.9",
     "@firebase/installations": "0.5.4",
     "@firebase/messaging-interop-types": "0.1.0",
     "@firebase/util": "1.4.2",
-    "@firebase/component": "0.5.9",
-    "idb": "3.0.2",
+    "idb": "6.1.5",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
     "@firebase/app": "0.7.8",
+    "@rollup/plugin-json": "4.1.0",
     "rollup": "2.57.0",
     "rollup-plugin-typescript2": "0.30.0",
-    "@rollup/plugin-json": "4.1.0",
     "ts-essentials": "8.1.0",
     "typescript": "4.2.2"
   },

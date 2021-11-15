@@ -1,17 +1,13 @@
 {
   "compilerOptions": {
     "strict": true,
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "module": "CommonJS",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "target": "es5",
-    "typeRoots": [
-      "../node_modules/@types"
-    ],
+    "typeRoots": ["../node_modules/@types"],
     "allowJs": true,
     "downlevelIteration": true
   }
