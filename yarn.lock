@@ -8659,10 +8659,10 @@ idb@3.0.2:
   resolved "https://registry.npmjs.org/idb/-/idb-3.0.2.tgz#c8e9122d5ddd40f13b60ae665e4862f8b13fa384"
   integrity sha512-+FLa/0sTXqyux0o6C+i2lOR0VoS60LU/jzUo5xjfY6+7sEEgy4Gz1O7yFBXvjd7N0NyIGWIRg8DcQSLEG+VSPw==
 
-idb@6.1.5:
-  version "6.1.5"
-  resolved "https://registry.npmjs.org/idb/-/idb-6.1.5.tgz#dbc53e7adf1ac7c59f9b2bf56e00b4ea4fce8c7b"
-  integrity sha512-IJtugpKkiVXQn5Y+LteyBCNk1N8xpGV3wWZk9EVtZWH8DYkjBn0bX1XnGP9RkyZF0sAcywa6unHqSWKe7q4LGw==
+idb@7.0.0-beta:
+  version "7.0.0-beta"
+  resolved "https://registry.npmjs.org/idb/-/idb-7.0.0-beta.tgz#43499828f1dd5f2e256a279e59d5d38e2907e1a4"
+  integrity sha512-fWG6AkDHNmnKiEFd+WnO12VMcA2HDIeHtwwzJLbNVTdEz/VDm7UZRLPgq5z95ucEo/1tTC4haRWBkKE76kKI0Q==
 
 ieee754@^1.1.13, ieee754@^1.1.4:
   version "1.2.1"
