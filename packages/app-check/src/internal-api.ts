@@ -30,9 +30,10 @@ import { ensureActivated } from './util';
 import { exchangeToken, getExchangeDebugTokenRequest } from './client';
 import { writeTokenToStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
-import { base64 } from '@firebase/util';
+import { base64, FirebaseError } from '@firebase/util';
 import { logger } from './logger';
 import { AppCheckService } from './factory';
+import { AppCheckError } from './errors';
 
 // Initial hardcoded value agreed upon across platforms for initial launch.
 // Format left open for possible dynamic error values and other fields in the future.
@@ -80,10 +81,6 @@ export async function getToken(
     const cachedToken = await state.cachedTokenPromise;
     if (cachedToken && isValid(cachedToken)) {
       token = cachedToken;
-
-      setState(app, { ...state, token });
-      // notify all listeners with the cached token
-      notifyTokenListeners(app, { token: token.token });
     }
   }
 
@@ -94,16 +91,30 @@ export async function getToken(
     };
   }
 
+  // Only set to true if this `getToken()` call is making the actual
+  // REST call to the exchange endpoint, versus waiting for an already
+  // in-flight call (see debug and regular exchange endpoint paths below)
+  let shouldCallListeners = false;
+
   /**
    * DEBUG MODE
    * If debug mode is set, and there is no cached token, fetch a new App
    * Check token using the debug token, and return it directly.
    */
   if (isDebugMode()) {
-    const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
-      getExchangeDebugTokenRequest(app, await getDebugToken()),
-      appCheck.platformLoggerProvider
-    );
+    // Avoid making another call to the exchange endpoint if one is in flight.
+    if (!state.exchangeTokenPromise) {
+      state.exchangeTokenPromise = exchangeToken(
+        getExchangeDebugTokenRequest(app, await getDebugToken()),
+        appCheck.platformLoggerProvider
+      ).then(token => {
+        state.exchangeTokenPromise = undefined;
+        return token;
+      });
+      shouldCallListeners = true;
+    }
+    const tokenFromDebugExchange: AppCheckTokenInternal =
+      await state.exchangeTokenPromise;
     // Write debug token to indexedDB.
     await writeTokenToStorage(app, tokenFromDebugExchange);
     // Write debug token to state.
@@ -115,14 +126,28 @@ export async function getToken(
    * request a new token
    */
   try {
-    // state.provider is populated in initializeAppCheck()
-    // ensureActivated() at the top of this function checks that
-    // initializeAppCheck() has been called.
-    token = await state.provider!.getToken();
+    // Avoid making another call to the exchange endpoint if one is in flight.
+    if (!state.exchangeTokenPromise) {
+      // state.provider is populated in initializeAppCheck()
+      // ensureActivated() at the top of this function checks that
+      // initializeAppCheck() has been called.
+      state.exchangeTokenPromise = state.provider!.getToken().then(token => {
+        state.exchangeTokenPromise = undefined;
+        return token;
+      });
+      shouldCallListeners = true;
+    }
+    token = await state.exchangeTokenPromise;
   } catch (e) {
-    // `getToken()` should never throw, but logging error text to console will aid debugging.
-    logger.error(e);
-    error = e;
+    if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
+      // Warn if throttled, but do not treat it as an error.
+      logger.warn((e as FirebaseError).message);
+    } else {
+      // `getToken()` should never throw, but logging error text to console will aid debugging.
+      logger.error(e);
+    }
+    // Always save error to be added to dummy token.
+    error = e as FirebaseError;
   }
 
   let interopTokenResult: AppCheckTokenResult | undefined;
@@ -140,7 +165,9 @@ export async function getToken(
     await writeTokenToStorage(app, token);
   }
 
-  notifyTokenListeners(app, interopTokenResult);
+  if (shouldCallListeners) {
+    notifyTokenListeners(app, interopTokenResult);
+  }
   return interopTokenResult;
 }
 
@@ -157,49 +184,37 @@ export function addTokenListener(
     error: onError,
     type
   };
-  const newState = {
+  setState(app, {
     ...state,
     tokenObservers: [...state.tokenObservers, tokenObserver]
-  };
-  /**
-   * Invoke the listener with the valid token, then start the token refresher
-   */
-  if (!newState.tokenRefresher) {
-    const tokenRefresher = createTokenRefresher(appCheck);
-    newState.tokenRefresher = tokenRefresher;
-  }
-
-  // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
-  // is not true.
-  if (!newState.tokenRefresher.isRunning() && state.isTokenAutoRefreshEnabled) {
-    newState.tokenRefresher.start();
-  }
+  });
 
   // Invoke the listener async immediately if there is a valid token
   // in memory.
   if (state.token && isValid(state.token)) {
     const validToken = state.token;
     Promise.resolve()
-      .then(() => listener({ token: validToken.token }))
+      .then(() => {
+        listener({ token: validToken.token });
+        initTokenRefresher(appCheck);
+      })
       .catch(() => {
         /* we don't care about exceptions thrown in listeners */
       });
-  } else if (state.token == null) {
-    // Only check cache if there was no token. If the token was invalid,
-    // skip this and rely on exchange endpoint.
-    void state
-      .cachedTokenPromise! // Storage token promise. Always populated in `activate()`.
-      .then(cachedToken => {
-        if (cachedToken && isValid(cachedToken)) {
-          listener({ token: cachedToken.token });
-        }
-      })
-      .catch(() => {
-        /** Ignore errors in listeners. */
-      });
   }
 
-  setState(app, newState);
+  /**
+   * Wait for any cached token promise to resolve before starting the token
+   * refresher. The refresher checks to see if there is an existing token
+   * in state and calls the exchange endpoint if not. We should first let the
+   * IndexedDB check have a chance to populate state if it can.
+   *
+   * Listener call isn't needed here because cachedTokenPromise will call any
+   * listeners that exist when it resolves.
+   */
+
+  // state.cachedTokenPromise is always populated in `activate()`.
+  void state.cachedTokenPromise!.then(() => initTokenRefresher(appCheck));
 }
 
 export function removeTokenListener(
@@ -225,6 +240,24 @@ export function removeTokenListener(
   });
 }
 
+/**
+ * Logic to create and start refresher as needed.
+ */
+function initTokenRefresher(appCheck: AppCheckService): void {
+  const { app } = appCheck;
+  const state = getState(app);
+  // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
+  // is not true.
+  let refresher: Refresher | undefined = state.tokenRefresher;
+  if (!refresher) {
+    refresher = createTokenRefresher(appCheck);
+    setState(app, { ...state, tokenRefresher: refresher });
+  }
+  if (!refresher.isRunning() && state.isTokenAutoRefreshEnabled) {
+    refresher.start();
+  }
+}
+
 function createTokenRefresher(appCheck: AppCheckService): Refresher {
   const { app } = appCheck;
   return new Refresher(
@@ -247,7 +280,6 @@ function createTokenRefresher(appCheck: AppCheckService): Refresher {
       }
     },
     () => {
-      // TODO: when should we retry?
       return true;
     },
     () => {
@@ -277,7 +309,7 @@ function createTokenRefresher(appCheck: AppCheckService): Refresher {
   );
 }
 
-function notifyTokenListeners(
+export function notifyTokenListeners(
   app: FirebaseApp,
   token: AppCheckTokenResult
 ): void {

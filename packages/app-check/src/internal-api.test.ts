@@ -38,12 +38,14 @@ import * as reCAPTCHA from './recaptcha';
 import * as client from './client';
 import * as storage from './storage';
 import * as util from './util';
+import { logger } from './logger';
 import { getState, clearState, setState, getDebugState } from './state';
 import { AppCheckTokenListener } from './public-types';
-import { Deferred } from '@firebase/util';
+import { Deferred, FirebaseError } from '@firebase/util';
 import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
 import { ListenerType } from './types';
+import { AppCheckError } from './errors';
 
 const fakeRecaptchaToken = 'fake-recaptcha-token';
 const fakeRecaptchaAppCheckToken = {
@@ -385,6 +387,62 @@ describe('internal api', () => {
       );
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
+
+    it('throttles for a period less than 1d on 503', async () => {
+      // More detailed check of exponential backoff in providers.test.ts
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      const warnStub = stub(logger, 'warn');
+      stub(client, 'exchangeToken').returns(
+        Promise.reject(
+          new FirebaseError(
+            AppCheckError.FETCH_STATUS_ERROR,
+            'test error msg',
+            { httpStatus: 503 }
+          )
+        )
+      );
+
+      const token = await getToken(appCheck as AppCheckService);
+
+      // ReCaptchaV3Provider's _throttleData is private so checking
+      // the resulting error message to be sure it has roughly the
+      // correct throttle time. This also tests the time formatter.
+      // Check both the error itself and that it makes it through to
+      // console.warn
+      expect(token.error?.message).to.include('503');
+      expect(token.error?.message).to.include('00m');
+      expect(token.error?.message).to.not.include('1d');
+      expect(warnStub.args[0][0]).to.include('503');
+    });
+
+    it('throttles 1d on 403', async () => {
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      const warnStub = stub(logger, 'warn');
+      stub(client, 'exchangeToken').returns(
+        Promise.reject(
+          new FirebaseError(
+            AppCheckError.FETCH_STATUS_ERROR,
+            'test error msg',
+            { httpStatus: 403 }
+          )
+        )
+      );
+
+      const token = await getToken(appCheck as AppCheckService);
+
+      // ReCaptchaV3Provider's _throttleData is private so checking
+      // the resulting error message to be sure it has roughly the
+      // correct throttle time. This also tests the time formatter.
+      // Check both the error itself and that it makes it through to
+      // console.warn
+      expect(token.error?.message).to.include('403');
+      expect(token.error?.message).to.include('1d');
+      expect(warnStub.args[0][0]).to.include('403');
+    });
   });
 
   describe('addTokenListener', () => {
@@ -404,7 +462,7 @@ describe('internal api', () => {
       expect(getState(app).tokenObservers[0].next).to.equal(listener);
     });
 
-    it('starts proactively refreshing token after adding the first listener', () => {
+    it('starts proactively refreshing token after adding the first listener', async () => {
       const listener = (): void => {};
       setState(app, {
         ...getState(app),
@@ -420,6 +478,12 @@ describe('internal api', () => {
         listener
       );
 
+      expect(getState(app).tokenRefresher?.isRunning()).to.be.undefined;
+
+      // addTokenListener() waits for the result of cachedTokenPromise
+      // before starting the refresher
+      await getState(app).cachedTokenPromise;
+
       expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
     });
 
@@ -430,6 +494,7 @@ describe('internal api', () => {
 
       setState(app, {
         ...getState(app),
+        cachedTokenPromise: Promise.resolve(undefined),
         token: {
           token: `fake-memory-app-check-token`,
           expireTimeMillis: Date.now() + 60000,
@@ -493,7 +558,7 @@ describe('internal api', () => {
       expect(getState(app).tokenObservers.length).to.equal(0);
     });
 
-    it('should stop proactively refreshing token after deleting the last listener', () => {
+    it('should stop proactively refreshing token after deleting the last listener', async () => {
       const listener = (): void => {};
       setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
       setState(app, {
@@ -506,6 +571,11 @@ describe('internal api', () => {
         ListenerType.INTERNAL,
         listener
       );
+
+      // addTokenListener() waits for the result of cachedTokenPromise
+      // before starting the refresher
+      await getState(app).cachedTokenPromise;
+
       expect(getState(app).tokenObservers.length).to.equal(1);
       expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
 
