@@ -40,9 +40,9 @@ import { Deferred } from '../../util/promise';
 
 // This is a hack fix for Node ES modules to use `require`.
 // @ts-ignore To avoid using `--module es2020` flag.
-const require = module.createRequire(import.meta.url);
+const requireInESM = module.createRequire(import.meta.url);
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { version: grpcVersion } = require('@grpc/grpc-js/package.json');
+const { version: grpcVersion } = requireInESM('@grpc/grpc-js/package.json');
 
 const LOG_TAG = 'Connection';
 const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${grpcVersion}`;
