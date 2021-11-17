@@ -38,7 +38,7 @@ function importMetaUrlPolyfillPlugin() {
     resolveImportMeta(property, { moduleId }) {
       if (property === 'url') {
         // copied from rollup output
-        return `new (require('u' + 'rl').URL)('file:' + __filename).href`;
+        return `new (require('url').URL)('file:' + __filename).href`;
       }
       return null;
     }
