@@ -170,8 +170,8 @@ export function getBytesInternal(
     .then(bytes =>
       maxDownloadSizeBytes !== undefined
         ? // GCS may not honor the Range header for small files
-          bytes.slice(0, maxDownloadSizeBytes)
-        : bytes
+          (bytes as ArrayBuffer).slice(0, maxDownloadSizeBytes)
+        : (bytes as ArrayBuffer)
     );
 }
 
@@ -194,8 +194,8 @@ export function getBlobInternal(
     .then(blob =>
       maxDownloadSizeBytes !== undefined
         ? // GCS may not honor the Range header for small files
-          blob.slice(0, maxDownloadSizeBytes)
-        : blob
+          (blob as Blob).slice(0, maxDownloadSizeBytes)
+        : (blob as Blob)
     );
 }
 
@@ -236,7 +236,7 @@ export function getStreamInternal(
 
   ref.storage
     .makeRequestWithTokens(requestInfo, newStreamConnection)
-    .then(stream => stream.pipe(result))
+    .then(stream => (stream as NodeJS.ReadableStream).pipe(result))
     .catch(e => result.destroy(e));
   return result;
 }
