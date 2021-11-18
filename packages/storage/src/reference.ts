@@ -167,7 +167,7 @@ export function getBytesInternal(
   );
   return ref.storage
     .makeRequestWithTokens(requestInfo, newBytesConnection)
-    .then((bytes) =>
+    .then(bytes =>
       maxDownloadSizeBytes !== undefined
         ? // GCS may not honor the Range header for small files
           (bytes as ArrayBuffer).slice(0, maxDownloadSizeBytes)
