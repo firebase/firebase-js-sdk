@@ -84,7 +84,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.7.8",
+    "@firebase/app": "0.7.9",
     "@rollup/plugin-json": "4.1.0",
     "rollup": "2.57.0",
     "rollup-plugin-sourcemaps": "0.6.3",
