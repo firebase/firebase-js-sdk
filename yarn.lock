@@ -8112,40 +8112,40 @@ google-auth-library@^7.0.0, google-auth-library@^7.6.1:
     jws "^4.0.0"
     lru-cache "^6.0.0"
 
-google-closure-compiler-java@^20210601.0.0:
-  version "20210601.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20210601.0.0.tgz#88dc11b334bee6a704d9674c5143fd2e0d553517"
-  integrity sha512-bH6nIwOmp4qDWvlbXx5/DE3XA2aDGQoCpmRYZJGONY1Sy6Xfbq0ioXRHH9eBDP9hxhCJ5Sd/K89A0NZ8Nz9RJA==
+google-closure-compiler-java@^20211107.0.0:
+  version "20211107.0.0"
+  resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20211107.0.0.tgz#dd74283f012a8b2944ec5a455972fcd60f50286c"
+  integrity sha512-WavJ1Rx+Fv98rNKClQD6b+GMCVqws7GkbI7sdxiIbrzeNiXwa5K8TKBaqyUx/G1myQ6+gml6GULgJi7nsBOXVQ==
 
-google-closure-compiler-linux@^20210601.0.0:
-  version "20210601.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20210601.0.0.tgz#6e5dd7b00b96dc1fd1ba30e3401af85558768322"
-  integrity sha512-rnEQt7zz/1P1SfPhJiHQpfCgMPrsVVyEgDs09h67xn6+LXa9L0RP+hrJDEHqSWwjDPz0BkfUUv6zkqZvp1h/lw==
+google-closure-compiler-linux@^20211107.0.0:
+  version "20211107.0.0"
+  resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20211107.0.0.tgz#3d451335a7edf987c0cd97f33b25fc4a2a5870c1"
+  integrity sha512-ULk90c4IiuTcHZ892eFusN/WYfY+gvopy38msrmUnYrmLjq5Ssef7NtDRUhYe9SIX7Dd5NM2jo7u7XjEu/4NCQ==
 
-google-closure-compiler-osx@^20210601.0.0:
-  version "20210601.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20210601.0.0.tgz#e23356bc9ef6e68c2980f60a207f603767b50b21"
-  integrity sha512-A5r4s/WthR2iLMM0mxsluw8EW2AcOomC5ri/H6FjzpMq0RVEnLTgaGYdXolUAfEzH/7XtJJT2+JkYk3HSLCtrg==
+google-closure-compiler-osx@^20211107.0.0:
+  version "20211107.0.0"
+  resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20211107.0.0.tgz#6afbfb4d90a395c7dd115eb590974a3c8523d046"
+  integrity sha512-nTDR6oAQ6GHT1UakZc4OdyZh2AqwKce7aZQS+XLWojh98SEq7JS5dyEkFBK6a1lqWyOMLH2Mrr3XhNobY/umbA==
 
-google-closure-compiler-windows@^20210601.0.0:
-  version "20210601.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20210601.0.0.tgz#b5400d06bbf0bbd2602ee3ae0c2bc7ebd5829692"
-  integrity sha512-6r94bPShnB0XXh9+5/qXGDHJN2PQGhF9yJPcgBZj+FAZlQGzlYkT0pkyp+loZT3lG+YRbjD28Lgo7xMcY4xgkA==
+google-closure-compiler-windows@^20211107.0.0:
+  version "20211107.0.0"
+  resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20211107.0.0.tgz#de8f9e06a78a3abb6d13a1a0d893480746a3d967"
+  integrity sha512-0G7Dd/ZoSPS6pSsOdA6N4LJU0zJddHcS+PiNixQVN50kuHH3DjfI+gCyLx7CkJUZEuGiGHDVkc0ZmKBR5iq4QA==
 
-google-closure-compiler@20210601.0.0:
-  version "20210601.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler/-/google-closure-compiler-20210601.0.0.tgz#34597c33c9285ebd3a5364f5299f6c9ddc9fc88a"
-  integrity sha512-lzzEoG2VTB7uUjnWnMyeZMU163w69HJpM27yh8Up9Ha5McHZeESjt3NRwU8cWMbCRdY06nFbRCDIVCRcadHCiw==
+google-closure-compiler@20211107.0.0:
+  version "20211107.0.0"
+  resolved "https://registry.npmjs.org/google-closure-compiler/-/google-closure-compiler-20211107.0.0.tgz#8a5e1ef683b3cd1e010e8f433b3ed2e1c10fb49a"
+  integrity sha512-CVP18mjlTz+T8D0J2/vNGAkCRd9cZb06kRb0Fp/VXntFvcYdNWNs780vkiplNGtuxyI6Kn3NQPlZZutFuME4ww==
   dependencies:
     chalk "2.x"
-    google-closure-compiler-java "^20210601.0.0"
+    google-closure-compiler-java "^20211107.0.0"
     minimist "1.x"
     vinyl "2.x"
     vinyl-sourcemaps-apply "^0.2.0"
   optionalDependencies:
-    google-closure-compiler-linux "^20210601.0.0"
-    google-closure-compiler-osx "^20210601.0.0"
-    google-closure-compiler-windows "^20210601.0.0"
+    google-closure-compiler-linux "^20211107.0.0"
+    google-closure-compiler-osx "^20211107.0.0"
+    google-closure-compiler-windows "^20211107.0.0"
 
 google-closure-library@20210406.0.0:
   version "20210406.0.0"
