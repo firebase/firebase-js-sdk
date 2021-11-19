@@ -1,5 +1,14 @@
 # @firebase/storage-compat
 
+## 0.1.8
+
+### Patch Changes
+
+- [`0394cc97b`](https://github.com/firebase/firebase-js-sdk/commit/0394cc97b98f04dae87b718655eb46174275ebc2) [#5743](https://github.com/firebase/firebase-js-sdk/pull/5743) - Fix typings for storage and storage-compat.
+
+- Updated dependencies [[`e34e98e73`](https://github.com/firebase/firebase-js-sdk/commit/e34e98e73a72f77ee87d9005d6728402129deda9), [`0394cc97b`](https://github.com/firebase/firebase-js-sdk/commit/0394cc97b98f04dae87b718655eb46174275ebc2)]:
+  - @firebase/storage@0.9.0
+
 ## 0.1.7
 
 ### Patch Changes

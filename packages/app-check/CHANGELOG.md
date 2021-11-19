@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.5.2
+
+### Patch Changes
+
+- [`6f0049e66`](https://github.com/firebase/firebase-js-sdk/commit/6f0049e66064809ae990a2d9461e28b2d6d08d19) [#5676](https://github.com/firebase/firebase-js-sdk/pull/5676) - Block exchange requests for certain periods of time after certain error codes to prevent overwhelming the endpoint. Start token listener when App Check is initialized to avoid extra wait time on first getToken() call.
+
 ## 0.5.1
 
 ### Patch Changes

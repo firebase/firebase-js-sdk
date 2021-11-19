@@ -1,5 +1,23 @@
 # firebase
 
+## 9.5.0
+
+### Minor Changes
+
+- [`e34e98e73`](https://github.com/firebase/firebase-js-sdk/commit/e34e98e73a72f77ee87d9005d6728402129deda9) [#5672](https://github.com/firebase/firebase-js-sdk/pull/5672) (fixes [#76](https://github.com/firebase/firebase-js-sdk/issues/76)) - Adds `getBytes()`, `getStream()` and `getBlob()`, which allow direct file downloads from the SDK.
+
+### Patch Changes
+
+- Updated dependencies [[`e34e98e73`](https://github.com/firebase/firebase-js-sdk/commit/e34e98e73a72f77ee87d9005d6728402129deda9), [`0394cc97b`](https://github.com/firebase/firebase-js-sdk/commit/0394cc97b98f04dae87b718655eb46174275ebc2), [`6f0049e66`](https://github.com/firebase/firebase-js-sdk/commit/6f0049e66064809ae990a2d9461e28b2d6d08d19), [`7a5bc84bd`](https://github.com/firebase/firebase-js-sdk/commit/7a5bc84bd84a8d1b422204f30a59f06d5b60f1bd), [`ce39a1a07`](https://github.com/firebase/firebase-js-sdk/commit/ce39a1a07e8710e43cc66d9e7db882f185211a9a)]:
+  - @firebase/app@0.7.9
+  - @firebase/storage@0.9.0
+  - @firebase/storage-compat@0.1.8
+  - @firebase/app-check@0.5.2
+  - @firebase/firestore@3.3.1
+  - @firebase/app-compat@0.1.10
+  - @firebase/app-check-compat@0.2.2
+  - @firebase/firestore-compat@0.1.8
+
 ## 9.4.1
 
 ### Patch Changes
