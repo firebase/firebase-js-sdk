@@ -21,7 +21,8 @@ import { Firestore } from '../../../compat/api/database';
 import {
   CredentialChangeListener,
   CredentialsProvider,
-  EmptyCredentialsProvider
+  EmptyAppCheckTokenProvider,
+  EmptyAuthCredentialsProvider
 } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
@@ -56,24 +57,33 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 
 export function withTestDatastore(
   fn: (datastore: Datastore) => Promise<void>,
-  credentialsProvider: CredentialsProvider = new EmptyCredentialsProvider()
+  authCredentialsProvider: CredentialsProvider<User> = new EmptyAuthCredentialsProvider(),
+  appCheckTokenProvider: CredentialsProvider<string> = new EmptyAppCheckTokenProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
   const connection = newConnection(databaseInfo);
   const serializer = newSerializer(databaseInfo.databaseId);
-  const datastore = newDatastore(credentialsProvider, connection, serializer);
+  const datastore = newDatastore(
+    authCredentialsProvider,
+    appCheckTokenProvider,
+    connection,
+    serializer
+  );
   return fn(datastore);
 }
 
-export class MockCredentialsProvider extends EmptyCredentialsProvider {
-  private listener: CredentialChangeListener | null = null;
+export class MockAuthCredentialsProvider extends EmptyAuthCredentialsProvider {
+  private listener: CredentialChangeListener<User> | null = null;
   private asyncQueue: AsyncQueue | null = null;
 
   triggerUserChange(newUser: User): void {
     this.asyncQueue!.enqueueRetryable(async () => this.listener!(newUser));
   }
 
-  start(asyncQueue: AsyncQueue, listener: CredentialChangeListener): void {
+  start(
+    asyncQueue: AsyncQueue,
+    listener: CredentialChangeListener<User>
+  ): void {
     super.start(asyncQueue, listener);
     this.asyncQueue = asyncQueue;
     this.listener = listener;
@@ -84,10 +94,10 @@ export function withMockCredentialProviderTestDb(
   persistence: boolean,
   fn: (
     db: firestore.FirebaseFirestore,
-    mockCredential: MockCredentialsProvider
+    mockCredential: MockAuthCredentialsProvider
   ) => Promise<void>
 ): Promise<void> {
-  const mockCredentialsProvider = new MockCredentialsProvider();
+  const mockCredentialsProvider = new MockAuthCredentialsProvider();
   const settings = {
     ...DEFAULT_SETTINGS,
     credentials: { client: mockCredentialsProvider, type: 'provider' }

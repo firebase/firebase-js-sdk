@@ -97,14 +97,15 @@ export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 export class FirestoreClient {
   private user = User.UNAUTHENTICATED;
   private readonly clientId = AutoId.newId();
-  private credentialListener: CredentialChangeListener = () =>
+  private authCredentialListener: CredentialChangeListener<User> = () =>
     Promise.resolve();
 
   offlineComponents?: OfflineComponentProvider;
   onlineComponents?: OnlineComponentProvider;
 
   constructor(
-    private credentials: CredentialsProvider,
+    private authCredentials: CredentialsProvider<User>,
+    private appCheckCredentials: CredentialsProvider<string>,
     /**
      * Asynchronous queue responsible for all of our internal processing. When
      * we get incoming work from the user (via public API) or the network
@@ -116,11 +117,13 @@ export class FirestoreClient {
     public asyncQueue: AsyncQueue,
     private databaseInfo: DatabaseInfo
   ) {
-    this.credentials.start(asyncQueue, async user => {
+    this.authCredentials.start(asyncQueue, async user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
-      await this.credentialListener(user);
+      await this.authCredentialListener(user);
       this.user = user;
     });
+    // Register an empty credentials change listener to activate token refresh.
+    this.appCheckCredentials.start(asyncQueue, () => Promise.resolve());
   }
 
   async getConfiguration(): Promise<ComponentConfiguration> {
@@ -128,14 +131,15 @@ export class FirestoreClient {
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
       clientId: this.clientId,
-      credentials: this.credentials,
+      authCredentials: this.authCredentials,
+      appCheckCredentials: this.appCheckCredentials,
       initialUser: this.user,
       maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
     };
   }
 
   setCredentialChangeListener(listener: (user: User) => Promise<void>): void {
-    this.credentialListener = listener;
+    this.authCredentialListener = listener;
   }
 
   /**
@@ -166,7 +170,8 @@ export class FirestoreClient {
         // The credentials provider must be terminated after shutting down the
         // RemoteStore as it will prevent the RemoteStore from retrieving auth
         // tokens.
-        this.credentials.shutdown();
+        this.authCredentials.shutdown();
+        this.appCheckCredentials.shutdown();
         deferred.resolve();
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(

@@ -26,8 +26,8 @@ import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
 
 import {
   CredentialsProvider,
-  EmulatorCredentialsProvider,
-  makeCredentialsProvider,
+  EmulatorAuthCredentialsProvider,
+  makeAuthCredentialsProvider,
   OAuthToken
 } from '../api/credentials';
 import { User } from '../auth/user';
@@ -76,7 +76,8 @@ export class Firestore implements FirestoreService {
   /** @hideconstructor */
   constructor(
     databaseIdOrApp: DatabaseId | FirebaseApp,
-    public _credentials: CredentialsProvider
+    public _authCredentials: CredentialsProvider<User>,
+    public _appCheckCredentials: CredentialsProvider<string>
   ) {
     if (databaseIdOrApp instanceof DatabaseId) {
       this._databaseId = databaseIdOrApp;
@@ -120,7 +121,7 @@ export class Firestore implements FirestoreService {
     }
     this._settings = new FirestoreSettingsImpl(settings);
     if (settings.credentials !== undefined) {
-      this._credentials = makeCredentialsProvider(settings.credentials);
+      this._authCredentials = makeAuthCredentialsProvider(settings.credentials);
     }
   }
 
@@ -274,7 +275,7 @@ export function connectFirestoreEmulator(
       user = new User(uid);
     }
 
-    firestore._credentials = new EmulatorCredentialsProvider(
+    firestore._authCredentials = new EmulatorAuthCredentialsProvider(
       new OAuthToken(token, user)
     );
   }

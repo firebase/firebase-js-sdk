@@ -28,7 +28,10 @@ import {
   QuerySnapshot,
   UserDataWriter
 } from '../../compat/api/database';
-import { EmptyCredentialsProvider } from '../../src/api/credentials';
+import {
+  EmptyAppCheckTokenProvider,
+  EmptyAuthCredentialsProvider
+} from '../../src/api/credentials';
 import {
   ensureFirestoreConfigured,
   Firestore as ExpFirestore
@@ -69,7 +72,11 @@ export function firestore(): Firestore {
 export function newTestFirestore(projectId = 'new-project'): Firestore {
   return new Firestore(
     new DatabaseId(projectId),
-    new ExpFirestore(new DatabaseId(projectId), new EmptyCredentialsProvider()),
+    new ExpFirestore(
+      new DatabaseId(projectId),
+      new EmptyAuthCredentialsProvider(),
+      new EmptyAppCheckTokenProvider()
+    ),
     new IndexedDbPersistenceProvider()
   );
 }

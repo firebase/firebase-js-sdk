@@ -70,13 +70,14 @@ export abstract class RestConnection implements Connection {
     rpcName: string,
     path: string,
     req: Req,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Promise<Resp> {
     const url = this.makeUrl(rpcName, path);
     logDebug(LOG_TAG, 'Sending: ', url, req);
 
     const headers = {};
-    this.modifyHeadersForRequest(headers, token);
+    this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
     return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
       response => {
@@ -102,16 +103,24 @@ export abstract class RestConnection implements Connection {
     rpcName: string,
     path: string,
     request: Req,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Promise<Resp[]> {
     // The REST API automatically aggregates all of the streamed results, so we
     // can just use the normal invoke() method.
-    return this.invokeRPC<Req, Resp[]>(rpcName, path, request, token);
+    return this.invokeRPC<Req, Resp[]>(
+      rpcName,
+      path,
+      request,
+      authToken,
+      appCheckToken
+    );
   }
 
   abstract openStream<Req, Resp>(
     rpcName: string,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<Req, Resp>;
 
   /**
@@ -120,7 +129,8 @@ export abstract class RestConnection implements Connection {
    */
   protected modifyHeadersForRequest(
     headers: StringMap,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): void {
     headers['X-Goog-Api-Client'] = getGoogApiClientValue();
 
@@ -133,12 +143,12 @@ export abstract class RestConnection implements Connection {
     if (this.databaseInfo.appId) {
       headers['X-Firebase-GMPID'] = this.databaseInfo.appId;
     }
-    if (token) {
-      for (const header in token.authHeaders) {
-        if (token.authHeaders.hasOwnProperty(header)) {
-          headers[header] = token.authHeaders[header];
-        }
-      }
+
+    if (authToken) {
+      authToken.headers.forEach((value, key) => (headers[key] = value));
+    }
+    if (appCheckToken) {
+      appCheckToken.headers.forEach((value, key) => (headers[key] = value));
     }
   }
 
