@@ -65,7 +65,7 @@
       "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
-        "--require", "babel-register.jsk",
+        "--require", "babel-register.js",
         "--require", "index.node.ts",
         "--timeout", "5000",
         "test/{,!(browser|unit)/**/}*.test.ts",
