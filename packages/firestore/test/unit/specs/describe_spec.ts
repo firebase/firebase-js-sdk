@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as stringify from 'json-stable-stringify';
+import stringify from 'json-stable-stringify';
 import { ExclusiveTestFunction, PendingTestFunction } from 'mocha';
 
 import { queryEquals, QueryImpl } from '../../../src/core/query';
@@ -252,7 +252,7 @@ export function describeSpec(
     // Note: We use json-stable-stringify instead of JSON.stringify() to ensure
     // that the generated JSON does not produce diffs merely due to the order
     // of the keys in an object changing.
-    const output = stringify.default(specsInThisTest, {
+    const output = stringify(specsInThisTest, {
       space: 2,
       cmp: stringifyComparator
     });
