@@ -35,7 +35,7 @@ import { NodeCallback, nodePromise } from '../../util/node_api';
 import { Deferred } from '../../util/promise';
 
 // TODO: Fetch runtime version from grpc-js/package.json instead
-// when it becomes possible to use require() in Node ESM without hacks.
+// when there's a cleaner way to dynamic require in both Node ESM and CJS
 const grpcVersion = '__GRPC_VERSION__';
 
 const LOG_TAG = 'Connection';
