@@ -15,35 +15,21 @@
  * limitations under the License.
  */
 
-import tmp from 'tmp';
-import json from '@rollup/plugin-json';
+import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 import alias from '@rollup/plugin-alias';
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import typescript from 'typescript';
-import replace from 'rollup-plugin-replace';
+import json from '@rollup/plugin-json';
 import copy from 'rollup-plugin-copy';
 import { terser } from 'rollup-plugin-terser';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import tmp from 'tmp';
+import typescript from 'typescript';
+import replace from 'rollup-plugin-replace';
 
-import pkg from './package.json';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
-const util = require('./rollup.shared');
+import pkg from './package.json';
 
-// Customize how import.meta.url is polyfilled in cjs nodejs build. We use it to be able to use require() in esm.
-// It only generates the nodejs version of the polyfill, as opposed to the default polyfill which
-// supports both browser and nodejs. The browser support is unnecessary and doesn't work well with Jest. See https://github.com/firebase/firebase-js-sdk/issues/5687
-function importMetaUrlPolyfillPlugin() {
-  return {
-    name: 'import-meta-url-current-module',
-    resolveImportMeta(property, { moduleId }) {
-      if (property === 'url') {
-        // copied from rollup output
-        return `new (require('url').URL)('file:' + __filename).href`;
-      }
-      return null;
-    }
-  };
-}
+const util = require('./rollup.shared');
 
 const nodePlugins = function () {
   return [
@@ -69,7 +55,8 @@ const nodePlugins = function () {
       ]
     }),
     replace({
-      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
+      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos'),
+      '__GRPC_VERSION__': grpcVersion
     })
   ];
 };
@@ -120,8 +107,7 @@ const allBuilds = [
     },
     plugins: [
       ...util.es2017ToEs5Plugins(/* mangled= */ false),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017)),
-      importMetaUrlPolyfillPlugin()
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: util.resolveNodeExterns,
     treeshake: {

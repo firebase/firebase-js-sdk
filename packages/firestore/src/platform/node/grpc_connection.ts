@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-// This is a hack fix for Node ES modules to use `require`.
-// @ts-ignore To avoid using `allowSyntheticDefaultImports` flag.
-import module from 'module';
-
 import {
   Metadata,
   GrpcObject,
@@ -38,11 +34,9 @@ import { logError, logDebug, logWarn } from '../../util/log';
 import { NodeCallback, nodePromise } from '../../util/node_api';
 import { Deferred } from '../../util/promise';
 
-// This is a hack fix for Node ES modules to use `require`.
-// @ts-ignore To avoid using `--module es2020` flag.
-const requireInESM = module.createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { version: grpcVersion } = requireInESM('@grpc/grpc-js/package.json');
+// TODO: Fetch runtime version from grpc-js/package.json instead
+// when it becomes possible to use require() in Node ESM without hacks.
+const grpcVersion = '__GRPC_VERSION__';
 
 const LOG_TAG = 'Connection';
 const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${grpcVersion}`;
