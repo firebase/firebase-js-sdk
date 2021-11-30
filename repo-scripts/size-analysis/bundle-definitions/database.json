@@ -151,7 +151,8 @@
               "ref",
               "onChildAdded",
               "onChildChanged",
-              "onChildRemoved"
+              "onChildRemoved",
+              "off"
             ]
           }
         ]
