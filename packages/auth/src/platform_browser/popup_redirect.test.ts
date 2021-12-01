@@ -72,7 +72,7 @@ describe('platform_browser/popup_redirect', () => {
     });
   });
 
-  function setGapiStub() {
+  function setGapiStub(): void {
     loadGapiStub.returns(
       Promise.resolve(({
         open: () =>
