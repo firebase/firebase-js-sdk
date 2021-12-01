@@ -135,7 +135,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       // Initialize the resolver early if necessary (only applicable to web:
       // this will cause the iframe to load immediately in certain cases)
       if (this._popupRedirectResolver?._shouldInitProactively) {
-        await this._popupRedirectResolver._initialize(this);
+        // If this fails, don't halt auth loading
+        try {
+          await this._popupRedirectResolver._initialize(this);
+        } catch (e) { /* Ignore the error */ }
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
