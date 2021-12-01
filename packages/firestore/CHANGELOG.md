@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 3.4.0
+
+### Minor Changes
+
+- [`086df7c7e`](https://github.com/firebase/firebase-js-sdk/commit/086df7c7e0299cedd9f3cff9080f46ca25cab7cd) [#5634](https://github.com/firebase/firebase-js-sdk/pull/5634) - AppCheck integration for Firestore
+
 ## 3.3.1
 
 ### Patch Changes
