@@ -18,8 +18,7 @@
 import { expect } from 'chai';
 import { deepEqual } from '../src/obj';
 
-// eslint-disable-next-line no-restricted-properties
-describe.only('deepEqual()', () => {
+describe('deepEqual()', () => {
   it('returns true for comparing empty objects', () => {
     expect(deepEqual({}, {})).to.be.true;
   });
