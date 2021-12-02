@@ -36,6 +36,10 @@ function getDbPromise(): Promise<DB> {
         case 0:
           upgradeDB.createObjectStore(STORE_NAME);
       }
+    }).catch(e => {
+      throw ERROR_FACTORY.create(AppError.STORAGE_OPEN, {
+        originalErrorMessage: e.message
+      });
     });
   }
   return dbPromise;
@@ -46,7 +50,10 @@ export async function readHeartbeatsFromIndexedDB(
 ): Promise<HeartbeatsInIndexedDB | undefined> {
   try {
     const db = await getDbPromise();
-    return db.transaction(STORE_NAME).objectStore(STORE_NAME).get(computeKey(app));
+    return db
+      .transaction(STORE_NAME)
+      .objectStore(STORE_NAME)
+      .get(computeKey(app));
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_GET, {
       originalErrorMessage: e.message
@@ -71,7 +78,9 @@ export async function writeHeartbeatsToIndexedDB(
   }
 }
 
-export async function deleteHeartbeatsFromIndexedDB(app: FirebaseApp): Promise<void> {
+export async function deleteHeartbeatsFromIndexedDB(
+  app: FirebaseApp
+): Promise<void> {
   try {
     const db = await getDbPromise();
     const tx = db.transaction(STORE_NAME, 'readwrite');
