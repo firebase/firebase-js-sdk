@@ -216,6 +216,16 @@ describe('core/auth/initializeAuth', () => {
       expect(resolverInternal._initialize).to.have.been.called;
     });
 
+    it('does not halt init if resolver fails', async () => {
+      const popupRedirectResolver = makeMockPopupRedirectResolver();
+      const resolverInternal: PopupRedirectResolverInternal = _getInstance(
+        popupRedirectResolver
+      );
+      sinon.stub(resolverInternal, '_shouldInitProactively').value(true);
+      sinon.stub(resolverInternal, '_initialize').rejects(new Error());
+      await expect(initAndWait(inMemoryPersistence, popupRedirectResolver)).not.to.be.rejected;
+    });
+
     it('reloads non-redirect users', async () => {
       sinon
         .stub(_getInstance<PersistenceInternal>(inMemoryPersistence), '_get')

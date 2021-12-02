@@ -111,6 +111,13 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
 
     const promise = this.initAndGetManager(auth);
     this.eventManagers[key] = { promise };
+
+    // If the promise is rejected, the key should be removed so that the
+    // operation can be retried later.
+    promise.catch(() => {
+      delete this.eventManagers[key];
+    });
+
     return promise;
   }
 
