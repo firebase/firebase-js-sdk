@@ -86,10 +86,11 @@
   "devDependencies": {
     "@firebase/app": "0.7.9",
     "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-strip": "2.1.0",
+    "chromedriver": "96.0.0",
     "rollup": "2.57.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.30.0",
-    "@rollup/plugin-strip": "2.1.0",
     "typescript": "4.2.2"
   },
   "repository": {
