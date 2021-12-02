@@ -1,5 +1,19 @@
 # firebase
 
+## 9.6.0
+
+### Minor Changes
+
+- [`086df7c7e`](https://github.com/firebase/firebase-js-sdk/commit/086df7c7e0299cedd9f3cff9080f46ca25cab7cd) [#5634](https://github.com/firebase/firebase-js-sdk/pull/5634) - AppCheck integration for Firestore
+
+### Patch Changes
+
+- Updated dependencies [[`086df7c7e`](https://github.com/firebase/firebase-js-sdk/commit/086df7c7e0299cedd9f3cff9080f46ca25cab7cd)]:
+  - @firebase/app@0.7.10
+  - @firebase/firestore@3.4.0
+  - @firebase/app-compat@0.1.11
+  - @firebase/firestore-compat@0.1.9
+
 ## 9.5.0
 
 ### Minor Changes
