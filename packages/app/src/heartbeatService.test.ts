@@ -110,6 +110,7 @@ describe('HeartbeatServiceImpl', () => {
       expect(heartbeatHeaders).to.include('1970-01-01');
       expect(heartbeatHeaders).to.include('1970-01-02');
       expect(heartbeatHeaders).to.include('1970-01-03');
+      expect(heartbeatHeaders).to.include(`"version":2`);
       expect(heartbeatService._heartbeatsCache).to.equal(null);
       const emptyHeaders = await heartbeatService.getHeartbeatsHeader();
       expect(emptyHeaders).to.equal('');
@@ -201,6 +202,7 @@ describe('HeartbeatServiceImpl', () => {
       }
       expect(heartbeatHeaders).to.include('different/1.2.3');
       expect(heartbeatHeaders).to.include('1970-01-04');
+      expect(heartbeatHeaders).to.include(`"version":2`);
       expect(heartbeatService._heartbeatsCache).to.equal(null);
       const emptyHeaders = await heartbeatService.getHeartbeatsHeader();
       expect(emptyHeaders).to.equal('');

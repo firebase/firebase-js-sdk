@@ -120,10 +120,11 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     if (this._heartbeatsCache === null) {
       return '';
     }
-    const headerString = base64Encode(JSON.stringify(this._heartbeatsCache));
+    const headerString = base64Encode(
+      JSON.stringify({ version: 2, heartbeats: this._heartbeatsCache })
+    );
     this._heartbeatsCache = null;
     // Do not wait for this, to reduce latency.
-    console.log('calling deleteAll');
     void this._storage.deleteAll();
     return headerString;
   }
