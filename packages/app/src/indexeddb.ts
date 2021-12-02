@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  IndexedDbDatabaseService,
-  idbWrite,
-  idbRead,
-  idbDelete
-} from '@firebase/util';
+import { DB, openDb } from 'idb';
 import { AppError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from './public-types';
 import { HeartbeatsInIndexedDB } from './types';
@@ -28,24 +23,30 @@ const DB_NAME = 'firebase-heartbeat-database';
 const DB_VERSION = 1;
 const STORE_NAME = 'firebase-heartbeat-store';
 
-const dbService = new IndexedDbDatabaseService(
-  DB_NAME,
-  STORE_NAME,
-  DB_VERSION,
-  error => {
-    throw ERROR_FACTORY.create(AppError.STORAGE_OPEN, {
-      originalErrorMessage: error.message
+let dbPromise: Promise<DB> | null = null;
+function getDbPromise(): Promise<DB> {
+  if (!dbPromise) {
+    dbPromise = openDb(DB_NAME, DB_VERSION, upgradeDB => {
+      // We don't use 'break' in this switch statement, the fall-through
+      // behavior is what we want, because if there are multiple versions between
+      // the old version and the current version, we want ALL the migrations
+      // that correspond to those versions to run, not only the last one.
+      // eslint-disable-next-line default-case
+      switch (upgradeDB.oldVersion) {
+        case 0:
+          upgradeDB.createObjectStore(STORE_NAME);
+      }
     });
   }
-);
+  return dbPromise;
+}
 
-export function readHeartbeatsFromIndexedDB(
+export async function readHeartbeatsFromIndexedDB(
   app: FirebaseApp
 ): Promise<HeartbeatsInIndexedDB | undefined> {
   try {
-    return idbRead(dbService, computeKey(app)) as Promise<
-      HeartbeatsInIndexedDB | undefined
-    >;
+    const db = await getDbPromise();
+    return db.transaction(STORE_NAME).objectStore(STORE_NAME).get(computeKey(app));
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_GET, {
       originalErrorMessage: e.message
@@ -53,12 +54,16 @@ export function readHeartbeatsFromIndexedDB(
   }
 }
 
-export function writeHeartbeatsToIndexedDB(
+export async function writeHeartbeatsToIndexedDB(
   app: FirebaseApp,
   heartbeatObject: HeartbeatsInIndexedDB
 ): Promise<void> {
   try {
-    return idbWrite(dbService, computeKey(app), heartbeatObject);
+    const db = await getDbPromise();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const objectStore = tx.objectStore(STORE_NAME);
+    await objectStore.put(heartbeatObject, computeKey(app));
+    return tx.complete;
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_WRITE, {
       originalErrorMessage: e.message
@@ -66,9 +71,12 @@ export function writeHeartbeatsToIndexedDB(
   }
 }
 
-export function deleteHeartbeatsFromIndexedDB(app: FirebaseApp): Promise<void> {
+export async function deleteHeartbeatsFromIndexedDB(app: FirebaseApp): Promise<void> {
   try {
-    return idbDelete(dbService, computeKey(app));
+    const db = await getDbPromise();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    await tx.objectStore(STORE_NAME).delete(computeKey(app));
+    return tx.complete;
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_DELETE, {
       originalErrorMessage: e.message

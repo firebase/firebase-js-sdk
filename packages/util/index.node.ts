@@ -39,6 +39,3 @@ export * from './src/utf8';
 export * from './src/exponential_backoff';
 export * from './src/formatters';
 export * from './src/compat';
-// IndexedDB isn't available in Node but we don't want an import error importing
-// these methods from util.
-export * from './src/indexeddb';
