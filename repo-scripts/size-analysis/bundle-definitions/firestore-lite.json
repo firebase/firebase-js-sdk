@@ -121,7 +121,7 @@
               "getFirestore",
               "collection",
               "doc",
-              "getDoc",
+              "getDocs",
               "query",
               "orderBy",
               "startAt",

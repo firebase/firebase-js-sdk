@@ -153,7 +153,7 @@
               "getFirestore",
               "collection",
               "doc",
-              "getDoc",
+              "getDocs",
               "query",
               "orderBy",
               "startAt",
@@ -187,13 +187,7 @@
             "path": "firestore",
             "imports": [
               "getFirestore",
-              "enableIndexedDbPersistence",
-              "collection",
-              "onSnapshot",
-              "where",
-              "query",
-              "enableNetwork",
-              "disableNetwork"
+              "enableIndexedDbPersistence"
             ]
           }
         ]
