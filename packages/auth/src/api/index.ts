@@ -36,7 +36,8 @@ export const enum HttpMethod {
 export const enum HttpHeader {
   CONTENT_TYPE = 'Content-Type',
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
-  X_CLIENT_VERSION = 'X-Client-Version'
+  X_CLIENT_VERSION = 'X-Client-Version',
+  X_FIREBASE_CLIENT = 'X-Firebase-Client'
 }
 
 export const enum Endpoint {
@@ -84,7 +85,8 @@ export async function _performApiRequest<T, V>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  return _performFetchWithErrorHandling(auth, customErrorMap, () => {
+  const authInternal = (auth as AuthInternal);
+  return _performFetchWithErrorHandling(auth, customErrorMap, async () => {
     let body = {};
     let params = {};
     if (request) {
@@ -106,11 +108,18 @@ export async function _performApiRequest<T, V>(
     headers.set(HttpHeader.CONTENT_TYPE, 'application/json');
     headers.set(
       HttpHeader.X_CLIENT_VERSION,
-      (auth as AuthInternal)._getSdkClientVersion()
+      authInternal._getSdkClientVersion()
     );
 
     if (auth.languageCode) {
       headers.set(HttpHeader.X_FIREBASE_LOCALE, auth.languageCode);
+    }
+
+    if (!path.includes(Endpoint.GET_PROJECT_CONFIG)) {
+      const heartbeat = await authInternal._getHeartbeatHeader();
+      if (heartbeat) {
+        headers.set(HttpHeader.X_FIREBASE_CLIENT, heartbeat);
+      }
     }
 
     return FetchProvider.fetch()(

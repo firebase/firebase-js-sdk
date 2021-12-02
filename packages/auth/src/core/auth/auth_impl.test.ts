@@ -47,13 +47,17 @@ const FAKE_APP: FirebaseApp = {
   automaticDataCollectionEnabled: false
 };
 
+const FAKE_HEARTBEAT_CONTROLLER = {
+  getHeartbeatsHeader: async () => '',
+};
+
 describe('core/auth/auth_impl', () => {
   let auth: AuthInternal;
   let persistenceStub: sinon.SinonStubbedInstance<PersistenceInternal>;
 
   beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    const authImpl = new AuthImpl(FAKE_APP, {
+    const authImpl = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER, {
       apiKey: FAKE_APP.options.apiKey!,
       apiHost: DefaultConfig.API_HOST,
       apiScheme: DefaultConfig.API_SCHEME,
@@ -431,7 +435,7 @@ describe('core/auth/auth_impl', () => {
     });
 
     it('prevents initialization from completing', async () => {
-      const authImpl = new AuthImpl(FAKE_APP, {
+      const authImpl = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER, {
         apiKey: FAKE_APP.options.apiKey!,
         apiHost: DefaultConfig.API_HOST,
         apiScheme: DefaultConfig.API_SCHEME,

@@ -82,6 +82,7 @@ export interface AuthInternal extends Auth {
   _logFramework(framework: string): void;
   _getFrameworks(): readonly string[];
   _getSdkClientVersion(): string;
+  _getHeartbeatHeader(): Promise<string>;
 
   readonly name: AppName;
   readonly config: ConfigInternal;

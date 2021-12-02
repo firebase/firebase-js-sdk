@@ -17,6 +17,7 @@
 
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
 
 import { FirebaseError, getUA, querystringDecode } from '@firebase/util';
 
@@ -41,7 +42,10 @@ describe('requestStsToken', () => {
     fetch.setUp();
   });
 
-  afterEach(fetch.tearDown);
+  afterEach(() => {
+    fetch.tearDown();
+    sinon.restore();
+  });
 
   it('should POST to the correct endpoint', async () => {
     const mock = fetch.mock(endpoint, {
@@ -66,6 +70,21 @@ describe('requestStsToken', () => {
     expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
       'testSDK/0.0.0'
     );
+  });
+
+  it('should set (or not set) heartbeat correctly', async () => {
+    const mock = fetch.mock(endpoint, {
+      'access_token': 'new-access-token',
+      'expires_in': '3600',
+      'refresh_token': 'new-refresh-token'
+    });
+    await requestStsToken(auth, 'old-refresh-token');
+    sinon.stub(auth, '_getHeartbeatHeader').returns(Promise.resolve('heartbeat'));
+    await requestStsToken(auth, 'old-refresh-token');
+
+    // First call won't have the header, second call will.
+    expect(mock.calls[0].headers!.has(HttpHeader.X_FIREBASE_CLIENT)).to.be.false;
+    expect(mock.calls[1].headers!.get(HttpHeader.X_FIREBASE_CLIENT)).to.eq('heartbeat');
   });
 
   it('should set the framework in clientVersion if logged', async () => {

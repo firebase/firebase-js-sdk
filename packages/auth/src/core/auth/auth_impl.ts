@@ -59,6 +59,10 @@ import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 
+interface HeartbeatService {
+  getHeartbeatsHeader(): Promise<string>;
+}
+
 interface AsyncAction {
   (): Promise<void>;
 }
@@ -102,7 +106,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
   constructor(
     public readonly app: FirebaseApp,
-    public readonly config: ConfigInternal
+    private readonly heartbeatController: HeartbeatService,
+    public readonly config: ConfigInternal,
   ) {
     this.name = app.name;
     this.clientVersion = config.sdkClientVersion;
@@ -576,6 +581,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
   _getSdkClientVersion(): string {
     return this.clientVersion;
+  }
+  _getHeartbeatHeader(): Promise<string> {
+    return this.heartbeatController.getHeartbeatsHeader();
   }
 }
 
