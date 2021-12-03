@@ -58,7 +58,7 @@ export function registerFirestore(): void {
         }
         return firestoreInstance;
       },
-      ComponentType.PUBLIC
+      'PUBLIC' as ComponentType.PUBLIC
     )
   );
   // RUNTIME_ENV and BUILD_TARGET are replaced by real values during the compilation

@@ -7,10 +7,9 @@
     <pass-parent-env>true</pass-parent-env>
     <envs>
       <env name="USE_MOCK_PERSISTENCE" value="YES" />
-      <env name="TS_NODE_COMPILER_OPTIONS" value="{&quot;module&quot;:&quot;commonjs&quot;}" />
     </envs>
     <ui>bdd</ui>
-    <extra-mocha-options>--require ts-node/register/type-check --require test/register.ts --require test/util/node_persistence.ts</extra-mocha-options>
+    <extra-mocha-options>--require babel-register.js --require test/register.ts --require test/util/node_persistence.ts</extra-mocha-options>
     <test-kind>PATTERN</test-kind>
     <test-pattern>test/unit/{,!(browser|lite)/**/}*.test.ts</test-pattern>
     <method v="2" />
