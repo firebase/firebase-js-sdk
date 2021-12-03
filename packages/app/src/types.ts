@@ -25,7 +25,18 @@ export interface PlatformLoggerService {
 }
 
 export interface HeartbeatService {
+  /**
+   * Called to report a heartbeat. The function will generate
+   * a HeartbeatsByUserAgent object, update heartbeatsCache, and persist it
+   * to IndexedDB.
+   * Note that we only store one heartbeat per day. So if a heartbeat for today is
+   * already logged, subsequent calls to this function in the same day will be ignored.
+   */
   triggerHeartbeat(): Promise<void>;
+  /**
+   * Returns a base64 encoded string which can be attached to the heartbeat-specific header directly.
+   * It also clears all heartbeats from memory as well as in IndexedDB.
+   */
   getHeartbeatsHeader(): Promise<string>;
 }
 
