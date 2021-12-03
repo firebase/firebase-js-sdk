@@ -2434,6 +2434,20 @@ declare namespace firebase.auth {
   }
 
   /**
+   * Interface representing a custom token provider, which implements a callback that is invoked when
+   * a new Firebase ID token is requested and no refresh token is present (such as in passthrough
+   * mode).
+   *
+   * @public
+   */
+  interface CustomTokenProvider {
+    /**
+     * The callback that is invoked to obtain a custom token in passthrough mode.
+     */
+    getCustomToken(): Promise<string>;
+  }
+
+  /**
    * The Firebase Auth service interface.
    *
    * Do not call this constructor directly. Instead, use
@@ -3157,6 +3171,34 @@ declare namespace firebase.auth {
      * @param token The custom token to sign in with.
      */
     signInWithCustomToken(token: string): Promise<firebase.auth.UserCredential>;
+
+    /**
+     * Sets the custom token provider to be used by the given Auth instance.
+     *
+     * @remarks
+     * The custom token provider is invoked when a new Firebase ID token is requested and no
+     * refresh token is present (such as in passthrough mode). The provider object must implement a
+     * `getCustomToken()` callback, which obtains a custom token to exchange for a new Firebase ID
+     * token. For instance:
+     *
+     * ```js
+     * firebase.auth().setCustomTokenProvider({
+     *   async getCustomToken(): Promise<string> {
+     *     return requestNewCustomToken();
+     *   }
+     * });
+     * ```
+     *
+     * @param provider - A `CustomTokenProvider` object, which implements a callback that is invoked
+     * when a new Firebase ID token is requested and no refresh token is present.
+     */
+    setCustomTokenProvider(provider: firebase.auth.CustomTokenProvider): void;
+
+    /**
+     * Removes the current custom token provider that was set by {@link setCustomTokenProvider}.
+     */
+    clearCustomTokenProvider(): void;
+
     /**
      * Asynchronously signs in using an email and password.
      *
