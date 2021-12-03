@@ -27,6 +27,9 @@ import {
   initializeTestInstance,
   randomEmail
 } from '../../helpers/helpers';
+import { updateEmulatorProjectConfig } from '../../../../auth/test/helpers/integration/emulator_rest_helpers';
+
+declare const xit: typeof it;
 
 use(chaiAsPromised);
 
@@ -135,6 +138,65 @@ describe('Integration test: custom auth', () => {
       .signInWithCustomToken(customToken);
     expect(firebase.auth().currentUser).to.eql(customUser);
     expect(customUser!.uid).not.to.eql(anonUser!.uid);
+  });
+
+  context('in passthrough mode', () => {
+    beforeEach(async () => {
+      const updatedConfig = await updateEmulatorProjectConfig(
+        JSON.stringify({
+          usageMode: 'PASSTHROUGH'
+        })
+      );
+      expect(updatedConfig).to.eql({
+        signIn: { allowDuplicateEmails: false },
+        usageMode: 'PASSTHROUGH'
+      });
+    });
+
+    afterEach(async () => {
+      await updateEmulatorProjectConfig(
+        JSON.stringify({
+          usageMode: 'DEFAULT'
+        })
+      );
+    });
+
+    xit('signs in with custom token in passthrough mode', async () => {
+      const cred = await firebase.auth().signInWithCustomToken(customToken);
+      expect(firebase.auth().currentUser).to.eq(cred.user);
+      expect(cred.operationType).to.eq('signIn');
+
+      const { user } = cred;
+      expect(user!.isAnonymous).to.be.false;
+      expect(user!.uid).to.eq(uid);
+      expect((await user!.getIdTokenResult(false)).claims.customClaim).to.eq(
+        'some-claim'
+      );
+      expect(user!.providerId).to.eq('firebase');
+      const additionalUserInfo = cred.additionalUserInfo!;
+      expect(additionalUserInfo.providerId).to.be.null;
+      expect(additionalUserInfo.isNewUser).to.be.false;
+    });
+
+    xit('token can be refreshed in passthrough mode', async () => {
+      firebase.auth().setCustomTokenProvider({
+        async getCustomToken(): Promise<string> {
+          return JSON.stringify({
+            uid,
+            claims: {
+              customClaim: 'other-claim'
+            }
+          });
+        }
+      });
+      const { user } = await firebase.auth().signInWithCustomToken(customToken);
+      const origToken = await user!.getIdToken();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      expect(await user!.getIdToken(true)).not.to.eq(origToken);
+      expect((await user!.getIdTokenResult(false)).claims.customClaim).to.eq(
+        'other-claim'
+      );
+    });
   });
 
   context('email/password interaction', () => {
