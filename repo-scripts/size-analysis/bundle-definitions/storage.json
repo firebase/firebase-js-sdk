@@ -216,5 +216,36 @@
         ]
       }
     ]
+  },
+  {
+    "name": "getBytes",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "storage",
+            "imports": [
+              "getStorage",
+              "ref",
+              "getBytes"
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]
