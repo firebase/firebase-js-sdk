@@ -187,7 +187,7 @@
             "path": "firestore",
             "imports": [
               "getFirestore",
-              "enableIndexedDbPersistence"
+              "enableMultiTabIndexedDbPersistence"
             ]
           }
         ]
