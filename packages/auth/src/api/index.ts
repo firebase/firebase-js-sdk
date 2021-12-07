@@ -36,7 +36,8 @@ export const enum HttpMethod {
 export const enum HttpHeader {
   CONTENT_TYPE = 'Content-Type',
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
-  X_CLIENT_VERSION = 'X-Client-Version'
+  X_CLIENT_VERSION = 'X-Client-Version',
+  X_FIREBASE_GMPID = 'X-Firebase-gmpid'
 }
 
 export const enum Endpoint {
@@ -84,7 +85,7 @@ export async function _performApiRequest<T, V>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  return _performFetchWithErrorHandling(auth, customErrorMap, () => {
+  return _performFetchWithErrorHandling(auth, customErrorMap, async () => {
     let body = {};
     let params = {};
     if (request) {
@@ -102,15 +103,11 @@ export async function _performApiRequest<T, V>(
       ...params
     }).slice(1);
 
-    const headers = new (FetchProvider.headers())();
-    headers.set(HttpHeader.CONTENT_TYPE, 'application/json');
-    headers.set(
-      HttpHeader.X_CLIENT_VERSION,
-      (auth as AuthInternal)._getSdkClientVersion()
-    );
+    const headers = await (auth as AuthInternal)._getAdditionalHeaders();
+    headers[HttpHeader.CONTENT_TYPE] = 'application/json';
 
     if (auth.languageCode) {
-      headers.set(HttpHeader.X_FIREBASE_LOCALE, auth.languageCode);
+      headers[HttpHeader.X_FIREBASE_LOCALE] = auth.languageCode;
     }
 
     return FetchProvider.fetch()(

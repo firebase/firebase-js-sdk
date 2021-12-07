@@ -460,4 +460,20 @@ describe('core/auth/auth_impl', () => {
       expect(spy).not.to.have.been.called;
     });
   });
+
+  context ('#_getAdditionalHeaders', () => {
+    it('always adds the client version', async () => {
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v',
+      });
+    });
+
+    it('adds the gmp app ID if available', async () => {
+      auth.app.options.appId = 'app-id';
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v',
+        'X-Firebase-gmpid': 'app-id',
+      });
+    });
+  });
 });

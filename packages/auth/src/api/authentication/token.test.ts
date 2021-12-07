@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import * as sinon from 'sinon';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -41,7 +42,10 @@ describe('requestStsToken', () => {
     fetch.setUp();
   });
 
-  afterEach(fetch.tearDown);
+  afterEach(() => {
+    fetch.tearDown();
+    sinon.restore();
+  });
 
   it('should POST to the correct endpoint', async () => {
     const mock = fetch.mock(endpoint, {
@@ -88,6 +92,23 @@ describe('requestStsToken', () => {
       // frameworks should be sorted alphabetically
       `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/Magical,Mythical`
     );
+  });
+
+  it('should include whatever headers come from auth impl', async () => {
+    sinon.stub(auth, '_getAdditionalHeaders').returns(Promise.resolve({
+      'look-at-me-im-a-header': 'header-value',
+      'anotherheader': 'header-value-2',
+    }));
+
+    const mock = fetch.mock(endpoint, {
+      'access_token': 'new-access-token',
+      'expires_in': '3600',
+      'refresh_token': 'new-refresh-token'
+    });
+    await requestStsToken(auth, 'old-refresh-token');
+    
+    expect(mock.calls[0].headers.get('look-at-me-im-a-header')).to.eq('header-value');
+    expect(mock.calls[0].headers.get('anotherheader')).to.eq('header-value-2');
   });
 
   it('should handle errors', async () => {
