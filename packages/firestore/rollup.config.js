@@ -15,17 +15,19 @@
  * limitations under the License.
  */
 
-import tmp from 'tmp';
-import json from '@rollup/plugin-json';
+import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 import alias from '@rollup/plugin-alias';
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import typescript from 'typescript';
-import replace from 'rollup-plugin-replace';
+import json from '@rollup/plugin-json';
 import copy from 'rollup-plugin-copy';
+import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import tmp from 'tmp';
+import typescript from 'typescript';
+
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 import pkg from './package.json';
-import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 const util = require('./rollup.shared');
 
@@ -69,7 +71,8 @@ const nodePlugins = function () {
       ]
     }),
     replace({
-      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
+      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos'),
+      '__GRPC_VERSION__': grpcVersion
     })
   ];
 };
