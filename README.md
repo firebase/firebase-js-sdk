@@ -37,6 +37,10 @@ To download Node.js visit https://nodejs.org/en/download/.
 _NOTE: You can use a tool like [`NVM`](https://github.com/creationix/nvm)
 or [`N`](https://github.com/tj/n) to install and manage multiple node versions_
 
+#### Cordova
+
+If you are using the Firebase JS SDK with Cordova and build to Android as a target, you must use cordova-android@9.1.0 or older, due to a compatibility issue with cordova-plugin-browsertabs.
+
 #### Yarn
 
 In addition to Node.js we use `yarn` to facilitate multi package development.
