@@ -1,5 +1,14 @@
 # @firebase/firestore-compat
 
+## 0.1.10
+
+### Patch Changes
+
+- [`8298cf8a9`](https://github.com/firebase/firebase-js-sdk/commit/8298cf8a9343dbba6c628d64941dfbe5d17c44aa) [#5741](https://github.com/firebase/firebase-js-sdk/pull/5741) - fix firestore node tests
+
+- Updated dependencies [[`fd8cd3ec4`](https://github.com/firebase/firebase-js-sdk/commit/fd8cd3ec4b7d0747fca258d468ee094573a08bbb), [`8298cf8a9`](https://github.com/firebase/firebase-js-sdk/commit/8298cf8a9343dbba6c628d64941dfbe5d17c44aa)]:
+  - @firebase/firestore@3.4.1
+
 ## 0.1.9
 
 ### Patch Changes

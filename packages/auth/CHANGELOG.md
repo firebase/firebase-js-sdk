@@ -1,5 +1,13 @@
 # @firebase/auth
 
+## 0.19.4
+
+### Patch Changes
+
+- [`a777385d6`](https://github.com/firebase/firebase-js-sdk/commit/a777385d67653cdcc3b839149dde867f32b48369) [#5799](https://github.com/firebase/firebase-js-sdk/pull/5799) - Add X-Firebase-gmpid header to requests
+
+* [`dc6b447ba`](https://github.com/firebase/firebase-js-sdk/commit/dc6b447bac4e899a0c4741ec18bf19e2ae66731a) [#5777](https://github.com/firebase/firebase-js-sdk/pull/5777) (fixes [#5720](https://github.com/firebase/firebase-js-sdk/issues/5720)) - Fix errors during Auth initialization when the network is unavailable
+
 ## 0.19.3
 
 ### Patch Changes
