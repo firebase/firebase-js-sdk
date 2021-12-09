@@ -55,7 +55,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.10",
+    "@firebase/app": "0.7.11",
     "rollup": "2.57.0",
     "rollup-plugin-typescript2": "0.30.0",
     "@rollup/plugin-json": "4.1.0",
