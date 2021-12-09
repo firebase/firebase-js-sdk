@@ -98,7 +98,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     const currentSize = this.sizer(doc);
 
     this.docs = this.docs.insert(key, {
-      document: doc.clone(),
+      document: doc.mutableCopy(),
       size: currentSize,
       readTime
     });
@@ -132,7 +132,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     const entry = this.docs.get(documentKey);
     return PersistencePromise.resolve(
       entry
-        ? entry.document.clone()
+        ? entry.document.mutableCopy()
         : MutableDocument.newInvalidDocument(documentKey)
     );
   }
@@ -147,7 +147,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
       results = results.insert(
         documentKey,
         entry
-          ? entry.document.clone()
+          ? entry.document.mutableCopy()
           : MutableDocument.newInvalidDocument(documentKey)
       );
     });
@@ -183,7 +183,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
       if (!queryMatches(query, document)) {
         continue;
       }
-      results = results.insert(document.key, document.clone());
+      results = results.insert(document.key, document.mutableCopy());
     }
     return PersistencePromise.resolve(results);
   }

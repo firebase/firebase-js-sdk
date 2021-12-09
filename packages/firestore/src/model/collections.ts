@@ -26,7 +26,7 @@ import { DocumentKey } from './document_key';
 
 /** Miscellaneous collection types / constants. */
 export interface DocumentSizeEntry {
-  document: MutableDocument;
+  document: Document;
   size: number;
 }
 

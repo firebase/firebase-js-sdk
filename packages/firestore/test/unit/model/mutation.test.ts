@@ -505,7 +505,7 @@ describe('Mutation', () => {
     mutationResult: MutationResult,
     expected: MutableDocument
   ): void {
-    const documentCopy = base.clone();
+    const documentCopy = base.mutableCopy();
     mutationApplyToRemoteDocument(mutation, documentCopy, mutationResult);
     expect(documentCopy).to.deep.equal(expected);
   }
