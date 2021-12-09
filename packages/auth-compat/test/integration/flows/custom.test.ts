@@ -161,23 +161,25 @@ describe('Integration test: custom auth', () => {
       );
     });
 
+    // TODO(b/210009586): Enable integration tests once passthrough mode launches
     xit('signs in with custom token in passthrough mode', async () => {
       const cred = await firebase.auth().signInWithCustomToken(customToken);
       expect(firebase.auth().currentUser).to.eq(cred.user);
       expect(cred.operationType).to.eq('signIn');
 
-      const { user } = cred;
-      expect(user!.isAnonymous).to.be.false;
-      expect(user!.uid).to.eq(uid);
-      expect((await user!.getIdTokenResult(false)).claims.customClaim).to.eq(
+      const user = cred.user!;
+      expect(user.isAnonymous).to.be.false;
+      expect(user.uid).to.eq(uid);
+      expect((await user.getIdTokenResult(false)).claims.customClaim).to.eq(
         'some-claim'
       );
-      expect(user!.providerId).to.eq('firebase');
+      expect(user.providerId).to.eq('firebase');
       const additionalUserInfo = cred.additionalUserInfo!;
       expect(additionalUserInfo.providerId).to.be.null;
       expect(additionalUserInfo.isNewUser).to.be.false;
     });
 
+    // TODO(b/210009586): Enable integration tests once passthrough mode launches
     xit('token can be refreshed in passthrough mode', async () => {
       firebase.auth().setCustomTokenProvider({
         async getCustomToken(): Promise<string> {
@@ -189,11 +191,12 @@ describe('Integration test: custom auth', () => {
           });
         }
       });
-      const { user } = await firebase.auth().signInWithCustomToken(customToken);
-      const origToken = await user!.getIdToken();
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      expect(await user!.getIdToken(true)).not.to.eq(origToken);
-      expect((await user!.getIdTokenResult(false)).claims.customClaim).to.eq(
+
+      const cred = await firebase.auth().signInWithCustomToken(customToken);
+      const user = cred.user!;
+      const origToken = await user.getIdToken();
+      expect(await user.getIdToken(true)).not.to.eq(origToken);
+      expect((await user.getIdTokenResult(false)).claims.customClaim).to.eq(
         'other-claim'
       );
     });
