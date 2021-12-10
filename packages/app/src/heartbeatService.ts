@@ -132,12 +132,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
 
 function getUTCDateString(): string {
   const today = new Date();
-  const yearString = today.getUTCFullYear().toString();
-  const month = today.getUTCMonth() + 1;
-  const monthString = month < 10 ? '0' + month : month.toString();
-  const date = today.getUTCDate();
-  const dayString = date < 10 ? '0' + date : date.toString();
-  return `${yearString}-${monthString}-${dayString}`;
+  return today.toISOString().substring(0,10);
 }
 
 export class HeartbeatStorageImpl implements HeartbeatStorage {

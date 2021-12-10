@@ -35,11 +35,15 @@ declare module '@firebase/component' {
     'platform-logger': PlatformLoggerService;
   }
 }
+
+const USER_AGENT_STRING_1 = 'vs1/1.2.3 vs2/2.3.4';
+const USER_AGENT_STRING_2 = 'different/1.2.3';
+
 describe('HeartbeatServiceImpl', () => {
   describe('If IndexedDB has no entries', () => {
     let heartbeatService: HeartbeatServiceImpl;
     let clock = useFakeTimers();
-    let userAgentString = 'vs1/1.2.3 vs2/2.3.4';
+    let userAgentString = USER_AGENT_STRING_1;
     let writeStub: SinonStub;
     before(() => {
       const container = new ComponentContainer('heartbeatTestContainer');
@@ -75,7 +79,7 @@ describe('HeartbeatServiceImpl', () => {
       await heartbeatService.triggerHeartbeat();
       expect(heartbeatService._heartbeatsCache?.length).to.equal(1);
       const heartbeat1 = heartbeatService._heartbeatsCache?.[0];
-      expect(heartbeat1?.userAgent).to.equal('vs1/1.2.3 vs2/2.3.4');
+      expect(heartbeat1?.userAgent).to.equal(USER_AGENT_STRING_1);
       expect(heartbeat1?.dates[0]).to.equal('1970-01-01');
       expect(writeStub).to.be.calledWith([heartbeat1]);
     });
@@ -92,7 +96,7 @@ describe('HeartbeatServiceImpl', () => {
       expect(heartbeat1?.dates[1]).to.equal('1970-01-02');
     });
     it(`triggerHeartbeat() stores another entry for a different user agent`, async () => {
-      userAgentString = 'different/1.2.3';
+      userAgentString = USER_AGENT_STRING_2;
       clock.tick(2 * 24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
       expect(heartbeatService._heartbeatsCache?.length).to.equal(2);
@@ -105,8 +109,8 @@ describe('HeartbeatServiceImpl', () => {
       const heartbeatHeaders = firebaseUtil.base64Decode(
         await heartbeatService.getHeartbeatsHeader()
       );
-      expect(heartbeatHeaders).to.include('vs1/1.2.3 vs2/2.3.4');
-      expect(heartbeatHeaders).to.include('different/1.2.3');
+      expect(heartbeatHeaders).to.include(USER_AGENT_STRING_1);
+      expect(heartbeatHeaders).to.include(USER_AGENT_STRING_2);
       expect(heartbeatHeaders).to.include('1970-01-01');
       expect(heartbeatHeaders).to.include('1970-01-02');
       expect(heartbeatHeaders).to.include('1970-01-03');
@@ -121,7 +125,7 @@ describe('HeartbeatServiceImpl', () => {
     let heartbeatService: HeartbeatServiceImpl;
     let clock = useFakeTimers();
     let writeStub: SinonStub;
-    let userAgentString = 'vs1/1.2.3 vs2/2.3.4';
+    let userAgentString = USER_AGENT_STRING_1;
     const mockIndexedDBHeartbeats = [
       {
         userAgent: 'old-user-agent',
@@ -176,17 +180,17 @@ describe('HeartbeatServiceImpl', () => {
       }
     });
     it(`triggerHeartbeat() writes new heartbeats without removing old ones`, async () => {
-      userAgentString = 'different/1.2.3';
+      userAgentString = USER_AGENT_STRING_2;
       clock.tick(3 * 24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
       if (isIndexedDBAvailable()) {
         expect(writeStub).to.be.calledWith([
           ...mockIndexedDBHeartbeats,
-          { userAgent: 'different/1.2.3', dates: ['1970-01-04'] }
+          { userAgent: USER_AGENT_STRING_2, dates: ['1970-01-04'] }
         ]);
       } else {
         expect(writeStub).to.be.calledWith([
-          { userAgent: 'different/1.2.3', dates: ['1970-01-04'] }
+          { userAgent: USER_AGENT_STRING_2, dates: ['1970-01-04'] }
         ]);
       }
     });
@@ -200,7 +204,7 @@ describe('HeartbeatServiceImpl', () => {
         expect(heartbeatHeaders).to.include('1969-01-01');
         expect(heartbeatHeaders).to.include('1969-01-02');
       }
-      expect(heartbeatHeaders).to.include('different/1.2.3');
+      expect(heartbeatHeaders).to.include(USER_AGENT_STRING_2);
       expect(heartbeatHeaders).to.include('1970-01-04');
       expect(heartbeatHeaders).to.include(`"version":2`);
       expect(heartbeatService._heartbeatsCache).to.equal(null);
