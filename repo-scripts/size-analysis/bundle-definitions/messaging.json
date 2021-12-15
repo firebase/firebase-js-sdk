@@ -23,7 +23,8 @@
             "imports": [
               "getMessaging",
               "getToken",
-              "onMessage"
+              "onMessage",
+              "isSupported"
             ]
           }
         ]
