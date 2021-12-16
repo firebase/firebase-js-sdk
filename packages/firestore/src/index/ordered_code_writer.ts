@@ -77,7 +77,7 @@ export function numberOfLeadingZerosInByte(x: number): number {
 /** Counts the number of leading zeros in the given byte array. */
 function numberOfLeadingZeros(bytes: Uint8Array): number {
   debugAssert(
-    bytes.length == 8,
+    bytes.length === 8,
     'Can only count leading zeros in 64-bit numbers'
   );
   let leadingZeros = 0;
