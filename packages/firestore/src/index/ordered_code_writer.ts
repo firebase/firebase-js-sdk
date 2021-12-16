@@ -16,7 +16,6 @@
  */
 import { debugAssert } from '../util/assert';
 
-
 /** These constants are taken from the backend. */
 const MIN_SURROGATE = '\uD800';
 const MAX_SURROGATE = '\uDBFF';

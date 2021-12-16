@@ -139,7 +139,7 @@ describe('Ordered Code Writer', () => {
     verifyOrdering(STRING_TEST_CASES);
   });
 
-  function verifyEncoding(testCases: Array<ValueTestCase<unknown>>) : void {
+  function verifyEncoding(testCases: Array<ValueTestCase<unknown>>): void {
     for (let i = 0; i < testCases.length; ++i) {
       const bytes = getBytes(testCases[i].val);
       expect(bytes.asc).to.deep.equal(
@@ -153,7 +153,7 @@ describe('Ordered Code Writer', () => {
     }
   }
 
-  function verifyOrdering(testCases: Array<ValueTestCase<unknown>>) : void {
+  function verifyOrdering(testCases: Array<ValueTestCase<unknown>>): void {
     for (let i = 0; i < testCases.length; ++i) {
       for (let j = i; j < testCases.length; ++j) {
         const left = testCases[i].val;
