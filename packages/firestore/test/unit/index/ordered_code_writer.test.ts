@@ -148,6 +148,90 @@ const NUMBER_TEST_CASES: Array<ValueTestCase<number>> = [
   )
 ];
 
+const STRING_TEST_CASES: Array<ValueTestCase<string>> = [
+  new ValueTestCase(
+    '',
+    new Uint8Array([0x00, 0x01]),
+    new Uint8Array([0xff, 0xfe])
+  ),
+  new ValueTestCase(
+    '\u0000',
+    new Uint8Array([0x00, 0xff, 0x00, 0x01]),
+    new Uint8Array([0xff, 0x00, 0xff, 0xfe])
+  ),
+  new ValueTestCase(
+    '\u0000\u0000',
+    new Uint8Array([0x00, 0xff, 0x00, 0xff, 0x00, 0x01]),
+    new Uint8Array([0xff, 0x00, 0xff, 0x00, 0xff, 0xfe])
+  ),
+  new ValueTestCase(
+    'abc',
+    new Uint8Array([0x61, 0x62, 0x63, 0x00, 0x01]),
+    new Uint8Array([0x9e, 0x9d, 0x9c, 0xff, 0xfe])
+  ),
+  new ValueTestCase(
+    'xy¢z𠜎€𠜱あ𠝹',
+    new Uint8Array([
+      0x78, 0x79, 0xc2, 0xa2, 0x7a, 0xf0, 0xa0, 0x9c, 0x8e, 0xe2, 0x82, 0xac,
+      0xf0, 0xa0, 0x9c, 0xb1, 0xe3, 0x81, 0x82, 0xf0, 0xa0, 0x9d, 0xb9, 0x00,
+      0x01
+    ]),
+    new Uint8Array([
+      0x87, 0x86, 0x3d, 0x5d, 0x85, 0x0f, 0x5f, 0x63, 0x71, 0x1d, 0x7d, 0x53,
+      0x0f, 0x5f, 0x63, 0x4e, 0x1c, 0x7e, 0x7d, 0x0f, 0x5f, 0x62, 0x46, 0xff,
+      0xfe
+    ])
+  ),
+  new ValueTestCase(
+    '¬˚ß∂∆ç',
+    new Uint8Array([
+      0xc2, 0xac, 0xcb, 0x9a, 0xc3, 0x9f, 0xe2, 0x88, 0x82, 0xe2, 0x88, 0x86,
+      0xc3, 0xa7, 0x00, 0x01
+    ]),
+    new Uint8Array([
+      0x3d, 0x53, 0x34, 0x65, 0x3c, 0x60, 0x1d, 0x77, 0x7d, 0x1d, 0x77, 0x79,
+      0x3c, 0x58, 0xff, 0xfe
+    ])
+  ),
+  new ValueTestCase(
+    'œ∑´´ß™£',
+    new Uint8Array([
+      0xc5, 0x93, 0xe2, 0x88, 0x91, 0xc2, 0xb4, 0xc2, 0xb4, 0xc3, 0x9f, 0xe2,
+      0x84, 0xa2, 0xc2, 0xa3, 0x00, 0x01
+    ]),
+    new Uint8Array([
+      0x3a, 0x6c, 0x1d, 0x77, 0x6e, 0x3d, 0x4b, 0x3d, 0x4b, 0x3c, 0x60, 0x1d,
+      0x7b, 0x5d, 0x3d, 0x5c, 0xff, 0xfe
+    ])
+  ),
+  new ValueTestCase(
+    'πåçasdlß¬µœ∑âsldalskdåßµ∂π',
+    new Uint8Array([
+      0xcf, 0x80, 0xc3, 0xa5, 0xc3, 0xa7, 0x61, 0x73, 0x64, 0x6c, 0xc3, 0x9f,
+      0xc2, 0xac, 0xc2, 0xb5, 0xc5, 0x93, 0xe2, 0x88, 0x91, 0xc3, 0xa2, 0x73,
+      0x6c, 0x64, 0x61, 0x6c, 0x73, 0x6b, 0x64, 0xc3, 0xa5, 0xc3, 0x9f, 0xc2,
+      0xb5, 0xe2, 0x88, 0x82, 0xcf, 0x80, 0x00, 0x01
+    ]),
+    new Uint8Array([
+      0x30, 0x7f, 0x3c, 0x5a, 0x3c, 0x58, 0x9e, 0x8c, 0x9b, 0x93, 0x3c, 0x60,
+      0x3d, 0x53, 0x3d, 0x4a, 0x3a, 0x6c, 0x1d, 0x77, 0x6e, 0x3c, 0x5d, 0x8c,
+      0x93, 0x9b, 0x9e, 0x93, 0x8c, 0x94, 0x9b, 0x3c, 0x5a, 0x3c, 0x60, 0x3d,
+      0x4a, 0x1d, 0x77, 0x7d, 0x30, 0x7f, 0xff, 0xfe
+    ])
+  ),
+  new ValueTestCase(
+    '†¥¬´´`',
+    new Uint8Array([
+      0xe2, 0x80, 0xa0, 0xc2, 0xa5, 0xc2, 0xac, 0xc2, 0xb4, 0xc2, 0xb4, 0x60,
+      0x00, 0x01
+    ]),
+    new Uint8Array([
+      0x1d, 0x7f, 0x5f, 0x3d, 0x5a, 0x3d, 0x53, 0x3d, 0x4b, 0x3d, 0x4b, 0x9f,
+      0xff, 0xfe
+    ])
+  )
+];
+
 describe('Ordered Code Writer', () => {
   it('computes number of leading zeros', () => {
     for (let i = 0; i < 0xff; ++i) {
@@ -164,25 +248,41 @@ describe('Ordered Code Writer', () => {
   });
 
   it('converts numbers to bits', () => {
-    for (let i = 0; i < NUMBER_TEST_CASES.length; ++i) {
-      const bytes = getBytes(NUMBER_TEST_CASES[i].val);
-      expect(bytes.asc).to.deep.equal(
-        NUMBER_TEST_CASES[i].ascEncoding,
-        'Ascending for ' + NUMBER_TEST_CASES[i].val
-      );
-      expect(bytes.desc).to.deep.equal(
-        NUMBER_TEST_CASES[i].descEncoding,
-        'Descending for ' + NUMBER_TEST_CASES[i].val
-      );
-    }
+    verifyEncoding(NUMBER_TEST_CASES);
   });
 
   it('orders numbers correctly', () => {
-    for (let i = 0; i < NUMBER_TEST_CASES.length; ++i) {
-      for (let j = i; j < NUMBER_TEST_CASES.length; ++j) {
-        const left = NUMBER_TEST_CASES[i].val;
+    verifyOrdering(NUMBER_TEST_CASES);
+  });
+
+  it('converts strings to bits', () => {
+    verifyEncoding(STRING_TEST_CASES);
+  });
+
+  it('orders strings correctly', () => {
+    verifyOrdering(STRING_TEST_CASES);
+  });
+
+  function verifyEncoding(testCases: Array<ValueTestCase<unknown>>) : void {
+    for (let i = 0; i < testCases.length; ++i) {
+      const bytes = getBytes(testCases[i].val);
+      expect(bytes.asc).to.deep.equal(
+        testCases[i].ascEncoding,
+        'Ascending for ' + testCases[i].val
+      );
+      expect(bytes.desc).to.deep.equal(
+        testCases[i].descEncoding,
+        'Descending for ' + testCases[i].val
+      );
+    }
+  }
+
+  function verifyOrdering(testCases: Array<ValueTestCase<unknown>>) : void {
+    for (let i = 0; i < testCases.length; ++i) {
+      for (let j = i; j < testCases.length; ++j) {
+        const left = testCases[i].val;
         const leftBytes = getBytes(left);
-        const right = NUMBER_TEST_CASES[j].val;
+        const right = testCases[j].val;
         const rightBytes = getBytes(right);
         expect(compare(leftBytes.asc, rightBytes.asc)).to.equal(
           i === j ? 0 : -1,
@@ -194,7 +294,7 @@ describe('Ordered Code Writer', () => {
         );
       }
     }
-  });
+  }
 });
 
 function compare(left: Uint8Array, right: Uint8Array): number {
@@ -215,6 +315,9 @@ function getBytes(val: unknown): { asc: Uint8Array; desc: Uint8Array } {
   if (typeof val === 'number') {
     ascWriter.writeNumberAscending(val);
     descWriter.writeNumberDescending(val);
+  } else if (typeof val === 'string') {
+    ascWriter.writeUtf8Ascending(val);
+    descWriter.writeUtf8Descending(val);
   } else {
     throw new Error('Encoding not yet supported for ' + val);
   }
