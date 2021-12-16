@@ -221,8 +221,8 @@ describe('Ordered Code Writer', () => {
 
 function fromHex(hexString: string): Uint8Array {
   const bytes = new Uint8Array(hexString.length / 2);
-  for (let c = 0; c < hexString.length; c += 2) {
-    bytes[c / 2] = parseInt(hexString.substr(c, 2), 16);
+  for (let i = 0; i < hexString.length; i += 2) {
+    bytes[i / 2] = parseInt(hexString.substr(i, 2), 16);
   }
   return bytes;
 }
