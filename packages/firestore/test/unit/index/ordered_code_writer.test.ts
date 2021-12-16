@@ -20,6 +20,7 @@ import {
   numberOfLeadingZerosInByte,
   OrderedCodeWriter
 } from '../../../src/index/ordered_code_writer';
+import { ByteString } from '../../../src/util/byte_string';
 
 class ValueTestCase<T> {
   constructor(
@@ -108,6 +109,23 @@ const STRING_TEST_CASES: Array<ValueTestCase<string>> = [
   )
 ];
 
+const BYTES_TEST_CASES: Array<ValueTestCase<Uint8Array>> = [
+  new ValueTestCase(fromHex(''), '0001', 'fffe'),
+  new ValueTestCase(fromHex('00'), '00ff0001', 'ff00fffe'),
+  new ValueTestCase(fromHex('0000'), '00ff00ff0001', 'ff00ff00fffe'),
+  new ValueTestCase(fromHex('0001'), '00ff010001', 'ff00fefffe'),
+  new ValueTestCase(fromHex('0041'), '00ff410001', 'ff00befffe'),
+  new ValueTestCase(fromHex('00ff'), '00ffff000001', 'ff0000fffffe'),
+  new ValueTestCase(fromHex('01'), '010001', 'fefffe'),
+  new ValueTestCase(fromHex('0100'), '0100ff0001', 'feff00fffe'),
+  new ValueTestCase(fromHex('6f776c'), '6f776c0001', '908893fffe'),
+  new ValueTestCase(fromHex('ff'), 'ff000001', '00fffffe'),
+  new ValueTestCase(fromHex('ff00'), 'ff0000ff0001', '00ffff00fffe'),
+  new ValueTestCase(fromHex('ff01'), 'ff00010001', '00fffefffe'),
+  new ValueTestCase(fromHex('ffff'), 'ff00ff000001', '00ff00fffffe'),
+  new ValueTestCase(fromHex('ffffff'), 'ff00ff00ff000001', '00ff00ff00fffffe')
+];
+
 describe('Ordered Code Writer', () => {
   it('computes number of leading zeros', () => {
     for (let i = 0; i < 0xff; ++i) {
@@ -137,6 +155,34 @@ describe('Ordered Code Writer', () => {
 
   it('orders strings correctly', () => {
     verifyOrdering(STRING_TEST_CASES);
+  });
+
+  it('converts bytes to bits', () => {
+    verifyEncoding(BYTES_TEST_CASES);
+  });
+
+  it('orders bytes correctly', () => {
+    verifyOrdering(BYTES_TEST_CASES);
+  });
+
+  it('encodes infinity', () => {
+    const writer = new OrderedCodeWriter();
+    writer.writeInfinityAscending();
+    expect(writer.encodedBytes()).to.deep.equal(fromHex("ffff"));
+
+    writer.reset();
+    writer.writeInfinityDescending();
+    expect(writer.encodedBytes()).to.deep.equal(fromHex("0000"));
+  });
+
+  it('seeds bytes', () => {
+    const writer = new OrderedCodeWriter();
+    writer.seed(fromHex("01"));
+    writer.writeInfinityAscending();
+    writer.seed(fromHex("02"));
+    expect(writer.encodedBytes()).to.deep.equal(
+      fromHex("01ffff02")
+    );
   });
 
   function verifyEncoding(testCases: Array<ValueTestCase<unknown>>): void {
@@ -202,8 +248,9 @@ function getBytes(val: unknown): { asc: Uint8Array; desc: Uint8Array } {
   } else if (typeof val === 'string') {
     ascWriter.writeUtf8Ascending(val);
     descWriter.writeUtf8Descending(val);
-  } else {
-    throw new Error('Encoding not yet supported for ' + val);
+  } else if (val instanceof Uint8Array) {
+    ascWriter.writeBytesAscending(ByteString.fromUint8Array(val));
+    descWriter.writeBytesDescending(ByteString.fromUint8Array(val));
   }
   return { asc: ascWriter.encodedBytes(), desc: descWriter.encodedBytes() };
 }

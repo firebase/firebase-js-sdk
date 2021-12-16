@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { debugAssert } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 
 /** These constants are taken from the backend. */
 const MIN_SURROGATE = '\uD800';
@@ -25,6 +26,7 @@ const NULL_BYTE = 0xff; // Combined with ESCAPE1
 const SEPARATOR = 0x01; // Combined with ESCAPE1
 
 const ESCAPE2 = 0xff;
+const INFINITY = 0xff; // Combined with ESCAPE2
 const FF_BYTE = 0x00; // Combined with ESCAPE2
 
 const LONG_SIZE = 64;
@@ -110,6 +112,26 @@ export class OrderedCodeWriter {
   buffer = new Uint8Array(DEFAULT_BUFFER_SIZE);
   position = 0;
 
+  writeBytesAscending(value: ByteString): void {
+    const it = value[Symbol.iterator]();
+    let byte = it.next();
+    while (!byte.done) {
+      this.writeByteAscending(byte.value);
+      byte = it.next();
+    }
+    this.writeSeparatorAscending();
+  }
+
+  writeBytesDescending(value: ByteString): void {
+    const it = value[Symbol.iterator]();
+    let byte = it.next();
+    while (!byte.done) {
+      this.writeByteDescending(byte.value);
+      byte = it.next();
+    }
+    this.writeSeparatorDescending();
+  }
+
   /** Writes utf8 bytes into this byte sequence, ascending. */
   writeUtf8Ascending(sequence: string): void {
     for (const c of sequence) {
@@ -180,6 +202,24 @@ export class OrderedCodeWriter {
     for (let i = value.length - len; i < value.length; ++i) {
       this.buffer[this.position++] = ~(value[i] & 0xff);
     }
+  }
+
+  /**
+   * Writes the "infinity" byte sequence that sorts after all other byte
+   * sequences written in ascending order.
+   */
+  writeInfinityAscending(): void {
+    this.writeEscapedByteAscending(ESCAPE2);
+    this.writeEscapedByteAscending(INFINITY);
+  }
+
+  /**
+   * Writes the "infinity" byte sequence that sorts before all other byte
+   * sequences written in descending order.
+   */
+  writeInfinityDescending(): void {
+    this.writeEscapedByteDescending(ESCAPE2);
+    this.writeEscapedByteDescending(INFINITY);
   }
 
   /**
@@ -276,5 +316,11 @@ export class OrderedCodeWriter {
     const newBuffer = new Uint8Array(newLength);
     newBuffer.set(this.buffer); // copy old data
     this.buffer = newBuffer;
+  }
+
+  seed(encodedBytes: Uint8Array): void {
+    this.ensureAvailable(encodedBytes.length);
+    this.buffer.set(encodedBytes, this.position);
+    this.position += encodedBytes.length;
   }
 }
