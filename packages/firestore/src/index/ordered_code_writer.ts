@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { debugAssert } from '../util/assert';
 
 const LONG_SIZE = 64;
 const BYTE_SIZE = 8;
@@ -25,13 +26,10 @@ const BYTE_SIZE = 8;
  */
 const DEFAULT_BUFFER_SIZE = 1024;
 
-/**
- * Converts a JavaScript number to a byte array (using little endian
- * encoding).
- */
+/** Converts a JavaScript number to a byte array (using big endian encoding). */
 function doubleToLongBits(value: number): Uint8Array {
   const dv = new DataView(new ArrayBuffer(8));
-  dv.setFloat64(0, value, false);
+  dv.setFloat64(0, value, /* littleEndian= */ false);
   return new Uint8Array(dv.buffer);
 }
 
@@ -41,6 +39,7 @@ function doubleToLongBits(value: number): Uint8Array {
  * Visible for testing.
  */
 export function numberOfLeadingZerosInByte(x: number): number {
+  debugAssert(x < 256, 'Provided value is not a byte: ' + x);
   if (x === 0) {
     return 8;
   }
@@ -65,8 +64,12 @@ export function numberOfLeadingZerosInByte(x: number): number {
 
 /** Counts the number of leading zeros in the given byte array. */
 function numberOfLeadingZeros(bytes: Uint8Array): number {
+  debugAssert(
+    bytes.length == 8,
+    'Can only count leading zeros in 64-bit numbers'
+  );
   let leadingZeros = 0;
-  for (let i = 0; i < bytes.length; ++i) {
+  for (let i = 0; i < 8; ++i) {
     const zeros = numberOfLeadingZerosInByte(bytes[i] & 0xff);
     leadingZeros += zeros;
     if (zeros !== 8) {
@@ -97,6 +100,8 @@ export class OrderedCodeWriter {
   position = 0;
 
   writeNumberAscending(val: number): void {
+    // Values are encoded with a single byte length prefix, followed by the
+    // actual value in big-endian format with leading 0 bytes dropped.
     const value = this.toOrderedBits(val);
     const len = unsignedNumLength(value);
     this.ensureAvailable(1 + len);
@@ -107,6 +112,8 @@ export class OrderedCodeWriter {
   }
 
   writeNumberDescending(val: number): void {
+    // Values are encoded with a single byte length prefix, followed by the
+    // inverted value in big-endian format with leading 0 bytes dropped.
     const value = this.toOrderedBits(val);
     const len = unsignedNumLength(value);
     this.ensureAvailable(1 + len);
@@ -125,7 +132,11 @@ export class OrderedCodeWriter {
    */
   private toOrderedBits(val: number): Uint8Array {
     const value = doubleToLongBits(val);
+    // Check if the first bit is set. We use a bit mask since value[0] is
+    // encoded as a number from 0 to 255.
     const isNegative = (value[0] & 0x80) !== 0;
+
+    // Revert the two complement to get natural ordering
     value[0] ^= isNegative ? 0xff : 0x80;
     for (let i = 1; i < value.length; ++i) {
       value[i] ^= isNegative ? 0xff : 0x00;
