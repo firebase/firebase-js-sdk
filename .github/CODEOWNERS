@@ -33,7 +33,7 @@
 
 
 # These owners will be the default owners for everything in the repo.
-*       @Feiyang1 @hiranya911 @hsubox76 @firebase/jssdk-global-approvers
+*       @allspain @hsubox76 @firebase/jssdk-global-approvers
 
 # Database Code
 packages/database @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
@@ -79,9 +79,9 @@ packages/performance-compat @jposuna @firebase/jssdk-global-approvers
 packages/performance-types @jposuna @firebase/jssdk-global-approvers
 
 # Analytics Code
-packages/analytics @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
-packages/analytics-compat @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
-packages/analytics-types @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
+packages/analytics @hsubox76 @firebase/jssdk-global-approvers
+packages/analytics-compat @hsubox76 @firebase/jssdk-global-approvers
+packages/analytics-types @hsubox76 @firebase/jssdk-global-approvers
 
 # Remote Config Code
 packages/remote-config @erikeldridge @firebase/jssdk-global-approvers
@@ -89,10 +89,10 @@ packages/remote-config-compat  @erikeldridge @firebase/jssdk-global-approvers
 packages/remote-config-types @erikeldridge @firebase/jssdk-global-approvers
 
 # App Check Code
-packages/app-check @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
-packages/app-check-compat @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
-packages/app-check-types @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
-packages/app-check-interop-types @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
+packages/app-check @hsubox76 @firebase/jssdk-global-approvers
+packages/app-check-compat @hsubox76 @firebase/jssdk-global-approvers
+packages/app-check-types @hsubox76 @firebase/jssdk-global-approvers
+packages/app-check-interop-types @hsubox76 @firebase/jssdk-global-approvers
 
 # Documentation Changes
 packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
