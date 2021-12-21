@@ -177,10 +177,13 @@ export interface FirestoreDataConverter<T> {
 }
 
 // @public
-export class FirestoreError extends Error {
+export class FirestoreError {
     readonly code: FirestoreErrorCode;
+    // (undocumented)
+    customData?: Record<string, unknown>;
     readonly message: string;
-    readonly name: string;
+    // (undocumented)
+    name: 'FirebaseError';
     readonly stack?: string;
 }
 
