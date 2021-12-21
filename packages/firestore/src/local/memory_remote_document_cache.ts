@@ -19,7 +19,6 @@ import { isCollectionGroupQuery, Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
-  DocumentSizeEntry,
   MutableDocumentMap,
   mutableDocumentMap
 } from '../model/collections';
@@ -37,7 +36,9 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 export type DocumentSizer = (doc: Document) => number;
 
 /** Miscellaneous collection types / constants. */
-interface MemoryRemoteDocumentCacheEntry extends DocumentSizeEntry {
+interface MemoryRemoteDocumentCacheEntry {
+  document: Document;
+  size: number;
   readTime: SnapshotVersion;
 }
 
