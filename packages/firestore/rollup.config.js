@@ -43,10 +43,12 @@ function importMetaUrlPolyfillPlugin(filename) {
     resolveImportMeta(property, { moduleId }) {
       if (property === 'url') {
         // copied from rollup output
-        return "(typeof document === 'undefined' ? new (require('url').URL)"
-          + "('file:' + __filename).href : (document.currentScript && "
-          + `document.currentScript.src || new URL('${filename}', `
-          + "document.baseURI).href))";
+        return (
+          "(typeof document === 'undefined' ? new (require('url').URL)" +
+          "('file:' + __filename).href : (document.currentScript && " +
+          `document.currentScript.src || new URL('${filename}', ` +
+          'document.baseURI).href))'
+        );
       }
       return null;
     }
