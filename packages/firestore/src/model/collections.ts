@@ -25,10 +25,6 @@ import { Document, MutableDocument } from './document';
 import { DocumentKey } from './document_key';
 
 /** Miscellaneous collection types / constants. */
-export interface DocumentSizeEntry {
-  document: Document;
-  size: number;
-}
 
 export type MutableDocumentMap = SortedMap<DocumentKey, MutableDocument>;
 const EMPTY_MUTABLE_DOCUMENT_MAP = new SortedMap<DocumentKey, MutableDocument>(

@@ -20,7 +20,6 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   DocumentSizeEntries,
-  DocumentSizeEntry,
   MutableDocumentMap,
   mutableDocumentMap
 } from '../model/collections';
@@ -54,6 +53,11 @@ import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { IterateOptions, SimpleDbStore } from './simple_db';
+
+export interface DocumentSizeEntry {
+  document: MutableDocument;
+  size: number;
+}
 
 export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
   // The IndexedDbRemoteDocumentCache doesn't implement any methods on top
