@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/app';
+import { FirebaseError } from '@firebase/util';
 
 /**
  * The set of Firestore status codes. The codes are the same at the ones

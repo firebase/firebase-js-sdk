@@ -1,4 +1,4 @@
-import { FirebaseError } from '@firebase/app';
+import { FirebaseError } from '@firebase/util';
 
 /**
  * @license
