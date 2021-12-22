@@ -1,4 +1,5 @@
-import { FirebaseError } from '@firebase/util';
+import { FirebaseError } from '@firebase/app';
+
 /**
  * @license
  * Copyright 2017 Google LLC
