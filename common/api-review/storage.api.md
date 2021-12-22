@@ -10,6 +10,7 @@ import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
+import { FirebaseError as FirebaseError_2 } from '@firebase/app';
 import { _FirebaseService } from '@firebase/app';
 import { NextFn } from '@firebase/util';
 import { Provider } from '@firebase/component';
