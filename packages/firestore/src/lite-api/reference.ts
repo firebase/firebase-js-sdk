@@ -93,10 +93,12 @@ export type UpdateData<T> = T extends Primitive
  *
  * @param merge - Changes the behavior of a `setDoc()` call to only replace the
  * values specified in its data argument. Fields omitted from the `setDoc()`
- * call remain untouched.
+ * call remain untouched. If your input sets any field to an empty map, all
+ * nested fields are overwritten.
  * @param mergeFields - Changes the behavior of `setDoc()` calls to only replace
  * the specified field paths. Any field path that is not specified is ignored
- * and remains untouched.
+ * and remains untouched. If your input sets any field to an empty map, all
+ * nested fields are overwritten.
  */
 export type SetOptions =
   | {
