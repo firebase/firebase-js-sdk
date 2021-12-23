@@ -231,8 +231,10 @@ describeSpec('Existence Filters:', [], () => {
         .watchFilters([query1], doc1.key) // doc2 was deleted
         .watchSnapshots(2000)
         .expectEvents(query1, { fromCache: true })
+        // The SDK is unable to re-run the query, and does not remove doc2
         .restart()
         .userListens(query1)
+        // We check that the data is still consistent with the local cache
         .expectEvents(query1, { added: [doc1, doc2], fromCache: true });
     }
   );
