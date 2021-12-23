@@ -41,6 +41,14 @@ import {
 } from './server_timestamps';
 import { TypeOrder } from './type_order';
 
+export const MAX_VALUE: Value = {
+  mapValue: {
+    fields: {
+      '__type__': { stringValue: '__max___' }
+    }
+  }
+};
+
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: Value): TypeOrder {
   if ('nullValue' in value) {
@@ -73,6 +81,10 @@ export function typeOrder(value: Value): TypeOrder {
 
 /** Tests `left` and `right` for equality based on the backend semantics. */
 export function valueEquals(left: Value, right: Value): boolean {
+  if (left === right) {
+    return true;
+  }
+
   const leftType = typeOrder(left);
   const rightType = typeOrder(right);
   if (leftType !== rightType) {
@@ -195,6 +207,10 @@ export function arrayValueContains(
 }
 
 export function valueCompare(left: Value, right: Value): number {
+  if (left === right) {
+    return 0;
+  }
+
   const leftType = typeOrder(left);
   const rightType = typeOrder(right);
 
@@ -580,4 +596,9 @@ export function deepClone(source: Value): Value {
   } else {
     return { ...source };
   }
+}
+
+/** Returns true if the Value represents the canonical {@link #MAX_VALUE} . */
+export function isMaxValue(value: Value): boolean {
+  return valueEquals(value, MAX_VALUE);
 }
