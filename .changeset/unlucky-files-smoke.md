@@ -2,4 +2,4 @@
 "@firebase/firestore": patch
 ---
 
-Fixed an issue where the SDK potentially raised incomplete snapshots for clients that were backgrounded during query execution.
+Fixed an issue that may have caused the SDK to raise incomplete snapshots when backgrounded during query execution.
