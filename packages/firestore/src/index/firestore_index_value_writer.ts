@@ -174,11 +174,10 @@ export class FirestoreIndexValueWriter {
   ): void {
     this.writeValueTypeLabel(encoder, INDEX_TYPE_REFERENCE);
     const path = DocumentKey.fromName(referenceValue).path;
-    for (let i = 0; i < path.length; ++i) {
-      const segment = path.get(i);
+    path.forEach(segment => {
       this.writeValueTypeLabel(encoder, INDEX_TYPE_REFERENCE_SEGMENT);
       this.writeUnlabeledIndexString(segment, encoder);
-    }
+    });
   }
 
   private writeValueTypeLabel(
