@@ -224,18 +224,20 @@ describeSpec('Existence Filters:', [], () => {
       const query1 = query('collection');
       const doc1 = doc('collection/1', 1000, { v: 1 });
       const doc2 = doc('collection/2', 1000, { v: 2 });
-      return spec()
-        .userListens(query1)
-        .watchAcksFull(query1, 1000, doc1, doc2)
-        .expectEvents(query1, { added: [doc1, doc2] })
-        .watchFilters([query1], doc1.key) // doc2 was deleted
-        .watchSnapshots(2000)
-        .expectEvents(query1, { fromCache: true })
-        // The SDK is unable to re-run the query, and does not remove doc2
-        .restart()
-        .userListens(query1)
-        // We check that the data is still consistent with the local cache
-        .expectEvents(query1, { added: [doc1, doc2], fromCache: true });
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, doc1, doc2)
+          .expectEvents(query1, { added: [doc1, doc2] })
+          .watchFilters([query1], doc1.key) // doc2 was deleted
+          .watchSnapshots(2000)
+          .expectEvents(query1, { fromCache: true })
+          // The SDK is unable to re-run the query, and does not remove doc2
+          .restart()
+          .userListens(query1)
+          // We check that the data is still consistent with the local cache
+          .expectEvents(query1, { added: [doc1, doc2], fromCache: true })
+      );
     }
   );
 });
