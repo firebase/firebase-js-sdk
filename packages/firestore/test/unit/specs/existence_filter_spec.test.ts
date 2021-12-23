@@ -213,7 +213,7 @@ describeSpec('Existence Filters:', [], () => {
   });
 
   specTest(
-    'Existence filter mismatch invalidates index-free query',
+    'Existence filter clears resume token',
     ['durable-persistence'],
     () => {
       // This is a test for https://github.com/firebase/firebase-android-sdk/issues/3249

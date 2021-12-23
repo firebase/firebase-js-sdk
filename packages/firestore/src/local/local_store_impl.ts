@@ -505,10 +505,12 @@ export function localStoreApplyRemoteEventToLocalCache(
           txn.currentSequenceNumber
         );
         if (remoteEvent.targetMismatches.has(targetId)) {
-          newTargetData = newTargetData.withResumeToken(
-            ByteString.EMPTY_BYTE_STRING,
-            SnapshotVersion.min()
-          );
+          newTargetData = newTargetData
+            .withResumeToken(
+              ByteString.EMPTY_BYTE_STRING,
+              SnapshotVersion.min()
+            )
+            .withLastLimboFreeSnapshotVersion(SnapshotVersion.min());
         } else if (change.resumeToken.approximateByteSize() > 0) {
           newTargetData = newTargetData.withResumeToken(
             change.resumeToken,
