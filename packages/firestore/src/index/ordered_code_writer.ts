@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { debugAssert, fail } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 
 /** These constants are taken from the backend. */
@@ -26,6 +26,7 @@ const NULL_BYTE = 0xff; // Combined with ESCAPE1
 const SEPARATOR = 0x01; // Combined with ESCAPE1
 
 const ESCAPE2 = 0xff;
+const INFINITY = 0xff; // Combined with ESCAPE2
 const FF_BYTE = 0x00; // Combined with ESCAPE2
 
 const LONG_SIZE = 64;
@@ -111,6 +112,26 @@ export class OrderedCodeWriter {
   buffer = new Uint8Array(DEFAULT_BUFFER_SIZE);
   position = 0;
 
+  writeBytesAscending(value: ByteString): void {
+    const it = value[Symbol.iterator]();
+    let byte = it.next();
+    while (!byte.done) {
+      this.writeByteAscending(byte.value);
+      byte = it.next();
+    }
+    this.writeSeparatorAscending();
+  }
+
+  writeBytesDescending(value: ByteString): void {
+    const it = value[Symbol.iterator]();
+    let byte = it.next();
+    while (!byte.done) {
+      this.writeByteDescending(byte.value);
+      byte = it.next();
+    }
+    this.writeSeparatorDescending();
+  }
+
   /** Writes utf8 bytes into this byte sequence, ascending. */
   writeUtf8Ascending(sequence: string): void {
     for (const c of sequence) {
@@ -184,6 +205,43 @@ export class OrderedCodeWriter {
   }
 
   /**
+   * Writes the "infinity" byte sequence that sorts after all other byte
+   * sequences written in ascending order.
+   */
+  writeInfinityAscending(): void {
+    this.writeEscapedByteAscending(ESCAPE2);
+    this.writeEscapedByteAscending(INFINITY);
+  }
+
+  /**
+   * Writes the "infinity" byte sequence that sorts before all other byte
+   * sequences written in descending order.
+   */
+  writeInfinityDescending(): void {
+    this.writeEscapedByteDescending(ESCAPE2);
+    this.writeEscapedByteDescending(INFINITY);
+  }
+
+  /**
+   * Resets the buffer such that it is the same as when it was newly
+   * constructed.
+   */
+  reset(): void {
+    this.position = 0;
+  }
+
+  seed(encodedBytes: Uint8Array): void {
+    this.ensureAvailable(encodedBytes.length);
+    this.buffer.set(encodedBytes, this.position);
+    this.position += encodedBytes.length;
+  }
+
+  /** Makes a copy of the encoded bytes in this buffer.  */
+  encodedBytes(): Uint8Array {
+    return this.buffer.slice(0, this.position);
+  }
+
+  /**
    * Encodes `val` into an encoding so that the order matches the IEEE 754
    * floating-point comparison results with the following exceptions:
    *   -0.0 < 0.0
@@ -202,16 +260,6 @@ export class OrderedCodeWriter {
       value[i] ^= isNegative ? 0xff : 0x00;
     }
     return value;
-  }
-
-  /** Resets the buffer such that it is the same as when it was newly constructed.  */
-  reset(): void {
-    this.position = 0;
-  }
-
-  /** Makes a copy of the encoded bytes in this buffer.  */
-  encodedBytes(): Uint8Array {
-    return this.buffer.slice(0, this.position);
   }
 
   /** Writes a single byte ascending to the buffer. */
@@ -260,26 +308,6 @@ export class OrderedCodeWriter {
   private writeEscapedByteDescending(b: number): void {
     this.ensureAvailable(1);
     this.buffer[this.position++] = ~b;
-  }
-
-  writeBytesAscending(value: ByteString): void {
-    fail('Not implemented');
-  }
-
-  writeBytesDescending(value: ByteString): void {
-    fail('Not implemented');
-  }
-
-  writeInfinityAscending(): void {
-    fail('Not implemented');
-  }
-
-  writeInfinityDescending(): void {
-    fail('Not implemented');
-  }
-
-  seed(encodedBytes: Uint8Array): void {
-    fail('Not implemented');
   }
 
   private ensureAvailable(bytes: number): void {
