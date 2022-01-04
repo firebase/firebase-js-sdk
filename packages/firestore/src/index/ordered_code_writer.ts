@@ -230,6 +230,12 @@ export class OrderedCodeWriter {
     this.position = 0;
   }
 
+  seed(encodedBytes: Uint8Array): void {
+    this.ensureAvailable(encodedBytes.length);
+    this.buffer.set(encodedBytes, this.position);
+    this.position += encodedBytes.length;
+  }
+
   /** Makes a copy of the encoded bytes in this buffer.  */
   encodedBytes(): Uint8Array {
     return this.buffer.slice(0, this.position);
@@ -319,11 +325,5 @@ export class OrderedCodeWriter {
     const newBuffer = new Uint8Array(newLength);
     newBuffer.set(this.buffer); // copy old data
     this.buffer = newBuffer;
-  }
-
-  seed(encodedBytes: Uint8Array): void {
-    this.ensureAvailable(encodedBytes.length);
-    this.buffer.set(encodedBytes, this.position);
-    this.position += encodedBytes.length;
   }
 }
