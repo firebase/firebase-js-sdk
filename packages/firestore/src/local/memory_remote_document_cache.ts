@@ -19,7 +19,6 @@ import { isCollectionGroupQuery, Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
-  DocumentSizeEntry,
   MutableDocumentMap,
   mutableDocumentMap
 } from '../model/collections';
@@ -37,7 +36,9 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 export type DocumentSizer = (doc: Document) => number;
 
 /** Miscellaneous collection types / constants. */
-interface MemoryRemoteDocumentCacheEntry extends DocumentSizeEntry {
+interface MemoryRemoteDocumentCacheEntry {
+  document: Document;
+  size: number;
   readTime: SnapshotVersion;
 }
 
@@ -98,7 +99,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     const currentSize = this.sizer(doc);
 
     this.docs = this.docs.insert(key, {
-      document: doc.clone(),
+      document: doc.mutableCopy(),
       size: currentSize,
       readTime
     });
@@ -132,7 +133,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     const entry = this.docs.get(documentKey);
     return PersistencePromise.resolve(
       entry
-        ? entry.document.clone()
+        ? entry.document.mutableCopy()
         : MutableDocument.newInvalidDocument(documentKey)
     );
   }
@@ -147,7 +148,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
       results = results.insert(
         documentKey,
         entry
-          ? entry.document.clone()
+          ? entry.document.mutableCopy()
           : MutableDocument.newInvalidDocument(documentKey)
       );
     });
@@ -183,7 +184,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
       if (!queryMatches(query, document)) {
         continue;
       }
-      results = results.insert(document.key, document.clone());
+      results = results.insert(document.key, document.mutableCopy());
     }
     return PersistencePromise.resolve(results);
   }

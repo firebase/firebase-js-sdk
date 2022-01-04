@@ -223,6 +223,19 @@ export class OrderedCodeWriter {
   }
 
   /**
+   * Resets the buffer such that it is the same as when it was newly
+   * constructed.
+   */
+  reset(): void {
+    this.position = 0;
+  }
+
+  /** Makes a copy of the encoded bytes in this buffer.  */
+  encodedBytes(): Uint8Array {
+    return this.buffer.slice(0, this.position);
+  }
+
+  /**
    * Encodes `val` into an encoding so that the order matches the IEEE 754
    * floating-point comparison results with the following exceptions:
    *   -0.0 < 0.0
@@ -241,16 +254,6 @@ export class OrderedCodeWriter {
       value[i] ^= isNegative ? 0xff : 0x00;
     }
     return value;
-  }
-
-  /** Resets the buffer such that it is the same as when it was newly constructed.  */
-  reset(): void {
-    this.position = 0;
-  }
-
-  /** Makes a copy of the encoded bytes in this buffer.  */
-  encodedBytes(): Uint8Array {
-    return this.buffer.slice(0, this.position);
   }
 
   /** Writes a single byte ascending to the buffer. */

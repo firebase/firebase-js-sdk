@@ -1,5 +1,13 @@
 # @firebase/firestore
 
+## 3.4.1
+
+### Patch Changes
+
+- [`fd8cd3ec4`](https://github.com/firebase/firebase-js-sdk/commit/fd8cd3ec4b7d0747fca258d468ee094573a08bbb) [#5809](https://github.com/firebase/firebase-js-sdk/pull/5809) - Hardcode grpc-js version as a temporary fix for `createRequire` issues in Node CJS.
+
+* [`8298cf8a9`](https://github.com/firebase/firebase-js-sdk/commit/8298cf8a9343dbba6c628d64941dfbe5d17c44aa) [#5741](https://github.com/firebase/firebase-js-sdk/pull/5741) - fix firestore node tests
+
 ## 3.4.0
 
 ### Minor Changes

@@ -20,6 +20,7 @@ import {
   numberOfLeadingZerosInByte,
   OrderedCodeWriter
 } from '../../../src/index/ordered_code_writer';
+import { hardAssert } from '../../../src/util/assert';
 import { ByteString } from '../../../src/util/byte_string';
 
 class ValueTestCase<T> {
@@ -168,21 +169,19 @@ describe('Ordered Code Writer', () => {
   it('encodes infinity', () => {
     const writer = new OrderedCodeWriter();
     writer.writeInfinityAscending();
-    expect(writer.encodedBytes()).to.deep.equal(fromHex("ffff"));
+    expect(writer.encodedBytes()).to.deep.equal(fromHex('ffff'));
 
     writer.reset();
     writer.writeInfinityDescending();
-    expect(writer.encodedBytes()).to.deep.equal(fromHex("0000"));
+    expect(writer.encodedBytes()).to.deep.equal(fromHex('0000'));
   });
 
   it('seeds bytes', () => {
     const writer = new OrderedCodeWriter();
-    writer.seed(fromHex("01"));
+    writer.seed(fromHex('01'));
     writer.writeInfinityAscending();
-    writer.seed(fromHex("02"));
-    expect(writer.encodedBytes()).to.deep.equal(
-      fromHex("01ffff02")
-    );
+    writer.seed(fromHex('02'));
+    expect(writer.encodedBytes()).to.deep.equal(fromHex('01ffff02'));
   });
 
   function verifyEncoding(testCases: Array<ValueTestCase<unknown>>): void {
@@ -248,7 +247,8 @@ function getBytes(val: unknown): { asc: Uint8Array; desc: Uint8Array } {
   } else if (typeof val === 'string') {
     ascWriter.writeUtf8Ascending(val);
     descWriter.writeUtf8Descending(val);
-  } else if (val instanceof Uint8Array) {
+  } else {
+    hardAssert(val instanceof Uint8Array);
     ascWriter.writeBytesAscending(ByteString.fromUint8Array(val));
     descWriter.writeBytesDescending(ByteString.fromUint8Array(val));
   }

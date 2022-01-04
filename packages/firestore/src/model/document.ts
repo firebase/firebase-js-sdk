@@ -135,6 +135,9 @@ export interface Document {
 
   isEqual(other: Document | null | undefined): boolean;
 
+  /** Creates a mutable copy of this document. */
+  mutableCopy(): MutableDocument;
+
   toString(): string;
 }
 
@@ -318,7 +321,7 @@ export class MutableDocument implements Document {
     );
   }
 
-  clone(): MutableDocument {
+  mutableCopy(): MutableDocument {
     return new MutableDocument(
       this.key,
       this.documentType,
