@@ -87,6 +87,7 @@ import {
   LimitType as ProtoLimitType
 } from '../../src/protos/firestore_bundle_proto';
 import * as api from '../../src/protos/firestore_proto_api';
+import { ExistenceFilter } from '../../src/remote/existence_filter';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   JsonProtoSerializer,
@@ -98,6 +99,7 @@ import {
 } from '../../src/remote/serializer';
 import {
   DocumentWatchChange,
+  ExistenceFilterChange,
   WatchChangeAggregator,
   WatchTargetChange,
   WatchTargetChangeState
@@ -348,6 +350,22 @@ export function noChangeEvent(
       [targetId],
       resumeToken
     )
+  );
+  return aggregator.createRemoteEvent(version(snapshotVersion));
+}
+
+export function existenceFilterEvent(
+  targetId: number,
+  count: number,
+  snapshotVersion: number
+): RemoteEvent {
+  const aggregator = new WatchChangeAggregator({
+    getRemoteKeysForTarget: () => documentKeySet(),
+    getTargetDataForTarget: targetId =>
+      targetData(targetId, TargetPurpose.Listen, 'foo')
+  });
+  aggregator.handleExistenceFilter(
+    new ExistenceFilterChange(targetId, new ExistenceFilter(count))
   );
   return aggregator.createRemoteEvent(version(snapshotVersion));
 }

@@ -93,6 +93,7 @@ import {
   doc,
   docAddedRemoteEvent,
   docUpdateRemoteEvent,
+  existenceFilterEvent,
   expectEqual,
   filter,
   key,
@@ -130,6 +131,7 @@ class LocalStoreTester {
 
   constructor(
     public localStore: LocalStore,
+    private readonly persistence: Persistence,
     private readonly queryEngine: CountingQueryEngine,
     readonly gcIsEager: boolean
   ) {
@@ -379,6 +381,30 @@ class LocalStoreTester {
     return this;
   }
 
+  toContainTargetData(
+    target: Target,
+    snapshotVersion: number,
+    lastLimboFreeSnapshotVersion: number,
+    resumeToken: ByteString
+  ): LocalStoreTester {
+    this.promiseChain = this.promiseChain.then(async () => {
+      const targetData = await this.persistence.runTransaction(
+        'getTargetData',
+        'readonly',
+        txn => localStoreGetTargetData(this.localStore, txn, target)
+      );
+      expect(targetData!.snapshotVersion.isEqual(version(snapshotVersion))).to
+        .be.true;
+      expect(
+        targetData!.lastLimboFreeSnapshotVersion.isEqual(
+          version(lastLimboFreeSnapshotVersion)
+        )
+      ).to.be.true;
+      expect(targetData!.resumeToken.isEqual(resumeToken)).to.be.true;
+    });
+    return this;
+  }
+
   toReturnChanged(...docs: Document[]): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       debugAssert(
@@ -583,7 +609,12 @@ function genericLocalStoreTests(
   });
 
   function expectLocalStore(): LocalStoreTester {
-    return new LocalStoreTester(localStore, queryEngine, gcIsEager);
+    return new LocalStoreTester(
+      localStore,
+      persistence,
+      queryEngine,
+      gcIsEager
+    );
   }
 
   it('handles SetMutation', () => {
@@ -1875,6 +1906,47 @@ function genericLocalStoreTests(
       ).to.be.true;
     }
   });
+
+  // eslint-disable-next-line no-restricted-properties
+  (gcIsEager ? it.skip : it)(
+    'ignores target mapping after existence filter mismatch',
+    async () => {
+      const query1 = query('foo', filter('matches', '==', true));
+      const target = queryToTarget(query1);
+      const targetId = 2;
+
+      return (
+        expectLocalStore()
+          .afterAllocatingQuery(query1)
+          .toReturnTargetId(targetId)
+          // Persist a mapping with a single document
+          .after(
+            docAddedRemoteEvent(
+              doc('foo/a', 10, { matches: true }),
+              [targetId],
+              [],
+              [targetId]
+            )
+          )
+          .after(noChangeEvent(targetId, 10, byteStringFromString('foo')))
+          .after(localViewChanges(targetId, /* fromCache= */ false, {}))
+          .afterExecutingQuery(query1)
+          .toReturnChanged(doc('foo/a', 10, { matches: true }))
+          .toHaveRead({ documentsByKey: 1 })
+          .toContainTargetData(target, 10, 10, byteStringFromString('foo'))
+          // Create an existence filter mismatch and verify that the last limbo
+          // free snapshot version is deleted
+          .after(existenceFilterEvent(targetId, 2, 20))
+          .after(noChangeEvent(targetId, 20))
+          .toContainTargetData(target, 0, 0, ByteString.EMPTY_BYTE_STRING)
+          // Re-run the query as a collection scan
+          .afterExecutingQuery(query1)
+          .toReturnChanged(doc('foo/a', 10, { matches: true }))
+          .toHaveRead({ documentsByQuery: 1 })
+          .finish()
+      );
+    }
+  );
 
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)(
