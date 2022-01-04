@@ -50,34 +50,65 @@ async function notifyTestResults() {
   } else {
     console.log(`Couldn't find event payload.`);
   }
-
   message += ` ${workflowUrl}`;
 
-  const data = JSON.stringify({
-    text: message
-  });
-
-  const options = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  };
-
-  return new Promise((resolve, reject) => {
+  const chatPromise = new Promise((resolve, reject) => {
     console.log(`Sending message to chat: ${message}`);
-    const req = https.request(process.env.WEBHOOK_URL, options, res => {
-      res.on('data', d => {
-        process.stdout.write(d);
-      });
-      res.on('end', resolve);
-    });
+    const req = https.request(
+      process.env.WEBHOOK_URL,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      },
+      res => {
+        res.on('data', d => {
+          process.stdout.write(d);
+        });
+        res.on('end', resolve);
+      }
+    );
 
     req.on('error', error => reject(error));
 
-    req.write(data);
+    req.write(
+      JSON.stringify({
+        text: message
+      })
+    );
     req.end();
   });
+
+  const logPromise = new Promise((resolve, reject) => {
+    const testStatus = status === 'succeeded' ? 'pass' : 'fail';
+    console.log(`Sending status to log: ${testStatus}`);
+    const req = https.request(
+      `${process.env.RELEASE_TRACKER_URL}/logE2EResult`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      },
+      res => {
+        res.on('data', d => {
+          process.stdout.write(d);
+        });
+        res.on('end', resolve);
+      }
+    );
+
+    req.on('error', error => reject(error));
+
+    req.write({
+      testStatus,
+      testUrl: workflowUrl
+    });
+    req.end();
+  });
+
+  return Promise.all([chatPromise, logPromise]);
 }
 
 notifyTestResults();

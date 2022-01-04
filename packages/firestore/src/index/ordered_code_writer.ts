@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { debugAssert } from '../util/assert';
+import {debugAssert, fail} from '../util/assert';
+import {ByteString} from "../util/byte_string";
 
 const LONG_SIZE = 64;
 const BYTE_SIZE = 8;
@@ -152,6 +153,34 @@ export class OrderedCodeWriter {
   /** Makes a copy of the encoded bytes in this buffer.  */
   encodedBytes(): Uint8Array {
     return this.buffer.slice(0, this.position);
+  }
+
+  writeBytesAscending(value: ByteString): void {
+    fail('Not implemented');
+  }
+
+  writeBytesDescending(value: ByteString): void {
+    fail('Not implemented');
+  }
+
+  writeUtf8Ascending(sequence: string): void {
+    fail('Not implemented');
+  }
+
+  writeUtf8Descending(sequence: string): void {
+    fail('Not implemented');
+  }
+
+  writeInfinityAscending(): void {
+    fail('Not implemented');
+  }
+
+  writeInfinityDescending(): void {
+    fail('Not implemented');
+  }
+
+  seed(encodedBytes: Uint8Array): void {
+    fail('Not implemented');
   }
 
   private ensureAvailable(bytes: number): void {

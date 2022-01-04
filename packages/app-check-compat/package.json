@@ -42,7 +42,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.1.11",
+    "@firebase/app-compat": "0.1.12",
     "rollup": "2.57.0",
     "@rollup/plugin-commonjs": "21.0.0",
     "@rollup/plugin-json": "4.1.0",

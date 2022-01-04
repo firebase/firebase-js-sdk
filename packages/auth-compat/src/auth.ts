@@ -57,26 +57,6 @@ export class Auth
       appName: app.name
     });
 
-    let persistences: exp.Persistence[] = [exp.inMemoryPersistence];
-
-    // Only deal with persistences in web environments
-    if (typeof window !== 'undefined') {
-      // Note this is slightly different behavior: in this case, the stored
-      // persistence is checked *first* rather than last. This is because we want
-      // to prefer stored persistence type in the hierarchy.
-      persistences = _getPersistencesFromRedirect(apiKey, app.name);
-
-      for (const persistence of [
-        exp.indexedDBLocalPersistence,
-        exp.browserLocalPersistence,
-        exp.browserSessionPersistence
-      ]) {
-        if (!persistences.includes(persistence)) {
-          persistences.push(persistence);
-        }
-      }
-    }
-
     // TODO: platform needs to be determined using heuristics
     _assert(apiKey, exp.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
@@ -87,7 +67,7 @@ export class Auth
       typeof window !== 'undefined' ? CompatPopupRedirectResolver : undefined;
     this._delegate = provider.initialize({
       options: {
-        persistence: persistences,
+        persistence: buildPersistenceHierarchy(apiKey, app.name),
         popupRedirectResolver: resolver
       }
     }) as exp.AuthImpl;
@@ -381,4 +361,42 @@ function wrapObservers(
     error: error as ErrorFn,
     complete
   };
+}
+
+function buildPersistenceHierarchy(
+  apiKey: string,
+  appName: string
+): exp.Persistence[] {
+  // Note this is slightly different behavior: in this case, the stored
+  // persistence is checked *first* rather than last. This is because we want
+  // to prefer stored persistence type in the hierarchy. This is an empty
+  // array if window is not available or there is no pending redirect
+  const persistences = _getPersistencesFromRedirect(apiKey, appName);
+
+  // If "self" is available, add indexedDB
+  if (
+    typeof self !== 'undefined' &&
+    !persistences.includes(exp.indexedDBLocalPersistence)
+  ) {
+    persistences.push(exp.indexedDBLocalPersistence);
+  }
+
+  // If "window" is available, add HTML Storage persistences
+  if (typeof window !== 'undefined') {
+    for (const persistence of [
+      exp.browserLocalPersistence,
+      exp.browserSessionPersistence
+    ]) {
+      if (!persistences.includes(persistence)) {
+        persistences.push(persistence);
+      }
+    }
+  }
+
+  // Add in-memory as a final fallback
+  if (!persistences.includes(exp.inMemoryPersistence)) {
+    persistences.push(exp.inMemoryPersistence);
+  }
+
+  return persistences;
 }
