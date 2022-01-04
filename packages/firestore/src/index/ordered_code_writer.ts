@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {debugAssert, fail} from '../util/assert';
-import {ByteString} from "../util/byte_string";
+import { debugAssert, fail } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 
 const LONG_SIZE = 64;
 const BYTE_SIZE = 8;
