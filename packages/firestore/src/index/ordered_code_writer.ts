@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { debugAssert } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 
 /** These constants are taken from the backend. */
 const MIN_SURROGATE = '\uD800';
@@ -259,6 +260,26 @@ export class OrderedCodeWriter {
   private writeEscapedByteDescending(b: number): void {
     this.ensureAvailable(1);
     this.buffer[this.position++] = ~b;
+  }
+
+  writeBytesAscending(value: ByteString): void {
+    fail('Not implemented');
+  }
+
+  writeBytesDescending(value: ByteString): void {
+    fail('Not implemented');
+  }
+
+  writeInfinityAscending(): void {
+    fail('Not implemented');
+  }
+
+  writeInfinityDescending(): void {
+    fail('Not implemented');
+  }
+
+  seed(encodedBytes: Uint8Array): void {
+    fail('Not implemented');
   }
 
   private ensureAvailable(bytes: number): void {

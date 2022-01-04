@@ -159,6 +159,7 @@ describe('Ordered Code Writer', () => {
         const left = testCases[i].val;
         const leftBytes = getBytes(left);
         const right = testCases[j].val;
+
         const rightBytes = getBytes(right);
         expect(compare(leftBytes.asc, rightBytes.asc)).to.equal(
           i === j ? 0 : -1,

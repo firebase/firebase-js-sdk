@@ -138,7 +138,7 @@ export async function generateApi(
   untrimmedRollupDtsPath: string,
   publicDtsPath: string
 ): Promise<void> {
-  console.log(`Configuring API Extractor for #{packageName}`);
+  console.log(`Configuring API Extractor for ${packageName}`);
   writeTypescriptConfig(packageRoot);
   writePackageJson(packageName);
 

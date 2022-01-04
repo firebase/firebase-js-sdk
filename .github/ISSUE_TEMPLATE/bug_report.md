@@ -11,6 +11,8 @@ assignees: ''
 <!-- Step 1 [READ THIS] -->
 <!--
 
+**Thank you for submitting your issue. We are operating at reduced capacity from Dec 20 2021 to Jan 4 2022. While we are monitoring issues for major breakages and emergencies, there may be delayed responses. For more urgent requests please reach us via our support channels https://firebase.google.com/support**
+
 Are you in the right place?
   * For issues or feature requests related to __the code in this repository__
     file a Github issue.
