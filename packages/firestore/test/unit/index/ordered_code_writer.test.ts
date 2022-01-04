@@ -76,6 +76,38 @@ const NUMBER_TEST_CASES: Array<ValueTestCase<number>> = [
   new ValueTestCase(Number.NaN, '08fff8000000000000', 'f70007ffffffffffff')
 ];
 
+const STRING_TEST_CASES: Array<ValueTestCase<string>> = [
+  new ValueTestCase('', '0001', 'fffe'),
+  new ValueTestCase('\u0000', '00ff0001', 'ff00fffe'),
+  new ValueTestCase('\u0000\u0000', '00ff00ff0001', 'ff00ff00fffe'),
+  new ValueTestCase('abc', '6162630001', '9e9d9cfffe'),
+  new ValueTestCase(
+    'xy¢z𠜎€𠜱あ𠝹',
+    '7879c2a27af0a09c8ee282acf0a09cb1e38182f0a09db90001',
+    '87863d5d850f5f63711d7d530f5f634e1c7e7d0f5f6246fffe'
+  ),
+  new ValueTestCase(
+    '¬˚ß∂∆ç',
+    'c2accb9ac39fe28882e28886c3a70001',
+    '3d5334653c601d777d1d77793c58fffe'
+  ),
+  new ValueTestCase(
+    'œ∑´´ß™£',
+    'c593e28891c2b4c2b4c39fe284a2c2a30001',
+    '3a6c1d776e3d4b3d4b3c601d7b5d3d5cfffe'
+  ),
+  new ValueTestCase(
+    'πåçasdlß¬µœ∑âsldalskdåßµ∂π',
+    'cf80c3a5c3a76173646cc39fc2acc2b5c593e28891c3a2736c64616c736b64c3a5c39fc2b5e28882cf800001',
+    '307f3c5a3c589e8c9b933c603d533d4a3a6c1d776e3c5d8c939b9e938c949b3c5a3c603d4a1d777d307ffffe'
+  ),
+  new ValueTestCase(
+    '†¥¬´´`',
+    'e280a0c2a5c2acc2b4c2b4600001',
+    '1d7f5f3d5a3d533d4b3d4b9ffffe'
+  )
+];
+
 describe('Ordered Code Writer', () => {
   it('computes number of leading zeros', () => {
     for (let i = 0; i < 0xff; ++i) {
@@ -92,25 +124,42 @@ describe('Ordered Code Writer', () => {
   });
 
   it('converts numbers to bits', () => {
-    for (let i = 0; i < NUMBER_TEST_CASES.length; ++i) {
-      const bytes = getBytes(NUMBER_TEST_CASES[i].val);
-      expect(bytes.asc).to.deep.equal(
-        fromHex(NUMBER_TEST_CASES[i].ascString),
-        'Ascending for ' + NUMBER_TEST_CASES[i].val
-      );
-      expect(bytes.desc).to.deep.equal(
-        fromHex(NUMBER_TEST_CASES[i].descString),
-        'Descending for ' + NUMBER_TEST_CASES[i].val
-      );
-    }
+    verifyEncoding(NUMBER_TEST_CASES);
   });
 
   it('orders numbers correctly', () => {
-    for (let i = 0; i < NUMBER_TEST_CASES.length; ++i) {
-      for (let j = i; j < NUMBER_TEST_CASES.length; ++j) {
-        const left = NUMBER_TEST_CASES[i].val;
+    verifyOrdering(NUMBER_TEST_CASES);
+  });
+
+  it('converts strings to bits', () => {
+    verifyEncoding(STRING_TEST_CASES);
+  });
+
+  it('orders strings correctly', () => {
+    verifyOrdering(STRING_TEST_CASES);
+  });
+
+  function verifyEncoding(testCases: Array<ValueTestCase<unknown>>): void {
+    for (let i = 0; i < testCases.length; ++i) {
+      const bytes = getBytes(testCases[i].val);
+      expect(bytes.asc).to.deep.equal(
+        fromHex(testCases[i].ascString),
+        'Ascending for ' + testCases[i].val
+      );
+      expect(bytes.desc).to.deep.equal(
+        fromHex(testCases[i].descString),
+        'Descending for ' + testCases[i].val
+      );
+    }
+  }
+
+  function verifyOrdering(testCases: Array<ValueTestCase<unknown>>): void {
+    for (let i = 0; i < testCases.length; ++i) {
+      for (let j = i; j < testCases.length; ++j) {
+        const left = testCases[i].val;
         const leftBytes = getBytes(left);
-        const right = NUMBER_TEST_CASES[j].val;
+        const right = testCases[j].val;
+
         const rightBytes = getBytes(right);
         expect(compare(leftBytes.asc, rightBytes.asc)).to.equal(
           i === j ? 0 : -1,
@@ -122,7 +171,7 @@ describe('Ordered Code Writer', () => {
         );
       }
     }
-  });
+  }
 });
 
 function fromHex(hexString: string): Uint8Array {
@@ -151,6 +200,9 @@ function getBytes(val: unknown): { asc: Uint8Array; desc: Uint8Array } {
   if (typeof val === 'number') {
     ascWriter.writeNumberAscending(val);
     descWriter.writeNumberDescending(val);
+  } else if (typeof val === 'string') {
+    ascWriter.writeUtf8Ascending(val);
+    descWriter.writeUtf8Descending(val);
   } else {
     throw new Error('Encoding not yet supported for ' + val);
   }

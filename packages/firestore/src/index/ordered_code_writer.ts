@@ -17,6 +17,17 @@
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 
+/** These constants are taken from the backend. */
+const MIN_SURROGATE = '\uD800';
+const MAX_SURROGATE = '\uDBFF';
+
+const ESCAPE1 = 0x00;
+const NULL_BYTE = 0xff; // Combined with ESCAPE1
+const SEPARATOR = 0x01; // Combined with ESCAPE1
+
+const ESCAPE2 = 0xff;
+const FF_BYTE = 0x00; // Combined with ESCAPE2
+
 const LONG_SIZE = 64;
 const BYTE_SIZE = 8;
 
@@ -100,6 +111,54 @@ export class OrderedCodeWriter {
   buffer = new Uint8Array(DEFAULT_BUFFER_SIZE);
   position = 0;
 
+  /** Writes utf8 bytes into this byte sequence, ascending. */
+  writeUtf8Ascending(sequence: string): void {
+    for (const c of sequence) {
+      const charCode = c.charCodeAt(0);
+      if (charCode < 0x80) {
+        this.writeByteAscending(charCode);
+      } else if (charCode < 0x800) {
+        this.writeByteAscending((0x0f << 6) | (charCode >>> 6));
+        this.writeByteAscending(0x80 | (0x3f & charCode));
+      } else if (c < MIN_SURROGATE || MAX_SURROGATE < c) {
+        this.writeByteAscending((0x0f << 5) | (charCode >>> 12));
+        this.writeByteAscending(0x80 | (0x3f & (charCode >>> 6)));
+        this.writeByteAscending(0x80 | (0x3f & charCode));
+      } else {
+        const codePoint = c.codePointAt(0)!;
+        this.writeByteAscending((0x0f << 4) | (codePoint >>> 18));
+        this.writeByteAscending(0x80 | (0x3f & (codePoint >>> 12)));
+        this.writeByteAscending(0x80 | (0x3f & (codePoint >>> 6)));
+        this.writeByteAscending(0x80 | (0x3f & codePoint));
+      }
+    }
+    this.writeSeparatorAscending();
+  }
+
+  /** Writes utf8 bytes into this byte sequence, descending */
+  writeUtf8Descending(sequence: string): void {
+    for (const c of sequence) {
+      const charCode = c.charCodeAt(0);
+      if (charCode < 0x80) {
+        this.writeByteDescending(charCode);
+      } else if (charCode < 0x800) {
+        this.writeByteDescending((0x0f << 6) | (charCode >>> 6));
+        this.writeByteDescending(0x80 | (0x3f & charCode));
+      } else if (c < MIN_SURROGATE || MAX_SURROGATE < c) {
+        this.writeByteDescending((0x0f << 5) | (charCode >>> 12));
+        this.writeByteDescending(0x80 | (0x3f & (charCode >>> 6)));
+        this.writeByteDescending(0x80 | (0x3f & charCode));
+      } else {
+        const codePoint = c.codePointAt(0)!;
+        this.writeByteDescending((0x0f << 4) | (codePoint >>> 18));
+        this.writeByteDescending(0x80 | (0x3f & (codePoint >>> 12)));
+        this.writeByteDescending(0x80 | (0x3f & (codePoint >>> 6)));
+        this.writeByteDescending(0x80 | (0x3f & codePoint));
+      }
+    }
+    this.writeSeparatorDescending();
+  }
+
   writeNumberAscending(val: number): void {
     // Values are encoded with a single byte length prefix, followed by the
     // actual value in big-endian format with leading 0 bytes dropped.
@@ -155,19 +214,59 @@ export class OrderedCodeWriter {
     return this.buffer.slice(0, this.position);
   }
 
+  /** Writes a single byte ascending to the buffer. */
+  private writeByteAscending(b: number): void {
+    const masked = b & 0xff;
+    if (masked === ESCAPE1) {
+      this.writeEscapedByteAscending(ESCAPE1);
+      this.writeEscapedByteAscending(NULL_BYTE);
+    } else if (masked === ESCAPE2) {
+      this.writeEscapedByteAscending(ESCAPE2);
+      this.writeEscapedByteAscending(FF_BYTE);
+    } else {
+      this.writeEscapedByteAscending(masked);
+    }
+  }
+
+  /** Writes a single byte descending to the buffer.  */
+  private writeByteDescending(b: number): void {
+    const masked = b & 0xff;
+    if (masked === ESCAPE1) {
+      this.writeEscapedByteDescending(ESCAPE1);
+      this.writeEscapedByteDescending(NULL_BYTE);
+    } else if (masked === ESCAPE2) {
+      this.writeEscapedByteDescending(ESCAPE2);
+      this.writeEscapedByteDescending(FF_BYTE);
+    } else {
+      this.writeEscapedByteDescending(b);
+    }
+  }
+
+  private writeSeparatorAscending(): void {
+    this.writeEscapedByteAscending(ESCAPE1);
+    this.writeEscapedByteAscending(SEPARATOR);
+  }
+
+  private writeSeparatorDescending(): void {
+    this.writeEscapedByteDescending(ESCAPE1);
+    this.writeEscapedByteDescending(SEPARATOR);
+  }
+
+  private writeEscapedByteAscending(b: number): void {
+    this.ensureAvailable(1);
+    this.buffer[this.position++] = b;
+  }
+
+  private writeEscapedByteDescending(b: number): void {
+    this.ensureAvailable(1);
+    this.buffer[this.position++] = ~b;
+  }
+
   writeBytesAscending(value: ByteString): void {
     fail('Not implemented');
   }
 
   writeBytesDescending(value: ByteString): void {
-    fail('Not implemented');
-  }
-
-  writeUtf8Ascending(sequence: string): void {
-    fail('Not implemented');
-  }
-
-  writeUtf8Descending(sequence: string): void {
     fail('Not implemented');
   }
 
