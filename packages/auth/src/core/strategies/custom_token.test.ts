@@ -155,7 +155,7 @@ describe('core/strategies/signInWithCustomToken', () => {
       setCustomTokenProvider(auth, provider);
       await expect(auth._refreshWithCustomTokenProvider!()).to.be.rejectedWith(
         FirebaseError,
-        'Firebase: Error (auth/internal-error).'
+        'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
       );
     });
   });
