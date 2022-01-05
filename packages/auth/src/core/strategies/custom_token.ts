@@ -99,8 +99,8 @@ export function setCustomTokenProvider(
     });
     const responseToken = _parseToken(response.idToken!);
     _assert(
-      responseToken?.sub === authInternal.currentUser?.uid,
-      AuthErrorCode.INTERNAL_ERROR
+      responseToken?.sub === authInternal.currentUser?.uid, auth,
+      AuthErrorCode.USER_MISMATCH
     );
     const user = authInternal.currentUser as UserInternal;
     user.stsTokenManager.updateFromServerResponse(response);
