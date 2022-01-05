@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database-types",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "@firebase/database Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -13,7 +13,7 @@
   ],
   "dependencies": {
     "@firebase/app-types": "0.7.0",
-    "@firebase/util": "1.4.2"
+    "@firebase/util": "1.4.3"
   },
   "repository": {
     "directory": "packages/database-types",
