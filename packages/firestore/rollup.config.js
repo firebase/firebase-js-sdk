@@ -45,15 +45,20 @@ function importMetaUrlPolyfillPlugin(filename) {
     name: 'import-meta-url-current-module',
     resolveImportMeta(property, { moduleId }) {
       if (property === 'url') {
-        // Copied from rollup output
         // Added a check for Jest (see issue 5687 linked above)
+        // See https://jestjs.io/docs/environment-variables - apparently
+        // these are not always both set.
+        const JEST_CHECK =
+          `typeof process !== 'undefined' && process.env !== undefined` +
+          ` && (process.env.JEST_WORKER_ID !== undefined || ` +
+          `process.env.NODE_ENV === 'test')`;
+        // Copied from rollup output
         return (
-          "((typeof document === 'undefined' || process.env.JEST_WORKER_ID " +
-          "!== undefined || process.env.NODE_ENV === 'test') ?" +
-          " new (require('url').URL)" +
-          "('file:' + __filename).href : (document.currentScript && " +
+          `((typeof document === 'undefined' || (${JEST_CHECK})) ?` +
+          ` new (require('url').URL)` +
+          `('file:' + __filename).href : (document.currentScript && ` +
           `document.currentScript.src || new URL('${filename}', ` +
-          'document.baseURI).href))'
+          `document.baseURI).href))`
         );
       }
       return null;
