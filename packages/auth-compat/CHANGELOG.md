@@ -1,5 +1,16 @@
 # @firebase/auth-compat
 
+## 0.2.5
+
+### Patch Changes
+
+- [`e3a5248fc`](https://github.com/firebase/firebase-js-sdk/commit/e3a5248fc8536fe2ca6d97483aa7e1b3f737dd17) [#5811](https://github.com/firebase/firebase-js-sdk/pull/5811) (fixes [#5791](https://github.com/firebase/firebase-js-sdk/issues/5791)) - Fix persistence selection in compatibility layer in worker scripts
+
+- Updated dependencies [[`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49), [`e3a5248fc`](https://github.com/firebase/firebase-js-sdk/commit/e3a5248fc8536fe2ca6d97483aa7e1b3f737dd17)]:
+  - @firebase/util@1.4.3
+  - @firebase/auth@0.19.5
+  - @firebase/component@0.5.10
+
 ## 0.2.4
 
 ### Patch Changes
