@@ -73,7 +73,7 @@ export interface ErrorData {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
 export class FirebaseError extends Error {
   /** The custom name for all FirebaseErrors. */
-  readonly name = ERROR_NAME;
+  readonly name: string = ERROR_NAME;
 
   constructor(
     /** The error code for this error. */
