@@ -27,6 +27,7 @@
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/util --include-dependencies build",
     "dev": "rollup -c -w",
+    "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "test": "run-p lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p test:browser test:node",
