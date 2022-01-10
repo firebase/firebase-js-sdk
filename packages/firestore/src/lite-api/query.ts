@@ -480,8 +480,7 @@ export function newQueryFilter(
     if (op === Operator.ARRAY_CONTAINS || op === Operator.ARRAY_CONTAINS_ANY) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        `Invalid Query. You can't perform '${op}' ` +
-          'queries on FieldPath.documentId().'
+        `Invalid Query. You can't perform '${op}' queries on documentId().`
       );
     } else if (op === Operator.IN || op === Operator.NOT_IN) {
       validateDisjunctiveFilterElements(value, op);
@@ -639,7 +638,7 @@ export function newQueryBoundFromFields(
       if (!isCollectionGroupQuery(query) && rawValue.indexOf('/') !== -1) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
+          `Invalid query. When querying a collection and ordering by documentId(), ` +
             `the value passed to ${methodName}() must be a plain document ID, but ` +
             `'${rawValue}' contains a slash.`
         );
@@ -649,7 +648,7 @@ export function newQueryBoundFromFields(
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `Invalid query. When querying a collection group and ordering by ` +
-            `FieldPath.documentId(), the value passed to ${methodName}() must result in a ` +
+            `documentId(), the value passed to ${methodName}() must result in a ` +
             `valid document path, but '${path}' is not because it contains an odd number ` +
             `of segments.`
         );
@@ -681,7 +680,7 @@ function parseDocumentIdValue(
     if (documentIdValue === '') {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Invalid query. When querying with FieldPath.documentId(), you ' +
+        'Invalid query. When querying with documentId(), you ' +
           'must provide a valid document ID, but it was an empty string.'
       );
     }
@@ -689,7 +688,7 @@ function parseDocumentIdValue(
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid query. When querying a collection by ` +
-          `FieldPath.documentId(), you must provide a plain document ID, but ` +
+          `documentId(), you must provide a plain document ID, but ` +
           `'${documentIdValue}' contains a '/' character.`
       );
     }
@@ -698,7 +697,7 @@ function parseDocumentIdValue(
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid query. When querying a collection group by ` +
-          `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+          `documentId(), the value provided must result in a valid document path, ` +
           `but '${path}' is not because it has an odd number of segments (${path.length}).`
       );
     }
@@ -708,7 +707,7 @@ function parseDocumentIdValue(
   } else {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Invalid query. When querying with FieldPath.documentId(), you must provide a valid ` +
+      `Invalid query. When querying with documentId(), you must provide a valid ` +
         `string or a DocumentReference, but it was: ` +
         `${valueDescription(documentIdValue)}.`
     );
