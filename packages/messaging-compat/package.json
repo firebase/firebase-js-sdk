@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging-compat",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "Apache-2.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -38,13 +38,13 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/messaging": "0.9.4",
-    "@firebase/component": "0.5.9",
-    "@firebase/util": "1.4.2",
+    "@firebase/messaging": "0.9.5",
+    "@firebase/component": "0.5.10",
+    "@firebase/util": "1.4.3",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.12",
+    "@firebase/app-compat": "0.1.13",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.30.0",
     "ts-essentials": "8.1.0",
