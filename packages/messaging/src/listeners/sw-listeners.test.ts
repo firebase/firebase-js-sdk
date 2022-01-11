@@ -76,7 +76,7 @@ const DISPLAY_MESSAGE: MessagePayloadInternal = {
   // eslint-disable-next-line camelcase
   collapse_key: 'collapse',
   // eslint-disable-next-line camelcase
-  fcm_message_id: 'mid'
+  fcmMessageId: 'mid'
 };
 
 describe('SwController', () => {
