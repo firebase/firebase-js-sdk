@@ -951,7 +951,7 @@ export function fieldPathFromArgument(
   } else if (typeof path === 'string') {
     return fieldPathFromDotSeparatedString(methodName, path);
   } else {
-    const message = 'Field path arguments must be of type string or FieldPath.';
+    const message = 'Field path arguments must be of type string or ';
     throw createError(
       message,
       methodName,
