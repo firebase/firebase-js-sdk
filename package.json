@@ -110,7 +110,7 @@
     "firebase-tools": "9.23.0",
     "git-rev-sync": "3.0.1",
     "glob": "7.2.0",
-    "http-server": "13.0.2",
+    "http-server": "14.1.0",
     "indexeddbshim": "8.0.0",
     "inquirer": "8.1.5",
     "istanbul-instrumenter-loader": "3.0.1",
