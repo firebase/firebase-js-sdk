@@ -117,7 +117,7 @@ async function generateDocs(forDevsite: boolean = false) {
   if (forDevsite) {
     const mdFiles = fs.readdirSync(join(projectRoot, outputFolder));
     for (const mdFile of mdFiles) {
-      const fullPath = join(projectRoot, outputFolder, mdFile)
+      const fullPath = join(projectRoot, outputFolder, mdFile);
       const content = fs.readFileSync(fullPath, 'utf-8');
       fs.writeFileSync(fullPath, GOOGLE3_HEADER + content);
     }
