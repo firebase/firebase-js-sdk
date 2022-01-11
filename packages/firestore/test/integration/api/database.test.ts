@@ -61,7 +61,8 @@ import {
   WithFieldValue,
   Timestamp,
   FieldPath,
-  newTestFirestore
+  newTestFirestore,
+  SnapshotOptions
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -1488,8 +1489,8 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('WriteBatch.set() supports partials with mergeFields', async () => {
       return withTestDb(persistence, async db => {
-        const ref = doc(
-          collection(db, 'posts').withConverter(postConverterMerge)
+        const ref = doc(collection(db, 'posts')).withConverter(
+          postConverterMerge
         );
         await setDoc(ref, new Post('walnut', 'author'));
         const batch = writeBatch(db);
@@ -1578,7 +1579,7 @@ apiDescribe('Database', (persistence: boolean) => {
           fromFirestore(snapshot: QueryDocumentSnapshot): Post {
             // Hack: Due to our build setup, TypeScript thinks this is a
             // firestore-lite converter which does not have options
-            const options = arguments[1];
+            const options = arguments[1] as SnapshotOptions;
             // Check that options were passed in properly.
             expect(options).to.deep.equal({ serverTimestamps: 'estimate' });
 

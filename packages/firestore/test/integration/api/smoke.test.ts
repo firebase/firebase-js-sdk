@@ -76,6 +76,7 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
             expect(recv['message']).to.deep.equal(data.message);
             const user = recv['user'];
             expect(user).to.be.an.instanceof(DocumentReference);
+            expect(user.id).to.deep.equal(ref2.id);
           });
       });
     });

@@ -22,7 +22,7 @@ import { apiDescribe, withTestDb } from '../util/helpers';
 import { asyncQueue } from '../util/internal_helpers';
 
 apiDescribe('Idle Timeout', (persistence: boolean) => {
-  it('can write documdent after idle timeout', () => {
+  it('can write document after idle timeout', () => {
     return withTestDb(persistence, db => {
       const docRef = doc(collection(db, 'test-collection'));
       return setDoc(docRef, { foo: 'bar' })
