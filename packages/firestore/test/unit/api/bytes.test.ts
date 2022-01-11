@@ -47,14 +47,14 @@ describe('Bytes', () => {
     });
   });
 
-  it('Blob throws on invalid Base64 strings', () => {
+  it('throws on invalid Base64 strings', () => {
     expect(() => Bytes.fromBase64String('not-base64!')).to.throw(
       /Failed to construct data from Base64 string:/
     );
   });
 
   it('works with instanceof checks', () => {
-    expect(Bytes.fromBase64String('') instanceof Blob).to.equal(true);
+    expect(Bytes.fromBase64String('') instanceof Bytes).to.equal(true);
   });
 
   it('support equality checking with isEqual()', () => {
