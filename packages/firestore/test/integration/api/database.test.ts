@@ -156,7 +156,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await setDoc(writerRef, { a: 'a' });
       await updateDoc(readerRef, { b: 'b' });
       await getDocFromCache(writerRef).then(
-        doc => expect(doc.exists).to.be.true
+        doc => expect(doc.exists()).to.be.true
       );
       await getDocFromCache(readerRef).then(
         () => {
@@ -1114,7 +1114,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await waitForPendingWrites(firestore2);
       const doc2 = await getDoc(doc(firestore2, docRef.path));
 
-      expect(doc2.exists).to.be.true;
+      expect(doc2.exists()).to.be.true;
       expect(doc2.metadata.hasPendingWrites).to.be.false;
     });
   });
@@ -1153,7 +1153,7 @@ apiDescribe('Database', (persistence: boolean) => {
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
         const docSnap2 = await getDocFromCache(docRef2);
-        expect(docSnap2.exists).to.be.true;
+        expect(docSnap2.exists()).to.be.true;
       });
     }
   );
