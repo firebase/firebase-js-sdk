@@ -1936,7 +1936,9 @@ function genericLocalStoreTests(
           .toContainTargetData(target, 10, 10, byteStringFromString('foo'))
           // Create an existence filter mismatch and verify that the last limbo
           // free snapshot version is deleted
-          .after(existenceFilterEvent(targetId, 2, 20))
+          .after(
+            existenceFilterEvent(targetId, documentKeySet(key('foo/a')), 2, 20)
+          )
           .after(noChangeEvent(targetId, 20))
           .toContainTargetData(target, 0, 0, ByteString.EMPTY_BYTE_STRING)
           // Re-run the query as a collection scan

@@ -356,16 +356,17 @@ export function noChangeEvent(
 
 export function existenceFilterEvent(
   targetId: number,
-  count: number,
+  syncedKeys: DocumentKeySet,
+  remoteCount: number,
   snapshotVersion: number
 ): RemoteEvent {
   const aggregator = new WatchChangeAggregator({
-    getRemoteKeysForTarget: () => documentKeySet(),
+    getRemoteKeysForTarget: () => syncedKeys,
     getTargetDataForTarget: targetId =>
       targetData(targetId, TargetPurpose.Listen, 'foo')
   });
   aggregator.handleExistenceFilter(
-    new ExistenceFilterChange(targetId, new ExistenceFilter(count))
+    new ExistenceFilterChange(targetId, new ExistenceFilter(remoteCount))
   );
   return aggregator.createRemoteEvent(version(snapshotVersion));
 }
