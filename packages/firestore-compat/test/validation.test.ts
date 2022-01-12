@@ -813,12 +813,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
         );
         expect(() => query.startAt('foo/bar')).to.throw(
           'Invalid query. When querying a collection and ordering by ' +
-            'FieldPath.documentId(), the value passed to Query.startAt() ' +
+            'documentId(), the value passed to Query.startAt() ' +
             "must be a plain document ID, but 'foo/bar' contains a slash."
         );
         expect(() => cgQuery.startAt('foo')).to.throw(
           'Invalid query. When querying a collection group and ordering by ' +
-            'FieldPath.documentId(), the value passed to Query.startAt() ' +
+            'documentId(), the value passed to Query.startAt() ' +
             "must result in a valid document path, but 'foo' is not because " +
             'it contains an odd number of segments.'
         );
@@ -1208,27 +1208,27 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', '')
         ).to.throw(
-          'Invalid query. When querying with FieldPath.documentId(), you ' +
+          'Invalid query. When querying with documentId(), you ' +
             'must provide a valid document ID, but it was an empty string.'
         );
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 'foo/bar/baz')
         ).to.throw(
-          `Invalid query. When querying a collection by ` +
-            `FieldPath.documentId(), you must provide a plain document ID, but ` +
+          `Invalid query. When querying a collection by documentId(), ` +
+            `you must provide a plain document ID, but ` +
             `'foo/bar/baz' contains a '/' character.`
         );
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 1)
         ).to.throw(
-          'Invalid query. When querying with FieldPath.documentId(), you must ' +
+          'Invalid query. When querying with documentId(), you must ' +
             'provide a valid string or a DocumentReference, but it was: 1.'
         );
         expect(() =>
           db.collectionGroup('foo').where(FieldPath.documentId(), '>=', 'foo')
         ).to.throw(
-          `Invalid query. When querying a collection group by ` +
-            `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+          `Invalid query. When querying a collection group by documentId(), ` +
+            `the value provided must result in a valid document path, ` +
             `but 'foo' is not because it has an odd number of segments (1).`
         );
 
@@ -1236,14 +1236,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
           collection.where(FieldPath.documentId(), 'array-contains', 1)
         ).to.throw(
           "Invalid Query. You can't perform 'array-contains' queries on " +
-            'FieldPath.documentId().'
+            'documentId().'
         );
 
         expect(() =>
           collection.where(FieldPath.documentId(), 'array-contains-any', 1)
         ).to.throw(
           "Invalid Query. You can't perform 'array-contains-any' queries on " +
-            'FieldPath.documentId().'
+            'documentId().'
         );
       }
     );
@@ -1261,30 +1261,30 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           collection.where(FieldPath.documentId(), 'in', [''])
         ).to.throw(
-          'Invalid query. When querying with FieldPath.documentId(), you ' +
+          'Invalid query. When querying with documentId(), you ' +
             'must provide a valid document ID, but it was an empty string.'
         );
 
         expect(() =>
           collection.where(FieldPath.documentId(), 'in', ['foo/bar/baz'])
         ).to.throw(
-          `Invalid query. When querying a collection by ` +
-            `FieldPath.documentId(), you must provide a plain document ID, but ` +
-            `'foo/bar/baz' contains a '/' character.`
+          `Invalid query. When querying a collection by documentId(), you ` +
+            `must provide a plain document ID, but 'foo/bar/baz' contains a ` +
+            `'/' character.`
         );
 
         expect(() =>
           collection.where(FieldPath.documentId(), 'in', [1, 2])
         ).to.throw(
-          'Invalid query. When querying with FieldPath.documentId(), you must ' +
+          'Invalid query. When querying with documentId(), you must ' +
             'provide a valid string or a DocumentReference, but it was: 1.'
         );
 
         expect(() =>
           db.collectionGroup('foo').where(FieldPath.documentId(), 'in', ['foo'])
         ).to.throw(
-          `Invalid query. When querying a collection group by ` +
-            `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+          `Invalid query. When querying a collection group by documentId(), ` +
+            `the value provided must result in a valid document path, ` +
             `but 'foo' is not because it has an odd number of segments (1).`
         );
       }
