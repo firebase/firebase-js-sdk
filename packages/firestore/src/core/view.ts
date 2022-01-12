@@ -35,6 +35,7 @@ import {
   SyncState,
   ViewSnapshot
 } from './view_snapshot';
+import {ByteString} from '../util/byte_string';
 
 export type LimboDocumentChange = AddedLimboDocument | RemovedLimboDocument;
 export class AddedLimboDocument {
@@ -72,6 +73,7 @@ export interface ViewChange {
  */
 export class View {
   private syncState: SyncState | null = null;
+  private resumeToken: ByteString | null = null;
   /**
    * A flag whether the view is current with the backend. A view is considered
    * current after it has seen the current flag from the backend and did not
@@ -306,11 +308,13 @@ export class View {
     const newSyncState = synced ? SyncState.Synced : SyncState.Local;
     const syncStateChanged = newSyncState !== this.syncState;
     this.syncState = newSyncState;
+    this.resumeToken = targetChange?.resumeToken ?? null;
 
     if (changes.length === 0 && !syncStateChanged) {
       // no changes
       return { limboChanges };
     } else {
+
       const snap: ViewSnapshot = new ViewSnapshot(
         this.query,
         docChanges.documentSet,
@@ -319,7 +323,8 @@ export class View {
         docChanges.mutatedKeys,
         newSyncState === SyncState.Local,
         syncStateChanged,
-        /* excludesMetadataChanges= */ false
+        /* excludesMetadataChanges= */ false,
+        targetChange?.resumeToken ?? ByteString.EMPTY_BYTE_STRING
       );
       return {
         snapshot: snap,
@@ -468,7 +473,8 @@ export class View {
       this.query,
       this.documentSet,
       this.mutatedKeys,
-      this.syncState === SyncState.Local
+      this.syncState === SyncState.Local,
+      this.resumeToken ?? ByteString.EMPTY_BYTE_STRING
     );
   }
 }

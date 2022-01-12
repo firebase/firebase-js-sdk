@@ -115,6 +115,7 @@ import {
   ViewChange
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import {ByteString} from '../util/byte_string';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -327,7 +328,8 @@ export async function syncEngineListen(
       syncEngineImpl,
       query,
       targetId,
-      status === 'current'
+      status === 'current',
+      targetData.resumeToken
     );
   }
 
@@ -342,7 +344,8 @@ async function initializeViewAndComputeSnapshot(
   syncEngineImpl: SyncEngineImpl,
   query: Query,
   targetId: TargetId,
-  current: boolean
+  current: boolean,
+  resumeToken: ByteString
 ): Promise<ViewSnapshot> {
   // PORTING NOTE: On Web only, we inject the code that registers new Limbo
   // targets based on view changes. This allows us to only depend on Limbo
@@ -360,12 +363,13 @@ async function initializeViewAndComputeSnapshot(
   const synthesizedTargetChange =
     TargetChange.createSynthesizedTargetChangeForCurrentChange(
       targetId,
-      current && syncEngineImpl.onlineState !== OnlineState.Offline
+      current && syncEngineImpl.onlineState !== OnlineState.Offline,
+      resumeToken
     );
   const viewChange = view.applyChanges(
     viewDocChanges,
     /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
-    synthesizedTargetChange
+    synthesizedTargetChange,
   );
   updateTrackedLimbos(syncEngineImpl, targetId, viewChange.limboChanges);
 
@@ -1025,7 +1029,7 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
             if (syncEngineImpl.isPrimaryClient) {
               syncEngineImpl.sharedClientState.updateQueryState(
                 queryView.targetId,
-                viewSnapshot.fromCache ? 'not-current' : 'current'
+                viewSnapshot.fromCache ? 'not-current' : 'current',
               );
             }
             newSnaps.push(viewSnapshot);
@@ -1379,7 +1383,8 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
         syncEngineImpl,
         synthesizeTargetToQuery(target!),
         targetId,
-        /*current=*/ false
+        /*current=*/ false,
+        targetData.resumeToken
       );
     }
 
@@ -1451,7 +1456,8 @@ export async function syncEngineApplyTargetState(
         const synthesizedRemoteEvent =
           RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
             targetId,
-            state === 'current'
+            state === 'current',
+            ByteString.EMPTY_BYTE_STRING
           );
         await syncEngineEmitNewSnapsAndNotifyLocalStore(
           syncEngineImpl,
@@ -1506,7 +1512,8 @@ export async function syncEngineApplyActiveTargetsChange(
       syncEngineImpl,
       synthesizeTargetToQuery(target),
       targetData.targetId,
-      /*current=*/ false
+      /*current=*/ false,
+      targetData.resumeToken
     );
     remoteStoreListen(syncEngineImpl.remoteStore, targetData);
   }

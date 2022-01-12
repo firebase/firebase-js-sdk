@@ -307,7 +307,8 @@ export class QueryListener {
         snap.mutatedKeys,
         snap.fromCache,
         snap.syncStateChanged,
-        /* excludesMetadataChanges= */ true
+        /* excludesMetadataChanges= */ true,
+        snap.resumeToken
       );
     }
     let raisedEvent = false;
@@ -371,8 +372,9 @@ export class QueryListener {
       return false;
     }
 
-    // Raise data from cache if we have any documents or we are offline
-    return !snap.docs.isEmpty() || onlineState === OnlineState.Offline;
+    // Raise data from cache if we have previously executed the query and have
+    // cached data or we are offline
+    return snap.resumeToken.approximateByteSize() > 0 || onlineState === OnlineState.Offline;
   }
 
   private shouldRaiseEvent(snap: ViewSnapshot): boolean {
@@ -405,7 +407,8 @@ export class QueryListener {
       snap.query,
       snap.docs,
       snap.mutatedKeys,
-      snap.fromCache
+      snap.fromCache,
+      snap.resumeToken
     );
     this.raisedInitialEvent = true;
     this.queryObserver.next(snap);
