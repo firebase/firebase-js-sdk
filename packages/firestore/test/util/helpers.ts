@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
-import { Blob } from '../../compat/api/blob';
-import { DocumentReference } from '../../compat/api/database';
-import { Timestamp } from '../../src/api/timestamp';
+import {
+  Bytes,
+  DocumentReference,
+  OrderByDirection,
+  Timestamp
+} from '../../src';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
@@ -139,10 +141,10 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
 }
 
 export function ref(key: string, offset?: number): DocumentReference {
-  return DocumentReference.forPath(
-    path(key, offset),
+  return new DocumentReference(
     FIRESTORE,
-    /* converter= */ null
+    /* converter= */ null,
+    new DocumentKey(path(key, offset))
   );
 }
 
@@ -221,9 +223,9 @@ export function mask(...paths: string[]): FieldMask {
   return new FieldMask(paths.map(v => field(v)));
 }
 
-export function blob(...bytes: number[]): Blob {
+export function blob(...bytes: number[]): Bytes {
   // bytes can be undefined for the empty blob
-  return Blob.fromUint8Array(new Uint8Array(bytes || []));
+  return Bytes.fromUint8Array(new Uint8Array(bytes || []));
 }
 
 export function filter(path: string, op: string, value: unknown): FieldFilter {
@@ -293,7 +295,7 @@ export function mutationResult(
 }
 
 export function bound(
-  values: Array<[string, {}, firestore.OrderByDirection]>,
+  values: Array<[string, {}, OrderByDirection]>,
   before: boolean
 ): Bound {
   const components: api.Value[] = [];

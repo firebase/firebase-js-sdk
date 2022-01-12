@@ -17,14 +17,18 @@
 
 import { expect } from 'chai';
 
-import { Blob } from '../../../compat/api/blob';
 import {
+  arrayRemove,
+  arrayUnion,
+  Bytes,
   DocumentReference,
-  UserDataWriter
-} from '../../../compat/api/database';
-import { FieldValue } from '../../../compat/api/field_value';
-import { GeoPoint } from '../../../src/api/geo_point';
-import { Timestamp } from '../../../src/api/timestamp';
+  GeoPoint,
+  increment,
+  refEqual,
+  serverTimestamp,
+  Timestamp
+} from '../../../src';
+import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
   LimitType,
@@ -121,7 +125,7 @@ import {
   wrapObject
 } from '../../util/helpers';
 
-const userDataWriter = new UserDataWriter(firestore());
+const userDataWriter = new ExpUserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
 const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
 
@@ -189,7 +193,7 @@ export function serializerTest(
           actualReturnFieldValue instanceof DocumentReference &&
           value instanceof DocumentReference
         ) {
-          expect(actualReturnFieldValue.isEqual(value)).to.be.true;
+          expect(refEqual(actualReturnFieldValue, value)).to.be.true;
         } else {
           expect(actualReturnFieldValue).to.deep.equal(value);
         }
@@ -415,7 +419,7 @@ export function serializerTest(
         const bytes = new Uint8Array([0, 1, 2, 3, 4, 5]);
 
         verifyFieldValueRoundTrip({
-          value: Blob.fromUint8Array(bytes),
+          value: Bytes.fromUint8Array(bytes),
           valueType: 'bytesValue',
           jsonValue: 'AAECAwQF',
           protoJsValue: bytes
@@ -666,8 +670,8 @@ export function serializerTest(
 
       it('ServerTimestamp transform', () => {
         const mutation = setMutation('baz/quux', {
-          a: FieldValue.serverTimestamp(),
-          'bar': FieldValue.serverTimestamp()
+          a: serverTimestamp(),
+          'bar': serverTimestamp()
         });
         const proto = {
           update: toMutationDocument(s, mutation.key, mutation.value),
@@ -679,7 +683,7 @@ export function serializerTest(
         verifyMutation(mutation, proto);
 
         const mutation2 = setMutation('baz/quux', {
-          a: FieldValue.serverTimestamp()
+          a: serverTimestamp()
         });
         const proto2 = {
           update: toMutationDocument(s, mutation2.key, mutation2.value),
@@ -692,8 +696,8 @@ export function serializerTest(
 
       it('Numeric Add transform', () => {
         const mutation = setMutation('baz/quux', {
-          integer: FieldValue.increment(42),
-          double: FieldValue.increment(13.37)
+          integer: increment(42),
+          double: increment(13.37)
         });
         const proto = {
           update: toMutationDocument(s, mutation.key, mutation.value),
@@ -705,8 +709,8 @@ export function serializerTest(
         verifyMutation(mutation, proto);
 
         const mutation2 = setMutation('baz/quux', {
-          integer: FieldValue.increment(42),
-          double: FieldValue.increment(13.37)
+          integer: increment(42),
+          double: increment(13.37)
         });
         const proto2 = {
           update: toMutationDocument(s, mutation2.key, mutation2.value),
@@ -720,8 +724,8 @@ export function serializerTest(
 
       it('Array transforms', () => {
         const mutation = patchMutation('docs/1', {
-          a: FieldValue.arrayUnion('a', 2),
-          'bar.baz': FieldValue.arrayRemove({ x: 1 })
+          a: arrayUnion('a', 2),
+          'bar.baz': arrayRemove({ x: 1 })
         });
         const proto = {
           update: toMutationDocument(s, mutation.key, mutation.data),
@@ -743,8 +747,8 @@ export function serializerTest(
         verifyMutation(mutation, proto);
 
         const mutation2 = setMutation('docs/1', {
-          a: FieldValue.arrayUnion('a', 2),
-          bar: FieldValue.arrayRemove({ x: 1 })
+          a: arrayUnion('a', 2),
+          bar: arrayRemove({ x: 1 })
         });
         const proto2 = {
           update: toMutationDocument(s, mutation2.key, mutation2.value),

@@ -6,6 +6,7 @@
     "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
     "build:persistence": "INCLUDE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
     "build:memory": "INCLUDE_FIRESTORE_PERSISTENCE=false gulp compile-tests",
+    "prettier": "prettier --write '*.js' '*.ts'",
     "test": "yarn build:memory; karma start --single-run; yarn build:persistence; karma start --single-run;",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "test:persistence": " yarn build:persistence; karma start --single-run",
@@ -13,9 +14,11 @@
     "test:memory": "yarn build:memory; karma start --single-run",
     "test:memory:debug": "yarn build:memory; karma start --auto-watch --browsers Chrome"
   },
-  "devDependencies": {
+  "dependencies": {
     "@firebase/app": "0.7.12",
-    "@firebase/firestore-compat": "0.1.11",
+    "@firebase/firestore": "3.4.2"
+  },
+  "devDependencies": {
     "@types/mocha": "9.0.0",
     "gulp": "4.0.2",
     "gulp-filter": "7.0.0",

@@ -17,8 +17,7 @@
 
 import { expect } from 'chai';
 
-import { FieldValue } from '../../../compat/api/field_value';
-import { Timestamp } from '../../../src/api/timestamp';
+import { arrayUnion, increment, Timestamp } from '../../../src';
 import { User } from '../../../src/auth/user';
 import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
 import { BundleConverterImpl } from '../../../src/core/bundle_impl';
@@ -1305,7 +1304,7 @@ function genericLocalStoreTests(
     }
   );
 
-  // TODO(mrschmidt): The FieldValue.increment() field transform tests below
+  // TODO(mrschmidt): The increment() field transform tests below
   // would probably be better implemented as spec tests but currently they don't
   // support transforms.
 
@@ -1314,10 +1313,10 @@ function genericLocalStoreTests(
       .after(setMutation('foo/bar', { sum: 0 }))
       .toReturnChanged(doc('foo/bar', 0, { sum: 0 }).setHasLocalMutations())
       .toContain(doc('foo/bar', 0, { sum: 0 }).setHasLocalMutations())
-      .after(patchMutation('foo/bar', { sum: FieldValue.increment(1) }))
+      .after(patchMutation('foo/bar', { sum: increment(1) }))
       .toReturnChanged(doc('foo/bar', 0, { sum: 1 }).setHasLocalMutations())
       .toContain(doc('foo/bar', 0, { sum: 1 }).setHasLocalMutations())
-      .after(patchMutation('foo/bar', { sum: FieldValue.increment(2) }))
+      .after(patchMutation('foo/bar', { sum: increment(2) }))
       .toReturnChanged(doc('foo/bar', 0, { sum: 3 }).setHasLocalMutations())
       .toContain(doc('foo/bar', 0, { sum: 3 }).setHasLocalMutations())
       .finish();
@@ -1336,7 +1335,7 @@ function genericLocalStoreTests(
           doc('foo/bar', 1, { sum: 0 }).setHasCommittedMutations()
         )
         .toContain(doc('foo/bar', 1, { sum: 0 }).setHasCommittedMutations())
-        .after(patchMutation('foo/bar', { sum: FieldValue.increment(1) }))
+        .after(patchMutation('foo/bar', { sum: increment(1) }))
         .toReturnChanged(doc('foo/bar', 1, { sum: 1 }).setHasLocalMutations())
         .toContain(doc('foo/bar', 1, { sum: 1 }).setHasLocalMutations())
         .afterAcknowledgingMutation({
@@ -1347,7 +1346,7 @@ function genericLocalStoreTests(
           doc('foo/bar', 2, { sum: 1 }).setHasCommittedMutations()
         )
         .toContain(doc('foo/bar', 2, { sum: 1 }).setHasCommittedMutations())
-        .after(patchMutation('foo/bar', { sum: FieldValue.increment(2) }))
+        .after(patchMutation('foo/bar', { sum: increment(2) }))
         .toReturnChanged(doc('foo/bar', 2, { sum: 3 }).setHasLocalMutations())
         .toContain(doc('foo/bar', 2, { sum: 3 }).setHasLocalMutations())
         .finish();
@@ -1369,7 +1368,7 @@ function genericLocalStoreTests(
         .afterAcknowledgingMutation({ documentVersion: 1 })
         .toReturnChanged(doc('foo/bar', 1, { sum: 0 }))
         .toContain(doc('foo/bar', 1, { sum: 0 }))
-        .after(patchMutation('foo/bar', { sum: FieldValue.increment(1) }))
+        .after(patchMutation('foo/bar', { sum: increment(1) }))
         .toReturnChanged(doc('foo/bar', 1, { sum: 1 }).setHasLocalMutations())
         .toContain(doc('foo/bar', 1, { sum: 1 }).setHasLocalMutations())
         // The value in this remote event gets ignored since we still have a
@@ -1381,7 +1380,7 @@ function genericLocalStoreTests(
         .toContain(doc('foo/bar', 2, { sum: 1 }).setHasLocalMutations())
         // Add another increment. Note that we still compute the increment based
         // on the local value.
-        .after(patchMutation('foo/bar', { sum: FieldValue.increment(2) }))
+        .after(patchMutation('foo/bar', { sum: increment(2) }))
         .toReturnChanged(doc('foo/bar', 2, { sum: 3 }).setHasLocalMutations())
         .toContain(doc('foo/bar', 2, { sum: 3 }).setHasLocalMutations())
         .afterAcknowledgingMutation({
@@ -1430,9 +1429,9 @@ function genericLocalStoreTests(
         )
         .toReturnChanged(doc('foo/bar', 1, { sum: 0, arrayUnion: [] }))
         .afterMutations([
-          patchMutation('foo/bar', { sum: FieldValue.increment(1) }),
+          patchMutation('foo/bar', { sum: increment(1) }),
           patchMutation('foo/bar', {
-            arrayUnion: FieldValue.arrayUnion('foo')
+            arrayUnion: arrayUnion('foo')
           })
         ])
         .toReturnChanged(
@@ -1466,11 +1465,7 @@ function genericLocalStoreTests(
       .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
       .after(
-        patchMutation(
-          'foo/bar',
-          { sum: FieldValue.increment(1) },
-          Precondition.none()
-        )
+        patchMutation('foo/bar', { sum: increment(1) }, Precondition.none())
       )
       .toReturnChanged(doc('foo/bar', 0, { sum: 1 }).setHasLocalMutations())
       .toContain(doc('foo/bar', 0, { sum: 1 }).setHasLocalMutations())
@@ -1490,7 +1485,7 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
-      .after(patchMutation('foo/bar', { sum: FieldValue.increment(1) }))
+      .after(patchMutation('foo/bar', { sum: increment(1) }))
       .toReturnChanged(deletedDoc('foo/bar', 0))
       .toNotContain('foo/bar')
       .afterRemoteEvent(
@@ -1598,11 +1593,7 @@ function genericLocalStoreTests(
       .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
       .after(
-        patchMutation(
-          'foo/bar',
-          { sum: FieldValue.increment(1) },
-          Precondition.none()
-        )
+        patchMutation('foo/bar', { sum: increment(1) }, Precondition.none())
       )
       .toReturnChanged(doc('foo/bar', 0, { sum: 1 }).setHasLocalMutations())
       .toContain(doc('foo/bar', 0, { sum: 1 }).setHasLocalMutations())
@@ -1625,7 +1616,7 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
-      .after(patchMutation('foo/bar', { sum: FieldValue.increment(1) }))
+      .after(patchMutation('foo/bar', { sum: increment(1) }))
       .toReturnChanged(deletedDoc('foo/bar', 0))
       .toNotContain('foo/bar')
       .after(bundledDocuments([doc('foo/bar', 1, { sum: 1337 })]))

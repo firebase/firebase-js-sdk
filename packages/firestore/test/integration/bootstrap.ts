@@ -16,7 +16,6 @@
  */
 
 import '../../src/index';
-import '../../compat/index';
 
 /**
  * This will include all of the test files and compile them as needed

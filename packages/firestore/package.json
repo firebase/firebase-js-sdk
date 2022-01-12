@@ -8,7 +8,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "bundle": "rollup -c",
-    "prebuild": "yarn test:prepare && tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
+    "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
     "build": "run-p build:lite build:main",
     "build:release": "yarn build && yarn typings:public",
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
@@ -25,8 +25,6 @@
     "test:lite:prod": "node ./scripts/run-tests.js --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:browser": "karma start --single-run --lite",
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
-    "pretest": "yarn test:prepare",
-    "pretest:ci": "yarn pretest",
     "test": "run-s lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all:ci",
     "test:all:ci": "run-p test:browser test:lite:browser test:travis",
@@ -44,7 +42,6 @@
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "api-report": "run-s api-report:main api-report:lite && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
-    "test:prepare": "node ./scripts/prepare-test.js",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts"
   },
   "exports": {
