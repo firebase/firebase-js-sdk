@@ -90,7 +90,11 @@ const cjsBuilds = [
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
-  // sw builds
+  // sw build
+  // TODO: This may no longer be necessary when we can provide ESM Node
+  // builds (contingent on updating the `idb` dependency). When we add
+  // ESM Node builds, test with Nuxt and other SSR frameworks to see if
+  // this can then be removed.
   {
     input: 'src/index.sw.ts',
     output: { file: pkg['sw-main'], format: 'cjs', sourcemap: true },
