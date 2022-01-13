@@ -84,7 +84,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.7.12",
+    "@firebase/app": "0.7.13",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-strip": "2.1.0",
     "chromedriver": "96.0.0",
