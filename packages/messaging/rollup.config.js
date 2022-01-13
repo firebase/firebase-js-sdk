@@ -89,6 +89,16 @@ const cjsBuilds = [
       replace(generateBuildTargetReplaceConfig('cjs', 5))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  // sw builds
+  {
+    input: 'src/index.sw.ts',
+    output: { file: pkg['sw-main'], format: 'cjs', sourcemap: true },
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 5))
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
