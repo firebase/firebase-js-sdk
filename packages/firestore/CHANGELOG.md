@@ -1,5 +1,13 @@
 # @firebase/firestore
 
+## 3.4.3
+
+### Patch Changes
+
+- [`044a8d7f9`](https://github.com/firebase/firebase-js-sdk/commit/044a8d7f95a0ba0d34123ff5fd7a4bcb1bd3d328) [#5830](https://github.com/firebase/firebase-js-sdk/pull/5830) (fixes [#5823](https://github.com/firebase/firebase-js-sdk/issues/5823)) - Fix Proto loading for Vercel/Next.js.
+
+* [`ff2f7d4c8`](https://github.com/firebase/firebase-js-sdk/commit/ff2f7d4c85c0bda94b14d66237faa0e5da93bfa4) [#5883](https://github.com/firebase/firebase-js-sdk/pull/5883) - The Node SDK now uses JSON to load its internal Protobuf definition, which allows the Node SDK to work with bundlers such as Rollup and Webpack.
+
 ## 3.4.2
 
 ### Patch Changes
