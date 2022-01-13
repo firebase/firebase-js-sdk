@@ -223,7 +223,7 @@ class NetworkTimeout<T> {
   private timer: any | null = null;
   readonly promise = new Promise<T>((_, reject) => {
     this.timer = setTimeout(() => {
-      return reject(_createError(this.auth, AuthErrorCode.TIMEOUT));
+      return reject(_createError(this.auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
     }, DEFAULT_API_TIMEOUT_MS.get());
   });
 

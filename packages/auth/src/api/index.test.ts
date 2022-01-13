@@ -316,7 +316,7 @@ describe('api/_performApiRequest', () => {
         request
       );
       clock.tick(DEFAULT_API_TIMEOUT_MS.get() + 1);
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/timeout');
+      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/network-request-failed');
       clock.restore();
     });
 
