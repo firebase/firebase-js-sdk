@@ -15,19 +15,15 @@
  * limitations under the License.
  */
 
-import { join, resolve, isAbsolute, dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-// __filename and __dirname globals are unavailable in ES modules
-// @ts-ignore To avoid using `--module es2020` flag.
-const __filenameInESM = fileURLToPath(import.meta.url);
-const __dirnameInESM = dirname(__filenameInESM);
+import { join, resolve, isAbsolute } from 'path';
 
 import { loadPackageDefinition, GrpcObject } from '@grpc/grpc-js';
-import { loadSync } from '@grpc/proto-loader';
+import { fromJSON } from '@grpc/proto-loader';
 // only used in tests
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { IConversionOptions, Root } from 'protobufjs';
+
+import * as protos from '../../protos/protos.json';
 
 /** Used by tests so we can match @grpc/proto-loader behavior. */
 export const protoLoaderOptions: IConversionOptions = {
@@ -43,17 +39,7 @@ export const protoLoaderOptions: IConversionOptions = {
  * @returns The GrpcObject representing our protos.
  */
 export function loadProtos(): GrpcObject {
-  const root = resolve(
-    __dirnameInESM,
-    process.env.FIRESTORE_PROTO_ROOT || '../../protos'
-  );
-  const firestoreProtoFile = join(root, 'google/firestore/v1/firestore.proto');
-
-  const packageDefinition = loadSync(firestoreProtoFile, {
-    ...protoLoaderOptions,
-    includeDirs: [root]
-  });
-
+  const packageDefinition = fromJSON(protos, protoLoaderOptions);
   return loadPackageDefinition(packageDefinition);
 }
 
