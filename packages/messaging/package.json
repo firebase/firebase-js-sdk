@@ -17,8 +17,7 @@
       "default": "./dist/index.cjs.js"
     },
     "./sw": {
-      "require": "./dist/index.sw.cjs",
-      "import": "./dist/index.sw.esm2017.js",
+      "node": "./dist/index.sw.cjs",
       "default": "./dist/index.sw.esm2017.js"
     },
     "./package.json": "./package.json"
