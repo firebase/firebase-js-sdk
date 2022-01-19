@@ -137,7 +137,7 @@ describe('Firebase Performance > trace', () => {
 
     it('does not log counter with invalid counter value', () => {
       trace.record(1, 20, {
-        attributes: { level: '1', name: 'invalid value' },
+        attributes: { level: '1', name: 'invalid value' }
       });
 
       expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
