@@ -195,13 +195,13 @@ export interface FullMetadata extends UploadMetadata {
 
   /**
    * The object's generation.
-   * {@link https://cloud.google.com/storage/docs/generations-preconditions}
+   * {@link https://cloud.google.com/storage/docs/metadata#generation-number}
    */
   generation: string;
 
   /**
    * The object's metageneration.
-   * {@link https://cloud.google.com/storage/docs/generations-preconditions}
+   * {@link https://cloud.google.com/storage/docs/metadata#generation-number}
    */
   metageneration: string;
 
