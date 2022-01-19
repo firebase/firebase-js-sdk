@@ -70,7 +70,7 @@ async function logChangesets() {
 
     req.on('error', error => reject(error));
 
-    req.write(data);
+    req.write(data, err => reject(err));
     req.end();
   });
 }

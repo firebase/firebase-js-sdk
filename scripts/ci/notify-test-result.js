@@ -75,7 +75,8 @@ async function notifyTestResults() {
     req.write(
       JSON.stringify({
         text: message
-      })
+      }),
+      err => reject(err)
     );
     req.end();
   });
@@ -101,10 +102,13 @@ async function notifyTestResults() {
 
     req.on('error', error => reject(error));
 
-    req.write({
-      testStatus,
-      testUrl: workflowUrl
-    });
+    req.write(
+      JSON.stringify({
+        testStatus,
+        testUrl: workflowUrl
+      }),
+      err => reject(err)
+    );
     req.end();
   });
 
