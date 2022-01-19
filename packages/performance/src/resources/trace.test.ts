@@ -134,6 +134,15 @@ describe('Firebase Performance > trace', () => {
       expect(trace.getAttributes()).to.eql({ level: '1' });
       expect(trace.getMetric('cacheHits')).to.eql(1);
     });
+
+    it('does not log counter with invalid counter value', () => {
+      trace.record(1, 20, {
+        attributes: { level: '1', name: 'invalid value' },
+      });
+
+      expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
+      expect(trace.getAttributes()).to.eql({ level: '1' });
+    });
   });
 
   describe('#incrementMetric', () => {

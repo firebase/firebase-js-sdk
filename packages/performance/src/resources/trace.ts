@@ -153,7 +153,7 @@ export class Trace implements PerformanceTrace {
     if (options && options.metrics) {
       for (const metric of Object.keys(options.metrics)) {
         if (!isNaN(Number(options.metrics[metric]))) {
-          this.counters[metric] = Number(Math.floor(options.metrics[metric]));
+          this.counters[metric] = Math.floor(Number(options.metrics[metric]));
         }
       }
     }
