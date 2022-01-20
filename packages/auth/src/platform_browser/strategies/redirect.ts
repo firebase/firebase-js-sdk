@@ -79,15 +79,17 @@ import { getModularInstance } from '@firebase/util';
 export function signInWithRedirect(
   auth: Auth,
   provider: AuthProvider,
-  resolver?: PopupRedirectResolver
+  resolver?: PopupRedirectResolver,
+  redirectUrl?: string
 ): Promise<never> {
-  return _signInWithRedirect(auth, provider, resolver) as Promise<never>;
+  return _signInWithRedirect(auth, provider, resolver, redirectUrl) as Promise<never>;
 }
 
 export async function _signInWithRedirect(
   auth: Auth,
   provider: AuthProvider,
-  resolver?: PopupRedirectResolver
+  resolver?: PopupRedirectResolver,
+  redirectUrl?: string
 ): Promise<void | never> {
   const authInternal = _castAuth(auth);
   _assertInstanceOf(auth, provider, FederatedAuthProvider);
@@ -97,7 +99,8 @@ export async function _signInWithRedirect(
   return resolverInternal._openRedirect(
     authInternal,
     provider,
-    AuthEventType.SIGN_IN_VIA_REDIRECT
+    AuthEventType.SIGN_IN_VIA_REDIRECT,
+    redirectUrl
   );
 }
 

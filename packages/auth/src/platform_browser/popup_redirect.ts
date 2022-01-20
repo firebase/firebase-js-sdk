@@ -88,11 +88,13 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
     auth: AuthInternal,
     provider: AuthProvider,
     authType: AuthEventType,
-    eventId?: string
+    eventId?: string,
+    redirectUrl?: string
   ): Promise<never> {
     await this._originValidation(auth);
+    const url = redirectUrl ? redirectUrl : _getCurrentUrl();
     _setWindowLocation(
-      _getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId)
+      _getRedirectUrl(auth, provider, authType, url, eventId)
     );
     return new Promise(() => {});
   }
