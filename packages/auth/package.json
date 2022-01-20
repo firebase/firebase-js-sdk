@@ -17,11 +17,13 @@
         "require": "./dist/node/index.js"
       },
       "react-native": "./dist/rn/index.js",
-      "cordova": "./dist/cordova/index.esm5.js",
+      "cordova": "./dist/cordova/index.js",
       "webworker": "./dist/index.webworker.esm5.js",
       "esm5": "./dist/esm5/index.js",
       "default": "./dist/esm2017/index.js"
     },
+    "./cordova": "./dist/cordova/index.js",
+    "./react-native": "./dist/rn/index.js",
     "./internal": {
       "node": {
         "import": "./dist/node-esm/internal.js",
