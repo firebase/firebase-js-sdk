@@ -1,5 +1,13 @@
 # @firebase/auth
 
+## 0.19.6
+
+### Patch Changes
+
+- [`67b6decbb`](https://github.com/firebase/firebase-js-sdk/commit/67b6decbb9b5ee806d4109b9b6c188c4933e1270) [#5908](https://github.com/firebase/firebase-js-sdk/pull/5908) - Add cordova and react-native paths to auth package.json exports field.
+
+* [`922e9ed9a`](https://github.com/firebase/firebase-js-sdk/commit/922e9ed9a68c130aefa0cdb9b27720b73011c397) [#5892](https://github.com/firebase/firebase-js-sdk/pull/5892) (fixes [#5874](https://github.com/firebase/firebase-js-sdk/issues/5874)) - Fix error code thrown when the network times out
+
 ## 0.19.5
 
 ### Patch Changes
