@@ -21,7 +21,6 @@ import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import {fail} from "../util/assert";
 
 export {
   connectFirestoreEmulator,
