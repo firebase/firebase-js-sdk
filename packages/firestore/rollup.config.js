@@ -18,7 +18,6 @@
 import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
-import copy from 'rollup-plugin-copy';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 import typescriptPlugin from 'rollup-plugin-typescript2';
@@ -30,22 +29,6 @@ import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_rep
 import pkg from './package.json';
 
 const util = require('./rollup.shared');
-
-// Customize how import.meta.url is polyfilled in cjs nodejs build. We use it to be able to use require() in esm.
-// It only generates the nodejs version of the polyfill, as opposed to the default polyfill which
-// supports both browser and nodejs. The browser support is unnecessary and doesn't work well with Jest. See https://github.com/firebase/firebase-js-sdk/issues/5687
-function importMetaUrlPolyfillPlugin() {
-  return {
-    name: 'import-meta-url-current-module',
-    resolveImportMeta(property, { moduleId }) {
-      if (property === 'url') {
-        // copied from rollup output
-        return `new (require('url').URL)('file:' + __filename).href`;
-      }
-      return null;
-    }
-  };
-}
 
 const nodePlugins = function () {
   return [
@@ -61,17 +44,7 @@ const nodePlugins = function () {
       transformers: [util.removeAssertTransformer]
     }),
     json({ preferConst: true }),
-    // Needed as we also use the *.proto files
-    copy({
-      targets: [
-        {
-          src: 'src/protos',
-          dest: 'dist/src'
-        }
-      ]
-    }),
     replace({
-      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos'),
       '__GRPC_VERSION__': grpcVersion
     })
   ];
@@ -123,8 +96,7 @@ const allBuilds = [
     },
     plugins: [
       ...util.es2017ToEs5Plugins(/* mangled= */ false),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017)),
-      importMetaUrlPolyfillPlugin()
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: util.resolveNodeExterns,
     treeshake: {

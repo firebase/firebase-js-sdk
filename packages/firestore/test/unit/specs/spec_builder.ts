@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { UserDataWriter } from '../../../compat/api/database';
+import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import {
   hasLimitToFirst,
   hasLimitToLast,
@@ -67,7 +67,7 @@ import {
   SpecWriteFailure
 } from './spec_test_runner';
 
-const userDataWriter = new UserDataWriter(firestore());
+const userDataWriter = new ExpUserDataWriter(firestore());
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.

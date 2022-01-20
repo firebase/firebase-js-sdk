@@ -43,6 +43,19 @@ export class ByteString {
     return new ByteString(binaryString);
   }
 
+  [Symbol.iterator](): Iterator<number> {
+    let i = 0;
+    return {
+      next: () => {
+        if (i < this.binaryString.length) {
+          return { value: this.binaryString.charCodeAt(i++), done: false };
+        } else {
+          return { value: undefined, done: true };
+        }
+      }
+    };
+  }
+
   toBase64(): string {
     return encodeBase64(this.binaryString);
   }

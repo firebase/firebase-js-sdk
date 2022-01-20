@@ -20,6 +20,7 @@ IFS=$'\n\t'
 # Variables
 PROTOS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WORK_DIR=`mktemp -d`
+PBJS="$(npm bin)/pbjs"
 
 # deletes the temp directory on exit
 function cleanup {
@@ -34,8 +35,8 @@ trap cleanup EXIT
 pushd "$WORK_DIR"
 
 # Clone necessary git repos.
-git clone https://github.com/googleapis/googleapis.git
-git clone https://github.com/google/protobuf.git
+git clone --depth 1 https://github.com/googleapis/googleapis.git
+git clone --depth 1 https://github.com/google/protobuf.git
 
 # Copy necessary protos.
 mkdir -p "${PROTOS_DIR}/google/api"
@@ -54,8 +55,22 @@ mkdir -p "${PROTOS_DIR}/google/type"
 cp googleapis/google/type/latlng.proto \
    "${PROTOS_DIR}/google/type/"
 
-mkdir -p "${PROTOS_DIR}/google/protobuf"
-cp protobuf/src/google/protobuf/{any,empty,struct,timestamp,wrappers,descriptor}.proto \
-   "${PROTOS_DIR}/google/protobuf/"
+# Hack in `verify` support
+ex "${PROTOS_DIR}/google/firestore/v1/write.proto" <<eof
+44 insert
+    // The name of a document on which to verify the \`current_document\`
+    // precondition.
+    // This only requires read access to the document.
+    string verify = 5;
 
-popd
+.
+xit
+eof
+
+"${PBJS}" --proto_path=. --target=json -o protos.json \
+  -r firestore_v1 \
+  "${PROTOS_DIR}/google/firestore/v1/*.proto" \
+  "${PROTOS_DIR}/google/protobuf/*.proto" "${PROTOS_DIR}/google/type/*.proto" \
+  "${PROTOS_DIR}/google/rpc/*.proto" "${PROTOS_DIR}/google/api/*.proto"
+
+cp protos.json "${PROTOS_DIR}/protos.json"

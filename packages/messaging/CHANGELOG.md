@@ -1,5 +1,22 @@
 # @firebase/messaging
 
+## 0.9.6
+
+### Patch Changes
+
+- [`88d43ec00`](https://github.com/firebase/firebase-js-sdk/commit/88d43ec0027ff857923ab41255b3650e666fa29e) [#5884](https://github.com/firebase/firebase-js-sdk/pull/5884) - Add a CJS bundle for messaging/sw. This enables some SSR frameworks to run their Node.js pipelines without erroring.
+
+* [`3c20727d8`](https://github.com/firebase/firebase-js-sdk/commit/3c20727d83f2d68edc108e8112b06d3232a7d310) [#5881](https://github.com/firebase/firebase-js-sdk/pull/5881) - Fix message id parsing.
+
+## 0.9.5
+
+### Patch Changes
+
+- Updated dependencies [[`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49)]:
+  - @firebase/util@1.4.3
+  - @firebase/component@0.5.10
+  - @firebase/installations@0.5.5
+
 ## 0.9.4
 
 ### Patch Changes

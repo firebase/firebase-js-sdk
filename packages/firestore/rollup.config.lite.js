@@ -22,7 +22,6 @@ import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import sourcemaps from 'rollup-plugin-sourcemaps';
-import copy from 'rollup-plugin-copy';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 
@@ -44,18 +43,7 @@ const nodePlugins = function () {
       abortOnError: false,
       transformers: [util.removeAssertTransformer]
     }),
-    json({ preferConst: true }),
-    copy({
-      targets: [
-        {
-          src: 'src/protos',
-          dest: 'dist/lite/src'
-        }
-      ]
-    }),
-    replace({
-      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
-    })
+    json({ preferConst: true })
   ];
 };
 

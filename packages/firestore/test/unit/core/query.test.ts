@@ -17,9 +17,7 @@
 
 import { expect } from 'chai';
 
-import { Blob } from '../../../compat/api/blob';
-import { GeoPoint } from '../../../src/api/geo_point';
-import { Timestamp } from '../../../src/api/timestamp';
+import { Bytes, GeoPoint, Timestamp } from '../../../src';
 import {
   canonifyQuery,
   LimitType,
@@ -647,7 +645,7 @@ describe('Query', () => {
     assertCanonicalId(
       query(
         'collection',
-        filter('a', '>=', Blob.fromUint8Array(new Uint8Array([1, 2, 3])))
+        filter('a', '>=', Bytes.fromUint8Array(new Uint8Array([1, 2, 3])))
       ),
       'collection|f:a>=AQID|ob:aasc,__name__asc'
     );

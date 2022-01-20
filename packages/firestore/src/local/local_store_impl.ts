@@ -501,24 +501,34 @@ export function localStoreApplyRemoteEventToLocalCache(
             })
         );
 
-        const resumeToken = change.resumeToken;
-        // Update the resume token if the change includes one.
-        if (resumeToken.approximateByteSize() > 0) {
-          const newTargetData = oldTargetData
-            .withResumeToken(resumeToken, remoteVersion)
-            .withSequenceNumber(txn.currentSequenceNumber);
-          newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
-            targetId,
-            newTargetData
+        let newTargetData = oldTargetData.withSequenceNumber(
+          txn.currentSequenceNumber
+        );
+        if (remoteEvent.targetMismatches.has(targetId)) {
+          newTargetData = newTargetData
+            .withResumeToken(
+              ByteString.EMPTY_BYTE_STRING,
+              SnapshotVersion.min()
+            )
+            .withLastLimboFreeSnapshotVersion(SnapshotVersion.min());
+        } else if (change.resumeToken.approximateByteSize() > 0) {
+          newTargetData = newTargetData.withResumeToken(
+            change.resumeToken,
+            remoteVersion
           );
+        }
 
-          // Update the target data if there are target changes (or if
-          // sufficient time has passed since the last update).
-          if (shouldPersistTargetData(oldTargetData, newTargetData, change)) {
-            promises.push(
-              localStoreImpl.targetCache.updateTargetData(txn, newTargetData)
-            );
-          }
+        newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
+          targetId,
+          newTargetData
+        );
+
+        // Update the target data if there are target changes (or if
+        // sufficient time has passed since the last update).
+        if (shouldPersistTargetData(oldTargetData, newTargetData, change)) {
+          promises.push(
+            localStoreImpl.targetCache.updateTargetData(txn, newTargetData)
+          );
         }
       });
 
@@ -675,11 +685,6 @@ function shouldPersistTargetData(
   newTargetData: TargetData,
   change: TargetChange
 ): boolean {
-  hardAssert(
-    newTargetData.resumeToken.approximateByteSize() > 0,
-    'Attempted to persist target data with no resume token'
-  );
-
   // Always persist target data if we don't already have a resume token.
   if (oldTargetData.resumeToken.approximateByteSize() === 0) {
     return true;
