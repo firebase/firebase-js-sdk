@@ -21,6 +21,7 @@ import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import {fail} from "../util/assert";
 
 export {
   connectFirestoreEmulator,
@@ -114,7 +115,7 @@ export function setIndexConfiguration(
  *
  * The method accepts the JSON format exported by the Firebase CLI (`firebase
  * firestore:indexes`). If the JSON format is invalid, this method throws an
- * exception.
+ * error.
  *
  * @param firestore - The {@link Firestore} instance to configure indexes for.
  * @param json -The JSON format exported by the Firebase CLI.

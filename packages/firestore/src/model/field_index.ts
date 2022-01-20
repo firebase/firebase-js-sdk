@@ -40,7 +40,7 @@ export class FieldIndex {
     readonly indexId: number,
     /** The collection ID this index applies to. */
     readonly collectionGroup: string,
-    /** Returns all field segments for this index. */
+    /** The field segments for this index. */
     readonly segments: Segment[]
   ) {}
 }
