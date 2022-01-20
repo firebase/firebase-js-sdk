@@ -11,14 +11,14 @@
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
+      "node": "./dist/index.cjs.js",
       "browser": "./dist/esm/index.esm2017.js",
       "module": "./dist/esm/index.esm2017.js",
       "esm5": "./dist/esm/index.esm.js",
       "default": "./dist/index.cjs.js"
     },
     "./sw": {
-      "require": "./dist/index.sw.cjs",
-      "import": "./dist/index.sw.esm2017.js",
+      "node": "./dist/index.sw.cjs",
       "default": "./dist/index.sw.esm2017.js"
     },
     "./package.json": "./package.json"
