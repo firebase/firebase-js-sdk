@@ -21,6 +21,7 @@ import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable
 } from '@firebase/util';
+import { countBytes, splitHeartbeatsCache } from './heartbeatSize';
 import {
   deleteHeartbeatsFromIndexedDB,
   readHeartbeatsFromIndexedDB,
@@ -32,6 +33,8 @@ import {
   HeartbeatService,
   HeartbeatStorage
 } from './types';
+
+const HEADER_SIZE_LIMIT_BYTES = 1000;
 
 export class HeartbeatServiceImpl implements HeartbeatService {
   /**
@@ -120,19 +123,42 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     if (this._heartbeatsCache === null) {
       return '';
     }
-    const headerString = base64Encode(
-      JSON.stringify({ version: 2, heartbeats: this._heartbeatsCache })
-    );
-    this._heartbeatsCache = null;
-    // Do not wait for this, to reduce latency.
-    void this._storage.deleteAll();
+    // Count size of _heartbeatsCache after being converted into a base64
+    // header string.
+    const base64Bytes = countBytes(this._heartbeatsCache);
+    // If it exceeds the limit, split out the oldest portion under the
+    // limit to return. Put the rest back into _heartbeatsCache.
+    let headerString = '';
+    if (base64Bytes > HEADER_SIZE_LIMIT_BYTES) {
+      const { heartbeatsToSend, heartbeatsToKeep } = splitHeartbeatsCache(
+        this._heartbeatsCache,
+        HEADER_SIZE_LIMIT_BYTES
+      );
+      headerString = base64Encode(
+        JSON.stringify({ version: 2, heartbeats: heartbeatsToSend })
+      );
+      // Write the portion not sent back to memory, and then to indexedDB.
+      this._heartbeatsCache = heartbeatsToKeep;
+      // This is more likely than deleteAll() to cause some mixed up state
+      // problems if we don't wait for execution to finish.
+      await this._storage.overwrite(this._heartbeatsCache);
+    } else {
+      // If _heartbeatsCache does not exceed the size limit, send all the
+      // data in a header and delete memory and indexedDB caches.
+      headerString = base64Encode(
+        JSON.stringify({ version: 2, heartbeats: this._heartbeatsCache })
+      );
+      this._heartbeatsCache = null;
+      // Do not wait for this, to reduce latency.
+      void this._storage.deleteAll();
+    }
     return headerString;
   }
 }
 
 function getUTCDateString(): string {
   const today = new Date();
-  return today.toISOString().substring(0,10);
+  return today.toISOString().substring(0, 10);
 }
 
 export class HeartbeatStorageImpl implements HeartbeatStorage {
