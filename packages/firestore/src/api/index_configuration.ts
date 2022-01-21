@@ -27,7 +27,13 @@ export {
   EmulatorMockTokenOptions
 } from '../lite-api/database';
 
-/** A single field element in an index configuration. */
+// TODO(indexing): Remove "@internal" from the API.
+
+/**
+ * A single field element in an index configuration.
+ *
+ * @internal
+ */
 export interface IndexField {
   /** The field path to index. */
   readonly fieldPath: string;
@@ -49,7 +55,11 @@ export interface IndexField {
   [key: string]: unknown;
 }
 
-/** The SDK definition of a Firestore index. */
+/**
+ * The SDK definition of a Firestore index.
+ *
+ * @internal
+ */
 export interface Index {
   /** The ID of the collection to index. */
   readonly collectionGroup: string;
@@ -64,6 +74,8 @@ export interface Index {
  *
  * See {@link https://firebase.google.com/docs/reference/firestore/indexes/#json_format | JSON Format}
  * for a description of the format of the index definition.
+ *
+ * @internal
  */
 export interface IndexConfiguration {
   /** A list of all Firestore indexes. */
@@ -87,6 +99,7 @@ export interface IndexConfiguration {
  * before setting an index configuration. If IndexedDb is not enabled, any
  * index configuration is ignored.
  *
+ * @internal
  * @param firestore - The {@link Firestore} instance to configure indexes for.
  * @param configuration -The index definition.
  * @throws FirestoreError if the JSON format is invalid.
@@ -116,6 +129,7 @@ export function setIndexConfiguration(
  * firestore:indexes`). If the JSON format is invalid, this method throws an
  * error.
  *
+ * @internal
  * @param firestore - The {@link Firestore} instance to configure indexes for.
  * @param json -The JSON format exported by the Firebase CLI.
  * @throws FirestoreError if the JSON format is invalid.

@@ -15,18 +15,16 @@
  * limitations under the License.
  */
 
-import { Compat } from '@firebase/util';
 import { expect } from 'chai';
 
-import { Firestore } from '../../../src';
-import { setIndexConfiguration } from '../../../src/api/index_configuration';
+import { _setIndexConfiguration as setIndexConfiguration } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
 
 apiDescribe('Index Configuration:', (persistence: boolean) => {
   it('supports JSON', () => {
     return withTestDb(persistence, db => {
       return setIndexConfiguration(
-        unwrap(db),
+        db,
         '{\n' +
           '  "indexes": [\n' +
           '    {\n' +
@@ -62,7 +60,7 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
 
   it('supports schema', () => {
     return withTestDb(persistence, db => {
-      return setIndexConfiguration(unwrap(db), {
+      return setIndexConfiguration(db, {
         indexes: [
           {
             collectionGroup: 'restaurants',
@@ -81,7 +79,7 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
 
   it('bad JSON does not crash client', () => {
     return withTestDb(persistence, async db => {
-      expect(() => setIndexConfiguration(unwrap(db), '{,}')).to.throw(
+      expect(() => setIndexConfiguration(db, '{,}')).to.throw(
         'Failed to parse JSON'
       );
     });
@@ -90,7 +88,7 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
   it('bad index does not crash client', () => {
     return withTestDb(persistence, db => {
       return setIndexConfiguration(
-        unwrap(db),
+        db,
         '{\n' +
           '  "indexes": [\n' +
           '    {\n' +
@@ -110,7 +108,3 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
     });
   });
 });
-
-function unwrap(db: unknown): Firestore {
-  return (db as Compat<Firestore>)._delegate;
-}
