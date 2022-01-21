@@ -503,13 +503,13 @@ export function terminate(firestore: Firestore): Promise<void> {
 /**
  * Loads a Firestore bundle into the local cache.
  *
- * @param firestore - The {@link Firestore} instance to load bundles for for.
- * @param bundleData - An object representing the bundle to be loaded. Valid objects are
- *   `ArrayBuffer`, `ReadableStream<Uint8Array>` or `string`.
+ * @param firestore - The {@link Firestore} instance to load bundles for.
+ * @param bundleData - An object representing the bundle to be loaded. Valid
+ * objects are `ArrayBuffer`, `ReadableStream<Uint8Array>` or `string`.
  *
- * @returns
- *   A `LoadBundleTask` object, which notifies callers with progress updates, and completion
- *   or error events. It can be used as a `Promise<LoadBundleTaskProgress>`.
+ * @returns A `LoadBundleTask` object, which notifies callers with progress
+ * updates, and completion or error events. It can be used as a
+ * `Promise<LoadBundleTaskProgress>`.
  */
 export function loadBundle(
   firestore: Firestore,
@@ -528,11 +528,16 @@ export function loadBundle(
 }
 
 /**
- * Reads a Firestore {@link Query} from local cache, identified by the given name.
+ * Reads a Firestore {@link Query} from local cache, identified by the given
+ * name.
  *
  * The named queries are packaged  into bundles on the server side (along
- * with resulting documents), and loaded to local cache using `loadBundle`. Once in local
- * cache, use this method to extract a {@link Query} by name.
+ * with resulting documents), and loaded to local cache using `loadBundle`. Once
+ * in local cache, use this method to extract a {@link Query} by name.
+ *
+ * @param firestore - The {@link Firestore} instance to read the query from.
+ * @param name - The name of the query.
+ * @returns A `Promise` that is resolved with the Query or `null`.
  */
 export function namedQuery(
   firestore: Firestore,
