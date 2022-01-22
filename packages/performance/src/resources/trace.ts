@@ -148,12 +148,19 @@ export class Trace implements PerformanceTrace {
     this.durationUs = Math.floor(duration * 1000);
     this.startTimeUs = Math.floor(startTime * 1000);
     if (options && options.attributes) {
-      this.customAttributes = { ...options.attributes };
+      for (const attributeName of Object.keys(options.attributes)) {
+        if (options.attribute[attributeName] != null) {
+          this.customAttributes[attributeName] =
+            options.attribute[attributeName];
+        }
+      }
     }
     if (options && options.metrics) {
-      for (const metric of Object.keys(options.metrics)) {
-        if (!isNaN(Number(options.metrics[metric]))) {
-          this.counters[metric] = Math.floor(Number(options.metrics[metric]));
+      for (const metricName of Object.keys(options.metrics)) {
+        if (!isNaN(Number(options.metrics[metricName]))) {
+          this.counters[metricName] = Math.floor(
+            Number(options.metrics[metricName])
+          );
         }
       }
     }
