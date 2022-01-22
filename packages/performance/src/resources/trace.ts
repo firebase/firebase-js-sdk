@@ -149,9 +149,9 @@ export class Trace implements PerformanceTrace {
     this.startTimeUs = Math.floor(startTime * 1000);
     if (options && options.attributes) {
       for (const attributeName of Object.keys(options.attributes)) {
-        if (options.attribute[attributeName] != null) {
+        if (options.attributes[attributeName] != null) {
           this.customAttributes[attributeName] =
-            options.attribute[attributeName];
+            options.attributes[attributeName];
         }
       }
     }
