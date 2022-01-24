@@ -2,8 +2,6 @@
 "@firebase/firestore": patch
 ---
 
-Fixed bug: Firestore listeners stopped working and received a "Permission Denied"
-error when App Check token expired (listener was active longer than the App
-Check token TTL configured in the Firebase console). The issue does not occur if
-listeners were renewed for other reasons such as Authentication token renewal,
-listener being idle for a long time, page refresh, etc.
+Fixed an AppCheck issue that caused Firestore listeners to stop working and
+receive a "Permission Denied" error. This issue only occurred for AppCheck users
+that set their expiration time to under an hour.
