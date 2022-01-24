@@ -105,7 +105,7 @@ describe('QueryEngine', () => {
     return persistence.runTransaction('addDocument', 'readwrite', txn => {
       const changeBuffer = remoteDocumentCache.newChangeBuffer();
       for (const doc of docs) {
-        changeBuffer.addEntry(doc, doc.version);
+        changeBuffer.addEntry(doc);
       }
       return changeBuffer.apply(txn);
     });
