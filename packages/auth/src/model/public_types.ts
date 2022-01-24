@@ -630,7 +630,7 @@ export interface MultiFactorInfo {
 
 /**
  * The subclass of the {@link MultiFactorInfo} interface for phone number
- * second factors. The factorId of this second factor is {@link FactorId.PHONE.
+ * second factors. The factorId of this second factor is {@link FactorId.PHONE}.
  */
 export interface PhoneMultiFactorInfo extends MultiFactorInfo {
   /** The phone number associated with the current second factor. */
