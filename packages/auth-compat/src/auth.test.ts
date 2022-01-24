@@ -27,6 +27,10 @@ import * as platform from './platform';
 
 use(sinonChai);
 
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // For the most part, the auth methods just call straight through. Some parts
 // of the auth compat layer are more complicated: these tests cover those
 describe('auth compat', () => {
@@ -102,6 +106,7 @@ describe('auth compat', () => {
         );
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
+        await delay(50);
         expect(setItemSpy).not.to.have.been.calledWith(
           'firebase:persistence:api-key:undefined',
           'TEST'
@@ -133,7 +138,7 @@ describe('auth compat', () => {
       }
     });
 
-    it('does not die if sessionStorage errors', () => {
+    it('does not die if sessionStorage errors', async () => {
       if (typeof self !== 'undefined') {
         sinon.stub(platform, '_getSelfWindow').returns({
           get sessionStorage(): Storage {
@@ -148,6 +153,7 @@ describe('auth compat', () => {
         providerStub.initialize.returns(underlyingAuth);
         new Auth(app, providerStub as unknown as Provider<'auth'>);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        await delay(50);
         expect(providerStub.initialize).to.have.been.calledWith({
           options: {
             popupRedirectResolver: CompatPopupRedirectResolver,
