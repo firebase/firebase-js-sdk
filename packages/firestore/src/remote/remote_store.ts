@@ -876,27 +876,6 @@ export async function remoteStoreHandleCredentialChange(
   await enableNetworkInternal(remoteStoreImpl);
 }
 
-export async function remoteStoreHandleAppCheckTokenChange(
-  remoteStore: RemoteStore
-): Promise<void> {
-  const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
-  remoteStoreImpl.asyncQueue.verifyOperationInProgress();
-
-  logDebug(LOG_TAG, 'RemoteStore received new App Check token.');
-  const usesNetwork = canUseNetwork(remoteStoreImpl);
-
-  // Tear down and re-create our network streams. This will ensure a new
-  // App Check token is retrieved and used for setting up the streams.
-  remoteStoreImpl.offlineCauses.add(OfflineCause.CredentialChange);
-  await disableNetworkInternal(remoteStoreImpl);
-  if (usesNetwork) {
-    // Don't set the network status to Unknown if we are offline.
-    remoteStoreImpl.onlineStateTracker.set(OnlineState.Unknown);
-  }
-  remoteStoreImpl.offlineCauses.delete(OfflineCause.CredentialChange);
-  await enableNetworkInternal(remoteStoreImpl);
-}
-
 /**
  * Toggles the network state when the client gains or loses its primary lease.
  */

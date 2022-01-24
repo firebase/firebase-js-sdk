@@ -41,7 +41,6 @@ import {
   RemoteStore,
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
-  remoteStoreHandleAppCheckTokenChange,
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
@@ -100,8 +99,10 @@ export class FirestoreClient {
   private readonly clientId = AutoId.newId();
   private authCredentialListener: CredentialChangeListener<User> = () =>
     Promise.resolve();
-  private appCheckCredentialListener: CredentialChangeListener<string> = () =>
-    Promise.resolve();
+  private appCheckCredentialListener: (
+    appCheckToken: string,
+    user: User
+  ) => Promise<void> = () => Promise.resolve();
 
   offlineComponents?: OfflineComponentProvider;
   onlineComponents?: OnlineComponentProvider;
@@ -126,9 +127,9 @@ export class FirestoreClient {
       this.user = user;
     });
     // Register an empty credentials change listener to activate token refresh.
-    this.appCheckCredentials.start(asyncQueue, async newAppCheckToken => {
+    this.appCheckCredentials.start(asyncQueue, newAppCheckToken => {
       logDebug(LOG_TAG, 'Received new app check token=', newAppCheckToken);
-      await this.appCheckCredentialListener(newAppCheckToken);
+      return this.appCheckCredentialListener(newAppCheckToken, this.user);
     });
   }
 
@@ -149,7 +150,7 @@ export class FirestoreClient {
   }
 
   setAppCheckTokenChangeListener(
-    listener: (token: string) => Promise<void>
+    listener: (appCheckToken: string, user: User) => Promise<void>
   ): void {
     this.appCheckCredentialListener = listener;
   }
@@ -246,8 +247,8 @@ export async function setOnlineComponentProvider(
   client.setCredentialChangeListener(user =>
     remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
-  client.setAppCheckTokenChangeListener(() =>
-    remoteStoreHandleAppCheckTokenChange(onlineComponentProvider.remoteStore)
+  client.setAppCheckTokenChangeListener((appCheckToken, user) =>
+    remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
   client.onlineComponents = onlineComponentProvider;
 }
