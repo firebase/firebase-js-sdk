@@ -213,13 +213,13 @@ async function withForcedPersistence(
 function addDocs(
   txn: SimpleDbTransaction,
   keys: string[],
-  ver: number
+  version: number
 ): PersistencePromise<void> {
   const remoteDocumentStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
     DbRemoteDocument.store
   );
   return PersistencePromise.forEach(keys, (key: string) => {
-    const remoteDoc = doc(key, ver, { data: 'foo' });
+    const remoteDoc = doc(key, version, { data: 'foo' });
     const dbRemoteDoc = toDbRemoteDocument(TEST_SERIALIZER, remoteDoc);
     return remoteDocumentStore.put(remoteDoc.key.path.toArray(), dbRemoteDoc);
   });

@@ -334,7 +334,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   }
 
   /**
-   * Decodes `remoteDoc` and returns the document (or an invalid document, if
+   * Decodes `remoteDoc` and returns the document (or an invalid document if
    * the document corresponds to the format used for sentinel deletes).
    */
   private maybeDecodeDocument(
