@@ -102,7 +102,10 @@ describe('auth compat', () => {
         );
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
-        expect(setItemSpy).not.to.have.been.calledWith('firebase:persistence:api-key:undefined', 'TEST');
+        expect(setItemSpy).not.to.have.been.calledWith(
+          'firebase:persistence:api-key:undefined',
+          'TEST'
+        );
       }
     });
 
@@ -152,7 +155,7 @@ describe('auth compat', () => {
               exp.indexedDBLocalPersistence,
               exp.browserLocalPersistence,
               exp.browserSessionPersistence,
-              exp.inMemoryPersistence,
+              exp.inMemoryPersistence
             ]
           }
         });
