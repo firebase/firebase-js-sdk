@@ -126,7 +126,6 @@ export class FirestoreClient {
       await this.authCredentialListener(user);
       this.user = user;
     });
-    // Register an empty credentials change listener to activate token refresh.
     this.appCheckCredentials.start(asyncQueue, newAppCheckToken => {
       logDebug(LOG_TAG, 'Received new app check token=', newAppCheckToken);
       return this.appCheckCredentialListener(newAppCheckToken, this.user);
