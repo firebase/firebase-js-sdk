@@ -246,7 +246,7 @@ export async function setOnlineComponentProvider(
   client.setCredentialChangeListener(user =>
     remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
-  client.setAppCheckTokenChangeListener((appCheckToken, user) =>
+  client.setAppCheckTokenChangeListener((_, user) =>
     remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
   client.onlineComponents = onlineComponentProvider;
