@@ -16,7 +16,12 @@
  */
 
 import { fieldPathFromDotSeparatedString } from '../lite-api/user_data_reader';
-import { FieldIndex, Kind, Segment } from '../model/field_index';
+import {
+  FieldIndex,
+  IndexKind,
+  IndexSegment,
+  IndexState
+} from '../model/field_index';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
@@ -160,7 +165,7 @@ export function setIndexConfiguration(
     for (const index of indexConfiguration.indexes) {
       const collectionGroup = tryGetString(index, 'collectionGroup');
 
-      const segments: Segment[] = [];
+      const segments: IndexSegment[] = [];
       if (Array.isArray(index.fields)) {
         for (const field of index.fields) {
           const fieldPathString = tryGetString(field, 'fieldPath');
@@ -170,17 +175,22 @@ export function setIndexConfiguration(
           );
 
           if (field.arrayConfig === 'CONTAINS') {
-            segments.push(new Segment(fieldPath, Kind.CONTAINS));
+            segments.push(new IndexSegment(fieldPath, IndexKind.CONTAINS));
           } else if (field.order === 'ASCENDING') {
-            segments.push(new Segment(fieldPath, Kind.ASCENDING));
+            segments.push(new IndexSegment(fieldPath, IndexKind.ASCENDING));
           } else if (field.order === 'DESCENDING') {
-            segments.push(new Segment(fieldPath, Kind.DESCENDING));
+            segments.push(new IndexSegment(fieldPath, IndexKind.DESCENDING));
           }
         }
       }
 
       parsedIndexes.push(
-        new FieldIndex(FieldIndex.UNKNOWN_ID, collectionGroup, segments)
+        new FieldIndex(
+          FieldIndex.UNKNOWN_ID,
+          collectionGroup,
+          segments,
+          IndexState.empty()
+        )
       );
     }
   }
