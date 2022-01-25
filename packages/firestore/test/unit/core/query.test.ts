@@ -554,9 +554,9 @@ describe('Query', () => {
     const q7a = queryWithLimit(query('foo'), 10, LimitType.First);
     const q8a = queryWithLimit(query('foo'), 10, LimitType.Last);
 
-    const lip1a = bound([[DOCUMENT_KEY_NAME, 'coll/foo', 'asc']], true);
-    const lip1b = bound([[DOCUMENT_KEY_NAME, 'coll/foo', 'asc']], false);
-    const lip2 = bound([[DOCUMENT_KEY_NAME, 'coll/bar', 'asc']], true);
+    const lip1a = bound(['coll/foo'], true);
+    const lip1b = bound(['coll/foo'], false);
+    const lip2 = bound(['coll/bar'], true);
     // TODO(b/35851862): descending key ordering not supported yet
     // const lip3 = bound([[DOCUMENT_KEY_NAME, 'coll/bar', 'desc']]);
 
@@ -695,26 +695,14 @@ describe('Query', () => {
     assertCanonicalId(
       queryWithStartAt(
         query('collection', orderBy('a', 'asc'), orderBy('b', 'asc')),
-        bound(
-          [
-            ['a', 'foo', 'asc'],
-            ['b', [1, 2, 3], 'asc']
-          ],
-          true
-        )
+        bound(['foo', [1, 2, 3]], true)
       ),
       'collection|f:|ob:aasc,basc,__name__asc|lb:b:foo,[1,2,3]'
     );
     assertCanonicalId(
       queryWithEndAt(
         query('collection', orderBy('a', 'desc'), orderBy('b', 'desc')),
-        bound(
-          [
-            ['a', 'foo', 'desc'],
-            ['b', [1, 2, 3], 'desc']
-          ],
-          false
-        )
+        bound(['foo', [1, 2, 3]], false)
       ),
       'collection|f:|ob:adesc,bdesc,__name__desc|ub:a:foo,[1,2,3]'
     );

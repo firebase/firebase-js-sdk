@@ -85,7 +85,7 @@ export {
   QueryConstraintType,
   OrderByDirection,
   WhereFilterOp
-} from './api/query';
+} from './api/filter';
 
 export { Unsubscribe, SnapshotListenOptions } from './api/reference_impl';
 

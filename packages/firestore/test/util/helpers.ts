@@ -17,12 +17,7 @@
 
 import { expect } from 'chai';
 
-import {
-  Bytes,
-  DocumentReference,
-  OrderByDirection,
-  Timestamp
-} from '../../src';
+import { Bytes, DocumentReference, Timestamp } from '../../src';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
@@ -72,6 +67,7 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
+import { FieldIndex, Kind, Segment } from '../../src/model/field_index';
 import { FieldMask } from '../../src/model/field_mask';
 import {
   DeleteMutation,
@@ -219,6 +215,20 @@ export function field(path: string): FieldPath {
   return new FieldPath(path.split('.'));
 }
 
+export function fieldIndex(
+  collectionGroup: string,
+  options: {
+    id?: number;
+    fields?: Array<[field: string, kind: Kind]>;
+  } = {}
+): FieldIndex {
+  return new FieldIndex(
+    options.id ?? FieldIndex.UNKNOWN_ID,
+    collectionGroup,
+    (options.fields ?? []).map(entry => new Segment(field(entry[0]), entry[1]))
+  );
+}
+
 export function mask(...paths: string[]): FieldMask {
   return new FieldMask(paths.map(v => field(v)));
 }
@@ -294,14 +304,10 @@ export function mutationResult(
   return new MutationResult(version(testVersion), /* transformResults= */ []);
 }
 
-export function bound(
-  values: Array<[string, {}, OrderByDirection]>,
-  before: boolean
-): Bound {
+export function bound(values: unknown[], before: boolean): Bound {
   const components: api.Value[] = [];
   for (const value of values) {
-    const [_, dataValue] = value;
-    components.push(wrap(dataValue));
+    components.push(wrap(value));
   }
   return new Bound(components, before);
 }

@@ -45,6 +45,20 @@ export class FieldIndex {
   ) {}
 }
 
+/** Returns the ArrayContains/ArrayContainsAny segment for this index. */
+export function fieldIndexGetArraySegment(
+  fieldIndex: FieldIndex
+): Segment | undefined {
+  return fieldIndex.segments.find(s => s.kind === Kind.CONTAINS);
+}
+
+/** Returns all directional (ascending/descending) segments for this index. */
+export function fieldIndexGetDirectionalSegments(
+  fieldIndex: FieldIndex
+): Segment[] {
+  return fieldIndex.segments.filter(s => s.kind !== Kind.CONTAINS);
+}
+
 /** The type of the index, e.g. for which type of query it can be used. */
 export const enum Kind {
   /**
