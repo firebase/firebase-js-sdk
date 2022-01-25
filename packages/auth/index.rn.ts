@@ -86,6 +86,4 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   });
 }
 
-console.log('fsd');
-
 registerAuth(ClientPlatform.REACT_NATIVE);
