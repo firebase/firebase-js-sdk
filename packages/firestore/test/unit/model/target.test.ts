@@ -376,7 +376,7 @@ describe('Target Bounds', () => {
     bound: Bound | null,
     inclusive: boolean,
     ...values: unknown[]
-  ) {
+  ): void {
     expect(bound).to.not.be.null;
     expect(!bound!.before).to.equal(inclusive, 'inclusive');
     const position = bound!.position;

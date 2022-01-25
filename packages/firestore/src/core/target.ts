@@ -238,6 +238,8 @@ export function targetGetArrayValues(
         return fieldFilter.value.arrayValue!.values || [];
       case Operator.ARRAY_CONTAINS:
         return [fieldFilter.value];
+      default:
+      // Remaining filters are not array filters.
     }
   }
   return null;
@@ -271,6 +273,8 @@ export function targetGetNotInValues(
           // NotIn/NotEqual is always a suffix
           values.push(fieldFilter.value);
           return values;
+        default:
+        // Remaining filters cannot be used as notIn bounds.
       }
     }
   }
