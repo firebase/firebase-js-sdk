@@ -121,10 +121,7 @@ async function notifyTestResults() {
         data.version = versionOrTag;
       }
     }
-    req.write(
-      JSON.stringify(data),
-      err => reject(err)
-    );
+    req.write(JSON.stringify(data), err => reject(err));
     req.end();
   });
 
