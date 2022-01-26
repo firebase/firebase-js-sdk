@@ -148,12 +148,7 @@ export class Trace implements PerformanceTrace {
     this.durationUs = Math.floor(duration * 1000);
     this.startTimeUs = Math.floor(startTime * 1000);
     if (options && options.attributes) {
-      for (const attributeName of Object.keys(options.attributes)) {
-        if (options.attributes[attributeName] != null) {
-          this.customAttributes[attributeName] =
-            options.attributes[attributeName];
-        }
-      }
+      this.customAttributes = { ...options.attributes };
     }
     if (options && options.metrics) {
       for (const metricName of Object.keys(options.metrics)) {
@@ -190,7 +185,10 @@ export class Trace implements PerformanceTrace {
    */
   putMetric(counter: string, numAsInteger: number): void {
     if (isValidMetricName(counter, this.name)) {
-      this.counters[counter] = convertMetricValueToInteger(numAsInteger);
+      this.counters[counter] =
+        numAsInteger === undefined
+          ? 0
+          : convertMetricValueToInteger(numAsInteger);
     } else {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_CUSTOM_METRIC_NAME, {
         customMetricName: counter
