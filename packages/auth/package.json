@@ -80,7 +80,7 @@
     "@firebase/component": "0.5.10",
     "@firebase/logger": "0.3.2",
     "@firebase/util": "1.4.3",
-    "node-fetch": "2.6.5",
+    "node-fetch": "2.6.7",
     "selenium-webdriver": "4.0.0-rc-1",
     "tslib": "^2.1.0"
   },
