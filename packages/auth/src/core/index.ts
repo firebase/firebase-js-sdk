@@ -23,7 +23,8 @@ import {
   User,
   CompleteFn,
   ErrorFn,
-  Unsubscribe
+  Unsubscribe,
+  RecaptchaConfig
 } from '../model/public_types';
 
 export {
@@ -60,6 +61,11 @@ export function setPersistence(
 ): Promise<void> {
   return getModularInstance(auth).setPersistence(persistence);
 }
+
+export function setRecaptchaConfig(auth: Auth, config: RecaptchaConfig): void {
+  return getModularInstance(auth).setRecaptchaConfig(config);
+}
+
 /**
  * Adds an observer for changes to the signed-in user's ID token, which includes sign-in,
  * sign-out, and token refresh events.

@@ -33,6 +33,7 @@ export async function _signInWithCredential(
   credential: AuthCredential,
   bypassAuthState = false
 ): Promise<UserCredential> {
+  console.log("!!!!! _signInWithCredential");
   const operationType = OperationType.SIGN_IN;
   const response = await _processCredentialSavingMfaContextIfNecessary(
     auth,

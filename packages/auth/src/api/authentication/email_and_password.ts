@@ -31,6 +31,9 @@ export interface SignInWithPasswordRequest {
   email: string;
   password: string;
   tenantId?: string;
+  captchaResponse?: string;
+  clientType?: string;
+  recaptchaVersion?: string;
 }
 
 export interface SignInWithPasswordResponse extends IdTokenResponse {

@@ -54,48 +54,48 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   load(auth: AuthInternal, hl = ''): Promise<Recaptcha> {
     _assert(isHostLanguageValid(hl), auth, AuthErrorCode.ARGUMENT_ERROR);
 
-    if (this.shouldResolveImmediately(hl)) {
-      return Promise.resolve(_window().grecaptcha!);
-    }
+    // if (this.shouldResolveImmediately(hl)) {
+    //   return Promise.resolve(_window().grecaptcha!);
+    // }
     return new Promise<Recaptcha>((resolve, reject) => {
-      const networkTimeout = _window().setTimeout(() => {
-        reject(_createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
-      }, NETWORK_TIMEOUT_DELAY.get());
+      // const networkTimeout = _window().setTimeout(() => {
+      //   reject(_createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
+      // }, NETWORK_TIMEOUT_DELAY.get());
 
-      _window()[_JSLOAD_CALLBACK] = () => {
-        _window().clearTimeout(networkTimeout);
-        delete _window()[_JSLOAD_CALLBACK];
+      // _window()[_JSLOAD_CALLBACK] = () => {
+      //   _window().clearTimeout(networkTimeout);
+      //   delete _window()[_JSLOAD_CALLBACK];
 
-        const recaptcha = _window().grecaptcha;
+      //   const recaptcha = _window().grecaptcha;
 
-        if (!recaptcha) {
-          reject(_createError(auth, AuthErrorCode.INTERNAL_ERROR));
-          return;
-        }
+      //   if (!recaptcha) {
+      //     reject(_createError(auth, AuthErrorCode.INTERNAL_ERROR));
+      //     return;
+      //   }
 
-        // Wrap the greptcha render function so that we know if the developer has
-        // called it separately
-        const render = recaptcha.render;
-        recaptcha.render = (container, params) => {
-          const widgetId = render(container, params);
-          this.counter++;
-          return widgetId;
-        };
+      //   // Wrap the greptcha render function so that we know if the developer has
+      //   // called it separately
+      //   const render = recaptcha.render;
+      //   recaptcha.render = (container, params) => {
+      //     const widgetId = render(container, params);
+      //     this.counter++;
+      //     return widgetId;
+      //   };
 
-        this.hostLanguage = hl;
-        resolve(recaptcha);
-      };
+      //   this.hostLanguage = hl;
+      //   resolve(recaptcha);
+      // };
 
-      const url = `${RECAPTCHA_BASE}?${querystring({
-        onload: _JSLOAD_CALLBACK,
-        render: 'explicit',
-        hl
-      })}`;
+      // const url = `${RECAPTCHA_BASE}?${querystring({
+      //   onload: _JSLOAD_CALLBACK,
+      //   render: 'explicit',
+      //   hl
+      // })}`;
 
-      jsHelpers._loadJS(url).catch(() => {
-        clearTimeout(networkTimeout);
-        reject(_createError(auth, AuthErrorCode.INTERNAL_ERROR));
-      });
+      // jsHelpers._loadJS(url).catch(() => {
+      //   clearTimeout(networkTimeout);
+      //   reject(_createError(auth, AuthErrorCode.INTERNAL_ERROR));
+      // });
     });
   }
 
