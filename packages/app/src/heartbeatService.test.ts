@@ -17,7 +17,11 @@
 
 import { expect } from 'chai';
 import '../test/setup';
-import { countBytes, HeartbeatServiceImpl, _extractHeartbeatsForHeader } from './heartbeatService';
+import {
+  countBytes,
+  HeartbeatServiceImpl,
+  _extractHeartbeatsForHeader
+} from './heartbeatService';
 import {
   Component,
   ComponentType,
@@ -121,7 +125,9 @@ describe('HeartbeatServiceImpl', () => {
       clock.tick(2 * 24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
       expect(heartbeatService._heartbeatsCache?.length).to.equal(3);
-      expect(heartbeatService._heartbeatsCache?.[2].date).to.equal('1970-01-03');
+      expect(heartbeatService._heartbeatsCache?.[2].date).to.equal(
+        '1970-01-03'
+      );
     });
     it('getHeartbeatHeaders() gets stored heartbeats and clears heartbeats', async () => {
       const deleteStub = stub(heartbeatService._storage, 'deleteAll');
@@ -248,7 +254,7 @@ describe('HeartbeatServiceImpl', () => {
       const headerString = base64Encode(
         JSON.stringify({ version: 2, heartbeats })
       );
-      console.log(JSON.stringify({ version: 2, heartbeats }));
+      // Use independent methods to validate our byte count method matches.
       // We don't use this measurement method in the app because user
       // environments are much more unpredictable while we know the
       // tests will run in either a standard headless browser or Node.
@@ -264,27 +270,51 @@ describe('HeartbeatServiceImpl', () => {
   });
 
   describe('_extractHeartbeatsForHeader()', () => {
-    it('', () => {
+    it('returns empty heartbeatsToKeep if it cannot get under maxSize', () => {
       const heartbeats = [
-        { userAgent: generateUserAgentString(1), dates: generateDates(1) },
-        { userAgent: generateUserAgentString(3), dates: generateDates(2) }
+        { userAgent: generateUserAgentString(1), date: '2022-01-01' }
       ];
-      let size: number = 0;
-      const headerString = base64Encode(
-        JSON.stringify({ version: 2, heartbeats })
+      const { unsentEntries, heartbeatsToSend } = _extractHeartbeatsForHeader(
+        heartbeats,
+        5
       );
-      console.log(JSON.stringify({ version: 2, heartbeats }));
-      // We don't use this measurement method in the app because user
-      // environments are much more unpredictable while we know the
-      // tests will run in either a standard headless browser or Node.
-      if (typeof Blob !== 'undefined') {
-        const blob = new Blob([headerString]);
-        size = blob.size;
-      } else if (typeof Buffer !== 'undefined') {
-        const buffer = Buffer.from(headerString);
-        size = buffer.byteLength;
-      }
-      expect(countBytes(heartbeats)).to.equal(size);
+      expect(heartbeatsToSend.length).to.equal(0);
+      expect(unsentEntries).to.deep.equal(heartbeats);
+    });
+    it('splits heartbeats array', () => {
+      const heartbeats = [
+        { userAgent: generateUserAgentString(20), date: '2022-01-01' },
+        { userAgent: generateUserAgentString(4), date: '2022-01-02' }
+      ];
+      const sizeWithHeartbeat0Only = countBytes([
+        { userAgent: heartbeats[0].userAgent, dates: [heartbeats[0].date] }
+      ]);
+      const { unsentEntries, heartbeatsToSend } = _extractHeartbeatsForHeader(
+        heartbeats,
+        sizeWithHeartbeat0Only + 1
+      );
+      expect(heartbeatsToSend.length).to.equal(1);
+      expect(unsentEntries.length).to.equal(1);
+    });
+    it('splits the first heartbeat if needed', () => {
+      const uaString = generateUserAgentString(20);
+      const heartbeats = [
+        { userAgent: uaString, date: '2022-01-01' },
+        { userAgent: uaString, date: '2022-01-02' },
+        { userAgent: uaString, date: '2022-01-03' }
+      ];
+      const sizeWithHeartbeat0Only = countBytes([
+        { userAgent: heartbeats[0].userAgent, dates: [heartbeats[0].date] }
+      ]);
+      const { unsentEntries, heartbeatsToSend } = _extractHeartbeatsForHeader(
+        heartbeats,
+        sizeWithHeartbeat0Only + 1
+      );
+      expect(heartbeatsToSend.length).to.equal(1);
+      expect(unsentEntries.length).to.equal(2);
+      expect(
+        heartbeatsToSend[0].dates.length + unsentEntries.length
+      ).to.equal(heartbeats.length);
     });
   });
 });

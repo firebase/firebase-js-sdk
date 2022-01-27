@@ -128,7 +128,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
       return '';
     }
     // Extract as many heartbeats from the cache as will fit under the size limit.
-    const { heartbeatsToSend, unsentEntries } = extractHeartbeatsForHeader(
+    const { heartbeatsToSend, unsentEntries } = _extractHeartbeatsForHeader(
       this._heartbeatsCache
     );
     const headerString = base64Encode(
@@ -279,7 +279,7 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
  * Calculate byte length of a string. From:
  * https://codereview.stackexchange.com/questions/37512/count-byte-length-of-string
  */
-function getByteLength(str: string): number {
+export function getByteLength(str: string): number {
   let byteLength = 0;
   for (let i = 0; i < str.length; i++) {
     const c = str.charCodeAt(i);
