@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import '../test/setup';
-import { HeartbeatServiceImpl } from './heartbeatService';
+import { countBytes, HeartbeatServiceImpl } from './heartbeatService';
 import {
   Component,
   ComponentType,
@@ -28,7 +28,7 @@ import { FirebaseApp } from './public-types';
 import * as firebaseUtil from '@firebase/util';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
 import * as indexedDb from './indexeddb';
-import { isIndexedDBAvailable } from '@firebase/util';
+import { base64Encode, isIndexedDBAvailable } from '@firebase/util';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -38,6 +38,24 @@ declare module '@firebase/component' {
 
 const USER_AGENT_STRING_1 = 'vs1/1.2.3 vs2/2.3.4';
 const USER_AGENT_STRING_2 = 'different/1.2.3';
+
+function generateUserAgentString(pairs: number): string {
+  let uaString = '';
+  for (let i = 0; i < pairs; i++) {
+    uaString += `test-platform/${i % 10}.${i % 10}.${i % 10}`;
+  }
+  return uaString;
+}
+
+function generateDates(count: number): string[] {
+  let currentTimestamp = Date.now();
+  const dates = [];
+  for (let i = 0; i < count; i++) {
+    dates.push(new Date(currentTimestamp).toISOString().slice(0, 10));
+    currentTimestamp += 24 * 60 * 60 * 1000;
+  }
+  return dates;
+}
 
 describe('HeartbeatServiceImpl', () => {
   describe('If IndexedDB has no entries', () => {
@@ -80,29 +98,30 @@ describe('HeartbeatServiceImpl', () => {
       expect(heartbeatService._heartbeatsCache?.length).to.equal(1);
       const heartbeat1 = heartbeatService._heartbeatsCache?.[0];
       expect(heartbeat1?.userAgent).to.equal(USER_AGENT_STRING_1);
-      expect(heartbeat1?.dates[0]).to.equal('1970-01-01');
+      expect(heartbeat1?.date).to.equal('1970-01-01');
       expect(writeStub).to.be.calledWith([heartbeat1]);
     });
     it(`triggerHeartbeat() doesn't store another heartbeat on the same day`, async () => {
+      expect(heartbeatService._heartbeatsCache?.length).to.equal(1);
       await heartbeatService.triggerHeartbeat();
-      const heartbeat1 = heartbeatService._heartbeatsCache?.[0];
-      expect(heartbeat1?.dates.length).to.equal(1);
+      expect(heartbeatService._heartbeatsCache?.length).to.equal(1);
     });
     it(`triggerHeartbeat() does store another heartbeat on a different day`, async () => {
+      expect(heartbeatService._heartbeatsCache?.length).to.equal(1);
       clock.tick(24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
-      const heartbeat1 = heartbeatService._heartbeatsCache?.[0];
-      expect(heartbeat1?.dates.length).to.equal(2);
-      expect(heartbeat1?.dates[1]).to.equal('1970-01-02');
+      expect(heartbeatService._heartbeatsCache?.length).to.equal(2);
+      expect(heartbeatService._heartbeatsCache?.[1].date).to.equal(
+        '1970-01-02'
+      );
     });
     it(`triggerHeartbeat() stores another entry for a different user agent`, async () => {
       userAgentString = USER_AGENT_STRING_2;
+      expect(heartbeatService._heartbeatsCache?.length).to.equal(2);
       clock.tick(2 * 24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
-      expect(heartbeatService._heartbeatsCache?.length).to.equal(2);
-      const heartbeat2 = heartbeatService._heartbeatsCache?.[1];
-      expect(heartbeat2?.dates.length).to.equal(1);
-      expect(heartbeat2?.dates[0]).to.equal('1970-01-03');
+      expect(heartbeatService._heartbeatsCache?.length).to.equal(3);
+      expect(heartbeatService._heartbeatsCache?.[2].date).to.equal('1970-01-03');
     });
     it('getHeartbeatHeaders() gets stored heartbeats and clears heartbeats', async () => {
       const deleteStub = stub(heartbeatService._storage, 'deleteAll');
@@ -127,9 +146,14 @@ describe('HeartbeatServiceImpl', () => {
     let writeStub: SinonStub;
     let userAgentString = USER_AGENT_STRING_1;
     const mockIndexedDBHeartbeats = [
+      // Chosen so one will exceed 30 day limit and one will not.
       {
         userAgent: 'old-user-agent',
-        dates: ['1969-01-01', '1969-01-02']
+        date: '1969-12-01'
+      },
+      {
+        userAgent: 'old-user-agent',
+        date: '1969-12-31'
       }
     ];
     before(() => {
@@ -179,18 +203,19 @@ describe('HeartbeatServiceImpl', () => {
         expect(heartbeatService._heartbeatsCache).to.deep.equal([]);
       }
     });
-    it(`triggerHeartbeat() writes new heartbeats without removing old ones`, async () => {
+    it(`triggerHeartbeat() writes new heartbeats and retains old ones newer than 30 days`, async () => {
       userAgentString = USER_AGENT_STRING_2;
       clock.tick(3 * 24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
       if (isIndexedDBAvailable()) {
         expect(writeStub).to.be.calledWith([
-          ...mockIndexedDBHeartbeats,
-          { userAgent: USER_AGENT_STRING_2, dates: ['1970-01-04'] }
+          // The first entry exceeds the 30 day retention limit.
+          mockIndexedDBHeartbeats[1],
+          { userAgent: USER_AGENT_STRING_2, date: '1970-01-04' }
         ]);
       } else {
         expect(writeStub).to.be.calledWith([
-          { userAgent: USER_AGENT_STRING_2, dates: ['1970-01-04'] }
+          { userAgent: USER_AGENT_STRING_2, date: '1970-01-04' }
         ]);
       }
     });
@@ -201,8 +226,7 @@ describe('HeartbeatServiceImpl', () => {
       );
       if (isIndexedDBAvailable()) {
         expect(heartbeatHeaders).to.include('old-user-agent');
-        expect(heartbeatHeaders).to.include('1969-01-01');
-        expect(heartbeatHeaders).to.include('1969-01-02');
+        expect(heartbeatHeaders).to.include('1969-12-31');
       }
       expect(heartbeatHeaders).to.include(USER_AGENT_STRING_2);
       expect(heartbeatHeaders).to.include('1970-01-04');
@@ -211,6 +235,31 @@ describe('HeartbeatServiceImpl', () => {
       const emptyHeaders = await heartbeatService.getHeartbeatsHeader();
       expect(emptyHeaders).to.equal('');
       expect(deleteStub).to.be.called;
+    });
+  });
+
+  describe('countBytes()', () => {
+    it('counts how many bytes there will be in a stringified, encoded header', () => {
+      const heartbeats = [
+        { userAgent: generateUserAgentString(1), dates: generateDates(1) },
+        { userAgent: generateUserAgentString(3), dates: generateDates(2) }
+      ];
+      let size: number = 0;
+      const headerString = base64Encode(
+        JSON.stringify({ version: 2, heartbeats })
+      );
+      console.log(JSON.stringify({ version: 2, heartbeats }));
+      // We don't use this measurement method in the app because user
+      // environments are much more unpredictable while we know the
+      // tests will run in either a standard headless browser or Node.
+      if (typeof Blob !== 'undefined') {
+        const blob = new Blob([headerString]);
+        size = blob.size;
+      } else if (typeof Buffer !== 'undefined') {
+        const buffer = Buffer.from(headerString);
+        size = buffer.byteLength;
+      }
+      expect(countBytes(heartbeats)).to.equal(size);
     });
   });
 });
