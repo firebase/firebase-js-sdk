@@ -89,6 +89,8 @@ export interface Auth {
     onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
     onIdTokenChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
     setPersistence(persistence: Persistence): Promise<void>;
+    // (undocumented)
+    setRecaptchaConfig(config: RecaptchaConfig): void;
     readonly settings: AuthSettings;
     signOut(): Promise<void>;
     tenantId: string | null;
@@ -655,6 +657,11 @@ export function reauthenticateWithPopup(user: User, provider: AuthProvider, reso
 export function reauthenticateWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
 
 // @public
+export interface RecaptchaConfig {
+    emailPasswordEnabled: boolean;
+}
+
+// @public
 export interface RecaptchaParameters {
     // (undocumented)
     [key: string]: any;
@@ -701,6 +708,9 @@ export function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSetti
 
 // @public
 export function setPersistence(auth: Auth, persistence: Persistence): Promise<void>;
+
+// @public (undocumented)
+export function setRecaptchaConfig(auth: Auth, config: RecaptchaConfig): void;
 
 // @public
 export function signInAnonymously(auth: Auth): Promise<UserCredential>;

@@ -21,6 +21,7 @@ import {
   AuthErrorMap,
   AuthSettings,
   EmulatorConfig,
+  RecaptchaConfig,
   NextOrObserver,
   Persistence,
   PopupRedirectResolver,
@@ -73,6 +74,7 @@ export const enum DefaultConfig {
 export class AuthImpl implements AuthInternal, _FirebaseService {
   currentUser: User | null = null;
   emulatorConfig: EmulatorConfig | null = null;
+  recaptchaConfig: RecaptchaConfig | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
@@ -344,6 +346,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.queue(async () => {
       await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });
+  }
+
+  setRecaptchaConfig(config: RecaptchaConfig): void {
+    this.recaptchaConfig = config;
   }
 
   _getPersistence(): string {
