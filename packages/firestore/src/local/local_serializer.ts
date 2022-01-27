@@ -40,6 +40,7 @@ import {
   toDocument,
   toDocumentsTarget,
   toMutation,
+  toName,
   toQueryTarget
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
@@ -47,6 +48,7 @@ import { ByteString } from '../util/byte_string';
 
 import {
   DbBundle,
+  DbDocumentOverlay,
   DbMutationBatch,
   DbNamedQuery,
   DbNoDocument,
@@ -58,6 +60,8 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
+import { Overlay } from '../model/overlay';
+import { Mutation } from '../model/mutation';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -386,4 +390,38 @@ export function fromBundleMetadata(
     version: metadata.version!,
     createTime: fromVersion(metadata.createTime!)
   };
+}
+
+/** Encodes a DbDocumentOverlay object to an Overlay model object. */
+export function fromDbDocumentOverlay(
+  localSerializer: LocalSerializer,
+  dbDocumentOverlay: DbDocumentOverlay
+): Overlay {
+  return new Overlay(
+    dbDocumentOverlay.largestBatchId,
+    fromMutation(
+      localSerializer.remoteSerializer,
+      dbDocumentOverlay.overlayMutation
+    )
+  );
+}
+
+/** Decodes an Overlay model object into a DbDocumentOverlay object. */
+export function toDbDocumentOverlay(
+  localSerializer: LocalSerializer,
+  userId: string,
+  collectionPath: string,
+  documentId: string,
+  collectionGroup: string,
+  largestBatchId: number,
+  mutation: Mutation
+): DbDocumentOverlay {
+  return new DbDocumentOverlay(
+    userId,
+    collectionPath,
+    documentId,
+    collectionGroup,
+    largestBatchId,
+    toMutation(localSerializer.remoteSerializer, mutation)
+  );
 }

@@ -38,6 +38,7 @@ import {
   DbIndexConfiguration,
   DbIndexEntries,
   DbIndexState,
+  DbDocumentOverlay,
   DbMutationBatch,
   DbMutationBatchKey,
   DbMutationQueue,
@@ -174,6 +175,12 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 12 && toVersion >= 12) {
+      p = p.next(() => {
+        createDocumentOverlayStore(db);
+      });
+    }
+
+    if (fromVersion < 13 && toVersion >= 13) {
       p = p.next(() => {
         createFieldIndex(db);
       });
@@ -525,4 +532,28 @@ function createFieldIndex(db: IDBDatabase): void {
   db.createObjectStore(DbIndexEntries.store, {
     keyPath: DbIndexEntries.keyPath
   });
+}
+
+function createDocumentOverlayStore(db: IDBDatabase): void {
+  db.createObjectStore(DbBundle.store, {
+    keyPath: DbBundle.keyPath
+  });
+  const documentOverlayStore = db.createObjectStore(DbDocumentOverlay.store, {
+    keyPath: DbDocumentOverlay.keyPath
+  });
+  documentOverlayStore.createIndex(
+    DbDocumentOverlay.batchIdOverlayIndex,
+    DbDocumentOverlay.batchIdOverlayIndexPath,
+    { unique: false }
+  );
+  documentOverlayStore.createIndex(
+    DbDocumentOverlay.collectionPathOverlayIndex,
+    DbDocumentOverlay.collectionPathOverlayIndexPath,
+    { unique: false }
+  );
+  documentOverlayStore.createIndex(
+    DbDocumentOverlay.collectionGroupOverlayIndex,
+    DbDocumentOverlay.collectionGroupOverlayIndexPath,
+    { unique: false }
+  );
 }

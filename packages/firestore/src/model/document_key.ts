@@ -51,6 +51,13 @@ export class DocumentKey {
     );
   }
 
+  /** Returns the collection group (i.e. the name of the parent collection) for
+   * this key.
+   */
+  getCollectionGroup(): string {
+    return this.path.get(this.path.length - 2);
+  }
+
   isEqual(other: DocumentKey | null): boolean {
     return (
       other !== null && ResourcePath.comparator(this.path, other.path) === 0
