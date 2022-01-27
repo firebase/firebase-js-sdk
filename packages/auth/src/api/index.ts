@@ -60,6 +60,8 @@ export const enum Endpoint {
   START_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
   FINALIZE_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
+  GET_PROJECT_CONFIG = '/v1/projects'
+}
 
 export const enum RecaptchaClientType {
   WEB = 1,
