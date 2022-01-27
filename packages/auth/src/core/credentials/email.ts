@@ -28,7 +28,6 @@ import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
-import {RecaptchaEnterpriseVerifier} from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
@@ -114,20 +113,10 @@ export class EmailAuthCredential extends AuthCredential {
   async _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
       case SignInMethod.EMAIL_PASSWORD:
-        console.log("!!!!! email.ts::_getIdTokenResponse");
-        let captchaResponse = null;
-        if (true) {
-          const verifier = new RecaptchaEnterpriseVerifier(auth);
-          captchaResponse = await verifier.verify();
-          console.log(captchaResponse);
-        } 
         return signInWithPassword(auth, {
           returnSecureToken: true,
           email: this._email,
-          password: this._password,
-          // captchaResponse,
-          // clientType: "web",
-          // recaptchaVersion: "enterprise",
+          password: this._password
         });
       case SignInMethod.EMAIL_LINK:
         return signInWithEmailLink(auth, {

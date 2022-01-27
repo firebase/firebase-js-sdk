@@ -231,7 +231,6 @@ export async function createUserWithEmailAndPassword(
     returnSecureToken: true,
     email,
     password
-    // TODO: re
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
@@ -265,7 +264,6 @@ export function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
-  console.log("!!!!! signInWithEmailAndPassword");
   return signInWithCredential(
     getModularInstance(auth),
     EmailAuthProvider.credential(email, password)

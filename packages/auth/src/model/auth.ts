@@ -20,7 +20,6 @@ import {
   AuthSettings,
   Config,
   EmulatorConfig,
-  RecaptchaConfig,
   PopupRedirectResolver,
   User
 } from './public_types';
@@ -61,7 +60,6 @@ export interface ConfigInternal extends Config {
 export interface AuthInternal extends Auth {
   currentUser: User | null;
   emulatorConfig: EmulatorConfig | null;
-  recaptchaConfig: RecaptchaConfig | null;
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;

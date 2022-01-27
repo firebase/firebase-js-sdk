@@ -68,7 +68,6 @@ export function _processCredentialSavingMfaContextIfNecessary(
   credential: AuthCredential,
   user?: UserInternal
 ): Promise<IdTokenResponse> {
-  console.log("!!!!! _processCredentialSavingMfaContextIfNecessary");
   const idTokenProvider =
     operationType === OperationType.REAUTHENTICATE
       ? credential._getReauthenticationResolver(auth)

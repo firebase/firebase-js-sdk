@@ -199,7 +199,6 @@ export interface Auth {
    * @param persistence - The {@link Persistence} to use.
    */
   setPersistence(persistence: Persistence): Promise<void>;
-  setRecaptchaConfig(config: RecaptchaConfig): void;
   /**
    * The {@link Auth} instance's language code.
    *
@@ -312,18 +311,6 @@ export interface Persistence {
    * - 'NONE' is used for in-memory, or no persistence.
    */
   readonly type: 'SESSION' | 'LOCAL' | 'NONE';
-}
-
-/**
- * An interface of the recaptcha configuration.
- *
- * @public
- */
-export interface RecaptchaConfig {
-  /**
-   * The recaptcha enablement status for email password provider for current tenant.
-   */
-  emailPasswordEnabled: boolean;
 }
 
 /**

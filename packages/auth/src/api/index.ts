@@ -60,8 +60,7 @@ export const enum Endpoint {
   START_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
   FINALIZE_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
-  GET_PROJECT_CONFIG = '/v1/projects',
-  GET_RECAPTCHA_CONFIG = '/v2/recaptchaConfig',
+  GET_PROJECT_CONFIG = '/v1/projects'
 }
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
@@ -186,7 +185,6 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  console.log("!!!!! authentication/index.ts::_performSignInRequest");
   const serverResponse = (await _performApiRequest<T, V | IdTokenMfaResponse>(
     auth,
     method,
