@@ -20,12 +20,12 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError } from '@firebase/util';
 
-import { Endpoint, HttpHeader } from '../';
+import { Endpoint, HttpHeader, RecaptchaClientType, RecaptchaVersion } from '../';
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
-import { getRecaptchaParams } from './recaptcha';
+import { getRecaptchaParams, getRecaptchaConfig,  } from './recaptcha';
 
 use(chaiAsPromised);
 
@@ -74,6 +74,64 @@ describe('api/authentication/getRecaptchaParams', () => {
     );
 
     await expect(getRecaptchaParams(auth)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
+    );
+    expect(mock.calls[0].request).to.be.undefined;
+  });
+});
+
+describe('api/authentication/getRecaptchaConfig', () => {
+  const request = {
+    clientType: RecaptchaClientType.WEB,
+    recaptchaVersion: RecaptchaVersion.ENTERPRISE,
+  };
+
+  let auth: TestAuth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
+  afterEach(mockFetch.tearDown);
+
+  it('should GET to the correct endpoint2', async () => {
+    const mock = mockEndpoint(Endpoint.GET_RECAPTCHA_CONFIG, {
+      recaptchaSiteKey: 'site-key'
+    });
+
+    auth.tenantId = 'tenant-id';
+    const response = await getRecaptchaConfig(auth, request);
+    expect(response.recaptchaSiteKey).to.eq('site-key');
+    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
+    expect(mock.calls[0].method).to.eq('GET');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
+  });
+
+  it('should handle errors', async () => {
+    const mock = mockEndpoint(
+      Endpoint.GET_RECAPTCHA_PARAM,
+      {
+        error: {
+          code: 400,
+          message: ServerError.TOO_MANY_ATTEMPTS_TRY_LATER,
+          errors: [
+            {
+              message: ServerError.TOO_MANY_ATTEMPTS_TRY_LATER
+            }
+          ]
+        }
+      },
+      400
+    );
+
+    await expect(getRecaptchaConfig(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );
