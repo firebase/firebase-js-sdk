@@ -128,7 +128,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
       return '';
     }
     // Extract as many heartbeats from the cache as will fit under the size limit.
-    const { heartbeatsToSend, unsentEntries } = _extractHeartbeatsForHeader(
+    const { heartbeatsToSend, unsentEntries } = extractHeartbeatsForHeader(
       this._heartbeatsCache
     );
     const headerString = base64Encode(
@@ -155,10 +155,7 @@ function getUTCDateString(): string {
   return today.toISOString().substring(0, 10);
 }
 
-/**
- * @internal
- */
-export function _extractHeartbeatsForHeader(heartbeatsCache: SingleDateHeartbeat[], maxSize = MAX_HEADER_BYTES): {
+export function extractHeartbeatsForHeader(heartbeatsCache: SingleDateHeartbeat[], maxSize = MAX_HEADER_BYTES): {
   heartbeatsToSend: HeartbeatsByUserAgent[];
   unsentEntries: SingleDateHeartbeat[];
 } {

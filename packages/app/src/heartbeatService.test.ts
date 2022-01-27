@@ -20,7 +20,7 @@ import '../test/setup';
 import {
   countBytes,
   HeartbeatServiceImpl,
-  _extractHeartbeatsForHeader
+  extractHeartbeatsForHeader
 } from './heartbeatService';
 import {
   Component,
@@ -274,7 +274,7 @@ describe('HeartbeatServiceImpl', () => {
       const heartbeats = [
         { userAgent: generateUserAgentString(1), date: '2022-01-01' }
       ];
-      const { unsentEntries, heartbeatsToSend } = _extractHeartbeatsForHeader(
+      const { unsentEntries, heartbeatsToSend } = extractHeartbeatsForHeader(
         heartbeats,
         5
       );
@@ -289,7 +289,7 @@ describe('HeartbeatServiceImpl', () => {
       const sizeWithHeartbeat0Only = countBytes([
         { userAgent: heartbeats[0].userAgent, dates: [heartbeats[0].date] }
       ]);
-      const { unsentEntries, heartbeatsToSend } = _extractHeartbeatsForHeader(
+      const { unsentEntries, heartbeatsToSend } = extractHeartbeatsForHeader(
         heartbeats,
         sizeWithHeartbeat0Only + 1
       );
@@ -306,7 +306,7 @@ describe('HeartbeatServiceImpl', () => {
       const sizeWithHeartbeat0Only = countBytes([
         { userAgent: heartbeats[0].userAgent, dates: [heartbeats[0].date] }
       ]);
-      const { unsentEntries, heartbeatsToSend } = _extractHeartbeatsForHeader(
+      const { unsentEntries, heartbeatsToSend } = extractHeartbeatsForHeader(
         heartbeats,
         sizeWithHeartbeat0Only + 1
       );
