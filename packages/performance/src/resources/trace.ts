@@ -185,10 +185,7 @@ export class Trace implements PerformanceTrace {
    */
   putMetric(counter: string, numAsInteger: number): void {
     if (isValidMetricName(counter, this.name)) {
-      this.counters[counter] =
-        numAsInteger === undefined
-          ? 0
-          : convertMetricValueToInteger(numAsInteger);
+      this.counters[counter] = convertMetricValueToInteger(numAsInteger ?? 0);
     } else {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_CUSTOM_METRIC_NAME, {
         customMetricName: counter
