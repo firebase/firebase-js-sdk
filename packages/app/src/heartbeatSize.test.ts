@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { base64Encode } from '@firebase/util';
 import { expect } from 'chai';
 import '../test/setup';
 import {
@@ -41,7 +42,7 @@ function generateDates(count: number): string[] {
   return dates;
 }
 
-describe.only('splitHeartbeatsCache()', () => {
+describe('splitHeartbeatsCache()', () => {
   it('returns empty heartbeatsToKeep if it cannot get under maxSize', () => {
     const heartbeats = [
       { userAgent: generateUserAgentString(1), dates: generateDates(1) }
@@ -84,5 +85,30 @@ describe.only('splitHeartbeatsCache()', () => {
     expect(heartbeatsToSend[0].userAgent).to.equal(
       heartbeatsToKeep[0].userAgent
     );
+  });
+});
+
+describe('countBytes()', () => {
+  it('counts how many bytes there will be in a stringified, encoded header', () => {
+    const heartbeats = [
+      { userAgent: generateUserAgentString(1), dates: generateDates(1) },
+      { userAgent: generateUserAgentString(3), dates: generateDates(2) }
+    ];
+    let size: number = 0;
+    const headerString = base64Encode(
+      JSON.stringify({ version: 2, heartbeats })
+    );
+    console.log(JSON.stringify({ version: 2, heartbeats }));
+    // We don't use this measurement method in the app because user
+    // environments are much more unpredictable while we know the
+    // tests will run in either a standard headless browser or Node.
+    if (typeof Blob !== 'undefined') {
+      const blob = new Blob([headerString]);
+      size = blob.size;
+    } else if (typeof Buffer !== 'undefined') {
+      const buffer = Buffer.from(headerString);
+      size = buffer.byteLength;
+    }
+    expect(countBytes(heartbeats)).to.equal(size);
   });
 });

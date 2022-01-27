@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
+import { base64Encode } from '@firebase/util';
 import { HeartbeatsByUserAgent } from './types';
 
-const BASE64_SIZE_MULTIPLIER = 4 / 3;
-const BYTES_PER_DATE = 12 * BASE64_SIZE_MULTIPLIER;
-
+/**
+ * Calculate byte length of a string. From:
+ * https://codereview.stackexchange.com/questions/37512/count-byte-length-of-string
+ */
 function getByteLength(str: string): number {
   let byteLength = 0;
   for (let i = 0; i < str.length; i++) {
@@ -41,7 +43,7 @@ function getByteLength(str: string): number {
  * being stringified and converted to base64.
  */
 export function countHeartbeatBytes(heartbeat: HeartbeatsByUserAgent): number {
-  return getByteLength(JSON.stringify(heartbeat)) * BASE64_SIZE_MULTIPLIER;
+  return getByteLength(base64Encode(JSON.stringify(heartbeat)));
 }
 
 /**
@@ -51,13 +53,9 @@ export function countHeartbeatBytes(heartbeat: HeartbeatsByUserAgent): number {
  */
 export function countBytes(heartbeatsCache: HeartbeatsByUserAgent[]): number {
   // heartbeatsCache wrapper properties
-  let count =
-    getByteLength(JSON.stringify({ version: 2, heartbeats: [] })) *
-    BASE64_SIZE_MULTIPLIER;
-  for (const heartbeat of heartbeatsCache) {
-    count += countHeartbeatBytes(heartbeat);
-  }
-  return count;
+  return getByteLength(
+    base64Encode(JSON.stringify({ version: 2, heartbeats: heartbeatsCache }))
+  );
 }
 
 /**
@@ -73,6 +71,9 @@ export function splitHeartbeatsCache(
   heartbeatsToSend: HeartbeatsByUserAgent[];
   heartbeatsToKeep: HeartbeatsByUserAgent[];
 } {
+  const BYTES_PER_DATE = getByteLength(
+    base64Encode(JSON.stringify('2022-12-12'))
+  );
   let totalBytes = 0;
   const heartbeatsToSend = [];
   const heartbeatsToKeep = [...heartbeatsCache];
