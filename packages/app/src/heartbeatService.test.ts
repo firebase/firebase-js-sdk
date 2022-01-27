@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import '../test/setup';
-import { countBytes, HeartbeatServiceImpl } from './heartbeatService';
+import { countBytes, HeartbeatServiceImpl, _extractHeartbeatsForHeader } from './heartbeatService';
 import {
   Component,
   ComponentType,
@@ -240,6 +240,31 @@ describe('HeartbeatServiceImpl', () => {
 
   describe('countBytes()', () => {
     it('counts how many bytes there will be in a stringified, encoded header', () => {
+      const heartbeats = [
+        { userAgent: generateUserAgentString(1), dates: generateDates(1) },
+        { userAgent: generateUserAgentString(3), dates: generateDates(2) }
+      ];
+      let size: number = 0;
+      const headerString = base64Encode(
+        JSON.stringify({ version: 2, heartbeats })
+      );
+      console.log(JSON.stringify({ version: 2, heartbeats }));
+      // We don't use this measurement method in the app because user
+      // environments are much more unpredictable while we know the
+      // tests will run in either a standard headless browser or Node.
+      if (typeof Blob !== 'undefined') {
+        const blob = new Blob([headerString]);
+        size = blob.size;
+      } else if (typeof Buffer !== 'undefined') {
+        const buffer = Buffer.from(headerString);
+        size = buffer.byteLength;
+      }
+      expect(countBytes(heartbeats)).to.equal(size);
+    });
+  });
+
+  describe('_extractHeartbeatsForHeader()', () => {
+    it('', () => {
       const heartbeats = [
         { userAgent: generateUserAgentString(1), dates: generateDates(1) },
         { userAgent: generateUserAgentString(3), dates: generateDates(2) }

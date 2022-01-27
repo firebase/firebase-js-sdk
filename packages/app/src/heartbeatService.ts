@@ -102,15 +102,14 @@ export class HeartbeatServiceImpl implements HeartbeatService {
       // There is no entry for this date. Create one.
       this._heartbeatsCache!.push({ date, userAgent });
     }
-    console.log('before filter', this._heartbeatsCache);
     // Remove entries older than 30 days.
-    this._heartbeatsCache = this._heartbeatsCache.filter(singleDateHeartbeat => {
-      const hbTimestamp = new Date(singleDateHeartbeat.date).valueOf();
-      const now = Date.now();
-      console.log(now - hbTimestamp);
-      return now - hbTimestamp <= STORED_HEARTBEAT_RETENTION_MAX_MILLIS;
-    });
-    console.log('after filter', this._heartbeatsCache);
+    this._heartbeatsCache = this._heartbeatsCache.filter(
+      singleDateHeartbeat => {
+        const hbTimestamp = new Date(singleDateHeartbeat.date).valueOf();
+        const now = Date.now();
+        return now - hbTimestamp <= STORED_HEARTBEAT_RETENTION_MAX_MILLIS;
+      }
+    );
     return this._storage.overwrite(this._heartbeatsCache);
   }
 
@@ -128,40 +127,10 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     if (this._heartbeatsCache === null) {
       return '';
     }
-    // Heartbeats grouped by user agent in the standard format to be sent in
-    // the header.
-    const heartbeatsToSend: HeartbeatsByUserAgent[] = [];
-    // Single date format heartbeats that are not sent.
-    let unsentEntries = this._heartbeatsCache.slice();
-    for (const singleDateHeartbeat of this._heartbeatsCache) {
-      // Look for an existing entry with the same user agent.
-      const heartbeatEntry = heartbeatsToSend.find(
-        hb => hb.userAgent === singleDateHeartbeat.userAgent
-      );
-      if (!heartbeatEntry) {
-        // If no entry for this user agent exists, create one.
-        heartbeatsToSend.push({
-          userAgent: singleDateHeartbeat.userAgent,
-          dates: [singleDateHeartbeat.date]
-        });
-        if (countBytes(heartbeatsToSend) > MAX_HEADER_BYTES) {
-          // If the header would exceed max size, remove the added heartbeat
-          // entry and stop adding to the header.
-          heartbeatsToSend.pop();
-          break;
-        }
-      } else {
-        heartbeatEntry.dates.push(singleDateHeartbeat.date);
-        // If the header would exceed max size, remove the added date
-        // and stop adding to the header.
-        if (countBytes(heartbeatsToSend) > MAX_HEADER_BYTES) {
-          heartbeatEntry.dates.pop();
-          break;
-        }
-      }
-      // Pop unsent entry from queue.
-      unsentEntries = unsentEntries.slice(1);
-    }
+    // Extract as many heartbeats from the cache as will fit under the size limit.
+    const { heartbeatsToSend, unsentEntries } = extractHeartbeatsForHeader(
+      this._heartbeatsCache
+    );
     const headerString = base64Encode(
       JSON.stringify({ version: 2, heartbeats: heartbeatsToSend })
     );
@@ -169,6 +138,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
       // Store any unsent entries if they exist.
       this._heartbeatsCache = unsentEntries;
       // This seems more likely than deleteAll (below) to lead to some odd state
+      // since the cache isn't empty and this will be called again on the next request,
       // and is probably safest if we await it.
       await this._storage.overwrite(this._heartbeatsCache);
     } else {
@@ -183,6 +153,54 @@ export class HeartbeatServiceImpl implements HeartbeatService {
 function getUTCDateString(): string {
   const today = new Date();
   return today.toISOString().substring(0, 10);
+}
+
+/**
+ * @internal
+ */
+export function _extractHeartbeatsForHeader(heartbeatsCache: SingleDateHeartbeat[], maxSize = MAX_HEADER_BYTES): {
+  heartbeatsToSend: HeartbeatsByUserAgent[];
+  unsentEntries: SingleDateHeartbeat[];
+} {
+  // Heartbeats grouped by user agent in the standard format to be sent in
+  // the header.
+  const heartbeatsToSend: HeartbeatsByUserAgent[] = [];
+  // Single date format heartbeats that are not sent.
+  let unsentEntries = heartbeatsCache.slice();
+  for (const singleDateHeartbeat of heartbeatsCache) {
+    // Look for an existing entry with the same user agent.
+    const heartbeatEntry = heartbeatsToSend.find(
+      hb => hb.userAgent === singleDateHeartbeat.userAgent
+    );
+    if (!heartbeatEntry) {
+      // If no entry for this user agent exists, create one.
+      heartbeatsToSend.push({
+        userAgent: singleDateHeartbeat.userAgent,
+        dates: [singleDateHeartbeat.date]
+      });
+      if (countBytes(heartbeatsToSend) > maxSize) {
+        // If the header would exceed max size, remove the added heartbeat
+        // entry and stop adding to the header.
+        heartbeatsToSend.pop();
+        break;
+      }
+    } else {
+      heartbeatEntry.dates.push(singleDateHeartbeat.date);
+      // If the header would exceed max size, remove the added date
+      // and stop adding to the header.
+      if (countBytes(heartbeatsToSend) > maxSize) {
+        heartbeatEntry.dates.pop();
+        break;
+      }
+    }
+    // Pop unsent entry from queue. (Skipped if adding the entry exceeded
+    // quota and the loop breaks early.)
+    unsentEntries = unsentEntries.slice(1);
+  }
+  return {
+    heartbeatsToSend,
+    unsentEntries
+  };
 }
 
 export class HeartbeatStorageImpl implements HeartbeatStorage {
@@ -261,7 +279,7 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
  * Calculate byte length of a string. From:
  * https://codereview.stackexchange.com/questions/37512/count-byte-length-of-string
  */
- function getByteLength(str: string): number {
+function getByteLength(str: string): number {
   let byteLength = 0;
   for (let i = 0; i < str.length; i++) {
     const c = str.charCodeAt(i);
