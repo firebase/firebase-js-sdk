@@ -348,7 +348,7 @@ export function targetGetLowerBound(
         const orderBy = target.orderBy[i];
         if (orderBy.field.isEqual(segment.fieldPath)) {
           const cursorValue = target.startAt.position[i];
-          if (valuesMax(segmentValue, cursorValue) == cursorValue) {
+          if (valuesMax(segmentValue, cursorValue) === cursorValue) {
             segmentValue = cursorValue;
             segmentInclusive = !target.startAt.before;
           }
@@ -433,7 +433,7 @@ export function targetGetUpperBound(
         const orderBy = target.orderBy[i];
         if (orderBy.field.isEqual(segment.fieldPath)) {
           const cursorValue = target.endAt.position[i];
-          if (valuesMin(segmentValue, cursorValue) == cursorValue) {
+          if (valuesMin(segmentValue, cursorValue) === cursorValue) {
             segmentValue = cursorValue;
             segmentInclusive = !target.endAt.before;
           }
