@@ -60,7 +60,15 @@ export const enum Endpoint {
   START_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
   FINALIZE_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
-  GET_PROJECT_CONFIG = '/v1/projects'
+
+export const enum RecaptchaClientType {
+  WEB = 1,
+  ANDROID = 2,
+  IOS = 3,
+}
+
+export const enum RecaptchaVersion {
+  ENTERPRISE = 1,
 }
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
