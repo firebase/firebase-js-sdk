@@ -77,7 +77,8 @@ import {
   IndexKind,
   IndexOffset,
   IndexSegment,
-  IndexState
+  IndexState,
+  INITIAL_SEQUENCE_NUMBER
 } from '../../src/model/field_index';
 import { FieldMask } from '../../src/model/field_mask';
 import {
@@ -242,7 +243,7 @@ export function fieldIndex(
     (options.fields ?? []).map(
       entry => new IndexSegment(field(entry[0]), entry[1])
     ),
-    new IndexState(-1, options.offset ?? IndexOffset.min())
+    new IndexState(INITIAL_SEQUENCE_NUMBER, options.offset ?? IndexOffset.min())
   );
 }
 

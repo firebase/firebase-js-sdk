@@ -33,7 +33,7 @@ const INITIAL_LARGEST_BATCH_ID = -1;
  * The initial sequence number for each index. Gets updated during index
  * backfill.
  */
-const INITIAL_SEQUENCE_NUMBER = 0;
+export const INITIAL_SEQUENCE_NUMBER = 0;
 
 /**
  * An index definition for field indexes in Firestore.
@@ -126,10 +126,15 @@ function indexSegmentComparator(
   return primitiveComparator(left.kind, right.kind);
 }
 
-/** Stores the "high water mark" that indicates how updated the Index is for the current user. */
+/**
+ * Stores the "high water mark" that indicates how updated the Index is for the
+ * current user.
+ */
 export class IndexState {
   constructor(
-    /** Indicates when the index was last updated (relative to other indexes). */
+    /**
+     * Indicates when the index was last updated (relative to other indexes).
+     */
     readonly sequenceNumber: number,
     /** The the latest indexed read time, document and batch id. */
     readonly offset: IndexOffset
