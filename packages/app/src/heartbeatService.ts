@@ -155,7 +155,10 @@ function getUTCDateString(): string {
   return today.toISOString().substring(0, 10);
 }
 
-export function extractHeartbeatsForHeader(heartbeatsCache: SingleDateHeartbeat[], maxSize = MAX_HEADER_BYTES): {
+export function extractHeartbeatsForHeader(
+  heartbeatsCache: SingleDateHeartbeat[],
+  maxSize = MAX_HEADER_BYTES
+): {
   heartbeatsToSend: HeartbeatsByUserAgent[];
   unsentEntries: SingleDateHeartbeat[];
 } {

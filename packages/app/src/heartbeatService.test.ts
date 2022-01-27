@@ -312,9 +312,9 @@ describe('HeartbeatServiceImpl', () => {
       );
       expect(heartbeatsToSend.length).to.equal(1);
       expect(unsentEntries.length).to.equal(2);
-      expect(
-        heartbeatsToSend[0].dates.length + unsentEntries.length
-      ).to.equal(heartbeats.length);
+      expect(heartbeatsToSend[0].dates.length + unsentEntries.length).to.equal(
+        heartbeats.length
+      );
     });
   });
 });
