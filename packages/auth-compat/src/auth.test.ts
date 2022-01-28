@@ -23,8 +23,13 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import { Auth } from './auth';
 import { CompatPopupRedirectResolver } from './popup_redirect';
+import * as platform from './platform';
 
 use(sinonChai);
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // For the most part, the auth methods just call straight through. Some parts
 // of the auth compat layer are more complicated: these tests cover those
@@ -45,7 +50,7 @@ describe('auth compat', () => {
     });
 
     afterEach(() => {
-      sinon.restore;
+      sinon.restore();
     });
 
     it('saves the persistence into session storage if available', async () => {
@@ -75,6 +80,40 @@ describe('auth compat', () => {
       }
     });
 
+    it('does not save persistence if property throws DOMException', async () => {
+      if (typeof self !== 'undefined') {
+        sinon.stub(platform, '_getSelfWindow').returns({
+          get sessionStorage(): Storage {
+            throw new DOMException('Nope!');
+          }
+        } as unknown as Window);
+        const setItemSpy = sinon.spy(sessionStorage, 'setItem');
+        sinon.stub(underlyingAuth, '_getPersistence').returns('TEST');
+        sinon
+          .stub(underlyingAuth, '_initializationPromise')
+          .value(Promise.resolve());
+        sinon.stub(
+          exp._getInstance<exp.PopupRedirectResolverInternal>(
+            CompatPopupRedirectResolver
+          ),
+          '_openRedirect'
+        );
+        providerStub.isInitialized.returns(true);
+        providerStub.getImmediate.returns(underlyingAuth);
+        const authCompat = new Auth(
+          app,
+          providerStub as unknown as Provider<'auth'>
+        );
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        await authCompat.signInWithRedirect(new exp.GoogleAuthProvider());
+        await delay(50);
+        expect(setItemSpy).not.to.have.been.calledWith(
+          'firebase:persistence:api-key:undefined',
+          'TEST'
+        );
+      }
+    });
+
     it('pulls the persistence and sets as the main persitsence if set', () => {
       if (typeof self !== 'undefined') {
         sessionStorage.setItem(
@@ -93,6 +132,36 @@ describe('auth compat', () => {
               exp.indexedDBLocalPersistence,
               exp.browserLocalPersistence,
               exp.browserSessionPersistence
+            ]
+          }
+        });
+      }
+    });
+
+    it('does not die if sessionStorage errors', async () => {
+      if (typeof self !== 'undefined') {
+        sinon.stub(platform, '_getSelfWindow').returns({
+          get sessionStorage(): Storage {
+            throw new DOMException('Nope!');
+          }
+        } as unknown as Window);
+        sessionStorage.setItem(
+          'firebase:persistence:api-key:undefined',
+          'none'
+        );
+        providerStub.isInitialized.returns(false);
+        providerStub.initialize.returns(underlyingAuth);
+        new Auth(app, providerStub as unknown as Provider<'auth'>);
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        await delay(50);
+        expect(providerStub.initialize).to.have.been.calledWith({
+          options: {
+            popupRedirectResolver: CompatPopupRedirectResolver,
+            persistence: [
+              exp.indexedDBLocalPersistence,
+              exp.browserLocalPersistence,
+              exp.browserSessionPersistence,
+              exp.inMemoryPersistence
             ]
           }
         });
