@@ -72,6 +72,14 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
+import {
+  FieldIndex,
+  IndexKind,
+  IndexOffset,
+  IndexSegment,
+  IndexState,
+  INITIAL_SEQUENCE_NUMBER
+} from '../../src/model/field_index';
 import { FieldMask } from '../../src/model/field_mask';
 import {
   DeleteMutation,
@@ -159,14 +167,16 @@ export function doc(
     jsonOrObjectValue instanceof ObjectValue
       ? jsonOrObjectValue
       : wrapObject(jsonOrObjectValue)
-  );
+  ).setReadTime(version(ver));
 }
 
 export function deletedDoc(
   keyStr: string,
   ver: TestSnapshotVersion
 ): MutableDocument {
-  return MutableDocument.newNoDocument(key(keyStr), version(ver));
+  return MutableDocument.newNoDocument(key(keyStr), version(ver)).setReadTime(
+    version(ver)
+  );
 }
 
 export function unknownDoc(
@@ -217,6 +227,24 @@ export function path(path: string, offset?: number): ResourcePath {
 
 export function field(path: string): FieldPath {
   return new FieldPath(path.split('.'));
+}
+
+export function fieldIndex(
+  collectionGroup: string,
+  options: {
+    id?: number;
+    fields?: Array<[field: string, kind: IndexKind]>;
+    offset?: IndexOffset;
+  } = {}
+): FieldIndex {
+  return new FieldIndex(
+    options.id ?? FieldIndex.UNKNOWN_ID,
+    collectionGroup,
+    (options.fields ?? []).map(
+      entry => new IndexSegment(field(entry[0]), entry[1])
+    ),
+    new IndexState(INITIAL_SEQUENCE_NUMBER, options.offset ?? IndexOffset.min())
+  );
 }
 
 export function mask(...paths: string[]): FieldMask {

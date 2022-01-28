@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FactorId, MultiFactorInfo } from '../model/public_types';
+import { FactorId, MultiFactorInfo, PhoneMultiFactorInfo } from '../model/public_types';
 import {
   PhoneMfaEnrollment,
   MfaEnrollment
@@ -40,13 +40,13 @@ export abstract class MultiFactorInfoImpl implements MultiFactorInfo {
     enrollment: MfaEnrollment
   ): MultiFactorInfoImpl {
     if ('phoneInfo' in enrollment) {
-      return PhoneMultiFactorInfo._fromServerResponse(auth, enrollment);
+      return PhoneMultiFactorInfoImpl._fromServerResponse(auth, enrollment);
     }
     return _fail(auth, AuthErrorCode.INTERNAL_ERROR);
   }
 }
 
-export class PhoneMultiFactorInfo extends MultiFactorInfoImpl {
+export class PhoneMultiFactorInfoImpl extends MultiFactorInfoImpl implements PhoneMultiFactorInfo {
   readonly phoneNumber: string;
 
   private constructor(response: PhoneMfaEnrollment) {
@@ -57,7 +57,7 @@ export class PhoneMultiFactorInfo extends MultiFactorInfoImpl {
   static _fromServerResponse(
     _auth: AuthInternal,
     enrollment: MfaEnrollment
-  ): PhoneMultiFactorInfo {
-    return new PhoneMultiFactorInfo(enrollment);
+  ): PhoneMultiFactorInfoImpl {
+    return new PhoneMultiFactorInfoImpl(enrollment);
   }
 }

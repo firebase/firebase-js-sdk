@@ -61,11 +61,11 @@ export class UserImpl implements UserInternal {
 
   uid: string;
   auth: AuthInternal;
-  emailVerified = false;
-  isAnonymous = false;
-  tenantId: string | null = null;
+  emailVerified: boolean;
+  isAnonymous: boolean;
+  tenantId: string | null;
   readonly metadata: UserMetadata;
-  providerData: MutableUserInfo[] = [];
+  providerData: MutableUserInfo[];
 
   // Optional fields from UserInfo
   displayName: string | null;
@@ -88,6 +88,7 @@ export class UserImpl implements UserInternal {
     this.photoURL = opt.photoURL || null;
     this.isAnonymous = opt.isAnonymous || false;
     this.tenantId = opt.tenantId || null;
+    this.providerData = opt.providerData ? [...opt.providerData] : [];
     this.metadata = new UserMetadata(
       opt.createdAt || undefined,
       opt.lastLoginAt || undefined

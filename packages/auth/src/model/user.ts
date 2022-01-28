@@ -42,6 +42,7 @@ export interface UserParameters {
   isAnonymous?: boolean | null;
   emailVerified?: boolean | null;
   tenantId?: string | null;
+  providerData?: MutableUserInfo[] | null;
 
   createdAt?: string | null;
   lastLoginAt?: string | null;

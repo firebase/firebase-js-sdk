@@ -22,7 +22,7 @@
  * just use index.ts
  */
 
-import { AsyncStorage } from 'react-native';
+import * as ReactNative from 'react-native';
 
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Auth, Persistence } from './src/model/public_types';
@@ -57,7 +57,20 @@ export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions
  * @public
  */
 export const reactNativeLocalPersistence: Persistence =
-  getReactNativePersistence(AsyncStorage);
+  getReactNativePersistence({
+    getItem(...args) {
+      // Called inline to avoid deprecation warnings on startup.
+      return ReactNative.AsyncStorage.getItem(...args);
+    },
+    setItem(...args) {
+      // Called inline to avoid deprecation warnings on startup.
+      return ReactNative.AsyncStorage.setItem(...args);
+    },
+    removeItem(...args) {
+      // Called inline to avoid deprecation warnings on startup.
+      return ReactNative.AsyncStorage.removeItem(...args);
+    },
+  });
 
 export {getReactNativePersistence};
 

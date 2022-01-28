@@ -44,10 +44,7 @@ export class TestRemoteDocumentCache {
    * Reads all of the documents first so we can safely add them and keep the size calculation in
    * sync.
    */
-  addEntries(
-    documents: MutableDocument[],
-    readTime: SnapshotVersion
-  ): Promise<void> {
+  addEntries(documents: MutableDocument[]): Promise<void> {
     return this.persistence.runTransaction(
       'addEntry',
       'readwrite-primary',
@@ -57,7 +54,7 @@ export class TestRemoteDocumentCache {
           changeBuffer.getEntry(txn, document.key).next(() => {})
         ).next(() => {
           for (const document of documents) {
-            changeBuffer.addEntry(document, readTime);
+            changeBuffer.addEntry(document);
           }
           return changeBuffer.apply(txn);
         });
@@ -70,7 +67,7 @@ export class TestRemoteDocumentCache {
    * Reads the document first to track the document size internally.
    */
   addEntry(document: MutableDocument): Promise<void> {
-    return this.addEntries([document], document.version);
+    return this.addEntries([document]);
   }
 
   removeEntry(
@@ -85,7 +82,10 @@ export class TestRemoteDocumentCache {
           version ? { trackRemovals: true } : undefined
         );
         return changeBuffer.getEntry(txn, documentKey).next(() => {
-          changeBuffer.removeEntry(documentKey, version);
+          changeBuffer.removeEntry(
+            documentKey,
+            version ?? SnapshotVersion.min()
+          );
           return changeBuffer.apply(txn);
         });
       }

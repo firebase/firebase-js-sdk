@@ -95,6 +95,12 @@ export interface Document {
    */
   readonly version: SnapshotVersion;
 
+  /**
+   * The timestamp at which this document was read from the remote server. Uses
+   * `SnapshotVersion.min()` for documents created by the user.
+   */
+  readonly readTime: SnapshotVersion;
+
   /** The underlying data of this document or an empty value if no data exists. */
   readonly data: ObjectValue;
 
@@ -156,6 +162,7 @@ export class MutableDocument implements Document {
     readonly key: DocumentKey,
     private documentType: DocumentType,
     public version: SnapshotVersion,
+    public readTime: SnapshotVersion,
     public data: ObjectValue,
     private documentState: DocumentState
   ) {}
@@ -168,6 +175,7 @@ export class MutableDocument implements Document {
     return new MutableDocument(
       documentKey,
       DocumentType.INVALID,
+      SnapshotVersion.min(),
       SnapshotVersion.min(),
       ObjectValue.empty(),
       DocumentState.SYNCED
@@ -187,6 +195,7 @@ export class MutableDocument implements Document {
       documentKey,
       DocumentType.FOUND_DOCUMENT,
       version,
+      SnapshotVersion.min(),
       value,
       DocumentState.SYNCED
     );
@@ -201,6 +210,7 @@ export class MutableDocument implements Document {
       documentKey,
       DocumentType.NO_DOCUMENT,
       version,
+      SnapshotVersion.min(),
       ObjectValue.empty(),
       DocumentState.SYNCED
     );
@@ -219,6 +229,7 @@ export class MutableDocument implements Document {
       documentKey,
       DocumentType.UNKNOWN_DOCUMENT,
       version,
+      SnapshotVersion.min(),
       ObjectValue.empty(),
       DocumentState.HAS_COMMITTED_MUTATIONS
     );
@@ -282,6 +293,11 @@ export class MutableDocument implements Document {
     return this;
   }
 
+  setReadTime(readTime: SnapshotVersion): MutableDocument {
+    this.readTime = readTime;
+    return this;
+  }
+
   get hasLocalMutations(): boolean {
     return this.documentState === DocumentState.HAS_LOCAL_MUTATIONS;
   }
@@ -326,6 +342,7 @@ export class MutableDocument implements Document {
       this.key,
       this.documentType,
       this.version,
+      this.readTime,
       this.data.clone(),
       this.documentState
     );

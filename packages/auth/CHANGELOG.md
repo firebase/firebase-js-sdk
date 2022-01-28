@@ -1,5 +1,17 @@
 # @firebase/auth
 
+## 0.19.7
+
+### Patch Changes
+
+- [`4983f4d5a`](https://github.com/firebase/firebase-js-sdk/commit/4983f4d5a0dc385c5b3e042ace44c8204d3cce81) [#5923](https://github.com/firebase/firebase-js-sdk/pull/5923) - Fix errors in compatibility layer when cookies are fully disabled in Chrome
+
+* [`d612d6f6e`](https://github.com/firebase/firebase-js-sdk/commit/d612d6f6e4d3113d45427b7df68459c0a3e31a1f) [#5928](https://github.com/firebase/firebase-js-sdk/pull/5928) - Upgrade `node-fetch` dependency due to a security issue.
+
+- [`e04b7452b`](https://github.com/firebase/firebase-js-sdk/commit/e04b7452bae10e6525cfb9c551f76a1aa98f9078) [#5924](https://github.com/firebase/firebase-js-sdk/pull/5924) (fixes [#5922](https://github.com/firebase/firebase-js-sdk/issues/5922)) - Add missing PhoneMultiFactorInfo public interface
+
+* [`2820674b8`](https://github.com/firebase/firebase-js-sdk/commit/2820674b848e918ab164e7d0ec9d5b838bbfa6e0) [#5927](https://github.com/firebase/firebase-js-sdk/pull/5927) - Prevent React Native from logging a warning about deprecation of `AsyncStorage` if the developer has provided the non-deprecated version.
+
 ## 0.19.6
 
 ### Patch Changes
