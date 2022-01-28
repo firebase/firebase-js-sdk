@@ -90,6 +90,19 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query1, { added: [docB] });
   });
 
+  specTest('Query raises latest snapshot even when update arrives late.', ["exclusive"], () => {
+    const query1 = query('collection');
+    const docA = doc('collection/a', 1000, { a: 'a' });
+    return spec()
+      .userListens(query1)
+      .userPatches("collection/a", {b:'b'})
+      .writeAcks("collection/a", 2000)
+      .userListens(query1)
+      .watchAcksFull(query1, 1000, docA)
+      .expectEvents(query1, { added: [docA] })
+      .expectEvents(query1, { added: [docA] })
+  });
+
   specTest("Doesn't raise events for empty target", [], () => {
     const query1 = query('collection1');
     const query2 = query('collection2');

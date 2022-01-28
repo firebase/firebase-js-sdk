@@ -642,7 +642,6 @@ function populateDocumentChangeBuffer(
         documentBuffer.removeEntry(key, docReadTime);
         changedDocs = changedDocs.insert(key, doc);
       } else if (
-        !existingDoc.isValidDocument() ||
         doc.version.compareTo(existingDoc.version) > 0 ||
         (doc.version.compareTo(existingDoc.version) === 0 &&
           existingDoc.hasPendingWrites)
@@ -1039,12 +1038,12 @@ function applyWriteToRemoteDocuments(
         );
         if (doc.version.compareTo(ackVersion!) < 0) {
           batch.applyToRemoteDocument(doc, batchResult);
-          if (doc.isValidDocument()) {
+         // if (doc.isValidDocument()) {
             // We use the commitVersion as the readTime rather than the
             // document's updateTime since the updateTime is not advanced
             // for updates that do not modify the underlying document.
             documentBuffer.addEntry(doc, batchResult.commitVersion);
-          }
+          //}
         }
       });
   });
