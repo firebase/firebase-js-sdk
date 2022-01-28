@@ -89,7 +89,6 @@ export interface Auth {
     onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
     onIdTokenChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
     setPersistence(persistence: Persistence): Promise<void>;
-    // (undocumented)
     setRecaptchaConfig(config: RecaptchaConfig): void;
     readonly settings: AuthSettings;
     signOut(): Promise<void>;
@@ -709,7 +708,7 @@ export function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSetti
 // @public
 export function setPersistence(auth: Auth, persistence: Persistence): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function setRecaptchaConfig(auth: Auth, config: RecaptchaConfig): void;
 
 // @public
