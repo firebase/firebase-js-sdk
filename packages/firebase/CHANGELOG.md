@@ -1,5 +1,14 @@
 # firebase
 
+## 8.10.1
+
+### Patch Changes
+
+- Updated dependencies [[`2afff2b61`](https://github.com/firebase/firebase-js-sdk/commit/2afff2b61432561e7beffefb650c506522790f13)]:
+  - @firebase/firestore@2.4.1
+  - @firebase/functions@0.6.16
+  - @firebase/storage@0.7.1
+
 ## 8.10.0
 
 ### Minor Changes

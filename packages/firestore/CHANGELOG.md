@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 2.4.1
+
+### Patch Changes
+
+- [`2afff2b61`](https://github.com/firebase/firebase-js-sdk/commit/2afff2b61432561e7beffefb650c506522790f13) [#5948](https://github.com/firebase/firebase-js-sdk/pull/5948) - Update node-fetch version
+
 ## 2.4.0
 
 ### Minor Changes
