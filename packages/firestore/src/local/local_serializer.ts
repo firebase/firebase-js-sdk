@@ -69,8 +69,9 @@ export function fromDbRemoteDocument(
   localSerializer: LocalSerializer,
   remoteDoc: DbRemoteDocument
 ): MutableDocument {
+  let doc: MutableDocument;
   if (remoteDoc.document) {
-    return fromDocument(
+    doc = fromDocument(
       localSerializer.remoteSerializer,
       remoteDoc.document,
       !!remoteDoc.hasCommittedMutations
@@ -78,26 +79,31 @@ export function fromDbRemoteDocument(
   } else if (remoteDoc.noDocument) {
     const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
     const version = fromDbTimestamp(remoteDoc.noDocument.readTime);
-    const document = MutableDocument.newNoDocument(key, version);
-    return remoteDoc.hasCommittedMutations
-      ? document.setHasCommittedMutations()
-      : document;
+    doc = MutableDocument.newNoDocument(key, version);
+    if (remoteDoc.hasCommittedMutations) {
+      doc.setHasCommittedMutations();
+    }
   } else if (remoteDoc.unknownDocument) {
     const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
     const version = fromDbTimestamp(remoteDoc.unknownDocument.version);
-    return MutableDocument.newUnknownDocument(key, version);
+    doc = MutableDocument.newUnknownDocument(key, version);
   } else {
     return fail('Unexpected DbRemoteDocument');
   }
+
+  if (remoteDoc.readTime) {
+    doc.setReadTime(fromDbTimestampKey(remoteDoc.readTime));
+  }
+
+  return doc;
 }
 
 /** Encodes a document for storage locally. */
 export function toDbRemoteDocument(
   localSerializer: LocalSerializer,
-  document: MutableDocument,
-  readTime: SnapshotVersion
+  document: MutableDocument
 ): DbRemoteDocument {
-  const dbReadTime = toDbTimestampKey(readTime);
+  const dbReadTime = toDbTimestampKey(document.readTime);
   const parentPath = document.key.path.popLast().toArray();
   if (document.isFoundDocument()) {
     const doc = toDocument(localSerializer.remoteSerializer, document);
@@ -112,11 +118,11 @@ export function toDbRemoteDocument(
     );
   } else if (document.isNoDocument()) {
     const path = document.key.path.toArray();
-    const readTime = toDbTimestamp(document.version);
+    const version = toDbTimestamp(document.version);
     const hasCommittedMutations = document.hasCommittedMutations;
     return new DbRemoteDocument(
       /* unknownDocument= */ null,
-      new DbNoDocument(path, readTime),
+      new DbNoDocument(path, version),
       /* document= */ null,
       hasCommittedMutations,
       dbReadTime,

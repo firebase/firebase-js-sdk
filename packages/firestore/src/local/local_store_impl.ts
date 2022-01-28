@@ -26,8 +26,6 @@ import {
   documentKeySet,
   DocumentKeySet,
   DocumentMap,
-  DocumentVersionMap,
-  documentVersionMap,
   mutableDocumentMap,
   MutableDocumentMap
 } from '../model/collections';
@@ -533,7 +531,7 @@ export function localStoreApplyRemoteEventToLocalCache(
       });
 
       let changedDocs = mutableDocumentMap();
-      remoteEvent.documentUpdates.forEach((key, doc) => {
+      remoteEvent.documentUpdates.forEach(key => {
         if (remoteEvent.resolvedLimboDocuments.has(key)) {
           promises.push(
             localStoreImpl.persistence.referenceDelegate.updateLimboDocument(
@@ -550,9 +548,7 @@ export function localStoreApplyRemoteEventToLocalCache(
         populateDocumentChangeBuffer(
           txn,
           documentBuffer,
-          remoteEvent.documentUpdates,
-          remoteVersion,
-          undefined
+          remoteEvent.documentUpdates
         ).next(result => {
           changedDocs = result;
         })
@@ -617,11 +613,7 @@ export function localStoreApplyRemoteEventToLocalCache(
 function populateDocumentChangeBuffer(
   txn: PersistenceTransaction,
   documentBuffer: RemoteDocumentChangeBuffer,
-  documents: MutableDocumentMap,
-  globalVersion: SnapshotVersion,
-  // TODO(wuandy): We could add `readTime` to MaybeDocument instead to remove
-  // this parameter.
-  documentVersions: DocumentVersionMap | undefined
+  documents: MutableDocumentMap
 ): PersistencePromise<MutableDocumentMap> {
   let updatedKeys = documentKeySet();
   documents.forEach(k => (updatedKeys = updatedKeys.add(k)));
@@ -629,7 +621,6 @@ function populateDocumentChangeBuffer(
     let changedDocs = mutableDocumentMap();
     documents.forEach((key, doc) => {
       const existingDoc = existingDocs.get(key)!;
-      const docReadTime = documentVersions?.get(key) || globalVersion;
 
       // Note: The order of the steps below is important, since we want
       // to ensure that rejected limbo resolutions (which fabricate
@@ -639,7 +630,7 @@ function populateDocumentChangeBuffer(
         // NoDocuments with SnapshotVersion.min() are used in manufactured
         // events. We remove these documents from cache since we lost
         // access.
-        documentBuffer.removeEntry(key, docReadTime);
+        documentBuffer.removeEntry(key, doc.readTime);
         changedDocs = changedDocs.insert(key, doc);
       } else if (
         !existingDoc.isValidDocument() ||
@@ -648,10 +639,10 @@ function populateDocumentChangeBuffer(
           existingDoc.hasPendingWrites)
       ) {
         debugAssert(
-          !SnapshotVersion.min().isEqual(docReadTime),
+          !SnapshotVersion.min().isEqual(doc.readTime),
           'Cannot add a document when the remote version is zero'
         );
-        documentBuffer.addEntry(doc, docReadTime);
+        documentBuffer.addEntry(doc);
         changedDocs = changedDocs.insert(key, doc);
       } else {
         logDebug(
@@ -1043,7 +1034,8 @@ function applyWriteToRemoteDocuments(
             // We use the commitVersion as the readTime rather than the
             // document's updateTime since the updateTime is not advanced
             // for updates that do not modify the underlying document.
-            documentBuffer.addEntry(doc, batchResult.commitVersion);
+            doc.setReadTime(batchResult.commitVersion);
+            documentBuffer.addEntry(doc);
           }
         }
       });
@@ -1207,20 +1199,16 @@ export async function localStoreApplyBundledDocuments(
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   let documentKeys = documentKeySet();
   let documentMap = mutableDocumentMap();
-  let versionMap = documentVersionMap();
   for (const bundleDoc of documents) {
     const documentKey = bundleConverter.toDocumentKey(bundleDoc.metadata.name!);
     if (bundleDoc.document) {
       documentKeys = documentKeys.add(documentKey);
     }
-    documentMap = documentMap.insert(
-      documentKey,
-      bundleConverter.toMutableDocument(bundleDoc)
-    );
-    versionMap = versionMap.insert(
-      documentKey,
+    const doc = bundleConverter.toMutableDocument(bundleDoc);
+    doc.setReadTime(
       bundleConverter.toSnapshotVersion(bundleDoc.metadata.readTime!)
     );
+    documentMap = documentMap.insert(documentKey, doc);
   }
 
   const documentBuffer = localStoreImpl.remoteDocuments.newChangeBuffer({
@@ -1237,13 +1225,7 @@ export async function localStoreApplyBundledDocuments(
     'Apply bundle documents',
     'readwrite',
     txn => {
-      return populateDocumentChangeBuffer(
-        txn,
-        documentBuffer,
-        documentMap,
-        SnapshotVersion.min(),
-        versionMap
-      )
+      return populateDocumentChangeBuffer(txn, documentBuffer, documentMap)
         .next(changedDocs => {
           documentBuffer.apply(txn);
           return changedDocs;

@@ -220,11 +220,7 @@ function addDocs(
   );
   return PersistencePromise.forEach(keys, (key: string) => {
     const remoteDoc = doc(key, version, { data: 'foo' });
-    const dbRemoteDoc = toDbRemoteDocument(
-      TEST_SERIALIZER,
-      remoteDoc,
-      remoteDoc.version
-    );
+    const dbRemoteDoc = toDbRemoteDocument(TEST_SERIALIZER, remoteDoc);
     return remoteDocumentStore.put(remoteDoc.key.path.toArray(), dbRemoteDoc);
   });
 }
@@ -580,7 +576,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       ];
       const dbRemoteDocs = docs.map(doc => ({
         dbKey: doc.key.path.toArray(),
-        dbDoc: toDbRemoteDocument(TEST_SERIALIZER, doc, doc.version)
+        dbDoc: toDbRemoteDocument(TEST_SERIALIZER, doc)
       }));
       // V5 stores doesn't exist
       return db.runTransaction(
@@ -659,7 +655,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 promises.push(
                   remoteDocumentStore.put(
                     document.key.path.toArray(),
-                    toDbRemoteDocument(serializer, document, document.version)
+                    toDbRemoteDocument(serializer, document)
                   )
                 );
                 if (i % 2 === 1) {
@@ -770,11 +766,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 const remoteDoc = doc(path, /*version=*/ 1, { data: 1 });
                 return remoteDocumentStore.put(
                   remoteDoc.key.path.toArray(),
-                  toDbRemoteDocument(
-                    TEST_SERIALIZER,
-                    remoteDoc,
-                    remoteDoc.version
-                  )
+                  toDbRemoteDocument(TEST_SERIALIZER, remoteDoc)
                 );
               }
             );
@@ -895,8 +887,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
               const dbRemoteDoc = toDbRemoteDocument(
                 TEST_SERIALIZER,
-                remoteDoc,
-                remoteDoc.version
+                remoteDoc
               );
               // Mimic the old serializer and delete previously unset values
               delete dbRemoteDoc.readTime;

@@ -99,7 +99,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
 
   it('skips previous changes', async () => {
     // Add a document to simulate a previous run.
-    await cache.addEntries([doc('a/1', 1, DOC_DATA)], version(1));
+    await cache.addEntries([doc('a/1', 1, DOC_DATA).setReadTime(version(1))]);
     await persistence.shutdown();
 
     // Start a new run of the persistence layer
@@ -114,15 +114,12 @@ describe('IndexedDbRemoteDocumentCache', () => {
   });
 
   it('can get changes', async () => {
-    await cache.addEntries(
-      [
-        doc('a/1', 1, DOC_DATA),
-        doc('b/1', 2, DOC_DATA),
-        doc('b/2', 2, DOC_DATA),
-        doc('a/1', 3, DOC_DATA)
-      ],
-      version(3)
-    );
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('b/1', 2, DOC_DATA),
+      doc('b/2', 2, DOC_DATA),
+      doc('a/1', 3, DOC_DATA)
+    ]);
 
     let { changedDocs, readTime } = await cache.getNewDocumentChanges(
       SnapshotVersion.min()
@@ -149,21 +146,22 @@ describe('IndexedDbRemoteDocumentCache', () => {
   });
 
   it('can get missing documents in changes', async () => {
-    await cache.addEntries(
-      [
-        doc('a/1', 1, DOC_DATA),
-        doc('a/2', 2, DOC_DATA),
-        doc('a/3', 3, DOC_DATA)
-      ],
-      version(3)
-    );
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('a/2', 2, DOC_DATA),
+      doc('a/3', 3, DOC_DATA)
+    ]);
     await cache.removeEntry(key('a/2'), version(4));
 
     const { changedDocs } = await cache.getNewDocumentChanges(
       SnapshotVersion.min()
     );
     assertMatches(
-      [doc('a/1', 1, DOC_DATA), removedDoc('a/2'), doc('a/3', 3, DOC_DATA)],
+      [
+        doc('a/1', 1, DOC_DATA),
+        removedDoc('a/2').setReadTime(version(4)),
+        doc('a/3', 3, DOC_DATA)
+      ],
       changedDocs
     );
   });
@@ -303,10 +301,8 @@ function genericRemoteDocumentCacheTests(
     const key1 = key(DOC_PATH);
     const key2 = key(LONG_DOC_PATH);
     return cache
-      .addEntries(docs, version(VERSION))
-      .then(() => {
-        return cache.getEntries(documentKeySet().add(key1).add(key2));
-      })
+      .addEntries(docs)
+      .then(() => cache.getEntries(documentKeySet().add(key1).add(key2)))
       .then(read => {
         expectEqual(read.get(key1), docs[0]);
         expectEqual(read.get(key2), docs[1]);
@@ -322,12 +318,10 @@ function genericRemoteDocumentCacheTests(
     const key2 = key(LONG_DOC_PATH);
     const missingKey = key('foo/nonexistent');
     return cache
-      .addEntries(docs, version(VERSION))
-      .then(() => {
-        return cache.getEntries(
-          documentKeySet().add(key1).add(key2).add(missingKey)
-        );
-      })
+      .addEntries(docs)
+      .then(() =>
+        cache.getEntries(documentKeySet().add(key1).add(key2).add(missingKey))
+      )
       .then(read => {
         expectEqual(read.get(key1), docs[0]);
         expectEqual(read.get(key2), docs[1]);
@@ -357,16 +351,13 @@ function genericRemoteDocumentCacheTests(
   it('can get documents matching query', async () => {
     // TODO(mikelehen): This just verifies that we do a prefix scan against the
     // query path. We'll need more tests once we add index support.
-    await cache.addEntries(
-      [
-        doc('a/1', VERSION, DOC_DATA),
-        doc('b/1', VERSION, DOC_DATA),
-        doc('b/1/z/1', VERSION, DOC_DATA),
-        doc('b/2', VERSION, DOC_DATA),
-        doc('c/1', VERSION, DOC_DATA)
-      ],
-      version(VERSION)
-    );
+    await cache.addEntries([
+      doc('a/1', VERSION, DOC_DATA),
+      doc('b/1', VERSION, DOC_DATA),
+      doc('b/1/z/1', VERSION, DOC_DATA),
+      doc('b/2', VERSION, DOC_DATA),
+      doc('c/1', VERSION, DOC_DATA)
+    ]);
 
     const query1 = query('b');
     const matchingDocs = await cache.getDocumentsMatchingQuery(
@@ -381,18 +372,15 @@ function genericRemoteDocumentCacheTests(
   });
 
   it('can get documents matching query by read time', async () => {
-    await cache.addEntries(
-      [doc('b/old', 1, DOC_DATA)],
-      /* readTime= */ version(11)
-    );
-    await cache.addEntries(
-      [doc('b/current', 2, DOC_DATA)],
-      /* readTime= */ version(12)
-    );
-    await cache.addEntries(
-      [doc('b/new', 3, DOC_DATA)],
-      /* readTime= */ version(13)
-    );
+    await cache.addEntries([
+      doc('b/old', 1, DOC_DATA).setReadTime(version(11))
+    ]);
+    await cache.addEntries([
+      doc('b/current', 2, DOC_DATA).setReadTime(version(12))
+    ]);
+    await cache.addEntries([
+      doc('b/new', 3, DOC_DATA).setReadTime(version(13))
+    ]);
 
     const query1 = query('b');
     const matchingDocs = await cache.getDocumentsMatchingQuery(
@@ -403,14 +391,8 @@ function genericRemoteDocumentCacheTests(
   });
 
   it('query matching uses read time rather than update time', async () => {
-    await cache.addEntries(
-      [doc('b/old', 1, DOC_DATA)],
-      /* readTime= */ version(2)
-    );
-    await cache.addEntries(
-      [doc('b/new', 2, DOC_DATA)],
-      /* readTime= */ version(1)
-    );
+    await cache.addEntries([doc('b/old', 1, DOC_DATA).setReadTime(version(2))]);
+    await cache.addEntries([doc('b/new', 2, DOC_DATA).setReadTime(version(1))]);
 
     const query1 = query('b');
     const matchingDocs = await cache.getDocumentsMatchingQuery(
@@ -428,7 +410,7 @@ function genericRemoteDocumentCacheTests(
     }
 
     let document = doc('coll/doc', 1, { state: 'old' });
-    await cache.addEntries([document], /* readTime= */ version(1));
+    await cache.addEntries([document.setReadTime(version(1))]);
     verifyOldValue(document);
     document.data.set(field('state'), wrap('new'));
 

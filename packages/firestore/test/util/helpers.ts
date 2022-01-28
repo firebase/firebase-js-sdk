@@ -159,14 +159,16 @@ export function doc(
     jsonOrObjectValue instanceof ObjectValue
       ? jsonOrObjectValue
       : wrapObject(jsonOrObjectValue)
-  );
+  ).setReadTime(version(ver));
 }
 
 export function deletedDoc(
   keyStr: string,
   ver: TestSnapshotVersion
 ): MutableDocument {
-  return MutableDocument.newNoDocument(key(keyStr), version(ver));
+  return MutableDocument.newNoDocument(key(keyStr), version(ver)).setReadTime(
+    version(ver)
+  );
 }
 
 export function unknownDoc(
