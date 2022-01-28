@@ -34,7 +34,7 @@ import {
   SingleDateHeartbeat
 } from './types';
 
-const MAX_HEADER_BYTES = 1000;
+const MAX_HEADER_BYTES = 1024;
 // 30 days
 const STORED_HEARTBEAT_RETENTION_MAX_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
@@ -100,7 +100,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
       return;
     } else {
       // There is no entry for this date. Create one.
-      this._heartbeatsCache!.push({ date, userAgent });
+      this._heartbeatsCache.push({ date, userAgent });
     }
     // Remove entries older than 30 days.
     this._heartbeatsCache = this._heartbeatsCache.filter(
@@ -152,6 +152,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
 
 function getUTCDateString(): string {
   const today = new Date();
+  // Returns date format 'YYYY-MM-DD'
   return today.toISOString().substring(0, 10);
 }
 
@@ -276,33 +277,14 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
 }
 
 /**
- * Calculate byte length of a string. From:
- * https://codereview.stackexchange.com/questions/37512/count-byte-length-of-string
- */
-export function getByteLength(str: string): number {
-  let byteLength = 0;
-  for (let i = 0; i < str.length; i++) {
-    const c = str.charCodeAt(i);
-    byteLength +=
-      (c & 0xf800) === 0xd800
-        ? 2 // Code point is half of a surrogate pair
-        : c < 1 << 7
-        ? 1
-        : c < 1 << 11
-        ? 2
-        : 3;
-  }
-  return byteLength;
-}
-
-/**
  * Calculate bytes of a HeartbeatsByUserAgent array after being wrapped
  * in a platform logging header JSON object, stringified, and converted
  * to base 64.
  */
 export function countBytes(heartbeatsCache: HeartbeatsByUserAgent[]): number {
-  // heartbeatsCache wrapper properties
-  return getByteLength(
-    base64Encode(JSON.stringify({ version: 2, heartbeats: heartbeatsCache }))
-  );
+  // base64 has a restricted set of characters, all of which should be 1 byte.
+  return base64Encode(
+    // heartbeatsCache wrapper properties
+    JSON.stringify({ version: 2, heartbeats: heartbeatsCache })
+  ).length;
 }
