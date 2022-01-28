@@ -235,7 +235,12 @@ class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
     const promises: Array<PersistencePromise<void>> = [];
     this.changes.forEach((key, doc) => {
       if (doc.isValidDocument()) {
-        promises.push(this.documentCache.addEntry(transaction, doc));
+        promises.push(
+          this.documentCache.addEntry(
+            transaction,
+            doc,
+          )
+        );
       } else {
         this.documentCache.removeEntry(key);
       }

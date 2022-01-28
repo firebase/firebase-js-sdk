@@ -52,6 +52,7 @@ import {
 } from './persistence_transaction';
 import { ReferenceSet } from './reference_set';
 import { TargetData } from './target_data';
+import {SnapshotVersion} from "../core/snapshot_version";
 
 const LOG_TAG = 'MemoryPersistence';
 /**
@@ -284,7 +285,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
         const key = DocumentKey.fromPath(path);
         return this.isReferenced(txn, key).next(isReferenced => {
           if (!isReferenced) {
-            changeBuffer.removeEntry(key);
+            changeBuffer.removeEntry(key, SnapshotVersion.min());  // what was this before?
           }
         });
       }
@@ -422,7 +423,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
       return this.isPinned(txn, key, upperBound).next(isPinned => {
         if (!isPinned) {
           count++;
-          changeBuffer.removeEntry(key);
+          changeBuffer.removeEntry(key, SnapshotVersion.min());
         }
       });
     });
