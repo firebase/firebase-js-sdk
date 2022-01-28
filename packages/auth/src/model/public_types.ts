@@ -200,6 +200,32 @@ export interface Auth {
    */
   setPersistence(persistence: Persistence): Promise<void>;
   /**
+   * Changes the reCAPTCHA configuration on the `Auth` instance.
+   *
+   * @remarks
+   * This will apply the reCAPTCHA config to the currently Auth session and affect the future auth
+   * requests.
+   * 
+   * The reCAPTCHA config indicates whether the reCAPTCHA verification flow should be triggered for
+   * a specific auth provider. Note that this only affect the client auth request but won't override
+   * the actual enablement state on the server side.
+   * 
+   * For example, assume that reCAPTCHA verfication is enabled for Email provider via Cloud console
+   * or Admin SDKs. If the enablement is set to false via `setRecaptchaConfig(config)`, the auth
+   * flow will be started without the reCAPTCHA verfication. This will result in a `reCAPTCHA token
+   * missing` error while the SDK will automatically start the auth flow again with the reCAPTCHA
+   * verfication flow. Developers can avoid such round trip by enabling the reCAPTCHA flow with this
+   * method.
+   *
+   * @example
+   * ```javascript
+   * auth.setRecaptchaConfig(recaptchaConfig);
+   * ```
+   *
+   * @param config - The {@link RecaptchaConfig} to use.
+   */
+  setRecaptchaConfig(config: RecaptchaConfig): void;
+  /**
    * The {@link Auth} instance's language code.
    *
    * @remarks
@@ -311,6 +337,19 @@ export interface Persistence {
    * - 'NONE' is used for in-memory, or no persistence.
    */
   readonly type: 'SESSION' | 'LOCAL' | 'NONE';
+}
+
+/** 
+ * An interface representing the reCAPTCHA configuration that can be set with 
+ * {@link Auth.setRecaptchaConfig}.
+ *
+ * @public
+ */
+export interface RecaptchaConfig {
+  /**
+   * The recaptcha enablement status for the {@link EmailAuthProvider} for the current tenant.
+   */
+  emailPasswordEnabled: boolean;
 }
 
 /**

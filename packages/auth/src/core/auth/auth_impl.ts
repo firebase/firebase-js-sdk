@@ -21,6 +21,7 @@ import {
   AuthErrorMap,
   AuthSettings,
   EmulatorConfig,
+  RecaptchaConfig,
   NextOrObserver,
   Persistence,
   PopupRedirectResolver,
@@ -90,6 +91,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _popupRedirectResolver: PopupRedirectResolverInternal | null = null;
   _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams> =
     _DEFAULT_AUTH_ERROR_FACTORY;
+  _recaptchaConfig: RecaptchaConfig | null = null;
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -344,6 +346,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.queue(async () => {
       await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });
+  }
+
+  setRecaptchaConfig(config: RecaptchaConfig): void {
+    this._recaptchaConfig = config;
   }
 
   _getPersistence(): string {
