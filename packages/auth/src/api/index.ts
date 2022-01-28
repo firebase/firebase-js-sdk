@@ -63,6 +63,16 @@ export const enum Endpoint {
   GET_PROJECT_CONFIG = '/v1/projects'
 }
 
+export const enum RecaptchaClientType {
+  WEB = 1,
+  ANDROID = 2,
+  IOS = 3,
+}
+
+export const enum RecaptchaVersion {
+  ENTERPRISE = 1,
+}
+
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
 
 export function _addTidIfNecessary<T extends { tenantId?: string }>(
