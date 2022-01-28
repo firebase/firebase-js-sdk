@@ -62,7 +62,35 @@ export function setPersistence(
   return getModularInstance(auth).setPersistence(persistence);
 }
 
-export function setRecaptchaConfig(auth: Auth, config: RecaptchaConfig): void {
+/**
+ * Changes the reCAPTCHA configuration on the `Auth` instance.
+ *
+ * @remarks
+ * This will apply the reCAPTCHA config to the currently Auth session and affect the future auth
+ * requests.
+ * 
+ * The reCAPTCHA config indicates whether the reCAPTCHA verification flow should be triggered for
+ * a specific auth provider. Note that this only affect the client auth request but won't override
+ * the actual enablement state on the server side.
+ * 
+ * For example, assume that reCAPTCHA verfication is enabled for Email provider via Cloud console
+ * or Admin SDKs. If the enablement is set to false via `setRecaptchaConfig(config)`, the auth
+ * flow will be started without the reCAPTCHA verfication. This will result in a `reCAPTCHA token
+ * missing` error while the SDK will automatically start the auth flow again with the reCAPTCHA
+ * verfication flow. Developers can avoid such round trip by enabling the reCAPTCHA flow with this
+ * method.
+ *
+ * @example
+ * ```javascript
+ * setRecaptchaConfig(auth, recaptchaConfig);
+ * ```
+ *
+ * @param auth - The {@link Auth} instance.
+ * @param config - The {@link RecaptchaConfig} to use.
+ *
+ * @public
+ */
+ export function setRecaptchaConfig(auth: Auth, config: RecaptchaConfig): void {
   return getModularInstance(auth).setRecaptchaConfig(config);
 }
 
