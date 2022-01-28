@@ -210,6 +210,8 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
   /** The list of documents that are potentially GCed after each transaction. */
   private _orphanedDocuments: Set</* path= */ string> | null = null;
 
+  private lastDocument: SnapshotVersion  = SnapshotVersion.min();
+
   private constructor(private readonly persistence: MemoryPersistence) {}
 
   static factory(persistence: MemoryPersistence): MemoryEagerDelegate {
@@ -318,6 +320,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.or([
+      () => this.persistence.getRemoteDocumentCache().getEntry(txn, key)
       () =>
         PersistencePromise.resolve(this.localViewReferences.containsKey(key)),
       () => this.persistence.getTargetCache().containsKey(txn, key),
