@@ -74,7 +74,6 @@ export const enum DefaultConfig {
 export class AuthImpl implements AuthInternal, _FirebaseService {
   currentUser: User | null = null;
   emulatorConfig: EmulatorConfig | null = null;
-  recaptchaConfig: RecaptchaConfig | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
@@ -92,6 +91,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _popupRedirectResolver: PopupRedirectResolverInternal | null = null;
   _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams> =
     _DEFAULT_AUTH_ERROR_FACTORY;
+  _recaptchaConfig: RecaptchaConfig | null = null;
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -349,7 +349,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   setRecaptchaConfig(config: RecaptchaConfig): void {
-    this.recaptchaConfig = config;
+    this._recaptchaConfig = config;
   }
 
   _getPersistence(): string {
