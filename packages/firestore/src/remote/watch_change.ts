@@ -487,6 +487,10 @@ export class WatchChangeAggregator {
       }
     });
 
+    this.pendingDocumentUpdates.forEach((_, doc) =>
+      doc.setReadTime(snapshotVersion)
+    );
+
     const remoteEvent = new RemoteEvent(
       snapshotVersion,
       targetChanges,

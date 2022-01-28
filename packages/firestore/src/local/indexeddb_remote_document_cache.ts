@@ -289,7 +289,10 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
           return;
         }
 
-        const document = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
+        const document = this.maybeDecodeDocument(
+          DocumentKey.fromSegments(key),
+          dbRemoteDoc
+        );
         if (!query.path.isPrefixOf(document.key.path)) {
           control.done();
         } else if (queryMatches(query, document)) {
@@ -331,8 +334,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   }
 
   /**
-   * Decodes `remoteDoc` and returns the document (or null, if the document
-   * corresponds to the format used for sentinel deletes).
+   * Decodes `dbRemoteDoc` and returns the document (or an invalid document if
+   * the document corresponds to the format used for sentinel deletes).
    */
   private maybeDecodeDocument(
     documentKey: DocumentKey,
@@ -340,7 +343,6 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   ): MutableDocument {
     if (dbRemoteDoc) {
       const doc = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
-
       // Whether the document is a sentinel removal and should only be used in the
       // `getNewDocumentChanges()`
       const isSentinelRemoval =
@@ -480,15 +482,14 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
         previousSize !== undefined,
         `Cannot modify a document that wasn't read (for ${key})`
       );
-      if (documentChange.document.isValidDocument()) {
+      if (documentChange.isValidDocument()) {
         debugAssert(
-          !this.getReadTime(key).isEqual(SnapshotVersion.min()),
+          !documentChange.readTime.isEqual(SnapshotVersion.min()),
           'Cannot add a document with a read time of zero'
         );
         const doc = toDbRemoteDocument(
           this.documentCache.serializer,
-          documentChange.document,
-          this.getReadTime(key)
+          documentChange
         );
         collectionParents = collectionParents.add(key.path.popLast());
 
@@ -504,8 +505,7 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
           // preserved in `getNewDocumentChanges()`.
           const deletedDoc = toDbRemoteDocument(
             this.documentCache.serializer,
-            MutableDocument.newNoDocument(key, SnapshotVersion.min()),
-            this.getReadTime(key)
+            documentChange.convertToNoDocument(SnapshotVersion.min())
           );
           promises.push(
             this.documentCache.addEntry(transaction, key, deletedDoc)

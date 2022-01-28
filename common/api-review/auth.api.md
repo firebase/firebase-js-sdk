@@ -602,6 +602,11 @@ export class PhoneMultiFactorGenerator {
 }
 
 // @public
+export interface PhoneMultiFactorInfo extends MultiFactorInfo {
+    readonly phoneNumber: string;
+}
+
+// @public
 export interface PhoneMultiFactorSignInInfoOptions {
     multiFactorHint?: MultiFactorInfo;
     multiFactorUid?: string;

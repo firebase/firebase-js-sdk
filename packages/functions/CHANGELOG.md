@@ -1,5 +1,11 @@
 # @firebase/functions
 
+## 0.7.8
+
+### Patch Changes
+
+- [`d612d6f6e`](https://github.com/firebase/firebase-js-sdk/commit/d612d6f6e4d3113d45427b7df68459c0a3e31a1f) [#5928](https://github.com/firebase/firebase-js-sdk/pull/5928) - Upgrade `node-fetch` dependency due to a security issue.
+
 ## 0.7.7
 
 ### Patch Changes

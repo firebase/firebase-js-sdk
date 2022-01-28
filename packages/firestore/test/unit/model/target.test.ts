@@ -28,7 +28,7 @@ import {
   targetGetLowerBound,
   targetGetArrayValues
 } from '../../../src/core/target';
-import { Kind } from '../../../src/model/field_index';
+import { IndexKind } from '../../../src/model/field_index';
 import { canonicalId, valueEquals } from '../../../src/model/values';
 import {
   blob,
@@ -54,7 +54,7 @@ describe('Target Bounds', () => {
 
   it('equals query', () => {
     const target = queryToTarget(query('c', filter('foo', '==', 'bar')));
-    const index = fieldIndex('c', { fields: [['foo', Kind.ASCENDING]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, true, 'bar');
@@ -65,7 +65,7 @@ describe('Target Bounds', () => {
 
   it('less than query', () => {
     const target = queryToTarget(query('c', filter('foo', '<', 'bar')));
-    const index = fieldIndex('c', { fields: [['foo', Kind.DESCENDING]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.DESCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, true, '');
@@ -76,7 +76,7 @@ describe('Target Bounds', () => {
 
   it('less than or equals query', () => {
     const target = queryToTarget(query('c', filter('foo', '<=', 'bar')));
-    const index = fieldIndex('c', { fields: [['foo', Kind.ASCENDING]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, true, '');
@@ -87,7 +87,7 @@ describe('Target Bounds', () => {
 
   it('greater than query', () => {
     const target = queryToTarget(query('c', filter('foo', '>', 'bar')));
-    const index = fieldIndex('c', { fields: [['foo', Kind.ASCENDING]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, false, 'bar');
@@ -98,7 +98,7 @@ describe('Target Bounds', () => {
 
   it('greater than or equals query', () => {
     const target = queryToTarget(query('c', filter('foo', '>=', 'bar')));
-    const index = fieldIndex('c', { fields: [['foo', Kind.DESCENDING]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.DESCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, true, 'bar');
@@ -111,7 +111,7 @@ describe('Target Bounds', () => {
     const target = queryToTarget(
       query('c', filter('foo', 'array-contains', 'bar'))
     );
-    const index = fieldIndex('c', { fields: [['foo', Kind.CONTAINS]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.CONTAINS]] });
 
     const arrayValues = targetGetArrayValues(target, index);
     expect(arrayValues).to.deep.equal([wrap('bar')]);
@@ -127,7 +127,7 @@ describe('Target Bounds', () => {
     const target = queryToTarget(
       query('c', filter('foo', 'array-contains-any', ['bar', 'baz']))
     );
-    const index = fieldIndex('c', { fields: [['foo', Kind.CONTAINS]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.CONTAINS]] });
 
     const arrayValues = targetGetArrayValues(target, index);
     expect(arrayValues).to.deep.equal(wrap(['bar', 'baz']).arrayValue!.values);
@@ -141,7 +141,7 @@ describe('Target Bounds', () => {
 
   it('orderBy query', () => {
     const target = queryToTarget(query('c', orderBy('foo')));
-    const index = fieldIndex('c', { fields: [['foo', Kind.ASCENDING]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     expect(lowerBound).to.be.null;
@@ -154,7 +154,7 @@ describe('Target Bounds', () => {
     const target = queryToTarget(
       query('c', filter('foo', '>', 'bar'), orderBy('foo'))
     );
-    const index = fieldIndex('c', { fields: [['foo', Kind.ASCENDING]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, false, 'bar');
@@ -170,7 +170,7 @@ describe('Target Bounds', () => {
         bound(['bar'], /* before= */ false)
       )
     );
-    const index = fieldIndex('c', { fields: [['foo', Kind.ASCENDING]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, true, 'bar');
@@ -195,8 +195,8 @@ describe('Target Bounds', () => {
     );
     const index = fieldIndex('c', {
       fields: [
-        ['a', Kind.ASCENDING],
-        ['b', Kind.ASCENDING]
+        ['a', IndexKind.ASCENDING],
+        ['b', IndexKind.ASCENDING]
       ]
     });
 
@@ -222,8 +222,8 @@ describe('Target Bounds', () => {
     );
     const index = fieldIndex('c', {
       fields: [
-        ['a', Kind.ASCENDING],
-        ['b', Kind.ASCENDING]
+        ['a', IndexKind.ASCENDING],
+        ['b', IndexKind.ASCENDING]
       ]
     });
 
@@ -249,8 +249,8 @@ describe('Target Bounds', () => {
     );
     const index = fieldIndex('c', {
       fields: [
-        ['a', Kind.ASCENDING],
-        ['b', Kind.ASCENDING]
+        ['a', IndexKind.ASCENDING],
+        ['b', IndexKind.ASCENDING]
       ]
     });
 
@@ -268,7 +268,7 @@ describe('Target Bounds', () => {
         bound(['bar'], /* before =*/ false)
       )
     );
-    const index = fieldIndex('c', { fields: [['foo', Kind.ASCENDING]] });
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     expect(lowerBound).to.be.null;
@@ -293,8 +293,8 @@ describe('Target Bounds', () => {
     );
     const index = fieldIndex('c', {
       fields: [
-        ['a', Kind.ASCENDING],
-        ['b', Kind.ASCENDING]
+        ['a', IndexKind.ASCENDING],
+        ['b', IndexKind.ASCENDING]
       ]
     });
 
@@ -320,8 +320,8 @@ describe('Target Bounds', () => {
     );
     const index = fieldIndex('c', {
       fields: [
-        ['a', Kind.ASCENDING],
-        ['b', Kind.ASCENDING]
+        ['a', IndexKind.ASCENDING],
+        ['b', IndexKind.ASCENDING]
       ]
     });
 
@@ -347,8 +347,8 @@ describe('Target Bounds', () => {
     );
     const index = fieldIndex('c', {
       fields: [
-        ['a', Kind.ASCENDING],
-        ['b', Kind.ASCENDING]
+        ['a', IndexKind.ASCENDING],
+        ['b', IndexKind.ASCENDING]
       ]
     });
 
@@ -363,7 +363,7 @@ describe('Target Bounds', () => {
     const target = queryToTarget(
       query('c', filter('a', '==', 'a'), filter('b', '==', 'b'))
     );
-    const index = fieldIndex('c', { fields: [['a', Kind.ASCENDING]] });
+    const index = fieldIndex('c', { fields: [['a', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, true, 'a');

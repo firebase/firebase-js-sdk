@@ -48,7 +48,7 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { newAsyncQueue } from '../../../src/util/async_queue_impl';
 import { primitiveComparator } from '../../../src/util/misc';
 import { SortedMap } from '../../../src/util/sorted_map';
-import { key, query, version, wrapObject } from '../../util/helpers';
+import { doc, key, query, wrapObject } from '../../util/helpers';
 
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 
@@ -241,14 +241,10 @@ function genericLruGarbageCollectorTests(
 
   function nextTestDocument(): MutableDocument {
     const key = nextTestDocumentKey();
-    return MutableDocument.newFoundDocument(
-      key,
-      version(1000),
-      wrapObject({
-        foo: 3,
-        bar: false
-      })
-    );
+    return doc(key.toString(), 1000, {
+      foo: 3,
+      bar: false
+    });
   }
 
   function saveDocument(
@@ -257,7 +253,7 @@ function genericLruGarbageCollectorTests(
   ): PersistencePromise<void> {
     const changeBuffer = documentCache.newChangeBuffer();
     return changeBuffer.getEntry(txn, doc.key).next(() => {
-      changeBuffer.addEntry(doc, doc.version);
+      changeBuffer.addEntry(doc);
       return changeBuffer.apply(txn);
     });
   }
@@ -778,15 +774,11 @@ function genericLruGarbageCollectorTests(
       'Update a doc in the middle target',
       'readwrite',
       txn => {
-        const doc = MutableDocument.newFoundDocument(
-          middleDocToUpdate,
-          version(2000),
-          wrapObject({
-            foo: 4,
-            bar: true
-          })
-        );
-        return saveDocument(txn, doc).next(() => {
+        const docA = doc(middleDocToUpdate.toString(), 2000, {
+          foo: 4,
+          bar: true
+        });
+        return saveDocument(txn, docA).next(() => {
           return updateTargetInTransaction(txn, middleTarget);
         });
       }
