@@ -15,7 +15,25 @@
  * limitations under the License.
  */
 
+import { SnapshotVersion } from '../core/snapshot_version';
+import { Timestamp } from '../lite-api/timestamp';
+import { primitiveComparator } from '../util/misc';
+
+import { Document } from './document';
+import { DocumentKey } from './document_key';
 import { FieldPath } from './path';
+
+/**
+ * The initial mutation batch id for each index. Gets updated during index
+ * backfill.
+ */
+const INITIAL_LARGEST_BATCH_ID = -1;
+
+/**
+ * The initial sequence number for each index. Gets updated during index
+ * backfill.
+ */
+export const INITIAL_SEQUENCE_NUMBER = 0;
 
 /**
  * An index definition for field indexes in Firestore.
@@ -30,7 +48,7 @@ import { FieldPath } from './path';
  */
 export class FieldIndex {
   /** An ID for an index that has not yet been added to persistence.  */
-  static UNKNOWN_ID: -1;
+  static UNKNOWN_ID = -1;
 
   constructor(
     /**
@@ -41,12 +59,40 @@ export class FieldIndex {
     /** The collection ID this index applies to. */
     readonly collectionGroup: string,
     /** The field segments for this index. */
-    readonly segments: Segment[]
+    readonly segments: IndexSegment[],
+    /** Shows how up-to-date the index is for the current user. */
+    readonly indexState: IndexState
   ) {}
 }
 
+/**
+ * Compares indexes by collection group and segments. Ignores update time and
+ * index ID.
+ */
+export function fieldIndexSemanticComparator(
+  left: FieldIndex,
+  right: FieldIndex
+): number {
+  let cmp = primitiveComparator(left.collectionGroup, right.collectionGroup);
+  if (cmp !== 0) {
+    return cmp;
+  }
+
+  for (
+    let i = 0;
+    i < Math.min(left.segments.length, right.segments.length);
+    ++i
+  ) {
+    cmp = indexSegmentComparator(left.segments[i], right.segments[i]);
+    if (cmp !== 0) {
+      return cmp;
+    }
+  }
+  return primitiveComparator(left.segments.length, right.segments.length);
+}
+
 /** The type of the index, e.g. for which type of query it can be used. */
-export const enum Kind {
+export const enum IndexKind {
   /**
    * Ordered index. Can be used for <, <=, ==, >=, >, !=, IN and NOT IN queries.
    */
@@ -60,11 +106,124 @@ export const enum Kind {
 }
 
 /** An index component consisting of field path and index type.  */
-export class Segment {
+export class IndexSegment {
   constructor(
     /** The field path of the component. */
     readonly fieldPath: FieldPath,
     /** The fields sorting order. */
-    readonly kind: Kind
+    readonly kind: IndexKind
   ) {}
+}
+
+function indexSegmentComparator(
+  left: IndexSegment,
+  right: IndexSegment
+): number {
+  const cmp = FieldPath.comparator(left.fieldPath, right.fieldPath);
+  if (cmp !== 0) {
+    return cmp;
+  }
+  return primitiveComparator(left.kind, right.kind);
+}
+
+/**
+ * Stores the "high water mark" that indicates how updated the Index is for the
+ * current user.
+ */
+export class IndexState {
+  constructor(
+    /**
+     * Indicates when the index was last updated (relative to other indexes).
+     */
+    readonly sequenceNumber: number,
+    /** The the latest indexed read time, document and batch id. */
+    readonly offset: IndexOffset
+  ) {}
+
+  /** The state of an index that has not yet been backfilled. */
+  static empty(): IndexState {
+    return new IndexState(INITIAL_SEQUENCE_NUMBER, IndexOffset.min());
+  }
+}
+
+/**
+ * Creates an offset that matches all documents with a read time higher than
+ * `readTime`.
+ */
+export function newIndexOffsetSuccessorFromReadTime(
+  readTime: SnapshotVersion,
+  largestBatchId: number
+): IndexOffset {
+  // We want to create an offset that matches all documents with a read time
+  // greater than the provided read time. To do so, we technically need to
+  // create an offset for `(readTime, MAX_DOCUMENT_KEY)`. While we could use
+  // Unicode codepoints to generate MAX_DOCUMENT_KEY, it is much easier to use
+  // `(readTime + 1, DocumentKey.empty())` since `> DocumentKey.empty()` matches
+  // all valid document IDs.
+  const successorSeconds = readTime.toTimestamp().seconds;
+  const successorNanos = readTime.toTimestamp().nanoseconds + 1;
+  const successor = SnapshotVersion.fromTimestamp(
+    successorNanos === 1e9
+      ? new Timestamp(successorSeconds + 1, 0)
+      : new Timestamp(successorSeconds, successorNanos)
+  );
+  return new IndexOffset(successor, DocumentKey.empty(), largestBatchId);
+}
+
+/** Creates a new offset based on the provided document. */
+export function newIndexOffsetFromDocument(document: Document): IndexOffset {
+  return new IndexOffset(
+    document.readTime,
+    document.key,
+    INITIAL_LARGEST_BATCH_ID
+  );
+}
+
+/**
+ * Stores the latest read time, document and batch ID that were processed for an
+ * index.
+ */
+export class IndexOffset {
+  constructor(
+    /**
+     * The latest read time version that has been indexed by Firestore for this
+     * field index.
+     */
+    readonly readTime: SnapshotVersion,
+
+    /**
+     * The key of the last document that was indexed for this query. Use
+     * `DocumentKey.empty()` if no document has been indexed.
+     */
+    readonly documentKey: DocumentKey,
+
+    /*
+     * The largest mutation batch id that's been processed by Firestore.
+     */
+    readonly largestBatchId: number
+  ) {}
+
+  /** The state of an index that has not yet been backfilled. */
+  static min(): IndexOffset {
+    return new IndexOffset(
+      SnapshotVersion.min(),
+      DocumentKey.empty(),
+      INITIAL_LARGEST_BATCH_ID
+    );
+  }
+}
+
+export function indexOffsetComparator(
+  left: IndexOffset,
+  right: IndexOffset
+): number {
+  let cmp = left.readTime.compareTo(right.readTime);
+  if (cmp !== 0) {
+    return cmp;
+  }
+  cmp = DocumentKey.comparator(left.documentKey, right.documentKey);
+  if (cmp !== 0) {
+    return cmp;
+  }
+  return primitiveComparator(left.largestBatchId, right.largestBatchId);
 }
