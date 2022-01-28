@@ -15,7 +15,7 @@
     "express": "4.17.1",
     "geckodriver": "1.22.3",
     "mocha": "7.2.0",
-    "node-fetch": "2.6.1",
+    "node-fetch": "2.6.7",
     "selenium-assistant": "6.1.0"
   }
 }
