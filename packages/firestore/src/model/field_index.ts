@@ -65,6 +65,20 @@ export class FieldIndex {
   ) {}
 }
 
+/** Returns the ArrayContains/ArrayContainsAny segment for this index. */
+export function fieldIndexGetArraySegment(
+  fieldIndex: FieldIndex
+): IndexSegment | undefined {
+  return fieldIndex.segments.find(s => s.kind === IndexKind.CONTAINS);
+}
+
+/** Returns all directional (ascending/descending) segments for this index. */
+export function fieldIndexGetDirectionalSegments(
+  fieldIndex: FieldIndex
+): IndexSegment[] {
+  return fieldIndex.segments.filter(s => s.kind !== IndexKind.CONTAINS);
+}
+
 /**
  * Compares indexes by collection group and segments. Ignores update time and
  * index ID.

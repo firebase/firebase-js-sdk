@@ -17,12 +17,7 @@
 
 import { expect } from 'chai';
 
-import {
-  Bytes,
-  DocumentReference,
-  OrderByDirection,
-  Timestamp
-} from '../../src';
+import { Bytes, DocumentReference, Timestamp } from '../../src';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
@@ -322,14 +317,10 @@ export function mutationResult(
   return new MutationResult(version(testVersion), /* transformResults= */ []);
 }
 
-export function bound(
-  values: Array<[string, {}, OrderByDirection]>,
-  before: boolean
-): Bound {
+export function bound(values: unknown[], before: boolean): Bound {
   const components: api.Value[] = [];
   for (const value of values) {
-    const [_, dataValue] = value;
-    components.push(wrap(dataValue));
+    components.push(wrap(value));
   }
   return new Bound(components, before);
 }

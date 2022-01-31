@@ -29,7 +29,7 @@ import {
   Direction,
   FieldFilter,
   Filter,
-  isDocumentTarget,
+  targetIsDocumentTarget,
   Operator,
   OrderBy,
   Target
@@ -949,7 +949,7 @@ export function toTarget(
   let result: ProtoTarget;
   const target = targetData.target;
 
-  if (isDocumentTarget(target)) {
+  if (targetIsDocumentTarget(target)) {
     result = { documents: toDocumentsTarget(serializer, target) };
   } else {
     result = { query: toQueryTarget(serializer, target) };
