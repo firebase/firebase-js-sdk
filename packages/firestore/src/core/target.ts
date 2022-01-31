@@ -270,7 +270,8 @@ export function targetGetNotInValues(
           break;
         case Operator.NOT_IN:
         case Operator.NOT_EQUAL:
-          // NotIn/NotEqual is always a suffix
+          // NotIn/NotEqual is always a suffix. There cannot be any remaining
+          // segments and hence we can return early here.
           values.push(fieldFilter.value);
           return values;
         default:
@@ -284,7 +285,7 @@ export function targetGetNotInValues(
 
 /**
  * Returns a lower bound of field values that can be used as a starting point to
- * scan the index defined by `fieldIndex`}`. Returns `null` if no lower bound
+ * scan the index defined by `fieldIndex`. Returns `null` if no lower bound
  * exists.
  */
 export function targetGetLowerBound(

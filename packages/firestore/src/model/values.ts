@@ -665,9 +665,7 @@ export function valuesMax(
   left: Value | undefined,
   right: Value | undefined
 ): Value | undefined {
-  if (left === undefined && right === undefined) {
-    return undefined;
-  } else if (left === undefined) {
+  if (left === undefined) {
     return right;
   } else if (right === undefined) {
     return left;
@@ -680,9 +678,7 @@ export function valuesMin(
   left: Value | undefined,
   right: Value | undefined
 ): Value | undefined {
-  if (left === undefined && right === undefined) {
-    return undefined;
-  } else if (left === undefined) {
+  if (left === undefined) {
     return right;
   } else if (right === undefined) {
     return left;
