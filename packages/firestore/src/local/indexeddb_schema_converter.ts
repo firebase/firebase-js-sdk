@@ -35,6 +35,9 @@ import {
   DbCollectionParentKey,
   DbDocumentMutation,
   DbDocumentMutationKey,
+  DbIndexConfiguration,
+  DbIndexEntries,
+  DbIndexState,
   DbMutationBatch,
   DbMutationBatchKey,
   DbMutationQueue,
@@ -51,7 +54,7 @@ import {
   DbTargetGlobal,
   DbTargetGlobalKey,
   DbTargetKey,
-  SCHEMA_VERSION
+  INDEXING_SCHEMA_VERSION
 } from './indexeddb_schema';
 import {
   fromDbMutationBatch,
@@ -80,10 +83,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    hardAssert(
+    debugAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
-        toVersion <= SCHEMA_VERSION,
+        toVersion <= INDEXING_SCHEMA_VERSION,
       `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
     );
 
@@ -169,6 +172,13 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         createNamedQueriesStore(db);
       });
     }
+
+    if (fromVersion < 12 && toVersion >= 12) {
+      p = p.next(() => {
+        createFieldIndex(db);
+      });
+    }
+
     return p;
   }
 
@@ -502,5 +512,17 @@ function createBundlesStore(db: IDBDatabase): void {
 function createNamedQueriesStore(db: IDBDatabase): void {
   db.createObjectStore(DbNamedQuery.store, {
     keyPath: DbNamedQuery.keyPath
+  });
+}
+
+function createFieldIndex(db: IDBDatabase): void {
+  db.createObjectStore(DbIndexConfiguration.store, {
+    keyPath: DbIndexConfiguration.keyPath
+  });
+  db.createObjectStore(DbIndexState.store, {
+    keyPath: DbIndexState.keyPath
+  });
+  db.createObjectStore(DbIndexEntries.store, {
+    keyPath: DbIndexEntries.keyPath
   });
 }
