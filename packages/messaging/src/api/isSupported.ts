@@ -32,7 +32,7 @@ export async function isWindowSupported(): Promise<boolean> {
     // This throws if open() is unsupported, so adding it to the conditional
     // statement below can cause an uncaught error.
     await validateIndexedDBOpenable();
-  } catch(e) {
+  } catch (e) {
     return false;
   }
   // firebase-js-sdk/issues/2393 reveals that idb#open in Safari iframe and Firefox private browsing
