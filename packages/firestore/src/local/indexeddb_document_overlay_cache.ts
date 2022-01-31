@@ -132,21 +132,25 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     sinceBatchId: number,
     count: number
   ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    // TODO: Figure out what the sqlite query is doing.
     let result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
+    let currentBatchId: number | undefined = undefined;
+    let currentCount: number = 0;
     const range = IDBKeyRange.bound(
       [this.userId, collectionGroup, sinceBatchId],
       [this.userId, collectionGroup, Number.POSITIVE_INFINITY]
     );
     return documentOverlayStore(transaction)
-      .loadAll(DbDocumentOverlay.collectionGroupOverlayIndex, range)
-      .next(dbOverlays => {
-        for (const dbOverlay of dbOverlays) {
-          const overlay = fromDbDocumentOverlay(this.serializer, dbOverlay);
+      .iterate({ range: range }, (_, dbOverlay, control) => {
+        const overlay = fromDbDocumentOverlay(this.serializer, dbOverlay);
+        if (currentCount < count || overlay.largestBatchId === currentBatchId) {
           result.set(overlay.getKey(), overlay);
+          currentBatchId = overlay.largestBatchId;
+          ++currentCount;
+        } else {
+          control.done();
         }
-        return result;
-      });
+      })
+      .next(() => result);
   }
 }
 
