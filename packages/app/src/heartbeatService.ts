@@ -30,8 +30,13 @@ import { FirebaseApp } from './public-types';
 import {
   HeartbeatsByUserAgent,
   HeartbeatService,
-  HeartbeatStorage
+  HeartbeatStorage,
+  SingleDateHeartbeat
 } from './types';
+
+const MAX_HEADER_BYTES = 1024;
+// 30 days
+const STORED_HEARTBEAT_RETENTION_MAX_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
 export class HeartbeatServiceImpl implements HeartbeatService {
   /**
@@ -43,11 +48,13 @@ export class HeartbeatServiceImpl implements HeartbeatService {
   /**
    * In-memory cache for heartbeats, used by getHeartbeatsHeader() to generate
    * the header string.
+   * Stores one record per date. This will be consolidated into the standard
+   * format of one record per user agent string before being sent as a header.
    * Populated from indexedDB when the controller is instantiated and should
    * be kept in sync with indexedDB.
    * Leave public for easier testing.
    */
-  _heartbeatsCache: HeartbeatsByUserAgent[] | null = null;
+  _heartbeatsCache: SingleDateHeartbeat[] | null = null;
 
   /**
    * the initialization promise for populating heartbeatCache.
@@ -55,7 +62,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
    * (hearbeatsCache == null), it should wait for this promise
    * Leave public for easier testing.
    */
-  _heartbeatsCachePromise: Promise<HeartbeatsByUserAgent[]>;
+  _heartbeatsCachePromise: Promise<SingleDateHeartbeat[]>;
   constructor(private readonly container: ComponentContainer) {
     const app = this.container.getProvider('app').getImmediate();
     this._storage = new HeartbeatStorageImpl(app);
@@ -82,28 +89,28 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     const userAgent = platformLogger.getPlatformInfoString();
     const date = getUTCDateString();
     if (this._heartbeatsCache === null) {
-      await this._heartbeatsCachePromise;
+      this._heartbeatsCache = await this._heartbeatsCachePromise;
     }
-    let heartbeatsEntry = this._heartbeatsCache!.find(
-      heartbeats => heartbeats.userAgent === userAgent
-    );
-    if (heartbeatsEntry) {
-      if (heartbeatsEntry.dates.includes(date)) {
-        // Only one per day.
-        return;
-      } else {
-        // Modify in-place in this.heartbeatsCache
-        heartbeatsEntry.dates.push(date);
-      }
+    if (
+      this._heartbeatsCache.some(
+        singleDateHeartbeat => singleDateHeartbeat.date === date
+      )
+    ) {
+      // Do not store a heartbeat if one is already stored for this day.
+      return;
     } else {
-      // There is no entry for this Firebase user agent. Create one.
-      heartbeatsEntry = {
-        userAgent,
-        dates: [date]
-      };
-      this._heartbeatsCache!.push(heartbeatsEntry);
+      // There is no entry for this date. Create one.
+      this._heartbeatsCache.push({ date, userAgent });
     }
-    return this._storage.overwrite(this._heartbeatsCache!);
+    // Remove entries older than 30 days.
+    this._heartbeatsCache = this._heartbeatsCache.filter(
+      singleDateHeartbeat => {
+        const hbTimestamp = new Date(singleDateHeartbeat.date).valueOf();
+        const now = Date.now();
+        return now - hbTimestamp <= STORED_HEARTBEAT_RETENTION_MAX_MILLIS;
+      }
+    );
+    return this._storage.overwrite(this._heartbeatsCache);
   }
 
   /**
@@ -120,19 +127,81 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     if (this._heartbeatsCache === null) {
       return '';
     }
-    const headerString = base64Encode(
-      JSON.stringify({ version: 2, heartbeats: this._heartbeatsCache })
+    // Extract as many heartbeats from the cache as will fit under the size limit.
+    const { heartbeatsToSend, unsentEntries } = extractHeartbeatsForHeader(
+      this._heartbeatsCache
     );
-    this._heartbeatsCache = null;
-    // Do not wait for this, to reduce latency.
-    void this._storage.deleteAll();
+    const headerString = base64Encode(
+      JSON.stringify({ version: 2, heartbeats: heartbeatsToSend })
+    );
+    if (unsentEntries.length > 0) {
+      // Store any unsent entries if they exist.
+      this._heartbeatsCache = unsentEntries;
+      // This seems more likely than deleteAll (below) to lead to some odd state
+      // since the cache isn't empty and this will be called again on the next request,
+      // and is probably safest if we await it.
+      await this._storage.overwrite(this._heartbeatsCache);
+    } else {
+      this._heartbeatsCache = null;
+      // Do not wait for this, to reduce latency.
+      void this._storage.deleteAll();
+    }
     return headerString;
   }
 }
 
 function getUTCDateString(): string {
   const today = new Date();
-  return today.toISOString().substring(0,10);
+  // Returns date format 'YYYY-MM-DD'
+  return today.toISOString().substring(0, 10);
+}
+
+export function extractHeartbeatsForHeader(
+  heartbeatsCache: SingleDateHeartbeat[],
+  maxSize = MAX_HEADER_BYTES
+): {
+  heartbeatsToSend: HeartbeatsByUserAgent[];
+  unsentEntries: SingleDateHeartbeat[];
+} {
+  // Heartbeats grouped by user agent in the standard format to be sent in
+  // the header.
+  const heartbeatsToSend: HeartbeatsByUserAgent[] = [];
+  // Single date format heartbeats that are not sent.
+  let unsentEntries = heartbeatsCache.slice();
+  for (const singleDateHeartbeat of heartbeatsCache) {
+    // Look for an existing entry with the same user agent.
+    const heartbeatEntry = heartbeatsToSend.find(
+      hb => hb.userAgent === singleDateHeartbeat.userAgent
+    );
+    if (!heartbeatEntry) {
+      // If no entry for this user agent exists, create one.
+      heartbeatsToSend.push({
+        userAgent: singleDateHeartbeat.userAgent,
+        dates: [singleDateHeartbeat.date]
+      });
+      if (countBytes(heartbeatsToSend) > maxSize) {
+        // If the header would exceed max size, remove the added heartbeat
+        // entry and stop adding to the header.
+        heartbeatsToSend.pop();
+        break;
+      }
+    } else {
+      heartbeatEntry.dates.push(singleDateHeartbeat.date);
+      // If the header would exceed max size, remove the added date
+      // and stop adding to the header.
+      if (countBytes(heartbeatsToSend) > maxSize) {
+        heartbeatEntry.dates.pop();
+        break;
+      }
+    }
+    // Pop unsent entry from queue. (Skipped if adding the entry exceeded
+    // quota and the loop breaks early.)
+    unsentEntries = unsentEntries.slice(1);
+  }
+  return {
+    heartbeatsToSend,
+    unsentEntries
+  };
 }
 
 export class HeartbeatStorageImpl implements HeartbeatStorage {
@@ -152,7 +221,7 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
   /**
    * Read all heartbeats.
    */
-  async read(): Promise<HeartbeatsByUserAgent[]> {
+  async read(): Promise<SingleDateHeartbeat[]> {
     const canUseIndexedDB = await this._canUseIndexedDBPromise;
     if (!canUseIndexedDB) {
       return [];
@@ -162,7 +231,7 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
     }
   }
   // overwrite the storage with the provided heartbeats
-  async overwrite(heartbeats: HeartbeatsByUserAgent[]): Promise<void> {
+  async overwrite(heartbeats: SingleDateHeartbeat[]): Promise<void> {
     const canUseIndexedDB = await this._canUseIndexedDBPromise;
     if (!canUseIndexedDB) {
       return;
@@ -171,7 +240,7 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
     }
   }
   // add heartbeats
-  async add(heartbeats: HeartbeatsByUserAgent[]): Promise<void> {
+  async add(heartbeats: SingleDateHeartbeat[]): Promise<void> {
     const canUseIndexedDB = await this._canUseIndexedDBPromise;
     if (!canUseIndexedDB) {
       return;
@@ -183,7 +252,7 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
     }
   }
   // delete heartbeats
-  async delete(heartbeats: HeartbeatsByUserAgent[]): Promise<void> {
+  async delete(heartbeats: SingleDateHeartbeat[]): Promise<void> {
     const canUseIndexedDB = await this._canUseIndexedDBPromise;
     if (!canUseIndexedDB) {
       return;
@@ -205,4 +274,17 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
       return deleteHeartbeatsFromIndexedDB(this.app);
     }
   }
+}
+
+/**
+ * Calculate bytes of a HeartbeatsByUserAgent array after being wrapped
+ * in a platform logging header JSON object, stringified, and converted
+ * to base 64.
+ */
+export function countBytes(heartbeatsCache: HeartbeatsByUserAgent[]): number {
+  // base64 has a restricted set of characters, all of which should be 1 byte.
+  return base64Encode(
+    // heartbeatsCache wrapper properties
+    JSON.stringify({ version: 2, heartbeats: heartbeatsCache })
+  ).length;
 }

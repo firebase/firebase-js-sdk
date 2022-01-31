@@ -46,19 +46,24 @@ export interface HeartbeatsByUserAgent {
   dates: string[];
 }
 
+export interface SingleDateHeartbeat {
+  userAgent: string;
+  date: string;
+}
+
 export interface HeartbeatStorage {
   // overwrite the storage with the provided heartbeats
-  overwrite(heartbeats: HeartbeatsByUserAgent[]): Promise<void>;
+  overwrite(heartbeats: SingleDateHeartbeat[]): Promise<void>;
   // add heartbeats
-  add(heartbeats: HeartbeatsByUserAgent[]): Promise<void>;
+  add(heartbeats: SingleDateHeartbeat[]): Promise<void>;
   // delete heartbeats
-  delete(heartbeats: HeartbeatsByUserAgent[]): Promise<void>;
+  delete(heartbeats: SingleDateHeartbeat[]): Promise<void>;
   // delete all heartbeats
   deleteAll(): Promise<void>;
   // read all heartbeats
-  read(): Promise<HeartbeatsByUserAgent[]>;
+  read(): Promise<SingleDateHeartbeat[]>;
 }
 
 export interface HeartbeatsInIndexedDB {
-  heartbeats: HeartbeatsByUserAgent[];
+  heartbeats: SingleDateHeartbeat[];
 }
