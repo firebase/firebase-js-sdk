@@ -31,6 +31,7 @@ import { DbDocumentOverlay, DbDocumentOverlayKey } from './indexeddb_schema';
 import { getStore } from './indexeddb_transaction';
 import { encodeResourcePath } from './encoded_resource_path';
 import { PersistencePromise } from './persistence_promise';
+import { User } from '../auth/user';
 
 /**
  * An in-memory implementation of DocumentOverlayCache.
@@ -41,6 +42,14 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
    * @param userId - The userId for which we are accessing overlays.
    */
   constructor(readonly serializer: LocalSerializer, readonly userId: string) {}
+
+  static forUser(
+    serializer: LocalSerializer,
+    user: User
+  ): IndexedDbDocumentOverlayCache {
+    const userId = user.isAuthenticated() ? user.uid! : '';
+    return new IndexedDbDocumentOverlayCache(serializer, userId);
+  }
 
   getOverlay(
     transaction: PersistenceTransaction,

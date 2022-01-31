@@ -53,6 +53,8 @@ import {
 } from './persistence_transaction';
 import { ReferenceSet } from './reference_set';
 import { TargetData } from './target_data';
+import { DocumentOverlayCache } from './document_overlay_cache';
+import { MemoryDocumentOverlayCache } from './memory_document_overlay_cache';
 
 const LOG_TAG = 'MemoryPersistence';
 /**
@@ -69,6 +71,7 @@ export class MemoryPersistence implements Persistence {
    */
   private readonly indexManager: MemoryIndexManager;
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
+  private overlays: { [user: string]: MemoryDocumentOverlayCache } = {};
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
   private readonly targetCache: MemoryTargetCache;
   private readonly bundleCache: MemoryBundleCache;
@@ -127,6 +130,15 @@ export class MemoryPersistence implements Persistence {
 
   getIndexManager(): MemoryIndexManager {
     return this.indexManager;
+  }
+
+  getDocumentOverlay(user: User): DocumentOverlayCache {
+    let overlay = this.overlays[user.toKey()];
+    if (!overlay) {
+      overlay = new MemoryDocumentOverlayCache();
+      this.overlays[user.toKey()] = overlay;
+    }
+    return overlay;
   }
 
   getMutationQueue(user: User): MutationQueue {

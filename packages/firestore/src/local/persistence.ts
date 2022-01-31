@@ -31,6 +31,7 @@ import {
 import { RemoteDocumentCache } from './remote_document_cache';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
+import { DocumentOverlayCache } from './document_overlay_cache';
 
 /**
  * Callback type for primary state notifications. This callback can be
@@ -215,6 +216,12 @@ export interface Persistence {
    * to emulate the persisted implementation to the extent possible.
    */
   getIndexManager(): IndexManager;
+
+  /**
+   * Returns a DocumentOverlayCache representing the documents that are mutated
+   * locally.
+   * */
+  getDocumentOverlay(user: User): DocumentOverlayCache;
 
   /**
    * Performs an operation inside a persistence transaction. Any reads or writes

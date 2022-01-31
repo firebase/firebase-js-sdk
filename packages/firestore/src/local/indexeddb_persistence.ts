@@ -63,6 +63,8 @@ import {
   SimpleDb,
   SimpleDbStore
 } from './simple_db';
+import { IndexedDbDocumentOverlayCache } from './indexeddb_document_overlay_cache';
+import { DocumentOverlayCache } from './document_overlay_cache';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -743,6 +745,14 @@ export class IndexedDbPersistence implements Persistence {
       'Cannot initialize IndexManager before persistence is started.'
     );
     return this.indexManager;
+  }
+
+  getDocumentOverlay(user: User): DocumentOverlayCache {
+    debugAssert(
+      this.started,
+      'Cannot initialize IndexedDbDocumentOverlayCache before persistence is started.'
+    );
+    return IndexedDbDocumentOverlayCache.forUser(this.serializer, user);
   }
 
   getBundleCache(): BundleCache {
