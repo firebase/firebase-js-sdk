@@ -619,6 +619,9 @@ export async function syncEngineRejectListen(
     let documentUpdates = new SortedMap<DocumentKey, MutableDocument>(
       DocumentKey.comparator
     );
+    // TODO(b/217189216): This limbo document should ideally have a read time,
+    // so that it is picked up by any read-time based scans. The backend,
+    // however, does not send a read time for target removals.
     documentUpdates = documentUpdates.insert(
       limboKey,
       MutableDocument.newNoDocument(limboKey, SnapshotVersion.min())
