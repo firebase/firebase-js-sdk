@@ -823,7 +823,7 @@ function boundCompareToDocument(
   bound: Bound,
   orderBy: OrderBy[],
   doc: Document
-) {
+) : number {
   debugAssert(
     bound.position.length <= orderBy.length,
     "Bound has more components than query's orderBy"
