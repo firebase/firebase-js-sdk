@@ -57,8 +57,8 @@ export interface IndexManager {
   /**
    * Adds a field path index.
    *
-   * <p>Values for this index are persisted asynchronously. The index will only be used for query
-   * execution once values are persisted.
+   * Values for this index are persisted asynchronously. The index will only be
+   * used for query execution once values are persisted.
    */
   addFieldIndex(
     transaction: PersistenceTransaction,
@@ -72,9 +72,11 @@ export interface IndexManager {
   ): PersistencePromise<void>;
 
   /**
-   * Returns a list of field indexes that correspond to the specified collection group.
+   * Returns a list of field indexes that correspond to the specified collection
+   * group.
    *
-   * @param collectionGroup The collection group to get matching field indexes for.
+   * @param collectionGroup The collection group to get matching field indexes
+   * for.
    * @return A collection of field indexes for the specified collection group.
    */
   getFieldIndexes(
@@ -112,7 +114,7 @@ export interface IndexManager {
    */
   getNextCollectionGroupToUpdate(
     transaction: PersistenceTransaction
-  ): string | null;
+  ): PersistencePromise<string | null>;
 
   /**
    * Sets the collection group's latest read time.

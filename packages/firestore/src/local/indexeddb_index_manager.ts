@@ -15,6 +15,13 @@
  * limitations under the License.
  */
 
+import { Target } from '../core/target';
+import {
+  documentKeySet,
+  DocumentKeySet,
+  DocumentMap
+} from '../model/collections';
+import { FieldIndex, IndexOffset } from '../model/field_index';
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
@@ -101,6 +108,71 @@ export class IndexedDbIndexManager implements IndexManager {
         }
         return parentPaths;
       });
+  }
+
+  addFieldIndex(
+    transaction: PersistenceTransaction,
+    index: FieldIndex
+  ): PersistencePromise<void> {
+    // TODO(indexing): Implement
+    return PersistencePromise.resolve();
+  }
+
+  deleteFieldIndex(
+    transaction: PersistenceTransaction,
+    index: FieldIndex
+  ): PersistencePromise<void> {
+    // TODO(indexing): Implement
+    return PersistencePromise.resolve();
+  }
+
+  getDocumentsMatchingTarget(
+    transaction: PersistenceTransaction,
+    fieldIndex: FieldIndex,
+    target: Target
+  ): PersistencePromise<DocumentKeySet> {
+    // TODO(indexing): Implement
+    return PersistencePromise.resolve(documentKeySet());
+  }
+
+  getFieldIndex(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<FieldIndex | null> {
+    // TODO(indexing): Implement
+    return PersistencePromise.resolve<FieldIndex | null>(null);
+  }
+
+  getFieldIndexes(
+    transaction: PersistenceTransaction,
+    collectionGroup?: string
+  ): PersistencePromise<FieldIndex[]> {
+    // TODO(indexing): Implement
+    return PersistencePromise.resolve<FieldIndex[]>([]);
+  }
+
+  getNextCollectionGroupToUpdate(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<string | null> {
+    // TODO(indexing): Implement
+    return PersistencePromise.resolve<string | null>(null);
+  }
+
+  updateCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string,
+    offset: IndexOffset
+  ): PersistencePromise<void> {
+    // TODO(indexing): Implement
+    return PersistencePromise.resolve();
+  }
+
+  updateIndexEntries(
+    transaction: PersistenceTransaction,
+    documents: DocumentMap
+  ): PersistencePromise<void> {
+    // TODO(indexing): Implement
+    return PersistencePromise.resolve();
   }
 }
 
