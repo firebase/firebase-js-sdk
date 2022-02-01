@@ -50,6 +50,7 @@ import {
   DbTargetKey,
   DbTimestamp,
   SCHEMA_VERSION,
+  V12_STORES,
   V1_STORES,
   V3_STORES,
   V4_STORES,
@@ -1021,6 +1022,14 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           );
         }
       );
+    });
+  });
+
+  it('can upgrade from version 11 to 12', async () => {
+    await withDb(11, async () => {});
+    await withDb(12, async (db, version, objectStores) => {
+      expect(version).to.have.equal(12);
+      expect(objectStores).to.have.members(V12_STORES);
     });
   });
 

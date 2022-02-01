@@ -16,6 +16,7 @@
  */
 
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
+import { IndexKind } from '../model/field_index';
 import { ResourcePath } from '../model/path';
 import { BundledQuery } from '../protos/firestore_bundle_proto';
 import {
@@ -30,6 +31,11 @@ import {
   EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
+
+// TODO(indexing): Remove this constant
+const INDEXING_ENABLED = false;
+
+export const INDEXING_SCHEMA_VERSION = 12;
 
 /**
  * Schema Version for the Web client:
@@ -49,8 +55,9 @@ import {
  *     an auto-incrementing ID. This is required for Index-Free queries.
  * 10. Rewrite the canonical IDs to the explicit Protobuf-based format.
  * 11. Add bundles and named_queries for bundle support.
+ * 12. Add indexing support.
  */
-export const SCHEMA_VERSION = 11;
+export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 11;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -655,9 +662,7 @@ export type DbClientMetadataKey = string;
 
 export type DbBundlesKey = string;
 
-/**
- * A object representing a bundle loaded by the SDK.
- */
+/** An object representing a bundle loaded by the SDK. */
 export class DbBundle {
   /** Name of the IndexedDb object store. */
   static store = 'bundles';
@@ -676,9 +681,7 @@ export class DbBundle {
 
 export type DbNamedQueriesKey = string;
 
-/**
- * A object representing a named query loaded by the SDK via a bundle.
- */
+/** An object representing a named query loaded by the SDK via a bundle. */
 export class DbNamedQuery {
   /** Name of the IndexedDb object store. */
   static store = 'namedQueries';
@@ -692,6 +695,101 @@ export class DbNamedQuery {
     public readTime: DbTimestamp,
     /** The query saved in the bundle. */
     public bundledQuery: BundledQuery
+  ) {}
+}
+
+/** The key for each index consisting of just the index id. */
+export type DbIndexConfigurationKey = number;
+
+/** An object representing the global configuration for a field index. */
+export class DbIndexConfiguration {
+  /** Name of the IndexedDb object store. */
+  static store = 'indexConfiguration';
+
+  static keyPath = 'indexId';
+
+  constructor(
+    /** The index id for this entry. */
+    public indexId: number,
+    /** The collection group this index belongs to. */
+    public collectionGroup: string,
+    /** The fields to index for this index. */
+    public fields: [[name: string, kind: IndexKind]]
+  ) {}
+}
+
+/** The key for each index state consisting of the index id and its user id. */
+export type DbIndexStateKey = [number, string];
+
+/**
+ * An object describing how up-to-date the index backfill is for each user and
+ * index.
+ */
+export class DbIndexState {
+  /** Name of the IndexedDb object store. */
+  static store = 'indexState';
+
+  static keyPath = ['indexId', 'uid'];
+
+  constructor(
+    /** The index id for this entry. */
+    public indexId: number,
+    /** The user id for this entry. */
+    public uid: string,
+    /**
+     * A number that indicates when the index was last updated (relative to
+     * other indexes).
+     */
+    public sequenceNumber: number,
+    /**
+     * The latest read time that has been indexed by Firestore for this field
+     * index. Set to `{seconds: 0, nanos: 0}` if no documents have been indexed.
+     */
+    public readTime: DbTimestamp,
+    /**
+     * The last document that has been indexed for this field index. Empty if
+     * no documents have been indexed.
+     */
+    public documentKey: EncodedResourcePath,
+    /**
+     * The largest mutation batch id that has been processed for this index. -1
+     * if no mutations have been indexed.
+     */
+    public largestBatchId: number
+  ) {}
+}
+
+/**
+ * The key for each index entry consists of the index id and its user id,
+ * the encoded array and directional value for the indexed fields as well as
+ * the encoded document path for the indexed document.
+ */
+export type DbIndexEntryKey = [number, string, Uint8Array, Uint8Array, string];
+
+/** An object that stores the encoded entries for all documents and fields. */
+export class DbIndexEntries {
+  /** Name of the IndexedDb object store. */
+  static store = 'indexEntries';
+
+  static keyPath = [
+    'indexId',
+    'uid',
+    'arrayValue',
+    'directionalValue',
+    'documentKey'
+  ];
+
+  constructor(
+    /** The index id for this entry. */
+    public indexId: number,
+    /** The user id for this entry. */
+    public uid: string,
+    /** The encoded array index value for this entry. */
+    public arrayValue: Uint8Array,
+    /** The encoded directional value for equality and inequality filters. */
+    public directionalValue: Uint8Array,
+    /** The document key this entry points to. */
+    public documentKey: EncodedResourcePath
   ) {}
 }
 
@@ -712,7 +810,6 @@ export const V1_STORES = [
 // Visible for testing
 export const V3_STORES = V1_STORES;
 
-// Visible for testing
 // Note: DbRemoteDocumentChanges is no longer used and dropped with v9.
 export const V4_STORES = [...V3_STORES, DbClientMetadata.store];
 
@@ -729,6 +826,13 @@ export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
 // V10 does not change the set of stores.
 
 export const V11_STORES = [...V8_STORES, DbBundle.store, DbNamedQuery.store];
+
+export const V12_STORES = [
+  ...V11_STORES,
+  DbIndexConfiguration.store,
+  DbIndexState.store,
+  DbIndexEntries.store
+];
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
