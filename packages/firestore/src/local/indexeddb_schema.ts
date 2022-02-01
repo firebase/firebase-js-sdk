@@ -35,6 +35,8 @@ import {
 // TODO(indexing): Remove this constant
 const INDEXING_ENABLED = false;
 
+export const INDEXING_SCHEMA_VERSION = 12;
+
 /**
  * Schema Version for the Web client:
  * 1.  Initial version including Mutation Queue, Query Cache, and Remote
@@ -55,9 +57,7 @@ const INDEXING_ENABLED = false;
  * 11. Add bundles and named_queries for bundle support.
  * 12. Add indexing support.
  */
-export const SCHEMA_VERSION = INDEXING_ENABLED ? 12 : 11;
-
-export const INDEXING_SCHEMA_VERSION = 12;
+export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 11;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
