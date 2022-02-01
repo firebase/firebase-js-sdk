@@ -60,7 +60,7 @@ import { getModularInstance } from '@firebase/util';
  * await sendSignInLinkToEmail(auth, 'user@example.com', actionCodeSettings);
  * // Obtain emailLink from the user.
  * if(isSignInWithEmailLink(auth, emailLink)) {
- *   await signInWithEmailLink('user@example.com', 'user@example.com', emailLink);
+ *   await signInWithEmailLink(auth, 'user@example.com', emailLink);
  * }
  * ```
  *
@@ -132,7 +132,7 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {
  * await sendSignInLinkToEmail(auth, 'user@example.com', actionCodeSettings);
  * // Obtain emailLink from the user.
  * if(isSignInWithEmailLink(auth, emailLink)) {
- *   await signInWithEmailLink('user@example.com', 'user@example.com', emailLink);
+ *   await signInWithEmailLink(auth, 'user@example.com', emailLink);
  * }
  * ```
  *

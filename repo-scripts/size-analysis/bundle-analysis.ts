@@ -64,13 +64,13 @@ interface SubModuleImport {
   imports: string[];
 }
 
-enum Bundler {
+export enum Bundler {
   Rollup = 'rollup',
   Webpack = 'webpack',
   Both = 'both'
 }
 
-enum Mode {
+export enum Mode {
   Npm = 'npm',
   Local = 'local'
 }

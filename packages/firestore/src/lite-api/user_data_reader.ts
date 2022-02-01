@@ -722,7 +722,7 @@ export function parseData(
     validatePlainObject('Unsupported field value:', context, input);
     return parseObject(input, context);
   } else if (input instanceof FieldValue) {
-    // FieldValues usually parse into transforms (except FieldValue.delete())
+    // FieldValues usually parse into transforms (except deleteField())
     // in which case we do not want to include this field in our parsed data
     // (as doing so will overwrite the field directly prior to the transform
     // trying to transform it). So we don't add this location to
@@ -951,7 +951,7 @@ export function fieldPathFromArgument(
   } else if (typeof path === 'string') {
     return fieldPathFromDotSeparatedString(methodName, path);
   } else {
-    const message = 'Field path arguments must be of type string or FieldPath.';
+    const message = 'Field path arguments must be of type string or ';
     throw createError(
       message,
       methodName,

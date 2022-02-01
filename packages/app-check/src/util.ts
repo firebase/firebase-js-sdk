@@ -47,3 +47,30 @@ export function uuidv4(): string {
     return v.toString(16);
   });
 }
+
+export function getDurationString(durationInMillis: number): string {
+  const totalSeconds = Math.round(durationInMillis / 1000);
+  const days = Math.floor(totalSeconds / (3600 * 24));
+  const hours = Math.floor((totalSeconds - days * 3600 * 24) / 3600);
+  const minutes = Math.floor(
+    (totalSeconds - days * 3600 * 24 - hours * 3600) / 60
+  );
+  const seconds = totalSeconds - days * 3600 * 24 - hours * 3600 - minutes * 60;
+
+  let result = '';
+  if (days) {
+    result += pad(days) + 'd:';
+  }
+  if (hours) {
+    result += pad(hours) + 'h:';
+  }
+  result += pad(minutes) + 'm:' + pad(seconds) + 's';
+  return result;
+}
+
+function pad(value: number): string {
+  if (value === 0) {
+    return '00';
+  }
+  return value >= 10 ? value.toString() : '0' + value;
+}

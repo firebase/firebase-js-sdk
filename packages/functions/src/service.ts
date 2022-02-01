@@ -53,18 +53,34 @@ export interface HttpResponseBody {
   };
 }
 
+interface CancellablePromise<T> {
+  promise: Promise<T>;
+  cancel: () => void;
+}
+
 /**
  * Returns a Promise that will be rejected after the given duration.
  * The error will be of type FunctionsError.
  *
  * @param millis Number of milliseconds to wait before rejecting.
  */
-function failAfter(millis: number): Promise<never> {
-  return new Promise((_, reject) => {
-    setTimeout(() => {
-      reject(new FunctionsError('deadline-exceeded', 'deadline-exceeded'));
-    }, millis);
-  });
+function failAfter(millis: number): CancellablePromise<never> {
+  // Node timers and browser timers are fundamentally incompatible, but we
+  // don't care about the value here
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let timer: any | null = null;
+  return {
+    promise: new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        reject(new FunctionsError('deadline-exceeded', 'deadline-exceeded'));
+      }, millis);
+    }),
+    cancel: () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    }
+  };
 }
 
 /**
@@ -247,11 +263,15 @@ async function call(
   // Default timeout to 70s, but let the options override it.
   const timeout = options.timeout || 70000;
 
+  const failAfterHandle = failAfter(timeout);
   const response = await Promise.race([
     postJSON(url, body, headers, functionsInstance.fetchImpl),
-    failAfter(timeout),
+    failAfterHandle.promise,
     functionsInstance.cancelAllRequests
   ]);
+
+  // Always clear the failAfter timeout
+  failAfterHandle.cancel();
 
   // If service was deleted, interrupted response throws an error.
   if (!response) {

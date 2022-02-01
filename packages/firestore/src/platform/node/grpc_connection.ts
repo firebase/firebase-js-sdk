@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-// This is a hack fix for Node ES modules to use `require`.
-// @ts-ignore To avoid using `allowSyntheticDefaultImports` flag.
-import module from 'module';
-
 import {
   Metadata,
   GrpcObject,
@@ -38,32 +34,29 @@ import { logError, logDebug, logWarn } from '../../util/log';
 import { NodeCallback, nodePromise } from '../../util/node_api';
 import { Deferred } from '../../util/promise';
 
-// This is a hack fix for Node ES modules to use `require`.
-// @ts-ignore To avoid using `--module es2020` flag.
-const require = module.createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { version: grpcVersion } = require('@grpc/grpc-js/package.json');
+// TODO: Fetch runtime version from grpc-js/package.json instead
+// when there's a cleaner way to dynamic require JSON in both Node ESM and CJS
+const grpcVersion = '__GRPC_VERSION__';
 
 const LOG_TAG = 'Connection';
 const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${grpcVersion}`;
 
 function createMetadata(
   databasePath: string,
-  token: Token | null,
+  authToken: Token | null,
+  appCheckToken: Token | null,
   appId: string
 ): Metadata {
   hardAssert(
-    token === null || token.type === 'OAuth',
+    authToken === null || authToken.type === 'OAuth',
     'If provided, token must be OAuth'
   );
-
   const metadata = new Metadata();
-  if (token) {
-    for (const header in token.authHeaders) {
-      if (token.authHeaders.hasOwnProperty(header)) {
-        metadata.set(header, token.authHeaders[header]);
-      }
-    }
+  if (authToken) {
+    authToken.headers.forEach((value, key) => metadata.set(key, value));
+  }
+  if (appCheckToken) {
+    appCheckToken.headers.forEach((value, key) => metadata.set(key, value));
   }
   if (appId) {
     metadata.set('X-Firebase-GMPID', appId);
@@ -115,12 +108,14 @@ export class GrpcConnection implements Connection {
     rpcName: string,
     path: string,
     request: Req,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Promise<Resp> {
     const stub = this.ensureActiveStub();
     const metadata = createMetadata(
       this.databasePath,
-      token,
+      authToken,
+      appCheckToken,
       this.databaseInfo.appId
     );
     const jsonRequest = { database: this.databasePath, ...request };
@@ -156,7 +151,8 @@ export class GrpcConnection implements Connection {
     rpcName: string,
     path: string,
     request: Req,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Promise<Resp[]> {
     const results: Resp[] = [];
     const responseDeferred = new Deferred<Resp[]>();
@@ -169,7 +165,8 @@ export class GrpcConnection implements Connection {
     const stub = this.ensureActiveStub();
     const metadata = createMetadata(
       this.databasePath,
-      token,
+      authToken,
+      appCheckToken,
       this.databaseInfo.appId
     );
     const jsonRequest = { ...request, database: this.databasePath };
@@ -194,12 +191,14 @@ export class GrpcConnection implements Connection {
   // TODO(mikelehen): This "method" is a monster. Should be refactored.
   openStream<Req, Resp>(
     rpcName: string,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<Req, Resp> {
     const stub = this.ensureActiveStub();
     const metadata = createMetadata(
       this.databasePath,
-      token,
+      authToken,
+      appCheckToken,
       this.databaseInfo.appId
     );
     const grpcStream = stub[rpcName](metadata);

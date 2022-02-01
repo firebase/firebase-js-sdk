@@ -15,18 +15,14 @@
  * limitations under the License.
  */
 
-import { stub } from 'sinon';
-import { expect } from 'chai';
-import { ErrorCode } from '../../src/implementation/connection';
-import { FetchConnection } from '../../src/platform/node/connection';
+import { ByteString } from '../util/byte_string';
 
-describe('Connections', () => {
-  it('FetchConnection.send() should not reject on network errors', async () => {
-    const connection = new FetchConnection();
-
-    // need the casting here because fetch_ is a private member
-    stub(connection as any, 'fetch_').rejects();
-    await connection.send('testurl', 'GET');
-    expect(connection.getErrorCode()).to.equal(ErrorCode.NETWORK_ERROR);
-  });
-});
+/** An index value encoder.  */
+export interface DirectionalIndexByteEncoder {
+  // Note: This code is copied from the backend. Code that is not used by
+  // Firestore was removed.
+  writeBytes(value: ByteString): void;
+  writeString(value: string): void;
+  writeNumber(value: number): void;
+  writeInfinity(): void;
+}

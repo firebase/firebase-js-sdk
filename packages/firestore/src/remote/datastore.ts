@@ -16,6 +16,7 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
+import { User } from '../auth/user';
 import { Query, queryToTarget } from '../core/query';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -64,7 +65,8 @@ class DatastoreImpl extends Datastore {
   terminated = false;
 
   constructor(
-    readonly credentials: CredentialsProvider,
+    readonly authCredentials: CredentialsProvider<User>,
+    readonly appCheckCredentials: CredentialsProvider<string>,
     readonly connection: Connection,
     readonly serializer: JsonProtoSerializer
   ) {
@@ -81,27 +83,31 @@ class DatastoreImpl extends Datastore {
     }
   }
 
-  /** Gets an auth token and invokes the provided RPC. */
+  /** Invokes the provided RPC with auth and AppCheck tokens. */
   invokeRPC<Req, Resp>(
     rpcName: string,
     path: string,
     request: Req
   ): Promise<Resp> {
     this.verifyInitialized();
-    return this.credentials
-      .getToken()
-      .then(token => {
+    return Promise.all([
+      this.authCredentials.getToken(),
+      this.appCheckCredentials.getToken()
+    ])
+      .then(([authToken, appCheckToken]) => {
         return this.connection.invokeRPC<Req, Resp>(
           rpcName,
           path,
           request,
-          token
+          authToken,
+          appCheckToken
         );
       })
       .catch((error: FirestoreError) => {
         if (error.name === 'FirebaseError') {
           if (error.code === Code.UNAUTHENTICATED) {
-            this.credentials.invalidateToken();
+            this.authCredentials.invalidateToken();
+            this.appCheckCredentials.invalidateToken();
           }
           throw error;
         } else {
@@ -110,27 +116,31 @@ class DatastoreImpl extends Datastore {
       });
   }
 
-  /** Gets an auth token and invokes the provided RPC with streamed results. */
+  /** Invokes the provided RPC with streamed results with auth and AppCheck tokens. */
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
     path: string,
     request: Req
   ): Promise<Resp[]> {
     this.verifyInitialized();
-    return this.credentials
-      .getToken()
-      .then(token => {
+    return Promise.all([
+      this.authCredentials.getToken(),
+      this.appCheckCredentials.getToken()
+    ])
+      .then(([authToken, appCheckToken]) => {
         return this.connection.invokeStreamingRPC<Req, Resp>(
           rpcName,
           path,
           request,
-          token
+          authToken,
+          appCheckToken
         );
       })
       .catch((error: FirestoreError) => {
         if (error.name === 'FirebaseError') {
           if (error.code === Code.UNAUTHENTICATED) {
-            this.credentials.invalidateToken();
+            this.authCredentials.invalidateToken();
+            this.appCheckCredentials.invalidateToken();
           }
           throw error;
         } else {
@@ -147,11 +157,17 @@ class DatastoreImpl extends Datastore {
 // TODO(firestorexp): Make sure there is only one Datastore instance per
 // firestore-exp client.
 export function newDatastore(
-  credentials: CredentialsProvider,
+  authCredentials: CredentialsProvider<User>,
+  appCheckCredentials: CredentialsProvider<string>,
   connection: Connection,
   serializer: JsonProtoSerializer
 ): Datastore {
-  return new DatastoreImpl(credentials, connection, serializer);
+  return new DatastoreImpl(
+    authCredentials,
+    appCheckCredentials,
+    connection,
+    serializer
+  );
 }
 
 export async function invokeCommitRpc(
@@ -224,7 +240,8 @@ export function newPersistentWriteStream(
   return new PersistentWriteStream(
     queue,
     datastoreImpl.connection,
-    datastoreImpl.credentials,
+    datastoreImpl.authCredentials,
+    datastoreImpl.appCheckCredentials,
     datastoreImpl.serializer,
     listener
   );
@@ -240,7 +257,8 @@ export function newPersistentWatchStream(
   return new PersistentListenStream(
     queue,
     datastoreImpl.connection,
-    datastoreImpl.credentials,
+    datastoreImpl.authCredentials,
+    datastoreImpl.appCheckCredentials,
     datastoreImpl.serializer,
     listener
   );

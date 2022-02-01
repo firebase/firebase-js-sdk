@@ -85,7 +85,7 @@ export {
   QueryConstraintType,
   OrderByDirection,
   WhereFilterOp
-} from './api/query';
+} from './api/filter';
 
 export { Unsubscribe, SnapshotListenOptions } from './api/reference_impl';
 
@@ -156,4 +156,6 @@ export { FieldPath as _FieldPath } from './model/path';
 export type { ResourcePath as _ResourcePath } from './model/path';
 export type { ByteString as _ByteString } from './util/byte_string';
 export { logWarn as _logWarn } from './util/log';
-export { EmptyCredentialsProvider as _EmptyCredentialsProvider } from './api/credentials';
+export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
+export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
+export { setIndexConfiguration as _setIndexConfiguration } from './api/index_configuration';

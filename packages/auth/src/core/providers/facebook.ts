@@ -42,7 +42,7 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  *   // This is the signed-in user
  *   const user = result.user;
  *   // This gives you a Facebook Access Token.
- *   const credential = provider.credentialFromResult(auth, result);
+ *   const credential = FacebookAuthProvider.credentialFromResult(result);
  *   const token = credential.accessToken;
  * }
  * ```
@@ -57,7 +57,7 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  * // The signed-in user info.
  * const user = result.user;
  * // This gives you a Facebook Access Token.
- * const credential = provider.credentialFromResult(auth, result);
+ * const credential = FacebookAuthProvider.credentialFromResult(result);
  * const token = credential.accessToken;
  * ```
  *

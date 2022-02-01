@@ -15,40 +15,51 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
-import * as firebaseExport from '../util/firebase_export';
+import {
+  disableNetwork,
+  DocumentReference,
+  DocumentSnapshot,
+  enableNetwork,
+  Firestore,
+  FirestoreError,
+  onSnapshot,
+  runTransaction,
+  serverTimestamp,
+  setDoc,
+  Timestamp,
+  updateDoc
+} from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 
 // Allow custom types for testing.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTestData = any;
 
-const Timestamp = firebaseExport.Timestamp;
-const FieldValue = firebaseExport.FieldValue;
-
 apiDescribe('Server Timestamps', (persistence: boolean) => {
   // Data written in tests via set().
   const setData = {
     a: 42,
-    when: FieldValue.serverTimestamp(),
-    deep: { when: FieldValue.serverTimestamp() }
+    when: serverTimestamp(),
+    deep: { when: serverTimestamp() }
   };
 
   // base and update data used for update() tests.
   const initialData = { a: 42 };
   const updateData = {
-    when: FieldValue.serverTimestamp(),
-    deep: { when: FieldValue.serverTimestamp() }
+    when: serverTimestamp(),
+    deep: { when: serverTimestamp() }
   };
 
   // A document reference to read and write to.
-  let docRef: firestore.DocumentReference;
+  let docRef: DocumentReference;
+
+  let firestore: Firestore;
 
   // Accumulator used to capture events during the test.
-  let accumulator: EventsAccumulator<firestore.DocumentSnapshot>;
+  let accumulator: EventsAccumulator<DocumentSnapshot>;
 
   // Listener registration for a listener maintained during the course of the
   // test.
@@ -61,8 +72,7 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
 
   /** Writes initialData and waits for the corresponding snapshot. */
   function writeInitialData(): Promise<void> {
-    return docRef
-      .set(initialData)
+    return setDoc(docRef, initialData)
       .then(() => accumulator.awaitEvent())
       .then(initialDataSnap => {
         expect(initialDataSnap.data()).to.deep.equal(initialData);
@@ -70,8 +80,8 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   }
 
   /** Verifies a snapshot containing setData but with resolved server timestamps. */
-  function verifyTimestampsAreResolved(snap: firestore.DocumentSnapshot): void {
-    expect(snap.exists).to.equal(true);
+  function verifyTimestampsAreResolved(snap: DocumentSnapshot): void {
+    expect(snap.exists()).to.equal(true);
     const when = snap.get('when');
     expect(when).to.be.an.instanceof(Timestamp);
     // Tolerate up to 60 seconds of clock skew between client and server
@@ -86,16 +96,14 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   }
 
   /** Verifies a snapshot containing setData but with null for the timestamps. */
-  function verifyTimestampsAreNull(snap: firestore.DocumentSnapshot): void {
-    expect(snap.exists).to.equal(true);
+  function verifyTimestampsAreNull(snap: DocumentSnapshot): void {
+    expect(snap.exists()).to.equal(true);
     expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(null));
   }
 
   /** Verifies a snapshot containing setData but with local estimates for server timestamps. */
-  function verifyTimestampsAreEstimates(
-    snap: firestore.DocumentSnapshot
-  ): void {
-    expect(snap.exists).to.equal(true);
+  function verifyTimestampsAreEstimates(snap: DocumentSnapshot): void {
+    expect(snap.exists()).to.equal(true);
     const when = snap.get('when', { serverTimestamps: 'estimate' });
     expect(when).to.be.an.instanceof(Timestamp);
     // Validate the rest of the document.
@@ -109,12 +117,14 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
    * up when done.
    */
   function withTestSetup(test: () => Promise<void>): Promise<void> {
-    return withTestDoc(persistence, doc => {
+    return withTestDoc(persistence, (doc, db) => {
       // Set variables for use during test.
       docRef = doc;
+      firestore = db;
 
-      accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
-      unsubscribe = docRef.onSnapshot(
+      accumulator = new EventsAccumulator<DocumentSnapshot>();
+      unsubscribe = onSnapshot(
+        docRef,
         { includeMetadataChanges: true },
         accumulator.storeEvent
       );
@@ -123,7 +133,7 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
       return accumulator
         .awaitEvent()
         .then(docSnap => {
-          expect(docSnap.exists).to.equal(false);
+          expect(docSnap.exists()).to.equal(false);
         })
         .then(() => test())
         .then(() => {
@@ -134,8 +144,7 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
 
   it('work via set()', () => {
     return withTestSetup(() => {
-      return docRef
-        .set(setData)
+      return setDoc(docRef, setData)
         .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => verifyTimestampsAreNull(snapshot))
         .then(() => accumulator.awaitRemoteEvent())
@@ -146,7 +155,7 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   it('work via update()', () => {
     return withTestSetup(() => {
       return writeInitialData()
-        .then(() => docRef.update(updateData))
+        .then(() => updateDoc(docRef, updateData))
         .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => verifyTimestampsAreNull(snapshot))
         .then(() => accumulator.awaitRemoteEvent())
@@ -155,14 +164,13 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   });
 
   it('work via transaction set()', () => {
-    return withTestSetup(() => {
-      return docRef.firestore
-        .runTransaction(async txn => {
-          txn.set(docRef, setData);
-        })
+    return withTestSetup(() =>
+      runTransaction(firestore, async txn => {
+        txn.set(docRef, setData);
+      })
         .then(() => accumulator.awaitRemoteEvent())
-        .then(snapshot => verifyTimestampsAreResolved(snapshot));
-    });
+        .then(snapshot => verifyTimestampsAreResolved(snapshot))
+    );
   });
 
   it('work via transaction update()', () => {
@@ -170,7 +178,7 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
       return writeInitialData()
         .then(() => accumulator.awaitRemoteEvent())
         .then(() =>
-          docRef.firestore.runTransaction(async txn => {
+          runTransaction(firestore, async txn => {
             txn.update(docRef, updateData);
           })
         )
@@ -182,7 +190,7 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   it('can return estimated value', () => {
     return withTestSetup(() => {
       return writeInitialData()
-        .then(() => docRef.update(updateData))
+        .then(() => updateDoc(docRef, updateData))
         .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => verifyTimestampsAreEstimates(snapshot));
     });
@@ -193,7 +201,7 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
       return writeInitialData()
         .then(() =>
           // Change field 'a' from a number type to a server timestamp.
-          docRef.update('a', FieldValue.serverTimestamp())
+          updateDoc(docRef, 'a', serverTimestamp())
         )
         .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => {
@@ -208,14 +216,14 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   it('can return previous value through consecutive updates', () => {
     return withTestSetup(() => {
       return writeInitialData()
-        .then(() => docRef.firestore.disableNetwork())
+        .then(() => disableNetwork(firestore))
         .then(() => {
           // We set up two consecutive writes with server timestamps.
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          docRef.update('a', FieldValue.serverTimestamp());
+          updateDoc(docRef, 'a', serverTimestamp());
           // include b=1 to ensure there's a change resulting in a new snapshot.
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          docRef.update('a', FieldValue.serverTimestamp(), 'b', 1);
+          updateDoc(docRef, 'a', serverTimestamp(), 'b', 1);
           return accumulator.awaitLocalEvents(2);
         })
         .then(snapshots => {
@@ -226,7 +234,7 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
           expect(
             snapshots[1].get('a', { serverTimestamps: 'previous' })
           ).to.equal(42);
-          return docRef.firestore.enableNetwork();
+          return enableNetwork(firestore);
         })
         .then(() => accumulator.awaitRemoteEvent())
         .then(remoteSnapshot => {
@@ -238,15 +246,12 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   it('uses previous value from local mutation', () => {
     return withTestSetup(() => {
       return writeInitialData()
-        .then(() => docRef.firestore.disableNetwork())
+        .then(() => disableNetwork(firestore))
         .then(() => {
           // We set up three consecutive writes.
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          docRef.update('a', FieldValue.serverTimestamp());
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          docRef.update('a', 1337);
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          docRef.update('a', FieldValue.serverTimestamp());
+          void updateDoc(docRef, 'a', serverTimestamp());
+          void updateDoc(docRef, 'a', 1337);
+          void updateDoc(docRef, 'a', serverTimestamp());
           return accumulator.awaitLocalEvents(3);
         })
         .then(snapshots => {
@@ -258,7 +263,7 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
           expect(
             snapshots[2].get('a', { serverTimestamps: 'previous' })
           ).to.equal(1337);
-          return docRef.firestore.enableNetwork();
+          return enableNetwork(firestore);
         })
         .then(() => accumulator.awaitRemoteEvent())
         .then(remoteSnapshot => {
@@ -269,11 +274,9 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
 
   it('fail via update() on nonexistent document.', () => {
     return withTestSetup(() => {
-      return docRef.update(updateData).then(
-        () => {
-          return Promise.reject('Should not have succeeded!');
-        },
-        (error: firestore.FirestoreError) => {
+      return updateDoc(docRef, updateData).then(
+        () => Promise.reject('Should not have succeeded!'),
+        (error: FirestoreError) => {
           expect(error.code).to.equal('not-found');
         }
       );
@@ -281,19 +284,15 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   });
 
   it('fail via transaction update() on nonexistent document.', () => {
-    return withTestSetup(() => {
-      return docRef.firestore
-        .runTransaction(async txn => {
-          txn.update(docRef, updateData);
-        })
-        .then(
-          () => {
-            return Promise.reject('Should not have succeeded!');
-          },
-          (error: firestore.FirestoreError) => {
-            expect(error.code).to.equal('not-found');
-          }
-        );
-    });
+    return withTestSetup(() =>
+      runTransaction(firestore, async txn => {
+        txn.update(docRef, updateData);
+      }).then(
+        () => Promise.reject('Should not have succeeded!'),
+        (error: FirestoreError) => {
+          expect(error.code).to.equal('not-found');
+        }
+      )
+    );
   });
 });

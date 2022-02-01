@@ -27,11 +27,12 @@ import {
   RequestBody,
   RequestEndpoint
 } from './size_report_helper';
+import { generateReportForBundles } from '../../repo-scripts/size-analysis/analyze-all-bundles';
 import { glob } from 'glob';
 
 import commonjs from '@rollup/plugin-commonjs';
 
-interface Report {
+export interface Report {
   sdk: string;
   type: string;
   value: number;
@@ -157,7 +158,8 @@ async function collectBinarySize(pkg: string): Promise<Report[]> {
 async function generateSizeReport(): Promise<BinarySizeRequestBody> {
   const reports: Report[] = [
     ...generateReportForCDNScripts(),
-    ...(await generateReportForNPMPackages())
+    ...(await generateReportForNPMPackages()),
+    ...(await generateReportForBundles())
   ];
 
   for (const r of reports) {

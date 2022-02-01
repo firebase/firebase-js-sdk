@@ -962,10 +962,10 @@ export class IndexedDbPersistence implements Persistence {
         // to make sure it gets a chance to run.
         this.markClientZombied();
 
-        if (isSafari() && navigator.appVersion.match(`Version/14`)) {
-          // On Safari 14, we do not run any cleanup actions as it might trigger
-          // a bug that prevents Safari from re-opening IndexedDB during the
-          // next page load.
+        if (isSafari() && navigator.appVersion.match(/Version\/1[45]/)) {
+          // On Safari 14 and 15, we do not run any cleanup actions as it might
+          // trigger a bug that prevents Safari from re-opening IndexedDB during
+          // the next page load.
           // See https://bugs.webkit.org/show_bug.cgi?id=226547
           this.queue.enterRestrictedMode(/* purgeExistingTasks= */ true);
         }

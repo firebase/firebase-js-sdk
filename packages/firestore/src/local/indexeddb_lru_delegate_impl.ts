@@ -16,6 +16,7 @@
  */
 
 import { ListenSequence } from '../core/listen_sequence';
+import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 
@@ -153,7 +154,7 @@ export class IndexedDbLruDelegateImpl implements IndexedDbLruDelegate {
               // Our size accounting requires us to read all documents before
               // removing them.
               return changeBuffer.getEntry(txn, docKey).next(() => {
-                changeBuffer.removeEntry(docKey);
+                changeBuffer.removeEntry(docKey, SnapshotVersion.min());
                 return documentTargetStore(txn).delete(sentinelKey(docKey));
               });
             }

@@ -1,5 +1,49 @@
 # @firebase/auth
 
+## 0.19.7
+
+### Patch Changes
+
+- [`4983f4d5a`](https://github.com/firebase/firebase-js-sdk/commit/4983f4d5a0dc385c5b3e042ace44c8204d3cce81) [#5923](https://github.com/firebase/firebase-js-sdk/pull/5923) - Fix errors in compatibility layer when cookies are fully disabled in Chrome
+
+* [`d612d6f6e`](https://github.com/firebase/firebase-js-sdk/commit/d612d6f6e4d3113d45427b7df68459c0a3e31a1f) [#5928](https://github.com/firebase/firebase-js-sdk/pull/5928) - Upgrade `node-fetch` dependency due to a security issue.
+
+- [`e04b7452b`](https://github.com/firebase/firebase-js-sdk/commit/e04b7452bae10e6525cfb9c551f76a1aa98f9078) [#5924](https://github.com/firebase/firebase-js-sdk/pull/5924) (fixes [#5922](https://github.com/firebase/firebase-js-sdk/issues/5922)) - Add missing PhoneMultiFactorInfo public interface
+
+* [`2820674b8`](https://github.com/firebase/firebase-js-sdk/commit/2820674b848e918ab164e7d0ec9d5b838bbfa6e0) [#5927](https://github.com/firebase/firebase-js-sdk/pull/5927) - Prevent React Native from logging a warning about deprecation of `AsyncStorage` if the developer has provided the non-deprecated version.
+
+## 0.19.6
+
+### Patch Changes
+
+- [`67b6decbb`](https://github.com/firebase/firebase-js-sdk/commit/67b6decbb9b5ee806d4109b9b6c188c4933e1270) [#5908](https://github.com/firebase/firebase-js-sdk/pull/5908) - Add cordova and react-native paths to auth package.json exports field.
+
+* [`922e9ed9a`](https://github.com/firebase/firebase-js-sdk/commit/922e9ed9a68c130aefa0cdb9b27720b73011c397) [#5892](https://github.com/firebase/firebase-js-sdk/pull/5892) (fixes [#5874](https://github.com/firebase/firebase-js-sdk/issues/5874)) - Fix error code thrown when the network times out
+
+## 0.19.5
+
+### Patch Changes
+
+- [`e3a5248fc`](https://github.com/firebase/firebase-js-sdk/commit/e3a5248fc8536fe2ca6d97483aa7e1b3f737dd17) [#5811](https://github.com/firebase/firebase-js-sdk/pull/5811) (fixes [#5791](https://github.com/firebase/firebase-js-sdk/issues/5791)) - Fix persistence selection in compatibility layer in worker scripts
+
+- Updated dependencies [[`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49)]:
+  - @firebase/util@1.4.3
+  - @firebase/component@0.5.10
+
+## 0.19.4
+
+### Patch Changes
+
+- [`a777385d6`](https://github.com/firebase/firebase-js-sdk/commit/a777385d67653cdcc3b839149dde867f32b48369) [#5799](https://github.com/firebase/firebase-js-sdk/pull/5799) - Add X-Firebase-gmpid header to requests
+
+* [`dc6b447ba`](https://github.com/firebase/firebase-js-sdk/commit/dc6b447bac4e899a0c4741ec18bf19e2ae66731a) [#5777](https://github.com/firebase/firebase-js-sdk/pull/5777) (fixes [#5720](https://github.com/firebase/firebase-js-sdk/issues/5720)) - Fix errors during Auth initialization when the network is unavailable
+
+## 0.19.3
+
+### Patch Changes
+
+- [`1583a8202`](https://github.com/firebase/firebase-js-sdk/commit/1583a82022bfd404e94f28d1786e596d6b5a9f43) [#5715](https://github.com/firebase/firebase-js-sdk/pull/5715) - Fix Provider.credentialFromResult documentation snippets
+
 ## 0.19.2
 
 ### Patch Changes

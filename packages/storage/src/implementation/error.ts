@@ -1,4 +1,3 @@
-import { FirebaseError } from '@firebase/util';
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -15,6 +14,9 @@ import { FirebaseError } from '@firebase/util';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { FirebaseError } from '@firebase/util';
+
 import { CONFIG_STORAGE_BUCKET_KEY } from './constants';
 
 /**

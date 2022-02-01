@@ -17,15 +17,26 @@
 
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import {
+  FieldIndex,
+  fieldIndexGetArraySegment,
+  fieldIndexGetDirectionalSegments
+} from '../model/field_index';
 import { FieldPath, ResourcePath } from '../model/path';
 import {
   arrayValueContains,
   canonicalId,
   isArray,
   isReferenceValue,
+  MAX_VALUE,
+  MIN_VALUE,
   typeOrder,
   valueCompare,
-  valueEquals
+  valueEquals,
+  valuesGetLowerBound,
+  valuesGetUpperBound,
+  valuesMax,
+  valuesMin
 } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, fail } from '../util/assert';
@@ -187,12 +198,260 @@ export function targetEquals(left: Target, right: Target): boolean {
   return boundEquals(left.endAt, right.endAt);
 }
 
-export function isDocumentTarget(target: Target): boolean {
+export function targetIsDocumentTarget(target: Target): boolean {
   return (
     DocumentKey.isDocumentKey(target.path) &&
     target.collectionGroup === null &&
     target.filters.length === 0
   );
+}
+
+/** Returns the field filters that target the given field path. */
+export function targetGetFieldFiltersForPath(
+  target: Target,
+  path: FieldPath
+): FieldFilter[] {
+  return target.filters.filter(
+    f => f instanceof FieldFilter && f.field.isEqual(path)
+  ) as FieldFilter[];
+}
+
+/**
+ * Returns the values that are used in ARRAY_CONTAINS or ARRAY_CONTAINS_ANY
+ * filters. Returns `null` if there are no such filters.
+ */
+export function targetGetArrayValues(
+  target: Target,
+  fieldIndex: FieldIndex
+): ProtoValue[] | null {
+  const segment = fieldIndexGetArraySegment(fieldIndex);
+  if (segment === undefined) {
+    return null;
+  }
+
+  for (const fieldFilter of targetGetFieldFiltersForPath(
+    target,
+    segment.fieldPath
+  )) {
+    switch (fieldFilter.op) {
+      case Operator.ARRAY_CONTAINS_ANY:
+        return fieldFilter.value.arrayValue!.values || [];
+      case Operator.ARRAY_CONTAINS:
+        return [fieldFilter.value];
+      default:
+      // Remaining filters are not array filters.
+    }
+  }
+  return null;
+}
+
+/**
+ * Returns the list of values that are used in != or NOT_IN filters. Returns
+ * `null` if there are no such filters.
+ */
+export function targetGetNotInValues(
+  target: Target,
+  fieldIndex: FieldIndex
+): ProtoValue[] | null {
+  const values: ProtoValue[] = [];
+
+  for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
+    for (const fieldFilter of targetGetFieldFiltersForPath(
+      target,
+      segment.fieldPath
+    )) {
+      switch (fieldFilter.op) {
+        case Operator.EQUAL:
+        case Operator.IN:
+          // Encode equality prefix, which is encoded in the index value before
+          // the inequality (e.g. `a == 'a' && b != 'b'` is encoded to
+          // `value != 'ab'`).
+          values.push(fieldFilter.value);
+          break;
+        case Operator.NOT_IN:
+        case Operator.NOT_EQUAL:
+          // NotIn/NotEqual is always a suffix. There cannot be any remaining
+          // segments and hence we can return early here.
+          values.push(fieldFilter.value);
+          return values;
+        default:
+        // Remaining filters cannot be used as notIn bounds.
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Returns a lower bound of field values that can be used as a starting point to
+ * scan the index defined by `fieldIndex`. Returns `null` if no lower bound
+ * exists.
+ */
+export function targetGetLowerBound(
+  target: Target,
+  fieldIndex: FieldIndex
+): Bound | null {
+  const values: ProtoValue[] = [];
+  let inclusive = true;
+
+  // For each segment, retrieve a lower bound if there is a suitable filter or
+  // startAt.
+  for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
+    let segmentValue: ProtoValue | undefined = undefined;
+    let segmentInclusive = true;
+
+    // Process all filters to find a value for the current field segment
+    for (const fieldFilter of targetGetFieldFiltersForPath(
+      target,
+      segment.fieldPath
+    )) {
+      let filterValue: ProtoValue | undefined = undefined;
+      let filterInclusive = true;
+
+      switch (fieldFilter.op) {
+        case Operator.LESS_THAN:
+        case Operator.LESS_THAN_OR_EQUAL:
+          filterValue = valuesGetLowerBound(fieldFilter.value);
+          break;
+        case Operator.EQUAL:
+        case Operator.IN:
+        case Operator.GREATER_THAN_OR_EQUAL:
+          filterValue = fieldFilter.value;
+          break;
+        case Operator.GREATER_THAN:
+          filterValue = fieldFilter.value;
+          filterInclusive = false;
+          break;
+        case Operator.NOT_EQUAL:
+          filterValue = MIN_VALUE;
+          break;
+        case Operator.NOT_IN:
+          const length = (fieldFilter.value.arrayValue!.values || []).length;
+          filterValue = {
+            arrayValue: { values: new Array(length).fill(MIN_VALUE) }
+          };
+          break;
+        default:
+        // Remaining filters cannot be used as lower bounds.
+      }
+
+      if (valuesMax(segmentValue, filterValue) === filterValue) {
+        segmentValue = filterValue;
+        segmentInclusive = filterInclusive;
+      }
+    }
+
+    // If there is a startAt bound, compare the values against the existing
+    // boundary to see if we can narrow the scope.
+    if (target.startAt !== null) {
+      for (let i = 0; i < target.orderBy.length; ++i) {
+        const orderBy = target.orderBy[i];
+        if (orderBy.field.isEqual(segment.fieldPath)) {
+          const cursorValue = target.startAt.position[i];
+          if (valuesMax(segmentValue, cursorValue) === cursorValue) {
+            segmentValue = cursorValue;
+            segmentInclusive = !target.startAt.before;
+          }
+          break;
+        }
+      }
+    }
+
+    if (segmentValue === undefined) {
+      // No lower bound exists
+      return null;
+    }
+    values.push(segmentValue);
+    inclusive &&= segmentInclusive;
+  }
+  return new Bound(values, !inclusive);
+}
+/**
+ * Returns an upper bound of field values that can be used as an ending point
+ * when scanning the index defined by `fieldIndex`. Returns `null` if no
+ * upper bound exists.
+ */
+export function targetGetUpperBound(
+  target: Target,
+  fieldIndex: FieldIndex
+): Bound | null {
+  const values: ProtoValue[] = [];
+  let inclusive = true;
+
+  // For each segment, retrieve an upper bound if there is a suitable filter or
+  // endAt.
+  for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
+    let segmentValue: ProtoValue | undefined = undefined;
+    let segmentInclusive = true;
+
+    // Process all filters to find a value for the current field segment
+    for (const fieldFilter of targetGetFieldFiltersForPath(
+      target,
+      segment.fieldPath
+    )) {
+      let filterValue: ProtoValue | undefined = undefined;
+      let filterInclusive = true;
+
+      switch (fieldFilter.op) {
+        case Operator.GREATER_THAN_OR_EQUAL:
+        case Operator.GREATER_THAN:
+          filterValue = valuesGetUpperBound(fieldFilter.value);
+          filterInclusive = false;
+          break;
+        case Operator.EQUAL:
+        case Operator.IN:
+        case Operator.LESS_THAN_OR_EQUAL:
+          filterValue = fieldFilter.value;
+          break;
+        case Operator.LESS_THAN:
+          filterValue = fieldFilter.value;
+          filterInclusive = false;
+          break;
+        case Operator.NOT_EQUAL:
+          filterValue = MAX_VALUE;
+          break;
+        case Operator.NOT_IN:
+          const length = (fieldFilter.value.arrayValue!.values || []).length;
+          filterValue = {
+            arrayValue: { values: new Array(length).fill(MIN_VALUE) }
+          };
+          break;
+        default:
+        // Remaining filters cannot be used as upper bounds.
+      }
+
+      if (valuesMin(segmentValue, filterValue) === filterValue) {
+        segmentValue = filterValue;
+        segmentInclusive = filterInclusive;
+      }
+    }
+
+    // If there is a endAt bound, compare the values against the existing
+    // boundary to see if we can narrow the scope.
+    if (target.endAt !== null) {
+      for (let i = 0; i < target.orderBy.length; ++i) {
+        const orderBy = target.orderBy[i];
+        if (orderBy.field.isEqual(segment.fieldPath)) {
+          const cursorValue = target.endAt.position[i];
+          if (valuesMin(segmentValue, cursorValue) === cursorValue) {
+            segmentValue = cursorValue;
+            segmentInclusive = !target.endAt.before;
+          }
+          break;
+        }
+      }
+    }
+
+    if (segmentValue === undefined) {
+      // No lower bound exists
+      return null;
+    }
+    values.push(segmentValue);
+    inclusive &&= segmentInclusive;
+  }
+
+  return new Bound(values, !inclusive);
 }
 
 export abstract class Filter {
@@ -513,6 +772,7 @@ export class ArrayContainsAnyFilter extends FieldFilter {
   }
 }
 
+// TODO(indexing): Change Bound.before to "inclusive"
 /**
  * Represents a bound of a query.
  *

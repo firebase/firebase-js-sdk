@@ -94,6 +94,21 @@ describe('api/_performApiRequest', () => {
       );
     });
 
+    it('should include whatever headers the auth impl attaches', async () => {
+      sinon.stub(auth, '_getAdditionalHeaders').returns(Promise.resolve({
+        'look-at-me-im-a-header': 'header-value',
+        'anotherheader': 'header-value-2',
+      }));
+
+      const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
+      await _performApiRequest<
+        typeof request,
+        typeof serverResponse
+      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      expect(mock.calls[0].headers.get('look-at-me-im-a-header')).to.eq('header-value');
+      expect(mock.calls[0].headers.get('anotherheader')).to.eq('header-value-2');
+    });
+
     it('should set the framework in clientVersion if logged', async () => {
       auth._logFramework('Mythical');
       const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
@@ -301,7 +316,7 @@ describe('api/_performApiRequest', () => {
         request
       );
       clock.tick(DEFAULT_API_TIMEOUT_MS.get() + 1);
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/timeout');
+      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/network-request-failed');
       clock.restore();
     });
 

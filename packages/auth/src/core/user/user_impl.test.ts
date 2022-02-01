@@ -264,6 +264,14 @@ describe('core/user/user_impl', () => {
         photoURL: 'photo',
         emailVerified: false,
         isAnonymous: true,
+        providerData: [{
+          providerId: 'password',
+          displayName: null,
+          photoURL: null,
+          email: 'test@foo.test',
+          phoneNumber: null,
+          uid: 'i-am-uid'
+        }],
         tenantId: 'tenant-id'
       });
 
@@ -274,6 +282,14 @@ describe('core/user/user_impl', () => {
       expect(copy.toJSON()).to.eql(user.toJSON());
       expect(copy.auth).to.eq(newAuth);
       expect(copy.tenantId).to.eq('tenant-id');
+      expect(copy.providerData).to.eql([{
+        providerId: 'password',
+        displayName: null,
+        photoURL: null,
+        email: 'test@foo.test',
+        phoneNumber: null,
+        uid: 'i-am-uid'
+      }]);
     });
   });
 });

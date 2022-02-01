@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC.
+// Copyright 2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,15 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 
 syntax = "proto3";
 
 package google.firestore.v1;
 
-import "google/api/annotations.proto";
 import "google/firestore/v1/document.proto";
 import "google/protobuf/wrappers.proto";
+import "google/api/annotations.proto";
 
 option csharp_namespace = "Google.Cloud.Firestore.V1";
 option go_package = "google.golang.org/genproto/googleapis/firestore/v1;firestore";
@@ -28,7 +27,7 @@ option java_outer_classname = "QueryProto";
 option java_package = "com.google.firestore.v1";
 option objc_class_prefix = "GCFS";
 option php_namespace = "Google\\Cloud\\Firestore\\V1";
-
+option ruby_package = "Google::Cloud::Firestore::V1";
 
 // A Firestore query.
 message StructuredQuery {
@@ -113,7 +112,7 @@ message StructuredQuery {
       // * That `field` come first in `order_by`.
       GREATER_THAN_OR_EQUAL = 4;
 
-      // The given `field` is equal to the given `value`..
+      // The given `field` is equal to the given `value`.
       EQUAL = 5;
 
       // The given `field` is not equal to the given `value`.
@@ -132,7 +131,7 @@ message StructuredQuery {
       // Requires:
       //
       // * That `value` is a non-empty `ArrayValue` with at most 10 values.
-      // * No other `IN` or `ARRAY_CONTAINS_ANY`. (-- or `NOT_IN` --)
+      // * No other `IN` or `ARRAY_CONTAINS_ANY` or `NOT_IN`.
       IN = 8;
 
       // The given `field` is an array that contains any of the values in the
@@ -141,7 +140,7 @@ message StructuredQuery {
       // Requires:
       //
       // * That `value` is a non-empty `ArrayValue` with at most 10 values.
-      // * No other `IN` or `ARRAY_CONTAINS_ANY`. (-- or `NOT_IN` --)
+      // * No other `IN` or `ARRAY_CONTAINS_ANY` or `NOT_IN`.
       ARRAY_CONTAINS_ANY = 9;
 
       // The value of the `field` is not in the given array.

@@ -29,8 +29,9 @@ import {
   deleteObject,
   getMetadata,
   updateMetadata,
-  listAll
-} from '../../src/index';
+  listAll,
+  getBytes
+} from '../../src';
 
 import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -46,19 +47,28 @@ export const STORAGE_BUCKET = PROJECT_CONFIG.storageBucket;
 export const API_KEY = PROJECT_CONFIG.apiKey;
 export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
 
-describe('FirebaseStorage Integration tests', () => {
+export async function createApp(): Promise<FirebaseApp> {
+  const app = initializeApp({
+    apiKey: API_KEY,
+    projectId: PROJECT_ID,
+    storageBucket: STORAGE_BUCKET,
+    authDomain: AUTH_DOMAIN
+  });
+  await signInAnonymously(getAuth(app));
+  return app;
+}
+
+export function createStorage(app: FirebaseApp): types.FirebaseStorage {
+  return getStorage(app);
+}
+
+describe('FirebaseStorage Exp', () => {
   let app: FirebaseApp;
   let storage: types.FirebaseStorage;
 
   beforeEach(async () => {
-    app = initializeApp({
-      apiKey: API_KEY,
-      projectId: PROJECT_ID,
-      storageBucket: STORAGE_BUCKET,
-      authDomain: AUTH_DOMAIN
-    });
-    await signInAnonymously(getAuth(app));
-    storage = getStorage(app);
+    app = await createApp();
+    storage = createStorage(app);
   });
 
   afterEach(async () => {
@@ -69,6 +79,34 @@ describe('FirebaseStorage Integration tests', () => {
     const reference = ref(storage, 'public/exp-bytes');
     const snap = await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     expect(snap.metadata.timeCreated).to.exist;
+  });
+
+  it('can get bytes', async () => {
+    const reference = ref(storage, 'public/exp-bytes');
+    await uploadBytes(reference, new Uint8Array([0, 1, 3, 128, 255]));
+    const bytes = await getBytes(reference);
+    expect(new Uint8Array(bytes)).to.deep.equal(
+      new Uint8Array([0, 1, 3, 128, 255])
+    );
+  });
+
+  it('can get first n bytes', async () => {
+    const reference = ref(storage, 'public/exp-bytes');
+    await uploadBytes(reference, new Uint8Array([0, 1, 3]));
+    const bytes = await getBytes(reference, 2);
+    expect(new Uint8Array(bytes)).to.deep.equal(new Uint8Array([0, 1]));
+  });
+
+  it('getBytes() throws for missing file', async () => {
+    const reference = ref(storage, 'public/exp-bytes-missing');
+    try {
+      await getBytes(reference);
+      expect.fail();
+    } catch (e) {
+      expect(e.message).to.satisfy((v: string) =>
+        v.match(/Object 'public\/exp-bytes-missing' does not exist/)
+      );
+    }
   });
 
   it('can upload bytes (resumable)', async () => {

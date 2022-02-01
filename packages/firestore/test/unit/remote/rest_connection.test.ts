@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { Token } from '../../../src/api/credentials';
+import { AppCheckToken, OAuthToken, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { SDK_VERSION } from '../../../src/core/version';
@@ -35,7 +35,8 @@ export class TestRestConnection extends RestConnection {
 
   openStream<Req, Resp>(
     rpcName: string,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<Req, Resp> {
     throw new Error('Not Implemented');
   }
@@ -73,6 +74,7 @@ describe('RestConnection', () => {
       'Commit',
       'projects/testproject/databases/(default)/documents',
       {},
+      null,
       null
     );
     expect(connection.lastUrl).to.equal(
@@ -85,17 +87,31 @@ describe('RestConnection', () => {
       'RunQuery',
       'projects/testproject/databases/(default)/documents/foo',
       {},
-      {
-        user: User.UNAUTHENTICATED,
-        type: 'OAuth',
-        authHeaders: { 'Authorization': 'Bearer owner' }
-      }
+      new OAuthToken('owner', User.UNAUTHENTICATED),
+      new AppCheckToken('some-app-check-token')
     );
     expect(connection.lastHeaders).to.deep.equal({
       'Authorization': 'Bearer owner',
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
+      'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
+      'x-firebase-appcheck': 'some-app-check-token'
+    });
+  });
+
+  it('empty app check token is not added to headers', async () => {
+    await connection.invokeRPC(
+      'RunQuery',
+      'projects/testproject/databases/(default)/documents/foo',
+      {},
+      null,
+      new AppCheckToken('')
+    );
+    expect(connection.lastHeaders).to.deep.equal({
+      'Content-Type': 'text/plain',
+      'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`
+      // Note: AppCheck token should not exist here.
     });
   });
 
@@ -105,6 +121,7 @@ describe('RestConnection', () => {
       'RunQuery',
       'projects/testproject/databases/(default)/documents/coll',
       {},
+      null,
       null
     );
     expect(response).to.deep.equal({ response: true });
@@ -118,6 +135,7 @@ describe('RestConnection', () => {
         'RunQuery',
         'projects/testproject/databases/(default)/documents/coll',
         {},
+        null,
         null
       )
     ).to.be.eventually.rejectedWith(error);

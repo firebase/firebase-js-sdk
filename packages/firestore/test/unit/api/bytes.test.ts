@@ -17,10 +17,10 @@
 
 import { expect } from 'chai';
 
-import { Blob } from '../../../compat/api/blob';
+import { Bytes } from '../../../src';
 import { blob, expectEqual, expectNotEqual } from '../../util/helpers';
 
-describe('Blob', () => {
+describe('Bytes', () => {
   const base64Mappings: { [base64: string]: number[] } = {
     '': [],
     'AA==': [0],
@@ -30,7 +30,7 @@ describe('Blob', () => {
 
   it('constructs values from Base64', () => {
     Object.keys(base64Mappings).forEach(base64Str => {
-      const blob = Blob.fromBase64String(base64Str);
+      const blob = Bytes.fromBase64String(base64Str);
       const expectedBytes = base64Mappings[base64Str];
       const actualBytes = blob.toUint8Array();
       expect(actualBytes.length).to.equal(expectedBytes.length);
@@ -47,14 +47,14 @@ describe('Blob', () => {
     });
   });
 
-  it('Blob throws on invalid Base64 strings', () => {
-    expect(() => Blob.fromBase64String('not-base64!')).to.throw(
+  it('throws on invalid Base64 strings', () => {
+    expect(() => Bytes.fromBase64String('not-base64!')).to.throw(
       /Failed to construct data from Base64 string:/
     );
   });
 
   it('works with instanceof checks', () => {
-    expect(Blob.fromBase64String('') instanceof Blob).to.equal(true);
+    expect(Bytes.fromBase64String('') instanceof Bytes).to.equal(true);
   });
 
   it('support equality checking with isEqual()', () => {

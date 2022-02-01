@@ -15,12 +15,16 @@
  * limitations under the License.
  */
 
-import { ErrorCode, Connection } from '../../implementation/connection';
+import {
+  Connection,
+  ConnectionType,
+  ErrorCode
+} from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
-import nodeFetch, { FetchError } from 'node-fetch';
+import nodeFetch, { Headers } from 'node-fetch';
 
 /** An override for the text-based Connection. Used in tests. */
-let connectionFactoryOverride: (() => Connection) | null = null;
+let textFactoryOverride: (() => Connection<string>) | null = null;
 
 /**
  * Network layer that works in Node.
@@ -28,20 +32,22 @@ let connectionFactoryOverride: (() => Connection) | null = null;
  * This network implementation should not be used in browsers as it does not
  * support progress updates.
  */
-export class FetchConnection implements Connection {
-  private errorCode_: ErrorCode;
-  private statusCode_: number | undefined;
-  private body_: string | undefined;
-  private headers_: Headers | undefined;
-  private sent_: boolean = false;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private fetch_: typeof window.fetch = nodeFetch as any;
+abstract class FetchConnection<T extends ConnectionType>
+  implements Connection<T>
+{
+  protected errorCode_: ErrorCode;
+  protected statusCode_: number | undefined;
+  protected body_: ArrayBuffer | undefined;
+  protected errorText_ = '';
+  protected headers_: Headers | undefined;
+  protected sent_: boolean = false;
+  protected fetch_ = nodeFetch;
 
   constructor() {
     this.errorCode_ = ErrorCode.NO_ERROR;
   }
 
-  send(
+  async send(
     url: string,
     method: string,
     body?: ArrayBufferView | Blob | string,
@@ -52,24 +58,22 @@ export class FetchConnection implements Connection {
     }
     this.sent_ = true;
 
-    return this.fetch_(url, {
-      method,
-      headers: headers || {},
-      body
-    }).then(
-      resp => {
-        this.headers_ = resp.headers;
-        this.statusCode_ = resp.status;
-        return resp.text().then(body => {
-          this.body_ = body;
-        });
-      },
-      (_err: FetchError) => {
-        this.errorCode_ = ErrorCode.NETWORK_ERROR;
-        // emulate XHR which sets status to 0 when encountering a network error
-        this.statusCode_ = 0;
-      }
-    );
+    try {
+      const response = await this.fetch_(url, {
+        method,
+        headers: headers || {},
+        body: body as ArrayBufferView | string
+      });
+      this.headers_ = response.headers;
+      this.statusCode_ = response.status;
+      this.errorCode_ = ErrorCode.NO_ERROR;
+      this.body_ = await response.arrayBuffer();
+    } catch (e) {
+      this.errorText_ = e.message;
+      // emulate XHR which sets status to 0 when encountering a network error
+      this.statusCode_ = 0;
+      this.errorCode_ = ErrorCode.NETWORK_ERROR;
+    }
   }
 
   getErrorCode(): ErrorCode {
@@ -86,13 +90,10 @@ export class FetchConnection implements Connection {
     return this.statusCode_;
   }
 
-  getResponseText(): string {
-    if (this.body_ === undefined) {
-      throw internalError(
-        'cannot .getResponseText() before receiving response'
-      );
-    }
-    return this.body_;
+  abstract getResponse(): T;
+
+  getErrorText(): string {
+    return this.errorText_;
   }
 
   abort(): void {
@@ -102,7 +103,7 @@ export class FetchConnection implements Connection {
   getResponseHeader(header: string): string | null {
     if (!this.headers_) {
       throw internalError(
-        'cannot .getResponseText() before receiving response'
+        'cannot .getResponseHeader() before receiving response'
       );
     }
     return this.headers_.get(header);
@@ -112,20 +113,89 @@ export class FetchConnection implements Connection {
     // Not supported
   }
 
-  /**
-   * @override
-   */
   removeUploadProgressListener(listener: (p1: ProgressEvent) => void): void {
     // Not supported
   }
 }
 
-export function newConnection(): Connection {
-  return connectionFactoryOverride
-    ? connectionFactoryOverride()
-    : new FetchConnection();
+export class FetchTextConnection extends FetchConnection<string> {
+  getResponse(): string {
+    if (!this.body_) {
+      throw internalError('cannot .getResponse() before receiving response');
+    }
+    return Buffer.from(this.body_).toString('utf-8');
+  }
 }
 
-export function injectTestConnection(factory: (() => Connection) | null): void {
-  connectionFactoryOverride = factory;
+export function newTextConnection(): Connection<string> {
+  return textFactoryOverride
+    ? textFactoryOverride()
+    : new FetchTextConnection();
+}
+
+export class FetchBytesConnection extends FetchConnection<ArrayBuffer> {
+  getResponse(): ArrayBuffer {
+    if (!this.body_) {
+      throw internalError('cannot .getResponse() before sending');
+    }
+    return this.body_;
+  }
+}
+
+export function newBytesConnection(): Connection<ArrayBuffer> {
+  return new FetchBytesConnection();
+}
+
+export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream> {
+  private stream_: NodeJS.ReadableStream | null = null;
+
+  async send(
+    url: string,
+    method: string,
+    body?: ArrayBufferView | Blob | string,
+    headers?: Record<string, string>
+  ): Promise<void> {
+    if (this.sent_) {
+      throw internalError('cannot .send() more than once');
+    }
+    this.sent_ = true;
+
+    try {
+      const response = await this.fetch_(url, {
+        method,
+        headers: headers || {},
+        body: body as ArrayBufferView | string
+      });
+      this.headers_ = response.headers;
+      this.statusCode_ = response.status;
+      this.errorCode_ = ErrorCode.NO_ERROR;
+      this.stream_ = response.body;
+    } catch (e) {
+      this.errorText_ = e.message;
+      // emulate XHR which sets status to 0 when encountering a network error
+      this.statusCode_ = 0;
+      this.errorCode_ = ErrorCode.NETWORK_ERROR;
+    }
+  }
+
+  getResponse(): NodeJS.ReadableStream {
+    if (!this.stream_) {
+      throw internalError('cannot .getResponse() before sending');
+    }
+    return this.stream_;
+  }
+}
+
+export function newStreamConnection(): Connection<NodeJS.ReadableStream> {
+  return new FetchStreamConnection();
+}
+
+export function newBlobConnection(): Connection<Blob> {
+  throw new Error('Blobs are not supported on Node');
+}
+
+export function injectTestConnection(
+  factory: (() => Connection<string>) | null
+): void {
+  textFactoryOverride = factory;
 }

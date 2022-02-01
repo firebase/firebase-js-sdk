@@ -629,6 +629,16 @@ export interface MultiFactorInfo {
 }
 
 /**
+ * The subclass of the {@link MultiFactorInfo} interface for phone number
+ * second factors. The factorId of this second factor is {@link FactorId.PHONE}.
+ * @public
+ */
+export interface PhoneMultiFactorInfo extends MultiFactorInfo {
+  /** The phone number associated with the current second factor. */
+  readonly phoneNumber: string;
+}
+
+/**
  * The class used to facilitate recovery from {@link MultiFactorError} when a user needs to
  * provide a second factor to sign in.
  *
@@ -990,8 +1000,7 @@ export interface User extends UserInfo {
 }
 
 /**
- * A structure containing a {@link User}, an {@link AuthCredential}, the {@link OperationType},
- * and any additional user information that was returned from the identity provider.
+ * A structure containing a {@link User}, the {@link OperationType}, and the provider ID.
  *
  * @remarks
  * `operationType` could be {@link OperationType}.SIGN_IN for a sign-in operation,

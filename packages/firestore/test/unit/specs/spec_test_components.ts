@@ -135,7 +135,12 @@ export class MockOnlineComponentProvider extends OnlineComponentProvider {
       cfg.databaseInfo.databaseId,
       /* useProto3Json= */ true
     );
-    return newDatastore(cfg.credentials, this.connection, serializer);
+    return newDatastore(
+      cfg.authCredentials,
+      cfg.appCheckCredentials,
+      this.connection,
+      serializer
+    );
   }
 }
 

@@ -39,7 +39,7 @@ import {
 import { validateNumber } from './implementation/type';
 import { FirebaseStorage } from './public-types';
 import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
-import { Connection } from './implementation/connection';
+import { Connection, ConnectionType } from './implementation/connection';
 
 export function isUrl(path?: string): boolean {
   return /^[A-Za-z]+:\/\//.test(path as string);
@@ -298,12 +298,12 @@ export class FirebaseStorageImpl implements FirebaseStorage {
    * @param requestInfo - HTTP RequestInfo object
    * @param authToken - Firebase auth token
    */
-  _makeRequest<T>(
-    requestInfo: RequestInfo<T>,
-    requestFactory: () => Connection,
+  _makeRequest<I extends ConnectionType, O>(
+    requestInfo: RequestInfo<I, O>,
+    requestFactory: () => Connection<I>,
     authToken: string | null,
     appCheckToken: string | null
-  ): Request<T> {
+  ): Request<O> {
     if (!this._deleted) {
       const request = makeRequest(
         requestInfo,
@@ -325,10 +325,10 @@ export class FirebaseStorageImpl implements FirebaseStorage {
     }
   }
 
-  async makeRequestWithTokens<T>(
-    requestInfo: RequestInfo<T>,
-    requestFactory: () => Connection
-  ): Promise<T> {
+  async makeRequestWithTokens<I extends ConnectionType, O>(
+    requestInfo: RequestInfo<I, O>,
+    requestFactory: () => Connection<I>
+  ): Promise<O> {
     const [authToken, appCheckToken] = await Promise.all([
       this._getAuthToken(),
       this._getAppCheckToken()

@@ -53,25 +53,18 @@ function copyTests() {
     .pipe(
       replace(
         /**
-         * This regex is designed to match the following statement used in our
-         * firestore integration test suites:
-         *
-         * import * as firebaseExport from '../../util/firebase_export';
-         *
-         * It will handle variations in whitespace, single/double quote
-         * differences, as well as different paths to a valid firebase_export
+         * This regex is designed to match the Firebase import in our
+         * integration tests.
          */
-        /import\s+\* as firebaseExport\s+from\s+('|")[^\1]+firebase_export\1;?/,
-        `import * as firebaseExport from '${resolve(
-          __dirname,
-          './firebase_export'
-        )}';
+        /\s+from '\.(\.\/util)?\/firebase_export';/,
+        ` from '${resolve(__dirname, './firebase_export')}';
         
-         if (typeof process === 'undefined') {
-           process = { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } } as any;
-         } else {
-           process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
-         }`
+if (typeof process === 'undefined') {
+  process = { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } } as any;
+} else {
+  process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
+}
+`
       )
     )
     .pipe(

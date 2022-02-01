@@ -58,6 +58,10 @@ export class DatabaseId {
     this.database = database ? database : DEFAULT_DATABASE_NAME;
   }
 
+  static empty(): DatabaseId {
+    return new DatabaseId('', '');
+  }
+
   get isDefaultDatabase(): boolean {
     return this.database === DEFAULT_DATABASE_NAME;
   }

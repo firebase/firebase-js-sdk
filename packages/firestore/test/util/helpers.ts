@@ -15,12 +15,9 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
-import { Blob } from '../../compat/api/blob';
-import { DocumentReference } from '../../compat/api/database';
-import { Timestamp } from '../../src/api/timestamp';
+import { Bytes, DocumentReference, Timestamp } from '../../src';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
@@ -70,6 +67,14 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
+import {
+  FieldIndex,
+  IndexKind,
+  IndexOffset,
+  IndexSegment,
+  IndexState,
+  INITIAL_SEQUENCE_NUMBER
+} from '../../src/model/field_index';
 import { FieldMask } from '../../src/model/field_mask';
 import {
   DeleteMutation,
@@ -87,6 +92,7 @@ import {
   LimitType as ProtoLimitType
 } from '../../src/protos/firestore_bundle_proto';
 import * as api from '../../src/protos/firestore_proto_api';
+import { ExistenceFilter } from '../../src/remote/existence_filter';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   JsonProtoSerializer,
@@ -98,6 +104,7 @@ import {
 } from '../../src/remote/serializer';
 import {
   DocumentWatchChange,
+  ExistenceFilterChange,
   WatchChangeAggregator,
   WatchTargetChange,
   WatchTargetChangeState
@@ -137,10 +144,10 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
 }
 
 export function ref(key: string, offset?: number): DocumentReference {
-  return DocumentReference.forPath(
-    path(key, offset),
+  return new DocumentReference(
     FIRESTORE,
-    /* converter= */ null
+    /* converter= */ null,
+    new DocumentKey(path(key, offset))
   );
 }
 
@@ -155,14 +162,16 @@ export function doc(
     jsonOrObjectValue instanceof ObjectValue
       ? jsonOrObjectValue
       : wrapObject(jsonOrObjectValue)
-  );
+  ).setReadTime(version(ver));
 }
 
 export function deletedDoc(
   keyStr: string,
   ver: TestSnapshotVersion
 ): MutableDocument {
-  return MutableDocument.newNoDocument(key(keyStr), version(ver));
+  return MutableDocument.newNoDocument(key(keyStr), version(ver)).setReadTime(
+    version(ver)
+  );
 }
 
 export function unknownDoc(
@@ -215,13 +224,31 @@ export function field(path: string): FieldPath {
   return new FieldPath(path.split('.'));
 }
 
+export function fieldIndex(
+  collectionGroup: string,
+  options: {
+    id?: number;
+    fields?: Array<[field: string, kind: IndexKind]>;
+    offset?: IndexOffset;
+  } = {}
+): FieldIndex {
+  return new FieldIndex(
+    options.id ?? FieldIndex.UNKNOWN_ID,
+    collectionGroup,
+    (options.fields ?? []).map(
+      entry => new IndexSegment(field(entry[0]), entry[1])
+    ),
+    new IndexState(INITIAL_SEQUENCE_NUMBER, options.offset ?? IndexOffset.min())
+  );
+}
+
 export function mask(...paths: string[]): FieldMask {
   return new FieldMask(paths.map(v => field(v)));
 }
 
-export function blob(...bytes: number[]): Blob {
+export function blob(...bytes: number[]): Bytes {
   // bytes can be undefined for the empty blob
-  return Blob.fromUint8Array(new Uint8Array(bytes || []));
+  return Bytes.fromUint8Array(new Uint8Array(bytes || []));
 }
 
 export function filter(path: string, op: string, value: unknown): FieldFilter {
@@ -290,14 +317,10 @@ export function mutationResult(
   return new MutationResult(version(testVersion), /* transformResults= */ []);
 }
 
-export function bound(
-  values: Array<[string, {}, firestore.OrderByDirection]>,
-  before: boolean
-): Bound {
+export function bound(values: unknown[], before: boolean): Bound {
   const components: api.Value[] = [];
   for (const value of values) {
-    const [_, dataValue] = value;
-    components.push(wrap(dataValue));
+    components.push(wrap(value));
   }
   return new Bound(components, before);
 }
@@ -348,6 +371,23 @@ export function noChangeEvent(
       [targetId],
       resumeToken
     )
+  );
+  return aggregator.createRemoteEvent(version(snapshotVersion));
+}
+
+export function existenceFilterEvent(
+  targetId: number,
+  syncedKeys: DocumentKeySet,
+  remoteCount: number,
+  snapshotVersion: number
+): RemoteEvent {
+  const aggregator = new WatchChangeAggregator({
+    getRemoteKeysForTarget: () => syncedKeys,
+    getTargetDataForTarget: targetId =>
+      targetData(targetId, TargetPurpose.Listen, 'foo')
+  });
+  aggregator.handleExistenceFilter(
+    new ExistenceFilterChange(targetId, new ExistenceFilter(remoteCount))
   );
   return aggregator.createRemoteEvent(version(snapshotVersion));
 }

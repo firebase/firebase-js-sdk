@@ -58,6 +58,7 @@ import { _assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
+import { HttpHeader } from '../../api';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -135,7 +136,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       // Initialize the resolver early if necessary (only applicable to web:
       // this will cause the iframe to load immediately in certain cases)
       if (this._popupRedirectResolver?._shouldInitProactively) {
-        await this._popupRedirectResolver._initialize(this);
+        // If this fails, don't halt auth loading
+        try {
+          await this._popupRedirectResolver._initialize(this);
+        } catch (e) { /* Ignore the error */ }
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
@@ -574,8 +578,15 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _getFrameworks(): readonly string[] {
     return this.frameworks;
   }
-  _getSdkClientVersion(): string {
-    return this.clientVersion;
+  async _getAdditionalHeaders(): Promise<Record<string, string>> {
+    // Additional headers on every request
+    const headers: Record<string, string> = {
+      [HttpHeader.X_CLIENT_VERSION]: this.clientVersion,
+    };
+    if (this.app.options.appId) {
+      headers[HttpHeader.X_FIREBASE_GMPID] = this.app.options.appId;
+    }
+    return headers;
   }
 }
 

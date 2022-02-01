@@ -15,17 +15,18 @@
  * limitations under the License.
  */
 
-import tmp from 'tmp';
-import json from '@rollup/plugin-json';
+import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 import alias from '@rollup/plugin-alias';
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import typescript from 'typescript';
+import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
-import copy from 'rollup-plugin-copy';
 import { terser } from 'rollup-plugin-terser';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import tmp from 'tmp';
+import typescript from 'typescript';
+
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 import pkg from './package.json';
-import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 const util = require('./rollup.shared');
 
@@ -39,21 +40,12 @@ const nodePlugins = function () {
         }
       },
       cacheDir: tmp.dirSync(),
-      abortOnError: false,
+      abortOnError: true,
       transformers: [util.removeAssertTransformer]
     }),
     json({ preferConst: true }),
-    // Needed as we also use the *.proto files
-    copy({
-      targets: [
-        {
-          src: 'src/protos',
-          dest: 'dist/src'
-        }
-      ]
-    }),
     replace({
-      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
+      '__GRPC_VERSION__': grpcVersion
     })
   ];
 };
@@ -68,8 +60,7 @@ const browserPlugins = function () {
         }
       },
       cacheDir: tmp.dirSync(),
-      clean: true,
-      abortOnError: false,
+      abortOnError: true,
       transformers: [util.removeAssertAndPrefixInternalTransformer]
     }),
     json({ preferConst: true }),

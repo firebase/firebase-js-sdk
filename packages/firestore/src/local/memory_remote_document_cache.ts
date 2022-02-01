@@ -19,7 +19,6 @@ import { isCollectionGroupQuery, Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
-  DocumentSizeEntry,
   MutableDocumentMap,
   mutableDocumentMap
 } from '../model/collections';
@@ -37,8 +36,9 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 export type DocumentSizer = (doc: Document) => number;
 
 /** Miscellaneous collection types / constants. */
-interface MemoryRemoteDocumentCacheEntry extends DocumentSizeEntry {
-  readTime: SnapshotVersion;
+interface MemoryRemoteDocumentCacheEntry {
+  document: Document;
+  size: number;
 }
 
 type DocumentEntryMap = SortedMap<DocumentKey, MemoryRemoteDocumentCacheEntry>;
@@ -84,11 +84,10 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
    */
   addEntry(
     transaction: PersistenceTransaction,
-    doc: MutableDocument,
-    readTime: SnapshotVersion
+    doc: MutableDocument
   ): PersistencePromise<void> {
     debugAssert(
-      !readTime.isEqual(SnapshotVersion.min()),
+      !doc.readTime.isEqual(SnapshotVersion.min()),
       'Cannot add a document with a read time of zero'
     );
 
@@ -98,9 +97,8 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     const currentSize = this.sizer(doc);
 
     this.docs = this.docs.insert(key, {
-      document: doc.clone(),
-      size: currentSize,
-      readTime
+      document: doc.mutableCopy(),
+      size: currentSize
     });
 
     this.size += currentSize - previousSize;
@@ -132,7 +130,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     const entry = this.docs.get(documentKey);
     return PersistencePromise.resolve(
       entry
-        ? entry.document.clone()
+        ? entry.document.mutableCopy()
         : MutableDocument.newInvalidDocument(documentKey)
     );
   }
@@ -147,7 +145,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
       results = results.insert(
         documentKey,
         entry
-          ? entry.document.clone()
+          ? entry.document.mutableCopy()
           : MutableDocument.newInvalidDocument(documentKey)
       );
     });
@@ -172,18 +170,18 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     while (iterator.hasNext()) {
       const {
         key,
-        value: { document, readTime }
+        value: { document }
       } = iterator.getNext();
       if (!query.path.isPrefixOf(key.path)) {
         break;
       }
-      if (readTime.compareTo(sinceReadTime) <= 0) {
+      if (document.readTime.compareTo(sinceReadTime) <= 0) {
         continue;
       }
       if (!queryMatches(query, document)) {
         continue;
       }
-      results = results.insert(document.key, document.clone());
+      results = results.insert(document.key, document.mutableCopy());
     }
     return PersistencePromise.resolve(results);
   }
@@ -236,14 +234,8 @@ class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
     this.changes.forEach((key, doc) => {
-      if (doc.document.isValidDocument()) {
-        promises.push(
-          this.documentCache.addEntry(
-            transaction,
-            doc.document,
-            this.getReadTime(key)
-          )
-        );
+      if (doc.isValidDocument()) {
+        promises.push(this.documentCache.addEntry(transaction, doc));
       } else {
         this.documentCache.removeEntry(key);
       }

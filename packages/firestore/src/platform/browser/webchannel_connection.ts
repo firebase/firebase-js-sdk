@@ -160,7 +160,8 @@ export class WebChannelConnection extends RestConnection {
 
   openStream<Req, Resp>(
     rpcName: string,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<Req, Resp> {
     const urlParts = [
       this.baseUrl,
@@ -201,7 +202,11 @@ export class WebChannelConnection extends RestConnection {
       request.xmlHttpFactory = new FetchXmlHttpFactory({});
     }
 
-    this.modifyHeadersForRequest(request.initMessageHeaders!, token);
+    this.modifyHeadersForRequest(
+      request.initMessageHeaders!,
+      authToken,
+      appCheckToken
+    );
 
     // Sending the custom headers we just added to request.initMessageHeaders
     // (Authorization, etc.) will trigger the browser to make a CORS preflight

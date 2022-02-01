@@ -1,5 +1,37 @@
 #Unreleased
 
+## 0.9.2
+
+### Patch Changes
+
+- [`d612d6f6e`](https://github.com/firebase/firebase-js-sdk/commit/d612d6f6e4d3113d45427b7df68459c0a3e31a1f) [#5928](https://github.com/firebase/firebase-js-sdk/pull/5928) - Upgrade `node-fetch` dependency due to a security issue.
+
+## 0.9.1
+
+### Patch Changes
+
+- [`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49) [#5831](https://github.com/firebase/firebase-js-sdk/pull/5831) (fixes [#5754](https://github.com/firebase/firebase-js-sdk/issues/5754)) - FirestoreError and StorageError now extend FirebaseError
+
+- Updated dependencies [[`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49)]:
+  - @firebase/util@1.4.3
+  - @firebase/component@0.5.10
+
+## 0.9.0
+
+### Minor Changes
+
+- [`e34e98e73`](https://github.com/firebase/firebase-js-sdk/commit/e34e98e73a72f77ee87d9005d6728402129deda9) [#5672](https://github.com/firebase/firebase-js-sdk/pull/5672) (fixes [#76](https://github.com/firebase/firebase-js-sdk/issues/76)) - Adds `getBytes()`, `getStream()` and `getBlob()`, which allow direct file downloads from the SDK.
+
+### Patch Changes
+
+- [`0394cc97b`](https://github.com/firebase/firebase-js-sdk/commit/0394cc97b98f04dae87b718655eb46174275ebc2) [#5743](https://github.com/firebase/firebase-js-sdk/pull/5743) - Fix typings for storage and storage-compat.
+
+## 0.8.7
+
+### Patch Changes
+
+- [`e0fe2b668`](https://github.com/firebase/firebase-js-sdk/commit/e0fe2b668b64b64d842988c2c147d3de66148f48) [#5703](https://github.com/firebase/firebase-js-sdk/pull/5703) (fixes [#5628](https://github.com/firebase/firebase-js-sdk/issues/5628)) - Clear the global timeout once an operation is done in the Storage SDK. Otherwise it may prevent Node.js from exiting.
+
 ## 0.8.6
 
 ### Patch Changes

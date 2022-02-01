@@ -15,54 +15,63 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { EventsAccumulator } from '../util/events_accumulator';
-import * as firebaseExport from '../util/firebase_export';
+import {
+  Bytes,
+  collection,
+  doc,
+  DocumentSnapshot,
+  Firestore,
+  GeoPoint,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  QuerySnapshot,
+  runTransaction,
+  setDoc,
+  Timestamp,
+  updateDoc
+} from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
-
-const Blob = firebaseExport.Blob;
-const GeoPoint = firebaseExport.GeoPoint;
-const Timestamp = firebaseExport.Timestamp;
 
 apiDescribe('Firestore', (persistence: boolean) => {
   addEqualityMatcher();
 
   async function expectRoundtrip(
-    db: firestore.FirebaseFirestore,
+    db: Firestore,
     data: {},
     validateSnapshots = true,
     expectedData?: {}
-  ): Promise<firestore.DocumentSnapshot> {
+  ): Promise<DocumentSnapshot> {
     expectedData = expectedData ?? data;
 
-    const collection = db.collection(db.collection('a').doc().id);
-    const doc = collection.doc();
+    const collRef = collection(db, doc(collection(db, 'a')).id);
+    const docRef = doc(collRef);
 
-    await doc.set(data);
-    let docSnapshot = await doc.get();
+    await setDoc(docRef, data);
+    let docSnapshot = await getDoc(docRef);
     expect(docSnapshot.data()).to.deep.equal(expectedData);
 
-    await doc.update(data);
-    docSnapshot = await doc.get();
+    await updateDoc(docRef, data);
+    docSnapshot = await getDoc(docRef);
     expect(docSnapshot.data()).to.deep.equal(expectedData);
 
     // Validate that the transaction API returns the same types
-    await db.runTransaction(async transaction => {
-      docSnapshot = await transaction.get(doc);
+    await runTransaction(db, async transaction => {
+      docSnapshot = await transaction.get(docRef);
       expect(docSnapshot.data()).to.deep.equal(expectedData);
     });
 
     if (validateSnapshots) {
-      let querySnapshot = await collection.get();
+      let querySnapshot = await getDocs(collRef);
       docSnapshot = querySnapshot.docs[0];
       expect(docSnapshot.data()).to.deep.equal(expectedData);
 
-      const eventsAccumulator =
-        new EventsAccumulator<firestore.QuerySnapshot>();
-      const unlisten = collection.onSnapshot(eventsAccumulator.storeEvent);
+      const eventsAccumulator = new EventsAccumulator<QuerySnapshot>();
+      const unlisten = onSnapshot(collRef, eventsAccumulator.storeEvent);
       querySnapshot = await eventsAccumulator.awaitEvent();
       docSnapshot = querySnapshot.docs[0];
       expect(docSnapshot.data()).to.deep.equal(expectedData);
@@ -121,7 +130,7 @@ apiDescribe('Firestore', (persistence: boolean) => {
   it('can read and write bytes fields', () => {
     return withTestDb(persistence, async db => {
       const docSnapshot = await expectRoundtrip(db, {
-        bytes: Blob.fromUint8Array(new Uint8Array([0, 1, 255]))
+        bytes: Bytes.fromUint8Array(new Uint8Array([0, 1, 255]))
       });
 
       const blob = docSnapshot.data()!['bytes'];
@@ -158,14 +167,14 @@ apiDescribe('Firestore', (persistence: boolean) => {
   });
 
   it('can read and write document references', () => {
-    return withTestDoc(persistence, async doc => {
-      await expectRoundtrip(doc.firestore, { a: 42, ref: doc });
+    return withTestDoc(persistence, async (doc, db) => {
+      await expectRoundtrip(db, { a: 42, ref: doc });
     });
   });
 
   it('can read and write document references in an array', () => {
-    return withTestDoc(persistence, async doc => {
-      await expectRoundtrip(doc.firestore, { a: 42, refs: [doc] });
+    return withTestDoc(persistence, async (doc, db) => {
+      await expectRoundtrip(db, { a: 42, refs: [doc] });
     });
   });
 });

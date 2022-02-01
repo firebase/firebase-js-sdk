@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as stringify from 'json-stable-stringify';
+import stringify from 'json-stable-stringify';
 import { ExclusiveTestFunction, PendingTestFunction } from 'mocha';
 
 import { queryEquals, QueryImpl } from '../../../src/core/query';

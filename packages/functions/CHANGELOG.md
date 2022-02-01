@@ -1,5 +1,25 @@
 # @firebase/functions
 
+## 0.7.8
+
+### Patch Changes
+
+- [`d612d6f6e`](https://github.com/firebase/firebase-js-sdk/commit/d612d6f6e4d3113d45427b7df68459c0a3e31a1f) [#5928](https://github.com/firebase/firebase-js-sdk/pull/5928) - Upgrade `node-fetch` dependency due to a security issue.
+
+## 0.7.7
+
+### Patch Changes
+
+- Updated dependencies [[`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49)]:
+  - @firebase/util@1.4.3
+  - @firebase/component@0.5.10
+
+## 0.7.6
+
+### Patch Changes
+
+- [`3b338dbd8`](https://github.com/firebase/firebase-js-sdk/commit/3b338dbd8cdfdc73267cd052b1852a1358b05eaf) [#5701](https://github.com/firebase/firebase-js-sdk/pull/5701) (fixes [#5692](https://github.com/firebase/firebase-js-sdk/issues/5692)) - Clear pending timeout after promise.race. It allows the process to exit immediately in case the SDK is used in Node.js, otherwise the process will wait for the timeout to finish before exiting.
+
 ## 0.7.5
 
 ### Patch Changes

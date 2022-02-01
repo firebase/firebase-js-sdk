@@ -19,7 +19,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 
 // @ts-ignore: There are no types for indexeddbshim.
-import * as registerIndexedDBShim from 'indexeddbshim';
+import registerIndexedDBShim from 'indexeddbshim';
 
 import { FakeWindow, SharedFakeWebStorage } from './test_platform';
 

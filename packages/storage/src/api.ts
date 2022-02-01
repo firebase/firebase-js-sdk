@@ -47,7 +47,8 @@ import {
   getDownloadURL as getDownloadURLInternal,
   deleteObject as deleteObjectInternal,
   Reference,
-  _getChild as _getChildInternal
+  _getChild as _getChildInternal,
+  getBytesInternal
 } from './reference';
 import { STORAGE_TYPE } from './constants';
 import { EmulatorMockTokenOptions, getModularInstance } from '@firebase/util';
@@ -75,6 +76,28 @@ export {
   TaskState as _TaskState
 } from './implementation/taskenums';
 export { StringFormat };
+
+/**
+ * Downloads the data at the object's location. Returns an error if the object
+ * is not found.
+ *
+ * To use this functionality, you have to whitelist your app's origin in your
+ * Cloud Storage bucket. See also
+ * https://cloud.google.com/storage/docs/configuring-cors
+ *
+ * @public
+ * @param ref - StorageReference where data should be downloaded.
+ * @param maxDownloadSizeBytes - If set, the maximum allowed size in bytes to
+ * retrieve.
+ * @returns A Promise containing the object's bytes
+ */
+export function getBytes(
+  ref: StorageReference,
+  maxDownloadSizeBytes?: number
+): Promise<ArrayBuffer> {
+  ref = getModularInstance(ref);
+  return getBytesInternal(ref as Reference, maxDownloadSizeBytes);
+}
 
 /**
  * Uploads data to this object's location.

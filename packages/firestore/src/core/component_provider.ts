@@ -75,7 +75,8 @@ import { OnlineStateSource } from './types';
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
   databaseInfo: DatabaseInfo;
-  credentials: CredentialsProvider;
+  authCredentials: CredentialsProvider<User>;
+  appCheckCredentials: CredentialsProvider<string>;
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;
@@ -371,7 +372,12 @@ export class OnlineComponentProvider {
   createDatastore(cfg: ComponentConfiguration): Datastore {
     const serializer = newSerializer(cfg.databaseInfo.databaseId);
     const connection = newConnection(cfg.databaseInfo);
-    return newDatastore(cfg.credentials, connection, serializer);
+    return newDatastore(
+      cfg.authCredentials,
+      cfg.appCheckCredentials,
+      connection,
+      serializer
+    );
   }
 
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {

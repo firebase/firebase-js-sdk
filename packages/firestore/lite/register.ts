@@ -23,7 +23,10 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../package.json';
-import { LiteCredentialsProvider } from '../src/api/credentials';
+import {
+  LiteAppCheckTokenProvider,
+  LiteAuthCredentialsProvider
+} from '../src/api/credentials';
 import { setSDKVersion } from '../src/core/version';
 import { Firestore } from '../src/lite-api/database';
 import { FirestoreSettings } from '../src/lite-api/settings';
@@ -43,14 +46,19 @@ export function registerFirestore(): void {
         const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
           app,
-          new LiteCredentialsProvider(container.getProvider('auth-internal'))
+          new LiteAuthCredentialsProvider(
+            container.getProvider('auth-internal')
+          ),
+          new LiteAppCheckTokenProvider(
+            container.getProvider('app-check-internal')
+          )
         );
         if (settings) {
           firestoreInstance._setSettings(settings);
         }
         return firestoreInstance;
       },
-      ComponentType.PUBLIC
+      'PUBLIC' as ComponentType.PUBLIC
     )
   );
   // RUNTIME_ENV and BUILD_TARGET are replaced by real values during the compilation

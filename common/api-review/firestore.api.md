@@ -6,6 +6,7 @@
 
 import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
+import { FirebaseError } from '@firebase/util';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
 // @public
@@ -177,10 +178,9 @@ export interface FirestoreDataConverter<T> {
 }
 
 // @public
-export class FirestoreError extends Error {
+export class FirestoreError extends FirebaseError {
     readonly code: FirestoreErrorCode;
     readonly message: string;
-    readonly name: string;
     readonly stack?: string;
 }
 

@@ -171,3 +171,7 @@ export async function _isCordova(): Promise<boolean> {
     });
   });
 }
+
+export function _getSelfWindow(): Window | null {
+  return typeof window !== 'undefined' ? window : null;
+}

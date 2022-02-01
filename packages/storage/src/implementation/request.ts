@@ -20,18 +20,12 @@
  * abstract representations.
  */
 
-import { start, stop, id as backoffId } from './backoff';
-import {
-  StorageError,
-  unknown,
-  appDeleted,
-  canceled,
-  retryLimitExceeded
-} from './error';
-import { RequestHandler, RequestInfo } from './requestinfo';
+import { id as backoffId, start, stop } from './backoff';
+import { appDeleted, canceled, retryLimitExceeded, unknown } from './error';
+import { ErrorHandler, RequestHandler, RequestInfo } from './requestinfo';
 import { isJustDef } from './type';
 import { makeQueryString } from './url';
-import { Headers, Connection, ErrorCode } from './connection';
+import { Connection, ErrorCode, Headers, ConnectionType } from './connection';
 
 export interface Request<T> {
   getPromise(): Promise<T>;
@@ -46,15 +40,23 @@ export interface Request<T> {
   cancel(appDelete?: boolean): void;
 }
 
-class NetworkRequest<T> implements Request<T> {
-  private pendingConnection_: Connection | null = null;
+/**
+ * Handles network logic for all Storage Requests, including error reporting and
+ * retries with backoff.
+ *
+ * @param I - the type of the backend's network response.
+ * @param - O the output type used by the rest of the SDK. The conversion
+ * happens in the specified `callback_`.
+ */
+class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
+  private pendingConnection_: Connection<I> | null = null;
   private backoffId_: backoffId | null = null;
-  private resolve_!: (value?: T | PromiseLike<T>) => void;
+  private resolve_!: (value?: O | PromiseLike<O>) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private reject_!: (reason?: any) => void;
   private canceled_: boolean = false;
   private appDelete_: boolean = false;
-  promise_: Promise<T>;
+  private promise_: Promise<O>;
 
   constructor(
     private url_: string,
@@ -63,14 +65,14 @@ class NetworkRequest<T> implements Request<T> {
     private body_: string | Blob | Uint8Array | null,
     private successCodes_: number[],
     private additionalRetryCodes_: number[],
-    private callback_: RequestHandler<string, T>,
-    private errorCallback_: RequestHandler<StorageError, StorageError> | null,
+    private callback_: RequestHandler<I, O>,
+    private errorCallback_: ErrorHandler | null,
     private timeout_: number,
     private progressCallback_: ((p1: number, p2: number) => void) | null,
-    private connectionFactory_: () => Connection
+    private connectionFactory_: () => Connection<I>
   ) {
     this.promise_ = new Promise((resolve, reject) => {
-      this.resolve_ = resolve as (value?: T | PromiseLike<T>) => void;
+      this.resolve_ = resolve as (value?: O | PromiseLike<O>) => void;
       this.reject_ = reject;
       this.start_();
     });
@@ -135,17 +137,14 @@ class NetworkRequest<T> implements Request<T> {
      */
     const backoffDone: (
       requestWentThrough: boolean,
-      status: RequestEndStatus
+      status: RequestEndStatus<I>
     ) => void = (requestWentThrough, status) => {
       const resolve = this.resolve_;
       const reject = this.reject_;
-      const connection = status.connection as Connection;
+      const connection = status.connection as Connection<I>;
       if (status.wasSuccessCode) {
         try {
-          const result = this.callback_(
-            connection,
-            connection.getResponseText()
-          );
+          const result = this.callback_(connection, connection.getResponse());
           if (isJustDef(result)) {
             resolve(result);
           } else {
@@ -157,7 +156,7 @@ class NetworkRequest<T> implements Request<T> {
       } else {
         if (connection !== null) {
           const err = unknown();
-          err.serverResponse = connection.getResponseText();
+          err.serverResponse = connection.getErrorText();
           if (this.errorCallback_) {
             reject(this.errorCallback_(connection, err));
           } else {
@@ -182,7 +181,7 @@ class NetworkRequest<T> implements Request<T> {
   }
 
   /** @inheritDoc */
-  getPromise(): Promise<T> {
+  getPromise(): Promise<O> {
     return this.promise_;
   }
 
@@ -219,7 +218,7 @@ class NetworkRequest<T> implements Request<T> {
  * A collection of information about the result of a network request.
  * @param opt_canceled - Defaults to false.
  */
-export class RequestEndStatus {
+export class RequestEndStatus<I extends ConnectionType> {
   /**
    * True if the request was canceled.
    */
@@ -227,7 +226,7 @@ export class RequestEndStatus {
 
   constructor(
     public wasSuccessCode: boolean,
-    public connection: Connection | null,
+    public connection: Connection<I> | null,
     canceled?: boolean
   ) {
     this.canceled = !!canceled;
@@ -266,14 +265,14 @@ export function addAppCheckHeader_(
   }
 }
 
-export function makeRequest<T>(
-  requestInfo: RequestInfo<T>,
+export function makeRequest<I extends ConnectionType, O>(
+  requestInfo: RequestInfo<I, O>,
   appId: string | null,
   authToken: string | null,
   appCheckToken: string | null,
-  requestFactory: () => Connection,
+  requestFactory: () => Connection<I>,
   firebaseVersion?: string
-): Request<T> {
+): Request<O> {
   const queryPart = makeQueryString(requestInfo.urlParams);
   const url = requestInfo.url + queryPart;
   const headers = Object.assign({}, requestInfo.headers);
@@ -281,7 +280,7 @@ export function makeRequest<T>(
   addAuthHeader_(headers, authToken);
   addVersionHeader_(headers, firebaseVersion);
   addAppCheckHeader_(headers, appCheckToken);
-  return new NetworkRequest<T>(
+  return new NetworkRequest<I, O>(
     url,
     requestInfo.method,
     headers,

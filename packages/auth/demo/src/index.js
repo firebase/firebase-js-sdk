@@ -56,6 +56,7 @@ import {
   verifyPasswordResetCode,
   getMultiFactorResolver,
   OAuthProvider,
+  SAMLAuthProvider,
   GoogleAuthProvider,
   FacebookAuthProvider,
   TwitterAuthProvider,
@@ -67,7 +68,8 @@ import {
   linkWithRedirect,
   reauthenticateWithRedirect,
   getRedirectResult,
-  browserPopupRedirectResolver
+  browserPopupRedirectResolver,
+  connectAuthEmulator
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -79,6 +81,12 @@ import {
   log,
   logAtLevel_
 } from './logging';
+
+/** 
+ * Constants that are used when connecting to the Auth Emulator.
+ */
+const USE_AUTH_EMULATOR = false;
+const AUTH_EMULATOR_URL = 'http://localhost:9099';
 
 let app = null;
 let auth = null;
@@ -1181,6 +1189,7 @@ function onPopupRedirectAddCustomParam(_event) {
     e.preventDefault();
   });
   // Append constructed row to parameter list container.
+  // TODO: These parameters need to be passed into OAuth calls with provider.setCustomParameters()
   $('#popup-redirect-custom-parameters').append($node);
 }
 
@@ -1197,10 +1206,13 @@ function onPopupRedirectGenericProviderClick() {
  * Performs the corresponding popup/redirect action for a SAML provider.
  */
 function onPopupRedirectSamlProviderClick() {
-  alertNotImplemented();
-  // var providerId = $('#popup-redirect-saml-providerid').val();
-  // var provider = new SAMLAuthProvider(providerId);
-  // signInWithPopupRedirect(provider);
+  if (!USE_AUTH_EMULATOR) {
+    alertNotImplemented();
+    return;
+  }
+  var providerId = $('#popup-redirect-saml-providerid').val();
+  var provider = new SAMLAuthProvider(providerId);
+  signInWithPopupRedirect(provider);
 }
 
 /**
@@ -1643,6 +1655,10 @@ function initApp() {
   log('Initializing app...');
   app = initializeApp(config);
   auth = getAuth(app);
+  if (USE_AUTH_EMULATOR) {
+    connectAuthEmulator(auth, AUTH_EMULATOR_URL);
+  }
+  
 
   tempApp = initializeApp(
     {
@@ -1655,6 +1671,9 @@ function initApp() {
     persistence: inMemoryPersistence,
     popupRedirectResolver: browserPopupRedirectResolver
   });
+  if (USE_AUTH_EMULATOR) {
+    connectAuthEmulator(tempAuth, AUTH_EMULATOR_URL);
+  }
 
   // Listen to reCAPTCHA config togglers.
   initRecaptchaToggle(size => {

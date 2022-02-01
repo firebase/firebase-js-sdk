@@ -53,7 +53,7 @@ describe('DocumentChange:', () => {
     const expected = documentSetAsArray(updatedSnapshot.docs);
     const actual = documentSetAsArray(initialSnapshot.docs);
 
-    const db = firestore()._delegate;
+    const db = firestore();
     const snapshot = new QuerySnapshot(
       db,
       new ExpUserDataWriter(db),

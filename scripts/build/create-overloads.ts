@@ -278,7 +278,8 @@ const BUILTIN_TYPES = [
   'Blob',
   'ServiceWorkerRegistration',
   'Record',
-  'Error'
+  'Error',
+  'NodeJS.ReadableStream'
 ];
 
 // find all types (except for the built-ins and primitives) referenced in the function declaration

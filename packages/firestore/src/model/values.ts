@@ -41,6 +41,18 @@ import {
 } from './server_timestamps';
 import { TypeOrder } from './type_order';
 
+export const MAX_VALUE: Value = {
+  mapValue: {
+    fields: {
+      '__type__': { stringValue: '__max___' }
+    }
+  }
+};
+
+export const MIN_VALUE: Value = {
+  nullValue: 'NULL_VALUE'
+};
+
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: Value): TypeOrder {
   if ('nullValue' in value) {
@@ -73,6 +85,10 @@ export function typeOrder(value: Value): TypeOrder {
 
 /** Tests `left` and `right` for equality based on the backend semantics. */
 export function valueEquals(left: Value, right: Value): boolean {
+  if (left === right) {
+    return true;
+  }
+
   const leftType = typeOrder(left);
   const rightType = typeOrder(right);
   if (leftType !== rightType) {
@@ -195,6 +211,10 @@ export function arrayValueContains(
 }
 
 export function valueCompare(left: Value, right: Value): number {
+  if (left === right) {
+    return 0;
+  }
+
   const leftType = typeOrder(left);
   const rightType = typeOrder(right);
 
@@ -579,5 +599,90 @@ export function deepClone(source: Value): Value {
     return target;
   } else {
     return { ...source };
+  }
+}
+
+/** Returns true if the Value represents the canonical {@link #MAX_VALUE} . */
+export function isMaxValue(value: Value): boolean {
+  return valueEquals(value, MAX_VALUE);
+}
+
+/** Returns the lowest value for the given value type (inclusive). */
+export function valuesGetLowerBound(value: Value): Value {
+  if ('nullValue' in value) {
+    return MIN_VALUE;
+  } else if ('booleanValue' in value) {
+    return { booleanValue: false };
+  } else if ('integerValue' in value || 'doubleValue' in value) {
+    return { doubleValue: NaN };
+  } else if ('timestampValue' in value) {
+    return { timestampValue: { seconds: Number.MIN_SAFE_INTEGER } };
+  } else if ('stringValue' in value) {
+    return { stringValue: '' };
+  } else if ('bytesValue' in value) {
+    return { bytesValue: '' };
+  } else if ('referenceValue' in value) {
+    return refValue(DatabaseId.empty(), DocumentKey.empty());
+  } else if ('geoPointValue' in value) {
+    return { geoPointValue: { latitude: -90, longitude: -180 } };
+  } else if ('arrayValue' in value) {
+    return { arrayValue: {} };
+  } else if ('mapValue' in value) {
+    return { mapValue: {} };
+  } else {
+    return fail('Invalid value type: ' + JSON.stringify(value));
+  }
+}
+
+/** Returns the largest value for the given value type (exclusive). */
+export function valuesGetUpperBound(value: Value): Value {
+  if ('nullValue' in value) {
+    return { booleanValue: false };
+  } else if ('booleanValue' in value) {
+    return { doubleValue: NaN };
+  } else if ('integerValue' in value || 'doubleValue' in value) {
+    return { timestampValue: { seconds: Number.MIN_SAFE_INTEGER } };
+  } else if ('timestampValue' in value) {
+    return { stringValue: '' };
+  } else if ('stringValue' in value) {
+    return { bytesValue: '' };
+  } else if ('bytesValue' in value) {
+    return refValue(DatabaseId.empty(), DocumentKey.empty());
+  } else if ('referenceValue' in value) {
+    return { geoPointValue: { latitude: -90, longitude: -180 } };
+  } else if ('geoPointValue' in value) {
+    return { arrayValue: {} };
+  } else if ('arrayValue' in value) {
+    return { mapValue: {} };
+  } else if ('mapValue' in value) {
+    return MAX_VALUE;
+  } else {
+    return fail('Invalid value type: ' + JSON.stringify(value));
+  }
+}
+
+export function valuesMax(
+  left: Value | undefined,
+  right: Value | undefined
+): Value | undefined {
+  if (left === undefined) {
+    return right;
+  } else if (right === undefined) {
+    return left;
+  } else {
+    return valueCompare(left, right) > 0 ? left : right;
+  }
+}
+
+export function valuesMin(
+  left: Value | undefined,
+  right: Value | undefined
+): Value | undefined {
+  if (left === undefined) {
+    return right;
+  } else if (right === undefined) {
+    return left;
+  } else {
+    return valueCompare(left, right) < 0 ? left : right;
   }
 }

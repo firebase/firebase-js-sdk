@@ -32,7 +32,8 @@ import {
   getToken as getTokenInternal,
   addTokenListener,
   removeTokenListener,
-  isValid
+  isValid,
+  notifyTokenListeners
 } from './internal-api';
 import { readTokenFromStorage } from './storage';
 import { getDebugToken, initializeDebugMode, isDebugMode } from './debug';
@@ -97,6 +98,17 @@ export function initializeAppCheck(
 
   const appCheck = provider.initialize({ options });
   _activate(app, options.provider, options.isTokenAutoRefreshEnabled);
+  // If isTokenAutoRefreshEnabled is false, do not send any requests to the
+  // exchange endpoint without an explicit call from the user either directly
+  // or through another Firebase library (storage, functions, etc.)
+  if (getState(app).isTokenAutoRefreshEnabled) {
+    // Adding a listener will start the refresher and fetch a token if needed.
+    // This gets a token ready and prevents a delay when an internal library
+    // requests the token.
+    // Listener function does not need to do anything, its base functionality
+    // of calling getToken() already fetches token and writes it to memory/storage.
+    addTokenListener(appCheck, ListenerType.INTERNAL, () => {});
+  }
 
   return appCheck;
 }
@@ -123,6 +135,8 @@ function _activate(
   newState.cachedTokenPromise = readTokenFromStorage(app).then(cachedToken => {
     if (cachedToken && isValid(cachedToken)) {
       setState(app, { ...getState(app), token: cachedToken });
+      // notify all listeners with the cached token
+      notifyTokenListeners(app, { token: cachedToken.token });
     }
     return cachedToken;
   });

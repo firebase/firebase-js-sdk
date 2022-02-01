@@ -22,7 +22,11 @@ use(chaiAsPromised);
 import { FirebaseApp } from '@firebase/app-types';
 import { CONFIG_STORAGE_BUCKET_KEY } from '../../src/implementation/constants';
 import { StorageError } from '../../src/implementation/error';
-import { Headers, Connection } from '../../src/implementation/connection';
+import {
+  Headers,
+  Connection,
+  ConnectionType
+} from '../../src/implementation/connection';
 import { newTestConnection, TestingConnection } from './connection';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
@@ -110,7 +114,10 @@ export function makeFakeAppCheckProvider(tokenResult: {
  * Returns something that looks like an fbs.XhrIo with the given headers
  * and status.
  */
-export function fakeXhrIo(headers: Headers, status: number = 200): Connection {
+export function fakeXhrIo<I extends ConnectionType = string>(
+  headers: Headers,
+  status: number = 200
+): Connection<I> {
   const lower: Headers = {};
   for (const [key, value] of Object.entries(headers)) {
     lower[key.toLowerCase()] = value.toString();
@@ -130,7 +137,7 @@ export function fakeXhrIo(headers: Headers, status: number = 200): Connection {
     }
   };
 
-  return fakeConnection as Connection;
+  return fakeConnection as Connection<I>;
 }
 
 /**

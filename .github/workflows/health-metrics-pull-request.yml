@@ -3,8 +3,14 @@ name: Health Metrics
 on: [push, pull_request]
 
 env:
-  METRICS_SERVICE_URL: ${{ secrets.METRICS_SERVICE_URL }}
   GITHUB_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+  # TODO(yifany): parse from git commit history directly
+  #   Reason: actions/checkout@v2 does not always honor ${{ github.event.pull_request.base.sha }},
+  #           therefore "base.sha" sometimes is not the commit that actually gets merged with the
+  #           pull request head commit for CI test.
+  #   See:
+  #     - https://github.com/actions/checkout/issues/27
+  #     - https://github.com/actions/checkout/issues/237
   GITHUB_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
   NODE_OPTIONS: "--max-old-space-size=4096"
 

@@ -15,10 +15,23 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
+import {
+  collection,
+  doc,
+  Firestore,
+  getDocs,
+  getDocsFromCache,
+  loadBundle,
+  LoadBundleTask,
+  LoadBundleTaskProgress,
+  namedQuery,
+  onSnapshot,
+  QuerySnapshot,
+  setDoc
+} from '../util/firebase_export';
 import {
   apiDescribe,
   toDataArray,
@@ -28,14 +41,14 @@ import {
 
 export const encoder = new TextEncoder();
 
-function verifySuccessProgress(p: firestore.LoadBundleTaskProgress): void {
+function verifySuccessProgress(p: LoadBundleTaskProgress): void {
   expect(p.taskState).to.equal('Success');
   expect(p.bytesLoaded).to.be.equal(p.totalBytes);
   expect(p.documentsLoaded).to.equal(p.totalDocuments);
 }
 
 function verifyInProgress(
-  p: firestore.LoadBundleTaskProgress,
+  p: LoadBundleTaskProgress,
   expectedDocuments: number
 ): void {
   expect(p.taskState).to.equal('Running');
@@ -57,7 +70,7 @@ const BUNDLE_TEMPLATE = [
 ];
 
 apiDescribe('Bundles', (persistence: boolean) => {
-  function verifySnapEqualsTestDocs(snap: firestore.QuerySnapshot): void {
+  function verifySnapEqualsTestDocs(snap: QuerySnapshot): void {
     expect(toDataArray(snap)).to.deep.equal([
       { k: 'a', bar: 1 },
       { k: 'b', bar: 2 }
@@ -68,8 +81,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
    * Returns a valid bundle string from replacing project id in `BUNDLE_TEMPLATE` with the given
    * db project id (also recalculate length prefixes).
    */
-  function bundleString(db: firestore.FirebaseFirestore): string {
-    const projectId: string = db.app.options.projectId;
+  function bundleString(db: Firestore): string {
+    const projectId: string = db.app.options.projectId!;
 
     // Extract elements from BUNDLE_TEMPLATE and replace the project ID.
     const elements = BUNDLE_TEMPLATE.map(e => e.replace('{0}', projectId));
@@ -92,9 +105,9 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
   it('load with documents only with on progress and promise interface', () => {
     return withTestDb(persistence, async db => {
-      const progressEvents: firestore.LoadBundleTaskProgress[] = [];
+      const progressEvents: LoadBundleTaskProgress[] = [];
       let completeCalled = false;
-      const task: firestore.LoadBundleTask = db.loadBundle(bundleString(db));
+      const task: LoadBundleTask = loadBundle(db, bundleString(db));
       task.onProgress(
         progress => {
           progressEvents.push(progress);
@@ -105,7 +118,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
         }
       );
       await task;
-      let fulfillProgress: firestore.LoadBundleTaskProgress;
+      let fulfillProgress: LoadBundleTaskProgress;
       await task.then(progress => {
         fulfillProgress = progress;
       });
@@ -120,42 +133,41 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
-      let snap = await db.collection('coll-1').get({ source: 'cache' });
+      let snap = await getDocsFromCache(collection(db, 'coll-1'));
       verifySnapEqualsTestDocs(snap);
 
-      snap = await (await db.namedQuery('limit'))!.get({
-        source: 'cache'
-      });
+      snap = await getDocsFromCache((await namedQuery(db, 'limit'))!);
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 2 }]);
 
-      snap = await (await db.namedQuery('limit-to-last'))!.get({
-        source: 'cache'
-      });
+      snap = await getDocsFromCache((await namedQuery(db, 'limit-to-last'))!);
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 1 }]);
     });
   });
 
   it('load with documents and queries with promise interface', () => {
     return withTestDb(persistence, async db => {
-      const fulfillProgress: firestore.LoadBundleTaskProgress =
-        await db.loadBundle(bundleString(db));
+      const fulfillProgress: LoadBundleTaskProgress = await loadBundle(
+        db,
+        bundleString(db)
+      );
 
       verifySuccessProgress(fulfillProgress!);
 
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
-      const snap = await db.collection('coll-1').get({ source: 'cache' });
+      const snap = await getDocsFromCache(collection(db, 'coll-1'));
       verifySnapEqualsTestDocs(snap);
     });
   });
 
   it('load for a second time skips', () => {
     return withTestDb(persistence, async db => {
-      await db.loadBundle(bundleString(db));
+      await loadBundle(db, bundleString(db));
 
       let completeCalled = false;
-      const progressEvents: firestore.LoadBundleTaskProgress[] = [];
-      const task: firestore.LoadBundleTask = db.loadBundle(
+      const progressEvents: LoadBundleTaskProgress[] = [];
+      const task: LoadBundleTask = loadBundle(
+        db,
         encoder.encode(bundleString(db))
       );
       task.onProgress(
@@ -177,21 +189,22 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
-      const snap = await db.collection('coll-1').get({ source: 'cache' });
+      const snap = await getDocsFromCache(collection(db, 'coll-1'));
       verifySnapEqualsTestDocs(snap);
     });
   });
 
   it('load with documents already pulled from backend', () => {
     return withTestDb(persistence, async db => {
-      await db.doc('coll-1/a').set({ k: 'a', bar: 0 });
-      await db.doc('coll-1/b').set({ k: 'b', bar: 0 });
+      await setDoc(doc(db, 'coll-1/a'), { k: 'a', bar: 0 });
+      await setDoc(doc(db, 'coll-1/b'), { k: 'b', bar: 0 });
 
-      const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
-      db.collection('coll-1').onSnapshot(accumulator.storeEvent);
+      const accumulator = new EventsAccumulator<QuerySnapshot>();
+      onSnapshot(collection(db, 'coll-1'), accumulator.storeEvent);
       await accumulator.awaitEvent();
 
-      const progress = await db.loadBundle(
+      const progress = await loadBundle(
+        db,
         // Testing passing in non-string bundles.
         encoder.encode(bundleString(db))
       );
@@ -202,29 +215,31 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // cache can only be tested in spec tests.
       await accumulator.assertNoAdditionalEvents();
 
-      let snap = await (await db.namedQuery('limit'))!.get();
+      let snap = await getDocs((await namedQuery(db, 'limit'))!);
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 0 }]);
 
-      snap = await (await db.namedQuery('limit-to-last'))!.get();
+      snap = await getDocs((await namedQuery(db, 'limit-to-last'))!);
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 0 }]);
     });
   });
 
   it('loaded documents should not be GC-ed right away', () => {
     return withTestDb(persistence, async db => {
-      const fulfillProgress: firestore.LoadBundleTaskProgress =
-        await db.loadBundle(bundleString(db));
+      const fulfillProgress: LoadBundleTaskProgress = await loadBundle(
+        db,
+        bundleString(db)
+      );
 
       verifySuccessProgress(fulfillProgress!);
 
       // Read a different collection, this will trigger GC.
-      let snap = await db.collection('coll-other').get();
+      let snap = await getDocsFromCache(collection(db, 'coll-other'));
       expect(snap.empty).to.be.true;
 
       // Read the loaded documents, expecting document in cache. With memory
       // GC, the documents would get GC-ed if we did not hold the document keys
       // in a "umbrella" target. See local_store.ts for details.
-      snap = await db.collection('coll-1').get({ source: 'cache' });
+      snap = await getDocsFromCache(collection(db, 'coll-1'));
       verifySnapEqualsTestDocs(snap);
     });
   });
@@ -232,19 +247,17 @@ apiDescribe('Bundles', (persistence: boolean) => {
   it('load with documents from other projects fails', () => {
     return withTestDb(persistence, async db => {
       return withAlternateTestDb(persistence, async otherDb => {
-        await expect(otherDb.loadBundle(bundleString(db))).to.be.rejectedWith(
+        await expect(loadBundle(otherDb, bundleString(db))).to.be.rejectedWith(
           'Tried to deserialize key from different project'
         );
 
         // Verify otherDb still functions, despite loaded a problematic bundle.
-        const finalProgress = await otherDb.loadBundle(bundleString(otherDb));
+        const finalProgress = await loadBundle(otherDb, bundleString(otherDb));
         verifySuccessProgress(finalProgress);
 
         // Read from cache. These documents do not exist in backend, so they can
         // only be read from cache.
-        const snap = await otherDb
-          .collection('coll-1')
-          .get({ source: 'cache' });
+        const snap = await getDocsFromCache(collection(otherDb, 'coll-1'));
         verifySnapEqualsTestDocs(snap);
       });
     });

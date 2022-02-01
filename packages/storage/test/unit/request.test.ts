@@ -44,7 +44,7 @@ describe('Firebase Storage > Request', () => {
     }
     const spiedSend = sinon.spy(newSend);
 
-    function handler(connection: Connection, text: string): string {
+    function handler(connection: Connection<string>, text: string): string {
       assert.equal(text, response);
       assert.equal(connection.getResponseHeader(responseHeader), responseValue);
       assert.equal(connection.getStatus(), status);
@@ -92,7 +92,7 @@ describe('Firebase Storage > Request', () => {
     }
     const spiedSend = sinon.spy(newSend);
 
-    function handler(connection: Connection, text: string): string {
+    function handler(connection: Connection<string>, text: string): string {
       return text;
     }
 

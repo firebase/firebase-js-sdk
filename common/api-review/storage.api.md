@@ -77,14 +77,15 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     _getAuthToken(): Promise<string | null>;
     get host(): string;
     set host(host: string);
+    // Warning: (ae-forgotten-export) The symbol "ConnectionType" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "RequestInfo" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Connection" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Request" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    _makeRequest<T>(requestInfo: RequestInfo_2<T>, requestFactory: () => Connection, authToken: string | null, appCheckToken: string | null): Request_2<T>;
+    _makeRequest<I extends ConnectionType, O>(requestInfo: RequestInfo_2<I, O>, requestFactory: () => Connection<I>, authToken: string | null, appCheckToken: string | null): Request_2<O>;
     // (undocumented)
-    makeRequestWithTokens<T>(requestInfo: RequestInfo_2<T>, requestFactory: () => Connection): Promise<T>;
+    makeRequestWithTokens<I extends ConnectionType, O>(requestInfo: RequestInfo_2<I, O>, requestFactory: () => Connection<I>): Promise<O>;
     _makeStorageReference(loc: _Location): _Reference;
     get maxOperationRetryTime(): number;
     set maxOperationRetryTime(time: number);
@@ -112,6 +113,12 @@ export interface FullMetadata extends UploadMetadata {
     updated: string;
 }
 
+// @public
+export function getBlob(ref: StorageReference, maxDownloadSizeBytes?: number): Promise<Blob>;
+
+// @public
+export function getBytes(ref: StorageReference, maxDownloadSizeBytes?: number): Promise<ArrayBuffer>;
+
 // @internal (undocumented)
 export function _getChild(ref: StorageReference, childPath: string): _Reference;
 
@@ -123,6 +130,9 @@ export function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 
 // @public
 export function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStorage;
+
+// @public
+export function getStream(ref: StorageReference, maxDownloadSizeBytes?: number): NodeJS.ReadableStream;
 
 // Warning: (ae-forgotten-export) The symbol "StorageError" needs to be exported by the entry point index.d.ts
 //

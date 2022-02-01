@@ -1,5 +1,30 @@
 # @firebase/messaging-compat
 
+## 0.1.7
+
+### Patch Changes
+
+- [`93e6126b3`](https://github.com/firebase/firebase-js-sdk/commit/93e6126b3dfde795423109f5aaaf0a010cb142b6) [#5901](https://github.com/firebase/firebase-js-sdk/pull/5901) - Changed messaging `exports` paths to always point to cjs bundles when in a Node.js context.
+
+- Updated dependencies [[`93e6126b3`](https://github.com/firebase/firebase-js-sdk/commit/93e6126b3dfde795423109f5aaaf0a010cb142b6)]:
+  - @firebase/messaging@0.9.7
+
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [[`88d43ec00`](https://github.com/firebase/firebase-js-sdk/commit/88d43ec0027ff857923ab41255b3650e666fa29e), [`3c20727d8`](https://github.com/firebase/firebase-js-sdk/commit/3c20727d83f2d68edc108e8112b06d3232a7d310)]:
+  - @firebase/messaging@0.9.6
+
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies [[`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49)]:
+  - @firebase/util@1.4.3
+  - @firebase/component@0.5.10
+  - @firebase/messaging@0.9.5
+
 ## 0.1.4
 
 ### Patch Changes
