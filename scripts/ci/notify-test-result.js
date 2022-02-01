@@ -38,12 +38,14 @@ async function notifyTestResults() {
   }
 
   let message = `E2E Tests ${status}`;
+  let versionOrTag;
 
   // Add version if it can find it in the workflow_dispatch event data.
   if (process.env.GITHUB_EVENT_PATH) {
     const wrPayload = require(process.env.GITHUB_EVENT_PATH);
     if (wrPayload.inputs && wrPayload.inputs.versionOrTag) {
       message += ` for release ${wrPayload.inputs.versionOrTag}.`;
+      versionOrTag = wrPayload.inputs.versionOrTag;
     } else {
       console.log(`Couldn't find versionOrTag in event payload.`);
     }
@@ -102,13 +104,24 @@ async function notifyTestResults() {
 
     req.on('error', error => reject(error));
 
-    req.write(
-      JSON.stringify({
-        testStatus,
-        testUrl: workflowUrl
-      }),
-      err => reject(err)
-    );
+    const data = {
+      testStatus,
+      testUrl: workflowUrl
+    };
+
+    if (versionOrTag) {
+      // Matches a staging version tag pattern.
+      const match = versionOrTag.match(/^(\d+.\d+.\d+)-\d+$/);
+      if (match) {
+        // Remove suffix from staging version
+        data.version = match[1];
+        // Full staging version with tag
+        data.tag = versionOrTag;
+      } else {
+        data.version = versionOrTag;
+      }
+    }
+    req.write(JSON.stringify(data), err => reject(err));
     req.end();
   });
 
