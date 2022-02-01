@@ -30,10 +30,11 @@ import {
   newTarget,
   Operator,
   OrderBy,
-  sortsBeforeDocument,
+  boundSortsBeforeDocument,
   stringifyTarget,
   Target,
-  targetEquals
+  targetEquals,
+  boundSortsAfterDocument
 } from './target';
 
 export const enum LimitType {
@@ -323,10 +324,10 @@ export function queryToTarget(query: Query): Target {
 
       // We need to swap the cursors to match the now-flipped query ordering.
       const startAt = queryImpl.endAt
-        ? new Bound(queryImpl.endAt.position, !queryImpl.endAt.before)
+        ? new Bound(queryImpl.endAt.position, !queryImpl.endAt.inclusive)
         : null;
       const endAt = queryImpl.startAt
-        ? new Bound(queryImpl.startAt.position, !queryImpl.startAt.before)
+        ? new Bound(queryImpl.startAt.position, !queryImpl.startAt.inclusive)
         : null;
 
       // Now return as a LimitType.First query.
@@ -512,13 +513,13 @@ function queryMatchesFilters(query: Query, doc: Document): boolean {
 function queryMatchesBounds(query: Query, doc: Document): boolean {
   if (
     query.startAt &&
-    !sortsBeforeDocument(query.startAt, queryOrderBy(query), doc)
+    !boundSortsBeforeDocument(query.startAt, queryOrderBy(query), doc)
   ) {
     return false;
   }
   if (
     query.endAt &&
-    sortsBeforeDocument(query.endAt, queryOrderBy(query), doc)
+    !boundSortsAfterDocument(query.endAt, queryOrderBy(query), doc)
   ) {
     return false;
   }
