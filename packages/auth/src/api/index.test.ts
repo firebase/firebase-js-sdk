@@ -59,6 +59,10 @@ describe('api/_performApiRequest', () => {
     auth = await testAuth();
   });
 
+  afterEach(() => {
+    sinon.restore();
+  });
+
   context('with regular requests', () => {
     beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
@@ -92,6 +96,27 @@ describe('api/_performApiRequest', () => {
       expect(mock.calls[0].headers.get(HttpHeader.X_FIREBASE_LOCALE)).to.eq(
         'jp'
       );
+    });
+
+    it('should set the heartbeat header only if available', async () => {
+      const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
+      await _performApiRequest(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+      sinon.stub(auth, '_getHeartbeatHeader').returns(Promise.resolve('heartbeat'));
+      await _performApiRequest(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+
+      // First call won't have the header, second call will.
+      expect(mock.calls[0].headers!.has(HttpHeader.X_FIREBASE_CLIENT)).to.be.false;
+      expect(mock.calls[1].headers!.get(HttpHeader.X_FIREBASE_CLIENT)).to.eq('heartbeat');
+    });
+
+    it('should not set the heartbeat header on config request', async () => {
+      const mock = mockEndpoint(Endpoint.GET_PROJECT_CONFIG, serverResponse);
+      await _performApiRequest(auth, HttpMethod.POST, Endpoint.GET_PROJECT_CONFIG, request);
+      sinon.stub(auth, '_getHeartbeatHeader').returns(Promise.resolve('heartbeat'));
+      await _performApiRequest(auth, HttpMethod.POST, Endpoint.GET_PROJECT_CONFIG, request);
+      // First call won't have the header, second call will.
+      expect(mock.calls[0].headers!.has(HttpHeader.X_FIREBASE_CLIENT)).to.be.false;
+      expect(mock.calls[1].headers!.has(HttpHeader.X_FIREBASE_CLIENT)).to.be.false;
     });
 
     it('should set the framework in clientVersion if logged', async () => {

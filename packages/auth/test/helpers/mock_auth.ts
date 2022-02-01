@@ -63,6 +63,8 @@ export async function testAuth(
   persistence = new MockPersistenceLayer()
 ): Promise<TestAuth> {
   const auth: TestAuth = new AuthImpl(FAKE_APP, {
+    getHeartbeatsHeader: () => Promise.resolve('')
+  }, {
     apiKey: TEST_KEY,
     authDomain: TEST_AUTH_DOMAIN,
     apiHost: TEST_HOST,

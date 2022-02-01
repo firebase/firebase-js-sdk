@@ -22,7 +22,8 @@ import { querystring } from '@firebase/util';
 import {
   _getFinalTarget,
   _performFetchWithErrorHandling,
-  HttpMethod
+  HttpMethod,
+  HttpHeader
 } from '../index';
 import { FetchProvider } from '../../core/util/fetch_provider';
 import { Auth } from '../../model/public_types';
@@ -52,7 +53,7 @@ export async function requestStsToken(
   const response = await _performFetchWithErrorHandling<RequestStsTokenServerResponse>(
     auth,
     {},
-    () => {
+    async () => {
       const body = querystring({
         'grant_type': 'refresh_token',
         'refresh_token': refreshToken
@@ -65,12 +66,18 @@ export async function requestStsToken(
         `key=${apiKey}`
       );
 
+      const heartbeat = await (auth as AuthInternal)._getHeartbeatHeader();
+      const headers: HeadersInit = {
+        [HttpHeader.X_CLIENT_VERSION]: (auth as AuthInternal)._getSdkClientVersion(),
+        [HttpHeader.CONTENT_TYPE]: 'application/x-www-form-urlencoded',
+      };
+      if (heartbeat) {
+        headers[HttpHeader.X_FIREBASE_CLIENT] = heartbeat;
+      }
+
       return FetchProvider.fetch()(url, {
         method: HttpMethod.POST,
-        headers: {
-          'X-Client-Version': (auth as AuthInternal)._getSdkClientVersion(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
+        headers,
         body
       });
     }
