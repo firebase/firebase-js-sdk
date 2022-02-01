@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { Persistence } from '../../../src/local/persistence';
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
+import { Persistence } from '../../../src/local/persistence';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { Overlay } from '../../../src/model/overlay';
-import { key } from '../../util/helpers';
 import { ResourcePath } from '../../../src/model/path';
+import { key } from '../../util/helpers';
 
 /**
  * A wrapper around a DocumentOverlayCache that automatically creates a

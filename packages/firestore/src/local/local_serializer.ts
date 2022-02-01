@@ -22,7 +22,9 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, targetIsDocumentTarget, Target } from '../core/target';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
+import { Overlay } from '../model/overlay';
 import {
   BundleMetadata as ProtoBundleMetadata,
   NamedQuery as ProtoNamedQuery,
@@ -40,7 +42,6 @@ import {
   toDocument,
   toDocumentsTarget,
   toMutation,
-  toName,
   toQueryTarget
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
@@ -60,8 +61,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { Overlay } from '../model/overlay';
-import { Mutation } from '../model/mutation';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

@@ -1,7 +1,5 @@
 import { DocumentKey } from './document_key';
-import { ObjectValue } from './object_value';
-import { FieldTransform, Mutation, Precondition } from './mutation';
-import { ResourcePath } from './path';
+import { Mutation } from './mutation';
 
 /**
  * @license

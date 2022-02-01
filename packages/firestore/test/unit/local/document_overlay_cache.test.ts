@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { Persistence } from '../../../src/local/persistence';
-import * as persistenceHelpers from './persistence_test_helpers';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { addEqualityMatcher } from '../../util/equality_matcher';
+
 import { User } from '../../../src/auth/user';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { Persistence } from '../../../src/local/persistence';
+import { documentKeySet, DocumentKeySet } from '../../../src/model/collections';
+import { DocumentKey } from '../../../src/model/document_key';
+import { Mutation } from '../../../src/model/mutation';
+import { Overlay } from '../../../src/model/overlay';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   deleteMutation,
   key,
@@ -27,10 +31,8 @@ import {
   path,
   setMutation
 } from '../../util/helpers';
-import { Mutation } from '../../../src/model/mutation';
-import { DocumentKey } from '../../../src/model/document_key';
-import { Overlay } from '../../../src/model/overlay';
-import { documentKeySet, DocumentKeySet } from '../../../src/model/collections';
+
+import * as persistenceHelpers from './persistence_test_helpers';
 import { TestDocumentOverlayCache } from './test_document_overlay_cache';
 
 let persistence: Persistence;
@@ -84,7 +86,7 @@ function genericDocumentOverlayCacheTests(): void {
     largestBatch: number,
     ...mutations: Mutation[]
   ): Promise<void> {
-    let data: Map<DocumentKey, Mutation> = new Map<DocumentKey, Mutation>();
+    const data: Map<DocumentKey, Mutation> = new Map<DocumentKey, Mutation>();
     for (const mutation of mutations) {
       data.set(mutation.key, mutation);
     }
@@ -95,7 +97,7 @@ function genericDocumentOverlayCacheTests(): void {
     largestBatch: number,
     ...overlayKeys: string[]
   ): Promise<void> {
-    let data: Map<DocumentKey, Mutation> = new Map<DocumentKey, Mutation>();
+    const data: Map<DocumentKey, Mutation> = new Map<DocumentKey, Mutation>();
     for (const overlayKey of overlayKeys) {
       data.set(key(overlayKey), setMutation(overlayKey, {}));
     }

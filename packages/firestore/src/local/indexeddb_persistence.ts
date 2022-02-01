@@ -28,8 +28,10 @@ import { logDebug, logError } from '../util/log';
 import { DocumentLike, WindowLike } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
 import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
+import { IndexedDbDocumentOverlayCache } from './indexeddb_document_overlay_cache';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import { IndexedDbLruDelegateImpl } from './indexeddb_lru_delegate_impl';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
@@ -63,8 +65,6 @@ import {
   SimpleDb,
   SimpleDbStore
 } from './simple_db';
-import { IndexedDbDocumentOverlayCache } from './indexeddb_document_overlay_cache';
-import { DocumentOverlayCache } from './document_overlay_cache';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
