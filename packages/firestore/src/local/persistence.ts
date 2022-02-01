@@ -20,6 +20,7 @@ import { TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 
 import { BundleCache } from './bundle_cache';
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
 import { LocalStore } from './local_store';
 import { MutationQueue } from './mutation_queue';
@@ -31,7 +32,6 @@ import {
 import { RemoteDocumentCache } from './remote_document_cache';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import { DocumentOverlayCache } from './document_overlay_cache';
 
 /**
  * Callback type for primary state notifications. This callback can be
@@ -220,7 +220,7 @@ export interface Persistence {
   /**
    * Returns a DocumentOverlayCache representing the documents that are mutated
    * locally.
-   * */
+   */
   getDocumentOverlay(user: User): DocumentOverlayCache;
 
   /**

@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { DocumentOverlayCache } from './document_overlay_cache';
 import { DocumentKey } from '../model/document_key';
+import { Mutation } from '../model/mutation';
 import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
-import { Mutation } from '../model/mutation';
 import { SortedMap } from '../util/sorted_map';
-import { PersistenceTransaction } from './persistence_transaction';
+
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * An in-memory implementation of DocumentOverlayCache.
@@ -104,11 +105,11 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     collection: ResourcePath,
     sinceBatchId: number
   ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    let result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
+    const result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
 
     const immediateChildrenPathLength = collection.length + 1;
     const prefix = new DocumentKey(collection.child(''));
-    let iter = this.overlays.getIteratorFrom(prefix);
+    const iter = this.overlays.getIteratorFrom(prefix);
     while (iter.hasNext()) {
       const entry = iter.getNext();
       const overlay = entry.value;
@@ -117,7 +118,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
         break;
       }
       // Documents from sub-collections
-      if (key.path.length != immediateChildrenPathLength) {
+      if (key.path.length !== immediateChildrenPathLength) {
         continue;
       }
       if (overlay.largestBatchId > sinceBatchId) {
@@ -134,14 +135,14 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     sinceBatchId: number,
     count: number
   ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    let batchIdToOverlays: SortedMap<
+    const batchIdToOverlays: SortedMap<
       number,
       Map<DocumentKey, Overlay>
     > = new SortedMap<number, Map<DocumentKey, Overlay>>(
       (key1: number, key2: number) => key1 - key2
     );
 
-    let iter = this.overlays.getIterator();
+    const iter = this.overlays.getIterator();
     while (iter.hasNext()) {
       const entry = iter.getNext();
       const overlay = entry.value;
@@ -159,8 +160,8 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
       }
     }
 
-    let result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
-    let batchIter = batchIdToOverlays.getIterator();
+    const result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
+    const batchIter = batchIdToOverlays.getIterator();
     while (batchIter.hasNext()) {
       const entry = batchIter.getNext();
       const overlays = entry.value;

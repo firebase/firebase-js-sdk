@@ -16,11 +16,12 @@
  */
 
 import { DocumentKey } from '../model/document_key';
-import { Overlay } from '../model/overlay';
 import { Mutation } from '../model/mutation';
+import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
-import { PersistenceTransaction } from './persistence_transaction';
+
 import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * Provides methods to read and write document overlays.

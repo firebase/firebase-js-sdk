@@ -23,6 +23,8 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetIsDocumentTarget } from '../core/target';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { Mutation } from '../model/mutation';
+import { Overlay } from '../model/overlay';
 import {
   FieldIndex,
   IndexOffset,
@@ -48,7 +50,6 @@ import {
   toDocument,
   toDocumentsTarget,
   toMutation,
-  toName,
   toQueryTarget
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
@@ -74,8 +75,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { Overlay } from '../model/overlay';
-import { Mutation } from '../model/mutation';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

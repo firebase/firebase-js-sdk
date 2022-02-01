@@ -15,23 +15,25 @@
  * limitations under the License.
  */
 
-import { DocumentOverlayCache } from './document_overlay_cache';
+import { User } from '../auth/user';
 import { DocumentKey } from '../model/document_key';
+import { Mutation } from '../model/mutation';
 import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
-import { Mutation } from '../model/mutation';
+
+import { DocumentOverlayCache } from './document_overlay_cache';
+import { encodeResourcePath } from './encoded_resource_path';
+import { DbDocumentOverlay, DbDocumentOverlayKey } from './indexeddb_schema';
+import { getStore } from './indexeddb_transaction';
 import {
   fromDbDocumentOverlay,
   LocalSerializer,
   toDbDocumentOverlay
 } from './local_serializer';
+import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { SimpleDbStore } from './simple_db';
-import { DbDocumentOverlay, DbDocumentOverlayKey } from './indexeddb_schema';
-import { getStore } from './indexeddb_transaction';
-import { encodeResourcePath } from './encoded_resource_path';
-import { PersistencePromise } from './persistence_promise';
-import { User } from '../auth/user';
+
 
 /**
  * An in-memory implementation of DocumentOverlayCache.
@@ -118,7 +120,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     collection: ResourcePath,
     sinceBatchId: number
   ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    let result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
+    const result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
     const collectionPath: string = encodeResourcePath(collection);
     const range = IDBKeyRange.bound(
       [this.userId, collectionPath, sinceBatchId],
@@ -141,7 +143,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     sinceBatchId: number,
     count: number
   ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    let result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
+    const result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
     let currentBatchId: number | undefined = undefined;
     let currentCount: number = 0;
     const range = IDBKeyRange.bound(
@@ -149,7 +151,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
       [this.userId, collectionGroup, Number.POSITIVE_INFINITY]
     );
     return documentOverlayStore(transaction)
-      .iterate({ range: range }, (_, dbOverlay, control) => {
+      .iterate({ range }, (_, dbOverlay, control) => {
         const overlay = fromDbDocumentOverlay(this.serializer, dbOverlay);
         if (currentCount < count || overlay.largestBatchId === currentBatchId) {
           result.set(overlay.getKey(), overlay);
