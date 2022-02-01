@@ -17,7 +17,7 @@
 
 import * as exp from '@firebase/auth/internal';
 import { isIndexedDBAvailable, isNode, isReactNative } from '@firebase/util';
-import { _isWebStorageSupported, _isWorker } from './platform';
+import { _getSelfWindow, _isWebStorageSupported, _isWorker } from './platform';
 
 export const Persistence = {
   LOCAL: 'local',
@@ -84,15 +84,14 @@ export async function _savePersistenceForRedirect(
   auth: exp.AuthInternal
 ): Promise<void> {
   await auth._initializationPromise;
-
-  const win = getSelfWindow();
+  const session = getSessionStorageIfAvailable();
   const key = exp._persistenceKeyName(
     PERSISTENCE_KEY,
     auth.config.apiKey,
     auth.name
   );
-  if (win?.sessionStorage) {
-    win.sessionStorage.setItem(key, auth._getPersistence());
+  if (session) {
+    session.setItem(key, auth._getPersistence());
   }
 }
 
@@ -100,13 +99,13 @@ export function _getPersistencesFromRedirect(
   apiKey: string,
   appName: string
 ): exp.Persistence[] {
-  const win = getSelfWindow();
-  if (!win?.sessionStorage) {
+  const session = getSessionStorageIfAvailable();
+  if (!session) {
     return [];
   }
 
   const key = exp._persistenceKeyName(PERSISTENCE_KEY, apiKey, appName);
-  const persistence = win.sessionStorage.getItem(key);
+  const persistence = session.getItem(key);
 
   switch (persistence) {
     case Persistence.NONE:
@@ -120,6 +119,11 @@ export function _getPersistencesFromRedirect(
   }
 }
 
-function getSelfWindow(): Window | null {
-  return typeof window !== 'undefined' ? window : null;
+/** Returns session storage, or null if the property access errors */
+function getSessionStorageIfAvailable(): Storage | null {
+  try {
+    return _getSelfWindow()?.sessionStorage || null;
+  } catch (e) {
+    return null;
+  }
 }

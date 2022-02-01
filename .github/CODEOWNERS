@@ -32,7 +32,7 @@
 
 
 # These owners will be the default owners for everything in the repo.
-*       @hiranya911 @hsubox76 @firebase/jssdk-global-approvers
+*       @allspain @hsubox76 @firebase/jssdk-global-approvers
 
 # Database Code
 packages/database @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers

@@ -99,6 +99,10 @@ export class FirestoreClient {
   private readonly clientId = AutoId.newId();
   private authCredentialListener: CredentialChangeListener<User> = () =>
     Promise.resolve();
+  private appCheckCredentialListener: (
+    appCheckToken: string,
+    user: User
+  ) => Promise<void> = () => Promise.resolve();
 
   offlineComponents?: OfflineComponentProvider;
   onlineComponents?: OnlineComponentProvider;
@@ -122,8 +126,10 @@ export class FirestoreClient {
       await this.authCredentialListener(user);
       this.user = user;
     });
-    // Register an empty credentials change listener to activate token refresh.
-    this.appCheckCredentials.start(asyncQueue, () => Promise.resolve());
+    this.appCheckCredentials.start(asyncQueue, newAppCheckToken => {
+      logDebug(LOG_TAG, 'Received new app check token=', newAppCheckToken);
+      return this.appCheckCredentialListener(newAppCheckToken, this.user);
+    });
   }
 
   async getConfiguration(): Promise<ComponentConfiguration> {
@@ -140,6 +146,12 @@ export class FirestoreClient {
 
   setCredentialChangeListener(listener: (user: User) => Promise<void>): void {
     this.authCredentialListener = listener;
+  }
+
+  setAppCheckTokenChangeListener(
+    listener: (appCheckToken: string, user: User) => Promise<void>
+  ): void {
+    this.appCheckCredentialListener = listener;
   }
 
   /**
@@ -232,6 +244,9 @@ export async function setOnlineComponentProvider(
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
   client.setCredentialChangeListener(user =>
+    remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
+  );
+  client.setAppCheckTokenChangeListener((_, user) =>
     remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
   client.onlineComponents = onlineComponentProvider;

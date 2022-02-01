@@ -33,13 +33,14 @@ use(chaiAsPromised);
 describe('platform_browser/iframe/gapi', () => {
   let library: typeof gapi;
   let auth: TestAuth;
+  let loadJsStub: sinon.SinonStub;
   function onJsLoad(globalLoadFnName: string): void {
     _window().gapi = library as typeof gapi;
     _window()[globalLoadFnName]();
   }
 
   beforeEach(async () => {
-    sinon.stub(js, '_loadJS').callsFake(url => {
+    loadJsStub = sinon.stub(js, '_loadJS').callsFake(url => {
       onJsLoad(url.split('onload=')[1]);
       return Promise.resolve(new Event('load'));
     });
@@ -133,5 +134,11 @@ describe('platform_browser/iframe/gapi', () => {
       'auth/network-request-failed'
     );
     expect(_loadGapi(auth)).not.to.eq(firstAttempt);
+  });
+
+  it('rejects if gapi itself does not load', async () => {
+    const error = new Error();
+    loadJsStub.rejects(error);
+    await expect(_loadGapi(auth)).to.be.rejectedWith(error);
   });
 });

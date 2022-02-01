@@ -59,12 +59,12 @@ import { SnapshotListenOptions } from './reference_impl';
  * }
  *
  * const postConverter = {
- *   toFirestore(post: WithFieldValue<Post>): firebase.firestore.DocumentData {
+ *   toFirestore(post: WithFieldValue<Post>): DocumentData {
  *     return {title: post.title, author: post.author};
  *   },
  *   fromFirestore(
- *     snapshot: firebase.firestore.QueryDocumentSnapshot,
- *     options: firebase.firestore.SnapshotOptions
+ *     snapshot: QueryDocumentSnapshot,
+ *     options: SnapshotOptions
  *   ): Post {
  *     const data = snapshot.data(options)!;
  *     return new Post(data.title, data.author);
@@ -269,7 +269,7 @@ export class DocumentSnapshot<
    * Retrieves all fields in the document as an `Object`. Returns `undefined` if
    * the document doesn't exist.
    *
-   * By default, `FieldValue.serverTimestamp()` values that have not yet been
+   * By default, `serverTimestamp()` values that have not yet been
    * set to their final value will be returned as `null`. You can override
    * this by passing an options object.
    *
@@ -306,7 +306,7 @@ export class DocumentSnapshot<
    * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
    * document or field doesn't exist.
    *
-   * By default, a `FieldValue.serverTimestamp()` that has not yet been set to
+   * By default, a `serverTimestamp()` that has not yet been set to
    * its final value will be returned as `null`. You can override this by
    * passing an options object.
    *
@@ -353,7 +353,7 @@ export class QueryDocumentSnapshot<
   /**
    * Retrieves all fields in the document as an `Object`.
    *
-   * By default, `FieldValue.serverTimestamp()` values that have not yet been
+   * By default, `serverTimestamp()` values that have not yet been
    * set to their final value will be returned as `null`. You can override
    * this by passing an options object.
    *

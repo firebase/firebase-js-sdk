@@ -17,6 +17,7 @@
 
 import { User } from '../auth/user';
 import { ListenSequence } from '../core/listen_sequence';
+import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -284,7 +285,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
         const key = DocumentKey.fromPath(path);
         return this.isReferenced(txn, key).next(isReferenced => {
           if (!isReferenced) {
-            changeBuffer.removeEntry(key);
+            changeBuffer.removeEntry(key, SnapshotVersion.min());
           }
         });
       }
@@ -422,7 +423,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
       return this.isPinned(txn, key, upperBound).next(isPinned => {
         if (!isPinned) {
           count++;
-          changeBuffer.removeEntry(key);
+          changeBuffer.removeEntry(key, SnapshotVersion.min());
         }
       });
     });

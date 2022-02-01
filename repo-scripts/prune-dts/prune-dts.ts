@@ -119,11 +119,15 @@ function isExported(
   sourceFile: ts.SourceFile,
   name: ts.Identifier
 ): boolean {
+  const declarations =
+    typeChecker.getSymbolAtLocation(name)?.declarations ?? [];
+
   // Check is this is a public symbol (e.g. part of the DOM library)
-  const sourceFileNames = typeChecker
-    .getSymbolAtLocation(name)
-    ?.declarations?.map(d => d.getSourceFile().fileName);
-  if (sourceFileNames?.find(s => s.indexOf('typescript/lib') != -1)) {
+  const isTypescriptType = declarations.find(
+    d => d.getSourceFile().fileName.indexOf('typescript/lib') != -1
+  );
+  const isImported = declarations.find(d => ts.isImportSpecifier(d));
+  if (isTypescriptType || isImported) {
     return true;
   }
 

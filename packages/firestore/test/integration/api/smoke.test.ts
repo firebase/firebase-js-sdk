@@ -15,18 +15,35 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
-import * as integrationHelpers from '../util/helpers';
-
-const apiDescribe = integrationHelpers.apiDescribe;
+import {
+  collection,
+  doc,
+  DocumentReference,
+  DocumentSnapshot,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  QuerySnapshot,
+  setDoc,
+  where
+} from '../util/firebase_export';
+import {
+  apiDescribe,
+  toDataArray,
+  withTestCollection,
+  withTestDbs,
+  withTestDoc
+} from '../util/helpers';
 
 apiDescribe('Smoke Test', (persistence: boolean) => {
   it('can write a single document', () => {
-    return integrationHelpers.withTestDoc(persistence, ref => {
-      return ref.set({
+    return withTestDoc(persistence, ref => {
+      return setDoc(ref, {
         name: 'Patryk',
         message: 'We are actually writing data!'
       });
@@ -34,39 +51,31 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
   });
 
   it('can read a written document', () => {
-    return integrationHelpers.withTestDoc(persistence, ref => {
+    return withTestDoc(persistence, ref => {
       const data = {
         name: 'Patryk',
         message: 'We are actually writing data!'
       };
-      return ref
-        .set(data)
-        .then(() => {
-          return ref.get();
-        })
-        .then((doc: firestore.DocumentSnapshot) => {
+      return setDoc(ref, data)
+        .then(() => getDoc(ref))
+        .then(doc => {
           expect(doc.data()).to.deep.equal(data);
         });
     });
   });
 
   it('can read a written document with DocumentKey', () => {
-    return integrationHelpers.withTestDoc(persistence, ref1 => {
-      const ref2 = ref1.firestore.collection('users').doc();
+    return withTestDoc(persistence, (ref1, db) => {
+      const ref2 = doc(collection(db, 'users'));
       const data = { user: ref2, message: 'We are writing data' };
-      return ref2.set({ name: 'patryk' }).then(() => {
-        return ref1
-          .set(data)
-          .then(() => {
-            return ref1.get();
-          })
-          .then((doc: firestore.DocumentSnapshot) => {
+      return setDoc(ref2, { name: 'patryk' }).then(() => {
+        return setDoc(ref1, data)
+          .then(() => getDoc(ref1))
+          .then(doc => {
             const recv = doc.data()!;
             expect(recv['message']).to.deep.equal(data.message);
             const user = recv['user'];
-            // Make sure it looks like a DocumentRef.
-            expect(user.set).to.be.an.instanceof(Function);
-            expect(user.onSnapshot).to.be.an.instanceof(Function);
+            expect(user).to.be.an.instanceof(DocumentReference);
             expect(user.id).to.deep.equal(ref2.id);
           });
       });
@@ -74,49 +83,41 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
   });
 
   it('will fire local and remote events', () => {
-    return integrationHelpers.withTestDbs(
-      persistence,
-      2,
-      ([reader, writer]) => {
-        const readerRef = reader.collection('rooms/firestore/messages').doc();
-        const writerRef = writer.doc(readerRef.path);
-        const data = {
-          name: 'Patryk',
-          message: 'We are actually writing data!'
-        };
+    return withTestDbs(persistence, 2, ([reader, writer]) => {
+      const readerRef = doc(collection(reader, 'rooms/firestore/messages'));
+      const writerRef = doc(writer, readerRef.path);
+      const data = {
+        name: 'Patryk',
+        message: 'We are actually writing data!'
+      };
 
-        const accum = new EventsAccumulator<firestore.DocumentSnapshot>();
-        return writerRef.set(data).then(() => {
-          const unlisten = readerRef.onSnapshot(accum.storeEvent);
-          return accum
-            .awaitEvent()
-            .then(docSnap => {
-              expect(docSnap.exists).to.equal(true);
-              expect(docSnap.data()).to.deep.equal(data);
-            })
-            .then(() => unlisten());
-        });
-      }
-    );
+      const accum = new EventsAccumulator<DocumentSnapshot>();
+      return setDoc(writerRef, data).then(() => {
+        const unlisten = onSnapshot(readerRef, accum.storeEvent);
+        return accum
+          .awaitEvent()
+          .then(docSnap => {
+            expect(docSnap.exists()).to.equal(true);
+            expect(docSnap.data()).to.deep.equal(data);
+          })
+          .then(() => unlisten());
+      });
+    });
   });
 
   it('will fire value events for empty collections', () => {
-    return integrationHelpers.withTestCollection(
-      persistence,
-      {},
-      collection => {
-        const accum = new EventsAccumulator<firestore.QuerySnapshot>();
-        const unlisten = collection.onSnapshot(accum.storeEvent);
-        return accum
-          .awaitEvent()
-          .then(querySnap => {
-            expect(querySnap.empty).to.equal(true);
-            expect(querySnap.size).to.equal(0);
-            expect(querySnap.docs.length).to.equal(0);
-          })
-          .then(() => unlisten());
-      }
-    );
+    return withTestCollection(persistence, {}, collection => {
+      const accum = new EventsAccumulator<QuerySnapshot>();
+      const unlisten = onSnapshot(collection, accum.storeEvent);
+      return accum
+        .awaitEvent()
+        .then(querySnap => {
+          expect(querySnap.empty).to.equal(true);
+          expect(querySnap.size).to.equal(0);
+          expect(querySnap.docs.length).to.equal(0);
+        })
+        .then(() => unlisten());
+    });
   });
 
   it('can get collection query', () => {
@@ -128,11 +129,11 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
       '2': { name: 'Gil', message: 'Yep!' },
       '3': { name: 'Jonny', message: 'Crazy!' }
     };
-    return integrationHelpers.withTestCollection(persistence, testDocs, ref => {
-      return ref.get().then(result => {
+    return withTestCollection(persistence, testDocs, ref => {
+      return getDocs(ref).then(result => {
         expect(result.empty).to.equal(false);
         expect(result.size).to.equal(3);
-        expect(integrationHelpers.toDataArray(result)).to.deep.equal([
+        expect(toDataArray(result)).to.deep.equal([
           testDocs[1],
           testDocs[2],
           testDocs[3]
@@ -151,19 +152,19 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
       '3': { sort: 2, filter: true, key: '3' },
       '4': { sort: 3, filter: false, key: '4' }
     };
-    return integrationHelpers.withTestCollection(
-      persistence,
-      testDocs,
-      coll => {
-        const query = coll.where('filter', '==', true).orderBy('sort', 'desc');
-        return query.get().then(result => {
-          expect(integrationHelpers.toDataArray(result)).to.deep.equal([
-            testDocs[2],
-            testDocs[3],
-            testDocs[1]
-          ]);
-        });
-      }
-    );
+    return withTestCollection(persistence, testDocs, coll => {
+      const filteredQuery = query(
+        coll,
+        where('filter', '==', true),
+        orderBy('sort', 'desc')
+      );
+      return getDocs(filteredQuery).then(result => {
+        expect(toDataArray(result)).to.deep.equal([
+          testDocs[2],
+          testDocs[3],
+          testDocs[1]
+        ]);
+      });
+    });
   });
 });

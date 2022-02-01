@@ -17,30 +17,31 @@
 
 import { TimerId } from '../../../src/util/async_queue';
 import { Deferred } from '../../util/promise';
+import { collection, doc, onSnapshot, setDoc } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
 import { asyncQueue } from '../util/internal_helpers';
 
 apiDescribe('Idle Timeout', (persistence: boolean) => {
   it('can write document after idle timeout', () => {
     return withTestDb(persistence, db => {
-      const docRef = db.collection('test-collection').doc();
-      return docRef
-        .set({ foo: 'bar' })
+      const docRef = doc(collection(db, 'test-collection'));
+      return setDoc(docRef, { foo: 'bar' })
         .then(() => {
           return asyncQueue(db).runAllDelayedOperationsUntil(
             TimerId.WriteStreamIdle
           );
         })
-        .then(() => docRef.set({ foo: 'bar' }));
+        .then(() => setDoc(docRef, { foo: 'bar' }));
     });
   });
 
   it('can watch documents after idle timeout', () => {
     return withTestDb(persistence, db => {
       const awaitOnlineSnapshot = (): Promise<void> => {
-        const docRef = db.collection('test-collection').doc();
+        const docRef = doc(collection(db, 'test-collection'));
         const deferred = new Deferred<void>();
-        const unregister = docRef.onSnapshot(
+        const unregister = onSnapshot(
+          docRef,
           { includeMetadataChanges: true },
           snapshot => {
             if (!snapshot.metadata.fromCache) {

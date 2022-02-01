@@ -56,6 +56,7 @@ import {
   verifyPasswordResetCode,
   getMultiFactorResolver,
   OAuthProvider,
+  SAMLAuthProvider,
   GoogleAuthProvider,
   FacebookAuthProvider,
   TwitterAuthProvider,
@@ -1188,6 +1189,7 @@ function onPopupRedirectAddCustomParam(_event) {
     e.preventDefault();
   });
   // Append constructed row to parameter list container.
+  // TODO: These parameters need to be passed into OAuth calls with provider.setCustomParameters()
   $('#popup-redirect-custom-parameters').append($node);
 }
 
@@ -1204,10 +1206,13 @@ function onPopupRedirectGenericProviderClick() {
  * Performs the corresponding popup/redirect action for a SAML provider.
  */
 function onPopupRedirectSamlProviderClick() {
-  alertNotImplemented();
-  // var providerId = $('#popup-redirect-saml-providerid').val();
-  // var provider = new SAMLAuthProvider(providerId);
-  // signInWithPopupRedirect(provider);
+  if (!USE_AUTH_EMULATOR) {
+    alertNotImplemented();
+    return;
+  }
+  var providerId = $('#popup-redirect-saml-providerid').val();
+  var provider = new SAMLAuthProvider(providerId);
+  signInWithPopupRedirect(provider);
 }
 
 /**

@@ -40,7 +40,7 @@ const browserPlugins = function () {
       },
       cacheDir: tmp.dirSync(),
       clean: true,
-      abortOnError: false
+      abortOnError: true
     }),
     json({ preferConst: true })
   ];

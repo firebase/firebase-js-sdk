@@ -17,8 +17,8 @@
 
 import { expect } from 'chai';
 
-import { GeoPoint } from '../../../src/api/geo_point';
-import { Timestamp } from '../../../src/api/timestamp';
+import { GeoPoint, Timestamp } from '../../../src';
+import { DatabaseId } from '../../../src/core/database_info';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
 import {
   canonicalId,
@@ -26,7 +26,9 @@ import {
   valueEquals,
   estimateByteSize,
   refValue,
-  deepClone
+  deepClone,
+  valuesGetLowerBound,
+  valuesGetUpperBound
 } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -354,6 +356,109 @@ describe('Values', () => {
         );
       expect(expectedOrder).to.deep.equal(actualOrder);
     }
+  });
+
+  it('computes lower bound', () => {
+    const groups = [
+      // null first
+      [valuesGetLowerBound({ nullValue: 'NULL_VALUE' }), wrap(null)],
+
+      // booleans
+      [valuesGetLowerBound({ booleanValue: true }), wrap(false)],
+      [wrap(true)],
+
+      // numbers
+      [valuesGetLowerBound({ doubleValue: 0 }), wrap(NaN)],
+      [wrap(Number.NEGATIVE_INFINITY)],
+      [wrap(Number.MIN_VALUE)],
+
+      // dates
+      [valuesGetLowerBound({ timestampValue: {} })],
+      [wrap(date1)],
+
+      // strings
+      [valuesGetLowerBound({ stringValue: '' }), wrap('')],
+      [wrap('\u0000')],
+
+      // resource names
+      [
+        valuesGetLowerBound({ referenceValue: '' }),
+        refValue(DatabaseId.empty(), key(''))
+      ],
+      [refValue(DatabaseId.empty(), key('a/a'))],
+
+      // geo points
+      [
+        valuesGetLowerBound({ geoPointValue: {} }),
+        wrap(new GeoPoint(-90, -180))
+      ],
+      [wrap(new GeoPoint(-90, 0))],
+
+      // arrays
+      [valuesGetLowerBound({ arrayValue: {} }), wrap([])],
+      [wrap([false])],
+
+      // objects
+      [valuesGetLowerBound({ mapValue: {} }), wrap({})]
+    ];
+
+    expectCorrectComparisonGroups(
+      groups,
+      (left: api.Value, right: api.Value) => {
+        return valueCompare(left, right);
+      }
+    );
+  });
+
+  it('computes upper bound', () => {
+    const groups = [
+      // null first
+      [wrap(null)],
+      [valuesGetUpperBound({ nullValue: 'NULL_VALUE' })],
+
+      // booleans
+      [wrap(true)],
+      [valuesGetUpperBound({ booleanValue: false })],
+
+      // numbers
+      [wrap(Number.MAX_SAFE_INTEGER)],
+      [wrap(Number.POSITIVE_INFINITY)],
+      [valuesGetUpperBound({ doubleValue: NaN })],
+
+      // dates
+      [wrap(date1)],
+      [valuesGetUpperBound({ timestampValue: {} })],
+
+      // strings
+      [wrap('\u0000')],
+      [valuesGetUpperBound({ stringValue: '' })],
+
+      // blobs
+      [wrap(blob(255))],
+      [valuesGetUpperBound({ bytesValue: '' })],
+
+      // resource names
+      [refValue(dbId('', ''), key('a/a'))],
+      [valuesGetUpperBound({ referenceValue: '' })],
+
+      // geo points
+      [wrap(new GeoPoint(90, 180))],
+      [valuesGetUpperBound({ geoPointValue: {} })],
+
+      // arrays
+      [wrap([false])],
+      [valuesGetUpperBound({ arrayValue: {} })],
+
+      // objects
+      [wrap({ 'a': 'b' })]
+    ];
+
+    expectCorrectComparisonGroups(
+      groups,
+      (left: api.Value, right: api.Value) => {
+        return valueCompare(left, right);
+      }
+    );
   });
 
   it('canonicalizes values', () => {

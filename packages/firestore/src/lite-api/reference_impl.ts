@@ -194,6 +194,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  *
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
+ * @throws Error - If the provided input is not a valid Firestore document.
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
@@ -214,6 +215,7 @@ export function setDoc<T>(
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
  * @param options - An object to configure the set behavior.
+ * @throws Error - If the provided input is not a valid Firestore document.
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
@@ -263,6 +265,7 @@ export function setDoc<T>(
  * @param data - An object containing the fields and values with which to
  * update the document. Fields can contain dots to reference nested fields
  * within the document.
+ * @throws Error - If the provided input is not valid Firestore data.
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
@@ -287,6 +290,7 @@ export function updateDoc<T>(
  * @param field - The first field to update.
  * @param value - The first value.
  * @param moreFieldsAndValues - Additional key value pairs.
+ * @throws Error - If the provided input is not valid Firestore data.
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
@@ -370,6 +374,7 @@ export function deleteDoc(
  *
  * @param reference - A reference to the collection to add this document to.
  * @param data - An Object containing the data for the new document.
+ * @throws Error - If the provided input is not a valid Firestore document.
  * @returns A `Promise` resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend.
  */

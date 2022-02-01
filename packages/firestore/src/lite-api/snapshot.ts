@@ -57,10 +57,10 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * }
  *
  * const postConverter = {
- *   toFirestore(post: WithFieldValue<Post>): firebase.firestore.DocumentData {
+ *   toFirestore(post: WithFieldValue<Post>): DocumentData {
  *     return {title: post.title, author: post.author};
  *   },
- *   fromFirestore(snapshot: firebase.firestore.QueryDocumentSnapshot): Post {
+ *   fromFirestore(snapshot: QueryDocumentSnapshot): Post {
  *     const data = snapshot.data(options)!;
  *     return new Post(data.title, data.author);
  *   }

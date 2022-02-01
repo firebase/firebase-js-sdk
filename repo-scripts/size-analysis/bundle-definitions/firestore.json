@@ -23,10 +23,39 @@
             "imports": [
               "getFirestore",
               "doc",
-              "getDoc",
-              "setDoc",
+              "getDoc"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Write data",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore",
               "collection",
-              "getDocs"
+              "doc",
+              "setDoc"
             ]
           }
         ]
@@ -93,6 +122,103 @@
               "where",
               "orderBy",
               "getDocs"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Query Cursors",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore",
+              "collection",
+              "doc",
+              "getDocs",
+              "query",
+              "orderBy",
+              "startAt",
+              "endBefore"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Persistence",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore",
+              "enableMultiTabIndexedDbPersistence"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Transaction",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore",
+              "doc",
+              "runTransaction"
             ]
           }
         ]

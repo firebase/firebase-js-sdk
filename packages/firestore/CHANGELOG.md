@@ -1,5 +1,49 @@
 # @firebase/firestore
 
+## 3.4.4
+
+### Patch Changes
+
+- [`e28b0e413`](https://github.com/firebase/firebase-js-sdk/commit/e28b0e413decb115c846a7b5ed1e63dbf55c56ab) [#5902](https://github.com/firebase/firebase-js-sdk/pull/5902) (fixes [#5842](https://github.com/firebase/firebase-js-sdk/issues/5842)) - Fixed an AppCheck issue that caused Firestore listeners to stop working and
+  receive a "Permission Denied" error. This issue only occurred for AppCheck users
+  that set their expiration time to under an hour.
+
+* [`d612d6f6e`](https://github.com/firebase/firebase-js-sdk/commit/d612d6f6e4d3113d45427b7df68459c0a3e31a1f) [#5928](https://github.com/firebase/firebase-js-sdk/pull/5928) - Upgrade `node-fetch` dependency due to a security issue.
+
+## 3.4.3
+
+### Patch Changes
+
+- [`044a8d7f9`](https://github.com/firebase/firebase-js-sdk/commit/044a8d7f95a0ba0d34123ff5fd7a4bcb1bd3d328) [#5830](https://github.com/firebase/firebase-js-sdk/pull/5830) (fixes [#5823](https://github.com/firebase/firebase-js-sdk/issues/5823)) - Fix Proto loading for Vercel/Next.js.
+
+* [`ff2f7d4c8`](https://github.com/firebase/firebase-js-sdk/commit/ff2f7d4c85c0bda94b14d66237faa0e5da93bfa4) [#5883](https://github.com/firebase/firebase-js-sdk/pull/5883) - The Node SDK now uses JSON to load its internal Protobuf definition, which allows the Node SDK to work with bundlers such as Rollup and Webpack.
+
+## 3.4.2
+
+### Patch Changes
+
+- [`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49) [#5831](https://github.com/firebase/firebase-js-sdk/pull/5831) (fixes [#5754](https://github.com/firebase/firebase-js-sdk/issues/5754)) - FirestoreError and StorageError now extend FirebaseError
+
+* [`7f05d22e8`](https://github.com/firebase/firebase-js-sdk/commit/7f05d22e827f1fd0732ad33fda203a20566d3964) [#5835](https://github.com/firebase/firebase-js-sdk/pull/5835) - Fixed an issue that can cause incomplete Query snapshots when the SDK is backgrounded during query execution.
+
+* Updated dependencies [[`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49)]:
+  - @firebase/util@1.4.3
+  - @firebase/component@0.5.10
+
+## 3.4.1
+
+### Patch Changes
+
+- [`fd8cd3ec4`](https://github.com/firebase/firebase-js-sdk/commit/fd8cd3ec4b7d0747fca258d468ee094573a08bbb) [#5809](https://github.com/firebase/firebase-js-sdk/pull/5809) - Hardcode grpc-js version as a temporary fix for `createRequire` issues in Node CJS.
+
+* [`8298cf8a9`](https://github.com/firebase/firebase-js-sdk/commit/8298cf8a9343dbba6c628d64941dfbe5d17c44aa) [#5741](https://github.com/firebase/firebase-js-sdk/pull/5741) - fix firestore node tests
+
+## 3.4.0
+
+### Minor Changes
+
+- [`086df7c7e`](https://github.com/firebase/firebase-js-sdk/commit/086df7c7e0299cedd9f3cff9080f46ca25cab7cd) [#5634](https://github.com/firebase/firebase-js-sdk/pull/5634) - AppCheck integration for Firestore
+
 ## 3.3.1
 
 ### Patch Changes

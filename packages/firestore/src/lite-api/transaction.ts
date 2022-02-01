@@ -118,6 +118,7 @@ export class Transaction {
    *
    * @param documentRef - A reference to the document to be set.
    * @param data - An object of the fields and values for the document.
+   * @throws Error - If the provided input is not a valid Firestore document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
   set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): this;
@@ -130,6 +131,7 @@ export class Transaction {
    * @param documentRef - A reference to the document to be set.
    * @param data - An object of the fields and values for the document.
    * @param options - An object to configure the set behavior.
+   * @throws Error - If the provided input is not a valid Firestore document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
   set<T>(
@@ -169,6 +171,7 @@ export class Transaction {
    * @param data - An object containing the fields and values with which to
    * update the document. Fields can contain dots to reference nested fields
    * within the document.
+   * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
   update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
@@ -184,6 +187,7 @@ export class Transaction {
    * @param field - The first field to update.
    * @param value - The first value.
    * @param moreFieldsAndValues - Additional key/value pairs.
+   * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
   update(

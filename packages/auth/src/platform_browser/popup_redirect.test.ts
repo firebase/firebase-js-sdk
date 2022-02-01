@@ -54,6 +54,7 @@ describe('platform_browser/popup_redirect', () => {
   let auth: TestAuth;
   let onIframeMessage: (event: GapiAuthEvent) => Promise<void>;
   let iframeSendStub: sinon.SinonStub;
+  let loadGapiStub: sinon.SinonStub;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -61,8 +62,18 @@ describe('platform_browser/popup_redirect', () => {
 
     sinon.stub(validateOrigin, '_validateOrigin').returns(Promise.resolve());
     iframeSendStub = sinon.stub();
+    loadGapiStub = sinon.stub(gapiLoader, '_loadGapi');
+    setGapiStub();
 
-    sinon.stub(gapiLoader, '_loadGapi').returns(
+    sinon.stub(authWindow._window(), 'gapi').value({
+      iframes: {
+        CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-iframes-filter'
+      }
+    });
+  });
+
+  function setGapiStub(): void {
+    loadGapiStub.returns(
       Promise.resolve(({
         open: () =>
           Promise.resolve({
@@ -74,13 +85,7 @@ describe('platform_browser/popup_redirect', () => {
           })
       } as unknown) as gapi.iframes.Context)
     );
-
-    sinon.stub(authWindow._window(), 'gapi').value({
-      iframes: {
-        CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-iframes-filter'
-      }
-    });
-  });
+  }
 
   afterEach(() => {
     sinon.restore();
@@ -239,6 +244,14 @@ describe('platform_browser/popup_redirect', () => {
       const secondPromise = resolver._initialize(secondAuth);
       expect(secondPromise).not.to.eq(promise);
       expect(resolver._initialize(secondAuth)).to.eq(secondPromise);
+    });
+
+    it('clears the cache if the initialize fails', async () => {
+      const error = new Error();
+      loadGapiStub.rejects(error);
+      await expect(resolver._initialize(auth)).to.be.rejectedWith(error);
+      setGapiStub();  // Reset the gapi load stub
+      await expect(resolver._initialize(auth)).not.to.be.rejected;
     });
 
     it('iframe event goes through to the manager', async () => {

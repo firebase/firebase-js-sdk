@@ -15,16 +15,21 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { DEFAULT_MAX_ATTEMPTS_COUNT } from '../../../src/core/transaction_runner';
 import { TimerId } from '../../../src/util/async_queue';
 import { Deferred } from '../../util/promise';
-import * as integrationHelpers from '../util/helpers';
+import {
+  collection,
+  doc,
+  FirestoreError,
+  getDoc,
+  runTransaction,
+  setDoc
+} from '../util/firebase_export';
+import { apiDescribe, withTestDb } from '../util/helpers';
 import { asyncQueue } from '../util/internal_helpers';
-
-const apiDescribe = integrationHelpers.apiDescribe;
 
 apiDescribe(
   'Database transactions (with internal API)',
@@ -37,26 +42,25 @@ apiDescribe(
       const barrier = new Deferred<void>();
       let started = 0;
 
-      return integrationHelpers.withTestDb(persistence, db => {
+      return withTestDb(persistence, db => {
         asyncQueue(db).skipDelaysForTimerId(TimerId.TransactionRetry);
-        const doc = db.collection('counters').doc();
-        return doc
-          .set({
-            count: 5
-          })
+        const docRef = doc(collection(db, 'counters'));
+        return setDoc(docRef, {
+          count: 5
+        })
           .then(() => {
             // Make 3 transactions that will all increment.
             for (let i = 0; i < 3; i++) {
               const resolveRead = new Deferred<void>();
               readPromises.push(resolveRead.promise);
               transactionPromises.push(
-                db.runTransaction(transaction => {
-                  return transaction.get(doc).then(snapshot => {
+                runTransaction(db, transaction => {
+                  return transaction.get(docRef).then(snapshot => {
                     expect(snapshot).to.exist;
                     started = started + 1;
                     resolveRead.resolve();
                     return barrier.promise.then(() => {
-                      transaction.set(doc, {
+                      transaction.set(docRef, {
                         count: snapshot.data()!['count'] + 1
                       });
                     });
@@ -77,7 +81,7 @@ apiDescribe(
           })
           .then(() => {
             // Now all transaction should be completed, so check the result.
-            return doc.get();
+            return getDoc(docRef);
           })
           .then(snapshot => {
             expect(snapshot).to.exist;
@@ -94,27 +98,26 @@ apiDescribe(
       const barrier = new Deferred<void>();
       let counter = 0;
 
-      return integrationHelpers.withTestDb(persistence, db => {
+      return withTestDb(persistence, db => {
         asyncQueue(db).skipDelaysForTimerId(TimerId.TransactionRetry);
-        const doc = db.collection('counters').doc();
-        return doc
-          .set({
-            count: 5,
-            other: 'yes'
-          })
+        const docRef = doc(collection(db, 'counters'));
+        return setDoc(docRef, {
+          count: 5,
+          other: 'yes'
+        })
           .then(() => {
             // Make 3 transactions that will all increment.
             for (let i = 0; i < 3; i++) {
               const resolveRead = new Deferred<void>();
               readPromises.push(resolveRead.promise);
               transactionPromises.push(
-                db.runTransaction(transaction => {
-                  return transaction.get(doc).then(snapshot => {
+                runTransaction(db, transaction => {
+                  return transaction.get(docRef).then(snapshot => {
                     expect(snapshot).to.exist;
                     counter = counter + 1;
                     resolveRead.resolve();
                     return barrier.promise.then(() => {
-                      transaction.update(doc, {
+                      transaction.update(docRef, {
                         count: snapshot.data()!['count'] + 1
                       });
                     });
@@ -138,7 +141,7 @@ apiDescribe(
             // There should be a maximum of 3 retries: once for the 2nd update,
             // and twice for the 3rd update.
             expect(counter).to.be.lessThan(7);
-            return doc.get();
+            return getDoc(docRef);
           })
           .then(snapshot => {
             expect(snapshot).to.exist;
@@ -149,39 +152,38 @@ apiDescribe(
     });
 
     it('handle reading a doc twice with different versions', () => {
-      return integrationHelpers.withTestDb(persistence, db => {
+      return withTestDb(persistence, db => {
         asyncQueue(db).skipDelaysForTimerId(TimerId.TransactionRetry);
-        const doc = db.collection('counters').doc();
+        const docRef = doc(collection(db, 'counters'));
         let counter = 0;
-        return doc
-          .set({
-            count: 15
-          })
+        return setDoc(docRef, {
+          count: 15
+        })
           .then(() => {
-            return db.runTransaction(transaction => {
+            return runTransaction(db, transaction => {
               counter++;
-              // Get the doc once.
+              // Get the docRef once.
               return (
                 transaction
-                  .get(doc)
+                  .get(docRef)
                   // Do a write outside of the transaction. Because the transaction
                   // will retry, set the document to a different value each time.
-                  .then(() => doc.set({ count: 1234 + counter }))
-                  // Get the doc again in the transaction with the new
+                  .then(() => setDoc(docRef, { count: 1234 + counter }))
+                  // Get the docRef again in the transaction with the new
                   // version.
-                  .then(() => transaction.get(doc))
-                  // Now try to update the doc from within the transaction.
+                  .then(() => transaction.get(docRef))
+                  // Now try to update the docRef from within the transaction.
                   // This should fail, because we read 15 earlier.
-                  .then(() => transaction.set(doc, { count: 16 }))
+                  .then(() => transaction.set(docRef, { count: 16 }))
               );
             });
           })
           .then(() => expect.fail('transaction should fail'))
-          .catch(err => {
+          .catch((err: FirestoreError) => {
             expect(err).to.exist;
-            expect((err as firestore.FirestoreError).code).to.equal('aborted');
+            expect(err.code).to.equal('aborted');
           })
-          .then(() => doc.get())
+          .then(() => getDoc(docRef))
           .then(snapshot => {
             expect(snapshot.data()!['count']).to.equal(1234 + counter);
             expect(counter).to.equal(DEFAULT_MAX_ATTEMPTS_COUNT);

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/component",
-  "version": "0.5.9",
+  "version": "0.5.10",
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -31,7 +31,7 @@
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js"
   },
   "dependencies": {
-    "@firebase/util": "1.4.2",
+    "@firebase/util": "1.4.3",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",

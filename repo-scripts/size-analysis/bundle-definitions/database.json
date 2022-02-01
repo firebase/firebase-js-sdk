@@ -190,6 +190,38 @@
     ]
   },
   {
+    "name": "Listen for value events + Detach listeners",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "database",
+            "imports": [
+              "getDatabase",
+              "ref",
+              "onValue",
+              "off"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "Sort data",
     "dependencies": [
       {

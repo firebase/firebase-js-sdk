@@ -29,16 +29,12 @@
       "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
-        "--require", "ts-node/register/type-check",
+        "--require", "babel-register.js",
         "--require", "index.node.ts",
         "--timeout", "5000",
         "test/{,!(browser|integration)/**/}*.test.ts",
         "--exit"
       ],
-      "env": {
-        "TS_NODE_CACHE": "NO",
-        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
-      },
       "sourceMaps": true,
       "protocol": "inspector"
     },
@@ -49,7 +45,7 @@
       "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
-        "--require", "ts-node/register/type-check",
+        "--require", "babel-register.js",
         "--require", "index.node.ts",
         "--require", "test/util/node_persistence.ts",
         "--timeout", "5000",
@@ -57,9 +53,7 @@
         "--exit"
       ],
       "env": {
-        "USE_MOCK_PERSISTENCE": "YES",
-        "TS_NODE_CACHE": "NO",
-        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
+        "USE_MOCK_PERSISTENCE": "YES"
       },
       "sourceMaps": true,
       "protocol": "inspector"
@@ -71,15 +65,13 @@
       "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
-        "--require", "ts-node/register/type-check",
+        "--require", "babel-register.js",
         "--require", "index.node.ts",
         "--timeout", "5000",
         "test/{,!(browser|unit)/**/}*.test.ts",
         "--exit"
       ],
       "env": {
-        "TS_NODE_CACHE": "NO",
-        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}",
         "FIRESTORE_EMULATOR_PORT" : "8080",
         "FIRESTORE_EMULATOR_PROJECT_ID" :  "test-emulator"
       },
@@ -93,7 +85,7 @@
       "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
-        "--require", "ts-node/register/type-check",
+        "--require", "babel-register.js",
         "--require", "index.node.ts",
         "--require", "test/util/node_persistence.ts",
         "--timeout", "5000",
@@ -102,8 +94,6 @@
       ],
       "env": {
         "USE_MOCK_PERSISTENCE": "YES",
-        "TS_NODE_CACHE": "NO",
-        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}",
         "FIRESTORE_EMULATOR_PORT" : "8080",
         "FIRESTORE_EMULATOR_PROJECT_ID" :  "test-emulator"
       },

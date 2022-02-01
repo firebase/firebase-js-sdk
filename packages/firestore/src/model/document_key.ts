@@ -39,6 +39,10 @@ export class DocumentKey {
     return new DocumentKey(ResourcePath.fromString(name).popFirst(5));
   }
 
+  static empty(): DocumentKey {
+    return new DocumentKey(ResourcePath.emptyPath());
+  }
+
   /** Returns true if the document is in the specified collectionId. */
   hasCollectionId(collectionId: string): boolean {
     return (

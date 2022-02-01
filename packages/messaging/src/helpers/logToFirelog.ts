@@ -177,8 +177,8 @@ function createFcmEvent(
     fcmEvent.project_number = internalPayload.from;
   }
 
-  if (!!internalPayload.fcm_message_id) {
-    fcmEvent.message_id = internalPayload.fcm_message_id;
+  if (!!internalPayload.fcmMessageId) {
+    fcmEvent.message_id = internalPayload.fcmMessageId;
   }
 
   fcmEvent.instance_id = fid;

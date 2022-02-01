@@ -15,10 +15,14 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { EventsAccumulator } from './util/events_accumulator';
+import {
+  DocumentSnapshot,
+  onSnapshot,
+  runTransaction
+} from './util/firebase_export';
 import { withTestDoc } from './util/helpers';
 
 // Firestore databases can be subject to a ~30s "cold start" delay if they have not been used
@@ -31,15 +35,15 @@ before(
   function (): Promise<void> {
     this.timeout(PRIMING_TIMEOUT_MS);
 
-    return withTestDoc(/*persistence=*/ false, async doc => {
-      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
-      const unsubscribe = doc.onSnapshot(accumulator.storeEvent);
+    return withTestDoc(/*persistence=*/ false, async (doc, db) => {
+      const accumulator = new EventsAccumulator<DocumentSnapshot>();
+      const unsubscribe = onSnapshot(doc, accumulator.storeEvent);
 
       // Wait for watch to initialize and deliver first event.
       await accumulator.awaitRemoteEvent();
 
       // Use a transaction to perform a write without triggering any local events.
-      await doc.firestore.runTransaction(async txn => {
+      await runTransaction(db, async txn => {
         txn.set(doc, { value: 'done' });
       });
 

@@ -15,13 +15,55 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
+import { deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { EventsAccumulator } from '../util/events_accumulator';
-import * as firebaseExport from '../util/firebase_export';
+import {
+  addDoc,
+  clearIndexedDbPersistence,
+  collection,
+  collectionGroup,
+  deleteDoc,
+  deleteField,
+  disableNetwork,
+  doc,
+  DocumentData,
+  documentId,
+  DocumentSnapshot,
+  enableIndexedDbPersistence,
+  enableNetwork,
+  getDoc,
+  getDocFromCache,
+  getDocFromServer,
+  getDocs,
+  initializeFirestore,
+  limit,
+  onSnapshot,
+  onSnapshotsInSync,
+  orderBy,
+  query,
+  queryEqual,
+  refEqual,
+  serverTimestamp,
+  setDoc,
+  SetOptions,
+  terminate,
+  updateDoc,
+  waitForPendingWrites,
+  where,
+  writeBatch,
+  QueryDocumentSnapshot,
+  DocumentReference,
+  runTransaction,
+  WithFieldValue,
+  Timestamp,
+  FieldPath,
+  newTestFirestore,
+  SnapshotOptions
+} from '../util/firebase_export';
 import {
   apiDescribe,
   withTestCollection,
@@ -35,17 +77,10 @@ import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
 use(chaiAsPromised);
 
-const newTestFirestore = firebaseExport.newTestFirestore;
-const Timestamp = firebaseExport.Timestamp;
-const FieldPath = firebaseExport.FieldPath;
-const FieldValue = firebaseExport.FieldValue;
-const DocumentReference = firebaseExport.DocumentReference;
-const QueryDocumentSnapshot = firebaseExport.QueryDocumentSnapshot;
-
 apiDescribe('Database', (persistence: boolean) => {
   it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
-      return docRef.set({
+      return setDoc(docRef, {
         desc: 'Stuff related to Firestore project...',
         owner: {
           name: 'Jonny',
@@ -57,7 +92,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('doc() will auto generate an ID', () => {
     return withTestDb(persistence, async db => {
-      const ref = db.collection('foo').doc();
+      const ref = doc(collection(db, 'foo'));
       // Auto IDs are 20 characters long
       expect(ref.id.length).to.equal(20);
     });
@@ -66,20 +101,15 @@ apiDescribe('Database', (persistence: boolean) => {
   it('can delete a document', () => {
     // TODO(#1865): This test fails with node:persistence against Prod
     return withTestDoc(persistence, docRef => {
-      return docRef
-        .set({ foo: 'bar' })
-        .then(() => {
-          return docRef.get();
-        })
+      return setDoc(docRef, { foo: 'bar' })
+        .then(() => getDoc(docRef))
         .then(doc => {
           expect(doc.data()).to.deep.equal({ foo: 'bar' });
-          return docRef.delete();
+          return deleteDoc(docRef);
         })
-        .then(() => {
-          return docRef.get();
-        })
+        .then(() => getDoc(docRef))
         .then(doc => {
-          expect(doc.exists).to.equal(false);
+          expect(doc.exists()).to.equal(false);
         });
     });
   });
@@ -98,10 +128,9 @@ apiDescribe('Database', (persistence: boolean) => {
         desc: 'NewDescription',
         owner: { name: 'Jonny', email: 'new@xyz.com' }
       };
-      return doc
-        .set(initialData)
-        .then(() => doc.update(updateData))
-        .then(() => doc.get())
+      return setDoc(doc, initialData)
+        .then(() => updateDoc(doc, updateData))
+        .then(() => getDoc(doc))
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
@@ -111,8 +140,8 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('can retrieve document that does not exist', () => {
     return withTestDoc(persistence, doc => {
-      return doc.get().then(snapshot => {
-        expect(snapshot.exists).to.equal(false);
+      return getDoc(doc).then(snapshot => {
+        expect(snapshot.exists()).to.equal(false);
         expect(snapshot.data()).to.equal(undefined);
         expect(snapshot.get('foo')).to.equal(undefined);
       });
@@ -122,25 +151,25 @@ apiDescribe('Database', (persistence: boolean) => {
   // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)('can update an unknown document', () => {
     return withTestDbs(persistence, 2, async ([reader, writer]) => {
-      const writerRef = writer.collection('collection').doc();
-      const readerRef = reader.collection('collection').doc(writerRef.id);
-      await writerRef.set({ a: 'a' });
-      await readerRef.update({ b: 'b' });
-      await writerRef
-        .get({ source: 'cache' })
-        .then(doc => expect(doc.exists).to.be.true);
-      await readerRef.get({ source: 'cache' }).then(
+      const writerRef = doc(collection(writer, 'collection'));
+      const readerRef = doc(collection(reader, 'collection'), writerRef.id);
+      await setDoc(writerRef, { a: 'a' });
+      await updateDoc(readerRef, { b: 'b' });
+      await getDocFromCache(writerRef).then(
+        doc => expect(doc.exists()).to.be.true
+      );
+      await getDocFromCache(readerRef).then(
         () => {
           expect.fail('Expected cache miss');
         },
         err => expect(err.code).to.be.equal('unavailable')
       );
-      await writerRef
-        .get()
-        .then(doc => expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' }));
-      await readerRef
-        .get()
-        .then(doc => expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' }));
+      await getDoc(writerRef).then(doc =>
+        expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
+      );
+      await getDoc(readerRef).then(doc =>
+        expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
+      );
     });
   });
 
@@ -159,10 +188,9 @@ apiDescribe('Database', (persistence: boolean) => {
         desc: 'description',
         'owner.data': { name: 'Sebastian', email: 'abc@xyz.com' }
       };
-      return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
-        .then(() => doc.get())
+      return setDoc(doc, initialData)
+        .then(() => setDoc(doc, mergeData, { merge: true }))
+        .then(() => getDoc(doc))
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
@@ -176,13 +204,12 @@ apiDescribe('Database', (persistence: boolean) => {
         updated: false
       };
       const mergeData = {
-        time: FieldValue.serverTimestamp(),
-        nested: { time: FieldValue.serverTimestamp() }
+        time: serverTimestamp(),
+        nested: { time: serverTimestamp() }
       };
-      return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
-        .then(() => doc.get())
+      return setDoc(doc, initialData)
+        .then(() => setDoc(doc, mergeData, { merge: true }))
+        .then(() => getDoc(doc))
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.get('updated')).to.be.false;
@@ -194,24 +221,24 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('can merge empty object', async () => {
     await withTestDoc(persistence, async doc => {
-      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
-      const unsubscribe = doc.onSnapshot(accumulator.storeEvent);
+      const accumulator = new EventsAccumulator<DocumentSnapshot>();
+      const unsubscribe = onSnapshot(doc, accumulator.storeEvent);
       await accumulator
         .awaitEvent()
-        .then(() => doc.set({}))
+        .then(() => setDoc(doc, {}))
         .then(() => accumulator.awaitEvent())
         .then(docSnapshot => expect(docSnapshot.data()).to.be.deep.equal({}))
-        .then(() => doc.set({ a: {} }, { mergeFields: ['a'] }))
+        .then(() => setDoc(doc, { a: {} }, { mergeFields: ['a'] }))
         .then(() => accumulator.awaitEvent())
         .then(docSnapshot =>
           expect(docSnapshot.data()).to.be.deep.equal({ a: {} })
         )
-        .then(() => doc.set({ b: {} }, { merge: true }))
+        .then(() => setDoc(doc, { b: {} }, { merge: true }))
         .then(() => accumulator.awaitEvent())
         .then(docSnapshot =>
           expect(docSnapshot.data()).to.be.deep.equal({ a: {}, b: {} })
         )
-        .then(() => doc.get({ source: 'server' }))
+        .then(() => getDocFromServer(doc))
         .then(docSnapshot => {
           expect(docSnapshot.data()).to.be.deep.equal({ a: {}, b: {} });
         });
@@ -222,18 +249,18 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('update with empty object replaces all fields', () => {
     return withTestDoc(persistence, async doc => {
-      await doc.set({ a: 'a' });
-      await doc.update('a', {});
-      const docSnapshot = await doc.get();
+      await setDoc(doc, { a: 'a' });
+      await updateDoc(doc, 'a', {});
+      const docSnapshot = await getDoc(doc);
       expect(docSnapshot.data()).to.be.deep.equal({ a: {} });
     });
   });
 
   it('merge with empty object replaces all fields', () => {
     return withTestDoc(persistence, async doc => {
-      await doc.set({ a: 'a' });
-      await doc.set({ 'a': {} }, { merge: true });
-      const docSnapshot = await doc.get();
+      await setDoc(doc, { a: 'a' });
+      await setDoc(doc, { 'a': {} }, { merge: true });
+      const docSnapshot = await getDoc(doc);
       expect(docSnapshot.data()).to.be.deep.equal({ a: {} });
     });
   });
@@ -246,17 +273,16 @@ apiDescribe('Database', (persistence: boolean) => {
         nested: { untouched: true, foo: 'bar' }
       };
       const mergeData = {
-        foo: FieldValue.delete(),
-        nested: { foo: FieldValue.delete() }
+        foo: deleteField(),
+        nested: { foo: deleteField() }
       };
       const finalData = {
         untouched: true,
         nested: { untouched: true }
       };
-      return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
-        .then(() => doc.get())
+      return setDoc(doc, initialData)
+        .then(() => setDoc(doc, mergeData, { merge: true }))
+        .then(() => getDoc(doc))
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
@@ -273,11 +299,11 @@ apiDescribe('Database', (persistence: boolean) => {
         nested: { untouched: true, foo: 'bar' }
       };
       const mergeData = {
-        foo: FieldValue.delete(),
-        inner: { foo: FieldValue.delete() },
+        foo: deleteField(),
+        inner: { foo: deleteField() },
         nested: {
-          untouched: FieldValue.delete(),
-          foo: FieldValue.delete()
+          untouched: deleteField(),
+          foo: deleteField()
         }
       };
       const finalData = {
@@ -285,12 +311,13 @@ apiDescribe('Database', (persistence: boolean) => {
         inner: {},
         nested: { untouched: true }
       };
-      return doc
-        .set(initialData)
+      return setDoc(doc, initialData)
         .then(() =>
-          doc.set(mergeData, { mergeFields: ['foo', 'inner', 'nested.foo'] })
+          setDoc(doc, mergeData, {
+            mergeFields: ['foo', 'inner', 'nested.foo']
+          })
         )
-        .then(() => doc.get())
+        .then(() => getDoc(doc))
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
@@ -306,16 +333,17 @@ apiDescribe('Database', (persistence: boolean) => {
         nested: { untouched: true, foo: 'bar' }
       };
       const mergeData = {
-        foo: FieldValue.serverTimestamp(),
-        inner: { foo: FieldValue.serverTimestamp() },
-        nested: { foo: FieldValue.serverTimestamp() }
+        foo: serverTimestamp(),
+        inner: { foo: serverTimestamp() },
+        nested: { foo: serverTimestamp() }
       };
-      return doc
-        .set(initialData)
+      return setDoc(doc, initialData)
         .then(() =>
-          doc.set(mergeData, { mergeFields: ['foo', 'inner', 'nested.foo'] })
+          setDoc(doc, mergeData, {
+            mergeFields: ['foo', 'inner', 'nested.foo']
+          })
         )
-        .then(() => doc.get())
+        .then(() => getDoc(doc))
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.get('foo')).to.be.instanceof(Timestamp);
@@ -344,10 +372,9 @@ apiDescribe('Database', (persistence: boolean) => {
         topLevel: ['new'],
         mapInArray: [{ data: 'new' }]
       };
-      return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
-        .then(() => doc.get())
+      return setDoc(doc, initialData)
+        .then(() => setDoc(doc, mergeData, { merge: true }))
+        .then(() => getDoc(doc))
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
@@ -358,8 +385,8 @@ apiDescribe('Database', (persistence: boolean) => {
   it("can't specify a field mask for a missing field using set", () => {
     return withTestDoc(persistence, async docRef => {
       expect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        docRef.set(
+        void setDoc(
+          docRef,
           { desc: 'NewDescription' },
           { mergeFields: ['desc', 'owner'] }
         );
@@ -376,11 +403,12 @@ apiDescribe('Database', (persistence: boolean) => {
     };
     const finalData = { desc: 'Description', owner: 'Sebastian' };
     return withTestDocAndInitialData(persistence, initialData, async docRef => {
-      await docRef.set(
+      await setDoc(
+        docRef,
         { desc: 'NewDescription', owner: 'Sebastian' },
         { mergeFields: ['owner'] }
       );
-      const result = await docRef.get();
+      const result = await getDoc(docRef);
       expect(result.data()).to.deep.equal(finalData);
     });
   });
@@ -392,11 +420,12 @@ apiDescribe('Database', (persistence: boolean) => {
     };
     const finalData = { desc: 'Description', owner: 'Sebastian' };
     return withTestDocAndInitialData(persistence, initialData, async docRef => {
-      await docRef.set(
-        { desc: FieldValue.delete(), owner: 'Sebastian' },
+      await setDoc(
+        docRef,
+        { desc: deleteField(), owner: 'Sebastian' },
         { mergeFields: ['owner'] }
       );
-      const result = await docRef.get();
+      const result = await getDoc(docRef);
       expect(result.data()).to.deep.equal(finalData);
     });
   });
@@ -408,14 +437,15 @@ apiDescribe('Database', (persistence: boolean) => {
     };
     const finalData = { desc: 'Description', owner: 'Sebastian' };
     return withTestDocAndInitialData(persistence, initialData, async docRef => {
-      await docRef.set(
+      await setDoc(
+        docRef,
         {
-          desc: FieldValue.serverTimestamp(),
+          desc: serverTimestamp(),
           owner: 'Sebastian'
         },
         { mergeFields: ['owner'] }
       );
-      const result = await docRef.get();
+      const result = await getDoc(docRef);
       expect(result.data()).to.deep.equal(finalData);
     });
   });
@@ -427,11 +457,12 @@ apiDescribe('Database', (persistence: boolean) => {
     };
     const finalData = initialData;
     return withTestDocAndInitialData(persistence, initialData, async docRef => {
-      await docRef.set(
+      await setDoc(
+        docRef,
         { desc: 'NewDescription', owner: 'Sebastian' },
         { mergeFields: [] }
       );
-      const result = await docRef.get();
+      const result = await getDoc(docRef);
       expect(result.data()).to.deep.equal(finalData);
     });
   });
@@ -446,22 +477,22 @@ apiDescribe('Database', (persistence: boolean) => {
       owner: { name: 'Sebastian', email: 'new@xyz.com' }
     };
     return withTestDocAndInitialData(persistence, initialData, async docRef => {
-      await docRef.set(
+      await setDoc(
+        docRef,
         {
           desc: 'NewDescription',
           owner: { name: 'Sebastian', email: 'new@xyz.com' }
         },
         { mergeFields: ['owner.name', 'owner', 'owner'] }
       );
-      const result = await docRef.get();
+      const result = await getDoc(docRef);
       expect(result.data()).to.deep.equal(finalData);
     });
   });
 
   it('cannot update nonexistent document', () => {
     return withTestDoc(persistence, doc => {
-      return doc
-        .update({ owner: 'abc' })
+      return updateDoc(doc, { owner: 'abc' })
         .then(
           () => Promise.reject('update should have failed.'),
           err => {
@@ -469,9 +500,9 @@ apiDescribe('Database', (persistence: boolean) => {
             expect(err.code).to.equal('not-found');
           }
         )
-        .then(() => doc.get())
+        .then(() => getDoc(doc))
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.equal(false);
+          expect(docSnapshot.exists()).to.equal(false);
         });
     });
   });
@@ -483,16 +514,15 @@ apiDescribe('Database', (persistence: boolean) => {
         owner: { name: 'Jonny', email: 'abc@xyz.com' }
       };
       const updateData = {
-        'owner.email': FieldValue.delete()
+        'owner.email': deleteField()
       };
       const finalData = {
         desc: 'Description',
         owner: { name: 'Jonny' }
       };
-      return doc
-        .set(initialData)
-        .then(() => doc.update(updateData))
-        .then(() => doc.get())
+      return setDoc(doc, initialData)
+        .then(() => updateDoc(doc, updateData))
+        .then(() => getDoc(doc))
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
@@ -512,12 +542,17 @@ apiDescribe('Database', (persistence: boolean) => {
         owner: { name: 'Sebastian' },
         'is.admin': true
       };
-      return doc
-        .set(initialData)
+      return setDoc(doc, initialData)
         .then(() =>
-          doc.update('owner.name', 'Sebastian', new FieldPath('is.admin'), true)
+          updateDoc(
+            doc,
+            'owner.name',
+            'Sebastian',
+            new FieldPath('is.admin'),
+            true
+          )
         )
-        .then(() => doc.get())
+        .then(() => getDoc(doc))
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
@@ -527,10 +562,9 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('can specify updated field multiple times', () => {
     return withTestDoc(persistence, doc => {
-      return doc
-        .set({})
-        .then(() => doc.update('field', 100, new FieldPath('field'), 200))
-        .then(() => doc.get())
+      return setDoc(doc, {})
+        .then(() => updateDoc(doc, 'field', 100, new FieldPath('field'), 200))
+        .then(() => getDoc(doc))
         .then(docSnap => {
           expect(docSnap.data()).to.deep.equal({ field: 200 });
         });
@@ -544,10 +578,10 @@ apiDescribe('Database', (persistence: boolean) => {
         return withTestDoc(persistence, async doc => {
           // Intentionally passing bad types.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          expect(() => doc.set(val as any)).to.throw();
+          expect(() => setDoc(doc, val as any)).to.throw();
           // Intentionally passing bad types.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          expect(() => doc.update(val as any)).to.throw();
+          expect(() => updateDoc(doc, val as any)).to.throw();
         });
       });
     }
@@ -555,9 +589,8 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('CollectionRef.add() resolves with resulting DocumentRef.', () => {
     return withTestCollection(persistence, {}, coll => {
-      return coll
-        .add({ foo: 1 })
-        .then(docRef => docRef.get())
+      return addDoc(coll, { foo: 1 })
+        .then(docRef => getDoc(docRef))
         .then(docSnap => {
           expect(docSnap.data()).to.deep.equal({ foo: 1 });
         });
@@ -568,12 +601,12 @@ apiDescribe('Database', (persistence: boolean) => {
     const testDocs = {
       a: { foo: 1 }
     };
-    return withTestCollection(persistence, testDocs, async coll => {
+    return withTestCollection(persistence, testDocs, async (coll, db) => {
       let events: string[] = [];
       const gotInitialSnapshot = new Deferred<void>();
-      const doc = coll.doc('a');
+      const docA = doc(coll, 'a');
 
-      doc.onSnapshot(snap => {
+      onSnapshot(docA, snap => {
         events.push('doc');
         gotInitialSnapshot.resolve();
       });
@@ -581,7 +614,7 @@ apiDescribe('Database', (persistence: boolean) => {
       events = [];
 
       const done = new Deferred<void>();
-      doc.firestore.onSnapshotsInSync(() => {
+      onSnapshotsInSync(db, () => {
         events.push('snapshots-in-sync');
         if (events.length === 3) {
           // We should have an initial snapshots-in-sync event, then a snapshot
@@ -596,7 +629,7 @@ apiDescribe('Database', (persistence: boolean) => {
         }
       });
 
-      await doc.set({ foo: 3 });
+      await setDoc(docA, { foo: 3 });
       await done.promise;
     });
   });
@@ -607,7 +640,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('same inequality fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>=', 32).where('x', '<=', 'cat')
+          query(coll, where('x', '>=', 32), where('x', '<=', 'cat'))
         ).not.to.throw();
       });
     });
@@ -615,7 +648,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('inequality and equality on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>=', 32).where('y', '==', 'cat')
+          query(coll, where('x', '>=', 32), where('y', '==', 'cat'))
         ).not.to.throw();
       });
     });
@@ -623,7 +656,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('inequality and array-contains on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>=', 32).where('y', 'array-contains', 'cat')
+          query(coll, where('x', '>=', 32), where('y', 'array-contains', 'cat'))
         ).not.to.throw();
       });
     });
@@ -631,7 +664,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('inequality and IN on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>=', 32).where('y', 'in', [1, 2])
+          query(coll, where('x', '>=', 32), where('y', 'in', [1, 2]))
         ).not.to.throw();
       });
     });
@@ -639,32 +672,44 @@ apiDescribe('Database', (persistence: boolean) => {
     it('inequality and array-contains-any on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>=', 32).where('y', 'array-contains-any', [1, 2])
+          query(
+            coll,
+            where('x', '>=', 32),
+            where('y', 'array-contains-any', [1, 2])
+          )
         ).not.to.throw();
       });
     });
 
     it('inequality same as orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
-        expect(() => coll.where('x', '>', 32).orderBy('x')).not.to.throw();
-        expect(() => coll.orderBy('x').where('x', '>', 32)).not.to.throw();
+        expect(() =>
+          query(coll, where('x', '>', 32), orderBy('x'))
+        ).not.to.throw();
+        expect(() =>
+          query(coll, orderBy('x'), where('x', '>', 32))
+        ).not.to.throw();
       });
     });
 
     it('!= same as orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
-        expect(() => coll.where('x', '!=', 32).orderBy('x')).not.to.throw();
-        expect(() => coll.orderBy('x').where('x', '!=', 32)).not.to.throw();
+        expect(() =>
+          query(coll, where('x', '!=', 32), orderBy('x'))
+        ).not.to.throw();
+        expect(() =>
+          query(coll, orderBy('x'), where('x', '!=', 32))
+        ).not.to.throw();
       });
     });
 
     it('inequality same as first orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>', 32).orderBy('x').orderBy('y')
+          query(coll, where('x', '>', 32), orderBy('x'), orderBy('y'))
         ).not.to.throw();
         expect(() =>
-          coll.orderBy('x').where('x', '>', 32).orderBy('y')
+          query(coll, orderBy('x'), where('x', '>', 32), orderBy('y'))
         ).not.to.throw();
       });
     });
@@ -672,38 +717,42 @@ apiDescribe('Database', (persistence: boolean) => {
     it('!= same as first orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '!=', 32).orderBy('x').orderBy('y')
+          query(coll, where('x', '!=', 32), orderBy('x'), orderBy('y'))
         ).not.to.throw();
         expect(() =>
-          coll.orderBy('x').where('x', '!=', 32).orderBy('y')
+          query(coll, orderBy('x'), where('x', '!=', 32), orderBy('y'))
         ).not.to.throw();
       });
     });
 
     it('equality different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
-        expect(() => coll.orderBy('x').where('y', '==', 'cat')).not.to.throw();
+        expect(() =>
+          query(coll, orderBy('x'), where('y', '==', 'cat'))
+        ).not.to.throw();
       });
     });
 
     it('array-contains different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.orderBy('x').where('y', 'array-contains', 'cat')
+          query(coll, orderBy('x'), where('y', 'array-contains', 'cat'))
         ).not.to.throw();
       });
     });
 
     it('IN different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
-        expect(() => coll.orderBy('x').where('y', 'in', [1, 2])).not.to.throw();
+        expect(() =>
+          query(coll, orderBy('x'), where('y', 'in', [1, 2]))
+        ).not.to.throw();
       });
     });
 
     it('array-contains-any different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.orderBy('x').where('y', 'array-contains-any', [1, 2])
+          query(coll, orderBy('x'), where('y', 'array-contains-any', [1, 2]))
         ).not.to.throw();
       });
     });
@@ -711,11 +760,11 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('DocumentSnapshot events for non existent document', () => {
     return withTestCollection(persistence, {}, col => {
-      const doc = col.doc();
-      const storeEvent = new EventsAccumulator<firestore.DocumentSnapshot>();
-      doc.onSnapshot(storeEvent.storeEvent);
+      const docA = doc(col);
+      const storeEvent = new EventsAccumulator<DocumentSnapshot>();
+      onSnapshot(docA, storeEvent.storeEvent);
       return storeEvent.awaitEvent().then(snap => {
-        expect(snap.exists).to.be.false;
+        expect(snap.exists()).to.be.false;
         expect(snap.data()).to.equal(undefined);
         return storeEvent.assertNoAdditionalEvents();
       });
@@ -724,25 +773,25 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('DocumentSnapshot events for add data to document', () => {
     return withTestCollection(persistence, {}, col => {
-      const doc = col.doc();
-      const storeEvent = new EventsAccumulator<firestore.DocumentSnapshot>();
-      doc.onSnapshot({ includeMetadataChanges: true }, storeEvent.storeEvent);
+      const docA = doc(col);
+      const storeEvent = new EventsAccumulator<DocumentSnapshot>();
+      onSnapshot(docA, { includeMetadataChanges: true }, storeEvent.storeEvent);
       return storeEvent
         .awaitEvent()
         .then(snap => {
-          expect(snap.exists).to.be.false;
+          expect(snap.exists()).to.be.false;
           expect(snap.data()).to.equal(undefined);
         })
-        .then(() => doc.set({ a: 1 }))
+        .then(() => setDoc(docA, { a: 1 }))
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
-          expect(snap.exists).to.be.true;
+          expect(snap.exists()).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
           expect(snap.metadata.hasPendingWrites).to.be.true;
         })
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
-          expect(snap.exists).to.be.true;
+          expect(snap.exists()).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
           expect(snap.metadata.hasPendingWrites).to.be.false;
         })
@@ -755,16 +804,16 @@ apiDescribe('Database', (persistence: boolean) => {
     const changedData = { b: 2 };
 
     return withTestCollection(persistence, { key1: initialData }, col => {
-      const doc = col.doc('key1');
-      const storeEvent = new EventsAccumulator<firestore.DocumentSnapshot>();
-      doc.onSnapshot({ includeMetadataChanges: true }, storeEvent.storeEvent);
+      const doc1 = doc(col, 'key1');
+      const storeEvent = new EventsAccumulator<DocumentSnapshot>();
+      onSnapshot(doc1, { includeMetadataChanges: true }, storeEvent.storeEvent);
       return storeEvent
         .awaitEvent()
         .then(snap => {
           expect(snap.data()).to.deep.equal(initialData);
           expect(snap.metadata.hasPendingWrites).to.be.false;
         })
-        .then(() => doc.set(changedData))
+        .then(() => setDoc(doc1, changedData))
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.data()).to.deep.equal(changedData);
@@ -783,20 +832,20 @@ apiDescribe('Database', (persistence: boolean) => {
     const initialData = { a: 1 };
 
     return withTestCollection(persistence, { key1: initialData }, col => {
-      const doc = col.doc('key1');
-      const storeEvent = new EventsAccumulator<firestore.DocumentSnapshot>();
-      doc.onSnapshot({ includeMetadataChanges: true }, storeEvent.storeEvent);
+      const doc1 = doc(col, 'key1');
+      const storeEvent = new EventsAccumulator<DocumentSnapshot>();
+      onSnapshot(doc1, { includeMetadataChanges: true }, storeEvent.storeEvent);
       return storeEvent
         .awaitEvent()
         .then(snap => {
-          expect(snap.exists).to.be.true;
+          expect(snap.exists()).to.be.true;
           expect(snap.data()).to.deep.equal(initialData);
           expect(snap.metadata.hasPendingWrites).to.be.false;
         })
-        .then(() => doc.delete())
+        .then(() => deleteDoc(doc1))
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
-          expect(snap.exists).to.be.false;
+          expect(snap.exists()).to.be.false;
           expect(snap.data()).to.equal(undefined);
           expect(snap.metadata.hasPendingWrites).to.be.false;
         })
@@ -806,16 +855,14 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('Listen can be called multiple times', () => {
     return withTestCollection(persistence, {}, coll => {
-      const doc = coll.doc();
+      const docA = doc(coll);
       const deferred1 = new Deferred<void>();
       const deferred2 = new Deferred<void>();
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      doc.set({ foo: 'bar' }).then(() => {
-        doc.onSnapshot(snap => {
+      setDoc(docA, { foo: 'bar' }).then(() => {
+        onSnapshot(docA, () => {
           deferred1.resolve();
-          doc.onSnapshot(snap => {
-            deferred2.resolve();
-          });
+          onSnapshot(docA, () => deferred2.resolve());
         });
       });
       return Promise.all([deferred1.promise, deferred2.promise]).then(() => {});
@@ -826,7 +873,7 @@ apiDescribe('Database', (persistence: boolean) => {
     return withTestDoc(persistence, docRef => {
       const secondUpdateFound = new Deferred();
       let count = 0;
-      const unlisten = docRef.onSnapshot(doc => {
+      const unlisten = onSnapshot(docRef, doc => {
         if (doc) {
           count++;
           if (count === 1) {
@@ -838,9 +885,9 @@ apiDescribe('Database', (persistence: boolean) => {
         }
       });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      docRef.set({ a: 1 }).then(() => {
+      setDoc(docRef, { a: 1 }).then(() => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        docRef.set({ b: 1 });
+        setDoc(docRef, { b: 1 });
       });
       return secondUpdateFound.promise.then(() => {
         unlisten();
@@ -856,8 +903,9 @@ apiDescribe('Database', (persistence: boolean) => {
     it('will reject listens', () => {
       return withTestDb(persistence, async db => {
         const deferred = new Deferred();
-        const queryForRejection = db.collection('a/__badpath__/b');
-        queryForRejection.onSnapshot(
+        const queryForRejection = collection(db, 'a/__badpath__/b');
+        onSnapshot(
+          queryForRejection,
           () => {},
           (err: Error) => {
             expect(err.name).to.exist;
@@ -872,13 +920,15 @@ apiDescribe('Database', (persistence: boolean) => {
     it('will reject same listens twice in a row', () => {
       return withTestDb(persistence, async db => {
         const deferred = new Deferred();
-        const queryForRejection = db.collection('a/__badpath__/b');
-        queryForRejection.onSnapshot(
+        const queryForRejection = collection(db, 'a/__badpath__/b');
+        onSnapshot(
+          queryForRejection,
           () => {},
           (err: Error) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
-            queryForRejection.onSnapshot(
+            onSnapshot(
+              queryForRejection,
               () => {},
               (err2: Error) => {
                 expect(err2.name).to.exist;
@@ -894,8 +944,8 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('will reject gets', () => {
       return withTestDb(persistence, async db => {
-        const queryForRejection = db.collection('a/__badpath__/b');
-        await queryForRejection.get().then(
+        const queryForRejection = collection(db, 'a/__badpath__/b');
+        await getDocs(queryForRejection).then(
           () => {
             expect.fail('Promise resolved even though error was expected.');
           },
@@ -909,9 +959,8 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('will reject gets twice in a row', () => {
       return withTestDb(persistence, async db => {
-        const queryForRejection = db.collection('a/__badpath__/b');
-        return queryForRejection
-          .get()
+        const queryForRejection = collection(db, 'a/__badpath__/b');
+        return getDocs(queryForRejection)
           .then(
             () => {
               expect.fail('Promise resolved even though error was expected.');
@@ -921,7 +970,7 @@ apiDescribe('Database', (persistence: boolean) => {
               expect(err.message).to.exist;
             }
           )
-          .then(() => queryForRejection.get())
+          .then(() => getDocs(queryForRejection))
           .then(
             () => {
               expect.fail('Promise resolved even though error was expected.');
@@ -937,26 +986,26 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('exposes "firestore" on document references.', () => {
     return withTestDb(persistence, async db => {
-      expect(db.doc('foo/bar').firestore).to.equal(db);
+      expect(doc(db, 'foo/bar').firestore).to.equal(db);
     });
   });
 
   it('exposes "firestore" on query references.', () => {
     return withTestDb(persistence, async db => {
-      expect(db.collection('foo').limit(5).firestore).to.equal(db);
+      expect(query(collection(db, 'foo'), limit(5)).firestore).to.equal(db);
     });
   });
 
   it('can compare DocumentReference instances with isEqual().', () => {
     return withTestDb(persistence, firestore => {
       return withTestDb(persistence, async otherFirestore => {
-        const docRef = firestore.doc('foo/bar');
-        expect(docRef.isEqual(firestore.doc('foo/bar'))).to.be.true;
-        expect(docRef.collection('baz').parent!.isEqual(docRef)).to.be.true;
+        const docRef = doc(firestore, 'foo/bar');
+        expect(refEqual(docRef, doc(firestore, 'foo/bar'))).to.be.true;
+        expect(refEqual(collection(docRef, 'baz').parent!, docRef)).to.be.true;
 
-        expect(firestore.doc('foo/BAR').isEqual(docRef)).to.be.false;
+        expect(refEqual(doc(firestore, 'foo/BAR'), docRef)).to.be.false;
 
-        expect(otherFirestore.doc('foo/bar').isEqual(docRef)).to.be.false;
+        expect(refEqual(doc(otherFirestore, 'foo/bar'), docRef)).to.be.false;
       });
     });
   });
@@ -964,27 +1013,31 @@ apiDescribe('Database', (persistence: boolean) => {
   it('can compare Query instances with isEqual().', () => {
     return withTestDb(persistence, firestore => {
       return withTestDb(persistence, async otherFirestore => {
-        const query = firestore
-          .collection('foo')
-          .orderBy('bar')
-          .where('baz', '==', 42);
-        const query2 = firestore
-          .collection('foo')
-          .orderBy('bar')
-          .where('baz', '==', 42);
-        expect(query.isEqual(query2)).to.be.true;
+        const query1 = query(
+          collection(firestore, 'foo'),
+          orderBy('bar'),
+          where('baz', '==', 42)
+        );
+        const query2 = query(
+          collection(firestore, 'foo'),
+          orderBy('bar'),
+          where('baz', '==', 42)
+        );
+        expect(queryEqual(query1, query2)).to.be.true;
 
-        const query3 = firestore
-          .collection('foo')
-          .orderBy('BAR')
-          .where('baz', '==', 42);
-        expect(query.isEqual(query3)).to.be.false;
+        const query3 = query(
+          collection(firestore, 'foo'),
+          orderBy('BAR'),
+          where('baz', '==', 42)
+        );
+        expect(queryEqual(query1, query3)).to.be.false;
 
-        const query4 = otherFirestore
-          .collection('foo')
-          .orderBy('bar')
-          .where('baz', '==', 42);
-        expect(query4.isEqual(query)).to.be.false;
+        const query4 = query(
+          collection(otherFirestore, 'foo'),
+          orderBy('bar'),
+          where('baz', '==', 42)
+        );
+        expect(queryEqual(query4, query1)).to.be.false;
       });
     });
   });
@@ -993,13 +1046,13 @@ apiDescribe('Database', (persistence: boolean) => {
     return withTestDb(persistence, async db => {
       const expected = 'a/b/c/d';
       // doc path from root Firestore.
-      expect(db.doc('a/b/c/d').path).to.deep.equal(expected);
+      expect(doc(db, 'a/b/c/d').path).to.deep.equal(expected);
       // collection path from root Firestore.
-      expect(db.collection('a/b/c').doc('d').path).to.deep.equal(expected);
+      expect(doc(collection(db, 'a/b/c'), 'd').path).to.deep.equal(expected);
       // doc path from CollectionReference.
-      expect(db.collection('a').doc('b/c/d').path).to.deep.equal(expected);
+      expect(doc(collection(db, 'a'), 'b/c/d').path).to.deep.equal(expected);
       // collection path from DocumentReference.
-      expect(db.doc('a/b').collection('c/d/e').path).to.deep.equal(
+      expect(collection(doc(db, 'a/b'), 'c/d/e').path).to.deep.equal(
         expected + '/e'
       );
     });
@@ -1007,33 +1060,30 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('can traverse collection and document parents.', () => {
     return withTestDb(persistence, async db => {
-      let collection = db.collection('a/b/c');
-      expect(collection.path).to.deep.equal('a/b/c');
+      let coll = collection(db, 'a/b/c');
+      expect(coll.path).to.deep.equal('a/b/c');
 
-      const doc = collection.parent!;
+      const doc = coll.parent!;
       expect(doc.path).to.deep.equal('a/b');
 
-      collection = doc.parent;
-      expect(collection.path).to.equal('a');
+      coll = doc.parent;
+      expect(coll.path).to.equal('a');
 
-      const nullDoc = collection.parent;
+      const nullDoc = coll.parent;
       expect(nullDoc).to.equal(null);
     });
   });
 
   it('can queue writes while offline', () => {
-    return withTestDoc(persistence, docRef => {
-      const firestore = docRef.firestore;
-
-      return firestore
-        .disableNetwork()
-        .then(() => {
-          return Promise.all([
-            docRef.set({ foo: 'bar' }),
-            firestore.enableNetwork()
-          ]);
-        })
-        .then(() => docRef.get())
+    return withTestDoc(persistence, (docRef, firestore) => {
+      return disableNetwork(firestore)
+        .then(() =>
+          Promise.all([
+            setDoc(docRef, { foo: 'bar' }),
+            enableNetwork(firestore)
+          ])
+        )
+        .then(() => getDoc(docRef))
         .then(doc => {
           expect(doc.data()).to.deep.equal({ foo: 'bar' });
         });
@@ -1042,41 +1092,39 @@ apiDescribe('Database', (persistence: boolean) => {
 
   // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)('offline writes are sent after restart', () => {
-    return withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
-
+    return withTestDoc(persistence, async (docRef, firestore) => {
       const app = firestore.app;
       const name = app.name;
       const options = app.options;
 
-      await firestore.disableNetwork();
+      await disableNetwork(firestore);
 
       // We are merely adding to the cache.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      docRef.set({ foo: 'bar' });
+      setDoc(docRef, { foo: 'bar' });
 
-      await app.delete();
+      await deleteApp(app);
 
       const firestore2 = newTestFirestore(
-        options.projectId,
+        options.projectId!,
         name,
         DEFAULT_SETTINGS
       );
-      await firestore2.enablePersistence();
-      await firestore2.waitForPendingWrites();
-      const doc = await firestore2.doc(docRef.path).get();
+      await enableIndexedDbPersistence(firestore2);
+      await waitForPendingWrites(firestore2);
+      const doc2 = await getDoc(doc(firestore2, docRef.path));
 
-      expect(doc.exists).to.be.true;
-      expect(doc.metadata.hasPendingWrites).to.be.false;
+      expect(doc2.exists()).to.be.true;
+      expect(doc2.metadata.hasPendingWrites).to.be.false;
     });
   });
 
   it('rejects subsequent method calls after terminate() is called', async () => {
     return withTestDb(persistence, db => {
-      return db.INTERNAL.delete().then(() => {
+      return terminate(db).then(() => {
         expect(() => {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          db.disableNetwork();
+          disableNetwork(db);
         }).to.throw('The client has already been terminated.');
       });
     });
@@ -1084,8 +1132,8 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('can call terminate() multiple times', async () => {
     return withTestDb(persistence, async db => {
-      await db.terminate();
-      await db.terminate();
+      await terminate(db);
+      await terminate(db);
     });
   });
 
@@ -1094,18 +1142,18 @@ apiDescribe('Database', (persistence: boolean) => {
     'maintains persistence after restarting app',
     async () => {
       await withTestDoc(persistence, async docRef => {
-        await docRef.set({ foo: 'bar' });
+        await setDoc(docRef, { foo: 'bar' });
         const app = docRef.firestore.app;
         const name = app.name;
         const options = app.options;
 
-        await app.delete();
+        await deleteApp(app);
 
-        const firestore2 = newTestFirestore(options.projectId, name);
-        await firestore2.enablePersistence();
-        const docRef2 = firestore2.doc(docRef.path);
-        const docSnap2 = await docRef2.get({ source: 'cache' });
-        expect(docSnap2.exists).to.be.true;
+        const firestore2 = newTestFirestore(options.projectId!, name);
+        await enableIndexedDbPersistence(firestore2);
+        const docRef2 = doc(firestore2, docRef.path);
+        const docSnap2 = await getDocFromCache(docRef2);
+        expect(docSnap2.exists()).to.be.true;
       });
     }
   );
@@ -1114,21 +1162,20 @@ apiDescribe('Database', (persistence: boolean) => {
   (persistence ? it : it.skip)(
     'can clear persistence if the client has been terminated',
     async () => {
-      await withTestDoc(persistence, async docRef => {
-        const firestore = docRef.firestore;
-        await docRef.set({ foo: 'bar' });
+      await withTestDoc(persistence, async (docRef, firestore) => {
+        await setDoc(docRef, { foo: 'bar' });
         const app = docRef.firestore.app;
         const name = app.name;
         const options = app.options;
 
-        await app.delete();
-        await firestore.clearPersistence();
-        const firestore2 = newTestFirestore(options.projectId, name);
-        await firestore2.enablePersistence();
-        const docRef2 = firestore2.doc(docRef.path);
-        await expect(
-          docRef2.get({ source: 'cache' })
-        ).to.eventually.be.rejectedWith('Failed to get document from cache.');
+        await deleteApp(app);
+        await clearIndexedDbPersistence(firestore);
+        const firestore2 = newTestFirestore(options.projectId!, name);
+        await enableIndexedDbPersistence(firestore2);
+        const docRef2 = doc(firestore2, docRef.path);
+        await expect(getDocFromCache(docRef2)).to.eventually.be.rejectedWith(
+          'Failed to get document from cache.'
+        );
       });
     }
   );
@@ -1138,19 +1185,19 @@ apiDescribe('Database', (persistence: boolean) => {
     'can clear persistence if the client has not been initialized',
     async () => {
       await withTestDoc(persistence, async docRef => {
-        await docRef.set({ foo: 'bar' });
+        await setDoc(docRef, { foo: 'bar' });
         const app = docRef.firestore.app;
         const name = app.name;
         const options = app.options;
 
-        await app.delete();
-        const firestore2 = newTestFirestore(options.projectId, name);
-        await firestore2.clearPersistence();
-        await firestore2.enablePersistence();
-        const docRef2 = firestore2.doc(docRef.path);
-        await expect(
-          docRef2.get({ source: 'cache' })
-        ).to.eventually.be.rejectedWith('Failed to get document from cache.');
+        await deleteApp(app);
+        const firestore2 = newTestFirestore(options.projectId!, name);
+        await clearIndexedDbPersistence(firestore2);
+        await enableIndexedDbPersistence(firestore2);
+        const docRef2 = doc(firestore2, docRef.path);
+        await expect(getDocFromCache(docRef2)).to.eventually.be.rejectedWith(
+          'Failed to get document from cache.'
+        );
       });
     }
   );
@@ -1159,33 +1206,32 @@ apiDescribe('Database', (persistence: boolean) => {
   (persistence ? it : it.skip)(
     'cannot clear persistence if the client has been initialized',
     async () => {
-      await withTestDoc(persistence, async docRef => {
-        const firestore = docRef.firestore;
+      await withTestDoc(persistence, async (docRef, firestore) => {
         const expectedError =
           'Persistence can only be cleared before a Firestore instance is ' +
           'initialized or after it is terminated.';
-        expect(() => firestore.clearPersistence()).to.throw(expectedError);
+        expect(() => clearIndexedDbPersistence(firestore)).to.throw(
+          expectedError
+        );
       });
     }
   );
 
   it('can get documents while offline', async () => {
-    await withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
-
-      await firestore.disableNetwork();
-      await expect(docRef.get()).to.eventually.be.rejectedWith(
+    await withTestDoc(persistence, async (docRef, firestore) => {
+      await disableNetwork(firestore);
+      await expect(getDoc(docRef)).to.eventually.be.rejectedWith(
         'Failed to get document because the client is offline.'
       );
 
-      const writePromise = docRef.set({ foo: 'bar' });
-      const doc = await docRef.get();
+      const writePromise = setDoc(docRef, { foo: 'bar' });
+      const doc = await getDoc(docRef);
       expect(doc.metadata.fromCache).to.be.true;
 
-      await firestore.enableNetwork();
+      await enableNetwork(firestore);
       await writePromise;
 
-      const doc2 = await docRef.get();
+      const doc2 = await getDoc(docRef);
       expect(doc2.metadata.fromCache).to.be.false;
       expect(doc2.data()).to.deep.equal({ foo: 'bar' });
     });
@@ -1195,65 +1241,59 @@ apiDescribe('Database', (persistence: boolean) => {
     return withTestDb(persistence, async db => {
       // There's not currently a way to check if networking is in fact disabled,
       // so for now just test that the method is well-behaved and doesn't throw.
-      await db.enableNetwork();
-      await db.enableNetwork();
-      await db.disableNetwork();
-      await db.disableNetwork();
-      await db.enableNetwork();
+      await enableNetwork(db);
+      await enableNetwork(db);
+      await disableNetwork(db);
+      await disableNetwork(db);
+      await enableNetwork(db);
     });
   });
 
   it('can start a new instance after shut down', async () => {
-    return withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
-      await firestore.terminate();
+    return withTestDoc(persistence, async (docRef, firestore) => {
+      const app = firestore.app;
+      await terminate(firestore);
 
-      const newFirestore = newTestFirestore(
-        firestore.app.options.projectId,
-        firestore.app
-      );
+      const newFirestore = initializeFirestore(app, DEFAULT_SETTINGS);
       expect(newFirestore).to.not.equal(firestore);
 
       // New instance functions.
-      newFirestore.settings(DEFAULT_SETTINGS);
-      await newFirestore.doc(docRef.path).set({ foo: 'bar' });
-      const doc = await newFirestore.doc(docRef.path).get();
-      expect(doc.data()).to.deep.equal({ foo: 'bar' });
+      const docRef2 = doc(newFirestore, docRef.path);
+      await setDoc(docRef2, { foo: 'bar' });
+      const docSnap = await getDoc(docRef2);
+      expect(docSnap.data()).to.deep.equal({ foo: 'bar' });
     });
   });
 
   it('new operation after termination should throw', async () => {
-    await withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
-      await firestore.terminate();
+    await withTestDoc(persistence, async (docRef, firestore) => {
+      await terminate(firestore);
 
       expect(() => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        firestore.doc(docRef.path).set({ foo: 'bar' });
+        setDoc(doc(firestore, docRef.path), { foo: 'bar' });
       }).to.throw('The client has already been terminated.');
     });
   });
 
   it('calling terminate multiple times should proceed', async () => {
-    await withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
-      await firestore.terminate();
-      await firestore.terminate();
+    await withTestDoc(persistence, async (docRef, firestore) => {
+      await terminate(firestore);
+      await terminate(firestore);
 
       expect(() => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        firestore.doc(docRef.path).set({ foo: 'bar' });
+        setDoc(doc(firestore, docRef.path), { foo: 'bar' });
       }).to.throw();
     });
   });
 
   it('can unlisten queries after termination', async () => {
-    return withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
-      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
-      const unsubscribe = docRef.onSnapshot(accumulator.storeEvent);
+    return withTestDoc(persistence, async (docRef, firestore) => {
+      const accumulator = new EventsAccumulator<DocumentSnapshot>();
+      const unsubscribe = onSnapshot(docRef, accumulator.storeEvent);
       await accumulator.awaitEvent();
-      await firestore.terminate();
+      await terminate(firestore);
 
       // This should proceed without error.
       unsubscribe();
@@ -1263,30 +1303,28 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   it('can wait for pending writes', async () => {
-    await withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
+    await withTestDoc(persistence, async (docRef, firestore) => {
       // Prevent pending writes receiving acknowledgement.
-      await firestore.disableNetwork();
+      await disableNetwork(firestore);
 
-      const pendingWrites = docRef.set({ foo: 'bar' });
-      const awaitPendingWrites = firestore.waitForPendingWrites();
+      const pendingWrites = setDoc(docRef, { foo: 'bar' });
+      const awaitPendingWrites = waitForPendingWrites(firestore);
 
       // pending writes can receive acknowledgements now.
-      await firestore.enableNetwork();
+      await enableNetwork(firestore);
       await pendingWrites;
       await awaitPendingWrites;
     });
   });
 
   it('waiting for pending writes resolves immediately when offline and no pending writes', async () => {
-    await withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
+    await withTestDoc(persistence, async (docRef, firestore) => {
       // Prevent pending writes receiving acknowledgement.
-      await firestore.disableNetwork();
+      await disableNetwork(firestore);
 
       // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
       // immediately even if we are offline.
-      await firestore.waitForPendingWrites();
+      await waitForPendingWrites(firestore);
     });
   });
 
@@ -1297,7 +1335,7 @@ apiDescribe('Database', (persistence: boolean) => {
       constructor(
         readonly title: string,
         readonly author: string,
-        readonly ref: firestore.DocumentReference | null = null
+        readonly ref: DocumentReference | null = null
       ) {}
       byline(): string {
         return this.title + ', by ' + this.author;
@@ -1305,30 +1343,27 @@ apiDescribe('Database', (persistence: boolean) => {
     }
 
     const postConverter = {
-      toFirestore(post: Post): firestore.DocumentData {
+      toFirestore(post: Post): DocumentData {
         return { title: post.title, author: post.author };
       },
-      fromFirestore(
-        snapshot: firestore.QueryDocumentSnapshot,
-        options: firestore.SnapshotOptions
-      ): Post {
+      fromFirestore(snapshot: QueryDocumentSnapshot): Post {
         expect(snapshot).to.be.an.instanceof(QueryDocumentSnapshot);
-        const data = snapshot.data(options);
+        const data = snapshot.data();
         return new Post(data.title, data.author, snapshot.ref);
       }
     };
 
     const postConverterMerge = {
       toFirestore(
-        post: Partial<Post>,
-        options?: firestore.SetOptions
-      ): firestore.DocumentData {
-        if (options && (options.merge || options.mergeFields)) {
+        post: WithFieldValue<Post>,
+        options?: SetOptions
+      ): DocumentData {
+        if (options && ('merge' in options || 'mergeFields' in options)) {
           expect(post).to.not.be.an.instanceof(Post);
         } else {
           expect(post).to.be.an.instanceof(Post);
         }
-        const result: firestore.DocumentData = {};
+        const result: DocumentData = {};
         if (post.title) {
           result.title = post.title;
         }
@@ -1337,10 +1372,7 @@ apiDescribe('Database', (persistence: boolean) => {
         }
         return result;
       },
-      fromFirestore(
-        snapshot: firestore.QueryDocumentSnapshot,
-        options: firestore.SnapshotOptions
-      ): Post {
+      fromFirestore(snapshot: QueryDocumentSnapshot): Post {
         const data = snapshot.data();
         return new Post(data.title, data.author, snapshot.ref);
       }
@@ -1348,13 +1380,12 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('for DocumentReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
-        const docRef = db
-          .collection('posts')
-          .doc()
-          .withConverter(postConverter);
+        const docRef = doc(collection(db, 'posts')).withConverter(
+          postConverter
+        );
 
-        await docRef.set(new Post('post', 'author'));
-        const postData = await docRef.get();
+        await setDoc(docRef, new Post('post', 'author'));
+        const postData = await getDoc(docRef);
         const post = postData.data();
         expect(post).to.not.equal(undefined);
         expect(post!.byline()).to.equal('post, by author');
@@ -1363,22 +1394,20 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('for DocumentReference.withConverter(null) ', () => {
       return withTestDb(persistence, async db => {
-        const docRef = db
-          .collection('posts')
-          .doc()
+        const docRef = doc(collection(db, 'posts'))
           .withConverter(postConverter)
           .withConverter(null);
 
-        expect(() => docRef.set(new Post('post', 'author'))).to.throw();
+        expect(() => setDoc(docRef, new Post('post', 'author'))).to.throw();
       });
     });
 
     it('for CollectionReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
-        const coll = db.collection('posts').withConverter(postConverter);
+        const coll = collection(db, 'posts').withConverter(postConverter);
 
-        const docRef = await coll.add(new Post('post', 'author'));
-        const postData = await docRef.get();
+        const docRef = await addDoc(coll, new Post('post', 'author'));
+        const postData = await getDoc(docRef);
         const post = postData.data();
         expect(post).to.not.equal(undefined);
         expect(post!.byline()).to.equal('post, by author');
@@ -1387,27 +1416,27 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('for CollectionReference.withConverter(null)', () => {
       return withTestDb(persistence, async db => {
-        const coll = db
-          .collection('posts')
+        const coll = collection(db, 'posts')
           .withConverter(postConverter)
           .withConverter(null);
 
-        expect(() => coll.add(new Post('post', 'author'))).to.throw();
+        expect(() => addDoc(coll, new Post('post', 'author'))).to.throw();
       });
     });
 
     it('for Query.withConverter()', () => {
       return withTestDb(persistence, async db => {
-        await db
-          .doc('postings/post1')
-          .set({ title: 'post1', author: 'author1' });
-        await db
-          .doc('postings/post2')
-          .set({ title: 'post2', author: 'author2' });
-        const posts = await db
-          .collectionGroup('postings')
-          .withConverter(postConverter)
-          .get();
+        await setDoc(doc(db, 'postings/post1'), {
+          title: 'post1',
+          author: 'author1'
+        });
+        await setDoc(doc(db, 'postings/post2'), {
+          title: 'post2',
+          author: 'author2'
+        });
+        const posts = await getDocs(
+          collectionGroup(db, 'postings').withConverter(postConverter)
+        );
         expect(posts.size).to.equal(2);
         expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
       });
@@ -1415,26 +1444,24 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('for Query.withConverter(null)', () => {
       return withTestDb(persistence, async db => {
-        await db
-          .doc('postings/post1')
-          .set({ title: 'post1', author: 'author1' });
-        const posts = await db
-          .collectionGroup('postings')
-          .withConverter(postConverter)
-          .withConverter(null)
-          .get();
+        await setDoc(doc(db, 'postings/post1'), {
+          title: 'post1',
+          author: 'author1'
+        });
+        const posts = await getDocs(
+          collectionGroup(db, 'postings')
+            .withConverter(postConverter)
+            .withConverter(null)
+        );
         expect(posts.docs[0].data()).to.not.be.an.instanceof(Post);
       });
     });
 
     it('requires the correct converter for Partial usage', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db
-          .collection('posts')
-          .doc('some-post')
-          .withConverter(postConverter);
-        await ref.set(new Post('walnut', 'author'));
-        const batch = db.batch();
+        const ref = doc(db, 'posts', 'some-post').withConverter(postConverter);
+        await setDoc(ref, new Post('walnut', 'author'));
+        const batch = writeBatch(db);
         expect(() =>
           batch.set(ref, { title: 'olive' }, { merge: true })
         ).to.throw(
@@ -1447,117 +1474,112 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('WriteBatch.set() supports partials with merge', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db
-          .collection('posts')
-          .doc()
-          .withConverter(postConverterMerge);
-        await ref.set(new Post('walnut', 'author'));
-        const batch = db.batch();
+        const ref = doc(collection(db, 'posts')).withConverter(
+          postConverterMerge
+        );
+        await setDoc(ref, new Post('walnut', 'author'));
+        const batch = writeBatch(db);
         batch.set(ref, { title: 'olive' }, { merge: true });
         await batch.commit();
-        const doc = await ref.get();
-        expect(doc.get('title')).to.equal('olive');
-        expect(doc.get('author')).to.equal('author');
+        const docSnap = await getDoc(ref);
+        expect(docSnap.get('title')).to.equal('olive');
+        expect(docSnap.get('author')).to.equal('author');
       });
     });
 
     it('WriteBatch.set() supports partials with mergeFields', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db
-          .collection('posts')
-          .doc()
-          .withConverter(postConverterMerge);
-        await ref.set(new Post('walnut', 'author'));
-        const batch = db.batch();
+        const ref = doc(collection(db, 'posts')).withConverter(
+          postConverterMerge
+        );
+        await setDoc(ref, new Post('walnut', 'author'));
+        const batch = writeBatch(db);
         batch.set(
           ref,
           { title: 'olive', author: 'writer' },
           { mergeFields: ['title'] }
         );
         await batch.commit();
-        const doc = await ref.get();
-        expect(doc.get('title')).to.equal('olive');
-        expect(doc.get('author')).to.equal('author');
+        const docSnap = await getDoc(ref);
+        expect(docSnap.get('title')).to.equal('olive');
+        expect(docSnap.get('author')).to.equal('author');
       });
     });
 
     it('Transaction.set() supports partials with merge', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db
-          .collection('posts')
-          .doc()
-          .withConverter(postConverterMerge);
-        await ref.set(new Post('walnut', 'author'));
-        await db.runTransaction(async tx => {
+        const ref = doc(collection(db, 'posts')).withConverter(
+          postConverterMerge
+        );
+        await setDoc(ref, new Post('walnut', 'author'));
+        await runTransaction(db, async tx => {
           tx.set(ref, { title: 'olive' }, { merge: true });
         });
-        const doc = await ref.get();
-        expect(doc.get('title')).to.equal('olive');
-        expect(doc.get('author')).to.equal('author');
+        const docSnap = await getDoc(ref);
+        expect(docSnap.get('title')).to.equal('olive');
+        expect(docSnap.get('author')).to.equal('author');
       });
     });
 
     it('Transaction.set() supports partials with mergeFields', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db
-          .collection('posts')
-          .doc()
-          .withConverter(postConverterMerge);
-        await ref.set(new Post('walnut', 'author'));
-        await db.runTransaction(async tx => {
+        const ref = doc(collection(db, 'posts')).withConverter(
+          postConverterMerge
+        );
+        await setDoc(ref, new Post('walnut', 'author'));
+        await runTransaction(db, async tx => {
           tx.set(
             ref,
             { title: 'olive', author: 'person' },
             { mergeFields: ['title'] }
           );
         });
-        const doc = await ref.get();
-        expect(doc.get('title')).to.equal('olive');
-        expect(doc.get('author')).to.equal('author');
+        const docSnap = await getDoc(ref);
+        expect(docSnap.get('title')).to.equal('olive');
+        expect(docSnap.get('author')).to.equal('author');
       });
     });
 
     it('DocumentReference.set() supports partials with merge', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db
-          .collection('posts')
-          .doc()
-          .withConverter(postConverterMerge);
-        await ref.set(new Post('walnut', 'author'));
-        await ref.set({ title: 'olive' }, { merge: true });
-        const doc = await ref.get();
-        expect(doc.get('title')).to.equal('olive');
-        expect(doc.get('author')).to.equal('author');
+        const ref = doc(collection(db, 'posts')).withConverter(
+          postConverterMerge
+        );
+        await setDoc(ref, new Post('walnut', 'author'));
+        await setDoc(ref, { title: 'olive' }, { merge: true });
+        const docSnap = await getDoc(ref);
+        expect(docSnap.get('title')).to.equal('olive');
+        expect(docSnap.get('author')).to.equal('author');
       });
     });
 
     it('DocumentReference.set() supports partials with mergeFields', async () => {
       return withTestDb(persistence, async db => {
-        const ref = db
-          .collection('posts')
-          .doc()
-          .withConverter(postConverterMerge);
-        await ref.set(new Post('walnut', 'author'));
-        await ref.set(
+        const ref = doc(collection(db, 'posts')).withConverter(
+          postConverterMerge
+        );
+        await setDoc(ref, new Post('walnut', 'author'));
+        await setDoc(
+          ref,
           { title: 'olive', author: 'writer' },
           { mergeFields: ['title'] }
         );
-        const doc = await ref.get();
-        expect(doc.get('title')).to.equal('olive');
-        expect(doc.get('author')).to.equal('author');
+        const docSnap = await getDoc(ref);
+        expect(docSnap.get('title')).to.equal('olive');
+        expect(docSnap.get('author')).to.equal('author');
       });
     });
 
     it('calls DocumentSnapshot.data() with specified SnapshotOptions', () => {
       return withTestDb(persistence, async db => {
-        const docRef = db.doc('some/doc').withConverter({
-          toFirestore(post: Post): firestore.DocumentData {
+        const docRef = doc(db, 'some/doc').withConverter({
+          toFirestore(post: Post): DocumentData {
             return { title: post.title, author: post.author };
           },
-          fromFirestore(
-            snapshot: firestore.QueryDocumentSnapshot,
-            options: firestore.SnapshotOptions
-          ): Post {
+          fromFirestore(snapshot: QueryDocumentSnapshot): Post {
+            // Hack: Due to our build setup, TypeScript thinks this is a
+            // firestore-lite converter which does not have options
+            const options = arguments[1] as SnapshotOptions;
             // Check that options were passed in properly.
             expect(options).to.deep.equal({ serverTimestamps: 'estimate' });
 
@@ -1566,20 +1588,21 @@ apiDescribe('Database', (persistence: boolean) => {
           }
         });
 
-        await docRef.set(new Post('post', 'author'));
-        const postData = await docRef.get();
+        await setDoc(docRef, new Post('post', 'author'));
+        const postData = await getDoc(docRef);
         postData.data({ serverTimestamps: 'estimate' });
       });
     });
 
     it('drops the converter when calling CollectionReference<T>.parent()', () => {
       return withTestDb(persistence, async db => {
-        const postsCollection = db
-          .collection('users/user1/posts')
-          .withConverter(postConverter);
+        const postsCollection = collection(
+          db,
+          'users/user1/posts'
+        ).withConverter(postConverter);
 
         const usersCollection = postsCollection.parent;
-        expect(usersCollection!.isEqual(db.doc('users/user1'))).to.be.true;
+        expect(refEqual(usersCollection!, doc(db, 'users/user1'))).to.be.true;
       });
     });
 
@@ -1587,64 +1610,67 @@ apiDescribe('Database', (persistence: boolean) => {
       return withTestDb(persistence, async db => {
         const postConverter2 = { ...postConverter };
 
-        const postsCollection = db
-          .collection('users/user1/posts')
-          .withConverter(postConverter);
-        const postsCollection2 = db
-          .collection('users/user1/posts')
-          .withConverter(postConverter2);
-        expect(postsCollection.isEqual(postsCollection2)).to.be.false;
+        const postsCollection = collection(
+          db,
+          'users/user1/posts'
+        ).withConverter(postConverter);
+        const postsCollection2 = collection(
+          db,
+          'users/user1/posts'
+        ).withConverter(postConverter2);
+        expect(refEqual(postsCollection, postsCollection2)).to.be.false;
 
-        const docRef = db.doc('some/doc').withConverter(postConverter);
-        const docRef2 = db.doc('some/doc').withConverter(postConverter2);
-        expect(docRef.isEqual(docRef2)).to.be.false;
+        const docRef = doc(db, 'some/doc').withConverter(postConverter);
+        const docRef2 = doc(db, 'some/doc').withConverter(postConverter2);
+        expect(refEqual(docRef, docRef2)).to.be.false;
       });
     });
 
     it('Correct snapshot specified to fromFirestore() when registered with DocumentReference', () => {
       return withTestDb(persistence, async db => {
-        const untypedDocRef = db.collection('/models').doc();
+        const untypedDocRef = doc(collection(db, '/models'));
         const docRef = untypedDocRef.withConverter(postConverter);
-        await docRef.set(new Post('post', 'author'));
-        const docSnapshot = await docRef.get();
+        await setDoc(docRef, new Post('post', 'author'));
+        const docSnapshot = await getDoc(docRef);
         const ref = docSnapshot.data()!.ref!;
         expect(ref).to.be.an.instanceof(DocumentReference);
-        expect(untypedDocRef.isEqual(ref)).to.be.true;
+        expect(refEqual(untypedDocRef, ref)).to.be.true;
       });
     });
 
     it('Correct snapshot specified to fromFirestore() when registered with CollectionReference', () => {
       return withTestDb(persistence, async db => {
-        const untypedCollection = db
-          .collection('/models')
-          .doc()
-          .collection('sub');
-        const collection = untypedCollection.withConverter(postConverter);
-        const docRef = collection.doc();
-        await docRef.set(new Post('post', 'author', docRef));
-        const querySnapshot = await collection.get();
+        const untypedCollection = collection(
+          doc(collection(db, '/models')),
+          'sub'
+        );
+        const typedCollection = untypedCollection.withConverter(postConverter);
+        const docRef = doc(typedCollection);
+        await setDoc(docRef, new Post('post', 'author', docRef));
+        const querySnapshot = await getDocs(typedCollection);
         expect(querySnapshot.size).to.equal(1);
         const ref = querySnapshot.docs[0].data().ref!;
         expect(ref).to.be.an.instanceof(DocumentReference);
-        const untypedDocRef = untypedCollection.doc(docRef.id);
-        expect(untypedDocRef.isEqual(ref)).to.be.true;
+        const untypedDocRef = doc(untypedCollection, docRef.id);
+        expect(refEqual(untypedDocRef, ref)).to.be.true;
       });
     });
 
     it('Correct snapshot specified to fromFirestore() when registered with Query', () => {
       return withTestDb(persistence, async db => {
-        const untypedCollection = db.collection('/models');
-        const untypedDocRef = untypedCollection.doc();
+        const untypedCollection = collection(db, '/models');
+        const untypedDocRef = doc(untypedCollection);
         const docRef = untypedDocRef.withConverter(postConverter);
-        await docRef.set(new Post('post', 'author', docRef));
-        const query = untypedCollection
-          .where(FieldPath.documentId(), '==', docRef.id)
-          .withConverter(postConverter);
-        const querySnapshot = await query.get();
+        await setDoc(docRef, new Post('post', 'author', docRef));
+        const filteredQuery = query(
+          untypedCollection,
+          where(documentId(), '==', docRef.id)
+        ).withConverter(postConverter);
+        const querySnapshot = await getDocs(filteredQuery);
         expect(querySnapshot.size).to.equal(1);
         const ref = querySnapshot.docs[0].data().ref!;
         expect(ref).to.be.an.instanceof(DocumentReference);
-        expect(untypedDocRef.isEqual(ref)).to.be.true;
+        expect(refEqual(untypedDocRef, ref)).to.be.true;
       });
     });
   });
@@ -1664,13 +1690,12 @@ apiDescribe('Database', (persistence: boolean) => {
       1,
       async ([db]) => {
         const data = { name: 'Rafi', email: 'abc@xyz.com' };
-        const doc = await db.collection('users').doc();
+        const ref = await doc(collection(db, 'users'));
 
-        return doc
-          .set(data)
-          .then(() => doc.get())
+        return setDoc(ref, data)
+          .then(() => getDoc(ref))
           .then(snapshot => {
-            expect(snapshot.exists).to.be.ok;
+            expect(snapshot.exists()).to.be.ok;
             expect(snapshot.data()).to.deep.equal(data);
           });
       }
