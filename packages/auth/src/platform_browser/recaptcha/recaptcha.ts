@@ -17,9 +17,38 @@
 
 import { RecaptchaParameters } from '../../model/public_types';
 
+// reCAPTCHA v2 interface
 export interface Recaptcha {
   render: (container: HTMLElement, parameters: RecaptchaParameters) => number;
   getResponse: (id: number) => string;
   execute: (id: number) => unknown;
   reset: (id: number) => unknown;
+}
+
+export function isV2(grecaptcha: Recaptcha | GreCAPTCHATopLevel | undefined): grecaptcha is Recaptcha {
+  return grecaptcha !== undefined && (grecaptcha as Recaptcha).getResponse !== undefined;
+}
+
+// reCAPTCHA Enterprise & v3 shared interface
+ export interface GreCAPTCHATopLevel extends GreCAPTCHA {
+   enterprise: GreCAPTCHA;
+ }
+ 
+ // reCAPTCHA Enterprise interface
+ export interface GreCAPTCHA {
+   ready: (callback: () => void) => void;
+   execute: (siteKey: string, options: { action: string }) => Promise<string>;
+   render: (
+     container: string | HTMLElement,
+     parameters: GreCAPTCHARenderOption
+   ) => string;
+ }
+ 
+ export interface GreCAPTCHARenderOption {
+   sitekey: string;
+   size: 'invisible';
+ }
+
+ export function isEnterprise(grecaptcha: Recaptcha | GreCAPTCHATopLevel | undefined): grecaptcha is GreCAPTCHATopLevel {
+  return grecaptcha !== undefined && (grecaptcha as GreCAPTCHATopLevel).enterprise !== undefined;
 }

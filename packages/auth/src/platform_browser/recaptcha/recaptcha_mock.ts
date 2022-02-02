@@ -19,7 +19,7 @@ import { AuthErrorCode } from '../../core/errors';
 import { _assert } from '../../core/util/assert';
 import { AuthInternal } from '../../model/auth';
 import { RecaptchaParameters } from '../../model/public_types';
-import { Recaptcha } from './recaptcha';
+import { Recaptcha, GreCAPTCHATopLevel, GreCAPTCHARenderOption, GreCAPTCHA } from './recaptcha';
 
 export const _SOLVE_TIME_MS = 500;
 export const _EXPIRATION_TIME_MS = 60_000;
@@ -66,6 +66,43 @@ export class MockReCaptcha implements Recaptcha {
     void this._widgets.get(id)?.execute();
     return '';
   }
+}
+
+export class MockGreCAPTCHATopLevel implements GreCAPTCHATopLevel {
+  enterprise: GreCAPTCHA = new MockGreCAPTCHA();
+  ready(callback: () => void): void {
+    callback();
+  }
+   
+  execute(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    siteKey: string, options: { action: string }): Promise<string> {
+      return Promise.resolve('token');
+   }
+   render(
+     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     container: string | HTMLElement, parameters: GreCAPTCHARenderOption
+   ): string {
+    return '';
+   }
+}
+
+export class MockGreCAPTCHA implements GreCAPTCHA {
+  ready(callback: () => void): void {
+    callback();
+  }
+   
+  execute(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    siteKey: string, options: { action: string }): Promise<string> {
+      return Promise.resolve('token');
+   }
+   render(
+     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     container: string | HTMLElement, parameters: GreCAPTCHARenderOption
+   ): string {
+    return '';
+   }
 }
 
 export class MockWidget {
