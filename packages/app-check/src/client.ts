@@ -42,17 +42,18 @@ interface AppCheckRequest {
 
 export async function exchangeToken(
   { url, body }: AppCheckRequest,
-  platformLoggerProvider: Provider<'platform-logger'>
+  heartbeatServiceProvider: Provider<'heartbeat'>
 ): Promise<AppCheckTokenInternal> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json'
   };
   // If platform logger exists, add the platform info string to the header.
-  const platformLogger = platformLoggerProvider.getImmediate({
+  const heartbeatService = heartbeatServiceProvider.getImmediate({
     optional: true
   });
-  if (platformLogger) {
-    headers['X-Firebase-Client'] = platformLogger.getPlatformInfoString();
+  if (heartbeatService) {
+    const heartbeatsHeader = await heartbeatService.getHeartbeatsHeader();
+    headers['X-Firebase-Client'] = heartbeatsHeader;
   }
   const options: RequestInit = {
     method: 'POST',
