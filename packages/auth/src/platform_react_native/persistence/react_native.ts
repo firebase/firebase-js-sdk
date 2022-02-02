@@ -26,7 +26,7 @@ import {
 } from '../../core/persistence';
 
 /**
- * Returns a persistence object that wraps AsyncStorage imported from
+ * Returns a persistence object that wraps `AsyncStorage` imported from
  * `react-native` or `@react-native-community/async-storage`, and can
  * be used in the persistence dependency field in {@link initializeAuth}.
  * 
