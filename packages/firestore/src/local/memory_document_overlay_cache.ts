@@ -64,14 +64,17 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
       this.overlayByBatchId.get(existing.largestBatchId).delete(mutation.key);
     }
 
-    this.overlays.insert(mutation.key, new Overlay(largestBatchId, mutation));
+    this.overlays = this.overlays.insert(
+      mutation.key,
+      new Overlay(largestBatchId, mutation)
+    );
 
     // Create the association of this overlay to the given largestBatchId.
-    if (this.overlayByBatchId.get(largestBatchId) === null) {
+    if (this.overlayByBatchId.get(largestBatchId) === undefined) {
       this.overlayByBatchId.set(largestBatchId, new Set<DocumentKey>());
     }
     // @ts-ignore: we know the result of `get` is not undefined.
-    this.overlayByBatchId.get(largestBatchId).add(mutation.getKey());
+    this.overlayByBatchId.get(largestBatchId).add(mutation.key);
   }
 
   saveOverlays(
@@ -94,7 +97,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
       this.overlayByBatchId.delete(batchId);
       // @ts-ignore: we know keys is not undefined
       for (const key of keys) {
-        this.overlays.remove(key);
+        this.overlays = this.overlays.remove(key);
       }
     }
     return PersistencePromise.resolve();
@@ -135,7 +138,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     sinceBatchId: number,
     count: number
   ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    const batchIdToOverlays: SortedMap<
+    let batchIdToOverlays: SortedMap<
       number,
       Map<DocumentKey, Overlay>
     > = new SortedMap<number, Map<DocumentKey, Overlay>>(
@@ -151,12 +154,15 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
         continue;
       }
       if (overlay.largestBatchId > sinceBatchId) {
-        let overlays = batchIdToOverlays.get(overlay.largestBatchId);
-        if (overlays === null) {
-          overlays = new Map<DocumentKey, Overlay>();
-          batchIdToOverlays.insert(overlay.largestBatchId, overlays);
+        let overlaysForBatchId = batchIdToOverlays.get(overlay.largestBatchId);
+        if (overlaysForBatchId === null) {
+          overlaysForBatchId = new Map<DocumentKey, Overlay>();
+          batchIdToOverlays = batchIdToOverlays.insert(
+            overlay.largestBatchId,
+            overlaysForBatchId
+          );
         }
-        overlays.set(overlay.getKey(), overlay);
+        overlaysForBatchId.set(overlay.getKey(), overlay);
       }
     }
 
