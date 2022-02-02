@@ -167,7 +167,7 @@ describe('Target Bounds', () => {
     const target = queryToTarget(
       queryWithStartAt(
         query('c', orderBy('foo')),
-        bound(['bar'], /* before= */ false)
+        bound(['bar'], /* inclusive= */ true)
       )
     );
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
@@ -190,7 +190,7 @@ describe('Target Bounds', () => {
           orderBy('a'),
           orderBy('b')
         ),
-        bound(['a1', 'b1'], /* before= */ false)
+        bound(['a1', 'b1'], /* inclusive= */ true)
       )
     );
     const index = fieldIndex('c', {
@@ -217,7 +217,7 @@ describe('Target Bounds', () => {
           orderBy('a'),
           orderBy('b')
         ),
-        bound(['a2', 'b1'], /* before= */ true)
+        bound(['a2', 'b1'], /* inclusive= */ false)
       )
     );
     const index = fieldIndex('c', {
@@ -244,7 +244,7 @@ describe('Target Bounds', () => {
           orderBy('a'),
           orderBy('b')
         ),
-        bound(['a1', 'b1'], /* before= */ true)
+        bound(['a1', 'b1'], /* inclusive= */ false)
       )
     );
     const index = fieldIndex('c', {
@@ -265,7 +265,7 @@ describe('Target Bounds', () => {
     const target = queryToTarget(
       queryWithEndAt(
         query('c', orderBy('foo')),
-        bound(['bar'], /* before =*/ false)
+        bound(['bar'], /* inclusive= */ true)
       )
     );
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
@@ -288,7 +288,7 @@ describe('Target Bounds', () => {
           orderBy('a'),
           orderBy('b')
         ),
-        bound(['a1', 'b1'], /* before= */ false)
+        bound(['a1', 'b1'], /* inclusive= */ true)
       )
     );
     const index = fieldIndex('c', {
@@ -315,7 +315,7 @@ describe('Target Bounds', () => {
           orderBy('a'),
           orderBy('b')
         ),
-        bound(['a1', 'b1'], /* before= */ true)
+        bound(['a1', 'b1'], /* inclusive= */ false)
       )
     );
     const index = fieldIndex('c', {
@@ -342,7 +342,7 @@ describe('Target Bounds', () => {
           orderBy('a'),
           orderBy('b')
         ),
-        bound(['a2', 'b2'], /* before= */ true)
+        bound(['a2', 'b2'], /* inclusive= */ false)
       )
     );
     const index = fieldIndex('c', {
@@ -378,7 +378,7 @@ describe('Target Bounds', () => {
     ...values: unknown[]
   ): void {
     expect(bound).to.not.be.null;
-    expect(!bound!.before).to.equal(inclusive, 'inclusive');
+    expect(bound!.inclusive).to.equal(inclusive, 'inclusive');
     const position = bound!.position;
     expect(position.length).to.equal(values.length, 'size');
     for (let i = 0; i < values.length; ++i) {

@@ -105,28 +105,30 @@ export function canonifyTarget(target: Target): string {
   const targetImpl = debugCast(target, TargetImpl);
 
   if (targetImpl.memoizedCanonicalId === null) {
-    let canonicalId = targetImpl.path.canonicalString();
+    let str = targetImpl.path.canonicalString();
     if (targetImpl.collectionGroup !== null) {
-      canonicalId += '|cg:' + targetImpl.collectionGroup;
+      str += '|cg:' + targetImpl.collectionGroup;
     }
-    canonicalId += '|f:';
-    canonicalId += targetImpl.filters.map(f => canonifyFilter(f)).join(',');
-    canonicalId += '|ob:';
-    canonicalId += targetImpl.orderBy.map(o => canonifyOrderBy(o)).join(',');
+    str += '|f:';
+    str += targetImpl.filters.map(f => canonifyFilter(f)).join(',');
+    str += '|ob:';
+    str += targetImpl.orderBy.map(o => canonifyOrderBy(o)).join(',');
 
     if (!isNullOrUndefined(targetImpl.limit)) {
-      canonicalId += '|l:';
-      canonicalId += targetImpl.limit!;
+      str += '|l:';
+      str += targetImpl.limit!;
     }
     if (targetImpl.startAt) {
-      canonicalId += '|lb:';
-      canonicalId += canonifyBound(targetImpl.startAt);
+      str += '|lb:';
+      str += targetImpl.startAt.inclusive ? 'b:' : 'a:';
+      str += targetImpl.startAt.position.map(p => canonicalId(p)).join(',');
     }
     if (targetImpl.endAt) {
-      canonicalId += '|ub:';
-      canonicalId += canonifyBound(targetImpl.endAt);
+      str += '|ub:';
+      str += targetImpl.endAt.inclusive ? 'a:' : 'b:';
+      str += targetImpl.endAt.position.map(p => canonicalId(p)).join(',');
     }
-    targetImpl.memoizedCanonicalId = canonicalId;
+    targetImpl.memoizedCanonicalId = str;
   }
   return targetImpl.memoizedCanonicalId;
 }
@@ -150,10 +152,14 @@ export function stringifyTarget(target: Target): string {
       .join(', ')}]`;
   }
   if (target.startAt) {
-    str += ', startAt: ' + canonifyBound(target.startAt);
+    str += ', startAt: ';
+    str += target.startAt.inclusive ? 'b:' : 'a:';
+    str += target.startAt.position.map(p => canonicalId(p)).join(',');
   }
   if (target.endAt) {
-    str += ', endAt: ' + canonifyBound(target.endAt);
+    str += ', endAt: ';
+    str += target.endAt.inclusive ? 'a:' : 'b:';
+    str += target.endAt.position.map(p => canonicalId(p)).join(',');
   }
   return `Target(${str})`;
 }
@@ -351,7 +357,7 @@ export function targetGetLowerBound(
           const cursorValue = target.startAt.position[i];
           if (valuesMax(segmentValue, cursorValue) === cursorValue) {
             segmentValue = cursorValue;
-            segmentInclusive = !target.startAt.before;
+            segmentInclusive = target.startAt.inclusive;
           }
           break;
         }
@@ -365,7 +371,7 @@ export function targetGetLowerBound(
     values.push(segmentValue);
     inclusive &&= segmentInclusive;
   }
-  return new Bound(values, !inclusive);
+  return new Bound(values, inclusive);
 }
 /**
  * Returns an upper bound of field values that can be used as an ending point
@@ -436,7 +442,7 @@ export function targetGetUpperBound(
           const cursorValue = target.endAt.position[i];
           if (valuesMin(segmentValue, cursorValue) === cursorValue) {
             segmentValue = cursorValue;
-            segmentInclusive = !target.endAt.before;
+            segmentInclusive = target.endAt.inclusive;
           }
           break;
         }
@@ -451,7 +457,7 @@ export function targetGetUpperBound(
     inclusive &&= segmentInclusive;
   }
 
-  return new Bound(values, !inclusive);
+  return new Bound(values, inclusive);
 }
 
 export abstract class Filter {
@@ -772,7 +778,6 @@ export class ArrayContainsAnyFilter extends FieldFilter {
   }
 }
 
-// TODO(indexing): Change Bound.before to "inclusive"
 /**
  * Represents a bound of a query.
  *
@@ -788,14 +793,7 @@ export class ArrayContainsAnyFilter extends FieldFilter {
  * just after the provided values.
  */
 export class Bound {
-  constructor(readonly position: ProtoValue[], readonly before: boolean) {}
-}
-
-export function canonifyBound(bound: Bound): string {
-  // TODO(b/29183165): Make this collision robust.
-  return `${bound.before ? 'b' : 'a'}:${bound.position
-    .map(p => canonicalId(p))
-    .join(',')}`;
+  constructor(readonly position: ProtoValue[], readonly inclusive: boolean) {}
 }
 
 /**
@@ -821,15 +819,11 @@ export function orderByEquals(left: OrderBy, right: OrderBy): boolean {
   return left.dir === right.dir && left.field.isEqual(right.field);
 }
 
-/**
- * Returns true if a document sorts before a bound using the provided sort
- * order.
- */
-export function sortsBeforeDocument(
+function boundCompareToDocument(
   bound: Bound,
   orderBy: OrderBy[],
   doc: Document
-): boolean {
+): number {
   debugAssert(
     bound.position.length <= orderBy.length,
     "Bound has more components than query's orderBy"
@@ -862,7 +856,33 @@ export function sortsBeforeDocument(
       break;
     }
   }
-  return bound.before ? comparison <= 0 : comparison < 0;
+  return comparison;
+}
+
+/**
+ * Returns true if a document sorts after a bound using the provided sort
+ * order.
+ */
+export function boundSortsAfterDocument(
+  bound: Bound,
+  orderBy: OrderBy[],
+  doc: Document
+): boolean {
+  const comparison = boundCompareToDocument(bound, orderBy, doc);
+  return bound.inclusive ? comparison >= 0 : comparison > 0;
+}
+
+/**
+ * Returns true if a document sorts before a bound using the provided sort
+ * order.
+ */
+export function boundSortsBeforeDocument(
+  bound: Bound,
+  orderBy: OrderBy[],
+  doc: Document
+): boolean {
+  const comparison = boundCompareToDocument(bound, orderBy, doc);
+  return bound.inclusive ? comparison <= 0 : comparison < 0;
 }
 
 export function boundEquals(left: Bound | null, right: Bound | null): boolean {
@@ -873,7 +893,7 @@ export function boundEquals(left: Bound | null, right: Bound | null): boolean {
   }
 
   if (
-    left.before !== right.before ||
+    left.inclusive !== right.inclusive ||
     left.position.length !== right.position.length
   ) {
     return false;
