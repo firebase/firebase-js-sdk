@@ -71,9 +71,9 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     largestBatchId: number,
     docKey: DocumentKey,
     mutation: Mutation
-  ): void {
+  ): PersistencePromise<void> {
     const [uid, collectionPath, docId] = dbKey(this.userId, docKey);
-    documentOverlayStore(transaction).put(
+    return documentOverlayStore(transaction).put(
       toDbDocumentOverlay(
         this.serializer,
         uid,
@@ -91,10 +91,13 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     largestBatchId: number,
     overlays: Map<DocumentKey, Mutation>
   ): PersistencePromise<void> {
+    const promises: Array<PersistencePromise<void>> = [];
     for (const [docKey, mutation] of Array.from(overlays.entries())) {
-      this.saveOverlay(transaction, largestBatchId, docKey, mutation);
+      promises.push(
+        this.saveOverlay(transaction, largestBatchId, docKey, mutation)
+      );
     }
-    return PersistencePromise.resolve();
+    return PersistencePromise.waitFor(promises);
   }
 
   removeOverlaysForBatchId(
@@ -120,9 +123,12 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
   ): PersistencePromise<Map<DocumentKey, Overlay>> {
     const result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
     const collectionPath: string = encodeResourcePath(collection);
+    // We want batch IDs larger than `sinceBatchId`, and so the lower bound
+    // is not inclusive.
     const range = IDBKeyRange.bound(
       [this.userId, collectionPath, sinceBatchId],
-      [this.userId, collectionPath, Number.POSITIVE_INFINITY]
+      [this.userId, collectionPath, Number.POSITIVE_INFINITY],
+      /*lowerOpen=*/ true
     );
     return documentOverlayStore(transaction)
       .loadAll(DbDocumentOverlay.collectionPathOverlayIndex, range)
@@ -144,21 +150,33 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     const result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
     let currentBatchId: number | undefined = undefined;
     let currentCount: number = 0;
+    // We want batch IDs larger than `sinceBatchId`, and so the lower bound
+    // is not inclusive.
     const range = IDBKeyRange.bound(
       [this.userId, collectionGroup, sinceBatchId],
-      [this.userId, collectionGroup, Number.POSITIVE_INFINITY]
+      [this.userId, collectionGroup, Number.POSITIVE_INFINITY],
+      /*lowerOpen=*/ true
     );
     return documentOverlayStore(transaction)
-      .iterate({ range }, (_, dbOverlay, control) => {
-        const overlay = fromDbDocumentOverlay(this.serializer, dbOverlay);
-        if (currentCount < count || overlay.largestBatchId === currentBatchId) {
-          result.set(overlay.getKey(), overlay);
-          currentBatchId = overlay.largestBatchId;
-          ++currentCount;
-        } else {
-          control.done();
+      .iterate(
+        {
+          index: DbDocumentOverlay.collectionGroupOverlayIndex,
+          range
+        },
+        (_, dbOverlay, control) => {
+          const overlay = fromDbDocumentOverlay(this.serializer, dbOverlay);
+          if (
+            currentCount < count ||
+            overlay.largestBatchId === currentBatchId
+          ) {
+            result.set(overlay.getKey(), overlay);
+            currentBatchId = overlay.largestBatchId;
+            ++currentCount;
+          } else {
+            control.done();
+          }
         }
-      })
+      )
       .next(() => result);
   }
 }
