@@ -57,8 +57,11 @@ export interface IndexManager {
   /**
    * Adds a field path index.
    *
-   * Values for this index are persisted asynchronously. The index will only be
-   * used for query execution once values are persisted.
+   * Values for this index are persisted via the index backfill, which runs
+   * asynchronously in the background. Once the first values are written,
+   * an index can be used to serve partial results for any matching queries.
+   * Any unindexed portion of the database will continue to be served via
+   * collection scons.
    */
   addFieldIndex(
     transaction: PersistenceTransaction,
