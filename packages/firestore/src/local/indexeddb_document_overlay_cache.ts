@@ -34,7 +34,6 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { SimpleDbStore } from './simple_db';
 
-
 /**
  * An in-memory implementation of DocumentOverlayCache.
  */
