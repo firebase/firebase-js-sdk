@@ -887,5 +887,4 @@ export const V13_STORES = [
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-// TODO(overlays): update this to V12_STORES
-export const ALL_STORES = V11_STORES;
+export const ALL_STORES = V12_STORES;
