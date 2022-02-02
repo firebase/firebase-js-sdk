@@ -34,19 +34,20 @@ import {
 } from '../interfaces/installation-impl';
 
 export async function generateAuthTokenRequest(
-  { appConfig, platformLoggerProvider }: FirebaseInstallationsImpl,
+  { appConfig, heartbeatServiceProvider }: FirebaseInstallationsImpl,
   installationEntry: RegisteredInstallationEntry
 ): Promise<CompletedAuthToken> {
   const endpoint = getGenerateAuthTokenEndpoint(appConfig, installationEntry);
 
   const headers = getHeadersWithAuth(appConfig, installationEntry);
 
-  // If platform logger exists, add the platform info string to the header.
-  const platformLogger = platformLoggerProvider.getImmediate({
+  // If heartbeat service exists, add the heartbeat string to the header.
+  const heartbeatService = heartbeatServiceProvider.getImmediate({
     optional: true
   });
-  if (platformLogger) {
-    headers.append('x-firebase-client', platformLogger.getPlatformInfoString());
+  if (heartbeatService) {
+    const heartbeatsHeader = await heartbeatService.getHeartbeatsHeader();
+    headers.append('x-firebase-client', heartbeatsHeader);
   }
 
   const body = {
