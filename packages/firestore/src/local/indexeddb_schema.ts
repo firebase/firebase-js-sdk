@@ -914,16 +914,18 @@ export const V13_STORES = [
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-// TODO(overlays): update this to V12_STORES
-export const ALL_STORES = V11_STORES;
+
+export const ALL_STORES = V12_STORES;
 
 /** Returns the object stores for the provided schema. */
 export function getObjectStores(schemaVersion: number): string[] {
-  if (schemaVersion === 12) {
+  if (schemaVersion === 13) {
+    return V13_STORES;
+  } else if (schemaVersion === 12) {
     return V12_STORES;
   } else if (schemaVersion === 11) {
     return V11_STORES;
   } else {
-    fail('Only schema version 11 and 12 are supported');
+    fail('Only schema version 11, 12, and 13 are supported');
   }
 }

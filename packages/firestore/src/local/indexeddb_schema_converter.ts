@@ -551,9 +551,6 @@ function createFieldIndex(db: IDBDatabase): void {
 }
 
 function createDocumentOverlayStore(db: IDBDatabase): void {
-  db.createObjectStore(DbBundle.store, {
-    keyPath: DbBundle.keyPath
-  });
   const documentOverlayStore = db.createObjectStore(DbDocumentOverlay.store, {
     keyPath: DbDocumentOverlay.keyPath
   });
