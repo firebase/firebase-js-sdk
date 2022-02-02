@@ -15,6 +15,13 @@
  * limitations under the License.
  */
 
+import { Target } from '../core/target';
+import {
+  documentKeySet,
+  DocumentKeySet,
+  DocumentMap
+} from '../model/collections';
+import { FieldIndex, IndexOffset } from '../model/field_index';
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { SortedSet } from '../util/sorted_set';
@@ -44,6 +51,71 @@ export class MemoryIndexManager implements IndexManager {
     return PersistencePromise.resolve(
       this.collectionParentIndex.getEntries(collectionId)
     );
+  }
+
+  addFieldIndex(
+    transaction: PersistenceTransaction,
+    index: FieldIndex
+  ): PersistencePromise<void> {
+    // Field indices are not supported with memory persistence.
+    return PersistencePromise.resolve();
+  }
+
+  deleteFieldIndex(
+    transaction: PersistenceTransaction,
+    index: FieldIndex
+  ): PersistencePromise<void> {
+    // Field indices are not supported with memory persistence.
+    return PersistencePromise.resolve();
+  }
+
+  getDocumentsMatchingTarget(
+    transaction: PersistenceTransaction,
+    fieldIndex: FieldIndex,
+    target: Target
+  ): PersistencePromise<DocumentKeySet> {
+    // Field indices are not supported with memory persistence.
+    return PersistencePromise.resolve(documentKeySet());
+  }
+
+  getFieldIndex(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<FieldIndex | null> {
+    // Field indices are not supported with memory persistence.
+    return PersistencePromise.resolve<FieldIndex | null>(null);
+  }
+
+  getFieldIndexes(
+    transaction: PersistenceTransaction,
+    collectionGroup?: string
+  ): PersistencePromise<FieldIndex[]> {
+    // Field indices are not supported with memory persistence.
+    return PersistencePromise.resolve<FieldIndex[]>([]);
+  }
+
+  getNextCollectionGroupToUpdate(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<string | null> {
+    // Field indices are not supported with memory persistence.
+    return PersistencePromise.resolve<string | null>(null);
+  }
+
+  updateCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string,
+    offset: IndexOffset
+  ): PersistencePromise<void> {
+    // Field indices are not supported with memory persistence.
+    return PersistencePromise.resolve();
+  }
+
+  updateIndexEntries(
+    transaction: PersistenceTransaction,
+    documents: DocumentMap
+  ): PersistencePromise<void> {
+    // Field indices are not supported with memory persistence.
+    return PersistencePromise.resolve();
   }
 }
 

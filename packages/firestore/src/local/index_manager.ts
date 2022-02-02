@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { Target } from '../core/target';
+import { DocumentKeySet, DocumentMap } from '../model/collections';
+import { FieldIndex, IndexOffset } from '../model/field_index';
 import { ResourcePath } from '../model/path';
 
 import { PersistencePromise } from './persistence_promise';
@@ -50,4 +53,89 @@ export interface IndexManager {
     transaction: PersistenceTransaction,
     collectionId: string
   ): PersistencePromise<ResourcePath[]>;
+
+  /**
+   * Adds a field path index.
+   *
+   * Values for this index are persisted via the index backfill, which runs
+   * asynchronously in the background. Once the first values are written,
+   * an index can be used to serve partial results for any matching queries.
+   * Any unindexed portion of the database will continue to be served via
+   * collection scons.
+   */
+  addFieldIndex(
+    transaction: PersistenceTransaction,
+    index: FieldIndex
+  ): PersistencePromise<void>;
+
+  /** Removes the given field index and deletes all index values. */
+  deleteFieldIndex(
+    transaction: PersistenceTransaction,
+    index: FieldIndex
+  ): PersistencePromise<void>;
+
+  /**
+   * Returns a list of field indexes that correspond to the specified collection
+   * group.
+   *
+   * @param collectionGroup The collection group to get matching field indexes
+   * for.
+   * @return A collection of field indexes for the specified collection group.
+   */
+  getFieldIndexes(
+    transaction: PersistenceTransaction,
+    collectionGroup: string
+  ): PersistencePromise<FieldIndex[]>;
+
+  /** Returns all configured field indexes. */
+  getFieldIndexes(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<FieldIndex[]>;
+
+  /**
+   * Returns an index that can be used to serve the provided target. Returns
+   * `null` if no index is configured.
+   */
+  getFieldIndex(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<FieldIndex | null>;
+
+  /**
+   * Returns the documents that match the given target based on the provided
+   * index.
+   */
+  getDocumentsMatchingTarget(
+    transaction: PersistenceTransaction,
+    fieldIndex: FieldIndex,
+    target: Target
+  ): PersistencePromise<DocumentKeySet>;
+
+  /**
+   * Returns the next collection group to update. Returns `null` if no group
+   * exists.
+   */
+  getNextCollectionGroupToUpdate(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<string | null>;
+
+  /**
+   * Sets the collection group's latest read time.
+   *
+   * This method updates the index offset for all field indices for the
+   * collection group and increments their sequence number. Subsequent calls to
+   * `getNextCollectionGroupToUpdate()` will return a different collection group
+   * (unless only one collection group is configured).
+   */
+  updateCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string,
+    offset: IndexOffset
+  ): PersistencePromise<void>;
+
+  /** Updates the index entries for the provided documents. */
+  updateIndexEntries(
+    transaction: PersistenceTransaction,
+    documents: DocumentMap
+  ): PersistencePromise<void>;
 }
