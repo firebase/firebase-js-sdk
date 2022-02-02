@@ -21,7 +21,7 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { documentKeySet, DocumentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
-import { Mutation } from '../../../src/model/mutation';
+import { Mutation, mutationEquals } from '../../../src/model/mutation';
 import { Overlay } from '../../../src/model/overlay';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -104,6 +104,15 @@ function genericDocumentOverlayCacheTests(): void {
     return overlayCache.saveOverlays(largestBatch, data);
   }
 
+  function verifyEqualMutations(
+    m1: Mutation | null,
+    m2: Mutation | null
+  ): void {
+    expect(m1 === null).to.equal(false);
+    expect(m2 === null).to.equal(false);
+    expect(mutationEquals(m1!, m2!)).to.equal(true);
+  }
+
   function verifyOverlayContains(
     overlays: Map<DocumentKey, Overlay>,
     ...keys: string[]
@@ -124,7 +133,7 @@ function genericDocumentOverlayCacheTests(): void {
   it('can read saved overlay', async () => {
     const m = patchMutation('coll/doc1', { 'foo': 'bar' });
     await saveOverlaysForMutations(2, m);
-    expect(await overlayCache.getOverlayMutation('coll/doc1')).to.equal(m);
+    verifyEqualMutations(await overlayCache.getOverlayMutation('coll/doc1'), m);
   });
 
   it('can read saved overlays', async () => {
@@ -132,9 +141,18 @@ function genericDocumentOverlayCacheTests(): void {
     const m2 = setMutation('coll/doc2', { 'foo': 'bar' });
     const m3 = deleteMutation('coll/doc3');
     await saveOverlaysForMutations(3, m1, m2, m3);
-    expect(await overlayCache.getOverlayMutation('coll/doc1')).to.equal(m1);
-    expect(await overlayCache.getOverlayMutation('coll/doc2')).to.equal(m2);
-    expect(await overlayCache.getOverlayMutation('coll/doc3')).to.equal(m3);
+    verifyEqualMutations(
+      await overlayCache.getOverlayMutation('coll/doc1'),
+      m1
+    );
+    verifyEqualMutations(
+      await overlayCache.getOverlayMutation('coll/doc2'),
+      m2
+    );
+    verifyEqualMutations(
+      await overlayCache.getOverlayMutation('coll/doc3'),
+      m3
+    );
   });
 
   it('can overwrite overlays', async () => {
@@ -142,7 +160,10 @@ function genericDocumentOverlayCacheTests(): void {
     const m2 = setMutation('coll/doc1', { 'foo': 'set', 'bar': 42 });
     await saveOverlaysForMutations(2, m1);
     await saveOverlaysForMutations(2, m2);
-    expect(await overlayCache.getOverlayMutation('coll/doc1')).to.equal(m2);
+    verifyEqualMutations(
+      await overlayCache.getOverlayMutation('coll/doc1'),
+      m2
+    );
   });
 
   it('can delete overlays repeatedly', async () => {

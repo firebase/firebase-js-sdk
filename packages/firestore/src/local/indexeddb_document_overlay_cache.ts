@@ -74,7 +74,6 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
   ): void {
     const [uid, collectionPath, docId] = dbKey(this.userId, docKey);
     documentOverlayStore(transaction).put(
-      [uid, collectionPath, docId],
       toDbDocumentOverlay(
         this.serializer,
         uid,
