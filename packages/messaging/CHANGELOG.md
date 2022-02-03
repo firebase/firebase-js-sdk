@@ -1,5 +1,11 @@
 # @firebase/messaging
 
+## 0.9.8
+
+### Patch Changes
+
+- [`0a04a1c06`](https://github.com/firebase/firebase-js-sdk/commit/0a04a1c0657d74657b88aa5e67608b815cb3c03d) [#5957](https://github.com/firebase/firebase-js-sdk/pull/5957) (fixes [#5868](https://github.com/firebase/firebase-js-sdk/issues/5868)) - Fix uncaught rejection in `isSupported()` if environment does not support IndexedDB's `open()` method.
+
 ## 0.9.7
 
 ### Patch Changes
