@@ -25,7 +25,7 @@ export interface Recaptcha {
   reset: (id: number) => unknown;
 }
 
-export function isV2(grecaptcha: Recaptcha | GreCAPTCHATopLevel | undefined): grecaptcha is Recaptcha {
+export function isV2(grecaptcha: Recaptcha | GreCAPTCHA | undefined): grecaptcha is Recaptcha {
   return grecaptcha !== undefined && (grecaptcha as Recaptcha).getResponse !== undefined;
 }
 
@@ -49,6 +49,6 @@ export function isV2(grecaptcha: Recaptcha | GreCAPTCHATopLevel | undefined): gr
    size: 'invisible';
  }
 
- export function isEnterprise(grecaptcha: Recaptcha | GreCAPTCHATopLevel | undefined): grecaptcha is GreCAPTCHATopLevel {
+ export function isEnterprise(grecaptcha: Recaptcha | GreCAPTCHA | undefined): grecaptcha is GreCAPTCHATopLevel {
   return grecaptcha !== undefined && (grecaptcha as GreCAPTCHATopLevel).enterprise !== undefined;
 }

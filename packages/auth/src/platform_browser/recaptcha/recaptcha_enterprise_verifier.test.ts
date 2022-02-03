@@ -21,7 +21,6 @@
  import sinonChai from 'sinon-chai';
   
  import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
- import * as fetch from '../../../test/helpers/mock_fetch';
  import { _window } from '../auth_window';
 
  import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
@@ -35,14 +34,12 @@
    let verifier: RecaptchaEnterpriseVerifier;
  
    beforeEach(async () => {
-     fetch.setUp();
      auth = await testAuth();
      verifier = new RecaptchaEnterpriseVerifier(auth);
    });
  
    afterEach(() => {
      sinon.restore();
-     fetch.tearDown();
    });
  
    context('#verify', () => {
@@ -56,6 +53,11 @@
        sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
        expect(await verifier.verify()).to.eq('recaptcha-response');
      });
+
+     it('reject if error is thrown', async () => {
+      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.reject(Error('recaptcha-error')));
+      await expect(verifier.verify()).to.be.rejectedWith(Error, 'recaptcha-error');
+    });
    });
  });
  

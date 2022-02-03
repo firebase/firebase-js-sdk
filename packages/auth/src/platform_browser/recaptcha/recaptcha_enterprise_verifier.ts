@@ -26,6 +26,7 @@
    AuthInternal
  } from '../../model/auth';
  import { _castAuth } from '../../core/auth/auth_impl';
+ import * as jsHelpers from '../load_js';
 
  const RECAPTCHA_ENTERPRISE_URL = 'https://www.google.com/recaptcha/enterprise.js?render=';
   
@@ -40,7 +41,7 @@
    /**
     * Stores the recaptcha site key per tenant.
     */
-   static siteKeys: [string: string];
+   static siteKeys: Record<string, string>;
  
    private readonly auth: AuthInternal;
  
@@ -62,45 +63,37 @@
     */
    async verify(): Promise<string> {
      // TODO(b/217382327): load and manage recaptcha config
-     const siteKey = '6LfyHwgeAAAAAKhL1Ujy7K1fBgX-l6bYdJpYJb_K';
- 
-     const grecaptcha = _window().grecaptcha;
-     if (isEnterprise(grecaptcha)) {
-        grecaptcha.enterprise.ready(() => {
-            grecaptcha.enterprise.execute(siteKey, { action: 'login' })
-            .then((token) => {
-                return Promise.resolve(token);
+     const siteKey = '';
+
+    function retrieveRecaptchaToken(resolve: (value: string | PromiseLike<string>) => void, reject: (reason?: unknown) => void): void {
+        const grecaptcha = _window().grecaptcha;
+        if (isEnterprise(grecaptcha)) {
+           grecaptcha.enterprise.ready(() => {
+               grecaptcha.enterprise.execute(siteKey, { action: 'login' })
+               .then((token) => {
+                resolve(token);
+              })
+              .catch((error) => {
+                reject(error);
+              });;
+           });
+        } else {
+            reject(Error('No reCAPTCHA enterprise script loaded.'));
+        }
+    }
+      
+     return new Promise<string>((resolve, reject) => {
+        if (isEnterprise(_window().grecaptcha)) {
+            retrieveRecaptchaToken(resolve, reject);
+        } else {
+            jsHelpers._loadJS(RECAPTCHA_ENTERPRISE_URL + siteKey)
+            .then(() => {
+                retrieveRecaptchaToken(resolve, reject);
             })
             .catch((error) => {
                 return Promise.reject(error);
             });
-          });
-     }
-     
-     return new Promise<string>((resolve, reject) => {
-       loadReCAPTCHAEnterpriseScript(siteKey, () => {
-        const grecaptcha = _window().grecaptcha as GreCAPTCHATopLevel;
-         if (!grecaptcha) {
-           throw new Error('no recaptcha script loaded');
-         } else {
-           grecaptcha.enterprise.ready(() => {
-             grecaptcha.enterprise.execute(siteKey, { action: 'login' })
-             .then((token) => {
-               resolve(token);
-             })
-             .catch((error) => {
-               reject(error);
-             });
-           });
-         }
-       });
+        }
      });
    }
- }
- 
- function loadReCAPTCHAEnterpriseScript(siteKey: string, onload: () => void): void {
-   const script = document.createElement('script');
-   script.src = RECAPTCHA_ENTERPRISE_URL + siteKey;
-   script.onload = onload;
-   document.head.appendChild(script);
  }
