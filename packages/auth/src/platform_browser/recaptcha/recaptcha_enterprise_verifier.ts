@@ -17,7 +17,7 @@
  */
 
  import { _window } from '../auth_window';
- import { GreCAPTCHATopLevel, isEnterprise } from './recaptcha';
+ import { isEnterprise } from './recaptcha';
 
  import {
    Auth
