@@ -17,6 +17,7 @@
 
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { IndexManager } from '../../../src/local/index_manager';
 import { remoteDocumentCacheGetNewDocumentChanges } from '../../../src/local/indexeddb_remote_document_cache';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -38,6 +39,10 @@ export class TestRemoteDocumentCache {
 
   constructor(private readonly persistence: Persistence) {
     this.cache = persistence.getRemoteDocumentCache();
+  }
+
+  setIndexManager(indexManager: IndexManager): void {
+    this.cache.setIndexManager(indexManager);
   }
 
   /**

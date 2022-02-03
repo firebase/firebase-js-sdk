@@ -17,8 +17,9 @@
 
 import { expect } from 'chai';
 
+import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { deletedDoc, doc, expectEqual, key, version } from '../../util/helpers';
+import { deletedDoc, doc, expectEqual, key } from '../../util/helpers';
 
 import {
   clearTestPersistence,
@@ -41,16 +42,14 @@ describe('RemoteDocumentChangeBuffer', () => {
     return testIndexedDbPersistence().then(p => {
       persistence = p;
       cache = new TestRemoteDocumentCache(persistence);
+      cache.setIndexManager(persistence.getIndexManager(User.UNAUTHENTICATED));
       buffer = new TestRemoteDocumentChangeBuffer(
         persistence,
         cache.newChangeBuffer()
       );
 
       // Add a couple initial items to the cache.
-      return cache.addEntries(
-        [INITIAL_DOC, deletedDoc('coll/b', 314)],
-        version(314)
-      );
+      return cache.addEntries([INITIAL_DOC, deletedDoc('coll/b', 314)]);
     });
   });
 

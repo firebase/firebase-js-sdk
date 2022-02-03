@@ -112,9 +112,14 @@ function genericLruGarbageCollectorTests(
     });
     lruParams = params;
     persistence = await newPersistence(params, queue);
+    const indexManager = persistence.getIndexManager(new User('user'));
     targetCache = persistence.getTargetCache();
-    mutationQueue = persistence.getMutationQueue(new User('user'));
+    mutationQueue = persistence.getMutationQueue(
+      new User('user'),
+      indexManager
+    );
     documentCache = persistence.getRemoteDocumentCache();
+    documentCache.setIndexManager(indexManager);
     initialSequenceNumber = await persistence.runTransaction(
       'highest sequence number',
       'readwrite',
