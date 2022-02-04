@@ -142,6 +142,7 @@ export class IndexedDbIndexManager implements IndexManager {
     // Safari & Firefox.
     const indexes = indexConfigurationStore(transaction);
     const dbIndex = toDbIndexConfiguration(index);
+    delete dbIndex.indexId; // `indexId` is auto-populated by IndexedDb
     return indexes.add(dbIndex).next();
   }
 

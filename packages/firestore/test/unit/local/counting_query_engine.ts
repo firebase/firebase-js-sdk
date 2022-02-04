@@ -17,6 +17,7 @@
 
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { IndexManager } from '../../../src/local/index_manager';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -92,6 +93,9 @@ export class CountingQueryEngine extends QueryEngine {
     subject: RemoteDocumentCache
   ): RemoteDocumentCache {
     return {
+      setIndexManager: (indexManager: IndexManager) => {
+        subject.setIndexManager(indexManager);
+      },
       getDocumentsMatchingQuery: (transaction, query, sinceReadTime) => {
         return subject
           .getDocumentsMatchingQuery(transaction, query, sinceReadTime)

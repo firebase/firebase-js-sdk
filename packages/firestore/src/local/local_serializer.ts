@@ -406,7 +406,7 @@ export function toDbIndexConfiguration(
   index: FieldIndex
 ): DbIndexConfiguration {
   return new DbIndexConfiguration(
-    undefined, // `indexId` is auto-populated by IndexedDb
+    index.indexId,
     index.collectionGroup,
     index.fields.map(s => [s.fieldPath.canonicalString(), s.kind])
   );

@@ -68,7 +68,7 @@ describe('IndexedDbIndexManager', () => {
     expect(fieldIndexes[0]).to.deep.equal(fieldIndex('coll1', { id: 1 }));
   });
 
-  it('uses auto-incrementing index id', async () => {
+  it.only('uses auto-incrementing index id', async () => {
     const indexManager = await getIndexManager();
 
     await indexManager.addFieldIndex(fieldIndex('coll1'));
