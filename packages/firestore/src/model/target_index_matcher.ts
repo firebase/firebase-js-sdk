@@ -144,7 +144,7 @@ export class TargetIndexMatcher {
     // If we already have processed all segments, all segments are used to serve
     // the equality filters and we do not need to map any segments to the
     // target's inequality and orderBy clauses.
-    if (segmentIndex == segments.length) {
+    if (segmentIndex === segments.length) {
       return true;
     }
 
@@ -193,8 +193,8 @@ export class TargetIndexMatcher {
       return false;
     }
     const isArrayOperator =
-      filter.op == Operator.ARRAY_CONTAINS ||
-      filter.op == Operator.ARRAY_CONTAINS_ANY;
+      filter.op === Operator.ARRAY_CONTAINS ||
+      filter.op === Operator.ARRAY_CONTAINS_ANY;
     return (segment.kind === IndexKind.CONTAINS) === isArrayOperator;
   }
 
