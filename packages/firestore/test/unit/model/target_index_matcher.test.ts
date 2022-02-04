@@ -675,7 +675,7 @@ describe('Target Bounds', () => {
       ...(fieldsAndKind.reduce((previous: unknown[][], current) => {
         if (
           previous.length === 0 ||
-          previous[previous.length - 1].length == 2
+          previous[previous.length - 1].length === 2
         ) {
           previous.push([]);
         }
