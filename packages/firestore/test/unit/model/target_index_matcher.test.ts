@@ -28,7 +28,7 @@ import { IndexKind } from '../../../src/model/field_index';
 import { TargetIndexMatcher } from '../../../src/model/target_index_matcher';
 import { fieldIndex, filter, orderBy, query } from '../../util/helpers';
 
-describe.only('Target Bounds', () => {
+describe('Target Bounds', () => {
   const queriesWithEqualities = [
     queryWithAddedFilter(query('collId'), filter('a', '==', 'a')),
     queryWithAddedFilter(query('collId'), filter('a', 'in', ['a']))
