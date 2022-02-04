@@ -214,10 +214,10 @@ describe('Local Serializer', () => {
         ['b', 1],
         ['c', 2]
       ],
-      indexId: undefined
+      indexId: -1
     });
 
-    expect(fromDbIndexConfiguration(dbIndex, null).indexId).to.equal(undefined);
+    expect(fromDbIndexConfiguration(dbIndex, null).indexId).to.equal(-1);
     expect(fromDbIndexConfiguration(dbIndex, null).collectionGroup).to.equal(
       index.collectionGroup
     );
