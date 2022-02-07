@@ -62,7 +62,7 @@
     * @returns A Promise for a token that can be used to assert the validity of a request.
     */
    async verify(): Promise<string> {
-     // TODO(b/217382327): load and manage recaptcha config
+     // TODO(b/217382327):load and manage recaptcha config
      const siteKey = '';
 
     function retrieveRecaptchaToken(resolve: (value: string | PromiseLike<string>) => void, reject: (reason?: unknown) => void): void {
