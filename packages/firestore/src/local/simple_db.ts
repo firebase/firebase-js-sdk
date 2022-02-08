@@ -121,6 +121,15 @@ export class SimpleDbTransaction {
     }
   }
 
+  maybeCommit(): void {
+    // If the browser supports V3 indexedDb, invoke commit() explicitly to
+    // speed up index DB processing if the event loop remains blocks.
+    const maybeV3IndexedDb = this.transaction as any;
+    if (typeof maybeV3IndexedDb.commit === 'function') {
+      maybeV3IndexedDb.commit();
+    }
+  }
+
   /**
    * Returns a SimpleDbStore<KeyType, ValueType> for the specified store. All
    * operations performed on the SimpleDbStore happen within the context of this
@@ -400,6 +409,10 @@ export class SimpleDb {
           objectStores
         );
         const transactionFnResult = transactionFn(transaction)
+          .next(result => {
+            transaction.maybeCommit();
+            return result;
+          })
           .catch(error => {
             // Abort the transaction if there was an error.
             transaction.abort(error);
