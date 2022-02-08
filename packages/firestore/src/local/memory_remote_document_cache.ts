@@ -32,6 +32,7 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { ResourcePath } from '../model/path';
 
 export type DocumentSizer = (doc: Document) => number;
 
@@ -152,33 +153,26 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
-  getDocumentsMatchingQuery(
+  getAll(
     transaction: PersistenceTransaction,
-    query: Query,
+    collectionPath: ResourcePath,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<MutableDocumentMap> {
-    debugAssert(
-      !isCollectionGroupQuery(query),
-      'CollectionGroup queries should be handled in LocalDocumentsView'
-    );
     let results = mutableDocumentMap();
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
-    const prefix = new DocumentKey(query.path.child(''));
+    const prefix = new DocumentKey(collectionPath.child(''));
     const iterator = this.docs.getIteratorFrom(prefix);
     while (iterator.hasNext()) {
       const {
         key,
         value: { document }
       } = iterator.getNext();
-      if (!query.path.isPrefixOf(key.path)) {
+      if (!collectionPath.isPrefixOf(key.path)) {
         break;
       }
       if (document.readTime.compareTo(sinceReadTime) <= 0) {
-        continue;
-      }
-      if (!queryMatches(query, document)) {
         continue;
       }
       results = results.insert(document.key, document.mutableCopy());

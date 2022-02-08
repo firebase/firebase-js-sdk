@@ -92,9 +92,9 @@ export class CountingQueryEngine extends QueryEngine {
     subject: RemoteDocumentCache
   ): RemoteDocumentCache {
     return {
-      getDocumentsMatchingQuery: (transaction, query, sinceReadTime) => {
+      getAll: (transaction, collectionGroup, sinceReadTime) => {
         return subject
-          .getDocumentsMatchingQuery(transaction, query, sinceReadTime)
+          .getAll(transaction, collectionGroup, sinceReadTime)
           .next(result => {
             this.documentsReadByQuery += result.size;
             return result;

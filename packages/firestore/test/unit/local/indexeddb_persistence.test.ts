@@ -226,7 +226,7 @@ function addDocs(
   });
 }
 
-describe('IndexedDbSchema: createOrUpgradeDb', () => {
+describe.skip('IndexedDbSchema: createOrUpgradeDb', () => {
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn('No IndexedDB. Skipping createOrUpgradeDb() tests.');
     return;

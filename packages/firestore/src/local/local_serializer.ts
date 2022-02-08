@@ -73,18 +73,26 @@ export function fromDbRemoteDocument(
   if (remoteDoc.document) {
     doc = fromDocument(
       localSerializer.remoteSerializer,
+      remoteDoc.parentPath,
+      remoteDoc.documentId,
       remoteDoc.document,
       !!remoteDoc.hasCommittedMutations
     );
   } else if (remoteDoc.noDocument) {
-    const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
+    const key = DocumentKey.fromSegments([
+      ...remoteDoc.parentPath,
+      remoteDoc.documentId
+    ]);
     const version = fromDbTimestamp(remoteDoc.noDocument.readTime);
     doc = MutableDocument.newNoDocument(key, version);
     if (remoteDoc.hasCommittedMutations) {
       doc.setHasCommittedMutations();
     }
   } else if (remoteDoc.unknownDocument) {
-    const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
+    const key = DocumentKey.fromSegments([
+      ...remoteDoc.parentPath,
+      remoteDoc.documentId
+    ]);
     const version = fromDbTimestamp(remoteDoc.unknownDocument.version);
     doc = MutableDocument.newUnknownDocument(key, version);
   } else {
@@ -109,35 +117,38 @@ export function toDbRemoteDocument(
     const doc = toDocument(localSerializer.remoteSerializer, document);
     const hasCommittedMutations = document.hasCommittedMutations;
     return new DbRemoteDocument(
-      /* unknownDocument= */ null,
-      /* noDocument= */ null,
-      doc,
-      hasCommittedMutations,
+      document.key.path.popLast().toArray(),
       dbReadTime,
-      parentPath
+      document.key.path.lastSegment(),
+      /* unknownDocument= */ undefined,
+      /* noDocument= */ undefined,
+      doc,
+      hasCommittedMutations
     );
   } else if (document.isNoDocument()) {
     const path = document.key.path.toArray();
     const version = toDbTimestamp(document.version);
     const hasCommittedMutations = document.hasCommittedMutations;
     return new DbRemoteDocument(
-      /* unknownDocument= */ null,
-      new DbNoDocument(path, version),
-      /* document= */ null,
-      hasCommittedMutations,
+      document.key.path.popLast().toArray(),
       dbReadTime,
-      parentPath
+      document.key.path.lastSegment(),
+      /* unknownDocument= */ undefined,
+      new DbNoDocument(version),
+      /* document= */ undefined,
+      hasCommittedMutations
     );
   } else if (document.isUnknownDocument()) {
     const path = document.key.path.toArray();
     const readTime = toDbTimestamp(document.version);
     return new DbRemoteDocument(
-      new DbUnknownDocument(path, readTime),
-      /* noDocument= */ null,
-      /* document= */ null,
-      /* hasCommittedMutations= */ true,
+      document.key.path.popLast().toArray(),
       dbReadTime,
-      parentPath
+      document.key.path.lastSegment(),
+      new DbUnknownDocument(readTime),
+      /* noDocument= */ undefined,
+      /* document= */ undefined,
+      /* hasCommittedMutations= */ true
     );
   } else {
     return fail('Unexpected Document ' + document);

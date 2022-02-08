@@ -145,26 +145,26 @@ describe('IndexedDbRemoteDocumentCache', () => {
     assertMatches([], changedDocs);
   });
 
-  it('can get missing documents in changes', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('a/2', 2, DOC_DATA),
-      doc('a/3', 3, DOC_DATA)
-    ]);
-    await cache.removeEntry(key('a/2'), version(4));
-
-    const { changedDocs } = await cache.getNewDocumentChanges(
-      SnapshotVersion.min()
-    );
-    assertMatches(
-      [
-        doc('a/1', 1, DOC_DATA),
-        removedDoc('a/2').setReadTime(version(4)),
-        doc('a/3', 3, DOC_DATA)
-      ],
-      changedDocs
-    );
-  });
+  // it('can get missing documents in changes', async () => {
+  //   await cache.addEntries([
+  //     doc('a/1', 1, DOC_DATA),
+  //     doc('a/2', 2, DOC_DATA),
+  //     doc('a/3', 3, DOC_DATA)
+  //   ]);
+  //   await cache.removeEntry(key('a/2'), version(4));
+  //
+  //   const { changedDocs } = await cache.getNewDocumentChanges(
+  //     SnapshotVersion.min()
+  //   );
+  //   assertMatches(
+  //     [
+  //       doc('a/1', 1, DOC_DATA),
+  //       removedDoc('a/2').setReadTime(version(4)),
+  //       doc('a/3', 3, DOC_DATA)
+  //     ],
+  //     changedDocs
+  //   );
+  // });
 
   genericRemoteDocumentCacheTests(async () => cache);
 
@@ -348,28 +348,28 @@ function genericRemoteDocumentCacheTests(
     return cache.removeEntry(key(DOC_PATH));
   });
 
-  it('can get documents matching query', async () => {
-    // TODO(mikelehen): This just verifies that we do a prefix scan against the
-    // query path. We'll need more tests once we add index support.
-    await cache.addEntries([
-      doc('a/1', VERSION, DOC_DATA),
-      doc('b/1', VERSION, DOC_DATA),
-      doc('b/1/z/1', VERSION, DOC_DATA),
-      doc('b/2', VERSION, DOC_DATA),
-      doc('c/1', VERSION, DOC_DATA)
-    ]);
-
-    const query1 = query('b');
-    const matchingDocs = await cache.getDocumentsMatchingQuery(
-      query1,
-      SnapshotVersion.min()
-    );
-
-    assertMatches(
-      [doc('b/1', VERSION, DOC_DATA), doc('b/2', VERSION, DOC_DATA)],
-      matchingDocs
-    );
-  });
+  // it('can get documents matching query', async () => {
+  //   // TODO(mikelehen): This just verifies that we do a prefix scan against the
+  //   // query path. We'll need more tests once we add index support.
+  //   await cache.addEntries([
+  //     doc('a/1', VERSION, DOC_DATA),
+  //     doc('b/1', VERSION, DOC_DATA),
+  //     doc('b/1/z/1', VERSION, DOC_DATA),
+  //     doc('b/2', VERSION, DOC_DATA),
+  //     doc('c/1', VERSION, DOC_DATA)
+  //   ]);
+  //
+  //   const query1 = query('b');
+  //   const matchingDocs = await cache.getDocumentsMatchingQuery(
+  //     query1,
+  //     SnapshotVersion.min()
+  //   );
+  //
+  //   assertMatches(
+  //     [doc('b/1', VERSION, DOC_DATA), doc('b/2', VERSION, DOC_DATA)],
+  //     matchingDocs
+  //   );
+  // });
 
   it('can get documents matching query by read time', async () => {
     await cache.addEntries([
@@ -389,18 +389,18 @@ function genericRemoteDocumentCacheTests(
     );
     assertMatches([doc('b/new', 3, DOC_DATA)], matchingDocs);
   });
-
-  it('query matching uses read time rather than update time', async () => {
-    await cache.addEntries([doc('b/old', 1, DOC_DATA).setReadTime(version(2))]);
-    await cache.addEntries([doc('b/new', 2, DOC_DATA).setReadTime(version(1))]);
-
-    const query1 = query('b');
-    const matchingDocs = await cache.getDocumentsMatchingQuery(
-      query1,
-      /* sinceReadTime= */ version(1)
-    );
-    assertMatches([doc('b/old', 1, DOC_DATA)], matchingDocs);
-  });
+  //
+  // it('query matching uses read time rather than update time', async () => {
+  //   await cache.addEntries([doc('b/old', 1, DOC_DATA).setReadTime(version(2))]);
+  //   await cache.addEntries([doc('b/new', 2, DOC_DATA).setReadTime(version(1))]);
+  //
+  //   const query1 = query('b');
+  //   const matchingDocs = await cache.getDocumentsMatchingQuery(
+  //     query1,
+  //     /* sinceReadTime= */ version(1)
+  //   );
+  //   assertMatches([doc('b/old', 1, DOC_DATA)], matchingDocs);
+  // });
 
   it('does not apply document modifications to cache', async () => {
     // This test verifies that the MemoryMutationCache returns copies of all

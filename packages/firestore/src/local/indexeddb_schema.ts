@@ -20,9 +20,12 @@ import { IndexKind } from '../model/field_index';
 import { ResourcePath } from '../model/path';
 import { BundledQuery } from '../protos/firestore_bundle_proto';
 import {
+  ApiClientObjectMap,
   Document as ProtoDocument,
   DocumentsTarget as ProtoDocumentsTarget,
   QueryTarget as ProtoQueryTarget,
+  Timestamp,
+  Value,
   Write as ProtoWrite
 } from '../protos/firestore_proto_api';
 import { debugAssert } from '../util/assert';
@@ -31,9 +34,10 @@ import {
   EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
+import { DocumentKey } from '../model/document_key';
 
 // TODO(indexing): Remove this constant
-const INDEXING_ENABLED = false;
+const INDEXING_ENABLED = true;
 
 export const INDEXING_SCHEMA_VERSION = 12;
 
@@ -269,17 +273,17 @@ export class DbDocumentMutation {
 }
 
 /**
- * A key in the 'remoteDocuments' object store is a string array containing the
- * segments that make up the path.
+ * A key in the 'remoteDocuments' object store is a combination of the parent
+ * path, the read time and the document id.
  */
-export type DbRemoteDocumentKey = string[];
+export type DbRemoteDocumentKey = [string[], DbTimestampKey, string];
 
 /**
  * Represents the known absence of a document at a particular version.
  * Stored in IndexedDb as part of a DbRemoteDocument object.
  */
 export class DbNoDocument {
-  constructor(public path: string[], public readTime: DbTimestamp) {}
+  constructor(public readTime: DbTimestamp) {}
 }
 
 /**
@@ -287,7 +291,15 @@ export class DbNoDocument {
  * Stored in IndexedDb as part of a DbRemoteDocument object.
  */
 export class DbUnknownDocument {
-  constructor(public path: string[], public version: DbTimestamp) {}
+  constructor(public version: DbTimestamp) {}
+}
+
+/**
+ * Represents a document that is known to exist but whose data is unknown.
+ * Stored in IndexedDb as part of a DbRemoteDocument object.
+ */
+export class DbDocument {
+  constructor(fields?: ApiClientObjectMap<Value>, updateTime?: Timestamp) {}
 }
 
 /**
@@ -306,6 +318,8 @@ export class DbUnknownDocument {
 export class DbRemoteDocument {
   static store = 'remoteDocuments';
 
+  static keyPath: ['parentPath', 'readTime', 'id'];
+
   /**
    * An index that provides access to all entries sorted by read time (which
    * corresponds to the last modification time of each row).
@@ -316,59 +330,48 @@ export class DbRemoteDocument {
 
   static readTimeIndexPath = 'readTime';
 
-  /**
-   * An index that provides access to documents in a collection sorted by read
-   * time.
-   *
-   * This index is used to allow the RemoteDocumentCache to fetch newly changed
-   * documents in a collection.
-   */
-  static collectionReadTimeIndex = 'collectionReadTimeIndex';
-
-  static collectionReadTimeIndexPath = ['parentPath', 'readTime'];
-
-  // TODO: We are currently storing full document keys almost three times
-  // (once as part of the primary key, once - partly - as `parentPath` and once
-  // inside the encoded documents). During our next migration, we should
-  // rewrite the primary key as parentPath + document ID which would allow us
-  // to drop one value.
-
   constructor(
+    // Do we need collectionGroup index?
+
+    /**
+     * The path of the collection this document is part of.
+     */
+    public parentPath: string[],
+
+    /**
+     * When the document was read from the backend. Undefined for data written
+     * prior to schema version 9.
+     */
+    public readTime: DbTimestampKey,
+
+    public documentId: string,
+
     /**
      * Set to an instance of DbUnknownDocument if the data for a document is
      * not known, but it is known that a document exists at the specified
      * version (e.g. it had a successful update applied to it)
      */
-    public unknownDocument: DbUnknownDocument | null | undefined,
+    public unknownDocument: DbUnknownDocument | undefined,
+
     /**
      * Set to an instance of a DbNoDocument if it is known that no document
      * exists.
      */
-    public noDocument: DbNoDocument | null,
+    public noDocument: DbNoDocument | undefined,
+
     /**
      * Set to an instance of a Document if there's a cached version of the
      * document.
      */
-    public document: ProtoDocument | null,
+    public document: DbDocument | undefined,
+
     /**
      * Documents that were written to the remote document store based on
      * a write acknowledgment are marked with `hasCommittedMutations`. These
      * documents are potentially inconsistent with the backend's copy and use
      * the write's commit version as their document version.
      */
-    public hasCommittedMutations: boolean | undefined,
-
-    /**
-     * When the document was read from the backend. Undefined for data written
-     * prior to schema version 9.
-     */
-    public readTime: DbTimestampKey | undefined,
-
-    /**
-     * The path of the collection this document is part of. Undefined for data
-     * written prior to schema version 9.
-     */
-    public parentPath: string[] | undefined
+    public hasCommittedMutations: boolean | undefined
   ) {}
 }
 

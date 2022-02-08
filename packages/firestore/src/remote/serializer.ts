@@ -392,7 +392,6 @@ export function toDocument(
     "Can't serialize documents with mutations."
   );
   return {
-    name: toName(serializer, document.key),
     fields: document.data.value.mapValue.fields,
     updateTime: toTimestamp(serializer, document.version.toTimestamp())
   };
@@ -400,10 +399,12 @@ export function toDocument(
 
 export function fromDocument(
   serializer: JsonProtoSerializer,
+  parentPath: string[],
+  documentId: string,
   document: ProtoDocument,
   hasCommittedMutations?: boolean
 ): MutableDocument {
-  const key = fromName(serializer, document.name!);
+  const key = DocumentKey.fromSegments([...parentPath, documentId]);
   const version = fromVersion(document.updateTime!);
   const data = new ObjectValue({ mapValue: { fields: document.fields } });
   const result = MutableDocument.newFoundDocument(key, version, data);

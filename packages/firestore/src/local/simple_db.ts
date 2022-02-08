@@ -676,6 +676,29 @@ export class SimpleDbStore<
     });
   }
 
+  /** Gets all the values, optionally scoped to a key range. */
+  getAll(range?: IDBKeyRange): PersistencePromise<ValueType[]> {
+    if (typeof this.store.getAll === 'function') {
+      const results: Array<PersistencePromise<void>> = [];
+      const request = this.store.getAll(range || null);
+      return new PersistencePromise((resolve, reject) => {
+        request.onerror = (event: Event) => {
+          reject((event.target as IDBRequest).error!);
+        };
+        request.onsuccess = (event: Event) => {
+          resolve((event.target as IDBRequest).result);
+        };
+      });
+    } else {
+      // TODO(mrschmidt): Always use getAll() when we officially drop IE11
+      //  support
+      const results: ValueType[] = [];
+      return this.iterate({ range }, (_, v) => {
+        results.push(v);
+      }).next(() => results);
+    }
+  }
+
   /**
    * Iterates over keys and values in an object store.
    *

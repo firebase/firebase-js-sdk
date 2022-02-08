@@ -112,7 +112,7 @@ export class TestRemoteDocumentCache {
       'getDocumentsMatchingQuery',
       'readonly',
       txn => {
-        return this.cache.getDocumentsMatchingQuery(txn, query, sinceReadTime);
+        return this.cache.getAll(txn, query.path, sinceReadTime);
       }
     );
   }

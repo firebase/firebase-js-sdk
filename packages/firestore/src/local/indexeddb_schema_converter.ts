@@ -143,7 +143,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 7 && toVersion >= 7) {
-      p = p.next(() => this.ensureSequenceNumbers(simpleDbTransaction));
     }
 
     if (fromVersion < 8 && toVersion >= 8) {
@@ -158,7 +157,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         // to the DbRemoteDocument object store itself. Since the previous change
         // log only contained transient data, we can drop its object store.
         dropRemoteDocumentChangesStore(db);
-        createRemoteDocumentReadTimeIndex(txn);
       });
     }
 
@@ -175,6 +173,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 12 && toVersion >= 12) {
       p = p.next(() => {
+        createV2RemoteDocumentCache(db);
         createFieldIndex(db);
       });
     }
@@ -240,60 +239,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     });
   }
 
-  /**
-   * Ensures that every document in the remote document cache has a corresponding sentinel row
-   * with a sequence number. Missing rows are given the most recently used sequence number.
-   */
-  private ensureSequenceNumbers(
-    txn: SimpleDbTransaction
-  ): PersistencePromise<void> {
-    const documentTargetStore = txn.store<
-      DbTargetDocumentKey,
-      DbTargetDocument
-    >(DbTargetDocument.store);
-    const documentsStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-      DbRemoteDocument.store
-    );
-    const globalTargetStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-      DbTargetGlobal.store
-    );
-
-    return globalTargetStore.get(DbTargetGlobal.key).next(metadata => {
-      debugAssert(
-        !!metadata,
-        'Metadata should have been written during the version 3 migration'
-      );
-      const writeSentinelKey = (
-        path: ResourcePath
-      ): PersistencePromise<void> => {
-        return documentTargetStore.put(
-          new DbTargetDocument(
-            0,
-            encodeResourcePath(path),
-            metadata!.highestListenSequenceNumber!
-          )
-        );
-      };
-
-      const promises: Array<PersistencePromise<void>> = [];
-      return documentsStore
-        .iterate((key, doc) => {
-          const path = new ResourcePath(key);
-          const docSentinelKey = sentinelKey(path);
-          promises.push(
-            documentTargetStore.get(docSentinelKey).next(maybeSentinel => {
-              if (!maybeSentinel) {
-                return writeSentinelKey(path);
-              } else {
-                return PersistencePromise.resolve();
-              }
-            })
-          );
-        })
-        .next(() => PersistencePromise.waitFor(promises));
-    });
-  }
-
   private createCollectionParentIndex(
     db: IDBDatabase,
     txn: SimpleDbTransaction
@@ -323,23 +268,13 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       }
     };
 
-    // Index existing remote documents.
     return txn
-      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
-      .iterate({ keysOnly: true }, (pathSegments, _) => {
-        const path = new ResourcePath(pathSegments);
+      .store<DbDocumentMutationKey, DbDocumentMutation>(
+        DbDocumentMutation.store
+      )
+      .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
+        const path = decodeResourcePath(encodedPath);
         return addEntry(path.popLast());
-      })
-      .next(() => {
-        // Index existing mutations.
-        return txn
-          .store<DbDocumentMutationKey, DbDocumentMutation>(
-            DbDocumentMutation.store
-          )
-          .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
-            const path = decodeResourcePath(encodedPath);
-            return addEntry(path.popLast());
-          });
       });
   }
 
@@ -420,6 +355,19 @@ function createRemoteDocumentCache(db: IDBDatabase): void {
   db.createObjectStore(DbRemoteDocument.store);
 }
 
+function createV2RemoteDocumentCache(db: IDBDatabase): void {
+  // also clear all targets
+  db.deleteObjectStore(DbRemoteDocument.store);
+  const remoteDocumentStore = db.createObjectStore(DbRemoteDocument.store, {
+    keyPath: DbRemoteDocument.keyPath
+  });
+  remoteDocumentStore.createIndex(
+    DbRemoteDocument.readTimeIndex,
+    DbRemoteDocument.readTimeIndexPath,
+    { unique: false }
+  );
+}
+
 function createDocumentGlobalStore(db: IDBDatabase): void {
   db.createObjectStore(DbRemoteDocumentGlobal.store);
 }
@@ -477,24 +425,6 @@ function writeEmptyTargetGlobalEntry(
     /*targetCount=*/ 0
   );
   return globalStore.put(DbTargetGlobal.key, metadata);
-}
-
-/**
- * Creates indices on the RemoteDocuments store used for both multi-tab
- * and Index-Free queries.
- */
-function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
-  const remoteDocumentStore = txn.objectStore(DbRemoteDocument.store);
-  remoteDocumentStore.createIndex(
-    DbRemoteDocument.readTimeIndex,
-    DbRemoteDocument.readTimeIndexPath,
-    { unique: false }
-  );
-  remoteDocumentStore.createIndex(
-    DbRemoteDocument.collectionReadTimeIndex,
-    DbRemoteDocument.collectionReadTimeIndexPath,
-    { unique: false }
-  );
 }
 
 function createClientMetadataStore(db: IDBDatabase): void {

@@ -219,7 +219,7 @@ export class LocalDocumentsView {
     let results: MutableDocumentMap;
     let mutationBatches: MutationBatch[];
     return this.remoteDocumentCache
-      .getDocumentsMatchingQuery(transaction, query, sinceReadTime)
+      .getAll(transaction, query.path, sinceReadTime)
       .next(queryResults => {
         results = queryResults;
         return this.mutationQueue.getAllMutationBatchesAffectingQuery(
