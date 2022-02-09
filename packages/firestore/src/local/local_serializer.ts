@@ -50,6 +50,7 @@ import { ByteString } from '../util/byte_string';
 import {
   DbBundle,
   DbDocumentOverlay,
+  DbDocumentOverlayKey,
   DbMutationBatch,
   DbNamedQuery,
   DbNoDocument,
@@ -61,6 +62,7 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
+import { encodeResourcePath } from './encoded_resource_path';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -409,18 +411,28 @@ export function fromDbDocumentOverlay(
 export function toDbDocumentOverlay(
   localSerializer: LocalSerializer,
   userId: string,
-  collectionPath: string,
-  documentId: string,
-  collectionGroup: string,
-  largestBatchId: number,
-  mutation: Mutation
+  overlay: Overlay
 ): DbDocumentOverlay {
+  const [_, collectionPath, documentId] = toDbDocumentOverlayKey(
+    userId,
+    overlay.mutation.key
+  );
   return new DbDocumentOverlay(
     userId,
     collectionPath,
     documentId,
-    collectionGroup,
-    largestBatchId,
-    toMutation(localSerializer.remoteSerializer, mutation)
+    overlay.mutation.key.getCollectionGroup(),
+    overlay.largestBatchId,
+    toMutation(localSerializer.remoteSerializer, overlay.mutation)
   );
+}
+
+/** Returns the DbDocumentOverlayKey corresponding to the given user and document key. */
+export function toDbDocumentOverlayKey(
+  userId: string,
+  docKey: DocumentKey
+): DbDocumentOverlayKey {
+  const docId: string = docKey.path.lastSegment();
+  const collectionPath: string = encodeResourcePath(docKey.path.popLast());
+  return [userId, collectionPath, docId];
 }

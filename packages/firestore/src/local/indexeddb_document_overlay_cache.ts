@@ -28,7 +28,8 @@ import { getStore } from './indexeddb_transaction';
 import {
   fromDbDocumentOverlay,
   LocalSerializer,
-  toDbDocumentOverlay
+  toDbDocumentOverlay,
+  toDbDocumentOverlayKey
 } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -42,13 +43,16 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
    * @param serializer - The document serializer.
    * @param userId - The userId for which we are accessing overlays.
    */
-  constructor(readonly serializer: LocalSerializer, readonly userId: string) {}
+  constructor(
+    private readonly serializer: LocalSerializer,
+    private readonly userId: string
+  ) {}
 
   static forUser(
     serializer: LocalSerializer,
     user: User
   ): IndexedDbDocumentOverlayCache {
-    const userId = user.isAuthenticated() ? user.uid! : '';
+    const userId = user.uid || '';
     return new IndexedDbDocumentOverlayCache(serializer, userId);
   }
 
@@ -57,7 +61,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     key: DocumentKey
   ): PersistencePromise<Overlay | null> {
     return documentOverlayStore(transaction)
-      .get(dbKey(this.userId, key))
+      .get(toDbDocumentOverlayKey(this.userId, key))
       .next(dbOverlay => {
         if (dbOverlay) {
           return fromDbDocumentOverlay(this.serializer, dbOverlay);
@@ -66,37 +70,16 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
       });
   }
 
-  private saveOverlay(
-    transaction: PersistenceTransaction,
-    largestBatchId: number,
-    docKey: DocumentKey,
-    mutation: Mutation
-  ): PersistencePromise<void> {
-    const [uid, collectionPath, docId] = dbKey(this.userId, docKey);
-    return documentOverlayStore(transaction).put(
-      toDbDocumentOverlay(
-        this.serializer,
-        uid,
-        collectionPath,
-        docId,
-        docKey.getCollectionGroup(),
-        largestBatchId,
-        mutation
-      )
-    );
-  }
-
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,
     overlays: Map<DocumentKey, Mutation>
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
-    for (const [docKey, mutation] of Array.from(overlays.entries())) {
-      promises.push(
-        this.saveOverlay(transaction, largestBatchId, docKey, mutation)
-      );
-    }
+    overlays.forEach(mutation => {
+      const overlay = new Overlay(largestBatchId, mutation);
+      promises.push(this.saveOverlay(transaction, overlay));
+    });
     return PersistencePromise.waitFor(promises);
   }
 
@@ -121,8 +104,8 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     collection: ResourcePath,
     sinceBatchId: number
   ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    const result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
-    const collectionPath: string = encodeResourcePath(collection);
+    const result = new Map<DocumentKey, Overlay>();
+    const collectionPath = encodeResourcePath(collection);
     // We want batch IDs larger than `sinceBatchId`, and so the lower bound
     // is not inclusive.
     const range = IDBKeyRange.bound(
@@ -147,9 +130,9 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     sinceBatchId: number,
     count: number
   ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    const result: Map<DocumentKey, Overlay> = new Map<DocumentKey, Overlay>();
+    const result = new Map<DocumentKey, Overlay>();
     let currentBatchId: number | undefined = undefined;
-    let currentCount: number = 0;
+    let currentCount = 0;
     // We want batch IDs larger than `sinceBatchId`, and so the lower bound
     // is not inclusive.
     const range = IDBKeyRange.bound(
@@ -164,6 +147,10 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
           range
         },
         (_, dbOverlay, control) => {
+          // We do not want to return partial batch overlays, even if the size
+          // of the result set exceeds the given `count` argument. Therefore, we
+          // continue to aggregate the results even after `currentCount` exceeds
+          // `count` if there are more overlays from the `currentBatchId`.
           const overlay = fromDbDocumentOverlay(this.serializer, dbOverlay);
           if (
             currentCount < count ||
@@ -179,6 +166,15 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
       )
       .next(() => result);
   }
+
+  private saveOverlay(
+    transaction: PersistenceTransaction,
+    overlay: Overlay
+  ): PersistencePromise<void> {
+    return documentOverlayStore(transaction).put(
+      toDbDocumentOverlay(this.serializer, this.userId, overlay)
+    );
+  }
 }
 
 /**
@@ -191,10 +187,4 @@ function documentOverlayStore(
     txn,
     DbDocumentOverlay.store
   );
-}
-
-function dbKey(userId: string, docKey: DocumentKey): DbDocumentOverlayKey {
-  const docId: string = docKey.path.lastSegment();
-  const collectionPath: string = encodeResourcePath(docKey.path.popLast());
-  return [userId, collectionPath, docId];
 }

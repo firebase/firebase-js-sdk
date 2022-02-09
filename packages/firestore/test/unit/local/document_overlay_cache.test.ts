@@ -73,7 +73,7 @@ function genericDocumentOverlayCacheTests(): void {
   beforeEach(() => {
     overlayCache = new TestDocumentOverlayCache(
       persistence,
-      persistence.getDocumentOverlay(new User('user'))
+      persistence.getDocumentOverlayCache(new User('user'))
     );
   });
 

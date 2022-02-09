@@ -18,11 +18,23 @@
 import { expect } from 'chai';
 
 import { DatabaseId } from '../../../src/core/database_info';
-import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
-import { fromDbMutationBatch } from '../../../src/local/local_serializer';
-import { PatchMutation, SetMutation } from '../../../src/model/mutation';
+import {
+  DbDocumentOverlay,
+  DbMutationBatch
+} from '../../../src/local/indexeddb_schema';
+import {
+  fromDbDocumentOverlay,
+  fromDbMutationBatch,
+  toDbDocumentOverlay
+} from '../../../src/local/local_serializer';
+import {
+  mutationEquals,
+  PatchMutation,
+  SetMutation
+} from '../../../src/model/mutation';
 import { Write } from '../../../src/protos/firestore_proto_api';
 import {
+  fromMutation,
   JsonProtoSerializer,
   toDocumentMask,
   toMutation,
@@ -32,6 +44,11 @@ import {
 import { deleteMutation, patchMutation, setMutation } from '../../util/helpers';
 
 import { TEST_SERIALIZER } from './persistence_test_helpers';
+import { Overlay } from '../../../src/model/overlay';
+import {
+  decodeResourcePath,
+  encodeResourcePath
+} from '../../../src/local/encoded_resource_path';
 
 // TODO(b/174608374): Remove these tests once we perform a schema migration.
 describe('Local Serializer', () => {
@@ -178,5 +195,28 @@ describe('Local Serializer', () => {
       const serialized = toMutation(s, mutationBatch.mutations[index]);
       expect(serialized).to.deep.equal(expected[index]);
     });
+  });
+
+  it('serializes overlay', () => {
+    const m = patchMutation('coll1/doc1/coll2/doc2', { 'foo': 'bar' });
+    const overlay = new Overlay(2, m);
+
+    const serialized = toDbDocumentOverlay(localSerializer, userId, overlay);
+    expect(serialized.userId).to.equal(userId);
+    expect(serialized.largestBatchId).to.equal(2);
+    expect(serialized.documentId).to.equal('doc2');
+    expect(
+      decodeResourcePath(serialized.collectionPath).canonicalString()
+    ).to.equal('coll1/doc1/coll2');
+    expect(serialized.collectionGroup).to.equal('coll2');
+    expect(
+      mutationEquals(fromMutation(s, serialized.overlayMutation), m)
+    ).to.equal(true);
+
+    const roundTripped = fromDbDocumentOverlay(localSerializer, serialized);
+    expect(roundTripped.largestBatchId).to.equal(overlay.largestBatchId);
+    expect(mutationEquals(roundTripped.mutation, overlay.mutation)).to.equal(
+      true
+    );
   });
 });
