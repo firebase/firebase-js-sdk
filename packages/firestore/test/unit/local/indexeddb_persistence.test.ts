@@ -19,58 +19,25 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { Context } from 'mocha';
 
-import { queryToTarget } from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { canonifyTarget } from '../../../src/core/target';
-import {
-  decodeResourcePath,
-  encodeResourcePath
-} from '../../../src/local/encoded_resource_path';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
-  DbCollectionParent,
-  DbCollectionParentKey,
-  DbDocumentMutation,
-  DbDocumentMutationKey,
-  DbMutationBatch,
-  DbMutationBatchKey,
-  DbMutationQueue,
-  DbMutationQueueKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
   DbRemoteDocument,
-  DbRemoteDocumentGlobal,
-  DbRemoteDocumentGlobalKey,
   DbRemoteDocumentKey,
-  DbTarget,
-  DbTargetDocument,
-  DbTargetDocumentKey,
-  DbTargetGlobal,
-  DbTargetGlobalKey,
-  DbTargetKey,
-  DbTimestamp,
   SCHEMA_VERSION,
-  V12_STORES,
-  V1_STORES,
-  V3_STORES,
-  V4_STORES,
-  V6_STORES,
-  V8_STORES
+  V13_STORES,
 } from '../../../src/local/indexeddb_schema';
 import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
 import {
-  fromDbTarget,
   toDbRemoteDocument,
-  toDbTarget,
   toDbTimestampKey
 } from '../../../src/local/local_serializer';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
-import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { getWindow } from '../../../src/platform/dom';
-import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import {
@@ -78,7 +45,7 @@ import {
   newAsyncQueue
 } from '../../../src/util/async_queue_impl';
 import { FirestoreError } from '../../../src/util/error';
-import { doc, filter, path, query, version } from '../../util/helpers';
+import { doc, version } from '../../util/helpers';
 import { FakeDocument, testDocument } from '../../util/test_platform';
 import { MockIndexedDbPersistence } from '../specs/spec_test_components';
 
@@ -236,719 +203,11 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
-  it('can install schema version 1', () => {
-    return withDb(1, async (db, version, objectStores) => {
-      expect(version).to.equal(1);
+  it('can install schema version 13', () => {
+    return withDb(13, async (db, version, objectStores) => {
+      expect(version).to.equal(13);
       // Version 1 adds all of the stores so far.
-      expect(objectStores).to.have.members(V1_STORES);
-    });
-  });
-
-  it('drops the query cache from 2 to 3', function (this: Context) {
-    const userId = 'user';
-    const batchId = 1;
-    const targetId = 2;
-
-    const expectedMutation = new DbMutationBatch(userId, batchId, 1000, [], []);
-    const dummyTargetGlobal = new DbTargetGlobal(
-      /*highestTargetId=*/ 1,
-      /*highestListenSequencNumber=*/ 1,
-      /*lastRemoteSnapshotVersion=*/ new DbTimestamp(1, 1),
-      /*targetCount=*/ 1
-    );
-    const resetTargetGlobal = new DbTargetGlobal(
-      /*highestTargetId=*/ 0,
-      /*highestListenSequencNumber=*/ 0,
-      /*lastRemoteSnapshotVersion=*/ SnapshotVersion.min().toTimestamp(),
-      /*targetCount=*/ 0
-    );
-
-    return withDb(2, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
-        txn => {
-          const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
-          const targetGlobal = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-            DbTargetGlobal.store
-          );
-          const mutations = txn.store<DbMutationBatchKey, DbMutationBatch>(
-            DbMutationBatch.store
-          );
-
-          return (
-            targets
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              .put({ targetId, canonicalId: 'foo' } as any)
-              .next(() =>
-                targetGlobal.put(DbTargetGlobal.key, dummyTargetGlobal)
-              )
-              .next(() => mutations.put(expectedMutation))
-          );
-        }
-      );
-    }).then(() => {
-      return withDb(3, (db, version, objectStores) => {
-        expect(version).to.equal(3);
-        expect(objectStores).to.have.members(V3_STORES);
-
-        return db.runTransaction(
-          this.test!.fullTitle(),
-          'readwrite',
-          [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
-          txn => {
-            const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
-            const targetGlobal = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-              DbTargetGlobal.store
-            );
-            const mutations = txn.store<DbMutationBatchKey, DbMutationBatch>(
-              DbMutationBatch.store
-            );
-
-            return targets
-              .get(targetId)
-              .next(target => {
-                // The target should have been dropped
-                expect(target).to.be.null;
-              })
-              .next(() => targetGlobal.get(DbTargetGlobal.key))
-              .next(targetGlobalEntry => {
-                // Target Global should exist but be cleared.
-                // HACK: round-trip through JSON to clear types, like IndexedDb
-                // does.
-                const expected = JSON.parse(JSON.stringify(resetTargetGlobal));
-                expect(targetGlobalEntry).to.deep.equal(expected);
-              })
-              .next(() => mutations.get(batchId))
-              .next(mutation => {
-                // Mutations should be unaffected.
-                expect(mutation!.userId).to.equal(userId);
-                expect(mutation!.batchId).to.equal(batchId);
-              });
-          }
-        );
-      });
-    });
-  });
-
-  it('can upgrade from schema version 3 to 4', function (this: Context) {
-    const testWrite = { delete: 'foo' };
-    const testMutations: DbMutationBatch[] = [
-      {
-        userId: 'foo',
-        batchId: 0,
-        localWriteTimeMs: 1337,
-        baseMutations: undefined,
-        mutations: []
-      },
-      {
-        userId: 'foo',
-        batchId: 1,
-        localWriteTimeMs: 1337,
-        baseMutations: undefined,
-        mutations: [testWrite]
-      },
-      {
-        userId: 'foo',
-        batchId: 42,
-        localWriteTimeMs: 1337,
-        baseMutations: undefined,
-        mutations: [testWrite, testWrite]
-      }
-    ];
-
-    return withDb(3, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        [DbMutationBatch.store],
-        txn => {
-          const store = txn.store(DbMutationBatch.store);
-          return PersistencePromise.forEach(
-            testMutations,
-            (testMutation: DbMutationBatch) => store.put(testMutation)
-          );
-        }
-      );
-    }).then(() =>
-      withDb(4, (db, version, objectStores) => {
-        expect(version).to.be.equal(4);
-        expect(objectStores).to.have.members(V4_STORES);
-        return db.runTransaction(
-          this.test!.fullTitle(),
-          'readwrite',
-          [DbMutationBatch.store],
-          txn => {
-            const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
-              DbMutationBatch.store
-            );
-            let p = PersistencePromise.forEach(
-              testMutations,
-              (testMutation: DbMutationBatch) =>
-                store.get(testMutation.batchId).next(mutationBatch => {
-                  expect(mutationBatch).to.deep.equal(testMutation);
-                })
-            );
-            p = p.next(() => {
-              store
-                .add({} as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-                .next(batchId => {
-                  expect(batchId).to.equal(43);
-                });
-            });
-            return p;
-          }
-        );
-      })
-    );
-  });
-
-  it('can upgrade from schema version 4 to 5', function (this: Context) {
-    // This test creates a database with schema version 4 that has two users,
-    // both of which have acknowledged mutations that haven't yet been removed
-    // from IndexedDb ("heldWriteAcks"). Schema version 5 removes heldWriteAcks,
-    // and as such these mutations are deleted.
-    const testWriteFoo = {
-      update: {
-        name: 'projects/test-project/databases/(default)/documents/docs/foo'
-      }
-    };
-    const testWriteBar = {
-      update: {
-        name: 'projects/test-project/databases/(default)/documents/docs/bar'
-      }
-    };
-    const testWriteBaz = {
-      update: {
-        name: 'projects/test-project/databases/(default)/documents/docs/baz'
-      }
-    };
-    const testWritePending = {
-      update: {
-        name: 'projects/test-project/databases/(default)/documents/docs/pending'
-      }
-    };
-    const testMutations: DbMutationBatch[] = [
-      // User 'foo' has two acknowledged mutations and one that is pending.
-      {
-        userId: 'foo',
-        batchId: 1,
-        localWriteTimeMs: 1337,
-        baseMutations: undefined,
-        mutations: [testWriteFoo]
-      },
-      {
-        userId: 'foo',
-        batchId: 2,
-        localWriteTimeMs: 1337,
-        baseMutations: undefined,
-        mutations: [testWriteFoo]
-      },
-      // User 'bar' has one acknowledged mutation and one that is pending.
-      {
-        userId: 'bar',
-        batchId: 3,
-        localWriteTimeMs: 1337,
-        baseMutations: undefined,
-        mutations: [testWriteBar, testWriteBaz]
-      },
-      {
-        userId: 'bar',
-        batchId: 4,
-        localWriteTimeMs: 1337,
-        baseMutations: undefined,
-        mutations: [testWritePending]
-      },
-      {
-        userId: 'foo',
-        batchId: 5,
-        localWriteTimeMs: 1337,
-        baseMutations: undefined,
-        mutations: [testWritePending]
-      }
-    ];
-
-    return withDb(4, db => {
-      // We can only use the V4 stores here, since that's as far as we've upgraded.
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V4_STORES,
-        txn => {
-          const mutationBatchStore = txn.store<
-            DbMutationBatchKey,
-            DbMutationBatch
-          >(DbMutationBatch.store);
-          const documentMutationStore = txn.store<
-            DbDocumentMutationKey,
-            DbDocumentMutation
-          >(DbDocumentMutation.store);
-          const mutationQueuesStore = txn.store<
-            DbMutationQueueKey,
-            DbMutationQueue
-          >(DbMutationQueue.store);
-          // Manually populate the mutation queue and create all indicies.
-          return PersistencePromise.forEach(
-            testMutations,
-            (testMutation: DbMutationBatch) => {
-              return mutationBatchStore.put(testMutation).next(() => {
-                return PersistencePromise.forEach(
-                  testMutation.mutations,
-                  (write: firestoreV1ApiClientInterfaces.Write) => {
-                    const indexKey = DbDocumentMutation.key(
-                      testMutation.userId,
-                      path(write.update!.name!, 5),
-                      testMutation.batchId
-                    );
-                    return documentMutationStore.put(
-                      indexKey,
-                      DbDocumentMutation.PLACEHOLDER
-                    );
-                  }
-                );
-              });
-            }
-          ).next(() =>
-            // Populate the mutation queues' metadata
-            PersistencePromise.waitFor([
-              mutationQueuesStore.put(new DbMutationQueue('foo', 2, '')),
-              mutationQueuesStore.put(new DbMutationQueue('bar', 3, '')),
-              mutationQueuesStore.put(new DbMutationQueue('empty', -1, ''))
-            ])
-          );
-        }
-      );
-    }).then(() =>
-      withDb(5, (db, version) => {
-        expect(version).to.be.equal(5);
-
-        // There is no V5_STORES, continue using V4.
-        return db.runTransaction(
-          this.test!.fullTitle(),
-          'readwrite',
-          V4_STORES,
-          txn => {
-            const mutationBatchStore = txn.store<
-              DbMutationBatchKey,
-              DbMutationBatch
-            >(DbMutationBatch.store);
-            const documentMutationStore = txn.store<
-              DbDocumentMutationKey,
-              DbDocumentMutation
-            >(DbDocumentMutation.store);
-            const mutationQueuesStore = txn.store<
-              DbMutationQueueKey,
-              DbMutationQueue
-            >(DbMutationQueue.store);
-
-            // Verify that all but the two pending mutations have been cleared
-            // by the migration.
-            let p = mutationBatchStore.count().next(count => {
-              expect(count).to.deep.equal(2);
-            });
-            p = p.next(() =>
-              documentMutationStore.count().next(count => {
-                expect(count).to.equal(2);
-              })
-            );
-
-            // Verify that we still have one metadata entry for each existing
-            // queue
-            p = p.next(() =>
-              mutationQueuesStore.count().next(count => {
-                expect(count).to.equal(3);
-              })
-            );
-            return p;
-          }
-        );
-      })
-    );
-  });
-
-  it('can upgrade from version 5 to 6', async function (this: Context) {
-    await withDb(5, db => {
-      // Add some documents
-      const docs = [
-        doc('docs/a', 1, { foo: 'bar' }),
-        doc('docs/b', 2, { baz: false }),
-        doc('docs/c', 3, { a: 1, b: [5, 'foo'] })
-      ];
-      const dbRemoteDocs = docs.map(doc => ({
-        dbKey: doc.key.path.toArray(),
-        dbDoc: toDbRemoteDocument(TEST_SERIALIZER, doc)
-      }));
-      // V5 stores doesn't exist
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V4_STORES,
-        txn => {
-          const store = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-            DbRemoteDocument.store
-          );
-          return PersistencePromise.forEach(
-            dbRemoteDocs,
-            ({ dbKey, dbDoc }: { dbKey: string[]; dbDoc: DbRemoteDocument }) =>
-              store.put(dbKey, dbDoc)
-          );
-        }
-      );
-    });
-    await withDb(6, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V6_STORES,
-        txn => {
-          const store = txn.store<
-            DbRemoteDocumentGlobalKey,
-            DbRemoteDocumentGlobal
-          >(DbRemoteDocumentGlobal.store);
-          return store.get(DbRemoteDocumentGlobal.key).next(metadata => {
-            // We don't really care what the size is, just that it's greater than 0.
-            // Our sizing algorithm may change at some point.
-            expect(metadata!.byteSize).to.be.greaterThan(0);
-          });
-        }
-      );
-    });
-  });
-
-  it('can upgrade from version 6 to 7', async function (this: Context) {
-    const oldSequenceNumber = 1;
-    // Set the highest sequence number to this value so that untagged documents
-    // will pick up this value.
-    const newSequenceNumber = 2;
-    await withDb(6, db => {
-      const serializer = TEST_SERIALIZER;
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V6_STORES,
-        txn => {
-          const targetGlobalStore = txn.store<
-            DbTargetGlobalKey,
-            DbTargetGlobal
-          >(DbTargetGlobal.store);
-          const remoteDocumentStore = txn.store<
-            DbRemoteDocumentKey,
-            DbRemoteDocument
-          >(DbRemoteDocument.store);
-          const targetDocumentStore = txn.store<
-            DbTargetDocumentKey,
-            DbTargetDocument
-          >(DbTargetDocument.store);
-          return targetGlobalStore
-            .get(DbTargetGlobal.key)
-            .next(metadata => {
-              expect(metadata).to.not.be.null;
-              metadata!.highestListenSequenceNumber = newSequenceNumber;
-              return targetGlobalStore.put(DbTargetGlobal.key, metadata!);
-            })
-            .next(() => {
-              // Set up some documents (we only need the keys)
-              // For the odd ones, add sentinel rows.
-              const promises: Array<PersistencePromise<void>> = [];
-              for (let i = 0; i < 10; i++) {
-                const document = doc('docs/doc_' + i, 1, { foo: 'bar' });
-                promises.push(
-                  remoteDocumentStore.put(
-                    document.key.path.toArray(),
-                    toDbRemoteDocument(serializer, document)
-                  )
-                );
-                if (i % 2 === 1) {
-                  promises.push(
-                    targetDocumentStore.put(
-                      new DbTargetDocument(
-                        0,
-                        encodeResourcePath(document.key.path),
-                        oldSequenceNumber
-                      )
-                    )
-                  );
-                }
-              }
-              return PersistencePromise.waitFor(promises);
-            });
-        }
-      );
-    });
-
-    // Now run the migration and verify
-    await withDb(7, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V6_STORES,
-        txn => {
-          const targetDocumentStore = txn.store<
-            DbTargetDocumentKey,
-            DbTargetDocument
-          >(DbTargetDocument.store);
-          const range = IDBKeyRange.bound(
-            [0],
-            [1],
-            /*lowerOpen=*/ false,
-            /*upperOpen=*/ true
-          );
-          return targetDocumentStore.iterate(
-            { range },
-            ([_, path], targetDocument) => {
-              const decoded = decodeResourcePath(path);
-              const lastSegment = decoded.lastSegment();
-              const docNum = +lastSegment.split('_')[1];
-              const expected =
-                docNum % 2 === 1 ? oldSequenceNumber : newSequenceNumber;
-              expect(targetDocument.sequenceNumber).to.equal(expected);
-            }
-          );
-        }
-      );
-    });
-  });
-
-  it('can upgrade from version 7 to 8', async function (this: Context) {
-    // This test creates a database with schema version 7 that has a few
-    // mutations and a few remote documents and then ensures that appropriate
-    // entries are written to the collectionParentIndex.
-    const writePaths = [
-      'cg1/x',
-      'cg1/y',
-      'cg1/x/cg1/x',
-      'cg2/x',
-      'cg1/x/cg2/x'
-    ];
-    const remoteDocPaths = [
-      'cg1/z',
-      'cg1/y/cg1/x',
-      'cg2/x/cg3/x',
-      'blah/x/blah/x/cg3/x'
-    ];
-    const expectedParents = {
-      cg1: ['', 'cg1/x', 'cg1/y'],
-      cg2: ['', 'cg1/x'],
-      cg3: ['blah/x/blah/x', 'cg2/x']
-    };
-
-    await withDb(7, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V6_STORES,
-        txn => {
-          const remoteDocumentStore = txn.store<
-            DbRemoteDocumentKey,
-            DbRemoteDocument
-          >(DbRemoteDocument.store);
-          const documentMutationStore = txn.store<
-            DbDocumentMutationKey,
-            DbDocumentMutation
-          >(DbDocumentMutation.store);
-          // We "cheat" and only write the DbDocumentMutation index entries, since that's
-          // all the migration uses.
-          return PersistencePromise.forEach(writePaths, (writePath: string) => {
-            const indexKey = DbDocumentMutation.key(
-              'dummy-uid',
-              path(writePath),
-              /*dummy batchId=*/ 123
-            );
-            return documentMutationStore.put(
-              indexKey,
-              DbDocumentMutation.PLACEHOLDER
-            );
-          }).next(() => {
-            // Write the remote document entries.
-            return PersistencePromise.forEach(
-              remoteDocPaths,
-              (path: string) => {
-                const remoteDoc = doc(path, /*version=*/ 1, { data: 1 });
-                return remoteDocumentStore.put(
-                  remoteDoc.key.path.toArray(),
-                  toDbRemoteDocument(TEST_SERIALIZER, remoteDoc)
-                );
-              }
-            );
-          });
-        }
-      );
-    });
-
-    // Migrate to v8 and verify index entries.
-    await withDb(8, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V8_STORES,
-        txn => {
-          const collectionParentsStore = txn.store<
-            DbCollectionParentKey,
-            DbCollectionParent
-          >(DbCollectionParent.store);
-          return collectionParentsStore.loadAll().next(indexEntries => {
-            const actualParents: { [key: string]: string[] } = {};
-            for (const { collectionId, parent } of indexEntries) {
-              let parents = actualParents[collectionId];
-              if (!parents) {
-                parents = [];
-                actualParents[collectionId] = parents;
-              }
-              parents.push(decodeResourcePath(parent).toString());
-            }
-
-            expect(actualParents).to.deep.equal(expectedParents);
-          });
-        }
-      );
-    });
-  });
-
-  it('rewrites canonical IDs during upgrade from version 9 to 10', async function (this: Context) {
-    await withDb(9, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V8_STORES,
-        txn => {
-          const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
-
-          const filteredQuery = query('collection', filter('foo', '==', 'bar'));
-          const initialTargetData = new TargetData(
-            queryToTarget(filteredQuery),
-            /* targetId= */ 2,
-            TargetPurpose.Listen,
-            /* sequenceNumber= */ 1
-          );
-
-          const serializedData = toDbTarget(TEST_SERIALIZER, initialTargetData);
-          serializedData.canonicalId = 'invalid_canonical_id';
-
-          return targetsStore.put(
-            toDbTarget(TEST_SERIALIZER, initialTargetData)
-          );
-        }
-      );
-    });
-
-    await withDb(10, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V8_STORES,
-        txn => {
-          const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
-          return targetsStore.iterate((key, value) => {
-            const targetData = fromDbTarget(value).target;
-            const expectedCanonicalId = canonifyTarget(targetData);
-
-            const actualCanonicalId = value.canonicalId;
-            expect(actualCanonicalId).to.equal(expectedCanonicalId);
-          });
-        }
-      );
-    });
-  });
-
-  it('can use read-time index after schema migration', async function (this: Context) {
-    // This test creates a database with schema version 8 that has a few
-    // remote documents, adds an index and then reads new documents back
-    // via that index.
-
-    const existingDocPaths = [
-      'coll1/doc1',
-      'coll1/doc2',
-      'coll2/doc1',
-      'coll2/doc2'
-    ];
-    const newDocPaths = [
-      'coll1/doc3',
-      'coll1/doc4',
-      'coll2/doc3',
-      'coll2/doc4'
-    ];
-
-    await withDb(8, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V8_STORES,
-        txn => {
-          const remoteDocumentStore = txn.store<
-            DbRemoteDocumentKey,
-            DbRemoteDocument
-          >(DbRemoteDocument.store);
-
-          // Write the remote document entries.
-          return PersistencePromise.forEach(
-            existingDocPaths,
-            (path: string) => {
-              const remoteDoc = doc(path, /*version=*/ 1, { data: 1 });
-
-              const dbRemoteDoc = toDbRemoteDocument(
-                TEST_SERIALIZER,
-                remoteDoc
-              );
-              // Mimic the old serializer and delete previously unset values
-              delete dbRemoteDoc.readTime;
-              delete dbRemoteDoc.parentPath;
-
-              return remoteDocumentStore.put(
-                remoteDoc.key.path.toArray(),
-                dbRemoteDoc
-              );
-            }
-          );
-        }
-      );
-    });
-
-    // Migrate to v9 and verify that new documents are indexed.
-    await withDb(9, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V8_STORES,
-        txn => {
-          const remoteDocumentStore = txn.store<
-            DbRemoteDocumentKey,
-            DbRemoteDocument
-          >(DbRemoteDocument.store);
-
-          // Verify the existing remote document entries.
-          return remoteDocumentStore
-            .loadAll()
-            .next(docsRead => {
-              const keys = docsRead.map(dbDoc => dbDoc.document!.name);
-              expect(keys).to.have.members([
-                'projects/test-project/databases/(default)/documents/coll1/doc1',
-                'projects/test-project/databases/(default)/documents/coll1/doc2',
-                'projects/test-project/databases/(default)/documents/coll2/doc1',
-                'projects/test-project/databases/(default)/documents/coll2/doc2'
-              ]);
-            })
-            .next(() => addDocs(txn, newDocPaths, /* version= */ 2))
-            .next(() => {
-              // Verify that we can get recent changes in a collection filtered by
-              // read time.
-              const lastReadTime = toDbTimestampKey(version(1));
-              const range = IDBKeyRange.lowerBound(
-                [['coll2'], lastReadTime],
-                true
-              );
-              return remoteDocumentStore
-                .loadAll(DbRemoteDocument.collectionReadTimeIndex, range)
-                .next(docsRead => {
-                  const keys = docsRead.map(dbDoc => dbDoc.document!.name);
-                  expect(keys).to.have.members([
-                    'projects/test-project/databases/(default)/documents/coll2/doc3',
-                    'projects/test-project/databases/(default)/documents/coll2/doc4'
-                  ]);
-                });
-            });
-        }
-      );
+      expect(objectStores).to.have.members(V13_STORES);
     });
   });
 
@@ -956,11 +215,11 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const oldDocPaths = ['coll/doc1', 'coll/doc2', 'abc/doc1'];
     const newDocPaths = ['coll/doc3', 'coll/doc4', 'abc/doc2'];
 
-    await withDb(9, db => {
+    await withDb(SCHEMA_VERSION, db => {
       return db.runTransaction(
         this.test!.fullTitle(),
         'readwrite',
-        V8_STORES,
+        V13_STORES,
         txn => {
           return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
             addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
@@ -994,11 +253,11 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const oldDocPaths = ['coll1/old', 'coll2/old'];
     const newDocPaths = ['coll1/new', 'coll2/new'];
 
-    await withDb(9, db => {
+    await withDb(SCHEMA_VERSION, db => {
       return db.runTransaction(
         this.test!.fullTitle(),
         'readwrite',
-        V8_STORES,
+        V13_STORES,
         txn => {
           return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
             addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
@@ -1022,14 +281,6 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           );
         }
       );
-    });
-  });
-
-  it('can upgrade from version 11 to 12', async () => {
-    await withDb(11, async () => {});
-    await withDb(12, async (db, version, objectStores) => {
-      expect(version).to.have.equal(12);
-      expect(objectStores).to.have.members(V12_STORES);
     });
   });
 
@@ -1331,14 +582,14 @@ describe('IndexedDb', () => {
   }
 
   it('can re-open after close', async function (this: Context) {
-    return withDb(2, async db => {
+    return withDb(SCHEMA_VERSION, async db => {
       db.close();
       // Running a new IndexedDB transaction should re-open the database and not
       // throw.
       await db.runTransaction(
         this.test!.fullTitle(),
         'readwrite',
-        V1_STORES,
+        V13_STORES,
         () => PersistencePromise.resolve()
       );
     });

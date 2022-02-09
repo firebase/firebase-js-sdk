@@ -32,11 +32,6 @@ import {
   encodeResourcePath
 } from './encoded_resource_path';
 
-// TODO(indexing): Remove this constant
-const INDEXING_ENABLED = false;
-
-export const INDEXING_SCHEMA_VERSION = 12;
-
 /**
  * Schema Version for the Web client:
  * 1.  Initial version including Mutation Queue, Query Cache, and Remote
@@ -56,8 +51,9 @@ export const INDEXING_SCHEMA_VERSION = 12;
  * 10. Rewrite the canonical IDs to the explicit Protobuf-based format.
  * 11. Add bundles and named_queries for bundle support.
  * 12. Add indexing support.
+ * 13. Drop all data and start fresh.
  */
-export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 11;
+export const SCHEMA_VERSION = 13;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -793,8 +789,7 @@ export class DbIndexEntries {
   ) {}
 }
 
-// Visible for testing
-export const V1_STORES = [
+export const V13_STORES = [
   DbMutationQueue.store,
   DbMutationBatch.store,
   DbDocumentMutation.store,
@@ -802,33 +797,12 @@ export const V1_STORES = [
   DbTarget.store,
   DbPrimaryClient.store,
   DbTargetGlobal.store,
-  DbTargetDocument.store
-];
-
-// V2 is no longer usable (see comment at top of file)
-
-// Visible for testing
-export const V3_STORES = V1_STORES;
-
-// Note: DbRemoteDocumentChanges is no longer used and dropped with v9.
-export const V4_STORES = [...V3_STORES, DbClientMetadata.store];
-
-// V5 does not change the set of stores.
-
-export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
-
-// V7 does not change the set of stores.
-
-export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
-
-// V9 does not change the set of stores.
-
-// V10 does not change the set of stores.
-
-export const V11_STORES = [...V8_STORES, DbBundle.store, DbNamedQuery.store];
-
-export const V12_STORES = [
-  ...V11_STORES,
+  DbTargetDocument.store,
+  DbClientMetadata.store,
+  DbRemoteDocumentGlobal.store,
+  DbCollectionParent.store,
+  DbBundle.store,
+  DbNamedQuery.store,
   DbIndexConfiguration.store,
   DbIndexState.store,
   DbIndexEntries.store
@@ -839,4 +813,4 @@ export const V12_STORES = [
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = V11_STORES;
+export const ALL_STORES = V13_STORES;
