@@ -132,7 +132,7 @@ export class MemoryPersistence implements Persistence {
     return this.indexManager;
   }
 
-  getDocumentOverlay(user: User): DocumentOverlayCache {
+  getDocumentOverlayCache(user: User): DocumentOverlayCache {
     let overlay = this.overlays[user.toKey()];
     if (!overlay) {
       overlay = new MemoryDocumentOverlayCache();

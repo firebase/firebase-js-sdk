@@ -26,10 +26,10 @@ import { PersistenceTransaction } from './persistence_transaction';
 /**
  * Provides methods to read and write document overlays.
  *
- * <p>An overlay is a saved mutation, that gives a local view of a document when
+ * An overlay is a saved mutation, that gives a local view of a document when
  * applied to the remote version of the document.
  *
- * <p>Each overlay stores the largest batch ID that is included in the overlay,
+ * Each overlay stores the largest batch ID that is included in the overlay,
  * which allows us to remove the overlay once all batches leading up to it have
  * been acknowledged.
  */
@@ -44,7 +44,7 @@ export interface DocumentOverlayCache {
   ): PersistencePromise<Overlay | null>;
 
   /**
-   * Saves the given document key to mutation map to persistence as overlays.
+   * Saves the given document mutation map to persistence as overlays.
    * All overlays will have their largest batch id set to `largestBatchId`.
    */
   saveOverlays(
@@ -53,7 +53,7 @@ export interface DocumentOverlayCache {
     overlays: Map<DocumentKey, Mutation>
   ): PersistencePromise<void>;
 
-  /** Removes the overlay whose largest-batch-id equals to the given Id. */
+  /** Removes the overlay whose largest-batch-id equals the given Id. */
   removeOverlaysForBatchId(
     transaction: PersistenceTransaction,
     batchId: number
@@ -62,7 +62,7 @@ export interface DocumentOverlayCache {
   /**
    * Returns all saved overlays for the given collection.
    *
-   * @param transaction The persistence transaction used for this operation.
+   * @param transaction The persistence transaction to use for this operation.
    * @param collection The collection path to get the overlays for.
    * @param sinceBatchId The minimum batch ID to filter by (exclusive).
    * Only overlays that contain a change past `sinceBatchId` are returned.

@@ -822,7 +822,11 @@ export class DbIndexEntry {
   ) {}
 }
 
-export type DbDocumentOverlayKey = [string, string, string];
+export type DbDocumentOverlayKey = [
+  /* userId */ string,
+  /* collectionPath */ string,
+  /* documentId */ string
+];
 
 /**
  * An object representing a document overlay.
@@ -833,6 +837,7 @@ export class DbDocumentOverlay {
 
   static keyPath = ['userId', 'collectionPath', 'documentId'];
 
+  // TODO(overlays): Remove this index if the other indexes suffice.
   static batchIdOverlayIndex = 'batchIdOverlayIndex';
   static batchIdOverlayIndexPath = ['userId', 'largestBatchId'];
 

@@ -746,7 +746,7 @@ export class IndexedDbPersistence implements Persistence {
     return new IndexedDbIndexManager(user);
   }
 
-  getDocumentOverlay(user: User): DocumentOverlayCache {
+  getDocumentOverlayCache(user: User): DocumentOverlayCache {
     debugAssert(
       this.started,
       'Cannot initialize IndexedDbDocumentOverlayCache before persistence is started.'

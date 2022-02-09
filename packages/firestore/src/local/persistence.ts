@@ -221,7 +221,7 @@ export interface Persistence {
    * Returns a DocumentOverlayCache representing the documents that are mutated
    * locally.
    */
-  getDocumentOverlay(user: User): DocumentOverlayCache;
+  getDocumentOverlayCache(user: User): DocumentOverlayCache;
 
   /**
    * Performs an operation inside a persistence transaction. Any reads or writes
