@@ -42,6 +42,10 @@ export class FieldMask {
     );
   }
 
+  static empty(): FieldMask {
+    return new FieldMask([]);
+  }
+
   /**
    * Verifies that `fieldPath` is included by at least one field in this field
    * mask.
