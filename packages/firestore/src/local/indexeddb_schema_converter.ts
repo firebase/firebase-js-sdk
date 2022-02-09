@@ -93,7 +93,7 @@ function dropAllStores(db: IDBDatabase): void {
   }
 }
 
-function createCollectionParentStore(db: IDBDatabase) : void{
+function createCollectionParentStore(db: IDBDatabase): void {
   db.createObjectStore(DbCollectionParent.store, {
     keyPath: DbCollectionParent.keyPath
   });

@@ -26,7 +26,7 @@ import {
   DbRemoteDocument,
   DbRemoteDocumentKey,
   SCHEMA_VERSION,
-  V13_STORES,
+  V13_STORES
 } from '../../../src/local/indexeddb_schema';
 import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
 import {
