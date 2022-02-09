@@ -35,7 +35,7 @@ export class CountingQueryEngine extends QueryEngine {
    * `getAllMutationBatchesAffectingQuery()` API (since the last call to
    * `resetCounts()`)
    */
-  mutationsReadByQuery = 0;
+  mutationsReadByCollection = 0;
 
   /**
    * The number of mutations returned by the MutationQueue's
@@ -47,9 +47,9 @@ export class CountingQueryEngine extends QueryEngine {
 
   /**
    * The number of documents returned by the RemoteDocumentCache's
-   * `getDocumentsMatchingQuery()` API (since the last call to `resetCounts()`)
+   * `getAll()` API (since the last call to `resetCounts()`)
    */
-  documentsReadByQuery = 0;
+  documentsReadByCollection = 0;
 
   /**
    * The number of documents returned by the RemoteDocumentCache's `getEntry()`
@@ -58,9 +58,9 @@ export class CountingQueryEngine extends QueryEngine {
   documentsReadByKey = 0;
 
   resetCounts(): void {
-    this.mutationsReadByQuery = 0;
+    this.mutationsReadByCollection = 0;
     this.mutationsReadByKey = 0;
-    this.documentsReadByQuery = 0;
+    this.documentsReadByCollection = 0;
     this.documentsReadByKey = 0;
   }
 
@@ -92,11 +92,11 @@ export class CountingQueryEngine extends QueryEngine {
     subject: RemoteDocumentCache
   ): RemoteDocumentCache {
     return {
-      getDocumentsMatchingQuery: (transaction, query, sinceReadTime) => {
+      getAll: (transaction, collectionGroup, sinceReadTime) => {
         return subject
-          .getDocumentsMatchingQuery(transaction, query, sinceReadTime)
+          .getAll(transaction, collectionGroup, sinceReadTime)
           .next(result => {
-            this.documentsReadByQuery += result.size;
+            this.documentsReadByCollection += result.size;
             return result;
           });
       },
@@ -150,7 +150,7 @@ export class CountingQueryEngine extends QueryEngine {
         return subject
           .getAllMutationBatchesAffectingQuery(transaction, query)
           .next(result => {
-            this.mutationsReadByQuery += result.length;
+            this.mutationsReadByCollection += result.length;
             return result;
           });
       },

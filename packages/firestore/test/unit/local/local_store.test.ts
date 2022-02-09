@@ -330,25 +330,25 @@ class LocalStoreTester {
    * the MutationQueue and the RemoteDocumentCache.
    *
    * @param expectedCount.mutationsByQuery - The number of mutations read by
-   * executing a query against the MutationQueue.
+   * executing a collection scan against the MutationQueue.
    * @param expectedCount.mutationsByKey - The number of mutations read by
    * document key lookups.
    * @param expectedCount.documentsByQuery - The number of mutations read by
-   * executing a query against the RemoteDocumentCache.
+   * executing a collection scan against the RemoteDocumentCache.
    * @param expectedCount.documentsByKey - The number of documents read by
    * document key lookups.
    */
   toHaveRead(expectedCount: {
-    mutationsByQuery?: number;
+    mutationsByCollection?: number;
     mutationsByKey?: number;
-    documentsByQuery?: number;
+    documentsByCollection?: number;
     documentsByKey?: number;
   }): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      if (expectedCount.mutationsByQuery !== undefined) {
-        expect(this.queryEngine.mutationsReadByQuery).to.be.eq(
-          expectedCount.mutationsByQuery,
-          'Mutations read (by query)'
+      if (expectedCount.mutationsByCollection !== undefined) {
+        expect(this.queryEngine.mutationsReadByCollection).to.be.eq(
+          expectedCount.mutationsByCollection,
+          'Mutations read (by collection)'
         );
       }
       if (expectedCount.mutationsByKey !== undefined) {
@@ -357,10 +357,10 @@ class LocalStoreTester {
           'Mutations read (by key)'
         );
       }
-      if (expectedCount.documentsByQuery !== undefined) {
-        expect(this.queryEngine.documentsReadByQuery).to.be.eq(
-          expectedCount.documentsByQuery,
-          'Remote documents read (by query)'
+      if (expectedCount.documentsByCollection !== undefined) {
+        expect(this.queryEngine.documentsReadByCollection).to.be.eq(
+          expectedCount.documentsByCollection,
+          'Remote documents read (by collection)'
         );
       }
       if (expectedCount.documentsByKey !== undefined) {
@@ -1209,7 +1209,7 @@ function genericLocalStoreTests(
         doc('foo/baz', 20, { matches: true }),
         doc('foo/bonk', 0, { matches: true }).setHasLocalMutations()
       )
-      .toHaveRead({ documentsByQuery: 2, mutationsByQuery: 1 })
+      .toHaveRead({ documentsByCollection: 2, mutationsByCollection: 1 })
       .finish();
   });
 
@@ -1806,7 +1806,7 @@ function genericLocalStoreTests(
         // Execute the query, but note that we read all existing documents
         // from the RemoteDocumentCache since we do not yet have target
         // mapping.
-        .toHaveRead({ documentsByQuery: 2 })
+        .toHaveRead({ documentsByCollection: 3 })
         .after(
           docAddedRemoteEvent(
             [
@@ -1826,7 +1826,7 @@ function genericLocalStoreTests(
         )
         .after(localViewChanges(2, /* fromCache= */ false, {}))
         .afterExecutingQuery(query1)
-        .toHaveRead({ documentsByKey: 2, documentsByQuery: 0 })
+        .toHaveRead({ documentsByKey: 2, documentsByCollection: 0 })
         .toReturnChanged(
           doc('foo/a', 10, { matches: true }),
           doc('foo/b', 10, { matches: true })
@@ -1935,7 +1935,7 @@ function genericLocalStoreTests(
           // Re-run the query as a collection scan
           .afterExecutingQuery(query1)
           .toReturnChanged(doc('foo/a', 10, { matches: true }))
-          .toHaveRead({ documentsByQuery: 1 })
+          .toHaveRead({ documentsByCollection: 1 })
           .finish()
       );
     }
