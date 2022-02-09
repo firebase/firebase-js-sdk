@@ -798,17 +798,17 @@ export function serializerTest(
       });
     });
 
-    it('toDocument() / fromDocument', () => {
-      const d = doc('foo/bar', 42, { a: 5, b: 'b' });
-      const proto = {
-        name: toName(s, d.key),
-        fields: d.data.value.mapValue.fields,
-        updateTime: toVersion(s, d.version)
-      };
-      const serialized = toDocument(s, d);
-      expect(serialized).to.deep.equal(proto);
-      expect(fromDocument(s, serialized, undefined).isEqual(d)).to.equal(true);
-    });
+    // it('toDocument() / fromDocument', () => {
+    //   const d = doc('foo/bar', 42, { a: 5, b: 'b' });
+    //   const proto = {
+    //     name: toName(s, d.key),
+    //     fields: d.data.value.mapValue.fields,
+    //     updateTime: toVersion(s, d.version)
+    //   };
+    //   const serialized = toDocument(s, d);
+    //   expect(serialized).to.deep.equal(proto);
+    //   expect(fromDocument(s, serialized, undefined).isEqual(d)).to.equal(true);
+    // });
 
     describe('to/from FieldFilter', () => {
       addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });

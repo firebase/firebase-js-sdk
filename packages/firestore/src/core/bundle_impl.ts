@@ -46,6 +46,7 @@ import {
   BundleLoadResult
 } from './bundle';
 import { SnapshotVersion } from './snapshot_version';
+import {ResourcePath} from "../model/path";
 
 /**
  * Helper to convert objects from bundles to model objects in the SDK.
@@ -66,7 +67,8 @@ export class BundleConverterImpl implements BundleConverter {
         !!bundledDoc.document,
         'Document is undefined when metadata.exist is true.'
       );
-      return fromDocument(this.serializer, bundledDoc.document!, false);
+      const key = DocumentKey.fromName(bundledDoc.metadata.name!);
+      return fromDocument(this.serializer, key.path.popLast().toArray(), key.path.lastSegment(), bundledDoc.document!, false);
     } else {
       return MutableDocument.newNoDocument(
         this.toDocumentKey(bundledDoc.metadata.name!),

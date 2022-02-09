@@ -224,9 +224,10 @@ export async function invokeRunQueryRpc(
     response
       // Omit RunQueryResponses that only contain readTimes.
       .filter(proto => !!proto.document)
-      .map(proto =>
-        fromDocument(datastoreImpl.serializer, proto.document!, undefined)
-      )
+      .map(proto => {
+        const key = DocumentKey.fromName(proto.document!.name!);
+       return fromDocument(datastoreImpl.serializer, key.path.popLast().toArray(), key.path.lastSegment(), proto.document!, undefined)
+      })
   );
 }
 

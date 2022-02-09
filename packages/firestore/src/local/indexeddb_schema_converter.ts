@@ -363,8 +363,11 @@ function createV2RemoteDocumentCache(db: IDBDatabase): void {
   });
   remoteDocumentStore.createIndex(
     DbRemoteDocument.readTimeIndex,
-    DbRemoteDocument.readTimeIndexPath,
-    { unique: false }
+    DbRemoteDocument.readTimeIndexPath
+  );
+  remoteDocumentStore.createIndex(
+    DbRemoteDocument.keyIndex,
+    DbRemoteDocument.keyIndexPath
   );
 }
 

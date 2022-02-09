@@ -318,7 +318,7 @@ export class DbDocument {
 export class DbRemoteDocument {
   static store = 'remoteDocuments';
 
-  static keyPath: ['parentPath', 'readTime', 'id'];
+  static keyPath: ['parentPath', 'readTime', 'documentId'];
 
   /**
    * An index that provides access to all entries sorted by read time (which
@@ -329,6 +329,10 @@ export class DbRemoteDocument {
   static readTimeIndex = 'readTimeIndex';
 
   static readTimeIndexPath = 'readTime';
+
+  static keyIndex = 'keyIndex';
+
+  static keyIndexPath = ['parentPath', 'documentId'];
 
   constructor(
     // Do we need collectionGroup index?

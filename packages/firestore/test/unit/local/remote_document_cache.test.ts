@@ -43,33 +43,6 @@ const LONG_DOC_PATH = 'a/b/c/d/e/f';
 const DOC_DATA = { a: 1, b: 2 };
 const VERSION = 42;
 
-describe('MemoryRemoteDocumentCache', () => {
-  let cache: Promise<TestRemoteDocumentCache>;
-
-  beforeEach(() => {
-    cache = persistenceHelpers
-      .testMemoryEagerPersistence()
-      .then(persistence => new TestRemoteDocumentCache(persistence));
-  });
-
-  genericRemoteDocumentCacheTests(() => cache);
-
-  eagerRemoteDocumentCacheTests(() => cache);
-});
-
-describe('LRU MemoryRemoteDocumentCache', () => {
-  let cache: Promise<TestRemoteDocumentCache>;
-
-  beforeEach(async () => {
-    cache = persistenceHelpers
-      .testMemoryLruPersistence()
-      .then(persistence => new TestRemoteDocumentCache(persistence));
-  });
-
-  genericRemoteDocumentCacheTests(() => cache);
-
-  lruRemoteDocumentCacheTests(() => cache);
-});
 
 describe('IndexedDbRemoteDocumentCache', () => {
   if (!IndexedDbPersistence.isAvailable()) {
@@ -232,6 +205,8 @@ function lruRemoteDocumentCacheTests(
     await cache.addEntry(doc2);
     const totalSize = await cache.getSize();
     expect(totalSize).to.be.greaterThan(doc1Size);
+
+    console.log(totalSize)
 
     await cache.removeEntry(doc2.key);
 

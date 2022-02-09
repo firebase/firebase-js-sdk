@@ -114,6 +114,7 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
+import {setLogLevel} from "../../../compat/api/database";
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -1145,28 +1146,36 @@ function genericLocalStoreTests(
   });
 
   it('can execute mixed collection queries', async () => {
+    if (!persistence) return;
+    console.log('here1');
     const query1 = query('foo');
     const targetData = await localStoreAllocateTarget(
       localStore,
       queryToTarget(query1)
     );
+    console.log('here2');
     expect(targetData.targetId).to.equal(2);
     await localStoreApplyRemoteEventToLocalCache(
       localStore,
       docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
     );
+    console.log('here3');
     await localStoreApplyRemoteEventToLocalCache(
       localStore,
       docUpdateRemoteEvent(doc('foo/bar', 20, { a: 'b' }), [2], [])
     );
+    console.log('here4');
+    setLogLevel('debug')
     await localStoreWriteLocally(localStore, [
       setMutation('foo/bonk', { a: 'b' })
     ]);
+    console.log('here5');
     const { documents } = await localStoreExecuteQuery(
       localStore,
       query1,
       /* usePreviousResults= */ true
     );
+    console.log('here1');
     expect(mapAsArray(documents)).to.deep.equal([
       { key: key('foo/bar'), value: doc('foo/bar', 20, { a: 'b' }) },
       { key: key('foo/baz'), value: doc('foo/baz', 10, { a: 'b' }) },

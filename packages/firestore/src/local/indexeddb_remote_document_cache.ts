@@ -63,16 +63,8 @@ export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
   // of RemoteDocumentCache. This class exists for consistency.
 }
 
-function lowerBound(key: DocumentKey): DbRemoteDocumentKey {
-  return [key.path.popLast().toArray(), [0, 0], key.path.lastSegment()];
-}
-
-function upperBound(key: DocumentKey): DbRemoteDocumentKey {
-  return [
-    key.path.popLast().toArray(),
-    [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
-    key.path.lastSegment()
-  ];
+function dbKey(key: DocumentKey): [string[], string] {
+  return [key.path.popLast().toArray(), key.path.lastSegment()];
 }
 
 /**
@@ -122,9 +114,11 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     documentKey: DocumentKey
   ): PersistencePromise<void> {
     const store = remoteDocumentsStore(transaction);
-    return store.deleteAll(
-      IDBKeyRange.bound(lowerBound(documentKey), upperBound(documentKey))
-    );
+    return this.getEntry(transaction, documentKey).next(doc => {
+      if (doc) {
+        return store.delete([doc.key.path.popLast().toArray(), toDbTimestampKey(doc.readTime), doc.key.path.lastSegment()])
+      }
+    });
   }
 
   /**
@@ -147,13 +141,14 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MutableDocument> {
+    let doc = MutableDocument.newInvalidDocument(documentKey);
     return remoteDocumentsStore(transaction)
-      .getAll(
-        IDBKeyRange.bound(lowerBound(documentKey), upperBound(documentKey))
-      )
-      .next(docs => {
-        return this.maybeDecodeDocument(documentKey, docs[0]);
-      });
+      .iterate({
+        index: DbRemoteDocument.keyIndex,
+        range: IDBKeyRange.only(dbKey(documentKey))
+      }, (_, dbDoc) => {
+        doc = this.maybeDecodeDocument(documentKey, dbDoc);
+      }).next(() => doc);
   }
 
   /**
@@ -166,17 +161,21 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<DocumentSizeEntry> {
+    let sizedEntry : DocumentSizeEntry = {
+      document: MutableDocument.newInvalidDocument(documentKey),
+      size: 0
+    };
     return remoteDocumentsStore(transaction)
-      .getAll(
-        IDBKeyRange.bound(lowerBound(documentKey), upperBound(documentKey))
-      )
-      .next(dbRemoteDoc => {
-        const doc = this.maybeDecodeDocument(documentKey, dbRemoteDoc[0]);
-        return {
+      .iterate({
+        index: DbRemoteDocument.keyIndex,
+        range: IDBKeyRange.only(dbKey(documentKey))
+      }, (_, dbDoc) => {
+        const doc = this.maybeDecodeDocument(documentKey, dbDoc);
+        sizedEntry = {
           document: doc,
-          size: dbDocumentSize(dbRemoteDoc[0])
+          size: dbDocumentSize(dbDoc)
         };
-      });
+      }).next(() => sizedEntry);
   }
 
   getEntries(
@@ -230,14 +229,14 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     }
 
     const range = IDBKeyRange.bound(
-      lowerBound(documentKeys.first()!),
-      upperBound(documentKeys.last()!)
+      dbKey(documentKeys.first()!),
+      dbKey(documentKeys.last()!)
     );
     const keyIter = documentKeys.getIterator();
     let nextKey: DocumentKey | null = keyIter.getNext();
 
     return remoteDocumentsStore(transaction)
-      .iterate({ range }, (potentialKeyRaw, dbRemoteDoc, control) => {
+      .iterate({ index: DbRemoteDocument.keyIndex, range }, (potentialKeyRaw, dbRemoteDoc, control) => {
         const potentialKey = DocumentKey.fromSegments([
           ...potentialKeyRaw[0],
           potentialKeyRaw[2]
@@ -246,7 +245,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
         // Go through keys not found in cache.
         while (nextKey && DocumentKey.comparator(nextKey!, potentialKey) < 0) {
           callback(nextKey!, undefined);
-          nextKey = keyIter.getNext();
+          nextKey = keyIter.hasNext() ? keyIter.getNext() : null;
         }
 
         if (nextKey && nextKey!.isEqual(potentialKey)) {
@@ -257,7 +256,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
 
         // Skip to the next key (if there is one).
         if (nextKey) {
-          control.skip(lowerBound(nextKey));
+          control.skip(dbKey(nextKey));
         } else {
           control.done();
         }
