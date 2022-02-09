@@ -23,7 +23,11 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetIsDocumentTarget } from '../core/target';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+<<<<<<< HEAD
 import { Mutation } from '../model/mutation';
+=======
+import { MutationBatch } from '../model/mutation_batch';
+>>>>>>> 0fcefec37 (Address comments.)
 import { Overlay } from '../model/overlay';
 import {
   FieldIndex,
@@ -55,6 +59,7 @@ import {
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 
+import { encodeResourcePath } from './encoded_resource_path';
 import {
   decodeResourcePath,
   encodeResourcePath
@@ -76,7 +81,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { encodeResourcePath } from './encoded_resource_path';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

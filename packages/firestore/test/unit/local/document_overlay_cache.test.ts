@@ -108,9 +108,10 @@ function genericDocumentOverlayCacheTests(): void {
     m1: Mutation | null,
     m2: Mutation | null
   ): void {
-    expect(m1 === null).to.equal(false);
-    expect(m2 === null).to.equal(false);
-    expect(mutationEquals(m1!, m2!)).to.equal(true);
+    expect(m1 === null).to.equal(m2 === null);
+    if (m1 !== null && m2 !== null) {
+      expect(mutationEquals(m1!, m2!)).to.equal(true);
+    }
   }
 
   function verifyOverlayContains(
@@ -207,7 +208,7 @@ function genericDocumentOverlayCacheTests(): void {
 
   it('can get all overlays for collection group', async () => {
     await saveOverlaysForKeys(2, 'coll1/doc1', 'coll2/doc1');
-    await saveOverlaysForKeys(3, 'coll1/doc2');
+    await saveOverlaysForKeys(3, 'coll2/doc1/coll1/doc2');
     await saveOverlaysForKeys(4, 'coll2/doc2');
 
     const overlays = await overlayCache.getOverlaysForCollectionGroup(
@@ -215,7 +216,7 @@ function genericDocumentOverlayCacheTests(): void {
       -1,
       50
     );
-    verifyOverlayContains(overlays, 'coll1/doc1', 'coll1/doc2');
+    verifyOverlayContains(overlays, 'coll1/doc1', 'coll2/doc1/coll1/doc2');
   });
 
   it('getting overlays from collection group enforces batch ID', async () => {
@@ -243,7 +244,7 @@ function genericDocumentOverlayCacheTests(): void {
     verifyOverlayContains(overlays, 'coll/doc1', 'coll/doc2');
   });
 
-  it('getting overlays from collection group does not have partial batches', async () => {
+  it('getting overlays from collection group does not return partial batches', async () => {
     await saveOverlaysForKeys(1, 'coll/doc1');
     await saveOverlaysForKeys(2, 'coll/doc2', 'coll/doc3');
 

@@ -61,9 +61,13 @@ export class TestDocumentOverlayCache {
     path: ResourcePath,
     sinceBatchId: number
   ): Promise<Map<DocumentKey, Overlay>> {
-    return this.persistence.runTransaction('getOverlays', 'readonly', txn => {
-      return this.cache.getOverlaysForCollection(txn, path, sinceBatchId);
-    });
+    return this.persistence.runTransaction(
+      'getOverlaysForCollection',
+      'readonly',
+      txn => {
+        return this.cache.getOverlaysForCollection(txn, path, sinceBatchId);
+      }
+    );
   }
 
   getOverlaysForCollectionGroup(
@@ -71,14 +75,18 @@ export class TestDocumentOverlayCache {
     sinceBatchId: number,
     count: number
   ): Promise<Map<DocumentKey, Overlay>> {
-    return this.persistence.runTransaction('getOverlays', 'readonly', txn => {
-      return this.cache.getOverlaysForCollectionGroup(
-        txn,
-        collectionGroup,
-        sinceBatchId,
-        count
-      );
-    });
+    return this.persistence.runTransaction(
+      'getOverlaysForCollectionGroup',
+      'readonly',
+      txn => {
+        return this.cache.getOverlaysForCollectionGroup(
+          txn,
+          collectionGroup,
+          sinceBatchId,
+          count
+        );
+      }
+    );
   }
 
   removeOverlaysForBatchId(batchId: number): Promise<void> {

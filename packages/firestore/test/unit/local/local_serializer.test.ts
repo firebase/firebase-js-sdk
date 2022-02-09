@@ -19,11 +19,10 @@ import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
 import { DatabaseId } from '../../../src/core/database_info';
-
 import {
-  DbDocumentOverlay,
   DbMutationBatch
 } from '../../../src/local/indexeddb_schema';
+import { decodeResourcePath } from '../../../src/local/encoded_resource_path';
 import {
   fromDbDocumentOverlay,
   fromDbIndexConfiguration,
@@ -42,7 +41,7 @@ import {
   PatchMutation,
   SetMutation
 } from '../../../src/model/mutation';
-
+import { Overlay } from '../../../src/model/overlay';
 import { Write } from '../../../src/protos/firestore_proto_api';
 import {
   fromMutation,
@@ -62,11 +61,6 @@ import {
 } from '../../util/helpers';
 
 import { TEST_SERIALIZER } from './persistence_test_helpers';
-import { Overlay } from '../../../src/model/overlay';
-import {
-  decodeResourcePath,
-  encodeResourcePath
-} from '../../../src/local/encoded_resource_path';
 
 // TODO(b/174608374): Remove these tests once we perform a schema migration.
 describe('Local Serializer', () => {
