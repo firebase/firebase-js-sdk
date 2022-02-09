@@ -126,7 +126,7 @@ export class SimpleDbTransaction {
     // speed up index DB processing if the event loop remains blocks.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const maybeV3IndexedDb = this.transaction as any;
-    if (typeof maybeV3IndexedDb.commit === 'function') {
+    if (!this.aborted && typeof maybeV3IndexedDb.commit === 'function') {
       maybeV3IndexedDb.commit();
     }
   }
