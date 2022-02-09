@@ -29,7 +29,10 @@ import {
   documentVersionMap
 } from './collections';
 import { MutableDocument } from './document';
+import { DocumentKey } from './document_key';
+import { FieldMask } from './field_mask';
 import {
+  calculateOverlayMutation,
   Mutation,
   mutationApplyToLocalView,
   mutationApplyToRemoteDocument,
@@ -89,48 +92,84 @@ export class MutationBatch {
       }
     }
   }
+  /**
+   * Computes the local view of a document given all the mutations in this
+   * batch.
+   *
+   * @param document - The document to apply mutations to.
+   * @returns A `FieldMask` representing all the fields that are mutated.
+   */
+  applyToLocalView(document: MutableDocument): FieldMask | null {
+    const mutatedFields = new FieldMask([]);
+    return this.applyToLocalViewWithFieldMask(document, mutatedFields);
+  }
 
   /**
    * Computes the local view of a document given all the mutations in this
    * batch.
    *
    * @param document - The document to apply mutations to.
+   * @param mutatedFields - Fields that have been updated before applying this mutation batch.
+   * @returns A `FieldMask` representing all the fields that are mutated.
    */
-  applyToLocalView(document: MutableDocument): void {
+  applyToLocalViewWithFieldMask(
+    document: MutableDocument,
+    mutatedFields: FieldMask | null
+  ): FieldMask | null {
     // First, apply the base state. This allows us to apply non-idempotent
     // transform against a consistent set of values.
     for (const mutation of this.baseMutations) {
       if (mutation.key.isEqual(document.key)) {
-        mutationApplyToLocalView(mutation, document, this.localWriteTime);
+        mutatedFields = mutationApplyToLocalView(
+          mutation,
+          document,
+          mutatedFields,
+          this.localWriteTime
+        );
       }
     }
 
     // Second, apply all user-provided mutations.
     for (const mutation of this.mutations) {
       if (mutation.key.isEqual(document.key)) {
-        mutationApplyToLocalView(mutation, document, this.localWriteTime);
+        mutatedFields = mutationApplyToLocalView(
+          mutation,
+          document,
+          mutatedFields,
+          this.localWriteTime
+        );
       }
     }
+    return mutatedFields;
   }
 
   /**
    * Computes the local view for all provided documents given the mutations in
-   * this batch.
+   * this batch. Returns a `DocumentKey` to `Mutation` map which can be used to
+   * replace all the mutation applications.
    */
-  applyToLocalDocumentSet(documentMap: DocumentMap): void {
+  applyToLocalDocumentSet(
+    documentMap: DocumentMap
+  ): Map<DocumentKey, Mutation> {
     // TODO(mrschmidt): This implementation is O(n^2). If we apply the mutations
     // directly (as done in `applyToLocalView()`), we can reduce the complexity
     // to O(n).
+    const overlays = new Map<DocumentKey, Mutation>();
     this.mutations.forEach(m => {
       const document = documentMap.get(m.key)!;
       // TODO(mutabledocuments): This method should take a MutableDocumentMap
       // and we should remove this cast.
       const mutableDocument = document as MutableDocument;
-      this.applyToLocalView(mutableDocument);
+      const mutatedFields = this.applyToLocalView(mutableDocument);
+      const overlay = calculateOverlayMutation(mutableDocument, mutatedFields);
+      if (overlay !== null) {
+        overlays.set(m.key, overlay);
+      }
       if (!document.isValidDocument()) {
         mutableDocument.convertToNoDocument(SnapshotVersion.min());
       }
     });
+    return overlays;
   }
 
   keys(): DocumentKeySet {

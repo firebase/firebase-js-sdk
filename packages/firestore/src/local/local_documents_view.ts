@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api';
 import {
   asCollectionQueryAtPath,
   isCollectionGroupQuery,
@@ -22,20 +23,30 @@ import {
   Query,
   queryMatches
 } from '../core/query';
-import { SnapshotVersion } from '../core/snapshot_version';
 import {
+  documentKeySet,
   DocumentKeySet,
   DocumentMap,
   documentMap,
+  mutableDocumentMap,
   MutableDocumentMap
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { mutationApplyToLocalView } from '../model/mutation';
-import { MutationBatch } from '../model/mutation_batch';
+import { IndexOffset } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
+import {
+  calculateOverlayMutation,
+  Mutation,
+  mutationApplyToLocalView,
+  PatchMutation
+} from '../model/mutation';
+import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
+import { SortedMap } from '../util/sorted_map';
 
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
@@ -52,6 +63,7 @@ export class LocalDocumentsView {
   constructor(
     readonly remoteDocumentCache: RemoteDocumentCache,
     readonly mutationQueue: MutationQueue,
+    readonly documentOverlayCache: DocumentOverlayCache,
     readonly indexManager: IndexManager
   ) {}
 
@@ -65,36 +77,24 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<Document> {
-    return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKey(transaction, key)
-      .next(batches => this.getDocumentInternal(transaction, key, batches));
-  }
-
-  /** Internal version of `getDocument` that allows reusing batches. */
-  private getDocumentInternal(
-    transaction: PersistenceTransaction,
-    key: DocumentKey,
-    inBatches: MutationBatch[]
-  ): PersistencePromise<Document> {
-    return this.remoteDocumentCache.getEntry(transaction, key).next(doc => {
-      for (const batch of inBatches) {
-        batch.applyToLocalView(doc);
-      }
-      return doc as Document;
-    });
-  }
-
-  // Returns the view of the given `docs` as they would appear after applying
-  // all mutations in the given `batches`.
-  private applyLocalMutationsToDocuments(
-    docs: MutableDocumentMap,
-    batches: MutationBatch[]
-  ): void {
-    docs.forEach((key, localView) => {
-      for (const batch of batches) {
-        batch.applyToLocalView(localView);
-      }
-    });
+    let overlay: Overlay | null = null;
+    return this.documentOverlayCache
+      .getOverlay(transaction, key)
+      .next(value => {
+        overlay = value;
+        return this.getBaseDocument(transaction, key, overlay);
+      })
+      .next(document => {
+        if (overlay !== null) {
+          mutationApplyToLocalView(
+            overlay.mutation,
+            document,
+            null,
+            Timestamp.now()
+          );
+        }
+        return document as Document;
+      });
   }
 
   /**
@@ -110,23 +110,165 @@ export class LocalDocumentsView {
     return this.remoteDocumentCache
       .getEntries(transaction, keys)
       .next(docs =>
-        this.applyLocalViewToDocuments(transaction, docs).next(
+        this.getLocalViewOfDocuments(transaction, docs, documentKeySet()).next(
           () => docs as DocumentMap
         )
       );
   }
 
   /**
-   * Applies the local view the given `baseDocs` without retrieving documents
-   * from the local store.
+   * Similar to `getDocuments`, but creates the local view from the given
+   * `baseDocs` without retrieving documents from the local store.
+   *
+   * @param transaction - The transaction this operation is scoped to.
+   * @param docs - The documents to apply local mutations to get the local views.
+   * @param existenceStateChanged - The set of document keys whose existence state
+   *   is changed. This is useful to determine if some documents overlay needs
+   *   to be recalculated.
    */
-  applyLocalViewToDocuments(
+  getLocalViewOfDocuments(
     transaction: PersistenceTransaction,
-    baseDocs: MutableDocumentMap
+    docs: MutableDocumentMap,
+    existenceStateChanged: DocumentKeySet
+  ): PersistencePromise<DocumentMap> {
+    return this.computeViews(
+      transaction,
+      docs,
+      new Map<DocumentKey, Overlay>(),
+      existenceStateChanged
+    );
+  }
+
+  /**
+   * Computes the local view for documents, applying overlays from both
+   * `memoizedOverlays` and the overlay cache.
+   */
+  computeViews(
+    transaction: PersistenceTransaction,
+    docs: MutableDocumentMap,
+    memoizedOverlays: Map<DocumentKey, Overlay>,
+    existenceStateChanged: DocumentKeySet
+  ): PersistencePromise<DocumentMap> {
+    const results = documentMap();
+    const recalculateDocuments = mutableDocumentMap();
+    const promises: Array<PersistencePromise<void>> = [];
+    docs.forEach((_, doc) => {
+      const overlayPromise = memoizedOverlays.has(doc.key)
+        ? PersistencePromise.resolve(memoizedOverlays.get(doc.key)!)
+        : this.documentOverlayCache.getOverlay(transaction, doc.key);
+
+      promises.push(
+        overlayPromise.next(overlay => {
+          // Recalculate an overlay if the document's existence state is changed
+          // due to a remote event *and* the overlay is a PatchMutation. This is
+          // because document existence state can change if some patch mutation's
+          // preconditions are met.
+          // NOTE: we recalculate when `overlay` is null as well, because there
+          // might be a patch mutation whose precondition does not match before
+          // the change (hence overlay==null), but would now match.
+          if (
+            existenceStateChanged.has(doc.key) &&
+            (overlay == null || overlay.mutation instanceof PatchMutation)
+          ) {
+            recalculateDocuments.insert(doc.key, doc);
+          } else if (overlay !== null) {
+            mutationApplyToLocalView(
+              overlay.mutation,
+              doc,
+              null,
+              Timestamp.now()
+            );
+          }
+        })
+      );
+    });
+
+    return PersistencePromise.waitFor(promises)
+      .next(() =>
+        this.recalculateAndSaveOverlays(transaction, recalculateDocuments)
+      )
+      .next(() => {
+        docs.forEach((key, value) => results.insert(key, value));
+        return results;
+      });
+  }
+
+  private recalculateAndSaveOverlays(
+    transaction: PersistenceTransaction,
+    docs: MutableDocumentMap
   ): PersistencePromise<void> {
+    const masks = new Map<DocumentKey, FieldMask | null>();
+    // A reverse lookup map from batch id to the documents within that batch.
+    const documentsByBatchId = new SortedMap<number, Set<DocumentKey>>(
+      (key1: number, key2: number) => key1 - key2
+    );
+    const processed = new Set<DocumentKey>();
     return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKeys(transaction, baseDocs)
-      .next(batches => this.applyLocalMutationsToDocuments(baseDocs, batches));
+      .getAllMutationBatchesAffectingDocumentKeys(transaction, docs)
+      .next(batches => {
+        batches.forEach(batch => {
+          batch.keys().forEach(key => {
+            let mask: FieldMask | null = masks.has(key)
+              ? masks.get(key)!
+              : new FieldMask([]);
+            mask = batch.applyToLocalViewWithFieldMask(docs.get(key)!, mask);
+            masks.set(key, mask);
+            if (documentsByBatchId.get(batch.batchId) === null) {
+              documentsByBatchId.insert(batch.batchId, new Set<DocumentKey>());
+            }
+            documentsByBatchId.get(batch.batchId)!.add(key);
+          });
+        });
+      })
+      .next(() => {
+        const promises: Array<PersistencePromise<void>> = [];
+        // Iterate in descending order of batch IDs, and skip documents that are
+        // already saved.
+        const iter = documentsByBatchId.getReverseIterator();
+        while (iter.hasNext()) {
+          const entry = iter.getNext();
+          const batchId = entry.key;
+          const keys = entry.value;
+          const overlays = new Map<DocumentKey, Mutation>();
+          keys.forEach(key => {
+            if (!processed.has(key)) {
+              // TODO: Should we change `overlays` type to Map<DK, Mutation|null>
+              //  and update `saveOverlays` to accept (and skip) null values?
+              const overlayMutation = calculateOverlayMutation(
+                docs.get(key)!,
+                masks.get(key)!
+              );
+              if (overlayMutation !== null) {
+                overlays.set(key, overlayMutation);
+              }
+              processed.add(key);
+            }
+          });
+          promises.push(
+            this.documentOverlayCache.saveOverlays(
+              transaction,
+              batchId,
+              overlays
+            )
+          );
+        }
+        return PersistencePromise.waitFor(promises);
+      });
+  }
+
+  /**
+   * Recalculates overlays by reading the documents from remote document cache
+   * first, and saves them after they are calculated.
+   */
+  recalculateAndSaveOverlaysForDocumentKeys(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<void> {
+    return this.remoteDocumentCache
+      .getEntries(transaction, documentKeys)
+      .next(docs => {
+        return this.recalculateAndSaveOverlays(transaction, docs);
+      });
   }
 
   /**
@@ -140,7 +282,7 @@ export class LocalDocumentsView {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
     if (isDocumentQuery(query)) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
@@ -148,13 +290,13 @@ export class LocalDocumentsView {
       return this.getDocumentsMatchingCollectionGroupQuery(
         transaction,
         query,
-        sinceReadTime
+        offset
       );
     } else {
       return this.getDocumentsMatchingCollectionQuery(
         transaction,
         query,
-        sinceReadTime
+        offset
       );
     }
   }
@@ -178,7 +320,7 @@ export class LocalDocumentsView {
   private getDocumentsMatchingCollectionGroupQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
     debugAssert(
       query.path.isEmpty(),
@@ -199,7 +341,7 @@ export class LocalDocumentsView {
           return this.getDocumentsMatchingCollectionQuery(
             transaction,
             collectionQuery,
-            sinceReadTime
+            offset
           ).next(r => {
             r.forEach((key, doc) => {
               results = results.insert(key, doc);
@@ -212,46 +354,62 @@ export class LocalDocumentsView {
   private getDocumentsMatchingCollectionQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
-    let results: MutableDocumentMap;
+    let remoteDocuments: MutableDocumentMap;
     return this.remoteDocumentCache
-      .getAll(transaction, query.path, sinceReadTime)
+      .getAll(transaction, query.path, offset.readTime)
       .next(queryResults => {
-        results = queryResults;
-        return this.mutationQueue.getAllMutationBatchesAffectingQuery(
+        remoteDocuments = queryResults;
+        return this.documentOverlayCache.getOverlaysForCollection(
           transaction,
-          query
+          query.path,
+          offset.largestBatchId
         );
       })
-      .next(mutationBatches => {
-        for (const batch of mutationBatches) {
-          for (const mutation of batch.mutations) {
-            const key = mutation.key;
-            let document = results.get(key);
-            if (document == null) {
-              // Create invalid document to apply mutations on top of
-              document = MutableDocument.newInvalidDocument(key);
-              results = results.insert(key, document);
-            }
-            mutationApplyToLocalView(mutation, document, batch.localWriteTime);
-            if (!document.isFoundDocument()) {
-              results = results.remove(key);
-            }
-          }
-        }
-      })
-      .next(() => {
-        // Finally, filter out any documents that don't actually match
-        // the query.
-        results.forEach((key, doc) => {
-          if (!queryMatches(query, doc)) {
-            results = results.remove(key);
+      .next(overlays => {
+        // As documents might match the query because of their overlay we need to
+        // include documents for all overlays in the initial document set.
+        overlays.forEach(overlay => {
+          const key = overlay.getKey();
+          if (remoteDocuments.get(key) === null) {
+            remoteDocuments.insert(
+              key,
+              MutableDocument.newInvalidDocument(key)
+            );
           }
         });
 
-        return results as DocumentMap;
+        // Apply the overlays and match against the query.
+        let results = documentMap();
+        remoteDocuments.forEach((key, document) => {
+          const overlay = overlays.get(key);
+          if (overlay !== undefined) {
+            mutationApplyToLocalView(
+              overlay.mutation,
+              document,
+              null,
+              Timestamp.now()
+            );
+          }
+          // Finally, insert the documents that still match the query
+          if (queryMatches(query, document)) {
+            results = results.insert(key, document);
+          }
+        });
+        return results;
       });
+  }
+
+  /** Returns a base document that can be used to apply `overlay`. */
+  private getBaseDocument(
+    transaction: PersistenceTransaction,
+    key: DocumentKey,
+    overlay: Overlay | null
+  ): PersistencePromise<MutableDocument> {
+    return overlay == null || overlay.mutation instanceof PatchMutation
+      ? this.remoteDocumentCache.getEntry(transaction, key)
+      : PersistencePromise.resolve(MutableDocument.newInvalidDocument(key));
   }
 }

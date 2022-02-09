@@ -21,8 +21,11 @@ import { User } from '../../../src/auth/user';
 import { LimitType, Query, queryWithLimit } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { View } from '../../../src/core/view';
+import { Timestamp } from '../../../src/lite-api/timestamp';
+import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MemoryIndexManager } from '../../../src/local/memory_index_manager';
+import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
@@ -33,8 +36,18 @@ import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
+import { IndexOffset } from '../../../src/model/field_index';
+import { Mutation } from '../../../src/model/mutation';
 import { debugAssert } from '../../../src/util/assert';
-import { doc, filter, key, orderBy, query, version } from '../../util/helpers';
+import {
+  deleteMutation,
+  doc,
+  filter,
+  key,
+  orderBy,
+  query,
+  version
+} from '../../util/helpers';
 
 import { testMemoryEagerPersistence } from './persistence_test_helpers';
 
@@ -67,23 +80,26 @@ class TestLocalDocumentsView extends LocalDocumentsView {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
-    const skipsDocumentsBeforeSnapshot =
-      !SnapshotVersion.min().isEqual(sinceReadTime);
+    const skipsDocumentsBeforeSnapshot = !SnapshotVersion.min().isEqual(
+      offset.readTime
+    );
 
     expect(skipsDocumentsBeforeSnapshot).to.eq(
       !this.expectFullCollectionScan,
       'Observed query execution mode did not match expectation'
     );
 
-    return super.getDocumentsMatchingQuery(transaction, query, sinceReadTime);
+    return super.getDocumentsMatchingQuery(transaction, query, offset);
   }
 }
 
 describe('QueryEngine', () => {
   let persistence!: Persistence;
   let remoteDocumentCache!: RemoteDocumentCache;
+  let mutationQueue!: MutationQueue;
+  let documentOverlayCache!: DocumentOverlayCache;
   let targetCache!: TargetCache;
   let queryEngine!: QueryEngine;
   let localDocuments!: TestLocalDocumentsView;
@@ -108,6 +124,23 @@ describe('QueryEngine', () => {
         changeBuffer.addEntry(doc);
       }
       return changeBuffer.apply(txn);
+    });
+  }
+
+  /** Adds a mutation to the mutation queue. */
+  function addMutation(mutation: Mutation): Promise<void> {
+    return persistence.runTransaction('addMutation', 'readwrite', txn => {
+      return mutationQueue
+        .addMutationBatch(txn, Timestamp.now(), [], [mutation])
+        .next(batch => {
+          const overlayMap = new Map<DocumentKey, Mutation>();
+          overlayMap.set(mutation.key, mutation);
+          return documentOverlayCache.saveOverlays(
+            txn,
+            batch.batchId,
+            overlayMap
+          );
+        });
     });
   }
 
@@ -174,10 +207,17 @@ describe('QueryEngine', () => {
     const indexManager = persistence.getIndexManager(User.UNAUTHENTICATED);
     remoteDocumentCache = persistence.getRemoteDocumentCache();
     remoteDocumentCache.setIndexManager(indexManager);
-
+    mutationQueue = persistence.getMutationQueue(
+      User.UNAUTHENTICATED,
+      indexManager
+    );
+    documentOverlayCache = persistence.getDocumentOverlayCache(
+      User.UNAUTHENTICATED
+    );
     localDocuments = new TestLocalDocumentsView(
       remoteDocumentCache,
-      persistence.getMutationQueue(User.UNAUTHENTICATED, indexManager),
+      mutationQueue,
+      documentOverlayCache,
       new MemoryIndexManager()
     );
     queryEngine.setLocalDocumentsView(localDocuments);
@@ -398,6 +438,39 @@ describe('QueryEngine', () => {
       doc('coll/a', 1, { order: 2 }).setHasLocalMutations(),
       doc('coll/b', 1, { order: 3 })
     ]);
+  });
+
+  it('does not include documents deleted by mutation', async () => {
+    const query1 = query('coll');
+    await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
+    await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
+
+    // Add an unacknowledged mutation
+    await addMutation(deleteMutation('coll/b'));
+    const docs = await expectFullCollectionQuery(() =>
+      persistence.runTransaction('runQuery', 'readonly', txn => {
+        return targetCache
+          .getMatchingKeysForTargetId(txn, TEST_TARGET_ID)
+          .next(remoteKeys => {
+            return queryEngine
+              .getDocumentsMatchingQuery(
+                txn,
+                query1,
+                LAST_LIMBO_FREE_SNAPSHOT,
+                remoteKeys
+              )
+              .next(documentMap => {
+                let result = new DocumentSet();
+                documentMap.forEach((_, v) => {
+                  result = result.add(v);
+                });
+                return result;
+              });
+          });
+      })
+    );
+
+    verifyResult(docs, [MATCHING_DOC_A]);
   });
 });
 

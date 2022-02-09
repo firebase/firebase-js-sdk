@@ -28,6 +28,10 @@ import {
 import { SnapshotVersion } from '../core/snapshot_version';
 import { DocumentKeySet, DocumentMap } from '../model/collections';
 import { Document } from '../model/document';
+import {
+  IndexOffset,
+  newIndexOffsetSuccessorFromReadTime
+} from '../model/field_index';
 import { debugAssert } from '../util/assert';
 import { getLogLevel, LogLevel, logDebug } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
@@ -117,7 +121,7 @@ export class QueryEngine {
         return this.localDocumentsView!.getDocumentsMatchingQuery(
           transaction,
           query,
-          lastLimboFreeSnapshotVersion
+          newIndexOffsetSuccessorFromReadTime(lastLimboFreeSnapshotVersion, -1)
         ).next(updatedResults => {
           // We merge `previousResults` into `updateResults`, since
           // `updateResults` is already a DocumentMap. If a document is
@@ -207,7 +211,7 @@ export class QueryEngine {
     return this.localDocumentsView!.getDocumentsMatchingQuery(
       transaction,
       query,
-      SnapshotVersion.min()
+      IndexOffset.min()
     );
   }
 }
