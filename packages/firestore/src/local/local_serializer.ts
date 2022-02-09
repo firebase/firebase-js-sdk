@@ -22,7 +22,6 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, targetIsDocumentTarget, Target } from '../core/target';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
 import { Overlay } from '../model/overlay';
 import {
@@ -47,6 +46,7 @@ import {
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 
+import { encodeResourcePath } from './encoded_resource_path';
 import {
   DbBundle,
   DbDocumentOverlay,
@@ -62,7 +62,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
-import { encodeResourcePath } from './encoded_resource_path';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
