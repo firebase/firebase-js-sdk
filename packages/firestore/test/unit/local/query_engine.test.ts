@@ -171,11 +171,13 @@ describe('QueryEngine', () => {
     targetCache = persistence.getTargetCache();
     queryEngine = new QueryEngine();
 
+    const indexManager = persistence.getIndexManager(User.UNAUTHENTICATED);
     remoteDocumentCache = persistence.getRemoteDocumentCache();
+    remoteDocumentCache.setIndexManager(indexManager);
 
     localDocuments = new TestLocalDocumentsView(
       remoteDocumentCache,
-      persistence.getMutationQueue(User.UNAUTHENTICATED),
+      persistence.getMutationQueue(User.UNAUTHENTICATED, indexManager),
       new MemoryIndexManager()
     );
     queryEngine.setLocalDocumentsView(localDocuments);

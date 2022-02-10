@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { User } from '../auth/user';
 import { Target } from '../core/target';
 import {
   documentKeySet,
@@ -31,8 +32,22 @@ import {
   encodeResourcePath
 } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
-import { DbCollectionParent, DbCollectionParentKey } from './indexeddb_schema';
+import {
+  DbCollectionParent,
+  DbCollectionParentKey,
+  DbIndexConfiguration,
+  DbIndexConfigurationKey,
+  DbIndexEntry,
+  DbIndexEntryKey,
+  DbIndexState,
+  DbIndexStateKey
+} from './indexeddb_schema';
 import { getStore } from './indexeddb_transaction';
+import {
+  fromDbIndexConfiguration,
+  toDbIndexConfiguration,
+  toDbIndexState
+} from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -40,16 +55,25 @@ import { SimpleDbStore } from './simple_db';
 
 /**
  * A persisted implementation of IndexManager.
+ *
+ * PORTING NOTE: Unlike iOS and Android, the Web SDK does not memoize index
+ * data as it supports multi-tab access.
  */
 export class IndexedDbIndexManager implements IndexManager {
   /**
    * An in-memory copy of the index entries we've already written since the SDK
    * launched. Used to avoid re-writing the same entry repeatedly.
    *
-   * This is *NOT* a complete cache of what's in persistence and so can never be used to
-   * satisfy reads.
+   * This is *NOT* a complete cache of what's in persistence and so can never be
+   * used to satisfy reads.
    */
   private collectionParentsCache = new MemoryCollectionParentIndex();
+
+  private uid: string;
+
+  constructor(private user: User) {
+    this.uid = user.uid || '';
+  }
 
   /**
    * Adds a new entry to the collection parent index.
@@ -114,16 +138,43 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     index: FieldIndex
   ): PersistencePromise<void> {
-    // TODO(indexing): Implement
-    return PersistencePromise.resolve();
+    // TODO(indexing): Verify that the auto-incrementing index ID works in
+    // Safari & Firefox.
+    const indexes = indexConfigurationStore(transaction);
+    const dbIndex = toDbIndexConfiguration(index);
+    delete dbIndex.indexId; // `indexId` is auto-populated by IndexedDb
+    return indexes.add(dbIndex).next();
   }
 
   deleteFieldIndex(
     transaction: PersistenceTransaction,
     index: FieldIndex
   ): PersistencePromise<void> {
-    // TODO(indexing): Implement
-    return PersistencePromise.resolve();
+    const indexes = indexConfigurationStore(transaction);
+    const states = indexStateStore(transaction);
+    const entries = indexEntriesStore(transaction);
+    return indexes
+      .delete(index.indexId)
+      .next(() =>
+        states.delete(
+          IDBKeyRange.bound(
+            [index.indexId],
+            [index.indexId + 1],
+            /*lowerOpen=*/ false,
+            /*upperOpen=*/ true
+          )
+        )
+      )
+      .next(() =>
+        entries.delete(
+          IDBKeyRange.bound(
+            [index.indexId],
+            [index.indexId + 1],
+            /*lowerOpen=*/ false,
+            /*upperOpen=*/ true
+          )
+        )
+      );
   }
 
   getDocumentsMatchingTarget(
@@ -147,15 +198,43 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     collectionGroup?: string
   ): PersistencePromise<FieldIndex[]> {
-    // TODO(indexing): Implement
-    return PersistencePromise.resolve<FieldIndex[]>([]);
+    const indexes = indexConfigurationStore(transaction);
+    const states = indexStateStore(transaction);
+
+    return (
+      collectionGroup
+        ? indexes.loadAll(
+            DbIndexConfiguration.collectionGroupIndex,
+            IDBKeyRange.bound(collectionGroup, collectionGroup)
+          )
+        : indexes.loadAll()
+    ).next(indexConfigs => {
+      const result: FieldIndex[] = [];
+      return PersistencePromise.forEach(
+        indexConfigs,
+        (indexConfig: DbIndexConfiguration) => {
+          return states
+            .get([indexConfig.indexId!, this.uid])
+            .next(indexState => {
+              result.push(fromDbIndexConfiguration(indexConfig, indexState));
+            });
+        }
+      ).next(() => result);
+    });
   }
 
   getNextCollectionGroupToUpdate(
     transaction: PersistenceTransaction
   ): PersistencePromise<string | null> {
-    // TODO(indexing): Implement
-    return PersistencePromise.resolve<string | null>(null);
+    return this.getFieldIndexes(transaction).next(indexes => {
+      if (indexes.length === 0) {
+        return null;
+      }
+      indexes.sort(
+        (l, r) => l.indexState.sequenceNumber - r.indexState.sequenceNumber
+      );
+      return indexes[0].collectionGroup;
+    });
   }
 
   updateCollectionGroup(
@@ -163,8 +242,27 @@ export class IndexedDbIndexManager implements IndexManager {
     collectionGroup: string,
     offset: IndexOffset
   ): PersistencePromise<void> {
-    // TODO(indexing): Implement
-    return PersistencePromise.resolve();
+    const indexes = indexConfigurationStore(transaction);
+    const states = indexStateStore(transaction);
+    return this.getNextSequenceNumber(transaction).next(nextSequenceNumber =>
+      indexes
+        .loadAll(
+          DbIndexConfiguration.collectionGroupIndex,
+          IDBKeyRange.bound(collectionGroup, collectionGroup)
+        )
+        .next(configs =>
+          PersistencePromise.forEach(configs, (config: DbIndexConfiguration) =>
+            states.put(
+              toDbIndexState(
+                config.indexId!,
+                this.user,
+                nextSequenceNumber,
+                offset
+              )
+            )
+          )
+        )
+    );
   }
 
   updateIndexEntries(
@@ -173,6 +271,26 @@ export class IndexedDbIndexManager implements IndexManager {
   ): PersistencePromise<void> {
     // TODO(indexing): Implement
     return PersistencePromise.resolve();
+  }
+
+  private getNextSequenceNumber(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<number> {
+    let nextSequenceNumber = 1;
+    const states = indexStateStore(transaction);
+    return states
+      .iterate(
+        {
+          index: DbIndexState.sequenceNumberIndex,
+          reverse: true,
+          range: IDBKeyRange.upperBound([this.uid, Number.MAX_SAFE_INTEGER])
+        },
+        (_, state, controller) => {
+          controller.done();
+          nextSequenceNumber = state.sequenceNumber + 1;
+        }
+      )
+      .next(() => nextSequenceNumber);
   }
 }
 
@@ -187,4 +305,34 @@ function collectionParentsStore(
     txn,
     DbCollectionParent.store
   );
+}
+
+/**
+ * Helper to get a typed SimpleDbStore for the index entry object store.
+ */
+function indexEntriesStore(
+  txn: PersistenceTransaction
+): SimpleDbStore<DbIndexEntryKey, DbIndexEntry> {
+  return getStore<DbIndexEntryKey, DbIndexEntry>(txn, DbIndexEntry.store);
+}
+
+/**
+ * Helper to get a typed SimpleDbStore for the index configuration object store.
+ */
+function indexConfigurationStore(
+  txn: PersistenceTransaction
+): SimpleDbStore<DbIndexConfigurationKey, DbIndexConfiguration> {
+  return getStore<DbIndexConfigurationKey, DbIndexConfiguration>(
+    txn,
+    DbIndexConfiguration.store
+  );
+}
+
+/**
+ * Helper to get a typed SimpleDbStore for the index state object store.
+ */
+function indexStateStore(
+  txn: PersistenceTransaction
+): SimpleDbStore<DbIndexStateKey, DbIndexState> {
+  return getStore<DbIndexStateKey, DbIndexState>(txn, DbIndexState.store);
 }

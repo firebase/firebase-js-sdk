@@ -28,6 +28,7 @@ import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
 
 import { encodeResourcePath } from './encoded_resource_path';
+import { IndexManager } from './index_manager';
 import { LocalSerializer } from './local_serializer';
 import {
   ActiveTargets,
@@ -95,10 +96,7 @@ export class MemoryPersistence implements Persistence {
     const sizer = (doc: Document): number =>
       this.referenceDelegate.documentSize(doc);
     this.indexManager = new MemoryIndexManager();
-    this.remoteDocumentCache = newMemoryRemoteDocumentCache(
-      this.indexManager,
-      sizer
-    );
+    this.remoteDocumentCache = newMemoryRemoteDocumentCache(sizer);
     this.serializer = new LocalSerializer(serializer);
     this.bundleCache = new MemoryBundleCache(this.serializer);
   }
@@ -125,17 +123,16 @@ export class MemoryPersistence implements Persistence {
     // No op.
   }
 
-  getIndexManager(): MemoryIndexManager {
+  getIndexManager(user: User): MemoryIndexManager {
+    // We do not currently support indices for memory persistence, so we can
+    // return the same shared instance of the memory index manager.
     return this.indexManager;
   }
 
-  getMutationQueue(user: User): MutationQueue {
+  getMutationQueue(user: User, indexManager: IndexManager): MutationQueue {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
-      queue = new MemoryMutationQueue(
-        this.indexManager,
-        this.referenceDelegate
-      );
+      queue = new MemoryMutationQueue(indexManager, this.referenceDelegate);
       this.mutationQueues[user.toKey()] = queue;
     }
     return queue;

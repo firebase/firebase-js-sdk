@@ -17,9 +17,20 @@
 
 import { expect } from 'chai';
 
+import { User } from '../../../src/auth/user';
 import { DatabaseId } from '../../../src/core/database_info';
 import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
-import { fromDbMutationBatch } from '../../../src/local/local_serializer';
+import {
+  fromDbIndexConfiguration,
+  fromDbMutationBatch,
+  toDbIndexConfiguration,
+  toDbIndexState
+} from '../../../src/local/local_serializer';
+import {
+  IndexKind,
+  IndexOffset,
+  indexOffsetComparator
+} from '../../../src/model/field_index';
 import { PatchMutation, SetMutation } from '../../../src/model/mutation';
 import { Write } from '../../../src/protos/firestore_proto_api';
 import {
@@ -29,7 +40,14 @@ import {
   toMutationDocument,
   toName
 } from '../../../src/remote/serializer';
-import { deleteMutation, patchMutation, setMutation } from '../../util/helpers';
+import {
+  deleteMutation,
+  fieldIndex,
+  key,
+  patchMutation,
+  setMutation,
+  version
+} from '../../util/helpers';
 
 import { TEST_SERIALIZER } from './persistence_test_helpers';
 
@@ -178,5 +196,64 @@ describe('Local Serializer', () => {
       const serialized = toMutation(s, mutationBatch.mutations[index]);
       expect(serialized).to.deep.equal(expected[index]);
     });
+  });
+
+  it('serializes FieldIndex', () => {
+    const index = fieldIndex('foo', {
+      fields: [
+        ['a', IndexKind.ASCENDING],
+        ['b', IndexKind.DESCENDING],
+        ['c', IndexKind.CONTAINS]
+      ]
+    });
+    const dbIndex = toDbIndexConfiguration(index);
+    expect(dbIndex).to.deep.equal({
+      collectionGroup: 'foo',
+      fields: [
+        ['a', 0],
+        ['b', 1],
+        ['c', 2]
+      ],
+      indexId: -1
+    });
+
+    expect(fromDbIndexConfiguration(dbIndex, null).indexId).to.equal(-1);
+    expect(fromDbIndexConfiguration(dbIndex, null).collectionGroup).to.equal(
+      index.collectionGroup
+    );
+    expect(fromDbIndexConfiguration(dbIndex, null).fields).to.deep.equal(
+      index.fields
+    );
+  });
+
+  it('serializes IndexState', () => {
+    const expected = new IndexOffset(version(1234), key('coll/doc'), 42);
+
+    const dbIndexState = toDbIndexState(
+      /* indexId= */ 1,
+      User.UNAUTHENTICATED,
+      /* sequenceNumber= */ 2,
+      expected
+    );
+    expect(dbIndexState).to.deep.equal({
+      documentKey: 'coll\u0001\u0001doc\u0001\u0001',
+      indexId: 1,
+      largestBatchId: 42,
+      readTime: {
+        nanoseconds: 1234000,
+        seconds: 0
+      },
+      sequenceNumber: 2,
+      uid: ''
+    });
+
+    const dbIndex = {
+      collectionGroup: 'coll',
+      fields: [],
+      indexId: 1
+    };
+    const actual = fromDbIndexConfiguration(dbIndex, dbIndexState).indexState
+      .offset;
+    expect(indexOffsetComparator(actual, expected)).to.equal(0);
   });
 });

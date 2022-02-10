@@ -57,11 +57,7 @@ const es5OutputOptions = {
   format: 'iife'
 };
 
-const PREFIX = `
-goog.module('firestore');
-exports = eval(`;
-
-const POSTFIX = ` + '${EXPORTNAME};');`;
+const POSTFIX = `window['${EXPORTNAME}']=${EXPORTNAME};`;
 
 async function build() {
   const es5Bundle = await rollup.rollup(es5InputOptions);
@@ -69,7 +65,7 @@ async function build() {
     output: [{ code }]
   } = await es5Bundle.generate(es5OutputOptions);
 
-  const output = `${PREFIX}${JSON.stringify(String(code))}${POSTFIX}`;
+  const output = `${String(code)}${POSTFIX}`;
 
   if (!fs.existsSync(OUTPUT_FOLDER)) {
     fs.mkdirSync(OUTPUT_FOLDER);
