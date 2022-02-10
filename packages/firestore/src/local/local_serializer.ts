@@ -426,7 +426,10 @@ export function toDbDocumentOverlay(
   );
 }
 
-/** Returns the DbDocumentOverlayKey corresponding to the given user and document key. */
+/**
+ * Returns the DbDocumentOverlayKey corresponding to the given user and
+ * document key.
+ */
 export function toDbDocumentOverlayKey(
   userId: string,
   docKey: DocumentKey

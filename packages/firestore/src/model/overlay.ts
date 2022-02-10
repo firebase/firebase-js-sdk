@@ -18,6 +18,12 @@
 import { DocumentKey } from './document_key';
 import { Mutation } from './mutation';
 
+/**
+ * Representation of an overlay computed by Firestore.
+ *
+ * Holds information about a mutation and the largest batch id in Firestore when
+ * the mutation was created.
+ */
 export class Overlay {
   constructor(readonly largestBatchId: number, readonly mutation: Mutation) {}
 
