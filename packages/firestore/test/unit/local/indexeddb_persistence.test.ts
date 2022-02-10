@@ -29,10 +29,7 @@ import {
   V13_STORES
 } from '../../../src/local/indexeddb_schema';
 import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
-import {
-  toDbRemoteDocument,
-  toDbTimestampKey
-} from '../../../src/local/local_serializer';
+import { toDbRemoteDocument } from '../../../src/local/local_serializer';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
@@ -45,7 +42,7 @@ import {
   newAsyncQueue
 } from '../../../src/util/async_queue_impl';
 import { FirestoreError } from '../../../src/util/error';
-import { doc, version } from '../../util/helpers';
+import { doc } from '../../util/helpers';
 import { FakeDocument, testDocument } from '../../util/test_platform';
 import { MockIndexedDbPersistence } from '../specs/spec_test_components';
 
@@ -208,79 +205,6 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       expect(version).to.equal(13);
       // Version 1 adds all of the stores so far.
       expect(objectStores).to.have.members(V13_STORES);
-    });
-  });
-
-  it('can get recent document changes in a collection', async function (this: Context) {
-    const oldDocPaths = ['coll/doc1', 'coll/doc2', 'abc/doc1'];
-    const newDocPaths = ['coll/doc3', 'coll/doc4', 'abc/doc2'];
-
-    await withDb(SCHEMA_VERSION, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V13_STORES,
-        txn => {
-          return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
-            addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
-              const remoteDocumentStore = txn.store<
-                DbRemoteDocumentKey,
-                DbRemoteDocument
-              >(DbRemoteDocument.store);
-
-              const lastReadTime = toDbTimestampKey(version(1));
-              const range = IDBKeyRange.lowerBound(
-                [['coll'], lastReadTime],
-                true
-              );
-              return remoteDocumentStore
-                .loadAll(DbRemoteDocument.collectionReadTimeIndex, range)
-                .next(docsRead => {
-                  const keys = docsRead.map(dbDoc => dbDoc.document!.name);
-                  expect(keys).to.have.members([
-                    'projects/test-project/databases/(default)/documents/coll/doc3',
-                    'projects/test-project/databases/(default)/documents/coll/doc4'
-                  ]);
-                });
-            })
-          );
-        }
-      );
-    });
-  });
-
-  it('can get recent document changes', async function (this: Context) {
-    const oldDocPaths = ['coll1/old', 'coll2/old'];
-    const newDocPaths = ['coll1/new', 'coll2/new'];
-
-    await withDb(SCHEMA_VERSION, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V13_STORES,
-        txn => {
-          return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
-            addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
-              const remoteDocumentStore = txn.store<
-                DbRemoteDocumentKey,
-                DbRemoteDocument
-              >(DbRemoteDocument.store);
-
-              const lastReadTime = toDbTimestampKey(version(1));
-              const range = IDBKeyRange.lowerBound(lastReadTime, true);
-              return remoteDocumentStore
-                .loadAll(DbRemoteDocument.readTimeIndex, range)
-                .next(docsRead => {
-                  const keys = docsRead.map(dbDoc => dbDoc.document!.name);
-                  expect(keys).to.have.members([
-                    'projects/test-project/databases/(default)/documents/coll1/new',
-                    'projects/test-project/databases/(default)/documents/coll2/new'
-                  ]);
-                });
-            })
-          );
-        }
-      );
     });
   });
 
