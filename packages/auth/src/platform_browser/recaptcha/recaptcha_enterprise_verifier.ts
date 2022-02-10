@@ -69,20 +69,10 @@ export class RecaptchaEnterpriseVerifier {
 
     async function retrieveSiteKey(auth: AuthInternal): Promise<string> {
       return new Promise<string>(async (resolve, reject) => {
-        let request;
-        if (auth.tenantId != null) {
-          request = {
-            tenantId: auth.tenantId,
-            clientType: RecaptchaClientType.WEB,
-            version: RecaptchaVersion.ENTERPRISE
-          };
-        } else {
-          request = {
-            clientType: RecaptchaClientType.WEB,
-            version: RecaptchaVersion.ENTERPRISE
-          };
-        }
-        getRecaptchaConfig(auth, request).then((response) => {
+        getRecaptchaConfig(auth, {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        }).then((response) => {
           if (response.recaptchaKey === undefined) {
             reject("recaptchaKey undefined");
           } else {
