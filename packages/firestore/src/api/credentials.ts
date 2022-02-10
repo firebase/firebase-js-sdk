@@ -482,10 +482,7 @@ export class FirebaseAppCheckTokenProvider
           );
         }
         if (tokenResult.token !== this.latestToken) {
-          logDebug(
-            'FirebaseAppCheckTokenProvider',
-            'Received a new token.'
-          );
+          logDebug('FirebaseAppCheckTokenProvider', 'Received a new token.');
           return changeListener(tokenResult.token);
         }
         logDebug(
