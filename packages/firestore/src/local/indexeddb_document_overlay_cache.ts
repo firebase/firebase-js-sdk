@@ -36,7 +36,7 @@ import { PersistenceTransaction } from './persistence_transaction';
 import { SimpleDbStore } from './simple_db';
 
 /**
- * An in-memory implementation of DocumentOverlayCache.
+ * Implementation of DocumentOverlayCache using IndexedDb.
  */
 export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
   /**

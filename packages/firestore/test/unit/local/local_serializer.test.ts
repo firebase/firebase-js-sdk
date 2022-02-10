@@ -19,10 +19,8 @@ import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
 import { DatabaseId } from '../../../src/core/database_info';
-import {
-  DbMutationBatch
-} from '../../../src/local/indexeddb_schema';
-import { decodeResourcePath } from '../../../src/local/encoded_resource_path';
+import { encodeResourcePath } from '../../../src/local/encoded_resource_path';
+import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
 import {
   fromDbDocumentOverlay,
   fromDbIndexConfiguration,
@@ -42,9 +40,9 @@ import {
   SetMutation
 } from '../../../src/model/mutation';
 import { Overlay } from '../../../src/model/overlay';
+import { ResourcePath } from '../../../src/model/path';
 import { Write } from '../../../src/protos/firestore_proto_api';
 import {
-  fromMutation,
   JsonProtoSerializer,
   toDocumentMask,
   toMutation,
@@ -273,16 +271,16 @@ describe('Local Serializer', () => {
     const overlay = new Overlay(2, m);
 
     const serialized = toDbDocumentOverlay(localSerializer, userId, overlay);
-    expect(serialized.userId).to.equal(userId);
-    expect(serialized.largestBatchId).to.equal(2);
-    expect(serialized.documentId).to.equal('doc2');
-    expect(
-      decodeResourcePath(serialized.collectionPath).canonicalString()
-    ).to.equal('coll1/doc1/coll2');
-    expect(serialized.collectionGroup).to.equal('coll2');
-    expect(
-      mutationEquals(fromMutation(s, serialized.overlayMutation), m)
-    ).to.equal(true);
+    expect(serialized).to.deep.equal({
+      userId,
+      collectionPath: encodeResourcePath(
+        ResourcePath.fromString('coll1/doc1/coll2')
+      ),
+      documentId: 'doc2',
+      collectionGroup: 'coll2',
+      largestBatchId: 2,
+      overlayMutation: toMutation(localSerializer.remoteSerializer, m)
+    });
 
     const roundTripped = fromDbDocumentOverlay(localSerializer, serialized);
     expect(roundTripped.largestBatchId).to.equal(overlay.largestBatchId);

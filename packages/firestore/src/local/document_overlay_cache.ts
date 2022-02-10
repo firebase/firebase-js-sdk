@@ -53,7 +53,7 @@ export interface DocumentOverlayCache {
     overlays: Map<DocumentKey, Mutation>
   ): PersistencePromise<void>;
 
-  /** Removes the overlay whose largest-batch-id equals the given Id. */
+  /** Removes the overlay whose largest-batch-id equals the given ID. */
   removeOverlaysForBatchId(
     transaction: PersistenceTransaction,
     batchId: number
@@ -62,9 +62,9 @@ export interface DocumentOverlayCache {
   /**
    * Returns all saved overlays for the given collection.
    *
-   * @param transaction The persistence transaction to use for this operation.
-   * @param collection The collection path to get the overlays for.
-   * @param sinceBatchId The minimum batch ID to filter by (exclusive).
+   * @param transaction - The persistence transaction to use for this operation.
+   * @param collection - The collection path to get the overlays for.
+   * @param sinceBatchId - The minimum batch ID to filter by (exclusive).
    * Only overlays that contain a change past `sinceBatchId` are returned.
    * @returns Mapping of each document key in the collection to its overlay.
    */
@@ -80,11 +80,11 @@ export interface DocumentOverlayCache {
    * always returns all overlays for a batch even if the last batch contains
    * more documents than the remaining limit.
    *
-   * @param transaction The persistence transaction used for this operation.
-   * @param collectionGroup The collection group to get the overlays for.
-   * @param sinceBatchId The minimum batch ID to filter by (exclusive).
+   * @param transaction - The persistence transaction used for this operation.
+   * @param collectionGroup - The collection group to get the overlays for.
+   * @param sinceBatchId - The minimum batch ID to filter by (exclusive).
    * Only overlays that contain a change past `sinceBatchId` are returned.
-   * @param count The number of overlays to return. Can be exceeded if the last
+   * @param count - The number of overlays to return. Can be exceeded if the last
    * batch contains more entries.
    * @return Mapping of each document key in the collection group to its overlay.
    */

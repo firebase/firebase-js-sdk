@@ -111,7 +111,6 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
       const entry = iter.getNext();
       const overlay = entry.value;
       const key = overlay.getKey();
-      // TODO(overlays): We should consider using the IndexManager to get the list of collection paths first.
       if (key.getCollectionGroup() !== collectionGroup) {
         continue;
       }
@@ -162,9 +161,11 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     );
 
     // Create the association of this overlay to the given largestBatchId.
-    if (this.overlayByBatchId.get(largestBatchId) === undefined) {
-      this.overlayByBatchId.set(largestBatchId, new Set<DocumentKey>());
+    let batch = this.overlayByBatchId.get(largestBatchId);
+    if (batch === undefined) {
+      batch = new Set<DocumentKey>();
+      this.overlayByBatchId.set(largestBatchId, batch);
     }
-    this.overlayByBatchId.get(largestBatchId)!.add(mutation.key);
+    batch.add(mutation.key);
   }
 }
