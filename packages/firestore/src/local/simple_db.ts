@@ -659,13 +659,28 @@ export class SimpleDbStore<
     indexOrRange?: string | IDBKeyRange,
     range?: IDBKeyRange
   ): PersistencePromise<ValueType[]> {
-    const cursor = this.cursor(this.options(indexOrRange, range));
-    const results: ValueType[] = [];
-    return this.iterateCursor(cursor, (key, value) => {
-      results.push(value);
-    }).next(() => {
-      return results;
-    });
+    const iterateOptions = this.options(indexOrRange, range);
+    // Use `getAll()` if the browser supports IndexedDB v3, as it is roughly
+    // 20% faster. Unfortunately, getAll() does not support custom indices.
+    if (!iterateOptions.index && typeof this.store.getAll === 'function') {
+      const request = this.store.getAll(iterateOptions.range);
+      return new PersistencePromise((resolve, reject) => {
+        request.onerror = (event: Event) => {
+          reject((event.target as IDBRequest).error!);
+        };
+        request.onsuccess = (event: Event) => {
+          resolve((event.target as IDBRequest).result);
+        };
+      });
+    } else {
+      const cursor = this.cursor(iterateOptions);
+      const results: ValueType[] = [];
+      return this.iterateCursor(cursor, (key, value) => {
+        results.push(value);
+      }).next(() => {
+        return results;
+      });
+    }
   }
 
   deleteAll(): PersistencePromise<void>;
