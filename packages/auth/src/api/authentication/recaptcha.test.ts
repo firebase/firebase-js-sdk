@@ -96,15 +96,13 @@ describe('api/authentication/getRecaptchaConfig', () => {
 
   afterEach(mockFetch.tearDown);
 
-  it('should GET to the correct endpoint2', async () => {
+  it('should GET to the correct endpoint', async () => {
     const mock = mockEndpoint(Endpoint.GET_RECAPTCHA_CONFIG, {
-      recaptchaSiteKey: 'site-key'
+      recaptchaKey: 'site-key'
     });
 
-    auth.tenantId = 'tenant-id';
     const response = await getRecaptchaConfig(auth, request);
-    expect(response.recaptchaSiteKey).to.eq('site-key');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
+    expect(response.recaptchaKey).to.eq('site-key');
     expect(mock.calls[0].method).to.eq('GET');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
       'application/json'
@@ -115,17 +113,12 @@ describe('api/authentication/getRecaptchaConfig', () => {
   });
 
   it('should handle errors', async () => {
-    const mock = mockEndpoint(
-      Endpoint.GET_RECAPTCHA_PARAM,
+    mockEndpoint(
+      Endpoint.GET_RECAPTCHA_CONFIG,
       {
         error: {
           code: 400,
-          message: ServerError.TOO_MANY_ATTEMPTS_TRY_LATER,
-          errors: [
-            {
-              message: ServerError.TOO_MANY_ATTEMPTS_TRY_LATER
-            }
-          ]
+          message: ServerError.UNAUTHORIZED_DOMAIN,
         }
       },
       400
@@ -133,8 +126,7 @@ describe('api/authentication/getRecaptchaConfig', () => {
 
     await expect(getRecaptchaConfig(auth, request)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
+      'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).'
     );
-    expect(mock.calls[0].request).to.be.undefined;
   });
 });
