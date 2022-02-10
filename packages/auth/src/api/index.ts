@@ -65,13 +65,13 @@ export const enum Endpoint {
 }
 
 export const enum RecaptchaClientType {
-  WEB = 1,
-  ANDROID = 2,
-  IOS = 3,
+  WEB = 'CLIENT_TYPE_WEB',
+  ANDROID = 'CLIENT_TYPE_ANDROID',
+  IOS = 'CLIENT_TYPE_IOS',
 }
 
 export const enum RecaptchaVersion {
-  ENTERPRISE = 1,
+  ENTERPRISE = 'ENTERPRISE',
 }
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);

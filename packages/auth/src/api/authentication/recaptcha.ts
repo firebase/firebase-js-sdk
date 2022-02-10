@@ -37,11 +37,11 @@ export async function getRecaptchaParams(auth: Auth): Promise<string> {
 interface GetRecaptchaConfigRequest {
   tenantId?: string;
   clientType?: RecaptchaClientType;
-  recaptchaVersion?: RecaptchaVersion;
+  version?: RecaptchaVersion;
 }
 
 interface GetRecaptchaConfigResponse {
-  recaptchaSiteKey?: string;
+  recaptchaKey?: string;
 }
 
 export async function getRecaptchaConfig(auth: Auth,
