@@ -55,6 +55,7 @@ import { SortedMap } from '../util/sorted_map';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
+import { IndexManager } from './index_manager';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
@@ -122,7 +123,7 @@ class LocalStoreImpl implements LocalStore {
    * The set of all mutations that have been sent but not yet been applied to
    * the backend.
    */
-  mutationQueue: MutationQueue;
+  mutationQueue!: MutationQueue;
 
   /** The set of all cached remote documents. */
   remoteDocuments: RemoteDocumentCache;
@@ -131,7 +132,10 @@ class LocalStoreImpl implements LocalStore {
    * The "local" view of all documents (layering mutationQueue on top of
    * remoteDocumentCache).
    */
-  localDocuments: LocalDocumentsView;
+  localDocuments!: LocalDocumentsView;
+
+  /** Manages the list of active field and collection indices. */
+  indexManager!: IndexManager;
 
   /** The set of all cached bundle metadata and named queries. */
   bundleCache: BundleCache;
@@ -172,15 +176,27 @@ class LocalStoreImpl implements LocalStore {
       persistence.started,
       'LocalStore was passed an unstarted persistence implementation'
     );
-    this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
     this.targetCache = persistence.getTargetCache();
+    this.bundleCache = persistence.getBundleCache();
+
+    this.initializeUserComponents(initialUser);
+  }
+
+  initializeUserComponents(user: User): void {
+    // TODO(indexing): Add spec tests that test these components change after a
+    // user change
+    this.indexManager = this.persistence.getIndexManager(user);
+    this.mutationQueue = this.persistence.getMutationQueue(
+      user,
+      this.indexManager
+    );
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
       this.mutationQueue,
-      this.persistence.getIndexManager()
+      this.indexManager
     );
-    this.bundleCache = persistence.getBundleCache();
+    this.remoteDocuments.setIndexManager(this.indexManager);
     this.queryEngine.setLocalDocumentsView(this.localDocuments);
   }
 
@@ -216,8 +232,6 @@ export async function localStoreHandleUserChange(
   user: User
 ): Promise<UserChangeResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  let newMutationQueue = localStoreImpl.mutationQueue;
-  let newLocalDocuments = localStoreImpl.localDocuments;
 
   const result = await localStoreImpl.persistence.runTransaction(
     'Handle user change',
@@ -230,17 +244,8 @@ export async function localStoreHandleUserChange(
         .getAllMutationBatches(txn)
         .next(promisedOldBatches => {
           oldBatches = promisedOldBatches;
-
-          newMutationQueue = localStoreImpl.persistence.getMutationQueue(user);
-
-          // Recreate our LocalDocumentsView using the new
-          // MutationQueue.
-          newLocalDocuments = new LocalDocumentsView(
-            localStoreImpl.remoteDocuments,
-            newMutationQueue,
-            localStoreImpl.persistence.getIndexManager()
-          );
-          return newMutationQueue.getAllMutationBatches(txn);
+          localStoreImpl.initializeUserComponents(user);
+          return localStoreImpl.mutationQueue.getAllMutationBatches(txn);
         })
         .next(newBatches => {
           const removedBatchIds: BatchId[] = [];
@@ -265,7 +270,7 @@ export async function localStoreHandleUserChange(
 
           // Return the set of all (potentially) changed documents and the list
           // of mutation batch IDs that were affected by change.
-          return newLocalDocuments
+          return localStoreImpl.localDocuments
             .getDocuments(txn, changedKeys)
             .next(affectedDocuments => {
               return {
@@ -276,12 +281,6 @@ export async function localStoreHandleUserChange(
             });
         });
     }
-  );
-
-  localStoreImpl.mutationQueue = newMutationQueue;
-  localStoreImpl.localDocuments = newLocalDocuments;
-  localStoreImpl.queryEngine.setLocalDocumentsView(
-    localStoreImpl.localDocuments
   );
 
   return result;

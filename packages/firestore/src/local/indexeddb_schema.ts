@@ -25,7 +25,7 @@ import {
   QueryTarget as ProtoQueryTarget,
   Write as ProtoWrite
 } from '../protos/firestore_proto_api';
-import { debugAssert } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 
 import {
   EncodedResourcePath,
@@ -708,13 +708,28 @@ export class DbIndexConfiguration {
 
   static keyPath = 'indexId';
 
+  /**
+   * An index that provides access to the index configurations by collection
+   * group.
+   *
+   * PORTING NOTE: iOS and Android maintain this index in-memory, but this is
+   * not possible here as the Web client supports concurrent access to
+   * persistence via multi-tab.
+   */
+  static collectionGroupIndex = 'collectionGroupIndex';
+
+  static collectionGroupIndexPath = 'collectionGroup';
+
   constructor(
-    /** The index id for this entry. */
-    public indexId: number,
+    /**
+     * The index id for this entry. Undefined for indexes that are not yet
+     * persisted.
+     */
+    public indexId: number | undefined,
     /** The collection group this index belongs to. */
     public collectionGroup: string,
     /** The fields to index for this index. */
-    public fields: [[name: string, kind: IndexKind]]
+    public fields: Array<[name: string, kind: IndexKind]>
   ) {}
 }
 
@@ -730,6 +745,18 @@ export class DbIndexState {
   static store = 'indexState';
 
   static keyPath = ['indexId', 'uid'];
+
+  /**
+   * An index that provides access to documents in a collection sorted by last
+   * update time. Used by the backfiller.
+   *
+   * PORTING NOTE: iOS and Android maintain this index in-memory, but this is
+   * not possible here as the Web client supports concurrent access to
+   * persistence via multi-tab.
+   */
+  static sequenceNumberIndex = 'sequenceNumberIndex';
+
+  static sequenceNumberIndexPath = ['uid', 'sequenceNumber'];
 
   constructor(
     /** The index id for this entry. */
@@ -767,7 +794,7 @@ export class DbIndexState {
 export type DbIndexEntryKey = [number, string, Uint8Array, Uint8Array, string];
 
 /** An object that stores the encoded entries for all documents and fields. */
-export class DbIndexEntries {
+export class DbIndexEntry {
   /** Name of the IndexedDb object store. */
   static store = 'indexEntries';
 
@@ -831,7 +858,7 @@ export const V12_STORES = [
   ...V11_STORES,
   DbIndexConfiguration.store,
   DbIndexState.store,
-  DbIndexEntries.store
+  DbIndexEntry.store
 ];
 
 /**
@@ -840,3 +867,14 @@ export const V12_STORES = [
  * atomically.
  */
 export const ALL_STORES = V11_STORES;
+
+/** Returns the object stores for the provided schema. */
+export function getObjectStores(schemaVersion: number): string[] {
+  if (schemaVersion === 12) {
+    return V12_STORES;
+  } else if (schemaVersion === 11) {
+    return V11_STORES;
+  } else {
+    fail('Only schema version 11 and 12 are supported');
+  }
+}

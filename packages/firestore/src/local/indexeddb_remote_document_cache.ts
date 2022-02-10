@@ -69,14 +69,13 @@ export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
  * `newIndexedDbRemoteDocumentCache()`.
  */
 class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
-  /**
-   * @param serializer - The document serializer.
-   * @param indexManager - The query indexes that need to be maintained.
-   */
-  constructor(
-    readonly serializer: LocalSerializer,
-    readonly indexManager: IndexManager
-  ) {}
+  indexManager!: IndexManager;
+
+  constructor(readonly serializer: LocalSerializer) {}
+
+  setIndexManager(indexManager: IndexManager): void {
+    this.indexManager = indexManager;
+  }
 
   /**
    * Adds the supplied entries to the cache.
@@ -355,17 +354,11 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   }
 }
 
-/**
- * Creates a new IndexedDbRemoteDocumentCache.
- *
- * @param serializer - The document serializer.
- * @param indexManager - The query indexes that need to be maintained.
- */
+/** Creates a new IndexedDbRemoteDocumentCache. */
 export function newIndexedDbRemoteDocumentCache(
-  serializer: LocalSerializer,
-  indexManager: IndexManager
+  serializer: LocalSerializer
 ): IndexedDbRemoteDocumentCache {
-  return new IndexedDbRemoteDocumentCacheImpl(serializer, indexManager);
+  return new IndexedDbRemoteDocumentCacheImpl(serializer);
 }
 
 /**

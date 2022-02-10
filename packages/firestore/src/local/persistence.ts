@@ -177,7 +177,7 @@ export interface Persistence {
    * extent possible (e.g. in the case of uid switching from
    * sally=&gt;jack=&gt;sally, sally's mutation queue will be preserved).
    */
-  getMutationQueue(user: User): MutationQueue;
+  getMutationQueue(user: User, indexManager: IndexManager): MutationQueue;
 
   /**
    * Returns a TargetCache representing the persisted cache of targets.
@@ -214,7 +214,7 @@ export interface Persistence {
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getIndexManager(): IndexManager;
+  getIndexManager(user: User): IndexManager;
 
   /**
    * Performs an operation inside a persistence transaction. Any reads or writes

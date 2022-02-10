@@ -17,10 +17,17 @@
 
 import { expect } from 'chai';
 
+import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { INDEXING_SCHEMA_VERSION } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
+import {
+  IndexKind,
+  IndexOffset,
+  IndexState
+} from '../../../src/model/field_index';
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import { path } from '../../util/helpers';
+import { fieldIndex, key, path, version } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
@@ -37,10 +44,200 @@ describe('IndexedDbIndexManager', () => {
 
   let persistencePromise: Promise<Persistence>;
   beforeEach(async () => {
-    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
+    persistencePromise = persistenceHelpers.testIndexedDbPersistence({
+      schemaVersion: INDEXING_SCHEMA_VERSION
+    });
   });
 
+  async function getIndexManager(
+    user = User.UNAUTHENTICATED
+  ): Promise<TestIndexManager> {
+    const persistence = await persistencePromise;
+    return new TestIndexManager(persistence, persistence.getIndexManager(user));
+  }
+
   genericIndexManagerTests(() => persistencePromise);
+
+  it('can add indexes', async () => {
+    const indexManager = await getIndexManager();
+
+    await indexManager.addFieldIndex(fieldIndex('coll1'));
+
+    const fieldIndexes = await indexManager.getFieldIndexes();
+    expect(fieldIndexes).to.have.length(1);
+    expect(fieldIndexes[0]).to.deep.equal(fieldIndex('coll1', { id: 1 }));
+  });
+
+  it('uses auto-incrementing index id', async () => {
+    const indexManager = await getIndexManager();
+
+    await indexManager.addFieldIndex(fieldIndex('coll1'));
+    await indexManager.addFieldIndex(fieldIndex('coll2'));
+
+    const fieldIndexes = await indexManager.getFieldIndexes();
+    expect(fieldIndexes).to.have.length(2);
+    expect(fieldIndexes[0]).to.deep.equal(fieldIndex('coll1', { id: 1 }));
+    expect(fieldIndexes[1]).to.deep.equal(fieldIndex('coll2', { id: 2 }));
+  });
+
+  it('can get indexes', async () => {
+    const indexManager = await getIndexManager();
+
+    let fieldIndexes = await indexManager.getFieldIndexes('coll1');
+    expect(fieldIndexes).to.have.length(0);
+
+    await indexManager.addFieldIndex(
+      fieldIndex('coll1', { fields: [['value', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll2', { fields: [['value', IndexKind.CONTAINS]] })
+    );
+
+    fieldIndexes = await indexManager.getFieldIndexes('coll1');
+    expect(fieldIndexes).to.have.length(1);
+    expect(fieldIndexes[0]).to.deep.equal(
+      fieldIndex('coll1', {
+        id: 1,
+        fields: [['value', IndexKind.ASCENDING]]
+      })
+    );
+
+    await indexManager.addFieldIndex(
+      fieldIndex('coll1', { fields: [['newValue', IndexKind.CONTAINS]] })
+    );
+
+    fieldIndexes = await indexManager.getFieldIndexes('coll1');
+    expect(fieldIndexes).to.have.length(2);
+    expect(fieldIndexes[0]).to.deep.equal(
+      fieldIndex('coll1', {
+        id: 1,
+        fields: [['value', IndexKind.ASCENDING]]
+      })
+    );
+    expect(fieldIndexes[1]).to.deep.equal(
+      fieldIndex('coll1', {
+        id: 3,
+        fields: [['newValue', IndexKind.CONTAINS]]
+      })
+    );
+  });
+
+  it('can update collection group', async () => {
+    const indexManager = await getIndexManager();
+
+    await indexManager.addFieldIndex(fieldIndex('coll1'));
+    await indexManager.addFieldIndex(fieldIndex('coll1'));
+    await indexManager.addFieldIndex(fieldIndex('coll2'));
+
+    let fieldIndexes = await indexManager.getFieldIndexes();
+    expect(fieldIndexes[0].indexState).to.deep.equal(
+      new IndexState(/* sequenceNumber= */ 0, IndexOffset.min())
+    );
+    expect(fieldIndexes[1].indexState).to.deep.equal(
+      new IndexState(/* sequenceNumber= */ 0, IndexOffset.min())
+    );
+    expect(fieldIndexes[2].indexState).to.deep.equal(
+      new IndexState(/* sequenceNumber= */ 0, IndexOffset.min())
+    );
+
+    const newOffset = new IndexOffset(version(1337), key('coll1/doc'), 42);
+    await indexManager.updateCollectionGroup('coll1', newOffset);
+
+    fieldIndexes = await indexManager.getFieldIndexes();
+    expect(fieldIndexes[0].indexState).to.deep.equal(
+      new IndexState(/* sequenceNumber= */ 1, newOffset)
+    );
+    expect(fieldIndexes[1].indexState).to.deep.equal(
+      new IndexState(/* sequenceNumber= */ 1, newOffset)
+    );
+    expect(fieldIndexes[2].indexState).to.deep.equal(
+      new IndexState(/* sequenceNumber= */ 0, IndexOffset.min())
+    );
+  });
+
+  it('can get next collection group to update', async () => {
+    const indexManager = await getIndexManager();
+
+    let nextCollectionGroup =
+      await indexManager.getNextCollectionGroupToUpdate();
+    expect(nextCollectionGroup).to.be.null;
+
+    await indexManager.addFieldIndex(fieldIndex('coll1'));
+    await indexManager.addFieldIndex(fieldIndex('coll2'));
+
+    nextCollectionGroup = await indexManager.getNextCollectionGroupToUpdate();
+    expect(nextCollectionGroup).to.equal('coll1');
+
+    await indexManager.updateCollectionGroup('coll1', IndexOffset.min());
+
+    nextCollectionGroup = await indexManager.getNextCollectionGroupToUpdate();
+    expect(nextCollectionGroup).to.equal('coll2');
+  });
+
+  it('deleting field index removes entry from collection group', async () => {
+    const indexManager = await getIndexManager();
+    const offsetBefore = new IndexOffset(version(1337), key('coll1/doc'), 42);
+    const offsetAfter = IndexOffset.min();
+
+    await indexManager.addFieldIndex(fieldIndex('coll1'));
+    const actualIndex = (await indexManager.getFieldIndexes())[0];
+
+    await indexManager.updateCollectionGroup('coll1', offsetBefore);
+    let fieldIndexes = await indexManager.getFieldIndexes();
+    expect(fieldIndexes[0].indexState).to.deep.equal(
+      new IndexState(1, offsetBefore)
+    );
+
+    // Delete and re-add the index
+    await indexManager.deleteFieldIndex(actualIndex);
+    await indexManager.addFieldIndex(fieldIndex('coll1'));
+
+    fieldIndexes = await indexManager.getFieldIndexes();
+    expect(fieldIndexes[0].indexState).to.deep.equal(
+      new IndexState(0, offsetAfter)
+    );
+  });
+
+  it('deleting field index removes entry from getNextCollectionGroupToUpdate()', async () => {
+    const indexManager = await getIndexManager();
+
+    await indexManager.addFieldIndex(fieldIndex('coll1'));
+    expect(await indexManager.getNextCollectionGroupToUpdate()).to.equal(
+      'coll1'
+    );
+
+    const actualIndex = (await indexManager.getFieldIndexes())[0];
+    await indexManager.deleteFieldIndex(actualIndex);
+
+    expect(await indexManager.getNextCollectionGroupToUpdate()).to.equal(null);
+  });
+
+  it('changes user', async () => {
+    let indexManager = await getIndexManager(new User('user1'));
+
+    const user1Offset = new IndexOffset(version(1337), key('coll1/doc'), 42);
+    const user2Offset = IndexOffset.min();
+
+    await indexManager.addFieldIndex(fieldIndex('coll1'));
+    await indexManager.updateCollectionGroup('coll1', user1Offset);
+
+    let fieldIndexes = await indexManager.getFieldIndexes();
+    expect(fieldIndexes[0].indexState).to.deep.equal(
+      new IndexState(1, user1Offset)
+    );
+
+    indexManager = await getIndexManager(new User('user2'));
+    fieldIndexes = await indexManager.getFieldIndexes();
+    expect(fieldIndexes[0].indexState).to.deep.equal(
+      new IndexState(0, user2Offset)
+    );
+
+    indexManager = await getIndexManager(new User('user1'));
+    fieldIndexes = await indexManager.getFieldIndexes();
+    expect(fieldIndexes[0].indexState).to.deep.equal(
+      new IndexState(1, user1Offset)
+    );
+  });
 });
 
 /**
@@ -57,7 +254,7 @@ function genericIndexManagerTests(
     persistence = await persistencePromise();
     indexManager = new TestIndexManager(
       persistence,
-      persistence.getIndexManager()
+      persistence.getIndexManager(User.UNAUTHENTICATED)
     );
   });
 

@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { User } from '../../../src/auth/user';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { remoteDocumentCacheGetLastReadTime } from '../../../src/local/indexeddb_remote_document_cache';
@@ -49,7 +50,13 @@ describe('MemoryRemoteDocumentCache', () => {
   beforeEach(() => {
     cache = persistenceHelpers
       .testMemoryEagerPersistence()
-      .then(persistence => new TestRemoteDocumentCache(persistence));
+      .then(persistence => {
+        const remoteDocuments = new TestRemoteDocumentCache(persistence);
+        remoteDocuments.setIndexManager(
+          persistence.getIndexManager(User.UNAUTHENTICATED)
+        );
+        return remoteDocuments;
+      });
   });
 
   genericRemoteDocumentCacheTests(() => cache);
@@ -61,9 +68,13 @@ describe('LRU MemoryRemoteDocumentCache', () => {
   let cache: Promise<TestRemoteDocumentCache>;
 
   beforeEach(async () => {
-    cache = persistenceHelpers
-      .testMemoryLruPersistence()
-      .then(persistence => new TestRemoteDocumentCache(persistence));
+    cache = persistenceHelpers.testMemoryLruPersistence().then(persistence => {
+      const remoteDocuments = new TestRemoteDocumentCache(persistence);
+      remoteDocuments.setIndexManager(
+        persistence.getIndexManager(User.UNAUTHENTICATED)
+      );
+      return remoteDocuments;
+    });
   });
 
   genericRemoteDocumentCacheTests(() => cache);
@@ -84,6 +95,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
       synchronizeTabs: true
     });
     cache = new TestRemoteDocumentCache(persistence);
+    cache.setIndexManager(persistence.getIndexManager(User.UNAUTHENTICATED));
   });
 
   afterEach(async () => {

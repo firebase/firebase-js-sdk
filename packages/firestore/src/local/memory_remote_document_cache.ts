@@ -62,6 +62,7 @@ export interface MemoryRemoteDocumentCache extends RemoteDocumentCache {
 class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
   /** Underlying cache of documents and their read times. */
   private docs = documentEntryMap();
+  private indexManager!: IndexManager;
 
   /** Size of all cached documents. */
   private size = 0;
@@ -71,10 +72,11 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
    * expected to just return 0 to avoid unnecessarily doing the work of
    * calculating the size.
    */
-  constructor(
-    private readonly indexManager: IndexManager,
-    private readonly sizer: DocumentSizer
-  ) {}
+  constructor(private readonly sizer: DocumentSizer) {}
+
+  setIndexManager(indexManager: IndexManager): void {
+    this.indexManager = indexManager;
+  }
 
   /**
    * Adds the supplied entry to the cache and updates the cache size as appropriate.
@@ -209,16 +211,14 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
 /**
  * Creates a new memory-only RemoteDocumentCache.
  *
- * @param indexManager - A class that manages collection group indices.
  * @param sizer - Used to assess the size of a document. For eager GC, this is
  * expected to just return 0 to avoid unnecessarily doing the work of
  * calculating the size.
  */
 export function newMemoryRemoteDocumentCache(
-  indexManager: IndexManager,
   sizer: DocumentSizer
 ): MemoryRemoteDocumentCache {
-  return new MemoryRemoteDocumentCacheImpl(indexManager, sizer);
+  return new MemoryRemoteDocumentCacheImpl(sizer);
 }
 
 /**

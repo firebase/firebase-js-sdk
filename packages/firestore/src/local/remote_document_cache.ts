@@ -21,6 +21,7 @@ import { DocumentKeySet, MutableDocumentMap } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
+import { IndexManager } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
@@ -33,6 +34,9 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
  * documents that are known to not exist.
  */
 export interface RemoteDocumentCache {
+  /** Sets the index manager to use for managing the collectionGroup index. */
+  setIndexManager(indexManager: IndexManager): void;
+
   /**
    * Looks up an entry in the cache.
    *
