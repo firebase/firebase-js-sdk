@@ -71,7 +71,7 @@ export const enum RecaptchaClientType {
 }
 
 export const enum RecaptchaVersion {
-  ENTERPRISE = 'ENTERPRISE',
+  ENTERPRISE = 'RECAPTCHA_ENTERPRISE',
 }
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
