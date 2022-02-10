@@ -208,15 +208,15 @@ export class IndexedDbIndexManager implements IndexManager {
             IDBKeyRange.bound(collectionGroup, collectionGroup)
           )
         : indexes.loadAll()
-    ).next(indexEntries => {
+    ).next(indexConfigs => {
       const result: FieldIndex[] = [];
       return PersistencePromise.forEach(
-        indexEntries,
-        (indexEntry: DbIndexConfiguration) => {
+        indexConfigs,
+        (indexConfig: DbIndexConfiguration) => {
           return states
-            .get([indexEntry.indexId!, this.uid])
+            .get([indexConfig.indexId!, this.uid])
             .next(indexState => {
-              result.push(fromDbIndexConfiguration(indexEntry, indexState));
+              result.push(fromDbIndexConfiguration(indexConfig, indexState));
             });
         }
       ).next(() => result);

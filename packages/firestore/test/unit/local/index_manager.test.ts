@@ -131,13 +131,13 @@ describe('IndexedDbIndexManager', () => {
 
     let fieldIndexes = await indexManager.getFieldIndexes();
     expect(fieldIndexes[0].indexState).to.deep.equal(
-      new IndexState(0, IndexOffset.min())
+      new IndexState(/* sequenceNumber= */ 0, IndexOffset.min())
     );
     expect(fieldIndexes[1].indexState).to.deep.equal(
-      new IndexState(0, IndexOffset.min())
+      new IndexState(/* sequenceNumber= */ 0, IndexOffset.min())
     );
     expect(fieldIndexes[2].indexState).to.deep.equal(
-      new IndexState(0, IndexOffset.min())
+      new IndexState(/* sequenceNumber= */ 0, IndexOffset.min())
     );
 
     const newOffset = new IndexOffset(version(1337), key('coll1/doc'), 42);
@@ -145,13 +145,13 @@ describe('IndexedDbIndexManager', () => {
 
     fieldIndexes = await indexManager.getFieldIndexes();
     expect(fieldIndexes[0].indexState).to.deep.equal(
-      new IndexState(1, newOffset)
+      new IndexState(/* sequenceNumber= */ 1, newOffset)
     );
     expect(fieldIndexes[1].indexState).to.deep.equal(
-      new IndexState(1, newOffset)
+      new IndexState(/* sequenceNumber= */ 1, newOffset)
     );
     expect(fieldIndexes[2].indexState).to.deep.equal(
-      new IndexState(0, IndexOffset.min())
+      new IndexState(/* sequenceNumber= */ 0, IndexOffset.min())
     );
   });
 

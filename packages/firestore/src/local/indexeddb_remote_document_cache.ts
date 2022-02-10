@@ -76,6 +76,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   setIndexManager(indexManager: IndexManager): void {
     this.indexManager = indexManager;
   }
+
   /**
    * Adds the supplied entries to the cache.
    *

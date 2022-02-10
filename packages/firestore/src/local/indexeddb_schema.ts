@@ -708,6 +708,14 @@ export class DbIndexConfiguration {
 
   static keyPath = 'indexId';
 
+  /**
+   * An index that provides access to the index configurations by collection
+   * group.
+   *
+   * PORTING NOTE: iOS and Android maintain this index in-memory, but this is
+   * not possible here as the Web client supports concurrent access to
+   * persistence via multi-tab.
+   */
   static collectionGroupIndex = 'collectionGroupIndex';
 
   static collectionGroupIndexPath = 'collectionGroup';
@@ -742,7 +750,9 @@ export class DbIndexState {
    * An index that provides access to documents in a collection sorted by last
    * update time. Used by the backfiller.
    *
-   * PORTING NOTE: iOS and Android maintain this index in-memory.
+   * PORTING NOTE: iOS and Android maintain this index in-memory, but this is
+   * not possible here as the Web client supports concurrent access to
+   * persistence via multi-tab.
    */
   static sequenceNumberIndex = 'sequenceNumberIndex';
 
