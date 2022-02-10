@@ -25,14 +25,13 @@ import {
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
-  documentKeySet,
   DocumentMap,
   documentMap,
   MutableDocumentMap
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { mutationApplyToLocalView, PatchMutation } from '../model/mutation';
+import { mutationApplyToLocalView } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
@@ -217,9 +216,8 @@ export class LocalDocumentsView {
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let results: MutableDocumentMap;
-    let mutationBatches: MutationBatch[];
     return this.remoteDocumentCache
-      .getDocumentsMatchingQuery(transaction, query, sinceReadTime)
+      .getAll(transaction, query.path, sinceReadTime)
       .next(queryResults => {
         results = queryResults;
         return this.mutationQueue.getAllMutationBatchesAffectingQuery(
@@ -227,41 +225,22 @@ export class LocalDocumentsView {
           query
         );
       })
-      .next(matchingMutationBatches => {
-        mutationBatches = matchingMutationBatches;
-        // It is possible that a PatchMutation can make a document match a query, even if
-        // the version in the RemoteDocumentCache is not a match yet (waiting for server
-        // to ack). To handle this, we find all document keys affected by the PatchMutations
-        // that are not in `result` yet, and back fill them via `remoteDocumentCache.getEntries`,
-        // otherwise those `PatchMutations` will be ignored because no base document can be found,
-        // and lead to missing result for the query.
-        return this.addMissingBaseDocuments(
-          transaction,
-          mutationBatches,
-          results
-        ).next(mergedDocuments => {
-          results = mergedDocuments;
-
-          for (const batch of mutationBatches) {
-            for (const mutation of batch.mutations) {
-              const key = mutation.key;
-              let document = results.get(key);
-              if (document == null) {
-                // Create invalid document to apply mutations on top of
-                document = MutableDocument.newInvalidDocument(key);
-                results = results.insert(key, document);
-              }
-              mutationApplyToLocalView(
-                mutation,
-                document,
-                batch.localWriteTime
-              );
-              if (!document.isFoundDocument()) {
-                results = results.remove(key);
-              }
+      .next(mutationBatches => {
+        for (const batch of mutationBatches) {
+          for (const mutation of batch.mutations) {
+            const key = mutation.key;
+            let document = results.get(key);
+            if (document == null) {
+              // Create invalid document to apply mutations on top of
+              document = MutableDocument.newInvalidDocument(key);
+              results = results.insert(key, document);
+            }
+            mutationApplyToLocalView(mutation, document, batch.localWriteTime);
+            if (!document.isFoundDocument()) {
+              results = results.remove(key);
             }
           }
-        });
+        }
       })
       .next(() => {
         // Finally, filter out any documents that don't actually match
@@ -273,37 +252,6 @@ export class LocalDocumentsView {
         });
 
         return results as DocumentMap;
-      });
-  }
-
-  private addMissingBaseDocuments(
-    transaction: PersistenceTransaction,
-    matchingMutationBatches: MutationBatch[],
-    existingDocuments: MutableDocumentMap
-  ): PersistencePromise<MutableDocumentMap> {
-    let missingBaseDocEntriesForPatching = documentKeySet();
-    for (const batch of matchingMutationBatches) {
-      for (const mutation of batch.mutations) {
-        if (
-          mutation instanceof PatchMutation &&
-          existingDocuments.get(mutation.key) === null
-        ) {
-          missingBaseDocEntriesForPatching =
-            missingBaseDocEntriesForPatching.add(mutation.key);
-        }
-      }
-    }
-
-    let mergedDocuments = existingDocuments;
-    return this.remoteDocumentCache
-      .getEntries(transaction, missingBaseDocEntriesForPatching)
-      .next(missingBaseDocs => {
-        missingBaseDocs.forEach((key, doc) => {
-          if (doc.isFoundDocument()) {
-            mergedDocuments = mergedDocuments.insert(key, doc);
-          }
-        });
-        return mergedDocuments;
       });
   }
 }

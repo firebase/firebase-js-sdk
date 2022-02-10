@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { isCollectionGroupQuery, Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -24,6 +23,7 @@ import {
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
@@ -154,33 +154,30 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
-  getDocumentsMatchingQuery(
+  getAll(
     transaction: PersistenceTransaction,
-    query: Query,
+    collectionPath: ResourcePath,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<MutableDocumentMap> {
-    debugAssert(
-      !isCollectionGroupQuery(query),
-      'CollectionGroup queries should be handled in LocalDocumentsView'
-    );
     let results = mutableDocumentMap();
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
-    const prefix = new DocumentKey(query.path.child(''));
+    const prefix = new DocumentKey(collectionPath.child(''));
     const iterator = this.docs.getIteratorFrom(prefix);
     while (iterator.hasNext()) {
       const {
         key,
         value: { document }
       } = iterator.getNext();
-      if (!query.path.isPrefixOf(key.path)) {
+      if (!collectionPath.isPrefixOf(key.path)) {
         break;
       }
-      if (document.readTime.compareTo(sinceReadTime) <= 0) {
+      if (key.path.length > collectionPath.length + 1) {
+        // Exclude entries from subcollections.
         continue;
       }
-      if (!queryMatches(query, document)) {
+      if (document.readTime.compareTo(sinceReadTime) <= 0) {
         continue;
       }
       results = results.insert(document.key, document.mutableCopy());

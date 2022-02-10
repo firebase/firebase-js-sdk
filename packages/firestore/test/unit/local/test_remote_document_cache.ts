@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexManager } from '../../../src/local/index_manager';
 import { remoteDocumentCacheGetNewDocumentChanges } from '../../../src/local/indexeddb_remote_document_cache';
@@ -29,6 +28,7 @@ import {
 } from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { ResourcePath } from '../../../src/model/path';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a
@@ -109,16 +109,14 @@ export class TestRemoteDocumentCache {
     });
   }
 
-  getDocumentsMatchingQuery(
-    query: Query,
+  getAll(
+    collection: ResourcePath,
     sinceReadTime: SnapshotVersion
   ): Promise<MutableDocumentMap> {
     return this.persistence.runTransaction(
       'getDocumentsMatchingQuery',
       'readonly',
-      txn => {
-        return this.cache.getDocumentsMatchingQuery(txn, query, sinceReadTime);
-      }
+      txn => this.cache.getAll(txn, collection, sinceReadTime)
     );
   }
 

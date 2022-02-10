@@ -29,7 +29,7 @@ import {
   expectEqual,
   field,
   key,
-  query,
+  path,
   removedDoc,
   version,
   wrap
@@ -360,9 +360,7 @@ function genericRemoteDocumentCacheTests(
     return cache.removeEntry(key(DOC_PATH));
   });
 
-  it('can get documents matching query', async () => {
-    // TODO(mikelehen): This just verifies that we do a prefix scan against the
-    // query path. We'll need more tests once we add index support.
+  it('can get all documents from collection', async () => {
     await cache.addEntries([
       doc('a/1', VERSION, DOC_DATA),
       doc('b/1', VERSION, DOC_DATA),
@@ -371,19 +369,14 @@ function genericRemoteDocumentCacheTests(
       doc('c/1', VERSION, DOC_DATA)
     ]);
 
-    const query1 = query('b');
-    const matchingDocs = await cache.getDocumentsMatchingQuery(
-      query1,
-      SnapshotVersion.min()
-    );
-
+    const matchingDocs = await cache.getAll(path('b'), SnapshotVersion.min());
     assertMatches(
       [doc('b/1', VERSION, DOC_DATA), doc('b/2', VERSION, DOC_DATA)],
       matchingDocs
     );
   });
 
-  it('can get documents matching query by read time', async () => {
+  it('can get all documents since read time', async () => {
     await cache.addEntries([
       doc('b/old', 1, DOC_DATA).setReadTime(version(11))
     ]);
@@ -394,21 +387,19 @@ function genericRemoteDocumentCacheTests(
       doc('b/new', 3, DOC_DATA).setReadTime(version(13))
     ]);
 
-    const query1 = query('b');
-    const matchingDocs = await cache.getDocumentsMatchingQuery(
-      query1,
+    const matchingDocs = await cache.getAll(
+      path('b'),
       /* sinceReadTime= */ version(12)
     );
     assertMatches([doc('b/new', 3, DOC_DATA)], matchingDocs);
   });
 
-  it('query matching uses read time rather than update time', async () => {
+  it('getAll() uses read time rather than update time', async () => {
     await cache.addEntries([doc('b/old', 1, DOC_DATA).setReadTime(version(2))]);
     await cache.addEntries([doc('b/new', 2, DOC_DATA).setReadTime(version(1))]);
 
-    const query1 = query('b');
-    const matchingDocs = await cache.getDocumentsMatchingQuery(
-      query1,
+    const matchingDocs = await cache.getAll(
+      path('b'),
       /* sinceReadTime= */ version(1)
     );
     assertMatches([doc('b/old', 1, DOC_DATA)], matchingDocs);
@@ -442,9 +433,8 @@ function genericRemoteDocumentCacheTests(
     verifyOldValue(document);
     document.data.set(field('state'), wrap('new'));
 
-    const query1 = query('coll');
     document = await cache
-      .getDocumentsMatchingQuery(query1, SnapshotVersion.min())
+      .getAll(path('coll'), SnapshotVersion.min())
       .then(m => m.get(key('coll/doc'))!);
     verifyOldValue(document);
 
