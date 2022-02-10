@@ -138,7 +138,7 @@ describe('Target Bounds', () => {
     }
   });
 
-  it('inequalitiesWithDefaultOrder', () => {
+  it('inequalities with default order', () => {
     for (const query of queriesWithInequalities) {
       validateServesTarget(query, 'a', IndexKind.ASCENDING);
       validateDoesNotServeTarget(query, 'b', IndexKind.ASCENDING);
@@ -146,7 +146,7 @@ describe('Target Bounds', () => {
     }
   });
 
-  it('inequalitiesWithAscendingOrder', () => {
+  it('inequalities with ascending order', () => {
     const queriesWithInequalitiesAndAscendingOrder =
       queriesWithInequalities.map(q =>
         queryWithAddedOrderBy(q, orderBy('a', 'asc'))
@@ -159,7 +159,7 @@ describe('Target Bounds', () => {
     }
   });
 
-  it('inequalitiesWithDescendingOrder', () => {
+  it('inequalities with descending order', () => {
     const queriesWithInequalitiesAndDescendingOrder =
       queriesWithInequalities.map(q =>
         queryWithAddedOrderBy(q, orderBy('a', 'desc'))
@@ -226,7 +226,7 @@ describe('Target Bounds', () => {
     }
   });
 
-  it('array-contains is idempotent', () => {
+  it('array-contains is independent', () => {
     const q = queryWithAddedOrderBy(
       queryWithAddedFilter(
         query('collId'),

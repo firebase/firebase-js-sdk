@@ -35,7 +35,7 @@ import {
 /**
  * A light query planner for Firestore.
  *
- * This class matches a `FieldIndex`z against a Firestore Query `Target`. It
+ * This class matches a `FieldIndex` against a Firestore Query `Target`. It
  * determines whether a given index can be used to serve the specified target.
  *
  * The following table showcases some possible index configurations:
@@ -57,7 +57,7 @@ export class TargetIndexMatcher {
   private readonly collectionId: string;
   // The single inequality filter of the target (if it exists).
   private readonly inequalityFilter?: FieldFilter;
-  // The list of equality filter of the target.
+  // The list of equality filters of the target.
   private readonly equalityFilters: FieldFilter[];
   // The list of orderBys of the target.
   private readonly orderBys: OrderBy[];
@@ -127,10 +127,10 @@ export class TargetIndexMatcher {
 
     // Process all equalities first. Equalities can appear out of order.
     for (; segmentIndex < segments.length; ++segmentIndex) {
-      // We attempt to greedily match all segments to equality filters. If a a
-      // filter matches an index segments, we can mark the segment as used.
-      // Since it is not possible to use the same filed path in both an equality
-      // and inequality/oderBy cause, we do not have to consider the possibility
+      // We attempt to greedily match all segments to equality filters. If a
+      // filter matches an index segment, we can mark the segment as used.
+      // Since it is not possible to use the same field path in both an equality
+      // and inequality/oderBy clause, we do not have to consider the possibility
       // that a matching equality segment should instead be used to map to an
       // inequality filter or orderBy clause.
       if (!this.hasMatchingEqualityFilter(segments[segmentIndex])) {
@@ -161,8 +161,8 @@ export class TargetIndexMatcher {
       ++segmentIndex;
     }
 
-    // All remaining segment need to represent the prefix of the target's
-    // orderBy
+    // All remaining segments need to represent the prefix of the target's
+    // orderBy.
     for (; segmentIndex < segments.length; ++segmentIndex) {
       const segment = segments[segmentIndex];
       if (
