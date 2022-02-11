@@ -463,7 +463,7 @@ export class FirebaseAppCheckTokenProvider
   private tokenListener!: AppCheckTokenListener;
   private forceRefresh = false;
   private appCheck: FirebaseAppCheckInternal | null = null;
-  private latestToken: string | null = null;
+  private latestAppCheckToken: string | null = null;
 
   constructor(
     private appCheckProvider: Provider<AppCheckInternalComponentName>
@@ -481,15 +481,17 @@ export class FirebaseAppCheckTokenProvider
             `Error getting App Check token; using placeholder token instead. Error: ${tokenResult.error.message}`
           );
         }
-        if (tokenResult.token !== this.latestToken) {
+        if (tokenResult.token !== this.latestAppCheckToken) {
           logDebug('FirebaseAppCheckTokenProvider', 'Received a new token.');
+          this.latestAppCheckToken = tokenResult.token;
           return changeListener(tokenResult.token);
+        } else {
+          logDebug(
+            'FirebaseAppCheckTokenProvider',
+            'Received a token that is the same as the existing token.'
+          );
+          return Promise.resolve();
         }
-        logDebug(
-          'FirebaseAppCheckTokenProvider',
-          'Received a token that is the same as the existing token.'
-        );
-        return Promise.resolve();
       };
 
     this.tokenListener = (tokenResult: AppCheckTokenResult) => {
@@ -541,7 +543,7 @@ export class FirebaseAppCheckTokenProvider
           typeof tokenResult.token === 'string',
           'Invalid tokenResult returned from getToken():' + tokenResult
         );
-        this.latestToken = tokenResult.token;
+        this.latestAppCheckToken = tokenResult.token;
         return new AppCheckToken(tokenResult.token);
       } else {
         return null;
