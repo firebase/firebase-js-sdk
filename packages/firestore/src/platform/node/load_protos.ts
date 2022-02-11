@@ -19,9 +19,9 @@ import { join, resolve, isAbsolute } from 'path';
 
 // Note: We have to use a package import here to avoid build errors such as
 // https://github.com/firebase/firebase-js-sdk/issues/5983
+
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-
 // only used in tests
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { IConversionOptions, Root } from 'protobufjs';
