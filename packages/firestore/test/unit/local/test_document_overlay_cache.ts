@@ -17,6 +17,7 @@
 
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import { Persistence } from '../../../src/local/persistence';
+import { DocumentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { Overlay } from '../../../src/model/overlay';
@@ -89,12 +90,15 @@ export class TestDocumentOverlayCache {
     );
   }
 
-  removeOverlaysForBatchId(batchId: number): Promise<void> {
+  removeOverlaysForBatchId(
+    documentKeys: DocumentKeySet,
+    batchId: number
+  ): Promise<void> {
     return this.persistence.runTransaction(
       'removeOverlaysForBatchId',
       'readwrite-primary',
       txn => {
-        return this.cache.removeOverlaysForBatchId(txn, batchId);
+        return this.cache.removeOverlaysForBatchId(txn, documentKeys, batchId);
       }
     );
   }

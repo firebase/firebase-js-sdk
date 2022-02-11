@@ -170,12 +170,65 @@ function genericDocumentOverlayCacheTests(): void {
   it('can delete overlays repeatedly', async () => {
     const m = patchMutation('coll/doc1', { 'foo': 'bar' });
     await saveOverlaysForMutations(2, m);
-    await overlayCache.removeOverlaysForBatchId(2);
+    await overlayCache.removeOverlaysForBatchId(
+      documentKeySet(key('coll/doc1')),
+      2
+    );
     expect(await overlayCache.getOverlay(key('coll/doc1'))).to.equal(null);
 
     // Repeat
-    await overlayCache.removeOverlaysForBatchId(2);
+    await overlayCache.removeOverlaysForBatchId(
+      documentKeySet(key('coll/doc1')),
+      2
+    );
     expect(await overlayCache.getOverlay(key('coll/doc1'))).to.equal(null);
+  });
+
+  it('can delete overlays', async () => {
+    const m1 = patchMutation('coll1/doc1', { 'a': 'b' });
+    const m2 = patchMutation('coll1/doc2', { 'a': 'b' });
+    const m3 = patchMutation('coll1/doc3', { 'a': 'b' });
+    const m4 = patchMutation('coll1/doc4', { 'a': 'b' });
+    const m5 = patchMutation('coll2/doc1/coll3/doc1', { 'a': 'b' });
+    const m6 = patchMutation('coll2/doc2/coll3/doc2', { 'a': 'b' });
+    await saveOverlaysForMutations(2, m1, m2);
+    await saveOverlaysForMutations(3, m3);
+    await saveOverlaysForMutations(4, m4);
+    await saveOverlaysForMutations(2, m5, m6);
+
+    // Remove documents with batch id 2.
+    const set1 = documentKeySet(
+      key('coll1/doc1'),
+      key('coll1/doc2'),
+      key('coll2/doc1/coll3/doc1'),
+      key('coll2/doc2/coll3/doc2')
+    );
+    await overlayCache.removeOverlaysForBatchId(set1, 2);
+    expect(await overlayCache.getOverlay(key('coll1/doc1'))).to.equal(null);
+    expect(await overlayCache.getOverlay(key('coll1/doc2'))).to.equal(null);
+    expect(
+      await overlayCache.getOverlay(key('coll2/doc1/coll3/doc1'))
+    ).to.equal(null);
+    expect(
+      await overlayCache.getOverlay(key('coll2/doc2/coll3/doc2'))
+    ).to.equal(null);
+    expect(await overlayCache.getOverlay(key('coll1/doc3'))).to.not.equal(null);
+    expect(await overlayCache.getOverlay(key('coll1/doc4'))).to.not.equal(null);
+
+    // Remove documents with batch id 3.
+    await overlayCache.removeOverlaysForBatchId(
+      documentKeySet(key('coll1/doc3')),
+      3
+    );
+    expect(await overlayCache.getOverlay(key('coll1/doc3'))).to.equal(null);
+    expect(await overlayCache.getOverlay(key('coll1/doc4'))).to.not.equal(null);
+
+    // Remove documents with batch id 4.
+    await overlayCache.removeOverlaysForBatchId(
+      documentKeySet(key('coll1/doc4')),
+      4
+    );
+    expect(await overlayCache.getOverlay(key('coll1/doc4'))).to.equal(null);
   });
 
   it('can get all overlays for collection', async () => {
