@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.19.8
+
+### Patch Changes
+
+- [`af9234866`](https://github.com/firebase/firebase-js-sdk/commit/af923486662bc9449cca122b55840b045c9b4a5a) [#5938](https://github.com/firebase/firebase-js-sdk/pull/5938) (fixes [#917](https://github.com/firebase/firebase-js-sdk/issues/917)) - Fix bug where `user.providerData` field was being improperly initialized
+
 ## 0.19.7
 
 ### Patch Changes

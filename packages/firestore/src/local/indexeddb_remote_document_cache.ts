@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { isCollectionGroupQuery, Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -69,14 +68,13 @@ export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
  * `newIndexedDbRemoteDocumentCache()`.
  */
 class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
-  /**
-   * @param serializer - The document serializer.
-   * @param indexManager - The query indexes that need to be maintained.
-   */
-  constructor(
-    readonly serializer: LocalSerializer,
-    readonly indexManager: IndexManager
-  ) {}
+  indexManager!: IndexManager;
+
+  constructor(readonly serializer: LocalSerializer) {}
+
+  setIndexManager(indexManager: IndexManager): void {
+    this.indexManager = indexManager;
+  }
 
   /**
    * Adds the supplied entries to the cache.
@@ -246,30 +244,26 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       });
   }
 
-  getDocumentsMatchingQuery(
+  getAll(
     transaction: PersistenceTransaction,
-    query: Query,
+    collection: ResourcePath,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<MutableDocumentMap> {
-    debugAssert(
-      !isCollectionGroupQuery(query),
-      'CollectionGroup queries should be handled in LocalDocumentsView'
-    );
     let results = mutableDocumentMap();
 
-    const immediateChildrenPathLength = query.path.length + 1;
+    const immediateChildrenPathLength = collection.length + 1;
 
     const iterationOptions: IterateOptions = {};
     if (sinceReadTime.isEqual(SnapshotVersion.min())) {
       // Documents are ordered by key, so we can use a prefix scan to narrow
       // down the documents we need to match the query against.
-      const startKey = query.path.toArray();
+      const startKey = collection.toArray();
       iterationOptions.range = IDBKeyRange.lowerBound(startKey);
     } else {
       // Execute an index-free query and filter by read time. This is safe
       // since all document changes to queries that have a
       // lastLimboFreeSnapshotVersion (`sinceReadTime`) have a read time set.
-      const collectionKey = query.path.toArray();
+      const collectionKey = collection.toArray();
       const readTimeKey = toDbTimestampKey(sinceReadTime);
       iterationOptions.range = IDBKeyRange.lowerBound(
         [collectionKey, readTimeKey],
@@ -293,10 +287,10 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
           DocumentKey.fromSegments(key),
           dbRemoteDoc
         );
-        if (!query.path.isPrefixOf(document.key.path)) {
-          control.done();
-        } else if (queryMatches(query, document)) {
+        if (collection.isPrefixOf(document.key.path)) {
           results = results.insert(document.key, document);
+        } else {
+          control.done();
         }
       })
       .next(() => results);
@@ -355,17 +349,11 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   }
 }
 
-/**
- * Creates a new IndexedDbRemoteDocumentCache.
- *
- * @param serializer - The document serializer.
- * @param indexManager - The query indexes that need to be maintained.
- */
+/** Creates a new IndexedDbRemoteDocumentCache. */
 export function newIndexedDbRemoteDocumentCache(
-  serializer: LocalSerializer,
-  indexManager: IndexManager
+  serializer: LocalSerializer
 ): IndexedDbRemoteDocumentCache {
-  return new IndexedDbRemoteDocumentCacheImpl(serializer, indexManager);
+  return new IndexedDbRemoteDocumentCacheImpl(serializer);
 }
 
 /**

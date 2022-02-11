@@ -317,12 +317,12 @@ export function mutationResult(
   return new MutationResult(version(testVersion), /* transformResults= */ []);
 }
 
-export function bound(values: unknown[], before: boolean): Bound {
+export function bound(values: unknown[], inclusive: boolean): Bound {
   const components: api.Value[] = [];
   for (const value of values) {
     components.push(wrap(value));
   }
-  return new Bound(components, before);
+  return new Bound(components, inclusive);
 }
 
 export function query(

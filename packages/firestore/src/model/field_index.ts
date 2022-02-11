@@ -59,7 +59,7 @@ export class FieldIndex {
     /** The collection ID this index applies to. */
     readonly collectionGroup: string,
     /** The field segments for this index. */
-    readonly segments: IndexSegment[],
+    readonly fields: IndexSegment[],
     /** Shows how up-to-date the index is for the current user. */
     readonly indexState: IndexState
   ) {}
@@ -69,14 +69,14 @@ export class FieldIndex {
 export function fieldIndexGetArraySegment(
   fieldIndex: FieldIndex
 ): IndexSegment | undefined {
-  return fieldIndex.segments.find(s => s.kind === IndexKind.CONTAINS);
+  return fieldIndex.fields.find(s => s.kind === IndexKind.CONTAINS);
 }
 
 /** Returns all directional (ascending/descending) segments for this index. */
 export function fieldIndexGetDirectionalSegments(
   fieldIndex: FieldIndex
 ): IndexSegment[] {
-  return fieldIndex.segments.filter(s => s.kind !== IndexKind.CONTAINS);
+  return fieldIndex.fields.filter(s => s.kind !== IndexKind.CONTAINS);
 }
 
 /**
@@ -92,21 +92,19 @@ export function fieldIndexSemanticComparator(
     return cmp;
   }
 
-  for (
-    let i = 0;
-    i < Math.min(left.segments.length, right.segments.length);
-    ++i
-  ) {
-    cmp = indexSegmentComparator(left.segments[i], right.segments[i]);
+  for (let i = 0; i < Math.min(left.fields.length, right.fields.length); ++i) {
+    cmp = indexSegmentComparator(left.fields[i], right.fields[i]);
     if (cmp !== 0) {
       return cmp;
     }
   }
-  return primitiveComparator(left.segments.length, right.segments.length);
+  return primitiveComparator(left.fields.length, right.fields.length);
 }
 
 /** The type of the index, e.g. for which type of query it can be used. */
 export const enum IndexKind {
+  // Note: The order of these values cannot be changed as the enum values are
+  // stored in IndexedDb.
   /**
    * Ordered index. Can be used for <, <=, ==, >=, >, !=, IN and NOT IN queries.
    */

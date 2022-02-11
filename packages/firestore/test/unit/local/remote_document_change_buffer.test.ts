@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { deletedDoc, doc, expectEqual, key, version } from '../../util/helpers';
 
@@ -41,16 +42,14 @@ describe('RemoteDocumentChangeBuffer', () => {
     return testIndexedDbPersistence().then(p => {
       persistence = p;
       cache = new TestRemoteDocumentCache(persistence);
+      cache.setIndexManager(persistence.getIndexManager(User.UNAUTHENTICATED));
       buffer = new TestRemoteDocumentChangeBuffer(
         persistence,
         cache.newChangeBuffer()
       );
 
       // Add a couple initial items to the cache.
-      return cache.addEntries(
-        [INITIAL_DOC, deletedDoc('coll/b', 314)],
-        version(314)
-      );
+      return cache.addEntries([INITIAL_DOC, deletedDoc('coll/b', 314)]);
     });
   });
 
@@ -74,7 +73,7 @@ describe('RemoteDocumentChangeBuffer', () => {
     const newADoc = doc('coll/a', 43, { new: 'data' });
     buffer.addEntry(newADoc, newADoc.version);
     expect(await buffer.getEntry(key('coll/a'))).to.not.be.null;
-    buffer.removeEntry(newADoc.key);
+    buffer.removeEntry(newADoc.key, version(44));
     expect((await buffer.getEntry(key('coll/a'))).isValidDocument()).to.be
       .false;
   });
@@ -96,7 +95,7 @@ describe('RemoteDocumentChangeBuffer', () => {
 
   it('can apply changes with removal', async () => {
     expectEqual(await buffer.getEntry(key('coll/a')), INITIAL_DOC);
-    buffer.removeEntry(INITIAL_DOC.key);
+    buffer.removeEntry(INITIAL_DOC.key, version(43));
     // Reading directly against the cache should still yield the old result.
     expectEqual(await cache.getEntry(key('coll/a')), INITIAL_DOC);
 

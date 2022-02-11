@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { isCollectionGroupQuery, Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -24,6 +23,7 @@ import {
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
@@ -62,6 +62,7 @@ export interface MemoryRemoteDocumentCache extends RemoteDocumentCache {
 class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
   /** Underlying cache of documents and their read times. */
   private docs = documentEntryMap();
+  private indexManager!: IndexManager;
 
   /** Size of all cached documents. */
   private size = 0;
@@ -71,10 +72,11 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
    * expected to just return 0 to avoid unnecessarily doing the work of
    * calculating the size.
    */
-  constructor(
-    private readonly indexManager: IndexManager,
-    private readonly sizer: DocumentSizer
-  ) {}
+  constructor(private readonly sizer: DocumentSizer) {}
+
+  setIndexManager(indexManager: IndexManager): void {
+    this.indexManager = indexManager;
+  }
 
   /**
    * Adds the supplied entry to the cache and updates the cache size as appropriate.
@@ -152,33 +154,30 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
-  getDocumentsMatchingQuery(
+  getAll(
     transaction: PersistenceTransaction,
-    query: Query,
+    collectionPath: ResourcePath,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<MutableDocumentMap> {
-    debugAssert(
-      !isCollectionGroupQuery(query),
-      'CollectionGroup queries should be handled in LocalDocumentsView'
-    );
     let results = mutableDocumentMap();
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
-    const prefix = new DocumentKey(query.path.child(''));
+    const prefix = new DocumentKey(collectionPath.child(''));
     const iterator = this.docs.getIteratorFrom(prefix);
     while (iterator.hasNext()) {
       const {
         key,
         value: { document }
       } = iterator.getNext();
-      if (!query.path.isPrefixOf(key.path)) {
+      if (!collectionPath.isPrefixOf(key.path)) {
         break;
       }
-      if (document.readTime.compareTo(sinceReadTime) <= 0) {
+      if (key.path.length > collectionPath.length + 1) {
+        // Exclude entries from subcollections.
         continue;
       }
-      if (!queryMatches(query, document)) {
+      if (document.readTime.compareTo(sinceReadTime) <= 0) {
         continue;
       }
       results = results.insert(document.key, document.mutableCopy());
@@ -209,16 +208,14 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
 /**
  * Creates a new memory-only RemoteDocumentCache.
  *
- * @param indexManager - A class that manages collection group indices.
  * @param sizer - Used to assess the size of a document. For eager GC, this is
  * expected to just return 0 to avoid unnecessarily doing the work of
  * calculating the size.
  */
 export function newMemoryRemoteDocumentCache(
-  indexManager: IndexManager,
   sizer: DocumentSizer
 ): MemoryRemoteDocumentCache {
-  return new MemoryRemoteDocumentCacheImpl(indexManager, sizer);
+  return new MemoryRemoteDocumentCacheImpl(sizer);
 }
 
 /**

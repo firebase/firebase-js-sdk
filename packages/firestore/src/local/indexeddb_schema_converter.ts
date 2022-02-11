@@ -36,7 +36,7 @@ import {
   DbDocumentMutation,
   DbDocumentMutationKey,
   DbIndexConfiguration,
-  DbIndexEntries,
+  DbIndexEntry,
   DbIndexState,
   DbDocumentOverlay,
   DbMutationBatch,
@@ -523,14 +523,30 @@ function createNamedQueriesStore(db: IDBDatabase): void {
 }
 
 function createFieldIndex(db: IDBDatabase): void {
-  db.createObjectStore(DbIndexConfiguration.store, {
-    keyPath: DbIndexConfiguration.keyPath
-  });
-  db.createObjectStore(DbIndexState.store, {
+  const indexConfiguratioStore = db.createObjectStore(
+    DbIndexConfiguration.store,
+    {
+      keyPath: DbIndexConfiguration.keyPath,
+      autoIncrement: true
+    }
+  );
+  indexConfiguratioStore.createIndex(
+    DbIndexConfiguration.collectionGroupIndex,
+    DbIndexConfiguration.collectionGroupIndexPath,
+    { unique: false }
+  );
+
+  const indexStateStore = db.createObjectStore(DbIndexState.store, {
     keyPath: DbIndexState.keyPath
   });
-  db.createObjectStore(DbIndexEntries.store, {
-    keyPath: DbIndexEntries.keyPath
+  indexStateStore.createIndex(
+    DbIndexState.sequenceNumberIndex,
+    DbIndexState.sequenceNumberIndexPath,
+    { unique: false }
+  );
+
+  db.createObjectStore(DbIndexEntry.store, {
+    keyPath: DbIndexEntry.keyPath
   });
 }
 

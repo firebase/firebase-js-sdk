@@ -1361,9 +1361,9 @@ export function serializerTest(
           queryWithEndAt(
             queryWithStartAt(
               query('docs'),
-              bound([ref('foo/bar')], /*before=*/ true)
+              bound([ref('foo/bar')], /*inclusive=*/ true)
             ),
-            bound([ref('foo/bar')], /*before=*/ false)
+            bound([ref('foo/bar')], /*inclusive=*/ true)
           )
         );
         const result = toTarget(s, wrapTargetData(q));

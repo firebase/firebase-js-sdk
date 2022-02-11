@@ -40,11 +40,11 @@ import {
   newIndexedDbRemoteDocumentCache
 } from './indexeddb_remote_document_cache';
 import {
-  ALL_STORES,
   DbClientMetadata,
   DbClientMetadataKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
+  getObjectStores,
   SCHEMA_VERSION
 } from './indexeddb_schema';
 import { SchemaConverter } from './indexeddb_schema_converter';
@@ -185,7 +185,6 @@ export class IndexedDbPersistence implements Persistence {
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
   private readonly targetCache: IndexedDbTargetCache;
-  private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly bundleCache: IndexedDbBundleCache;
   private readonly webStorage: Storage | null;
@@ -211,7 +210,8 @@ export class IndexedDbPersistence implements Persistence {
      * If set to true, forcefully obtains database access. Existing tabs will
      * no longer be able to access IndexedDB.
      */
-    private readonly forceOwningTab: boolean
+    private readonly forceOwningTab: boolean,
+    private readonly schemaVersion = SCHEMA_VERSION
   ) {
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(
@@ -225,18 +225,14 @@ export class IndexedDbPersistence implements Persistence {
     this.serializer = new LocalSerializer(serializer);
     this.simpleDb = new SimpleDb(
       this.dbName,
-      SCHEMA_VERSION,
+      this.schemaVersion,
       new SchemaConverter(this.serializer)
     );
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
       this.serializer
     );
-    this.indexManager = new IndexedDbIndexManager();
-    this.remoteDocumentCache = newIndexedDbRemoteDocumentCache(
-      this.serializer,
-      this.indexManager
-    );
+    this.remoteDocumentCache = newIndexedDbRemoteDocumentCache(this.serializer);
     this.bundleCache = new IndexedDbBundleCache();
     if (this.window && this.window.localStorage) {
       this.webStorage = this.window.localStorage;
@@ -710,7 +706,10 @@ export class IndexedDbPersistence implements Persistence {
     return this._started;
   }
 
-  getMutationQueue(user: User): IndexedDbMutationQueue {
+  getMutationQueue(
+    user: User,
+    indexManager: IndexManager
+  ): IndexedDbMutationQueue {
     debugAssert(
       this.started,
       'Cannot initialize MutationQueue before persistence is started.'
@@ -718,7 +717,7 @@ export class IndexedDbPersistence implements Persistence {
     return IndexedDbMutationQueue.forUser(
       user,
       this.serializer,
-      this.indexManager,
+      indexManager,
       this.referenceDelegate
     );
   }
@@ -739,12 +738,12 @@ export class IndexedDbPersistence implements Persistence {
     return this.remoteDocumentCache;
   }
 
-  getIndexManager(): IndexManager {
+  getIndexManager(user: User): IndexManager {
     debugAssert(
       this.started,
       'Cannot initialize IndexManager before persistence is started.'
     );
-    return this.indexManager;
+    return new IndexedDbIndexManager(user);
   }
 
   getDocumentOverlayCache(user: User): DocumentOverlayCache {
@@ -773,13 +772,14 @@ export class IndexedDbPersistence implements Persistence {
     logDebug(LOG_TAG, 'Starting transaction:', action);
 
     const simpleDbMode = mode === 'readonly' ? 'readonly' : 'readwrite';
+    const objectStores = getObjectStores(this.schemaVersion);
 
     let persistenceTransaction: PersistenceTransaction;
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
     return this.simpleDb
-      .runTransaction(action, simpleDbMode, ALL_STORES, simpleDbTxn => {
+      .runTransaction(action, simpleDbMode, objectStores, simpleDbTxn => {
         persistenceTransaction = new IndexedDbTransaction(
           simpleDbTxn,
           this.listenSequence

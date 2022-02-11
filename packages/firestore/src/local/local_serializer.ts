@@ -16,18 +16,26 @@
  */
 
 import { Timestamp } from '../api/timestamp';
+import { User } from '../auth/user';
 import { BundleMetadata, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { canonifyTarget, targetIsDocumentTarget, Target } from '../core/target';
+import { canonifyTarget, Target, targetIsDocumentTarget } from '../core/target';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import {
+  FieldIndex,
+  IndexOffset,
+  IndexSegment,
+  IndexState
+} from '../model/field_index';
 import { MutationBatch } from '../model/mutation_batch';
 import { Overlay } from '../model/overlay';
+import { FieldPath } from '../model/path';
 import {
+  BundledQuery as ProtoBundledQuery,
   BundleMetadata as ProtoBundleMetadata,
-  NamedQuery as ProtoNamedQuery,
-  BundledQuery as ProtoBundledQuery
+  NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
 import { DocumentsTarget as PublicDocumentsTarget } from '../protos/firestore_proto_api';
 import {
@@ -46,11 +54,16 @@ import {
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 
-import { encodeResourcePath } from './encoded_resource_path';
+import {
+  decodeResourcePath,
+  encodeResourcePath
+} from './encoded_resource_path';
 import {
   DbBundle,
   DbDocumentOverlay,
   DbDocumentOverlayKey,
+  DbIndexConfiguration,
+  DbIndexState,
   DbMutationBatch,
   DbNamedQuery,
   DbNoDocument,
@@ -437,4 +450,56 @@ export function toDbDocumentOverlayKey(
   const docId: string = docKey.path.lastSegment();
   const collectionPath: string = encodeResourcePath(docKey.path.popLast());
   return [userId, collectionPath, docId];
+}
+
+export function toDbIndexConfiguration(
+  index: FieldIndex
+): DbIndexConfiguration {
+  return new DbIndexConfiguration(
+    index.indexId,
+    index.collectionGroup,
+    index.fields.map(s => [s.fieldPath.canonicalString(), s.kind])
+  );
+}
+
+export function fromDbIndexConfiguration(
+  index: DbIndexConfiguration,
+  state: DbIndexState | null
+): FieldIndex {
+  const decodedState = state
+    ? new IndexState(
+        state.sequenceNumber,
+        new IndexOffset(
+          fromDbTimestamp(state.readTime),
+          new DocumentKey(decodeResourcePath(state.documentKey)),
+          state.largestBatchId
+        )
+      )
+    : IndexState.empty();
+  const decodedSegments = index.fields.map(
+    ([fieldPath, kind]) =>
+      new IndexSegment(FieldPath.fromServerFormat(fieldPath), kind)
+  );
+  return new FieldIndex(
+    index.indexId!,
+    index.collectionGroup,
+    decodedSegments,
+    decodedState
+  );
+}
+
+export function toDbIndexState(
+  indexId: number,
+  user: User,
+  sequenceNumber: number,
+  offset: IndexOffset
+): DbIndexState {
+  return new DbIndexState(
+    indexId,
+    user.uid || '',
+    sequenceNumber,
+    toDbTimestamp(offset.readTime),
+    encodeResourcePath(offset.documentKey.path),
+    offset.largestBatchId
+  );
 }

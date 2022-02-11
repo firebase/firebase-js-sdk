@@ -121,6 +121,16 @@ export class SimpleDbTransaction {
     }
   }
 
+  maybeCommit(): void {
+    // If the browser supports V3 IndexedDB, we invoke commit() explicitly to
+    // speed up index DB processing if the event loop remains blocks.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const maybeV3IndexedDb = this.transaction as any;
+    if (!this.aborted && typeof maybeV3IndexedDb.commit === 'function') {
+      maybeV3IndexedDb.commit();
+    }
+  }
+
   /**
    * Returns a SimpleDbStore<KeyType, ValueType> for the specified store. All
    * operations performed on the SimpleDbStore happen within the context of this
@@ -400,6 +410,10 @@ export class SimpleDb {
           objectStores
         );
         const transactionFnResult = transactionFn(transaction)
+          .next(result => {
+            transaction.maybeCommit();
+            return result;
+          })
           .catch(error => {
             // Abort the transaction if there was an error.
             transaction.abort(error);
@@ -645,13 +659,28 @@ export class SimpleDbStore<
     indexOrRange?: string | IDBKeyRange,
     range?: IDBKeyRange
   ): PersistencePromise<ValueType[]> {
-    const cursor = this.cursor(this.options(indexOrRange, range));
-    const results: ValueType[] = [];
-    return this.iterateCursor(cursor, (key, value) => {
-      results.push(value);
-    }).next(() => {
-      return results;
-    });
+    const iterateOptions = this.options(indexOrRange, range);
+    // Use `getAll()` if the browser supports IndexedDB v3, as it is roughly
+    // 20% faster. Unfortunately, getAll() does not support custom indices.
+    if (!iterateOptions.index && typeof this.store.getAll === 'function') {
+      const request = this.store.getAll(iterateOptions.range);
+      return new PersistencePromise((resolve, reject) => {
+        request.onerror = (event: Event) => {
+          reject((event.target as IDBRequest).error!);
+        };
+        request.onsuccess = (event: Event) => {
+          resolve((event.target as IDBRequest).result);
+        };
+      });
+    } else {
+      const cursor = this.cursor(iterateOptions);
+      const results: ValueType[] = [];
+      return this.iterateCursor(cursor, (key, value) => {
+        results.push(value);
+      }).next(() => {
+        return results;
+      });
+    }
   }
 
   deleteAll(): PersistencePromise<void>;

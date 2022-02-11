@@ -314,6 +314,9 @@ export async function syncEngineListen(
       syncEngineImpl.localStore,
       queryToTarget(query)
     );
+    if (syncEngineImpl.isPrimaryClient) {
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
+    }
 
     const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
       targetData.targetId
@@ -325,9 +328,6 @@ export async function syncEngineListen(
       targetId,
       status === 'current'
     );
-    if (syncEngineImpl.isPrimaryClient) {
-      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-    }
   }
 
   return viewSnapshot;

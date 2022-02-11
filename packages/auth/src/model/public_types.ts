@@ -630,7 +630,7 @@ export interface MultiFactorInfo {
 
 /**
  * The subclass of the {@link MultiFactorInfo} interface for phone number
- * second factors. The factorId of this second factor is {@link FactorId.PHONE}.
+ * second factors. The `factorId` of this second factor is {@link FactorId}.PHONE.
  * @public
  */
 export interface PhoneMultiFactorInfo extends MultiFactorInfo {
@@ -863,7 +863,7 @@ export interface PhoneMultiFactorEnrollInfoOptions {
   session: MultiFactorSession;
 }
 /**
- * Options used for signing-in with a second factor.
+ * Options used for signing in with a second factor.
  *
  * @public
  */
