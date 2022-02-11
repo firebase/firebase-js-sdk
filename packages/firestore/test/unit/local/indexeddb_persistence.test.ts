@@ -787,19 +787,21 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             DbCollectionParentKey,
             DbCollectionParent
           >(DbCollectionParent.store);
-          return collectionParentsStore.loadAll().next(indexEntries => {
-            const actualParents: { [key: string]: string[] } = {};
-            for (const { collectionId, parent } of indexEntries) {
+          // We use iterate() as loadAll() does not seem to guarantee ordering
+          // with our IndexedDB shim.
+          const actualParents: { [key: string]: string[] } = {};
+          return collectionParentsStore
+            .iterate((_, { collectionId, parent }) => {
               let parents = actualParents[collectionId];
               if (!parents) {
                 parents = [];
                 actualParents[collectionId] = parents;
               }
               parents.push(decodeResourcePath(parent).toString());
-            }
-
-            expect(actualParents).to.deep.equal(expectedParents);
-          });
+            })
+            .next(() => {
+              expect(actualParents).to.deep.equal(expectedParents);
+            });
         }
       );
     });
