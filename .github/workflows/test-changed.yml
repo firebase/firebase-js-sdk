@@ -1,9 +1,6 @@
 name: Test Modified Packages
 
 on: pull_request
-env:
-  # make chromedriver detect installed Chrome version and download the corresponding driver
-  DETECT_CHROMEDRIVER_VERSION: true
 
 jobs:
   test:
