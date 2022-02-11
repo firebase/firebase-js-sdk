@@ -66,7 +66,6 @@ export class RecaptchaEnterpriseVerifier {
    * @returns A Promise for a token that can be used to assert the validity of a request.
    */
   async verify(): Promise<string> {
-
     async function retrieveSiteKey(auth: AuthInternal): Promise<string> {
       return new Promise<string>(async (resolve, reject) => {
         getRecaptchaConfig(auth, {

@@ -20,8 +20,8 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError } from '@firebase/util';
 
-import { Endpoint, HttpHeader } from '../';
-import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { Endpoint, HttpHeader, RecaptchaClientType, RecaptchaVersion } from '../';
+import { mockEndpoint, mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
@@ -82,6 +82,11 @@ describe('api/authentication/getRecaptchaParams', () => {
 });
 
 describe('api/authentication/getRecaptchaConfig', () => {
+  const request = {
+    clientType: RecaptchaClientType.WEB,
+    recaptchaVersion: RecaptchaVersion.ENTERPRISE,
+  };
+
   let auth: TestAuth;
 
   beforeEach(async () => {
@@ -92,11 +97,11 @@ describe('api/authentication/getRecaptchaConfig', () => {
   afterEach(mockFetch.tearDown);
 
   it('should GET to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.GET_RECAPTCHA_CONFIG, {
+    const mock = mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, request, {
       recaptchaKey: 'site-key'
     });
 
-    const response = await getRecaptchaConfig(auth, {});
+    const response = await getRecaptchaConfig(auth, request);
     expect(response.recaptchaKey).to.eq('site-key');
     expect(mock.calls[0].method).to.eq('GET');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
@@ -108,8 +113,9 @@ describe('api/authentication/getRecaptchaConfig', () => {
   });
 
   it('should handle errors', async () => {
-    mockEndpoint(
+    mockEndpointWithParams(
       Endpoint.GET_RECAPTCHA_CONFIG,
+      request,
       {
         error: {
           code: 400,
@@ -119,7 +125,7 @@ describe('api/authentication/getRecaptchaConfig', () => {
       400
     );
 
-    await expect(getRecaptchaConfig(auth, {})).to.be.rejectedWith(
+    await expect(getRecaptchaConfig(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'auth/unauthorized-continue-uri'
     );
