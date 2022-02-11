@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 
 import { primitiveComparator } from '../../../src/util/misc';
-import { SortedSet } from '../../../src/util/sorted_set';
+import { diffSortedSets, SortedSet } from '../../../src/util/sorted_set';
 import { expectSetToEqual } from '../../util/helpers';
 
 describe('SortedSet', () => {
@@ -156,4 +156,43 @@ describe('SortedSet', () => {
     expect(set.indexOf(4)).to.equal(-1);
     expect(set.indexOf(5)).to.equal(4);
   });
+
+  it('diff sorted sets with missing element', () => {
+    validateDiffSortedSets(['a', 'b', 'c'], ['a', 'b']);
+  });
+
+  it('diff sorted sets with added element', () => {
+    validateDiffSortedSets(['a', 'b'], ['a', 'b', 'c']);
+  });
+
+  it('diff sorted sets with empty sets', () => {
+    validateDiffSortedSets(['a'], []);
+    validateDiffSortedSets([], ['a']);
+    validateDiffSortedSets([], []);
+  });
+
+  function validateDiffSortedSets(before: string[], after: string[]): void {
+    let beforeSorted = new SortedSet<string>(primitiveComparator);
+    let afterSorted = new SortedSet<string>(primitiveComparator);
+    before.forEach(v => {
+      beforeSorted = beforeSorted.add(v);
+    });
+    after.forEach(v => {
+      afterSorted = afterSorted.add(v);
+    });
+
+    let result = beforeSorted;
+    diffSortedSets(
+      beforeSorted,
+      afterSorted,
+      primitiveComparator,
+      v => {
+        result = result.add(v);
+      },
+      v => {
+        result = result.delete(v);
+      }
+    );
+    expect(result.isEqual(afterSorted)).to.be.true;
+  }
 });
