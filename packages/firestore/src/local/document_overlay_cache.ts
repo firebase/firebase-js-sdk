@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { Overlay } from '../model/overlay';
@@ -53,9 +54,10 @@ export interface DocumentOverlayCache {
     overlays: Map<DocumentKey, Mutation>
   ): PersistencePromise<void>;
 
-  /** Removes the overlay whose largest-batch-id equals the given ID. */
+  /** Removes overlays for the given document keys and batch ID. */
   removeOverlaysForBatchId(
     transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet,
     batchId: number
   ): PersistencePromise<void>;
 

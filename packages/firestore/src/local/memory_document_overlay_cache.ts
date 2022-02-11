@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { Overlay } from '../model/overlay';
@@ -57,6 +58,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
 
   removeOverlaysForBatchId(
     transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet,
     batchId: number
   ): PersistencePromise<void> {
     const keys = this.overlayByBatchId.get(batchId);

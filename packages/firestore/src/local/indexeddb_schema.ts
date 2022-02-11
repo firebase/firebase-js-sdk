@@ -810,11 +810,7 @@ export class DbDocumentOverlay {
 
   static keyPath = ['userId', 'collectionPath', 'documentId'];
 
-  // TODO(overlays): Remove this index if the other indexes suffice.
-  static batchIdOverlayIndex = 'batchIdOverlayIndex';
-  static batchIdOverlayIndexPath = ['userId', 'largestBatchId'];
-
-  static collectionPathOverlayIndex = 'collectionPathBatchIdIndex';
+  static collectionPathOverlayIndex = 'collectionPathOverlayIndex';
   static collectionPathOverlayIndexPath = [
     'userId',
     'collectionPath',
