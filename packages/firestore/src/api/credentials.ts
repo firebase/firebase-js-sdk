@@ -481,17 +481,15 @@ export class FirebaseAppCheckTokenProvider
             `Error getting App Check token; using placeholder token instead. Error: ${tokenResult.error.message}`
           );
         }
-        if (tokenResult.token !== this.latestAppCheckToken) {
-          logDebug('FirebaseAppCheckTokenProvider', 'Received a new token.');
-          this.latestAppCheckToken = tokenResult.token;
-          return changeListener(tokenResult.token);
-        } else {
-          logDebug(
-            'FirebaseAppCheckTokenProvider',
-            'Received a token that is the same as the existing token.'
-          );
-          return Promise.resolve();
-        }
+        const tokenUpdated = tokenResult.token !== this.latestAppCheckToken;
+        this.latestAppCheckToken = tokenResult.token;
+        logDebug(
+          'FirebaseAppCheckTokenProvider',
+          `Received ${tokenUpdated ? 'new' : 'existing'} token.`
+        );
+        return tokenUpdated
+          ? changeListener(tokenResult.token)
+          : Promise.resolve();
       };
 
     this.tokenListener = (tokenResult: AppCheckTokenResult) => {
