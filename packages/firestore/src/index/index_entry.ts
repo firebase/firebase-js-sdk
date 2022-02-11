@@ -24,19 +24,22 @@ export class IndexEntry {
   ) {}
 }
 
-export function indexEntryComparator(left: IndexEntry, right: IndexEntry) {
+export function indexEntryComparator(
+  left: IndexEntry,
+  right: IndexEntry
+): number {
   let cmp = left.indexId - right.indexId;
-  if (cmp != 0) {
+  if (cmp !== 0) {
     return cmp;
   }
 
   cmp = DocumentKey.comparator(left.documentKey, right.documentKey);
-  if (cmp != 0) {
+  if (cmp !== 0) {
     return cmp;
   }
 
   cmp = compareByteArrays(left.arrayValue, right.arrayValue);
-  if (cmp != 0) {
+  if (cmp !== 0) {
     return cmp;
   }
 

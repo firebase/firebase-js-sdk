@@ -212,7 +212,7 @@ export function diffSortedSets<T>(
   comparator: (l: T, r: T) => number,
   onAdd: (entry: T) => void,
   onRemove: (entry: T) => void
-) {
+): void {
   const beforeIt = before.getIterator();
   const afterIt = after.getIterator();
 

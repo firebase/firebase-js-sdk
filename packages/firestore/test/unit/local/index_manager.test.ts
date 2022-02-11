@@ -235,24 +235,24 @@ describe('IndexedDbIndexManager', () => {
     );
   });
 
-  it('adds documents', () => {
-    indexManager.addFieldIndex(
+  it('adds documents', async () => {
+    await indexManager.addFieldIndex(
       fieldIndex('coll', { fields: [['exists', IndexKind.ASCENDING]] })
     );
-    addDoc('coll/doc1', { 'exists': 1 });
-    addDoc('coll/doc2', {});
+    await addDoc('coll/doc1', { 'exists': 1 });
+    await addDoc('coll/doc2', {});
   });
 
-  function addDocs(...docs: Document[]) {
+  function addDocs(...docs: Document[]): Promise<void> {
     let data = documentMap();
     for (const doc of docs) {
       data = data.insert(doc.key, doc);
     }
-    indexManager.updateIndexEntries(data);
+    return indexManager.updateIndexEntries(data);
   }
 
-  function addDoc(key: string, data: JsonObject<unknown>) {
-    addDocs(doc(key, 1, data));
+  function addDoc(key: string, data: JsonObject<unknown>): Promise<void> {
+    return addDocs(doc(key, 1, data));
   }
 });
 
