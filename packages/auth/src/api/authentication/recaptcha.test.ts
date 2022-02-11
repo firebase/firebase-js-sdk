@@ -82,11 +82,6 @@ describe('api/authentication/getRecaptchaParams', () => {
 });
 
 describe('api/authentication/getRecaptchaConfig', () => {
-  const request = {
-    clientType: RecaptchaClientType.WEB,
-    recaptchaVersion: RecaptchaVersion.ENTERPRISE,
-  };
-
   let auth: TestAuth;
 
   beforeEach(async () => {
@@ -101,7 +96,7 @@ describe('api/authentication/getRecaptchaConfig', () => {
       recaptchaKey: 'site-key'
     });
 
-    const response = await getRecaptchaConfig(auth, request);
+    const response = await getRecaptchaConfig(auth, {});
     expect(response.recaptchaKey).to.eq('site-key');
     expect(mock.calls[0].method).to.eq('GET');
     expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
@@ -124,9 +119,9 @@ describe('api/authentication/getRecaptchaConfig', () => {
       400
     );
 
-    await expect(getRecaptchaConfig(auth, request)).to.be.rejectedWith(
+    await expect(getRecaptchaConfig(auth, {})).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).'
+      'auth/unauthorized-continue-uri'
     );
   });
 });
