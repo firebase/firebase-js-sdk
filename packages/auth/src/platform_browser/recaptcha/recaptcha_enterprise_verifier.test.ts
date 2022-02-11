@@ -20,8 +20,12 @@
  import * as sinon from 'sinon';
  import sinonChai from 'sinon-chai';
   
+ import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
+ import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
  import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
+ import * as mockFetch from '../../../test/helpers/mock_fetch';
  import { _window } from '../auth_window';
+ import { ServerError } from '../../api/errors';
 
  import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
  import { RecaptchaEnterpriseVerifier } from './recaptcha_enterprise_verifier';
@@ -35,14 +39,21 @@
  
    beforeEach(async () => {
      auth = await testAuth();
+     mockFetch.setUp();
      verifier = new RecaptchaEnterpriseVerifier(auth);
    });
  
    afterEach(() => {
-     sinon.restore();
+    mockFetch.tearDown();
+    sinon.restore();
    });
  
    context('#verify', () => {
+    const request = {
+      clientType: RecaptchaClientType.WEB,
+      version: RecaptchaVersion.ENTERPRISE,
+    };
+
      let recaptcha: MockGreCAPTCHATopLevel;
      beforeEach(() => {
         recaptcha = new MockGreCAPTCHATopLevel();
@@ -50,13 +61,31 @@
     });
  
      it('returns if response is available', async () => {
-       sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
-       expect(await verifier.verify()).to.eq('recaptcha-response');
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, request, {
+        recaptchaKey: 'site-key'
+      });
+      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
+      expect(await verifier.verify()).to.eq('recaptcha-response');
      });
 
-     it('reject if error is thrown', async () => {
-      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.reject(Error('recaptcha-error')));
-      await expect(verifier.verify()).to.be.rejectedWith(Error, 'recaptcha-error');
+     it('reject if error is thrown when retieve site key', async () => {
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, request, {
+        error: {
+          code: 400,
+          message: ServerError.UNAUTHORIZED_DOMAIN, // TODO(chuanr): change to new recaptcha error
+        }
+      },
+      400);
+      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
+      await expect(verifier.verify()).to.be.rejectedWith(Error, 'auth/unauthorized-continue-uri');
+    });
+
+     it('reject if error is thrown when retieve recaptcha token', async () => {
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, request, {
+        recaptchaKey: 'site-key'
+      });
+      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.reject(Error('retieve-recaptcha-token-error')));
+      await expect(verifier.verify()).to.be.rejectedWith(Error, 'retieve-recaptcha-token-error');
     });
    });
  });
