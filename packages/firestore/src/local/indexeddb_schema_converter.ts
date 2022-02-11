@@ -555,11 +555,6 @@ function createDocumentOverlayStore(db: IDBDatabase): void {
     keyPath: DbDocumentOverlay.keyPath
   });
   documentOverlayStore.createIndex(
-    DbDocumentOverlay.batchIdOverlayIndex,
-    DbDocumentOverlay.batchIdOverlayIndexPath,
-    { unique: false }
-  );
-  documentOverlayStore.createIndex(
     DbDocumentOverlay.collectionPathOverlayIndex,
     DbDocumentOverlay.collectionPathOverlayIndexPath,
     { unique: false }

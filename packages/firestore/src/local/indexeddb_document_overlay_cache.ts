@@ -16,6 +16,7 @@
  */
 
 import { User } from '../auth/user';
+import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { Overlay } from '../model/overlay';
@@ -85,18 +86,32 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
 
   removeOverlaysForBatchId(
     transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet,
     batchId: number
   ): PersistencePromise<void> {
-    const range = IDBKeyRange.bound(
-      [this.userId, batchId],
-      [this.userId, batchId + 1],
-      /*lowerOpen=*/ false,
-      /*upperOpen=*/ true
+    const collectionPaths = new Set<string>();
+
+    // Get the set of unique collection paths.
+    documentKeys.forEach(key =>
+      collectionPaths.add(encodeResourcePath(key.getCollectionPath()))
     );
-    return documentOverlayStore(transaction).deleteAll(
-      DbDocumentOverlay.batchIdOverlayIndex,
-      range
-    );
+
+    const promises: Array<PersistencePromise<void>> = [];
+    collectionPaths.forEach(collectionPath => {
+      const range = IDBKeyRange.bound(
+        [this.userId, collectionPath, batchId],
+        [this.userId, collectionPath, batchId + 1],
+        /*lowerOpen=*/ false,
+        /*upperOpen=*/ true
+      );
+      promises.push(
+        documentOverlayStore(transaction).deleteAll(
+          DbDocumentOverlay.collectionPathOverlayIndex,
+          range
+        )
+      );
+    });
+    return PersistencePromise.waitFor(promises);
   }
 
   getOverlaysForCollection(

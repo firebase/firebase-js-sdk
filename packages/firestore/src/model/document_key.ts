@@ -56,6 +56,11 @@ export class DocumentKey {
     return this.path.get(this.path.length - 2);
   }
 
+  /** Returns the fully qualified path to the parent collection. */
+  getCollectionPath(): ResourcePath {
+    return this.path.popLast();
+  }
+
   isEqual(other: DocumentKey | null): boolean {
     return (
       other !== null && ResourcePath.comparator(this.path, other.path) === 0
