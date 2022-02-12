@@ -461,10 +461,9 @@ export class FirebaseAppCheckTokenProvider
    * we can unregister it.
    */
   private tokenListener!: AppCheckTokenListener;
-
   private forceRefresh = false;
-
   private appCheck: FirebaseAppCheckInternal | null = null;
+  private latestAppCheckToken: string | null = null;
 
   constructor(
     private appCheckProvider: Provider<AppCheckInternalComponentName>
@@ -482,7 +481,15 @@ export class FirebaseAppCheckTokenProvider
             `Error getting App Check token; using placeholder token instead. Error: ${tokenResult.error.message}`
           );
         }
-        return changeListener(tokenResult.token);
+        const tokenUpdated = tokenResult.token !== this.latestAppCheckToken;
+        this.latestAppCheckToken = tokenResult.token;
+        logDebug(
+          'FirebaseAppCheckTokenProvider',
+          `Received ${tokenUpdated ? 'new' : 'existing'} token.`
+        );
+        return tokenUpdated
+          ? changeListener(tokenResult.token)
+          : Promise.resolve();
       };
 
     this.tokenListener = (tokenResult: AppCheckTokenResult) => {
@@ -534,6 +541,7 @@ export class FirebaseAppCheckTokenProvider
           typeof tokenResult.token === 'string',
           'Invalid tokenResult returned from getToken():' + tokenResult
         );
+        this.latestAppCheckToken = tokenResult.token;
         return new AppCheckToken(tokenResult.token);
       } else {
         return null;
