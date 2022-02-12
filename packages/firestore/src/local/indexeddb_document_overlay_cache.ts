@@ -147,7 +147,6 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
   ): PersistencePromise<Map<DocumentKey, Overlay>> {
     const result = new Map<DocumentKey, Overlay>();
     let currentBatchId: number | undefined = undefined;
-    let currentCount = 0;
     // We want batch IDs larger than `sinceBatchId`, and so the lower bound
     // is not inclusive.
     const range = IDBKeyRange.bound(
@@ -164,16 +163,15 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
         (_, dbOverlay, control) => {
           // We do not want to return partial batch overlays, even if the size
           // of the result set exceeds the given `count` argument. Therefore, we
-          // continue to aggregate the results even after `currentCount` exceeds
+          // continue to aggregate results even after the result size exceeds
           // `count` if there are more overlays from the `currentBatchId`.
           const overlay = fromDbDocumentOverlay(this.serializer, dbOverlay);
           if (
-            currentCount < count ||
+            result.size < count ||
             overlay.largestBatchId === currentBatchId
           ) {
             result.set(overlay.getKey(), overlay);
             currentBatchId = overlay.largestBatchId;
-            ++currentCount;
           } else {
             control.done();
           }

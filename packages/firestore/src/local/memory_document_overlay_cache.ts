@@ -32,7 +32,6 @@ import { PersistenceTransaction } from './persistence_transaction';
 export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
   // A map sorted by DocumentKey, whose value is a pair of the largest batch id
   // for the overlay and the overlay itself.
-
   private overlays = new SortedMap<DocumentKey, Overlay>(
     DocumentKey.comparator
   );

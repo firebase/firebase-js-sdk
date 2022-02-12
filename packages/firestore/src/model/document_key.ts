@@ -53,6 +53,10 @@ export class DocumentKey {
 
   /** Returns the collection group (i.e. the name of the parent collection) for this key. */
   getCollectionGroup(): string {
+    debugAssert(
+      !this.path.isEmpty(),
+      'Cannot get collection group for empty key'
+    );
     return this.path.get(this.path.length - 2);
   }
 
