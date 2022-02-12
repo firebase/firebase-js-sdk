@@ -20,6 +20,7 @@ import { TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 
 import { BundleCache } from './bundle_cache';
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
 import { LocalStore } from './local_store';
 import { MutationQueue } from './mutation_queue';
@@ -215,6 +216,12 @@ export interface Persistence {
    * to emulate the persisted implementation to the extent possible.
    */
   getIndexManager(user: User): IndexManager;
+
+  /**
+   * Returns a DocumentOverlayCache representing the documents that are mutated
+   * locally.
+   */
+  getDocumentOverlayCache(user: User): DocumentOverlayCache;
 
   /**
    * Performs an operation inside a persistence transaction. Any reads or writes

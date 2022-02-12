@@ -51,6 +51,7 @@ import {
   DbTimestamp,
   SCHEMA_VERSION,
   V12_STORES,
+  V13_STORES,
   V1_STORES,
   V3_STORES,
   V4_STORES,
@@ -1032,6 +1033,14 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     await withDb(12, async (db, version, objectStores) => {
       expect(version).to.have.equal(12);
       expect(objectStores).to.have.members(V12_STORES);
+    });
+  });
+
+  it('can upgrade from version 12 to 13', async () => {
+    await withDb(12, async () => {});
+    await withDb(13, async (db, version, objectStores) => {
+      expect(version).to.have.equal(13);
+      expect(objectStores).to.have.members(V13_STORES);
     });
   });
 

@@ -28,8 +28,10 @@ import { logDebug, logError } from '../util/log';
 import { DocumentLike, WindowLike } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
 import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
+import { IndexedDbDocumentOverlayCache } from './indexeddb_document_overlay_cache';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import { IndexedDbLruDelegateImpl } from './indexeddb_lru_delegate_impl';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
@@ -742,6 +744,14 @@ export class IndexedDbPersistence implements Persistence {
       'Cannot initialize IndexManager before persistence is started.'
     );
     return new IndexedDbIndexManager(user);
+  }
+
+  getDocumentOverlayCache(user: User): DocumentOverlayCache {
+    debugAssert(
+      this.started,
+      'Cannot initialize IndexedDbDocumentOverlayCache before persistence is started.'
+    );
+    return IndexedDbDocumentOverlayCache.forUser(this.serializer, user);
   }
 
   getBundleCache(): BundleCache {

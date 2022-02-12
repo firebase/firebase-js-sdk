@@ -30,6 +30,7 @@ import {
   IndexState
 } from '../model/field_index';
 import { MutationBatch } from '../model/mutation_batch';
+import { Overlay } from '../model/overlay';
 import { FieldPath } from '../model/path';
 import {
   BundledQuery as ProtoBundledQuery,
@@ -59,6 +60,8 @@ import {
 } from './encoded_resource_path';
 import {
   DbBundle,
+  DbDocumentOverlay,
+  DbDocumentOverlayKey,
   DbIndexConfiguration,
   DbIndexState,
   DbMutationBatch,
@@ -400,6 +403,53 @@ export function fromBundleMetadata(
     version: metadata.version!,
     createTime: fromVersion(metadata.createTime!)
   };
+}
+
+/** Encodes a DbDocumentOverlay object to an Overlay model object. */
+export function fromDbDocumentOverlay(
+  localSerializer: LocalSerializer,
+  dbDocumentOverlay: DbDocumentOverlay
+): Overlay {
+  return new Overlay(
+    dbDocumentOverlay.largestBatchId,
+    fromMutation(
+      localSerializer.remoteSerializer,
+      dbDocumentOverlay.overlayMutation
+    )
+  );
+}
+
+/** Decodes an Overlay model object into a DbDocumentOverlay object. */
+export function toDbDocumentOverlay(
+  localSerializer: LocalSerializer,
+  userId: string,
+  overlay: Overlay
+): DbDocumentOverlay {
+  const [_, collectionPath, documentId] = toDbDocumentOverlayKey(
+    userId,
+    overlay.mutation.key
+  );
+  return new DbDocumentOverlay(
+    userId,
+    collectionPath,
+    documentId,
+    overlay.mutation.key.getCollectionGroup(),
+    overlay.largestBatchId,
+    toMutation(localSerializer.remoteSerializer, overlay.mutation)
+  );
+}
+
+/**
+ * Returns the DbDocumentOverlayKey corresponding to the given user and
+ * document key.
+ */
+export function toDbDocumentOverlayKey(
+  userId: string,
+  docKey: DocumentKey
+): DbDocumentOverlayKey {
+  const docId: string = docKey.path.lastSegment();
+  const collectionPath: string = encodeResourcePath(docKey.path.popLast());
+  return [userId, collectionPath, docId];
 }
 
 export function toDbIndexConfiguration(

@@ -27,6 +27,7 @@ import { fail } from '../util/assert';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
 
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { encodeResourcePath } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import { LocalSerializer } from './local_serializer';
@@ -38,6 +39,7 @@ import {
 } from './lru_garbage_collector';
 import { newLruGarbageCollector } from './lru_garbage_collector_impl';
 import { MemoryBundleCache } from './memory_bundle_cache';
+import { MemoryDocumentOverlayCache } from './memory_document_overlay_cache';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import {
@@ -70,6 +72,7 @@ export class MemoryPersistence implements Persistence {
    */
   private readonly indexManager: MemoryIndexManager;
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
+  private overlays: { [user: string]: MemoryDocumentOverlayCache } = {};
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
   private readonly targetCache: MemoryTargetCache;
   private readonly bundleCache: MemoryBundleCache;
@@ -127,6 +130,15 @@ export class MemoryPersistence implements Persistence {
     // We do not currently support indices for memory persistence, so we can
     // return the same shared instance of the memory index manager.
     return this.indexManager;
+  }
+
+  getDocumentOverlayCache(user: User): DocumentOverlayCache {
+    let overlay = this.overlays[user.toKey()];
+    if (!overlay) {
+      overlay = new MemoryDocumentOverlayCache();
+      this.overlays[user.toKey()] = overlay;
+    }
+    return overlay;
   }
 
   getMutationQueue(user: User, indexManager: IndexManager): MutationQueue {
