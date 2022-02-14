@@ -49,7 +49,7 @@ export function indexEntryComparator(
   return compareByteArrays(left.directionalValue, right.directionalValue);
 }
 
-function compareByteArrays(left: Uint8Array, right: Uint8Array): number {
+export function compareByteArrays(left: Uint8Array, right: Uint8Array): number {
   for (let i = 0; i < left.length && i < right.length; ++i) {
     const compare = left[i] - right[i];
     if (compare !== 0) {

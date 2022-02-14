@@ -76,15 +76,11 @@ export class TestIndexManager {
     );
   }
 
-  getDocumentsMatchingTarget(
-    fieldIndex: FieldIndex,
-    target: Target
-  ): Promise<DocumentKeySet> {
+  getDocumentsMatchingTarget(target: Target): Promise<DocumentKeySet | null> {
     return this.persistence.runTransaction(
       'getDocumentsMatchingTarget',
       'readonly',
-      txn =>
-        this.indexManager.getDocumentsMatchingTarget(txn, fieldIndex, target)
+      txn => this.indexManager.getDocumentsMatchingTarget(txn, target)
     );
   }
 

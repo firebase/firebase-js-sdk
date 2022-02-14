@@ -16,11 +16,7 @@
  */
 
 import { Target } from '../core/target';
-import {
-  documentKeySet,
-  DocumentKeySet,
-  DocumentMap
-} from '../model/collections';
+import { DocumentKeySet, DocumentMap } from '../model/collections';
 import { FieldIndex, IndexOffset } from '../model/field_index';
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
@@ -71,11 +67,10 @@ export class MemoryIndexManager implements IndexManager {
 
   getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
-    fieldIndex: FieldIndex,
     target: Target
-  ): PersistencePromise<DocumentKeySet> {
+  ): PersistencePromise<DocumentKeySet | null> {
     // Field indices are not supported with memory persistence.
-    return PersistencePromise.resolve(documentKeySet());
+    return PersistencePromise.resolve<DocumentKeySet | null>(null);
   }
 
   getFieldIndex(

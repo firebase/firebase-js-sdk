@@ -39,6 +39,8 @@ export class ByteString {
   }
 
   static fromUint8Array(array: Uint8Array): ByteString {
+    // TODO(indexing); Remove the copy of the byte string here as this method
+    // is frequently called during indexing.
     const binaryString = binaryStringFromUint8Array(array);
     return new ByteString(binaryString);
   }

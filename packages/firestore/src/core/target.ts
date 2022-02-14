@@ -333,9 +333,8 @@ export function targetGetLowerBound(
           filterValue = MIN_VALUE;
           break;
         case Operator.NOT_IN:
-          const length = (fieldFilter.value.arrayValue!.values || []).length;
           filterValue = {
-            arrayValue: { values: new Array(length).fill(MIN_VALUE) }
+            arrayValue: { values: [MIN_VALUE] }
           };
           break;
         default:
@@ -418,9 +417,8 @@ export function targetGetUpperBound(
           filterValue = MAX_VALUE;
           break;
         case Operator.NOT_IN:
-          const length = (fieldFilter.value.arrayValue!.values || []).length;
           filterValue = {
-            arrayValue: { values: new Array(length).fill(MIN_VALUE) }
+            arrayValue: { values: [MAX_VALUE] }
           };
           break;
         default:

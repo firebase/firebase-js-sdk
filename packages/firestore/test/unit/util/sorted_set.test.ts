@@ -171,12 +171,12 @@ describe('SortedSet', () => {
 
   it('diff sorted sets with empty sets', () => {
     {
-      let { added, removed } = computeDiffs(['a'], []);
+      const { added, removed } = computeDiffs(['a'], []);
       expect(added).to.have.members([]);
       expect(removed).to.have.members(['a']);
     }
     {
-      let { added, removed } = computeDiffs([], ['a']);
+      const { added, removed } = computeDiffs([], ['a']);
       expect(added).to.have.members(['a']);
       expect(removed).to.have.members([]);
     }
