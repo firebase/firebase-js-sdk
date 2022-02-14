@@ -806,7 +806,7 @@ export class DbIndexEntry {
     'documentKey'
   ];
 
-  static documentKeyIndex = 'sequenceNumberIndex';
+  static documentKeyIndex = 'documentKeyIndex';
 
   static documentKeyIndexPath = ['indexId', 'uid', 'documentKey'];
 
