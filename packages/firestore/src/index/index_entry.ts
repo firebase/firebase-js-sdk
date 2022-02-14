@@ -52,7 +52,7 @@ export function indexEntryComparator(
 function compareByteArrays(left: Uint8Array, right: Uint8Array): number {
   for (let i = 0; i < left.length && i < right.length; ++i) {
     const compare = left[i] - right[i];
-    if (compare) {
+    if (compare !== 0) {
       return compare;
     }
   }

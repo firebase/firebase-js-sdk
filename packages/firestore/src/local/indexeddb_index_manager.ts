@@ -320,6 +320,10 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     documents: DocumentMap
   ): PersistencePromise<void> {
+    // Porting Note: `getFieldIndexes()` on Web does not cache index lookups as
+    // it could be used across different IndexedDB transactions. As any cached
+    // data might invalidated by other multi-tab clients, we can only trust data
+    // within a single IndexedDB transaction. We therefore add a cache here.
     const memoizedIndexes = new Map<string, FieldIndex[]>();
     return PersistencePromise.forEach(documents, (key, doc) => {
       const memoizedCollectionIndexes = memoizedIndexes.get(
@@ -481,10 +485,10 @@ export class IndexedDbIndexManager implements IndexManager {
       existingEntries,
       newEntries,
       indexEntryComparator,
-      entry => {
+      /* onAdd= */ entry => {
         promises.push(this.addIndexEntry(transaction, document, entry));
       },
-      entry => {
+      /* onRemove= */ entry => {
         promises.push(this.deleteIndexEntry(transaction, document, entry));
       }
     );

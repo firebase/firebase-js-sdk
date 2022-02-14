@@ -158,20 +158,39 @@ describe('SortedSet', () => {
   });
 
   it('diff sorted sets with missing element', () => {
-    validateDiffSortedSets(['a', 'b', 'c'], ['a', 'b']);
+    const { added, removed } = computeDiffs(['a', 'b', 'c'], ['a', 'b']);
+    expect(added).to.have.members([]);
+    expect(removed).to.have.members(['c']);
   });
 
   it('diff sorted sets with added element', () => {
-    validateDiffSortedSets(['a', 'b'], ['a', 'b', 'c']);
+    const { added, removed } = computeDiffs(['a', 'b'], ['a', 'b', 'c']);
+    expect(added).to.have.members(['c']);
+    expect(removed).to.have.members([]);
   });
 
   it('diff sorted sets with empty sets', () => {
-    validateDiffSortedSets(['a'], []);
-    validateDiffSortedSets([], ['a']);
-    validateDiffSortedSets([], []);
+    {
+      let { added, removed } = computeDiffs(['a'], []);
+      expect(added).to.have.members([]);
+      expect(removed).to.have.members(['a']);
+    }
+    {
+      let { added, removed } = computeDiffs([], ['a']);
+      expect(added).to.have.members(['a']);
+      expect(removed).to.have.members([]);
+    }
+    {
+      const { added, removed } = computeDiffs([], []);
+      expect(added).to.have.members([]);
+      expect(removed).to.have.members([]);
+    }
   });
 
-  function validateDiffSortedSets(before: string[], after: string[]): void {
+  function computeDiffs(
+    before: string[],
+    after: string[]
+  ): { added: string[]; removed: string[] } {
     let beforeSorted = new SortedSet<string>(primitiveComparator);
     let afterSorted = new SortedSet<string>(primitiveComparator);
     before.forEach(v => {
@@ -181,18 +200,19 @@ describe('SortedSet', () => {
       afterSorted = afterSorted.add(v);
     });
 
-    let result = beforeSorted;
+    const added: string[] = [];
+    const removed: string[] = [];
     diffSortedSets(
       beforeSorted,
       afterSorted,
       primitiveComparator,
       v => {
-        result = result.add(v);
+        added.push(v);
       },
       v => {
-        result = result.delete(v);
+        removed.push(v);
       }
     );
-    expect(result.isEqual(afterSorted)).to.be.true;
+    return { added, removed };
   }
 });
