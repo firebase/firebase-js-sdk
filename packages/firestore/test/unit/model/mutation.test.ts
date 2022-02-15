@@ -67,7 +67,7 @@ describe('Mutation', () => {
     const document = doc('collection/key', 0, docData);
 
     const set = setMutation('collection/key', { bar: 'bar-value' });
-    mutationApplyToLocalView(set, document, timestamp);
+    mutationApplyToLocalView(set, document, /* previousMask */ null, timestamp);
     expect(document).to.deep.equal(
       doc('collection/key', 0, { bar: 'bar-value' }).setHasLocalMutations()
     );
@@ -81,7 +81,12 @@ describe('Mutation', () => {
       'foo.bar': 'new-bar-value'
     });
 
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' },
@@ -100,7 +105,12 @@ describe('Mutation', () => {
       Precondition.none()
     );
 
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' }
@@ -118,7 +128,12 @@ describe('Mutation', () => {
       Precondition.none()
     );
 
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' }
@@ -134,7 +149,12 @@ describe('Mutation', () => {
       'foo.bar': deleteField()
     });
 
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { baz: 'baz-value' }
@@ -151,7 +171,12 @@ describe('Mutation', () => {
       'foo.bar': 'new-bar-value'
     });
 
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' },
@@ -163,7 +188,12 @@ describe('Mutation', () => {
   it('patching a NoDocument yields a NoDocument', () => {
     const document = deletedDoc('collection/key', 0);
     const patch = patchMutation('collection/key', { foo: 'bar' });
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(deletedDoc('collection/key', 0));
   });
 
@@ -175,7 +205,12 @@ describe('Mutation', () => {
       'foo.bar': serverTimestamp()
     });
 
-    mutationApplyToLocalView(transform, document, timestamp);
+    mutationApplyToLocalView(
+      transform,
+      document,
+      /* previousMask */ null,
+      timestamp
+    );
 
     // Server timestamps aren't parsed, so we manually insert it.
     const data = wrapObject({
@@ -340,7 +375,12 @@ describe('Mutation', () => {
 
     for (const transformData of transforms) {
       const transform = patchMutation('collection/key', transformData);
-      mutationApplyToLocalView(transform, document, timestamp);
+      mutationApplyToLocalView(
+        transform,
+        document,
+        /* previousMask */ null,
+        timestamp
+      );
     }
 
     const expectedDoc = doc(
@@ -479,7 +519,12 @@ describe('Mutation', () => {
     const document = doc('collection/key', 0, { foo: 'bar' });
 
     const mutation = deleteMutation('collection/key');
-    mutationApplyToLocalView(mutation, document, Timestamp.now());
+    mutationApplyToLocalView(
+      mutation,
+      document,
+      /* previousMask */ null,
+      Timestamp.now()
+    );
     expect(document).to.deep.equal(deletedDoc('collection/key', 0));
   });
 
@@ -627,8 +672,18 @@ describe('Mutation', () => {
     const inc = { sum: increment(1) };
     const transform = setMutation('collection/key', inc);
 
-    mutationApplyToLocalView(transform, document, Timestamp.now());
-    mutationApplyToLocalView(transform, document, Timestamp.now());
+    mutationApplyToLocalView(
+      transform,
+      document,
+      /* previousMask */ null,
+      Timestamp.now()
+    );
+    mutationApplyToLocalView(
+      transform,
+      document,
+      /* previousMask */ null,
+      Timestamp.now()
+    );
 
     expect(document.isFoundDocument()).to.be.true;
     expect(document.data.field(field('sum'))).to.deep.equal(wrap(2));
