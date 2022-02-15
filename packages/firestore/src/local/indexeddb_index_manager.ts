@@ -17,15 +17,30 @@
 
 import { User } from '../auth/user';
 import { Target } from '../core/target';
+import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
+import { IndexByteEncoder } from '../index/index_byte_encoder';
+import { IndexEntry, indexEntryComparator } from '../index/index_entry';
 import {
   documentKeySet,
   DocumentKeySet,
   DocumentMap
 } from '../model/collections';
-import { FieldIndex, IndexOffset } from '../model/field_index';
+import { Document } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import {
+  FieldIndex,
+  fieldIndexGetArraySegment,
+  fieldIndexGetDirectionalSegments,
+  IndexKind,
+  IndexOffset
+} from '../model/field_index';
 import { ResourcePath } from '../model/path';
+import { isArray } from '../model/values';
+import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert } from '../util/assert';
+import { logDebug } from '../util/log';
 import { immediateSuccessor } from '../util/misc';
+import { diffSortedSets, SortedSet } from '../util/sorted_set';
 
 import {
   decodeResourcePath,
@@ -52,6 +67,8 @@ import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { SimpleDbStore } from './simple_db';
+
+const LOG_TAG = 'IndexedDbIndexManager';
 
 /**
  * A persisted implementation of IndexManager.
@@ -194,6 +211,40 @@ export class IndexedDbIndexManager implements IndexManager {
     return PersistencePromise.resolve<FieldIndex | null>(null);
   }
 
+  /**
+   * Returns the byte encoded form of the directional values in the field index.
+   * Returns `null` if the document does not have all fields specified in the
+   * index.
+   */
+  private encodeDirectionalElements(
+    fieldIndex: FieldIndex,
+    document: Document
+  ): Uint8Array | null {
+    const encoder = new IndexByteEncoder();
+    for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
+      const field = document.data.field(segment.fieldPath);
+      if (field == null) {
+        return null;
+      }
+      const directionalEncoder = encoder.forKind(segment.kind);
+      FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
+        field,
+        directionalEncoder
+      );
+    }
+    return encoder.encodedBytes();
+  }
+
+  /** Encodes a single value to the ascending index format. */
+  private encodeSingleElement(value: ProtoValue): Uint8Array {
+    const encoder = new IndexByteEncoder();
+    FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
+      value,
+      encoder.forKind(IndexKind.ASCENDING)
+    );
+    return encoder.encodedBytes();
+  }
+
   getFieldIndexes(
     transaction: PersistenceTransaction,
     collectionGroup?: string
@@ -269,8 +320,181 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     documents: DocumentMap
   ): PersistencePromise<void> {
-    // TODO(indexing): Implement
-    return PersistencePromise.resolve();
+    // Porting Note: `getFieldIndexes()` on Web does not cache index lookups as
+    // it could be used across different IndexedDB transactions. As any cached
+    // data might be invalidated by other multi-tab clients, we can only trust
+    // data within a single IndexedDB transaction. We therefore add a cache
+    // here.
+    const memoizedIndexes = new Map<string, FieldIndex[]>();
+    return PersistencePromise.forEach(documents, (key, doc) => {
+      const memoizedCollectionIndexes = memoizedIndexes.get(
+        key.collectionGroup
+      );
+      const fieldIndexes = memoizedCollectionIndexes
+        ? PersistencePromise.resolve(memoizedCollectionIndexes)
+        : this.getFieldIndexes(transaction, key.collectionGroup);
+
+      return fieldIndexes.next(fieldIndexes => {
+        memoizedIndexes.set(key.collectionGroup, fieldIndexes);
+        return PersistencePromise.forEach(
+          fieldIndexes,
+          (fieldIndex: FieldIndex) => {
+            return this.getExistingIndexEntries(
+              transaction,
+              key,
+              fieldIndex
+            ).next(existingEntries => {
+              const newEntries = this.computeIndexEntries(doc, fieldIndex);
+              if (!existingEntries.isEqual(newEntries)) {
+                return this.updateEntries(
+                  transaction,
+                  doc,
+                  existingEntries,
+                  newEntries
+                );
+              }
+              return PersistencePromise.resolve();
+            });
+          }
+        );
+      });
+    });
+  }
+
+  private addIndexEntry(
+    transaction: PersistenceTransaction,
+    document: Document,
+    indexEntry: IndexEntry
+  ): PersistencePromise<void> {
+    const indexEntries = indexEntriesStore(transaction);
+    return indexEntries.put(
+      new DbIndexEntry(
+        indexEntry.indexId,
+        this.uid,
+        indexEntry.arrayValue,
+        indexEntry.directionalValue,
+        encodeResourcePath(document.key.path)
+      )
+    );
+  }
+
+  private deleteIndexEntry(
+    transaction: PersistenceTransaction,
+    document: Document,
+    indexEntry: IndexEntry
+  ): PersistencePromise<void> {
+    const indexEntries = indexEntriesStore(transaction);
+    return indexEntries.delete([
+      indexEntry.indexId,
+      this.uid,
+      indexEntry.arrayValue,
+      indexEntry.directionalValue,
+      encodeResourcePath(document.key.path)
+    ]);
+  }
+
+  private getExistingIndexEntries(
+    transaction: PersistenceTransaction,
+    documentKey: DocumentKey,
+    fieldIndex: FieldIndex
+  ): PersistencePromise<SortedSet<IndexEntry>> {
+    const indexEntries = indexEntriesStore(transaction);
+    let results = new SortedSet<IndexEntry>(indexEntryComparator);
+    return indexEntries
+      .iterate(
+        {
+          index: DbIndexEntry.documentKeyIndex,
+          range: IDBKeyRange.only([
+            fieldIndex.indexId,
+            this.uid,
+            encodeResourcePath(documentKey.path)
+          ])
+        },
+        (_, entry) => {
+          results = results.add(
+            new IndexEntry(
+              fieldIndex.indexId,
+              documentKey,
+              entry.arrayValue,
+              entry.directionalValue
+            )
+          );
+        }
+      )
+      .next(() => results);
+  }
+
+  /** Creates the index entries for the given document. */
+  private computeIndexEntries(
+    document: Document,
+    fieldIndex: FieldIndex
+  ): SortedSet<IndexEntry> {
+    let results = new SortedSet<IndexEntry>(indexEntryComparator);
+
+    const directionalValue = this.encodeDirectionalElements(
+      fieldIndex,
+      document
+    );
+    if (directionalValue == null) {
+      return results;
+    }
+
+    const arraySegment = fieldIndexGetArraySegment(fieldIndex);
+    if (arraySegment != null) {
+      const value = document.data.field(arraySegment.fieldPath);
+      if (isArray(value)) {
+        for (const arrayValue of value.arrayValue!.values || []) {
+          results = results.add(
+            new IndexEntry(
+              fieldIndex.indexId,
+              document.key,
+              this.encodeSingleElement(arrayValue),
+              directionalValue
+            )
+          );
+        }
+      }
+    } else {
+      results = results.add(
+        new IndexEntry(
+          fieldIndex.indexId,
+          document.key,
+          new Uint8Array(),
+          directionalValue
+        )
+      );
+    }
+
+    return results;
+  }
+
+  /**
+   * Updates the index entries for the provided document by deleting entries
+   * that are no longer referenced in `newEntries` and adding all newly added
+   * entries.
+   */
+  private updateEntries(
+    transaction: PersistenceTransaction,
+    document: Document,
+    existingEntries: SortedSet<IndexEntry>,
+    newEntries: SortedSet<IndexEntry>
+  ): PersistencePromise<void> {
+    logDebug(LOG_TAG, "Updating index entries for document '%s'", document.key);
+
+    const promises: Array<PersistencePromise<void>> = [];
+    diffSortedSets(
+      existingEntries,
+      newEntries,
+      indexEntryComparator,
+      /* onAdd= */ entry => {
+        promises.push(this.addIndexEntry(transaction, document, entry));
+      },
+      /* onRemove= */ entry => {
+        promises.push(this.deleteIndexEntry(transaction, document, entry));
+      }
+    );
+
+    return PersistencePromise.waitFor(promises);
   }
 
   private getNextSequenceNumber(

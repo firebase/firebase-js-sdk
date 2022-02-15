@@ -808,6 +808,10 @@ export class DbIndexEntry {
     'documentKey'
   ];
 
+  static documentKeyIndex = 'documentKeyIndex';
+
+  static documentKeyIndexPath = ['indexId', 'uid', 'documentKey'];
+
   constructor(
     /** The index id for this entry. */
     public indexId: number,

@@ -43,6 +43,14 @@ export class DocumentKey {
     return new DocumentKey(ResourcePath.emptyPath());
   }
 
+  get collectionGroup(): string {
+    debugAssert(
+      !this.path.isEmpty(),
+      'Cannot get collection group for empty key'
+    );
+    return this.path.popLast().lastSegment();
+  }
+
   /** Returns true if the document is in the specified collectionId. */
   hasCollectionId(collectionId: string): boolean {
     return (

@@ -545,9 +545,14 @@ function createFieldIndex(db: IDBDatabase): void {
     { unique: false }
   );
 
-  db.createObjectStore(DbIndexEntry.store, {
+  const indexEntryStore = db.createObjectStore(DbIndexEntry.store, {
     keyPath: DbIndexEntry.keyPath
   });
+  indexEntryStore.createIndex(
+    DbIndexEntry.documentKeyIndex,
+    DbIndexEntry.documentKeyIndexPath,
+    { unique: false }
+  );
 }
 
 function createDocumentOverlayStore(db: IDBDatabase): void {

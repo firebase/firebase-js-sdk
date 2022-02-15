@@ -21,13 +21,16 @@ import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { INDEXING_SCHEMA_VERSION } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
+import { documentMap } from '../../../src/model/collections';
+import { Document } from '../../../src/model/document';
 import {
   IndexKind,
   IndexOffset,
   IndexState
 } from '../../../src/model/field_index';
+import { JsonObject } from '../../../src/model/object_value';
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import { fieldIndex, key, path, version } from '../../util/helpers';
+import { doc, fieldIndex, key, path, version } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
@@ -58,9 +61,13 @@ describe('IndexedDbIndexManager', () => {
 
   genericIndexManagerTests(() => persistencePromise);
 
-  it('can add indexes', async () => {
-    const indexManager = await getIndexManager();
+  let indexManager: TestIndexManager;
 
+  beforeEach(async () => {
+    indexManager = await getIndexManager();
+  });
+
+  it('can add indexes', async () => {
     await indexManager.addFieldIndex(fieldIndex('coll1'));
 
     const fieldIndexes = await indexManager.getFieldIndexes();
@@ -69,8 +76,6 @@ describe('IndexedDbIndexManager', () => {
   });
 
   it('uses auto-incrementing index id', async () => {
-    const indexManager = await getIndexManager();
-
     await indexManager.addFieldIndex(fieldIndex('coll1'));
     await indexManager.addFieldIndex(fieldIndex('coll2'));
 
@@ -81,8 +86,6 @@ describe('IndexedDbIndexManager', () => {
   });
 
   it('can get indexes', async () => {
-    const indexManager = await getIndexManager();
-
     let fieldIndexes = await indexManager.getFieldIndexes('coll1');
     expect(fieldIndexes).to.have.length(0);
 
@@ -123,8 +126,6 @@ describe('IndexedDbIndexManager', () => {
   });
 
   it('can update collection group', async () => {
-    const indexManager = await getIndexManager();
-
     await indexManager.addFieldIndex(fieldIndex('coll1'));
     await indexManager.addFieldIndex(fieldIndex('coll1'));
     await indexManager.addFieldIndex(fieldIndex('coll2'));
@@ -156,8 +157,6 @@ describe('IndexedDbIndexManager', () => {
   });
 
   it('can get next collection group to update', async () => {
-    const indexManager = await getIndexManager();
-
     let nextCollectionGroup =
       await indexManager.getNextCollectionGroupToUpdate();
     expect(nextCollectionGroup).to.be.null;
@@ -175,7 +174,6 @@ describe('IndexedDbIndexManager', () => {
   });
 
   it('deleting field index removes entry from collection group', async () => {
-    const indexManager = await getIndexManager();
     const offsetBefore = new IndexOffset(version(1337), key('coll1/doc'), 42);
     const offsetAfter = IndexOffset.min();
 
@@ -199,8 +197,6 @@ describe('IndexedDbIndexManager', () => {
   });
 
   it('deleting field index removes entry from getNextCollectionGroupToUpdate()', async () => {
-    const indexManager = await getIndexManager();
-
     await indexManager.addFieldIndex(fieldIndex('coll1'));
     expect(await indexManager.getNextCollectionGroupToUpdate()).to.equal(
       'coll1'
@@ -238,6 +234,26 @@ describe('IndexedDbIndexManager', () => {
       new IndexState(1, user1Offset)
     );
   });
+
+  it('adds documents', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['exists', IndexKind.ASCENDING]] })
+    );
+    await addDoc('coll/doc1', { 'exists': 1 });
+    await addDoc('coll/doc2', {});
+  });
+
+  function addDocs(...docs: Document[]): Promise<void> {
+    let data = documentMap();
+    for (const doc of docs) {
+      data = data.insert(doc.key, doc);
+    }
+    return indexManager.updateIndexEntries(data);
+  }
+
+  function addDoc(key: string, data: JsonObject<unknown>): Promise<void> {
+    return addDocs(doc(key, 1, data));
+  }
 });
 
 /**
