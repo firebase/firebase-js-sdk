@@ -47,12 +47,6 @@ describe('Bytes', () => {
     });
   });
 
-  it('throws on invalid Base64 strings', () => {
-    expect(() => Bytes.fromBase64String('not-base64!')).to.throw(
-      /Failed to construct data from Base64 string:/
-    );
-  });
-
   it('works with instanceof checks', () => {
     expect(Bytes.fromBase64String('') instanceof Bytes).to.equal(true);
   });

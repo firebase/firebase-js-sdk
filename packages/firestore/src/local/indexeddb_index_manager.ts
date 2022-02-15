@@ -16,10 +16,25 @@
  */
 
 import { User } from '../auth/user';
-import { Target } from '../core/target';
+import {
+  Bound,
+  canonifyTarget,
+  FieldFilter,
+  Operator,
+  Target,
+  targetEquals,
+  targetGetArrayValues,
+  targetGetLowerBound,
+  targetGetNotInValues,
+  targetGetUpperBound
+} from '../core/target';
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../index/index_byte_encoder';
-import { IndexEntry, indexEntryComparator } from '../index/index_entry';
+import {
+  compareByteArrays,
+  IndexEntry,
+  indexEntryComparator
+} from '../index/index_entry';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -31,15 +46,19 @@ import {
   FieldIndex,
   fieldIndexGetArraySegment,
   fieldIndexGetDirectionalSegments,
+  fieldIndexToString,
   IndexKind,
-  IndexOffset
+  IndexOffset,
+  IndexSegment
 } from '../model/field_index';
-import { ResourcePath } from '../model/path';
+import { FieldPath, ResourcePath } from '../model/path';
+import { TargetIndexMatcher } from '../model/target_index_matcher';
 import { isArray } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert } from '../util/assert';
 import { logDebug } from '../util/log';
 import { immediateSuccessor } from '../util/misc';
+import { ObjectMap } from '../util/obj_map';
 import { diffSortedSets, SortedSet } from '../util/sorted_set';
 
 import {
@@ -70,6 +89,8 @@ import { SimpleDbStore } from './simple_db';
 
 const LOG_TAG = 'IndexedDbIndexManager';
 
+const EMPTY_VALUE = new Uint8Array(0);
+
 /**
  * A persisted implementation of IndexManager.
  *
@@ -87,6 +108,15 @@ export class IndexedDbIndexManager implements IndexManager {
   private collectionParentsCache = new MemoryCollectionParentIndex();
 
   private uid: string;
+
+  /**
+   * Maps from a target to its equivalent list of sub-targets. Each sub-target
+   * contains only one term from the target's disjunctive normal form (DNF).
+   */
+  private targetToDnfSubTargets = new ObjectMap<Target, Target[]>(
+    t => canonifyTarget(t),
+    (l, r) => targetEquals(l, r)
+  );
 
   constructor(private user: User) {
     this.uid = user.uid || '';
@@ -196,19 +226,211 @@ export class IndexedDbIndexManager implements IndexManager {
 
   getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
-    fieldIndex: FieldIndex,
     target: Target
-  ): PersistencePromise<DocumentKeySet> {
-    // TODO(indexing): Implement
-    return PersistencePromise.resolve(documentKeySet());
+  ): PersistencePromise<DocumentKeySet | null> {
+    const indexEntries = indexEntriesStore(transaction);
+
+    let canServeTarget = true;
+    const indexes = new Map<Target, FieldIndex | null>();
+
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (subTarget: Target) => {
+        return this.getFieldIndex(transaction, subTarget).next(index => {
+          canServeTarget &&= !!index;
+          indexes.set(subTarget, index);
+        });
+      }
+    ).next(() => {
+      if (!canServeTarget) {
+        return PersistencePromise.resolve(null as DocumentKeySet | null);
+      } else {
+        let result = documentKeySet();
+        return PersistencePromise.forEach(indexes, (index, subTarget) => {
+          logDebug(
+            LOG_TAG,
+            `Using index ${fieldIndexToString(
+              index!
+            )} to execute ${canonifyTarget(target)}`
+          );
+
+          const arrayValues = targetGetArrayValues(subTarget, index!);
+          const notInValues = targetGetNotInValues(subTarget, index!);
+          const lowerBound = targetGetLowerBound(subTarget, index!);
+          const upperBound = targetGetUpperBound(subTarget, index!);
+
+          const lowerBoundEncoded = this.encodeBound(
+            index!,
+            subTarget,
+            lowerBound
+          );
+          const upperBoundEncoded = this.encodeBound(
+            index!,
+            subTarget,
+            upperBound
+          );
+          const notInEncoded = this.encodeValues(
+            index!,
+            subTarget,
+            notInValues
+          );
+
+          const indexRanges = this.generateIndexRanges(
+            index!.indexId,
+            arrayValues,
+            lowerBoundEncoded,
+            !!lowerBound && lowerBound.inclusive,
+            upperBoundEncoded,
+            !!upperBound && upperBound.inclusive,
+            notInEncoded
+          );
+          return PersistencePromise.forEach(
+            indexRanges,
+            (indexRange: IDBKeyRange) => {
+              return indexEntries
+                .loadFirst(indexRange, target.limit)
+                .next(entries => {
+                  entries.forEach(entry => {
+                    result = result.add(
+                      new DocumentKey(decodeResourcePath(entry.documentKey))
+                    );
+                  });
+                });
+            }
+          );
+        }).next(() => result as DocumentKeySet | null);
+      }
+    });
+  }
+
+  private getSubTargets(target: Target): Target[] {
+    let subTargets = this.targetToDnfSubTargets.get(target);
+    if (subTargets) {
+      return subTargets;
+    }
+    // TODO(orquery): Implement DNF transform
+    subTargets = [target];
+    this.targetToDnfSubTargets.set(target, subTargets);
+    return subTargets;
+  }
+
+  /**
+   * Constructs a key range query on `DbIndexEntry.store` that unions all
+   * bounds.
+   */
+  private generateIndexRanges(
+    indexId: number,
+    arrayValues: ProtoValue[] | null,
+    lowerBounds: Uint8Array[] | null,
+    lowerBoundInclusive: boolean,
+    upperBounds: Uint8Array[] | null,
+    upperBoundInclusive: boolean,
+    notInValues: Uint8Array[] | null
+  ): IDBKeyRange[] {
+    // The number of total index scans we union together. This is similar to a
+    // distributed normal form, but adapted for array values. We create a single
+    // index range per value in an ARRAY_CONTAINS or ARRAY_CONTAINS_ANY filter
+    // combined with the values from the query bounds.
+    const totalScans =
+      (arrayValues != null ? arrayValues.length : 1) *
+      Math.max(
+        lowerBounds != null ? lowerBounds.length : 1,
+        upperBounds != null ? upperBounds.length : 1
+      );
+    const scansPerArrayElement =
+      totalScans / (arrayValues != null ? arrayValues.length : 1);
+
+    const indexRanges: IDBKeyRange[] = [];
+    for (let i = 0; i < totalScans; ++i) {
+      const arrayValue = arrayValues
+        ? this.encodeSingleElement(arrayValues[i / scansPerArrayElement])
+        : EMPTY_VALUE;
+      indexRanges.push(
+        IDBKeyRange.bound(
+          lowerBounds
+            ? this.generateLowerBound(
+                indexId,
+                arrayValue,
+                lowerBounds[i % scansPerArrayElement],
+                lowerBoundInclusive
+              )
+            : this.generateEmptyBound(indexId),
+          upperBounds
+            ? this.generateUpperBound(
+                indexId,
+                arrayValue,
+                upperBounds[i % scansPerArrayElement],
+                upperBoundInclusive
+              )
+            : this.generateEmptyBound(indexId + 1),
+          /* lowerOpen= */ false,
+          /* upperOpen= */ true
+        )
+      );
+    }
+
+    return this.applyNotIn(indexRanges, notInValues);
+  }
+
+  /** Generates the lower bound for `arrayValue` and `directionalValue`. */
+  private generateLowerBound(
+    indexId: number,
+    arrayValue: Uint8Array,
+    directionalValue: Uint8Array,
+    inclusive: boolean
+  ): DbIndexEntryKey {
+    return [
+      indexId,
+      this.uid,
+      arrayValue,
+      inclusive ? directionalValue : successor(directionalValue),
+      ''
+    ];
+  }
+
+  /** Generates the upper bound for `arrayValue` and `directionalValue`. */
+  private generateUpperBound(
+    indexId: number,
+    arrayValue: Uint8Array,
+    directionalValue: Uint8Array,
+    inclusive: boolean
+  ): DbIndexEntryKey {
+    return [
+      indexId,
+      this.uid,
+      arrayValue,
+      inclusive ? successor(directionalValue) : directionalValue,
+      ''
+    ];
+  }
+
+  /**
+   * Generates an empty bound that scopes the index scan to the current index
+   * and user.
+   */
+  private generateEmptyBound(indexId: number): DbIndexEntryKey {
+    return [indexId, this.uid, EMPTY_VALUE, EMPTY_VALUE, ''];
   }
 
   getFieldIndex(
     transaction: PersistenceTransaction,
     target: Target
   ): PersistencePromise<FieldIndex | null> {
-    // TODO(indexing): Implement
-    return PersistencePromise.resolve<FieldIndex | null>(null);
+    const targetIndexMatcher = new TargetIndexMatcher(target);
+    const collectionGroup =
+      target.collectionGroup != null
+        ? target.collectionGroup
+        : target.path.lastSegment();
+
+    return this.getFieldIndexes(transaction, collectionGroup).next(indexes => {
+      const matchingIndexes = indexes.filter(i =>
+        targetIndexMatcher.servedByIndex(i)
+      );
+
+      // Return the index that matches the most number of segments.
+      matchingIndexes.sort((l, r) => r.fields.length - l.fields.length);
+      return matchingIndexes.length > 0 ? matchingIndexes[0] : null;
+    });
   }
 
   /**
@@ -243,6 +465,101 @@ export class IndexedDbIndexManager implements IndexManager {
       encoder.forKind(IndexKind.ASCENDING)
     );
     return encoder.encodedBytes();
+  }
+
+  /**
+   * Encodes the given field values according to the specification in `target`.
+   * For IN queries, a list of possible values is returned.
+   */
+  private encodeValues(
+    fieldIndex: FieldIndex,
+    target: Target,
+    bound: ProtoValue[] | null
+  ): Uint8Array[] | null {
+    if (bound == null) {
+      return null;
+    }
+
+    let encoders: IndexByteEncoder[] = [];
+    encoders.push(new IndexByteEncoder());
+
+    let boundIdx = 0;
+    for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
+      const value = bound[boundIdx++];
+      for (const encoder of encoders) {
+        if (this.isInFilter(target, segment.fieldPath) && isArray(value)) {
+          encoders = this.expandIndexValues(encoders, segment, value);
+        } else {
+          const directionalEncoder = encoder.forKind(segment.kind);
+          FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
+            value,
+            directionalEncoder
+          );
+        }
+      }
+    }
+    return this.getEncodedBytes(encoders);
+  }
+
+  /**
+   * Encodes the given bounds according to the specification in `target`. For IN
+   * queries, a list of possible values is returned.
+   */
+  private encodeBound(
+    fieldIndex: FieldIndex,
+    target: Target,
+    bound: Bound | null
+  ): Uint8Array[] | null {
+    if (bound == null) {
+      return null;
+    }
+    return this.encodeValues(fieldIndex, target, bound.position);
+  }
+
+  /** Returns the byte representation for the provided encoders. */
+  private getEncodedBytes(encoders: IndexByteEncoder[]): Uint8Array[] {
+    const result: Uint8Array[] = [];
+    for (let i = 0; i < encoders.length; ++i) {
+      result[i] = encoders[i].encodedBytes();
+    }
+    return result;
+  }
+
+  /**
+   * Creates a separate encoder for each element of an array.
+   *
+   * The method appends each value to all existing encoders (e.g. filter("a",
+   * "==", "a1").filter("b", "in", ["b1", "b2"]) becomes ["a1,b1", "a1,b2"]). A
+   * list of new encoders is returned.
+   */
+  private expandIndexValues(
+    encoders: IndexByteEncoder[],
+    segment: IndexSegment,
+    value: ProtoValue
+  ): IndexByteEncoder[] {
+    const prefixes = [...encoders];
+    const results: IndexByteEncoder[] = [];
+    for (const arrayElement of value.arrayValue!.values || []) {
+      for (const prefix of prefixes) {
+        const clonedEncoder = new IndexByteEncoder();
+        clonedEncoder.seed(prefix.encodedBytes());
+        FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
+          arrayElement,
+          clonedEncoder.forKind(segment.kind)
+        );
+        results.push(clonedEncoder);
+      }
+    }
+    return results;
+  }
+
+  private isInFilter(target: Target, fieldPath: FieldPath): boolean {
+    for (const filter of target.filters) {
+      if (filter instanceof FieldFilter && filter.field.isEqual(fieldPath)) {
+        return filter.op === Operator.IN || filter.op === Operator.NOT_IN;
+      }
+    }
+    return false;
   }
 
   getFieldIndexes(
@@ -459,7 +776,7 @@ export class IndexedDbIndexManager implements IndexManager {
         new IndexEntry(
           fieldIndex.indexId,
           document.key,
-          new Uint8Array(),
+          EMPTY_VALUE,
           directionalValue
         )
       );
@@ -516,6 +833,103 @@ export class IndexedDbIndexManager implements IndexManager {
       )
       .next(() => nextSequenceNumber);
   }
+
+  /**
+   * Applies notIn and != filters by taking the provided ranges and excluding
+   * any values that match the `notInValue` from these ranges. As an example,
+   * '[foo > 2 && foo != 3]` becomes  `[foo > 2 && < 3, foo > 3]`.
+   */
+  private applyNotIn(
+    indexRanges: IDBKeyRange[],
+    notInValues: Uint8Array[] | null
+  ): IDBKeyRange[] {
+    if (!notInValues) {
+      return indexRanges;
+    }
+
+    // The values need to be sorted so that we can return a sorted set of
+    // non-overlapping ranges.
+    notInValues.sort((l, r) => compareByteArrays(l, r));
+
+    const notInRanges: IDBKeyRange[] = [];
+    for (const indexRange of indexRanges) {
+      // Use the existing bounds and interleave the notIn values. This means
+      // that we would split an existing range into multiple ranges that exclude
+      // the values from any notIn filter.
+
+      // The first index range starts with the lower bound and ends at the
+      // first notIn value (exclusive).
+      notInRanges.push(
+        IDBKeyRange.bound(
+          indexRange.lower,
+          this.generateNotInBound(indexRange.lower, notInValues[0]),
+          indexRange.lowerOpen,
+          /* upperOpen= */ true
+        )
+      );
+
+      for (let i = 1; i < notInValues.length - 1; ++i) {
+        // Each index range that we need to scan starts at the last notIn value
+        // and ends at the next.
+        notInRanges.push(
+          IDBKeyRange.bound(
+            this.generateNotInBound(indexRange.lower, notInValues[i - 1]),
+            this.generateNotInBound(
+              indexRange.lower,
+              successor(notInValues[i])
+            ),
+            /* lowerOpen= */ false,
+            /* upperOpen= */ true
+          )
+        );
+      }
+
+      // The last index range starts at tha last notIn value (exclusive) and
+      // ends at the upper bound;
+      notInRanges.push(
+        IDBKeyRange.bound(
+          this.generateNotInBound(
+            indexRange.lower,
+            successor(notInValues[notInValues.length - 1])
+          ),
+          indexRange.upper,
+          /* lowerOpen= */ false,
+          indexRange.upperOpen
+        )
+      );
+    }
+    return notInRanges;
+  }
+
+  /**
+   * Generates the index entry that can be used to create the cutoff for `value`
+   * on the provided index range.
+   */
+  private generateNotInBound(
+    existingRange: DbIndexEntryKey,
+    value: Uint8Array
+  ): DbIndexEntryKey {
+    return [
+      /* indexId= */ existingRange[0],
+      /* userId= */ existingRange[1],
+      /* arrayValue= */ existingRange[2],
+      value,
+      /* documentKey= */ ''
+    ];
+  }
+}
+
+/** Creates a Uint8Array value that sorts immediately after `value`. */
+function successor(value: Uint8Array): Uint8Array {
+  if (value.length === 0 || value[value.length - 1] === 255) {
+    const successor = new Uint8Array(value.length + 1);
+    successor.set(value, 0);
+    successor.set([0], value.length);
+    return successor;
+  } else {
+    ++value[value.length - 1];
+  }
+  return value;
 }
 
 /**

@@ -263,6 +263,19 @@ describe('SimpleDb', () => {
     });
   });
 
+  it('loadFirst', async () => {
+    const range = IDBKeyRange.bound(3, 8);
+    await runTransaction(store => {
+      return store.loadFirst(range, 2).next(users => {
+        const expected = testData
+          .filter(user => user.id >= 3 && user.id <= 5)
+          .slice(0, 2);
+        expect(users.length).to.deep.equal(expected.length);
+        expect(users).to.deep.equal(expected);
+      });
+    });
+  });
+
   it('deleteAll', async () => {
     await runTransaction(store => {
       return store

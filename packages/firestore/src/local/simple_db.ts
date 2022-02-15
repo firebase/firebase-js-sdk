@@ -683,6 +683,24 @@ export class SimpleDbStore<
     }
   }
 
+  loadFirst(
+    range: IDBKeyRange,
+    count: number | null
+  ): PersistencePromise<ValueType[]> {
+    const request = this.store.getAll(
+      range,
+      count === null ? undefined : count
+    );
+    return new PersistencePromise((resolve, reject) => {
+      request.onerror = (event: Event) => {
+        reject((event.target as IDBRequest).error!);
+      };
+      request.onsuccess = (event: Event) => {
+        resolve((event.target as IDBRequest).result);
+      };
+    });
+  }
+
   deleteAll(): PersistencePromise<void>;
   deleteAll(range: IDBKeyRange): PersistencePromise<void>;
   deleteAll(index: string, range: IDBKeyRange): PersistencePromise<void>;
