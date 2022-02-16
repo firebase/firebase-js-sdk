@@ -149,8 +149,8 @@ export class LocalDocumentsView {
     memoizedOverlays: Map<DocumentKey, Overlay>,
     existenceStateChanged: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
-    const results = documentMap();
-    const recalculateDocuments = mutableDocumentMap();
+    let results = documentMap();
+    let recalculateDocuments = mutableDocumentMap();
     const promises: Array<PersistencePromise<void>> = [];
     docs.forEach((_, doc) => {
       const overlayPromise = memoizedOverlays.has(doc.key)
@@ -158,7 +158,7 @@ export class LocalDocumentsView {
         : this.documentOverlayCache.getOverlay(transaction, doc.key);
 
       promises.push(
-        overlayPromise.next(overlay => {
+        overlayPromise.next((overlay: Overlay | null) => {
           // Recalculate an overlay if the document's existence state is changed
           // due to a remote event *and* the overlay is a PatchMutation. This is
           // because document existence state can change if some patch mutation's
@@ -170,7 +170,7 @@ export class LocalDocumentsView {
             existenceStateChanged.has(doc.key) &&
             (overlay == null || overlay.mutation instanceof PatchMutation)
           ) {
-            recalculateDocuments.insert(doc.key, doc);
+            recalculateDocuments = recalculateDocuments.insert(doc.key, doc);
           } else if (overlay !== null) {
             mutationApplyToLocalView(
               overlay.mutation,
@@ -188,7 +188,9 @@ export class LocalDocumentsView {
         this.recalculateAndSaveOverlays(transaction, recalculateDocuments)
       )
       .next(() => {
-        docs.forEach((key, value) => results.insert(key, value));
+        docs.forEach((key, value) => {
+          results = results.insert(key, value);
+        });
         return results;
       });
   }
@@ -199,7 +201,7 @@ export class LocalDocumentsView {
   ): PersistencePromise<void> {
     const masks = new Map<DocumentKey, FieldMask | null>();
     // A reverse lookup map from batch id to the documents within that batch.
-    const documentsByBatchId = new SortedMap<number, Set<DocumentKey>>(
+    let documentsByBatchId = new SortedMap<number, Set<DocumentKey>>(
       (key1: number, key2: number) => key1 - key2
     );
     const processed = new Set<DocumentKey>();
@@ -214,7 +216,10 @@ export class LocalDocumentsView {
             mask = batch.applyToLocalViewWithFieldMask(docs.get(key)!, mask);
             masks.set(key, mask);
             if (documentsByBatchId.get(batch.batchId) === null) {
-              documentsByBatchId.insert(batch.batchId, new Set<DocumentKey>());
+              documentsByBatchId = documentsByBatchId.insert(
+                batch.batchId,
+                new Set<DocumentKey>()
+              );
             }
             documentsByBatchId.get(batch.batchId)!.add(key);
           });
@@ -374,7 +379,7 @@ export class LocalDocumentsView {
         overlays.forEach(overlay => {
           const key = overlay.getKey();
           if (remoteDocuments.get(key) === null) {
-            remoteDocuments.insert(
+            remoteDocuments = remoteDocuments.insert(
               key,
               MutableDocument.newInvalidDocument(key)
             );
