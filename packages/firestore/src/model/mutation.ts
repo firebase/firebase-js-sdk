@@ -372,7 +372,7 @@ export function mutationExtractBaseValue(
     );
 
     if (coercedValue != null) {
-      if (baseObject == null) {
+      if (baseObject === null) {
         baseObject = ObjectValue.empty();
       }
       baseObject.set(fieldTransform.field, coercedValue);

@@ -168,7 +168,7 @@ export class LocalDocumentsView {
           // the change (hence overlay==null), but would now match.
           if (
             existenceStateChanged.has(doc.key) &&
-            (overlay == null || overlay.mutation instanceof PatchMutation)
+            (overlay === null || overlay.mutation instanceof PatchMutation)
           ) {
             recalculateDocuments = recalculateDocuments.insert(doc.key, doc);
           } else if (overlay !== null) {
@@ -413,7 +413,7 @@ export class LocalDocumentsView {
     key: DocumentKey,
     overlay: Overlay | null
   ): PersistencePromise<MutableDocument> {
-    return overlay == null || overlay.mutation instanceof PatchMutation
+    return overlay === null || overlay.mutation instanceof PatchMutation
       ? this.remoteDocumentCache.getEntry(transaction, key)
       : PersistencePromise.resolve(MutableDocument.newInvalidDocument(key));
   }
