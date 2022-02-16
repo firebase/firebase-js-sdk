@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api';
 import {
   asCollectionQueryAtPath,
   isCollectionGroupQuery,
@@ -23,6 +22,7 @@ import {
   Query,
   queryMatches
 } from '../core/query';
+import { Timestamp } from '../lite-api/timestamp';
 import {
   documentKeySet,
   DocumentKeySet,
