@@ -1,5 +1,12 @@
 # @firebase/auth-compat
 
+## 0.2.9
+
+### Patch Changes
+
+- Updated dependencies [[`3a8d4c1d1`](https://github.com/firebase/firebase-js-sdk/commit/3a8d4c1d1a5e5fda5906b1feb96324efb68739cd)]:
+  - @firebase/auth@0.19.9
+
 ## 0.2.8
 
 ### Patch Changes

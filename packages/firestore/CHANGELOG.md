@@ -1,5 +1,17 @@
 # @firebase/firestore
 
+## 3.4.5
+
+### Patch Changes
+
+- [`bb8f37c3e`](https://github.com/firebase/firebase-js-sdk/commit/bb8f37c3e83e73876d14fa751cb04ae5e1367394) [#5993](https://github.com/firebase/firebase-js-sdk/pull/5993) - Fixed a bug that caused Firestore streams to get restarted with the same App Check token.
+
+* [`f5ac47fb1`](https://github.com/firebase/firebase-js-sdk/commit/f5ac47fb1a44f7b985fcae1d934e1ffb6ba41d67) [#5982](https://github.com/firebase/firebase-js-sdk/pull/5982) - On browsers that support IndexedDB V3, we now invoke `transaction.commit()` to speed up data processing.
+
+- [`c1b9cf120`](https://github.com/firebase/firebase-js-sdk/commit/c1b9cf1201807fc177a89c9613c06130524563e4) [#5985](https://github.com/firebase/firebase-js-sdk/pull/5985) - Some database operations now use `IndexedDB.getAll()` on browsers where support is availbe.
+
+* [`e9619685b`](https://github.com/firebase/firebase-js-sdk/commit/e9619685b9153f7d6f8767e09e2e1eacc337df76) [#5980](https://github.com/firebase/firebase-js-sdk/pull/5980) - Queries are now send to the backend before the SDK starts local processing, which reduces overall Query latency.
+
 ## 3.4.4
 
 ### Patch Changes
