@@ -259,7 +259,7 @@ export function targetGetNotInValues(
   target: Target,
   fieldIndex: FieldIndex
 ): ProtoValue[] | null {
-  const values: ProtoValue[] = [];
+  const values = new Map</* fieldPath = */ string, ProtoValue>();
 
   for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
     for (const fieldFilter of targetGetFieldFiltersForPath(
@@ -272,14 +272,14 @@ export function targetGetNotInValues(
           // Encode equality prefix, which is encoded in the index value before
           // the inequality (e.g. `a == 'a' && b != 'b'` is encoded to
           // `value != 'ab'`).
-          values.push(fieldFilter.value);
+          values.set(segment.fieldPath.canonicalString(), fieldFilter.value);
           break;
         case Operator.NOT_IN:
         case Operator.NOT_EQUAL:
           // NotIn/NotEqual is always a suffix. There cannot be any remaining
           // segments and hence we can return early here.
-          values.push(fieldFilter.value);
-          return values;
+          values.set(segment.fieldPath.canonicalString(), fieldFilter.value);
+          return Array.from(values.values());
         default:
         // Remaining filters cannot be used as notIn bounds.
       }
@@ -330,12 +330,8 @@ export function targetGetLowerBound(
           filterInclusive = false;
           break;
         case Operator.NOT_EQUAL:
-          filterValue = MIN_VALUE;
-          break;
         case Operator.NOT_IN:
-          filterValue = {
-            arrayValue: { values: [MIN_VALUE] }
-          };
+          filterValue = MIN_VALUE;
           break;
         default:
         // Remaining filters cannot be used as lower bounds.
@@ -414,12 +410,8 @@ export function targetGetUpperBound(
           filterInclusive = false;
           break;
         case Operator.NOT_EQUAL:
-          filterValue = MAX_VALUE;
-          break;
         case Operator.NOT_IN:
-          filterValue = {
-            arrayValue: { values: [MAX_VALUE] }
-          };
+          filterValue = MAX_VALUE;
           break;
         default:
         // Remaining filters cannot be used as upper bounds.

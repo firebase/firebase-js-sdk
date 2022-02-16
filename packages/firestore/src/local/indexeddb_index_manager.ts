@@ -554,12 +554,12 @@ export class IndexedDbIndexManager implements IndexManager {
   }
 
   private isInFilter(target: Target, fieldPath: FieldPath): boolean {
-    for (const filter of target.filters) {
-      if (filter instanceof FieldFilter && filter.field.isEqual(fieldPath)) {
-        return filter.op === Operator.IN || filter.op === Operator.NOT_IN;
-      }
-    }
-    return false;
+    return !!target.filters.find(
+      f =>
+        f instanceof FieldFilter &&
+        f.field.isEqual(fieldPath) &&
+        (f.op === Operator.IN || f.op === Operator.NOT_IN)
+    );
   }
 
   getFieldIndexes(
@@ -853,52 +853,75 @@ export class IndexedDbIndexManager implements IndexManager {
 
     const notInRanges: IDBKeyRange[] = [];
     for (const indexRange of indexRanges) {
-      // Use the existing bounds and interleave the notIn values. This means
-      // that we would split an existing range into multiple ranges that exclude
-      // the values from any notIn filter.
+      // Remove notIn values that are not applicable to this index range
+      const filteredRanges = notInValues.filter(
+        v =>
+          compareByteArrays(v, new Uint8Array(indexRange.lower[3])) >= 0 &&
+          compareByteArrays(v, new Uint8Array(indexRange.upper[3])) <= 0
+      );
 
-      // The first index range starts with the lower bound and ends at the
-      // first notIn value (exclusive).
-      notInRanges.push(
+      if (filteredRanges.length === 0) {
+        notInRanges.push(indexRange);
+      } else {
+        // Use the existing bounds and interleave the notIn values. This means
+        // that we would split an existing range into multiple ranges that exclude
+        // the values from any notIn filter.
+        notInRanges.push(...this.interleaveRanges(indexRange, filteredRanges));
+      }
+    }
+    return notInRanges;
+  }
+
+  /**
+   * Splits up the range defined by `indexRange` and removes any values
+   * contained in `barrier`. As an example, if the original range is [1,4] and
+   * the barrier is [2,3], then this method would return [1,2), (2,3), (3,4].
+   */
+  private interleaveRanges(
+    indexRange: IDBKeyRange,
+    barriers: Uint8Array[]
+  ): IDBKeyRange[] {
+    const ranges: IDBKeyRange[] = [];
+
+    // The first index range starts with the lower bound and ends before the
+    // first barrier.
+    ranges.push(
+      IDBKeyRange.bound(
+        indexRange.lower,
+        this.generateNotInBound(indexRange.lower, barriers[0]),
+        indexRange.lowerOpen,
+        /* upperOpen= */ true
+      )
+    );
+
+    for (let i = 1; i < barriers.length - 1; ++i) {
+      // Each index range that we need to scan starts after the last barrier
+      // and ends before the next.
+      ranges.push(
         IDBKeyRange.bound(
-          indexRange.lower,
-          this.generateNotInBound(indexRange.lower, notInValues[0]),
-          indexRange.lowerOpen,
+          this.generateNotInBound(indexRange.lower, barriers[i - 1]),
+          this.generateNotInBound(indexRange.lower, successor(barriers[i])),
+          /* lowerOpen= */ false,
           /* upperOpen= */ true
         )
       );
-
-      for (let i = 1; i < notInValues.length - 1; ++i) {
-        // Each index range that we need to scan starts at the last notIn value
-        // and ends at the next.
-        notInRanges.push(
-          IDBKeyRange.bound(
-            this.generateNotInBound(indexRange.lower, notInValues[i - 1]),
-            this.generateNotInBound(
-              indexRange.lower,
-              successor(notInValues[i])
-            ),
-            /* lowerOpen= */ false,
-            /* upperOpen= */ true
-          )
-        );
-      }
-
-      // The last index range starts at tha last notIn value (exclusive) and
-      // ends at the upper bound;
-      notInRanges.push(
-        IDBKeyRange.bound(
-          this.generateNotInBound(
-            indexRange.lower,
-            successor(notInValues[notInValues.length - 1])
-          ),
-          indexRange.upper,
-          /* lowerOpen= */ false,
-          indexRange.upperOpen
-        )
-      );
     }
-    return notInRanges;
+
+    // The last index range starts after the last barrier and ends at the upper
+    // bound
+    ranges.push(
+      IDBKeyRange.bound(
+        this.generateNotInBound(
+          indexRange.lower,
+          successor(barriers[barriers.length - 1])
+        ),
+        indexRange.upper,
+        /* lowerOpen= */ false,
+        indexRange.upperOpen
+      )
+    );
+
+    return ranges;
   }
 
   /**

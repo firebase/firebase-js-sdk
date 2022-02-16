@@ -652,8 +652,14 @@ export class SimpleDbStore<
     return wrapRequest<number>(request);
   }
 
+  /** Loads all elements from the object store. */
   loadAll(): PersistencePromise<ValueType[]>;
+  /** Loads all elements for the index range from the object store. */
   loadAll(range: IDBKeyRange): PersistencePromise<ValueType[]>;
+  /**
+   * Loads all elements from the object store that fall into the provided in the
+   * index range for the given index.
+   */
   loadAll(index: string, range: IDBKeyRange): PersistencePromise<ValueType[]>;
   loadAll(
     indexOrRange?: string | IDBKeyRange,
@@ -683,6 +689,10 @@ export class SimpleDbStore<
     }
   }
 
+  /**
+   * Loads the first `count` elements from the provided index range. Loads all
+   * elements if no limit is provided.
+   */
   loadFirst(
     range: IDBKeyRange,
     count: number | null

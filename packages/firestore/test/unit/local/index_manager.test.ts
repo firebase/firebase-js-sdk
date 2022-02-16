@@ -346,6 +346,27 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(q, 'coll/val2');
   });
 
+  it('applies equals with not equals filter on same field', async () => {
+    await setUpSingleValueFilter();
+    let q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '>', 1)),
+      filter('count', '!=', 2)
+    );
+    await verifyResults(q, 'coll/val3');
+
+    q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '==', 1)),
+      filter('count', '!=', 2)
+    );
+    await verifyResults(q, 'coll/val1');
+
+    q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '==', 1)),
+      filter('count', '!=', 1)
+    );
+    await verifyResults(q);
+  });
+
   it('applies less than filter', async () => {
     await setUpSingleValueFilter();
     const q = queryWithAddedFilter(query('coll'), filter('count', '<', 2));
@@ -442,7 +463,7 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(q, 'coll/val1', 'coll/val3');
   });
 
-  it('applies notIn filter', async () => {
+  it('applies not in filter', async () => {
     await setUpSingleValueFilter();
     const q = queryWithAddedFilter(
       query('coll'),
@@ -451,7 +472,25 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(q, 'coll/val3');
   });
 
-  it('applies arrayContains filter', async () => {
+  it('applies not in filter with greater than filter', async () => {
+    await setUpSingleValueFilter();
+    const q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '>', 1)),
+      filter('count', 'not-in', [2])
+    );
+    await verifyResults(q, 'coll/val3');
+  });
+
+  it('applies not in filter with out of bounds greater than filter', async () => {
+    await setUpSingleValueFilter();
+    const q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '>', 2)),
+      filter('count', 'not-in', [1])
+    );
+    await verifyResults(q, 'coll/val3');
+  });
+
+  it('applies array contains filter', async () => {
     await setUpArrayValueFilter();
     const q = queryWithAddedFilter(
       query('coll'),
@@ -460,7 +499,7 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(q, 'coll/arr1');
   });
 
-  it('applies arrayContainsAny filter', async () => {
+  it('applies array contains any filter', async () => {
     await setUpArrayValueFilter();
     const q = queryWithAddedFilter(
       query('coll'),
