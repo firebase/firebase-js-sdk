@@ -847,29 +847,27 @@ export class IndexedDbIndexManager implements IndexManager {
       return indexRanges;
     }
 
-    // The values need to be sorted so that we can return a sorted set of
-    // non-overlapping ranges.
-    notInValues.sort((l, r) => compareByteArrays(l, r));
-
-    const notInRanges: IDBKeyRange[] = [];
+    const result: IDBKeyRange[] = [];
     for (const indexRange of indexRanges) {
       // Remove notIn values that are not applicable to this index range
+      const lowerBound = new Uint8Array(indexRange.lower[3]);
+      const upperBound = new Uint8Array(indexRange.upper[3]);
       const filteredRanges = notInValues.filter(
         v =>
-          compareByteArrays(v, new Uint8Array(indexRange.lower[3])) >= 0 &&
-          compareByteArrays(v, new Uint8Array(indexRange.upper[3])) <= 0
+          compareByteArrays(v, lowerBound) >= 0 &&
+          compareByteArrays(v, upperBound) <= 0
       );
 
       if (filteredRanges.length === 0) {
-        notInRanges.push(indexRange);
+        result.push(indexRange);
       } else {
         // Use the existing bounds and interleave the notIn values. This means
         // that we would split an existing range into multiple ranges that exclude
         // the values from any notIn filter.
-        notInRanges.push(...this.interleaveRanges(indexRange, filteredRanges));
+        result.push(...this.interleaveRanges(indexRange, filteredRanges));
       }
     }
-    return notInRanges;
+    return result;
   }
 
   /**
@@ -881,6 +879,10 @@ export class IndexedDbIndexManager implements IndexManager {
     indexRange: IDBKeyRange,
     barriers: Uint8Array[]
   ): IDBKeyRange[] {
+    // The values need to be sorted so that we can return a sorted set of
+    // non-overlapping ranges.
+    barriers.sort((l, r) => compareByteArrays(l, r));
+
     const ranges: IDBKeyRange[] = [];
 
     // The first index range starts with the lower bound and ends before the
