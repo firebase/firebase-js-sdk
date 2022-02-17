@@ -52,7 +52,8 @@ export async function generateAuthTokenRequest(
 
   const body = {
     installation: {
-      sdkVersion: PACKAGE_VERSION
+      sdkVersion: PACKAGE_VERSION,
+      appId: appConfig.appId
     }
   };
 

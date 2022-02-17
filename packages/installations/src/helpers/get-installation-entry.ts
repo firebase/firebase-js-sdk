@@ -16,7 +16,10 @@
  */
 
 import { createInstallationRequest } from '../functions/create-installation-request';
-import { AppConfig } from '../interfaces/installation-impl';
+import {
+  AppConfig,
+  FirebaseInstallationsImpl
+} from '../interfaces/installation-impl';
 import {
   InProgressInstallationEntry,
   InstallationEntry,
@@ -40,14 +43,14 @@ export interface InstallationEntryWithRegistrationPromise {
  * Also triggers a registration request if it is necessary and possible.
  */
 export async function getInstallationEntry(
-  appConfig: AppConfig
+  installations: FirebaseInstallationsImpl
 ): Promise<InstallationEntryWithRegistrationPromise> {
   let registrationPromise: Promise<RegisteredInstallationEntry> | undefined;
 
-  const installationEntry = await update(appConfig, oldEntry => {
+  const installationEntry = await update(installations.appConfig, oldEntry => {
     const installationEntry = updateOrCreateInstallationEntry(oldEntry);
     const entryWithPromise = triggerRegistrationIfNecessary(
-      appConfig,
+      installations,
       installationEntry
     );
     registrationPromise = entryWithPromise.registrationPromise;
@@ -88,7 +91,7 @@ function updateOrCreateInstallationEntry(
  * to be registered.
  */
 function triggerRegistrationIfNecessary(
-  appConfig: AppConfig,
+  installations: FirebaseInstallationsImpl,
   installationEntry: InstallationEntry
 ): InstallationEntryWithRegistrationPromise {
   if (installationEntry.registrationStatus === RequestStatus.NOT_STARTED) {
@@ -110,7 +113,7 @@ function triggerRegistrationIfNecessary(
       registrationTime: Date.now()
     };
     const registrationPromise = registerInstallation(
-      appConfig,
+      installations,
       inProgressEntry
     );
     return { installationEntry: inProgressEntry, registrationPromise };
@@ -119,7 +122,7 @@ function triggerRegistrationIfNecessary(
   ) {
     return {
       installationEntry,
-      registrationPromise: waitUntilFidRegistration(appConfig)
+      registrationPromise: waitUntilFidRegistration(installations)
     };
   } else {
     return { installationEntry };
@@ -128,23 +131,23 @@ function triggerRegistrationIfNecessary(
 
 /** This will be executed only once for each new Firebase Installation. */
 async function registerInstallation(
-  appConfig: AppConfig,
+  installations: FirebaseInstallationsImpl,
   installationEntry: InProgressInstallationEntry
 ): Promise<RegisteredInstallationEntry> {
   try {
     const registeredInstallationEntry = await createInstallationRequest(
-      appConfig,
+      installations,
       installationEntry
     );
-    return set(appConfig, registeredInstallationEntry);
+    return set(installations.appConfig, registeredInstallationEntry);
   } catch (e) {
     if (isServerError(e) && e.customData.serverCode === 409) {
       // Server returned a "FID can not be used" error.
       // Generate a new ID next time.
-      await remove(appConfig);
+      await remove(installations.appConfig);
     } else {
       // Registration failed. Set FID as not registered.
-      await set(appConfig, {
+      await set(installations.appConfig, {
         fid: installationEntry.fid,
         registrationStatus: RequestStatus.NOT_STARTED
       });
@@ -155,24 +158,26 @@ async function registerInstallation(
 
 /** Call if FID registration is pending in another request. */
 async function waitUntilFidRegistration(
-  appConfig: AppConfig
+  installations: FirebaseInstallationsImpl
 ): Promise<RegisteredInstallationEntry> {
   // Unfortunately, there is no way of reliably observing when a value in
   // IndexedDB changes (yet, see https://github.com/WICG/indexed-db-observers),
   // so we need to poll.
 
-  let entry: InstallationEntry = await updateInstallationRequest(appConfig);
+  let entry: InstallationEntry = await updateInstallationRequest(
+    installations.appConfig
+  );
   while (entry.registrationStatus === RequestStatus.IN_PROGRESS) {
     // createInstallation request still in progress.
     await sleep(100);
 
-    entry = await updateInstallationRequest(appConfig);
+    entry = await updateInstallationRequest(installations.appConfig);
   }
 
   if (entry.registrationStatus === RequestStatus.NOT_STARTED) {
     // The request timed out or failed in a different call. Try again.
     const { installationEntry, registrationPromise } =
-      await getInstallationEntry(appConfig);
+      await getInstallationEntry(installations);
 
     if (registrationPromise) {
       return registrationPromise;
