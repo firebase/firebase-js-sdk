@@ -847,82 +847,52 @@ export class IndexedDbIndexManager implements IndexManager {
       return indexRanges;
     }
 
-    const result: IDBKeyRange[] = [];
-    for (const indexRange of indexRanges) {
-      // Remove notIn values that are not applicable to this index range
-      const lowerBound = new Uint8Array(indexRange.lower[3]);
-      const upperBound = new Uint8Array(indexRange.upper[3]);
-      const filteredRanges = notInValues.filter(
-        v =>
-          compareByteArrays(v, lowerBound) >= 0 &&
-          compareByteArrays(v, upperBound) <= 0
-      );
-
-      if (filteredRanges.length === 0) {
-        result.push(indexRange);
-      } else {
-        // Use the existing bounds and interleave the notIn values. This means
-        // that we would split an existing range into multiple ranges that exclude
-        // the values from any notIn filter.
-        result.push(...this.interleaveRanges(indexRange, filteredRanges));
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Splits up the range defined by `indexRange` and removes any values
-   * contained in `barrier`. As an example, if the original range is [1,4] and
-   * the barrier is [2,3], then this method would return [1,2), (2,3), (3,4].
-   */
-  private interleaveRanges(
-    indexRange: IDBKeyRange,
-    barriers: Uint8Array[]
-  ): IDBKeyRange[] {
     // The values need to be sorted so that we can return a sorted set of
     // non-overlapping ranges.
-    barriers.sort((l, r) => compareByteArrays(l, r));
+    notInValues.sort((l, r) => compareByteArrays(l, r));
 
     const ranges: IDBKeyRange[] = [];
 
-    // The first index range starts with the lower bound and ends before the
-    // first barrier.
-    ranges.push(
-      IDBKeyRange.bound(
-        indexRange.lower,
-        this.generateNotInBound(indexRange.lower, barriers[0]),
-        indexRange.lowerOpen,
-        /* upperOpen= */ true
-      )
-    );
+    // Use the existing bounds and interleave the notIn values. This means
+    // that we would split an existing range into multiple ranges that exclude
+    // the values from any notIn filter.
+    for (const indexRange of indexRanges) {
+      const lowerBound = new Uint8Array(indexRange.lower[3]);
+      const upperBound = new Uint8Array(indexRange.upper[3]);
+      let lastLower = indexRange.lower;
+      let lastOpen = indexRange.lowerOpen;
 
-    for (let i = 1; i < barriers.length - 1; ++i) {
-      // Each index range that we need to scan starts after the last barrier
-      // and ends before the next.
+      for (const notInValue of notInValues) {
+        if (
+          compareByteArrays(notInValue, lowerBound) >= 0 &&
+          compareByteArrays(notInValue, upperBound) <= 0
+        ) {
+          ranges.push(
+            IDBKeyRange.bound(
+              lastLower,
+              this.generateNotInBound(indexRange.lower, notInValue),
+              lastOpen,
+              /* upperOpen= */ true
+            )
+          );
+
+          lastLower = this.generateNotInBound(
+            indexRange.lower,
+            successor(notInValue)
+          );
+          lastOpen = true;
+        }
+      }
+
       ranges.push(
         IDBKeyRange.bound(
-          this.generateNotInBound(indexRange.lower, barriers[i - 1]),
-          this.generateNotInBound(indexRange.lower, successor(barriers[i])),
-          /* lowerOpen= */ false,
-          /* upperOpen= */ true
+          lastLower,
+          indexRange.upper,
+          lastOpen,
+          indexRange.upperOpen
         )
       );
     }
-
-    // The last index range starts after the last barrier and ends at the upper
-    // bound
-    ranges.push(
-      IDBKeyRange.bound(
-        this.generateNotInBound(
-          indexRange.lower,
-          successor(barriers[barriers.length - 1])
-        ),
-        indexRange.upper,
-        /* lowerOpen= */ false,
-        indexRange.upperOpen
-      )
-    );
-
     return ranges;
   }
 
