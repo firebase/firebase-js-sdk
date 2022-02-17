@@ -425,16 +425,6 @@ function mutationVerifyKeyMatches(
 }
 
 /**
- * Returns the version from the given document for use as the result of a
- * mutation. Mutations are defined to return the version of the base document
- * only if it is an existing document. Deleted and unknown documents have a
- * post-mutation version of SnapshotVersion.min().
- */
-function getPostMutationVersion(document: MutableDocument): SnapshotVersion {
-  return document.isFoundDocument() ? document.version : SnapshotVersion.min();
-}
-
-/**
  * A mutation that creates or replaces the document at the given key with the
  * object value contents.
  */
@@ -491,7 +481,7 @@ function setMutationApplyToLocalView(
   );
   newData.setAll(transformResults);
   document
-    .convertToFoundDocument(getPostMutationVersion(document), newData)
+    .convertToFoundDocument(document.version, newData)
     .setHasLocalMutations();
   // SetMutation overwrites all fields.
   return null;
@@ -570,7 +560,7 @@ function patchMutationApplyToLocalView(
   newData.setAll(getPatch(mutation));
   newData.setAll(transformResults);
   document
-    .convertToFoundDocument(getPostMutationVersion(document), newData)
+    .convertToFoundDocument(document.version, newData)
     .setHasLocalMutations();
 
   if (previousMask === null) {
@@ -709,9 +699,7 @@ function deleteMutationApplyToLocalView(
     'Can only apply mutation to document with same key'
   );
   if (preconditionIsValidForDocument(mutation.precondition, document)) {
-    // We don't call `setHasLocalMutations()` since we want to be backwards
-    // compatible with the existing SDK behavior.
-    document.convertToNoDocument(SnapshotVersion.min());
+    document.convertToNoDocument(document.version).setHasLocalMutations();
     return null;
   }
   return previousMask;
