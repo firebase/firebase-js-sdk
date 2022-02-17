@@ -859,39 +859,32 @@ export class IndexedDbIndexManager implements IndexManager {
     for (const indexRange of indexRanges) {
       const lowerBound = new Uint8Array(indexRange.lower[3]);
       const upperBound = new Uint8Array(indexRange.upper[3]);
-      let lastLower = indexRange.lower;
-      let lastOpen = indexRange.lowerOpen;
 
-      for (const notInValue of notInValues) {
+      let lastLower = lowerBound;
+      let lowerOpen = indexRange.lowerOpen;
+
+      const barriers = [...notInValues, upperBound];
+      for (const barrier of barriers) {
+        // Verify that the range in the bound is sensible, as the bound may get
+        // rejected otherwise
+        const sortsAfter = compareByteArrays(barrier, lastLower);
+        const sortsBefore = compareByteArrays(barrier, upperBound);
         if (
-          compareByteArrays(notInValue, lowerBound) >= 0 &&
-          compareByteArrays(notInValue, upperBound) <= 0
+          (lowerOpen ? sortsAfter > 0 : sortsAfter >= 0) &&
+          sortsBefore <= 0
         ) {
           ranges.push(
             IDBKeyRange.bound(
-              lastLower,
-              this.generateNotInBound(indexRange.lower, notInValue),
-              lastOpen,
-              /* upperOpen= */ true
+              this.generateBound(indexRange.lower, lastLower),
+              this.generateBound(indexRange.lower, barrier),
+              lowerOpen,
+              /* upperOpen= */ false
             )
           );
-
-          lastLower = this.generateNotInBound(
-            indexRange.lower,
-            successor(notInValue)
-          );
-          lastOpen = true;
+          lowerOpen = true;
+          lastLower = successor(barrier);
         }
       }
-
-      ranges.push(
-        IDBKeyRange.bound(
-          lastLower,
-          indexRange.upper,
-          lastOpen,
-          indexRange.upperOpen
-        )
-      );
     }
     return ranges;
   }
@@ -900,7 +893,7 @@ export class IndexedDbIndexManager implements IndexManager {
    * Generates the index entry that can be used to create the cutoff for `value`
    * on the provided index range.
    */
-  private generateNotInBound(
+  private generateBound(
     existingRange: DbIndexEntryKey,
     value: Uint8Array
   ): DbIndexEntryKey {

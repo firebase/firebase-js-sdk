@@ -365,6 +365,54 @@ describe('IndexedDbIndexManager', async () => {
       filter('count', '!=', 1)
     );
     await verifyResults(q);
+
+    q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '>', 2)),
+      filter('count', '!=', 2)
+    );
+    await verifyResults(q, 'coll/val3');
+
+    q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '>=', 2)),
+      filter('count', '!=', 2)
+    );
+    await verifyResults(q, 'coll/val3');
+
+    q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '<=', 2)),
+      filter('count', '!=', 2)
+    );
+    await verifyResults(q, 'coll/val1');
+
+    q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '<=', 2)),
+      filter('count', '!=', 1)
+    );
+    await verifyResults(q, 'coll/val2');
+
+    q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '<', 2)),
+      filter('count', '!=', 2)
+    );
+    await verifyResults(q, 'coll/val1');
+
+    q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '<', 2)),
+      filter('count', '!=', 1)
+    );
+    await verifyResults(q);
+
+    q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '>', 2)),
+      filter('count', 'not-in', [3])
+    );
+    await verifyResults(q);
+
+    q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('count', '>', 2)),
+      filter('count', 'not-in', [2, 2])
+    );
+    await verifyResults(q, 'coll/val3');
   });
 
   it('applies less than filter', async () => {
