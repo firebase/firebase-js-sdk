@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { forEach, isEmpty } from './obj';
+import { forEach, isEmpty, objectSize } from './obj';
 
 type Entry<K, V> = [K, V];
 
@@ -109,5 +109,9 @@ export class ObjectMap<KeyType, ValueType> {
 
   isEmpty(): boolean {
     return isEmpty(this.inner);
+  }
+
+  size(): number {
+    return objectSize(this.inner);
   }
 }

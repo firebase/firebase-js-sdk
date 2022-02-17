@@ -18,11 +18,14 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetId } from '../core/types';
 import { primitiveComparator } from '../util/misc';
+import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import { Document, MutableDocument } from './document';
 import { DocumentKey } from './document_key';
+import { Mutation } from './mutation';
+import { Overlay } from './overlay';
 
 /** Miscellaneous collection types / constants. */
 
@@ -45,6 +48,22 @@ const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(
 );
 export function documentMap(): DocumentMap {
   return EMPTY_DOCUMENT_MAP;
+}
+
+export type DocumentKeyToOverlayMap = ObjectMap<DocumentKey, Overlay>;
+export function newDocumentKeyToOverlayMap(): DocumentKeyToOverlayMap {
+  return new ObjectMap<DocumentKey, Overlay>(
+    key => key.toString(),
+    (l, r) => l.isEqual(r)
+  );
+}
+
+export type DocumentKeyToMutationMap = ObjectMap<DocumentKey, Mutation>;
+export function newDocumentKeyToMutationMap(): DocumentKeyToMutationMap {
+  return new ObjectMap<DocumentKey, Mutation>(
+    key => key.toString(),
+    (l, r) => l.isEqual(r)
+  );
 }
 
 export type DocumentVersionMap = SortedMap<DocumentKey, SnapshotVersion>;

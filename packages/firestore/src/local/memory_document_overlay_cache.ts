@@ -15,12 +15,18 @@
  * limitations under the License.
  */
 
-import { DocumentKeySet } from '../model/collections';
+import {
+  DocumentKeySet,
+  DocumentKeyToMutationMap,
+  DocumentKeyToOverlayMap,
+  newDocumentKeyToOverlayMap
+} from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
 import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { PersistencePromise } from './persistence_promise';
@@ -35,7 +41,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
   private overlays = new SortedMap<DocumentKey, Overlay>(
     DocumentKey.comparator
   );
-  private overlayByBatchId = new Map<number, Set<DocumentKey>>();
+  private overlayByBatchId = new Map<number, DocumentKeySet>();
 
   getOverlay(
     transaction: PersistenceTransaction,
@@ -47,9 +53,9 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,
-    overlays: Map<DocumentKey, Mutation>
+    overlays: DocumentKeyToMutationMap
   ): PersistencePromise<void> {
-    overlays.forEach(mutation => {
+    overlays.forEach((_, mutation) => {
       this.saveOverlay(transaction, largestBatchId, mutation);
     });
     return PersistencePromise.resolve();
@@ -72,8 +78,8 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     transaction: PersistenceTransaction,
     collection: ResourcePath,
     sinceBatchId: number
-  ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    const result = new Map<DocumentKey, Overlay>();
+  ): PersistencePromise<DocumentKeyToOverlayMap> {
+    const result = newDocumentKeyToOverlayMap();
 
     const immediateChildrenPathLength = collection.length + 1;
     const prefix = new DocumentKey(collection.child(''));
@@ -102,8 +108,8 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     collectionGroup: string,
     sinceBatchId: number,
     count: number
-  ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    let batchIdToOverlays = new SortedMap<number, Map<DocumentKey, Overlay>>(
+  ): PersistencePromise<DocumentKeyToOverlayMap> {
+    let batchIdToOverlays = new SortedMap<number, DocumentKeyToOverlayMap>(
       (key1: number, key2: number) => key1 - key2
     );
 
@@ -118,7 +124,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
       if (overlay.largestBatchId > sinceBatchId) {
         let overlaysForBatchId = batchIdToOverlays.get(overlay.largestBatchId);
         if (overlaysForBatchId === null) {
-          overlaysForBatchId = new Map<DocumentKey, Overlay>();
+          overlaysForBatchId = newDocumentKeyToOverlayMap();
           batchIdToOverlays = batchIdToOverlays.insert(
             overlay.largestBatchId,
             overlaysForBatchId
@@ -128,13 +134,13 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
       }
     }
 
-    const result = new Map<DocumentKey, Overlay>();
+    const result = newDocumentKeyToOverlayMap();
     const batchIter = batchIdToOverlays.getIterator();
     while (batchIter.hasNext()) {
       const entry = batchIter.getNext();
       const overlays = entry.value;
-      overlays.forEach((overlay, key) => result.set(key, overlay));
-      if (result.size >= count) {
+      overlays.forEach((key, overlay) => result.set(key, overlay));
+      if (result.size() >= count) {
         break;
       }
     }
@@ -153,7 +159,10 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     // Remove the association of the overlay to its batch id.
     const existing = this.overlays.get(mutation.key);
     if (existing !== null) {
-      this.overlayByBatchId.get(existing.largestBatchId)!.delete(mutation.key);
+      const newSet = this.overlayByBatchId
+        .get(existing.largestBatchId)!
+        .delete(mutation.key);
+      this.overlayByBatchId.set(existing.largestBatchId, newSet);
     }
 
     this.overlays = this.overlays.insert(
@@ -164,9 +173,9 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     // Create the association of this overlay to the given largestBatchId.
     let batch = this.overlayByBatchId.get(largestBatchId);
     if (batch === undefined) {
-      batch = new Set<DocumentKey>();
+      batch = new SortedSet(DocumentKey.comparator);
       this.overlayByBatchId.set(largestBatchId, batch);
     }
-    batch.add(mutation.key);
+    this.overlayByBatchId.set(largestBatchId, batch.add(mutation.key));
   }
 }
