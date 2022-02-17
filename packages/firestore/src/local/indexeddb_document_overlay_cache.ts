@@ -16,9 +16,13 @@
  */
 
 import { User } from '../auth/user';
-import { DocumentKeySet } from '../model/collections';
+import {
+  DocumentKeySet,
+  DocumentKeyToMutationMap,
+  DocumentKeyToOverlayMap,
+  newDocumentKeyToOverlayMap
+} from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { Mutation } from '../model/mutation';
 import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
 
@@ -74,10 +78,10 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,
-    overlays: Map<DocumentKey, Mutation>
+    overlays: DocumentKeyToMutationMap
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
-    overlays.forEach(mutation => {
+    overlays.forEach((_, mutation) => {
       const overlay = new Overlay(largestBatchId, mutation);
       promises.push(this.saveOverlay(transaction, overlay));
     });
@@ -118,8 +122,8 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     transaction: PersistenceTransaction,
     collection: ResourcePath,
     sinceBatchId: number
-  ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    const result = new Map<DocumentKey, Overlay>();
+  ): PersistencePromise<DocumentKeyToOverlayMap> {
+    const result = newDocumentKeyToOverlayMap();
     const collectionPath = encodeResourcePath(collection);
     // We want batch IDs larger than `sinceBatchId`, and so the lower bound
     // is not inclusive.
@@ -144,8 +148,8 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     collectionGroup: string,
     sinceBatchId: number,
     count: number
-  ): PersistencePromise<Map<DocumentKey, Overlay>> {
-    const result = new Map<DocumentKey, Overlay>();
+  ): PersistencePromise<DocumentKeyToOverlayMap> {
+    const result = newDocumentKeyToOverlayMap();
     let currentBatchId: number | undefined = undefined;
     // We want batch IDs larger than `sinceBatchId`, and so the lower bound
     // is not inclusive.
@@ -167,7 +171,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
           // `count` if there are more overlays from the `currentBatchId`.
           const overlay = fromDbDocumentOverlay(this.serializer, dbOverlay);
           if (
-            result.size < count ||
+            result.size() < count ||
             overlay.largestBatchId === currentBatchId
           ) {
             result.set(overlay.getKey(), overlay);
