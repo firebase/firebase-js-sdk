@@ -309,7 +309,7 @@ function genericDocumentOverlayCacheTests(): void {
     verifyOverlayContains(overlays, 'coll/doc1', 'coll/doc2', 'coll/doc3');
   });
 
-  it.only('updating an overlay removes the old entry for that overlay', async () => {
+  it('updating an overlay removes the old entry for that overlay', async () => {
     const m1 = patchMutation('coll/doc', { 'foo': '1' });
     const m2 = patchMutation('coll/doc', { 'foo': '2' });
     await saveOverlaysForMutations(1, m1);
