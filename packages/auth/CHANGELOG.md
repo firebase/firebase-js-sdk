@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.19.9
+
+### Patch Changes
+
+- [`3a8d4c1d1`](https://github.com/firebase/firebase-js-sdk/commit/3a8d4c1d1a5e5fda5906b1feb96324efb68739cd) [#6007](https://github.com/firebase/firebase-js-sdk/pull/6007) - Update chromedriver version number (dev dependency)
+
 ## 0.19.8
 
 ### Patch Changes
