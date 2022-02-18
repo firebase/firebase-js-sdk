@@ -32,7 +32,11 @@ import { PersistenceTransaction } from '../../../src/local/persistence_transacti
 import { QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
-import { documentKeySet, DocumentMap } from '../../../src/model/collections';
+import {
+  documentKeySet,
+  DocumentMap,
+  newDocumentKeyToMutationMap
+} from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
@@ -133,7 +137,7 @@ describe('QueryEngine', () => {
       return mutationQueue
         .addMutationBatch(txn, Timestamp.now(), [], [mutation])
         .next(batch => {
-          const overlayMap = new Map<DocumentKey, Mutation>();
+          const overlayMap = newDocumentKeyToMutationMap();
           overlayMap.set(mutation.key, mutation);
           return documentOverlayCache.saveOverlays(
             txn,

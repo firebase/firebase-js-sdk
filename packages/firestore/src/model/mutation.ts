@@ -20,6 +20,7 @@ import { Timestamp } from '../lite-api/timestamp';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
+import { SortedSet } from '../util/sorted_set';
 
 import { Document, MutableDocument } from './document';
 import { DocumentKey } from './document_key';
@@ -238,7 +239,7 @@ export function calculateOverlayMutation(
   } else {
     const docValue = doc.data;
     const patchValue = ObjectValue.empty();
-    const maskSet = new Set<FieldPath>();
+    let maskSet = new SortedSet<FieldPath>(FieldPath.comparator);
     mask.fields.forEach(path => {
       if (!maskSet.has(path)) {
         const value = docValue.field(path);
@@ -255,13 +256,13 @@ export function calculateOverlayMutation(
           path = path.popLast();
         }
         patchValue.set(path, docValue.field(path)!);
-        maskSet.add(path);
+        maskSet = maskSet.add(path);
       }
     });
     return new PatchMutation(
       doc.key,
       patchValue,
-      new FieldMask(Array.from(maskSet)),
+      new FieldMask(maskSet.toArray()),
       Precondition.none()
     );
   }
@@ -567,12 +568,17 @@ function patchMutationApplyToLocalView(
     return null;
   }
 
-  const mergedMaskSet = new Set<FieldPath>(previousMask.fields);
-  mutation.fieldMask.fields.forEach(fieldPath => mergedMaskSet.add(fieldPath));
+  let mergedMaskSet = new SortedSet<FieldPath>(FieldPath.comparator);
+  previousMask.fields.forEach(
+    fieldPath => (mergedMaskSet = mergedMaskSet.add(fieldPath))
+  );
+  mutation.fieldMask.fields.forEach(
+    fieldPath => (mergedMaskSet = mergedMaskSet.add(fieldPath))
+  );
   mutation.fieldTransforms
     .map(transform => transform.field)
-    .forEach(fieldPath => mergedMaskSet.add(fieldPath));
-  return new FieldMask(Array.from(mergedMaskSet));
+    .forEach(fieldPath => (mergedMaskSet = mergedMaskSet.add(fieldPath)));
+  return new FieldMask(mergedMaskSet.toArray());
 }
 
 /**

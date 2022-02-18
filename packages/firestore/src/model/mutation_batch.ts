@@ -24,12 +24,13 @@ import { arrayEquals } from '../util/misc';
 import {
   documentKeySet,
   DocumentKeySet,
+  DocumentKeyToMutationMap,
   DocumentMap,
   DocumentVersionMap,
-  documentVersionMap
+  documentVersionMap,
+  newDocumentKeyToMutationMap
 } from './collections';
 import { MutableDocument } from './document';
-import { DocumentKey } from './document_key';
 import { FieldMask } from './field_mask';
 import {
   calculateOverlayMutation,
@@ -148,13 +149,11 @@ export class MutationBatch {
    * this batch. Returns a `DocumentKey` to `Mutation` map which can be used to
    * replace all the mutation applications.
    */
-  applyToLocalDocumentSet(
-    documentMap: DocumentMap
-  ): Map<DocumentKey, Mutation> {
+  applyToLocalDocumentSet(documentMap: DocumentMap): DocumentKeyToMutationMap {
     // TODO(mrschmidt): This implementation is O(n^2). If we apply the mutations
     // directly (as done in `applyToLocalView()`), we can reduce the complexity
     // to O(n).
-    const overlays = new Map<DocumentKey, Mutation>();
+    const overlays = newDocumentKeyToMutationMap();
     this.mutations.forEach(m => {
       const document = documentMap.get(m.key)!;
       // TODO(mutabledocuments): This method should take a MutableDocumentMap
