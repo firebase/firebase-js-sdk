@@ -308,4 +308,22 @@ function genericDocumentOverlayCacheTests(): void {
     );
     verifyOverlayContains(overlays, 'coll/doc1', 'coll/doc2', 'coll/doc3');
   });
+
+  it('updating an overlay removes the old entry for that overlay', async () => {
+    const m1 = patchMutation('coll/doc', { 'foo': '1' });
+    const m2 = patchMutation('coll/doc', { 'foo': '2' });
+    await saveOverlaysForMutations(1, m1);
+    await saveOverlaysForMutations(2, m2);
+
+    // Verify that `getOverlay()` returns the updated mutation.
+    const overlay = await overlayCache.getOverlay(key('coll/doc'));
+    verifyEqualMutations(overlay!.mutation, m2);
+
+    // Verify that `removeOverlaysForBatchId()` removes the overlay completely.
+    await overlayCache.removeOverlaysForBatchId(
+      documentKeySet(key('coll/doc')),
+      2
+    );
+    expect(await overlayCache.getOverlay(key('coll/doc'))).to.equal(null);
+  });
 }
