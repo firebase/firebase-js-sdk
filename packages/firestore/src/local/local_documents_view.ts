@@ -217,7 +217,7 @@ export class LocalDocumentsView {
           batch.keys().forEach(key => {
             let mask: FieldMask | null = masks.has(key)
               ? masks.get(key)!
-              : new FieldMask([]);
+              : FieldMask.empty();
             mask = batch.applyToLocalViewWithFieldMask(docs.get(key)!, mask);
             masks.set(key, mask);
             if (documentsByBatchId.get(batch.batchId) === null) {

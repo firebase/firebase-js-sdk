@@ -101,8 +101,7 @@ export class MutationBatch {
    * @returns A `FieldMask` representing all the fields that are mutated.
    */
   applyToLocalView(document: MutableDocument): FieldMask | null {
-    const mutatedFields = new FieldMask([]);
-    return this.applyToLocalViewWithFieldMask(document, mutatedFields);
+    return this.applyToLocalViewWithFieldMask(document, FieldMask.empty());
   }
 
   /**
