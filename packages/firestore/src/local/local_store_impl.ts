@@ -684,7 +684,7 @@ function populateDocumentChangeBuffer(
   documents: MutableDocumentMap
 ): PersistencePromise<DocumentChangeResult> {
   let updatedKeys = documentKeySet();
-  const conditionChanged = documentKeySet();
+  let conditionChanged = documentKeySet();
   documents.forEach(k => (updatedKeys = updatedKeys.add(k)));
   return documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
     let changedDocs = mutableDocumentMap();
@@ -693,7 +693,7 @@ function populateDocumentChangeBuffer(
 
       // Check if see if there is a existence state change for this document.
       if (doc.isFoundDocument() !== existingDoc.isFoundDocument()) {
-        conditionChanged.add(key);
+        conditionChanged = conditionChanged.add(key);
       }
 
       // Note: The order of the steps below is important, since we want
