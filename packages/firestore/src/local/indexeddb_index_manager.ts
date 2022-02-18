@@ -860,29 +860,26 @@ export class IndexedDbIndexManager implements IndexManager {
       const lowerBound = new Uint8Array(indexRange.lower[3]);
       const upperBound = new Uint8Array(indexRange.upper[3]);
 
-      let lastLower = lowerBound;
-      let lowerOpen = indexRange.lowerOpen;
+      let lastBound = lowerBound;
+      let lastOpen = indexRange.lowerOpen;
 
-      const barriers = [...notInValues, upperBound];
-      for (const barrier of barriers) {
+      const bounds = [...notInValues, upperBound];
+      for (const currentBound of bounds) {
         // Verify that the range in the bound is sensible, as the bound may get
         // rejected otherwise
-        const sortsAfter = compareByteArrays(barrier, lastLower);
-        const sortsBefore = compareByteArrays(barrier, upperBound);
-        if (
-          (lowerOpen ? sortsAfter > 0 : sortsAfter >= 0) &&
-          sortsBefore <= 0
-        ) {
+        const sortsAfter = compareByteArrays(currentBound, lastBound);
+        const sortsBefore = compareByteArrays(currentBound, upperBound);
+        if ((lastOpen ? sortsAfter > 0 : sortsAfter >= 0) && sortsBefore <= 0) {
           ranges.push(
             IDBKeyRange.bound(
-              this.generateBound(indexRange.lower, lastLower),
-              this.generateBound(indexRange.lower, barrier),
-              lowerOpen,
-              /* upperOpen= */ false
+              this.generateBound(indexRange.lower, lastBound),
+              this.generateBound(indexRange.lower, currentBound),
+              lastOpen,
+              /* upperOpen= */ indexRange.upperOpen
             )
           );
-          lowerOpen = true;
-          lastLower = successor(barrier);
+          lastOpen = true;
+          lastBound = successor(currentBound);
         }
       }
     }

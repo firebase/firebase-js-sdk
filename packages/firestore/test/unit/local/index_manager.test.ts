@@ -58,6 +58,7 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
+import { FieldFilter } from '../../../src/core/target';
 
 describe('MemoryIndexManager', async () => {
   genericIndexManagerTests(persistenceHelpers.testMemoryEagerPersistence);
@@ -348,77 +349,65 @@ describe('IndexedDbIndexManager', async () => {
 
   it('applies equals with not equals filter on same field', async () => {
     await setUpSingleValueFilter();
-    let q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '>', 1)),
-      filter('count', '!=', 2)
-    );
-    await verifyResults(q, 'coll/val3');
 
-    q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '==', 1)),
-      filter('count', '!=', 2)
-    );
-    await verifyResults(q, 'coll/val1');
+    const filtersAndResults: Array<FieldFilter[] | string[]> = [
+      [filter('count', '>', 1), filter('count', '!=', 2)],
+      ['coll/val3'],
+      [filter('count', '==', 1), filter('count', '!=', 2)],
+      ['coll/val1'],
+      [filter('count', '==', 1), filter('count', '!=', 1)],
+      [],
+      [filter('count', '>', 2), filter('count', '!=', 2)],
+      ['coll/val3'],
+      [filter('count', '>=', 2), filter('count', '!=', 2)],
+      ['coll/val3'],
+      [filter('count', '<=', 2), filter('count', '!=', 2)],
+      ['coll/val1'],
+      [filter('count', '<=', 2), filter('count', '!=', 1)],
+      ['coll/val2'],
+      [filter('count', '<', 2), filter('count', '!=', 2)],
+      ['coll/val1'],
+      [filter('count', '<', 2), filter('count', '!=', 1)],
+      [],
+      [filter('count', '>', 2), filter('count', 'not-in', [3])],
+      [],
+      [filter('count', '>=', 2), filter('count', 'not-in', [3])],
+      ['coll/val2'],
+      [filter('count', '>=', 2), filter('count', 'not-in', [3, 3])],
+      ['coll/val2'],
+      [
+        filter('count', '>', 1),
+        filter('count', '<', 3),
+        filter('count', '!=', 2)
+      ],
+      [],
+      [
+        filter('count', '>=', 1),
+        filter('count', '<', 3),
+        filter('count', '!=', 2)
+      ],
+      ['coll/val1'],
+      [
+        filter('count', '>=', 1),
+        filter('count', '<=', 3),
+        filter('count', '!=', 2)
+      ],
+      ['coll/val1', 'coll/val3'],
+      [
+        filter('count', '>', 1),
+        filter('count', '<=', 3),
+        filter('count', '!=', 2)
+      ],
+      ['coll/val3']
+    ];
 
-    q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '==', 1)),
-      filter('count', '!=', 1)
-    );
-    await verifyResults(q);
-
-    q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '>', 2)),
-      filter('count', '!=', 2)
-    );
-    await verifyResults(q, 'coll/val3');
-
-    q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '>=', 2)),
-      filter('count', '!=', 2)
-    );
-    await verifyResults(q, 'coll/val3');
-
-    q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '<=', 2)),
-      filter('count', '!=', 2)
-    );
-    await verifyResults(q, 'coll/val1');
-
-    q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '<=', 2)),
-      filter('count', '!=', 1)
-    );
-    await verifyResults(q, 'coll/val2');
-
-    q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '<', 2)),
-      filter('count', '!=', 2)
-    );
-    await verifyResults(q, 'coll/val1');
-
-    q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '<', 2)),
-      filter('count', '!=', 1)
-    );
-    await verifyResults(q);
-
-    q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '>', 2)),
-      filter('count', 'not-in', [3])
-    );
-    await verifyResults(q);
-
-    q = queryWithAddedFilter(
-      queryWithAddedFilter(query('coll'), filter('count', '>', 2)),
-      filter('count', 'not-in', [2, 2])
-    );
-    await verifyResults(q, 'coll/val3');
-  });
-
-  it('applies less than filter', async () => {
-    await setUpSingleValueFilter();
-    const q = queryWithAddedFilter(query('coll'), filter('count', '<', 2));
-    await verifyResults(q, 'coll/val1');
+    for (let i = 0; i < filtersAndResults.length; i += 2) {
+      let q = query('coll');
+      for (const filter of filtersAndResults[i] as FieldFilter[]) {
+        q = queryWithAddedFilter(q, filter);
+      }
+      await verifyResults(q, ...(filtersAndResults[i + 1] as string[]));
+    }
   });
 
   it('applies less than or equals filter', async () => {
