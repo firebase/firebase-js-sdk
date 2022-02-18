@@ -21,14 +21,11 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import {
   documentKeySet,
-  DocumentKeySet,
   DocumentKeyToMutationMap,
   DocumentKeyToOverlayMap,
   newDocumentKeyToMutationMap
 } from '../../../src/model/collections';
-import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation, mutationEquals } from '../../../src/model/mutation';
-import { SortedSet } from '../../../src/util/sorted_set';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   deleteMutation,
@@ -124,10 +121,10 @@ function genericDocumentOverlayCacheTests(): void {
     overlays: DocumentKeyToOverlayMap,
     ...keys: string[]
   ): void {
-    const overlayKeys: DocumentKeySet = new SortedSet(DocumentKey.comparator);
-    overlays.forEach(overlayKey => overlayKeys.add(overlayKey));
-    const expectedKeys: DocumentKeySet = new SortedSet(DocumentKey.comparator);
-    keys.forEach(value => expectedKeys.add(key(value)));
+    let overlayKeys = documentKeySet();
+    overlays.forEach(overlayKey => (overlayKeys = overlayKeys.add(overlayKey)));
+    let expectedKeys = documentKeySet();
+    keys.forEach(value => (expectedKeys = expectedKeys.add(key(value))));
     expect(overlayKeys.isEqual(expectedKeys)).to.deep.equal(true);
   }
 
