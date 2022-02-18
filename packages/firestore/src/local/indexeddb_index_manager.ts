@@ -873,18 +873,24 @@ export class IndexedDbIndexManager implements IndexManager {
     const bounds: IndexEntry[] = [];
     bounds.push(lower);
     for (const notInValue of notInValues) {
-      const sortsAfter = indexEntryComparator(notInValue, lower);
-      const sortsBefore = indexEntryComparator(notInValue, upper);
+      const cpmToLower = indexEntryComparator(notInValue, lower);
+      const cmpToUpper = indexEntryComparator(notInValue, upper);
 
-      if (sortsAfter > 0 && sortsBefore < 0) {
+      if (cpmToLower === 0) {
+        // `notInValue` is the lower bound. We therefore need to raise the bound
+        // to the next value.
+        bounds[0] = lower.successor();
+      } else if (cpmToLower > 0 && cmpToUpper < 0) {
+        // `notInValue` is in the middle of the range
         bounds.push(notInValue);
         bounds.push(notInValue.successor());
-      } else if (sortsAfter === 0) {
-        // The lowest value in the range is excluded
-        bounds[0] = lower.successor();
-      } else if (sortsBefore === 0) {
-        // The largest value in the range is excluded
+      } else if (cmpToUpper === 0) {
+        // `notInValue` is the upper value. We therefore need to exclude the
+        // upper bound.
         upperInclusive = false;
+      } else {
+        // `notInValue` (and all following values) are out of the range
+        break;
       }
     }
     bounds.push(upper);
