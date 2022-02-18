@@ -16,6 +16,7 @@
  */
 
 import {
+  documentKeySet,
   DocumentKeySet,
   DocumentKeyToMutationMap,
   DocumentKeyToOverlayMap,
@@ -26,7 +27,6 @@ import { Mutation } from '../model/mutation';
 import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
 import { SortedMap } from '../util/sorted_map';
-import { SortedSet } from '../util/sorted_set';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { PersistencePromise } from './persistence_promise';
@@ -173,7 +173,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     // Create the association of this overlay to the given largestBatchId.
     let batch = this.overlayByBatchId.get(largestBatchId);
     if (batch === undefined) {
-      batch = new SortedSet(DocumentKey.comparator);
+      batch = documentKeySet();
       this.overlayByBatchId.set(largestBatchId, batch);
     }
     this.overlayByBatchId.set(largestBatchId, batch.add(mutation.key));
