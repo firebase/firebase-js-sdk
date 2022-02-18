@@ -30,11 +30,7 @@ import {
 } from '../core/target';
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../index/index_byte_encoder';
-import {
-  compareByteArrays,
-  IndexEntry,
-  indexEntryComparator
-} from '../index/index_entry';
+import { IndexEntry, indexEntryComparator } from '../index/index_entry';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -325,7 +321,7 @@ export class IndexedDbIndexManager implements IndexManager {
     lowerBoundInclusive: boolean,
     upperBounds: Uint8Array[] | null,
     upperBoundInclusive: boolean,
-    notInValues: Uint8Array[] | null
+    notInValues: Uint8Array[]
   ): IDBKeyRange[] {
     // The number of total index scans we union together. This is similar to a
     // distributed normal form, but adapted for array values. We create a single
@@ -345,31 +341,46 @@ export class IndexedDbIndexManager implements IndexManager {
       const arrayValue = arrayValues
         ? this.encodeSingleElement(arrayValues[i / scansPerArrayElement])
         : EMPTY_VALUE;
+
+      const lowerBound = lowerBounds
+        ? this.generateLowerBound(
+            indexId,
+            arrayValue,
+            lowerBounds[i % scansPerArrayElement],
+            lowerBoundInclusive
+          )
+        : this.generateEmptyBound(indexId);
+      const upperBound = upperBounds
+        ? this.generateUpperBound(
+            indexId,
+            arrayValue,
+            upperBounds[i % scansPerArrayElement],
+            upperBoundInclusive
+          )
+        : this.generateEmptyBound(indexId + 1);
+
       indexRanges.push(
-        IDBKeyRange.bound(
-          lowerBounds
-            ? this.generateLowerBound(
+        ...this.createRange(
+          lowerBound,
+          /* lowerInclusive= */ true,
+          upperBound,
+          /* upperInclusive= */ false,
+          notInValues.map(
+            (
+              notIn // make non-nullable
+            ) =>
+              this.generateLowerBound(
                 indexId,
                 arrayValue,
-                lowerBounds[i % scansPerArrayElement],
-                lowerBoundInclusive
+                notIn,
+                /* inclusive= */ true
               )
-            : this.generateEmptyBound(indexId),
-          upperBounds
-            ? this.generateUpperBound(
-                indexId,
-                arrayValue,
-                upperBounds[i % scansPerArrayElement],
-                upperBoundInclusive
-              )
-            : this.generateEmptyBound(indexId + 1),
-          /* lowerOpen= */ false,
-          /* upperOpen= */ true
+          )
         )
       );
     }
 
-    return this.applyNotIn(indexRanges, notInValues);
+    return indexRanges;
   }
 
   /** Generates the lower bound for `arrayValue` and `directionalValue`. */
@@ -378,14 +389,14 @@ export class IndexedDbIndexManager implements IndexManager {
     arrayValue: Uint8Array,
     directionalValue: Uint8Array,
     inclusive: boolean
-  ): DbIndexEntryKey {
-    return [
+  ): IndexEntry {
+    const entry = new IndexEntry(
       indexId,
-      this.uid,
+      DocumentKey.empty(),
       arrayValue,
-      inclusive ? directionalValue : successor(directionalValue),
-      ''
-    ];
+      directionalValue
+    );
+    return inclusive ? entry : entry.successor();
   }
 
   /** Generates the upper bound for `arrayValue` and `directionalValue`. */
@@ -394,22 +405,27 @@ export class IndexedDbIndexManager implements IndexManager {
     arrayValue: Uint8Array,
     directionalValue: Uint8Array,
     inclusive: boolean
-  ): DbIndexEntryKey {
-    return [
+  ): IndexEntry {
+    const entry = new IndexEntry(
       indexId,
-      this.uid,
+      DocumentKey.empty(),
       arrayValue,
-      inclusive ? successor(directionalValue) : directionalValue,
-      ''
-    ];
+      directionalValue
+    );
+    return inclusive ? entry.successor() : entry;
   }
 
   /**
    * Generates an empty bound that scopes the index scan to the current index
    * and user.
    */
-  private generateEmptyBound(indexId: number): DbIndexEntryKey {
-    return [indexId, this.uid, EMPTY_VALUE, EMPTY_VALUE, ''];
+  private generateEmptyBound(indexId: number): IndexEntry {
+    return new IndexEntry(
+      indexId,
+      DocumentKey.empty(),
+      EMPTY_VALUE,
+      EMPTY_VALUE
+    );
   }
 
   getFieldIndex(
@@ -475,9 +491,9 @@ export class IndexedDbIndexManager implements IndexManager {
     fieldIndex: FieldIndex,
     target: Target,
     bound: ProtoValue[] | null
-  ): Uint8Array[] | null {
-    if (bound == null) {
-      return null;
+  ): Uint8Array[] {
+    if (bound === null) {
+      return [];
     }
 
     let encoders: IndexByteEncoder[] = [];
@@ -835,90 +851,69 @@ export class IndexedDbIndexManager implements IndexManager {
   }
 
   /**
-   * Applies notIn and != filters by taking the provided ranges and excluding
+   * Returns a new set of IDB ranges that splits the existing range and excludes
    * any values that match the `notInValue` from these ranges. As an example,
    * '[foo > 2 && foo != 3]` becomes  `[foo > 2 && < 3, foo > 3]`.
    */
-  private applyNotIn(
-    indexRanges: IDBKeyRange[],
-    notInValues: Uint8Array[] | null
+  private createRange(
+    lower: IndexEntry,
+    lowerInclusive: boolean,
+    upper: IndexEntry,
+    upperInclusive: boolean,
+    notInValues: IndexEntry[]
   ): IDBKeyRange[] {
-    if (!notInValues) {
-      return indexRanges;
-    }
+    // The notIb values need to be sorted and unique so that we can return a
+    // sorted set of non-overlapping ranges.
+    notInValues = notInValues
+      .sort((l, r) => indexEntryComparator(l, r))
+      .filter(
+        (el, i, values) => !i || indexEntryComparator(el, values[i - 1]) !== 0
+      );
 
-    // The values need to be sorted so that we can return a sorted set of
-    // non-overlapping ranges.
-    notInValues.sort((l, r) => compareByteArrays(l, r));
+    const bounds: IndexEntry[] = [];
+    bounds.push(lower);
+    for (const notInValue of notInValues) {
+      const sortsAfter = indexEntryComparator(notInValue, lower);
+      const sortsBefore = indexEntryComparator(notInValue, upper);
+
+      if (sortsAfter > 0 && sortsBefore < 0) {
+        bounds.push(notInValue);
+        bounds.push(notInValue.successor());
+      } else if (sortsAfter === 0) {
+        // The lowest value in the range is excluded
+        bounds[0] = lower.successor();
+      } else if (sortsBefore === 0) {
+        // The largest value in the range is excluded
+        upperInclusive = false;
+      }
+    }
+    bounds.push(upper);
 
     const ranges: IDBKeyRange[] = [];
-
-    // Use the existing bounds and interleave the notIn values. This means
-    // that we would split an existing range into multiple ranges that exclude
-    // the values from any notIn filter.
-    for (const indexRange of indexRanges) {
-      debugAssert(
-        indexRange.lower[0] === indexRange.upper[0],
-        'Index ID must match for index range'
+    for (let i = 0; i < bounds.length; i += 2) {
+      ranges.push(
+        IDBKeyRange.bound(
+          [
+            bounds[i].indexId,
+            this.uid,
+            bounds[i].arrayValue,
+            bounds[i].directionalValue,
+            ''
+          ],
+          [
+            bounds[i + 1].indexId,
+            this.uid,
+            bounds[i + 1].arrayValue,
+            bounds[i + 1].directionalValue,
+            ''
+          ],
+          !lowerInclusive,
+          !upperInclusive
+        )
       );
-      const lowerBound = new Uint8Array(indexRange.lower[3]);
-      const upperBound = new Uint8Array(indexRange.upper[3]);
-
-      let lastBound = lowerBound;
-      let lastOpen = indexRange.lowerOpen;
-
-      const bounds = [...notInValues, upperBound];
-      for (const currentBound of bounds) {
-        // Verify that the range in the bound is sensible, as the bound may get
-        // rejected otherwise
-        const sortsAfter = compareByteArrays(currentBound, lastBound);
-        const sortsBefore = compareByteArrays(currentBound, upperBound);
-        if ((lastOpen ? sortsAfter > 0 : sortsAfter >= 0) && sortsBefore <= 0) {
-          ranges.push(
-            IDBKeyRange.bound(
-              this.generateBound(indexRange.lower, lastBound),
-              this.generateBound(indexRange.upper, currentBound),
-              lastOpen,
-              /* upperOpen= */ indexRange.upperOpen
-            )
-          );
-          lastOpen = true;
-          lastBound = successor(currentBound);
-        }
-      }
     }
     return ranges;
   }
-
-  /**
-   * Generates the index entry that can be used to create the cutoff for `value`
-   * on the provided index range.
-   */
-  private generateBound(
-    existingRange: DbIndexEntryKey,
-    value: Uint8Array
-  ): DbIndexEntryKey {
-    return [
-      /* indexId= */ existingRange[0],
-      /* userId= */ existingRange[1],
-      /* arrayValue= */ existingRange[2],
-      value,
-      /* documentKey= */ ''
-    ];
-  }
-}
-
-/** Creates a Uint8Array value that sorts immediately after `value`. */
-function successor(value: Uint8Array): Uint8Array {
-  if (value.length === 0 || value[value.length - 1] === 255) {
-    const successor = new Uint8Array(value.length + 1);
-    successor.set(value, 0);
-    successor.set([0], value.length);
-    return successor;
-  } else {
-    ++value[value.length - 1];
-  }
-  return value;
 }
 
 /**

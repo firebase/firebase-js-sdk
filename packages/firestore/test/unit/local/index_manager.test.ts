@@ -291,10 +291,23 @@ describe('IndexedDbIndexManager', async () => {
       fieldIndex('coll', { fields: [['count', IndexKind.ASCENDING]] })
     );
     await addDoc('coll/val1', { 'count': 1 });
-    await addDoc('coll/val2', { 'not-count': 3 });
-    await addDoc('coll/val3', { 'count': 2 });
+    await addDoc('coll/val2', { 'not-count': 2 });
+    await addDoc('coll/val3', { 'count': 3 });
     const q = queryWithAddedOrderBy(query('coll'), orderBy('count'));
     await verifyResults(q, 'coll/val1', 'coll/val3');
+  });
+
+  it('applies orderBy with not equals filter', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['count', IndexKind.ASCENDING]] })
+    );
+    await addDoc('coll/val1', { 'count': 1 });
+    await addDoc('coll/val2', { 'count': 2 });
+    const q = queryWithAddedOrderBy(
+      queryWithAddedFilter(query('coll'), filter('count', '!=', 2)),
+      orderBy('count')
+    );
+    await verifyResults(q, 'coll/val1');
   });
 
   it('applies equality filter', async () => {
@@ -345,6 +358,48 @@ describe('IndexedDbIndexManager', async () => {
       filter('a', '==', 1)
     );
     await verifyResults(q, 'coll/val2');
+  });
+
+  it('applies array contains with not equals filter', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', {
+        fields: [
+          ['a', IndexKind.CONTAINS],
+          ['b', IndexKind.ASCENDING]
+        ]
+      })
+    );
+    await addDoc('coll/val1', { 'a': [1], 'b': 1 });
+    await addDoc('coll/val2', { 'a': [1], 'b': 2 });
+    await addDoc('coll/val3', { 'a': [2], 'b': 1 });
+    await addDoc('coll/val4', { 'a': [2], 'b': 2 });
+
+    const q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('a', 'array-contains', 1)),
+      filter('b', '!=', 1)
+    );
+    await verifyResults(q, 'coll/val2');
+  });
+
+  it('applies array contains with not equals filter on same field', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', {
+        fields: [
+          ['a', IndexKind.CONTAINS],
+          ['a', IndexKind.ASCENDING]
+        ]
+      })
+    );
+    await addDoc('coll/val1', { 'a': [1, 1] });
+    await addDoc('coll/val2', { 'a': [1, 2] });
+    await addDoc('coll/val3', { 'a': [2, 1] });
+    await addDoc('coll/val4', { 'a': [2, 2] });
+
+    const q = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('a', 'array-contains', 1)),
+      filter('a', '!=', [1, 2])
+    );
+    await verifyResults(q, 'coll/val1', 'coll/val3');
   });
 
   it('applies equals with not equals filter on same field', async () => {

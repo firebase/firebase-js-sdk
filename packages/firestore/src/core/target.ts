@@ -440,7 +440,7 @@ export function targetGetUpperBound(
     }
 
     if (segmentValue === undefined) {
-      // No lower bound exists
+      // No upper bound exists
       return null;
     }
     values.push(segmentValue);
