@@ -857,6 +857,10 @@ export class IndexedDbIndexManager implements IndexManager {
     // that we would split an existing range into multiple ranges that exclude
     // the values from any notIn filter.
     for (const indexRange of indexRanges) {
+      debugAssert(
+        indexRange.lower[0] === indexRange.upper[0],
+        'Index ID must match for index range'
+      );
       const lowerBound = new Uint8Array(indexRange.lower[3]);
       const upperBound = new Uint8Array(indexRange.upper[3]);
 
@@ -873,7 +877,7 @@ export class IndexedDbIndexManager implements IndexManager {
           ranges.push(
             IDBKeyRange.bound(
               this.generateBound(indexRange.lower, lastBound),
-              this.generateBound(indexRange.lower, currentBound),
+              this.generateBound(indexRange.upper, currentBound),
               lastOpen,
               /* upperOpen= */ indexRange.upperOpen
             )

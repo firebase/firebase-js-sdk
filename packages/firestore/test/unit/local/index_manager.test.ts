@@ -446,6 +446,18 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(q, 'coll/val2', 'coll/val3');
   });
 
+  it('applies startAt filter with notIn', async () => {
+    await setUpSingleValueFilter();
+    const q = queryWithStartAt(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(query('coll'), filter('count', '!=', 2)),
+        orderBy('count')
+      ),
+      bound([2], true)
+    );
+    await verifyResults(q, 'coll/val3');
+  });
+
   it('applies startAfter filter', async () => {
     await setUpSingleValueFilter();
     const q = queryWithStartAt(
