@@ -227,7 +227,10 @@ export class LocalDocumentsView {
               );
             }
             const newSet = documentsByBatchId.get(batch.batchId)!.add(key);
-            documentsByBatchId.insert(batch.batchId, newSet);
+            documentsByBatchId = documentsByBatchId.insert(
+              batch.batchId,
+              newSet
+            );
           });
         });
       })

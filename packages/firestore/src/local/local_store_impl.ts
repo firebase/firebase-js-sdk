@@ -429,12 +429,12 @@ export function localStoreAcknowledgeBatch(
 function getKeysWithTransformResults(
   batchResult: MutationBatchResult
 ): DocumentKeySet {
-  const result = documentKeySet();
+  let result = documentKeySet();
 
   for (let i = 0; i < batchResult.mutationResults.length; ++i) {
     const mutationResult = batchResult.mutationResults[i];
     if (mutationResult.transformResults.length > 0) {
-      result.add(batchResult.batch.mutations[i].key);
+      result = result.add(batchResult.batch.mutations[i].key);
     }
   }
   return result;
