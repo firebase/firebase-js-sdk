@@ -29,6 +29,7 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../../../src/core/query';
+import { FieldFilter } from '../../../src/core/target';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { INDEXING_SCHEMA_VERSION } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
@@ -58,7 +59,6 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
-import { FieldFilter } from '../../../src/core/target';
 
 describe('MemoryIndexManager', async () => {
   genericIndexManagerTests(persistenceHelpers.testMemoryEagerPersistence);
