@@ -362,9 +362,7 @@ export class IndexedDbIndexManager implements IndexManager {
       indexRanges.push(
         ...this.createRange(
           lowerBound,
-          /* lowerInclusive= */ true,
           upperBound,
-          /* upperInclusive= */ false,
           notInValues.map(
             (
               notIn // make non-nullable
@@ -857,9 +855,7 @@ export class IndexedDbIndexManager implements IndexManager {
    */
   private createRange(
     lower: IndexEntry,
-    lowerInclusive: boolean,
     upper: IndexEntry,
-    upperInclusive: boolean,
     notInValues: IndexEntry[]
   ): IDBKeyRange[] {
     // The notIb values need to be sorted and unique so that we can return a
@@ -884,11 +880,7 @@ export class IndexedDbIndexManager implements IndexManager {
         // `notInValue` is in the middle of the range
         bounds.push(notInValue);
         bounds.push(notInValue.successor());
-      } else if (cmpToUpper === 0) {
-        // `notInValue` is the upper value. We therefore need to exclude the
-        // upper bound.
-        upperInclusive = false;
-      } else {
+      } else if (cmpToUpper > 0) {
         // `notInValue` (and all following values) are out of the range
         break;
       }
@@ -912,9 +904,7 @@ export class IndexedDbIndexManager implements IndexManager {
             bounds[i + 1].arrayValue,
             bounds[i + 1].directionalValue,
             ''
-          ],
-          !lowerInclusive,
-          !upperInclusive
+          ]
         )
       );
     }
