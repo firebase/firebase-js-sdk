@@ -25,6 +25,33 @@ export class IndexEntry {
     readonly arrayValue: Uint8Array,
     readonly directionalValue: Uint8Array
   ) {}
+
+  /**
+   * Returns an IndexEntry entry that sorts immediately after the current
+   * directional value.
+   */
+  successor(): IndexEntry {
+    const currentLength = this.directionalValue.length;
+    const newLength =
+      currentLength === 0 || this.directionalValue[currentLength - 1] === 255
+        ? currentLength + 1
+        : currentLength;
+
+    const successor = new Uint8Array(newLength);
+    successor.set(this.directionalValue, 0);
+    if (newLength !== currentLength) {
+      successor.set([0], this.directionalValue.length);
+    } else {
+      ++successor[successor.length - 1];
+    }
+
+    return new IndexEntry(
+      this.indexId,
+      this.documentKey,
+      this.arrayValue,
+      successor
+    );
+  }
 }
 
 export function indexEntryComparator(
@@ -36,20 +63,20 @@ export function indexEntryComparator(
     return cmp;
   }
 
-  cmp = DocumentKey.comparator(left.documentKey, right.documentKey);
-  if (cmp !== 0) {
-    return cmp;
-  }
-
   cmp = compareByteArrays(left.arrayValue, right.arrayValue);
   if (cmp !== 0) {
     return cmp;
   }
 
-  return compareByteArrays(left.directionalValue, right.directionalValue);
+  cmp = compareByteArrays(left.directionalValue, right.directionalValue);
+  if (cmp !== 0) {
+    return cmp;
+  }
+
+  return DocumentKey.comparator(left.documentKey, right.documentKey);
 }
 
-function compareByteArrays(left: Uint8Array, right: Uint8Array): number {
+export function compareByteArrays(left: Uint8Array, right: Uint8Array): number {
   for (let i = 0; i < left.length && i < right.length; ++i) {
     const compare = left[i] - right[i];
     if (compare !== 0) {

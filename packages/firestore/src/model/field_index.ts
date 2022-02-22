@@ -101,6 +101,13 @@ export function fieldIndexSemanticComparator(
   return primitiveComparator(left.fields.length, right.fields.length);
 }
 
+/** Returns a debug representation of the field index */
+export function fieldIndexToString(fieldIndex: FieldIndex): string {
+  return `id=${fieldIndex.indexId}|cg=${
+    fieldIndex.collectionGroup
+  }|f=${fieldIndex.fields.map(f => `${f.fieldPath}:${f.kind}`).join(',')}`;
+}
+
 /** The type of the index, e.g. for which type of query it can be used. */
 export const enum IndexKind {
   // Note: The order of these values cannot be changed as the enum values are

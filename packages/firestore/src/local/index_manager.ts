@@ -103,13 +103,12 @@ export interface IndexManager {
 
   /**
    * Returns the documents that match the given target based on the provided
-   * index.
+   * index or `null` if the target does not have a matching index.
    */
   getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
-    fieldIndex: FieldIndex,
     target: Target
-  ): PersistencePromise<DocumentKeySet>;
+  ): PersistencePromise<DocumentKeySet | null>;
 
   /**
    * Returns the next collection group to update. Returns `null` if no group

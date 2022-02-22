@@ -41,10 +41,11 @@ import {
 } from './server_timestamps';
 import { TypeOrder } from './type_order';
 
+const MAX_VALUE_TYPE = '__max__';
 export const MAX_VALUE: Value = {
   mapValue: {
     fields: {
-      '__type__': { stringValue: '__max___' }
+      '__type__': { stringValue: MAX_VALUE_TYPE }
     }
   }
 };
@@ -76,6 +77,8 @@ export function typeOrder(value: Value): TypeOrder {
   } else if ('mapValue' in value) {
     if (isServerTimestamp(value)) {
       return TypeOrder.ServerTimestampValue;
+    } else if (isMaxValue(value)) {
+      return TypeOrder.ArrayValue;
     }
     return TypeOrder.ObjectValue;
   } else {
@@ -122,6 +125,8 @@ export function valueEquals(left: Value, right: Value): boolean {
       );
     case TypeOrder.ObjectValue:
       return objectEquals(left, right);
+    case TypeOrder.MaxValue:
+      return true;
     default:
       return fail('Unexpected value type: ' + JSON.stringify(left));
   }
@@ -224,6 +229,7 @@ export function valueCompare(left: Value, right: Value): number {
 
   switch (leftType) {
     case TypeOrder.NullValue:
+    case TypeOrder.MaxValue:
       return 0;
     case TypeOrder.BooleanValue:
       return primitiveComparator(left.booleanValue!, right.booleanValue!);
@@ -604,7 +610,10 @@ export function deepClone(source: Value): Value {
 
 /** Returns true if the Value represents the canonical {@link #MAX_VALUE} . */
 export function isMaxValue(value: Value): boolean {
-  return valueEquals(value, MAX_VALUE);
+  return (
+    (((value.mapValue || {}).fields || {})['__type__'] || {}).stringValue ===
+    MAX_VALUE_TYPE
+  );
 }
 
 /** Returns the lowest value for the given value type (inclusive). */
