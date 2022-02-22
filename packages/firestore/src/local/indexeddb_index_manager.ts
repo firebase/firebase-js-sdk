@@ -873,14 +873,14 @@ export class IndexedDbIndexManager implements IndexManager {
     const bounds: IndexEntry[] = [];
     bounds.push(lower);
     for (const notInValue of notInValues) {
-      const cpmToLower = indexEntryComparator(notInValue, lower);
+      const cmpToLower = indexEntryComparator(notInValue, lower);
       const cmpToUpper = indexEntryComparator(notInValue, upper);
 
-      if (cpmToLower === 0) {
+      if (cmpToLower === 0) {
         // `notInValue` is the lower bound. We therefore need to raise the bound
         // to the next value.
         bounds[0] = lower.successor();
-      } else if (cpmToLower > 0 && cmpToUpper < 0) {
+      } else if (cmpToLower > 0 && cmpToUpper < 0) {
         // `notInValue` is in the middle of the range
         bounds.push(notInValue);
         bounds.push(notInValue.successor());
