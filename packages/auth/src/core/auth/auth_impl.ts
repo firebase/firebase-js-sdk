@@ -528,6 +528,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
    * should only be called from within a queued callback. This is necessary
    * because the queue shouldn't rely on another queued callback.
    */
+  // TODO: Find where this is called and see if we can run the middleware before it
   private async directlySetCurrentUser(
     user: UserInternal | null
   ): Promise<void> {
