@@ -1,5 +1,5 @@
 ---
-'@firebase/app': minor
+'@firebase/app': patch
 ---
 
 Add heartbeat controller for platform logging.
