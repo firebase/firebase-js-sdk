@@ -38,10 +38,7 @@ export class TestDocumentOverlayCache {
     private cache: DocumentOverlayCache
   ) {}
 
-  saveOverlays(
-    largestBatch: number,
-    data: MutationMap
-  ): Promise<void> {
+  saveOverlays(largestBatch: number, data: MutationMap): Promise<void> {
     return this.persistence.runTransaction('saveOverlays', 'readwrite', txn => {
       return this.cache.saveOverlays(txn, largestBatch, data);
     });

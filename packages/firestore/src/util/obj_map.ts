@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { forEach, isEmpty, objectSize } from './obj';
+import { forEach, isEmpty } from './obj';
 
 type Entry<K, V> = [K, V];
 

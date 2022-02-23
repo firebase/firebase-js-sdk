@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  DocumentKeySet,
-  MutationMap,
-  OverlayMap
-} from '../model/collections';
+import { DocumentKeySet, MutationMap, OverlayMap } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
