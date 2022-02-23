@@ -55,7 +55,7 @@ describe('SortedMap Tests', () => {
    * Validates that the given iterator covers the given range by counting from
    * the given `from` argument to the given `to` argument (inclusive).
    */
-  function validateIteratesRangeInclusive(
+  function validateIteratorCoversRange(
     iterator: SortedMapIterator<number, number>,
     from: number,
     to: number
@@ -446,12 +446,12 @@ describe('SortedMap Tests', () => {
 
   it('forward iterator without start key', () => {
     const iterator = getMapOfNumbersZeroToNine().getIterator();
-    validateIteratesRangeInclusive(iterator, 0, 9);
+    validateIteratorCoversRange(iterator, 0, 9);
   });
 
   it('forward iterator with start key.', () => {
     const iterator = getMapOfNumbersZeroToNine().getIteratorFrom(5);
-    validateIteratesRangeInclusive(iterator, 5, 9);
+    validateIteratorCoversRange(iterator, 5, 9);
   });
 
   it('forward iterator with start key larger than max key', () => {
@@ -462,17 +462,17 @@ describe('SortedMap Tests', () => {
 
   it('forward iterator with start key smaller than min key', () => {
     const iterator = getMapOfNumbersZeroToNine().getIteratorFrom(-50);
-    validateIteratesRangeInclusive(iterator, 0, 9);
+    validateIteratorCoversRange(iterator, 0, 9);
   });
 
   it('reverse iterator without start key', () => {
     const iterator = getMapOfNumbersZeroToNine().getReverseIterator();
-    validateIteratesRangeInclusive(iterator, 9, 0);
+    validateIteratorCoversRange(iterator, 9, 0);
   });
 
   it('reverse iterator with start key.', () => {
     const iterator = getMapOfNumbersZeroToNine().getReverseIteratorFrom(7);
-    validateIteratesRangeInclusive(iterator, 7, 0);
+    validateIteratorCoversRange(iterator, 7, 0);
   });
 
   it('reverse iterator with start key smaller than min key', () => {
@@ -483,7 +483,7 @@ describe('SortedMap Tests', () => {
 
   it('reverse iterator with start key larger than max key', () => {
     const iterator = getMapOfNumbersZeroToNine().getReverseIteratorFrom(50);
-    validateIteratesRangeInclusive(iterator, 9, 0);
+    validateIteratorCoversRange(iterator, 9, 0);
   });
 
   it('SortedMap.indexOf returns index.', () => {
