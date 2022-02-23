@@ -50,16 +50,16 @@ export function documentMap(): DocumentMap {
   return EMPTY_DOCUMENT_MAP;
 }
 
-export type DocumentKeyToOverlayMap = ObjectMap<DocumentKey, Overlay>;
-export function newDocumentKeyToOverlayMap(): DocumentKeyToOverlayMap {
+export type OverlayMap = ObjectMap<DocumentKey, Overlay>;
+export function newDocumentKeyToOverlayMap(): OverlayMap {
   return new ObjectMap<DocumentKey, Overlay>(
     key => key.toString(),
     (l, r) => l.isEqual(r)
   );
 }
 
-export type DocumentKeyToMutationMap = ObjectMap<DocumentKey, Mutation>;
-export function newDocumentKeyToMutationMap(): DocumentKeyToMutationMap {
+export type MutationMap = ObjectMap<DocumentKey, Mutation>;
+export function newDocumentKeyToMutationMap(): MutationMap {
   return new ObjectMap<DocumentKey, Mutation>(
     key => key.toString(),
     (l, r) => l.isEqual(r)

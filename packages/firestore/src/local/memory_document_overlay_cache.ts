@@ -18,8 +18,8 @@
 import {
   documentKeySet,
   DocumentKeySet,
-  DocumentKeyToMutationMap,
-  DocumentKeyToOverlayMap,
+  MutationMap,
+  OverlayMap,
   newDocumentKeyToOverlayMap
 } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -53,7 +53,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,
-    overlays: DocumentKeyToMutationMap
+    overlays: MutationMap
   ): PersistencePromise<void> {
     overlays.forEach((_, mutation) => {
       this.saveOverlay(transaction, largestBatchId, mutation);
@@ -78,7 +78,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     transaction: PersistenceTransaction,
     collection: ResourcePath,
     sinceBatchId: number
-  ): PersistencePromise<DocumentKeyToOverlayMap> {
+  ): PersistencePromise<OverlayMap> {
     const result = newDocumentKeyToOverlayMap();
 
     const immediateChildrenPathLength = collection.length + 1;
@@ -108,8 +108,8 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     collectionGroup: string,
     sinceBatchId: number,
     count: number
-  ): PersistencePromise<DocumentKeyToOverlayMap> {
-    let batchIdToOverlays = new SortedMap<number, DocumentKeyToOverlayMap>(
+  ): PersistencePromise<OverlayMap> {
+    let batchIdToOverlays = new SortedMap<number, OverlayMap>(
       (key1: number, key2: number) => key1 - key2
     );
 

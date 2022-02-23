@@ -21,8 +21,8 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import {
   documentKeySet,
-  DocumentKeyToMutationMap,
-  DocumentKeyToOverlayMap,
+  MutationMap,
+  OverlayMap,
   newDocumentKeyToMutationMap
 } from '../../../src/model/collections';
 import { Mutation, mutationEquals } from '../../../src/model/mutation';
@@ -89,7 +89,7 @@ function genericDocumentOverlayCacheTests(): void {
     largestBatch: number,
     ...mutations: Mutation[]
   ): Promise<void> {
-    const data: DocumentKeyToMutationMap = newDocumentKeyToMutationMap();
+    const data: MutationMap = newDocumentKeyToMutationMap();
     for (const mutation of mutations) {
       data.set(mutation.key, mutation);
     }
@@ -100,7 +100,7 @@ function genericDocumentOverlayCacheTests(): void {
     largestBatch: number,
     ...overlayKeys: string[]
   ): Promise<void> {
-    const data: DocumentKeyToMutationMap = newDocumentKeyToMutationMap();
+    const data: MutationMap = newDocumentKeyToMutationMap();
     for (const overlayKey of overlayKeys) {
       data.set(key(overlayKey), setMutation(overlayKey, {}));
     }
@@ -118,7 +118,7 @@ function genericDocumentOverlayCacheTests(): void {
   }
 
   function verifyOverlayContains(
-    overlays: DocumentKeyToOverlayMap,
+    overlays: OverlayMap,
     ...keys: string[]
   ): void {
     let overlayKeys = documentKeySet();

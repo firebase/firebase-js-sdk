@@ -18,8 +18,8 @@
 import { User } from '../auth/user';
 import {
   DocumentKeySet,
-  DocumentKeyToMutationMap,
-  DocumentKeyToOverlayMap,
+  MutationMap,
+  OverlayMap,
   newDocumentKeyToOverlayMap
 } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -78,7 +78,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,
-    overlays: DocumentKeyToMutationMap
+    overlays: MutationMap
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
     overlays.forEach((_, mutation) => {
@@ -122,7 +122,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     transaction: PersistenceTransaction,
     collection: ResourcePath,
     sinceBatchId: number
-  ): PersistencePromise<DocumentKeyToOverlayMap> {
+  ): PersistencePromise<OverlayMap> {
     const result = newDocumentKeyToOverlayMap();
     const collectionPath = encodeResourcePath(collection);
     // We want batch IDs larger than `sinceBatchId`, and so the lower bound
@@ -148,7 +148,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     collectionGroup: string,
     sinceBatchId: number,
     count: number
-  ): PersistencePromise<DocumentKeyToOverlayMap> {
+  ): PersistencePromise<OverlayMap> {
     const result = newDocumentKeyToOverlayMap();
     let currentBatchId: number | undefined = undefined;
     // We want batch IDs larger than `sinceBatchId`, and so the lower bound
