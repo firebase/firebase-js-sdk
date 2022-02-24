@@ -53,7 +53,7 @@ import { isArray } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert } from '../util/assert';
 import { logDebug } from '../util/log';
-import { immediateSuccessor } from '../util/misc';
+import { immediateSuccessor, primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { diffSortedSets, SortedSet } from '../util/sorted_set';
 
@@ -612,9 +612,12 @@ export class IndexedDbIndexManager implements IndexManager {
       if (indexes.length === 0) {
         return null;
       }
-      indexes.sort(
-        (l, r) => l.indexState.sequenceNumber - r.indexState.sequenceNumber
-      );
+      indexes.sort((l, r) => {
+        const cmp = l.indexState.sequenceNumber - r.indexState.sequenceNumber;
+        return cmp !== 0
+          ? cmp
+          : primitiveComparator(l.collectionGroup, r.collectionGroup);
+      });
       return indexes[0].collectionGroup;
     });
   }
