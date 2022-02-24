@@ -20,12 +20,20 @@ import { PlatformLoggerServiceImpl } from './platformLoggerService';
 import { name, version } from '../package.json';
 import { _registerComponent } from './internal';
 import { registerVersion } from './api';
+import { HeartbeatServiceImpl } from './heartbeatService';
 
 export function registerCoreComponents(variant?: string): void {
   _registerComponent(
     new Component(
       'platform-logger',
       container => new PlatformLoggerServiceImpl(container),
+      ComponentType.PRIVATE
+    )
+  );
+  _registerComponent(
+    new Component(
+      'heartbeat',
+      container => new HeartbeatServiceImpl(container),
       ComponentType.PRIVATE
     )
   );
