@@ -28,6 +28,7 @@ import {
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
 import { mutationQueuesContainKey } from './indexeddb_mutation_queue';
 import { DbTargetDocument } from './indexeddb_schema';
+import { DbTargetDocumentDocumentTargetsIndex } from './indexeddb_sentinels';
 import {
   documentTargetStore,
   IndexedDbTargetCache
@@ -201,7 +202,7 @@ export class IndexedDbLruDelegateImpl implements IndexedDbLruDelegate {
     return store
       .iterate(
         {
-          index: DbTargetDocument.documentTargetsIndex
+          index: DbTargetDocumentDocumentTargetsIndex
         },
         ([targetId, docKey], { path, sequenceNumber }) => {
           if (targetId === 0) {
@@ -250,7 +251,7 @@ function sentinelRow(
   key: DocumentKey,
   sequenceNumber: ListenSequenceNumber
 ): DbTargetDocument {
-  return new DbTargetDocument(0, encodeResourcePath(key.path), sequenceNumber);
+  return { targetId: 0, path: encodeResourcePath(key.path), sequenceNumber };
 }
 
 function writeSentinelKey(

@@ -22,12 +22,13 @@ import {
 } from '../protos/firestore_bundle_proto';
 
 import { BundleCache } from './bundle_cache';
+import { DbBundle, DbNamedQuery } from './indexeddb_schema';
 import {
-  DbBundle,
   DbBundlesKey,
+  DbBundleStore,
   DbNamedQueriesKey,
-  DbNamedQuery
-} from './indexeddb_schema';
+  DbNamedQueryStore
+} from './indexeddb_sentinels';
 import { getStore } from './indexeddb_transaction';
 import {
   fromDbBundle,
@@ -89,7 +90,7 @@ export class IndexedDbBundleCache implements BundleCache {
 function bundlesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbBundlesKey, DbBundle> {
-  return getStore<DbBundlesKey, DbBundle>(txn, DbBundle.store);
+  return getStore<DbBundlesKey, DbBundle>(txn, DbBundleStore);
 }
 
 /**
@@ -98,5 +99,5 @@ function bundlesStore(
 function namedQueriesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbNamedQueriesKey, DbNamedQuery> {
-  return getStore<DbNamedQueriesKey, DbNamedQuery>(txn, DbNamedQuery.store);
+  return getStore<DbNamedQueriesKey, DbNamedQuery>(txn, DbNamedQueryStore);
 }

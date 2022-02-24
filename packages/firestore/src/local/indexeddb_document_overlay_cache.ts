@@ -24,7 +24,13 @@ import { ResourcePath } from '../model/path';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { encodeResourcePath } from './encoded_resource_path';
-import { DbDocumentOverlay, DbDocumentOverlayKey } from './indexeddb_schema';
+import { DbDocumentOverlay } from './indexeddb_schema';
+import {
+  DbDocumentOverlayCollectionGroupOverlayIndex,
+  DbDocumentOverlayCollectionPathOverlayIndex,
+  DbDocumentOverlayKey,
+  DbDocumentOverlayStore
+} from './indexeddb_sentinels';
 import { getStore } from './indexeddb_transaction';
 import {
   fromDbDocumentOverlay,
@@ -106,7 +112,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
       );
       promises.push(
         documentOverlayStore(transaction).deleteAll(
-          DbDocumentOverlay.collectionPathOverlayIndex,
+          DbDocumentOverlayCollectionPathOverlayIndex,
           range
         )
       );
@@ -129,7 +135,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
       /*lowerOpen=*/ true
     );
     return documentOverlayStore(transaction)
-      .loadAll(DbDocumentOverlay.collectionPathOverlayIndex, range)
+      .loadAll(DbDocumentOverlayCollectionPathOverlayIndex, range)
       .next(dbOverlays => {
         for (const dbOverlay of dbOverlays) {
           const overlay = fromDbDocumentOverlay(this.serializer, dbOverlay);
@@ -157,7 +163,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     return documentOverlayStore(transaction)
       .iterate(
         {
-          index: DbDocumentOverlay.collectionGroupOverlayIndex,
+          index: DbDocumentOverlayCollectionGroupOverlayIndex,
           range
         },
         (_, dbOverlay, control) => {
@@ -198,6 +204,6 @@ function documentOverlayStore(
 ): SimpleDbStore<DbDocumentOverlayKey, DbDocumentOverlay> {
   return getStore<DbDocumentOverlayKey, DbDocumentOverlay>(
     txn,
-    DbDocumentOverlay.store
+    DbDocumentOverlayStore
   );
 }

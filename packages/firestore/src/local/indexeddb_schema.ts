@@ -17,7 +17,6 @@
 
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { IndexKind } from '../model/field_index';
-import { ResourcePath } from '../model/path';
 import { BundledQuery } from '../protos/firestore_bundle_proto';
 import {
   Document as ProtoDocument,
@@ -25,12 +24,9 @@ import {
   QueryTarget as ProtoQueryTarget,
   Write as ProtoWrite
 } from '../protos/firestore_proto_api';
-import { debugAssert, fail } from '../util/assert';
 
-import {
-  EncodedResourcePath,
-  encodeResourcePath
-} from './encoded_resource_path';
+import { EncodedResourcePath } from './encoded_resource_path';
+import { DbTimestampKey } from './indexeddb_sentinels';
 
 // TODO(indexing): Remove this constant
 const INDEXING_ENABLED = false;
@@ -64,15 +60,10 @@ export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 12;
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
  */
-export class DbTimestamp {
-  constructor(public seconds: number, public nanoseconds: number) {}
+export interface DbTimestamp {
+  seconds: number;
+  nanoseconds: number;
 }
-
-/** A timestamp type that can be used in IndexedDb keys. */
-export type DbTimestampKey = [/* seconds */ number, /* nanos */ number];
-
-// The key for the singleton object in the DbPrimaryClient is a single string.
-export type DbPrimaryClientKey = typeof DbPrimaryClient.key;
 
 /**
  * A singleton object to be stored in the 'owner' store in IndexedDb.
@@ -83,32 +74,12 @@ export type DbPrimaryClientKey = typeof DbPrimaryClient.key;
  * write an updated timestamp to this lease to prevent other tabs from
  * "stealing" the primary lease
  */
-export class DbPrimaryClient {
-  /**
-   * Name of the IndexedDb object store.
-   *
-   * Note that the name 'owner' is chosen to ensure backwards compatibility with
-   * older clients that only supported single locked access to the persistence
-   * layer.
-   */
-  static store = 'owner';
-
-  /**
-   * The key string used for the single object that exists in the
-   * DbPrimaryClient store.
-   */
-  static key = 'owner';
-
-  constructor(
-    public ownerId: string,
-    /** Whether to allow shared access from multiple tabs. */
-    public allowTabSynchronization: boolean,
-    public leaseTimestampMs: number
-  ) {}
+export interface DbPrimaryClient {
+  ownerId: string;
+  /** Whether to allow shared access from multiple tabs. */
+  allowTabSynchronization: boolean;
+  leaseTimestampMs: number;
 }
-
-/** Object keys in the 'mutationQueues' store are userId strings. */
-export type DbMutationQueueKey = string;
 
 /**
  * An object to be stored in the 'mutationQueues' store in IndexedDb.
@@ -116,44 +87,33 @@ export type DbMutationQueueKey = string;
  * Each user gets a single queue of MutationBatches to apply to the server.
  * DbMutationQueue tracks the metadata about the queue.
  */
-export class DbMutationQueue {
-  /** Name of the IndexedDb object store.  */
-  static store = 'mutationQueues';
-
-  /** Keys are automatically assigned via the userId property. */
-  static keyPath = 'userId';
-
-  constructor(
-    /**
-     * The normalized user ID to which this queue belongs.
-     */
-    public userId: string,
-    /**
-     * An identifier for the highest numbered batch that has been acknowledged
-     * by the server. All MutationBatches in this queue with batchIds less
-     * than or equal to this value are considered to have been acknowledged by
-     * the server.
-     *
-     * NOTE: this is deprecated and no longer used by the code.
-     */
-    public lastAcknowledgedBatchId: number,
-    /**
-     * A stream token that was previously sent by the server.
-     *
-     * See StreamingWriteRequest in datastore.proto for more details about
-     * usage.
-     *
-     * After sending this token, earlier tokens may not be used anymore so
-     * only a single stream token is retained.
-     *
-     * NOTE: this is deprecated and no longer used by the code.
-     */
-    public lastStreamToken: string
-  ) {}
+export interface DbMutationQueue {
+  /**
+   * The normalized user ID to which this queue belongs.
+   */
+  userId: string;
+  /**
+   * An identifier for the highest numbered batch that has been acknowledged
+   * by the server. All MutationBatches in this queue with batchIds less
+   * than or equal to this value are considered to have been acknowledged by
+   * the server.
+   *
+   * NOTE: this is deprecated and no longer used by the code.
+   */
+  lastAcknowledgedBatchId: number;
+  /**
+   * A stream token that was previously sent by the server.
+   *
+   * See StreamingWriteRequest in datastore.proto for more details about
+   * usage.
+   *
+   * After sending this token, earlier tokens may not be used anymore so
+   * only a single stream token is retained.
+   *
+   * NOTE: this is deprecated and no longer used by the code.
+   */
+  lastStreamToken: string;
 }
-
-/** The 'mutations' store  is keyed by batch ID. */
-export type DbMutationBatchKey = BatchId;
 
 /**
  * An object to be stored in the 'mutations' store in IndexedDb.
@@ -162,61 +122,40 @@ export type DbMutationBatchKey = BatchId;
  * in a single write. Each user-level batch gets a separate DbMutationBatch
  * with a new batchId.
  */
-export class DbMutationBatch {
-  /** Name of the IndexedDb object store.  */
-  static store = 'mutations';
-
-  /** Keys are automatically assigned via the userId, batchId properties. */
-  static keyPath = 'batchId';
-
-  /** The index name for lookup of mutations by user. */
-  static userMutationsIndex = 'userMutationsIndex';
-
-  /** The user mutations index is keyed by [userId, batchId] pairs. */
-  static userMutationsKeyPath = ['userId', 'batchId'];
-
-  constructor(
-    /**
-     * The normalized user ID to which this batch belongs.
-     */
-    public userId: string,
-    /**
-     * An identifier for this batch, allocated using an auto-generated key.
-     */
-    public batchId: BatchId,
-    /**
-     * The local write time of the batch, stored as milliseconds since the
-     * epoch.
-     */
-    public localWriteTimeMs: number,
-    /**
-     * A list of "mutations" that represent a partial base state from when this
-     * write batch was initially created. During local application of the write
-     * batch, these baseMutations are applied prior to the real writes in order
-     * to override certain document fields from the remote document cache. This
-     * is necessary in the case of non-idempotent writes (e.g. `increment()`
-     * transforms) to make sure that the local view of the modified documents
-     * doesn't flicker if the remote document cache receives the result of the
-     * non-idempotent write before the write is removed from the queue.
-     *
-     * These mutations are never sent to the backend.
-     */
-    public baseMutations: ProtoWrite[] | undefined,
-    /**
-     * A list of mutations to apply. All mutations will be applied atomically.
-     *
-     * Mutations are serialized via toMutation().
-     */
-    public mutations: ProtoWrite[]
-  ) {}
+export interface DbMutationBatch {
+  /**
+   * The normalized user ID to which this batch belongs.
+   */
+  userId: string;
+  /**
+   * An identifier for this batch, allocated using an auto-generated key.
+   */
+  batchId: BatchId;
+  /**
+   * The local write time of the batch, stored as milliseconds since the
+   * epoch.
+   */
+  localWriteTimeMs: number;
+  /**
+   * A list of "mutations" that represent a partial base state from when this
+   * write batch was initially created. During local application of the write
+   * batch, these baseMutations are applied prior to the real writes in order
+   * to override certain document fields from the remote document cache. This
+   * is necessary in the case of non-idempotent writes (e.g. `increment()`
+   * transforms) to make sure that the local view of the modified documents
+   * doesn't flicker if the remote document cache receives the result of the
+   * non-idempotent write before the write is removed from the queue.
+   *
+   * These mutations are never sent to the backend.
+   */
+  baseMutations?: ProtoWrite[];
+  /**
+   * A list of mutations to apply. All mutations will be applied atomically.
+   *
+   * Mutations are serialized via toMutation().
+   */
+  mutations: ProtoWrite[];
 }
-
-/**
- * The key for a db document mutation, which is made up of a userID, path, and
- * batchId. Note that the path must be serialized into a form that indexedDB can
- * sort.
- */
-export type DbDocumentMutationKey = [string, EncodedResourcePath, BatchId];
 
 /**
  * An object to be stored in the 'documentMutations' store in IndexedDb.
@@ -225,71 +164,24 @@ export type DbDocumentMutationKey = [string, EncodedResourcePath, BatchId];
  * document key. The rows in this table are references based on the contents of
  * DbMutationBatch.mutations.
  */
-export class DbDocumentMutation {
-  static store = 'documentMutations';
-
-  /**
-   * Creates a [userId] key for use in the DbDocumentMutations index to iterate
-   * over all of a user's document mutations.
-   */
-  static prefixForUser(userId: string): [string] {
-    return [userId];
-  }
-
-  /**
-   * Creates a [userId, encodedPath] key for use in the DbDocumentMutations
-   * index to iterate over all at document mutations for a given path or lower.
-   */
-  static prefixForPath(
-    userId: string,
-    path: ResourcePath
-  ): [string, EncodedResourcePath] {
-    return [userId, encodeResourcePath(path)];
-  }
-
-  /**
-   * Creates a full index key of [userId, encodedPath, batchId] for inserting
-   * and deleting into the DbDocumentMutations index.
-   */
-  static key(
-    userId: string,
-    path: ResourcePath,
-    batchId: BatchId
-  ): DbDocumentMutationKey {
-    return [userId, encodeResourcePath(path), batchId];
-  }
-
-  /**
-   * Because we store all the useful information for this store in the key,
-   * there is no useful information to store as the value. The raw (unencoded)
-   * path cannot be stored because IndexedDb doesn't store prototype
-   * information.
-   */
-  static PLACEHOLDER = new DbDocumentMutation();
-
-  private constructor() {}
-}
-
-/**
- * A key in the 'remoteDocuments' object store is a string array containing the
- * segments that make up the path.
- */
-export type DbRemoteDocumentKey = string[];
+export interface DbDocumentMutation {}
 
 /**
  * Represents the known absence of a document at a particular version.
  * Stored in IndexedDb as part of a DbRemoteDocument object.
  */
-export class DbNoDocument {
-  constructor(public path: string[], public readTime: DbTimestamp) {}
+export interface DbNoDocument {
+  path: string[];
+  readTime: DbTimestamp;
 }
 
 /**
  * Represents a document that is known to exist but whose data is unknown.
  * Stored in IndexedDb as part of a DbRemoteDocument object.
  */
-export class DbUnknownDocument {
-  constructor(public path: string[], public version: DbTimestamp) {}
+export interface DbUnknownDocument {
+  path: string[];
+  version: DbTimestamp;
 }
 
 /**
@@ -305,96 +197,60 @@ export class DbUnknownDocument {
  * Note: This is the persisted equivalent of a MaybeDocument and could perhaps
  * be made more general if necessary.
  */
-export class DbRemoteDocument {
-  static store = 'remoteDocuments';
-
-  /**
-   * An index that provides access to all entries sorted by read time (which
-   * corresponds to the last modification time of each row).
-   *
-   * This index is used to provide a changelog for Multi-Tab.
-   */
-  static readTimeIndex = 'readTimeIndex';
-
-  static readTimeIndexPath = 'readTime';
-
-  /**
-   * An index that provides access to documents in a collection sorted by read
-   * time.
-   *
-   * This index is used to allow the RemoteDocumentCache to fetch newly changed
-   * documents in a collection.
-   */
-  static collectionReadTimeIndex = 'collectionReadTimeIndex';
-
-  static collectionReadTimeIndexPath = ['parentPath', 'readTime'];
-
+export interface DbRemoteDocument {
   // TODO: We are currently storing full document keys almost three times
   // (once as part of the primary key, once - partly - as `parentPath` and once
   // inside the encoded documents). During our next migration, we should
   // rewrite the primary key as parentPath + document ID which would allow us
   // to drop one value.
 
-  constructor(
-    /**
-     * Set to an instance of DbUnknownDocument if the data for a document is
-     * not known, but it is known that a document exists at the specified
-     * version (e.g. it had a successful update applied to it)
-     */
-    public unknownDocument: DbUnknownDocument | null | undefined,
-    /**
-     * Set to an instance of a DbNoDocument if it is known that no document
-     * exists.
-     */
-    public noDocument: DbNoDocument | null,
-    /**
-     * Set to an instance of a Document if there's a cached version of the
-     * document.
-     */
-    public document: ProtoDocument | null,
-    /**
-     * Documents that were written to the remote document store based on
-     * a write acknowledgment are marked with `hasCommittedMutations`. These
-     * documents are potentially inconsistent with the backend's copy and use
-     * the write's commit version as their document version.
-     */
-    public hasCommittedMutations: boolean | undefined,
+  /**
+   * Set to an instance of DbUnknownDocument if the data for a document is
+   * not known, but it is known that a document exists at the specified
+   * version (e.g. it had a successful update applied to it)
+   */
+  unknownDocument?: DbUnknownDocument;
+  /**
+   * Set to an instance of a DbNoDocument if it is known that no document
+   * exists.
+   */
+  noDocument?: DbNoDocument;
+  /**
+   * Set to an instance of a Document if there's a cached version of the
+   * document.
+   */
+  document?: ProtoDocument;
+  /**
+   * Documents that were written to the remote document store based on
+   * a write acknowledgment are marked with `hasCommittedMutations`. These
+   * documents are potentially inconsistent with the backend's copy and use
+   * the write's commit version as their document version.
+   */
+  hasCommittedMutations?: boolean;
 
-    /**
-     * When the document was read from the backend. Undefined for data written
-     * prior to schema version 9.
-     */
-    public readTime: DbTimestampKey | undefined,
+  /**
+   * When the document was read from the backend. Undefined for data written
+   * prior to schema version 9.
+   */
+  readTime?: DbTimestampKey;
 
-    /**
-     * The path of the collection this document is part of. Undefined for data
-     * written prior to schema version 9.
-     */
-    public parentPath: string[] | undefined
-  ) {}
+  /**
+   * The path of the collection this document is part of. Undefined for data
+   * written prior to schema version 9.
+   */
+  parentPath?: string[];
 }
 
 /**
  * Contains a single entry that has metadata about the remote document cache.
  */
-export class DbRemoteDocumentGlobal {
-  static store = 'remoteDocumentGlobal';
-
-  static key = 'remoteDocumentGlobalKey';
-
+export interface DbRemoteDocumentGlobal {
   /**
-   * @param byteSize - Approximately the total size in bytes of all the
+   * Approximately the total size in bytes of all the
    * documents in the document cache.
    */
-  constructor(public byteSize: number) {}
+  byteSize: number;
 }
-
-export type DbRemoteDocumentGlobalKey = typeof DbRemoteDocumentGlobal.key;
-
-/**
- * A key in the 'targets' object store is a targetId of the query.
- */
-export type DbTargetKey = TargetId;
 
 /**
  * The persisted type for a query nested with in the 'targets' store in
@@ -412,97 +268,74 @@ export type DbQuery = ProtoQueryTarget | ProtoDocumentsTarget;
  * Each query the client listens to against the server is tracked on disk so
  * that the query can be efficiently resumed on restart.
  */
-export class DbTarget {
-  static store = 'targets';
-
-  /** Keys are automatically assigned via the targetId property. */
-  static keyPath = 'targetId';
-
-  /** The name of the queryTargets index. */
-  static queryTargetsIndexName = 'queryTargetsIndex';
-
+export interface DbTarget {
   /**
-   * The index of all canonicalIds to the targets that they match. This is not
-   * a unique mapping because canonicalId does not promise a unique name for all
-   * possible queries, so we append the targetId to make the mapping unique.
+   * An auto-generated sequential numeric identifier for the query.
+   *
+   * Queries are stored using their canonicalId as the key, but these
+   * canonicalIds can be quite long so we additionally assign a unique
+   * queryId which can be used by referenced data structures (e.g.
+   * indexes) to minimize the on-disk cost.
    */
-  static queryTargetsKeyPath = ['canonicalId', 'targetId'];
-
-  constructor(
-    /**
-     * An auto-generated sequential numeric identifier for the query.
-     *
-     * Queries are stored using their canonicalId as the key, but these
-     * canonicalIds can be quite long so we additionally assign a unique
-     * queryId which can be used by referenced data structures (e.g.
-     * indexes) to minimize the on-disk cost.
-     */
-    public targetId: TargetId,
-    /**
-     * The canonical string representing this query. This is not unique.
-     */
-    public canonicalId: string,
-    /**
-     * The last readTime received from the Watch Service for this query.
-     *
-     * This is the same value as TargetChange.read_time in the protos.
-     */
-    public readTime: DbTimestamp,
-    /**
-     * An opaque, server-assigned token that allows watching a query to be
-     * resumed after disconnecting without retransmitting all the data
-     * that matches the query. The resume token essentially identifies a
-     * point in time from which the server should resume sending results.
-     *
-     * This is related to the snapshotVersion in that the resumeToken
-     * effectively also encodes that value, but the resumeToken is opaque
-     * and sometimes encodes additional information.
-     *
-     * A consequence of this is that the resumeToken should be used when
-     * asking the server to reason about where this client is in the watch
-     * stream, but the client should use the snapshotVersion for its own
-     * purposes.
-     *
-     * This is the same value as TargetChange.resume_token in the protos.
-     */
-    public resumeToken: string,
-    /**
-     * A sequence number representing the last time this query was
-     * listened to, used for garbage collection purposes.
-     *
-     * Conventionally this would be a timestamp value, but device-local
-     * clocks are unreliable and they must be able to create new listens
-     * even while disconnected. Instead this should be a monotonically
-     * increasing number that's incremented on each listen call.
-     *
-     * This is different from the queryId since the queryId is an
-     * immutable identifier assigned to the Query on first use while
-     * lastListenSequenceNumber is updated every time the query is
-     * listened to.
-     */
-    public lastListenSequenceNumber: number,
-    /**
-     * Denotes the maximum snapshot version at which the associated query view
-     * contained no limbo documents.  Undefined for data written prior to
-     * schema version 9.
-     */
-    public lastLimboFreeSnapshotVersion: DbTimestamp | undefined,
-    /**
-     * The query for this target.
-     *
-     * Because canonical ids are not unique we must store the actual query. We
-     * use the proto to have an object we can persist without having to
-     * duplicate translation logic to and from a `Query` object.
-     */
-    public query: DbQuery
-  ) {}
+  targetId: TargetId;
+  /**
+   * The canonical string representing this query. This is not unique.
+   */
+  canonicalId: string;
+  /**
+   * The last readTime received from the Watch Service for this query.
+   *
+   * This is the same value as TargetChange.read_time in the protos.
+   */
+  readTime: DbTimestamp;
+  /**
+   * An opaque, server-assigned token that allows watching a query to be
+   * resumed after disconnecting without retransmitting all the data
+   * that matches the query. The resume token essentially identifies a
+   * point in time from which the server should resume sending results.
+   *
+   * This is related to the snapshotVersion in that the resumeToken
+   * effectively also encodes that value, but the resumeToken is opaque
+   * and sometimes encodes additional information.
+   *
+   * A consequence of this is that the resumeToken should be used when
+   * asking the server to reason about where this client is in the watch
+   * stream, but the client should use the snapshotVersion for its own
+   * purposes.
+   *
+   * This is the same value as TargetChange.resume_token in the protos.
+   */
+  resumeToken: string;
+  /**
+   * A sequence number representing the last time this query was
+   * listened to, used for garbage collection purposes.
+   *
+   * Conventionally this would be a timestamp value, but device-local
+   * clocks are unreliable and they must be able to create new listens
+   * even while disconnected. Instead this should be a monotonically
+   * increasing number that's incremented on each listen call.
+   *
+   * This is different from the queryId since the queryId is an
+   * immutable identifier assigned to the Query on first use while
+   * lastListenSequenceNumber is updated every time the query is
+   * listened to.
+   */
+  lastListenSequenceNumber: number;
+  /**
+   * Denotes the maximum snapshot version at which the associated query view
+   * contained no limbo documents.  Undefined for data written prior to
+   * schema version 9.
+   */
+  lastLimboFreeSnapshotVersion?: DbTimestamp;
+  /**
+   * The query for this target.
+   *
+   * Because canonical ids are not unique we must store the actual query. We
+   * use the proto to have an object we can persist without having to
+   * duplicate translation logic to and from a `Query` object.
+   */
+  query: DbQuery;
 }
-
-/**
- * The key for a DbTargetDocument, containing a targetId and an encoded resource
- * path.
- */
-export type DbTargetDocumentKey = [TargetId, EncodedResourcePath];
 
 /**
  * An object representing an association between a target and a document, or a
@@ -514,46 +347,22 @@ export type DbTargetDocumentKey = [TargetId, EncodedResourcePath];
  * documents and their sequence numbers can be identified efficiently via a scan
  * of this store.
  */
-export class DbTargetDocument {
-  /** Name of the IndexedDb object store.  */
-  static store = 'targetDocuments';
-
-  /** Keys are automatically assigned via the targetId, path properties. */
-  static keyPath = ['targetId', 'path'];
-
-  /** The index name for the reverse index. */
-  static documentTargetsIndex = 'documentTargetsIndex';
-
-  /** We also need to create the reverse index for these properties. */
-  static documentTargetsKeyPath = ['path', 'targetId'];
-
-  constructor(
-    /**
-     * The targetId identifying a target or 0 for a sentinel row.
-     */
-    public targetId: TargetId,
-    /**
-     * The path to the document, as encoded in the key.
-     */
-    public path: EncodedResourcePath,
-    /**
-     * If this is a sentinel row, this should be the sequence number of the last
-     * time the document specified by `path` was used. Otherwise, it should be
-     * `undefined`.
-     */
-    public sequenceNumber?: ListenSequenceNumber
-  ) {
-    debugAssert(
-      (targetId === 0) === (sequenceNumber !== undefined),
-      'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
-    );
-  }
+export interface DbTargetDocument {
+  /**
+   * The targetId identifying a target or 0 for a sentinel row.
+   */
+  targetId: TargetId;
+  /**
+   * The path to the document, as encoded in the key.
+   */
+  path: EncodedResourcePath;
+  /**
+   * If this is a sentinel row, this should be the sequence number of the last
+   * time the document specified by `path` was used. Otherwise, it should be
+   * `undefined`.
+   */
+  sequenceNumber?: ListenSequenceNumber;
 }
-
-/**
- * The type to represent the single allowed key for the DbTargetGlobal store.
- */
-export type DbTargetGlobalKey = typeof DbTargetGlobal.key;
 
 /**
  * A record of global state tracked across all Targets, tracked separately
@@ -561,49 +370,33 @@ export type DbTargetGlobalKey = typeof DbTargetGlobal.key;
  *
  * This should be kept in-sync with the proto used in the iOS client.
  */
-export class DbTargetGlobal {
+export interface DbTargetGlobal {
   /**
-   * The key string used for the single object that exists in the
-   * DbTargetGlobal store.
+   * The highest numbered target id across all targets.
+   *
+   * See DbTarget.targetId.
    */
-  static key = 'targetGlobalKey';
-  static store = 'targetGlobal';
-
-  constructor(
-    /**
-     * The highest numbered target id across all targets.
-     *
-     * See DbTarget.targetId.
-     */
-    public highestTargetId: TargetId,
-    /**
-     * The highest numbered lastListenSequenceNumber across all targets.
-     *
-     * See DbTarget.lastListenSequenceNumber.
-     */
-    public highestListenSequenceNumber: number,
-    /**
-     * A global snapshot version representing the last consistent snapshot we
-     * received from the backend. This is monotonically increasing and any
-     * snapshots received from the backend prior to this version (e.g. for
-     * targets resumed with a resumeToken) should be suppressed (buffered)
-     * until the backend has caught up to this snapshot version again. This
-     * prevents our cache from ever going backwards in time.
-     */
-    public lastRemoteSnapshotVersion: DbTimestamp,
-    /**
-     * The number of targets persisted.
-     */
-    public targetCount: number
-  ) {}
+  highestTargetId: TargetId;
+  /**
+   * The highest numbered lastListenSequenceNumber across all targets.
+   *
+   * See DbTarget.lastListenSequenceNumber.
+   */
+  highestListenSequenceNumber: number;
+  /**
+   * A global snapshot version representing the last consistent snapshot we
+   * received from the backend. This is monotonically increasing and any
+   * snapshots received from the backend prior to this version (e.g. for
+   * targets resumed with a resumeToken) should be suppressed (buffered)
+   * until the backend has caught up to this snapshot version again. This
+   * prevents our cache from ever going backwards in time.
+   */
+  lastRemoteSnapshotVersion: DbTimestamp;
+  /**
+   * The number of targets persisted.
+   */
+  targetCount: number;
 }
-
-/**
- * The key for a DbCollectionParent entry, containing the collection ID
- * and the parent path that contains it. Note that the parent path will be an
- * empty path in the case of root-level collections.
- */
-export type DbCollectionParentKey = [string, EncodedResourcePath];
 
 /**
  * An object representing an association between a Collection id (e.g. 'messages')
@@ -611,24 +404,16 @@ export type DbCollectionParentKey = [string, EncodedResourcePath];
  * This is used to efficiently find all collections to query when performing
  * a Collection Group query.
  */
-export class DbCollectionParent {
-  /** Name of the IndexedDb object store. */
-  static store = 'collectionParents';
-
-  /** Keys are automatically assigned via the collectionId, parent properties. */
-  static keyPath = ['collectionId', 'parent'];
-
-  constructor(
-    /**
-     * The collectionId (e.g. 'messages')
-     */
-    public collectionId: string,
-    /**
-     * The path to the parent (either a document location or an empty path for
-     * a root-level collection).
-     */
-    public parent: EncodedResourcePath
-  ) {}
+export interface DbCollectionParent {
+  /**
+   * The collectionId (e.g. 'messages')
+   */
+  collectionId: string;
+  /**
+   * The path to the parent (either a document location or an empty path for
+   * a root-level collection).
+   */
+  parent: EncodedResourcePath;
 }
 
 /**
@@ -637,299 +422,112 @@ export class DbCollectionParent {
  * PORTING NOTE: This is used to synchronize multi-tab state and does not need
  * to be ported to iOS or Android.
  */
-export class DbClientMetadata {
-  /** Name of the IndexedDb object store. */
-  static store = 'clientMetadata';
+export interface DbClientMetadata {
+  // Note: Previous schema versions included a field
+  // "lastProcessedDocumentChangeId". Don't use anymore.
 
-  /** Keys are automatically assigned via the clientId properties. */
-  static keyPath = 'clientId';
-
-  constructor(
-    // Note: Previous schema versions included a field
-    // "lastProcessedDocumentChangeId". Don't use anymore.
-
-    /** The auto-generated client id assigned at client startup. */
-    public clientId: string,
-    /** The last time this state was updated. */
-    public updateTimeMs: number,
-    /** Whether the client's network connection is enabled. */
-    public networkEnabled: boolean,
-    /** Whether this client is running in a foreground tab. */
-    public inForeground: boolean
-  ) {}
+  /** The auto-generated client id assigned at client startup. */
+  clientId: string;
+  /** The last time this state was updated. */
+  updateTimeMs: number;
+  /** Whether the client's network connection is enabled. */
+  networkEnabled: boolean;
+  /** Whether this client is running in a foreground tab. */
+  inForeground: boolean;
 }
-
-/** Object keys in the 'clientMetadata' store are clientId strings. */
-export type DbClientMetadataKey = string;
-
-export type DbBundlesKey = string;
 
 /** An object representing a bundle loaded by the SDK. */
-export class DbBundle {
-  /** Name of the IndexedDb object store. */
-  static store = 'bundles';
-
-  static keyPath = 'bundleId';
-
-  constructor(
-    /** The ID of the loaded bundle. */
-    public bundleId: string,
-    /** The create time of the loaded bundle. */
-    public createTime: DbTimestamp,
-    /** The schema version of the loaded bundle. */
-    public version: number
-  ) {}
+export interface DbBundle {
+  /** The ID of the loaded bundle. */
+  bundleId: string;
+  /** The create time of the loaded bundle. */
+  createTime: DbTimestamp;
+  /** The schema version of the loaded bundle. */
+  version: number;
 }
-
-export type DbNamedQueriesKey = string;
 
 /** An object representing a named query loaded by the SDK via a bundle. */
-export class DbNamedQuery {
-  /** Name of the IndexedDb object store. */
-  static store = 'namedQueries';
-
-  static keyPath = 'name';
-
-  constructor(
-    /** The name of the query. */
-    public name: string,
-    /** The read time of the results saved in the bundle from the named query. */
-    public readTime: DbTimestamp,
-    /** The query saved in the bundle. */
-    public bundledQuery: BundledQuery
-  ) {}
+export interface DbNamedQuery {
+  /** The name of the query. */
+  name: string;
+  /** The read time of the results saved in the bundle from the named query. */
+  readTime: DbTimestamp;
+  /** The query saved in the bundle. */
+  bundledQuery: BundledQuery;
 }
-
-/** The key for each index consisting of just the index id. */
-export type DbIndexConfigurationKey = number;
 
 /** An object representing the global configuration for a field index. */
-export class DbIndexConfiguration {
-  /** Name of the IndexedDb object store. */
-  static store = 'indexConfiguration';
-
-  static keyPath = 'indexId';
-
+export interface DbIndexConfiguration {
   /**
-   * An index that provides access to the index configurations by collection
-   * group.
-   *
-   * PORTING NOTE: iOS and Android maintain this index in-memory, but this is
-   * not possible here as the Web client supports concurrent access to
-   * persistence via multi-tab.
+   * The index id for this entry. Undefined for indexes that are not yet
+   * persisted.
    */
-  static collectionGroupIndex = 'collectionGroupIndex';
-
-  static collectionGroupIndexPath = 'collectionGroup';
-
-  constructor(
-    /**
-     * The index id for this entry. Undefined for indexes that are not yet
-     * persisted.
-     */
-    public indexId: number | undefined,
-    /** The collection group this index belongs to. */
-    public collectionGroup: string,
-    /** The fields to index for this index. */
-    public fields: Array<[name: string, kind: IndexKind]>
-  ) {}
+  indexId?: number;
+  /** The collection group this index belongs to. */
+  collectionGroup: string;
+  /** The fields to index for this index. */
+  fields: Array<[name: string, kind: IndexKind]>;
 }
-
-/** The key for each index state consisting of the index id and its user id. */
-export type DbIndexStateKey = [number, string];
 
 /**
  * An object describing how up-to-date the index backfill is for each user and
  * index.
  */
-export class DbIndexState {
-  /** Name of the IndexedDb object store. */
-  static store = 'indexState';
-
-  static keyPath = ['indexId', 'uid'];
-
+export interface DbIndexState {
+  /** The index id for this entry. */
+  indexId: number;
+  /** The user id for this entry. */
+  uid: string;
   /**
-   * An index that provides access to documents in a collection sorted by last
-   * update time. Used by the backfiller.
-   *
-   * PORTING NOTE: iOS and Android maintain this index in-memory, but this is
-   * not possible here as the Web client supports concurrent access to
-   * persistence via multi-tab.
+   * A number that indicates when the index was last updated (relative to
+   * other indexes).
    */
-  static sequenceNumberIndex = 'sequenceNumberIndex';
-
-  static sequenceNumberIndexPath = ['uid', 'sequenceNumber'];
-
-  constructor(
-    /** The index id for this entry. */
-    public indexId: number,
-    /** The user id for this entry. */
-    public uid: string,
-    /**
-     * A number that indicates when the index was last updated (relative to
-     * other indexes).
-     */
-    public sequenceNumber: number,
-    /**
-     * The latest read time that has been indexed by Firestore for this field
-     * index. Set to `{seconds: 0, nanos: 0}` if no documents have been indexed.
-     */
-    public readTime: DbTimestamp,
-    /**
-     * The last document that has been indexed for this field index. Empty if
-     * no documents have been indexed.
-     */
-    public documentKey: EncodedResourcePath,
-    /**
-     * The largest mutation batch id that has been processed for this index. -1
-     * if no mutations have been indexed.
-     */
-    public largestBatchId: number
-  ) {}
+  sequenceNumber: number;
+  /**
+   * The latest read time that has been indexed by Firestore for this field
+   * index. Set to `{seconds: 0, nanos: 0}` if no documents have been indexed.
+   */
+  readTime: DbTimestamp;
+  /**
+   * The last document that has been indexed for this field index. Empty if
+   * no documents have been indexed.
+   */
+  documentKey: EncodedResourcePath;
+  /**
+   * The largest mutation batch id that has been processed for this index. -1
+   * if no mutations have been indexed.
+   */
+  largestBatchId: number;
 }
-
-/**
- * The key for each index entry consists of the index id and its user id,
- * the encoded array and directional value for the indexed fields as well as
- * the encoded document path for the indexed document.
- */
-export type DbIndexEntryKey = [number, string, Uint8Array, Uint8Array, string];
 
 /** An object that stores the encoded entries for all documents and fields. */
-export class DbIndexEntry {
-  /** Name of the IndexedDb object store. */
-  static store = 'indexEntries';
-
-  static keyPath = [
-    'indexId',
-    'uid',
-    'arrayValue',
-    'directionalValue',
-    'documentKey'
-  ];
-
-  static documentKeyIndex = 'documentKeyIndex';
-
-  static documentKeyIndexPath = ['indexId', 'uid', 'documentKey'];
-
-  constructor(
-    /** The index id for this entry. */
-    public indexId: number,
-    /** The user id for this entry. */
-    public uid: string,
-    /** The encoded array index value for this entry. */
-    public arrayValue: Uint8Array,
-    /** The encoded directional value for equality and inequality filters. */
-    public directionalValue: Uint8Array,
-    /** The document key this entry points to. */
-    public documentKey: EncodedResourcePath
-  ) {}
+export interface DbIndexEntry {
+  /** The index id for this entry. */
+  indexId: number;
+  /** The user id for this entry. */
+  uid: string;
+  /** The encoded array index value for this entry. */
+  arrayValue: Uint8Array;
+  /** The encoded directional value for equality and inequality filters. */
+  directionalValue: Uint8Array;
+  /** The document key this entry points to. */
+  documentKey: EncodedResourcePath;
 }
-
-export type DbDocumentOverlayKey = [
-  /* userId */ string,
-  /* collectionPath */ string,
-  /* documentId */ string
-];
 
 /**
  * An object representing a document overlay.
  */
-export class DbDocumentOverlay {
-  /** Name of the IndexedDb object store. */
-  static store = 'documentOverlays';
-
-  static keyPath = ['userId', 'collectionPath', 'documentId'];
-
-  static collectionPathOverlayIndex = 'collectionPathOverlayIndex';
-  static collectionPathOverlayIndexPath = [
-    'userId',
-    'collectionPath',
-    'largestBatchId'
-  ];
-
-  static collectionGroupOverlayIndex = 'collectionGroupOverlayIndex';
-  static collectionGroupOverlayIndexPath = [
-    'userId',
-    'collectionGroup',
-    'largestBatchId'
-  ];
-
-  constructor(
-    /** The user ID to whom this overlay belongs. */
-    public userId: string,
-    /** The path to the collection that contains the document. */
-    public collectionPath: string,
-    /** The ID (key) of the document within the collection. */
-    public documentId: string,
-    /** The collection group to which the document belongs. */
-    public collectionGroup: string,
-    /** The largest batch ID that's been applied for this overlay. */
-    public largestBatchId: number,
-    /** The overlay mutation. */
-    public overlayMutation: ProtoWrite
-  ) {}
-}
-
-// Visible for testing
-export const V1_STORES = [
-  DbMutationQueue.store,
-  DbMutationBatch.store,
-  DbDocumentMutation.store,
-  DbRemoteDocument.store,
-  DbTarget.store,
-  DbPrimaryClient.store,
-  DbTargetGlobal.store,
-  DbTargetDocument.store
-];
-
-// V2 is no longer usable (see comment at top of file)
-
-// Visible for testing
-export const V3_STORES = V1_STORES;
-
-// Note: DbRemoteDocumentChanges is no longer used and dropped with v9.
-export const V4_STORES = [...V3_STORES, DbClientMetadata.store];
-
-// V5 does not change the set of stores.
-
-export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
-
-// V7 does not change the set of stores.
-
-export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
-
-// V9 does not change the set of stores.
-
-// V10 does not change the set of stores.
-
-export const V11_STORES = [...V8_STORES, DbBundle.store, DbNamedQuery.store];
-
-export const V12_STORES = [...V11_STORES, DbDocumentOverlay.store];
-
-export const V13_STORES = [
-  ...V12_STORES,
-  DbIndexConfiguration.store,
-  DbIndexState.store,
-  DbIndexEntry.store
-];
-
-/**
- * The list of all default IndexedDB stores used throughout the SDK. This is
- * used when creating transactions so that access across all stores is done
- * atomically.
- */
-export const ALL_STORES = V12_STORES;
-
-/** Returns the object stores for the provided schema. */
-export function getObjectStores(schemaVersion: number): string[] {
-  if (schemaVersion === 13) {
-    return V13_STORES;
-  } else if (schemaVersion === 12) {
-    return V12_STORES;
-  } else if (schemaVersion === 11) {
-    return V11_STORES;
-  } else {
-    fail('Only schema version 11 and 12 and 13 are supported');
-  }
+export interface DbDocumentOverlay {
+  /** The user ID to whom this overlay belongs. */
+  userId: string;
+  /** The path to the collection that contains the document. */
+  collectionPath: string;
+  /** The ID (key) of the document within the collection. */
+  documentId: string;
+  /** The collection group to which the document belongs. */
+  collectionGroup: string;
+  /** The largest batch ID that's been applied for this overlay. */
+  largestBatchId: number;
+  /** The overlay mutation. */
+  overlayMutation: ProtoWrite;
 }

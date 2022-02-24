@@ -64,10 +64,13 @@ import {
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
-  DbPrimaryClientKey,
   SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
 import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
+import {
+  DbPrimaryClientKey,
+  DbPrimaryClientStore
+} from '../../../src/local/indexeddb_sentinels';
 import { LocalStore } from '../../../src/local/local_store';
 import {
   ClientId,
@@ -1642,12 +1645,12 @@ async function clearCurrentPrimaryLease(): Promise<void> {
   await db.runTransaction(
     'clearCurrentPrimaryLease',
     'readwrite',
-    [DbPrimaryClient.store],
+    [DbPrimaryClientStore],
     txn => {
       const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-        DbPrimaryClient.store
+        DbPrimaryClientStore
       );
-      return primaryClientStore.delete(DbPrimaryClient.key);
+      return primaryClientStore.delete(DbPrimaryClientKey);
     }
   );
   db.close();

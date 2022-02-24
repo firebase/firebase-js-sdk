@@ -29,34 +29,77 @@ import {
   removeMutationBatch
 } from './indexeddb_mutation_batch_impl';
 import {
-  DbBundle,
-  DbClientMetadata,
   DbCollectionParent,
-  DbCollectionParentKey,
   DbDocumentMutation,
-  DbDocumentMutationKey,
-  DbIndexConfiguration,
-  DbIndexEntry,
-  DbIndexState,
-  DbDocumentOverlay,
   DbMutationBatch,
-  DbMutationBatchKey,
   DbMutationQueue,
-  DbMutationQueueKey,
-  DbNamedQuery,
-  DbPrimaryClient,
   DbRemoteDocument,
   DbRemoteDocumentGlobal,
-  DbRemoteDocumentGlobalKey,
-  DbRemoteDocumentKey,
   DbTarget,
   DbTargetDocument,
-  DbTargetDocumentKey,
   DbTargetGlobal,
-  DbTargetGlobalKey,
-  DbTargetKey,
   INDEXING_SCHEMA_VERSION
 } from './indexeddb_schema';
+import {
+  DbBundleKeyPath,
+  DbBundleStore,
+  DbClientMetadataKeyPath,
+  DbClientMetadataStore,
+  DbCollectionParentKey,
+  DbCollectionParentKeyPath,
+  DbCollectionParentStore,
+  DbDocumentMutationKey,
+  DbDocumentMutationStore,
+  DbDocumentOverlayCollectionGroupOverlayIndex,
+  DbDocumentOverlayCollectionGroupOverlayIndexPath,
+  DbDocumentOverlayCollectionPathOverlayIndex,
+  DbDocumentOverlayCollectionPathOverlayIndexPath,
+  DbDocumentOverlayKeyPath,
+  DbDocumentOverlayStore,
+  DbIndexConfigurationCollectionGroupIndex,
+  DbIndexConfigurationCollectionGroupIndexPath,
+  DbIndexConfigurationKeyPath,
+  DbIndexConfigurationStore,
+  DbIndexEntryDocumentKeyIndex,
+  DbIndexEntryDocumentKeyIndexPath,
+  DbIndexEntryKeyPath,
+  DbIndexEntryStore,
+  DbIndexStateKeyPath,
+  DbIndexStateSequenceNumberIndex,
+  DbIndexStateSequenceNumberIndexPath,
+  DbIndexStateStore,
+  DbMutationBatchKey,
+  DbMutationBatchKeyPath,
+  DbMutationBatchStore,
+  DbMutationBatchUserMutationsIndex,
+  DbMutationBatchUserMutationsKeyPath,
+  DbMutationQueueKey,
+  DbMutationQueueKeyPath,
+  DbMutationQueueStore,
+  DbNamedQueryKeyPath,
+  DbNamedQueryStore,
+  DbPrimaryClientStore,
+  DbRemoteDocumentCollectionReadTimeIndex,
+  DbRemoteDocumentCollectionReadTimeIndexPath,
+  DbRemoteDocumentGlobalKey,
+  DbRemoteDocumentGlobalStore,
+  DbRemoteDocumentKey,
+  DbRemoteDocumentReadTimeIndex,
+  DbRemoteDocumentReadTimeIndexPath,
+  DbRemoteDocumentStore,
+  DbTargetDocumentDocumentTargetsIndex,
+  DbTargetDocumentDocumentTargetsKeyPath,
+  DbTargetDocumentKey,
+  DbTargetDocumentKeyPath,
+  DbTargetDocumentStore,
+  DbTargetGlobalKey,
+  DbTargetGlobalStore,
+  DbTargetKey,
+  DbTargetKeyPath,
+  DbTargetQueryTargetsIndexName,
+  DbTargetQueryTargetsKeyPath,
+  DbTargetStore
+} from './indexeddb_sentinels';
 import {
   fromDbMutationBatch,
   fromDbTarget,
@@ -192,19 +235,19 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
   private addDocumentGlobal(
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
-    let byteCount = 0;
+    let byteSize = 0;
     return txn
-      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocumentStore)
       .iterate((_, doc) => {
-        byteCount += dbDocumentSize(doc);
+        byteSize += dbDocumentSize(doc);
       })
       .next(() => {
-        const metadata = new DbRemoteDocumentGlobal(byteCount);
+        const metadata: DbRemoteDocumentGlobal = { byteSize };
         return txn
           .store<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
-            DbRemoteDocumentGlobal.store
+            DbRemoteDocumentGlobalStore
           )
-          .put(DbRemoteDocumentGlobal.key, metadata);
+          .put(DbRemoteDocumentGlobalKey, metadata);
       });
   }
 
@@ -212,10 +255,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
     const queuesStore = txn.store<DbMutationQueueKey, DbMutationQueue>(
-      DbMutationQueue.store
+      DbMutationQueueStore
     );
     const mutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
-      DbMutationBatch.store
+      DbMutationBatchStore
     );
 
     return queuesStore.loadAll().next(queues => {
@@ -226,7 +269,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         );
 
         return mutationsStore
-          .loadAll(DbMutationBatch.userMutationsIndex, range)
+          .loadAll(DbMutationBatchUserMutationsIndex, range)
           .next(dbBatches => {
             return PersistencePromise.forEach(
               dbBatches,
@@ -257,15 +300,15 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     const documentTargetStore = txn.store<
       DbTargetDocumentKey,
       DbTargetDocument
-    >(DbTargetDocument.store);
+    >(DbTargetDocumentStore);
     const documentsStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-      DbRemoteDocument.store
+      DbRemoteDocumentStore
     );
     const globalTargetStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-      DbTargetGlobal.store
+      DbTargetGlobalStore
     );
 
-    return globalTargetStore.get(DbTargetGlobal.key).next(metadata => {
+    return globalTargetStore.get(DbTargetGlobalKey).next(metadata => {
       debugAssert(
         !!metadata,
         'Metadata should have been written during the version 3 migration'
@@ -273,13 +316,11 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       const writeSentinelKey = (
         path: ResourcePath
       ): PersistencePromise<void> => {
-        return documentTargetStore.put(
-          new DbTargetDocument(
-            0,
-            encodeResourcePath(path),
-            metadata!.highestListenSequenceNumber!
-          )
-        );
+        return documentTargetStore.put({
+          targetId: 0,
+          path: encodeResourcePath(path),
+          sequenceNumber: metadata!.highestListenSequenceNumber!
+        });
       };
 
       const promises: Array<PersistencePromise<void>> = [];
@@ -306,14 +347,14 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
     // Create the index.
-    db.createObjectStore(DbCollectionParent.store, {
-      keyPath: DbCollectionParent.keyPath
+    db.createObjectStore(DbCollectionParentStore, {
+      keyPath: DbCollectionParentKeyPath
     });
 
     const collectionParentsStore = txn.store<
       DbCollectionParentKey,
       DbCollectionParent
-    >(DbCollectionParent.store);
+    >(DbCollectionParentStore);
 
     // Helper to add an index entry iff we haven't already written it.
     const cache = new MemoryCollectionParentIndex();
@@ -332,7 +373,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     // Index existing remote documents.
     return txn
-      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocumentStore)
       .iterate({ keysOnly: true }, (pathSegments, _) => {
         const path = new ResourcePath(pathSegments);
         return addEntry(path.popLast());
@@ -341,7 +382,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         // Index existing mutations.
         return txn
           .store<DbDocumentMutationKey, DbDocumentMutation>(
-            DbDocumentMutation.store
+            DbDocumentMutationStore
           )
           .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
             const path = decodeResourcePath(encodedPath);
@@ -353,7 +394,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
   private rewriteCanonicalIds(
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
-    const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+    const targetStore = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
     return targetStore.iterate((key, originalDbTarget) => {
       const originalTargetData = fromDbTarget(originalDbTarget);
       const updatedDbTarget = toDbTarget(this.serializer, originalTargetData);
@@ -367,25 +408,25 @@ function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
 }
 
 function createPrimaryClientStore(db: IDBDatabase): void {
-  db.createObjectStore(DbPrimaryClient.store);
+  db.createObjectStore(DbPrimaryClientStore);
 }
 
 function createMutationQueue(db: IDBDatabase): void {
-  db.createObjectStore(DbMutationQueue.store, {
-    keyPath: DbMutationQueue.keyPath
+  db.createObjectStore(DbMutationQueueStore, {
+    keyPath: DbMutationQueueKeyPath
   });
 
-  const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
-    keyPath: DbMutationBatch.keyPath,
+  const mutationBatchesStore = db.createObjectStore(DbMutationBatchStore, {
+    keyPath: DbMutationBatchKeyPath,
     autoIncrement: true
   });
   mutationBatchesStore.createIndex(
-    DbMutationBatch.userMutationsIndex,
-    DbMutationBatch.userMutationsKeyPath,
+    DbMutationBatchUserMutationsIndex,
+    DbMutationBatchUserMutationsKeyPath,
     { unique: true }
   );
 
-  db.createObjectStore(DbDocumentMutation.store);
+  db.createObjectStore(DbDocumentMutationStore);
 }
 
 /**
@@ -397,23 +438,23 @@ function upgradeMutationBatchSchemaAndMigrateData(
   txn: SimpleDbTransaction
 ): PersistencePromise<void> {
   const v1MutationsStore = txn.store<[string, number], DbMutationBatch>(
-    DbMutationBatch.store
+    DbMutationBatchStore
   );
   return v1MutationsStore.loadAll().next(existingMutations => {
-    db.deleteObjectStore(DbMutationBatch.store);
+    db.deleteObjectStore(DbMutationBatchStore);
 
-    const mutationsStore = db.createObjectStore(DbMutationBatch.store, {
-      keyPath: DbMutationBatch.keyPath,
+    const mutationsStore = db.createObjectStore(DbMutationBatchStore, {
+      keyPath: DbMutationBatchKeyPath,
       autoIncrement: true
     });
     mutationsStore.createIndex(
-      DbMutationBatch.userMutationsIndex,
-      DbMutationBatch.userMutationsKeyPath,
+      DbMutationBatchUserMutationsIndex,
+      DbMutationBatchUserMutationsKeyPath,
       { unique: true }
     );
 
     const v3MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
-      DbMutationBatch.store
+      DbMutationBatchStore
     );
     const writeAll = existingMutations.map(mutation =>
       v3MutationsStore.put(mutation)
@@ -424,40 +465,40 @@ function upgradeMutationBatchSchemaAndMigrateData(
 }
 
 function createRemoteDocumentCache(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocument.store);
+  db.createObjectStore(DbRemoteDocumentStore);
 }
 
 function createDocumentGlobalStore(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocumentGlobal.store);
+  db.createObjectStore(DbRemoteDocumentGlobalStore);
 }
 
 function createQueryCache(db: IDBDatabase): void {
-  const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
-    keyPath: DbTargetDocument.keyPath
+  const targetDocumentsStore = db.createObjectStore(DbTargetDocumentStore, {
+    keyPath: DbTargetDocumentKeyPath
   });
   targetDocumentsStore.createIndex(
-    DbTargetDocument.documentTargetsIndex,
-    DbTargetDocument.documentTargetsKeyPath,
+    DbTargetDocumentDocumentTargetsIndex,
+    DbTargetDocumentDocumentTargetsKeyPath,
     { unique: true }
   );
 
-  const targetStore = db.createObjectStore(DbTarget.store, {
-    keyPath: DbTarget.keyPath
+  const targetStore = db.createObjectStore(DbTargetStore, {
+    keyPath: DbTargetKeyPath
   });
 
   // NOTE: This is unique only because the TargetId is the suffix.
   targetStore.createIndex(
-    DbTarget.queryTargetsIndexName,
-    DbTarget.queryTargetsKeyPath,
+    DbTargetQueryTargetsIndexName,
+    DbTargetQueryTargetsKeyPath,
     { unique: true }
   );
-  db.createObjectStore(DbTargetGlobal.store);
+  db.createObjectStore(DbTargetGlobalStore);
 }
 
 function dropQueryCache(db: IDBDatabase): void {
-  db.deleteObjectStore(DbTargetDocument.store);
-  db.deleteObjectStore(DbTarget.store);
-  db.deleteObjectStore(DbTargetGlobal.store);
+  db.deleteObjectStore(DbTargetDocumentStore);
+  db.deleteObjectStore(DbTargetStore);
+  db.deleteObjectStore(DbTargetGlobalStore);
 }
 
 function dropRemoteDocumentChangesStore(db: IDBDatabase): void {
@@ -475,15 +516,15 @@ function writeEmptyTargetGlobalEntry(
   txn: SimpleDbTransaction
 ): PersistencePromise<void> {
   const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-    DbTargetGlobal.store
+    DbTargetGlobalStore
   );
-  const metadata = new DbTargetGlobal(
-    /*highestTargetId=*/ 0,
-    /*lastListenSequenceNumber=*/ 0,
-    SnapshotVersion.min().toTimestamp(),
-    /*targetCount=*/ 0
-  );
-  return globalStore.put(DbTargetGlobal.key, metadata);
+  const metadata: DbTargetGlobal = {
+    highestTargetId: 0,
+    highestListenSequenceNumber: 0,
+    lastRemoteSnapshotVersion: SnapshotVersion.min().toTimestamp(),
+    targetCount: 0
+  };
+  return globalStore.put(DbTargetGlobalKey, metadata);
 }
 
 /**
@@ -491,82 +532,82 @@ function writeEmptyTargetGlobalEntry(
  * and Index-Free queries.
  */
 function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
-  const remoteDocumentStore = txn.objectStore(DbRemoteDocument.store);
+  const remoteDocumentStore = txn.objectStore(DbRemoteDocumentStore);
   remoteDocumentStore.createIndex(
-    DbRemoteDocument.readTimeIndex,
-    DbRemoteDocument.readTimeIndexPath,
+    DbRemoteDocumentReadTimeIndex,
+    DbRemoteDocumentReadTimeIndexPath,
     { unique: false }
   );
   remoteDocumentStore.createIndex(
-    DbRemoteDocument.collectionReadTimeIndex,
-    DbRemoteDocument.collectionReadTimeIndexPath,
+    DbRemoteDocumentCollectionReadTimeIndex,
+    DbRemoteDocumentCollectionReadTimeIndexPath,
     { unique: false }
   );
 }
 
 function createClientMetadataStore(db: IDBDatabase): void {
-  db.createObjectStore(DbClientMetadata.store, {
-    keyPath: DbClientMetadata.keyPath
+  db.createObjectStore(DbClientMetadataStore, {
+    keyPath: DbClientMetadataKeyPath
   });
 }
 
 function createBundlesStore(db: IDBDatabase): void {
-  db.createObjectStore(DbBundle.store, {
-    keyPath: DbBundle.keyPath
+  db.createObjectStore(DbBundleStore, {
+    keyPath: DbBundleKeyPath
   });
 }
 
 function createNamedQueriesStore(db: IDBDatabase): void {
-  db.createObjectStore(DbNamedQuery.store, {
-    keyPath: DbNamedQuery.keyPath
+  db.createObjectStore(DbNamedQueryStore, {
+    keyPath: DbNamedQueryKeyPath
   });
 }
 
 function createFieldIndex(db: IDBDatabase): void {
   const indexConfiguratioStore = db.createObjectStore(
-    DbIndexConfiguration.store,
+    DbIndexConfigurationStore,
     {
-      keyPath: DbIndexConfiguration.keyPath,
+      keyPath: DbIndexConfigurationKeyPath,
       autoIncrement: true
     }
   );
   indexConfiguratioStore.createIndex(
-    DbIndexConfiguration.collectionGroupIndex,
-    DbIndexConfiguration.collectionGroupIndexPath,
+    DbIndexConfigurationCollectionGroupIndex,
+    DbIndexConfigurationCollectionGroupIndexPath,
     { unique: false }
   );
 
-  const indexStateStore = db.createObjectStore(DbIndexState.store, {
-    keyPath: DbIndexState.keyPath
+  const indexStateStore = db.createObjectStore(DbIndexStateStore, {
+    keyPath: DbIndexStateKeyPath
   });
   indexStateStore.createIndex(
-    DbIndexState.sequenceNumberIndex,
-    DbIndexState.sequenceNumberIndexPath,
+    DbIndexStateSequenceNumberIndex,
+    DbIndexStateSequenceNumberIndexPath,
     { unique: false }
   );
 
-  const indexEntryStore = db.createObjectStore(DbIndexEntry.store, {
-    keyPath: DbIndexEntry.keyPath
+  const indexEntryStore = db.createObjectStore(DbIndexEntryStore, {
+    keyPath: DbIndexEntryKeyPath
   });
   indexEntryStore.createIndex(
-    DbIndexEntry.documentKeyIndex,
-    DbIndexEntry.documentKeyIndexPath,
+    DbIndexEntryDocumentKeyIndex,
+    DbIndexEntryDocumentKeyIndexPath,
     { unique: false }
   );
 }
 
 function createDocumentOverlayStore(db: IDBDatabase): void {
-  const documentOverlayStore = db.createObjectStore(DbDocumentOverlay.store, {
-    keyPath: DbDocumentOverlay.keyPath
+  const documentOverlayStore = db.createObjectStore(DbDocumentOverlayStore, {
+    keyPath: DbDocumentOverlayKeyPath
   });
   documentOverlayStore.createIndex(
-    DbDocumentOverlay.collectionPathOverlayIndex,
-    DbDocumentOverlay.collectionPathOverlayIndexPath,
+    DbDocumentOverlayCollectionPathOverlayIndex,
+    DbDocumentOverlayCollectionPathOverlayIndexPath,
     { unique: false }
   );
   documentOverlayStore.createIndex(
-    DbDocumentOverlay.collectionGroupOverlayIndex,
-    DbDocumentOverlay.collectionGroupOverlayIndexPath,
+    DbDocumentOverlayCollectionGroupOverlayIndex,
+    DbDocumentOverlayCollectionGroupOverlayIndexPath,
     { unique: false }
   );
 }

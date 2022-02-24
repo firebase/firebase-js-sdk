@@ -106,13 +106,12 @@ describe('Local Serializer', () => {
   };
 
   it('SetMutation + TransformMutation (legacy) are squashed', () => {
-    const dbMutationBatch = new DbMutationBatch(
+    const dbMutationBatch: DbMutationBatch = {
       userId,
       batchId,
-      1000,
-      [],
-      [setMutationWrite, transformMutationWrite]
-    );
+      localWriteTimeMs: 1000,
+      mutations: [setMutationWrite, transformMutationWrite]
+    };
     const mutationBatch = fromDbMutationBatch(localSerializer, dbMutationBatch);
     expect(mutationBatch.mutations).to.have.lengthOf(1);
     expect(mutationBatch.mutations[0] instanceof SetMutation).to.be.true;
@@ -124,13 +123,12 @@ describe('Local Serializer', () => {
   });
 
   it('PatchMutation + TransformMutation (legacy) are squashed', () => {
-    const dbMutationBatch = new DbMutationBatch(
+    const dbMutationBatch: DbMutationBatch = {
       userId,
       batchId,
-      1000,
-      [],
-      [patchMutationWrite, transformMutationWrite]
-    );
+      localWriteTimeMs: 1000,
+      mutations: [patchMutationWrite, transformMutationWrite]
+    };
     const mutationBatch = fromDbMutationBatch(localSerializer, dbMutationBatch);
     expect(mutationBatch.mutations).to.have.lengthOf(1);
     expect(mutationBatch.mutations[0] instanceof PatchMutation).to.be.true;
@@ -142,13 +140,12 @@ describe('Local Serializer', () => {
   });
 
   it('TransformMutation (legacy) + TransformMutation (legacy) throw assertion', () => {
-    const dbMutationBatch = new DbMutationBatch(
+    const dbMutationBatch: DbMutationBatch = {
       userId,
       batchId,
-      1000,
-      [],
-      [transformMutationWrite, transformMutationWrite]
-    );
+      localWriteTimeMs: 1000,
+      mutations: [transformMutationWrite, transformMutationWrite]
+    };
     expect(() =>
       fromDbMutationBatch(localSerializer, dbMutationBatch)
     ).to.throw(
@@ -157,13 +154,12 @@ describe('Local Serializer', () => {
   });
 
   it('DeleteMutation + TransformMutation (legacy) on its own throws assertion', () => {
-    const dbMutationBatch = new DbMutationBatch(
+    const dbMutationBatch: DbMutationBatch = {
       userId,
       batchId,
-      1000,
-      [],
-      [deleteMutationWrite, transformMutationWrite]
-    );
+      localWriteTimeMs: 1000,
+      mutations: [deleteMutationWrite, transformMutationWrite]
+    };
     expect(() =>
       fromDbMutationBatch(localSerializer, dbMutationBatch)
     ).to.throw(
@@ -177,12 +173,11 @@ describe('Local Serializer', () => {
     // DeleteMutation -> PatchMutation -> TransformMutation -> PatchMutation
     // OUTPUT (squashed):
     // SetMutation -> SetMutation -> DeleteMutation -> PatchMutation -> PatchMutation
-    const dbMutationBatch = new DbMutationBatch(
+    const dbMutationBatch: DbMutationBatch = {
       userId,
       batchId,
-      1000,
-      [],
-      [
+      localWriteTimeMs: 1000,
+      mutations: [
         setMutationWrite,
         setMutationWrite,
         transformMutationWrite,
@@ -191,7 +186,7 @@ describe('Local Serializer', () => {
         transformMutationWrite,
         patchMutationWrite
       ]
-    );
+    };
     const expected = [
       setMutationWrite,
       { ...setMutationWrite, ...updateTransforms },

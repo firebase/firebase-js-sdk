@@ -35,12 +35,22 @@ import { IndexManager } from './index_manager';
 import { removeMutationBatch } from './indexeddb_mutation_batch_impl';
 import {
   DbDocumentMutation,
-  DbDocumentMutationKey,
   DbMutationBatch,
-  DbMutationBatchKey,
-  DbMutationQueue,
-  DbMutationQueueKey
+  DbMutationQueue
 } from './indexeddb_schema';
+import {
+  DbDocumentMutationKey,
+  DbDocumentMutationPlaceholder,
+  DbDocumentMutationStore,
+  DbMutationBatchKey,
+  DbMutationBatchStore,
+  DbMutationBatchUserMutationsIndex,
+  DbMutationQueueKey,
+  DbMutationQueueStore,
+  newDbDocumentMutationKey,
+  newDbDocumentMutationPrefixForPath,
+  newDbDocumentMutationPrefixForUser
+} from './indexeddb_sentinels';
 import { IndexedDbTransaction, getStore } from './indexeddb_transaction';
 import {
   fromDbMutationBatch,
@@ -113,7 +123,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     );
     return mutationsStore(transaction)
       .iterate(
-        { index: DbMutationBatch.userMutationsIndex, range },
+        { index: DbMutationBatchUserMutationsIndex, range },
         (key, value, control) => {
           empty = false;
           control.done();
@@ -160,7 +170,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         primitiveComparator(l.canonicalString(), r.canonicalString())
       );
       for (const mutation of mutations) {
-        const indexKey = DbDocumentMutation.key(
+        const indexKey = newDbDocumentMutationKey(
           this.userId,
           mutation.key.path,
           batchId
@@ -168,7 +178,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         collectionParents = collectionParents.add(mutation.key.path.popLast());
         promises.push(mutationStore.put(dbBatch));
         promises.push(
-          documentStore.put(indexKey, DbDocumentMutation.PLACEHOLDER)
+          documentStore.put(indexKey, DbDocumentMutationPlaceholder)
         );
       }
 
@@ -242,7 +252,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     let foundBatch: MutationBatch | null = null;
     return mutationsStore(transaction)
       .iterate(
-        { index: DbMutationBatch.userMutationsIndex, range },
+        { index: DbMutationBatchUserMutationsIndex, range },
         (key, dbBatch, control) => {
           if (dbBatch.userId === this.userId) {
             hardAssert(
@@ -268,7 +278,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     let batchId = BATCHID_UNKNOWN;
     return mutationsStore(transaction)
       .iterate(
-        { index: DbMutationBatch.userMutationsIndex, range, reverse: true },
+        { index: DbMutationBatchUserMutationsIndex, range, reverse: true },
         (key, dbBatch, control) => {
           batchId = dbBatch.batchId;
           control.done();
@@ -285,7 +295,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
       [this.userId, Number.POSITIVE_INFINITY]
     );
     return mutationsStore(transaction)
-      .loadAll(DbMutationBatch.userMutationsIndex, range)
+      .loadAll(DbMutationBatchUserMutationsIndex, range)
       .next(dbBatches =>
         dbBatches.map(dbBatch => fromDbMutationBatch(this.serializer, dbBatch))
       );
@@ -297,7 +307,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   ): PersistencePromise<MutationBatch[]> {
     // Scan the document-mutation index starting with a prefix starting with
     // the given documentKey.
-    const indexPrefix = DbDocumentMutation.prefixForPath(
+    const indexPrefix = newDbDocumentMutationPrefixForPath(
       this.userId,
       documentKey.path
     );
@@ -350,7 +360,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
     const promises: Array<PersistencePromise<void>> = [];
     documentKeys.forEach(documentKey => {
-      const indexStart = DbDocumentMutation.prefixForPath(
+      const indexStart = newDbDocumentMutationPrefixForPath(
         this.userId,
         documentKey.path
       );
@@ -413,7 +423,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // Since we don't yet index the actual properties in the mutations, our
     // current approach is to just return all mutation batches that affect
     // documents in the collection being queried.
-    const indexPrefix = DbDocumentMutation.prefixForPath(
+    const indexPrefix = newDbDocumentMutationPrefixForPath(
       this.userId,
       queryPath
     );
@@ -522,7 +532,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
       // Verify that there are no entries in the documentMutations index if
       // the queue is empty.
       const startRange = IDBKeyRange.lowerBound(
-        DbDocumentMutation.prefixForUser(this.userId)
+        newDbDocumentMutationPrefixForUser(this.userId)
       );
       const danglingMutationReferences: ResourcePath[] = [];
       return documentMutationsStore(txn)
@@ -563,12 +573,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .get(this.userId)
       .next((metadata: DbMutationQueue | null) => {
         return (
-          metadata ||
-          new DbMutationQueue(
-            this.userId,
-            BATCHID_UNKNOWN,
-            /*lastStreamToken=*/ ''
-          )
+          metadata || {
+            userId: this.userId,
+            lastAcknowledgedBatchId: BATCHID_UNKNOWN,
+            lastStreamToken: ''
+          }
         );
       });
   }
@@ -583,7 +592,7 @@ function mutationQueueContainsKey(
   userId: string,
   key: DocumentKey
 ): PersistencePromise<boolean> {
-  const indexKey = DbDocumentMutation.prefixForPath(userId, key.path);
+  const indexKey = newDbDocumentMutationPrefixForPath(userId, key.path);
   const encodedPath = indexKey[1];
   const startRange = IDBKeyRange.lowerBound(indexKey);
   let containsKey = false;
@@ -624,7 +633,7 @@ function mutationsStore(
 ): SimpleDbStore<DbMutationBatchKey, DbMutationBatch> {
   return getStore<DbMutationBatchKey, DbMutationBatch>(
     txn,
-    DbMutationBatch.store
+    DbMutationBatchStore
   );
 }
 
@@ -636,7 +645,7 @@ function documentMutationsStore(
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
   return getStore<DbDocumentMutationKey, DbDocumentMutation>(
     txn,
-    DbDocumentMutation.store
+    DbDocumentMutationStore
   );
 }
 
@@ -648,6 +657,6 @@ function mutationQueuesStore(
 ): SimpleDbStore<DbMutationQueueKey, DbMutationQueue> {
   return getStore<DbMutationQueueKey, DbMutationQueue>(
     txn,
-    DbMutationQueue.store
+    DbMutationQueueStore
   );
 }

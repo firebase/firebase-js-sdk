@@ -33,12 +33,15 @@ import { SortedSet } from '../util/sorted_set';
 
 import { IndexManager } from './index_manager';
 import { dbDocumentSize } from './indexeddb_mutation_batch_impl';
+import { DbRemoteDocument, DbRemoteDocumentGlobal } from './indexeddb_schema';
 import {
-  DbRemoteDocument,
-  DbRemoteDocumentGlobal,
+  DbRemoteDocumentCollectionReadTimeIndex,
   DbRemoteDocumentGlobalKey,
-  DbRemoteDocumentKey
-} from './indexeddb_schema';
+  DbRemoteDocumentGlobalStore,
+  DbRemoteDocumentKey,
+  DbRemoteDocumentReadTimeIndex,
+  DbRemoteDocumentStore
+} from './indexeddb_sentinels';
 import { getStore } from './indexeddb_transaction';
 import {
   fromDbRemoteDocument,
@@ -269,7 +272,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
         [collectionKey, readTimeKey],
         /* open= */ true
       );
-      iterationOptions.index = DbRemoteDocument.collectionReadTimeIndex;
+      iterationOptions.index = DbRemoteDocumentCollectionReadTimeIndex;
     }
 
     return remoteDocumentsStore(transaction)
@@ -313,7 +316,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     txn: PersistenceTransaction
   ): PersistencePromise<DbRemoteDocumentGlobal> {
     return documentGlobalStore(txn)
-      .get(DbRemoteDocumentGlobal.key)
+      .get(DbRemoteDocumentGlobalKey)
       .next(metadata => {
         hardAssert(!!metadata, 'Missing document cache metadata');
         return metadata!;
@@ -324,7 +327,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     txn: PersistenceTransaction,
     metadata: DbRemoteDocumentGlobal
   ): PersistencePromise<void> {
-    return documentGlobalStore(txn).put(DbRemoteDocumentGlobal.key, metadata);
+    return documentGlobalStore(txn).put(DbRemoteDocumentGlobalKey, metadata);
   }
 
   /**
@@ -381,7 +384,7 @@ export function remoteDocumentCacheGetNewDocumentChanges(
   const range = IDBKeyRange.lowerBound(lastReadTime, true);
   return documentsStore
     .iterate(
-      { index: DbRemoteDocument.readTimeIndex, range },
+      { index: DbRemoteDocumentReadTimeIndex, range },
       (_, dbRemoteDoc) => {
         // Unlike `getEntry()` and others, `getNewDocumentChanges()` parses
         // the documents directly since we want to keep sentinel deletes.
@@ -416,7 +419,7 @@ export function remoteDocumentCacheGetLastReadTime(
 
   return documentsStore
     .iterate(
-      { index: DbRemoteDocument.readTimeIndex, reverse: true },
+      { index: DbRemoteDocumentReadTimeIndex, reverse: true },
       (key, dbRemoteDoc, control) => {
         if (dbRemoteDoc.readTime) {
           readTime = fromDbTimestampKey(dbRemoteDoc.readTime);
@@ -556,7 +559,7 @@ function documentGlobalStore(
 ): SimpleDbStore<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal> {
   return getStore<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
     txn,
-    DbRemoteDocumentGlobal.store
+    DbRemoteDocumentGlobalStore
   );
 }
 
@@ -568,7 +571,7 @@ function remoteDocumentsStore(
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
   return getStore<DbRemoteDocumentKey, DbRemoteDocument>(
     txn,
-    DbRemoteDocument.store
+    DbRemoteDocumentStore
   );
 }
 
