@@ -86,9 +86,7 @@ import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { getWindow } from '../../../src/platform/dom';
-import {
-  firestoreV1ApiClientInterfaces
-} from '../../../src/protos/firestore_proto_api';
+import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import {
