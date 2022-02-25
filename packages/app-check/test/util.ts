@@ -30,6 +30,7 @@ import {
 } from '@firebase/component';
 import { AppCheckService } from '../src/factory';
 import { AppCheck, CustomProvider } from '../src';
+import { HeartbeatService } from '@firebase/app/dist/app/src/types';
 
 export const FAKE_SITE_KEY = 'fake-site-key';
 
@@ -99,7 +100,10 @@ export function getFakeHeartbeatServiceProvider(
   container.addComponent(
     new Component(
       'heartbeat',
-      () => ({ getPlatformInfoString: () => fakeLogString }),
+      () =>
+        ({
+          getHeartbeatsHeader: () => Promise.resolve(fakeLogString)
+        } as HeartbeatService),
       ComponentType.PRIVATE
     )
   );
