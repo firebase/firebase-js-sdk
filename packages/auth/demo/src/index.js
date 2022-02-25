@@ -1750,45 +1750,45 @@ function initApp() {
   }
 
   // Install servicerWorker if supported.
-  // if ('serviceWorker' in navigator) {
-  //   navigator.serviceWorker
-  //     .register('/service-worker.js')
-  //     .then(reg => {
-  //       // Registration worked.
-  //       console.log('Registration succeeded. Scope is ' + reg.scope);
-  //     })
-  //     .catch(error => {
-  //       // Registration failed.
-  //       console.log('Registration failed with ' + error.message);
-  //     });
-  // }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('/service-worker.js')
+      .then(reg => {
+        // Registration worked.
+        console.log('Registration succeeded. Scope is ' + reg.scope);
+      })
+      .catch(error => {
+        // Registration failed.
+        console.log('Registration failed with ' + error.message);
+      });
+  }
 
-  // if (window.Worker) {
-  //   webWorker = new Worker('/web-worker.js');
-  //   /**
-  //    * Handles the incoming message from the web worker.
-  //    * @param {!Object} e The message event received.
-  //    */
-  //   webWorker.onmessage = function (e) {
-  //     console.log('User data passed through web worker: ', e.data);
-  //     switch (e.data.type) {
-  //       case 'GET_USER_INFO':
-  //         alertSuccess(
-  //           'User data passed through web worker: ' + JSON.stringify(e.data)
-  //         );
-  //         break;
-  //       case 'RUN_TESTS':
-  //         if (e.data.status === 'success') {
-  //           alertSuccess('Web worker tests ran successfully!');
-  //         } else {
-  //           alertError('Error: ' + JSON.stringify(e.data.error));
-  //         }
-  //         break;
-  //       default:
-  //         return;
-  //     }
-  //   };
-  // }
+  if (window.Worker) {
+    webWorker = new Worker('/web-worker.js');
+    /**
+     * Handles the incoming message from the web worker.
+     * @param {!Object} e The message event received.
+     */
+    webWorker.onmessage = function (e) {
+      console.log('User data passed through web worker: ', e.data);
+      switch (e.data.type) {
+        case 'GET_USER_INFO':
+          alertSuccess(
+            'User data passed through web worker: ' + JSON.stringify(e.data)
+          );
+          break;
+        case 'RUN_TESTS':
+          if (e.data.status === 'success') {
+            alertSuccess('Web worker tests ran successfully!');
+          } else {
+            alertError('Error: ' + JSON.stringify(e.data.error));
+          }
+          break;
+        default:
+          return;
+      }
+    };
+  }
 
   /**
    * Asks the web worker, if supported in current browser, to return the user info
