@@ -20,7 +20,7 @@ import {
   DocumentKeySet,
   MutationMap,
   OverlayMap,
-  newDocumentKeyToOverlayMap
+  newOverlayMap
 } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -79,7 +79,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     collection: ResourcePath,
     sinceBatchId: number
   ): PersistencePromise<OverlayMap> {
-    const result = newDocumentKeyToOverlayMap();
+    const result = newOverlayMap();
 
     const immediateChildrenPathLength = collection.length + 1;
     const prefix = new DocumentKey(collection.child(''));
@@ -124,7 +124,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
       if (overlay.largestBatchId > sinceBatchId) {
         let overlaysForBatchId = batchIdToOverlays.get(overlay.largestBatchId);
         if (overlaysForBatchId === null) {
-          overlaysForBatchId = newDocumentKeyToOverlayMap();
+          overlaysForBatchId = newOverlayMap();
           batchIdToOverlays = batchIdToOverlays.insert(
             overlay.largestBatchId,
             overlaysForBatchId
@@ -134,7 +134,7 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
       }
     }
 
-    const result = newDocumentKeyToOverlayMap();
+    const result = newOverlayMap();
     const batchIter = batchIdToOverlays.getIterator();
     while (batchIter.hasNext()) {
       const entry = batchIter.getNext();

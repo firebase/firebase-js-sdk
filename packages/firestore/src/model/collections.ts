@@ -51,7 +51,7 @@ export function documentMap(): DocumentMap {
 }
 
 export type OverlayMap = ObjectMap<DocumentKey, Overlay>;
-export function newDocumentKeyToOverlayMap(): OverlayMap {
+export function newOverlayMap(): OverlayMap {
   return new ObjectMap<DocumentKey, Overlay>(
     key => key.toString(),
     (l, r) => l.isEqual(r)
@@ -59,7 +59,7 @@ export function newDocumentKeyToOverlayMap(): OverlayMap {
 }
 
 export type MutationMap = ObjectMap<DocumentKey, Mutation>;
-export function newDocumentKeyToMutationMap(): MutationMap {
+export function newMutationMap(): MutationMap {
   return new ObjectMap<DocumentKey, Mutation>(
     key => key.toString(),
     (l, r) => l.isEqual(r)

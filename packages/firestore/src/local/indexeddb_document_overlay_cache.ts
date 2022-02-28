@@ -20,7 +20,7 @@ import {
   DocumentKeySet,
   MutationMap,
   OverlayMap,
-  newDocumentKeyToOverlayMap
+  newOverlayMap
 } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Overlay } from '../model/overlay';
@@ -123,7 +123,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     collection: ResourcePath,
     sinceBatchId: number
   ): PersistencePromise<OverlayMap> {
-    const result = newDocumentKeyToOverlayMap();
+    const result = newOverlayMap();
     const collectionPath = encodeResourcePath(collection);
     // We want batch IDs larger than `sinceBatchId`, and so the lower bound
     // is not inclusive.
@@ -149,7 +149,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     sinceBatchId: number,
     count: number
   ): PersistencePromise<OverlayMap> {
-    const result = newDocumentKeyToOverlayMap();
+    const result = newOverlayMap();
     let currentBatchId: number | undefined = undefined;
     // We want batch IDs larger than `sinceBatchId`, and so the lower bound
     // is not inclusive.

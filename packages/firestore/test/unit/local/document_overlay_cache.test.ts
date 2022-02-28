@@ -23,7 +23,7 @@ import {
   documentKeySet,
   MutationMap,
   OverlayMap,
-  newDocumentKeyToMutationMap
+  newMutationMap
 } from '../../../src/model/collections';
 import { Mutation, mutationEquals } from '../../../src/model/mutation';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -89,7 +89,7 @@ function genericDocumentOverlayCacheTests(): void {
     largestBatch: number,
     ...mutations: Mutation[]
   ): Promise<void> {
-    const data: MutationMap = newDocumentKeyToMutationMap();
+    const data: MutationMap = newMutationMap();
     for (const mutation of mutations) {
       data.set(mutation.key, mutation);
     }
@@ -100,7 +100,7 @@ function genericDocumentOverlayCacheTests(): void {
     largestBatch: number,
     ...overlayKeys: string[]
   ): Promise<void> {
-    const data: MutationMap = newDocumentKeyToMutationMap();
+    const data: MutationMap = newMutationMap();
     for (const overlayKey of overlayKeys) {
       data.set(key(overlayKey), setMutation(overlayKey, {}));
     }
