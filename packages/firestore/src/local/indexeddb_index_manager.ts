@@ -64,14 +64,23 @@ import {
 import { IndexManager } from './index_manager';
 import {
   DbCollectionParent,
-  DbCollectionParentKey,
   DbIndexConfiguration,
-  DbIndexConfigurationKey,
   DbIndexEntry,
-  DbIndexEntryKey,
-  DbIndexState,
-  DbIndexStateKey
+  DbIndexState
 } from './indexeddb_schema';
+import {
+  DbCollectionParentKey,
+  DbCollectionParentStore,
+  DbIndexConfigurationCollectionGroupIndex,
+  DbIndexConfigurationKey,
+  DbIndexConfigurationStore,
+  DbIndexEntryDocumentKeyIndex,
+  DbIndexEntryKey,
+  DbIndexEntryStore,
+  DbIndexStateKey,
+  DbIndexStateSequenceNumberIndex,
+  DbIndexStateStore
+} from './indexeddb_sentinels';
 import { getStore } from './indexeddb_transaction';
 import {
   fromDbIndexConfiguration,
@@ -311,7 +320,7 @@ export class IndexedDbIndexManager implements IndexManager {
   }
 
   /**
-   * Constructs a key range query on `DbIndexEntry.store` that unions all
+   * Constructs a key range query on `DbIndexEntryStore` that unions all
    * bounds.
    */
   private generateIndexRanges(
@@ -586,7 +595,7 @@ export class IndexedDbIndexManager implements IndexManager {
     return (
       collectionGroup
         ? indexes.loadAll(
-            DbIndexConfiguration.collectionGroupIndex,
+            DbIndexConfigurationCollectionGroupIndex,
             IDBKeyRange.bound(collectionGroup, collectionGroup)
           )
         : indexes.loadAll()
@@ -632,7 +641,7 @@ export class IndexedDbIndexManager implements IndexManager {
     return this.getNextSequenceNumber(transaction).next(nextSequenceNumber =>
       indexes
         .loadAll(
-          DbIndexConfiguration.collectionGroupIndex,
+          DbIndexConfigurationCollectionGroupIndex,
           IDBKeyRange.bound(collectionGroup, collectionGroup)
         )
         .next(configs =>
@@ -701,15 +710,13 @@ export class IndexedDbIndexManager implements IndexManager {
     indexEntry: IndexEntry
   ): PersistencePromise<void> {
     const indexEntries = indexEntriesStore(transaction);
-    return indexEntries.put(
-      new DbIndexEntry(
-        indexEntry.indexId,
-        this.uid,
-        indexEntry.arrayValue,
-        indexEntry.directionalValue,
-        encodeResourcePath(document.key.path)
-      )
-    );
+    return indexEntries.put({
+      indexId: indexEntry.indexId,
+      uid: this.uid,
+      arrayValue: indexEntry.arrayValue,
+      directionalValue: indexEntry.directionalValue,
+      documentKey: encodeResourcePath(document.key.path)
+    });
   }
 
   private deleteIndexEntry(
@@ -737,7 +744,7 @@ export class IndexedDbIndexManager implements IndexManager {
     return indexEntries
       .iterate(
         {
-          index: DbIndexEntry.documentKeyIndex,
+          index: DbIndexEntryDocumentKeyIndex,
           range: IDBKeyRange.only([
             fieldIndex.indexId,
             this.uid,
@@ -839,7 +846,7 @@ export class IndexedDbIndexManager implements IndexManager {
     return states
       .iterate(
         {
-          index: DbIndexState.sequenceNumberIndex,
+          index: DbIndexStateSequenceNumberIndex,
           reverse: true,
           range: IDBKeyRange.upperBound([this.uid, Number.MAX_SAFE_INTEGER])
         },
@@ -924,7 +931,7 @@ function collectionParentsStore(
 ): SimpleDbStore<DbCollectionParentKey, DbCollectionParent> {
   return getStore<DbCollectionParentKey, DbCollectionParent>(
     txn,
-    DbCollectionParent.store
+    DbCollectionParentStore
   );
 }
 
@@ -934,7 +941,7 @@ function collectionParentsStore(
 function indexEntriesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbIndexEntryKey, DbIndexEntry> {
-  return getStore<DbIndexEntryKey, DbIndexEntry>(txn, DbIndexEntry.store);
+  return getStore<DbIndexEntryKey, DbIndexEntry>(txn, DbIndexEntryStore);
 }
 
 /**
@@ -945,7 +952,7 @@ function indexConfigurationStore(
 ): SimpleDbStore<DbIndexConfigurationKey, DbIndexConfiguration> {
   return getStore<DbIndexConfigurationKey, DbIndexConfiguration>(
     txn,
-    DbIndexConfiguration.store
+    DbIndexConfigurationStore
   );
 }
 
@@ -955,5 +962,5 @@ function indexConfigurationStore(
 function indexStateStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbIndexStateKey, DbIndexState> {
-  return getStore<DbIndexStateKey, DbIndexState>(txn, DbIndexState.store);
+  return getStore<DbIndexStateKey, DbIndexState>(txn, DbIndexStateStore);
 }

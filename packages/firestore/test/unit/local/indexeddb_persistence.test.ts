@@ -29,27 +29,43 @@ import {
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbCollectionParent,
-  DbCollectionParentKey,
   DbDocumentMutation,
-  DbDocumentMutationKey,
   DbMutationBatch,
-  DbMutationBatchKey,
   DbMutationQueue,
-  DbMutationQueueKey,
   DbPrimaryClient,
-  DbPrimaryClientKey,
   DbRemoteDocument,
   DbRemoteDocumentGlobal,
-  DbRemoteDocumentGlobalKey,
-  DbRemoteDocumentKey,
   DbTarget,
   DbTargetDocument,
-  DbTargetDocumentKey,
   DbTargetGlobal,
+  SCHEMA_VERSION
+} from '../../../src/local/indexeddb_schema';
+import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
+import {
+  DbCollectionParentKey,
+  DbCollectionParentStore,
+  DbDocumentMutationKey,
+  DbDocumentMutationPlaceholder,
+  DbDocumentMutationStore,
+  DbMutationBatchKey,
+  DbMutationBatchStore,
+  DbMutationQueueKey,
+  DbMutationQueueStore,
+  DbPrimaryClientKey,
+  DbPrimaryClientStore,
+  DbRemoteDocumentCollectionReadTimeIndex,
+  DbRemoteDocumentGlobalKey,
+  DbRemoteDocumentGlobalStore,
+  DbRemoteDocumentKey,
+  DbRemoteDocumentReadTimeIndex,
+  DbRemoteDocumentStore,
+  DbTargetDocumentKey,
+  DbTargetDocumentStore,
   DbTargetGlobalKey,
+  DbTargetGlobalStore,
   DbTargetKey,
-  DbTimestamp,
-  SCHEMA_VERSION,
+  DbTargetStore,
+  newDbDocumentMutationKey,
   V12_STORES,
   V13_STORES,
   V1_STORES,
@@ -57,8 +73,7 @@ import {
   V4_STORES,
   V6_STORES,
   V8_STORES
-} from '../../../src/local/indexeddb_schema';
-import { SchemaConverter } from '../../../src/local/indexeddb_schema_converter';
+} from '../../../src/local/indexeddb_sentinels';
 import {
   fromDbTarget,
   toDbRemoteDocument,
@@ -218,7 +233,7 @@ function addDocs(
   version: number
 ): PersistencePromise<void> {
   const remoteDocumentStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-    DbRemoteDocument.store
+    DbRemoteDocumentStore
   );
   return PersistencePromise.forEach(keys, (key: string) => {
     const remoteDoc = doc(key, version, { data: 'foo' });
@@ -250,32 +265,37 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const batchId = 1;
     const targetId = 2;
 
-    const expectedMutation = new DbMutationBatch(userId, batchId, 1000, [], []);
-    const dummyTargetGlobal = new DbTargetGlobal(
-      /*highestTargetId=*/ 1,
-      /*highestListenSequencNumber=*/ 1,
-      /*lastRemoteSnapshotVersion=*/ new DbTimestamp(1, 1),
-      /*targetCount=*/ 1
-    );
-    const resetTargetGlobal = new DbTargetGlobal(
-      /*highestTargetId=*/ 0,
-      /*highestListenSequencNumber=*/ 0,
-      /*lastRemoteSnapshotVersion=*/ SnapshotVersion.min().toTimestamp(),
-      /*targetCount=*/ 0
-    );
+    const expectedMutation: DbMutationBatch = {
+      userId,
+      batchId,
+      localWriteTimeMs: 1000,
+      mutations: []
+    };
+    const dummyTargetGlobal: DbTargetGlobal = {
+      highestTargetId: 1,
+      highestListenSequenceNumber: 1,
+      lastRemoteSnapshotVersion: { seconds: 1, nanoseconds: 1 },
+      targetCount: 1
+    };
+    const resetTargetGlobal: DbTargetGlobal = {
+      highestTargetId: 0,
+      highestListenSequenceNumber: 0,
+      lastRemoteSnapshotVersion: SnapshotVersion.min().toTimestamp(),
+      targetCount: 0
+    };
 
     return withDb(2, db => {
       return db.runTransaction(
         this.test!.fullTitle(),
         'readwrite',
-        [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
+        [DbTargetStore, DbTargetGlobalStore, DbMutationBatchStore],
         txn => {
-          const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+          const targets = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
           const targetGlobal = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-            DbTargetGlobal.store
+            DbTargetGlobalStore
           );
           const mutations = txn.store<DbMutationBatchKey, DbMutationBatch>(
-            DbMutationBatch.store
+            DbMutationBatchStore
           );
 
           return (
@@ -283,7 +303,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               .put({ targetId, canonicalId: 'foo' } as any)
               .next(() =>
-                targetGlobal.put(DbTargetGlobal.key, dummyTargetGlobal)
+                targetGlobal.put(DbTargetGlobalKey, dummyTargetGlobal)
               )
               .next(() => mutations.put(expectedMutation))
           );
@@ -297,14 +317,14 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         return db.runTransaction(
           this.test!.fullTitle(),
           'readwrite',
-          [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
+          [DbTargetStore, DbTargetGlobalStore, DbMutationBatchStore],
           txn => {
-            const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+            const targets = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
             const targetGlobal = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-              DbTargetGlobal.store
+              DbTargetGlobalStore
             );
             const mutations = txn.store<DbMutationBatchKey, DbMutationBatch>(
-              DbMutationBatch.store
+              DbMutationBatchStore
             );
 
             return targets
@@ -313,7 +333,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 // The target should have been dropped
                 expect(target).to.be.null;
               })
-              .next(() => targetGlobal.get(DbTargetGlobal.key))
+              .next(() => targetGlobal.get(DbTargetGlobalKey))
               .next(targetGlobalEntry => {
                 // Target Global should exist but be cleared.
                 // HACK: round-trip through JSON to clear types, like IndexedDb
@@ -363,9 +383,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       return db.runTransaction(
         this.test!.fullTitle(),
         'readwrite',
-        [DbMutationBatch.store],
+        [DbMutationBatchStore],
         txn => {
-          const store = txn.store(DbMutationBatch.store);
+          const store = txn.store(DbMutationBatchStore);
           return PersistencePromise.forEach(
             testMutations,
             (testMutation: DbMutationBatch) => store.put(testMutation)
@@ -379,10 +399,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         return db.runTransaction(
           this.test!.fullTitle(),
           'readwrite',
-          [DbMutationBatch.store],
+          [DbMutationBatchStore],
           txn => {
             const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
-              DbMutationBatch.store
+              DbMutationBatchStore
             );
             let p = PersistencePromise.forEach(
               testMutations,
@@ -480,15 +500,15 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const mutationBatchStore = txn.store<
             DbMutationBatchKey,
             DbMutationBatch
-          >(DbMutationBatch.store);
+          >(DbMutationBatchStore);
           const documentMutationStore = txn.store<
             DbDocumentMutationKey,
             DbDocumentMutation
-          >(DbDocumentMutation.store);
+          >(DbDocumentMutationStore);
           const mutationQueuesStore = txn.store<
             DbMutationQueueKey,
             DbMutationQueue
-          >(DbMutationQueue.store);
+          >(DbMutationQueueStore);
           // Manually populate the mutation queue and create all indicies.
           return PersistencePromise.forEach(
             testMutations,
@@ -497,14 +517,14 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 return PersistencePromise.forEach(
                   testMutation.mutations,
                   (write: firestoreV1ApiClientInterfaces.Write) => {
-                    const indexKey = DbDocumentMutation.key(
+                    const indexKey = newDbDocumentMutationKey(
                       testMutation.userId,
                       path(write.update!.name!, 5),
                       testMutation.batchId
                     );
                     return documentMutationStore.put(
                       indexKey,
-                      DbDocumentMutation.PLACEHOLDER
+                      DbDocumentMutationPlaceholder
                     );
                   }
                 );
@@ -513,9 +533,21 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           ).next(() =>
             // Populate the mutation queues' metadata
             PersistencePromise.waitFor([
-              mutationQueuesStore.put(new DbMutationQueue('foo', 2, '')),
-              mutationQueuesStore.put(new DbMutationQueue('bar', 3, '')),
-              mutationQueuesStore.put(new DbMutationQueue('empty', -1, ''))
+              mutationQueuesStore.put({
+                userId: 'foo',
+                lastAcknowledgedBatchId: 2,
+                lastStreamToken: ''
+              }),
+              mutationQueuesStore.put({
+                userId: 'bar',
+                lastAcknowledgedBatchId: 3,
+                lastStreamToken: ''
+              }),
+              mutationQueuesStore.put({
+                userId: 'empty',
+                lastAcknowledgedBatchId: -1,
+                lastStreamToken: ''
+              })
             ])
           );
         }
@@ -533,15 +565,15 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             const mutationBatchStore = txn.store<
               DbMutationBatchKey,
               DbMutationBatch
-            >(DbMutationBatch.store);
+            >(DbMutationBatchStore);
             const documentMutationStore = txn.store<
               DbDocumentMutationKey,
               DbDocumentMutation
-            >(DbDocumentMutation.store);
+            >(DbDocumentMutationStore);
             const mutationQueuesStore = txn.store<
               DbMutationQueueKey,
               DbMutationQueue
-            >(DbMutationQueue.store);
+            >(DbMutationQueueStore);
 
             // Verify that all but the two pending mutations have been cleared
             // by the migration.
@@ -587,7 +619,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         V4_STORES,
         txn => {
           const store = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-            DbRemoteDocument.store
+            DbRemoteDocumentStore
           );
           return PersistencePromise.forEach(
             dbRemoteDocs,
@@ -606,8 +638,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const store = txn.store<
             DbRemoteDocumentGlobalKey,
             DbRemoteDocumentGlobal
-          >(DbRemoteDocumentGlobal.store);
-          return store.get(DbRemoteDocumentGlobal.key).next(metadata => {
+          >(DbRemoteDocumentGlobalStore);
+          return store.get(DbRemoteDocumentGlobalKey).next(metadata => {
             // We don't really care what the size is, just that it's greater than 0.
             // Our sizing algorithm may change at some point.
             expect(metadata!.byteSize).to.be.greaterThan(0);
@@ -632,21 +664,21 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const targetGlobalStore = txn.store<
             DbTargetGlobalKey,
             DbTargetGlobal
-          >(DbTargetGlobal.store);
+          >(DbTargetGlobalStore);
           const remoteDocumentStore = txn.store<
             DbRemoteDocumentKey,
             DbRemoteDocument
-          >(DbRemoteDocument.store);
+          >(DbRemoteDocumentStore);
           const targetDocumentStore = txn.store<
             DbTargetDocumentKey,
             DbTargetDocument
-          >(DbTargetDocument.store);
+          >(DbTargetDocumentStore);
           return targetGlobalStore
-            .get(DbTargetGlobal.key)
+            .get(DbTargetGlobalKey)
             .next(metadata => {
               expect(metadata).to.not.be.null;
               metadata!.highestListenSequenceNumber = newSequenceNumber;
-              return targetGlobalStore.put(DbTargetGlobal.key, metadata!);
+              return targetGlobalStore.put(DbTargetGlobalKey, metadata!);
             })
             .next(() => {
               // Set up some documents (we only need the keys)
@@ -662,13 +694,11 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 );
                 if (i % 2 === 1) {
                   promises.push(
-                    targetDocumentStore.put(
-                      new DbTargetDocument(
-                        0,
-                        encodeResourcePath(document.key.path),
-                        oldSequenceNumber
-                      )
-                    )
+                    targetDocumentStore.put({
+                      targetId: 0,
+                      path: encodeResourcePath(document.key.path),
+                      sequenceNumber: oldSequenceNumber
+                    })
                   );
                 }
               }
@@ -688,7 +718,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const targetDocumentStore = txn.store<
             DbTargetDocumentKey,
             DbTargetDocument
-          >(DbTargetDocument.store);
+          >(DbTargetDocumentStore);
           const range = IDBKeyRange.bound(
             [0],
             [1],
@@ -743,22 +773,22 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const remoteDocumentStore = txn.store<
             DbRemoteDocumentKey,
             DbRemoteDocument
-          >(DbRemoteDocument.store);
+          >(DbRemoteDocumentStore);
           const documentMutationStore = txn.store<
             DbDocumentMutationKey,
             DbDocumentMutation
-          >(DbDocumentMutation.store);
+          >(DbDocumentMutationStore);
           // We "cheat" and only write the DbDocumentMutation index entries, since that's
           // all the migration uses.
           return PersistencePromise.forEach(writePaths, (writePath: string) => {
-            const indexKey = DbDocumentMutation.key(
+            const indexKey = newDbDocumentMutationKey(
               'dummy-uid',
               path(writePath),
               /*dummy batchId=*/ 123
             );
             return documentMutationStore.put(
               indexKey,
-              DbDocumentMutation.PLACEHOLDER
+              DbDocumentMutationPlaceholder
             );
           }).next(() => {
             // Write the remote document entries.
@@ -787,7 +817,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const collectionParentsStore = txn.store<
             DbCollectionParentKey,
             DbCollectionParent
-          >(DbCollectionParent.store);
+          >(DbCollectionParentStore);
           // We use iterate() as loadAll() does not seem to guarantee ordering
           // with our IndexedDB shim.
           const actualParents: { [key: string]: string[] } = {};
@@ -815,7 +845,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         'readwrite',
         V8_STORES,
         txn => {
-          const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+          const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
 
           const filteredQuery = query('collection', filter('foo', '==', 'bar'));
           const initialTargetData = new TargetData(
@@ -841,7 +871,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         'readwrite',
         V8_STORES,
         txn => {
-          const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+          const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
           return targetsStore.iterate((key, value) => {
             const targetData = fromDbTarget(value).target;
             const expectedCanonicalId = canonifyTarget(targetData);
@@ -881,7 +911,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const remoteDocumentStore = txn.store<
             DbRemoteDocumentKey,
             DbRemoteDocument
-          >(DbRemoteDocument.store);
+          >(DbRemoteDocumentStore);
 
           // Write the remote document entries.
           return PersistencePromise.forEach(
@@ -917,7 +947,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const remoteDocumentStore = txn.store<
             DbRemoteDocumentKey,
             DbRemoteDocument
-          >(DbRemoteDocument.store);
+          >(DbRemoteDocumentStore);
 
           // Verify the existing remote document entries.
           return remoteDocumentStore
@@ -941,7 +971,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 true
               );
               return remoteDocumentStore
-                .loadAll(DbRemoteDocument.collectionReadTimeIndex, range)
+                .loadAll(DbRemoteDocumentCollectionReadTimeIndex, range)
                 .next(docsRead => {
                   const keys = docsRead.map(dbDoc => dbDoc.document!.name);
                   expect(keys).to.have.members([
@@ -970,7 +1000,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               const remoteDocumentStore = txn.store<
                 DbRemoteDocumentKey,
                 DbRemoteDocument
-              >(DbRemoteDocument.store);
+              >(DbRemoteDocumentStore);
 
               const lastReadTime = toDbTimestampKey(version(1));
               const range = IDBKeyRange.lowerBound(
@@ -978,7 +1008,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 true
               );
               return remoteDocumentStore
-                .loadAll(DbRemoteDocument.collectionReadTimeIndex, range)
+                .loadAll(DbRemoteDocumentCollectionReadTimeIndex, range)
                 .next(docsRead => {
                   const keys = docsRead.map(dbDoc => dbDoc.document!.name);
                   expect(keys).to.have.members([
@@ -1008,12 +1038,12 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               const remoteDocumentStore = txn.store<
                 DbRemoteDocumentKey,
                 DbRemoteDocument
-              >(DbRemoteDocument.store);
+              >(DbRemoteDocumentStore);
 
               const lastReadTime = toDbTimestampKey(version(1));
               const range = IDBKeyRange.lowerBound(lastReadTime, true);
               return remoteDocumentStore
-                .loadAll(DbRemoteDocument.readTimeIndex, range)
+                .loadAll(DbRemoteDocumentReadTimeIndex, range)
                 .next(docsRead => {
                   const keys = docsRead.map(dbDoc => dbDoc.document!.name);
                   expect(keys).to.have.members([
@@ -1085,12 +1115,12 @@ describe('IndexedDb: canActAsPrimary', () => {
     await simpleDb.runTransaction(
       'clearPrimaryLease',
       'readwrite',
-      [DbPrimaryClient.store],
+      [DbPrimaryClientStore],
       txn => {
         const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-          DbPrimaryClient.store
+          DbPrimaryClientStore
         );
-        return primaryStore.delete(DbPrimaryClient.key);
+        return primaryStore.delete(DbPrimaryClientKey);
       }
     );
     simpleDb.close();
@@ -1105,13 +1135,13 @@ describe('IndexedDb: canActAsPrimary', () => {
     const leaseOwner = await simpleDb.runTransaction(
       'getCurrentLeaseOwner',
       'readonly',
-      [DbPrimaryClient.store],
+      [DbPrimaryClientStore],
       txn => {
         const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-          DbPrimaryClient.store
+          DbPrimaryClientStore
         );
         return primaryStore
-          .get(DbPrimaryClient.key)
+          .get(DbPrimaryClientKey)
           .next(owner => (owner ? owner.ownerId : null));
       }
     );

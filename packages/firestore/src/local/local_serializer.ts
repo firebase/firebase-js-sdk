@@ -61,19 +61,16 @@ import {
 import {
   DbBundle,
   DbDocumentOverlay,
-  DbDocumentOverlayKey,
   DbIndexConfiguration,
   DbIndexState,
   DbMutationBatch,
   DbNamedQuery,
-  DbNoDocument,
   DbQuery,
   DbRemoteDocument,
   DbTarget,
-  DbTimestamp,
-  DbTimestampKey,
-  DbUnknownDocument
+  DbTimestamp
 } from './indexeddb_schema';
+import { DbDocumentOverlayKey, DbTimestampKey } from './indexeddb_sentinels';
 import { TargetData, TargetPurpose } from './target_data';
 
 /** Serializer for values stored in the LocalStore. */
@@ -120,42 +117,34 @@ export function toDbRemoteDocument(
   localSerializer: LocalSerializer,
   document: MutableDocument
 ): DbRemoteDocument {
-  const dbReadTime = toDbTimestampKey(document.readTime);
   const parentPath = document.key.path.popLast().toArray();
+  const readTime = toDbTimestampKey(document.readTime);
   if (document.isFoundDocument()) {
     const doc = toDocument(localSerializer.remoteSerializer, document);
     const hasCommittedMutations = document.hasCommittedMutations;
-    return new DbRemoteDocument(
-      /* unknownDocument= */ null,
-      /* noDocument= */ null,
-      doc,
+    return {
+      document: doc,
       hasCommittedMutations,
-      dbReadTime,
+      readTime,
       parentPath
-    );
+    };
   } else if (document.isNoDocument()) {
     const path = document.key.path.toArray();
-    const version = toDbTimestamp(document.version);
     const hasCommittedMutations = document.hasCommittedMutations;
-    return new DbRemoteDocument(
-      /* unknownDocument= */ null,
-      new DbNoDocument(path, version),
-      /* document= */ null,
+    return {
+      noDocument: { path, readTime: toDbTimestamp(document.version) },
       hasCommittedMutations,
-      dbReadTime,
+      readTime,
       parentPath
-    );
+    };
   } else if (document.isUnknownDocument()) {
     const path = document.key.path.toArray();
-    const readTime = toDbTimestamp(document.version);
-    return new DbRemoteDocument(
-      new DbUnknownDocument(path, readTime),
-      /* noDocument= */ null,
-      /* document= */ null,
-      /* hasCommittedMutations= */ true,
-      dbReadTime,
+    return {
+      unknownDocument: { path, version: toDbTimestamp(document.version) },
+      hasCommittedMutations: true,
+      readTime,
       parentPath
-    );
+    };
   } else {
     return fail('Unexpected Document ' + document);
   }
@@ -177,7 +166,7 @@ export function fromDbTimestampKey(
 
 function toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
   const timestamp = snapshotVersion.toTimestamp();
-  return new DbTimestamp(timestamp.seconds, timestamp.nanoseconds);
+  return { seconds: timestamp.seconds, nanoseconds: timestamp.nanoseconds };
 }
 
 function fromDbTimestamp(dbTimestamp: DbTimestamp): SnapshotVersion {
@@ -197,13 +186,13 @@ export function toDbMutationBatch(
   const serializedMutations = batch.mutations.map(m =>
     toMutation(localSerializer.remoteSerializer, m)
   );
-  return new DbMutationBatch(
+  return {
     userId,
-    batch.batchId,
-    batch.localWriteTime.toMillis(),
-    serializedBaseMutations,
-    serializedMutations
-  );
+    batchId: batch.batchId,
+    localWriteTimeMs: batch.localWriteTime.toMillis(),
+    baseMutations: serializedBaseMutations,
+    mutations: serializedMutations
+  };
 }
 
 /** Decodes a DbMutationBatch into a MutationBatch */
@@ -310,15 +299,15 @@ export function toDbTarget(
   const resumeToken = targetData.resumeToken.toBase64();
 
   // lastListenSequenceNumber is always 0 until we do real GC.
-  return new DbTarget(
-    targetData.targetId,
-    canonifyTarget(targetData.target),
-    dbTimestamp,
+  return {
+    targetId: targetData.targetId,
+    canonicalId: canonifyTarget(targetData.target),
+    readTime: dbTimestamp,
     resumeToken,
-    targetData.sequenceNumber,
-    dbLastLimboFreeTimestamp,
-    queryProto
-  );
+    lastListenSequenceNumber: targetData.sequenceNumber,
+    lastLimboFreeSnapshotVersion: dbLastLimboFreeTimestamp,
+    query: queryProto
+  };
 }
 
 /**
@@ -429,14 +418,17 @@ export function toDbDocumentOverlay(
     userId,
     overlay.mutation.key
   );
-  return new DbDocumentOverlay(
+  return {
     userId,
     collectionPath,
     documentId,
-    overlay.mutation.key.getCollectionGroup(),
-    overlay.largestBatchId,
-    toMutation(localSerializer.remoteSerializer, overlay.mutation)
-  );
+    collectionGroup: overlay.mutation.key.getCollectionGroup(),
+    largestBatchId: overlay.largestBatchId,
+    overlayMutation: toMutation(
+      localSerializer.remoteSerializer,
+      overlay.mutation
+    )
+  };
 }
 
 /**
@@ -455,11 +447,11 @@ export function toDbDocumentOverlayKey(
 export function toDbIndexConfiguration(
   index: FieldIndex
 ): DbIndexConfiguration {
-  return new DbIndexConfiguration(
-    index.indexId,
-    index.collectionGroup,
-    index.fields.map(s => [s.fieldPath.canonicalString(), s.kind])
-  );
+  return {
+    indexId: index.indexId,
+    collectionGroup: index.collectionGroup,
+    fields: index.fields.map(s => [s.fieldPath.canonicalString(), s.kind])
+  };
 }
 
 export function fromDbIndexConfiguration(
@@ -494,12 +486,12 @@ export function toDbIndexState(
   sequenceNumber: number,
   offset: IndexOffset
 ): DbIndexState {
-  return new DbIndexState(
+  return {
     indexId,
-    user.uid || '',
+    uid: user.uid || '',
     sequenceNumber,
-    toDbTimestamp(offset.readTime),
-    encodeResourcePath(offset.documentKey.path),
-    offset.largestBatchId
-  );
+    readTime: toDbTimestamp(offset.readTime),
+    documentKey: encodeResourcePath(offset.documentKey.path),
+    largestBatchId: offset.largestBatchId
+  };
 }
