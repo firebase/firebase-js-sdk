@@ -19,10 +19,13 @@ import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
-import { documentKeySet, DocumentKeySet } from '../../../src/model/collections';
-import { DocumentKey } from '../../../src/model/document_key';
+import {
+  documentKeySet,
+  MutationMap,
+  OverlayMap,
+  newMutationMap
+} from '../../../src/model/collections';
 import { Mutation, mutationEquals } from '../../../src/model/mutation';
-import { Overlay } from '../../../src/model/overlay';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   deleteMutation,
@@ -86,7 +89,7 @@ function genericDocumentOverlayCacheTests(): void {
     largestBatch: number,
     ...mutations: Mutation[]
   ): Promise<void> {
-    const data: Map<DocumentKey, Mutation> = new Map<DocumentKey, Mutation>();
+    const data: MutationMap = newMutationMap();
     for (const mutation of mutations) {
       data.set(mutation.key, mutation);
     }
@@ -97,7 +100,7 @@ function genericDocumentOverlayCacheTests(): void {
     largestBatch: number,
     ...overlayKeys: string[]
   ): Promise<void> {
-    const data: Map<DocumentKey, Mutation> = new Map<DocumentKey, Mutation>();
+    const data: MutationMap = newMutationMap();
     for (const overlayKey of overlayKeys) {
       data.set(key(overlayKey), setMutation(overlayKey, {}));
     }
@@ -115,16 +118,14 @@ function genericDocumentOverlayCacheTests(): void {
   }
 
   function verifyOverlayContains(
-    overlays: Map<DocumentKey, Overlay>,
+    overlays: OverlayMap,
     ...keys: string[]
   ): void {
-    const overlayKeys: DocumentKeySet = documentKeySet(
-      ...Array.from(overlays.keys())
-    );
-    const expectedKeys: DocumentKeySet = documentKeySet(
-      ...Array.from(keys.map(value => key(value)))
-    );
-    expect(overlayKeys.isEqual(expectedKeys)).to.equal(true);
+    let overlayKeys = documentKeySet();
+    overlays.forEach(overlayKey => (overlayKeys = overlayKeys.add(overlayKey)));
+    let expectedKeys = documentKeySet();
+    keys.forEach(value => (expectedKeys = expectedKeys.add(key(value))));
+    expect(overlayKeys.isEqual(expectedKeys)).to.deep.equal(true);
   }
 
   it('returns null when overlay is not found', async () => {

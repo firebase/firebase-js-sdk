@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { DocumentKeySet } from '../model/collections';
+import { DocumentKeySet, MutationMap, OverlayMap } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { Mutation } from '../model/mutation';
 import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
 
@@ -51,7 +50,7 @@ export interface DocumentOverlayCache {
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,
-    overlays: Map<DocumentKey, Mutation>
+    overlays: MutationMap
   ): PersistencePromise<void>;
 
   /** Removes overlays for the given document keys and batch ID. */
@@ -74,7 +73,7 @@ export interface DocumentOverlayCache {
     transaction: PersistenceTransaction,
     collection: ResourcePath,
     sinceBatchId: number
-  ): PersistencePromise<Map<DocumentKey, Overlay>>;
+  ): PersistencePromise<OverlayMap>;
 
   /**
    * Returns `count` overlays with a batch ID higher than `sinceBatchId` for the
@@ -95,5 +94,5 @@ export interface DocumentOverlayCache {
     collectionGroup: string,
     sinceBatchId: number,
     count: number
-  ): PersistencePromise<Map<DocumentKey, Overlay>>;
+  ): PersistencePromise<OverlayMap>;
 }

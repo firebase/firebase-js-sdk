@@ -17,7 +17,11 @@
 
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import { Persistence } from '../../../src/local/persistence';
-import { DocumentKeySet } from '../../../src/model/collections';
+import {
+  DocumentKeySet,
+  MutationMap,
+  OverlayMap
+} from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { Overlay } from '../../../src/model/overlay';
@@ -34,10 +38,7 @@ export class TestDocumentOverlayCache {
     private cache: DocumentOverlayCache
   ) {}
 
-  saveOverlays(
-    largestBatch: number,
-    data: Map<DocumentKey, Mutation>
-  ): Promise<void> {
+  saveOverlays(largestBatch: number, data: MutationMap): Promise<void> {
     return this.persistence.runTransaction('saveOverlays', 'readwrite', txn => {
       return this.cache.saveOverlays(txn, largestBatch, data);
     });
@@ -61,7 +62,7 @@ export class TestDocumentOverlayCache {
   getOverlaysForCollection(
     path: ResourcePath,
     sinceBatchId: number
-  ): Promise<Map<DocumentKey, Overlay>> {
+  ): Promise<OverlayMap> {
     return this.persistence.runTransaction(
       'getOverlaysForCollection',
       'readonly',
@@ -75,7 +76,7 @@ export class TestDocumentOverlayCache {
     collectionGroup: string,
     sinceBatchId: number,
     count: number
-  ): Promise<Map<DocumentKey, Overlay>> {
+  ): Promise<OverlayMap> {
     return this.persistence.runTransaction(
       'getOverlaysForCollectionGroup',
       'readonly',
