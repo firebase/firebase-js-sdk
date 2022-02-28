@@ -78,6 +78,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private redirectPersistenceManager?: PersistenceUserManager;
   private authStateSubscription = new Subscription<User>(this);
   private idTokenSubscription = new Subscription<User>(this);
+  private beforeStateSubscription = new Subscription<User>(this);
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
 
@@ -366,6 +367,17 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.registerStateListener(
       this.authStateSubscription,
       nextOrObserver,
+      error,
+      completed
+    );
+  }
+
+  beforeAuthStateChanged(
+    next: NextFn<User | null>,
+  ): Unsubscribe {
+    return this.registerStateListener(
+      this.beforeStateSubscription,
+      next,
       error,
       completed
     );
