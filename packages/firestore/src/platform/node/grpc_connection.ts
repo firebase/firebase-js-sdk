@@ -65,7 +65,7 @@ function createMetadata(
   // released with cl/428820046. Currently blocked because Emulators are now built with Java
   // 11 from Google3.
   metadata.set('Google-Cloud-Resource-Prefix', databasePath);
-  metadata.set('X-Goog-Request-Params', databasePath);
+  metadata.set('x-goog-request-params', databasePath);
   return metadata;
 }
 
