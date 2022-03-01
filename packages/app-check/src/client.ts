@@ -47,7 +47,7 @@ export async function exchangeToken(
   const headers: HeadersInit = {
     'Content-Type': 'application/json'
   };
-  // If platform logger exists, add the platform info string to the header.
+  // If heartbeat service exists, add heartbeat header string to the header.
   const heartbeatService = heartbeatServiceProvider.getImmediate({
     optional: true
   });
