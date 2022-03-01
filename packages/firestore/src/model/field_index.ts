@@ -27,7 +27,7 @@ import { FieldPath } from './path';
  * The initial mutation batch id for each index. Gets updated during index
  * backfill.
  */
-const INITIAL_LARGEST_BATCH_ID = -1;
+export const INITIAL_LARGEST_BATCH_ID = -1;
 
 /**
  * The initial sequence number for each index. Gets updated during index

@@ -28,6 +28,7 @@ import {
 } from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { IndexOffset } from '../../../src/model/field_index';
 import { ResourcePath } from '../../../src/model/path';
 
 /**
@@ -109,14 +110,32 @@ export class TestRemoteDocumentCache {
     });
   }
 
-  getAll(
+  getAllFromCollection(
     collection: ResourcePath,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): Promise<MutableDocumentMap> {
     return this.persistence.runTransaction(
-      'getDocumentsMatchingQuery',
+      'getAllFromCollection',
       'readonly',
-      txn => this.cache.getAll(txn, collection, sinceReadTime)
+      txn => this.cache.getAllFromCollection(txn, collection, offset)
+    );
+  }
+
+  getAllFromCollectionGroup(
+    collectionGroup: string,
+    offset: IndexOffset,
+    limit: number
+  ): Promise<MutableDocumentMap> {
+    return this.persistence.runTransaction(
+      'getAllFromCollectionGroup',
+      'readonly',
+      txn =>
+        this.cache.getAllFromCollectionGroup(
+          txn,
+          collectionGroup,
+          offset,
+          limit
+        )
     );
   }
 

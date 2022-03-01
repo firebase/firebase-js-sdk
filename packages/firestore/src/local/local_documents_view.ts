@@ -22,7 +22,6 @@ import {
   Query,
   queryMatches
 } from '../core/query';
-import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -31,6 +30,7 @@ import {
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { IndexOffset } from '../model/field_index';
 import { mutationApplyToLocalView } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
@@ -134,13 +134,12 @@ export class LocalDocumentsView {
    *
    * @param transaction - The persistence transaction.
    * @param query - The query to match documents against.
-   * @param sinceReadTime - If not set to SnapshotVersion.min(), return only
-   *     documents that have been read since this snapshot version (exclusive).
+   * @param offset - Read time and key to start scanning by (exclusive).
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
     if (isDocumentQuery(query)) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
@@ -148,13 +147,13 @@ export class LocalDocumentsView {
       return this.getDocumentsMatchingCollectionGroupQuery(
         transaction,
         query,
-        sinceReadTime
+        offset
       );
     } else {
       return this.getDocumentsMatchingCollectionQuery(
         transaction,
         query,
-        sinceReadTime
+        offset
       );
     }
   }
@@ -178,7 +177,7 @@ export class LocalDocumentsView {
   private getDocumentsMatchingCollectionGroupQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
     debugAssert(
       query.path.isEmpty(),
@@ -199,7 +198,7 @@ export class LocalDocumentsView {
           return this.getDocumentsMatchingCollectionQuery(
             transaction,
             collectionQuery,
-            sinceReadTime
+            offset
           ).next(r => {
             r.forEach((key, doc) => {
               results = results.insert(key, doc);
@@ -212,12 +211,12 @@ export class LocalDocumentsView {
   private getDocumentsMatchingCollectionQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let results: MutableDocumentMap;
     return this.remoteDocumentCache
-      .getAll(transaction, query.path, sinceReadTime)
+      .getAllFromCollection(transaction, query.path, offset)
       .next(queryResults => {
         results = queryResults;
         return this.mutationQueue.getAllMutationBatchesAffectingQuery(

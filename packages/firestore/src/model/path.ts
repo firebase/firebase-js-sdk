@@ -111,8 +111,8 @@ abstract class BasePath<B extends BasePath<B>> {
     return this.segments[this.offset];
   }
 
-  lastSegment(): string {
-    return this.get(this.length - 1);
+  lastSegment(): string | undefined {
+    return this.length > 0 ? this.get(this.length - 1) : undefined;
   }
 
   get(index: number): string {

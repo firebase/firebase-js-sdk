@@ -24,6 +24,12 @@ import { remoteDocumentCacheGetLastReadTime } from '../../../src/local/indexeddb
 import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MutableDocument, Document } from '../../../src/model/document';
 import {
+  IndexOffset,
+  INITIAL_LARGEST_BATCH_ID,
+  newIndexOffsetFromDocument,
+  newIndexOffsetSuccessorFromReadTime
+} from '../../../src/model/field_index';
+import {
   deletedDoc,
   doc,
   expectEqual,
@@ -178,6 +184,78 @@ describe('IndexedDbRemoteDocumentCache', () => {
     );
   });
 
+  it('can get next documents from collection group', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('a/2', 2, DOC_DATA),
+      doc('b/1', 3, DOC_DATA)
+    ]);
+
+    const results = await cache.getAllFromCollectionGroup(
+      'a',
+      IndexOffset.min(),
+      Number.MAX_SAFE_INTEGER
+    );
+    assertMatches([doc('a/1', 1, DOC_DATA), doc('a/2', 2, DOC_DATA)], results);
+  });
+
+  it('cen get next documents from collection group with limit', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('b/2/a/2', 2, DOC_DATA),
+      doc('a/3', 3, DOC_DATA)
+    ]);
+
+    const results = await cache.getAllFromCollectionGroup(
+      'a',
+      IndexOffset.min(),
+      2
+    );
+    assertMatches(
+      [doc('a/1', 1, DOC_DATA), doc('b/2/a/2', 2, DOC_DATA)],
+      results
+    );
+  });
+
+  it('cen get next documents from collection group with read time offset', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('a/2', 2, DOC_DATA),
+      doc('a/3', 3, DOC_DATA)
+    ]);
+
+    const results = await cache.getAllFromCollectionGroup(
+      'a',
+      newIndexOffsetSuccessorFromReadTime(version(1), INITIAL_LARGEST_BATCH_ID),
+      2
+    );
+    assertMatches([doc('a/2', 2, DOC_DATA), doc('a/3', 3, DOC_DATA)], results);
+  });
+
+  it('cen get next documents from collection group with document key offset', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('a/2', 1, DOC_DATA),
+      doc('a/3', 1, DOC_DATA)
+    ]);
+
+    const results = await cache.getAllFromCollectionGroup(
+      'a',
+      newIndexOffsetFromDocument(doc('a/1', 1, DOC_DATA)),
+      Number.MAX_SAFE_INTEGER
+    );
+    assertMatches([doc('a/2', 1, DOC_DATA), doc('a/3', 1, DOC_DATA)], results);
+  });
+
+  it('can get next documents from non-existing collection group', async () => {
+    const results = await cache.getAllFromCollectionGroup(
+      'a',
+      IndexOffset.min(),
+      Number.MAX_SAFE_INTEGER
+    );
+    assertMatches([], results);
+  });
+
   genericRemoteDocumentCacheTests(async () => cache);
 
   lruRemoteDocumentCacheTests(async () => cache);
@@ -314,10 +392,23 @@ function genericRemoteDocumentCacheTests(
     const key2 = key(LONG_DOC_PATH);
     return cache
       .addEntries(docs)
-      .then(() => cache.getEntries(documentKeySet().add(key1).add(key2)))
+      .then(() => cache.getEntries(documentKeySet(key1, key2)))
       .then(read => {
         expectEqual(read.get(key1), docs[0]);
         expectEqual(read.get(key2), docs[1]);
+      });
+  });
+
+  it('can set and read several documents with overlapping keys', () => {
+    // This test verifies that the sorting works correctly in IndexedDB,
+    // which sorts by prefix path first.
+    const keys = ['a/b', 'a/b/c/d', 'a/b/c/d/e/f', 'a/c', 'c/b/d/e', 'f/g'];
+    const docs = keys.map(k => doc(k, VERSION, DOC_DATA));
+    return cache
+      .addEntries(docs)
+      .then(() => cache.getEntries(documentKeySet(...keys.map(k => key(k)))))
+      .then(read => {
+        expect(read.size).to.equal(keys.length);
       });
   });
 
@@ -331,9 +422,7 @@ function genericRemoteDocumentCacheTests(
     const missingKey = key('foo/nonexistent');
     return cache
       .addEntries(docs)
-      .then(() =>
-        cache.getEntries(documentKeySet().add(key1).add(key2).add(missingKey))
-      )
+      .then(() => cache.getEntries(documentKeySet(key1, key2, missingKey)))
       .then(read => {
         expectEqual(read.get(key1), docs[0]);
         expectEqual(read.get(key2), docs[1]);
@@ -364,16 +453,31 @@ function genericRemoteDocumentCacheTests(
     await cache.addEntries([
       doc('a/1', VERSION, DOC_DATA),
       doc('b/1', VERSION, DOC_DATA),
-      doc('b/1/z/1', VERSION, DOC_DATA),
       doc('b/2', VERSION, DOC_DATA),
       doc('c/1', VERSION, DOC_DATA)
     ]);
 
-    const matchingDocs = await cache.getAll(path('b'), SnapshotVersion.min());
+    const matchingDocs = await cache.getAllFromCollection(
+      path('b'),
+      IndexOffset.min()
+    );
     assertMatches(
       [doc('b/1', VERSION, DOC_DATA), doc('b/2', VERSION, DOC_DATA)],
       matchingDocs
     );
+  });
+
+  it('getAll() excludes subcollection', async () => {
+    await cache.addEntries([
+      doc('a/1', VERSION, DOC_DATA),
+      doc('a/1/b/1', VERSION, DOC_DATA)
+    ]);
+
+    const matchingDocs = await cache.getAllFromCollection(
+      path('a'),
+      IndexOffset.min()
+    );
+    assertMatches([doc('a/1', VERSION, DOC_DATA)], matchingDocs);
   });
 
   it('can get all documents since read time', async () => {
@@ -387,9 +491,9 @@ function genericRemoteDocumentCacheTests(
       doc('b/new', 3, DOC_DATA).setReadTime(version(13))
     ]);
 
-    const matchingDocs = await cache.getAll(
+    const matchingDocs = await cache.getAllFromCollection(
       path('b'),
-      /* sinceReadTime= */ version(12)
+      newIndexOffsetSuccessorFromReadTime(version(12), INITIAL_LARGEST_BATCH_ID)
     );
     assertMatches([doc('b/new', 3, DOC_DATA)], matchingDocs);
   });
@@ -398,9 +502,9 @@ function genericRemoteDocumentCacheTests(
     await cache.addEntries([doc('b/old', 1, DOC_DATA).setReadTime(version(2))]);
     await cache.addEntries([doc('b/new', 2, DOC_DATA).setReadTime(version(1))]);
 
-    const matchingDocs = await cache.getAll(
+    const matchingDocs = await cache.getAllFromCollection(
       path('b'),
-      /* sinceReadTime= */ version(1)
+      newIndexOffsetSuccessorFromReadTime(version(1), INITIAL_LARGEST_BATCH_ID)
     );
     assertMatches([doc('b/old', 1, DOC_DATA)], matchingDocs);
   });
@@ -434,7 +538,7 @@ function genericRemoteDocumentCacheTests(
     document.data.set(field('state'), wrap('new'));
 
     document = await cache
-      .getAll(path('coll'), SnapshotVersion.min())
+      .getAllFromCollection(path('coll'), IndexOffset.min())
       .then(m => m.get(key('coll/doc'))!);
     verifyOldValue(document);
 
