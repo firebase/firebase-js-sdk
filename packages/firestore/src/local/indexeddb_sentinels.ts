@@ -156,6 +156,7 @@ export const DbRemoteDocumentKeyPath = [
  */
 export const DbRemoteDocumentReadTimeIndex = 'readTimeIndex';
 
+// TODO(indexing): Consider re-working Multi-Tab to use the collectionGroupIndex
 export const DbRemoteDocumentReadTimeIndexPath = 'readTime';
 
 /** An index that provides access to documents by key. */
