@@ -19,9 +19,7 @@ import { FirebaseError } from '@firebase/util';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import { CreateInstallationResponse } from '../interfaces/api-response';
-import {
-  FirebaseInstallationsImpl
-} from '../interfaces/installation-impl';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import {
   InProgressInstallationEntry,
   RequestStatus

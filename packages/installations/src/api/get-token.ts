@@ -17,9 +17,7 @@
 
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
-import {
-  FirebaseInstallationsImpl
-} from '../interfaces/installation-impl';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { Installations } from '../interfaces/public-types';
 
 /**
