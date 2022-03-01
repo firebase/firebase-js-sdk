@@ -236,7 +236,6 @@ describe('HeartbeatServiceImpl', () => {
       }
     });
     it('getHeartbeatHeaders() gets stored heartbeats and clears heartbeats', async () => {
-
       const heartbeatHeaders = firebaseUtil.base64Decode(
         await heartbeatService.getHeartbeatsHeader()
       );
