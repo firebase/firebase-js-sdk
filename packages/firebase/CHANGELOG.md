@@ -1,5 +1,15 @@
 # firebase
 
+## 9.6.8
+
+### Patch Changes
+
+- Updated dependencies [[`b3e4af842`](https://github.com/firebase/firebase-js-sdk/commit/b3e4af842786af7371430fa5b04a814435faa791), [`1588990b7`](https://github.com/firebase/firebase-js-sdk/commit/1588990b7fb06b6fa545c0d478663e137ec0ea07)]:
+  - @firebase/messaging@0.9.9
+  - @firebase/app@0.7.18
+  - @firebase/messaging-compat@0.1.9
+  - @firebase/app-compat@0.1.19
+
 ## 9.6.7
 
 ### Patch Changes

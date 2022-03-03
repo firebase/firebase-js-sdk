@@ -90,8 +90,8 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.17",
-    "@firebase/app-compat": "0.1.18",
+    "@firebase/app": "0.7.18",
+    "@firebase/app-compat": "0.1.19",
     "@firebase/auth": "0.19.9",
     "@rollup/plugin-alias": "3.1.5",
     "@rollup/plugin-json": "4.1.0",
