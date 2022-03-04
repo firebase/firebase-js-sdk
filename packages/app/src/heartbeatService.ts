@@ -119,7 +119,8 @@ export class HeartbeatServiceImpl implements HeartbeatService {
    * Returns a base64 encoded string which can be attached to the heartbeat-specific header directly.
    * It also clears all heartbeats from memory as well as in IndexedDB.
    *
-   * NOTE: It will read heartbeats from the heartbeatsCache, instead of from indexedDB to reduce latency
+   * NOTE: Consuming product SDKs should not send the header if this method
+   * returns an empty string.
    */
   async getHeartbeatsHeader(): Promise<string> {
     if (this._heartbeatsCache === null) {
