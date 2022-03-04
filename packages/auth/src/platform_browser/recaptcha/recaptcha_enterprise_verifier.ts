@@ -47,6 +47,11 @@ export class RecaptchaEnterpriseVerifier {
    */
   static siteKeys: Record<string, string>;
 
+  /**
+   * Stores the recaptcha site key for agent.
+   */
+   static agentSiteKey: string | null;
+
   private readonly auth: AuthInternal;
 
   /**
@@ -67,6 +72,13 @@ export class RecaptchaEnterpriseVerifier {
    */
   async verify(): Promise<string> {
     async function retrieveSiteKey(auth: AuthInternal): Promise<string> {
+      if (auth.tenantId == null && RecaptchaEnterpriseVerifier.agentSiteKey != null) {
+        return Promise.resolve(RecaptchaEnterpriseVerifier.agentSiteKey);
+      }
+      if (auth.tenantId != null && RecaptchaEnterpriseVerifier.agentSiteKey !== undefined) {
+        return Promise.resolve(RecaptchaEnterpriseVerifier.siteKeys[auth.tenantId]);
+      }
+      
       return new Promise<string>(async (resolve, reject) => {
         getRecaptchaConfig(auth, {
           clientType: RecaptchaClientType.WEB,
@@ -76,6 +88,11 @@ export class RecaptchaEnterpriseVerifier {
             reject("recaptchaKey undefined");
           } else {
             const siteKey = response.recaptchaKey.split('/')[3];
+            if (auth.tenantId == null) {
+              RecaptchaEnterpriseVerifier.agentSiteKey = siteKey;
+            } else {
+              RecaptchaEnterpriseVerifier.siteKeys[auth.tenantId] = siteKey;
+            }
             return resolve(siteKey);
           }
         }).catch((error) => {
