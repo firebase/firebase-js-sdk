@@ -53,7 +53,9 @@ export async function exchangeToken(
   });
   if (heartbeatService) {
     const heartbeatsHeader = await heartbeatService.getHeartbeatsHeader();
-    headers['X-Firebase-Client'] = heartbeatsHeader;
+    if (heartbeatsHeader) {
+      headers['X-Firebase-Client'] = heartbeatsHeader;
+    }
   }
   const options: RequestInit = {
     method: 'POST',
