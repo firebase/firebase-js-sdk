@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
- import {
+import {
   ActionCodeInfo,
   ActionCodeOperation,
   ActionCodeSettings,
@@ -36,11 +36,6 @@ import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
-import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import { RecaptchaClientType, RecaptchaVersion } from '../../api';
-import { IdTokenResponse } from '../../model/id_token';
-import { PasswordResetResponse } from '../../api/authentication/email_and_password';
-import { SignUpRequest } from '../../api/authentication/sign_up';
 
 /**
  * Sends a password reset email to the given email address.
@@ -79,44 +74,16 @@ export async function sendPasswordResetEmail(
   email: string,
   actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
-  const authInternal = _castAuth(auth);
-
-  async function internalSendPasswordResetEmail(withRecaptcha: boolean): Promise<PasswordResetResponse> {
-    let request: authentication.PasswordResetRequest;
-    if (withRecaptcha) {
-      const verifier = new RecaptchaEnterpriseVerifier(auth);
-      const captchaResponse = await verifier.verify();
-      request = {
-        requestType: ActionCodeOperation.PASSWORD_RESET,
-        email,
-        captchaResp: captchaResponse,
-        clientType: RecaptchaClientType.WEB,
-        recaptchaVersion: RecaptchaVersion.ENTERPRISE,
-      };
-    } else {
-      request = {
-        requestType: ActionCodeOperation.PASSWORD_RESET,
-        email
-      };
-    }
-    if (actionCodeSettings) {
-      _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
-    }
-
-    return authentication.sendPasswordResetEmail(authInternal, request);
+  const authModular = getModularInstance(auth);
+  const request: authentication.PasswordResetRequest = {
+    requestType: ActionCodeOperation.PASSWORD_RESET,
+    email
+  };
+  if (actionCodeSettings) {
+    _setActionCodeSettingsOnRequest(authModular, request, actionCodeSettings);
   }
 
-  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
-    await internalSendPasswordResetEmail(true);
-  } else {
-    await internalSendPasswordResetEmail(false).catch(async (error) => {
-      if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
-        await internalSendPasswordResetEmail(true);
-      } else {
-        return Promise.reject(error);
-      }
-    });
-  }
+  await authentication.sendPasswordResetEmail(authModular, request);
 }
 
 /**
@@ -260,45 +227,10 @@ export async function createUserWithEmailAndPassword(
   password: string
 ): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
-
-  async function internalSignUp(withRecaptcha: boolean): Promise<IdTokenResponse> {
-    let request: SignUpRequest;
-    if (withRecaptcha) {
-      const verifier = new RecaptchaEnterpriseVerifier(auth);
-      const captchaResponse = await verifier.verify();
-      request = {
-        returnSecureToken: true,
-        email,
-        password,
-        captchaResponse,
-        clientType: RecaptchaClientType.WEB,
-        recaptchaVersion: RecaptchaVersion.ENTERPRISE,
-      };
-    } else {
-      request = {
-        returnSecureToken: true,
-        email,
-        password
-      };
-    }
-    return signUp(authInternal, request);
-  }
-
-  let signUpResponse: Promise<IdTokenResponse>;
-  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
-    signUpResponse = internalSignUp(true);
-  } else {
-    signUpResponse = internalSignUp(false).catch(async (error) => {
-      if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
-        return internalSignUp(true);
-      } else {
-        return Promise.reject(error);
-      }
-    });
-  }
-  
-  const response = await signUpResponse.catch((error) => {
-    return Promise.reject(error);
+  const response = await signUp(authInternal, {
+    returnSecureToken: true,
+    email,
+    password
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(

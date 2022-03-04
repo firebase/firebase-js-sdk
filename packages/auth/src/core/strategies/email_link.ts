@@ -31,10 +31,6 @@ import { signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { getModularInstance } from '@firebase/util';
-import { _castAuth } from '../auth/auth_impl';
-import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import { RecaptchaClientType, RecaptchaVersion } from '../../api';
-import { EmailSignInResponse } from '../../api/authentication/email_and_password';
 
 /**
  * Sends a sign-in email link to the user with the specified email.
@@ -79,49 +75,21 @@ export async function sendSignInLinkToEmail(
   email: string,
   actionCodeSettings: ActionCodeSettings
 ): Promise<void> {
-  const authInternal = _castAuth(auth);
-
-  async function internalSendSignInLinkToEmail(withRecaptcha: boolean): Promise<EmailSignInResponse> {
-    let request: api.EmailSignInRequest;
-    if (withRecaptcha) {
-      const verifier = new RecaptchaEnterpriseVerifier(auth);
-      const captchaResponse = await verifier.verify();
-      request = {
-        requestType: ActionCodeOperation.EMAIL_SIGNIN,
-        email,
-        captchaResp: captchaResponse,
-        clientType: RecaptchaClientType.WEB,
-        recaptchaVersion: RecaptchaVersion.ENTERPRISE,
-      };
-    } else {
-      request = {
-        requestType: ActionCodeOperation.EMAIL_SIGNIN,
-        email
-      };
-    }
-    _assert(
-      actionCodeSettings.handleCodeInApp,
-      authInternal,
-      AuthErrorCode.ARGUMENT_ERROR
-    );
-    if (actionCodeSettings) {
-      _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
-    }
-
-    return api.sendSignInLinkToEmail(authInternal, request);
+  const authModular = getModularInstance(auth);
+  const request: api.EmailSignInRequest = {
+    requestType: ActionCodeOperation.EMAIL_SIGNIN,
+    email
+  };
+  _assert(
+    actionCodeSettings.handleCodeInApp,
+    authModular,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
+  if (actionCodeSettings) {
+    _setActionCodeSettingsOnRequest(authModular, request, actionCodeSettings);
   }
 
-  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
-    await internalSendSignInLinkToEmail(true);
-  } else {
-    await internalSendSignInLinkToEmail(false).catch(async (error) => {
-      if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
-        await internalSendSignInLinkToEmail(true);
-      } else {
-        return Promise.reject(error);
-      }
-    });
-  }
+  await api.sendSignInLinkToEmail(authModular, request);
 }
 
 /**
