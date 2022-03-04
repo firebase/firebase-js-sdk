@@ -17,7 +17,7 @@
 
 import {DocumentData, Query} from './reference';
 import {FieldPath} from './field_path';
-import {DocumentSnapshot, QuerySnapshot} from './snapshot';
+import {DocumentSnapshot, QueryDocumentSnapshot, QuerySnapshot} from './snapshot';
 
 export class AggregateField {
   private constructor();
@@ -37,6 +37,18 @@ export function sum(field: string | FieldPath): AggregateField;
 export function first(field: string | FieldPath): AggregateField;
 export function last(field: string | FieldPath): AggregateField;
 
+export class AggregateQuery {
+  private constructor();
+
+  readonly query: Query<DocumentData>;
+}
+
+export function aggregate(query: Query<DocumentData>, field: AggregateField, ...fields: AggregateField[]): AggregateQuery;
+
+export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery): boolean;
+
+export function getAggregate(query: AggregateQuery): Promise<AggregateSnapshot>;
+
 export class AggregateSnapshot {
   private constructor();
 
@@ -49,14 +61,50 @@ export class AggregateSnapshot {
 
 export function aggregateSnapshotEqual<T>(left: AggregateSnapshot, right: AggregateSnapshot): boolean;
 
-export class AggregateQuery {
+export class GroupByQuery {
   private constructor();
 
   readonly query: Query<DocumentData>;
 }
 
-export function aggregate(query: Query<DocumentData>, field: AggregateField, ...fields: AggregateField[]): AggregateQuery;
+export function groupBy(query: Query<DocumentData>, field: string | FieldPath, ...fields: (string | FieldPath)[]): GroupByQuery;
 
-export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery): boolean;
+export function groupByQueryEqual(left: GroupByQuery, right: GroupByQuery): boolean;
 
-export function getAggregate(query: AggregateQuery): Promise<AggregateSnapshot>;
+export function aggregateGroup(query: GroupByQuery, ...fields: AggregateField[]): GroupByQuery;
+
+export function getGroups(query: GroupByQuery): Promise<GroupBySnapshot>;
+
+export class GroupBySnapshot {
+  private constructor();
+
+  readonly query: GroupByQuery;
+
+  readonly groups: Array<GroupSnapshot>;
+
+  readonly size: number;
+
+  readonly empty: boolean;
+
+  forEach(
+    callback: (result: GroupSnapshot) => void,
+    thisArg?: unknown
+  ): void;
+}
+
+export function groupBySnapshotEqual<T>(left: GroupBySnapshot, right: GroupBySnapshot): boolean;
+
+export class AggregateSnapshot {
+  private constructor();
+
+  readonly query: AggregateQuery;
+
+  readonly aggregations: Array<AggregateField>;
+
+  get(field: AggregateField): any;
+}
+
+export function aggregateSnapshotEqual<T>(left: AggregateSnapshot, right: AggregateSnapshot): boolean;
+
+
+
