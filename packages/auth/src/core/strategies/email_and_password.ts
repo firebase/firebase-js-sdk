@@ -81,11 +81,11 @@ export async function sendPasswordResetEmail(
 ): Promise<void> {
   const authInternal = _castAuth(auth);
 
-  async function internalSendPasswordResetEmail(withRecaptcha: boolean): Promise<PasswordResetResponse> {
+  async function internalSendPasswordResetEmail(withRecaptcha: boolean = false, forceSiteKeyRefresh: boolean = false): Promise<PasswordResetResponse> {
     let request: authentication.PasswordResetRequest;
     if (withRecaptcha) {
       const verifier = new RecaptchaEnterpriseVerifier(auth);
-      const captchaResponse = await verifier.verify();
+      const captchaResponse = await verifier.verify('passwordReset', forceSiteKeyRefresh);
       request = {
         requestType: ActionCodeOperation.PASSWORD_RESET,
         email,
@@ -109,9 +109,11 @@ export async function sendPasswordResetEmail(
   if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
     await internalSendPasswordResetEmail(true);
   } else {
-    await internalSendPasswordResetEmail(false).catch(async (error) => {
+    await internalSendPasswordResetEmail().catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
         await internalSendPasswordResetEmail(true);
+      } else if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_SITE_KEY}`) {
+        return internalSendPasswordResetEmail(true, true);
       } else {
         return Promise.reject(error);
       }
@@ -261,11 +263,11 @@ export async function createUserWithEmailAndPassword(
 ): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
 
-  async function internalSignUp(withRecaptcha: boolean): Promise<IdTokenResponse> {
+  async function internalSignUp(withRecaptcha: boolean = false, forceSiteKeyRefresh: boolean = false): Promise<IdTokenResponse> {
     let request: SignUpRequest;
     if (withRecaptcha) {
       const verifier = new RecaptchaEnterpriseVerifier(auth);
-      const captchaResponse = await verifier.verify();
+      const captchaResponse = await verifier.verify('signUp', forceSiteKeyRefresh);
       request = {
         returnSecureToken: true,
         email,
@@ -288,9 +290,11 @@ export async function createUserWithEmailAndPassword(
   if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
     signUpResponse = internalSignUp(true);
   } else {
-    signUpResponse = internalSignUp(false).catch(async (error) => {
+    signUpResponse = internalSignUp().catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
         return internalSignUp(true);
+      } else if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_SITE_KEY}`) {
+        return internalSignUp(true, true);
       } else {
         return Promise.reject(error);
       }

@@ -133,6 +133,7 @@ export const enum AuthErrorCode {
   MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
   INVALID_REQ_TYPE = 'invalid-req-type',
   INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
+  INVALID_RECAPTCHA_SITE_KEY = 'invalid-recaptcha-site-key',
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -374,6 +375,8 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.MISSING_RECAPTCHA_VERSION]: 'missing-recaptcha-version',
     [AuthErrorCode.INVALID_REQ_TYPE]: 'invalid-req-type',
     [AuthErrorCode.INVALID_RECAPTCHA_VERSION]: 'invalid-recaptcha-version',
+    [AuthErrorCode.INVALID_RECAPTCHA_SITE_KEY]: 'invalid-recaptcha-site-key',
+
   };
 }
 
@@ -581,4 +584,5 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   MISSING_RECAPTCHA_VERSION: 'auth/missing-recaptcha-version',
   INVALID_REQ_TYPE: 'auth/invalid-req-type',
   INVALID_RECAPTCHA_VERSION: 'auth/invalid-recaptcha-version',
+  INVALID_RECAPTCHA_SITE_KEY: 'invalid-recaptcha-site-key',
 } as const;

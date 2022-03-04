@@ -70,13 +70,15 @@ export class RecaptchaEnterpriseVerifier {
    *
    * @returns A Promise for a token that can be used to assert the validity of a request.
    */
-  async verify(): Promise<string> {
+  async verify(action: string, forceSiteKeyRefresh: boolean =false): Promise<string> {
     async function retrieveSiteKey(auth: AuthInternal): Promise<string> {
-      if (auth.tenantId == null && RecaptchaEnterpriseVerifier.agentSiteKey != null) {
-        return Promise.resolve(RecaptchaEnterpriseVerifier.agentSiteKey);
-      }
-      if (auth.tenantId != null && RecaptchaEnterpriseVerifier.agentSiteKey !== undefined) {
-        return Promise.resolve(RecaptchaEnterpriseVerifier.siteKeys[auth.tenantId]);
+      if (!forceSiteKeyRefresh) {
+        if (auth.tenantId == null && RecaptchaEnterpriseVerifier.agentSiteKey != null) {
+          return Promise.resolve(RecaptchaEnterpriseVerifier.agentSiteKey);
+        }
+        if (auth.tenantId != null && RecaptchaEnterpriseVerifier.agentSiteKey !== undefined) {
+          return Promise.resolve(RecaptchaEnterpriseVerifier.siteKeys[auth.tenantId]);
+        }
       }
       
       return new Promise<string>(async (resolve, reject) => {
@@ -105,7 +107,7 @@ export class RecaptchaEnterpriseVerifier {
       const grecaptcha = _window().grecaptcha;
       if (isEnterprise(grecaptcha)) {
         grecaptcha.enterprise.ready(() => {
-          grecaptcha.enterprise.execute(siteKey, { action: 'login' })
+          grecaptcha.enterprise.execute(siteKey, { action })
             .then((token) => {
               resolve(token);
             })
