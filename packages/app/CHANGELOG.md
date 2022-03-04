@@ -1,5 +1,11 @@
 # @firebase/app
 
+## 0.7.18
+
+### Patch Changes
+
+- [`1588990b7`](https://github.com/firebase/firebase-js-sdk/commit/1588990b7fb06b6fa545c0d478663e137ec0ea07) [#5723](https://github.com/firebase/firebase-js-sdk/pull/5723) - Add heartbeat controller for platform logging.
+
 ## 0.7.17
 
 ### Patch Changes
