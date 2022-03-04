@@ -18,7 +18,7 @@
 import { ProviderId, SignInMethod } from '../../model/enums';
 
 import { updateEmailPassword } from '../../api/account_management/email_and_password';
-import { signInWithPassword } from '../../api/authentication/email_and_password';
+import { signInWithPassword, SignInWithPasswordRequest } from '../../api/authentication/email_and_password';
 import {
   signInWithEmailLink,
   signInWithEmailLinkForLinking
@@ -28,6 +28,8 @@ import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
+import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { RecaptchaClientType, RecaptchaVersion } from '../../api';
 
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
@@ -111,13 +113,42 @@ export class EmailAuthCredential extends AuthCredential {
 
   /** @internal */
   async _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse> {
+    async function internalSignInWithPassword(withRecaptcha: boolean, cred: EmailAuthCredential): Promise<IdTokenResponse> {
+      let request: SignInWithPasswordRequest;
+      if (withRecaptcha) {
+        const verifier = new RecaptchaEnterpriseVerifier(auth);
+        const captchaResponse = await verifier.verify();
+        request = {
+          returnSecureToken: true,
+          email: cred._email,
+          password: cred._password,
+          captchaResponse,
+          clientType: RecaptchaClientType.WEB,
+          recaptchaVersion: RecaptchaVersion.ENTERPRISE,
+        };
+      } else {
+        request = {
+          returnSecureToken: true,
+          email: cred._email,
+          password: cred._password,
+        };
+      }
+      return signInWithPassword(auth, request);
+    }
+
     switch (this.signInMethod) {
       case SignInMethod.EMAIL_PASSWORD:
-        return signInWithPassword(auth, {
-          returnSecureToken: true,
-          email: this._email,
-          password: this._password
-        });
+        if (auth._recaptchaConfig?.emailPasswordEnabled) {
+          return internalSignInWithPassword(true, this);
+        } else {
+          return internalSignInWithPassword(false, this).catch(async (error) => {
+            if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
+              return internalSignInWithPassword(true, this);
+            } else {
+              return Promise.reject(error);
+            }
+          });
+        }
       case SignInMethod.EMAIL_LINK:
         return signInWithEmailLink(auth, {
           email: this._email,

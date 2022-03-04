@@ -122,7 +122,17 @@ export const enum AuthErrorCode {
   USER_SIGNED_OUT = 'user-signed-out',
   WEAK_PASSWORD = 'weak-password',
   WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported',
-  ALREADY_INITIALIZED = 'already-initialized'
+  ALREADY_INITIALIZED = 'already-initialized',
+  INVALID_RECAPTCHA_SCORE = 'invalid-recaptcha-score',
+  MISSING_RECAPTCHA_TOKEN = 'missing-recaptcha-token',
+  INVALID_RECAPTCHA_TOKEN = 'invalid-recaptcha-token',
+  INVALID_RECAPTCHA_ACTION = 'invalide-recaptcha-action',
+  INVALID_RECAPTCHA_ENFORCEMENT_STATE = 'invalid-recaptcha-enforcement-state',
+  RECAPTCHA_NOT_ENABLED = 'recaptcha-not-enabled',
+  MISSING_CLIENT_TYPE = 'missing-client-type',
+  MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
+  INVALID_REQ_TYPE = 'invalid-req-type',
+  INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -353,7 +363,17 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'initializeAuth() has already been called with ' +
       'different options. To avoid this error, call initializeAuth() with the ' +
       'same options as when it was originally called, or call getAuth() to return the' +
-      ' already initialized instance.'
+      ' already initialized instance.',
+    [AuthErrorCode.INVALID_RECAPTCHA_SCORE]: 'invalid-recaptcha-score',
+    [AuthErrorCode.MISSING_RECAPTCHA_TOKEN]: 'missing-recaptcha-token',
+    [AuthErrorCode.INVALID_RECAPTCHA_TOKEN]: 'invalid-recaptcha-token',
+    [AuthErrorCode.INVALID_RECAPTCHA_ACTION]: 'invalide-recaptcha-action',
+    [AuthErrorCode.INVALID_RECAPTCHA_ENFORCEMENT_STATE]: 'invalid-recaptcha-enforcement-state',
+    [AuthErrorCode.RECAPTCHA_NOT_ENABLED]: 'recaptcha-not-enabled',
+    [AuthErrorCode.MISSING_CLIENT_TYPE]: 'missing-client-type',
+    [AuthErrorCode.MISSING_RECAPTCHA_VERSION]: 'missing-recaptcha-version',
+    [AuthErrorCode.INVALID_REQ_TYPE]: 'invalid-req-type',
+    [AuthErrorCode.INVALID_RECAPTCHA_VERSION]: 'invalid-recaptcha-version',
   };
 }
 
@@ -550,5 +570,15 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   USER_SIGNED_OUT: 'auth/user-signed-out',
   WEAK_PASSWORD: 'auth/weak-password',
   WEB_STORAGE_UNSUPPORTED: 'auth/web-storage-unsupported',
-  ALREADY_INITIALIZED: 'auth/already-initialized'
+  ALREADY_INITIALIZED: 'auth/already-initialized',
+  INVALID_RECAPTCHA_SCORE: 'auth/invalid-recaptcha-score',
+  MISSING_RECAPTCHA_TOKEN: 'auth/missing-recaptcha-token',
+  INVALID_RECAPTCHA_TOKEN: 'auth/invalid-recaptcha-token',
+  INVALID_RECAPTCHA_ACTION: 'auth/invalide-recaptcha-action',
+  INVALID_RECAPTCHA_ENFORCEMENT_STATE: 'auth/invalid-recaptcha-enforcement-state',
+  RECAPTCHA_NOT_ENABLED: 'auth/recaptcha-not-enabled',
+  MISSING_CLIENT_TYPE: 'auth/missing-client-type',
+  MISSING_RECAPTCHA_VERSION: 'auth/missing-recaptcha-version',
+  INVALID_REQ_TYPE: 'auth/invalid-req-type',
+  INVALID_RECAPTCHA_VERSION: 'auth/invalid-recaptcha-version',
 } as const;
