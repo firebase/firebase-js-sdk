@@ -45,7 +45,9 @@ export async function createInstallationRequest(
   });
   if (heartbeatService) {
     const heartbeatsHeader = await heartbeatService.getHeartbeatsHeader();
-    headers.append('x-firebase-client', heartbeatsHeader);
+    if (heartbeatsHeader) {
+      headers.append('x-firebase-client', heartbeatsHeader);
+    }
   }
 
   const body = {
