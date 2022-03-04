@@ -116,6 +116,7 @@ export async function sendSignInLinkToEmail(
   } else {
     await internalSendSignInLinkToEmail().catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
+        console.log("Sign in with email link is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign in flow.");
         await internalSendSignInLinkToEmail(true);
       } else if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_SITE_KEY}`) {
         return internalSendSignInLinkToEmail(true, true);

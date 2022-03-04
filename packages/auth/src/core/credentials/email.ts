@@ -143,6 +143,7 @@ export class EmailAuthCredential extends AuthCredential {
         } else {
           return internalSignInWithPassword(this).catch(async (error) => {
             if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
+              console.log("Sign in with email password is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign in flow.");
               return internalSignInWithPassword(this, true);
             } else if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_SITE_KEY}`) {
               return internalSignInWithPassword(this, true, true);

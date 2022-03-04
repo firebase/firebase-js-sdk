@@ -111,6 +111,7 @@ export async function sendPasswordResetEmail(
   } else {
     await internalSendPasswordResetEmail().catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
+        console.log("Pssword reset is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the password reset flow.");
         await internalSendPasswordResetEmail(true);
       } else if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_SITE_KEY}`) {
         return internalSendPasswordResetEmail(true, true);
@@ -292,6 +293,7 @@ export async function createUserWithEmailAndPassword(
   } else {
     signUpResponse = internalSignUp().catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
+        console.log("Sign up is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign up flow.");
         return internalSignUp(true);
       } else if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_SITE_KEY}`) {
         return internalSignUp(true, true);
