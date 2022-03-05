@@ -17,7 +17,6 @@
 
 import {DocumentData, Query} from './reference';
 import {FieldPath} from './field_path';
-import {DocumentSnapshot, QueryDocumentSnapshot, QuerySnapshot} from './snapshot';
 
 export class AggregateField {
   private constructor();
@@ -92,19 +91,21 @@ export class GroupBySnapshot {
   ): void;
 }
 
-export function groupBySnapshotEqual<T>(left: GroupBySnapshot, right: GroupBySnapshot): boolean;
+export function groupBySnapshotEqual(left: GroupBySnapshot, right: GroupBySnapshot): boolean;
 
-export class AggregateSnapshot {
+export class GroupSnapshot {
   private constructor();
 
   readonly query: AggregateQuery;
 
   readonly aggregations: Array<AggregateField>;
 
-  get(field: AggregateField): any;
+  readonly fields: Array<FieldPath>;
+
+  get(field: string | FieldPath | AggregateField): any;
 }
 
-export function aggregateSnapshotEqual<T>(left: AggregateSnapshot, right: AggregateSnapshot): boolean;
+export function groupSnapshotEqual(left: GroupSnapshot, right: GroupSnapshot): boolean;
 
 
 

@@ -62,6 +62,10 @@ import {
   UpdateData
 } from '../../src/lite-api/reference';
 import {
+  aggregate,
+  AggregateField, AggregateQuery, aggregateQueryEqual, aggregateSnapshotEqual, average, count, first, getAggregate, getGroups, groupBy, groupByQueryEqual, groupBySnapshotEqual, GroupSnapshot, last, max, min, sum
+} from '../../src/lite-api/aggregate';
+import {
   addDoc,
   deleteDoc,
   getDoc,
@@ -835,6 +839,264 @@ describe('FieldValue', () => {
       await updateDoc(docRef, 'val', deleteField());
       const snap = await getDoc(docRef);
       expect(snap.data()).to.deep.equal({});
+    });
+  });
+})
+
+describe('AggregateField', () => {
+  it('isEqual() returns true for equal instances', () => {
+    expect(count().isEqual(count())).to.be.true;
+    expect(count({'upTo': 42}).isEqual(count({'upTo': 42}))).to.be.true;
+    expect(min('field').isEqual(min('field'))).to.be.true;
+    expect(min('field').isEqual(min(new FieldPath('field')))).to.be.true;
+    expect(min(new FieldPath('field')).isEqual(min(new FieldPath('field')))).to.be.true;
+    expect(max('field').isEqual(max('field'))).to.be.true;
+    expect(max('field').isEqual(max(new FieldPath('field')))).to.be.true;
+    expect(max(new FieldPath('field')).isEqual(max(new FieldPath('field')))).to.be.true;
+    expect(sum('field').isEqual(sum('field'))).to.be.true;
+    expect(sum('field').isEqual(sum(new FieldPath('field')))).to.be.true;
+    expect(sum(new FieldPath('field')).isEqual(sum(new FieldPath('field')))).to.be.true;
+    expect(average('field').isEqual(average('field'))).to.be.true;
+    expect(average('field').isEqual(average(new FieldPath('field')))).to.be.true;
+    expect(average(new FieldPath('field')).isEqual(average(new FieldPath('field')))).to.be.true;
+    expect(first('field').isEqual(first('field'))).to.be.true;
+    expect(first('field').isEqual(first(new FieldPath('field')))).to.be.true;
+    expect(first(new FieldPath('field')).isEqual(first(new FieldPath('field')))).to.be.true;
+    expect(last('field').isEqual(last('field'))).to.be.true;
+    expect(last('field').isEqual(last(new FieldPath('field')))).to.be.true;
+    expect(last(new FieldPath('field')).isEqual(last(new FieldPath('field')))).to.be.true;
+  });
+
+  it('isEqual() returns false for unequal instances', () => {
+    const instances = [
+      count(), count({'upTo': 42}),
+      min('field1'), min(new FieldPath('field2')),
+      max('field1'), max(new FieldPath('field2')),
+      sum('field1'), sum(new FieldPath('field2')),
+      average('field1'), average(new FieldPath('field2')),
+      first('field1'), first(new FieldPath('field2')),
+      last('field1'), last(new FieldPath('field2')),
+    ];
+    for (let i = 0; i < instances.length; i++) {
+      for (let j = 0; j < instances.length; j++) {
+        if (i != j) {
+          expect(instances[i].isEqual(instances[j])).to.be.false;
+        }
+      }
+    }
+  });
+
+  it('instanceof checks out', () => {
+    expect(count()).to.be.an.instanceof(AggregateField);
+    expect(count({'upTo': 42})).to.be.an.instanceof(AggregateField);
+    expect(min('field')).to.be.an.instanceof(AggregateField);
+    expect(max('field')).to.be.an.instanceof(AggregateField);
+    expect(sum('field')).to.be.an.instanceof(AggregateField);
+    expect(average('field')).to.be.an.instanceof(AggregateField);
+    expect(first('field')).to.be.an.instanceof(AggregateField);
+    expect(last('field')).to.be.an.instanceof(AggregateField);
+  });
+
+});
+
+describe('AggregateQuery', () => {
+  it('query property is the correct instance', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery = aggregate(collRef, count());
+      expect(aggregateQuery.query).to.equal(collRef);
+    });
+  });
+
+  it('aggregateQueryEqual() returns true for equal instances', () => {
+    return withTestDb(async db => {
+      const collRef1 = collection(db, "coll");
+      const aggregateQuery1 = aggregate(collRef1, count());
+      const collRef2 = collection(db, "coll");
+      const aggregateQuery2 = aggregate(collRef2, count());
+      expect(aggregateQueryEqual(aggregateQuery1, aggregateQuery2)).to.be.true;
+    });
+  });
+
+  it('aggregateQueryEqual() returns false for unequal instances', () => {
+    return withTestDb(async db => {
+      const collRef1 = collection(db, "coll1");
+      const collRef2 = collection(db, "coll2");
+      const aggregateQuery1 = aggregate(collRef1, count());
+      const aggregateQuery2 = aggregate(collRef1, count({'upTo': 42}));
+      const aggregateQuery3 = aggregate(collRef2, count());
+      expect(aggregateQueryEqual(aggregateQuery1, aggregateQuery2)).to.be.false;
+      expect(aggregateQueryEqual(aggregateQuery1, aggregateQuery3)).to.be.false;
+      expect(aggregateQueryEqual(aggregateQuery2, aggregateQuery3)).to.be.false;
+    });
+  });
+});
+
+describe('AggregateSnapshot', () => {
+  it('AggregateSnapshot.query', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery = aggregate(collRef, count());
+      const snapshot = await getAggregate(aggregateQuery);
+      expect(snapshot.query).to.equal(aggregateQuery);
+    });
+  });
+
+  it('AggregateSnapshot.aggregations with length 1', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery = aggregate(collRef, count());
+      const snapshot = await getAggregate(aggregateQuery);
+      expect(snapshot.aggregations).to.deep.equal([count()]);
+    });
+  });
+
+  it('AggregateSnapshot.aggregations with length 2', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery = aggregate(collRef, min('field1'), last('field2'));
+      const snapshot = await getAggregate(aggregateQuery);
+      expect(snapshot.aggregations).to.deep.equal([min('field1'), last('field2')]);
+    });
+  });
+
+  it('AggregateSnapshot.get with field not in the query', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery = aggregate(collRef, count());
+      const snapshot = await getAggregate(aggregateQuery);
+      expect(snapshot.get(count({'upTo': 42}))).to.be.undefined;
+      expect(snapshot.get(min('field'))).to.be.undefined;
+      expect(snapshot.get(max('field'))).to.be.undefined;
+      expect(snapshot.get(sum('field'))).to.be.undefined;
+      expect(snapshot.get(average('field'))).to.be.undefined;
+      expect(snapshot.get(first('field'))).to.be.undefined;
+      expect(snapshot.get(last('field'))).to.be.undefined;
+    });
+  });
+
+  it('AggregateSnapshot.get with fields in the query', () => {
+    return withTestCollectionAndInitialData([{'age': 42}, {'age': 24}], async collRef => {
+      const aggregateQuery = aggregate(collRef, count(), min('age'));
+      const snapshot = await getAggregate(aggregateQuery);
+      expect(snapshot.get(count())).to.equal(2);
+      expect(snapshot.get(min('age'))).to.equal(24);
+    });
+  });
+
+  it('aggregateSnapshotEqual() returns true for equal instances', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery = aggregate(collRef, count());
+      const snapshot1 = await getAggregate(aggregateQuery);
+      const snapshot2 = await getAggregate(aggregateQuery);
+      expect(aggregateSnapshotEqual(snapshot1, snapshot2)).to.be.true;
+    });
+  });
+});
+
+describe('GroupByQuery', () => {
+  it('query property is the correct instance', () => {
+    return withTestCollection(async collRef => {
+      const groupByQuery = groupBy(collRef, 'shape');
+      expect(groupByQuery.query).to.equal(collRef);
+    });
+  });
+
+  it('groupByQueryEqual() returns true for equal instances', () => {
+    return withTestDb(async db => {
+      const collRef1 = collection(db, "coll");
+      const groupByQuery1 = groupBy(collRef1, 'color');
+      const collRef2 = collection(db, "coll");
+      const groupByQuery2 = groupBy(collRef2, 'color');
+      expect(groupByQueryEqual(groupByQuery1, groupByQuery2)).to.be.true;
+    });
+  });
+
+  it('groupByQueryEqual() returns false for unequal instances', () => {
+    return withTestDb(async db => {
+      const collRef1 = collection(db, "coll1");
+      const collRef2 = collection(db, "coll2");
+      const groupByQuery1 = groupBy(collRef1, 'field1');
+      const groupByQuery2 = groupBy(collRef2, 'field1');
+      const groupByQuery3 = groupBy(collRef1, 'field2');
+      const groupByQuery4 = groupBy(collRef1, 'field1', 'field2');
+      expect(groupByQueryEqual(groupByQuery1, groupByQuery2)).to.be.false;
+      expect(groupByQueryEqual(groupByQuery1, groupByQuery3)).to.be.false;
+      expect(groupByQueryEqual(groupByQuery1, groupByQuery4)).to.be.false;
+      expect(groupByQueryEqual(groupByQuery2, groupByQuery3)).to.be.false;
+      expect(groupByQueryEqual(groupByQuery2, groupByQuery4)).to.be.false;
+      expect(groupByQueryEqual(groupByQuery3, groupByQuery4)).to.be.false;
+    });
+  });
+});
+
+describe('GroupBySnapshot', () => {
+  it('GroupBySnapshot.query', () => {
+    return withTestCollection(async collRef => {
+      const groupByQuery = groupBy(collRef, 'field');
+      const snapshot = await getGroups(groupByQuery);
+      expect(snapshot.query).to.equal(groupByQuery);
+    });
+  });
+
+  it('GroupBySnapshot with no results', () => {
+    return withTestCollection(async collRef => {
+      const groupByQuery = groupBy(collRef, 'field');
+      const snapshot = await getGroups(groupByQuery);
+      expect(snapshot.groups).to.have.length(0);
+      expect(snapshot.size).to.equal(0);
+      expect(snapshot.empty).to.be.true;
+    });
+  });
+
+  it('GroupBySnapshot with 1 group', () => {
+    const initialData = [
+      {'num': 1, 'color': 'red'},
+      {'num': 1, 'color': 'blue'},
+      {'num': 1, 'color': 'green'},
+    ];
+    return withTestCollectionAndInitialData(initialData, async collRef => {
+      const groupByQuery = groupBy(collRef, 'num');
+      const snapshot = await getGroups(groupByQuery);
+      expect(snapshot.groups).to.have.length(1);
+      expect(snapshot.size).to.equal(1);
+      expect(snapshot.empty).to.be.false;
+    });
+  });
+
+  it('GroupBySnapshot with 3 groups', () => {
+    const initialData = [
+      {'num': 1, 'color': 'red'},
+      {'num': 1, 'color': 'red'},
+      {'num': 2, 'color': 'red'},
+      {'num': 2, 'color': 'red'},
+      {'num': 2, 'color': 'blue'},
+    ];
+    return withTestCollectionAndInitialData(initialData, async collRef => {
+      const groupByQuery = groupBy(collRef, 'num', 'color');
+      const snapshot = await getGroups(groupByQuery);
+      expect(snapshot.groups).to.have.length(3);
+      expect(snapshot.size).to.equal(3);
+      expect(snapshot.empty).to.be.false;
+    });
+  });
+
+  it('GroupBySnapshot.forEach', () => {
+    const initialData = [
+      {'num': 1, 'color': 'red'},
+      {'num': 2, 'color': 'red'},
+    ];
+    return withTestCollectionAndInitialData(initialData, async collRef => {
+      const groupByQuery = groupBy(collRef, 'num', 'color');
+      const snapshot = await getGroups(groupByQuery);
+      let groupsForForEach: Array<GroupSnapshot> = [];
+      snapshot.forEach((result => { groupsForForEach.push(result); }))
+      expect(groupsForForEach).to.have.length(2);
+      expect(groupsForForEach).to.deep.equal(snapshot.groups);
+    });
+  });
+
+  it('groupBySnapshotEqual() returns true for equal instances', () => {
+    return withTestCollection(async collRef => {
+      const groupByQuery = groupBy(collRef, 'field');
+      const snapshot1 = await getGroups(groupByQuery);
+      const snapshot2 = await getGroups(groupByQuery);
+      expect(groupBySnapshotEqual(snapshot1, snapshot2)).to.be.true;
     });
   });
 });
