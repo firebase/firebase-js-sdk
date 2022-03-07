@@ -242,7 +242,7 @@ export function calculateOverlayMutation(
     let maskSet = new SortedSet<FieldPath>(FieldPath.comparator);
     mask.fields.forEach(path => {
       if (!maskSet.has(path)) {
-        const value = docValue.field(path);
+        let value = docValue.field(path);
         // If we are deleting a nested field, we take the immediate parent as
         // the mask used to construct the resulting mutation.
         // Justification: Nested fields can create parent fields implicitly. If
@@ -254,8 +254,13 @@ export function calculateOverlayMutation(
         // mutation would miss `foo`.
         if (value === null && path.length > 1) {
           path = path.popLast();
+          value = docValue.field(path);
         }
-        patchValue.set(path, docValue.field(path)!);
+        if (value === null) {
+          patchValue.delete(path);
+        } else {
+          patchValue.set(path, value);
+        }
         maskSet = maskSet.add(path);
       }
     });
