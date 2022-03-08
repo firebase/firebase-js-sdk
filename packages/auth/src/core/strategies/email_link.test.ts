@@ -18,15 +18,16 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
+import * as sinon from 'sinon';
 
 import { ActionCodeOperation } from '../../model/public_types';
 import { OperationType } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { mockEndpoint, mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api';
+import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { UserCredentialInternal } from '../../model/user';
@@ -35,6 +36,8 @@ import {
   sendSignInLinkToEmail,
   signInWithEmailLink
 } from './email_link';
+import { _window } from '../../platform_browser/auth_window';
+import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -148,6 +151,63 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         androidInstallApp: false,
         androidMinimumVersionCode: 'my-version',
         androidPackageName: 'my-package'
+      });
+    });
+  });
+
+  context('#recaptcha', () => {
+    beforeEach(async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      _window().grecaptcha = recaptcha;
+      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'site-key'
+      });
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+    
+    it('calls send sign in link to email with recaptcha enabled', async () => {
+      auth.setRecaptchaConfig({emailPasswordEnabled: true});
+
+      const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        email
+      });
+      await sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: true,
+        url: 'continue-url'
+      });
+      expect(apiMock.calls[0].request).to.eql({
+        requestType: ActionCodeOperation.EMAIL_SIGNIN,
+        email,
+        canHandleCodeInApp: true,
+        continueUrl: 'continue-url',
+        'captchaResp': 'recaptcha-response',
+        'clientType': 'CLIENT_TYPE_WEB',
+        'recaptchaVersion': 'RECAPTCHA_ENTERPRISE',
+      });
+    });
+
+    it('calls send sign in link to email with recaptcha disabled', async () => {
+      auth.setRecaptchaConfig({emailPasswordEnabled: false});
+
+      const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        email
+      });
+      await sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: true,
+        url: 'continue-url'
+      });
+      expect(apiMock.calls[0].request).to.eql({
+        requestType: ActionCodeOperation.EMAIL_SIGNIN,
+        email,
+        canHandleCodeInApp: true,
+        continueUrl: 'continue-url'
       });
     });
   });

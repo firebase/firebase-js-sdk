@@ -18,15 +18,16 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
+import * as sinon from 'sinon';
 
 import { ActionCodeOperation } from '../../model/public_types';
 import { OperationType } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { mockEndpoint, mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api';
+import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { UserCredentialInternal } from '../../model/user';
@@ -39,6 +40,8 @@ import {
   signInWithEmailAndPassword,
   verifyPasswordResetCode
 } from './email_and_password';
+import { _window } from '../../platform_browser/auth_window';
+import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -133,6 +136,54 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         androidInstallApp: false,
         androidMinimumVersionCode: 'my-version',
         androidPackageName: 'my-package'
+      });
+    });
+  });
+
+  context('#recaptcha', () => {
+    beforeEach(async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      _window().grecaptcha = recaptcha;
+      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'site-key'
+      });
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+    
+    it('calls send password reset email with recaptcha enabled', async () => {
+      auth.setRecaptchaConfig({emailPasswordEnabled: true});
+
+      const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        email
+      });
+      await sendPasswordResetEmail(auth, email);
+
+      expect(apiMock.calls[0].request).to.eql({
+        requestType: ActionCodeOperation.PASSWORD_RESET,
+        email,
+        'captchaResp': 'recaptcha-response',
+        'clientType': 'CLIENT_TYPE_WEB',
+        'recaptchaVersion': 'RECAPTCHA_ENTERPRISE',
+      });
+    });
+
+    it('calls send password reset with recaptcha disabled', async () => {
+      auth.setRecaptchaConfig({emailPasswordEnabled: false});
+
+      const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        email
+      });
+      await sendPasswordResetEmail(auth, email);
+      expect(apiMock.calls[0].request).to.eql({
+        requestType: ActionCodeOperation.PASSWORD_RESET,
+        email,
       });
     });
   });
@@ -402,6 +453,70 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     expect(operationType).to.eq(OperationType.SIGN_IN);
     expect(user.uid).to.eq(serverUser.localId);
     expect(user.isAnonymous).to.be.false;
+  });
+
+  context('#recaptcha', () => {
+    beforeEach(async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      _window().grecaptcha = recaptcha;
+      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'site-key'
+      });
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+    
+    it('calls create user with email password with recaptcha enabled', async () => {
+      auth.setRecaptchaConfig({emailPasswordEnabled: true});
+
+      const {
+        _tokenResponse,
+        user,
+        operationType
+      } = (await createUserWithEmailAndPassword(
+        auth,
+        'some-email',
+        'some-password'
+      )) as UserCredentialInternal;
+      expect(_tokenResponse).to.eql({
+        idToken: 'id-token',
+        refreshToken: 'refresh-token',
+        expiresIn: '1234',
+        localId: serverUser.localId!
+      });
+      expect(operationType).to.eq(OperationType.SIGN_IN);
+      expect(user.uid).to.eq(serverUser.localId);
+      expect(user.isAnonymous).to.be.false;
+    });
+
+    it('calls create user with email password with recaptcha disabled', async () => {
+      auth.setRecaptchaConfig({emailPasswordEnabled: false});
+
+      const {
+        _tokenResponse,
+        user,
+        operationType
+      } = (await createUserWithEmailAndPassword(
+        auth,
+        'some-email',
+        'some-password'
+      )) as UserCredentialInternal;
+      expect(_tokenResponse).to.eql({
+        idToken: 'id-token',
+        refreshToken: 'refresh-token',
+        expiresIn: '1234',
+        localId: serverUser.localId!
+      });
+      expect(operationType).to.eq(OperationType.SIGN_IN);
+      expect(user.uid).to.eq(serverUser.localId);
+      expect(user.isAnonymous).to.be.false;
+    });
   });
 });
 

@@ -70,7 +70,7 @@ export class RecaptchaEnterpriseVerifier {
    *
    * @returns A Promise for a token that can be used to assert the validity of a request.
    */
-  async verify(action: string, forceSiteKeyRefresh: boolean =false): Promise<string> {
+  async verify(action: string = 'verify', forceSiteKeyRefresh: boolean = false): Promise<string> {
     async function retrieveSiteKey(auth: AuthInternal): Promise<string> {
       if (!forceSiteKeyRefresh) {
         if (auth.tenantId == null && RecaptchaEnterpriseVerifier.agentSiteKey != null) {
