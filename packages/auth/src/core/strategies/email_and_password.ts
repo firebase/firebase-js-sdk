@@ -25,7 +25,7 @@
 
 import * as account from '../../api/account_management/email_and_password';
 import * as authentication from '../../api/authentication/email_and_password';
-import { signUp } from '../../api/authentication/sign_up';
+import { signUp, SignUpRequest } from '../../api/authentication/sign_up';
 import { MultiFactorInfoImpl } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
@@ -40,7 +40,6 @@ import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/re
 import { RecaptchaClientType, RecaptchaVersion } from '../../api';
 import { IdTokenResponse } from '../../model/id_token';
 import { PasswordResetResponse } from '../../api/authentication/email_and_password';
-import { SignUpRequest } from '../../api/authentication/sign_up';
 
 /**
  * Sends a password reset email to the given email address.
