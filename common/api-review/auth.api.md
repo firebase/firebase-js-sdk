@@ -236,7 +236,6 @@ export const AuthErrorCodes: {
     readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
     readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
     readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
-    readonly INVALID_RECAPTCHA_SITE_KEY: "invalid-recaptcha-site-key";
 };
 
 // @public

@@ -133,7 +133,6 @@ export const enum AuthErrorCode {
   MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
   INVALID_REQ_TYPE = 'invalid-req-type',
   INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
-  INVALID_RECAPTCHA_SITE_KEY = 'invalid-recaptcha-site-key',
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -365,17 +364,26 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'different options. To avoid this error, call initializeAuth() with the ' +
       'same options as when it was originally called, or call getAuth() to return the' +
       ' already initialized instance.',
-    [AuthErrorCode.INVALID_RECAPTCHA_SCORE]: 'invalid-recaptcha-score',
-    [AuthErrorCode.MISSING_RECAPTCHA_TOKEN]: 'missing-recaptcha-token',
-    [AuthErrorCode.INVALID_RECAPTCHA_TOKEN]: 'invalid-recaptcha-token',
-    [AuthErrorCode.INVALID_RECAPTCHA_ACTION]: 'invalide-recaptcha-action',
-    [AuthErrorCode.INVALID_RECAPTCHA_ENFORCEMENT_STATE]: 'invalid-recaptcha-enforcement-state',
-    [AuthErrorCode.RECAPTCHA_NOT_ENABLED]: 'recaptcha-not-enabled',
-    [AuthErrorCode.MISSING_CLIENT_TYPE]: 'missing-client-type',
-    [AuthErrorCode.MISSING_RECAPTCHA_VERSION]: 'missing-recaptcha-version',
-    [AuthErrorCode.INVALID_REQ_TYPE]: 'invalid-req-type',
-    [AuthErrorCode.INVALID_RECAPTCHA_VERSION]: 'invalid-recaptcha-version',
-    [AuthErrorCode.INVALID_RECAPTCHA_SITE_KEY]: 'invalid-recaptcha-site-key',
+    [AuthErrorCode.INVALID_RECAPTCHA_SCORE]:
+      'The recaptcha score sent to backend is invalid.',
+    [AuthErrorCode.MISSING_RECAPTCHA_TOKEN]:
+      'The recaptcha token is missing when sending request to the backend.',
+    [AuthErrorCode.INVALID_RECAPTCHA_TOKEN]:
+      'The recaptcha token is invalid when sending request to the backend.',
+    [AuthErrorCode.INVALID_RECAPTCHA_ACTION]:
+      'The recaptcha action is invalid when sending request to the backend.',
+    [AuthErrorCode.INVALID_RECAPTCHA_ENFORCEMENT_STATE]:
+      'The recaptcha enforcement state is invalid.',
+    [AuthErrorCode.RECAPTCHA_NOT_ENABLED]:
+      'The recaptcha integration is not enabled for this project.',
+    [AuthErrorCode.MISSING_CLIENT_TYPE]:
+      'The recaptcha client type is missing when sending request to the backend.',
+    [AuthErrorCode.MISSING_RECAPTCHA_VERSION]:
+      'The recaptcha version is missing when sending request to the backend.',
+    [AuthErrorCode.INVALID_REQ_TYPE]:
+      'The recaptcha client type / version is invalid when retrieving the site key.',
+    [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
+      'The recaptcha version is invalid when sending request to the backend.',
 
   };
 }
@@ -584,5 +592,4 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   MISSING_RECAPTCHA_VERSION: 'auth/missing-recaptcha-version',
   INVALID_REQ_TYPE: 'auth/invalid-req-type',
   INVALID_RECAPTCHA_VERSION: 'auth/invalid-recaptcha-version',
-  INVALID_RECAPTCHA_SITE_KEY: 'invalid-recaptcha-site-key',
 } as const;
