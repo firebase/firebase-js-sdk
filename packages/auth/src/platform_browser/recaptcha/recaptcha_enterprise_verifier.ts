@@ -70,9 +70,9 @@ export class RecaptchaEnterpriseVerifier {
    *
    * @returns A Promise for a token that can be used to assert the validity of a request.
    */
-  async verify(action: string = 'verify', forceSiteKeyRefresh: boolean = false): Promise<string> {
+  async verify(action: string = 'verify', forceRefresh: boolean = false): Promise<string> {
     async function retrieveSiteKey(auth: AuthInternal): Promise<string> {
-      if (!forceSiteKeyRefresh) {
+      if (!forceRefresh) {
         if (auth.tenantId == null && RecaptchaEnterpriseVerifier.agentSiteKey != null) {
           return Promise.resolve(RecaptchaEnterpriseVerifier.agentSiteKey);
         }
@@ -107,13 +107,17 @@ export class RecaptchaEnterpriseVerifier {
       const grecaptcha = _window().grecaptcha;
       if (isEnterprise(grecaptcha)) {
         grecaptcha.enterprise.ready(() => {
-          grecaptcha.enterprise.execute(siteKey, { action })
+          try {
+            grecaptcha.enterprise.execute(siteKey, { action })
             .then((token) => {
               resolve(token);
             })
             .catch((error) => {
               reject(error);
-            });;
+            });
+          } catch(error) {
+            reject(error);
+          }
         });
       } else {
         reject(Error('No reCAPTCHA enterprise script loaded.'));
@@ -122,7 +126,7 @@ export class RecaptchaEnterpriseVerifier {
 
     return new Promise<string>((resolve, reject) => {
       retrieveSiteKey(this.auth).then((siteKey) => {
-        if (isEnterprise(_window().grecaptcha)) {
+        if (!forceRefresh && isEnterprise(_window().grecaptcha)) {
           retrieveRecaptchaToken(siteKey, resolve, reject);
         } else {
           jsHelpers._loadJS(RECAPTCHA_ENTERPRISE_URL + siteKey)

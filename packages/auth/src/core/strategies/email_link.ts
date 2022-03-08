@@ -81,11 +81,16 @@ export async function sendSignInLinkToEmail(
 ): Promise<void> {
   const authInternal = _castAuth(auth);
 
-  async function internalSendSignInLinkToEmail(withRecaptcha: boolean = false, forceSiteKeyRefresh: boolean = false): Promise<EmailSignInResponse> {
+  async function internalSendSignInLinkToEmail(withRecaptcha: boolean = false): Promise<EmailSignInResponse> {
     let request: api.EmailSignInRequest;
     if (withRecaptcha) {
       const verifier = new RecaptchaEnterpriseVerifier(auth);
-      const captchaResponse = await verifier.verify('signInWithEmailLink', forceSiteKeyRefresh);
+      const captchaResponse = await verifier.verify('signInWithEmailLink')
+      .catch(() => {
+        return verifier.verify('signInWithEmailLink', true);
+      }).catch((error) => {
+        return Promise.reject(error);
+      });
       request = {
         requestType: ActionCodeOperation.EMAIL_SIGNIN,
         email,
@@ -118,8 +123,6 @@ export async function sendSignInLinkToEmail(
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
         console.log("Sign in with email link is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign in flow.");
         await internalSendSignInLinkToEmail(true);
-      } else if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_SITE_KEY}`) {
-        return internalSendSignInLinkToEmail(true, true);
       } else {
         return Promise.reject(error);
       }

@@ -113,11 +113,16 @@ export class EmailAuthCredential extends AuthCredential {
 
   /** @internal */
   async _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse> {
-    async function internalSignInWithPassword(cred: EmailAuthCredential, withRecaptcha: boolean = false, forceSiteKeyRefresh: boolean = false): Promise<IdTokenResponse> {
+    async function internalSignInWithPassword(cred: EmailAuthCredential, withRecaptcha: boolean = false): Promise<IdTokenResponse> {
       let request: SignInWithPasswordRequest;
       if (withRecaptcha) {
         const verifier = new RecaptchaEnterpriseVerifier(auth);
-        const captchaResponse = await verifier.verify('signInWithEmailPassword', forceSiteKeyRefresh);
+        const captchaResponse = await verifier.verify('signInWithEmailPassword')
+        .catch(() => {
+          return verifier.verify('signInWithEmailPassword', true);
+        }).catch((error) => {
+          return Promise.reject(error);
+        });
         request = {
           returnSecureToken: true,
           email: cred._email,
@@ -145,8 +150,6 @@ export class EmailAuthCredential extends AuthCredential {
             if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
               console.log("Sign in with email password is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign in flow.");
               return internalSignInWithPassword(this, true);
-            } else if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_SITE_KEY}`) {
-              return internalSignInWithPassword(this, true, true);
             } else {
               return Promise.reject(error);
             }
