@@ -29,16 +29,20 @@ const OBJECT_STORE_NAME = 'firebase-messaging-store';
 let dbPromise: Promise<DBWrapper> | null = null;
 function getDbPromise(): Promise<DBWrapper> {
   if (!dbPromise) {
-    dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, (upgradeDb, oldVersion) => {
-      // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
-      // because if there are multiple versions between the old version and the current version, we
-      // want ALL the migrations that correspond to those versions to run, not only the last one.
-      // eslint-disable-next-line default-case
-      switch (oldVersion) {
-        case 0:
-          upgradeDb.createObjectStore(OBJECT_STORE_NAME);
+    dbPromise = openDB(
+      DATABASE_NAME,
+      DATABASE_VERSION,
+      (upgradeDb, oldVersion) => {
+        // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
+        // because if there are multiple versions between the old version and the current version, we
+        // want ALL the migrations that correspond to those versions to run, not only the last one.
+        // eslint-disable-next-line default-case
+        switch (oldVersion) {
+          case 0:
+            upgradeDb.createObjectStore(OBJECT_STORE_NAME);
+        }
       }
-    });
+    );
   }
   return dbPromise;
 }
@@ -49,10 +53,10 @@ export async function dbGet(
 ): Promise<TokenDetails | undefined> {
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
-  const tokenDetails = await db
+  const tokenDetails = (await db
     .transaction(OBJECT_STORE_NAME)
     .objectStore(OBJECT_STORE_NAME)
-    .get(key) as TokenDetails;
+    .get(key)) as TokenDetails;
 
   if (tokenDetails) {
     return tokenDetails;
