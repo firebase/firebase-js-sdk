@@ -168,9 +168,9 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       expect(apiMock.calls[0].request).to.eql({
         requestType: ActionCodeOperation.PASSWORD_RESET,
         email,
-        'captchaResp': 'recaptcha-response',
-        'clientType': 'CLIENT_TYPE_WEB',
-        'recaptchaVersion': 'RECAPTCHA_ENTERPRISE',
+        captchaResp: 'recaptcha-response',
+        clientType: RecaptchaClientType.WEB,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE,
       });
     });
 

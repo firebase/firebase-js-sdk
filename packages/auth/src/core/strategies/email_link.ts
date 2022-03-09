@@ -81,8 +81,11 @@ export async function sendSignInLinkToEmail(
 ): Promise<void> {
   const authInternal = _castAuth(auth);
 
-  async function internalSendSignInLinkToEmail(withRecaptcha: boolean = false): Promise<EmailSignInResponse> {
-    let request: api.EmailSignInRequest;
+  async function internalSendSignInLinkToEmail(withRecaptcha = false): Promise<EmailSignInResponse> {
+    const request: api.EmailSignInRequest = {
+      requestType: ActionCodeOperation.EMAIL_SIGNIN,
+      email
+    };
     if (withRecaptcha) {
       const verifier = new RecaptchaEnterpriseVerifier(auth);
       const captchaResponse = await verifier.verify('signInWithEmailLink')
@@ -91,18 +94,9 @@ export async function sendSignInLinkToEmail(
       }).catch((error) => {
         return Promise.reject(error);
       });
-      request = {
-        requestType: ActionCodeOperation.EMAIL_SIGNIN,
-        email,
-        captchaResp: captchaResponse,
-        clientType: RecaptchaClientType.WEB,
-        recaptchaVersion: RecaptchaVersion.ENTERPRISE,
-      };
-    } else {
-      request = {
-        requestType: ActionCodeOperation.EMAIL_SIGNIN,
-        email
-      };
+      request.captchaResp = captchaResponse;
+      request.clientType = RecaptchaClientType.WEB;
+      request.recaptchaVersion = RecaptchaVersion.ENTERPRISE;
     }
     _assert(
       actionCodeSettings.handleCodeInApp,

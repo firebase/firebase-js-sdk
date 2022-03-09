@@ -113,30 +113,23 @@ export class EmailAuthCredential extends AuthCredential {
 
   /** @internal */
   async _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse> {
-    async function internalSignInWithPassword(cred: EmailAuthCredential, withRecaptcha: boolean = false): Promise<IdTokenResponse> {
-      let request: SignInWithPasswordRequest;
+    async function internalSignInWithPassword(cred: EmailAuthCredential, withRecaptcha = false): Promise<IdTokenResponse> {
+      const request: SignInWithPasswordRequest = {
+        returnSecureToken: true,
+        email: cred._email,
+        password: cred._password,
+      };
       if (withRecaptcha) {
         const verifier = new RecaptchaEnterpriseVerifier(auth);
-        const captchaResponse = await verifier.verify('signInWithEmailPassword')
-        .catch(() => {
-          return verifier.verify('signInWithEmailPassword', true);
-        }).catch((error) => {
-          return Promise.reject(error);
-        });
-        request = {
-          returnSecureToken: true,
-          email: cred._email,
-          password: cred._password,
-          captchaResponse,
-          clientType: RecaptchaClientType.WEB,
-          recaptchaVersion: RecaptchaVersion.ENTERPRISE,
-        };
-      } else {
-        request = {
-          returnSecureToken: true,
-          email: cred._email,
-          password: cred._password,
-        };
+        let captchaResponse;
+        try {
+          captchaResponse = await verifier.verify('signInWithEmailPassword');
+        } catch (error) {
+          captchaResponse = await verifier.verify('signInWithEmailPassword', true);
+        }
+        request.captchaResponse = captchaResponse;
+        request.clientType = RecaptchaClientType.WEB;
+        request.recaptchaVersion = RecaptchaVersion.ENTERPRISE;
       }
       return signInWithPassword(auth, request);
     }

@@ -29,6 +29,7 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { EmailAuthCredential } from './email';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 import { _window } from '../../platform_browser/auth_window';
+import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
 
@@ -90,6 +91,13 @@ describe('core/credentials/email', () => {
 
       context('#recaptcha', () => {
         beforeEach(async () => {
+        });
+
+        afterEach(() => {
+          sinon.restore();
+        });
+        
+        it('calls sign in with password with recaptcha enabled', async () => {
           const recaptcha = new MockGreCAPTCHATopLevel();
           _window().grecaptcha = recaptcha;
           sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
@@ -99,13 +107,7 @@ describe('core/credentials/email', () => {
           }, {
             recaptchaKey: 'site-key'
           });
-        });
 
-        afterEach(() => {
-          sinon.restore();
-        });
-        
-        it('calls sign in with password with recaptcha enabled', async () => {
           auth.setRecaptchaConfig({emailPasswordEnabled: true});
     
           const idTokenResponse = await credential._getIdTokenResponse(auth);
@@ -114,16 +116,26 @@ describe('core/credentials/email', () => {
           expect(idTokenResponse.expiresIn).to.eq('1234');
           expect(idTokenResponse.localId).to.eq(serverUser.localId);
           expect(apiMock.calls[0].request).to.eql({
-            'captchaResponse': 'recaptcha-response',
-            'clientType': 'CLIENT_TYPE_WEB',
+            captchaResponse: 'recaptcha-response',
+            clientType: RecaptchaClientType.WEB,
             email: 'some-email',
             password: 'some-password',
-            'recaptchaVersion': 'RECAPTCHA_ENTERPRISE',
+            recaptchaVersion: RecaptchaVersion.ENTERPRISE,
             returnSecureToken: true,
           });
         });
 
         it('calls sign in with password with recaptcha disabled', async () => {
+          const recaptcha = new MockGreCAPTCHATopLevel();
+          _window().grecaptcha = recaptcha;
+          sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
+          mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+            clientType: RecaptchaClientType.WEB,
+            version: RecaptchaVersion.ENTERPRISE,
+          }, {
+            recaptchaKey: 'site-key'
+          });
+
           auth.setRecaptchaConfig({emailPasswordEnabled: false});
     
           const idTokenResponse = await credential._getIdTokenResponse(auth);
@@ -136,6 +148,54 @@ describe('core/credentials/email', () => {
             password: 'some-password',
             returnSecureToken: true,
           });
+        });
+
+        it('calls sign in with password with recaptcha forced refresh succeed', async () => {
+          const recaptcha = new MockGreCAPTCHATopLevel();
+          _window().grecaptcha = recaptcha;
+          const stub = sinon.stub(recaptcha.enterprise, 'execute');
+
+          // // First verification should fail with 'wrong-site-key'
+          stub.withArgs('wrong-site-key', {action: 'signInWithEmailPassword'}).rejects();
+          // Second verifcation should succeed with site key refreshed
+          stub.withArgs('site-key', {action: 'signInWithEmailPassword'}).returns(Promise.resolve('recaptcha-response'));
+
+          mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+            clientType: RecaptchaClientType.WEB,
+            version: RecaptchaVersion.ENTERPRISE,
+          }, {
+            recaptchaKey: 'mock/project/mock/site-key'
+          });
+
+          RecaptchaEnterpriseVerifier.agentSiteKey = 'wrong-site-key';
+          auth.setRecaptchaConfig({emailPasswordEnabled: true});
+    
+          const idTokenResponse = await credential._getIdTokenResponse(auth);
+          expect(idTokenResponse.idToken).to.eq('id-token');
+          expect(idTokenResponse.refreshToken).to.eq('refresh-token');
+          expect(idTokenResponse.expiresIn).to.eq('1234');
+          expect(idTokenResponse.localId).to.eq(serverUser.localId);
+          expect(apiMock.calls[0].request).to.eql({
+            captchaResponse: 'recaptcha-response',
+            clientType: RecaptchaClientType.WEB,
+            email: 'some-email',
+            password: 'some-password',
+            recaptchaVersion: RecaptchaVersion.ENTERPRISE,
+            returnSecureToken: true,
+          });
+        });
+
+        it('calls sign in with password with recaptcha verify failed', async () => {
+          RecaptchaEnterpriseVerifier.agentSiteKey = null;
+          mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+            clientType: RecaptchaClientType.WEB,
+            version: RecaptchaVersion.ENTERPRISE,
+          }, {});
+
+          auth.setRecaptchaConfig({emailPasswordEnabled: true});
+    
+          const response = credential._getIdTokenResponse(auth);
+          await expect(response).to.be.rejectedWith(Error, 'recaptchaKey undefined');
         });
       });
     });

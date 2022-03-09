@@ -70,14 +70,14 @@ export class RecaptchaEnterpriseVerifier {
    *
    * @returns A Promise for a token that can be used to assert the validity of a request.
    */
-  async verify(action: string = 'verify', forceRefresh: boolean = false): Promise<string> {
+  async verify(action: string = 'verify', forceRefresh = false): Promise<string> {
     async function retrieveSiteKey(auth: AuthInternal): Promise<string> {
       if (!forceRefresh) {
         if (auth.tenantId == null && RecaptchaEnterpriseVerifier.agentSiteKey != null) {
-          return Promise.resolve(RecaptchaEnterpriseVerifier.agentSiteKey);
+          return RecaptchaEnterpriseVerifier.agentSiteKey;
         }
         if (auth.tenantId != null && RecaptchaEnterpriseVerifier.agentSiteKey !== undefined) {
-          return Promise.resolve(RecaptchaEnterpriseVerifier.siteKeys[auth.tenantId]);
+          return RecaptchaEnterpriseVerifier.siteKeys[auth.tenantId];
         }
       }
       
@@ -87,7 +87,7 @@ export class RecaptchaEnterpriseVerifier {
           version: RecaptchaVersion.ENTERPRISE
         }).then((response) => {
           if (response.recaptchaKey === undefined) {
-            reject("recaptchaKey undefined");
+            reject(Error("recaptchaKey undefined"));
           } else {
             const siteKey = response.recaptchaKey.split('/')[3];
             if (auth.tenantId == null) {

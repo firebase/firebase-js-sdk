@@ -80,8 +80,11 @@ export async function sendPasswordResetEmail(
 ): Promise<void> {
   const authInternal = _castAuth(auth);
 
-  async function internalSendPasswordResetEmail(withRecaptcha: boolean = false): Promise<PasswordResetResponse> {
-    let request: authentication.PasswordResetRequest;
+  async function internalSendPasswordResetEmail(withRecaptcha = false): Promise<PasswordResetResponse> {
+    const request: authentication.PasswordResetRequest = {
+      requestType: ActionCodeOperation.PASSWORD_RESET,
+      email
+    };
     if (withRecaptcha) {
       const verifier = new RecaptchaEnterpriseVerifier(auth);
       const captchaResponse = await verifier.verify('passwordReset')
@@ -90,23 +93,13 @@ export async function sendPasswordResetEmail(
       }).catch((error) => {
         return Promise.reject(error);
       });
-      request = {
-        requestType: ActionCodeOperation.PASSWORD_RESET,
-        email,
-        captchaResp: captchaResponse,
-        clientType: RecaptchaClientType.WEB,
-        recaptchaVersion: RecaptchaVersion.ENTERPRISE,
-      };
-    } else {
-      request = {
-        requestType: ActionCodeOperation.PASSWORD_RESET,
-        email
-      };
+      request.captchaResp = captchaResponse;
+      request.clientType = RecaptchaClientType.WEB;
+      request.recaptchaVersion = RecaptchaVersion.ENTERPRISE;
     }
     if (actionCodeSettings) {
       _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
     }
-
     return authentication.sendPasswordResetEmail(authInternal, request);
   }
 
@@ -266,8 +259,12 @@ export async function createUserWithEmailAndPassword(
 ): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
 
-  async function internalSignUp(withRecaptcha: boolean = false): Promise<IdTokenResponse> {
-    let request: SignUpRequest;
+  async function internalSignUp(withRecaptcha = false): Promise<IdTokenResponse> {
+    const request: SignUpRequest = {
+      returnSecureToken: true,
+      email,
+      password
+    };
     if (withRecaptcha) {
       const verifier = new RecaptchaEnterpriseVerifier(auth);
       const captchaResponse = await verifier.verify('signUp')
@@ -276,20 +273,9 @@ export async function createUserWithEmailAndPassword(
       }).catch((error) => {
         return Promise.reject(error);
       });
-      request = {
-        returnSecureToken: true,
-        email,
-        password,
-        captchaResponse,
-        clientType: RecaptchaClientType.WEB,
-        recaptchaVersion: RecaptchaVersion.ENTERPRISE,
-      };
-    } else {
-      request = {
-        returnSecureToken: true,
-        email,
-        password
-      };
+      request.captchaResponse = captchaResponse;
+      request.clientType = RecaptchaClientType.WEB;
+      request.recaptchaVersion = RecaptchaVersion.ENTERPRISE;
     }
     return signUp(authInternal, request);
   }

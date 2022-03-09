@@ -38,6 +38,7 @@ import {
 } from './email_link';
 import { _window } from '../../platform_browser/auth_window';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
+import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -187,9 +188,9 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         email,
         canHandleCodeInApp: true,
         continueUrl: 'continue-url',
-        'captchaResp': 'recaptcha-response',
-        'clientType': 'CLIENT_TYPE_WEB',
-        'recaptchaVersion': 'RECAPTCHA_ENTERPRISE',
+        captchaResp: 'recaptcha-response',
+        clientType: RecaptchaClientType.WEB,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE,
       });
     });
 
@@ -209,6 +210,50 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         canHandleCodeInApp: true,
         continueUrl: 'continue-url'
       });
+    });
+
+    it('calls send sign in link to email with recaptcha forced refresh succeed', async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      _window().grecaptcha = recaptcha;
+      const stub = sinon.stub(recaptcha.enterprise, 'execute');
+
+      // // First verification should fail with 'wrong-site-key'
+      stub.withArgs('wrong-site-key', {action: 'signInWithEmailLink'}).rejects();
+      // Second verifcation should succeed with site key refreshed
+      stub.withArgs('site-key', {action: 'signInWithEmailLink'}).returns(Promise.resolve('recaptcha-response'));
+
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'mock/project/mock/site-key'
+      });
+
+      RecaptchaEnterpriseVerifier.agentSiteKey = 'wrong-site-key';
+      auth.setRecaptchaConfig({emailPasswordEnabled: true});
+
+      mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        email
+      });
+      expect(sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: true,
+        url: 'continue-url'
+      })).returned;
+    });
+
+    it('calls send sign in link to email with recaptcha verify failed', async () => {
+      RecaptchaEnterpriseVerifier.agentSiteKey = null;
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {});
+
+      auth.setRecaptchaConfig({emailPasswordEnabled: true});
+
+      await expect(sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: true,
+        url: 'continue-url'
+      })).to.be.rejectedWith(Error, 'recaptchaKey undefined');
     });
   });
 });
