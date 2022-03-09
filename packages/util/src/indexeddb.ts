@@ -15,27 +15,120 @@
  * limitations under the License.
  */
 
-/**
- * Store db open promises for each db name/version combo to prevent
- * multiple attempts at opening the same db.
- */
-const dbPromises: Record<string, Promise<IDBDatabase>> = {};
+function promisifyRequest(
+  request: IDBRequest,
+  errorMessage: string
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = event => {
+      resolve((event.target as IDBRequest).result);
+    };
+    request.onerror = event => {
+      reject(`${errorMessage}: ${(event.target as IDBRequest).error?.message}`);
+    };
+  });
+}
+
+export class DBWrapper {
+  objectStoreNames: DOMStringList;
+  constructor(private _db: IDBDatabase) {
+    this.objectStoreNames = this._db.objectStoreNames;
+  }
+  transaction(
+    storeNames: string[] | string,
+    mode?: IDBTransactionMode
+  ): TransactionWrapper {
+    return new TransactionWrapper(
+      this._db.transaction.call(this._db, storeNames, mode)
+    );
+  }
+  createObjectStore(
+    storeName: string,
+    options?: IDBObjectStoreParameters
+  ): ObjectStoreWrapper {
+    return new ObjectStoreWrapper(
+      this._db.createObjectStore(storeName, options)
+    );
+  }
+  close(): void {
+    this._db.close();
+  }
+}
+
+class TransactionWrapper {
+  complete: Promise<void>;
+  constructor(private _transaction: IDBTransaction) {
+    this.complete = new Promise((resolve, reject) => {
+      this._transaction.oncomplete = function () {
+        resolve();
+      };
+      this._transaction.onerror = () => {
+        reject(this._transaction.error);
+      };
+      this._transaction.onabort = () => {
+        reject(this._transaction.error);
+      };
+    });
+  }
+  objectStore(storeName: string): ObjectStoreWrapper {
+    return new ObjectStoreWrapper(this._transaction.objectStore(storeName));
+  }
+}
+
+class ObjectStoreWrapper {
+  constructor(private _store: IDBObjectStore) {}
+  index(name: string): IndexWrapper {
+    return new IndexWrapper(this._store.index(name));
+  }
+  createIndex(
+    name: string,
+    keypath: string,
+    options: IDBIndexParameters
+  ): IndexWrapper {
+    return new IndexWrapper(this._store.createIndex(name, keypath, options));
+  }
+  get(key: string): Promise<unknown> {
+    const request = this._store.get(key);
+    return promisifyRequest(request, 'Error reading from IndexedDB');
+  }
+  put(value: unknown, key?: string): Promise<unknown> {
+    const request = this._store.put(value, key);
+    return promisifyRequest(request, 'Error writing to IndexedDB');
+  }
+  delete(key: string): Promise<unknown> {
+    const request = this._store.delete(key);
+    return promisifyRequest(request, 'Error deleting from IndexedDB');
+  }
+  clear(): Promise<unknown> {
+    const request = this._store.clear();
+    return promisifyRequest(request, 'Error clearing IndexedDB object store');
+  }
+}
+
+class IndexWrapper {
+  constructor(private _index: IDBIndex) {}
+  get(key: string): Promise<unknown> {
+    const request = this._index.get(key);
+    return promisifyRequest(request, 'Error reading from IndexedDB');
+  }
+}
 
 export function openDB(
   dbName: string,
   dbVersion: number,
-  upgradeCallback: (event: IDBVersionChangeEvent) => void
-): Promise<IDBDatabase> {
-  const dbPromiseKey = dbName + dbVersion;
-  if (dbPromises[dbPromiseKey] != null) {
-    return dbPromises[dbPromiseKey];
-  }
-  dbPromises[dbPromiseKey] = new Promise((resolve, reject) => {
+  upgradeCallback: (
+    db: DBWrapper,
+    oldVersion: number,
+    newVersion: number | null,
+    transaction: TransactionWrapper
+  ) => void
+): Promise<DBWrapper> {
+  return new Promise((resolve, reject) => {
     try {
       const request = indexedDB.open(dbName, dbVersion);
 
       request.onsuccess = event => {
-        resolve((event.target as IDBOpenDBRequest).result);
+        resolve(new DBWrapper((event.target as IDBOpenDBRequest).result));
       };
 
       request.onerror = event => {
@@ -47,24 +140,26 @@ export function openDB(
       };
 
       request.onupgradeneeded = event => {
-        upgradeCallback(event);
+        upgradeCallback(
+          new DBWrapper(request.result),
+          event.oldVersion,
+          event.newVersion,
+          new TransactionWrapper(request.transaction!)
+        );
       };
     } catch (e) {
       reject(`Error opening indexedDB: ${e.message}`);
     }
   });
-  return dbPromises[dbPromiseKey];
 }
 
 export async function deleteDB(dbName: string): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       const request = indexedDB.deleteDatabase(dbName);
-
       request.onsuccess = () => {
         resolve();
       };
-
       request.onerror = event => {
         reject(
           `Error deleting indexedDB database "${dbName}": ${

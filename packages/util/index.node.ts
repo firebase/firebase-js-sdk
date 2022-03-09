@@ -39,3 +39,6 @@ export * from './src/utf8';
 export * from './src/exponential_backoff';
 export * from './src/formatters';
 export * from './src/compat';
+// This can't be used in Node but it will cause errors if libraries import
+// these methods and they aren't here.
+export * from './src/indexeddb';
