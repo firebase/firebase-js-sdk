@@ -78,7 +78,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private redirectPersistenceManager?: PersistenceUserManager;
   private authStateSubscription = new Subscription<User>(this);
   private idTokenSubscription = new Subscription<User>(this);
-  private beforeStateSubscription = new Subscription<User>(this);
+  private beforeStateQueue: Array<(user: User | null) => Promise<void>> = [];
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
 
@@ -325,6 +325,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         AuthErrorCode.TENANT_ID_MISMATCH
       );
     }
+    await this._runBeforeStateCallbacks(user);
 
     return this.queue(async () => {
       await this.directlySetCurrentUser(user as UserInternal | null);
@@ -332,7 +333,18 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     });
   }
 
+  async _runBeforeStateCallbacks(user: User | null): Promise<void> {
+    try {
+      for (const beforeStateCallback of this.beforeStateQueue) {
+        await beforeStateCallback(user);
+      }
+    } catch (e) {
+      throw this._errorFactory.create(AuthErrorCode.LOGIN_BLOCKED, { message: e.message });
+    }
+  }
+
   async signOut(): Promise<void> {
+    await this._runBeforeStateCallbacks(null);
     // Clear the redirect user when signOut is called
     if (this.redirectPersistenceManager || this._popupRedirectResolver) {
       await this._setRedirectUser(null);
@@ -373,14 +385,29 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   beforeAuthStateChanged(
-    next: NextFn<User | null>,
+    callback: (user: User | null) => void | Promise<void>
   ): Unsubscribe {
-    return this.registerStateListener(
-      this.beforeStateSubscription,
-      next,
-      error,
-      completed
-    );
+    // The callback could be sync or async. Wrap it into a
+    // function that is always async.
+    const wrappedCallback =
+      (user: User | null): Promise<void> => new Promise((resolve, reject) => {
+        try {
+          const result = callback(user);
+          // Either resolve with existing promise or wrap a non-promise
+          // return value into a promise.
+          resolve(result);
+        } catch (e) {
+          // Sync callback throws.
+          reject(e);
+        }
+      });
+    this.beforeStateQueue.push(wrappedCallback);
+    const index = this.beforeStateQueue.length - 1;
+    return () => {
+      // Unsubscribe. Replace with no-op. Do not remove from array, or it will disturb
+      // indexing of other elements.
+      this.beforeStateQueue[index] = () => Promise.resolve();
+    };
   }
 
   onIdTokenChanged(
@@ -441,7 +468,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     // Make sure we've cleared any pending persistence actions if we're not in
     // the initializer
     if (this._isInitialized) {
-      await this.queue(async () => {});
+      await this.queue(async () => { });
     }
 
     if (this._currentUser?._redirectEventId === id) {
@@ -512,7 +539,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     completed?: CompleteFn
   ): Unsubscribe {
     if (this._deleted) {
-      return () => {};
+      return () => { };
     }
 
     const cb =
@@ -620,7 +647,7 @@ class Subscription<T> {
     observer => (this.observer = observer)
   );
 
-  constructor(readonly auth: AuthInternal) {}
+  constructor(readonly auth: AuthInternal) { }
 
   get next(): NextFn<T | null> {
     _assert(this.observer, this.auth, AuthErrorCode.INTERNAL_ERROR);
