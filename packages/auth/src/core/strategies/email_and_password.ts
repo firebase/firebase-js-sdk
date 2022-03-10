@@ -82,7 +82,7 @@ export async function sendPasswordResetEmail(
     email
   };
   if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
-    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, true);
+    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, 'sendPasswordResetEmail', true);
     if (actionCodeSettings) {
       _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
     }
@@ -94,7 +94,7 @@ export async function sendPasswordResetEmail(
     await authentication.sendPasswordResetEmail(authInternal, request).catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
         console.log("Pssword reset is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the password reset flow.");
-        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, true);
+        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, 'sendPasswordResetEmail', true);
         if (actionCodeSettings) {
           _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
         }
@@ -254,13 +254,13 @@ export async function createUserWithEmailAndPassword(
   };
   let signUpResponse: Promise<IdTokenResponse>;
   if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
-    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request);
+    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, 'signUp');
     signUpResponse = signUp(authInternal, requestWithRecaptcha);
   } else {
     signUpResponse = signUp(authInternal, request).catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
         console.log("Sign up is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign up flow.");
-        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request);
+        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, 'signUp');
         return signUp(authInternal, requestWithRecaptcha);
       } else {
         return Promise.reject(error);

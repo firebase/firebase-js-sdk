@@ -144,13 +144,13 @@ export class RecaptchaEnterpriseVerifier {
   }
 }
 
-export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T, captchaResp = false): Promise<T> {
+export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T, action: string, captchaResp = false): Promise<T> {
   const verifier = new RecaptchaEnterpriseVerifier(auth);
   let captchaResponse;
   try {
-    captchaResponse = await verifier.verify('signInWithEmailPassword');
+    captchaResponse = await verifier.verify(action);
   } catch (error) {
-    captchaResponse = await verifier.verify('signInWithEmailPassword', true);
+    captchaResponse = await verifier.verify(action, true);
   }
   const newRequest = { ...request };
   if (!captchaResp) {
