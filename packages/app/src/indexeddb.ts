@@ -78,21 +78,6 @@ export async function writeHeartbeatsToIndexedDB(
   }
 }
 
-export async function deleteHeartbeatsFromIndexedDB(
-  app: FirebaseApp
-): Promise<void> {
-  try {
-    const db = await getDbPromise();
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    await tx.objectStore(STORE_NAME).delete(computeKey(app));
-    return tx.complete;
-  } catch (e) {
-    throw ERROR_FACTORY.create(AppError.STORAGE_DELETE, {
-      originalErrorMessage: e.message
-    });
-  }
-}
-
 function computeKey(app: FirebaseApp): string {
   return `${app.name}!${app.options.appId}`;
 }

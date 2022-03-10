@@ -32,7 +32,6 @@ import { FirebaseApp } from './public-types';
 import * as firebaseUtil from '@firebase/util';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
 import * as indexedDb from './indexeddb';
-import { base64Encode, isIndexedDBAvailable } from '@firebase/util';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -99,38 +98,37 @@ describe('HeartbeatServiceImpl', () => {
      */
     it(`triggerHeartbeat() stores a heartbeat`, async () => {
       await heartbeatService.triggerHeartbeat();
-      expect(heartbeatService._heartbeatsCache?.length).to.equal(1);
-      const heartbeat1 = heartbeatService._heartbeatsCache?.[0];
-      expect(heartbeat1?.userAgent).to.equal(USER_AGENT_STRING_1);
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(1);
+      const heartbeat1 = heartbeatService._heartbeatsCache?.heartbeats[0];
+      expect(heartbeat1?.agent).to.equal(USER_AGENT_STRING_1);
       expect(heartbeat1?.date).to.equal('1970-01-01');
-      expect(writeStub).to.be.calledWith([heartbeat1]);
+      expect(writeStub).to.be.calledWith({ heartbeats: [heartbeat1] });
     });
     it(`triggerHeartbeat() doesn't store another heartbeat on the same day`, async () => {
-      expect(heartbeatService._heartbeatsCache?.length).to.equal(1);
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(1);
       await heartbeatService.triggerHeartbeat();
-      expect(heartbeatService._heartbeatsCache?.length).to.equal(1);
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(1);
     });
     it(`triggerHeartbeat() does store another heartbeat on a different day`, async () => {
-      expect(heartbeatService._heartbeatsCache?.length).to.equal(1);
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(1);
       clock.tick(24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
-      expect(heartbeatService._heartbeatsCache?.length).to.equal(2);
-      expect(heartbeatService._heartbeatsCache?.[1].date).to.equal(
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(2);
+      expect(heartbeatService._heartbeatsCache?.heartbeats[1].date).to.equal(
         '1970-01-02'
       );
     });
     it(`triggerHeartbeat() stores another entry for a different user agent`, async () => {
       userAgentString = USER_AGENT_STRING_2;
-      expect(heartbeatService._heartbeatsCache?.length).to.equal(2);
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(2);
       clock.tick(2 * 24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
-      expect(heartbeatService._heartbeatsCache?.length).to.equal(3);
-      expect(heartbeatService._heartbeatsCache?.[2].date).to.equal(
+      expect(heartbeatService._heartbeatsCache?.heartbeats.length).to.equal(3);
+      expect(heartbeatService._heartbeatsCache?.heartbeats[2].date).to.equal(
         '1970-01-03'
       );
     });
     it('getHeartbeatHeaders() gets stored heartbeats and clears heartbeats', async () => {
-      const deleteStub = stub(heartbeatService._storage, 'deleteAll');
       const heartbeatHeaders = firebaseUtil.base64Decode(
         await heartbeatService.getHeartbeatsHeader()
       );
@@ -140,10 +138,13 @@ describe('HeartbeatServiceImpl', () => {
       expect(heartbeatHeaders).to.include('1970-01-02');
       expect(heartbeatHeaders).to.include('1970-01-03');
       expect(heartbeatHeaders).to.include(`"version":2`);
-      expect(heartbeatService._heartbeatsCache).to.equal(null);
+      expect(heartbeatService._heartbeatsCache?.heartbeats).to.be.empty;
+      expect(writeStub).to.be.calledWith({
+        lastSentHeartbeatDate: '1970-01-01',
+        heartbeats: []
+      });
       const emptyHeaders = await heartbeatService.getHeartbeatsHeader();
       expect(emptyHeaders).to.equal('');
-      expect(deleteStub).to.be.called;
     });
   });
   describe('If IndexedDB has entries', () => {
@@ -154,11 +155,11 @@ describe('HeartbeatServiceImpl', () => {
     const mockIndexedDBHeartbeats = [
       // Chosen so one will exceed 30 day limit and one will not.
       {
-        userAgent: 'old-user-agent',
+        agent: 'old-user-agent',
         date: '1969-12-01'
       },
       {
-        userAgent: 'old-user-agent',
+        agent: 'old-user-agent',
         date: '1969-12-31'
       }
     ];
@@ -197,61 +198,149 @@ describe('HeartbeatServiceImpl', () => {
      */
     it(`new heartbeat service reads from indexedDB cache`, async () => {
       const promiseResult = await heartbeatService._heartbeatsCachePromise;
-      if (isIndexedDBAvailable()) {
-        expect(promiseResult).to.deep.equal(mockIndexedDBHeartbeats);
-        expect(heartbeatService._heartbeatsCache).to.deep.equal(
-          mockIndexedDBHeartbeats
-        );
+      if (firebaseUtil.isIndexedDBAvailable()) {
+        expect(promiseResult).to.deep.equal({
+          heartbeats: mockIndexedDBHeartbeats
+        });
+        expect(heartbeatService._heartbeatsCache).to.deep.equal({
+          heartbeats: mockIndexedDBHeartbeats
+        });
       } else {
         // In Node or other no-indexed-db environments it will fail the
         // `canUseIndexedDb` check and return an empty array.
-        expect(promiseResult).to.deep.equal([]);
-        expect(heartbeatService._heartbeatsCache).to.deep.equal([]);
+        expect(promiseResult).to.deep.equal({
+          heartbeats: []
+        });
+        expect(heartbeatService._heartbeatsCache).to.deep.equal({
+          heartbeats: []
+        });
       }
     });
     it(`triggerHeartbeat() writes new heartbeats and retains old ones newer than 30 days`, async () => {
       userAgentString = USER_AGENT_STRING_2;
       clock.tick(3 * 24 * 60 * 60 * 1000);
       await heartbeatService.triggerHeartbeat();
-      if (isIndexedDBAvailable()) {
-        expect(writeStub).to.be.calledWith([
-          // The first entry exceeds the 30 day retention limit.
-          mockIndexedDBHeartbeats[1],
-          { userAgent: USER_AGENT_STRING_2, date: '1970-01-04' }
-        ]);
+      if (firebaseUtil.isIndexedDBAvailable()) {
+        expect(writeStub).to.be.calledWith({
+          heartbeats: [
+            // The first entry exceeds the 30 day retention limit.
+            mockIndexedDBHeartbeats[1],
+            { agent: USER_AGENT_STRING_2, date: '1970-01-04' }
+          ]
+        });
       } else {
-        expect(writeStub).to.be.calledWith([
-          { userAgent: USER_AGENT_STRING_2, date: '1970-01-04' }
-        ]);
+        expect(writeStub).to.be.calledWith({
+          heartbeats: [{ agent: USER_AGENT_STRING_2, date: '1970-01-04' }]
+        });
       }
     });
     it('getHeartbeatHeaders() gets stored heartbeats and clears heartbeats', async () => {
-      const deleteStub = stub(heartbeatService._storage, 'deleteAll');
       const heartbeatHeaders = firebaseUtil.base64Decode(
         await heartbeatService.getHeartbeatsHeader()
       );
-      if (isIndexedDBAvailable()) {
+      if (firebaseUtil.isIndexedDBAvailable()) {
         expect(heartbeatHeaders).to.include('old-user-agent');
         expect(heartbeatHeaders).to.include('1969-12-31');
       }
       expect(heartbeatHeaders).to.include(USER_AGENT_STRING_2);
       expect(heartbeatHeaders).to.include('1970-01-04');
       expect(heartbeatHeaders).to.include(`"version":2`);
-      expect(heartbeatService._heartbeatsCache).to.equal(null);
+      expect(heartbeatService._heartbeatsCache?.heartbeats).to.be.empty;
+      expect(writeStub).to.be.calledWith({
+        lastSentHeartbeatDate: '1970-01-01',
+        heartbeats: []
+      });
       const emptyHeaders = await heartbeatService.getHeartbeatsHeader();
       expect(emptyHeaders).to.equal('');
-      expect(deleteStub).to.be.called;
+    });
+  });
+
+  describe('If IndexedDB records that a header was sent today', () => {
+    let heartbeatService: HeartbeatServiceImpl;
+    let writeStub: SinonStub;
+    const userAgentString = USER_AGENT_STRING_1;
+    const mockIndexedDBHeartbeats = [
+      // Chosen so one will exceed 30 day limit and one will not.
+      {
+        agent: 'old-user-agent',
+        date: '1969-12-01'
+      },
+      {
+        agent: 'old-user-agent',
+        date: '1969-12-31'
+      }
+    ];
+    before(() => {
+      const container = new ComponentContainer('heartbeatTestContainer');
+      container.addComponent(
+        new Component(
+          'app',
+          () =>
+            ({
+              options: { appId: 'an-app-id' },
+              name: 'an-app-name'
+            } as FirebaseApp),
+          ComponentType.VERSION
+        )
+      );
+      container.addComponent(
+        new Component(
+          'platform-logger',
+          () => ({ getPlatformInfoString: () => userAgentString }),
+          ComponentType.VERSION
+        )
+      );
+      stub(indexedDb, 'readHeartbeatsFromIndexedDB').resolves({
+        lastSentHeartbeatDate: '1970-01-01',
+        heartbeats: [...mockIndexedDBHeartbeats]
+      });
+      heartbeatService = new HeartbeatServiceImpl(container);
+    });
+    beforeEach(() => {
+      useFakeTimers();
+      writeStub = stub(heartbeatService._storage, 'overwrite');
+    });
+    it(`new heartbeat service reads from indexedDB cache`, async () => {
+      const promiseResult = await heartbeatService._heartbeatsCachePromise;
+      if (firebaseUtil.isIndexedDBAvailable()) {
+        expect(promiseResult).to.deep.equal({
+          lastSentHeartbeatDate: '1970-01-01',
+          heartbeats: mockIndexedDBHeartbeats
+        });
+        expect(heartbeatService._heartbeatsCache).to.deep.equal({
+          lastSentHeartbeatDate: '1970-01-01',
+          heartbeats: mockIndexedDBHeartbeats
+        });
+      } else {
+        // In Node or other no-indexed-db environments it will fail the
+        // `canUseIndexedDb` check and return an empty array.
+        expect(promiseResult).to.deep.equal({
+          heartbeats: []
+        });
+        expect(heartbeatService._heartbeatsCache).to.deep.equal({
+          heartbeats: []
+        });
+      }
+    });
+    it(`triggerHeartbeat() will skip storing new data`, async () => {
+      await heartbeatService.triggerHeartbeat();
+      expect(writeStub).to.not.be.called;
+      if (firebaseUtil.isIndexedDBAvailable()) {
+        expect(heartbeatService._heartbeatsCache?.heartbeats).to.deep.equal(
+          mockIndexedDBHeartbeats
+        );
+      }
     });
   });
 
   describe('countBytes()', () => {
     it('counts how many bytes there will be in a stringified, encoded header', () => {
       const heartbeats = [
-        { userAgent: generateUserAgentString(1), dates: generateDates(1) },
-        { userAgent: generateUserAgentString(3), dates: generateDates(2) }
+        { agent: generateUserAgentString(1), dates: generateDates(1) },
+        { agent: generateUserAgentString(3), dates: generateDates(2) }
       ];
       let size: number = 0;
-      const headerString = base64Encode(
+      const headerString = firebaseUtil.base64urlEncodeWithoutPadding(
         JSON.stringify({ version: 2, heartbeats })
       );
       // Use independent methods to validate our byte count method matches.
@@ -272,7 +361,7 @@ describe('HeartbeatServiceImpl', () => {
   describe('_extractHeartbeatsForHeader()', () => {
     it('returns empty heartbeatsToKeep if it cannot get under maxSize', () => {
       const heartbeats = [
-        { userAgent: generateUserAgentString(1), date: '2022-01-01' }
+        { agent: generateUserAgentString(1), date: '2022-01-01' }
       ];
       const { unsentEntries, heartbeatsToSend } = extractHeartbeatsForHeader(
         heartbeats,
@@ -283,11 +372,11 @@ describe('HeartbeatServiceImpl', () => {
     });
     it('splits heartbeats array', () => {
       const heartbeats = [
-        { userAgent: generateUserAgentString(20), date: '2022-01-01' },
-        { userAgent: generateUserAgentString(4), date: '2022-01-02' }
+        { agent: generateUserAgentString(20), date: '2022-01-01' },
+        { agent: generateUserAgentString(4), date: '2022-01-02' }
       ];
       const sizeWithHeartbeat0Only = countBytes([
-        { userAgent: heartbeats[0].userAgent, dates: [heartbeats[0].date] }
+        { agent: heartbeats[0].agent, dates: [heartbeats[0].date] }
       ]);
       const { unsentEntries, heartbeatsToSend } = extractHeartbeatsForHeader(
         heartbeats,
@@ -299,12 +388,12 @@ describe('HeartbeatServiceImpl', () => {
     it('splits the first heartbeat if needed', () => {
       const uaString = generateUserAgentString(20);
       const heartbeats = [
-        { userAgent: uaString, date: '2022-01-01' },
-        { userAgent: uaString, date: '2022-01-02' },
-        { userAgent: uaString, date: '2022-01-03' }
+        { agent: uaString, date: '2022-01-01' },
+        { agent: uaString, date: '2022-01-02' },
+        { agent: uaString, date: '2022-01-03' }
       ];
       const sizeWithHeartbeat0Only = countBytes([
-        { userAgent: heartbeats[0].userAgent, dates: [heartbeats[0].date] }
+        { agent: heartbeats[0].agent, dates: [heartbeats[0].date] }
       ]);
       const { unsentEntries, heartbeatsToSend } = extractHeartbeatsForHeader(
         heartbeats,
