@@ -210,12 +210,12 @@ async function getWindowClient(url: URL): Promise<WindowClient | null> {
 /**
  * @return If runtime is chrome extension manifest v3.
  */
- function isExtensionManifestV3(): boolean {
-   if (typeof self.chrome === 'undefined') {
-     return false;
-   }
+function isExtensionManifestV3(): boolean {
+  if (typeof self.chrome === 'undefined') {
+    return false;
+  }
   if (typeof self.chrome.runtime.getManifest === 'undefined') {
-      return false;
+    return false;
   }
   const manifest = self.chrome.runtime.getManifest();
   return manifest.manifest_version === 3;
