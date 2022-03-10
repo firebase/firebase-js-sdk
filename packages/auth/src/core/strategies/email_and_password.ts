@@ -36,10 +36,8 @@ import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
-import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import { RecaptchaClientType, RecaptchaVersion } from '../../api';
+import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { IdTokenResponse } from '../../model/id_token';
-import { PasswordResetResponse } from '../../api/authentication/email_and_password';
 
 /**
  * Sends a password reset email to the given email address.
@@ -79,37 +77,28 @@ export async function sendPasswordResetEmail(
   actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
   const authInternal = _castAuth(auth);
-
-  async function internalSendPasswordResetEmail(withRecaptcha = false): Promise<PasswordResetResponse> {
-    const request: authentication.PasswordResetRequest = {
-      requestType: ActionCodeOperation.PASSWORD_RESET,
-      email
-    };
-    if (withRecaptcha) {
-      const verifier = new RecaptchaEnterpriseVerifier(auth);
-      let captchaResponse;
-      try {
-        captchaResponse = await verifier.verify('passwordReset');
-      } catch (error) {
-        captchaResponse = await verifier.verify('passwordReset', true);
-      }
-      request.captchaResp = captchaResponse;
-      request.clientType = RecaptchaClientType.WEB;
-      request.recaptchaVersion = RecaptchaVersion.ENTERPRISE;
+  const request: authentication.PasswordResetRequest = {
+    requestType: ActionCodeOperation.PASSWORD_RESET,
+    email
+  };
+  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
+    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request);
+    if (actionCodeSettings) {
+      _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
     }
+    await authentication.sendPasswordResetEmail(authInternal, requestWithRecaptcha);
+  } else {
     if (actionCodeSettings) {
       _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
     }
-    return authentication.sendPasswordResetEmail(authInternal, request);
-  }
-
-  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
-    await internalSendPasswordResetEmail(true);
-  } else {
-    await internalSendPasswordResetEmail().catch(async (error) => {
+    await authentication.sendPasswordResetEmail(authInternal, request).catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
         console.log("Pssword reset is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the password reset flow.");
-        await internalSendPasswordResetEmail(true);
+        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request);
+        if (actionCodeSettings) {
+          _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
+        }
+        await authentication.sendPasswordResetEmail(authInternal, requestWithRecaptcha);
       } else {
         return Promise.reject(error);
       }
@@ -258,36 +247,21 @@ export async function createUserWithEmailAndPassword(
   password: string
 ): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
-
-  async function internalSignUp(withRecaptcha = false): Promise<IdTokenResponse> {
-    const request: SignUpRequest = {
-      returnSecureToken: true,
-      email,
-      password
-    };
-    if (withRecaptcha) {
-      const verifier = new RecaptchaEnterpriseVerifier(auth);
-      let captchaResponse;
-      try {
-        captchaResponse = await verifier.verify('signUp');
-      } catch (error) {
-        captchaResponse = await verifier.verify('signUp', true);
-      }
-      request.captchaResponse = captchaResponse;
-      request.clientType = RecaptchaClientType.WEB;
-      request.recaptchaVersion = RecaptchaVersion.ENTERPRISE;
-    }
-    return signUp(authInternal, request);
-  }
-
+  const request: SignUpRequest = {
+    returnSecureToken: true,
+    email,
+    password
+  };
   let signUpResponse: Promise<IdTokenResponse>;
   if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
-    signUpResponse = internalSignUp(true);
+    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request);
+    signUpResponse = signUp(authInternal, requestWithRecaptcha);
   } else {
-    signUpResponse = internalSignUp().catch(async (error) => {
+    signUpResponse = signUp(authInternal, request).catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
         console.log("Sign up is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign up flow.");
-        return internalSignUp(true);
+        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request);
+        return signUp(authInternal, requestWithRecaptcha);
       } else {
         return Promise.reject(error);
       }

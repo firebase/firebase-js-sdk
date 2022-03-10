@@ -143,3 +143,22 @@ export class RecaptchaEnterpriseVerifier {
     });
   }
 }
+
+export async function injectRecaptchaFields<Type>(auth: AuthInternal, request: Type): Promise<Type> {
+  const verifier = new RecaptchaEnterpriseVerifier(auth);
+  let captchaResponse;
+  try {
+    captchaResponse = await verifier.verify('signInWithEmailPassword');
+  } catch (error) {
+    captchaResponse = await verifier.verify('signInWithEmailPassword', true);
+  }
+  const newRequest = { ...request };
+  if ('captchaResponse' in newRequest) {
+    Object.assign(newRequest, {captchaResponse});
+  } else if ('captchaResp' in newRequest) {
+    Object.assign(newRequest, {'captchaResp': captchaResponse});
+  }
+  Object.assign(newRequest, {'clientType': RecaptchaClientType.WEB});
+  Object.assign(newRequest, {'recaptchaVersion': RecaptchaVersion.ENTERPRISE});
+  return newRequest;
+}

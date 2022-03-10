@@ -28,8 +28,7 @@ import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
-import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import { RecaptchaClientType, RecaptchaVersion } from '../../api';
+import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
@@ -113,36 +112,22 @@ export class EmailAuthCredential extends AuthCredential {
 
   /** @internal */
   async _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse> {
-    async function internalSignInWithPassword(cred: EmailAuthCredential, withRecaptcha = false): Promise<IdTokenResponse> {
-      const request: SignInWithPasswordRequest = {
-        returnSecureToken: true,
-        email: cred._email,
-        password: cred._password,
-      };
-      if (withRecaptcha) {
-        const verifier = new RecaptchaEnterpriseVerifier(auth);
-        let captchaResponse;
-        try {
-          captchaResponse = await verifier.verify('signInWithEmailPassword');
-        } catch (error) {
-          captchaResponse = await verifier.verify('signInWithEmailPassword', true);
-        }
-        request.captchaResponse = captchaResponse;
-        request.clientType = RecaptchaClientType.WEB;
-        request.recaptchaVersion = RecaptchaVersion.ENTERPRISE;
-      }
-      return signInWithPassword(auth, request);
-    }
-
     switch (this.signInMethod) {
       case SignInMethod.EMAIL_PASSWORD:
+        const request: SignInWithPasswordRequest = {
+          returnSecureToken: true,
+          email: this._email,
+          password: this._password,
+        };
         if (auth._recaptchaConfig?.emailPasswordEnabled) {
-          return internalSignInWithPassword(this, true);
+          const requestWithRecaptcha = await injectRecaptchaFields(auth, request);
+          return signInWithPassword(auth, requestWithRecaptcha);
         } else {
-          return internalSignInWithPassword(this).catch(async (error) => {
+          return signInWithPassword(auth, request).catch(async (error) => {
             if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
               console.log("Sign in with email password is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign in flow.");
-              return internalSignInWithPassword(this, true);
+              const requestWithRecaptcha = await injectRecaptchaFields(auth, request);
+              return signInWithPassword(auth, requestWithRecaptcha);
             } else {
               return Promise.reject(error);
             }
