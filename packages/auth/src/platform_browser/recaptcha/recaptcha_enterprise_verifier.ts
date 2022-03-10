@@ -144,7 +144,7 @@ export class RecaptchaEnterpriseVerifier {
   }
 }
 
-export async function injectRecaptchaFields<Type>(auth: AuthInternal, request: Type): Promise<Type> {
+export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T): Promise<T> {
   const verifier = new RecaptchaEnterpriseVerifier(auth);
   let captchaResponse;
   try {
