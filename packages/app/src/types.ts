@@ -42,12 +42,12 @@ export interface HeartbeatService {
 
 // Heartbeats grouped by the same user agent string
 export interface HeartbeatsByUserAgent {
-  userAgent: string;
+  agent: string;
   dates: string[];
 }
 
 export interface SingleDateHeartbeat {
-  userAgent: string;
+  agent: string;
   date: string;
 }
 

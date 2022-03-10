@@ -17,7 +17,7 @@
 
 import { ComponentContainer } from '@firebase/component';
 import {
-  base64Encode,
+  base64urlEncodeWithoutPadding,
   isIndexedDBAvailable,
   validateIndexedDBOpenable
 } from '@firebase/util';
@@ -86,7 +86,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
 
     // This is the "Firebase user agent" string from the platform logger
     // service, not the browser user agent.
-    const userAgent = platformLogger.getPlatformInfoString();
+    const agent = platformLogger.getPlatformInfoString();
     const date = getUTCDateString();
     if (this._heartbeatsCache === null) {
       this._heartbeatsCache = await this._heartbeatsCachePromise;
@@ -102,7 +102,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
       return;
     } else {
       // There is no entry for this date. Create one.
-      this._heartbeatsCache.heartbeats.push({ date, userAgent });
+      this._heartbeatsCache.heartbeats.push({ date, agent });
     }
     // Remove entries older than 30 days.
     this._heartbeatsCache.heartbeats = this._heartbeatsCache.heartbeats.filter(
@@ -138,7 +138,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     const { heartbeatsToSend, unsentEntries } = extractHeartbeatsForHeader(
       this._heartbeatsCache.heartbeats
     );
-    const headerString = base64Encode(
+    const headerString = base64urlEncodeWithoutPadding(
       JSON.stringify({ version: 2, heartbeats: heartbeatsToSend })
     );
     // Store last sent date to prevent another being logged/sent for the same day.
@@ -180,12 +180,12 @@ export function extractHeartbeatsForHeader(
   for (const singleDateHeartbeat of heartbeatsCache) {
     // Look for an existing entry with the same user agent.
     const heartbeatEntry = heartbeatsToSend.find(
-      hb => hb.userAgent === singleDateHeartbeat.userAgent
+      hb => hb.agent === singleDateHeartbeat.agent
     );
     if (!heartbeatEntry) {
       // If no entry for this user agent exists, create one.
       heartbeatsToSend.push({
-        userAgent: singleDateHeartbeat.userAgent,
+        agent: singleDateHeartbeat.agent,
         dates: [singleDateHeartbeat.date]
       });
       if (countBytes(heartbeatsToSend) > maxSize) {
@@ -281,7 +281,7 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
  */
 export function countBytes(heartbeatsCache: HeartbeatsByUserAgent[]): number {
   // base64 has a restricted set of characters, all of which should be 1 byte.
-  return base64Encode(
+  return base64urlEncodeWithoutPadding(
     // heartbeatsCache wrapper properties
     JSON.stringify({ version: 2, heartbeats: heartbeatsCache })
   ).length;
