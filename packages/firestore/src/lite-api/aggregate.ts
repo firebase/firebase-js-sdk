@@ -72,9 +72,9 @@ export function groupByQueryEqual(left: GroupByQuery, right: GroupByQuery): bool
 
 export function aggregateGroup(query: GroupByQuery, ...fields: AggregateField[]): GroupByQuery;
 
-export function getGroups(query: GroupByQuery): Promise<GroupBySnapshot>;
+export function getGroups(query: GroupByQuery): Promise<GroupByAggregateSnapshot>;
 
-export class GroupBySnapshot {
+export class GroupByAggregateSnapshot {
   private constructor();
 
   readonly query: GroupByQuery;
@@ -91,7 +91,7 @@ export class GroupBySnapshot {
   ): void;
 }
 
-export function groupBySnapshotEqual(left: GroupBySnapshot, right: GroupBySnapshot): boolean;
+export function groupByAggregateSnapshotEqual(left: GroupByAggregateSnapshot, right: GroupByAggregateSnapshot): boolean;
 
 export class GroupSnapshot {
   private constructor();
