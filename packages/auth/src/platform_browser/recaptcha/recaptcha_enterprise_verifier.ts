@@ -87,7 +87,7 @@ export class RecaptchaEnterpriseVerifier {
           version: RecaptchaVersion.ENTERPRISE
         }).then((response) => {
           if (response.recaptchaKey === undefined) {
-            reject(Error("recaptchaKey undefined"));
+            reject(new Error("recaptchaKey undefined"));
           } else {
             const siteKey = response.recaptchaKey.split('/')[3];
             if (auth.tenantId == null) {

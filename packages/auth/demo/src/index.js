@@ -35,6 +35,7 @@ import {
   initializeAuth,
   getAuth,
   inMemoryPersistence,
+  signInWithEmailLink,
   isSignInWithEmailLink,
   linkWithCredential,
   multiFactor,
@@ -69,7 +70,8 @@ import {
   reauthenticateWithRedirect,
   getRedirectResult,
   browserPopupRedirectResolver,
-  connectAuthEmulator
+  connectAuthEmulator,
+  setRecaptchaConfig
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -346,6 +348,20 @@ function onSetPersistence() {
     );
   } catch (error) {
     alertError('Error: ' + error.code);
+  }
+}
+
+/**
+ * Switches Recaptcha config for email password provider.
+ */
+ function onSetRecaptchaConfigEmailPassword() {
+   console.log("Email Password Enabled");
+  if ($('#set-recaptcha-config-email-password').text=== "Email Password Enabled") {
+    setRecaptchaConfig(auth, {emailPasswordEnabled: false});
+    $('#set-recaptcha-config-email-password').text = "Email Password Disabled"
+  } else {
+    setRecaptchaConfig(auth, {emailPasswordEnabled: true});
+    $('#set-recaptcha-config-email-password').text = "Email Password Enabled"
   }
 }
 
@@ -1922,6 +1938,8 @@ function initApp() {
 
   $('#set-language-code').click(onSetLanguageCode);
   $('#use-device-language').click(onUseDeviceLanguage);
+
+  $('#set-recaptcha-config-email-password').click(onSetRecaptchaConfigEmailPassword);
 
   $('#fetch-sign-in-methods-for-email').click(onFetchSignInMethodsForEmail);
 

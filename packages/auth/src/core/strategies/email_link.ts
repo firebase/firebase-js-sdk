@@ -88,12 +88,12 @@ export async function sendSignInLinkToEmail(
     };
     if (withRecaptcha) {
       const verifier = new RecaptchaEnterpriseVerifier(auth);
-      const captchaResponse = await verifier.verify('signInWithEmailLink')
-      .catch(() => {
-        return verifier.verify('signInWithEmailLink', true);
-      }).catch((error) => {
-        return Promise.reject(error);
-      });
+      let captchaResponse;
+      try {
+        captchaResponse = await verifier.verify('signInWithEmailLink');
+      } catch (error) {
+        captchaResponse = await verifier.verify('signInWithEmailLink', true);
+      }
       request.captchaResp = captchaResponse;
       request.clientType = RecaptchaClientType.WEB;
       request.recaptchaVersion = RecaptchaVersion.ENTERPRISE;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
- import {
+import {
   ActionCodeInfo,
   ActionCodeOperation,
   ActionCodeSettings,
@@ -87,12 +87,12 @@ export async function sendPasswordResetEmail(
     };
     if (withRecaptcha) {
       const verifier = new RecaptchaEnterpriseVerifier(auth);
-      const captchaResponse = await verifier.verify('passwordReset')
-      .catch(() => {
-        return verifier.verify('passwordReset', true);
-      }).catch((error) => {
-        return Promise.reject(error);
-      });
+      let captchaResponse;
+      try {
+        captchaResponse = await verifier.verify('passwordReset');
+      } catch (error) {
+        captchaResponse = await verifier.verify('passwordReset', true);
+      }
       request.captchaResp = captchaResponse;
       request.clientType = RecaptchaClientType.WEB;
       request.recaptchaVersion = RecaptchaVersion.ENTERPRISE;
@@ -267,12 +267,12 @@ export async function createUserWithEmailAndPassword(
     };
     if (withRecaptcha) {
       const verifier = new RecaptchaEnterpriseVerifier(auth);
-      const captchaResponse = await verifier.verify('signUp')
-      .catch(() => {
-        return verifier.verify('signUp', true);
-      }).catch((error) => {
-        return Promise.reject(error);
-      });
+      let captchaResponse;
+      try {
+        captchaResponse = await verifier.verify('signUp');
+      } catch (error) {
+        captchaResponse = await verifier.verify('signUp', true);
+      }
       request.captchaResponse = captchaResponse;
       request.clientType = RecaptchaClientType.WEB;
       request.recaptchaVersion = RecaptchaVersion.ENTERPRISE;
