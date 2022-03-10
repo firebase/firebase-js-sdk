@@ -93,7 +93,7 @@ export async function sendSignInLinkToEmail(
     }
   }
   if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
-    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request);
+    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, true);
     setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
     await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
   } else {
@@ -101,7 +101,7 @@ export async function sendSignInLinkToEmail(
     await api.sendSignInLinkToEmail(authInternal, request).catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
         console.log("Sign in with email link is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign in flow.");
-        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request);
+        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, true);
         setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
         await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
       } else {

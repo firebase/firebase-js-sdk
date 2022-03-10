@@ -144,7 +144,7 @@ export class RecaptchaEnterpriseVerifier {
   }
 }
 
-export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T): Promise<T> {
+export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T, captchaResp = false): Promise<T> {
   const verifier = new RecaptchaEnterpriseVerifier(auth);
   let captchaResponse;
   try {
@@ -153,9 +153,9 @@ export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T): 
     captchaResponse = await verifier.verify('signInWithEmailPassword', true);
   }
   const newRequest = { ...request };
-  if ('captchaResponse' in newRequest) {
+  if (!captchaResp) {
     Object.assign(newRequest, {captchaResponse});
-  } else if ('captchaResp' in newRequest) {
+  } else {
     Object.assign(newRequest, {'captchaResp': captchaResponse});
   }
   Object.assign(newRequest, {'clientType': RecaptchaClientType.WEB});
