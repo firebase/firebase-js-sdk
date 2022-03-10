@@ -93,16 +93,6 @@ export class MutationBatch {
       }
     }
   }
-  /**
-   * Computes the local view of a document given all the mutations in this
-   * batch.
-   *
-   * @param document - The document to apply mutations to.
-   * @returns A `FieldMask` representing all the fields that are mutated.
-   */
-  applyToLocalView(document: MutableDocument): FieldMask | null {
-    return this.applyToLocalViewWithFieldMask(document, FieldMask.empty());
-  }
 
   /**
    * Computes the local view of a document given all the mutations in this
@@ -112,9 +102,9 @@ export class MutationBatch {
    * @param mutatedFields - Fields that have been updated before applying this mutation batch.
    * @returns A `FieldMask` representing all the fields that are mutated.
    */
-  applyToLocalViewWithFieldMask(
+  applyToLocalView(
     document: MutableDocument,
-    mutatedFields: FieldMask | null
+    mutatedFields: FieldMask | null = FieldMask.empty()
   ): FieldMask | null {
     // First, apply the base state. This allows us to apply non-idempotent
     // transform against a consistent set of values.

@@ -297,7 +297,7 @@ export function mergeMutation(
   return patchMutationHelper(keyStr, json, Precondition.none(), updateMask);
 }
 
-export function patchMutationHelper(
+function patchMutationHelper(
   keyStr: string,
   json: JsonObject<unknown>,
   precondition: Precondition,
@@ -319,7 +319,7 @@ export function patchMutationHelper(
 
   // `mergeMutation()` provides an update mask for the merged fields, whereas
   // `patchMutation()` requires the update mask to be parsed from the values.
-  const mask = updateMask !== null ? updateMask : parsed.fieldMask.fields;
+  const mask = updateMask ? updateMask : parsed.fieldMask.fields;
 
   // We sort the fieldMaskPaths to make the order deterministic in tests.
   // (Otherwise, when we flatten a Set to a proto repeated field, we'll end up
@@ -1008,7 +1008,10 @@ export function forEachNumber<V>(
   }
 }
 
-/** Returns all possible permutations of the given array. */
+/**
+ * Returns all possible permutations of the given array.
+ * For `[a, b]`, this method returns `[[a, b], [b, a]]`.
+ */
 export function computePermutations<T>(input: T[]): T[][] {
   if (input.length === 0) {
     return [[]];
@@ -1033,7 +1036,8 @@ export function computePermutations<T>(input: T[]): T[][] {
 
 /**
  * Returns all possible combinations of the given array, including an empty
- * array.
+ * array. For `[a, b, c]` this method returns
+ * `[[], [a], [a, b], [a, c], [b, c], [a, b, c]`.
  */
 export function computeCombinations<T>(input: T[]): T[][] {
   const computeNonEmptyCombinations = (input: T[]): T[][] => {

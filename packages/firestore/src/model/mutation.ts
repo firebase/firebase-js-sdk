@@ -224,12 +224,11 @@ export function calculateOverlayMutation(
   doc: MutableDocument,
   mask: FieldMask | null
 ): Mutation | null {
-  if (!doc.hasLocalMutations || (mask !== null && mask!.fields.length === 0)) {
+  if (!doc.hasLocalMutations || (mask && mask!.fields.length === 0)) {
     return null;
   }
 
-  // mask is null when there are Set or Delete being applied to get to the
-  // current document.
+  // mask is null when sets or deletes are applied to the current document.
   if (mask === null) {
     if (doc.isNoDocument()) {
       return new DeleteMutation(doc.key, Precondition.none());
@@ -240,7 +239,7 @@ export function calculateOverlayMutation(
     const docValue = doc.data;
     const patchValue = ObjectValue.empty();
     let maskSet = new SortedSet<FieldPath>(FieldPath.comparator);
-    mask.fields.forEach(path => {
+    for (let path of mask.fields) {
       if (!maskSet.has(path)) {
         let value = docValue.field(path);
         // If we are deleting a nested field, we take the immediate parent as
@@ -263,7 +262,7 @@ export function calculateOverlayMutation(
         }
         maskSet = maskSet.add(path);
       }
-    });
+    }
     return new PatchMutation(
       doc.key,
       patchValue,
@@ -489,8 +488,7 @@ function setMutationApplyToLocalView(
   document
     .convertToFoundDocument(document.version, newData)
     .setHasLocalMutations();
-  // SetMutation overwrites all fields.
-  return null;
+  return null; // SetMutation overwrites all fields.
 }
 
 /**
@@ -574,12 +572,12 @@ function patchMutationApplyToLocalView(
   }
 
   let mergedMaskSet = new SortedSet<FieldPath>(FieldPath.comparator);
-  previousMask.fields.forEach(
-    fieldPath => (mergedMaskSet = mergedMaskSet.add(fieldPath))
-  );
-  mutation.fieldMask.fields.forEach(
-    fieldPath => (mergedMaskSet = mergedMaskSet.add(fieldPath))
-  );
+  for (const fieldPath of previousMask.fields) {
+    mergedMaskSet = mergedMaskSet.add(fieldPath);
+  }
+  for (const fieldPath of mutation.fieldMask.fields) {
+    mergedMaskSet = mergedMaskSet.add(fieldPath);
+  }
   mutation.fieldTransforms
     .map(transform => transform.field)
     .forEach(fieldPath => (mergedMaskSet = mergedMaskSet.add(fieldPath)));

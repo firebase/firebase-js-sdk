@@ -218,11 +218,9 @@ class LocalStoreImpl implements LocalStore {
   }
 }
 
-class DocumentChangeResult {
-  constructor(
-    readonly changedDocuments: MutableDocumentMap,
-    readonly existenceChangedKeys: DocumentKeySet
-  ) {}
+interface DocumentChangeResult {
+  changedDocuments: MutableDocumentMap;
+  existenceChangedKeys: DocumentKeySet;
 }
 
 export function newLocalStore(
@@ -666,17 +664,10 @@ export function localStoreApplyRemoteEventToLocalCache(
  * Returns the document changes resulting from applying those documents, and
  * also a set of documents whose existence state are changed as a result.
  *
- * Note: this function will use `documentVersions` if it is defined;
- * when it is not defined, resorts to `globalVersion`.
- *
  * @param txn - Transaction to use to read existing documents from storage.
  * @param documentBuffer - Document buffer to collect the resulted changes to be
  *        applied to storage.
  * @param documents - Documents to be applied.
- * @param globalVersion - A `SnapshotVersion` representing the read time if all
- *        documents have the same read time.
- * @param documentVersions - A DocumentKey-to-SnapshotVersion map if documents
- *        have their own read time.
  */
 function populateDocumentChangeBuffer(
   txn: PersistenceTransaction,
@@ -730,7 +721,10 @@ function populateDocumentChangeBuffer(
         );
       }
     });
-    return new DocumentChangeResult(changedDocs, conditionChanged);
+    return {
+      changedDocuments: changedDocs,
+      existenceChangedKeys: conditionChanged
+    };
   });
 }
 

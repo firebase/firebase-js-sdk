@@ -30,7 +30,10 @@ import {
   MutableDocumentMap,
   newDocumentKeyMap,
   newMutationMap,
-  newOverlayMap
+  newOverlayMap,
+  documentMap,
+  mutableDocumentMap,
+  documentKeySet
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -45,7 +48,6 @@ import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
-import { SortedSet } from '../util/sorted_set';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
@@ -111,11 +113,9 @@ export class LocalDocumentsView {
     return this.remoteDocumentCache
       .getEntries(transaction, keys)
       .next(docs =>
-        this.getLocalViewOfDocuments(
-          transaction,
-          docs,
-          new SortedSet(DocumentKey.comparator)
-        ).next(() => docs as DocumentMap)
+        this.getLocalViewOfDocuments(transaction, docs, documentKeySet()).next(
+          () => docs as DocumentMap
+        )
       );
   }
 
@@ -152,10 +152,8 @@ export class LocalDocumentsView {
     memoizedOverlays: OverlayMap,
     existenceStateChanged: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
-    let results = new SortedMap<DocumentKey, Document>(DocumentKey.comparator);
-    let recalculateDocuments = new SortedMap<DocumentKey, MutableDocument>(
-      DocumentKey.comparator
-    );
+    let results = documentMap();
+    let recalculateDocuments = mutableDocumentMap();
     const promises: Array<PersistencePromise<void>> = [];
     docs.forEach((_, doc) => {
       const overlayPromise = memoizedOverlays.has(doc.key)
@@ -209,21 +207,21 @@ export class LocalDocumentsView {
     let documentsByBatchId = new SortedMap<number, DocumentKeySet>(
       (key1: number, key2: number) => key1 - key2
     );
-    let processed = new SortedSet(DocumentKey.comparator);
+    let processed = documentKeySet();
     return this.mutationQueue
       .getAllMutationBatchesAffectingDocumentKeys(transaction, docs)
       .next(batches => {
-        batches.forEach(batch => {
+        for (const batch of batches) {
           batch.keys().forEach(key => {
             let mask: FieldMask | null = masks.has(key)
               ? masks.get(key)!
               : FieldMask.empty();
-            mask = batch.applyToLocalViewWithFieldMask(docs.get(key)!, mask);
+            mask = batch.applyToLocalView(docs.get(key)!, mask);
             masks.set(key, mask);
             if (documentsByBatchId.get(batch.batchId) === null) {
               documentsByBatchId = documentsByBatchId.insert(
                 batch.batchId,
-                new SortedSet(DocumentKey.comparator)
+                documentKeySet()
               );
             }
             const newSet = documentsByBatchId.get(batch.batchId)!.add(key);
@@ -232,7 +230,7 @@ export class LocalDocumentsView {
               newSet
             );
           });
-        });
+        }
       })
       .next(() => {
         const promises: Array<PersistencePromise<void>> = [];
@@ -246,8 +244,6 @@ export class LocalDocumentsView {
           const overlays = newMutationMap();
           keys.forEach(key => {
             if (!processed.has(key)) {
-              // TODO: Should we change `overlays` type to Map<DK, Mutation|null>
-              //  and update `saveOverlays` to accept (and skip) null values?
               const overlayMutation = calculateOverlayMutation(
                 docs.get(key)!,
                 masks.get(key)!
@@ -322,9 +318,7 @@ export class LocalDocumentsView {
     // Just do a simple document lookup.
     return this.getDocument(transaction, new DocumentKey(docPath)).next(
       document => {
-        let result = new SortedMap<DocumentKey, Document>(
-          DocumentKey.comparator
-        );
+        let result = documentMap();
         if (document.isFoundDocument()) {
           result = result.insert(document.key, document);
         }
@@ -343,7 +337,7 @@ export class LocalDocumentsView {
       'Currently we only support collection group queries at the root.'
     );
     const collectionId = query.collectionGroup!;
-    let results = new SortedMap<DocumentKey, Document>(DocumentKey.comparator);
+    let results = documentMap();
     return this.indexManager
       .getCollectionParents(transaction, collectionId)
       .next(parents => {
@@ -398,9 +392,7 @@ export class LocalDocumentsView {
         });
 
         // Apply the overlays and match against the query.
-        let results = new SortedMap<DocumentKey, Document>(
-          DocumentKey.comparator
-        );
+        let results = documentMap();
         remoteDocuments.forEach((key, document) => {
           const overlay = overlays.get(key);
           if (overlay !== undefined) {
