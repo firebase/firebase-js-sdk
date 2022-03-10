@@ -152,10 +152,6 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     largestBatchId: number,
     mutation: Mutation
   ): void {
-    if (mutation === null) {
-      return;
-    }
-
     // Remove the association of the overlay to its batch id.
     const existing = this.overlays.get(mutation.key);
     if (existing !== null) {
