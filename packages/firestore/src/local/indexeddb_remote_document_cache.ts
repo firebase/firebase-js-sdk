@@ -289,7 +289,9 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       collection.popLast().toArray(),
       collection.lastSegment(),
       toDbTimestampKey(offset.readTime),
-      offset.documentKey.path.lastSegment() || ''
+      offset.documentKey.path.isEmpty()
+        ? ''
+        : offset.documentKey.path.lastSegment()
     ];
     const endKey: DbRemoteDocumentKey = [
       collection.popLast().toArray(),
