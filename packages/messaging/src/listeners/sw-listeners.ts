@@ -208,7 +208,7 @@ async function getWindowClient(url: URL): Promise<WindowClient | null> {
 }
 
 /**
- * @return If runtime is chrome extension manifest v3.
+ * @return If runtime is Chrome, use extension manifest v3.
  */
 function isExtensionManifestV3(): boolean {
   if (typeof self.chrome === 'undefined') {
