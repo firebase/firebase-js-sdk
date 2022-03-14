@@ -10,7 +10,7 @@
     "bundle": "rollup -c",
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
     "build": "run-p build:lite build:main",
-    "build:release": "yarn build && yarn typings:public",
+    "build:release": "yarn build && yarn build:debug && yarn typings:public",
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
     "build:main": "rollup -c rollup.config.js",
@@ -117,7 +117,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/firestore/src/index.d.ts",
+  "typings": "./dist/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

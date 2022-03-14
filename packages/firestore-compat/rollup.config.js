@@ -16,35 +16,11 @@
  */
 
 import pkg from './package.json';
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import typescript from 'typescript';
-import json from '@rollup/plugin-json';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
 const util = require('../firestore/rollup.shared');
 
 const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
-
-const es2017Plugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
-    transformers: [util.removeAssertTransformer]
-  }),
-  json({ preferConst: true })
-];
-
-const es5Plugins = [
-  typescriptPlugin({
-    typescript,
-    transformers: [util.removeAssertTransformer]
-  }),
-  json({ preferConst: true })
-];
 
 const browserBuilds = [
   {
@@ -54,11 +30,11 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017Plugins,
+    plugins: util.es2017Plugins('browser'),
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
-    input: './src/index.ts',
+    input: pkg.browser,
     output: [
       {
         file: pkg.esm5,
@@ -66,7 +42,7 @@ const browserBuilds = [
         sourcemap: true
       }
     ],
-    plugins: es5Plugins,
+    plugins: util.es2017ToEs5Plugins(),
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -79,7 +55,7 @@ const nodeBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: es2017Plugins,
+    plugins: util.es2017Plugins('node'),
     external: deps
   },
   {
@@ -89,7 +65,7 @@ const nodeBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...es2017Plugins, emitModulePackageFile()],
+    plugins: [...util.es2017Plugins('node'), emitModulePackageFile()],
     external: deps
   }
 ];
@@ -102,7 +78,7 @@ const rnBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017Plugins,
+    plugins: util.es2017Plugins('rn'),
     external: deps
   }
 ];

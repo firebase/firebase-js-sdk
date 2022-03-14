@@ -19,6 +19,7 @@ const tmp = require('tmp');
 const json = require('@rollup/plugin-json');
 const alias = require('@rollup/plugin-alias');
 const typescriptPlugin = require('rollup-plugin-typescript2');
+const replace = require('rollup-plugin-replace');
 const typescript = require('typescript');
 const { terser } = require('rollup-plugin-terser');
 const path = require('path');
@@ -30,6 +31,9 @@ const { removeAsserts } = require('./scripts/remove-asserts');
 
 const { externs } = require('./externs.json');
 const pkg = require('./package.json');
+
+const grpcPkg = require('@grpc/grpc-js/package.json');
+const grpcVersion = grpcPkg.version;
 
 // This file contains shared utilities for Firestore's rollup builds.
 
@@ -108,16 +112,6 @@ const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 // manually add `_delegate` because we don't have typings for the compat package
 publicIdentifiers.add('_delegate');
-
-/**
- * Transformers that remove calls to `debugAssert` and messages for 'fail` and
- * `hardAssert`.
- */
-const removeAssertTransformer = service => ({
-  before: [removeAsserts(service.getProgram())],
-  after: []
-});
-exports.removeAssertTransformer = removeAssertTransformer;
 
 /**
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
@@ -239,7 +233,26 @@ exports.applyPrebuilt = function (name = 'prebuilt.js') {
 };
 
 exports.es2017Plugins = function (platform, mangled = false) {
-  if (mangled) {
+  if (platform === 'node' || platform === 'node_lite') {
+    // Node builds are never mangled.
+    return [
+      alias(generateAliasConfig(platform)),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017'
+          }
+        },
+        cacheDir: tmp.dirSync(),
+        abortOnError: true
+      }),
+      json({ preferConst: true }),
+      replace({
+        '__GRPC_VERSION__': grpcVersion
+      })
+    ];
+  } else if (mangled) {
     return [
       alias(generateAliasConfig(platform)),
       typescriptPlugin({
@@ -265,8 +278,7 @@ exports.es2017Plugins = function (platform, mangled = false) {
             target: 'es2017'
           }
         },
-        cacheDir: tmp.dirSync(),
-        transformers: [removeAssertTransformer]
+        cacheDir: tmp.dirSync()
       }),
       json({ preferConst: true })
     ];
@@ -313,50 +325,6 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
         cacheDir: tmp.dirSync()
       }),
       sourcemaps()
-    ];
-  }
-};
-
-exports.es2017PluginsCompat = function (
-  platform,
-  pathTransformer,
-  mangled = false
-) {
-  if (mangled) {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
-        cacheDir: tmp.dirSync(),
-        abortOnError: true,
-        transformers: [
-          removeAssertAndPrefixInternalTransformer,
-          pathTransformer
-        ]
-      }),
-      json({ preferConst: true }),
-      terser(manglePrivatePropertiesOptions)
-    ];
-  } else {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
-        cacheDir: tmp.dirSync(),
-        abortOnError: true,
-        transformers: [removeAssertTransformer, pathTransformer]
-      }),
-      json({ preferConst: true })
     ];
   }
 };

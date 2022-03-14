@@ -15,14 +15,7 @@
  * limitations under the License.
  */
 
-import { version as grpcVersion } from '@grpc/grpc-js/package.json';
-import alias from '@rollup/plugin-alias';
-import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
-import { terser } from 'rollup-plugin-terser';
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import tmp from 'tmp';
-import typescript from 'typescript';
 
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
@@ -30,47 +23,9 @@ import pkg from './package.json';
 
 const util = require('./rollup.shared');
 
-const nodePlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      abortOnError: true,
-      transformers: [util.removeAssertTransformer]
-    }),
-    json({ preferConst: true }),
-    replace({
-      '__GRPC_VERSION__': grpcVersion
-    })
-  ];
-};
-
-const browserPlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      abortOnError: true,
-      transformers: [util.removeAssertAndPrefixInternalTransformer]
-    }),
-    json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
-  ];
-};
-
 const allBuilds = [
-  // Intermidiate Node ESM build without build target reporting
-  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // Intermediate Node ESM build without build target reporting
+  // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
     input: './src/index.node.ts',
@@ -79,7 +34,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins()],
+    plugins: util.es2017Plugins('node'),
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
@@ -117,8 +72,8 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
-  // Intermidiate browser build without build target reporting
-  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // Intermediate browser build without build target reporting
+  // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
     input: './src/index.ts',
@@ -127,7 +82,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins()],
+    plugins: util.es2017Plugins('browser', /* mangled= */ true),
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -177,8 +132,7 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('rn')),
-      ...browserPlugins(),
+      ...util.es2017Plugins('rn', /* mangled= */ true),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
     external: util.resolveBrowserExterns,
