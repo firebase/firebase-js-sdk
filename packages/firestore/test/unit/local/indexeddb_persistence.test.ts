@@ -739,7 +739,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             { range },
             ([_, path], targetDocument) => {
               const decoded = decodeResourcePath(path);
-              const lastSegment = decoded.lastSegment()!;
+              const lastSegment = decoded.lastSegment();
               const docNum = +lastSegment.split('_')[1];
               const expected =
                 docNum % 2 === 1 ? oldSequenceNumber : newSequenceNumber;

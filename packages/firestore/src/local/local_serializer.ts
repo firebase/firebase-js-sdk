@@ -121,7 +121,7 @@ export function toDbRemoteDocument(
   const remoteDoc: DbRemoteDocument = {
     prefixPath: key.getCollectionPath().popLast().toArray(),
     collectionGroup: key.collectionGroup,
-    documentId: key.path.lastSegment()!,
+    documentId: key.path.lastSegment(),
     readTime: toDbTimestampKey(document.readTime),
     hasCommittedMutations: document.hasCommittedMutations
   };
@@ -433,7 +433,7 @@ export function toDbDocumentOverlayKey(
   userId: string,
   docKey: DocumentKey
 ): DbDocumentOverlayKey {
-  const docId = docKey.path.lastSegment()!;
+  const docId = docKey.path.lastSegment();
   const collectionPath = encodeResourcePath(docKey.path.popLast());
   return [userId, collectionPath, docId];
 }

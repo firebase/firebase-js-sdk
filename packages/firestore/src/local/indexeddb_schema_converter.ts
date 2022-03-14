@@ -382,7 +382,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       collectionPath: ResourcePath
     ): PersistencePromise<void> | undefined => {
       if (cache.add(collectionPath)) {
-        const collectionId = collectionPath.lastSegment()!;
+        const collectionId = collectionPath.lastSegment();
         const parentPath = collectionPath.popLast();
         return collectionParentsStore.put({
           collectionId,
