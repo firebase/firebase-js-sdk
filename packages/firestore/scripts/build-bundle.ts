@@ -54,8 +54,7 @@ async function buildBundle(input: string, output: string): Promise<void> {
           compilerOptions: {
             target: 'es2017'
           }
-        },
-        transformers: [util.removeAssertTransformer]
+        }
       }),
       json({ preferConst: true })
     ],

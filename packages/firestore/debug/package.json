@@ -1,0 +1,12 @@
+{
+  "name": "@firebase/firestore-debug",
+  "description": "A non-minified debug build of the Firestore SDK",
+  "main": "../dist/index.node.cjs.js",
+  "main-esm": "../dist/index.node.mjs",
+  "module": "../dist/debug/index.browser.esm2017.js",
+  "browser": "../dist/debug/index.browser.esm2017.js",
+  "react-native": "../dist/debug/index.rn.esm2017.js",
+  "esm5": "../dist/debug/index.browser.esm5.js",
+  "typings": "../dist/index.d.ts",
+  "private": true
+}

@@ -15,67 +15,88 @@
  * limitations under the License.
  */
 
-import tmp from 'tmp';
-import json from '@rollup/plugin-json';
-import alias from '@rollup/plugin-alias';
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import typescript from 'typescript';
+import path from 'path';
+import replace from 'rollup-plugin-replace';
 
-import pkg from './package.json';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
-// This rollup configuration creates a single non-minified build for browser
-// testing. You can test code changes by running `yarn build:debug`. This
-// creates the file "dist/index.esm2017.js" that you can use in your sample
-// app as a replacement for
-// "node_modules/@firebase/firestore/dist/index.esm2017.js".
+import pkg from './debug/package.json';
 
-const browserPlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      clean: true,
-      abortOnError: true
-    }),
-    json({ preferConst: true })
-  ];
-};
+const util = require('./rollup.shared');
 
-const aliasConfig = {
-  entries: [
-    {
-      find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
-      replacement: `$1\/platform/browser/$2.ts`
-    }
-  ]
-};
+// This rollup configuration creates non-minified builds that can be used by
+// by customers who need additional debug information.
+// Only browser debug builds are added as Node builds are already not minified.
 
-const browserDeps = [
-  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
-  '@firebase/app'
-];
-
-export default [
+const browserBuilds = [
+  // Intermediate browser build without build target reporting.
+  // This is an intermediate build used to generate the actual esm and cjs
+  // builds which add build target reporting
   {
     input: './src/index.ts',
     output: {
-      file: pkg.browser,
+      file: path.resolve('./debug', pkg['browser']),
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(aliasConfig), ...browserPlugins()],
-    external: id => {
-      return [...browserDeps, '@firebase/firestore'].some(
-        dep => id === dep || id.startsWith(`${dep}/`)
-      );
+    plugins: util.es2017Plugins('browser'),
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Convert es2017 build to ES5
+  {
+    input: path.resolve('./debug', pkg['browser']),
+    output: [
+      {
+        file: path.resolve('./debug', pkg['esm5']),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: [
+      ...util.es2017ToEs5Plugins(),
+      replace(generateBuildTargetReplaceConfig('esm', 5))
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // es2017 build with build target reporting
+  {
+    input: path.resolve('./debug', pkg['browser']),
+    output: [
+      {
+        file: path.resolve('./debug', pkg['browser']),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // RN build
+  {
+    input: './src/index.rn.ts',
+    output: {
+      file: path.resolve('./debug', pkg['react-native']),
+      format: 'es',
+      sourcemap: true
     },
+    plugins: [
+      ...util.es2017Plugins('rn'),
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ],
+    external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
   }
 ];
+
+export default browserBuilds;
