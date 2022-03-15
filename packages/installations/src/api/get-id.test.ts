@@ -26,17 +26,14 @@ import {
 import { getFakeInstallations } from '../testing/fake-generators';
 import '../testing/setup';
 import { getId } from './get-id';
-import {
-  FirebaseInstallationsImpl,
-  AppConfig
-} from '../interfaces/installation-impl';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 
 const FID = 'disciples-of-the-watch';
 
 describe('getId', () => {
   let installations: FirebaseInstallationsImpl;
   let getInstallationEntrySpy: SinonStub<
-    [AppConfig],
+    [FirebaseInstallationsImpl],
     Promise<getInstallationEntryModule.InstallationEntryWithRegistrationPromise>
   >;
 

@@ -26,7 +26,7 @@ import { Installations } from '../interfaces/public-types';
  */
 export type IdChangeCallbackFn = (installationId: string) => void;
 /**
- * Unsubscribe a callback function previously added via {@link #IdChangeCallbackFn}.
+ * Unsubscribe a callback function previously added via {@link IdChangeCallbackFn}.
  *
  * @public
  */
