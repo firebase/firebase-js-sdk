@@ -50,6 +50,24 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     return PersistencePromise.resolve(this.overlays.get(key));
   }
 
+  getOverlays(
+    transaction: PersistenceTransaction,
+    keys: DocumentKeySet
+  ): PersistencePromise<OverlayMap> {
+    const result = newOverlayMap();
+    const promises: Array<PersistencePromise<void>> = [];
+    keys.forEach(key => {
+      promises.push(
+        this.getOverlay(transaction, key).next(overlay => {
+          if (overlay !== null) {
+            result.set(key, overlay);
+          }
+        })
+      );
+    });
+    return PersistencePromise.waitFor(promises).next(() => result);
+  }
+
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,

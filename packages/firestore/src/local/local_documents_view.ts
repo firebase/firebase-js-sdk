@@ -134,12 +134,39 @@ export class LocalDocumentsView {
     docs: MutableDocumentMap,
     existenceStateChanged: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
-    return this.computeViews(
-      transaction,
-      docs,
-      newOverlayMap(),
-      existenceStateChanged
-    );
+    const overlays = newOverlayMap();
+    return this.populateOverlays(transaction, overlays, docs).next(() => {
+      return this.computeViews(
+        transaction,
+        docs,
+        overlays,
+        existenceStateChanged
+      );
+    });
+  }
+
+  /**
+   * Fetches the overlays for {@code docs} and adds them to provided overlay map
+   * if the map does not already contain an entry for the given document key.
+   */
+  private populateOverlays(
+    transaction: PersistenceTransaction,
+    overlays: OverlayMap,
+    docs: MutableDocumentMap
+  ): PersistencePromise<void> {
+    let missingOverlays = documentKeySet();
+    docs.forEach(key => {
+      if (!overlays.has(key)) {
+        missingOverlays = missingOverlays.add(key);
+      }
+    });
+    return this.documentOverlayCache
+      .getOverlays(transaction, missingOverlays)
+      .next(result => {
+        result.forEach((key, val) => {
+          overlays.set(key, val);
+        });
+      });
   }
 
   /**
@@ -149,53 +176,39 @@ export class LocalDocumentsView {
   computeViews(
     transaction: PersistenceTransaction,
     docs: MutableDocumentMap,
-    memoizedOverlays: OverlayMap,
+    overlays: OverlayMap,
     existenceStateChanged: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
     let results = documentMap();
     let recalculateDocuments = mutableDocumentMap();
-    const promises: Array<PersistencePromise<void>> = [];
     docs.forEach((_, doc) => {
-      const overlayPromise = memoizedOverlays.has(doc.key)
-        ? PersistencePromise.resolve(memoizedOverlays.get(doc.key)!)
-        : this.documentOverlayCache.getOverlay(transaction, doc.key);
-
-      promises.push(
-        overlayPromise.next((overlay: Overlay | null) => {
-          // Recalculate an overlay if the document's existence state is changed
-          // due to a remote event *and* the overlay is a PatchMutation. This is
-          // because document existence state can change if some patch mutation's
-          // preconditions are met.
-          // NOTE: we recalculate when `overlay` is null as well, because there
-          // might be a patch mutation whose precondition does not match before
-          // the change (hence overlay==null), but would now match.
-          if (
-            existenceStateChanged.has(doc.key) &&
-            (overlay === null || overlay.mutation instanceof PatchMutation)
-          ) {
-            recalculateDocuments = recalculateDocuments.insert(doc.key, doc);
-          } else if (overlay !== null) {
-            mutationApplyToLocalView(
-              overlay.mutation,
-              doc,
-              null,
-              Timestamp.now()
-            );
-          }
-        })
-      );
+      const overlay = overlays.get(doc.key);
+      // Recalculate an overlay if the document's existence state is changed due
+      // to a remote event *and* the overlay is a PatchMutation. This is because
+      // document existence state can change if some patch mutation's
+      // preconditions are met.
+      // NOTE: we recalculate when `overlay` is undefined as well, because there
+      // might be a patch mutation whose precondition does not match before the
+      // change (hence overlay is undefined), but would now match.
+      if (
+        existenceStateChanged.has(doc.key) &&
+        (overlay === undefined || overlay.mutation instanceof PatchMutation)
+      ) {
+        recalculateDocuments = recalculateDocuments.insert(doc.key, doc);
+      } else if (overlay !== undefined) {
+        mutationApplyToLocalView(overlay.mutation, doc, null, Timestamp.now());
+      }
     });
 
-    return PersistencePromise.waitFor(promises)
-      .next(() =>
-        this.recalculateAndSaveOverlays(transaction, recalculateDocuments)
-      )
-      .next(() => {
-        docs.forEach((key, value) => {
-          results = results.insert(key, value);
-        });
-        return results;
+    return this.recalculateAndSaveOverlays(
+      transaction,
+      recalculateDocuments
+    ).next(() => {
+      docs.forEach((key, value) => {
+        results = results.insert(key, value);
       });
+      return results;
+    });
   }
 
   private recalculateAndSaveOverlays(
