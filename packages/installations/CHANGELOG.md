@@ -1,5 +1,17 @@
 # @firebase/installations
 
+## 0.5.6
+
+### Patch Changes
+
+- [`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03) [#6061](https://github.com/firebase/firebase-js-sdk/pull/6061) - Remove idb dependency and replace with our own code.
+
+* [`ddeff8384`](https://github.com/firebase/firebase-js-sdk/commit/ddeff8384ab8a927f02244e2591db525fd58c7dd) [#5966](https://github.com/firebase/firebase-js-sdk/pull/5966) - Update platform logging code to send to new endpoint.
+
+* Updated dependencies [[`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03)]:
+  - @firebase/util@1.5.0
+  - @firebase/component@0.5.11
+
 ## 0.5.5
 
 ### Patch Changes

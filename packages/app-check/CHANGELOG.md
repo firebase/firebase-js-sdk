@@ -1,5 +1,15 @@
 # @firebase/app-check
 
+## 0.5.4
+
+### Patch Changes
+
+- [`a7f4a2eb6`](https://github.com/firebase/firebase-js-sdk/commit/a7f4a2eb6ed08596dffe75825bca1a2034bfcd2e) [#5967](https://github.com/firebase/firebase-js-sdk/pull/5967) - Update platform logging to use new endpoint.
+
+- Updated dependencies [[`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03)]:
+  - @firebase/util@1.5.0
+  - @firebase/component@0.5.11
+
 ## 0.5.3
 
 ### Patch Changes

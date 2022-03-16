@@ -1,5 +1,15 @@
 # @firebase/auth
 
+## 0.19.10
+
+### Patch Changes
+
+- [`7405e7d59`](https://github.com/firebase/firebase-js-sdk/commit/7405e7d593b40c9945c32ffbe66ac6fb11e2991e) [#6033](https://github.com/firebase/firebase-js-sdk/pull/6033) - Heartbeat
+
+- Updated dependencies [[`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03)]:
+  - @firebase/util@1.5.0
+  - @firebase/component@0.5.11
+
 ## 0.19.9
 
 ### Patch Changes

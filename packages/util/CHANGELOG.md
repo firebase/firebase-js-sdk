@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.5.0
+
+### Minor Changes
+
+- [`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03) [#6061](https://github.com/firebase/firebase-js-sdk/pull/6061) - Remove idb dependency and replace with our own code.
+
 ## 1.4.3
 
 ### Patch Changes
