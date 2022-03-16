@@ -23,7 +23,7 @@ import sinonChai from 'sinon-chai';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 
-import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { FAKE_HEARTBEAT_CONTROLLER, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { PersistenceInternal } from '../persistence';
@@ -53,7 +53,7 @@ describe('core/auth/auth_impl', () => {
 
   beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    const authImpl = new AuthImpl(FAKE_APP, {
+    const authImpl = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
       apiKey: FAKE_APP.options.apiKey!,
       apiHost: DefaultConfig.API_HOST,
       apiScheme: DefaultConfig.API_SCHEME,
@@ -431,7 +431,7 @@ describe('core/auth/auth_impl', () => {
     });
 
     it('prevents initialization from completing', async () => {
-      const authImpl = new AuthImpl(FAKE_APP, {
+      const authImpl = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
         apiKey: FAKE_APP.options.apiKey!,
         apiHost: DefaultConfig.API_HOST,
         apiScheme: DefaultConfig.API_SCHEME,
@@ -473,6 +473,29 @@ describe('core/auth/auth_impl', () => {
       expect(await auth._getAdditionalHeaders()).to.eql({
         'X-Client-Version': 'v',
         'X-Firebase-gmpid': 'app-id',
+      });
+      delete auth.app.options.appId;
+    });
+
+    it('adds the heartbeat if available', async () => {
+      sinon.stub(FAKE_HEARTBEAT_CONTROLLER, 'getHeartbeatsHeader').returns(Promise.resolve('heartbeat'));
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v',
+        'X-Firebase-Client': 'heartbeat',
+      });
+    });
+
+    it('does not add heartbeat if none returned', async () => {
+      sinon.stub(FAKE_HEARTBEAT_CONTROLLER, 'getHeartbeatsHeader').returns(Promise.resolve(''));
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v',
+      });
+    });
+
+    it('does not add heartbeat if controller unavailable', async () => {
+      sinon.stub(FAKE_HEARTBEAT_CONTROLLER_PROVIDER, 'getImmediate').returns(undefined as any);
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v',
       });
     });
   });

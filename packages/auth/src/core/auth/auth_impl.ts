@@ -16,6 +16,7 @@
  */
 
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
+import { Provider } from '@firebase/component';
 import {
   Auth,
   AuthErrorMap,
@@ -103,6 +104,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
   constructor(
     public readonly app: FirebaseApp,
+    private readonly heartbeatServiceProvider: Provider<'heartbeat'>,
     public readonly config: ConfigInternal
   ) {
     this.name = app.name;
@@ -583,8 +585,17 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     const headers: Record<string, string> = {
       [HttpHeader.X_CLIENT_VERSION]: this.clientVersion,
     };
+
     if (this.app.options.appId) {
       headers[HttpHeader.X_FIREBASE_GMPID] = this.app.options.appId;
+    }
+
+    // If the heartbeat service exists, add the heartbeat string
+    const heartbeatsHeader = await this.heartbeatServiceProvider.getImmediate({
+      optional: true,
+    })?.getHeartbeatsHeader();
+    if (heartbeatsHeader) {
+      headers[HttpHeader.X_FIREBASE_CLIENT] = heartbeatsHeader;
     }
     return headers;
   }
