@@ -222,10 +222,19 @@ export class IndexOffset {
     readonly largestBatchId: number
   ) {}
 
-  /** The state of an index that has not yet been backfilled. */
+  /** Returns an offset that sorts before all regular offsets. */
   static min(): IndexOffset {
     return new IndexOffset(
       SnapshotVersion.min(),
+      DocumentKey.empty(),
+      INITIAL_LARGEST_BATCH_ID
+    );
+  }
+
+  /** Returns an offset that sorts after all regular offsets. */
+  static max(): IndexOffset {
+    return new IndexOffset(
+      SnapshotVersion.max(),
       DocumentKey.empty(),
       INITIAL_LARGEST_BATCH_ID
     );

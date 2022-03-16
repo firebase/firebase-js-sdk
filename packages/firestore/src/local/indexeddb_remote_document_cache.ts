@@ -42,7 +42,8 @@ import {
   DbRemoteDocumentGlobalStore,
   DbRemoteDocumentKey,
   DbRemoteDocumentReadTimeIndex,
-  DbRemoteDocumentStore
+  DbRemoteDocumentStore,
+  DbTimestampKey
 } from './indexeddb_sentinels';
 import { getStore } from './indexeddb_transaction';
 import {
@@ -108,13 +109,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     readTime: SnapshotVersion
   ): PersistencePromise<void> {
     const store = remoteDocumentsStore(transaction);
-    const path = documentKey.path.toArray();
-    return store.delete([
-      path.slice(0, path.length - 2),
-      path[path.length - 2],
-      toDbTimestampKey(readTime),
-      path[path.length - 1]
-    ]);
+    return store.delete(dbReadTimeKey(documentKey, readTime));
   }
 
   /**
@@ -327,21 +322,10 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     limit: number
   ): PersistencePromise<MutableDocumentMap> {
     debugAssert(limit > 0, 'Limit should be at least 1');
-
-    const path = offset.documentKey.path.toArray();
-    const startKey = [
-      collectionGroup,
-      toDbTimestampKey(offset.readTime),
-      path.length > 0 ? path.slice(0, path.length - 2) : [],
-      path.length > 0 ? path[path.length - 1] : ''
-    ];
-    const endKey = [
-      collectionGroup,
-      [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
-      [],
-      ''
-    ];
     let results = mutableDocumentMap();
+
+    const startKey = dbCollectionGroupKey(collectionGroup, offset);
+    const endKey = dbCollectionGroupKey(collectionGroup, IndexOffset.max());
     return remoteDocumentsStore(transaction)
       .iterate(
         {
@@ -661,12 +645,45 @@ function remoteDocumentsStore(
 function dbKey(documentKey: DocumentKey): [string[], string, string] {
   const path = documentKey.path.toArray();
   return [
-    path.slice(0, path.length - 2),
-    path[path.length - 2],
-    path[path.length - 1]
+    /* prefix path */ path.slice(0, path.length - 2),
+    /* collection id */ path[path.length - 2],
+    /* document id */ path[path.length - 1]
   ];
 }
 
+/**
+ * Returns a key that can be used for document lookups via the primary key of
+ * the DbRemoteDocument object store.
+ */
+function dbReadTimeKey(
+  documentKey: DocumentKey,
+  readTime: SnapshotVersion
+): DbRemoteDocumentKey {
+  const path = documentKey.path.toArray();
+  return [
+    /* prefix path */ path.slice(0, path.length - 2),
+    /* collection id */ path[path.length - 2],
+    toDbTimestampKey(readTime),
+    /* document id */ path[path.length - 1]
+  ];
+}
+
+/**
+ * Returns a key that can be used for document lookups on the
+ * `DbRemoteDocumentDocumentCollectionGroupIndex` index.
+ */
+function dbCollectionGroupKey(
+  collectionGroup: string,
+  offset: IndexOffset
+): [string, DbTimestampKey, string[], string] {
+  const path = offset.documentKey.path.toArray();
+  return [
+    /* collection id */ collectionGroup,
+    toDbTimestampKey(offset.readTime),
+    /* prefix path */ path.slice(0, path.length - 2),
+    /* document id */ path.length > 0 ? path[path.length - 1] : ''
+  ];
+}
 /**
  * Comparator that compares document keys according to the primary key sorting
  * used by the `DbRemoteDocumentDocument` store (by collection path and then

@@ -235,9 +235,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 13 && toVersion >= 13) {
-      p = p.next(() =>
-        this.rewriteRemoteDocumentCache(db, simpleDbTransaction)
-      );
+      p = p
+        .next(() => createRemoteDocumentCache(db))
+        .next(() => this.rewriteRemoteDocumentCache(db, simpleDbTransaction))
+        .next(() => db.deleteObjectStore(DbRemoteDocumentStoreLegacy));
     }
 
     if (fromVersion < 14 && toVersion >= 14) {
@@ -433,23 +434,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       DbRemoteDocumentLegacy
     >(DbRemoteDocumentStoreLegacy);
 
-    const remoteDocumentStore = db.createObjectStore(DbRemoteDocumentStore, {
-      keyPath: DbRemoteDocumentKeyPath
-    });
-    remoteDocumentStore.createIndex(
-      DbRemoteDocumentDocumentKeyIndex,
-      DbRemoteDocumentDocumentKeyIndexPath
-    );
-    remoteDocumentStore.createIndex(
-      DbRemoteDocumentReadTimeIndex,
-      DbRemoteDocumentReadTimeIndexPath,
-      { unique: false }
-    );
-    remoteDocumentStore.createIndex(
-      DbRemoteDocumentCollectionGroupIndex,
-      DbRemoteDocumentCollectionGroupIndexPath
-    );
-
     const writes: Array<PersistencePromise<void>> = [];
     return legacyRemoteDocumentStore
       .iterate((_, legacyDocument) => {
@@ -471,11 +455,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         };
         writes.push(remoteDocumentStore.put(dbRemoteDocument));
       })
-      .next(() =>
-        PersistencePromise.waitFor(writes).next(() =>
-          db.deleteObjectStore(DbRemoteDocumentStoreLegacy)
-        )
-      );
+      .next(() => PersistencePromise.waitFor(writes));
   }
 }
 
@@ -542,6 +522,25 @@ function upgradeMutationBatchSchemaAndMigrateData(
 
 function createLegacyRemoteDocumentCache(db: IDBDatabase): void {
   db.createObjectStore(DbRemoteDocumentStoreLegacy);
+}
+
+function createRemoteDocumentCache(db: IDBDatabase): void {
+  const remoteDocumentStore = db.createObjectStore(DbRemoteDocumentStore, {
+    keyPath: DbRemoteDocumentKeyPath
+  });
+  remoteDocumentStore.createIndex(
+    DbRemoteDocumentDocumentKeyIndex,
+    DbRemoteDocumentDocumentKeyIndexPath
+  );
+  remoteDocumentStore.createIndex(
+    DbRemoteDocumentReadTimeIndex,
+    DbRemoteDocumentReadTimeIndexPath,
+    { unique: false }
+  );
+  remoteDocumentStore.createIndex(
+    DbRemoteDocumentCollectionGroupIndex,
+    DbRemoteDocumentCollectionGroupIndexPath
+  );
 }
 
 function createDocumentGlobalStore(db: IDBDatabase): void {
