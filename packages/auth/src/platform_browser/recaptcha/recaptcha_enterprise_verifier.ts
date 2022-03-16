@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import { _window } from '../auth_window';
 import { isEnterprise } from './recaptcha';
 import {
   getRecaptchaConfig
@@ -104,7 +103,7 @@ export class RecaptchaEnterpriseVerifier {
     }
 
     function retrieveRecaptchaToken(siteKey: string, resolve: (value: string | PromiseLike<string>) => void, reject: (reason?: unknown) => void): void {
-      const grecaptcha = _window().grecaptcha;
+      const grecaptcha = window.grecaptcha;
       if (isEnterprise(grecaptcha)) {
         grecaptcha.enterprise.ready(() => {
           try {
@@ -126,7 +125,7 @@ export class RecaptchaEnterpriseVerifier {
 
     return new Promise<string>((resolve, reject) => {
       retrieveSiteKey(this.auth).then((siteKey) => {
-        if (!forceRefresh && isEnterprise(_window().grecaptcha)) {
+        if (!forceRefresh && isEnterprise(window.grecaptcha)) {
           retrieveRecaptchaToken(siteKey, resolve, reject);
         } else {
           jsHelpers._loadJS(RECAPTCHA_ENTERPRISE_URL + siteKey)

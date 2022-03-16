@@ -52,3 +52,10 @@ export function isV2(grecaptcha: Recaptcha | GreCAPTCHA | undefined): grecaptcha
  export function isEnterprise(grecaptcha: Recaptcha | GreCAPTCHA | undefined): grecaptcha is GreCAPTCHATopLevel {
   return grecaptcha !== undefined && (grecaptcha as GreCAPTCHATopLevel).enterprise !== undefined;
 }
+
+// TODO(chuanr): Replace this with the AuthWindow after resolving the dependency issue in Node.js env.
+declare global {
+  interface Window {
+    grecaptcha?: Recaptcha | GreCAPTCHATopLevel;
+  }
+}
