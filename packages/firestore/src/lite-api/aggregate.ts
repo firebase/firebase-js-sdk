@@ -17,6 +17,7 @@
 
 import {DocumentData, Query} from './reference';
 import {FieldPath} from './field_path';
+import {OrderByDirection} from './query';
 
 export class AggregateField {
   private constructor();
@@ -46,9 +47,9 @@ export function aggregate(query: Query<DocumentData>, field: AggregateField, ...
 
 export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery): boolean;
 
-export function getAggregate(query: AggregateQuery): Promise<AggregateSnapshot>;
+export function getAggregate(query: AggregateQuery): Promise<AggregateQuerySnapshot>;
 
-export class AggregateSnapshot {
+export class AggregateQuerySnapshot {
   private constructor();
 
   readonly query: AggregateQuery;
@@ -58,7 +59,7 @@ export class AggregateSnapshot {
   get(field: AggregateField): any;
 }
 
-export function aggregateSnapshotEqual<T>(left: AggregateSnapshot, right: AggregateSnapshot): boolean;
+export function aggregateSnapshotEqual<T>(left: AggregateQuerySnapshot, right: AggregateQuerySnapshot): boolean;
 
 export class GroupByQuery {
   private constructor();
@@ -66,24 +67,57 @@ export class GroupByQuery {
   readonly query: Query<DocumentData>;
 }
 
-export function groupBy(query: Query<DocumentData>, field: string | FieldPath, ...fields: (string | FieldPath)[]): GroupByQuery;
+export function groupByQuery(query: Query<DocumentData>, field: string | FieldPath, ...rest: (string | FieldPath | AggregateField | GroupByQueryConstraint)[]): GroupByQuery;
+export function groupByQuery(query: GroupByQuery, ...constraints: GroupByQueryConstraint[]): GroupByQuery;
 
 export function groupByQueryEqual(left: GroupByQuery, right: GroupByQuery): boolean;
 
-export function aggregateGroup(query: GroupByQuery, ...fields: AggregateField[]): GroupByQuery;
+export type GroupByQueryConstraintType =
+  | 'orderByGroup'
+  | 'groupLimit'
+  | 'groupLimitToLast'
+  | 'startAtGroup'
+  | 'startAfterGroup'
+  | 'endAtGroup'
+  | 'endBeforeGroup';
 
-export function getGroups(query: GroupByQuery): Promise<GroupByAggregateSnapshot>;
+export abstract class GroupByQueryConstraint {
+  abstract readonly type: GroupByQueryConstraintType;
+}
 
-export class GroupByAggregateSnapshot {
+export function orderByGroup(
+  field: string | FieldPath | AggregateField,
+  directionStr: OrderByDirection = 'asc'
+): GroupByQueryConstraint;
+
+export function limitGroups(limit: number): GroupByQueryConstraint;
+export function limitToLastGroups(limit: number): GroupByQueryConstraint;
+
+export function startAtGroup(snapshot: GroupSnapshot): GroupByQueryConstraint;
+export function startAtGroup(...fieldValues: unknown[]): GroupByQueryConstraint;
+export function startAfterGroup(snapshot: GroupSnapshot): GroupByQueryConstraint;
+export function startAfterGroup(...fieldValues: unknown[]): GroupByQueryConstraint;
+export function endAtGroup(snapshot: GroupSnapshot): GroupByQueryConstraint;
+export function endAtGroup(...fieldValues: unknown[]): GroupByQueryConstraint;
+export function endBeforeGroup(snapshot: GroupSnapshot): GroupByQueryConstraint;
+export function endBeforeGroup(...fieldValues: unknown[]): GroupByQueryConstraint;
+
+// TODO(dconeybe) Do we want to expose "group offset" in the client SDKs?
+// The normal document queries do NOT expose "offset".
+export function groupOffset(offset: number): GroupByQueryConstraint;
+
+export function getGroups(query: GroupByQuery): Promise<GroupByQuerySnapshot>;
+
+export class GroupByQuerySnapshot {
   private constructor();
 
   readonly query: GroupByQuery;
 
-  readonly groups: Array<GroupSnapshot>;
+  get groups(): Array<GroupSnapshot>;
 
-  readonly size: number;
+  get size(): number;
 
-  readonly empty: boolean;
+  get empty(): boolean;
 
   forEach(
     callback: (result: GroupSnapshot) => void,
@@ -91,12 +125,10 @@ export class GroupByAggregateSnapshot {
   ): void;
 }
 
-export function groupByAggregateSnapshotEqual(left: GroupByAggregateSnapshot, right: GroupByAggregateSnapshot): boolean;
+export function groupByQuerySnapshotEqual(left: GroupByQuerySnapshot, right: GroupByQuerySnapshot): boolean;
 
 export class GroupSnapshot {
   private constructor();
-
-  readonly query: AggregateQuery;
 
   readonly aggregations: Array<AggregateField>;
 
