@@ -24,7 +24,6 @@
  import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
  import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
  import * as mockFetch from '../../../test/helpers/mock_fetch';
- import { _window } from '../auth_window';
  import { ServerError } from '../../api/errors';
 
  import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
@@ -57,7 +56,7 @@
      let recaptcha: MockGreCAPTCHATopLevel;
      beforeEach(() => {
         recaptcha = new MockGreCAPTCHATopLevel();
-        _window().grecaptcha = recaptcha;
+        window.grecaptcha = recaptcha;
     });
  
      it('returns if response is available', async () => {

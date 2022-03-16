@@ -28,7 +28,6 @@ import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { EmailAuthCredential } from './email';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
-import { _window } from '../../platform_browser/auth_window';
 import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
@@ -99,7 +98,7 @@ describe('core/credentials/email', () => {
         
         it('calls sign in with password with recaptcha enabled', async () => {
           const recaptcha = new MockGreCAPTCHATopLevel();
-          _window().grecaptcha = recaptcha;
+          window.grecaptcha = recaptcha;
           sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
           mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
             clientType: RecaptchaClientType.WEB,
@@ -127,7 +126,7 @@ describe('core/credentials/email', () => {
 
         it('calls sign in with password with recaptcha disabled', async () => {
           const recaptcha = new MockGreCAPTCHATopLevel();
-          _window().grecaptcha = recaptcha;
+          window.grecaptcha = recaptcha;
           sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
           mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
             clientType: RecaptchaClientType.WEB,
@@ -152,7 +151,7 @@ describe('core/credentials/email', () => {
 
         it('calls sign in with password with recaptcha forced refresh succeed', async () => {
           const recaptcha = new MockGreCAPTCHATopLevel();
-          _window().grecaptcha = recaptcha;
+          window.grecaptcha = recaptcha;
           const stub = sinon.stub(recaptcha.enterprise, 'execute');
 
           // // First verification should fail with 'wrong-site-key'

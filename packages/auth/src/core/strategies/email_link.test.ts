@@ -36,7 +36,6 @@ import {
   sendSignInLinkToEmail,
   signInWithEmailLink
 } from './email_link';
-import { _window } from '../../platform_browser/auth_window';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
@@ -159,7 +158,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
   context('#recaptcha', () => {
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
-      _window().grecaptcha = recaptcha;
+      window.grecaptcha = recaptcha;
       sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
       mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
         clientType: RecaptchaClientType.WEB,
@@ -214,7 +213,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
 
     it('calls send sign in link to email with recaptcha forced refresh succeed', async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
-      _window().grecaptcha = recaptcha;
+      window.grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
 
       // // First verification should fail with 'wrong-site-key'

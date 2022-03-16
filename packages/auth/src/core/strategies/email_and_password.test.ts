@@ -40,7 +40,6 @@ import {
   signInWithEmailAndPassword,
   verifyPasswordResetCode
 } from './email_and_password';
-import { _window } from '../../platform_browser/auth_window';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 
 use(chaiAsPromised);
@@ -143,7 +142,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
   context('#recaptcha', () => {
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
-      _window().grecaptcha = recaptcha;
+      window.grecaptcha = recaptcha;
       sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
       mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
         clientType: RecaptchaClientType.WEB,
@@ -458,7 +457,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
   context('#recaptcha', () => {
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
-      _window().grecaptcha = recaptcha;
+      window.grecaptcha = recaptcha;
       sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
       mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
         clientType: RecaptchaClientType.WEB,
