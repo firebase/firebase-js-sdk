@@ -19,7 +19,7 @@ import { _registerComponent, registerVersion } from '@firebase/app';
 import {
   Component,
   ComponentType,
-  InstantiationMode
+  InstantiationMode,
 } from '@firebase/component';
 
 import { name, version } from '../../../package.json';
@@ -61,8 +61,9 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
       _ComponentName.AUTH,
       (container, { options: deps }: { options?: Dependencies }) => {
         const app = container.getProvider('app').getImmediate()!;
+        const heartbeatServiceProvider = container.getProvider<'heartbeat'>('heartbeat');
         const { apiKey, authDomain } = app.options;
-        return (app => {
+        return ((app, heartbeatServiceProvider) => {
           _assert(
             apiKey && !apiKey.includes(':'),
             AuthErrorCode.INVALID_API_KEY,
@@ -82,11 +83,11 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
             sdkClientVersion: _getClientVersion(clientPlatform)
           };
 
-          const authInstance = new AuthImpl(app, config);
+          const authInstance = new AuthImpl(app, heartbeatServiceProvider, config);
           _initializeAuthInstance(authInstance, deps);
 
           return authInstance;
-        })(app);
+        })(app, heartbeatServiceProvider);
       },
       ComponentType.PUBLIC
     )

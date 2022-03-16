@@ -28,7 +28,7 @@ import {
 } from '../model/public_types';
 import { OperationType } from '../model/enums';
 
-import { testAuth, testUser } from '../../test/helpers/mock_auth';
+import { FAKE_HEARTBEAT_CONTROLLER_PROVIDER, testAuth, testUser } from '../../test/helpers/mock_auth';
 import { AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
 import { _initializeAuthInstance } from '../core/auth/initialize';
 import { AuthErrorCode } from '../core/errors';
@@ -66,7 +66,7 @@ describe('core/auth/auth_impl', () => {
 
   beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    const authImpl = new AuthImpl(FAKE_APP, {
+    const authImpl = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
       apiKey: FAKE_APP.options.apiKey!,
       apiHost: DefaultConfig.API_HOST,
       apiScheme: DefaultConfig.API_SCHEME,
@@ -132,7 +132,7 @@ describe('core/auth/initializeAuth', () => {
       popupRedirectResolver?: PopupRedirectResolver,
       authDomain = FAKE_APP.options.authDomain
     ): Promise<Auth> {
-      const auth = new AuthImpl(FAKE_APP, {
+      const auth = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
         apiKey: FAKE_APP.options.apiKey!,
         apiHost: DefaultConfig.API_HOST,
         apiScheme: DefaultConfig.API_SCHEME,
@@ -359,7 +359,7 @@ describe('core/auth/initializeAuth', () => {
 
         // Manually initialize auth to make sure no error is thrown,
         // since the _initializeAuthInstance function floats
-        const auth = new AuthImpl(FAKE_APP, {
+        const auth = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
           apiKey: FAKE_APP.options.apiKey!,
           apiHost: DefaultConfig.API_HOST,
           apiScheme: DefaultConfig.API_SCHEME,

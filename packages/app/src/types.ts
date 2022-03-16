@@ -42,28 +42,25 @@ export interface HeartbeatService {
 
 // Heartbeats grouped by the same user agent string
 export interface HeartbeatsByUserAgent {
-  userAgent: string;
+  agent: string;
   dates: string[];
 }
 
 export interface SingleDateHeartbeat {
-  userAgent: string;
+  agent: string;
   date: string;
 }
 
 export interface HeartbeatStorage {
   // overwrite the storage with the provided heartbeats
-  overwrite(heartbeats: SingleDateHeartbeat[]): Promise<void>;
+  overwrite(heartbeats: HeartbeatsInIndexedDB): Promise<void>;
   // add heartbeats
-  add(heartbeats: SingleDateHeartbeat[]): Promise<void>;
-  // delete heartbeats
-  delete(heartbeats: SingleDateHeartbeat[]): Promise<void>;
-  // delete all heartbeats
-  deleteAll(): Promise<void>;
+  add(heartbeats: HeartbeatsInIndexedDB): Promise<void>;
   // read all heartbeats
-  read(): Promise<SingleDateHeartbeat[]>;
+  read(): Promise<HeartbeatsInIndexedDB>;
 }
 
 export interface HeartbeatsInIndexedDB {
+  lastSentHeartbeatDate?: string;
   heartbeats: SingleDateHeartbeat[];
 }

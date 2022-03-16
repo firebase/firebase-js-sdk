@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
+import { Provider } from '@firebase/component';
 import { PopupRedirectResolver } from '../../src/model/public_types';
 import { debugErrorMap } from '../../src';
 
@@ -44,6 +45,16 @@ const FAKE_APP: FirebaseApp = {
   automaticDataCollectionEnabled: false
 };
 
+export const FAKE_HEARTBEAT_CONTROLLER = {
+  getHeartbeatsHeader: async () => '',
+};
+
+export const FAKE_HEARTBEAT_CONTROLLER_PROVIDER: Provider<'heartbeat'> = {
+  getImmediate(): typeof FAKE_HEARTBEAT_CONTROLLER {
+    return FAKE_HEARTBEAT_CONTROLLER;
+  }
+} as unknown as Provider<'heartbeat'>;
+
 export class MockPersistenceLayer extends InMemoryPersistence {
   lastObjectSet: PersistedBlob | null = null;
 
@@ -62,7 +73,7 @@ export async function testAuth(
   popupRedirectResolver?: PopupRedirectResolver,
   persistence = new MockPersistenceLayer()
 ): Promise<TestAuth> {
-  const auth: TestAuth = new AuthImpl(FAKE_APP, {
+  const auth: TestAuth = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
     apiKey: TEST_KEY,
     authDomain: TEST_AUTH_DOMAIN,
     apiHost: TEST_HOST,

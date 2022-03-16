@@ -37,7 +37,8 @@ export const enum HttpHeader {
   CONTENT_TYPE = 'Content-Type',
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
   X_CLIENT_VERSION = 'X-Client-Version',
-  X_FIREBASE_GMPID = 'X-Firebase-gmpid'
+  X_FIREBASE_GMPID = 'X-Firebase-gmpid',
+  X_FIREBASE_CLIENT = 'X-Firebase-Client',
 }
 
 export const enum Endpoint {

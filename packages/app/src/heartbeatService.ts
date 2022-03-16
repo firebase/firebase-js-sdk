@@ -17,12 +17,11 @@
 
 import { ComponentContainer } from '@firebase/component';
 import {
-  base64Encode,
+  base64urlEncodeWithoutPadding,
   isIndexedDBAvailable,
   validateIndexedDBOpenable
 } from '@firebase/util';
 import {
-  deleteHeartbeatsFromIndexedDB,
   readHeartbeatsFromIndexedDB,
   writeHeartbeatsToIndexedDB
 } from './indexeddb';
@@ -30,6 +29,7 @@ import { FirebaseApp } from './public-types';
 import {
   HeartbeatsByUserAgent,
   HeartbeatService,
+  HeartbeatsInIndexedDB,
   HeartbeatStorage,
   SingleDateHeartbeat
 } from './types';
@@ -54,7 +54,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
    * be kept in sync with indexedDB.
    * Leave public for easier testing.
    */
-  _heartbeatsCache: SingleDateHeartbeat[] | null = null;
+  _heartbeatsCache: HeartbeatsInIndexedDB | null = null;
 
   /**
    * the initialization promise for populating heartbeatCache.
@@ -62,7 +62,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
    * (hearbeatsCache == null), it should wait for this promise
    * Leave public for easier testing.
    */
-  _heartbeatsCachePromise: Promise<SingleDateHeartbeat[]>;
+  _heartbeatsCachePromise: Promise<HeartbeatsInIndexedDB>;
   constructor(private readonly container: ComponentContainer) {
     const app = this.container.getProvider('app').getImmediate();
     this._storage = new HeartbeatStorageImpl(app);
@@ -86,24 +86,26 @@ export class HeartbeatServiceImpl implements HeartbeatService {
 
     // This is the "Firebase user agent" string from the platform logger
     // service, not the browser user agent.
-    const userAgent = platformLogger.getPlatformInfoString();
+    const agent = platformLogger.getPlatformInfoString();
     const date = getUTCDateString();
     if (this._heartbeatsCache === null) {
       this._heartbeatsCache = await this._heartbeatsCachePromise;
     }
+    // Do not store a heartbeat if one is already stored for this day
+    // or if a header has already been sent today.
     if (
-      this._heartbeatsCache.some(
+      this._heartbeatsCache.lastSentHeartbeatDate === date ||
+      this._heartbeatsCache.heartbeats.some(
         singleDateHeartbeat => singleDateHeartbeat.date === date
       )
     ) {
-      // Do not store a heartbeat if one is already stored for this day.
       return;
     } else {
       // There is no entry for this date. Create one.
-      this._heartbeatsCache.push({ date, userAgent });
+      this._heartbeatsCache.heartbeats.push({ date, agent });
     }
     // Remove entries older than 30 days.
-    this._heartbeatsCache = this._heartbeatsCache.filter(
+    this._heartbeatsCache.heartbeats = this._heartbeatsCache.heartbeats.filter(
       singleDateHeartbeat => {
         const hbTimestamp = new Date(singleDateHeartbeat.date).valueOf();
         const now = Date.now();
@@ -117,34 +119,41 @@ export class HeartbeatServiceImpl implements HeartbeatService {
    * Returns a base64 encoded string which can be attached to the heartbeat-specific header directly.
    * It also clears all heartbeats from memory as well as in IndexedDB.
    *
-   * NOTE: It will read heartbeats from the heartbeatsCache, instead of from indexedDB to reduce latency
+   * NOTE: Consuming product SDKs should not send the header if this method
+   * returns an empty string.
    */
   async getHeartbeatsHeader(): Promise<string> {
     if (this._heartbeatsCache === null) {
       await this._heartbeatsCachePromise;
     }
-    // If it's still null, it's been cleared and has not been repopulated.
-    if (this._heartbeatsCache === null) {
+    // If it's still null or the array is empty, there is no data to send.
+    if (
+      this._heartbeatsCache === null ||
+      this._heartbeatsCache.heartbeats.length === 0
+    ) {
       return '';
     }
+    const date = getUTCDateString();
     // Extract as many heartbeats from the cache as will fit under the size limit.
     const { heartbeatsToSend, unsentEntries } = extractHeartbeatsForHeader(
-      this._heartbeatsCache
+      this._heartbeatsCache.heartbeats
     );
-    const headerString = base64Encode(
+    const headerString = base64urlEncodeWithoutPadding(
       JSON.stringify({ version: 2, heartbeats: heartbeatsToSend })
     );
+    // Store last sent date to prevent another being logged/sent for the same day.
+    this._heartbeatsCache.lastSentHeartbeatDate = date;
     if (unsentEntries.length > 0) {
       // Store any unsent entries if they exist.
-      this._heartbeatsCache = unsentEntries;
-      // This seems more likely than deleteAll (below) to lead to some odd state
+      this._heartbeatsCache.heartbeats = unsentEntries;
+      // This seems more likely than emptying the array (below) to lead to some odd state
       // since the cache isn't empty and this will be called again on the next request,
       // and is probably safest if we await it.
       await this._storage.overwrite(this._heartbeatsCache);
     } else {
-      this._heartbeatsCache = null;
+      this._heartbeatsCache.heartbeats = [];
       // Do not wait for this, to reduce latency.
-      void this._storage.deleteAll();
+      void this._storage.overwrite(this._heartbeatsCache);
     }
     return headerString;
   }
@@ -171,12 +180,12 @@ export function extractHeartbeatsForHeader(
   for (const singleDateHeartbeat of heartbeatsCache) {
     // Look for an existing entry with the same user agent.
     const heartbeatEntry = heartbeatsToSend.find(
-      hb => hb.userAgent === singleDateHeartbeat.userAgent
+      hb => hb.agent === singleDateHeartbeat.agent
     );
     if (!heartbeatEntry) {
       // If no entry for this user agent exists, create one.
       heartbeatsToSend.push({
-        userAgent: singleDateHeartbeat.userAgent,
+        agent: singleDateHeartbeat.agent,
         dates: [singleDateHeartbeat.date]
       });
       if (countBytes(heartbeatsToSend) > maxSize) {
@@ -221,57 +230,46 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
   /**
    * Read all heartbeats.
    */
-  async read(): Promise<SingleDateHeartbeat[]> {
+  async read(): Promise<HeartbeatsInIndexedDB> {
     const canUseIndexedDB = await this._canUseIndexedDBPromise;
     if (!canUseIndexedDB) {
-      return [];
+      return { heartbeats: [] };
     } else {
       const idbHeartbeatObject = await readHeartbeatsFromIndexedDB(this.app);
-      return idbHeartbeatObject?.heartbeats || [];
+      return idbHeartbeatObject || { heartbeats: [] };
     }
   }
   // overwrite the storage with the provided heartbeats
-  async overwrite(heartbeats: SingleDateHeartbeat[]): Promise<void> {
+  async overwrite(heartbeatsObject: HeartbeatsInIndexedDB): Promise<void> {
     const canUseIndexedDB = await this._canUseIndexedDBPromise;
     if (!canUseIndexedDB) {
       return;
     } else {
-      return writeHeartbeatsToIndexedDB(this.app, { heartbeats });
+      const existingHeartbeatsObject = await this.read();
+      return writeHeartbeatsToIndexedDB(this.app, {
+        lastSentHeartbeatDate:
+          heartbeatsObject.lastSentHeartbeatDate ??
+          existingHeartbeatsObject.lastSentHeartbeatDate,
+        heartbeats: heartbeatsObject.heartbeats
+      });
     }
   }
   // add heartbeats
-  async add(heartbeats: SingleDateHeartbeat[]): Promise<void> {
+  async add(heartbeatsObject: HeartbeatsInIndexedDB): Promise<void> {
     const canUseIndexedDB = await this._canUseIndexedDBPromise;
     if (!canUseIndexedDB) {
       return;
     } else {
-      const existingHeartbeats = await this.read();
+      const existingHeartbeatsObject = await this.read();
       return writeHeartbeatsToIndexedDB(this.app, {
-        heartbeats: [...existingHeartbeats, ...heartbeats]
+        lastSentHeartbeatDate:
+          heartbeatsObject.lastSentHeartbeatDate ??
+          existingHeartbeatsObject.lastSentHeartbeatDate,
+        heartbeats: [
+          ...existingHeartbeatsObject.heartbeats,
+          ...heartbeatsObject.heartbeats
+        ]
       });
-    }
-  }
-  // delete heartbeats
-  async delete(heartbeats: SingleDateHeartbeat[]): Promise<void> {
-    const canUseIndexedDB = await this._canUseIndexedDBPromise;
-    if (!canUseIndexedDB) {
-      return;
-    } else {
-      const existingHeartbeats = await this.read();
-      return writeHeartbeatsToIndexedDB(this.app, {
-        heartbeats: existingHeartbeats.filter(
-          existingHeartbeat => !heartbeats.includes(existingHeartbeat)
-        )
-      });
-    }
-  }
-  // delete all heartbeats
-  async deleteAll(): Promise<void> {
-    const canUseIndexedDB = await this._canUseIndexedDBPromise;
-    if (!canUseIndexedDB) {
-      return;
-    } else {
-      return deleteHeartbeatsFromIndexedDB(this.app);
     }
   }
 }
@@ -283,7 +281,7 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
  */
 export function countBytes(heartbeatsCache: HeartbeatsByUserAgent[]): number {
   // base64 has a restricted set of characters, all of which should be 1 byte.
-  return base64Encode(
+  return base64urlEncodeWithoutPadding(
     // heartbeatsCache wrapper properties
     JSON.stringify({ version: 2, heartbeats: heartbeatsCache })
   ).length;

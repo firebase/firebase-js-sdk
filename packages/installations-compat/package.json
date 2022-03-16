@@ -61,7 +61,6 @@
     "@firebase/installations-types": "0.4.0",
     "@firebase/util": "1.4.3",
     "@firebase/component": "0.5.10",
-    "idb": "3.0.2",
     "tslib": "^2.1.0"
   }
 }

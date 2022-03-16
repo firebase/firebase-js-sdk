@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DB, openDb } from 'idb';
+import { DBWrapper, openDB } from '@firebase/util';
 import { AppConfig } from '../interfaces/installation-impl';
 import { InstallationEntry } from '../interfaces/installation-entry';
 import { getKey } from '../util/get-key';
@@ -25,18 +25,18 @@ const DATABASE_NAME = 'firebase-installations-database';
 const DATABASE_VERSION = 1;
 const OBJECT_STORE_NAME = 'firebase-installations-store';
 
-let dbPromise: Promise<DB> | null = null;
-function getDbPromise(): Promise<DB> {
+let dbPromise: Promise<DBWrapper> | null = null;
+function getDbPromise(): Promise<DBWrapper> {
   if (!dbPromise) {
-    dbPromise = openDb(DATABASE_NAME, DATABASE_VERSION, upgradeDB => {
+    dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, (db, oldVersion) => {
       // We don't use 'break' in this switch statement, the fall-through
       // behavior is what we want, because if there are multiple versions between
       // the old version and the current version, we want ALL the migrations
       // that correspond to those versions to run, not only the last one.
       // eslint-disable-next-line default-case
-      switch (upgradeDB.oldVersion) {
+      switch (oldVersion) {
         case 0:
-          upgradeDB.createObjectStore(OBJECT_STORE_NAME);
+          db.createObjectStore(OBJECT_STORE_NAME);
       }
     });
   }
@@ -52,7 +52,7 @@ export async function get(
   return db
     .transaction(OBJECT_STORE_NAME)
     .objectStore(OBJECT_STORE_NAME)
-    .get(key);
+    .get(key) as Promise<InstallationEntry>;
 }
 
 /** Assigns or overwrites the record for the given key with the given value. */
@@ -64,7 +64,7 @@ export async function set<ValueType extends InstallationEntry>(
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   const objectStore = tx.objectStore(OBJECT_STORE_NAME);
-  const oldValue = await objectStore.get(key);
+  const oldValue = (await objectStore.get(key)) as InstallationEntry;
   await objectStore.put(value, key);
   await tx.complete;
 
@@ -98,7 +98,9 @@ export async function update<ValueType extends InstallationEntry | undefined>(
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   const store = tx.objectStore(OBJECT_STORE_NAME);
-  const oldValue: InstallationEntry | undefined = await store.get(key);
+  const oldValue: InstallationEntry | undefined = (await store.get(
+    key
+  )) as InstallationEntry;
   const newValue = updateFn(oldValue);
 
   if (newValue === undefined) {

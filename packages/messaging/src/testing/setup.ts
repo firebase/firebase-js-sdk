@@ -19,7 +19,7 @@ import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 
 import { dbDelete } from '../internals/idb-manager';
-import { deleteDb } from 'idb';
+import { deleteDB } from '@firebase/util';
 import { restore } from 'sinon';
 import { use } from 'chai';
 
@@ -29,5 +29,5 @@ use(sinonChai);
 afterEach(async () => {
   restore();
   await dbDelete();
-  await deleteDb('fcm_token_details_db');
+  await deleteDB('fcm_token_details_db');
 });
