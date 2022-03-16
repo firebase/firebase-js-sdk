@@ -16,12 +16,24 @@
  */
 
 import { expect } from 'chai';
+import {
+  assert,
+  asyncProperty,
+  string,
+  array,
+  integer,
+  configureGlobal,
+  unicodeString
+} from 'fast-check';
+import* as fc from 'fast-check';
 
+import { Bytes } from '../../../src';
 import { User } from '../../../src/auth/user';
 import {
+  canonifyQuery,
   LimitType,
   newQueryForCollectionGroup,
-  Query,
+  Query, queryMatches,
   queryToTarget,
   queryWithAddedFilter,
   queryWithAddedOrderBy,
@@ -36,6 +48,7 @@ import { Persistence } from '../../../src/local/persistence';
 import { documentMap } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
 import {
+  FieldIndex,
   IndexKind,
   IndexOffset,
   IndexState
@@ -44,6 +57,7 @@ import { JsonObject } from '../../../src/model/object_value';
 import { canonicalId } from '../../../src/model/values';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
+  blob,
   bound,
   deletedDoc,
   doc,
@@ -59,6 +73,7 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
+import { DocumentReference } from '../../../dist';
 
 describe('MemoryIndexManager', async () => {
   genericIndexManagerTests(persistenceHelpers.testMemoryEagerPersistence);
@@ -1266,6 +1281,174 @@ describe('IndexedDbIndexManager', async () => {
       'coll/{map:{field:false}}'
     );
   });
+
+  configureGlobal({ numRuns: 3 });
+
+  const DocumentArb = fc
+    .constantFrom('coll1', 'coll1/umbrellaDoc/subColl1', 'coll2')
+    .chain(coll => {
+      return fc.record({
+        path: fc.hexaString({minLength: 1}).chain(d => fc.constant(`${coll}/${d}`)),
+        data: fc.record({
+          'int': fc.integer(-100, 100),
+          'float': fc.float(-100, 100),
+          'string': fc.unicodeString(),
+          'blob': fc.uint8Array().map(bs => Bytes.fromUint8Array(bs)),
+          'time': fc.date({min: new Date(1900, 1, 1), max: new Date(2100, 1, 1)}),
+          'mix': fc.oneof(
+            fc.integer(),
+            fc.float(),
+            fc.string(),
+            fc.uint8Array().map(bs => Bytes.fromUint8Array(bs)),
+          )
+        })
+      });
+    });
+
+  const FieldArb = fc.constantFrom(
+    'int',
+    'float',
+    'string',
+    'blob',
+    'time',
+    'mix',
+    'nofield'
+  );
+  const FilterOpArb = fc.constantFrom(
+    '==',
+    '>=',
+    '>',
+    '<=',
+    '<',
+    '!=' /*'notIn', 'In'*/
+  );
+  const QueryArb = fc
+    .constantFrom('coll1', 'coll1/umbrellaDoc/coll1', 'nocoll')
+    .chain(coll => {
+      return FieldArb.map(field => {
+        if (field === 'int') {
+          return [field, fc.integer(-120, 120)];
+        } else if (field === 'float') {
+          return [field, fc.float(-120, 120)];
+        } else if (field === 'string') {
+          return [field, fc.string()];
+        } else if (field === 'blob') {
+          return [field, fc.uint8Array().map(bs => Bytes.fromUint8Array(bs))];
+        } else if (field === 'time') {
+          return [field, fc.date({min: new Date(1900, 1, 1), max: new Date(2200, 1, 1)})];
+        }
+
+        return [
+          field,
+          fc.oneof(fc.integer(), fc.float(), fc.string(), fc.uint8Array())
+        ];
+      }).chain(filterValue => {
+        return FilterOpArb.map(op => {
+          return query(
+            coll,
+            filter(filterValue[0] as string, op, filterValue[1])
+          );
+        });
+      });
+    });
+
+  const IndexArb = fc.constant('coll1').chain(group => {
+    return fc.array(FieldArb, { maxLength: 4 }).chain(fields => {
+      return fc
+        .array(
+          fc.constantFrom(
+            IndexKind.ASCENDING,
+            IndexKind.DESCENDING,
+            IndexKind.CONTAINS
+          ),
+          { minLength: fields.length, maxLength: fields.length }
+        )
+        .map(kinds => {
+          return fields.map((f, idx) =>
+            fieldIndex(group, { fields: [[f, kinds[idx]]] })
+          );
+        });
+    });
+  });
+
+  const QueryAndIndexesArb = fc.record({
+    // query: QueryArb,
+    query: fc.constant(query('coll1')),
+    // indexes: IndexArb,
+    indexes: fc.constant([]),
+  });
+
+  it('should return indexes', async () => {
+    await fc.assert(
+      asyncProperty(
+        fc.array(DocumentArb, { maxLength: 5 }),
+        QueryAndIndexesArb,
+        async (docs: { path: string; data: {} }[], qi: {query: Query, indexes: FieldIndex[]}) => {
+          console.log(`asserting ${docs.length}`);
+          for (const doc of docs) {
+            console.log(`adding: ${doc.path} and ${(doc.data as any).blob}`);
+            await addDoc(doc.path, doc.data);
+          }
+
+          /*
+          const target = queryToTarget(qi.query);
+          const resultWithoutIndexes =
+            await indexManager.getDocumentsMatchingTarget(target);
+          const keysWithoutIndexes: string[] = [];
+          resultWithoutIndexes!.forEach(v =>
+            keysWithoutIndexes.push(v.path.toString())
+          );
+
+          for (const idx of qi.indexes) {
+            await indexManager.addFieldIndex(idx);
+          }
+          const resultWithIndexes =
+            await indexManager.getDocumentsMatchingTarget(target);
+          const keysWithIndexes: string[] = [];
+          resultWithIndexes!.forEach(v =>
+            keysWithIndexes.push(v.path.toString())
+          );
+          console.log(`Result: ${keysWithIndexes}`);
+          expect(keysWithIndexes.length).to.equal(keysWithoutIndexes.length);
+          expect(keysWithIndexes).to.have.members(keysWithoutIndexes);
+           */
+        }
+      )
+    );
+  });
+
+  it('should return same results with or without indexes', async () => {
+    await fc.assert(
+      asyncProperty(
+        fc.array(DocumentArb, { minLength: 200 }),
+        QueryAndIndexesArb,
+        async (docs: { path: string; data: {} }[], qi: {query: Query, indexes: FieldIndex[]}) => {
+          const expectedKeys: string[] = [];
+          for (const d of docs) {
+            console.log(`adding: ${d.path}`);
+            await addDoc(d.path, d.data);
+            if(queryMatches(qi.query, doc(d.path, 0, d.data))){
+              expectedKeys.push(d.path);
+            }
+          }
+
+          for (const idx of qi.indexes) {
+            await indexManager.addFieldIndex(idx);
+          }
+          console.log(`Query: ${canonifyQuery(qi.query)}`);
+          const resultWithIndexes =
+            await indexManager.getDocumentsMatchingTarget(queryToTarget(qi.query));
+          const keysWithIndexes: string[] = [];
+          (resultWithIndexes || []).forEach(v =>
+            keysWithIndexes.push(v.path.toString())
+          );
+          console.log(`Result: ${expectedKeys.length}`);
+          expect(keysWithIndexes.length).to.equal(expectedKeys.length);
+          expect(keysWithIndexes).to.have.members(expectedKeys);
+        }
+      )
+    );
+  }).timeout(50_000);
 
   async function setUpSingleValueFilter(): Promise<void> {
     await indexManager.addFieldIndex(

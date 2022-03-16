@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
+import * as fc from 'fast-check';
 
 import {
   numberOfLeadingZerosInByte,
@@ -104,7 +105,12 @@ const STRING_TEST_CASES: Array<ValueTestCase<string>> = [
     '307f3c5a3c589e8c9b933c603d533d4a3a6c1d776e3c5d8c939b9e938c949b3c5a3c603d4a1d777d307ffffe'
   ),
   new ValueTestCase(
-    '†¥¬´´`',
+    '',
+    'e280a0c2a5c2acc2b4c2b4600001',
+    '1d7f5f3d5a3d533d4b3d4b9ffffe'
+  ),
+  new ValueTestCase(
+    '𐀀',
     'e280a0c2a5c2acc2b4c2b4600001',
     '1d7f5f3d5a3d533d4b3d4b9ffffe'
   )
@@ -127,6 +133,32 @@ const BYTES_TEST_CASES: Array<ValueTestCase<Uint8Array>> = [
   new ValueTestCase(fromHex('ffffff'), 'ff00ff00ff000001', '00ff00ff00fffffe')
 ];
 
+function defaultCompare(left: any, right: any): number {
+  if(left === right) {
+    return 0;
+  }else if (left < right) {
+    return -1;
+  }else {
+    return 1;
+  }
+}
+
+function encodesWithOrder<T>(left: T, right: T, comparingFunc = defaultCompare) {
+  const leftBytes = getBytes(left);
+  const rightBytes = getBytes(right);
+  const cmp = comparingFunc(left, right);
+  if(cmp === 0) {
+    expect(compare(leftBytes.asc, rightBytes.asc)).to.equal(0);
+    expect(compare(leftBytes.desc, rightBytes.desc)).to.equal(0);
+  } else if (cmp < 0) {
+    expect(compare(leftBytes.asc, rightBytes.asc)).to.equal(-1);
+    expect(compare(leftBytes.desc, rightBytes.desc)).to.equal(1);
+  } else {
+    expect(compare(leftBytes.asc, rightBytes.asc)).to.equal(1);
+    expect(compare(leftBytes.desc, rightBytes.desc)).to.equal(-1);
+  }
+}
+
 describe('Ordered Code Writer', () => {
   it('computes number of leading zeros', () => {
     for (let i = 0; i < 0xff; ++i) {
@@ -148,6 +180,54 @@ describe('Ordered Code Writer', () => {
 
   it('orders numbers correctly', () => {
     verifyOrdering(NUMBER_TEST_CASES);
+  });
+
+  it.only('Prop: orders numbers correctly', () => {
+    fc.assert(fc.property(
+      fc.integer(), fc.integer(),
+      (left: number, right: number) => {
+        encodesWithOrder(left, right);
+      }), {numRuns: 10_000});
+    fc.assert(fc.property(
+      fc.integer(), fc.float(),
+      (left: number, right: number) => {
+        encodesWithOrder(left, right);
+      }), {numRuns: 10_000});
+    fc.assert(fc.property(
+      fc.float(), fc.float(),
+      (left: number, right: number) => {
+        encodesWithOrder(left, right);
+      }), {numRuns: 10_000});
+  });
+
+  it.only('Prop: orders strings correctly', () => {
+    expect("" > "𐀀").to.be.true;
+    // encodesWithOrder("", "𐀀");
+    fc.assert(fc.property(
+      fc.string(), fc.unicodeString(),
+      (left: string, right: string) => {
+        encodesWithOrder(left, right);
+      }), {numRuns: 10_000});
+    fc.assert(fc.property(
+      fc.unicodeString(), fc.unicodeString(),
+      (left: string, right: string) => {
+        encodesWithOrder(left, right);
+      }), {numRuns: 10_000});
+    /*
+    fc.assert(fc.property(
+      fc.unicodeString(), fc.fullUnicodeString(),
+      (left: string, right: string) => {
+        encodesWithOrder(left, right);
+      }), {numRuns: 10_000});
+     */
+  });
+
+  it.only('Prop: orders bytes correctly', () => {
+    fc.assert(fc.property(
+      fc.uint8Array(), fc.uint8Array(),
+      (left: Uint8Array, right: Uint8Array) => {
+        encodesWithOrder(left, right, compare);
+      }), {numRuns: 10_000});
   });
 
   it('converts strings to bits', () => {
