@@ -226,22 +226,25 @@ export class LocalDocumentsView {
       .next(batches => {
         for (const batch of batches) {
           batch.keys().forEach(key => {
-            let mask: FieldMask | null = masks.has(key)
-              ? masks.get(key)!
-              : FieldMask.empty();
-            mask = batch.applyToLocalView(docs.get(key)!, mask);
-            masks.set(key, mask);
-            if (documentsByBatchId.get(batch.batchId) === null) {
+            const baseDoc = docs.get(key);
+            if (baseDoc !== null) {
+              let mask: FieldMask | null = masks.has(key)
+                ? masks.get(key)!
+                : FieldMask.empty();
+              mask = batch.applyToLocalView(baseDoc, mask);
+              masks.set(key, mask);
+              if (documentsByBatchId.get(batch.batchId) === null) {
+                documentsByBatchId = documentsByBatchId.insert(
+                  batch.batchId,
+                  documentKeySet()
+                );
+              }
+              const newSet = documentsByBatchId.get(batch.batchId)!.add(key);
               documentsByBatchId = documentsByBatchId.insert(
                 batch.batchId,
-                documentKeySet()
+                newSet
               );
             }
-            const newSet = documentsByBatchId.get(batch.batchId)!.add(key);
-            documentsByBatchId = documentsByBatchId.insert(
-              batch.batchId,
-              newSet
-            );
           });
         }
       })

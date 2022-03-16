@@ -1801,6 +1801,25 @@ function genericLocalStoreTests(
     );
   });
 
+  it('can handle batch Ack when pending batches have other docs', () => {
+    // Prepare two batches, the first one will get rejected by the backend.
+    // When the first batch is rejected, overlay is recalculated with only the
+    // second batch, even though it has more documents than what is being
+    // rejected.
+    return expectLocalStore()
+      .afterMutations([patchMutation('foo/bar', { 'foo': 'bar' })])
+      .afterMutations([
+        setMutation('foo/bar', { 'foo': 'bar-set' }),
+        setMutation('foo/another', { 'foo': 'another' })
+      ])
+      .afterRejectingMutation()
+      .toContain(doc('foo/bar', 0, { 'foo': 'bar-set' }).setHasLocalMutations())
+      .toContain(
+        doc('foo/another', 0, { 'foo': 'another' }).setHasLocalMutations()
+      )
+      .finish();
+  });
+
   it('uses target mapping to execute queries', () => {
     if (gcIsEager) {
       return;
