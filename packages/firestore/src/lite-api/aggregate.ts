@@ -30,12 +30,12 @@ export interface CountAggregateFieldOptions {
 }
 
 export function count(options?: CountAggregateFieldOptions): AggregateField<number>;
-export function min(field: string | FieldPath): AggregateField<any>;
-export function max(field: string | FieldPath): AggregateField<any>;
+export function min(field: string | FieldPath): AggregateField;
+export function max(field: string | FieldPath): AggregateField;
 export function average(field: string | FieldPath): AggregateField<number>;
 export function sum(field: string | FieldPath): AggregateField<number>;
-export function first(field: string | FieldPath): AggregateField<any>;
-export function last(field: string | FieldPath): AggregateField<any>;
+export function first(field: string | FieldPath): AggregateField;
+export function last(field: string | FieldPath): AggregateField;
 
 export class AggregateQuery {
   private constructor();
@@ -45,7 +45,7 @@ export class AggregateQuery {
   readonly query: Query<DocumentData>;
 }
 
-export function aggregateQuery(query: Query<DocumentData>, field: AggregateField, ...fields: AggregateField[]): AggregateQuery;
+export function aggregateQuery(query: Query<unknown>, field: AggregateField, ...fields: AggregateField[]): AggregateQuery;
 
 export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery): boolean;
 
@@ -74,7 +74,7 @@ export class GroupByQuery {
 }
 
 export function groupByQuery(
-  query: Query<DocumentData>,
+  query: Query<unknown>,
   field: string | FieldPath,
   ...rest: (string | FieldPath | AggregateField | GroupByQueryConstraint)[]
 ): GroupByQuery;
@@ -96,26 +96,21 @@ export abstract class GroupByQueryConstraint {
   abstract readonly type: GroupByQueryConstraintType;
 }
 
-export function orderByGroup(
+export function groupOrderBy(
   field: string | FieldPath | AggregateField,
   directionStr: OrderByDirection = 'asc'
 ): GroupByQueryConstraint;
 
-export function limitGroups(limit: number): GroupByQueryConstraint;
-export function limitToLastGroups(limit: number): GroupByQueryConstraint;
-
-export function startAtGroup(snapshot: GroupSnapshot): GroupByQueryConstraint;
-export function startAtGroup(...fieldValues: unknown[]): GroupByQueryConstraint;
-export function startAfterGroup(snapshot: GroupSnapshot): GroupByQueryConstraint;
-export function startAfterGroup(...fieldValues: unknown[]): GroupByQueryConstraint;
-export function endAtGroup(snapshot: GroupSnapshot): GroupByQueryConstraint;
-export function endAtGroup(...fieldValues: unknown[]): GroupByQueryConstraint;
-export function endBeforeGroup(snapshot: GroupSnapshot): GroupByQueryConstraint;
-export function endBeforeGroup(...fieldValues: unknown[]): GroupByQueryConstraint;
-
-// TODO(dconeybe) Do we want to expose "group offset" in the client SDKs?
-// The normal document queries do NOT expose "offset".
-export function groupOffset(offset: number): GroupByQueryConstraint;
+export function groupLimit(limit: number): GroupByQueryConstraint;
+export function groupLimitToLast(limit: number): GroupByQueryConstraint;
+export function groupStartAt(snapshot: GroupSnapshot): GroupByQueryConstraint;
+export function groupStartAt(...fieldValues: unknown[]): GroupByQueryConstraint;
+export function groupStartAfter(snapshot: GroupSnapshot): GroupByQueryConstraint;
+export function groupStartAfter(...fieldValues: unknown[]): GroupByQueryConstraint;
+export function groupEndAt(snapshot: GroupSnapshot): GroupByQueryConstraint;
+export function groupEndAt(...fieldValues: unknown[]): GroupByQueryConstraint;
+export function groupEndBefore(snapshot: GroupSnapshot): GroupByQueryConstraint;
+export function groupEndBefore(...fieldValues: unknown[]): GroupByQueryConstraint;
 
 export function getGroups(query: GroupByQuery): Promise<GroupByQuerySnapshot>;
 
