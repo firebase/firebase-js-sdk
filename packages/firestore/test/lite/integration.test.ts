@@ -62,8 +62,7 @@ import {
   UpdateData
 } from '../../src/lite-api/reference';
 import {
-  aggregate,
-  AggregateField, AggregateQuery, aggregateQueryEqual, AggregateQuerySnapshot, aggregateSnapshotEqual, average, count, endAtGroup, endBeforeGroup, first, getAggregate, getGroups, groupByQuery, groupByQueryEqual, GroupByQuerySnapshot, groupByQuerySnapshotEqual, GroupSnapshot, last, limitGroups, limitToLastGroups, max, min, orderByGroup, startAfterGroup, startAtGroup, sum
+  AggregateField, aggregateQuery, AggregateQuery, aggregateQueryEqual, AggregateQuerySnapshot, aggregateSnapshotEqual, average, count, endAtGroup, endBeforeGroup, first, getAggregate, getGroups, groupByQuery, groupByQueryEqual, GroupByQuerySnapshot, groupByQuerySnapshotEqual, groupOffset, GroupSnapshot, last, limitGroups, limitToLastGroups, max, min, orderByGroup, startAfterGroup, startAtGroup, sum
 } from '../../src/lite-api/aggregate';
 import {
   addDoc,
@@ -79,6 +78,7 @@ import {
   QueryDocumentSnapshot
 } from '../../src/lite-api/snapshot';
 import { Timestamp } from '../../src/lite-api/timestamp';
+import { documentId } from '../../src/lite-api/field_path';
 import { runTransaction } from '../../src/lite-api/transaction';
 import { writeBatch } from '../../src/lite-api/write_batch';
 import {
@@ -99,6 +99,152 @@ import {
 } from './helpers';
 
 use(chaiAsPromised);
+
+
+class AggregateDemo {
+
+  constructor(readonly db: Firestore) {
+  }
+
+  async Demo1A_CountOfDocumentsInACollection() {
+    const query1 = collection(this.db, 'games', 'halo', 'players');
+    const snapshot = await getAggregate(aggregateQuery(query1, count()));
+    expect(snapshot.get(count())).to.equal(5000000);
+  }
+
+  async Demo1B_LimitNumberOfDocumentsScannedWithLimit() {
+    // Limit the work / documents scanned by restricting underlying query.
+    const collection1 = collection(this.db, 'games', 'halo', 'players');
+    const query1 = query(collection1, limit(1000));
+    const snapshot = await getAggregate(aggregateQuery(query1, count()));
+    expect(snapshot.get(count())).to.equal(1000);
+  }
+
+  async Demo1C_LimitNumberOfDocumentsScannedWithUpTo() {
+    // Limit the work / documents scanned by specifying upTo on the aggregation.
+    const query1 = collection(this.db, 'games', 'halo', 'players');
+    const snapshot = await getAggregate(aggregateQuery(query1, count({ upTo: 1000})));
+    expect(snapshot.get(count())).to.equal(1000);
+  }
+  
+  async Demo2_GroupBySupport() {
+    const collectionGroup1 = collectionGroup(this.db, 'players');
+    const query1 = query(collectionGroup1, where('state', '==', 'active'));
+    const snapshot = await getGroups(groupByQuery(query1, 'game', count()));
+    expect(snapshot.empty).to.be.false;
+    expect(snapshot.size).to.equal(3);
+    expect(snapshot.groups).to.have.length(3);
+    expect(snapshot.groups[0].get('game')).to.equal('cyber_punk');
+    expect(snapshot.groups[0].get(count())).to.equal(5);
+    expect(snapshot.groups[1].get('game')).to.equal('halo');
+    expect(snapshot.groups[1].get(count())).to.equal(55);
+    expect(snapshot.groups[2].get('game')).to.equal('mine_craft');
+    expect(snapshot.groups[2].get(count())).to.equal(5000000);
+  }
+
+  async Demo3_FieldRenamingAliasing() {
+    // Aliasing / renaming of aggregations is not exposed from the API surface.
+    // I've requested that the proto allow non-aggregate fields to also be
+    // aliased so that the implementation of the Firestore clients can rename
+    // both aggregate and non-aggregate fields to guarantee that there is NEVER
+    // a conflict.
+  }
+
+  async Demo4_LimitTheNumberOfDocumentsScanned() {
+    // This is a duplicate of Demo1B_LimitNumberOfDocumentsScannedWithLimit.
+  }
+
+  async Demo5_LimitAggregationBuckets() {
+    const collectionGroup1 = collectionGroup(this.db, 'players');
+    const snapshot = await getGroups(groupByQuery(collectionGroup1, 'game',
+      count(), limitGroups(1), groupOffset(1)));
+    expect(snapshot.size).to.equal(1);
+    expect(snapshot.groups[0].get('game')).to.equal('halo');
+    expect(snapshot.groups[0].get(count())).to.equal(55);
+  }
+
+  async Demo6_LimitWorkPerAggregationBucket() {
+    const query1 = collection(this.db, 'games', 'halo', 'players');
+    const snapshot = await getGroups(groupByQuery(query1, 'game', count({ upTo: 50})));
+    expect(snapshot.size).to.equal(3);
+    expect(snapshot.groups[0].get('game')).to.equal('cyber_punk');
+    expect(snapshot.groups[0].get(count())).to.equal(5);
+    expect(snapshot.groups[1].get('game')).to.equal('halo');
+    expect(snapshot.groups[1].get(count())).to.equal(50); // count is capped at 50
+    expect(snapshot.groups[2].get('game')).to.equal('mine_craft');
+    expect(snapshot.groups[2].get(count())).to.equal(50); // count is capped at 50
+  }
+
+  async Demo7_OffsetOnNonGroupByQuery() {
+    // The API does not provide a way to specify an offset for a non-group-by query.
+  }
+
+  async Demo8_PaginationOverAggregationBuckets() {
+    const collectionGroup1 = collectionGroup(this.db, 'players');
+    const query1 = query(collectionGroup1, where('state', '==', 'active'));
+    // orderBy('game') is implied by the group by
+    const snapshot = await getGroups(groupByQuery(query1, 'game', count(),
+      startAfterGroup('cyber_punk')));
+    expect(snapshot.size).to.equal(2);
+    expect(snapshot.groups[0].get('game')).to.equal('halo');
+    expect(snapshot.groups[0].get(count())).to.equal(55);
+    expect(snapshot.groups[1].get('game')).to.equal('mine_craft');
+    expect(snapshot.groups[1].get(count())).to.equal(5000000);
+  }
+
+  async Demo9A_ResumeTokens() {
+    const collectionGroup1 = collectionGroup(this.db, 'players');
+    const baseQuery = query(collectionGroup1, orderBy(documentId()), limit(1000));
+    let playerCount = 0;
+
+    let query1 = baseQuery;
+    while (true) {
+      const aggregateQuery1 = aggregateQuery(query1, count(), last(documentId()));
+      const snapshot = await getAggregate(aggregateQuery1);
+      const count1 = snapshot.get(count());
+      playerCount = playerCount + count1;
+
+      if (count1 < 1000) {
+        break;
+      }
+
+      const lastDocumentId = snapshot.get(last(documentId()));
+      query1 = query(query1, startAfter(lastDocumentId));
+    }
+
+    console.log(`There are ${playerCount} players`)
+  }
+
+  async Demo9B_ResumeTokensWithGroupBy() {
+    const collectionGroup1 = collectionGroup(this.db, 'players');
+    const baseQuery = query(collectionGroup1, orderBy(documentId()), limit(1000));
+    const countByCountry = {};
+
+    let query1 = baseQuery;
+    while (true) {
+      const groupByQuery1 = groupByQuery(query1, 'country', count(), last(documentId()));
+      const snapshot = await getGroups(groupByQuery1);
+      let curTotalCount = 0;
+      let lastDocumentId: (string | null) = null;
+
+      for (const group of snapshot.groups) {
+        const country = group.get('country');
+        const countryCount = group.get(count()) as number;
+      }
+
+      query1 = query(query1, startAfter(lastDocumentId));
+    }
+  }
+
+}
+
+
+
+
+
+
+
+
 
 describe('Firestore', () => {
   it('can provide setting', () => {

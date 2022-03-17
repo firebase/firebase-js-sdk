@@ -19,23 +19,23 @@ import {DocumentData, Query} from './reference';
 import {FieldPath} from './field_path';
 import {OrderByDirection} from './query';
 
-export class AggregateField {
+export class AggregateField<T> {
   private constructor();
 
-  isEqual(other: AggregateField): boolean;
+  isEqual(other: AggregateField<T>): boolean;
 }
 
 export interface CountAggregateFieldOptions {
   readonly upTo?: number;
 }
 
-export function count(options?: CountAggregateFieldOptions): AggregateField;
-export function min(field: string | FieldPath): AggregateField;
-export function max(field: string | FieldPath): AggregateField;
-export function average(field: string | FieldPath): AggregateField;
-export function sum(field: string | FieldPath): AggregateField;
-export function first(field: string | FieldPath): AggregateField;
-export function last(field: string | FieldPath): AggregateField;
+export function count(options?: CountAggregateFieldOptions): AggregateField<number>;
+export function min(field: string | FieldPath): AggregateField<any>;
+export function max(field: string | FieldPath): AggregateField<any>;
+export function average(field: string | FieldPath): AggregateField<number>;
+export function sum(field: string | FieldPath): AggregateField<number>;
+export function first(field: string | FieldPath): AggregateField<any>;
+export function last(field: string | FieldPath): AggregateField<any>;
 
 export class AggregateQuery {
   private constructor();
@@ -43,7 +43,7 @@ export class AggregateQuery {
   readonly query: Query<DocumentData>;
 }
 
-export function aggregate(query: Query<DocumentData>, field: AggregateField, ...fields: AggregateField[]): AggregateQuery;
+export function aggregateQuery(query: Query<DocumentData>, field: AggregateField, ...fields: AggregateField[]): AggregateQuery;
 
 export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery): boolean;
 
@@ -56,7 +56,7 @@ export class AggregateQuerySnapshot {
 
   readonly aggregations: Array<AggregateField>;
 
-  get(field: AggregateField): any;
+  get<T>(field: AggregateField<T>): T;
 }
 
 export function aggregateSnapshotEqual<T>(left: AggregateQuerySnapshot, right: AggregateQuerySnapshot): boolean;
