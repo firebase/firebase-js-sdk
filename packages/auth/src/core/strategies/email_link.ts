@@ -31,6 +31,8 @@ import { signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { getModularInstance } from '@firebase/util';
+import { _castAuth } from '../auth/auth_impl';
+import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 /**
  * Sends a sign-in email link to the user with the specified email.
@@ -75,21 +77,38 @@ export async function sendSignInLinkToEmail(
   email: string,
   actionCodeSettings: ActionCodeSettings
 ): Promise<void> {
-  const authModular = getModularInstance(auth);
+  const authInternal = _castAuth(auth);
   const request: api.EmailSignInRequest = {
     requestType: ActionCodeOperation.EMAIL_SIGNIN,
     email
   };
-  _assert(
-    actionCodeSettings.handleCodeInApp,
-    authModular,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
-  if (actionCodeSettings) {
-    _setActionCodeSettingsOnRequest(authModular, request, actionCodeSettings);
+  function setActionCodeSettings(request: api.EmailSignInRequest, actionCodeSettings: ActionCodeSettings): void {
+    _assert(
+      actionCodeSettings.handleCodeInApp,
+      authInternal,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
+    if (actionCodeSettings) {
+      _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
+    }
   }
-
-  await api.sendSignInLinkToEmail(authModular, request);
+  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
+    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, 'signInWithEmailLink', true);
+    setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
+    await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
+  } else {
+    setActionCodeSettings(request, actionCodeSettings);
+    await api.sendSignInLinkToEmail(authInternal, request).catch(async (error) => {
+      if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
+        console.log("Sign in with email link is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign in flow.");
+        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, 'signInWithEmailLink', true);
+        setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
+        await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
+      } else {
+        return Promise.reject(error);
+      }
+    });
+  }
 }
 
 /**

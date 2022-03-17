@@ -25,7 +25,7 @@ import {
 
 import * as account from '../../api/account_management/email_and_password';
 import * as authentication from '../../api/authentication/email_and_password';
-import { signUp } from '../../api/authentication/sign_up';
+import { signUp, SignUpRequest } from '../../api/authentication/sign_up';
 import { MultiFactorInfoImpl } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
@@ -36,6 +36,8 @@ import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
+import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { IdTokenResponse } from '../../model/id_token';
 
 /**
  * Sends a password reset email to the given email address.
@@ -74,16 +76,34 @@ export async function sendPasswordResetEmail(
   email: string,
   actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
-  const authModular = getModularInstance(auth);
+  const authInternal = _castAuth(auth);
   const request: authentication.PasswordResetRequest = {
     requestType: ActionCodeOperation.PASSWORD_RESET,
     email
   };
-  if (actionCodeSettings) {
-    _setActionCodeSettingsOnRequest(authModular, request, actionCodeSettings);
+  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
+    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, 'sendPasswordResetEmail', true);
+    if (actionCodeSettings) {
+      _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
+    }
+    await authentication.sendPasswordResetEmail(authInternal, requestWithRecaptcha);
+  } else {
+    if (actionCodeSettings) {
+      _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
+    }
+    await authentication.sendPasswordResetEmail(authInternal, request).catch(async (error) => {
+      if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
+        console.log("Pssword reset is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the password reset flow.");
+        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, 'sendPasswordResetEmail', true);
+        if (actionCodeSettings) {
+          _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
+        }
+        await authentication.sendPasswordResetEmail(authInternal, requestWithRecaptcha);
+      } else {
+        return Promise.reject(error);
+      }
+    });
   }
-
-  await authentication.sendPasswordResetEmail(authModular, request);
 }
 
 /**
@@ -227,10 +247,29 @@ export async function createUserWithEmailAndPassword(
   password: string
 ): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
-  const response = await signUp(authInternal, {
+  const request: SignUpRequest = {
     returnSecureToken: true,
     email,
     password
+  };
+  let signUpResponse: Promise<IdTokenResponse>;
+  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
+    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, 'signUp');
+    signUpResponse = signUp(authInternal, requestWithRecaptcha);
+  } else {
+    signUpResponse = signUp(authInternal, request).catch(async (error) => {
+      if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
+        console.log("Sign up is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign up flow.");
+        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, 'signUp');
+        return signUp(authInternal, requestWithRecaptcha);
+      } else {
+        return Promise.reject(error);
+      }
+    });
+  }
+  
+  const response = await signUpResponse.catch((error) => {
+    return Promise.reject(error);
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(

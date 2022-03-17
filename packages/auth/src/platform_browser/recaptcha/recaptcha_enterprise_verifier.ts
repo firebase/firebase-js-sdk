@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import { _window } from '../auth_window';
 import { isEnterprise } from './recaptcha';
 import {
   getRecaptchaConfig
@@ -47,6 +46,11 @@ export class RecaptchaEnterpriseVerifier {
    */
   static siteKeys: Record<string, string>;
 
+  /**
+   * Stores the recaptcha site key for agent.
+   */
+   static agentSiteKey: string | null;
+
   private readonly auth: AuthInternal;
 
   /**
@@ -65,17 +69,31 @@ export class RecaptchaEnterpriseVerifier {
    *
    * @returns A Promise for a token that can be used to assert the validity of a request.
    */
-  async verify(): Promise<string> {
+  async verify(action: string = 'verify', forceRefresh = false): Promise<string> {
     async function retrieveSiteKey(auth: AuthInternal): Promise<string> {
+      if (!forceRefresh) {
+        if (auth.tenantId == null && RecaptchaEnterpriseVerifier.agentSiteKey != null) {
+          return RecaptchaEnterpriseVerifier.agentSiteKey;
+        }
+        if (auth.tenantId != null && RecaptchaEnterpriseVerifier.agentSiteKey !== undefined) {
+          return RecaptchaEnterpriseVerifier.siteKeys[auth.tenantId];
+        }
+      }
+      
       return new Promise<string>(async (resolve, reject) => {
         getRecaptchaConfig(auth, {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         }).then((response) => {
           if (response.recaptchaKey === undefined) {
-            reject("recaptchaKey undefined");
+            reject(new Error("recaptchaKey undefined"));
           } else {
             const siteKey = response.recaptchaKey.split('/')[3];
+            if (auth.tenantId == null) {
+              RecaptchaEnterpriseVerifier.agentSiteKey = siteKey;
+            } else {
+              RecaptchaEnterpriseVerifier.siteKeys[auth.tenantId] = siteKey;
+            }
             return resolve(siteKey);
           }
         }).catch((error) => {
@@ -85,16 +103,20 @@ export class RecaptchaEnterpriseVerifier {
     }
 
     function retrieveRecaptchaToken(siteKey: string, resolve: (value: string | PromiseLike<string>) => void, reject: (reason?: unknown) => void): void {
-      const grecaptcha = _window().grecaptcha;
+      const grecaptcha = window.grecaptcha;
       if (isEnterprise(grecaptcha)) {
         grecaptcha.enterprise.ready(() => {
-          grecaptcha.enterprise.execute(siteKey, { action: 'login' })
+          try {
+            grecaptcha.enterprise.execute(siteKey, { action })
             .then((token) => {
               resolve(token);
             })
             .catch((error) => {
               reject(error);
-            });;
+            });
+          } catch(error) {
+            reject(error);
+          }
         });
       } else {
         reject(Error('No reCAPTCHA enterprise script loaded.'));
@@ -103,7 +125,7 @@ export class RecaptchaEnterpriseVerifier {
 
     return new Promise<string>((resolve, reject) => {
       retrieveSiteKey(this.auth).then((siteKey) => {
-        if (isEnterprise(_window().grecaptcha)) {
+        if (!forceRefresh && isEnterprise(window.grecaptcha)) {
           retrieveRecaptchaToken(siteKey, resolve, reject);
         } else {
           jsHelpers._loadJS(RECAPTCHA_ENTERPRISE_URL + siteKey)
@@ -119,4 +141,23 @@ export class RecaptchaEnterpriseVerifier {
       });
     });
   }
+}
+
+export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T, action: string, captchaResp = false): Promise<T> {
+  const verifier = new RecaptchaEnterpriseVerifier(auth);
+  let captchaResponse;
+  try {
+    captchaResponse = await verifier.verify(action);
+  } catch (error) {
+    captchaResponse = await verifier.verify(action, true);
+  }
+  const newRequest = { ...request };
+  if (!captchaResp) {
+    Object.assign(newRequest, {captchaResponse});
+  } else {
+    Object.assign(newRequest, {'captchaResp': captchaResponse});
+  }
+  Object.assign(newRequest, {'clientType': RecaptchaClientType.WEB});
+  Object.assign(newRequest, {'recaptchaVersion': RecaptchaVersion.ENTERPRISE});
+  return newRequest;
 }
