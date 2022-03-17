@@ -18,7 +18,8 @@
 import { Target } from '../../../src/core/target';
 import { IndexManager } from '../../../src/local/index_manager';
 import { Persistence } from '../../../src/local/persistence';
-import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
+import { DocumentMap } from '../../../src/model/collections';
+import { DocumentKey } from '../../../src/model/document_key';
 import { FieldIndex, IndexOffset } from '../../../src/model/field_index';
 import { ResourcePath } from '../../../src/model/path';
 
@@ -76,7 +77,7 @@ export class TestIndexManager {
     );
   }
 
-  getDocumentsMatchingTarget(target: Target): Promise<DocumentKeySet | null> {
+  getDocumentsMatchingTarget(target: Target): Promise<DocumentKey[] | null> {
     return this.persistence.runTransaction(
       'getDocumentsMatchingTarget',
       'readonly',

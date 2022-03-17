@@ -285,9 +285,16 @@ export const DbIndexStateSequenceNumberIndexPath = ['uid', 'sequenceNumber'];
 /**
  * The key for each index entry consists of the index id and its user id,
  * the encoded array and directional value for the indexed fields as well as
- * the encoded document path for the indexed document.
+ * an ordered and an encoded document path for the indexed document.
  */
-export type DbIndexEntryKey = [number, string, Uint8Array, Uint8Array, string];
+export type DbIndexEntryKey = [
+  number,
+  string,
+  Uint8Array,
+  Uint8Array,
+  Uint8Array,
+  string
+];
 
 /** Name of the IndexedDb object store. */
 export const DbIndexEntryStore = 'indexEntries';
@@ -297,6 +304,7 @@ export const DbIndexEntryKeyPath = [
   'uid',
   'arrayValue',
   'directionalValue',
+  'orderedDocumentKey',
   'documentKey'
 ];
 

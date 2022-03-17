@@ -737,6 +737,152 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(q);
   });
 
+  it('supports order by key', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['count', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['count', IndexKind.DESCENDING]] })
+    );
+    await addDoc('coll/val1a', { 'count': 1 });
+    await addDoc('coll/val1b', { 'count': 1 });
+    await addDoc('coll/val2', { 'count': 2 });
+
+    let q = queryWithAddedOrderBy(query('coll'), orderBy('count'));
+    await verifyResults(q, 'coll/val1a', 'coll/val1b', 'coll/val2');
+
+    q = queryWithAddedOrderBy(query('coll'), orderBy('count', 'desc'));
+    await verifyResults(q, 'coll/val2', 'coll/val1b', 'coll/val1a');
+  });
+
+  it('supports ascending order with greater than filter', async () => {
+    await setUpMultipleOrderBys();
+
+    const originalQuery = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('a', '==', 2)),
+          filter('b', '==', 2)
+        ),
+        filter('c', '<', 5)
+      ),
+      orderBy('c', 'asc')
+    );
+    const queryWithNonRestrictedBound = queryWithEndAt(
+      queryWithStartAt(originalQuery, bound([1], /* inclusive= */ false)),
+      bound([6], /* inclusive= */ false)
+    );
+    const queryWithRestrictedBound = queryWithEndAt(
+      queryWithStartAt(originalQuery, bound([2], /* inclusive= */ false)),
+      bound([4], /* inclusive= */ false)
+    );
+
+    await verifyResults(originalQuery, 'coll/val2', 'coll/val3', 'coll/val4');
+    await verifyResults(
+      queryWithNonRestrictedBound,
+      'coll/val2',
+      'coll/val3',
+      'coll/val4'
+    );
+    await verifyResults(queryWithRestrictedBound, 'coll/val3');
+  });
+
+  it('supports descending order with less than filter', async () => {
+    await setUpMultipleOrderBys();
+
+    const originalQuery = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('a', '==', 2)),
+          filter('b', '==', 2)
+        ),
+        filter('c', '<', 5)
+      ),
+      orderBy('c', 'desc')
+    );
+    const queryWithNonRestrictedBound = queryWithEndAt(
+      queryWithStartAt(originalQuery, bound([6], /* inclusive= */ false)),
+      bound([1], /* inclusive= */ false)
+    );
+    const queryWithRestrictedBound = queryWithEndAt(
+      queryWithStartAt(originalQuery, bound([4], /* inclusive= */ false)),
+      bound([2], /* inclusive= */ false)
+    );
+
+    await verifyResults(originalQuery, 'coll/val4', 'coll/val3', 'coll/val2');
+    await verifyResults(
+      queryWithNonRestrictedBound,
+      'coll/val4',
+      'coll/val3',
+      'coll/val2'
+    );
+    await verifyResults(queryWithRestrictedBound, 'coll/val3');
+  });
+
+  it('supports ascending order with greater than filter', async () => {
+    await setUpMultipleOrderBys();
+
+    const originalQuery = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('a', '==', 2)),
+          filter('b', '==', 2)
+        ),
+        filter('c', '>', 2)
+      ),
+      orderBy('c', 'asc')
+    );
+    const queryWithNonRestrictedBound = queryWithEndAt(
+      queryWithStartAt(originalQuery, bound([2], /* inclusive= */ false)),
+      bound([6], /* inclusive= */ false)
+    );
+    const queryWithRestrictedBound = queryWithEndAt(
+      queryWithStartAt(originalQuery, bound([3], /* inclusive= */ false)),
+      bound([5], /* inclusive= */ false)
+    );
+
+    await verifyResults(originalQuery, 'coll/val3', 'coll/val4', 'coll/val5');
+    await verifyResults(
+      queryWithNonRestrictedBound,
+      'coll/val3',
+      'coll/val4',
+      'coll/val5'
+    );
+    await verifyResults(queryWithRestrictedBound, 'coll/val4');
+  });
+
+  it('supports descending order with greater than filter', async () => {
+    await setUpMultipleOrderBys();
+
+    const originalQuery = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('a', '==', 2)),
+          filter('b', '==', 2)
+        ),
+        filter('c', '>', 2)
+      ),
+      orderBy('c', 'desc')
+    );
+    const queryWithNonRestrictedBound = queryWithEndAt(
+      queryWithStartAt(originalQuery, bound([6], /* inclusive= */ false)),
+      bound([2], /* inclusive= */ false)
+    );
+    const queryWithRestrictedBound = queryWithEndAt(
+      queryWithStartAt(originalQuery, bound([5], /* inclusive= */ false)),
+      bound([3], /* inclusive= */ false)
+    );
+
+    await verifyResults(originalQuery, 'coll/val5', 'coll/val4', 'coll/val3');
+    await verifyResults(
+      queryWithNonRestrictedBound,
+      'coll/val5',
+      'coll/val4',
+      'coll/val3'
+    );
+    await verifyResults(queryWithRestrictedBound, 'coll/val4');
+  });
+
   it('support advances queries', async () => {
     // This test compares local query results with those received from the Java
     // Server SDK.
@@ -892,6 +1038,7 @@ describe('IndexedDbIndexManager', async () => {
       queryWithAddedFilter(q, filter('string', '==', 'a')),
       'coll/{float:-0,string:a}'
     );
+
     await verifyResults(
       queryWithAddedFilter(q, filter('string', '>', 'a')),
       'coll/{float:0,string:ab}',
@@ -933,9 +1080,9 @@ describe('IndexedDbIndexManager', async () => {
         filter('array', 'array-contains-any', [1, 'foo'])
       ),
       'coll/{array:[1,foo],int:1}',
+      'coll/{array:[1]}',
       'coll/{array:[2,foo]}',
-      'coll/{array:[3,foo],int:3}',
-      'coll/{array:[1]}'
+      'coll/{array:[3,foo],int:3}'
     );
     await verifyResults(
       queryWithAddedFilter(q, filter('multi', '>=', true)),
@@ -983,8 +1130,8 @@ describe('IndexedDbIndexManager', async () => {
         bound([[2]], true)
       ),
       'coll/{array:[1,foo],int:1}',
-      'coll/{array:foo}',
-      'coll/{array:[1]}'
+      'coll/{array:[1]}',
+      'coll/{array:foo}'
     );
     await verifyResults(
       queryWithLimit(
@@ -1012,8 +1159,8 @@ describe('IndexedDbIndexManager', async () => {
         bound([[2]], false)
       ),
       'coll/{array:[1,foo],int:1}',
-      'coll/{array:foo}',
-      'coll/{array:[1]}'
+      'coll/{array:[1]}',
+      'coll/{array:foo}'
     );
     await verifyResults(
       queryWithLimit(
@@ -1040,8 +1187,8 @@ describe('IndexedDbIndexManager', async () => {
         bound([[2, 'foo']], false)
       ),
       'coll/{array:[1,foo],int:1}',
-      'coll/{array:foo}',
-      'coll/{array:[1]}'
+      'coll/{array:[1]}',
+      'coll/{array:foo}'
     );
     await verifyResults(
       queryWithLimit(
@@ -1060,26 +1207,26 @@ describe('IndexedDbIndexManager', async () => {
         queryWithAddedOrderBy(q, orderBy('array')),
         bound([[2]], true)
       ),
-      'coll/{array:[1,foo],int:1}',
       'coll/{array:foo}',
-      'coll/{array:[1]}'
+      'coll/{array:[1]}',
+      'coll/{array:[1,foo],int:1}'
     );
     await verifyResults(
       queryWithEndAt(
         queryWithAddedOrderBy(q, orderBy('array', 'desc')),
         bound([[2]], true)
       ),
-      'coll/{array:[2,foo]}',
-      'coll/{array:[3,foo],int:3}'
+      'coll/{array:[3,foo],int:3}',
+      'coll/{array:[2,foo]}'
     );
     await verifyResults(
       queryWithEndAt(
         queryWithAddedOrderBy(q, orderBy('array')),
         bound([[2]], false)
       ),
-      'coll/{array:[1,foo],int:1}',
       'coll/{array:foo}',
-      'coll/{array:[1]}'
+      'coll/{array:[1]}',
+      'coll/{array:[1,foo],int:1}'
     );
     await verifyResults(
       queryWithLimit(
@@ -1093,22 +1240,23 @@ describe('IndexedDbIndexManager', async () => {
       'coll/{array:foo}',
       'coll/{array:[1]}'
     );
+
     await verifyResults(
       queryWithEndAt(
         queryWithAddedOrderBy(q, orderBy('array', 'desc')),
         bound([[2]], false)
       ),
-      'coll/{array:[2,foo]}',
-      'coll/{array:[3,foo],int:3}'
+      'coll/{array:[3,foo],int:3}',
+      'coll/{array:[2,foo]}'
     );
     await verifyResults(
       queryWithEndAt(
         queryWithAddedOrderBy(q, orderBy('array')),
         bound([[2, 'foo']], false)
       ),
-      'coll/{array:[1,foo],int:1}',
       'coll/{array:foo}',
-      'coll/{array:[1]}'
+      'coll/{array:[1]}',
+      'coll/{array:[1,foo],int:1}'
     );
     await verifyResults(
       queryWithLimit(
@@ -1140,6 +1288,7 @@ describe('IndexedDbIndexManager', async () => {
       ),
       'coll/{a:0,b:0}'
     );
+
     await verifyResults(
       queryWithLimit(
         queryWithAddedOrderBy(
@@ -1257,13 +1406,13 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(
       queryWithAddedOrderBy(q, orderBy('map')),
       'coll/{map:{}}',
-      'coll/{map:{field:true}}',
-      'coll/{map:{field:false}}'
+      'coll/{map:{field:false}}',
+      'coll/{map:{field:true}}'
     );
     await verifyResults(
       queryWithAddedOrderBy(q, orderBy('map.field')),
-      'coll/{map:{field:true}}',
-      'coll/{map:{field:false}}'
+      'coll/{map:{field:false}}',
+      'coll/{map:{field:true}}'
     );
   });
 
@@ -1285,6 +1434,33 @@ describe('IndexedDbIndexManager', async () => {
     await addDoc('coll/arr3', { 'values': [7, 8, 9] });
   }
 
+  async function setUpMultipleOrderBys(): Promise<void> {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', {
+        fields: [
+          ['a', IndexKind.ASCENDING],
+          ['b', IndexKind.DESCENDING],
+          ['c', IndexKind.ASCENDING]
+        ]
+      })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', {
+        fields: [
+          ['a', IndexKind.DESCENDING],
+          ['b', IndexKind.ASCENDING],
+          ['c', IndexKind.DESCENDING]
+        ]
+      })
+    );
+    await addDoc('coll/val1', { 'a': 1, 'b': 1, 'c': 3 });
+    await addDoc('coll/val2', { 'a': 2, 'b': 2, 'c': 2 });
+    await addDoc('coll/val3', { 'a': 2, 'b': 2, 'c': 3 });
+    await addDoc('coll/val4', { 'a': 2, 'b': 2, 'c': 4 });
+    await addDoc('coll/val5', { 'a': 2, 'b': 2, 'c': 5 });
+    await addDoc('coll/val6', { 'a': 3, 'b': 3, 'c': 6 });
+  }
+
   function addDocs(...docs: Document[]): Promise<void> {
     let data = documentMap();
     for (const doc of docs) {
@@ -1303,7 +1479,7 @@ describe('IndexedDbIndexManager', async () => {
     expect(actualResults).to.not.equal(null, 'Expected successful query');
     const actualKeys: string[] = [];
     actualResults!.forEach(v => actualKeys.push(v.path.toString()));
-    expect(actualKeys).to.have.members(keys);
+    expect(actualKeys).to.have.ordered.members(keys);
   }
 });
 

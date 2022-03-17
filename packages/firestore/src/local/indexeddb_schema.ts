@@ -502,6 +502,10 @@ export interface DbIndexState {
 
 /** An object that stores the encoded entries for all documents and fields. */
 export interface DbIndexEntry {
+  // TODO(indexing): Consider just storing `orderedDocumentKey` and decoding
+  // the ordered key into a document key. This would reduce storage space on
+  // disk but require us to port parts of OrderedCodeReader.
+
   /** The index id for this entry. */
   indexId: number;
   /** The user id for this entry. */
@@ -510,6 +514,11 @@ export interface DbIndexEntry {
   arrayValue: Uint8Array;
   /** The encoded directional value for equality and inequality filters. */
   directionalValue: Uint8Array;
+  /**
+   * The document key this entry points to. This entry is encoded by an ordered
+   * encoder to match the key order of the index.
+   */
+  orderedDocumentKey: Uint8Array;
   /** The document key this entry points to. */
   documentKey: EncodedResourcePath;
 }
