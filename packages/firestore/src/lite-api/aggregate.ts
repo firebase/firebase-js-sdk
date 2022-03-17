@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import {DocumentData, Query} from './reference';
+import {DocumentData, DocumentFieldValue, Query} from './reference';
 import {FieldPath} from './field_path';
 import {OrderByDirection} from './query';
 
-export class AggregateField<T> {
+export class AggregateField<T = DocumentFieldValue> {
   private constructor();
 
-  isEqual(other: AggregateField<T>): boolean;
+  isEqual(other: AggregateField): boolean;
 }
 
 export interface CountAggregateFieldOptions {
@@ -40,6 +40,8 @@ export function last(field: string | FieldPath): AggregateField<any>;
 export class AggregateQuery {
   private constructor();
 
+  readonly type = "aggregate_query";
+
   readonly query: Query<DocumentData>;
 }
 
@@ -52,9 +54,11 @@ export function getAggregate(query: AggregateQuery): Promise<AggregateQuerySnaps
 export class AggregateQuerySnapshot {
   private constructor();
 
+  readonly type = "aggregate_query_snapshot";
+
   readonly query: AggregateQuery;
 
-  readonly aggregations: Array<AggregateField>;
+  get aggregations(): Array<AggregateField>;
 
   get<T>(field: AggregateField<T>): T;
 }
@@ -64,10 +68,17 @@ export function aggregateSnapshotEqual<T>(left: AggregateQuerySnapshot, right: A
 export class GroupByQuery {
   private constructor();
 
+  readonly type = "group_by_query";
+
   readonly query: Query<DocumentData>;
 }
 
-export function groupByQuery(query: Query<DocumentData>, field: string | FieldPath, ...rest: (string | FieldPath | AggregateField | GroupByQueryConstraint)[]): GroupByQuery;
+export function groupByQuery(
+  query: Query<DocumentData>,
+  field: string | FieldPath,
+  ...rest: (string | FieldPath | AggregateField | GroupByQueryConstraint)[]
+): GroupByQuery;
+
 export function groupByQuery(query: GroupByQuery, ...constraints: GroupByQueryConstraint[]): GroupByQuery;
 
 export function groupByQueryEqual(left: GroupByQuery, right: GroupByQuery): boolean;
@@ -111,6 +122,8 @@ export function getGroups(query: GroupByQuery): Promise<GroupByQuerySnapshot>;
 export class GroupByQuerySnapshot {
   private constructor();
 
+  readonly type = "group_by_query_snapshot";
+
   readonly query: GroupByQuery;
 
   get groups(): Array<GroupSnapshot>;
@@ -130,11 +143,15 @@ export function groupByQuerySnapshotEqual(left: GroupByQuerySnapshot, right: Gro
 export class GroupSnapshot {
   private constructor();
 
-  readonly aggregations: Array<AggregateField>;
+  readonly type = "group_snapshot";
 
-  readonly fields: Array<FieldPath>;
+  get aggregations(): Array<AggregateField>;
 
-  get(field: string | FieldPath | AggregateField): any;
+  get fields(): Array<FieldPath>;
+
+  get(field: string | FieldPath): any;
+  get<T>(field: AggregateField<T>): T;
+
 }
 
 export function groupSnapshotEqual(left: GroupSnapshot, right: GroupSnapshot): boolean;

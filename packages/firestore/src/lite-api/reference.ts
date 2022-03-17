@@ -40,6 +40,8 @@ import { FieldValue } from './field_value';
 import { FirestoreDataConverter } from './snapshot';
 import { NestedUpdateFields, Primitive } from './types';
 
+export type DocumentFieldValue = any;
+
 /**
  * Document data (for use with {@link @firebase/firestore/lite#(setDoc:1)}) consists of fields mapped to
  * values.
@@ -47,7 +49,7 @@ import { NestedUpdateFields, Primitive } from './types';
 export interface DocumentData {
   /** A mapping between a field and its value. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [field: string]: any;
+  [field: string]: DocumentFieldValue;
 }
 
 /**

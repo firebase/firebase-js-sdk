@@ -97,6 +97,7 @@ import {
   withTestDoc,
   withTestDocAndInitialData
 } from './helpers';
+import {fail} from '../../src/util/assert';
 
 use(chaiAsPromised);
 
@@ -209,7 +210,7 @@ class AggregateDemo {
       }
 
       const lastDocumentId = snapshot.get(last(documentId()));
-      query1 = query(query1, startAfter(lastDocumentId));
+      query1 = query(baseQuery, startAfter(lastDocumentId));
     }
 
     console.log(`There are ${playerCount} players`)
@@ -218,7 +219,7 @@ class AggregateDemo {
   async Demo9B_ResumeTokensWithGroupBy() {
     const collectionGroup1 = collectionGroup(this.db, 'players');
     const baseQuery = query(collectionGroup1, orderBy(documentId()), limit(1000));
-    const countByCountry = {};
+    const countByCountry: {[field: string]: number} = {};
 
     let query1 = baseQuery;
     while (true) {
@@ -228,11 +229,34 @@ class AggregateDemo {
       let lastDocumentId: (string | null) = null;
 
       for (const group of snapshot.groups) {
-        const country = group.get('country');
-        const countryCount = group.get(count()) as number;
+        const curCountry = group.get('country');
+        const curCountryCount = group.get(count());
+
+        if (curCountry in countByCountry) {
+          countByCountry[curCountry] = countByCountry[curCountry] + curCountryCount;
+        } else {
+          countByCountry[curCountry] = curCountryCount;
+        }
+
+        curTotalCount = curTotalCount + curCountryCount;
+
+        lastDocumentId = group.get(documentId());
+        if (lastDocumentId === null) {
+          if (curTotalCount > 0) {
+            fail("lastDocumentId should only be null if no documents were scanned");
+          }
+        }
       }
 
-      query1 = query(query1, startAfter(lastDocumentId));
+      if (curTotalCount < 1000) {
+        break;
+      }
+
+      query1 = query(baseQuery, startAfter(lastDocumentId));
+    }
+
+    for (const country in countByCountry) {
+      console.log(`${country} has ${countByCountry[country]} players`)
     }
   }
 
