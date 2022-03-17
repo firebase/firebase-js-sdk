@@ -1,5 +1,17 @@
 # @firebase/app
 
+## 0.7.19
+
+### Patch Changes
+
+- [`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03) [#6061](https://github.com/firebase/firebase-js-sdk/pull/6061) - Remove idb dependency and replace with our own code.
+
+* [`927c1afc1`](https://github.com/firebase/firebase-js-sdk/commit/927c1afc103e4f9b8a75320d3946a4c840445a2a) [#6039](https://github.com/firebase/firebase-js-sdk/pull/6039) - Fix heartbeat controller to ensure not sending more than one a day.
+
+* Updated dependencies [[`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03)]:
+  - @firebase/util@1.5.0
+  - @firebase/component@0.5.11
+
 ## 0.7.18
 
 ### Patch Changes
