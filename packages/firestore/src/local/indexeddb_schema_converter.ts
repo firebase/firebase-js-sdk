@@ -16,8 +16,9 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
+import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
-import { debugAssert, hardAssert } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import {
@@ -40,6 +41,11 @@ import {
   DbTargetGlobal,
   INDEXING_SCHEMA_VERSION
 } from './indexeddb_schema';
+import {
+  DbRemoteDocument as DbRemoteDocumentLegacy,
+  DbRemoteDocumentStore as DbRemoteDocumentStoreLegacy,
+  DbRemoteDocumentKey as DbRemoteDocumentKeyLegacy
+} from './indexeddb_schema_legacy';
 import {
   DbBundleKeyPath,
   DbBundleStore,
@@ -79,11 +85,14 @@ import {
   DbNamedQueryKeyPath,
   DbNamedQueryStore,
   DbPrimaryClientStore,
-  DbRemoteDocumentCollectionReadTimeIndex,
-  DbRemoteDocumentCollectionReadTimeIndexPath,
+  DbRemoteDocumentCollectionGroupIndex,
+  DbRemoteDocumentCollectionGroupIndexPath,
+  DbRemoteDocumentDocumentKeyIndex,
+  DbRemoteDocumentDocumentKeyIndexPath,
   DbRemoteDocumentGlobalKey,
   DbRemoteDocumentGlobalStore,
   DbRemoteDocumentKey,
+  DbRemoteDocumentKeyPath,
   DbRemoteDocumentReadTimeIndex,
   DbRemoteDocumentReadTimeIndexPath,
   DbRemoteDocumentStore,
@@ -140,7 +149,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       createPrimaryClientStore(db);
       createMutationQueue(db);
       createQueryCache(db);
-      createRemoteDocumentCache(db);
+      createLegacyRemoteDocumentCache(db);
     }
 
     // Migration 2 to populate the targetGlobal object no longer needed since
@@ -202,7 +211,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         // to the DbRemoteDocument object store itself. Since the previous change
         // log only contained transient data, we can drop its object store.
         dropRemoteDocumentChangesStore(db);
-        createRemoteDocumentReadTimeIndex(txn);
+
+        // Note: Schema version 9 used to create a read time index for the
+        // RemoteDocumentCache. This is now done with schema version 13.
       });
     }
 
@@ -224,6 +235,13 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 13 && toVersion >= 13) {
+      p = p
+        .next(() => createRemoteDocumentCache(db))
+        .next(() => this.rewriteRemoteDocumentCache(db, simpleDbTransaction))
+        .next(() => db.deleteObjectStore(DbRemoteDocumentStoreLegacy));
+    }
+
+    if (fromVersion < 14 && toVersion >= 14) {
       p = p.next(() => {
         createFieldIndex(db);
       });
@@ -237,7 +255,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
   ): PersistencePromise<void> {
     let byteSize = 0;
     return txn
-      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocumentStore)
+      .store<DbRemoteDocumentKeyLegacy, DbRemoteDocumentLegacy>(
+        DbRemoteDocumentStoreLegacy
+      )
       .iterate((_, doc) => {
         byteSize += dbDocumentSize(doc);
       })
@@ -301,9 +321,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       DbTargetDocumentKey,
       DbTargetDocument
     >(DbTargetDocumentStore);
-    const documentsStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-      DbRemoteDocumentStore
-    );
+    const documentsStore = txn.store<
+      DbRemoteDocumentKeyLegacy,
+      DbRemoteDocumentKeyLegacy
+    >(DbRemoteDocumentStoreLegacy);
     const globalTargetStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
       DbTargetGlobalStore
     );
@@ -373,7 +394,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     // Index existing remote documents.
     return txn
-      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocumentStore)
+      .store<DbRemoteDocumentKeyLegacy, DbRemoteDocumentLegacy>(
+        DbRemoteDocumentStoreLegacy
+      )
       .iterate({ keysOnly: true }, (pathSegments, _) => {
         const path = new ResourcePath(pathSegments);
         return addEntry(path.popLast());
@@ -400,6 +423,39 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       const updatedDbTarget = toDbTarget(this.serializer, originalTargetData);
       return targetStore.put(updatedDbTarget);
     });
+  }
+
+  private rewriteRemoteDocumentCache(
+    db: IDBDatabase,
+    transaction: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const legacyRemoteDocumentStore = transaction.store<
+      DbRemoteDocumentKeyLegacy,
+      DbRemoteDocumentLegacy
+    >(DbRemoteDocumentStoreLegacy);
+
+    const writes: Array<PersistencePromise<void>> = [];
+    return legacyRemoteDocumentStore
+      .iterate((_, legacyDocument) => {
+        const remoteDocumentStore = transaction.store<
+          DbRemoteDocumentKey,
+          DbRemoteDocument
+        >(DbRemoteDocumentStore);
+
+        const path = extractKey(legacyDocument).path.toArray();
+        const dbRemoteDocument = {
+          prefixPath: path.slice(0, path.length - 2),
+          collectionGroup: path[path.length - 2],
+          documentId: path[path.length - 1],
+          readTime: legacyDocument.readTime || [0, 0],
+          unknownDocument: legacyDocument.unknownDocument,
+          noDocument: legacyDocument.noDocument,
+          document: legacyDocument.document,
+          hasCommittedMutations: !!legacyDocument.hasCommittedMutations
+        };
+        writes.push(remoteDocumentStore.put(dbRemoteDocument));
+      })
+      .next(() => PersistencePromise.waitFor(writes));
   }
 }
 
@@ -464,8 +520,27 @@ function upgradeMutationBatchSchemaAndMigrateData(
   });
 }
 
+function createLegacyRemoteDocumentCache(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocumentStoreLegacy);
+}
+
 function createRemoteDocumentCache(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocumentStore);
+  const remoteDocumentStore = db.createObjectStore(DbRemoteDocumentStore, {
+    keyPath: DbRemoteDocumentKeyPath
+  });
+  remoteDocumentStore.createIndex(
+    DbRemoteDocumentDocumentKeyIndex,
+    DbRemoteDocumentDocumentKeyIndexPath
+  );
+  remoteDocumentStore.createIndex(
+    DbRemoteDocumentReadTimeIndex,
+    DbRemoteDocumentReadTimeIndexPath,
+    { unique: false }
+  );
+  remoteDocumentStore.createIndex(
+    DbRemoteDocumentCollectionGroupIndex,
+    DbRemoteDocumentCollectionGroupIndexPath
+  );
 }
 
 function createDocumentGlobalStore(db: IDBDatabase): void {
@@ -527,24 +602,6 @@ function writeEmptyTargetGlobalEntry(
   return globalStore.put(DbTargetGlobalKey, metadata);
 }
 
-/**
- * Creates indices on the RemoteDocuments store used for both multi-tab
- * and Index-Free queries.
- */
-function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
-  const remoteDocumentStore = txn.objectStore(DbRemoteDocumentStore);
-  remoteDocumentStore.createIndex(
-    DbRemoteDocumentReadTimeIndex,
-    DbRemoteDocumentReadTimeIndexPath,
-    { unique: false }
-  );
-  remoteDocumentStore.createIndex(
-    DbRemoteDocumentCollectionReadTimeIndex,
-    DbRemoteDocumentCollectionReadTimeIndexPath,
-    { unique: false }
-  );
-}
-
 function createClientMetadataStore(db: IDBDatabase): void {
   db.createObjectStore(DbClientMetadataStore, {
     keyPath: DbClientMetadataKeyPath
@@ -564,14 +621,14 @@ function createNamedQueriesStore(db: IDBDatabase): void {
 }
 
 function createFieldIndex(db: IDBDatabase): void {
-  const indexConfiguratioStore = db.createObjectStore(
+  const indexConfigurationStore = db.createObjectStore(
     DbIndexConfigurationStore,
     {
       keyPath: DbIndexConfigurationKeyPath,
       autoIncrement: true
     }
   );
-  indexConfiguratioStore.createIndex(
+  indexConfigurationStore.createIndex(
     DbIndexConfigurationCollectionGroupIndex,
     DbIndexConfigurationCollectionGroupIndexPath,
     { unique: false }
@@ -610,4 +667,18 @@ function createDocumentOverlayStore(db: IDBDatabase): void {
     DbDocumentOverlayCollectionGroupOverlayIndexPath,
     { unique: false }
   );
+}
+
+function extractKey(remoteDoc: DbRemoteDocumentLegacy): DocumentKey {
+  if (remoteDoc.document) {
+    return new DocumentKey(
+      ResourcePath.fromString(remoteDoc.document.name!).popFirst(5)
+    );
+  } else if (remoteDoc.noDocument) {
+    return DocumentKey.fromSegments(remoteDoc.noDocument.path);
+  } else if (remoteDoc.unknownDocument) {
+    return DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
+  } else {
+    return fail('Unexpected DbRemoteDocument');
+  }
 }

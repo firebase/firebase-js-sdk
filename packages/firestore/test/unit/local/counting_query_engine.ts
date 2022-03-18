@@ -96,9 +96,27 @@ export class CountingQueryEngine extends QueryEngine {
       setIndexManager: (indexManager: IndexManager) => {
         subject.setIndexManager(indexManager);
       },
-      getAll: (transaction, collectionGroup, sinceReadTime) => {
+      getAllFromCollection: (transaction, collection, sinceReadTime) => {
         return subject
-          .getAll(transaction, collectionGroup, sinceReadTime)
+          .getAllFromCollection(transaction, collection, sinceReadTime)
+          .next(result => {
+            this.documentsReadByCollection += result.size;
+            return result;
+          });
+      },
+      getAllFromCollectionGroup: (
+        transaction,
+        collectionGroup,
+        sinceReadTime,
+        limit
+      ) => {
+        return subject
+          .getAllFromCollectionGroup(
+            transaction,
+            collectionGroup,
+            sinceReadTime,
+            limit
+          )
           .next(result => {
             this.documentsReadByCollection += result.size;
             return result;

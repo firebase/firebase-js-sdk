@@ -33,6 +33,10 @@ import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
+import {
+  IndexOffset,
+  indexOffsetComparator
+} from '../../../src/model/field_index';
 import { debugAssert } from '../../../src/util/assert';
 import { doc, filter, key, orderBy, query, version } from '../../util/helpers';
 
@@ -67,17 +71,17 @@ class TestLocalDocumentsView extends LocalDocumentsView {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
     const skipsDocumentsBeforeSnapshot =
-      !SnapshotVersion.min().isEqual(sinceReadTime);
+      indexOffsetComparator(IndexOffset.min(), offset) !== 0;
 
     expect(skipsDocumentsBeforeSnapshot).to.eq(
       !this.expectFullCollectionScan,
       'Observed query execution mode did not match expectation'
     );
 
-    return super.getDocumentsMatchingQuery(transaction, query, sinceReadTime);
+    return super.getDocumentsMatchingQuery(transaction, query, offset);
   }
 }
 

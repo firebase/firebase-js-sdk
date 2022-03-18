@@ -30,6 +30,10 @@ export class SnapshotVersion {
     return new SnapshotVersion(new Timestamp(0, 0));
   }
 
+  static max(): SnapshotVersion {
+    return new SnapshotVersion(new Timestamp(253402300799, 1e9 - 1));
+  }
+
   private constructor(private timestamp: Timestamp) {}
 
   compareTo(other: SnapshotVersion): number {

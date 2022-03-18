@@ -24,6 +24,7 @@ import {
   encodeResourcePath
 } from './encoded_resource_path';
 import { DbDocumentMutation } from './indexeddb_schema';
+import { DbRemoteDocumentStore as DbRemoteDocumentStoreLegacy } from './indexeddb_schema_legacy';
 
 // This file contains static constants and helper functions for IndexedDB.
 // It is split from indexeddb_schema to allow for minification.
@@ -123,7 +124,29 @@ export const DbDocumentMutationPlaceholder: DbDocumentMutation = {};
 
 export const DbDocumentMutationStore = 'documentMutations';
 
-export const DbRemoteDocumentStore = 'remoteDocuments';
+export const DbRemoteDocumentStore = 'remoteDocumentsV14';
+
+/**
+ * A key in the 'remoteDocumentsV14' object store is an array containing the
+ * collection path, the collection group, the read time and the document id.
+ */
+export type DbRemoteDocumentKey = [
+  /** path to collection */ string[],
+  /** collection group */ string,
+  /** read time */ DbTimestampKey,
+  /** document ID */ string
+];
+
+/**
+ * The primary key of the remote documents store, which allows for efficient
+ * access by collection path and read time.
+ */
+export const DbRemoteDocumentKeyPath = [
+  'prefixPath',
+  'collectionGroup',
+  'readTime',
+  'documentId'
+];
 
 /**
  * An index that provides access to all entries sorted by read time (which
@@ -133,21 +156,31 @@ export const DbRemoteDocumentStore = 'remoteDocuments';
  */
 export const DbRemoteDocumentReadTimeIndex = 'readTimeIndex';
 
+// TODO(indexing): Consider re-working Multi-Tab to use the collectionGroupIndex
 export const DbRemoteDocumentReadTimeIndexPath = 'readTime';
 
+/** An index that provides access to documents by key. */
+export const DbRemoteDocumentDocumentKeyIndex = 'documentKeyIndex';
+
+export const DbRemoteDocumentDocumentKeyIndexPath = [
+  'prefixPath',
+  'collectionGroup',
+  'documentId'
+];
+
 /**
- * An index that provides access to documents in a collection sorted by read
+ * An index that provides access to documents by collection group and read
  * time.
  *
- * This index is used to allow the RemoteDocumentCache to fetch newly changed
- * documents in a collection.
+ * This index is used by the index backfiller.
  */
-export const DbRemoteDocumentCollectionReadTimeIndex =
-  'collectionReadTimeIndex';
+export const DbRemoteDocumentCollectionGroupIndex = 'collectionGroupIndex';
 
-export const DbRemoteDocumentCollectionReadTimeIndexPath = [
-  'parentPath',
-  'readTime'
+export const DbRemoteDocumentCollectionGroupIndexPath = [
+  'collectionGroup',
+  'readTime',
+  'prefixPath',
+  'documentId'
 ];
 
 export const DbRemoteDocumentGlobalStore = 'remoteDocumentGlobal';
@@ -346,7 +379,7 @@ export const V1_STORES = [
   DbMutationQueueStore,
   DbMutationBatchStore,
   DbDocumentMutationStore,
-  DbRemoteDocumentStore,
+  DbRemoteDocumentStoreLegacy,
   DbTargetStore,
   DbPrimaryClientStore,
   DbTargetGlobalStore,
@@ -362,7 +395,23 @@ export const V8_STORES = [...V6_STORES, DbCollectionParentStore];
 export const V11_STORES = [...V8_STORES, DbBundleStore, DbNamedQueryStore];
 export const V12_STORES = [...V11_STORES, DbDocumentOverlayStore];
 export const V13_STORES = [
-  ...V12_STORES,
+  DbMutationQueueStore,
+  DbMutationBatchStore,
+  DbDocumentMutationStore,
+  DbRemoteDocumentStore,
+  DbTargetStore,
+  DbPrimaryClientStore,
+  DbTargetGlobalStore,
+  DbTargetDocumentStore,
+  DbClientMetadataStore,
+  DbRemoteDocumentGlobalStore,
+  DbCollectionParentStore,
+  DbBundleStore,
+  DbNamedQueryStore,
+  DbDocumentOverlayStore
+];
+export const V14_STORES = [
+  ...V13_STORES,
   DbIndexConfigurationStore,
   DbIndexStateStore,
   DbIndexEntryStore
@@ -377,7 +426,9 @@ export const ALL_STORES = V12_STORES;
 
 /** Returns the object stores for the provided schema. */
 export function getObjectStores(schemaVersion: number): string[] {
-  if (schemaVersion === 13) {
+  if (schemaVersion === 14) {
+    return V14_STORES;
+  } else if (schemaVersion === 13) {
     return V13_STORES;
   } else if (schemaVersion === 12) {
     return V12_STORES;
@@ -387,9 +438,3 @@ export function getObjectStores(schemaVersion: number): string[] {
     fail('Only schema version 11 and 12 and 13 are supported');
   }
 }
-
-/**
- * A key in the 'remoteDocuments' object store is a string array containing the
- * segments that make up the path.
- */
-export type DbRemoteDocumentKey = string[];
