@@ -949,7 +949,7 @@ function genericLocalStoreTests(
       .toContain(deletedDoc('foo/bar', 0).setHasLocalMutations())
       .afterAcknowledgingMutation({ documentVersion: 2 }) // delete mutation
       .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 2).setHasCommittedMutations())
+      .toContain(deletedDoc('foo/bar', 2).setHasLocalMutations())
       .afterAcknowledgingMutation({ documentVersion: 3 }) // patch mutation
       .toReturnChanged(unknownDoc('foo/bar', 3))
       .toNotContainIfEager(unknownDoc('foo/bar', 3))
@@ -1653,6 +1653,27 @@ function genericLocalStoreTests(
       .toHaveNewerBundle(bundleMetadata('test', 2), false)
       .afterSavingBundle(bundleMetadata('test', 2))
       .toHaveNewerBundle(bundleMetadata('test', 1), true)
+      .finish();
+  });
+
+  it('add then update while offline', () => {
+    return expectLocalStore()
+      .afterMutations([
+        setMutation('foo/bar', { 'foo': 'foo-value', 'bar': 1 })
+      ])
+      .toContain(
+        doc('foo/bar', 0, {
+          'foo': 'foo-value',
+          'bar': 1
+        }).setHasLocalMutations()
+      )
+      .afterMutations([patchMutation('foo/bar', { 'bar': 2 })])
+      .toContain(
+        doc('foo/bar', 0, {
+          'foo': 'foo-value',
+          'bar': 2
+        }).setHasLocalMutations()
+      )
       .finish();
   });
 

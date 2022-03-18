@@ -138,7 +138,10 @@ export class MutationBatch {
    * this batch. Returns a `DocumentKey` to `Mutation` map which can be used to
    * replace all the mutation applications.
    */
-  applyToLocalDocumentSet(documentMap: DocumentMap): MutationMap {
+  applyToLocalDocumentSet(
+    documentMap: DocumentMap,
+    documentsWithoutRemoteVersion: DocumentKeySet
+  ): MutationMap {
     // TODO(mrschmidt): This implementation is O(n^2). If we apply the mutations
     // directly (as done in `applyToLocalView()`), we can reduce the complexity
     // to O(n).
@@ -148,7 +151,13 @@ export class MutationBatch {
       // TODO(mutabledocuments): This method should take a MutableDocumentMap
       // and we should remove this cast.
       const mutableDocument = document as MutableDocument;
-      const mutatedFields = this.applyToLocalView(mutableDocument);
+      let mutatedFields = this.applyToLocalView(mutableDocument);
+      // Set mutatedFields to null if the document is only from local mutations.
+      // This creates a Set or Delete mutation, instead of trying to create a
+      // patch mutation as the overlay.
+      mutatedFields = documentsWithoutRemoteVersion.has(m.key)
+        ? null
+        : mutatedFields;
       const overlay = calculateOverlayMutation(mutableDocument, mutatedFields);
       if (overlay !== null) {
         overlays.set(m.key, overlay);

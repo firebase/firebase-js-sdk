@@ -132,7 +132,7 @@ export class LocalDocumentsView {
   getLocalViewOfDocuments(
     transaction: PersistenceTransaction,
     docs: MutableDocumentMap,
-    existenceStateChanged: DocumentKeySet
+    existenceStateChanged: DocumentKeySet = documentKeySet()
   ): PersistencePromise<DocumentMap> {
     const overlays = newOverlayMap();
     return this.populateOverlays(transaction, overlays, docs).next(() => {

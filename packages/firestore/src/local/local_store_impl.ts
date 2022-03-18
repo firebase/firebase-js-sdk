@@ -314,11 +314,32 @@ export function localStoreWriteLocally(
 
   return localStoreImpl.persistence
     .runTransaction('Locally write mutations', 'readwrite', txn => {
-      // Load and apply all existing mutations. This lets us compute the
-      // current base state for all non-idempotent transforms before applying
-      // any additional user-provided writes.
-      return localStoreImpl.localDocuments
-        .getDocuments(txn, keys)
+      // Figure out which keys do not have a remote version in the cache, this
+      // is needed to create the right overlay mutation: if no remote version
+      // presents, we do not need to create overlays as patch mutations.
+      // TODO(Overlay): Is there a better way to determine this? Document
+      //  version does not work because local mutations set them back to 0.
+      let remoteDocs = mutableDocumentMap();
+      let docsWithoutRemoteVersion = documentKeySet();
+      return localStoreImpl.remoteDocuments
+        .getEntries(txn, keys)
+        .next(docs => {
+          remoteDocs = docs;
+          remoteDocs.forEach((key, doc) => {
+            if (!doc.isValidDocument()) {
+              docsWithoutRemoteVersion = docsWithoutRemoteVersion.add(key);
+            }
+          });
+        })
+        .next(() => {
+          // Load and apply all existing mutations. This lets us compute the
+          // current base state for all non-idempotent transforms before applying
+          // any additional user-provided writes.
+          return localStoreImpl.localDocuments.getLocalViewOfDocuments(
+            txn,
+            remoteDocs
+          );
+        })
         .next(docs => {
           existingDocs = docs;
 
@@ -358,7 +379,10 @@ export function localStoreWriteLocally(
         })
         .next(batch => {
           mutationBatch = batch;
-          const overlays = batch.applyToLocalDocumentSet(existingDocs);
+          const overlays = batch.applyToLocalDocumentSet(
+            existingDocs,
+            docsWithoutRemoteVersion
+          );
           return localStoreImpl.documentOverlayCache.saveOverlays(
             txn,
             batch.batchId,
