@@ -26,7 +26,7 @@ import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { IndexOffset } from '../model/field_index';
 import { ResourcePath } from '../model/path';
-import { debugAssert, debugCast, hardAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
@@ -41,14 +41,12 @@ import {
   DbRemoteDocumentGlobalKey,
   DbRemoteDocumentGlobalStore,
   DbRemoteDocumentKey,
-  DbRemoteDocumentReadTimeIndex,
   DbRemoteDocumentStore,
   DbTimestampKey
 } from './indexeddb_sentinels';
 import { getStore } from './indexeddb_transaction';
 import {
   fromDbRemoteDocument,
-  fromDbTimestampKey,
   LocalSerializer,
   toDbRemoteDocument,
   toDbTimestampKey
@@ -409,77 +407,6 @@ export function newIndexedDbRemoteDocumentCache(
   serializer: LocalSerializer
 ): IndexedDbRemoteDocumentCache {
   return new IndexedDbRemoteDocumentCacheImpl(serializer);
-}
-
-/**
- * Returns the set of documents that have changed since the specified read
- * time.
- */
-// PORTING NOTE: This is only used for multi-tab synchronization.
-export function remoteDocumentCacheGetNewDocumentChanges(
-  remoteDocumentCache: IndexedDbRemoteDocumentCache,
-  transaction: PersistenceTransaction,
-  sinceReadTime: SnapshotVersion
-): PersistencePromise<{
-  changedDocs: MutableDocumentMap;
-  readTime: SnapshotVersion;
-}> {
-  const remoteDocumentCacheImpl = debugCast(
-    remoteDocumentCache,
-    IndexedDbRemoteDocumentCacheImpl // We only support IndexedDb in multi-tab mode.
-  );
-  let changedDocs = mutableDocumentMap();
-
-  let lastReadTime = toDbTimestampKey(sinceReadTime);
-
-  const documentsStore = remoteDocumentsStore(transaction);
-  const range = IDBKeyRange.lowerBound(lastReadTime, true);
-  return documentsStore
-    .iterate(
-      { index: DbRemoteDocumentReadTimeIndex, range },
-      (_, dbRemoteDoc) => {
-        // Unlike `getEntry()` and others, `getNewDocumentChanges()` parses
-        // the documents directly since we want to keep sentinel deletes.
-        const doc = fromDbRemoteDocument(
-          remoteDocumentCacheImpl.serializer,
-          dbRemoteDoc
-        );
-        changedDocs = changedDocs.insert(doc.key, doc);
-        lastReadTime = dbRemoteDoc.readTime!;
-      }
-    )
-    .next(() => {
-      return {
-        changedDocs,
-        readTime: fromDbTimestampKey(lastReadTime)
-      };
-    });
-}
-
-/**
- * Returns the read time of the most recently read document in the cache, or
- * SnapshotVersion.min() if not available.
- */
-// PORTING NOTE: This is only used for multi-tab synchronization.
-export function remoteDocumentCacheGetLastReadTime(
-  transaction: PersistenceTransaction
-): PersistencePromise<SnapshotVersion> {
-  const documentsStore = remoteDocumentsStore(transaction);
-
-  // If there are no existing entries, we return SnapshotVersion.min().
-  let readTime = SnapshotVersion.min();
-
-  return documentsStore
-    .iterate(
-      { index: DbRemoteDocumentReadTimeIndex, reverse: true },
-      (key, dbRemoteDoc, control) => {
-        if (dbRemoteDoc.readTime) {
-          readTime = fromDbTimestampKey(dbRemoteDoc.readTime);
-        }
-        control.done();
-      }
-    )
-    .next(() => readTime);
 }
 
 /**

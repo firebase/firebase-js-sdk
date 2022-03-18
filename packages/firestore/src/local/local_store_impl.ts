@@ -17,7 +17,12 @@
 
 import { User } from '../auth/user';
 import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
-import { newQueryForPath, Query, queryToTarget } from '../core/query';
+import {
+  newQueryForPath,
+  Query,
+  queryCollectionGroup,
+  queryToTarget
+} from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
@@ -31,6 +36,10 @@ import {
 } from '../model/collections';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import {
+  INITIAL_LARGEST_BATCH_ID,
+  newIndexOffsetSuccessorFromReadTime
+} from '../model/field_index';
 import {
   mutationExtractBaseValue,
   Mutation,
@@ -58,10 +67,6 @@ import { BundleCache } from './bundle_cache';
 import { IndexManager } from './index_manager';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
-import {
-  remoteDocumentCacheGetLastReadTime,
-  remoteDocumentCacheGetNewDocumentChanges
-} from './indexeddb_remote_document_cache';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { LocalDocumentsView } from './local_documents_view';
 import { fromBundledQuery } from './local_serializer';
@@ -159,11 +164,12 @@ class LocalStoreImpl implements LocalStore {
   );
 
   /**
-   * The read time of the last entry processed by `getNewDocumentChanges()`.
+   * A per collection group index of the last read time processed by
+   * `getNewDocumentChanges()`.
    *
    * PORTING NOTE: This is only used for multi-tab synchronization.
    */
-  lastDocumentChangeReadTime = SnapshotVersion.min();
+  collectionGroupReadTime = new Map<string, SnapshotVersion>();
 
   constructor(
     /** Manages our in-memory or durable persistence. */
@@ -1003,6 +1009,11 @@ export function localStoreExecuteQuery(
           )
         )
         .next(documents => {
+          setMaxReadTime(
+            localStoreImpl,
+            queryCollectionGroup(query),
+            documents
+          );
           return { documents, remoteKeys };
         });
     }
@@ -1130,42 +1141,48 @@ export function localStoreGetCachedTarget(
  */
 // PORTING NOTE: Multi-Tab only.
 export function localStoreGetNewDocumentChanges(
-  localStore: LocalStore
+  localStore: LocalStore,
+  collectionGroup: string
 ): Promise<DocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
+  // Get the current maximum read time for the collection. This should always
+  // exist, but to reduce the chance for regressions we default to
+  // SnapshotVersion.Min()
+  // TODO(indexing): Consider removing the default value.
+  const readTime =
+    localStoreImpl.collectionGroupReadTime.get(collectionGroup) ||
+    SnapshotVersion.min();
+
   return localStoreImpl.persistence
     .runTransaction('Get new document changes', 'readonly', txn =>
-      remoteDocumentCacheGetNewDocumentChanges(
-        localStoreImpl.remoteDocuments,
+      localStoreImpl.remoteDocuments.getAllFromCollectionGroup(
         txn,
-        localStoreImpl.lastDocumentChangeReadTime
+        collectionGroup,
+        newIndexOffsetSuccessorFromReadTime(readTime, INITIAL_LARGEST_BATCH_ID),
+        /* limit= */ Number.MAX_SAFE_INTEGER
       )
     )
-    .then(({ changedDocs, readTime }) => {
-      localStoreImpl.lastDocumentChangeReadTime = readTime;
+    .then(changedDocs => {
+      setMaxReadTime(localStoreImpl, collectionGroup, changedDocs);
       return changedDocs;
     });
 }
 
-/**
- * Reads the newest document change from persistence and moves the internal
- * synchronization marker forward so that calls to `getNewDocumentChanges()`
- * only return changes that happened after client initialization.
- */
+/** Sets the collection group's maximum read time from the given documents. */
 // PORTING NOTE: Multi-Tab only.
-export async function localStoreSynchronizeLastDocumentChangeReadTime(
-  localStore: LocalStore
-): Promise<void> {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  return localStoreImpl.persistence
-    .runTransaction(
-      'Synchronize last document change read time',
-      'readonly',
-      txn => remoteDocumentCacheGetLastReadTime(txn)
-    )
-    .then(readTime => {
-      localStoreImpl.lastDocumentChangeReadTime = readTime;
-    });
+function setMaxReadTime(
+  localStoreImpl: LocalStoreImpl,
+  collectionGroup: string,
+  changedDocs: SortedMap<DocumentKey, Document>
+): void {
+  let readTime = SnapshotVersion.min();
+  changedDocs.forEach((_, doc) => {
+    if (doc.readTime.compareTo(readTime) > 0) {
+      readTime = doc.readTime;
+    }
+  });
+  localStoreImpl.collectionGroupReadTime.set(collectionGroup, readTime);
 }
 
 /**

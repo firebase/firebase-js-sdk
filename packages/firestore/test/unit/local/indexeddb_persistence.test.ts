@@ -61,7 +61,6 @@ import {
   DbRemoteDocumentGlobalKey,
   DbRemoteDocumentGlobalStore,
   DbRemoteDocumentKey,
-  DbRemoteDocumentReadTimeIndex,
   DbRemoteDocumentStore,
   DbTargetDocumentKey,
   DbTargetDocumentStore,
@@ -1022,41 +1021,6 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                   'projects/test-project/databases/(default)/documents/coll/doc4'
                 ]);
               });
-            })
-          );
-        }
-      );
-    });
-  });
-
-  it('can get recent document changes', async function (this: Context) {
-    const oldDocPaths = ['coll1/old', 'coll2/old'];
-    const newDocPaths = ['coll1/new', 'coll2/new'];
-
-    await withDb(13, db => {
-      return db.runTransaction(
-        this.test!.fullTitle(),
-        'readwrite',
-        V13_STORES,
-        txn => {
-          return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
-            addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
-              const remoteDocumentStore = txn.store<
-                DbRemoteDocumentKey,
-                DbRemoteDocument
-              >(DbRemoteDocumentStore);
-
-              const lastReadTime = toDbTimestampKey(version(1));
-              const range = IDBKeyRange.lowerBound(lastReadTime, true);
-              return remoteDocumentStore
-                .loadAll(DbRemoteDocumentReadTimeIndex, range)
-                .next(docsRead => {
-                  const keys = docsRead.map(dbDoc => dbDoc.document!.name);
-                  expect(keys).to.have.members([
-                    'projects/test-project/databases/(default)/documents/coll1/new',
-                    'projects/test-project/databases/(default)/documents/coll2/new'
-                  ]);
-                });
             })
           );
         }

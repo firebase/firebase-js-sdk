@@ -79,6 +79,10 @@ function sequenceNumberKey(): string {
   return `firestore_sequence_number_${TEST_PERSISTENCE_PREFIX}`;
 }
 
+function bundleLoadedKey(): string {
+  return `firestore_bundle_loaded_v2_${TEST_PERSISTENCE_PREFIX}`;
+}
+
 interface TestSharedClientState {
   mutationCount: number;
   mutationState: {
@@ -276,9 +280,7 @@ describe('WebStorageSharedClientState', () => {
         .null;
     }
 
-    beforeEach(() => {
-      return sharedClientState.start();
-    });
+    beforeEach(() => sharedClientState.start());
 
     it('with a pending batch', () => {
       sharedClientState.addPendingMutation(0);
@@ -324,9 +326,7 @@ describe('WebStorageSharedClientState', () => {
       }
     }
 
-    beforeEach(() => {
-      return sharedClientState.start();
-    });
+    beforeEach(() => sharedClientState.start());
 
     it('when empty', () => {
       assertClientState([]);
@@ -536,9 +536,7 @@ describe('WebStorageSharedClientState', () => {
   });
 
   describe('processes mutation updates', () => {
-    beforeEach(() => {
-      return sharedClientState.start();
-    });
+    beforeEach(() => sharedClientState.start());
 
     async function withUser(
       user: User,
@@ -816,9 +814,7 @@ describe('WebStorageSharedClientState', () => {
   });
 
   describe('syncs sequence numbers', () => {
-    beforeEach(() => {
-      return sharedClientState.start();
-    });
+    beforeEach(() => sharedClientState.start());
 
     function assertSequenceNumber(expected: ListenSequenceNumber): void {
       const sequenceNumberString = webStorage.getItem(sequenceNumberKey());
@@ -843,6 +839,27 @@ describe('WebStorageSharedClientState', () => {
       writeToWebStorage(sequenceNumberKey(), '3');
       await queue.drain();
       expect(sequenceNumbers).to.deep.equal([1, 2, 3]);
+    });
+  });
+
+  describe('processes bundles', () => {
+    beforeEach(() => sharedClientState.start());
+
+    function assertsBundlesLoaded(...collectionGroups: string[]): void {
+      const bundleValue = webStorage.getItem(bundleLoadedKey());
+      expect(bundleValue).to.not.be.null;
+      const actual = JSON.parse(bundleValue!) as string[];
+      expect(actual).to.have.members(collectionGroups);
+    }
+
+    it('writes out collection groups', () => {
+      sharedClientState.notifyBundleLoaded(new Set<string>(['a', 'b']));
+      assertsBundlesLoaded('a', 'b');
+    });
+
+    it('supports empty collection groups', () => {
+      sharedClientState.notifyBundleLoaded(new Set<string>());
+      assertsBundlesLoaded();
     });
   });
 });

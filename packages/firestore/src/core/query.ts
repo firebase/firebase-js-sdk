@@ -527,6 +527,21 @@ function queryMatchesBounds(query: Query, doc: Document): boolean {
 }
 
 /**
+ * Returns the collection group that this query targets.
+ *
+ * PORTING NOTE: This is only used in the Web SDK to facilitate multi-tab
+ * synchronization for query results.
+ */
+export function queryCollectionGroup(query: Query): string {
+  return (
+    query.collectionGroup ||
+    (query.path.length % 2 === 1
+      ? query.path.lastSegment()
+      : query.path.get(query.path.length - 2))
+  );
+}
+
+/**
  * Returns a new comparator function that can be used to compare two documents
  * based on the Query's ordering constraint.
  */
