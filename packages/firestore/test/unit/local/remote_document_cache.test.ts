@@ -121,7 +121,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     assertMatches([doc('a/1', 1, DOC_DATA), doc('a/2', 2, DOC_DATA)], results);
   });
 
-  it('cen get next documents from collection group with limit', async () => {
+  it('can get next documents from collection group with limit', async () => {
     await cache.addEntries([
       doc('a/1', 1, DOC_DATA),
       doc('b/2/a/2', 2, DOC_DATA),
@@ -139,7 +139,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     );
   });
 
-  it('cen get next documents from collection group with read time offset', async () => {
+  it('can get next documents from collection group with read time offset', async () => {
     await cache.addEntries([
       doc('a/1', 1, DOC_DATA),
       doc('a/2', 2, DOC_DATA),
