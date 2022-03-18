@@ -148,17 +148,6 @@ export const DbRemoteDocumentKeyPath = [
   'documentId'
 ];
 
-/**
- * An index that provides access to all entries sorted by read time (which
- * corresponds to the last modification time of each row).
- *
- * This index is used to provide a changelog for Multi-Tab.
- */
-export const DbRemoteDocumentReadTimeIndex = 'readTimeIndex';
-
-// TODO(indexing): Consider re-working Multi-Tab to use the collectionGroupIndex
-export const DbRemoteDocumentReadTimeIndexPath = 'readTime';
-
 /** An index that provides access to documents by key. */
 export const DbRemoteDocumentDocumentKeyIndex = 'documentKeyIndex';
 

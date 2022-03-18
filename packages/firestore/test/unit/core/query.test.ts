@@ -34,7 +34,9 @@ import {
   queryToTarget,
   QueryImpl,
   queryEquals,
-  matchesAllDocuments
+  matchesAllDocuments,
+  queryCollectionGroup,
+  newQueryForCollectionGroup
 } from '../../../src/core/query';
 import {
   Bound,
@@ -88,6 +90,14 @@ describe('Bound', () => {
 
 describe('Query', () => {
   addEqualityMatcher({ equalsFn: queryEquals, forType: QueryImpl });
+
+  it('can get collection group', () => {
+    expect(queryCollectionGroup(query('foo'))).to.equal('foo');
+    expect(queryCollectionGroup(query('foo/bar'))).to.equal('foo');
+    expect(queryCollectionGroup(newQueryForCollectionGroup('foo'))).to.equal(
+      'foo'
+    );
+  });
 
   it('matches based on document key', () => {
     const queryKey = new ResourcePath(['rooms', 'eros', 'messages', '1']);

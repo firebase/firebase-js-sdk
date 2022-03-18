@@ -18,9 +18,7 @@
 import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { remoteDocumentCacheGetLastReadTime } from '../../../src/local/indexeddb_remote_document_cache';
 import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MutableDocument, Document } from '../../../src/model/document';
 import {
@@ -36,7 +34,6 @@ import {
   field,
   key,
   path,
-  removedDoc,
   version,
   wrap
 } from '../../util/helpers';
@@ -109,81 +106,6 @@ describe('IndexedDbRemoteDocumentCache', () => {
     await persistenceHelpers.clearTestPersistence();
   });
 
-  function getLastReadTime(): Promise<SnapshotVersion> {
-    return persistence.runTransaction('getLastReadTime', 'readonly', txn => {
-      return remoteDocumentCacheGetLastReadTime(txn);
-    });
-  }
-
-  it('skips previous changes', async () => {
-    // Add a document to simulate a previous run.
-    await cache.addEntries([doc('a/1', 1, DOC_DATA).setReadTime(version(1))]);
-    await persistence.shutdown();
-
-    // Start a new run of the persistence layer
-    persistence = await persistenceHelpers.testIndexedDbPersistence({
-      synchronizeTabs: true,
-      dontPurgeData: true
-    });
-    cache = new TestRemoteDocumentCache(persistence);
-    const readTime = await getLastReadTime();
-    const { changedDocs } = await cache.getNewDocumentChanges(readTime);
-    assertMatches([], changedDocs);
-  });
-
-  it('can get changes', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('b/1', 2, DOC_DATA),
-      doc('b/2', 2, DOC_DATA),
-      doc('a/1', 3, DOC_DATA)
-    ]);
-
-    let { changedDocs, readTime } = await cache.getNewDocumentChanges(
-      SnapshotVersion.min()
-    );
-    assertMatches(
-      [
-        doc('a/1', 3, DOC_DATA),
-        doc('b/1', 2, DOC_DATA),
-        doc('b/2', 2, DOC_DATA)
-      ],
-      changedDocs
-    );
-
-    await cache.addEntry(doc('c/1', 4, DOC_DATA));
-    changedDocs = (await cache.getNewDocumentChanges(readTime)).changedDocs;
-    assertMatches([doc('c/1', 4, DOC_DATA)], changedDocs);
-  });
-
-  it('can get empty changes', async () => {
-    const { changedDocs } = await cache.getNewDocumentChanges(
-      SnapshotVersion.min()
-    );
-    assertMatches([], changedDocs);
-  });
-
-  it('can get missing documents in changes', async () => {
-    await cache.addEntries([
-      doc('a/1', 1, DOC_DATA),
-      doc('a/2', 2, DOC_DATA),
-      doc('a/3', 3, DOC_DATA)
-    ]);
-    await cache.removeEntry(key('a/2'), version(4));
-
-    const { changedDocs } = await cache.getNewDocumentChanges(
-      SnapshotVersion.min()
-    );
-    assertMatches(
-      [
-        doc('a/1', 1, DOC_DATA),
-        removedDoc('a/2').setReadTime(version(4)),
-        doc('a/3', 3, DOC_DATA)
-      ],
-      changedDocs
-    );
-  });
-
   it('can get next documents from collection group', async () => {
     await cache.addEntries([
       doc('a/1', 1, DOC_DATA),
@@ -199,7 +121,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     assertMatches([doc('a/1', 1, DOC_DATA), doc('a/2', 2, DOC_DATA)], results);
   });
 
-  it('cen get next documents from collection group with limit', async () => {
+  it('can get next documents from collection group with limit', async () => {
     await cache.addEntries([
       doc('a/1', 1, DOC_DATA),
       doc('b/2/a/2', 2, DOC_DATA),
@@ -217,7 +139,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     );
   });
 
-  it('cen get next documents from collection group with read time offset', async () => {
+  it('can get next documents from collection group with read time offset', async () => {
     await cache.addEntries([
       doc('a/1', 1, DOC_DATA),
       doc('a/2', 2, DOC_DATA),
@@ -232,7 +154,79 @@ describe('IndexedDbRemoteDocumentCache', () => {
     assertMatches([doc('a/2', 2, DOC_DATA), doc('a/3', 3, DOC_DATA)], results);
   });
 
-  it('cen get next documents from collection group with document key offset', async () => {
+  it('can get next documents from collection group with document key offset', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('a/2', 1, DOC_DATA),
+      doc('a/3', 1, DOC_DATA)
+    ]);
+
+    const results = await cache.getAllFromCollectionGroup(
+      'a',
+      newIndexOffsetFromDocument(doc('a/1', 1, DOC_DATA)),
+      Number.MAX_SAFE_INTEGER
+    );
+    assertMatches([doc('a/2', 1, DOC_DATA), doc('a/3', 1, DOC_DATA)], results);
+  });
+
+  it('can get next documents from non-existing collection group', async () => {
+    const results = await cache.getAllFromCollectionGroup(
+      'a',
+      IndexOffset.min(),
+      Number.MAX_SAFE_INTEGER
+    );
+    assertMatches([], results);
+  });
+
+  it('can get next documents from collection group', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('a/2', 2, DOC_DATA),
+      doc('b/1', 3, DOC_DATA)
+    ]);
+
+    const results = await cache.getAllFromCollectionGroup(
+      'a',
+      IndexOffset.min(),
+      Number.MAX_SAFE_INTEGER
+    );
+    assertMatches([doc('a/1', 1, DOC_DATA), doc('a/2', 2, DOC_DATA)], results);
+  });
+
+  it('can get next documents from collection group with limit', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('b/2/a/2', 2, DOC_DATA),
+      doc('a/3', 3, DOC_DATA)
+    ]);
+
+    const results = await cache.getAllFromCollectionGroup(
+      'a',
+      IndexOffset.min(),
+      2
+    );
+    assertMatches(
+      [doc('a/1', 1, DOC_DATA), doc('b/2/a/2', 2, DOC_DATA)],
+      results
+    );
+  });
+
+  it('can get next documents from collection group with read time offset', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('a/2', 2, DOC_DATA),
+      doc('a/3', 3, DOC_DATA)
+    ]);
+
+    const results = await cache.getAllFromCollectionGroup(
+      'a',
+      newIndexOffsetSuccessorFromReadTime(version(1), INITIAL_LARGEST_BATCH_ID),
+      2
+    );
+    assertMatches([doc('a/2', 2, DOC_DATA), doc('a/3', 3, DOC_DATA)], results);
+  });
+
+  it('can get next documents from collection group with document key offset', async () => {
     await cache.addEntries([
       doc('a/1', 1, DOC_DATA),
       doc('a/2', 1, DOC_DATA),

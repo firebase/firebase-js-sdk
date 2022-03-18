@@ -93,8 +93,6 @@ import {
   DbRemoteDocumentGlobalStore,
   DbRemoteDocumentKey,
   DbRemoteDocumentKeyPath,
-  DbRemoteDocumentReadTimeIndex,
-  DbRemoteDocumentReadTimeIndexPath,
   DbRemoteDocumentStore,
   DbTargetDocumentDocumentTargetsIndex,
   DbTargetDocumentDocumentTargetsKeyPath,
@@ -531,11 +529,6 @@ function createRemoteDocumentCache(db: IDBDatabase): void {
   remoteDocumentStore.createIndex(
     DbRemoteDocumentDocumentKeyIndex,
     DbRemoteDocumentDocumentKeyIndexPath
-  );
-  remoteDocumentStore.createIndex(
-    DbRemoteDocumentReadTimeIndex,
-    DbRemoteDocumentReadTimeIndexPath,
-    { unique: false }
   );
   remoteDocumentStore.createIndex(
     DbRemoteDocumentCollectionGroupIndex,
