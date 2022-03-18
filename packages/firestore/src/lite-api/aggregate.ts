@@ -52,7 +52,7 @@ export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery)
 export function getAggregate(query: AggregateQuery): Promise<AggregateQuerySnapshot>;
 
 export class AggregateQuerySnapshot {
-  private constructor();
+  protected constructor();
 
   readonly type = "aggregate_query_snapshot";
 
