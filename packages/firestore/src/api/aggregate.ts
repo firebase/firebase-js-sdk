@@ -24,15 +24,10 @@ import {
   GroupByQuerySnapshot as LiteGroupByQuerySnapshot,
   GroupSnapshot as LiteGroupSnapshot
 } from '../lite-api/aggregate';
-import {DocumentData, DocumentFieldValue, DocumentReference, Query} from './reference';
-import {SnapshotListenOptions, Unsubscribe} from './reference_impl';
-import {DocumentChangeType, DocumentSnapshot, QueryDocumentSnapshot, QuerySnapshot, SnapshotMetadata, SnapshotOptions} from './snapshot';
+import { SnapshotListenOptions, Unsubscribe } from './reference_impl';
+import { SnapshotMetadata, SnapshotOptions } from './snapshot';
 import { FirestoreError } from '../util/error';
-import {FieldPath} from '../lite-api/field_path';
-
-export type AggregateQueryModeType =
-  | 'full'
-  | 'lite';
+import { FieldPath } from '../lite-api/field_path';
 
 export abstract class GroupByQueryConstraint {
   abstract readonly type: GroupByQueryConstraintType;
@@ -44,6 +39,8 @@ export interface AggregateQueryOptions {
 
 export class AggregateQuerySnapshot extends LiteAggregateQuerySnapshot {
   readonly metadata: SnapshotMetadata;
+
+  get<T>(field: AggregateField<T>, options: SnapshotOptions = {}): T;
 }
 
 export function getAggregate(query: AggregateQuery, options: AggregateQueryOptions = {}): Promise<AggregateQuerySnapshot>;
@@ -90,7 +87,7 @@ export function onAggregateSnapshot(
 export type GroupChangeType = 'added' | 'removed' | 'modified';
 
 export interface GroupChange {
-  readonly type: DocumentChangeType;
+  readonly type: GroupChangeType;
 
   readonly group: GroupSnapshot;
 
