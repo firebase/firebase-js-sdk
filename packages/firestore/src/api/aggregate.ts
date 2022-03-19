@@ -20,79 +20,132 @@ import {
   AggregateQuery,
   AggregateQuerySnapshot as LiteAggregateQuerySnapshot,
   GroupByQuery,
+  GroupByQueryConstraintType,
   GroupByQuerySnapshot as LiteGroupByQuerySnapshot,
   GroupSnapshot as LiteGroupSnapshot
 } from '../lite-api/aggregate';
-import {DocumentData, DocumentFieldValue, Query} from './reference';
+import {DocumentData, DocumentFieldValue, DocumentReference, Query} from './reference';
 import {SnapshotListenOptions, Unsubscribe} from './reference_impl';
-import {QuerySnapshot} from './snapshot';
+import {DocumentChangeType, DocumentSnapshot, QueryDocumentSnapshot, QuerySnapshot, SnapshotMetadata, SnapshotOptions} from './snapshot';
 import { FirestoreError } from '../util/error';
+import {FieldPath} from '../lite-api/field_path';
+
+export type AggregateQueryModeType =
+  | 'full'
+  | 'lite';
+
+export abstract class GroupByQueryConstraint {
+  abstract readonly type: GroupByQueryConstraintType;
+}
+
+export interface AggregateQueryOptions {
+  readonly mode?: 'full' | 'lite';
+}
 
 export class AggregateQuerySnapshot extends LiteAggregateQuerySnapshot {
+  readonly metadata: SnapshotMetadata;
+}
+
+export function getAggregate(query: AggregateQuery, options: AggregateQueryOptions = {}): Promise<AggregateQuerySnapshot>;
+export function getAggregateFromCache(query: AggregateQuery, options: AggregateQueryOptions = {}): Promise<AggregateQuerySnapshot>;
+export function getAggregateFromServer(query: AggregateQuery, options: AggregateQueryOptions = {}): Promise<AggregateQuerySnapshot>;
+
+export interface AggregateListenOptions extends AggregateQueryOptions, SnapshotListenOptions {
+}
+
+export function onAggregateSnapshot(
+  query: AggregateQuery,
+  observer: {
+    next?: (snapshot: AggregateQuerySnapshot) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+
+export function onAggregateSnapshot(
+  query: AggregateQuery,
+  options: AggregateListenOptions,
+  observer: {
+    next?: (snapshot: AggregateQuerySnapshot) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+
+export function onAggregateSnapshot(
+  query: AggregateQuery,
+  onNext: (snapshot: AggregateQuerySnapshot) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+
+export function onAggregateSnapshot(
+  query: AggregateQuery,
+  options: AggregateListenOptions,
+  onNext: (snapshot: AggregateQuerySnapshot) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+
+export type GroupChangeType = 'added' | 'removed' | 'modified';
+
+export interface GroupChange {
+  readonly type: DocumentChangeType;
+
+  readonly group: GroupSnapshot;
+
+  readonly oldIndex: number;
+
+  readonly newIndex: number;
+}
+
+export class GroupByQuerySnapshot extends LiteGroupByQuerySnapshot {
+  readonly metadata: SnapshotMetadata;
+
+  groupChanges(options: SnapshotListenOptions = {}): Array<GroupChange>;
+}
+
+export class GroupSnapshot extends LiteGroupSnapshot {
+
+  get(field: string | FieldPath, options: SnapshotOptions = {}): any;
+  get<T>(field: AggregateField<T>, options: SnapshotOptions = {}): T;
 
 }
 
-export function getAggregate(query: AggregateQuery): Promise<AggregateQuerySnapshot>;
-export function getAggregateFromCache(query: AggregateQuery): Promise<AggregateQuerySnapshot>;
-export function getAggregateFromServer(query: AggregateQuery): Promise<AggregateQuerySnapshot>;
+export function getGroups(query: GroupByQuery, options: AggregateQueryOptions = {}): Promise<GroupByQuerySnapshot>;
+export function getGroupsFromCache(query: GroupByQuery, options: AggregateQueryOptions = {}): Promise<GroupByQuerySnapshot>;
+export function getGroupsFromServer(query: GroupByQuery, options: AggregateQueryOptions = {}): Promise<GroupByQuerySnapshot>;
 
-export function onAggregateSnapshot<T>(
-  query: AggregateQuery,
+export function onGroupBySnapshot(
+  query: GroupByQuery,
   observer: {
-    next?: (snapshot: AggregateQuerySnapshot) => void;
+    next?: (snapshot: GroupByQuerySnapshot) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
-export function onAggregateSnapshot<T>(
-  query: AggregateQuery,
-  options: SnapshotListenOptions,
+
+export function onGroupBySnapshot(
+  query: GroupByQuery,
+  options: AggregateListenOptions,
   observer: {
-    next?: (snapshot: AggregateQuerySnapshot) => void;
+    next?: (snapshot: GroupByQuerySnapshot) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
-export function onAggregateSnapshot<T>(
-  query: AggregateQuery,
-  onNext: (snapshot: AggregateQuerySnapshot) => void,
+
+export function onGroupBySnapshot(
+  query: GroupByQuery,
+  onNext: (snapshot: GroupByQuerySnapshot) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
-export function onAggregateSnapshot<T>(
-  query: AggregateQuery,
-  options: SnapshotListenOptions,
-  onNext: (snapshot: AggregateQuerySnapshot) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
-export function onAggregateSnapshot<T>(
-  query: Query<T>,
-  observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
-    error?: (error: FirestoreError) => void;
-    complete?: () => void;
-  }
-): Unsubscribe;
-export function onAggregateSnapshot<T>(
-  query: Query<T>,
-  options: SnapshotListenOptions,
-  observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
-    error?: (error: FirestoreError) => void;
-    complete?: () => void;
-  }
-): Unsubscribe;
-export function onAggregateSnapshot<T>(
-  query: Query<T>,
-  onNext: (snapshot: QuerySnapshot<T>) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
-export function onAggregateSnapshot<T>(
-  query: Query<T>,
-  options: SnapshotListenOptions,
-  onNext: (snapshot: QuerySnapshot<T>) => void,
+
+export function onGroupBySnapshot(
+  query: GroupByQuery,
+  options: AggregateListenOptions,
+  onNext: (snapshot: GroupByQuerySnapshot) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;

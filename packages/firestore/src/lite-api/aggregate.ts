@@ -18,6 +18,8 @@
 import {DocumentData, DocumentFieldValue, Query} from './reference';
 import {FieldPath} from './field_path';
 import {OrderByDirection} from './query';
+import {SnapshotListenOptions} from '../api/reference_impl';
+import {DocumentChange} from '../api/snapshot';
 
 export class AggregateField<T = DocumentFieldValue> {
   private constructor();
@@ -115,7 +117,7 @@ export function groupEndBefore(...fieldValues: unknown[]): GroupByQueryConstrain
 export function getGroups(query: GroupByQuery): Promise<GroupByQuerySnapshot>;
 
 export class GroupByQuerySnapshot {
-  private constructor();
+  protected constructor();
 
   readonly type = "group_by_query_snapshot";
 
