@@ -16,9 +16,9 @@
  */
 
 import {
-  AggregateField,
+  AggregateField, aggregateQuery,
   AggregateQuery,
-  AggregateQuerySnapshot as LiteAggregateQuerySnapshot,
+  AggregateQuerySnapshot as LiteAggregateQuerySnapshot, count,
   GroupByQuery,
   GroupByQueryConstraintType,
   GroupByQuerySnapshot as LiteGroupByQuerySnapshot,
@@ -28,6 +28,7 @@ import { SnapshotListenOptions, Unsubscribe } from './reference_impl';
 import { SnapshotMetadata, SnapshotOptions } from './snapshot';
 import { FirestoreError } from '../util/error';
 import { FieldPath } from '../lite-api/field_path';
+import {Query} from '../lite-api/reference';
 
 export abstract class GroupByQueryConstraint {
   abstract readonly type: GroupByQueryConstraintType;

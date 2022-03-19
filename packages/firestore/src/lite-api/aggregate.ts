@@ -49,6 +49,12 @@ export class AggregateQuery {
 
 export function aggregateQuery(query: Query<unknown>, field: AggregateField, ...fields: AggregateField[]): AggregateQuery;
 
+// TODO: Think of a better name for this convenience function... or is it even
+// convenient: getAggregate(countQuery(query));
+export function countQuery(query: Query<unknown>): AggregateQuery {
+  return aggregateQuery(query, count());
+}
+
 export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery): boolean;
 
 export function getAggregate(query: AggregateQuery): Promise<AggregateQuerySnapshot>;
