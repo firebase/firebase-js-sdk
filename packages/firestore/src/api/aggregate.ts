@@ -28,13 +28,31 @@ import { SnapshotListenOptions, Unsubscribe } from './reference_impl';
 import { SnapshotMetadata, SnapshotOptions } from './snapshot';
 import { FirestoreError } from '../util/error';
 import { FieldPath } from '../lite-api/field_path';
-import {Query} from '../lite-api/reference';
+
+export {
+  AggregateField,
+  AggregateQuery,
+  CountAggregateFieldOptions,
+  aggregateQuery,
+  aggregateQueryEqual,
+  aggregateSnapshotEqual,
+  average,
+  count,
+  countQuery,
+  first,
+  last,
+  max,
+  min,
+  sum,
+} from '../lite-api/aggregate';
+
 
 export abstract class GroupByQueryConstraint {
   abstract readonly type: GroupByQueryConstraintType;
 }
 
 export interface AggregateQueryOptions {
+  // TODO: "mode" -> "aggregateExecutionMode" for clarity at the call site?
   readonly mode?: 'full' | 'lite';
 }
 
