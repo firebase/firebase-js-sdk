@@ -7396,6 +7396,13 @@ fancy-log@^1.3.2, fancy-log@^1.3.3:
     parse-node-version "^1.0.0"
     time-stamp "^1.0.0"
 
+fast-check@2.22.0:
+  version "2.22.0"
+  resolved "https://registry.npmjs.org/fast-check/-/fast-check-2.22.0.tgz#b807ef18e10a37e8eb57b28e43974e7986563585"
+  integrity sha512-Yrx1E8fZk6tfSqYaNkwnxj/lOk+vj2KTbbpHDtYoK9MrrL/D204N/rCtcaVSz5bE29g6gW4xj0byresjlFyybg==
+  dependencies:
+    pure-rand "^5.0.0"
+
 fast-deep-equal@^1.0.0:
   version "1.1.0"
   resolved "https://registry.npmjs.org/fast-deep-equal/-/fast-deep-equal-1.1.0.tgz#c053477817c86b51daa853c81e059b733d023614"
@@ -13468,6 +13475,11 @@ pupa@^2.0.1, pupa@^2.1.1:
   integrity sha512-l1jNAspIBSFqbT+y+5FosojNpVpF94nlI+wDUpqP9enwOTfHx9f0gh5nB96vl+6yTpsJsypeNrwfzPrKuHB41A==
   dependencies:
     escape-goat "^2.0.0"
+
+pure-rand@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.npmjs.org/pure-rand/-/pure-rand-5.0.0.tgz#87f5bdabeadbd8904e316913a5c0b8caac517b37"
+  integrity sha512-lD2/y78q+7HqBx2SaT6OT4UcwtvXNRfEpzYEzl0EQ+9gZq2Qi3fa0HDnYPeqQwhlHJFBUhT7AO3mLU3+8bynHA==
 
 q@1.4.1:
   version "1.4.1"
