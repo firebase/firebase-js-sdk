@@ -24,7 +24,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c",
+    "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/util --include-dependencies build",
     "dev": "rollup -c -w",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
@@ -33,7 +33,8 @@
     "test:all": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --config ../../config/mocharc.node.js",
-    "typings:public": "ts-node generate-public-dts.ts && node ../../scripts/build/use_typings.js ./dist/index-public.d.ts"
+    "api-report": "api-extractor run --local --verbose",
+    "typings:public": "ts-node generate-public-dts.ts && node ../../scripts/build/use_typings.js ./dist/util-public.d.ts"
   },
   "license": "Apache-2.0",
   "dependencies": {
