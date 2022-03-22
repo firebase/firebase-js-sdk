@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "@firebase/app-check": "0.5.4",
+    "@firebase/app-check-types": "0.4.0",
     "@firebase/logger": "0.3.2",
     "@firebase/util": "1.5.0",
     "@firebase/component": "0.5.11",
