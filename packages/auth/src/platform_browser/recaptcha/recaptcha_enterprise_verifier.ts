@@ -20,7 +20,7 @@ import { isEnterprise } from './recaptcha';
 import {
   getRecaptchaConfig
 } from '../../api/authentication/recaptcha';
-import { RecaptchaClientType, RecaptchaVersion } from '../../api';
+import { RecaptchaClientType, RecaptchaVersion, RecaptchaActionName } from '../../api';
 
 import {
   Auth
@@ -143,7 +143,7 @@ export class RecaptchaEnterpriseVerifier {
   }
 }
 
-export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T, action: string, captchaResp = false): Promise<T> {
+export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T, action: RecaptchaActionName, captchaResp = false): Promise<T> {
   const verifier = new RecaptchaEnterpriseVerifier(auth);
   let captchaResponse;
   try {
