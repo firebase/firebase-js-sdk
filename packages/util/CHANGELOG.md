@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.5.1
+
+### Patch Changes
+
+- [`3198d58dc`](https://github.com/firebase/firebase-js-sdk/commit/3198d58dcedbf7583914dbcc76984f6f7df8d2ef) [#6088](https://github.com/firebase/firebase-js-sdk/pull/6088) - Remove unneeded types from public typings file.
+
 ## 1.5.0
 
 ### Minor Changes
