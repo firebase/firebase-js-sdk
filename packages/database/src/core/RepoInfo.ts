@@ -48,13 +48,13 @@ export class RepoInfo {
     public readonly includeNamespaceInQueryParams: boolean = false
   ) {
     this._host = host.toLowerCase();
-    this._domain = this._host.substr(this._host.indexOf('.') + 1);
+    this._domain = this._host.slice(this._host.indexOf('.') + 1);
     this.internalHost =
       (PersistentStorage.get('host:' + host) as string) || this._host;
   }
 
   isCacheableHost(): boolean {
-    return this.internalHost.substr(0, 2) === 's-';
+    return this.internalHost.slice(0, 2) === 's-';
   }
 
   isCustomHost() {
