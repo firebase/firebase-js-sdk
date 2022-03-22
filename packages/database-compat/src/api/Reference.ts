@@ -601,7 +601,7 @@ export class Reference extends Query implements Compat<ModularReference> {
   set(
     newVal: unknown,
     onComplete?: (error: Error | null) => void
-  ): Promise<unknown> {
+  ): Promise<void> {
     validateArgCount('Reference.set', 1, 2, arguments.length);
     validateCallback('Reference.set', 'onComplete', onComplete, true);
     const result = set(this._delegate, newVal);
@@ -617,7 +617,7 @@ export class Reference extends Query implements Compat<ModularReference> {
   update(
     values: object,
     onComplete?: (a: Error | null) => void
-  ): Promise<unknown> {
+  ): Promise<void> {
     validateArgCount('Reference.update', 1, 2, arguments.length);
 
     if (Array.isArray(values)) {
@@ -650,7 +650,7 @@ export class Reference extends Query implements Compat<ModularReference> {
     newVal: unknown,
     newPriority: string | number | null,
     onComplete?: (a: Error | null) => void
-  ): Promise<unknown> {
+  ): Promise<void> {
     validateArgCount('Reference.setWithPriority', 2, 3, arguments.length);
     validateCallback(
       'Reference.setWithPriority',
@@ -669,7 +669,7 @@ export class Reference extends Query implements Compat<ModularReference> {
     return result;
   }
 
-  remove(onComplete?: (a: Error | null) => void): Promise<unknown> {
+  remove(onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('Reference.remove', 0, 1, arguments.length);
     validateCallback('Reference.remove', 'onComplete', onComplete, true);
 
@@ -733,7 +733,7 @@ export class Reference extends Query implements Compat<ModularReference> {
   setPriority(
     priority: string | number | null,
     onComplete?: (a: Error | null) => void
-  ): Promise<unknown> {
+  ): Promise<void> {
     validateArgCount('Reference.setPriority', 1, 2, arguments.length);
     validateCallback('Reference.setPriority', 'onComplete', onComplete, true);
 
