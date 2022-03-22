@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+/**
+ * @internal
+ */
 function promisifyRequest(
   request: IDBRequest,
   errorMessage: string
@@ -29,6 +32,9 @@ function promisifyRequest(
   });
 }
 
+/**
+ * @internal
+ */
 export class DBWrapper {
   objectStoreNames: DOMStringList;
   constructor(private _db: IDBDatabase) {
@@ -55,6 +61,9 @@ export class DBWrapper {
   }
 }
 
+/**
+ * @internal
+ */
 class TransactionWrapper {
   complete: Promise<void>;
   constructor(private _transaction: IDBTransaction) {
@@ -75,6 +84,9 @@ class TransactionWrapper {
   }
 }
 
+/**
+ * @internal
+ */
 class ObjectStoreWrapper {
   constructor(private _store: IDBObjectStore) {}
   index(name: string): IndexWrapper {
@@ -105,6 +117,9 @@ class ObjectStoreWrapper {
   }
 }
 
+/**
+ * @internal
+ */
 class IndexWrapper {
   constructor(private _index: IDBIndex) {}
   get(key: string): Promise<unknown> {
@@ -113,6 +128,9 @@ class IndexWrapper {
   }
 }
 
+/**
+ * @internal
+ */
 export function openDB(
   dbName: string,
   dbVersion: number,
@@ -153,6 +171,9 @@ export function openDB(
   });
 }
 
+/**
+ * @internal
+ */
 export async function deleteDB(dbName: string): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
