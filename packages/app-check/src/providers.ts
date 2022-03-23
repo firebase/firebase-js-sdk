@@ -46,7 +46,7 @@ import { getDurationString } from './util';
  */
 export class ReCaptchaV3Provider implements AppCheckProvider {
   private _app?: FirebaseApp;
-  private _platformLoggerProvider?: Provider<'platform-logger'>;
+  private _heartbeatServiceProvider?: Provider<'heartbeat'>;
   /**
    * Throttle requests on certain error codes to prevent too many retries
    * in a short time.
@@ -66,7 +66,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
     throwIfThrottled(this._throttleData);
 
     // Top-level `getToken()` has already checked that App Check is initialized
-    // and therefore this._app and this._platformLoggerProvider are available.
+    // and therefore this._app and this._heartbeatServiceProvider are available.
     const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
       _e => {
         // reCaptcha.execute() throws null which is not very descriptive.
@@ -77,7 +77,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
     try {
       result = await exchangeToken(
         getExchangeRecaptchaV3TokenRequest(this._app!, attestedClaimsToken),
-        this._platformLoggerProvider!
+        this._heartbeatServiceProvider!
       );
     } catch (e) {
       if ((e as FirebaseError).code === AppCheckError.FETCH_STATUS_ERROR) {
@@ -105,7 +105,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    */
   initialize(app: FirebaseApp): void {
     this._app = app;
-    this._platformLoggerProvider = _getProvider(app, 'platform-logger');
+    this._heartbeatServiceProvider = _getProvider(app, 'heartbeat');
     initializeRecaptchaV3(app, this._siteKey).catch(() => {
       /* we don't care about the initialization result */
     });
@@ -131,7 +131,7 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
  */
 export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
   private _app?: FirebaseApp;
-  private _platformLoggerProvider?: Provider<'platform-logger'>;
+  private _heartbeatServiceProvider?: Provider<'heartbeat'>;
   /**
    * Throttle requests on certain error codes to prevent too many retries
    * in a short time.
@@ -150,7 +150,7 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
   async getToken(): Promise<AppCheckTokenInternal> {
     throwIfThrottled(this._throttleData);
     // Top-level `getToken()` has already checked that App Check is initialized
-    // and therefore this._app and this._platformLoggerProvider are available.
+    // and therefore this._app and this._heartbeatServiceProvider are available.
     const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
       _e => {
         // reCaptcha.execute() throws null which is not very descriptive.
@@ -164,7 +164,7 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
           this._app!,
           attestedClaimsToken
         ),
-        this._platformLoggerProvider!
+        this._heartbeatServiceProvider!
       );
     } catch (e) {
       if ((e as FirebaseError).code === AppCheckError.FETCH_STATUS_ERROR) {
@@ -192,7 +192,7 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
    */
   initialize(app: FirebaseApp): void {
     this._app = app;
-    this._platformLoggerProvider = _getProvider(app, 'platform-logger');
+    this._heartbeatServiceProvider = _getProvider(app, 'heartbeat');
     initializeRecaptchaEnterprise(app, this._siteKey).catch(() => {
       /* we don't care about the initialization result */
     });

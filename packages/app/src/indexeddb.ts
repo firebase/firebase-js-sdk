@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DB, openDb } from 'idb';
+import { DBWrapper, openDB } from '@firebase/util';
 import { AppError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from './public-types';
 import { HeartbeatsInIndexedDB } from './types';
@@ -23,18 +23,18 @@ const DB_NAME = 'firebase-heartbeat-database';
 const DB_VERSION = 1;
 const STORE_NAME = 'firebase-heartbeat-store';
 
-let dbPromise: Promise<DB> | null = null;
-function getDbPromise(): Promise<DB> {
+let dbPromise: Promise<DBWrapper> | null = null;
+function getDbPromise(): Promise<DBWrapper> {
   if (!dbPromise) {
-    dbPromise = openDb(DB_NAME, DB_VERSION, upgradeDB => {
+    dbPromise = openDB(DB_NAME, DB_VERSION, (db, oldVersion) => {
       // We don't use 'break' in this switch statement, the fall-through
       // behavior is what we want, because if there are multiple versions between
       // the old version and the current version, we want ALL the migrations
       // that correspond to those versions to run, not only the last one.
       // eslint-disable-next-line default-case
-      switch (upgradeDB.oldVersion) {
+      switch (oldVersion) {
         case 0:
-          upgradeDB.createObjectStore(STORE_NAME);
+          db.createObjectStore(STORE_NAME);
       }
     }).catch(e => {
       throw ERROR_FACTORY.create(AppError.STORAGE_OPEN, {
@@ -53,7 +53,7 @@ export async function readHeartbeatsFromIndexedDB(
     return db
       .transaction(STORE_NAME)
       .objectStore(STORE_NAME)
-      .get(computeKey(app));
+      .get(computeKey(app)) as Promise<HeartbeatsInIndexedDB | undefined>;
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_GET, {
       originalErrorMessage: e.message
@@ -73,21 +73,6 @@ export async function writeHeartbeatsToIndexedDB(
     return tx.complete;
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_WRITE, {
-      originalErrorMessage: e.message
-    });
-  }
-}
-
-export async function deleteHeartbeatsFromIndexedDB(
-  app: FirebaseApp
-): Promise<void> {
-  try {
-    const db = await getDbPromise();
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    await tx.objectStore(STORE_NAME).delete(computeKey(app));
-    return tx.complete;
-  } catch (e) {
-    throw ERROR_FACTORY.create(AppError.STORAGE_DELETE, {
       originalErrorMessage: e.message
     });
   }

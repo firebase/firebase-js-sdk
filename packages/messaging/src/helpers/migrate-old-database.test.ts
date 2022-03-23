@@ -28,7 +28,7 @@ import { FakePushSubscription } from '../testing/fakes/service-worker';
 import { base64ToArray } from './array-base64-translator';
 import { expect } from 'chai';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
-import { openDb } from 'idb';
+import { openDB } from '@firebase/util';
 
 describe('migrateOldDb', () => {
   it("does nothing if old DB didn't exist", async () => {
@@ -179,14 +179,11 @@ describe('migrateOldDb', () => {
 });
 
 async function put(version: number, value: object): Promise<void> {
-  const db = await openDb('fcm_token_details_db', version, upgradeDb => {
-    if (upgradeDb.oldVersion === 0) {
-      const objectStore = upgradeDb.createObjectStore(
-        'fcm_token_object_Store',
-        {
-          keyPath: 'swScope'
-        }
-      );
+  const db = await openDB('fcm_token_details_db', version, (db, oldVersion) => {
+    if (oldVersion === 0) {
+      const objectStore = db.createObjectStore('fcm_token_object_Store', {
+        keyPath: 'swScope'
+      });
       objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
         unique: false
       });

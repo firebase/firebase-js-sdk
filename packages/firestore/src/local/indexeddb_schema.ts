@@ -31,7 +31,7 @@ import { DbTimestampKey } from './indexeddb_sentinels';
 // TODO(indexing): Remove this constant
 const INDEXING_ENABLED = false;
 
-export const INDEXING_SCHEMA_VERSION = 13;
+export const INDEXING_SCHEMA_VERSION = 14;
 
 /**
  * Schema Version for the Web client:
@@ -52,10 +52,12 @@ export const INDEXING_SCHEMA_VERSION = 13;
  * 10. Rewrite the canonical IDs to the explicit Protobuf-based format.
  * 11. Add bundles and named_queries for bundle support.
  * 12. Add document overlays.
- * 13. Add indexing support.
+ * 13. Rewrite the keys of the remote document cache to allow for efficient
+ *     document lookup via `getAll()`.
+ * 14. Add indexing support.
  */
 
-export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 12;
+export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 13;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -194,15 +196,24 @@ export interface DbUnknownDocument {
  * - An "unknown document" representing a document that is known to exist (at
  * some version) but whose contents are unknown.
  *
+ * The document key is split up across `prefixPath`, `collectionGroup` and
+ * `documentId`.
+ *
  * Note: This is the persisted equivalent of a MaybeDocument and could perhaps
  * be made more general if necessary.
  */
 export interface DbRemoteDocument {
-  // TODO: We are currently storing full document keys almost three times
-  // (once as part of the primary key, once - partly - as `parentPath` and once
-  // inside the encoded documents). During our next migration, we should
-  // rewrite the primary key as parentPath + document ID which would allow us
-  // to drop one value.
+  /** The path to the document's collection (excluding). */
+  prefixPath: string[];
+
+  /** The collection ID the document is direclty nested under. */
+  collectionGroup: string;
+
+  /** The document ID. */
+  documentId: string;
+
+  /** When the document was read from the backend. */
+  readTime: DbTimestampKey;
 
   /**
    * Set to an instance of DbUnknownDocument if the data for a document is
@@ -226,19 +237,7 @@ export interface DbRemoteDocument {
    * documents are potentially inconsistent with the backend's copy and use
    * the write's commit version as their document version.
    */
-  hasCommittedMutations?: boolean;
-
-  /**
-   * When the document was read from the backend. Undefined for data written
-   * prior to schema version 9.
-   */
-  readTime?: DbTimestampKey;
-
-  /**
-   * The path of the collection this document is part of. Undefined for data
-   * written prior to schema version 9.
-   */
-  parentPath?: string[];
+  hasCommittedMutations: boolean;
 }
 
 /**

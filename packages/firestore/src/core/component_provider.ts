@@ -22,10 +22,7 @@ import {
   IndexedDbPersistence
 } from '../local/indexeddb_persistence';
 import { LocalStore } from '../local/local_store';
-import {
-  newLocalStore,
-  localStoreSynchronizeLastDocumentChangeReadTime
-} from '../local/local_store_impl';
+import { newLocalStore } from '../local/local_store_impl';
 import { LruParams } from '../local/lru_garbage_collector';
 import { LruScheduler } from '../local/lru_garbage_collector_impl';
 import {
@@ -174,7 +171,6 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
 
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     await super.initialize(cfg);
-    await localStoreSynchronizeLastDocumentChangeReadTime(this.localStore);
 
     await this.onlineComponentProvider.initialize(this, cfg);
 

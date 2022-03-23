@@ -51,7 +51,6 @@ import {
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
-  localStoreSynchronizeLastDocumentChangeReadTime,
   newLocalStore
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
@@ -574,7 +573,6 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
       User.UNAUTHENTICATED,
       JSON_SERIALIZER
     );
-    await localStoreSynchronizeLastDocumentChangeReadTime(localStore);
     return { queryEngine, persistence, localStore };
   }
 

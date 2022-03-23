@@ -17,11 +17,11 @@
 
 import { expect } from 'chai';
 
+import { Timestamp } from '../../../src';
 import { User } from '../../../src/auth/user';
 import { LimitType, Query, queryWithLimit } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { View } from '../../../src/core/view';
-import { Timestamp } from '../../../src/lite-api/timestamp';
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MemoryIndexManager } from '../../../src/local/memory_index_manager';
@@ -40,7 +40,10 @@ import {
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
-import { IndexOffset } from '../../../src/model/field_index';
+import {
+  IndexOffset,
+  indexOffsetComparator
+} from '../../../src/model/field_index';
 import { Mutation } from '../../../src/model/mutation';
 import { debugAssert } from '../../../src/util/assert';
 import {
@@ -86,9 +89,8 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     query: Query,
     offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
-    const skipsDocumentsBeforeSnapshot = !SnapshotVersion.min().isEqual(
-      offset.readTime
-    );
+    const skipsDocumentsBeforeSnapshot =
+      indexOffsetComparator(IndexOffset.min(), offset) !== 0;
 
     expect(skipsDocumentsBeforeSnapshot).to.eq(
       !this.expectFullCollectionScan,

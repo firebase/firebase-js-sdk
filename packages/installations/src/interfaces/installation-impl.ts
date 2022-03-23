@@ -23,7 +23,7 @@ export interface FirebaseInstallationsImpl
   extends Installations,
     _FirebaseService {
   readonly appConfig: AppConfig;
-  readonly platformLoggerProvider: Provider<'platform-logger'>;
+  readonly heartbeatServiceProvider: Provider<'heartbeat'>;
 }
 
 export interface AppConfig {

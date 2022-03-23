@@ -1,5 +1,22 @@
 # @firebase/messaging
 
+## 0.9.10
+
+### Patch Changes
+
+- [`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03) [#6061](https://github.com/firebase/firebase-js-sdk/pull/6061) - Remove idb dependency and replace with our own code.
+
+- Updated dependencies [[`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03), [`ddeff8384`](https://github.com/firebase/firebase-js-sdk/commit/ddeff8384ab8a927f02244e2591db525fd58c7dd)]:
+  - @firebase/installations@0.5.6
+  - @firebase/util@1.5.0
+  - @firebase/component@0.5.11
+
+## 0.9.9
+
+### Patch Changes
+
+- [`b3e4af842`](https://github.com/firebase/firebase-js-sdk/commit/b3e4af842786af7371430fa5b04a814435faa791) [#6030](https://github.com/firebase/firebase-js-sdk/pull/6030) - Await on `onBackgroundMessage` to fix silent warning issue.
+
 ## 0.9.8
 
 ### Patch Changes

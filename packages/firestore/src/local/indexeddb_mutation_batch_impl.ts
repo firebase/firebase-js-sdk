@@ -23,6 +23,7 @@ import {
   DbMutationBatch,
   DbRemoteDocument
 } from './indexeddb_schema';
+import { DbRemoteDocument as DbRemoteDocumentLegacy } from './indexeddb_schema_legacy';
 import {
   DbDocumentMutationKey,
   DbDocumentMutationStore,
@@ -84,7 +85,9 @@ export function removeMutationBatch(
 /**
  * Returns an approximate size for the given document.
  */
-export function dbDocumentSize(doc: DbRemoteDocument | null): number {
+export function dbDocumentSize(
+  doc: DbRemoteDocument | DbRemoteDocumentLegacy | null
+): number {
   if (!doc) {
     return 0;
   }

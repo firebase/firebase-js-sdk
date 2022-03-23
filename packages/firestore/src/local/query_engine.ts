@@ -30,6 +30,7 @@ import { DocumentKeySet, DocumentMap } from '../model/collections';
 import { Document } from '../model/document';
 import {
   IndexOffset,
+  INITIAL_LARGEST_BATCH_ID,
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
 import { debugAssert } from '../util/assert';
@@ -121,7 +122,10 @@ export class QueryEngine {
         return this.localDocumentsView!.getDocumentsMatchingQuery(
           transaction,
           query,
-          newIndexOffsetSuccessorFromReadTime(lastLimboFreeSnapshotVersion, -1)
+          newIndexOffsetSuccessorFromReadTime(
+            lastLimboFreeSnapshotVersion,
+            INITIAL_LARGEST_BATCH_ID
+          )
         ).next(updatedResults => {
           // We merge `previousResults` into `updateResults`, since
           // `updateResults` is already a DocumentMap. If a document is

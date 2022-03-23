@@ -117,37 +117,31 @@ export function toDbRemoteDocument(
   localSerializer: LocalSerializer,
   document: MutableDocument
 ): DbRemoteDocument {
-  const parentPath = document.key.path.popLast().toArray();
-  const readTime = toDbTimestampKey(document.readTime);
+  const key = document.key;
+  const remoteDoc: DbRemoteDocument = {
+    prefixPath: key.getCollectionPath().popLast().toArray(),
+    collectionGroup: key.collectionGroup,
+    documentId: key.path.lastSegment(),
+    readTime: toDbTimestampKey(document.readTime),
+    hasCommittedMutations: document.hasCommittedMutations
+  };
+
   if (document.isFoundDocument()) {
-    const doc = toDocument(localSerializer.remoteSerializer, document);
-    const hasCommittedMutations = document.hasCommittedMutations;
-    return {
-      document: doc,
-      hasCommittedMutations,
-      readTime,
-      parentPath
-    };
+    remoteDoc.document = toDocument(localSerializer.remoteSerializer, document);
   } else if (document.isNoDocument()) {
-    const path = document.key.path.toArray();
-    const hasCommittedMutations = document.hasCommittedMutations;
-    return {
-      noDocument: { path, readTime: toDbTimestamp(document.version) },
-      hasCommittedMutations,
-      readTime,
-      parentPath
+    remoteDoc.noDocument = {
+      path: key.path.toArray(),
+      readTime: toDbTimestamp(document.version)
     };
   } else if (document.isUnknownDocument()) {
-    const path = document.key.path.toArray();
-    return {
-      unknownDocument: { path, version: toDbTimestamp(document.version) },
-      hasCommittedMutations: true,
-      readTime,
-      parentPath
+    remoteDoc.unknownDocument = {
+      path: key.path.toArray(),
+      version: toDbTimestamp(document.version)
     };
   } else {
     return fail('Unexpected Document ' + document);
   }
+  return remoteDoc;
 }
 
 export function toDbTimestampKey(
@@ -164,7 +158,7 @@ export function fromDbTimestampKey(
   return SnapshotVersion.fromTimestamp(timestamp);
 }
 
-function toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
+export function toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
   const timestamp = snapshotVersion.toTimestamp();
   return { seconds: timestamp.seconds, nanoseconds: timestamp.nanoseconds };
 }
@@ -439,8 +433,8 @@ export function toDbDocumentOverlayKey(
   userId: string,
   docKey: DocumentKey
 ): DbDocumentOverlayKey {
-  const docId: string = docKey.path.lastSegment();
-  const collectionPath: string = encodeResourcePath(docKey.path.popLast());
+  const docId = docKey.path.lastSegment();
+  const collectionPath = encodeResourcePath(docKey.path.popLast());
   return [userId, collectionPath, docId];
 }
 

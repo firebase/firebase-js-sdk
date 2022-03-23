@@ -302,8 +302,7 @@ export class LocalDocumentsView {
    *
    * @param transaction - The persistence transaction.
    * @param query - The query to match documents against.
-   * @param sinceReadTime - If not set to SnapshotVersion.min(), return only
-   *     documents that have been read since this snapshot version (exclusive).
+   * @param offset - Read time and key to start scanning by (exclusive).
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
@@ -385,7 +384,7 @@ export class LocalDocumentsView {
     // Query the remote documents and overlay mutations.
     let remoteDocuments: MutableDocumentMap;
     return this.remoteDocumentCache
-      .getAll(transaction, query.path, offset.readTime)
+      .getAllFromCollection(transaction, query.path, offset)
       .next(queryResults => {
         remoteDocuments = queryResults;
         return this.documentOverlayCache.getOverlaysForCollection(

@@ -53,8 +53,11 @@ export function getFakeInstallations(): FirebaseInstallationsImpl {
   const container = new ComponentContainer('test');
   container.addComponent(
     new Component(
-      'platform-logger',
-      () => ({ getPlatformInfoString: () => 'a/1.2.3 b/2.3.4' }),
+      'heartbeat',
+      () => ({
+        getHeartbeatsHeader: () => Promise.resolve('a/1.2.3 b/2.3.4'),
+        triggerHeartbeat: () => Promise.resolve()
+      }),
       ComponentType.PRIVATE
     )
   );
@@ -62,7 +65,7 @@ export function getFakeInstallations(): FirebaseInstallationsImpl {
   return {
     app: getFakeApp(),
     appConfig: getFakeAppConfig(),
-    platformLoggerProvider: container.getProvider('platform-logger'),
+    heartbeatServiceProvider: container.getProvider('heartbeat'),
     _delete: () => {
       return Promise.resolve();
     }

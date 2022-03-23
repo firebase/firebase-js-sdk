@@ -59,9 +59,13 @@ function createMetadata(
     metadata.set('X-Firebase-GMPID', appId);
   }
   metadata.set('X-Goog-Api-Client', X_GOOG_API_CLIENT_VALUE);
-  // This header is used to improve routing and project isolation by the
+  // These headers are used to improve routing and project isolation by the
   // backend.
+  // TODO(b/199767712): We are keeping 'Google-Cloud-Resource-Prefix' until Emulators can be
+  // released with cl/428820046. Currently blocked because Emulators are now built with Java
+  // 11 from Google3.
   metadata.set('Google-Cloud-Resource-Prefix', databasePath);
+  metadata.set('x-goog-request-params', databasePath);
   return metadata;
 }
 
