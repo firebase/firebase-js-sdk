@@ -1,5 +1,16 @@
 # @firebase/app-check-compat
 
+## 0.2.5
+
+### Patch Changes
+
+- [`349648917`](https://github.com/firebase/firebase-js-sdk/commit/34964891701cf68699b053d85010c78c6db27a38) [#6084](https://github.com/firebase/firebase-js-sdk/pull/6084) - Added `app-check-types` dependency to `app-check-compat` package.json.
+
+- Updated dependencies [[`3198d58dc`](https://github.com/firebase/firebase-js-sdk/commit/3198d58dcedbf7583914dbcc76984f6f7df8d2ef)]:
+  - @firebase/util@1.5.1
+  - @firebase/app-check@0.5.5
+  - @firebase/component@0.5.12
+
 ## 0.2.4
 
 ### Patch Changes
