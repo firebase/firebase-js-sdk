@@ -52,14 +52,15 @@ export abstract class GroupByQueryConstraint {
 }
 
 export interface AggregateQueryOptions {
-  // TODO: "mode" -> "aggregateExecutionMode" for clarity at the call site?
-  readonly mode?: 'full' | 'lite';
+  // TODO: Should there be separate functions for these modes to faciliate
+  // tree shaking.
+  readonly consistencyMode?: 'immediate' | 'eventual';
 }
 
 export class AggregateQuerySnapshot extends LiteAggregateQuerySnapshot {
   readonly metadata: SnapshotMetadata;
 
-  get<T>(field: AggregateField<T>, options: SnapshotOptions = {}): T;
+  get<T>(field: AggregateField<T>, options: SnapshotOptions = {}): T | null;
 }
 
 export function getAggregate(query: AggregateQuery, options: AggregateQueryOptions = {}): Promise<AggregateQuerySnapshot>;
@@ -118,13 +119,15 @@ export interface GroupChange {
 export class GroupByQuerySnapshot extends LiteGroupByQuerySnapshot {
   readonly metadata: SnapshotMetadata;
 
+  // TODO: See if it is "easy" to implement this, based on info from Watch.
+  // Take a look at how this is computed for normal document queries.
   groupChanges(options: SnapshotListenOptions = {}): Array<GroupChange>;
 }
 
 export class GroupSnapshot extends LiteGroupSnapshot {
 
   get(field: string | FieldPath, options: SnapshotOptions = {}): any;
-  get<T>(field: AggregateField<T>, options: SnapshotOptions = {}): T;
+  get<T>(field: AggregateField<T>, options: SnapshotOptions = {}): T | null;
 
 }
 

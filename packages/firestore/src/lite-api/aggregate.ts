@@ -68,7 +68,7 @@ export class AggregateQuerySnapshot {
 
   get aggregations(): Array<AggregateField>;
 
-  get<T>(field: AggregateField<T>): T;
+  get<T>(field: AggregateField<T>): T | null;
 }
 
 export function aggregateSnapshotEqual<T>(left: AggregateQuerySnapshot, right: AggregateQuerySnapshot): boolean;
@@ -153,7 +153,7 @@ export class GroupSnapshot {
   get fields(): Array<FieldPath>;
 
   get(field: string | FieldPath): any;
-  get<T>(field: AggregateField<T>): T;
+  get<T>(field: AggregateField<T>): T | null;
 
 }
 
