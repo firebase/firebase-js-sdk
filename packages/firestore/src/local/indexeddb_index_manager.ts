@@ -295,8 +295,8 @@ export class IndexedDbIndexManager implements IndexManager {
                 .loadFirst(indexRange, target.limit)
                 .next(entries => {
                   entries.forEach(entry => {
-                    const documentKey = new DocumentKey(
-                      decodeResourcePath(entry.documentKey)
+                    const documentKey = DocumentKey.fromSegments(
+                      entry.documentKey
                     );
                     if (!existingKeys.has(documentKey)) {
                       existingKeys = existingKeys.add(documentKey);
@@ -737,7 +737,7 @@ export class IndexedDbIndexManager implements IndexManager {
       arrayValue: indexEntry.arrayValue,
       directionalValue: indexEntry.directionalValue,
       orderedDocumentKey: this.encodeDirectionalKey(fieldIndex, document.key),
-      documentKey: encodeResourcePath(document.key.path)
+      documentKey: document.key.path.toArray()
     });
   }
 
@@ -754,7 +754,7 @@ export class IndexedDbIndexManager implements IndexManager {
       indexEntry.arrayValue,
       indexEntry.directionalValue,
       this.encodeDirectionalKey(fieldIndex, document.key),
-      encodeResourcePath(document.key.path)
+      document.key.path.toArray()
     ]);
   }
 
@@ -935,16 +935,16 @@ export class IndexedDbIndexManager implements IndexManager {
             this.uid,
             bounds[i].arrayValue,
             bounds[i].directionalValue,
-            new Uint8Array(),
-            ''
+            EMPTY_VALUE,
+            []
           ] as DbIndexEntryKey,
           [
             bounds[i + 1].indexId,
             this.uid,
             bounds[i + 1].arrayValue,
             bounds[i + 1].directionalValue,
-            new Uint8Array(),
-            ''
+            EMPTY_VALUE,
+            []
           ] as DbIndexEntryKey
         )
       );

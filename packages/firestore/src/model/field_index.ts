@@ -80,7 +80,7 @@ export function fieldIndexGetDirectionalSegments(
 }
 
 /**
- * Returns the order of the document key component.
+ * Returns the order of the document key component for the given index.
  *
  * PORTING NOTE: This is only used in the Web IndexedDb implementation.
  */

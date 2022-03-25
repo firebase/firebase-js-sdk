@@ -21,8 +21,7 @@ import {
   FieldIndex,
   fieldIndexGetArraySegment,
   fieldIndexGetDirectionalSegments,
-  IndexKind,
-  IndexSegment
+  IndexKind
 } from '../model/field_index';
 import { FieldPath, ResourcePath } from '../model/path';
 import {
@@ -308,8 +307,12 @@ export function targetGetLowerBound(
   for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
     const segmentBound =
       segment.kind === IndexKind.ASCENDING
-        ? targetGetAscendingBound(target, segment, target.startAt)
-        : targetGetDescendingBound(target, segment, target.startAt);
+        ? targetGetLowerBoundForField(target, segment.fieldPath, target.startAt)
+        : targetGetUpperBoundForField(
+            target,
+            segment.fieldPath,
+            target.startAt
+          );
 
     if (!segmentBound.value) {
       // No lower bound exists
@@ -338,8 +341,8 @@ export function targetGetUpperBound(
   for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
     const segmentBound =
       segment.kind === IndexKind.ASCENDING
-        ? targetGetDescendingBound(target, segment, target.endAt)
-        : targetGetAscendingBound(target, segment, target.endAt);
+        ? targetGetUpperBoundForField(target, segment.fieldPath, target.endAt)
+        : targetGetLowerBoundForField(target, segment.fieldPath, target.endAt);
 
     if (!segmentBound.value) {
       // No upper bound exists
@@ -352,19 +355,20 @@ export function targetGetUpperBound(
   return new Bound(values, inclusive);
 }
 
-function targetGetAscendingBound(
+/**
+ * Returns the value to use as the lower bound for ascending index segment at
+ * the provided `fieldPath` (or the upper bound for an descending segment).
+ */
+function targetGetLowerBoundForField(
   target: Target,
-  segment: IndexSegment,
+  fieldPath: FieldPath,
   bound: Bound | null
 ): { value: ProtoValue | undefined; inclusive: boolean } {
   let value: ProtoValue | undefined = undefined;
   let inclusive = true;
 
   // Process all filters to find a value for the current field segment
-  for (const fieldFilter of targetGetFieldFiltersForPath(
-    target,
-    segment.fieldPath
-  )) {
+  for (const fieldFilter of targetGetFieldFiltersForPath(target, fieldPath)) {
     let filterValue: ProtoValue | undefined = undefined;
     let filterInclusive = true;
 
@@ -401,7 +405,7 @@ function targetGetAscendingBound(
   if (bound !== null) {
     for (let i = 0; i < target.orderBy.length; ++i) {
       const orderBy = target.orderBy[i];
-      if (orderBy.field.isEqual(segment.fieldPath)) {
+      if (orderBy.field.isEqual(fieldPath)) {
         const cursorValue = bound.position[i];
         if (valuesMax(value, cursorValue) === cursorValue) {
           value = cursorValue;
@@ -415,19 +419,20 @@ function targetGetAscendingBound(
   return { value, inclusive };
 }
 
-function targetGetDescendingBound(
+/**
+ * Returns the value to use as the upper bound for ascending index segment at
+ * the provided `fieldPath` (or the lower bound for an descending segment).
+ */
+function targetGetUpperBoundForField(
   target: Target,
-  segment: IndexSegment,
+  fieldPath: FieldPath,
   bound: Bound | null
 ): { value: ProtoValue | undefined; inclusive: boolean } {
   let value: ProtoValue | undefined = undefined;
   let inclusive = true;
 
   // Process all filters to find a value for the current field segment
-  for (const fieldFilter of targetGetFieldFiltersForPath(
-    target,
-    segment.fieldPath
-  )) {
+  for (const fieldFilter of targetGetFieldFiltersForPath(target, fieldPath)) {
     let filterValue: ProtoValue | undefined = undefined;
     let filterInclusive = true;
 
@@ -465,7 +470,7 @@ function targetGetDescendingBound(
   if (bound !== null) {
     for (let i = 0; i < target.orderBy.length; ++i) {
       const orderBy = target.orderBy[i];
-      if (orderBy.field.isEqual(segment.fieldPath)) {
+      if (orderBy.field.isEqual(fieldPath)) {
         const cursorValue = bound.position[i];
         if (valuesMin(value, cursorValue) === cursorValue) {
           value = cursorValue;

@@ -293,7 +293,7 @@ export type DbIndexEntryKey = [
   Uint8Array,
   Uint8Array,
   Uint8Array,
-  string
+  string[]
 ];
 
 /** Name of the IndexedDb object store. */
@@ -313,7 +313,7 @@ export const DbIndexEntryDocumentKeyIndex = 'documentKeyIndex';
 export const DbIndexEntryDocumentKeyIndexPath = [
   'indexId',
   'uid',
-  'documentKey'
+  'orderedDocumentKey'
 ];
 
 export type DbDocumentOverlayKey = [

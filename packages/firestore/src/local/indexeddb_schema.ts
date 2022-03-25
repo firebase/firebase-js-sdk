@@ -519,8 +519,8 @@ export interface DbIndexEntry {
    * encoder to match the key order of the index.
    */
   orderedDocumentKey: Uint8Array;
-  /** The document key this entry points to. */
-  documentKey: EncodedResourcePath;
+  /** The segments of the document key this entry points to. */
+  documentKey: string[];
 }
 
 /**
