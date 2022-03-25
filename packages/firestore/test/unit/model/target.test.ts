@@ -41,6 +41,9 @@ import {
 } from '../../util/helpers';
 
 describe('Target Bounds', () => {
+  // TODO(indexing): Consider adding more test helpers to reduce the boilerplate
+  // in these tests.
+
   it('empty query', () => {
     const target = queryToTarget(query('c'));
     const index = fieldIndex('c');
@@ -52,7 +55,7 @@ describe('Target Bounds', () => {
     verifyBound(upperBound, true);
   });
 
-  it('equals query', () => {
+  it('equals query with ascending index', () => {
     const target = queryToTarget(query('c', filter('foo', '==', 'bar')));
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
@@ -63,9 +66,20 @@ describe('Target Bounds', () => {
     verifyBound(upperBound, true, 'bar');
   });
 
-  it('less than query', () => {
-    const target = queryToTarget(query('c', filter('foo', '<', 'bar')));
+  it('equals query with descending index', () => {
+    const target = queryToTarget(query('c', filter('foo', '==', 'bar')));
     const index = fieldIndex('c', { fields: [['foo', IndexKind.DESCENDING]] });
+
+    const lowerBound = targetGetLowerBound(target, index);
+    verifyBound(lowerBound, true, 'bar');
+
+    const upperBound = targetGetUpperBound(target, index);
+    verifyBound(upperBound, true, 'bar');
+  });
+
+  it('less than query with ascending index', () => {
+    const target = queryToTarget(query('c', filter('foo', '<', 'bar')));
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, true, '');
@@ -74,7 +88,18 @@ describe('Target Bounds', () => {
     verifyBound(upperBound, false, 'bar');
   });
 
-  it('less than or equals query', () => {
+  it('less than query with descending index', () => {
+    const target = queryToTarget(query('c', filter('foo', '<', 'bar')));
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.DESCENDING]] });
+
+    const lowerBound = targetGetLowerBound(target, index);
+    verifyBound(lowerBound, false, 'bar');
+
+    const upperBound = targetGetUpperBound(target, index);
+    verifyBound(upperBound, true, '');
+  });
+
+  it('less than or equals query with ascending index', () => {
     const target = queryToTarget(query('c', filter('foo', '<=', 'bar')));
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
@@ -85,7 +110,18 @@ describe('Target Bounds', () => {
     verifyBound(upperBound, true, 'bar');
   });
 
-  it('greater than query', () => {
+  it('less than or equals query with descending index', () => {
+    const target = queryToTarget(query('c', filter('foo', '<=', 'bar')));
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.DESCENDING]] });
+
+    const lowerBound = targetGetLowerBound(target, index);
+    verifyBound(lowerBound, true, 'bar');
+
+    const upperBound = targetGetUpperBound(target, index);
+    verifyBound(upperBound, true, '');
+  });
+
+  it('greater than query with ascending index', () => {
     const target = queryToTarget(query('c', filter('foo', '>', 'bar')));
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
@@ -96,15 +132,37 @@ describe('Target Bounds', () => {
     verifyBound(upperBound, false, blob());
   });
 
-  it('greater than or equals query', () => {
-    const target = queryToTarget(query('c', filter('foo', '>=', 'bar')));
+  it('greater than query with descending index', () => {
+    const target = queryToTarget(query('c', filter('foo', '>', 'bar')));
     const index = fieldIndex('c', { fields: [['foo', IndexKind.DESCENDING]] });
+
+    const lowerBound = targetGetLowerBound(target, index);
+    verifyBound(lowerBound, false, blob());
+
+    const upperBound = targetGetUpperBound(target, index);
+    verifyBound(upperBound, false, 'bar');
+  });
+
+  it('greater than or equals query with ascending index', () => {
+    const target = queryToTarget(query('c', filter('foo', '>=', 'bar')));
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
     verifyBound(lowerBound, true, 'bar');
 
     const upperBound = targetGetUpperBound(target, index);
     verifyBound(upperBound, false, blob());
+  });
+
+  it('greater than or equals query with descending index', () => {
+    const target = queryToTarget(query('c', filter('foo', '>=', 'bar')));
+    const index = fieldIndex('c', { fields: [['foo', IndexKind.DESCENDING]] });
+
+    const lowerBound = targetGetLowerBound(target, index);
+    verifyBound(lowerBound, false, blob());
+
+    const upperBound = targetGetUpperBound(target, index);
+    verifyBound(upperBound, true, 'bar');
   });
 
   it('arrayContains query', () => {
