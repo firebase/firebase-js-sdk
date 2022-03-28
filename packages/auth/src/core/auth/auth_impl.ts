@@ -182,7 +182,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
 
     // Update current Auth state. Either a new login or logout.
-    await this._updateCurrentUser(user);
+    // Skip blocking callbacks, they should not apply to a change in another tab.
+    await this._updateCurrentUser(user, /* skipBeforeStateCallbacks */ true);
   }
 
   private async initializeCurrentUser(
@@ -314,7 +315,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this._updateCurrentUser(user && user._clone(this));
   }
 
-  async _updateCurrentUser(user: User | null): Promise<void> {
+  async _updateCurrentUser(user: User | null, skipBeforeStateCallbacks: boolean = false): Promise<void> {
     if (this._deleted) {
       return;
     }
@@ -325,7 +326,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         AuthErrorCode.TENANT_ID_MISMATCH
       );
     }
-    await this._runBeforeStateCallbacks(user);
+
+    if (!skipBeforeStateCallbacks) {
+      await this._runBeforeStateCallbacks(user);
+    }
 
     return this.queue(async () => {
       await this.directlySetCurrentUser(user as UserInternal | null);
@@ -339,18 +343,22 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         await beforeStateCallback(user);
       }
     } catch (e) {
-      throw this._errorFactory.create(AuthErrorCode.LOGIN_BLOCKED, { message: e.message });
+      throw this._errorFactory.create(
+        AuthErrorCode.LOGIN_BLOCKED, { originalMessage: e.message });
     }
   }
 
   async signOut(): Promise<void> {
+    // Run first, to block _setRedirectUser() if any callbacks fail.
     await this._runBeforeStateCallbacks(null);
     // Clear the redirect user when signOut is called
     if (this.redirectPersistenceManager || this._popupRedirectResolver) {
       await this._setRedirectUser(null);
     }
 
-    return this._updateCurrentUser(null);
+    // Prevent callbacks from being called again in _updateCurrentUser, as
+    // they were already called in the first line.
+    return this._updateCurrentUser(null, /* skipBeforeStateCallbacks */ true);
   }
 
   setPersistence(persistence: Persistence): Promise<void> {
