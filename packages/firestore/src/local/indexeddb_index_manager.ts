@@ -16,6 +16,7 @@
  */
 
 import { User } from '../auth/user';
+import { DatabaseId } from '../core/database_info';
 import {
   Bound,
   canonifyTarget,
@@ -31,17 +32,14 @@ import {
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../index/index_byte_encoder';
 import { IndexEntry, indexEntryComparator } from '../index/index_entry';
-import {
-  documentKeySet,
-  DocumentKeySet,
-  DocumentMap
-} from '../model/collections';
+import { documentKeySet, DocumentMap } from '../model/collections';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   FieldIndex,
   fieldIndexGetArraySegment,
   fieldIndexGetDirectionalSegments,
+  fieldIndexGetKeyOrder,
   fieldIndexToString,
   IndexKind,
   IndexOffset,
@@ -49,7 +47,7 @@ import {
 } from '../model/field_index';
 import { FieldPath, ResourcePath } from '../model/path';
 import { TargetIndexMatcher } from '../model/target_index_matcher';
-import { isArray } from '../model/values';
+import { isArray, refValue } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert } from '../util/assert';
 import { logDebug } from '../util/log';
@@ -123,7 +121,7 @@ export class IndexedDbIndexManager implements IndexManager {
     (l, r) => targetEquals(l, r)
   );
 
-  constructor(private user: User) {
+  constructor(private user: User, private readonly databaseId: DatabaseId) {
     this.uid = user.uid || '';
   }
 
@@ -232,7 +230,7 @@ export class IndexedDbIndexManager implements IndexManager {
   getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<DocumentKeySet | null> {
+  ): PersistencePromise<DocumentKey[] | null> {
     const indexEntries = indexEntriesStore(transaction);
 
     let canServeTarget = true;
@@ -248,9 +246,10 @@ export class IndexedDbIndexManager implements IndexManager {
       }
     ).next(() => {
       if (!canServeTarget) {
-        return PersistencePromise.resolve(null as DocumentKeySet | null);
+        return PersistencePromise.resolve(null as DocumentKey[] | null);
       } else {
-        let result = documentKeySet();
+        let existingKeys = documentKeySet();
+        const result: DocumentKey[] = [];
         return PersistencePromise.forEach(indexes, (index, subTarget) => {
           logDebug(
             LOG_TAG,
@@ -296,14 +295,18 @@ export class IndexedDbIndexManager implements IndexManager {
                 .loadFirst(indexRange, target.limit)
                 .next(entries => {
                   entries.forEach(entry => {
-                    result = result.add(
-                      new DocumentKey(decodeResourcePath(entry.documentKey))
+                    const documentKey = DocumentKey.fromSegments(
+                      entry.documentKey
                     );
+                    if (!existingKeys.has(documentKey)) {
+                      existingKeys = existingKeys.add(documentKey);
+                      result.push(documentKey);
+                    }
                   });
                 });
             }
           );
-        }).next(() => result as DocumentKeySet | null);
+        }).next(() => result as DocumentKey[] | null);
       }
     });
   }
@@ -486,6 +489,22 @@ export class IndexedDbIndexManager implements IndexManager {
     FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
       value,
       encoder.forKind(IndexKind.ASCENDING)
+    );
+    return encoder.encodedBytes();
+  }
+
+  /**
+   * Returns an encoded form of the document key that sorts based on the key
+   * ordering of the field index.
+   */
+  private encodeDirectionalKey(
+    fieldIndex: FieldIndex,
+    documentKey: DocumentKey
+  ): Uint8Array {
+    const encoder = new IndexByteEncoder();
+    FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
+      refValue(this.databaseId, documentKey),
+      encoder.forKind(fieldIndexGetKeyOrder(fieldIndex))
     );
     return encoder.encodedBytes();
   }
@@ -692,6 +711,7 @@ export class IndexedDbIndexManager implements IndexManager {
                 return this.updateEntries(
                   transaction,
                   doc,
+                  fieldIndex,
                   existingEntries,
                   newEntries
                 );
@@ -707,6 +727,7 @@ export class IndexedDbIndexManager implements IndexManager {
   private addIndexEntry(
     transaction: PersistenceTransaction,
     document: Document,
+    fieldIndex: FieldIndex,
     indexEntry: IndexEntry
   ): PersistencePromise<void> {
     const indexEntries = indexEntriesStore(transaction);
@@ -715,13 +736,15 @@ export class IndexedDbIndexManager implements IndexManager {
       uid: this.uid,
       arrayValue: indexEntry.arrayValue,
       directionalValue: indexEntry.directionalValue,
-      documentKey: encodeResourcePath(document.key.path)
+      orderedDocumentKey: this.encodeDirectionalKey(fieldIndex, document.key),
+      documentKey: document.key.path.toArray()
     });
   }
 
   private deleteIndexEntry(
     transaction: PersistenceTransaction,
     document: Document,
+    fieldIndex: FieldIndex,
     indexEntry: IndexEntry
   ): PersistencePromise<void> {
     const indexEntries = indexEntriesStore(transaction);
@@ -730,7 +753,8 @@ export class IndexedDbIndexManager implements IndexManager {
       this.uid,
       indexEntry.arrayValue,
       indexEntry.directionalValue,
-      encodeResourcePath(document.key.path)
+      this.encodeDirectionalKey(fieldIndex, document.key),
+      document.key.path.toArray()
     ]);
   }
 
@@ -748,7 +772,7 @@ export class IndexedDbIndexManager implements IndexManager {
           range: IDBKeyRange.only([
             fieldIndex.indexId,
             this.uid,
-            encodeResourcePath(documentKey.path)
+            this.encodeDirectionalKey(fieldIndex, documentKey)
           ])
         },
         (_, entry) => {
@@ -817,6 +841,7 @@ export class IndexedDbIndexManager implements IndexManager {
   private updateEntries(
     transaction: PersistenceTransaction,
     document: Document,
+    fieldIndex: FieldIndex,
     existingEntries: SortedSet<IndexEntry>,
     newEntries: SortedSet<IndexEntry>
   ): PersistencePromise<void> {
@@ -828,10 +853,14 @@ export class IndexedDbIndexManager implements IndexManager {
       newEntries,
       indexEntryComparator,
       /* onAdd= */ entry => {
-        promises.push(this.addIndexEntry(transaction, document, entry));
+        promises.push(
+          this.addIndexEntry(transaction, document, fieldIndex, entry)
+        );
       },
       /* onRemove= */ entry => {
-        promises.push(this.deleteIndexEntry(transaction, document, entry));
+        promises.push(
+          this.deleteIndexEntry(transaction, document, fieldIndex, entry)
+        );
       }
     );
 
@@ -906,15 +935,17 @@ export class IndexedDbIndexManager implements IndexManager {
             this.uid,
             bounds[i].arrayValue,
             bounds[i].directionalValue,
-            ''
-          ],
+            EMPTY_VALUE,
+            []
+          ] as DbIndexEntryKey,
           [
             bounds[i + 1].indexId,
             this.uid,
             bounds[i + 1].arrayValue,
             bounds[i + 1].directionalValue,
-            ''
-          ]
+            EMPTY_VALUE,
+            []
+          ] as DbIndexEntryKey
         )
       );
     }

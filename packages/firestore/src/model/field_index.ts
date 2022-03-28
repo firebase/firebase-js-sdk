@@ -80,6 +80,18 @@ export function fieldIndexGetDirectionalSegments(
 }
 
 /**
+ * Returns the order of the document key component for the given index.
+ *
+ * PORTING NOTE: This is only used in the Web IndexedDb implementation.
+ */
+export function fieldIndexGetKeyOrder(fieldIndex: FieldIndex): IndexKind {
+  const directionalSegments = fieldIndexGetDirectionalSegments(fieldIndex);
+  return directionalSegments.length === 0
+    ? IndexKind.ASCENDING
+    : directionalSegments[directionalSegments.length - 1].kind;
+}
+
+/**
  * Compares indexes by collection group and segments. Ignores update time and
  * index ID.
  */

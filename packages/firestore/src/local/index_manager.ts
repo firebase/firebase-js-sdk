@@ -16,7 +16,8 @@
  */
 
 import { Target } from '../core/target';
-import { DocumentKeySet, DocumentMap } from '../model/collections';
+import { DocumentMap } from '../model/collections';
+import { DocumentKey } from '../model/document_key';
 import { FieldIndex, IndexOffset } from '../model/field_index';
 import { ResourcePath } from '../model/path';
 
@@ -108,7 +109,7 @@ export interface IndexManager {
   getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<DocumentKeySet | null>;
+  ): PersistencePromise<DocumentKey[] | null>;
 
   /**
    * Returns the next collection group to update. Returns `null` if no group
