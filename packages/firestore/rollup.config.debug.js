@@ -33,7 +33,7 @@ const browserBuilds = [
   // This is an intermediate build used to generate the actual esm and cjs
   // builds which add build target reporting
   {
-    input: './src/index.ts',
+    input: './debug/index.ts',
     output: {
       file: path.resolve('./debug', pkg['browser']),
       format: 'es',
@@ -82,7 +82,7 @@ const browserBuilds = [
   },
   // RN build
   {
-    input: './src/index.rn.ts',
+    input: './debug/index.rn.ts',
     output: {
       file: path.resolve('./debug', pkg['react-native']),
       format: 'es',

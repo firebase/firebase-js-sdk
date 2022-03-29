@@ -79,6 +79,13 @@
       },
       "default": "./firestore/dist/index.esm.js"
     },
+    "./firestore/debug": {
+      "node": {
+        "require": "./firestore/debug/dist/index.cjs.js",
+        "import": "./firestore/debug/dist/index.mjs"
+      },
+      "default": "./firestore/debug/dist/index.esm.js"
+    },
     "./firestore/lite": {
       "node": {
         "require": "./firestore/lite/dist/index.cjs.js",
