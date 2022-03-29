@@ -29,7 +29,7 @@ import { AuthErrorCode } from '../errors';
 import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
 import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-
+import { RecaptchaActionName } from '../../api';
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
  * {@link ProviderId}.PASSWORD
@@ -120,13 +120,13 @@ export class EmailAuthCredential extends AuthCredential {
           password: this._password,
         };
         if (auth._recaptchaConfig?.emailPasswordEnabled) {
-          const requestWithRecaptcha = await injectRecaptchaFields(auth, request, 'signInWithEmailPassword');
+          const requestWithRecaptcha = await injectRecaptchaFields(auth, request, RecaptchaActionName.SIGN_IN_WITH_PASSWORD);
           return signInWithPassword(auth, requestWithRecaptcha);
         } else {
           return signInWithPassword(auth, request).catch(async (error) => {
-            if (error.code === `auth/${AuthErrorCode.INVALID_RECAPTCHA_VERSION}`) {
+            if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
               console.log("Sign in with email password is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign in flow.");
-              const requestWithRecaptcha = await injectRecaptchaFields(auth, request, 'signInWithEmailPassword');
+              const requestWithRecaptcha = await injectRecaptchaFields(auth, request, RecaptchaActionName.SIGN_IN_WITH_PASSWORD);
               return signInWithPassword(auth, requestWithRecaptcha);
             } else {
               return Promise.reject(error);

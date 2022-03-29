@@ -74,6 +74,12 @@ export const enum RecaptchaVersion {
   ENTERPRISE = 'RECAPTCHA_ENTERPRISE',
 }
 
+export const enum RecaptchaActionName {
+  SIGN_IN_WITH_PASSWORD = 'signInWithPassword',
+  GET_OOB_CODE = 'getOobCode',
+  SIGN_UP_PASSWORD = 'signUpPassword',
+}
+
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
 
 export function _addTidIfNecessary<T extends { tenantId?: string }>(
