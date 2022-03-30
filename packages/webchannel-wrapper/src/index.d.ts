@@ -96,7 +96,7 @@ export interface WebChannelOptions {
   supportsCrossDomainXhr?: boolean;
   sendRawJson?: boolean;
   httpSessionIdParam?: string;
-  httpHeadersOverwriteParam?: string;
+  encodeInitMessageHeaders?: boolean;
   forceLongPolling?: boolean;
   detectBufferingProxy?: boolean;
   fastHandshake?: boolean;

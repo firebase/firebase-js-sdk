@@ -16,14 +16,6 @@
  */
 
 import {
-  isBrowserExtension,
-  isElectron,
-  isIE,
-  isMobileCordova,
-  isReactNative,
-  isUWP
-} from '@firebase/util';
-import {
   createWebChannelTransport,
   ErrorCode,
   EventType,
@@ -215,26 +207,10 @@ export class WebChannelConnection extends RestConnection {
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#Simple_requests
     //
     // Therefore to avoid the CORS preflight request (an extra network
-    // roundtrip), we use the httpHeadersOverwriteParam option to specify that
-    // the headers should instead be encoded into a special "$httpHeaders" query
-    // parameter, which is recognized by the webchannel backend. This is
-    // formally defined here:
-    // https://github.com/google/closure-library/blob/b0e1815b13fb92a46d7c9b3c30de5d6a396a3245/closure/goog/net/rpc/httpcors.js#L32
-    //
-    // TODO(b/145624756): There is a backend bug where $httpHeaders isn't respected if the request
-    // doesn't have an Origin header. So we have to exclude a few browser environments that are
-    // known to (sometimes) not include an Origin. See
-    // https://github.com/firebase/firebase-js-sdk/issues/1491.
-    if (
-      !isMobileCordova() &&
-      !isReactNative() &&
-      !isElectron() &&
-      !isIE() &&
-      !isUWP() &&
-      !isBrowserExtension()
-    ) {
-      request.httpHeadersOverwriteParam = '$httpHeaders';
-    }
+    // roundtrip), we use the encodeInitMessageHeaders option to specify that
+    // the headers should instead be encoded in the request's POST payload,
+    // which is recognized by the webchannel backend.
+    request.encodeInitMessageHeaders = true;
 
     const url = urlParts.join('');
     logDebug(LOG_TAG, 'Creating WebChannel: ' + url, request);

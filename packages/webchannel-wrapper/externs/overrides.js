@@ -51,8 +51,8 @@ goog.net.WebChannel.Options.sendRawJson;
 /** @type {string|undefined} */
 goog.net.WebChannel.Options.httpSessionIdParam;
 
-/** @type {string|undefined} */
-goog.net.WebChannel.Options.httpHeadersOverwriteParam;
+/** @type {boolean|undefined} */
+goog.net.WebChannel.Options.encodeInitMessageHeaders;
 
 /** @type {boolean|undefined} */
 goog.net.WebChannel.Options.fastHandshake;
