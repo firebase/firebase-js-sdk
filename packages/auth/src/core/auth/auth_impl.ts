@@ -225,6 +225,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     _assert(this._popupRedirectResolver, this, AuthErrorCode.ARGUMENT_ERROR);
     await this.getOrInitRedirectPersistenceManager();
 
+    // At this point in the flow, this is a redirect user. Run blocking
+    // middleware callbacks before setting the user.
+    await this._runBeforeStateCallbacks(storedUser);
+
     // If the redirect user's event ID matches the current user's event ID,
     // DO NOT reload the current user, otherwise they'll be cleared from storage.
     // This is important for the reauthenticateWithRedirect() flow.
@@ -338,6 +342,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async _runBeforeStateCallbacks(user: User | null): Promise<void> {
+    if (this.currentUser === user) {
+      return;
+    }
     try {
       for (const beforeStateCallback of this.beforeStateQueue) {
         await beforeStateCallback(user);
@@ -575,7 +582,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
    * should only be called from within a queued callback. This is necessary
    * because the queue shouldn't rely on another queued callback.
    */
-  // TODO: Find where this is called and see if we can run the middleware before it
   private async directlySetCurrentUser(
     user: UserInternal | null
   ): Promise<void> {

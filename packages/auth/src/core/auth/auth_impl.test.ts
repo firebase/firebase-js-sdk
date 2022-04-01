@@ -34,6 +34,7 @@ import * as reload from '../user/reload';
 import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 import { ClientPlatform } from '../util/version';
+import { AuthErrorCode } from '../errors';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -138,6 +139,11 @@ describe('core/auth/auth_impl', () => {
       expect(persistenceStub._remove).to.have.been.called;
       expect(auth.currentUser).to.be.null;
     });
+    it('is blocked if a beforeAuthStateChanged callback throws', async () => {
+      await auth._updateCurrentUser(testUser(auth, 'test'));
+      auth.beforeAuthStateChanged(sinon.stub().throws());
+      await expect(auth.signOut()).to.be.rejectedWith(AuthErrorCode.LOGIN_BLOCKED);
+    });
   });
 
   describe('#useDeviceLanguage', () => {
@@ -208,20 +214,24 @@ describe('core/auth/auth_impl', () => {
       let user: UserInternal;
       let authStateCallback: sinon.SinonSpy;
       let idTokenCallback: sinon.SinonSpy;
+      let beforeAuthCallback: sinon.SinonSpy;
 
       beforeEach(() => {
         user = testUser(auth, 'uid');
         authStateCallback = sinon.spy();
         idTokenCallback = sinon.spy();
+        beforeAuthCallback = sinon.spy();
       });
 
       context('initially currentUser is null', () => {
         beforeEach(async () => {
           auth.onAuthStateChanged(authStateCallback);
           auth.onIdTokenChanged(idTokenCallback);
+          auth.beforeAuthStateChanged(beforeAuthCallback);
           await auth._updateCurrentUser(null);
           authStateCallback.resetHistory();
           idTokenCallback.resetHistory();
+          beforeAuthCallback.resetHistory();
         });
 
         it('onAuthStateChange triggers on log in', async () => {
@@ -233,15 +243,22 @@ describe('core/auth/auth_impl', () => {
           await auth._updateCurrentUser(user);
           expect(idTokenCallback).to.have.been.calledWith(user);
         });
+
+        it('beforeAuthStateChanged triggers on log in', async () => {
+          await auth._updateCurrentUser(user);
+          expect(beforeAuthCallback).to.have.been.calledWith(user);
+        });
       });
 
       context('initially currentUser is user', () => {
         beforeEach(async () => {
           auth.onAuthStateChanged(authStateCallback);
           auth.onIdTokenChanged(idTokenCallback);
+          auth.beforeAuthStateChanged(beforeAuthCallback);
           await auth._updateCurrentUser(user);
           authStateCallback.resetHistory();
           idTokenCallback.resetHistory();
+          beforeAuthCallback.resetHistory();
         });
 
         it('onAuthStateChange triggers on log out', async () => {
@@ -252,6 +269,11 @@ describe('core/auth/auth_impl', () => {
         it('onIdTokenChange triggers on log out', async () => {
           await auth._updateCurrentUser(null);
           expect(idTokenCallback).to.have.been.calledWith(null);
+        });
+
+        it('beforeAuthStateChanged triggers on log out', async () => {
+          await auth._updateCurrentUser(null);
+          expect(beforeAuthCallback).to.have.been.calledWith(null);
         });
 
         it('onAuthStateChange does not trigger for user props change', async () => {
@@ -300,21 +322,61 @@ describe('core/auth/auth_impl', () => {
         expect(cb1).to.have.been.calledWith(user);
         expect(cb2).to.have.been.calledWith(user);
       });
+
+      it('beforeAuthStateChange works for multiple listeners', async () => {
+        const cb1 = sinon.spy();
+        const cb2 = sinon.spy();
+        auth.beforeAuthStateChanged(cb1);
+        auth.beforeAuthStateChanged(cb2);
+        await auth._updateCurrentUser(null);
+        cb1.resetHistory();
+        cb2.resetHistory();
+
+        await auth._updateCurrentUser(user);
+        expect(cb1).to.have.been.calledWith(user);
+        expect(cb2).to.have.been.calledWith(user);
+      });
+
+      it('_updateCurrentUser throws if a beforeAuthStateChange callback throws', async () => {
+        await auth._updateCurrentUser(null);
+        const cb1 = sinon.stub().throws();
+        const cb2 = sinon.spy();
+        auth.beforeAuthStateChanged(cb1);
+        auth.beforeAuthStateChanged(cb2);
+
+        await expect(auth._updateCurrentUser(user)).to.be.rejectedWith(AuthErrorCode.LOGIN_BLOCKED);
+        expect(cb2).not.to.be.called;
+      });
+
+      it('_updateCurrentUser throws if a beforeAuthStateChange callback rejects', async () => {
+        await auth._updateCurrentUser(null);
+        const cb1 = sinon.stub().rejects();
+        const cb2 = sinon.spy();
+        auth.beforeAuthStateChanged(cb1);
+        auth.beforeAuthStateChanged(cb2);
+
+        await expect(auth._updateCurrentUser(user)).to.be.rejectedWith(AuthErrorCode.LOGIN_BLOCKED);
+        expect(cb2).not.to.be.called;
+      });
     });
   });
 
   describe('#_onStorageEvent', () => {
     let authStateCallback: sinon.SinonSpy;
     let idTokenCallback: sinon.SinonSpy;
+    let beforeStateCallback: sinon.SinonSpy;
 
     beforeEach(async () => {
       authStateCallback = sinon.spy();
       idTokenCallback = sinon.spy();
+      beforeStateCallback = sinon.spy();
       auth.onAuthStateChanged(authStateCallback);
       auth.onIdTokenChanged(idTokenCallback);
+      auth.beforeAuthStateChanged(beforeStateCallback);
       await auth._updateCurrentUser(null); // force event handlers to clear out
       authStateCallback.resetHistory();
       idTokenCallback.resetHistory();
+      beforeStateCallback.resetHistory();
     });
 
     context('previously logged out', () => {
@@ -324,6 +386,7 @@ describe('core/auth/auth_impl', () => {
 
           expect(authStateCallback).not.to.have.been.called;
           expect(idTokenCallback).not.to.have.been.called;
+          expect(beforeStateCallback).not.to.have.been.called;
         });
       });
 
@@ -341,6 +404,8 @@ describe('core/auth/auth_impl', () => {
           expect(auth.currentUser?.toJSON()).to.eql(user.toJSON());
           expect(authStateCallback).to.have.been.called;
           expect(idTokenCallback).to.have.been.called;
+          // This should never be called on a storage event.
+          expect(beforeStateCallback).not.to.have.been.called;
         });
       });
     });
@@ -353,6 +418,7 @@ describe('core/auth/auth_impl', () => {
         await auth._updateCurrentUser(user);
         authStateCallback.resetHistory();
         idTokenCallback.resetHistory();
+        beforeStateCallback.resetHistory();
       });
 
       context('now logged out', () => {
@@ -366,6 +432,8 @@ describe('core/auth/auth_impl', () => {
           expect(auth.currentUser).to.be.null;
           expect(authStateCallback).to.have.been.called;
           expect(idTokenCallback).to.have.been.called;
+          // This should never be called on a storage event.
+          expect(beforeStateCallback).not.to.have.been.called;
         });
       });
 
@@ -378,6 +446,7 @@ describe('core/auth/auth_impl', () => {
           expect(auth.currentUser?.toJSON()).to.eql(user.toJSON());
           expect(authStateCallback).not.to.have.been.called;
           expect(idTokenCallback).not.to.have.been.called;
+          expect(beforeStateCallback).not.to.have.been.called;
         });
 
         it('should update fields if they have changed', async () => {
@@ -391,6 +460,7 @@ describe('core/auth/auth_impl', () => {
           expect(auth.currentUser?.displayName).to.eq('other-name');
           expect(authStateCallback).not.to.have.been.called;
           expect(idTokenCallback).not.to.have.been.called;
+          expect(beforeStateCallback).not.to.have.been.called;
         });
 
         it('should update tokens if they have changed', async () => {
@@ -407,6 +477,8 @@ describe('core/auth/auth_impl', () => {
           ).to.eq('new-access-token');
           expect(authStateCallback).not.to.have.been.called;
           expect(idTokenCallback).to.have.been.called;
+          // This should never be called on a storage event.
+          expect(beforeStateCallback).not.to.have.been.called;
         });
       });
 
@@ -420,6 +492,8 @@ describe('core/auth/auth_impl', () => {
           expect(auth.currentUser?.toJSON()).to.eql(newUser.toJSON());
           expect(authStateCallback).to.have.been.called;
           expect(idTokenCallback).to.have.been.called;
+          // This should never be called on a storage event.
+          expect(beforeStateCallback).not.to.have.been.called;
         });
       });
     });
@@ -461,7 +535,7 @@ describe('core/auth/auth_impl', () => {
     });
   });
 
-  context ('#_getAdditionalHeaders', () => {
+  context('#_getAdditionalHeaders', () => {
     it('always adds the client version', async () => {
       expect(await auth._getAdditionalHeaders()).to.eql({
         'X-Client-Version': 'v',

@@ -255,6 +255,16 @@ export interface Auth {
     completed?: CompleteFn
   ): Unsubscribe;
   /**
+   * Adds a blocking callback that runs before an auth state change
+   * sets a new user.
+   *
+   * @param callback - callback triggered before new user value is set.
+   *   If this throws, it will block the user from being set.
+   */
+  beforeAuthStateChanged(
+    callback: (user: User | null) => void | Promise<void>
+  ): Unsubscribe;
+  /**
    * Adds an observer for changes to the signed-in user's ID token.
    *
    * @remarks
