@@ -132,7 +132,7 @@ describe('Mutation', () => {
       mutationApplyToLocalView(
         overlay,
         docForOverlay,
-        /* previousMask */ null,
+        /* previousMask= */ null,
         timestamp
       );
     }
@@ -148,7 +148,12 @@ describe('Mutation', () => {
     const document = doc('collection/key', 0, docData);
 
     const set = setMutation('collection/key', { bar: 'bar-value' });
-    mutationApplyToLocalView(set, document, /* previousMask */ null, timestamp);
+    mutationApplyToLocalView(
+      set,
+      document,
+      /* previousMask= */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, { bar: 'bar-value' }).setHasLocalMutations()
     );
@@ -165,7 +170,7 @@ describe('Mutation', () => {
     mutationApplyToLocalView(
       patch,
       document,
-      /* previousMask */ null,
+      /* previousMask= */ null,
       timestamp
     );
     expect(document).to.deep.equal(
@@ -189,7 +194,7 @@ describe('Mutation', () => {
     mutationApplyToLocalView(
       patch,
       document,
-      /* previousMask */ null,
+      /* previousMask= */ null,
       timestamp
     );
     expect(document).to.deep.equal(
@@ -212,7 +217,7 @@ describe('Mutation', () => {
     mutationApplyToLocalView(
       patch,
       document,
-      /* previousMask */ null,
+      /* previousMask= */ null,
       timestamp
     );
     expect(document).to.deep.equal(
@@ -233,7 +238,7 @@ describe('Mutation', () => {
     mutationApplyToLocalView(
       patch,
       document,
-      /* previousMask */ null,
+      /* previousMask= */ null,
       timestamp
     );
     expect(document).to.deep.equal(
@@ -255,7 +260,7 @@ describe('Mutation', () => {
     mutationApplyToLocalView(
       patch,
       document,
-      /* previousMask */ null,
+      /* previousMask= */ null,
       timestamp
     );
     expect(document).to.deep.equal(
@@ -272,7 +277,7 @@ describe('Mutation', () => {
     mutationApplyToLocalView(
       patch,
       document,
-      /* previousMask */ null,
+      /* previousMask= */ null,
       timestamp
     );
     expect(document).to.deep.equal(deletedDoc('collection/key', 0));
@@ -289,7 +294,7 @@ describe('Mutation', () => {
     mutationApplyToLocalView(
       transform,
       document,
-      /* previousMask */ null,
+      /* previousMask= */ null,
       timestamp
     );
 
@@ -459,7 +464,7 @@ describe('Mutation', () => {
       mutationApplyToLocalView(
         transform,
         document,
-        /* previousMask */ null,
+        /* previousMask= */ null,
         timestamp
       );
     }
@@ -603,7 +608,7 @@ describe('Mutation', () => {
     mutationApplyToLocalView(
       mutation,
       document,
-      /* previousMask */ null,
+      /* previousMask= */ null,
       Timestamp.now()
     );
     expect(document).to.deep.equal(
@@ -758,13 +763,13 @@ describe('Mutation', () => {
     mutationApplyToLocalView(
       transform,
       document,
-      /* previousMask */ null,
+      /* previousMask= */ null,
       Timestamp.now()
     );
     mutationApplyToLocalView(
       transform,
       document,
-      /* previousMask */ null,
+      /* previousMask= */ null,
       Timestamp.now()
     );
 

@@ -454,28 +454,8 @@ describe('QueryEngine', () => {
     // Add an unacknowledged mutation
     await addMutation(deleteMutation('coll/b'));
     const docs = await expectFullCollectionQuery(() =>
-      persistence.runTransaction('runQuery', 'readonly', txn => {
-        return targetCache
-          .getMatchingKeysForTargetId(txn, TEST_TARGET_ID)
-          .next(remoteKeys => {
-            return queryEngine
-              .getDocumentsMatchingQuery(
-                txn,
-                query1,
-                LAST_LIMBO_FREE_SNAPSHOT,
-                remoteKeys
-              )
-              .next(documentMap => {
-                let result = new DocumentSet();
-                documentMap.forEach((_, v) => {
-                  result = result.add(v);
-                });
-                return result;
-              });
-          });
-      })
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
-
     verifyResult(docs, [MATCHING_DOC_A]);
   });
 });

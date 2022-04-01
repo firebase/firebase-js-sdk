@@ -571,17 +571,9 @@ function patchMutationApplyToLocalView(
     return null;
   }
 
-  let mergedMaskSet = new SortedSet<FieldPath>(FieldPath.comparator);
-  for (const fieldPath of previousMask.fields) {
-    mergedMaskSet = mergedMaskSet.add(fieldPath);
-  }
-  for (const fieldPath of mutation.fieldMask.fields) {
-    mergedMaskSet = mergedMaskSet.add(fieldPath);
-  }
-  mutation.fieldTransforms
-    .map(transform => transform.field)
-    .forEach(fieldPath => (mergedMaskSet = mergedMaskSet.add(fieldPath)));
-  return new FieldMask(mergedMaskSet.toArray());
+  return previousMask
+    .unionWith(mutation.fieldMask.fields)
+    .unionWith(mutation.fieldTransforms.map(transform => transform.field));
 }
 
 /**

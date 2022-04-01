@@ -17,6 +17,7 @@
 
 import { debugAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
+import { SortedSet } from '../util/sorted_set';
 
 import { FieldPath } from './path';
 
@@ -44,6 +45,21 @@ export class FieldMask {
 
   static empty(): FieldMask {
     return new FieldMask([]);
+  }
+
+  /**
+   * Returns a new FieldMask object that is the result of adding all the given
+   * fields paths to this field mask.
+   */
+  unionWith(extraFields: FieldPath[]): FieldMask {
+    let mergedMaskSet = new SortedSet<FieldPath>(FieldPath.comparator);
+    for (const fieldPath of this.fields) {
+      mergedMaskSet = mergedMaskSet.add(fieldPath);
+    }
+    for (const fieldPath of extraFields) {
+      mergedMaskSet = mergedMaskSet.add(fieldPath);
+    }
+    return new FieldMask(mergedMaskSet.toArray());
   }
 
   /**

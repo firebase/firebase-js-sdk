@@ -323,8 +323,9 @@ export function localStoreWriteLocally(
       // Figure out which keys do not have a remote version in the cache, this
       // is needed to create the right overlay mutation: if no remote version
       // presents, we do not need to create overlays as patch mutations.
-      // TODO(Overlay): Is there a better way to determine this? Document
-      //  version does not work because local mutations set them back to 0.
+      // TODO(Overlay): Is there a better way to determine this? Using the
+      //  document version does not work because local mutations set them back
+      //  to 0.
       let remoteDocs = mutableDocumentMap();
       let docsWithoutRemoteVersion = documentKeySet();
       return localStoreImpl.remoteDocuments
@@ -705,16 +706,16 @@ function populateDocumentChangeBuffer(
   documents: MutableDocumentMap
 ): PersistencePromise<DocumentChangeResult> {
   let updatedKeys = documentKeySet();
-  let conditionChanged = documentKeySet();
+  let existenceChangedKeys = documentKeySet();
   documents.forEach(k => (updatedKeys = updatedKeys.add(k)));
   return documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
-    let changedDocs = mutableDocumentMap();
+    let changedDocuments = mutableDocumentMap();
     documents.forEach((key, doc) => {
       const existingDoc = existingDocs.get(key)!;
 
       // Check if see if there is a existence state change for this document.
       if (doc.isFoundDocument() !== existingDoc.isFoundDocument()) {
-        conditionChanged = conditionChanged.add(key);
+        existenceChangedKeys = existenceChangedKeys.add(key);
       }
 
       // Note: The order of the steps below is important, since we want
@@ -726,7 +727,7 @@ function populateDocumentChangeBuffer(
         // events. We remove these documents from cache since we lost
         // access.
         documentBuffer.removeEntry(key, doc.readTime);
-        changedDocs = changedDocs.insert(key, doc);
+        changedDocuments = changedDocuments.insert(key, doc);
       } else if (
         !existingDoc.isValidDocument() ||
         doc.version.compareTo(existingDoc.version) > 0 ||
@@ -738,7 +739,7 @@ function populateDocumentChangeBuffer(
           'Cannot add a document when the remote version is zero'
         );
         documentBuffer.addEntry(doc);
-        changedDocs = changedDocs.insert(key, doc);
+        changedDocuments = changedDocuments.insert(key, doc);
       } else {
         logDebug(
           LOG_TAG,
@@ -751,10 +752,7 @@ function populateDocumentChangeBuffer(
         );
       }
     });
-    return {
-      changedDocuments: changedDocs,
-      existenceChangedKeys: conditionChanged
-    };
+    return { changedDocuments, existenceChangedKeys };
   });
 }
 

@@ -183,8 +183,8 @@ export class LocalDocumentsView {
     let recalculateDocuments = mutableDocumentMap();
     docs.forEach((_, doc) => {
       const overlay = overlays.get(doc.key);
-      // Recalculate an overlay if the document's existence state is changed due
-      // to a remote event *and* the overlay is a PatchMutation. This is because
+      // Recalculate an overlay if the document's existence state changed due to
+      // a remote event *and* the overlay is a PatchMutation. This is because
       // document existence state can change if some patch mutation's
       // preconditions are met.
       // NOTE: we recalculate when `overlay` is undefined as well, because there
@@ -227,24 +227,19 @@ export class LocalDocumentsView {
         for (const batch of batches) {
           batch.keys().forEach(key => {
             const baseDoc = docs.get(key);
-            if (baseDoc !== null) {
-              let mask: FieldMask | null = masks.has(key)
-                ? masks.get(key)!
-                : FieldMask.empty();
-              mask = batch.applyToLocalView(baseDoc, mask);
-              masks.set(key, mask);
-              if (documentsByBatchId.get(batch.batchId) === null) {
-                documentsByBatchId = documentsByBatchId.insert(
-                  batch.batchId,
-                  documentKeySet()
-                );
-              }
-              const newSet = documentsByBatchId.get(batch.batchId)!.add(key);
-              documentsByBatchId = documentsByBatchId.insert(
-                batch.batchId,
-                newSet
-              );
+            if (baseDoc === null) {
+              return;
             }
+            let mask: FieldMask | null = masks.get(key) ?? FieldMask.empty();
+            mask = batch.applyToLocalView(baseDoc, mask);
+            masks.set(key, mask);
+            const newSet = (
+              documentsByBatchId.get(batch.batchId) ?? documentKeySet()
+            ).add(key);
+            documentsByBatchId = documentsByBatchId.insert(
+              batch.batchId,
+              newSet
+            );
           });
         }
       })
@@ -292,9 +287,7 @@ export class LocalDocumentsView {
   ): PersistencePromise<void> {
     return this.remoteDocumentCache
       .getEntries(transaction, documentKeys)
-      .next(docs => {
-        return this.recalculateAndSaveOverlays(transaction, docs);
-      });
+      .next(docs => this.recalculateAndSaveOverlays(transaction, docs));
   }
 
   /**
