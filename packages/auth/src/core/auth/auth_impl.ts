@@ -227,7 +227,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
     // At this point in the flow, this is a redirect user. Run blocking
     // middleware callbacks before setting the user.
-    await this._runBeforeStateCallbacks(storedUser);
+    try {
+      await this._runBeforeStateCallbacks(storedUser);
+    } catch(e) {
+      return;
+    }
 
     // If the redirect user's event ID matches the current user's event ID,
     // DO NOT reload the current user, otherwise they'll be cleared from storage.
