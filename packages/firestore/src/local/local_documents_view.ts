@@ -230,11 +230,11 @@ export class LocalDocumentsView {
             if (baseDoc === null) {
               return;
             }
-            let mask: FieldMask | null = masks.get(key) ?? FieldMask.empty();
+            let mask: FieldMask | null = masks.get(key) || FieldMask.empty();
             mask = batch.applyToLocalView(baseDoc, mask);
             masks.set(key, mask);
             const newSet = (
-              documentsByBatchId.get(batch.batchId) ?? documentKeySet()
+              documentsByBatchId.get(batch.batchId) || documentKeySet()
             ).add(key);
             documentsByBatchId = documentsByBatchId.insert(
               batch.batchId,
