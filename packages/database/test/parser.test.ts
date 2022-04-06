@@ -15,17 +15,20 @@
  * limitations under the License.
  */
 
-import { expect } from "chai";
+import { expect } from 'chai';
 
-import { parseRepoInfo } from "../src/core/util/libs/parser";
+import { parseRepoInfo } from '../src/core/util/libs/parser';
 
 describe('parser', () => {
-    it('should set websocketUrl correctly based on the protocol', () => {
-        const httpsRepoInfo = parseRepoInfo('https://test-ns.firebaseio.com', false);
-        expect(httpsRepoInfo.repoInfo.webSocketOnly).to.equal(false);
-        const wssRepoInfo = parseRepoInfo('wss://test-ns.firebaseio.com', false);
-        expect(wssRepoInfo.repoInfo.webSocketOnly).to.equal(true);
-        const wsRepoInfo = parseRepoInfo('ws://test-ns.firebaseio.com', false);
-        expect(wsRepoInfo.repoInfo.webSocketOnly).to.equal(true);
-    });
+  it('should set websocketUrl correctly based on the protocol', () => {
+    const httpsRepoInfo = parseRepoInfo(
+      'https://test-ns.firebaseio.com',
+      false
+    );
+    expect(httpsRepoInfo.repoInfo.webSocketOnly).to.equal(false);
+    const wssRepoInfo = parseRepoInfo('wss://test-ns.firebaseio.com', false);
+    expect(wssRepoInfo.repoInfo.webSocketOnly).to.equal(true);
+    const wsRepoInfo = parseRepoInfo('ws://test-ns.firebaseio.com', false);
+    expect(wsRepoInfo.repoInfo.webSocketOnly).to.equal(true);
+  });
 });
