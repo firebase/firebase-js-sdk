@@ -36,7 +36,7 @@ import {
 import { GarbageCollectionScheduler } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { isIndexedDbTransactionError } from './simple_db';
+import { isIndexedDbTransactionError } from '@firebase/util';
 
 const LOG_TAG = 'LruGarbageCollector';
 

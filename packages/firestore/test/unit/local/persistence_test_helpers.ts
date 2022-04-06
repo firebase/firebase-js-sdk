@@ -40,7 +40,7 @@ import {
   ClientId,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
-import { SimpleDb } from '../../../src/local/simple_db';
+import { SimpleDb } from '@firebase/util';
 import { getDocument, getWindow } from '../../../src/platform/dom';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';

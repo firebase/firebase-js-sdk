@@ -88,7 +88,7 @@ import {
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { SimpleDbStore } from './simple_db';
+import { SimpleDbStore } from '@firebase/util';
 
 const LOG_TAG = 'IndexedDbIndexManager';
 

@@ -115,7 +115,7 @@ import {
 } from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
+import { SimpleDbSchemaConverter, SimpleDbTransaction } from '@firebase/util';
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {

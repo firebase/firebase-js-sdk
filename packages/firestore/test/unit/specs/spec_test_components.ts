@@ -50,7 +50,7 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
-import { IndexedDbTransactionError } from '../../../src/local/simple_db';
+import { IndexedDbTransactionError } from '@firebase/util';
 import { Mutation } from '../../../src/model/mutation';
 import { encodeBase64 } from '../../../src/platform/base64';
 import { newSerializer } from '../../../src/platform/serializer';

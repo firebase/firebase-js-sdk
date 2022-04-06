@@ -25,7 +25,7 @@ import {
   SimpleDbSchemaConverter,
   SimpleDbStore,
   SimpleDbTransaction
-} from '../../../src/local/simple_db';
+} from '@firebase/util';
 import { fail } from '../../../src/util/assert';
 import { Code, FirestoreError } from '../../../src/util/error';
 

@@ -20,7 +20,7 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { User } from '../../../src/auth/user';
-import { SimpleDb } from '../../../src/local/simple_db';
+import { SimpleDb } from '@firebase/util';
 import {
   clearIndexedDbPersistence,
   disableNetwork,

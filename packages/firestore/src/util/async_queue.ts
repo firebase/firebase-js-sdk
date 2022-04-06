@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { isIndexedDbTransactionError } from '../local/simple_db';
+import { isIndexedDbTransactionError } from '@firebase/util';
 
 import { Code, FirestoreError } from './error';
 import { logError } from './log';

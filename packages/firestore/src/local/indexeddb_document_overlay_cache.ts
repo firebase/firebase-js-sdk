@@ -44,7 +44,7 @@ import {
 } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { SimpleDbStore } from './simple_db';
+import { SimpleDbStore } from '@firebase/util';
 
 /**
  * Implementation of DocumentOverlayCache using IndexedDb.

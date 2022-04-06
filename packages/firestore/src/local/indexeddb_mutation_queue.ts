@@ -61,7 +61,7 @@ import { MutationQueue } from './mutation_queue';
 import { ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { SimpleDbStore } from './simple_db';
+import { SimpleDbStore } from '@firebase/util';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {

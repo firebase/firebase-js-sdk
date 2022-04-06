@@ -23,7 +23,7 @@ import {
   localStoreGetLastRemoteSnapshotVersion,
   localStoreGetNextMutationBatch
 } from '../local/local_store_impl';
-import { isIndexedDbTransactionError } from '../local/simple_db';
+import { isIndexedDbTransactionError } from '@firebase/util';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';

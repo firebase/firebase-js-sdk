@@ -32,7 +32,7 @@ import {
   newDbDocumentMutationKey
 } from './indexeddb_sentinels';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbTransaction } from './simple_db';
+import { SimpleDbTransaction } from '@firebase/util';
 
 /**
  * Delete a mutation batch and the associated document mutations.

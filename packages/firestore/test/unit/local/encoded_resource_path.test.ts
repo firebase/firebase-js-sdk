@@ -27,7 +27,7 @@ import {
   SimpleDbSchemaConverter,
   SimpleDbStore,
   SimpleDbTransaction
-} from '../../../src/local/simple_db';
+} from '@firebase/util';
 import { ResourcePath } from '../../../src/model/path';
 import { path } from '../../util/helpers';
 

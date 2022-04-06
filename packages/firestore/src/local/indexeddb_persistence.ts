@@ -68,7 +68,7 @@ import {
   isIndexedDbTransactionError,
   SimpleDb,
   SimpleDbStore
-} from './simple_db';
+} from '@firebase/util';
 
 const LOG_TAG = 'IndexedDbPersistence';
 

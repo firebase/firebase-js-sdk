@@ -55,7 +55,7 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { SimpleDbStore } from './simple_db';
+import { SimpleDbStore } from '@firebase/util';
 
 export interface DocumentSizeEntry {
   document: MutableDocument;

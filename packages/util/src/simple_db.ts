@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 
-import { getUA, isIndexedDBAvailable } from '@firebase/util';
+import { getUA, isIndexedDBAvailable } from './environment';
 
-import { debugAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
-import { Deferred } from '../util/promise';
+import { assert } from './assert';
+import { Code } from '../../firestore/src/util/error';
+import { Deferred } from './deferred';
 
-import { PersistencePromise } from './persistence_promise';
+import { PersistencePromise } from '../../firestore/src/local/persistence_promise';
+import { FirebaseError } from './errors';
+
+// TODO: add @internal tags
 
 // References to `window` are guarded by SimpleDb.isAvailable()
 /* eslint-disable no-restricted-globals */
@@ -63,12 +65,16 @@ export class SimpleDbTransaction {
     db: IDBDatabase,
     action: string,
     mode: IDBTransactionMode,
-    objectStoreNames: string[]
+    objectStoreNames: string[],
+    logDebug: (...args: string[]) => void,
+    errorWrapper: (code: string, message: string) => FirebaseError
   ): SimpleDbTransaction {
     try {
       return new SimpleDbTransaction(
         action,
-        db.transaction(objectStoreNames, mode)
+        db.transaction(objectStoreNames, mode),
+        logDebug,
+        errorWrapper
       );
     } catch (e) {
       throw new IndexedDbTransactionError(action, e);
@@ -77,7 +83,9 @@ export class SimpleDbTransaction {
 
   constructor(
     private readonly action: string,
-    private readonly transaction: IDBTransaction
+    private readonly transaction: IDBTransaction,
+    private readonly logDebug: (...args: string[]) => void,
+    private readonly errorWrapper: (code: string, message: string) => FirebaseError
   ) {
     this.transaction.oncomplete = () => {
       this.completionDeferred.resolve();
@@ -111,7 +119,7 @@ export class SimpleDbTransaction {
     }
 
     if (!this.aborted) {
-      logDebug(
+      this.logDebug(
         LOG_TAG,
         'Aborting transaction:',
         error ? error.message : 'Client-initiated abort'
@@ -144,8 +152,8 @@ export class SimpleDbTransaction {
     storeName: string
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
-    debugAssert(!!store, 'Object store not part of transaction: ' + storeName);
-    return new SimpleDbStore<KeyType, ValueType>(store);
+    assert(!!store, 'Object store not part of transaction: ' + storeName);
+    return new SimpleDbStore<KeyType, ValueType>(store, this.logDebug, this.errorWrapper);
   }
 }
 
@@ -161,8 +169,8 @@ export class SimpleDb {
   private versionchangelistener?: (event: IDBVersionChangeEvent) => void;
 
   /** Deletes the specified database. */
-  static delete(name: string): Promise<void> {
-    logDebug(LOG_TAG, 'Removing database:', name);
+  delete(name: string): Promise<void> {
+    this.logDebug(LOG_TAG, 'Removing database:', name);
     return wrapRequest<void>(window.indexedDB.deleteDatabase(name)).toPromise();
   }
 
@@ -268,9 +276,12 @@ export class SimpleDb {
   constructor(
     private readonly name: string,
     private readonly version: number,
-    private readonly schemaConverter: SimpleDbSchemaConverter
+    private readonly schemaConverter: SimpleDbSchemaConverter,
+    private readonly logDebug: (...args: string[]) => void,
+    private readonly logError: (...args: string[]) => void,
+    private readonly errorWrapper: (code: string, message: string) => FirebaseError
   ) {
-    debugAssert(
+    assert(
       SimpleDb.isAvailable(),
       'IndexedDB not supported in current environment.'
     );
@@ -281,11 +292,11 @@ export class SimpleDb {
     // whatever reason it's much harder to hit after 12.2 so we only proactively
     // log on 12.2.
     if (iOSVersion === 12.2) {
-      logError(
+      this.logError(
         'Firestore persistence suffers from a bug in iOS 12.2 ' +
-          'Safari that may cause your app to stop working. See ' +
-          'https://stackoverflow.com/q/56496296/110915 for details ' +
-          'and a potential workaround.'
+        'Safari that may cause your app to stop working. See ' +
+        'https://stackoverflow.com/q/56496296/110915 for details ' +
+        'and a potential workaround.'
       );
     }
   }
@@ -295,7 +306,7 @@ export class SimpleDb {
    */
   async ensureDb(action: string): Promise<IDBDatabase> {
     if (!this.db) {
-      logDebug(LOG_TAG, 'Opening database:', this.name);
+      this.logDebug(LOG_TAG, 'Opening database:', this.name);
       this.db = await new Promise<IDBDatabase>((resolve, reject) => {
         // TODO(mikelehen): Investigate browser compatibility.
         // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
@@ -314,7 +325,7 @@ export class SimpleDb {
             new IndexedDbTransactionError(
               action,
               'Cannot upgrade IndexedDB schema while another tab is open. ' +
-                'Close all tabs that access Firestore and reload this page to proceed.'
+              'Close all tabs that access Firebase and reload this page to proceed.'
             )
           );
         };
@@ -323,23 +334,23 @@ export class SimpleDb {
           const error: DOMException = (event.target as IDBOpenDBRequest).error!;
           if (error.name === 'VersionError') {
             reject(
-              new FirestoreError(
+              this.errorWrapper(
                 Code.FAILED_PRECONDITION,
-                'A newer version of the Firestore SDK was previously used and so the persisted ' +
-                  'data is not compatible with the version of the SDK you are now using. The SDK ' +
-                  'will operate with persistence disabled. If you need persistence, please ' +
-                  're-upgrade to a newer version of the SDK or else clear the persisted IndexedDB ' +
-                  'data for your app to start fresh.'
+                'A newer version of the Firebase SDK was previously used and so the persisted ' +
+                'data is not compatible with the version of the SDK you are now using. The SDK ' +
+                'will operate with persistence disabled. If you need persistence, please ' +
+                're-upgrade to a newer version of the SDK or else clear the persisted IndexedDB ' +
+                'data for your app to start fresh.'
               )
             );
           } else if (error.name === 'InvalidStateError') {
             reject(
-              new FirestoreError(
+              this.errorWrapper(
                 Code.FAILED_PRECONDITION,
                 'Unable to open an IndexedDB connection. This could be due to running in a ' +
-                  'private browsing session on a browser whose private browsing sessions do not ' +
-                  'support IndexedDB: ' +
-                  error
+                'private browsing session on a browser whose private browsing sessions do not ' +
+                'support IndexedDB: ' +
+                error
               )
             );
           } else {
@@ -348,10 +359,10 @@ export class SimpleDb {
         };
 
         request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-          logDebug(
+          this.logDebug(
             LOG_TAG,
             'Database "' + this.name + '" requires upgrade from version:',
-            event.oldVersion
+            event.oldVersion.toString()
           );
           const db = (event.target as IDBOpenDBRequest).result;
           this.schemaConverter
@@ -362,7 +373,7 @@ export class SimpleDb {
               this.version
             )
             .next(() => {
-              logDebug(
+              this.logDebug(
                 LOG_TAG,
                 'Database upgrade to version ' + this.version + ' complete'
               );
@@ -407,7 +418,9 @@ export class SimpleDb {
           this.db,
           action,
           readonly ? 'readonly' : 'readwrite',
-          objectStores
+          objectStores,
+          this.logDebug,
+          this.errorWrapper
         );
         const transactionFnResult = transactionFn(transaction)
           .next(result => {
@@ -427,7 +440,7 @@ export class SimpleDb {
 
         // As noted above, errors are propagated by aborting the transaction. So
         // we swallow any error here to avoid the browser logging it as unhandled.
-        transactionFnResult.catch(() => {});
+        transactionFnResult.catch(() => { });
 
         // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
         // fire), but still return the original transactionFnResult back to the
@@ -444,12 +457,12 @@ export class SimpleDb {
         const retryable =
           error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
-        logDebug(
+        this.logDebug(
           LOG_TAG,
           'Transaction failed with error:',
           error.message,
           'Retrying:',
-          retryable
+          retryable.toString()
         );
 
         this.close();
@@ -478,7 +491,7 @@ export class IterationController {
   private shouldStop = false;
   private nextKey: IDBValidKey | null = null;
 
-  constructor(private dbCursor: IDBCursorWithValue) {}
+  constructor(private dbCursor: IDBCursorWithValue) { }
 
   get isDone(): boolean {
     return this.shouldStop;
@@ -542,7 +555,7 @@ export interface IterateOptions {
 }
 
 /** An error that wraps exceptions that thrown during IndexedDB execution. */
-export class IndexedDbTransactionError extends FirestoreError {
+export class IndexedDbTransactionError extends FirebaseError {
   name = 'IndexedDbTransactionError';
 
   constructor(actionName: string, cause: Error | string) {
@@ -573,8 +586,11 @@ export function isIndexedDbTransactionError(e: Error): boolean {
 export class SimpleDbStore<
   KeyType extends IDBValidKey,
   ValueType extends unknown
-> {
-  constructor(private store: IDBObjectStore) {}
+  > {
+  constructor(
+    private store: IDBObjectStore,
+    private logDebug: (...args: string[]) => void,
+    private errorWrapper: (code: string, message: string) => FirebaseError) { }
 
   /**
    * Writes a value into the Object Store.
@@ -591,10 +607,10 @@ export class SimpleDbStore<
   ): PersistencePromise<void> {
     let request;
     if (value !== undefined) {
-      logDebug(LOG_TAG, 'PUT', this.store.name, keyOrValue, value);
+      this.logDebug(LOG_TAG, 'PUT', this.store.name, String(keyOrValue), String(value));
       request = this.store.put(value, keyOrValue as KeyType);
     } else {
-      logDebug(LOG_TAG, 'PUT', this.store.name, '<auto-key>', keyOrValue);
+      this.logDebug(LOG_TAG, 'PUT', this.store.name, '<auto-key>', String(keyOrValue));
       request = this.store.put(keyOrValue as ValueType);
     }
     return wrapRequest<void>(request);
@@ -608,7 +624,7 @@ export class SimpleDbStore<
    * @returns The key of the value to add.
    */
   add(value: ValueType): PersistencePromise<KeyType> {
-    logDebug(LOG_TAG, 'ADD', this.store.name, value, value);
+    this.logDebug(LOG_TAG, 'ADD', this.store.name, String(value), String(value));
     const request = this.store.add(value as ValueType);
     return wrapRequest<KeyType>(request);
   }
@@ -629,13 +645,13 @@ export class SimpleDbStore<
       if (result === undefined) {
         result = null;
       }
-      logDebug(LOG_TAG, 'GET', this.store.name, key, result);
+      this.logDebug(LOG_TAG, 'GET', this.store.name, String(key), result);
       return result;
     });
   }
 
   delete(key: KeyType | IDBKeyRange): PersistencePromise<void> {
-    logDebug(LOG_TAG, 'DELETE', this.store.name, key);
+    this.logDebug(LOG_TAG, 'DELETE', this.store.name, String(key));
     const request = this.store.delete(key);
     return wrapRequest<void>(request);
   }
@@ -647,7 +663,7 @@ export class SimpleDbStore<
    * Returns the number of rows in the store.
    */
   count(): PersistencePromise<number> {
-    logDebug(LOG_TAG, 'COUNT', this.store.name);
+    this.logDebug(LOG_TAG, 'COUNT', this.store.name);
     const request = this.store.count();
     return wrapRequest<number>(request);
   }
@@ -718,7 +734,7 @@ export class SimpleDbStore<
     indexOrRange?: string | IDBKeyRange,
     range?: IDBKeyRange
   ): PersistencePromise<void> {
-    logDebug(LOG_TAG, 'DELETE ALL', this.store.name);
+    this.logDebug(LOG_TAG, 'DELETE ALL', this.store.name);
     const options = this.options(indexOrRange, range);
     options.keysOnly = false;
     const cursor = this.cursor(options);
@@ -859,7 +875,7 @@ export class SimpleDbStore<
       if (typeof indexOrRange === 'string') {
         indexName = indexOrRange;
       } else {
-        debugAssert(
+        assert(
           range === undefined,
           '3rd argument must not be defined if 2nd is a range.'
         );
@@ -916,11 +932,11 @@ function checkForAndReportiOSError(error: DOMException): Error {
       'An internal error was encountered in the Indexed Database server';
     if (error.message.indexOf(IOS_ERROR) >= 0) {
       // Wrap error in a more descriptive one.
-      const newError = new FirestoreError(
+      const newError = new FirebaseError(
         'internal',
         `IOS_INDEXEDDB_BUG1: IndexedDb has thrown '${IOS_ERROR}'. This is likely ` +
-          `due to an unavoidable bug in iOS. See https://stackoverflow.com/q/56496296/110915 ` +
-          `for details and a potential workaround.`
+        `due to an unavoidable bug in iOS. See https://stackoverflow.com/q/56496296/110915 ` +
+        `for details and a potential workaround.`
       );
       if (!reportedIOSError) {
         reportedIOSError = true;

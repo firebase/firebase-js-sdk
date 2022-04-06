@@ -76,7 +76,7 @@ import {
   ClientId,
   SharedClientState
 } from '../../../src/local/shared_client_state';
-import { SimpleDb } from '../../../src/local/simple_db';
+import { SimpleDb } from '@firebase/util';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
