@@ -81,7 +81,8 @@ import {
   MutationResult,
   PatchMutation,
   Precondition,
-  SetMutation
+  SetMutation,
+  FieldTransform
 } from '../../src/model/mutation';
 import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
@@ -285,6 +286,23 @@ export function patchMutation(
   if (precondition === undefined) {
     precondition = Precondition.exists(true);
   }
+  return patchMutationHelper(keyStr, json, precondition, /* updateMask */ null);
+}
+
+export function mergeMutation(
+  keyStr: string,
+  json: JsonObject<unknown>,
+  updateMask: FieldPath[]
+): PatchMutation {
+  return patchMutationHelper(keyStr, json, Precondition.none(), updateMask);
+}
+
+function patchMutationHelper(
+  keyStr: string,
+  json: JsonObject<unknown>,
+  precondition: Precondition,
+  updateMask: FieldPath[] | null
+): PatchMutation {
   // Replace '<DELETE>' from JSON with FieldValue
   forEach(json, (k, v) => {
     if (v === '<DELETE>') {
@@ -298,12 +316,31 @@ export function patchMutation(
     patchKey,
     json
   );
+
+  // `mergeMutation()` provides an update mask for the merged fields, whereas
+  // `patchMutation()` requires the update mask to be parsed from the values.
+  const mask = updateMask ? updateMask : parsed.fieldMask.fields;
+
+  // We sort the fieldMaskPaths to make the order deterministic in tests.
+  // (Otherwise, when we flatten a Set to a proto repeated field, we'll end up
+  // comparing in iterator order and possibly consider {foo,bar} != {bar,foo}.)
+  let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
+  mask.forEach(value => (fieldMaskPaths = fieldMaskPaths.add(value)));
+
+  // The order of the transforms doesn't matter, but we sort them so tests can
+  // assume a particular order.
+  const fieldTransforms: FieldTransform[] = [];
+  fieldTransforms.push(...parsed.fieldTransforms);
+  fieldTransforms.sort((lhs, rhs) =>
+    FieldPath.comparator(lhs.field, rhs.field)
+  );
+
   return new PatchMutation(
     patchKey,
     parsed.data,
-    parsed.fieldMask,
+    new FieldMask(fieldMaskPaths.toArray()),
     precondition,
-    parsed.fieldTransforms
+    fieldTransforms
   );
 }
 
@@ -969,4 +1006,51 @@ export function forEachNumber<V>(
       }
     }
   }
+}
+
+/**
+ * Returns all possible permutations of the given array.
+ * For `[a, b]`, this method returns `[[a, b], [b, a]]`.
+ */
+export function computePermutations<T>(input: T[]): T[][] {
+  if (input.length === 0) {
+    return [[]];
+  }
+
+  const result: T[][] = [];
+  for (let i = 0; i < input.length; ++i) {
+    const rest = computePermutations(
+      input.slice(0, i).concat(input.slice(i + 1))
+    );
+
+    if (rest.length === 0) {
+      result.push([input[i]]);
+    } else {
+      for (let j = 0; j < rest.length; ++j) {
+        result.push([input[i]].concat(rest[j]));
+      }
+    }
+  }
+  return result;
+}
+
+/**
+ * Returns all possible combinations of the given array, including an empty
+ * array. For `[a, b, c]` this method returns
+ * `[[], [a], [a, b], [a, c], [b, c], [a, b, c]`.
+ */
+export function computeCombinations<T>(input: T[]): T[][] {
+  const computeNonEmptyCombinations = (input: T[]): T[][] => {
+    if (input.length === 1) {
+      return [input];
+    } else {
+      const first = input[0];
+      const rest = computeNonEmptyCombinations(input.slice(1));
+      return rest.concat(
+        rest.map(e => e.concat(first)),
+        [[first]]
+      );
+    }
+  };
+  return computeNonEmptyCombinations(input).concat([[]]);
 }

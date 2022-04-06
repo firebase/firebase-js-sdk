@@ -17,19 +17,26 @@
 
 import { expect } from 'chai';
 
+import { Timestamp } from '../../../src';
 import { User } from '../../../src/auth/user';
 import { LimitType, Query, queryWithLimit } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { View } from '../../../src/core/view';
+import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MemoryIndexManager } from '../../../src/local/memory_index_manager';
+import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import { QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
-import { documentKeySet, DocumentMap } from '../../../src/model/collections';
+import {
+  documentKeySet,
+  DocumentMap,
+  newMutationMap
+} from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
@@ -37,8 +44,17 @@ import {
   IndexOffset,
   indexOffsetComparator
 } from '../../../src/model/field_index';
+import { Mutation } from '../../../src/model/mutation';
 import { debugAssert } from '../../../src/util/assert';
-import { doc, filter, key, orderBy, query, version } from '../../util/helpers';
+import {
+  deleteMutation,
+  doc,
+  filter,
+  key,
+  orderBy,
+  query,
+  version
+} from '../../util/helpers';
 
 import { testMemoryEagerPersistence } from './persistence_test_helpers';
 
@@ -88,6 +104,8 @@ class TestLocalDocumentsView extends LocalDocumentsView {
 describe('QueryEngine', () => {
   let persistence!: Persistence;
   let remoteDocumentCache!: RemoteDocumentCache;
+  let mutationQueue!: MutationQueue;
+  let documentOverlayCache!: DocumentOverlayCache;
   let targetCache!: TargetCache;
   let queryEngine!: QueryEngine;
   let localDocuments!: TestLocalDocumentsView;
@@ -112,6 +130,23 @@ describe('QueryEngine', () => {
         changeBuffer.addEntry(doc);
       }
       return changeBuffer.apply(txn);
+    });
+  }
+
+  /** Adds a mutation to the mutation queue. */
+  function addMutation(mutation: Mutation): Promise<void> {
+    return persistence.runTransaction('addMutation', 'readwrite', txn => {
+      return mutationQueue
+        .addMutationBatch(txn, Timestamp.now(), [], [mutation])
+        .next(batch => {
+          const overlayMap = newMutationMap();
+          overlayMap.set(mutation.key, mutation);
+          return documentOverlayCache.saveOverlays(
+            txn,
+            batch.batchId,
+            overlayMap
+          );
+        });
     });
   }
 
@@ -178,10 +213,17 @@ describe('QueryEngine', () => {
     const indexManager = persistence.getIndexManager(User.UNAUTHENTICATED);
     remoteDocumentCache = persistence.getRemoteDocumentCache();
     remoteDocumentCache.setIndexManager(indexManager);
-
+    mutationQueue = persistence.getMutationQueue(
+      User.UNAUTHENTICATED,
+      indexManager
+    );
+    documentOverlayCache = persistence.getDocumentOverlayCache(
+      User.UNAUTHENTICATED
+    );
     localDocuments = new TestLocalDocumentsView(
       remoteDocumentCache,
-      persistence.getMutationQueue(User.UNAUTHENTICATED, indexManager),
+      mutationQueue,
+      documentOverlayCache,
       new MemoryIndexManager()
     );
     queryEngine.setLocalDocumentsView(localDocuments);
@@ -402,6 +444,19 @@ describe('QueryEngine', () => {
       doc('coll/a', 1, { order: 2 }).setHasLocalMutations(),
       doc('coll/b', 1, { order: 3 })
     ]);
+  });
+
+  it('does not include documents deleted by mutation', async () => {
+    const query1 = query('coll');
+    await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
+    await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
+
+    // Add an unacknowledged mutation
+    await addMutation(deleteMutation('coll/b'));
+    const docs = await expectFullCollectionQuery(() =>
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(docs, [MATCHING_DOC_A]);
   });
 });
 

@@ -327,4 +327,29 @@ function genericDocumentOverlayCacheTests(): void {
     );
     expect(await overlayCache.getOverlay(key('coll/doc'))).to.equal(null);
   });
+
+  it('skips non-existing overlay in batch lookup', async () => {
+    const result = await overlayCache.getOverlays(
+      documentKeySet(key('coll/doc1'))
+    );
+    expect(result.isEmpty()).to.equal(true);
+  });
+
+  it('supports empty batch in batch lookup', async () => {
+    const result = await overlayCache.getOverlays(documentKeySet());
+    expect(result.isEmpty()).to.equal(true);
+  });
+
+  it('can read saved overlays in batches', async () => {
+    const m1 = setMutation('coll/a', { 'a': 1 });
+    const m2 = setMutation('coll/b', { 'b': 2 });
+    const m3 = setMutation('coll/c', { 'c': 3 });
+    await saveOverlaysForMutations(3, m1, m2, m3);
+    const overlays = await overlayCache.getOverlays(
+      documentKeySet(key('coll/a'), key('coll/b'), key('coll/c'))
+    );
+    verifyEqualMutations(overlays.get(key('coll/a'))!.mutation, m1);
+    verifyEqualMutations(overlays.get(key('coll/b'))!.mutation, m2);
+    verifyEqualMutations(overlays.get(key('coll/c'))!.mutation, m3);
+  });
 }
