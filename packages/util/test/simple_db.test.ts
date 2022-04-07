@@ -60,9 +60,7 @@ function isIndexedDbMock(): boolean {
 }
 
 class TestSchemaConverter implements SimpleDbSchemaConverter {
-  createOrUpgrade(
-    db: IDBDatabase
-  ): PersistencePromise<void> {
+  createOrUpgrade(db: IDBDatabase): PersistencePromise<void> {
     const objectStore = db.createObjectStore('users', { keyPath: 'id' });
     objectStore.createIndex('age-name', ['age', 'name'], {
       unique: false
@@ -114,8 +112,7 @@ describe('SimpleDb', () => {
       new TestSchemaConverter(),
       () => {},
       () => {},
-      (error: FirebaseError) =>
-        new FirebaseError(error.code, error.message)
+      (error: FirebaseError) => new FirebaseError(error.code, error.message)
     );
     await writeTestData();
   });
@@ -218,7 +215,7 @@ describe('SimpleDb', () => {
           throw new Error('Generated error');
         });
       }).then(
-        () => { },
+        () => {},
         error => Promise.reject(error)
       )
     ).to.eventually.be.rejectedWith('Generated error');
@@ -454,13 +451,10 @@ describe('SimpleDb', () => {
     return runTransaction(store => {
       const iterated: number[] = [];
       return store
-        .iterate(
-          { index: 'age-name', keysOnly: true },
-          (key, value) => {
-            expect(value).to.equal(undefined);
-            iterated.push(key);
-          }
-        )
+        .iterate({ index: 'age-name', keysOnly: true }, (key, value) => {
+          expect(value).to.equal(undefined);
+          iterated.push(key);
+        })
         .next(() => {
           const expected = testData
             .sort((a, b) =>

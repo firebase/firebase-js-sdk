@@ -26,13 +26,13 @@ use(chaiAsPromised);
 
 describe('PersistencePromise', () => {
   function async<R>(value: R): PersistencePromise<R> {
-    return new PersistencePromise<R>((resolve) => {
+    return new PersistencePromise<R>(resolve => {
       setTimeout(() => resolve(value), 0);
     });
   }
 
   function sync<R>(value: R): PersistencePromise<R> {
-    return new PersistencePromise<R>((resolve) => {
+    return new PersistencePromise<R>(resolve => {
       resolve(value);
     });
   }

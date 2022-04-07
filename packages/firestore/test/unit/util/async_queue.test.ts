@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { isSafari , IndexedDbTransactionError } from '@firebase/util';
+import { isSafari, IndexedDbTransactionError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 

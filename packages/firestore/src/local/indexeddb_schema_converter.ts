@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  SimpleDbSchemaConverter,
-  SimpleDbTransaction
-} from '@firebase/util';
+import { SimpleDbSchemaConverter, SimpleDbTransaction } from '@firebase/util';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { DocumentKey } from '../model/document_key';
