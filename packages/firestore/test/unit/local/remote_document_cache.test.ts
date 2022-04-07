@@ -405,6 +405,7 @@ function genericRemoteDocumentCacheTests(
         expect(read.size).to.equal(keys.length);
       });
   });
+
   it('can set and read several documents with deeply nested keys', () => {
     // This test verifies that the sorting works correctly in IndexedDB,
     // which sorts by prefix path first.
