@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseError, SimpleDb } from '@firebase/util';
 import { expect } from 'chai';
 
 import { LoadBundleTask } from '../../../src/api/bundle';
@@ -76,7 +77,6 @@ import {
   ClientId,
   SharedClientState
 } from '../../../src/local/shared_client_state';
-import { SimpleDb } from '@firebase/util';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
@@ -117,8 +117,8 @@ import {
 } from '../../../src/util/async_queue_impl';
 import { newBundleReader } from '../../../src/util/bundle_reader_impl';
 import { ByteString } from '../../../src/util/byte_string';
-import { FirestoreError } from '../../../src/util/error';
-import { logWarn } from '../../../src/util/log';
+import { FirestoreError, FirestoreErrorCode } from '../../../src/util/error';
+import { logDebug, logError, logWarn } from '../../../src/util/log';
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
@@ -1640,7 +1640,11 @@ async function clearCurrentPrimaryLease(): Promise<void> {
   const db = new SimpleDb(
     INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
-    new SchemaConverter(TEST_SERIALIZER)
+    new SchemaConverter(TEST_SERIALIZER),
+    logDebug,
+    logError,
+    (error: FirebaseError) =>
+      new FirestoreError(error.code as FirestoreErrorCode, error.message)
   );
   await db.runTransaction(
     'clearCurrentPrimaryLease',

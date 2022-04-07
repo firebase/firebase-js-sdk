@@ -20,11 +20,12 @@
  */
 export const assert = function (assertion: unknown, message: string): void {
   if (!assertion) {
-    const wrappedMessage = (
-      'Firebase INTERNAL ASSERT FAILED: ' +
-        message
-    );
-    console.error(message);
-    throw Error(wrappedMessage);
+    fail(message);
   }
 };
+
+export function fail(failure: string = 'Unexpected state'): never {
+  const message = 'Firebase INTERNAL ASSERT FAILED: ' + failure;
+  console.error(message);
+  throw Error(message);
+}

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseError, SimpleDb, SimpleDbTransaction } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { Context } from 'mocha';
@@ -89,7 +90,6 @@ import {
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
-import { FirebaseError, SimpleDb, SimpleDbTransaction } from '@firebase/util';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { MutableDocument } from '../../../src/model/document';
 import { getWindow } from '../../../src/platform/dom';
@@ -105,6 +105,7 @@ import {
   newAsyncQueue
 } from '../../../src/util/async_queue_impl';
 import { FirestoreError, FirestoreErrorCode } from '../../../src/util/error';
+import { logDebug, logError } from '../../../src/util/log';
 import { doc, filter, path, query, version } from '../../util/helpers';
 import { FakeDocument, testDocument } from '../../util/test_platform';
 import { MockIndexedDbPersistence } from '../specs/spec_test_components';
@@ -128,11 +129,17 @@ async function withDb(
   const simpleDb = new SimpleDb(
     INDEXEDDB_TEST_DATABASE_NAME,
     schemaVersion,
-    schemaConverter
+    schemaConverter,
+    logDebug,
+    logError,
+    (error: FirebaseError) =>
+      new FirestoreError(error.code as FirestoreErrorCode, error.message)
   );
-  const database = await simpleDb.ensureDb('IndexedDbPersistenceTests').catch((e: FirebaseError) => {
-    throw new FirestoreError(e.code as FirestoreErrorCode, e.message);
-  });
+  const database = await simpleDb
+    .ensureDb('IndexedDbPersistenceTests')
+    .catch((e: FirebaseError) => {
+      throw new FirestoreError(e.code as FirestoreErrorCode, e.message);
+    });
   await fn(simpleDb, database.version, Array.from(database.objectStoreNames));
   await simpleDb.close();
 }
@@ -1031,7 +1038,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   });
 
   it('can upgrade from version 11 to 12', async () => {
-    await withDb(11, async () => { });
+    await withDb(11, async () => {});
     await withDb(12, async (db, version, objectStores) => {
       expect(version).to.have.equal(12);
       expect(objectStores).to.have.members(V12_STORES);
@@ -1039,7 +1046,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   });
 
   it('can upgrade from version 12 to 13', async () => {
-    await withDb(12, async () => { });
+    await withDb(12, async () => {});
     await withDb(13, async (db, version, objectStores) => {
       expect(version).to.have.equal(13);
       expect(objectStores).to.have.members(V13_STORES);
@@ -1047,7 +1054,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   });
 
   it('can upgrade from version 13 to 14', async () => {
-    await withDb(13, async () => { });
+    await withDb(13, async () => {});
     await withDb(14, async (db, version, objectStores) => {
       expect(version).to.have.equal(14);
       expect(objectStores).to.have.members(V14_STORES);
@@ -1067,7 +1074,11 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       const db = new SimpleDb(
         INDEXEDDB_TEST_DATABASE_NAME,
         downgradeVersion,
-        schemaConverter
+        schemaConverter,
+        logDebug,
+        logError,
+        (error: FirebaseError) =>
+          new FirestoreError(error.code as FirestoreErrorCode, error.message)
       );
       await db.ensureDb(this.test!.fullTitle());
     } catch (e) {
@@ -1090,7 +1101,11 @@ describe('IndexedDb: canActAsPrimary', () => {
     const simpleDb = new SimpleDb(
       INDEXEDDB_TEST_DATABASE_NAME,
       SCHEMA_VERSION,
-      new SchemaConverter(TEST_SERIALIZER)
+      new SchemaConverter(TEST_SERIALIZER),
+      logDebug,
+      logError,
+      (error: FirebaseError) =>
+        new FirestoreError(error.code as FirestoreErrorCode, error.message)
     );
     await simpleDb.runTransaction(
       'clearPrimaryLease',
@@ -1110,7 +1125,11 @@ describe('IndexedDb: canActAsPrimary', () => {
     const simpleDb = new SimpleDb(
       INDEXEDDB_TEST_DATABASE_NAME,
       SCHEMA_VERSION,
-      new SchemaConverter(TEST_SERIALIZER)
+      new SchemaConverter(TEST_SERIALIZER),
+      logDebug,
+      logError,
+      (error: FirebaseError) =>
+        new FirestoreError(error.code as FirestoreErrorCode, error.message)
     );
     const leaseOwner = await simpleDb.runTransaction(
       'getCurrentLeaseOwner',
@@ -1177,10 +1196,13 @@ describe('IndexedDb: canActAsPrimary', () => {
       thisVisibility,
       primaryState
     ] = testCase;
-    const testName = `is ${primaryState ? 'eligible' : 'not eligible'
-      } when client is ${thisNetwork ? 'online' : 'offline'
-      } and ${thisVisibility} and other client is ${thatNetwork ? 'online' : 'offline'
-      } and ${thatVisibility}`;
+    const testName = `is ${
+      primaryState ? 'eligible' : 'not eligible'
+    } when client is ${
+      thisNetwork ? 'online' : 'offline'
+    } and ${thisVisibility} and other client is ${
+      thatNetwork ? 'online' : 'offline'
+    } and ${thatVisibility}`;
 
     it(testName, () => {
       return withMultiClientPersistence(
@@ -1337,7 +1359,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   it('grants access when synchronization is enabled', async () => {
     return withMultiClientPersistence('clientA', async db1 => {
-      await withMultiClientPersistence('clientB', async db2 => { });
+      await withMultiClientPersistence('clientB', async db2 => {});
     });
   });
 });

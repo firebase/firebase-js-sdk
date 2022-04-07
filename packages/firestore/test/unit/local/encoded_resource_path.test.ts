@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import {
-  decodeResourcePath,
-  encodeResourcePath
-} from '../../../src/local/encoded_resource_path';
-import { PersistencePromise } from '../../../src/local/persistence_promise';
-import {
+  FirebaseError,
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
   SimpleDbTransaction
 } from '@firebase/util';
+import { expect } from 'chai';
+
+import { FirestoreError, FirestoreErrorCode } from '../../../src';
+import {
+  decodeResourcePath,
+  encodeResourcePath
+} from '../../../src/local/encoded_resource_path';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ResourcePath } from '../../../src/model/path';
+import { logDebug, logError } from '../../../src/util/log';
 import { path } from '../../util/helpers';
 
 let db: SimpleDb;
@@ -56,7 +59,15 @@ describe('EncodedResourcePath', () => {
 
   beforeEach(async () => {
     await SimpleDb.delete(dbName);
-    db = new SimpleDb(dbName, 1, new EncodedResourcePathSchemaConverter());
+    db = new SimpleDb(
+      dbName,
+      1,
+      new EncodedResourcePathSchemaConverter(),
+      logDebug,
+      logError,
+      (error: FirebaseError) =>
+        new FirestoreError(error.code as FirestoreErrorCode, error.message)
+    );
   });
 
   afterEach(() => {

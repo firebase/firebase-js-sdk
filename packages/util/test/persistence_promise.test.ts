@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { PersistencePromise } from '../src/persistence_promise';
 
 /* eslint-disable no-restricted-globals */
 
@@ -26,13 +26,13 @@ use(chaiAsPromised);
 
 describe('PersistencePromise', () => {
   function async<R>(value: R): PersistencePromise<R> {
-    return new PersistencePromise<R>((resolve, reject) => {
+    return new PersistencePromise<R>((resolve) => {
       setTimeout(() => resolve(value), 0);
     });
   }
 
   function sync<R>(value: R): PersistencePromise<R> {
-    return new PersistencePromise<R>((resolve, reject) => {
+    return new PersistencePromise<R>((resolve) => {
       resolve(value);
     });
   }
@@ -120,10 +120,10 @@ describe('PersistencePromise', () => {
       .next(() => {
         throw new Error('one');
       })
-      .catch(x => {
+      .catch(() => {
         throw new Error('two');
       })
-      .catch(x => {
+      .catch(() => {
         return 1;
       })
       .next(x => {
@@ -137,10 +137,10 @@ describe('PersistencePromise', () => {
       .next(() => {
         throw new Error('one');
       })
-      .catch(x => {
+      .catch(() => {
         throw new Error('two');
       })
-      .catch(x => {
+      .catch(() => {
         return 1;
       })
       .next(x => {
@@ -205,7 +205,7 @@ describe('PersistencePromise', () => {
       })
     );
     updates.push(
-      async(1).next<void>(x => {
+      async(1).next<void>(() => {
         throw error;
       })
     );

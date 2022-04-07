@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import { Context } from 'mocha';
-
-import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
   SimpleDbTransaction
-} from '@firebase/util';
-import { fail } from '../../../src/util/assert';
-import { Code, FirestoreError } from '../../../src/util/error';
+} from '../src/simple_db';
+import { FirebaseError } from '../src/errors';
+import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import { Context } from 'mocha';
+
+import { PersistencePromise } from '../src/persistence_promise';
+import { fail } from '../src/assert';
 
 use(chaiAsPromised);
 
@@ -61,10 +61,7 @@ function isIndexedDbMock(): boolean {
 
 class TestSchemaConverter implements SimpleDbSchemaConverter {
   createOrUpgrade(
-    db: IDBDatabase,
-    txn: IDBTransaction,
-    fromVersion: number,
-    toVersion: number
+    db: IDBDatabase
   ): PersistencePromise<void> {
     const objectStore = db.createObjectStore('users', { keyPath: 'id' });
     objectStore.createIndex('age-name', ['age', 'name'], {
@@ -111,7 +108,15 @@ describe('SimpleDb', () => {
 
   beforeEach(async () => {
     await SimpleDb.delete(dbName);
-    db = new SimpleDb(dbName, 1, new TestSchemaConverter());
+    db = new SimpleDb(
+      dbName,
+      1,
+      new TestSchemaConverter(),
+      () => {},
+      () => {},
+      (error: FirebaseError) =>
+        new FirebaseError(error.code, error.message)
+    );
     await writeTestData();
   });
 
@@ -213,7 +218,7 @@ describe('SimpleDb', () => {
           throw new Error('Generated error');
         });
       }).then(
-        () => {},
+        () => { },
         error => Promise.reject(error)
       )
     ).to.eventually.be.rejectedWith('Generated error');
@@ -451,7 +456,7 @@ describe('SimpleDb', () => {
       return store
         .iterate(
           { index: 'age-name', keysOnly: true },
-          (key, value, control) => {
+          (key, value) => {
             expect(value).to.equal(undefined);
             iterated.push(key);
           }
@@ -578,7 +583,7 @@ describe('SimpleDb', () => {
     await expect(
       db.runTransaction(this.test!.fullTitle(), 'readwrite', ['users'], txn => {
         ++attemptCount;
-        txn.abort(new FirestoreError(Code.ABORTED, 'Aborted'));
+        txn.abort(new FirebaseError('abort', 'Aborted'));
         return PersistencePromise.reject(new Error());
       })
     ).to.eventually.be.rejected;

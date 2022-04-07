@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import { isSafari } from '@firebase/util';
+import {
+  FirebaseError,
+  isSafari,
+  isIndexedDbTransactionError,
+  SimpleDb,
+  SimpleDbStore
+} from '@firebase/util';
 
 import { User } from '../auth/user';
 import { DatabaseId } from '../core/database_info';
@@ -23,7 +29,7 @@ import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
-import { Code, FirestoreError } from '../util/error';
+import { Code, FirestoreError, FirestoreErrorCode } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { DocumentLike, WindowLike } from '../util/types';
 
@@ -64,11 +70,6 @@ import {
   PRIMARY_LEASE_LOST_ERROR_MSG
 } from './persistence_transaction';
 import { ClientId } from './shared_client_state';
-import {
-  isIndexedDbTransactionError,
-  SimpleDb,
-  SimpleDbStore
-} from '@firebase/util';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -230,7 +231,11 @@ export class IndexedDbPersistence implements Persistence {
     this.simpleDb = new SimpleDb(
       this.dbName,
       this.schemaVersion,
-      new SchemaConverter(this.serializer)
+      new SchemaConverter(this.serializer),
+      logDebug,
+      logError,
+      (error: FirebaseError) =>
+        new FirestoreError(error.code as FirestoreErrorCode, error.message)
     );
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
@@ -1123,5 +1128,5 @@ export async function indexedDbClearPersistence(
     return Promise.resolve();
   }
   const dbName = persistenceKey + MAIN_DATABASE;
-  await SimpleDb.delete(dbName);
+  await SimpleDb.delete(dbName, logDebug);
 }

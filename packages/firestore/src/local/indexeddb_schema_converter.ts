@@ -15,10 +15,18 @@
  * limitations under the License.
  */
 
+import {
+  FirebaseError,
+  SimpleDbSchemaConverter,
+  SimpleDbTransaction
+} from '@firebase/util';
+
 import { SnapshotVersion } from '../core/snapshot_version';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
+import { FirestoreError, FirestoreErrorCode } from '../util/error';
+import { logDebug } from '../util/log';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import {
@@ -115,7 +123,6 @@ import {
 } from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbSchemaConverter, SimpleDbTransaction } from '@firebase/util';
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -141,7 +148,13 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
     );
 
-    const simpleDbTransaction = new SimpleDbTransaction('createOrUpgrade', txn);
+    const simpleDbTransaction = new SimpleDbTransaction(
+      'createOrUpgrade',
+      txn,
+      logDebug,
+      (error: FirebaseError) =>
+        new FirestoreError(error.code as FirestoreErrorCode, error.message)
+    );
 
     if (fromVersion < 1 && toVersion >= 1) {
       createPrimaryClientStore(db);
