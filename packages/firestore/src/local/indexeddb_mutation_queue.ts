@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { SimpleDbStore } from '@firebase/util';
+
 import { User } from '../auth/user';
 import { isCollectionGroupQuery, isDocumentQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
@@ -61,7 +63,6 @@ import { MutationQueue } from './mutation_queue';
 import { ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { SimpleDbStore } from '@firebase/util';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {

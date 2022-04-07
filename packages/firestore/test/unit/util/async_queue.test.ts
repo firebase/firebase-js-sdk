@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { isSafari } from '@firebase/util';
+import { isSafari , IndexedDbTransactionError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { IndexedDbTransactionError } from '@firebase/util';
 import { fail } from '../../../src/util/assert';
 import { TimerId } from '../../../src/util/async_queue';
 import {

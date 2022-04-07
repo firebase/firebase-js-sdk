@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from '@firebase/util';
+
 import { ListenSequenceNumber } from '../core/types';
 import { debugCast } from '../util/assert';
 
 import { PersistenceTransaction } from './persistence_transaction';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from '@firebase/util';
 
 export class IndexedDbTransaction extends PersistenceTransaction {
   constructor(

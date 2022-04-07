@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { SimpleDbStore } from '@firebase/util';
+
 import { BundleMetadata, NamedQuery } from '../core/bundle';
 import {
   BundleMetadata as ProtoBundleMetadata,
@@ -38,7 +40,6 @@ import {
 } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { SimpleDbStore } from '@firebase/util';
 
 export class IndexedDbBundleCache implements BundleCache {
   getBundleMetadata(

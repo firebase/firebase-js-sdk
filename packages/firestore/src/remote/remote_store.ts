@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { isIndexedDbTransactionError } from '@firebase/util';
+
 import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { OnlineState, TargetId } from '../core/types';
@@ -23,7 +25,6 @@ import {
   localStoreGetLastRemoteSnapshotVersion,
   localStoreGetNextMutationBatch
 } from '../local/local_store_impl';
-import { isIndexedDbTransactionError } from '@firebase/util';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';

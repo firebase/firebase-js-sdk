@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { SimpleDbStore } from '@firebase/util';
+
 import { User } from '../auth/user';
 import { DatabaseId } from '../core/database_info';
 import {
@@ -88,7 +90,6 @@ import {
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { SimpleDbStore } from '@firebase/util';
 
 const LOG_TAG = 'IndexedDbIndexManager';
 

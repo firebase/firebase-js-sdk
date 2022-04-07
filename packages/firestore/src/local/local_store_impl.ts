@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { isIndexedDbTransactionError } from '@firebase/util';
+
 import { User } from '../auth/user';
 import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import {
@@ -81,7 +83,6 @@ import { QueryEngine } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
-import { isIndexedDbTransactionError } from '@firebase/util';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
 

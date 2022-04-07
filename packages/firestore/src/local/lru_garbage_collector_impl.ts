@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { isIndexedDbTransactionError } from '@firebase/util';
+
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
 import { debugAssert } from '../util/assert';
@@ -36,7 +38,6 @@ import {
 import { GarbageCollectionScheduler } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { isIndexedDbTransactionError } from '@firebase/util';
 
 const LOG_TAG = 'LruGarbageCollector';
 

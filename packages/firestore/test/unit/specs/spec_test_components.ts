@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { IndexedDbTransactionError } from '@firebase/util';
 import { expect } from 'chai';
 
 import { Token } from '../../../src/api/credentials';
@@ -50,7 +51,6 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
-import { IndexedDbTransactionError } from '@firebase/util';
 import { Mutation } from '../../../src/model/mutation';
 import { encodeBase64 } from '../../../src/platform/base64';
 import { newSerializer } from '../../../src/platform/serializer';

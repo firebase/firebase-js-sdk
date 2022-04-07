@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { SimpleDb } from '@firebase/util';
+
 import { User } from '../../../src/auth/user';
 import { DatabaseId } from '../../../src/core/database_info';
 import { SequenceNumberSyncer } from '../../../src/core/listen_sequence';
@@ -40,7 +42,6 @@ import {
   ClientId,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
-import { SimpleDb } from '@firebase/util';
 import { getDocument, getWindow } from '../../../src/platform/dom';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';

@@ -16,7 +16,6 @@
  */
 
 import {
-  FirebaseError,
   SimpleDbSchemaConverter,
   SimpleDbTransaction
 } from '@firebase/util';
@@ -25,7 +24,6 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
-import { FirestoreError, FirestoreErrorCode } from '../util/error';
 import { logDebug } from '../util/log';
 import { BATCHID_UNKNOWN } from '../util/types';
 
@@ -151,9 +149,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     const simpleDbTransaction = new SimpleDbTransaction(
       'createOrUpgrade',
       txn,
-      logDebug,
-      (error: FirebaseError) =>
-        new FirestoreError(error.code as FirestoreErrorCode, error.message)
+      logDebug
     );
 
     if (fromVersion < 1 && toVersion >= 1) {

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { SimpleDbTransaction } from '@firebase/util';
+
 import { DocumentKey } from '../model/document_key';
 import { fail, hardAssert } from '../util/assert';
 
@@ -32,7 +34,6 @@ import {
   newDbDocumentMutationKey
 } from './indexeddb_sentinels';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbTransaction } from '@firebase/util';
 
 /**
  * Delete a mutation batch and the associated document mutations.
