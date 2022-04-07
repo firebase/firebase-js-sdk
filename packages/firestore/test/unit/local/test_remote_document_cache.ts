@@ -17,7 +17,6 @@
 
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexManager } from '../../../src/local/index_manager';
-import { remoteDocumentCacheGetNewDocumentChanges } from '../../../src/local/indexeddb_remote_document_cache';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
@@ -136,23 +135,6 @@ export class TestRemoteDocumentCache {
           offset,
           limit
         )
-    );
-  }
-
-  getNewDocumentChanges(sinceReadTime: SnapshotVersion): Promise<{
-    changedDocs: MutableDocumentMap;
-    readTime: SnapshotVersion;
-  }> {
-    return this.persistence.runTransaction(
-      'getNewDocumentChanges',
-      'readonly',
-      txn => {
-        return remoteDocumentCacheGetNewDocumentChanges(
-          this.cache,
-          txn,
-          sinceReadTime
-        );
-      }
     );
   }
 
