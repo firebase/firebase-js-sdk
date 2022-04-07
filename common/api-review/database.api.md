@@ -65,6 +65,12 @@ export function equalTo(value: number | string | boolean | null, key?: string): 
 export type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
 
 // @public
+export function forceLongPolling(): void;
+
+// @public
+export function forceWebSockets(): void;
+
+// @public
 export function get(query: Query): Promise<DataSnapshot>;
 
 // @public

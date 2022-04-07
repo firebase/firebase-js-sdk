@@ -46,6 +46,8 @@ import {
   enableLogging as enableLoggingImpl
 } from '../core/util/util';
 import { validateUrl } from '../core/util/validation';
+import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
+import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
 import { ReferenceImpl } from './Reference_impl';
 
@@ -269,6 +271,22 @@ export class Database implements _FirebaseService {
       fatal('Cannot call ' + apiName + ' on a deleted database.');
     }
   }
+}
+
+/**
+ * Force the use of websockets instead of longPolling.
+ *
+ */
+export function forceWebSockets() {
+  BrowserPollConnection.forceDisallow();
+}
+
+/**
+ * Force the use of longPolling instead of websockets. This will be ignored if websocket protocol is used in databaseURL.
+ */
+export function forceLongPolling() {
+  WebSocketConnection.forceDisallow();
+  BrowserPollConnection.forceAllow();
 }
 
 /**
