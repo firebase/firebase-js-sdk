@@ -531,7 +531,7 @@ describe('SimpleDb', () => {
     );
   });
 
-  it.only('correctly sorts keys with nested arrays', async function (this: Context) {
+  it('correctly sorts keys with nested arrays', async function (this: Context) {
     // This test verifies that the sorting in IndexedDb matches
     // `dbKeyComparator()`
 
