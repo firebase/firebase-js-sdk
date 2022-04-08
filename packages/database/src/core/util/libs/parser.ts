@@ -92,8 +92,8 @@ export const parseRepoInfo = function (
       parsedUrl.host,
       parsedUrl.secure,
       namespace,
-      nodeAdmin,
       webSocketOnly,
+      nodeAdmin,
       /*persistenceKey=*/ '',
       /*includeNamespaceInQueryParams=*/ namespace !== parsedUrl.subdomain
     ),
