@@ -21,7 +21,6 @@ import { Timestamp } from '../lite-api/timestamp';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
-import { SortedMap } from '../util/sorted_map';
 
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -120,10 +119,10 @@ export interface MutationQueue {
    * convenient.
    */
   // TODO(mcg): This should really return an enumerator
-  getAllMutationBatchesAffectingDocumentKeys(
-    transaction: PersistenceTransaction,
-    documentKeys: SortedMap<DocumentKey, unknown>
-  ): PersistencePromise<MutationBatch[]>;
+  // getAllMutationBatchesAffectingDocumentKeys(
+  //   transaction: PersistenceTransaction,
+  //   documentKeys: SortedMap<DocumentKey, unknown>
+  // ): PersistencePromise<MutationBatch[]>;
 
   /**
    * Finds all mutation batches that could affect the results for the given
