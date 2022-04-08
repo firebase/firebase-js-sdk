@@ -38,6 +38,7 @@ export type Rejector = (error: Error) => void;
  *
  * NOTE: .then() and .catch() only allow a single consumer, unlike normal
  * Promises.
+ * @internal
  */
 export class PersistencePromise<T> {
   // NOTE: next/catchCallback will always point to our own wrapper functions,

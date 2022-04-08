@@ -234,9 +234,9 @@ export function getModularInstance<ExpService>(service: Compat<ExpService> | Exp
 // @public
 export function getUA(): string;
 
-// Warning: (ae-missing-release-tag) "IndexedDbTransactionError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "IndexedDbTransactionError" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public
+// @internal
 export class IndexedDbTransactionError extends FirebaseError {
     constructor(actionName: string, cause: Error | string);
     // (undocumented)
@@ -278,9 +278,9 @@ export function isIE(): boolean;
 // @public
 export function isIndexedDBAvailable(): boolean;
 
-// Warning: (ae-missing-release-tag) "isIndexedDbTransactionError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "isIndexedDbTransactionError" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public
+// @internal
 export function isIndexedDbTransactionError(e: Error): boolean;
 
 // Warning: (ae-missing-release-tag) "isMobileCordova" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -328,14 +328,14 @@ export const isValidFormat: (token: string) => boolean;
 // @public
 export const isValidTimestamp: (token: string) => boolean;
 
-// Warning: (ae-missing-release-tag) "IterateCallback" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "IterateCallback" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public
+// @internal
 export type IterateCallback<KeyType, ValueType> = (key: KeyType, value: ValueType, control: IterationController) => void | PersistencePromise<void>;
 
-// Warning: (ae-missing-release-tag) "IterateOptions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "IterateOptions" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public
+// @internal
 export interface IterateOptions {
     index?: string;
     keysOnly?: boolean;
@@ -343,9 +343,9 @@ export interface IterateOptions {
     reverse?: boolean;
 }
 
-// Warning: (ae-missing-release-tag) "IterationController" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "IterationController" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public
+// @internal
 export class IterationController {
     constructor(dbCursor: IDBCursorWithValue);
     // (undocumented)
@@ -420,9 +420,9 @@ export function ordinal(i: number): string;
 // @public (undocumented)
 export type PartialObserver<T> = Partial<Observer<T>>;
 
-// Warning: (ae-missing-release-tag) "PersistencePromise" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "PersistencePromise" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public
+// @internal
 export class PersistencePromise<T> {
     // Warning: (ae-forgotten-export) The symbol "Resolver" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Rejector" needs to be exported by the entry point index.d.ts
@@ -494,9 +494,9 @@ export class Sha1 {
     update(bytes?: number[] | Uint8Array | string, length?: number): void;
     }
 
-// Warning: (ae-missing-release-tag) "SimpleDb" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "SimpleDb" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public
+// @internal
 export class SimpleDb {
     constructor(name: string, version: number, schemaConverter: SimpleDbSchemaConverter, logDebug: (...args: string[]) => void, logError: (...args: string[]) => void, productErrorWrapper: (error: FirebaseError) => FirebaseError);
     // (undocumented)
@@ -516,17 +516,17 @@ export class SimpleDb {
     setVersionChangeListener(versionChangeListener: (event: IDBVersionChangeEvent) => void): void;
     }
 
-// Warning: (ae-missing-release-tag) "SimpleDbSchemaConverter" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "SimpleDbSchemaConverter" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public (undocumented)
+// @internal (undocumented)
 export interface SimpleDbSchemaConverter {
     // (undocumented)
     createOrUpgrade(db: IDBDatabase, txn: IDBTransaction, fromVersion: number, toVersion: number): PersistencePromise<void>;
 }
 
-// Warning: (ae-missing-release-tag) "SimpleDbStore" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "SimpleDbStore" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public
+// @internal
 export class SimpleDbStore<KeyType extends IDBValidKey, ValueType extends unknown> {
     constructor(store: IDBObjectStore, logDebug: (...args: string[]) => void);
     add(value: ValueType): PersistencePromise<KeyType>;
@@ -553,9 +553,9 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType extends unknow
     put(key: KeyType, value: ValueType): PersistencePromise<void>;
     }
 
-// Warning: (ae-missing-release-tag) "SimpleDbTransaction" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-internal-missing-underscore) The name "SimpleDbTransaction" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public
+// @internal
 export class SimpleDbTransaction {
     constructor(action: string, transaction: IDBTransaction, logDebug: (...args: string[]) => void);
     // (undocumented)

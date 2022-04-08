@@ -23,8 +23,6 @@ import { FirebaseError } from './errors';
 
 export { PersistencePromise };
 
-// TODO: add @internal tags
-
 // References to `window` are guarded by SimpleDb.isAvailable()
 /* eslint-disable no-restricted-globals */
 
@@ -45,6 +43,9 @@ const enum Code {
 // The different modes supported by `SimpleDb.runTransaction()`
 type SimpleDbTransactionMode = 'readonly' | 'readwrite';
 
+/**
+ * @internal
+ */
 export interface SimpleDbSchemaConverter {
   createOrUpgrade(
     db: IDBDatabase,
@@ -57,6 +58,7 @@ export interface SimpleDbSchemaConverter {
 /**
  * Wraps an IDBTransaction and exposes a store() method to get a handle to a
  * specific object store.
+ * @internal
  */
 export class SimpleDbTransaction {
   private aborted = false;
@@ -166,6 +168,7 @@ export class SimpleDbTransaction {
  * since .then() continuations are executed asynchronously (e.g. via
  * .setImmediate), which would cause IndexedDB to end the transaction.
  * See PersistencePromise for more details.
+ * @internal
  */
 export class SimpleDb {
   private db?: IDBDatabase;
@@ -301,7 +304,7 @@ export class SimpleDb {
     // log on 12.2.
     if (iOSVersion === 12.2) {
       this.logError(
-        'Firestore persistence suffers from a bug in iOS 12.2 ' +
+        'Persistence suffers from a bug in iOS 12.2 ' +
           'Safari that may cause your app to stop working. See ' +
           'https://stackoverflow.com/q/56496296/110915 for details ' +
           'and a potential workaround.'
@@ -498,6 +501,7 @@ export class SimpleDb {
  * A controller for iterating over a key range or index. It allows an iterate
  * callback to delete the currently-referenced object, or jump to a new key
  * within the key range or index.
+ * @internal
  */
 export class IterationController {
   private shouldStop = false;
@@ -544,6 +548,7 @@ export class IterationController {
 
 /**
  * Callback used with iterate() method.
+ * @internal
  */
 export type IterateCallback<KeyType, ValueType> = (
   key: KeyType,
@@ -551,7 +556,10 @@ export type IterateCallback<KeyType, ValueType> = (
   control: IterationController
 ) => void | PersistencePromise<void>;
 
-/** Options available to the iterate() method. */
+/**
+ * Options available to the iterate() method.
+ * @internal
+ */
 export interface IterateOptions {
   /** Index to iterate over (else primary keys will be iterated) */
   index?: string;
@@ -566,7 +574,10 @@ export interface IterateOptions {
   reverse?: boolean;
 }
 
-/** An error that wraps exceptions that thrown during IndexedDB execution. */
+/**
+ * An error that wraps exceptions that thrown during IndexedDB execution.
+ * @internal
+ */
 export class IndexedDbTransactionError extends FirebaseError {
   name = 'IndexedDbTransactionError';
 
@@ -578,7 +589,10 @@ export class IndexedDbTransactionError extends FirebaseError {
   }
 }
 
-/** Verifies whether `e` is an IndexedDbTransactionError. */
+/**
+ * Verifies whether `e` is an IndexedDbTransactionError.
+ * @internal
+ */
 export function isIndexedDbTransactionError(e: Error): boolean {
   // Use name equality, as instanceof checks on errors don't work with errors
   // that wrap other errors.
@@ -594,6 +608,7 @@ export function isIndexedDbTransactionError(e: Error): boolean {
  * method return a PersistencePromise instead.
  * 3) Provides a higher-level API to avoid needing to do excessive wrapping of
  * intermediate IndexedDB types (IDBCursorWithValue, etc.)
+ * @internal
  */
 export class SimpleDbStore<
   KeyType extends IDBValidKey,
