@@ -70,7 +70,7 @@ import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { LocalDocumentsView } from './local_documents_view';
-import { fromBundledQuery } from './local_serializer';
+import { fromBundledQuery, LocalSerializer } from './local_serializer';
 import { LocalStore } from './local_store';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
@@ -207,9 +207,10 @@ class LocalStoreImpl implements LocalStore {
     );
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
-      this.mutationQueue,
       this.documentOverlayCache,
-      this.indexManager
+      this.indexManager,
+      new LocalSerializer(this.serializer),
+      user.uid!
     );
     this.remoteDocuments.setIndexManager(this.indexManager);
     this.queryEngine.setLocalDocumentsView(this.localDocuments);

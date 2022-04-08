@@ -352,50 +352,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => results);
   }
 
-  getAllMutationBatchesAffectingDocumentKeys(
-    transaction: PersistenceTransaction,
-    documentKeys: SortedMap<DocumentKey, unknown>
-  ): PersistencePromise<MutationBatch[]> {
-    let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
-
-    const promises: Array<PersistencePromise<void>> = [];
-    documentKeys.forEach(documentKey => {
-      const indexStart = newDbDocumentMutationPrefixForPath(
-        this.userId,
-        documentKey.path
-      );
-      const range = IDBKeyRange.lowerBound(indexStart);
-
-      const promise = documentMutationsStore(transaction).iterate(
-        { range },
-        (indexKey, _, control) => {
-          const [userID, encodedPath, batchID] = indexKey;
-
-          // Only consider rows matching exactly the specific key of
-          // interest. Note that because we order by path first, and we
-          // order terminators before path separators, we'll encounter all
-          // the index rows for documentKey contiguously. In particular, all
-          // the rows for documentKey will occur before any rows for
-          // documents nested in a subcollection beneath documentKey so we
-          // can stop as soon as we hit any such row.
-          const path = decodeResourcePath(encodedPath);
-          if (userID !== this.userId || !documentKey.path.isEqual(path)) {
-            control.done();
-            return;
-          }
-
-          uniqueBatchIDs = uniqueBatchIDs.add(batchID);
-        }
-      );
-
-      promises.push(promise);
-    });
-
-    return PersistencePromise.waitFor(promises).next(() =>
-      this.lookupMutationBatches(transaction, uniqueBatchIDs)
-    );
-  }
-
   getAllMutationBatchesAffectingQuery(
     transaction: PersistenceTransaction,
     query: Query
@@ -451,37 +407,14 @@ export class IndexedDbMutationQueue implements MutationQueue {
         }
         uniqueBatchIDs = uniqueBatchIDs.add(batchID);
       })
-      .next(() => this.lookupMutationBatches(transaction, uniqueBatchIDs));
-  }
-
-  private lookupMutationBatches(
-    transaction: PersistenceTransaction,
-    batchIDs: SortedSet<BatchId>
-  ): PersistencePromise<MutationBatch[]> {
-    const results: MutationBatch[] = [];
-    const promises: Array<PersistencePromise<void>> = [];
-    // TODO(rockwood): Implement this using iterate.
-    batchIDs.forEach(batchId => {
-      promises.push(
-        mutationsStore(transaction)
-          .get(batchId)
-          .next(mutation => {
-            if (mutation === null) {
-              throw fail(
-                'Dangling document-mutation reference found, ' +
-                  'which points to ' +
-                  batchId
-              );
-            }
-            hardAssert(
-              mutation.userId === this.userId,
-              `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
-            );
-            results.push(fromDbMutationBatch(this.serializer, mutation));
-          })
+      .next(() =>
+        lookupMutationBatches(
+          transaction,
+          uniqueBatchIDs,
+          this.serializer,
+          this.userId
+        )
       );
-    });
-    return PersistencePromise.waitFor(promises).next(() => results);
   }
 
   removeMutationBatch(
@@ -659,4 +592,81 @@ function mutationQueuesStore(
     txn,
     DbMutationQueueStore
   );
+}
+
+export function getAllMutationBatchesAffectingDocumentKeys(
+  transaction: PersistenceTransaction,
+  documentKeys: SortedMap<DocumentKey, unknown>,
+  serializer: LocalSerializer,
+  userId: string
+): PersistencePromise<MutationBatch[]> {
+  let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
+
+  const promises: Array<PersistencePromise<void>> = [];
+  documentKeys.forEach(documentKey => {
+    const indexStart = newDbDocumentMutationPrefixForPath(
+      userId,
+      documentKey.path
+    );
+    const range = IDBKeyRange.lowerBound(indexStart);
+
+    const promise = documentMutationsStore(transaction).iterate(
+      { range },
+      (indexKey, _, control) => {
+        const [userID, encodedPath, batchID] = indexKey;
+
+        // Only consider rows matching exactly the specific key of
+        // interest. Note that because we order by path first, and we
+        // order terminators before path separators, we'll encounter all
+        // the index rows for documentKey contiguously. In particular, all
+        // the rows for documentKey will occur before any rows for
+        // documents nested in a subcollection beneath documentKey so we
+        // can stop as soon as we hit any such row.
+        const path = decodeResourcePath(encodedPath);
+        if (userID !== userId || !documentKey.path.isEqual(path)) {
+          control.done();
+          return;
+        }
+
+        uniqueBatchIDs = uniqueBatchIDs.add(batchID);
+      }
+    );
+    promises.push(promise);
+  });
+
+  return PersistencePromise.waitFor(promises).next(() =>
+    lookupMutationBatches(transaction, uniqueBatchIDs, serializer, userId)
+  );
+}
+
+function lookupMutationBatches(
+  transaction: PersistenceTransaction,
+  batchIDs: SortedSet<BatchId>,
+  serializer: LocalSerializer,
+  userId: string
+): PersistencePromise<MutationBatch[]> {
+  const results: MutationBatch[] = [];
+  const promises: Array<PersistencePromise<void>> = [];
+  // TODO(rockwood): Implement this using iterate.
+  batchIDs.forEach(batchId => {
+    promises.push(
+      mutationsStore(transaction)
+        .get(batchId)
+        .next(mutation => {
+          if (mutation === null) {
+            throw fail(
+              'Dangling document-mutation reference found, ' +
+                'which points to ' +
+                batchId
+            );
+          }
+          hardAssert(
+            mutation.userId === userId,
+            `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
+          );
+          results.push(fromDbMutationBatch(serializer, mutation));
+        })
+    );
+  });
+  return PersistencePromise.waitFor(promises).next(() => results);
 }

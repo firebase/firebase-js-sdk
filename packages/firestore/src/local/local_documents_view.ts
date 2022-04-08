@@ -51,7 +51,8 @@ import { SortedMap } from '../util/sorted_map';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
-import { MutationQueue } from './mutation_queue';
+import { getAllMutationBatchesAffectingDocumentKeys } from './indexeddb_mutation_queue';
+import { LocalSerializer } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -65,9 +66,10 @@ import { RemoteDocumentCache } from './remote_document_cache';
 export class LocalDocumentsView {
   constructor(
     readonly remoteDocumentCache: RemoteDocumentCache,
-    readonly mutationQueue: MutationQueue,
     readonly documentOverlayCache: DocumentOverlayCache,
-    readonly indexManager: IndexManager
+    readonly indexManager: IndexManager,
+    readonly serializer: LocalSerializer,
+    readonly userId: string
   ) {}
 
   /**
@@ -200,81 +202,18 @@ export class LocalDocumentsView {
       }
     });
 
-    return this.recalculateAndSaveOverlays(
+    return recalculateAndSaveOverlays(
       transaction,
-      recalculateDocuments
+      recalculateDocuments,
+      this.documentOverlayCache,
+      this.serializer,
+      this.userId
     ).next(() => {
       docs.forEach((key, value) => {
         results = results.insert(key, value);
       });
       return results;
     });
-  }
-
-  private recalculateAndSaveOverlays(
-    transaction: PersistenceTransaction,
-    docs: MutableDocumentMap
-  ): PersistencePromise<void> {
-    const masks = newDocumentKeyMap<FieldMask | null>();
-    // A reverse lookup map from batch id to the documents within that batch.
-    let documentsByBatchId = new SortedMap<number, DocumentKeySet>(
-      (key1: number, key2: number) => key1 - key2
-    );
-    let processed = documentKeySet();
-    return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKeys(transaction, docs)
-      .next(batches => {
-        for (const batch of batches) {
-          batch.keys().forEach(key => {
-            const baseDoc = docs.get(key);
-            if (baseDoc === null) {
-              return;
-            }
-            let mask: FieldMask | null = masks.get(key) || FieldMask.empty();
-            mask = batch.applyToLocalView(baseDoc, mask);
-            masks.set(key, mask);
-            const newSet = (
-              documentsByBatchId.get(batch.batchId) || documentKeySet()
-            ).add(key);
-            documentsByBatchId = documentsByBatchId.insert(
-              batch.batchId,
-              newSet
-            );
-          });
-        }
-      })
-      .next(() => {
-        const promises: Array<PersistencePromise<void>> = [];
-        // Iterate in descending order of batch IDs, and skip documents that are
-        // already saved.
-        const iter = documentsByBatchId.getReverseIterator();
-        while (iter.hasNext()) {
-          const entry = iter.getNext();
-          const batchId = entry.key;
-          const keys = entry.value;
-          const overlays = newMutationMap();
-          keys.forEach(key => {
-            if (!processed.has(key)) {
-              const overlayMutation = calculateOverlayMutation(
-                docs.get(key)!,
-                masks.get(key)!
-              );
-              if (overlayMutation !== null) {
-                overlays.set(key, overlayMutation);
-              }
-              processed = processed.add(key);
-            }
-          });
-          promises.push(
-            this.documentOverlayCache.saveOverlays(
-              transaction,
-              batchId,
-              overlays
-            )
-          );
-        }
-        return PersistencePromise.waitFor(promises);
-      });
   }
 
   /**
@@ -285,9 +224,14 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<void> {
-    return this.remoteDocumentCache
-      .getEntries(transaction, documentKeys)
-      .next(docs => this.recalculateAndSaveOverlays(transaction, docs));
+    return recalculateAndSaveOverlaysForDocumentKeys(
+      transaction,
+      documentKeys,
+      this.remoteDocumentCache,
+      this.documentOverlayCache,
+      this.serializer,
+      this.userId
+    );
   }
 
   /**
@@ -430,4 +374,95 @@ export class LocalDocumentsView {
       ? this.remoteDocumentCache.getEntry(transaction, key)
       : PersistencePromise.resolve(MutableDocument.newInvalidDocument(key));
   }
+}
+
+function recalculateAndSaveOverlays(
+  transaction: PersistenceTransaction,
+  docs: MutableDocumentMap,
+  documentOverlayCache: DocumentOverlayCache,
+  serializer: LocalSerializer,
+  userId: string
+): PersistencePromise<void> {
+  const masks = newDocumentKeyMap<FieldMask | null>();
+  // A reverse lookup map from batch id to the documents within that batch.
+  let documentsByBatchId = new SortedMap<number, DocumentKeySet>(
+    (key1: number, key2: number) => key1 - key2
+  );
+  let processed = documentKeySet();
+  return getAllMutationBatchesAffectingDocumentKeys(
+    transaction,
+    docs,
+    serializer,
+    userId
+  )
+    .next(batches => {
+      for (const batch of batches) {
+        batch.keys().forEach(key => {
+          const baseDoc = docs.get(key);
+          if (baseDoc === null) {
+            return;
+          }
+          let mask: FieldMask | null = masks.get(key) || FieldMask.empty();
+          mask = batch.applyToLocalView(baseDoc, mask);
+          masks.set(key, mask);
+          const newSet = (
+            documentsByBatchId.get(batch.batchId) || documentKeySet()
+          ).add(key);
+          documentsByBatchId = documentsByBatchId.insert(batch.batchId, newSet);
+        });
+      }
+    })
+    .next(() => {
+      const promises: Array<PersistencePromise<void>> = [];
+      // Iterate in descending order of batch IDs, and skip documents that are
+      // already saved.
+      const iter = documentsByBatchId.getReverseIterator();
+      while (iter.hasNext()) {
+        const entry = iter.getNext();
+        const batchId = entry.key;
+        const keys = entry.value;
+        const overlays = newMutationMap();
+        keys.forEach(key => {
+          if (!processed.has(key)) {
+            const overlayMutation = calculateOverlayMutation(
+              docs.get(key)!,
+              masks.get(key)!
+            );
+            if (overlayMutation !== null) {
+              overlays.set(key, overlayMutation);
+            }
+            processed = processed.add(key);
+          }
+        });
+        promises.push(
+          documentOverlayCache.saveOverlays(transaction, batchId, overlays)
+        );
+      }
+      return PersistencePromise.waitFor(promises);
+    });
+}
+
+/**
+ * Recalculates overlays by reading the documents from remote document cache
+ * first, and saves them after they are calculated.
+ */
+export function recalculateAndSaveOverlaysForDocumentKeys(
+  transaction: PersistenceTransaction,
+  documentKeys: DocumentKeySet,
+  remoteDocumentCache: RemoteDocumentCache,
+  documentOverlayCache: DocumentOverlayCache,
+  serializer: LocalSerializer,
+  userId: string
+): PersistencePromise<void> {
+  return remoteDocumentCache
+    .getEntries(transaction, documentKeys)
+    .next(docs =>
+      recalculateAndSaveOverlays(
+        transaction,
+        docs,
+        documentOverlayCache,
+        serializer,
+        userId
+      )
+    );
 }
