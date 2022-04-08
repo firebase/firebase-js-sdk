@@ -42,4 +42,4 @@ export * from './src/compat';
 // These can't be used in Node but it will cause errors if libraries import
 // these methods and they aren't here.
 export * from './src/indexeddb';
-export * from './src/simple_db';
+export * from './src/simple-db/simple-db';

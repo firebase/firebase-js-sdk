@@ -45,6 +45,11 @@ export const base64urlEncodeWithoutPadding: (str: string) => string;
 // @public
 export function calculateBackoffMillis(backoffCount: number, intervalMillis?: number, backoffFactor?: number): number;
 
+// Warning: (ae-internal-missing-underscore) The name "checkForAndReportiOSError" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export function checkForAndReportiOSError(error: DOMException): Error;
+
 // Warning: (ae-missing-release-tag) "Compat" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -234,15 +239,6 @@ export function getModularInstance<ExpService>(service: Compat<ExpService> | Exp
 // @public
 export function getUA(): string;
 
-// Warning: (ae-internal-missing-underscore) The name "IndexedDbTransactionError" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export class IndexedDbTransactionError extends FirebaseError {
-    constructor(actionName: string, cause: Error | string);
-    // (undocumented)
-    name: string;
-}
-
 // Warning: (ae-missing-release-tag) "isAdmin" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -327,37 +323,6 @@ export const isValidFormat: (token: string) => boolean;
 //
 // @public
 export const isValidTimestamp: (token: string) => boolean;
-
-// Warning: (ae-internal-missing-underscore) The name "IterateCallback" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export type IterateCallback<KeyType, ValueType> = (key: KeyType, value: ValueType, control: IterationController) => void | PersistencePromise<void>;
-
-// Warning: (ae-internal-missing-underscore) The name "IterateOptions" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface IterateOptions {
-    index?: string;
-    keysOnly?: boolean;
-    range?: IDBKeyRange;
-    reverse?: boolean;
-}
-
-// Warning: (ae-internal-missing-underscore) The name "IterationController" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export class IterationController {
-    constructor(dbCursor: IDBCursorWithValue);
-    // (undocumented)
-    set cursor(value: IDBCursorWithValue);
-    delete(): PersistencePromise<void>;
-    done(): void;
-    // (undocumented)
-    get isDone(): boolean;
-    skip(key: IDBValidKey): void;
-    // (undocumented)
-    get skipToKey(): IDBValidKey | null;
-}
 
 // Warning: (ae-missing-release-tag) "jsonEval" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -498,13 +463,12 @@ export class Sha1 {
 //
 // @internal
 export class SimpleDb {
-    constructor(name: string, version: number, schemaConverter: SimpleDbSchemaConverter, logDebug: (...args: string[]) => void, logError: (...args: string[]) => void, productErrorWrapper: (error: FirebaseError) => FirebaseError);
+    // Warning: (ae-forgotten-export) The symbol "SimpleDbSchemaConverter" needs to be exported by the entry point index.d.ts
+    constructor(name: string, version: number, schemaConverter: SimpleDbSchemaConverter, logDebug: (...args: string[]) => void, logError: (...args: string[]) => void);
     // (undocumented)
     close(): void;
-    static delete(name: string, logDebug?: (...args: string[]) => void): Promise<void>;
+    static deleteDb(name: string, logDebug?: (...args: string[]) => void): Promise<void>;
     ensureDb(action: string): Promise<IDBDatabase>;
-    static getAndroidVersion(ua: string): number;
-    static getIOSVersion(ua: string): number;
     static getStore<KeyType extends IDBValidKey, ValueType extends unknown>(txn: SimpleDbTransaction, store: string): SimpleDbStore<KeyType, ValueType>;
     static isAvailable(): boolean;
     static isMockPersistence(): boolean;
@@ -515,14 +479,6 @@ export class SimpleDb {
     // (undocumented)
     setVersionChangeListener(versionChangeListener: (event: IDBVersionChangeEvent) => void): void;
     }
-
-// Warning: (ae-internal-missing-underscore) The name "SimpleDbSchemaConverter" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export interface SimpleDbSchemaConverter {
-    // (undocumented)
-    createOrUpgrade(db: IDBDatabase, txn: IDBTransaction, fromVersion: number, toVersion: number): PersistencePromise<void>;
-}
 
 // Warning: (ae-internal-missing-underscore) The name "SimpleDbStore" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -540,7 +496,10 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType extends unknow
     // (undocumented)
     deleteAll(index: string, range: IDBKeyRange): PersistencePromise<void>;
     get(key: KeyType): PersistencePromise<ValueType | null>;
+    // Warning: (ae-forgotten-export) The symbol "IterateCallback" needs to be exported by the entry point index.d.ts
     iterate(callback: IterateCallback<KeyType, ValueType>): PersistencePromise<void>;
+    // Warning: (ae-forgotten-export) The symbol "IterateOptions" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     iterate(options: IterateOptions, callback: IterateCallback<KeyType, ValueType>): PersistencePromise<void>;
     iterateSerial(callback: (k: KeyType, v: ValueType) => PersistencePromise<boolean>): PersistencePromise<void>;
@@ -565,7 +524,7 @@ export class SimpleDbTransaction {
     // (undocumented)
     maybeCommit(): void;
     // (undocumented)
-    static open(db: IDBDatabase, action: string, mode: IDBTransactionMode, objectStoreNames: string[], logDebug: (...args: string[]) => void, productErrorWrapper: (error: FirebaseError) => FirebaseError): SimpleDbTransaction;
+    static open(db: IDBDatabase, action: string, mode: IDBTransactionMode, objectStoreNames: string[], logDebug: (...args: string[]) => void): SimpleDbTransaction;
     store<KeyType extends IDBValidKey, ValueType extends unknown>(storeName: string): SimpleDbStore<KeyType, ValueType>;
     }
 

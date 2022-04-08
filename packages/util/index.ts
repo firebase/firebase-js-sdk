@@ -35,4 +35,4 @@ export * from './src/exponential_backoff';
 export * from './src/formatters';
 export * from './src/compat';
 export * from './src/indexeddb';
-export * from './src/simple_db';
+export * from './src/simple-db/simple-db';

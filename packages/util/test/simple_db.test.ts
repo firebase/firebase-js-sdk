@@ -15,12 +15,9 @@
  * limitations under the License.
  */
 
-import {
-  SimpleDb,
-  SimpleDbSchemaConverter,
-  SimpleDbStore,
-  SimpleDbTransaction
-} from '../src/simple_db';
+import { SimpleDb, SimpleDbSchemaConverter } from '../src/simple-db/simple-db';
+import { SimpleDbStore } from '../src/simple-db/SimpleDbStore';
+import { SimpleDbTransaction } from '../src/simple-db/SimpleDbTransaction';
 import { FirebaseError } from '../src/errors';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
