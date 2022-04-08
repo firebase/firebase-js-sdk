@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
+import { User } from '../auth/user';
+import { ListenSequence } from '../core/listen_sequence';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
@@ -25,10 +28,13 @@ import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
+import { IndexedDbDocumentOverlayCache } from './indexeddb_document_overlay_cache';
 import {
   dbDocumentSize,
   removeMutationBatch
 } from './indexeddb_mutation_batch_impl';
+import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
+import { newIndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   DbCollectionParent,
   DbDocumentMutation,
@@ -107,6 +113,8 @@ import {
   DbTargetQueryTargetsKeyPath,
   DbTargetStore
 } from './indexeddb_sentinels';
+import { IndexedDbTransaction } from './indexeddb_transaction';
+import { LocalDocumentsView } from './local_documents_view';
 import {
   fromDbMutationBatch,
   fromDbTarget,
@@ -114,6 +122,7 @@ import {
   toDbTarget
 } from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
+import { MemoryEagerDelegate, MemoryPersistence } from './memory_persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
@@ -240,9 +249,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 14 && toVersion >= 14) {
-      p = p.next(() => {
-        createFieldIndex(db);
-      });
+      p = p
+        .next(() => createFieldIndex(db))
+        .next(() => this.runOverlayMigration(db, simpleDbTransaction));
     }
 
     return p;
@@ -454,6 +463,95 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         writes.push(remoteDocumentStore.put(dbRemoteDocument));
       })
       .next(() => PersistencePromise.waitFor(writes));
+  }
+
+  private runOverlayMigration(
+    db: IDBDatabase,
+    transaction: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const queuesStore = transaction.store<DbMutationQueueKey, DbMutationQueue>(
+      DbMutationQueueStore
+    );
+    const mutationsStore = transaction.store<
+      DbMutationBatchKey,
+      DbMutationBatch
+    >(DbMutationBatchStore);
+
+    const promises: Array<PersistencePromise<void>> = [];
+    let userIds = new Set<string>();
+
+    return queuesStore
+      .loadAll()
+      .next(queues => {
+        for (const queue of queues) {
+          userIds = userIds.add(queue.userId);
+        }
+      })
+      .next(() => {
+        userIds.forEach(userId => {
+          const user = new User(userId);
+          const remoteDocumentCache = newIndexedDbRemoteDocumentCache(
+            this.serializer
+          );
+          const documentOverlayCache = IndexedDbDocumentOverlayCache.forUser(
+            this.serializer,
+            user
+          );
+          let allDocumentKeysForUser = documentKeySet();
+          const range = IDBKeyRange.bound(
+            [userId, BATCHID_UNKNOWN],
+            [userId, Number.POSITIVE_INFINITY]
+          );
+          promises.push(
+            mutationsStore
+              .loadAll(DbMutationBatchUserMutationsIndex, range)
+              .next(dbBatches => {
+                dbBatches.forEach(dbBatch => {
+                  hardAssert(
+                    dbBatch.userId === userId,
+                    `Cannot process batch ${dbBatch.batchId} from unexpected user`
+                  );
+                  const batch = fromDbMutationBatch(this.serializer, dbBatch);
+                  batch
+                    .keys()
+                    .forEach(
+                      key =>
+                        (allDocumentKeysForUser =
+                          allDocumentKeysForUser.add(key))
+                    );
+                });
+              })
+              .next(() => {
+                // NOTE: The index manager and the reference delegate are
+                // irrelevant for the purpose of recalculating and saving
+                // overlays. We can therefore simply use the memory
+                // implementation.
+                const memoryPersistence = new MemoryPersistence(
+                  MemoryEagerDelegate.factory,
+                  this.serializer.remoteSerializer
+                );
+                const indexManager = memoryPersistence.getIndexManager(user);
+                const mutationQueue = IndexedDbMutationQueue.forUser(
+                  user,
+                  this.serializer,
+                  indexManager,
+                  memoryPersistence.referenceDelegate
+                );
+                const localDocumentsView = new LocalDocumentsView(
+                  remoteDocumentCache,
+                  mutationQueue,
+                  documentOverlayCache,
+                  indexManager
+                );
+                return localDocumentsView.recalculateAndSaveOverlaysForDocumentKeys(
+                  new IndexedDbTransaction(transaction, ListenSequence.INVALID),
+                  allDocumentKeysForUser
+                );
+              })
+          );
+        });
+      })
+      .next(() => PersistencePromise.waitFor(promises));
   }
 }
 
