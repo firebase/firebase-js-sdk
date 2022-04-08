@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assertionError } from '@firebase/util';
+import { fail } from '@firebase/util';
 
 import { Index } from '../snap/indexes/Index';
 import { NamedNode, Node } from '../snap/Node';
@@ -167,7 +167,7 @@ function eventGeneratorCompareChanges(
   b: Change
 ) {
   if (a.childName == null || b.childName == null) {
-    throw assertionError('Should only compare child_ events.');
+    fail('Should only compare child_ events.');
   }
   const aWrapped = new NamedNode(a.childName, a.snapshotNode);
   const bWrapped = new NamedNode(b.childName, b.snapshotNode);

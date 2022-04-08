@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert, assertionError } from '@firebase/util';
+import { assert, fail } from '@firebase/util';
 
 import { nameCompare, MAX_NAME } from '../../util/util';
 import { ChildrenNode } from '../ChildrenNode';
@@ -39,7 +39,7 @@ export class KeyIndex extends Index {
   isDefinedOn(node: Node): boolean {
     // We could probably return true here (since every node has a key), but it's never called
     // so just leaving unimplemented for now.
-    throw assertionError('KeyIndex.isDefinedOn not expected to be called.');
+    fail('KeyIndex.isDefinedOn not expected to be called.');
   }
   indexedValueChanged(oldNode: Node, newNode: Node): boolean {
     return false; // The key for a node never changes.

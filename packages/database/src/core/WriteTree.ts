@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert, assertionError, safeGet } from '@firebase/util';
+import { assert, fail, safeGet } from '@firebase/util';
 
 import {
   CompoundWrite,
@@ -328,7 +328,7 @@ function writeTreeLayerTree_(
           // There is no overlap between root path and write path, ignore write
         }
       } else {
-        throw assertionError('WriteRecord should have .snap or .children');
+        fail('WriteRecord should have .snap or .children');
       }
     }
   }
