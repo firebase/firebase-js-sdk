@@ -64,9 +64,7 @@ describe('EncodedResourcePath', () => {
       1,
       new EncodedResourcePathSchemaConverter(),
       logDebug,
-      logError,
-      (error: FirebaseError) =>
-        new FirestoreError(error.code as FirestoreErrorCode, error.message)
+      logError
     );
   });
 

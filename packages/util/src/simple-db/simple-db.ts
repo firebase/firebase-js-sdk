@@ -31,8 +31,17 @@ import {
 } from './util';
 import { SimpleDbSchemaConverter } from './types';
 
-export { PersistencePromise, SimpleDbStore, SimpleDbTransaction };
-export { isIndexedDbTransactionError, checkForAndReportiOSError } from './util';
+export {
+  PersistencePromise,
+  SimpleDbStore,
+  SimpleDbTransaction,
+  SimpleDbSchemaConverter
+};
+export {
+  isIndexedDbTransactionError,
+  IndexedDbTransactionError,
+  checkForAndReportiOSError
+} from './util';
 
 // References to `window` are guarded by SimpleDb.isAvailable()
 /* eslint-disable no-restricted-globals */

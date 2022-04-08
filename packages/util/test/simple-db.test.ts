@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { SimpleDb, SimpleDbSchemaConverter } from '../src/simple-db/simple-db';
+import { SimpleDb } from '../src/simple-db/simple-db';
 import { SimpleDbStore } from '../src/simple-db/SimpleDbStore';
 import { SimpleDbTransaction } from '../src/simple-db/SimpleDbTransaction';
 import { FirebaseError } from '../src/errors';
@@ -25,6 +25,8 @@ import { Context } from 'mocha';
 
 import { PersistencePromise } from '../src/persistence_promise';
 import { fail } from '../src/assert';
+import { SimpleDbSchemaConverter } from '../src/simple-db/types';
+import { getIOSVersion, getAndroidVersion } from '../src/simple-db/util';
 
 use(chaiAsPromised);
 
@@ -108,8 +110,7 @@ describe('SimpleDb', () => {
       1,
       new TestSchemaConverter(),
       () => {},
-      () => {},
-      (error: FirebaseError) => new FirebaseError(error.code, error.message)
+      () => {}
     );
     await writeTestData();
   });
@@ -129,9 +130,9 @@ describe('SimpleDb', () => {
     const androidAgent =
       'Mozilla/5.0 (Linux; U; Android 2.2.1; fr-fr; Desire HD Build/FRG83D)' +
       ' AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1';
-    expect(SimpleDb.getIOSVersion(iPhoneSafariAgent)).to.equal(10.14);
-    expect(SimpleDb.getIOSVersion(iPadSafariAgent)).to.equal(9.0);
-    expect(SimpleDb.getAndroidVersion(androidAgent)).to.equal(2.2);
+    expect(getIOSVersion(iPhoneSafariAgent)).to.equal(10.14);
+    expect(getIOSVersion(iPadSafariAgent)).to.equal(9.0);
+    expect(getAndroidVersion(androidAgent)).to.equal(2.2);
   });
 
   it('can get', async () => {

@@ -131,9 +131,7 @@ async function withDb(
     schemaVersion,
     schemaConverter,
     logDebug,
-    logError,
-    (error: FirebaseError) =>
-      new FirestoreError(error.code as FirestoreErrorCode, error.message)
+    logError
   );
   const database = await simpleDb
     .ensureDb('IndexedDbPersistenceTests')
@@ -1076,15 +1074,13 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         downgradeVersion,
         schemaConverter,
         logDebug,
-        logError,
-        (error: FirebaseError) =>
-          new FirestoreError(error.code as FirestoreErrorCode, error.message)
+        logError
       );
       await db.ensureDb(this.test!.fullTitle());
     } catch (e) {
       error = e;
       expect(
-        e.message.indexOf('A newer version of the Firestore SDK')
+        e.message.indexOf('A newer version of the Firebase SDK')
       ).to.not.equal(-1);
     }
     expect(error).to.not.be.null;
@@ -1103,9 +1099,7 @@ describe('IndexedDb: canActAsPrimary', () => {
       SCHEMA_VERSION,
       new SchemaConverter(TEST_SERIALIZER),
       logDebug,
-      logError,
-      (error: FirebaseError) =>
-        new FirestoreError(error.code as FirestoreErrorCode, error.message)
+      logError
     );
     await simpleDb.runTransaction(
       'clearPrimaryLease',
@@ -1127,9 +1121,7 @@ describe('IndexedDb: canActAsPrimary', () => {
       SCHEMA_VERSION,
       new SchemaConverter(TEST_SERIALIZER),
       logDebug,
-      logError,
-      (error: FirebaseError) =>
-        new FirestoreError(error.code as FirestoreErrorCode, error.message)
+      logError
     );
     const leaseOwner = await simpleDb.runTransaction(
       'getCurrentLeaseOwner',

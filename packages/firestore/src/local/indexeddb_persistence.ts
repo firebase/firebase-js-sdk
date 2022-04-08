@@ -16,7 +16,6 @@
  */
 
 import {
-  FirebaseError,
   isSafari,
   isIndexedDbTransactionError,
   SimpleDb,
@@ -29,7 +28,7 @@ import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
-import { Code, FirestoreError, FirestoreErrorCode } from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
 import { DocumentLike, WindowLike } from '../util/types';
 
@@ -233,9 +232,7 @@ export class IndexedDbPersistence implements Persistence {
       this.schemaVersion,
       new SchemaConverter(this.serializer),
       logDebug,
-      logError,
-      (error: FirebaseError) =>
-        new FirestoreError(error.code as FirestoreErrorCode, error.message)
+      logError
     );
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,

@@ -239,6 +239,15 @@ export function getModularInstance<ExpService>(service: Compat<ExpService> | Exp
 // @public
 export function getUA(): string;
 
+// Warning: (ae-internal-missing-underscore) The name "IndexedDbTransactionError" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export class IndexedDbTransactionError extends FirebaseError {
+    constructor(actionName: string, cause: Error | string);
+    // (undocumented)
+    name: string;
+}
+
 // Warning: (ae-missing-release-tag) "isAdmin" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -463,11 +472,10 @@ export class Sha1 {
 //
 // @internal
 export class SimpleDb {
-    // Warning: (ae-forgotten-export) The symbol "SimpleDbSchemaConverter" needs to be exported by the entry point index.d.ts
     constructor(name: string, version: number, schemaConverter: SimpleDbSchemaConverter, logDebug: (...args: string[]) => void, logError: (...args: string[]) => void);
     // (undocumented)
     close(): void;
-    static deleteDb(name: string, logDebug?: (...args: string[]) => void): Promise<void>;
+    static delete(name: string, logDebug?: (...args: string[]) => void): Promise<void>;
     ensureDb(action: string): Promise<IDBDatabase>;
     static getStore<KeyType extends IDBValidKey, ValueType extends unknown>(txn: SimpleDbTransaction, store: string): SimpleDbStore<KeyType, ValueType>;
     static isAvailable(): boolean;
@@ -479,6 +487,14 @@ export class SimpleDb {
     // (undocumented)
     setVersionChangeListener(versionChangeListener: (event: IDBVersionChangeEvent) => void): void;
     }
+
+// Warning: (ae-internal-missing-underscore) The name "SimpleDbSchemaConverter" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface SimpleDbSchemaConverter {
+    // (undocumented)
+    createOrUpgrade(db: IDBDatabase, txn: IDBTransaction, fromVersion: number, toVersion: number): PersistencePromise<void>;
+}
 
 // Warning: (ae-internal-missing-underscore) The name "SimpleDbStore" should be prefixed with an underscore because the declaration is marked as @internal
 //
