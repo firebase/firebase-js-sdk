@@ -61,7 +61,7 @@ export class SimpleDb {
   /**
    * Deletes the specified database.
    */
-  static deleteDb(
+  static delete(
     name: string,
     logDebug?: (...args: string[]) => void
   ): Promise<void> {
