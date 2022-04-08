@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2022 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { getUA } from '../environment';
 import { FirebaseError } from '../errors';
 import { PersistencePromise } from '../persistence_promise';
@@ -38,7 +55,7 @@ export function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
  * An error that wraps exceptions that thrown during IndexedDB execution.
  * @internal
  */
- export class IndexedDbTransactionError extends FirebaseError {
+export class IndexedDbTransactionError extends FirebaseError {
   name = 'IndexedDbTransactionError';
 
   constructor(actionName: string, cause: Error | string) {
@@ -74,8 +91,8 @@ export function checkForAndReportiOSError(error: DOMException): Error {
       const newError = new FirebaseError(
         'internal',
         `IOS_INDEXEDDB_BUG1: IndexedDb has thrown '${IOS_ERROR}'. This is likely ` +
-        `due to an unavoidable bug in iOS. See https://stackoverflow.com/q/56496296/110915 ` +
-        `for details and a potential workaround.`
+          `due to an unavoidable bug in iOS. See https://stackoverflow.com/q/56496296/110915 ` +
+          `for details and a potential workaround.`
       );
       if (!reportedIOSError) {
         reportedIOSError = true;

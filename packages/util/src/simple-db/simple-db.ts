@@ -58,7 +58,6 @@ export class SimpleDb {
   private db?: IDBDatabase;
   private versionchangelistener?: (event: IDBVersionChangeEvent) => void;
 
-
   /**
    * Deletes the specified database.
    */
@@ -172,9 +171,9 @@ export class SimpleDb {
     if (iOSVersion === 12.2) {
       this.logError(
         'Persistence suffers from a bug in iOS 12.2 ' +
-        'Safari that may cause your app to stop working. See ' +
-        'https://stackoverflow.com/q/56496296/110915 for details ' +
-        'and a potential workaround.'
+          'Safari that may cause your app to stop working. See ' +
+          'https://stackoverflow.com/q/56496296/110915 for details ' +
+          'and a potential workaround.'
       );
     }
   }
@@ -203,9 +202,9 @@ export class SimpleDb {
             new IndexedDbTransactionError(
               action,
               'Cannot upgrade IndexedDB schema while another tab is open. ' +
-              'Close all tabs that access Firebase and reload this page to proceed.'))
-
-            ;
+                'Close all tabs that access Firebase and reload this page to proceed.'
+            )
+          );
         };
 
         request.onerror = (event: Event) => {
@@ -214,24 +213,22 @@ export class SimpleDb {
             reject(
               new FirebaseError(
                 Code.FAILED_PRECONDITION,
-                ('A newer version of the Firebase SDK was previously used and so the persisted ' +
+                'A newer version of the Firebase SDK was previously used and so the persisted ' +
                   'data is not compatible with the version of the SDK you are now using. The SDK ' +
                   'will operate with persistence disabled. If you need persistence, please ' +
                   're-upgrade to a newer version of the SDK or else clear the persisted IndexedDB ' +
-                  'data for your app to start fresh.')
+                  'data for your app to start fresh.'
               )
-
             );
           } else if (error.name === 'InvalidStateError') {
             reject(
               new FirebaseError(
                 Code.FAILED_PRECONDITION,
                 'Unable to open an IndexedDB connection. This could be due to running in a ' +
-                'private browsing session on a browser whose private browsing sessions do not ' +
-                'support IndexedDB: ' +
-                error
+                  'private browsing session on a browser whose private browsing sessions do not ' +
+                  'support IndexedDB: ' +
+                  error
               )
-
             );
           } else {
             reject(new IndexedDbTransactionError(action, error));
@@ -319,7 +316,7 @@ export class SimpleDb {
 
         // As noted above, errors are propagated by aborting the transaction. So
         // we swallow any error here to avoid the browser logging it as unhandled.
-        transactionFnResult.catch(() => { });
+        transactionFnResult.catch(() => {});
 
         // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
         // fire), but still return the original transactionFnResult back to the
