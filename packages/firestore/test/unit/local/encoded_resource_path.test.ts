@@ -16,7 +16,6 @@
  */
 
 import {
-  FirebaseError,
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
@@ -24,7 +23,6 @@ import {
 } from '@firebase/util';
 import { expect } from 'chai';
 
-import { FirestoreError, FirestoreErrorCode } from '../../../src';
 import {
   decodeResourcePath,
   encodeResourcePath

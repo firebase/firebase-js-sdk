@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError, SimpleDb } from '@firebase/util';
+import { SimpleDb } from '@firebase/util';
 import { expect } from 'chai';
 
 import { LoadBundleTask } from '../../../src/api/bundle';
@@ -117,7 +117,7 @@ import {
 } from '../../../src/util/async_queue_impl';
 import { newBundleReader } from '../../../src/util/bundle_reader_impl';
 import { ByteString } from '../../../src/util/byte_string';
-import { FirestoreError, FirestoreErrorCode } from '../../../src/util/error';
+import { FirestoreError } from '../../../src/util/error';
 import { logDebug, logError, logWarn } from '../../../src/util/log';
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
