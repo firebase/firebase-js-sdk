@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 export const BASE_ENDPOINT =
-  'https://content-firebaseappcheck.googleapis.com/v1beta';
+  'https://content-firebaseappcheck.googleapis.com/v1';
 
-export const EXCHANGE_RECAPTCHA_TOKEN_METHOD = 'exchangeRecaptchaToken';
+export const EXCHANGE_RECAPTCHA_TOKEN_METHOD = 'exchangeRecaptchaV3Token';
 export const EXCHANGE_RECAPTCHA_ENTERPRISE_TOKEN_METHOD =
   'exchangeRecaptchaEnterpriseToken';
 export const EXCHANGE_DEBUG_TOKEN_METHOD = 'exchangeDebugToken';
