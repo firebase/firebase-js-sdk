@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { isSafari } from '@firebase/util';
+import {
+  isSafari,
+  isIndexedDbTransactionError,
+  SimpleDb,
+  SimpleDbStore
+} from '@firebase/util';
 
 import { User } from '../auth/user';
 import { DatabaseId } from '../core/database_info';
@@ -64,11 +69,6 @@ import {
   PRIMARY_LEASE_LOST_ERROR_MSG
 } from './persistence_transaction';
 import { ClientId } from './shared_client_state';
-import {
-  isIndexedDbTransactionError,
-  SimpleDb,
-  SimpleDbStore
-} from './simple_db';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -230,7 +230,9 @@ export class IndexedDbPersistence implements Persistence {
     this.simpleDb = new SimpleDb(
       this.dbName,
       this.schemaVersion,
-      new SchemaConverter(this.serializer)
+      new SchemaConverter(this.serializer),
+      logDebug,
+      logError
     );
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
@@ -1123,5 +1125,5 @@ export async function indexedDbClearPersistence(
     return Promise.resolve();
   }
   const dbName = persistenceKey + MAIN_DATABASE;
-  await SimpleDb.delete(dbName);
+  await SimpleDb.delete(dbName, logDebug);
 }

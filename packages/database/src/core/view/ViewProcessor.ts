@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert, assertionError } from '@firebase/util';
+import { assert, fail } from '@firebase/util';
 
 import { AckUserWrite } from '../operation/AckUserWrite';
 import { Merge } from '../operation/Merge';
@@ -187,7 +187,7 @@ export function viewProcessorApplyOperation(
       accumulator
     );
   } else {
-    throw assertionError('Unknown operation type: ' + operation.type);
+    fail('Unknown operation type: ' + operation.type);
   }
   const changes = accumulator.getChanges();
   viewProcessorMaybeAddValueEvent(oldViewCache, newViewCache, changes);

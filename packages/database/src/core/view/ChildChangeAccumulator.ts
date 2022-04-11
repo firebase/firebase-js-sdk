@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert, assertionError } from '@firebase/util';
+import { assert, fail } from '@firebase/util';
 
 import {
   Change,
@@ -86,7 +86,7 @@ export class ChildChangeAccumulator {
           changeChildChanged(childKey, change.snapshotNode, oldChange.oldSnap)
         );
       } else {
-        throw assertionError(
+        fail(
           'Illegal combination of changes: ' +
             change +
             ' occurred after ' +

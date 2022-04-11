@@ -15,6 +15,12 @@
  * limitations under the License.
  */
 
+import {
+  SimpleDb,
+  SimpleDbSchemaConverter,
+  SimpleDbStore,
+  SimpleDbTransaction
+} from '@firebase/util';
 import { expect } from 'chai';
 
 import {
@@ -22,13 +28,8 @@ import {
   encodeResourcePath
 } from '../../../src/local/encoded_resource_path';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
-import {
-  SimpleDb,
-  SimpleDbSchemaConverter,
-  SimpleDbStore,
-  SimpleDbTransaction
-} from '../../../src/local/simple_db';
 import { ResourcePath } from '../../../src/model/path';
+import { logDebug, logError } from '../../../src/util/log';
 import { path } from '../../util/helpers';
 
 let db: SimpleDb;
@@ -56,7 +57,13 @@ describe('EncodedResourcePath', () => {
 
   beforeEach(async () => {
     await SimpleDb.delete(dbName);
-    db = new SimpleDb(dbName, 1, new EncodedResourcePathSchemaConverter());
+    db = new SimpleDb(
+      dbName,
+      1,
+      new EncodedResourcePathSchemaConverter(),
+      logDebug,
+      logError
+    );
   });
 
   afterEach(() => {

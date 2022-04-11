@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const path = require('path');
 
 module.exports = {
   extends: '../../config/.eslintrc.js',
@@ -58,6 +59,12 @@ module.exports = {
       {
         'name': 'document',
         'message': 'Use `PlatformSupport.getPlatform().document` instead.'
+      }
+    ],
+    'import/no-extraneous-dependencies': [
+      'error',
+      {
+        'packageDir': [path.resolve(__dirname, '../../'), __dirname]
       }
     ]
   },

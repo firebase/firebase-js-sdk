@@ -15,25 +15,17 @@
  * limitations under the License.
  */
 
-import { CONSTANTS } from './constants';
-
 /**
  * Throws an error if the provided assertion is falsy
  */
 export const assert = function (assertion: unknown, message: string): void {
   if (!assertion) {
-    throw assertionError(message);
+    fail(message);
   }
 };
 
-/**
- * Returns an Error object suitable for throwing.
- */
-export const assertionError = function (message: string): Error {
-  return new Error(
-    'Firebase Database (' +
-      CONSTANTS.SDK_VERSION +
-      ') INTERNAL ASSERT FAILED: ' +
-      message
-  );
-};
+export function fail(failure: string = 'Unexpected state'): never {
+  const message = 'Firebase INTERNAL ASSERT FAILED: ' + failure;
+  console.error(message);
+  throw Error(message);
+}

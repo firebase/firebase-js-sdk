@@ -14,11 +14,6 @@ export function areCookiesEnabled(): boolean;
 // @public
 export const assert: (assertion: unknown, message: string) => void;
 
-// Warning: (ae-missing-release-tag) "assertionError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export const assertionError: (message: string) => Error;
-
 // Warning: (ae-missing-release-tag) "async" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -49,6 +44,11 @@ export const base64urlEncodeWithoutPadding: (str: string) => string;
 //
 // @public
 export function calculateBackoffMillis(backoffCount: number, intervalMillis?: number, backoffFactor?: number): number;
+
+// Warning: (ae-internal-missing-underscore) The name "checkForAndReportiOSError" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export function checkForAndReportiOSError(error: DOMException): Error;
 
 // Warning: (ae-missing-release-tag) "Compat" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -202,6 +202,11 @@ export type Executor<T> = (observer: Observer<T>) => void;
 // @public
 export function extractQuerystring(url: string): string;
 
+// Warning: (ae-missing-release-tag) "fail" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function fail(failure?: string): never;
+
 // Warning: (ae-missing-release-tag) "FirebaseError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -233,6 +238,15 @@ export function getModularInstance<ExpService>(service: Compat<ExpService> | Exp
 //
 // @public
 export function getUA(): string;
+
+// Warning: (ae-internal-missing-underscore) The name "IndexedDbTransactionError" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export class IndexedDbTransactionError extends FirebaseError {
+    constructor(actionName: string, cause: Error | string);
+    // (undocumented)
+    name: string;
+}
 
 // Warning: (ae-missing-release-tag) "isAdmin" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -268,6 +282,11 @@ export function isIE(): boolean;
 //
 // @public
 export function isIndexedDBAvailable(): boolean;
+
+// Warning: (ae-internal-missing-underscore) The name "isIndexedDbTransactionError" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function isIndexedDbTransactionError(e: Error): boolean;
 
 // Warning: (ae-missing-release-tag) "isMobileCordova" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -375,6 +394,42 @@ export function ordinal(i: number): string;
 // @public (undocumented)
 export type PartialObserver<T> = Partial<Observer<T>>;
 
+// Warning: (ae-internal-missing-underscore) The name "PersistencePromise" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export class PersistencePromise<T> {
+    // Warning: (ae-forgotten-export) The symbol "Resolver" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Rejector" needs to be exported by the entry point index.d.ts
+    constructor(callback: (resolve: Resolver<T>, reject: Rejector) => void);
+    // (undocumented)
+    catch<R>(fn: (error: Error) => R | PersistencePromise<R>): PersistencePromise<R>;
+    static forEach<R, S>(collection: {
+        forEach: (cb: (r: R, s: S) => void) => void;
+    }, f: ((r: R, s: S) => PersistencePromise<void>) | ((r: R) => PersistencePromise<void>)): PersistencePromise<void>;
+    // (undocumented)
+    static forEach<R>(collection: {
+        forEach: (cb: (r: R) => void) => void;
+    }, f: (r: R) => PersistencePromise<void>): PersistencePromise<void>;
+    // Warning: (ae-forgotten-export) The symbol "FulfilledHandler" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "RejectedHandler" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    next<R>(nextFn?: FulfilledHandler<T, R>, catchFn?: RejectedHandler<R>): PersistencePromise<R>;
+    static or(predicates: Array<() => PersistencePromise<boolean>>): PersistencePromise<boolean>;
+    // (undocumented)
+    static reject<R>(error: Error): PersistencePromise<R>;
+    // (undocumented)
+    static resolve(): PersistencePromise<void>;
+    // (undocumented)
+    static resolve<R>(result: R): PersistencePromise<R>;
+    // (undocumented)
+    toPromise(): Promise<T>;
+    // (undocumented)
+    static waitFor(all: {
+        forEach: (cb: (el: PersistencePromise<any>) => void) => void;
+    }): PersistencePromise<void>;
+    }
+
 // Warning: (ae-missing-release-tag) "querystring" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -411,6 +466,82 @@ export class Sha1 {
     reset(): void;
     // (undocumented)
     update(bytes?: number[] | Uint8Array | string, length?: number): void;
+    }
+
+// Warning: (ae-internal-missing-underscore) The name "SimpleDb" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export class SimpleDb {
+    constructor(name: string, version: number, schemaConverter: SimpleDbSchemaConverter, logDebug: (...args: string[]) => void, logError: (...args: string[]) => void);
+    // (undocumented)
+    close(): void;
+    static delete(name: string, logDebug?: (...args: string[]) => void): Promise<void>;
+    ensureDb(action: string): Promise<IDBDatabase>;
+    static getStore<KeyType extends IDBValidKey, ValueType extends unknown>(txn: SimpleDbTransaction, store: string): SimpleDbStore<KeyType, ValueType>;
+    static isAvailable(): boolean;
+    static isMockPersistence(): boolean;
+    // Warning: (ae-forgotten-export) The symbol "SimpleDbTransactionMode" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    runTransaction<T>(action: string, mode: SimpleDbTransactionMode, objectStores: string[], transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>): Promise<T>;
+    // (undocumented)
+    setVersionChangeListener(versionChangeListener: (event: IDBVersionChangeEvent) => void): void;
+    }
+
+// Warning: (ae-internal-missing-underscore) The name "SimpleDbSchemaConverter" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface SimpleDbSchemaConverter {
+    // (undocumented)
+    createOrUpgrade(db: IDBDatabase, txn: IDBTransaction, fromVersion: number, toVersion: number): PersistencePromise<void>;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "SimpleDbStore" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export class SimpleDbStore<KeyType extends IDBValidKey, ValueType extends unknown> {
+    constructor(store: IDBObjectStore, logDebug: (...args: string[]) => void);
+    add(value: ValueType): PersistencePromise<KeyType>;
+    count(): PersistencePromise<number>;
+    // (undocumented)
+    delete(key: KeyType | IDBKeyRange): PersistencePromise<void>;
+    // (undocumented)
+    deleteAll(): PersistencePromise<void>;
+    // (undocumented)
+    deleteAll(range: IDBKeyRange): PersistencePromise<void>;
+    // (undocumented)
+    deleteAll(index: string, range: IDBKeyRange): PersistencePromise<void>;
+    get(key: KeyType): PersistencePromise<ValueType | null>;
+    // Warning: (ae-forgotten-export) The symbol "IterateCallback" needs to be exported by the entry point index.d.ts
+    iterate(callback: IterateCallback<KeyType, ValueType>): PersistencePromise<void>;
+    // Warning: (ae-forgotten-export) The symbol "IterateOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    iterate(options: IterateOptions, callback: IterateCallback<KeyType, ValueType>): PersistencePromise<void>;
+    iterateSerial(callback: (k: KeyType, v: ValueType) => PersistencePromise<boolean>): PersistencePromise<void>;
+    loadAll(): PersistencePromise<ValueType[]>;
+    loadAll(range: IDBKeyRange): PersistencePromise<ValueType[]>;
+    loadAll(index: string, range: IDBKeyRange): PersistencePromise<ValueType[]>;
+    loadFirst(range: IDBKeyRange, count: number | null): PersistencePromise<ValueType[]>;
+    put(value: ValueType): PersistencePromise<void>;
+    // (undocumented)
+    put(key: KeyType, value: ValueType): PersistencePromise<void>;
+    }
+
+// Warning: (ae-internal-missing-underscore) The name "SimpleDbTransaction" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export class SimpleDbTransaction {
+    constructor(action: string, transaction: IDBTransaction, logDebug: (...args: string[]) => void);
+    // (undocumented)
+    abort(error?: Error): void;
+    // (undocumented)
+    get completionPromise(): Promise<void>;
+    // (undocumented)
+    maybeCommit(): void;
+    // (undocumented)
+    static open(db: IDBDatabase, action: string, mode: IDBTransactionMode, objectStoreNames: string[], logDebug: (...args: string[]) => void): SimpleDbTransaction;
+    store<KeyType extends IDBValidKey, ValueType extends unknown>(storeName: string): SimpleDbStore<KeyType, ValueType>;
     }
 
 // Warning: (ae-missing-release-tag) "stringify" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
