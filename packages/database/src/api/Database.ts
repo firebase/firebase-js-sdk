@@ -128,7 +128,7 @@ export function repoManagerDatabaseFromApp(
   let isEmulator: boolean;
 
   let dbEmulatorHost: string | undefined = undefined;
-  if (typeof process !== 'undefined') {
+  if (typeof process !== 'undefined' && process.env) {
     dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
   }
 
