@@ -78,7 +78,7 @@ describe('client', () => {
       Promise.resolve({
         status: 200,
         json: async () => ({
-          attestationToken: 'fake-appcheck-token',
+          token: 'fake-appcheck-token',
           ttl: '3.600s'
         })
       } as Response)
@@ -189,7 +189,7 @@ describe('client', () => {
         status: 200,
         json: () =>
           Promise.resolve({
-            attestationToken: 'fake-appcheck-token',
+            token: 'fake-appcheck-token',
             ttl: 'NAN'
           })
       } as Response)

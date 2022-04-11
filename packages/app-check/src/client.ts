@@ -30,7 +30,7 @@ import { AppCheckTokenInternal } from './types';
  * Response JSON returned from AppCheck server endpoint.
  */
 interface AppCheckResponse {
-  attestationToken: string;
+  token: string;
   // timeToLive
   ttl: string;
 }
@@ -101,7 +101,7 @@ export async function exchangeToken(
 
   const now = Date.now();
   return {
-    token: responseBody.attestationToken,
+    token: responseBody.token,
     expireTimeMillis: now + timeToLiveAsNumber,
     issuedAtTimeMillis: now
   };
