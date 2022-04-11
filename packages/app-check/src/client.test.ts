@@ -50,7 +50,7 @@ describe('client', () => {
       url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:exchangeRecaptchaV3Token?key=${apiKey}`,
       body: {
         // eslint-disable-next-line camelcase
-        recaptcha_token: 'fake-recaptcha-token'
+        recaptcha_v3_token: 'fake-recaptcha-token'
       }
     });
   });

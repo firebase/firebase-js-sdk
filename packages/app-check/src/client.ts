@@ -116,7 +116,7 @@ export function getExchangeRecaptchaV3TokenRequest(
   return {
     url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${EXCHANGE_RECAPTCHA_TOKEN_METHOD}?key=${apiKey}`,
     body: {
-      'recaptcha_token': reCAPTCHAToken
+      'recaptcha_v3_token': reCAPTCHAToken
     }
   };
 }
