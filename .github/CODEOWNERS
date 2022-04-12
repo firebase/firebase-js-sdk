@@ -52,11 +52,11 @@ packages/storage-compat  @schmidt-sebastian @firebase/jssdk-global-approvers
 packages/storage-types  @schmidt-sebastian @firebase/jssdk-global-approvers
 
 # Messaging Code
-packages/messaging  @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
-packages/messaging-compat  @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
-packages/messaging-types @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
-packages/messaging-interop-types @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
-integration/messaging @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
+packages/messaging  @zwu52 @firebase/jssdk-global-approvers
+packages/messaging-compat  @zwu52 @firebase/jssdk-global-approvers
+packages/messaging-types @zwu52 @firebase/jssdk-global-approvers
+packages/messaging-interop-types @zwu52 @firebase/jssdk-global-approvers
+integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
 # Auth Code
 packages/auth  @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers
