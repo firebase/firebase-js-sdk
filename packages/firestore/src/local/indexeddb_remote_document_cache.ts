@@ -623,6 +623,7 @@ export function dbKeyComparator(l: DocumentKey, r: DocumentKey): number {
   const left = l.path.toArray();
   const right = r.path.toArray();
 
+  // The ordering is based on https://chromium.googlesource.com/chromium/blink/+/fe5c21fef94dae71c1c3344775b8d8a7f7e6d9ec/Source/modules/indexeddb/IDBKey.cpp#74
   let cmp = 0;
   for (let i = 0; i < left.length - 2 && i < right.length - 2; ++i) {
     cmp = primitiveComparator(left[i], right[i]);
@@ -631,9 +632,15 @@ export function dbKeyComparator(l: DocumentKey, r: DocumentKey): number {
     }
   }
 
-  return (
-    primitiveComparator(left.length, right.length) ||
-    primitiveComparator(left[left.length - 2], right[right.length - 2]) ||
-    primitiveComparator(left[left.length - 1], right[right.length - 1])
-  );
+  cmp = primitiveComparator(left.length, right.length);
+  if (cmp) {
+    return cmp;
+  }
+
+  cmp = primitiveComparator(left[left.length - 2], right[right.length - 2]);
+  if (cmp) {
+    return cmp;
+  }
+
+  return primitiveComparator(left[left.length - 1], right[right.length - 1]);
 }
