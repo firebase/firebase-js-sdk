@@ -44,7 +44,7 @@ export class RecaptchaEnterpriseVerifier {
   /**
    * Stores the recaptcha site key per tenant.
    */
-  static siteKeys: Record<string, string>;
+  static siteKeys: Record<string, string> = {};
 
   /**
    * Stores the recaptcha site key for agent.
