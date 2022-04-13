@@ -44,7 +44,7 @@ export class RecaptchaEnterpriseVerifier {
   /**
    * Stores the recaptcha site key per tenant.
    */
-  static siteKeys: Record<string, string> = {};
+  static tenantSiteKeys: Record<string, string> = {};
 
   /**
    * Stores the recaptcha site key for agent.
@@ -76,7 +76,7 @@ export class RecaptchaEnterpriseVerifier {
           return RecaptchaEnterpriseVerifier.agentSiteKey;
         }
         if (auth.tenantId != null && RecaptchaEnterpriseVerifier.agentSiteKey !== undefined) {
-          return RecaptchaEnterpriseVerifier.siteKeys[auth.tenantId];
+          return RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId];
         }
       }
       
@@ -92,7 +92,7 @@ export class RecaptchaEnterpriseVerifier {
             if (auth.tenantId == null) {
               RecaptchaEnterpriseVerifier.agentSiteKey = siteKey;
             } else {
-              RecaptchaEnterpriseVerifier.siteKeys[auth.tenantId] = siteKey;
+              RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId] = siteKey;
             }
             return resolve(siteKey);
           }
