@@ -4439,13 +4439,13 @@ babel-generator@^6.18.0:
     source-map "^0.5.7"
     trim-right "^1.0.1"
 
-babel-loader@8.2.2:
-  version "8.2.2"
-  resolved "https://registry.npmjs.org/babel-loader/-/babel-loader-8.2.2.tgz#9363ce84c10c9a40e6c753748e1441b60c8a0b81"
-  integrity sha512-JvTd0/D889PQBtUXJ2PXaKU/pjZDMtHA9V2ecm+eNRmmBCMR09a+fmpGTNwnJtFmFl5Ei7Vy47LjBb+L0wQ99g==
+babel-loader@8.2.4:
+  version "8.2.4"
+  resolved "https://registry.npmjs.org/babel-loader/-/babel-loader-8.2.4.tgz#95f5023c791b2e9e2ca6f67b0984f39c82ff384b"
+  integrity sha512-8dytA3gcvPPPv4Grjhnt8b5IIiTcq/zeXOPk4iTYI0SVXcsmuGg7JtBRDp8S9X+gJfhQ8ektjXZlDu1Bb33U8A==
   dependencies:
     find-cache-dir "^3.3.1"
-    loader-utils "^1.4.0"
+    loader-utils "^2.0.0"
     make-dir "^3.1.0"
     schema-utils "^2.6.5"
 
@@ -4498,10 +4498,10 @@ babel-plugin-polyfill-regenerator@^0.3.0:
   dependencies:
     "@babel/helper-define-polyfill-provider" "^0.3.1"
 
-babel-plugin-transform-import-meta@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/babel-plugin-transform-import-meta/-/babel-plugin-transform-import-meta-2.1.0.tgz#7ba03fb60800975c8546861f8d88b4e66ce097fc"
-  integrity sha512-pcjJWEARZNgqPdXaBU9xA5oC9dYrgvn8Ya3XusQUuIuRB/3NEVXMI3bnzOJG1GaWWmFzp9OyDnp1w3aZo7VCRQ==
+babel-plugin-transform-import-meta@2.1.1:
+  version "2.1.1"
+  resolved "https://registry.npmjs.org/babel-plugin-transform-import-meta/-/babel-plugin-transform-import-meta-2.1.1.tgz#da2d6fa492dab1998d2f3f977d74225d957e7704"
+  integrity sha512-XWEzH1lKhpNDGqZRIPSHbS77tJbPKpRzydQRoJ6KLj0eynQy+MJSo/C75GtMNWnJsP1sGOAvlWcTMMHnWNBSXg==
   dependencies:
     "@babel/template" "^7.4.4"
     tslib "^2.2.0"
@@ -10954,7 +10954,7 @@ loader-runner@^4.2.0:
   resolved "https://registry.npmjs.org/loader-runner/-/loader-runner-4.2.0.tgz#d7022380d66d14c5fb1d496b89864ebcfd478384"
   integrity sha512-92+huvxMvYlMzMt0iIOukcwYBFpkYJdpl2xsZ7LrlayO7E8SOv+JJUEK17B/dJIHAOLMfh2dZZ/Y18WgmGtYNw==
 
-loader-utils@^1.1.0, loader-utils@^1.2.3, loader-utils@^1.4.0:
+loader-utils@^1.1.0, loader-utils@^1.2.3:
   version "1.4.0"
   resolved "https://registry.npmjs.org/loader-utils/-/loader-utils-1.4.0.tgz#c579b5e34cb34b1a74edc6c1fb36bfa371d5a613"
   integrity sha512-qH0WSMBtn/oHuwjy/NucEgbx5dbxxnxup9s4PVXJUDHZBQY+s0NWA9rJf53RBnQZxfch7euUui7hpoAPvALZdA==
