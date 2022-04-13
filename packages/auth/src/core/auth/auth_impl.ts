@@ -60,6 +60,7 @@ import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 import { HttpHeader } from '../../api';
+import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -354,6 +355,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       this._agentRecaptchaConfig = config;
     } else {
       this._tenantRecaptchaConfigs[this.tenantId] = config;
+    }
+    if (config.emailPasswordEnabled === true) {
+      const verifier = new RecaptchaEnterpriseVerifier(this);
+      void verifier.verify();
     }
   }
 
