@@ -27,6 +27,7 @@ import {
   targetGetArrayValues,
   targetGetLowerBound,
   targetGetNotInValues,
+  targetGetSegmentCount,
   targetGetUpperBound
 } from '../core/target';
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
@@ -59,7 +60,7 @@ import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { IndexManager } from './index_manager';
+import { IndexManager, IndexType } from './index_manager';
 import {
   DbCollectionParent,
   DbIndexConfiguration,
@@ -438,7 +439,7 @@ export class IndexedDbIndexManager implements IndexManager {
     );
   }
 
-  getFieldIndex(
+  private getFieldIndex(
     transaction: PersistenceTransaction,
     target: Target
   ): PersistencePromise<FieldIndex | null> {
@@ -449,13 +450,33 @@ export class IndexedDbIndexManager implements IndexManager {
         : target.path.lastSegment();
 
     return this.getFieldIndexes(transaction, collectionGroup).next(indexes => {
-      const matchingIndexes = indexes.filter(i =>
-        targetIndexMatcher.servedByIndex(i)
-      );
+      // Return the index with the most number of segments.
+      let index: FieldIndex | null = null;
+      for (const candidate of indexes) {
+        const matches = targetIndexMatcher.servedByIndex(candidate);
+        if (
+          matches &&
+          (!index || candidate.fields.length > index.fields.length)
+        ) {
+          index = candidate;
+        }
+      }
+      return index;
+    });
+  }
 
-      // Return the index that matches the most number of segments.
-      matchingIndexes.sort((l, r) => r.fields.length - l.fields.length);
-      return matchingIndexes.length > 0 ? matchingIndexes[0] : null;
+  getIndexType(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexType> {
+    // TODO(orqueries): We should look at the subtargets here
+    return this.getFieldIndex(transaction, target).next(index => {
+      if (!index) {
+        return IndexType.NONE as IndexType;
+      }
+      return index.fields.length < targetGetSegmentCount(target)
+        ? IndexType.PARTIAL
+        : IndexType.FULL;
     });
   }
 

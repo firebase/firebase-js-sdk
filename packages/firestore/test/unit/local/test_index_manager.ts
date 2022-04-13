@@ -16,7 +16,7 @@
  */
 
 import { Target } from '../../../src/core/target';
-import { IndexManager } from '../../../src/local/index_manager';
+import { IndexManager, IndexType } from '../../../src/local/index_manager';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentMap } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -71,9 +71,9 @@ export class TestIndexManager {
     );
   }
 
-  getFieldIndex(target: Target): Promise<FieldIndex | null> {
-    return this.persistence.runTransaction('getFieldIndex', 'readonly', txn =>
-      this.indexManager.getFieldIndex(txn, target)
+  getIndexType(target: Target): Promise<IndexType> {
+    return this.persistence.runTransaction('getIndexType', 'readonly', txn =>
+      this.indexManager.getIndexType(txn, target)
     );
   }
 
