@@ -91,7 +91,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _popupRedirectResolver: PopupRedirectResolverInternal | null = null;
   _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams> =
     _DEFAULT_AUTH_ERROR_FACTORY;
-  _recaptchaConfig: RecaptchaConfig | null = null;
+  _agentRecaptchaConfig: RecaptchaConfig | null = null;
+  _tenantRecaptchaConfigs: Record<string, RecaptchaConfig> = {};
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -349,7 +350,19 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   setRecaptchaConfig(config: RecaptchaConfig): void {
-    this._recaptchaConfig = config;
+    if (this.tenantId == null) {
+      this._agentRecaptchaConfig = config;
+    } else {
+      this._tenantRecaptchaConfigs[this.tenantId] = config;
+    }
+  }
+
+  _getRecaptchaConfig(): RecaptchaConfig | null {
+    if (this.tenantId == null) {
+      return this._agentRecaptchaConfig;
+    } else {
+      return this._tenantRecaptchaConfigs[this.tenantId];
+    }
   }
 
   _getPersistence(): string {

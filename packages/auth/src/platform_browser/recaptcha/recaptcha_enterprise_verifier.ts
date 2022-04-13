@@ -75,7 +75,7 @@ export class RecaptchaEnterpriseVerifier {
         if (auth.tenantId == null && RecaptchaEnterpriseVerifier.agentSiteKey != null) {
           return RecaptchaEnterpriseVerifier.agentSiteKey;
         }
-        if (auth.tenantId != null && RecaptchaEnterpriseVerifier.agentSiteKey !== undefined) {
+        if (auth.tenantId != null && RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId] !== undefined) {
           return RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId];
         }
       }

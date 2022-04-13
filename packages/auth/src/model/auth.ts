@@ -61,7 +61,8 @@ export interface ConfigInternal extends Config {
 export interface AuthInternal extends Auth {
   currentUser: User | null;
   emulatorConfig: EmulatorConfig | null;
-  _recaptchaConfig: RecaptchaConfig | null;
+  _agentRecaptchaConfig: RecaptchaConfig | null;
+  _tenantRecaptchaConfigs: Record<string, RecaptchaConfig>;
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
@@ -81,6 +82,7 @@ export interface AuthInternal extends Auth {
   _startProactiveRefresh(): void;
   _stopProactiveRefresh(): void;
   _getPersistence(): string;
+  _getRecaptchaConfig(): RecaptchaConfig | null;
   _logFramework(framework: string): void;
   _getFrameworks(): readonly string[];
   _getAdditionalHeaders(): Promise<Record<string, string>>;

@@ -82,7 +82,7 @@ export async function sendPasswordResetEmail(
     requestType: ActionCodeOperation.PASSWORD_RESET,
     email
   };
-  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
+  if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
     const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, RecaptchaActionName.GET_OOB_CODE, true);
     if (actionCodeSettings) {
       _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
@@ -254,7 +254,7 @@ export async function createUserWithEmailAndPassword(
     password
   };
   let signUpResponse: Promise<IdTokenResponse>;
-  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
+  if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
     const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, RecaptchaActionName.SIGN_UP_PASSWORD);
     signUpResponse = signUp(authInternal, requestWithRecaptcha);
   } else {

@@ -119,7 +119,7 @@ export class EmailAuthCredential extends AuthCredential {
           email: this._email,
           password: this._password,
         };
-        if (auth._recaptchaConfig?.emailPasswordEnabled) {
+        if (auth._getRecaptchaConfig()?.emailPasswordEnabled) {
           const requestWithRecaptcha = await injectRecaptchaFields(auth, request, RecaptchaActionName.SIGN_IN_WITH_PASSWORD);
           return signInWithPassword(auth, requestWithRecaptcha);
         } else {
