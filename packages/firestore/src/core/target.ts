@@ -518,7 +518,7 @@ export function targetGetSegmentCount(target: Target): number {
     // __name__ is not an explicit segment of any index, so we don't need to
     // count it.
     if (!orderBy.field.isKeyField()) {
-      fields.add(orderBy.field);
+      fields = fields.add(orderBy.field);
     }
   }
 
