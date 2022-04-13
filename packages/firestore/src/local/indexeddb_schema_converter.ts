@@ -484,11 +484,12 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       .loadAll()
       .next(queues => {
         for (const queue of queues) {
-          userIds = userIds.add(queue.userId);
-        }
-      })
-      .next(() => {
-        userIds.forEach(userId => {
+          const userId = queue.userId;
+          if (userIds.has(userId)) {
+            // We have already processed this user.
+            continue;
+          }
+          userIds = userIds.add(userId);
           const user = new User(userId);
           const remoteDocumentCache = newIndexedDbRemoteDocumentCache(
             this.serializer
@@ -549,7 +550,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
                 );
               })
           );
-        });
+        }
       })
       .next(() => PersistencePromise.waitFor(promises));
   }
