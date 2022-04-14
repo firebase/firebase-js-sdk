@@ -1,5 +1,15 @@
 # @firebase/firestore
 
+## 3.4.8
+
+### Patch Changes
+
+- [`05dc9d6a0`](https://github.com/firebase/firebase-js-sdk/commit/05dc9d6a0db3058611dd7a2dc34daa726f9ba20d) [#6128](https://github.com/firebase/firebase-js-sdk/pull/6128) (fixes [#6110](https://github.com/firebase/firebase-js-sdk/issues/6110)) - Fixes an issue during multi-document lookup that resulted in the IndexedDB error "The parameter is less than or equal to this cursor's".
+
+- Updated dependencies [[`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59)]:
+  - @firebase/util@1.5.2
+  - @firebase/component@0.5.13
+
 ## 3.4.7
 
 ### Patch Changes
