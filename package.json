@@ -103,7 +103,7 @@
     "dependency-graph": "0.11.0",
     "eslint": "7.32.0",
     "eslint-plugin-import": "2.24.2",
-    "eslint-plugin-unused-imports": "1.1.5",
+    "eslint-plugin-unused-imports": "2.0.0",
     "express": "4.17.1",
     "find-free-port": "2.0.0",
     "firebase-functions": "3.15.7",

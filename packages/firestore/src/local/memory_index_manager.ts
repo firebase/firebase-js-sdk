@@ -23,7 +23,7 @@ import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { SortedSet } from '../util/sorted_set';
 
-import { IndexManager } from './index_manager';
+import { IndexManager, IndexType } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 
@@ -74,12 +74,12 @@ export class MemoryIndexManager implements IndexManager {
     return PersistencePromise.resolve<DocumentKey[] | null>(null);
   }
 
-  getFieldIndex(
+  getIndexType(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<FieldIndex | null> {
+  ): PersistencePromise<IndexType> {
     // Field indices are not supported with memory persistence.
-    return PersistencePromise.resolve<FieldIndex | null>(null);
+    return PersistencePromise.resolve<IndexType>(IndexType.NONE);
   }
 
   getFieldIndexes(
