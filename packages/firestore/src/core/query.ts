@@ -155,7 +155,7 @@ export function asCollectionQueryAtPath(
  * Returns true if this query does not specify any query constraints that
  * could remove results.
  */
-export function matchesAllDocuments(query: Query): boolean {
+export function queryMatchesAllDocuments(query: Query): boolean {
   return (
     query.filters.length === 0 &&
     query.limit === null &&
@@ -393,7 +393,7 @@ export function queryWithAddedOrderBy(query: Query, orderBy: OrderBy): Query {
 
 export function queryWithLimit(
   query: Query,
-  limit: number,
+  limit: number | null,
   limitType: LimitType
 ): Query {
   return new QueryImpl(

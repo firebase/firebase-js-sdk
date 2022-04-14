@@ -972,6 +972,16 @@ export class IndexedDbIndexManager implements IndexManager {
     }
     return ranges;
   }
+
+  getMinOffset(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexOffset> {
+    // TODO(orqueries): Get the minimum offset for all subqueries
+    return this.getFieldIndex(transaction, target).next(index =>
+      index ? index.indexState.offset : IndexOffset.min()
+    );
+  }
 }
 
 /**

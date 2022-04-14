@@ -52,7 +52,7 @@ export class LocalDocumentsView {
   constructor(
     readonly remoteDocumentCache: RemoteDocumentCache,
     readonly mutationQueue: MutationQueue,
-    readonly indexManager: IndexManager
+    private readonly indexManager: IndexManager
   ) {}
 
   /**

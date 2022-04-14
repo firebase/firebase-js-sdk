@@ -1600,11 +1600,7 @@ describe('IndexedDbIndexManager', async () => {
   }
 
   function addDocs(...docs: Document[]): Promise<void> {
-    let data = documentMap();
-    for (const doc of docs) {
-      data = data.insert(doc.key, doc);
-    }
-    return indexManager.updateIndexEntries(data);
+    return indexManager.updateIndexEntries(documentMap(...docs));
   }
 
   function addDoc(key: string, data: JsonObject<unknown>): Promise<void> {
