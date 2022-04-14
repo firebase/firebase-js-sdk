@@ -308,12 +308,8 @@ export function targetGetLowerBound(
   for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
     const segmentBound =
       segment.kind === IndexKind.ASCENDING
-        ? targetGetLowerBoundForField(target, segment.fieldPath, target.startAt)
-        : targetGetUpperBoundForField(
-            target,
-            segment.fieldPath,
-            target.startAt
-          );
+        ? targetGetAscendingBound(target, segment.fieldPath, target.startAt)
+        : targetGetDescendingBound(target, segment.fieldPath, target.startAt);
 
     if (!segmentBound.value) {
       // No lower bound exists
@@ -342,8 +338,8 @@ export function targetGetUpperBound(
   for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
     const segmentBound =
       segment.kind === IndexKind.ASCENDING
-        ? targetGetUpperBoundForField(target, segment.fieldPath, target.endAt)
-        : targetGetLowerBoundForField(target, segment.fieldPath, target.endAt);
+        ? targetGetDescendingBound(target, segment.fieldPath, target.endAt)
+        : targetGetAscendingBound(target, segment.fieldPath, target.endAt);
 
     if (!segmentBound.value) {
       // No upper bound exists
@@ -360,7 +356,7 @@ export function targetGetUpperBound(
  * Returns the value to use as the lower bound for ascending index segment at
  * the provided `fieldPath` (or the upper bound for an descending segment).
  */
-function targetGetLowerBoundForField(
+function targetGetAscendingBound(
   target: Target,
   fieldPath: FieldPath,
   bound: Bound | null
@@ -422,9 +418,9 @@ function targetGetLowerBoundForField(
 
 /**
  * Returns the value to use as the upper bound for ascending index segment at
- * the provided `fieldPath` (or the lower bound for an descending segment).
+ * the provided `fieldPath` (or the lower bound for a descending segment).
  */
-function targetGetUpperBoundForField(
+function targetGetDescendingBound(
   target: Target,
   fieldPath: FieldPath,
   bound: Bound | null
