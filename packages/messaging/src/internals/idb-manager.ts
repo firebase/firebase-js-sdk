@@ -28,30 +28,26 @@ const OBJECT_STORE_NAME = 'firebase-messaging-store';
 
 interface MessagingDB extends DBSchema {
   'firebase-messaging-store': {
-    key: string,
-    value: TokenDetails
-  }
+    key: string;
+    value: TokenDetails;
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<MessagingDB>> | null = null;
 function getDbPromise(): Promise<IDBPDatabase<MessagingDB>> {
   if (!dbPromise) {
-    dbPromise = openDB(
-      DATABASE_NAME,
-      DATABASE_VERSION,
-      {
-        upgrade: (upgradeDb, oldVersion) => {
-          // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
-          // because if there are multiple versions between the old version and the current version, we
-          // want ALL the migrations that correspond to those versions to run, not only the last one.
-          // eslint-disable-next-line default-case
-          switch (oldVersion) {
-            case 0:
-              upgradeDb.createObjectStore(OBJECT_STORE_NAME);
-          }
+    dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
+      upgrade: (upgradeDb, oldVersion) => {
+        // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
+        // because if there are multiple versions between the old version and the current version, we
+        // want ALL the migrations that correspond to those versions to run, not only the last one.
+        // eslint-disable-next-line default-case
+        switch (oldVersion) {
+          case 0:
+            upgradeDb.createObjectStore(OBJECT_STORE_NAME);
         }
       }
-    );
+    });
   }
   return dbPromise;
 }

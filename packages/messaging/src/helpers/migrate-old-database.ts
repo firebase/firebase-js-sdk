@@ -88,83 +88,79 @@ export async function migrateOldDatabase(
 
   let tokenDetails: TokenDetails | null = null;
 
-  const db = await openDB(
-    OLD_DB_NAME,
-    OLD_DB_VERSION,
-    {
-      upgrade: async (db, oldVersion, newVersion, upgradeTransaction) => {
-        if (oldVersion < 2) {
-          // Database too old, skip migration.
+  const db = await openDB(OLD_DB_NAME, OLD_DB_VERSION, {
+    upgrade: async (db, oldVersion, newVersion, upgradeTransaction) => {
+      if (oldVersion < 2) {
+        // Database too old, skip migration.
+        return;
+      }
+
+      if (!db.objectStoreNames.contains(OLD_OBJECT_STORE_NAME)) {
+        // Database did not exist. Nothing to do.
+        return;
+      }
+
+      const objectStore = upgradeTransaction.objectStore(OLD_OBJECT_STORE_NAME);
+      const value = await objectStore.index('fcmSenderId').get(senderId);
+      await objectStore.clear();
+
+      if (!value) {
+        // No entry in the database, nothing to migrate.
+        return;
+      }
+
+      if (oldVersion === 2) {
+        const oldDetails = value as V2TokenDetails;
+
+        if (!oldDetails.auth || !oldDetails.p256dh || !oldDetails.endpoint) {
           return;
         }
 
-        if (!db.objectStoreNames.contains(OLD_OBJECT_STORE_NAME)) {
-          // Database did not exist. Nothing to do.
-          return;
-        }
-
-        const objectStore = upgradeTransaction.objectStore(OLD_OBJECT_STORE_NAME);
-        const value = await objectStore.index('fcmSenderId').get(senderId);
-        await objectStore.clear();
-
-        if (!value) {
-          // No entry in the database, nothing to migrate.
-          return;
-        }
-
-        if (oldVersion === 2) {
-          const oldDetails = value as V2TokenDetails;
-
-          if (!oldDetails.auth || !oldDetails.p256dh || !oldDetails.endpoint) {
-            return;
+        tokenDetails = {
+          token: oldDetails.fcmToken,
+          createTime: oldDetails.createTime ?? Date.now(),
+          subscriptionOptions: {
+            auth: oldDetails.auth,
+            p256dh: oldDetails.p256dh,
+            endpoint: oldDetails.endpoint,
+            swScope: oldDetails.swScope,
+            vapidKey:
+              typeof oldDetails.vapidKey === 'string'
+                ? oldDetails.vapidKey
+                : arrayToBase64(oldDetails.vapidKey)
           }
+        };
+      } else if (oldVersion === 3) {
+        const oldDetails = value as V3TokenDetails;
 
-          tokenDetails = {
-            token: oldDetails.fcmToken,
-            createTime: oldDetails.createTime ?? Date.now(),
-            subscriptionOptions: {
-              auth: oldDetails.auth,
-              p256dh: oldDetails.p256dh,
-              endpoint: oldDetails.endpoint,
-              swScope: oldDetails.swScope,
-              vapidKey:
-                typeof oldDetails.vapidKey === 'string'
-                  ? oldDetails.vapidKey
-                  : arrayToBase64(oldDetails.vapidKey)
-            }
-          };
-        } else if (oldVersion === 3) {
-          const oldDetails = value as V3TokenDetails;
+        tokenDetails = {
+          token: oldDetails.fcmToken,
+          createTime: oldDetails.createTime,
+          subscriptionOptions: {
+            auth: arrayToBase64(oldDetails.auth),
+            p256dh: arrayToBase64(oldDetails.p256dh),
+            endpoint: oldDetails.endpoint,
+            swScope: oldDetails.swScope,
+            vapidKey: arrayToBase64(oldDetails.vapidKey)
+          }
+        };
+      } else if (oldVersion === 4) {
+        const oldDetails = value as V4TokenDetails;
 
-          tokenDetails = {
-            token: oldDetails.fcmToken,
-            createTime: oldDetails.createTime,
-            subscriptionOptions: {
-              auth: arrayToBase64(oldDetails.auth),
-              p256dh: arrayToBase64(oldDetails.p256dh),
-              endpoint: oldDetails.endpoint,
-              swScope: oldDetails.swScope,
-              vapidKey: arrayToBase64(oldDetails.vapidKey)
-            }
-          };
-        } else if (oldVersion === 4) {
-          const oldDetails = value as V4TokenDetails;
-
-          tokenDetails = {
-            token: oldDetails.fcmToken,
-            createTime: oldDetails.createTime,
-            subscriptionOptions: {
-              auth: arrayToBase64(oldDetails.auth),
-              p256dh: arrayToBase64(oldDetails.p256dh),
-              endpoint: oldDetails.endpoint,
-              swScope: oldDetails.swScope,
-              vapidKey: arrayToBase64(oldDetails.vapidKey)
-            }
-          };
-        }
+        tokenDetails = {
+          token: oldDetails.fcmToken,
+          createTime: oldDetails.createTime,
+          subscriptionOptions: {
+            auth: arrayToBase64(oldDetails.auth),
+            p256dh: arrayToBase64(oldDetails.p256dh),
+            endpoint: oldDetails.endpoint,
+            swScope: oldDetails.swScope,
+            vapidKey: arrayToBase64(oldDetails.vapidKey)
+          }
+        };
       }
     }
-  );
+  });
   db.close();
 
   // Delete all old databases.

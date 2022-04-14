@@ -27,25 +27,27 @@ const OBJECT_STORE_NAME = 'firebase-installations-store';
 
 interface InstallationsDB extends DBSchema {
   'firebase-installations-store': {
-    key: string,
-    value: InstallationEntry | undefined
-  }
+    key: string;
+    value: InstallationEntry | undefined;
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<InstallationsDB>> | null = null;
 function getDbPromise(): Promise<IDBPDatabase<InstallationsDB>> {
   if (!dbPromise) {
-    dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {upgrade: (db, oldVersion) => {
-      // We don't use 'break' in this switch statement, the fall-through
-      // behavior is what we want, because if there are multiple versions between
-      // the old version and the current version, we want ALL the migrations
-      // that correspond to those versions to run, not only the last one.
-      // eslint-disable-next-line default-case
-      switch (oldVersion) {
-        case 0:
-          db.createObjectStore(OBJECT_STORE_NAME);
+    dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
+      upgrade: (db, oldVersion) => {
+        // We don't use 'break' in this switch statement, the fall-through
+        // behavior is what we want, because if there are multiple versions between
+        // the old version and the current version, we want ALL the migrations
+        // that correspond to those versions to run, not only the last one.
+        // eslint-disable-next-line default-case
+        switch (oldVersion) {
+          case 0:
+            db.createObjectStore(OBJECT_STORE_NAME);
+        }
       }
-    }});
+    });
   }
   return dbPromise;
 }

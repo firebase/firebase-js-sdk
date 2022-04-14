@@ -26,25 +26,27 @@ const STORE_NAME = 'firebase-heartbeat-store';
 
 interface AppDB extends DBSchema {
   'firebase-heartbeat-store': {
-    key: string,
-    value: HeartbeatsInIndexedDB
-  }
+    key: string;
+    value: HeartbeatsInIndexedDB;
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<AppDB>> | null = null;
 function getDbPromise(): Promise<IDBPDatabase<AppDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<AppDB>(DB_NAME, DB_VERSION, {upgrade: (db, oldVersion) => {
-      // We don't use 'break' in this switch statement, the fall-through
-      // behavior is what we want, because if there are multiple versions between
-      // the old version and the current version, we want ALL the migrations
-      // that correspond to those versions to run, not only the last one.
-      // eslint-disable-next-line default-case
-      switch (oldVersion) {
-        case 0:
-          db.createObjectStore(STORE_NAME);
+    dbPromise = openDB<AppDB>(DB_NAME, DB_VERSION, {
+      upgrade: (db, oldVersion) => {
+        // We don't use 'break' in this switch statement, the fall-through
+        // behavior is what we want, because if there are multiple versions between
+        // the old version and the current version, we want ALL the migrations
+        // that correspond to those versions to run, not only the last one.
+        // eslint-disable-next-line default-case
+        switch (oldVersion) {
+          case 0:
+            db.createObjectStore(STORE_NAME);
+        }
       }
-    }}).catch(e => {
+    }).catch(e => {
       throw ERROR_FACTORY.create(AppError.STORAGE_OPEN, {
         originalErrorMessage: e.message
       });
