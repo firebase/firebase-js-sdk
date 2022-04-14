@@ -15,18 +15,26 @@
  * limitations under the License.
  */
 
-import { DBWrapper, openDB } from '@firebase/util';
+import { DBSchema, openDB, IDBPDatabase } from 'idb';
 import { AppError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from './public-types';
 import { HeartbeatsInIndexedDB } from './types';
+
 const DB_NAME = 'firebase-heartbeat-database';
 const DB_VERSION = 1;
 const STORE_NAME = 'firebase-heartbeat-store';
 
-let dbPromise: Promise<DBWrapper> | null = null;
-function getDbPromise(): Promise<DBWrapper> {
+interface AppDB extends DBSchema {
+  'firebase-heartbeat-store': {
+    key: string,
+    value: HeartbeatsInIndexedDB
+  }
+}
+
+let dbPromise: Promise<IDBPDatabase<AppDB>> | null = null;
+function getDbPromise(): Promise<IDBPDatabase<AppDB>> {
   if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, DB_VERSION, (db, oldVersion) => {
+    dbPromise = openDB<AppDB>(DB_NAME, DB_VERSION, {upgrade: (db, oldVersion) => {
       // We don't use 'break' in this switch statement, the fall-through
       // behavior is what we want, because if there are multiple versions between
       // the old version and the current version, we want ALL the migrations
@@ -36,7 +44,7 @@ function getDbPromise(): Promise<DBWrapper> {
         case 0:
           db.createObjectStore(STORE_NAME);
       }
-    }).catch(e => {
+    }}).catch(e => {
       throw ERROR_FACTORY.create(AppError.STORAGE_OPEN, {
         originalErrorMessage: e.message
       });
@@ -70,7 +78,7 @@ export async function writeHeartbeatsToIndexedDB(
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const objectStore = tx.objectStore(STORE_NAME);
     await objectStore.put(heartbeatObject, computeKey(app));
-    return tx.complete;
+    return tx.done;
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_WRITE, {
       originalErrorMessage: e.message
