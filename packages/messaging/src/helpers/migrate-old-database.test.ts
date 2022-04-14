@@ -179,16 +179,18 @@ describe('migrateOldDb', () => {
 });
 
 async function put(version: number, value: object): Promise<void> {
-  const db = await openDB('fcm_token_details_db', version, {upgrade: (db, oldVersion) => {
-    if (oldVersion === 0) {
-      const objectStore = db.createObjectStore('fcm_token_object_Store', {
-        keyPath: 'swScope'
-      });
-      objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
-        unique: false
-      });
-      objectStore.createIndex('fcmToken', 'fcmToken', { unique: true });
-    }}
+  const db = await openDB('fcm_token_details_db', version, {
+    upgrade: (db, oldVersion) => {
+      if (oldVersion === 0) {
+        const objectStore = db.createObjectStore('fcm_token_object_Store', {
+          keyPath: 'swScope'
+        });
+        objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
+          unique: false
+        });
+        objectStore.createIndex('fcmToken', 'fcmToken', { unique: true });
+      }
+    }
   });
 
   try {
