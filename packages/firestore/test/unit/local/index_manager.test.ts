@@ -30,6 +30,7 @@ import {
   queryWithStartAt
 } from '../../../src/core/query';
 import { FieldFilter } from '../../../src/core/target';
+import { IndexType } from '../../../src/local/index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { INDEXING_SCHEMA_VERSION } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
@@ -631,7 +632,9 @@ describe('IndexedDbIndexManager', async () => {
       query('coll'),
       filter('unknown', '==', true)
     );
-    expect(await indexManager.getFieldIndex(queryToTarget(q))).to.be.null;
+    expect(await indexManager.getIndexType(queryToTarget(q))).to.equal(
+      IndexType.NONE
+    );
     expect(await indexManager.getDocumentsMatchingTarget(queryToTarget(q))).to
       .be.null;
   });
@@ -1415,6 +1418,141 @@ describe('IndexedDbIndexManager', async () => {
       'coll/{map:{field:true}}'
     );
   });
+
+  it('serves partial and full index', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', {
+        fields: [
+          ['c', IndexKind.ASCENDING],
+          ['d', IndexKind.ASCENDING]
+        ]
+      })
+    );
+
+    const query1 = queryWithAddedFilter(query('coll'), filter('a', '==', 1));
+    await validateIsFullIndex(query1);
+
+    const query2 = queryWithAddedFilter(query('coll'), filter('b', '==', 1));
+    await validateIsFullIndex(query2);
+
+    const query3 = queryWithAddedOrderBy(
+      queryWithAddedFilter(query('coll'), filter('a', '==', 1)),
+      orderBy('a')
+    );
+    await validateIsFullIndex(query3);
+
+    const query4 = queryWithAddedOrderBy(
+      queryWithAddedFilter(query('coll'), filter('b', '==', 1)),
+      orderBy('b')
+    );
+    await validateIsFullIndex(query4);
+
+    const query5 = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('a', '==', 1)),
+      filter('b', '==', 1)
+    );
+    await validateIsPartialIndex(query5);
+
+    const query6 = queryWithAddedOrderBy(
+      queryWithAddedFilter(query('coll'), filter('a', '==', 1)),
+      orderBy('b')
+    );
+    await validateIsPartialIndex(query6);
+
+    const query7 = queryWithAddedOrderBy(
+      queryWithAddedFilter(query('coll'), filter('b', '==', 1)),
+      orderBy('a')
+    );
+    await validateIsPartialIndex(query7);
+
+    const query8 = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('c', '==', 1)),
+      filter('d', '==', 1)
+    );
+    await validateIsFullIndex(query8);
+
+    const query9 = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(query('coll'), filter('c', '==', 1)),
+        filter('d', '==', 1)
+      ),
+      orderBy('c')
+    );
+    await validateIsFullIndex(query9);
+
+    const query10 = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(query('coll'), filter('c', '==', 1)),
+        filter('d', '==', 1)
+      ),
+      orderBy('d')
+    );
+    await validateIsFullIndex(query10);
+
+    const query11 = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('c', '==', 1)),
+          filter('d', '==', 1)
+        ),
+        orderBy('c')
+      ),
+      orderBy('d')
+    );
+    await validateIsFullIndex(query11);
+
+    const query12 = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('c', '==', 1)),
+          filter('d', '==', 1)
+        ),
+        orderBy('d')
+      ),
+      orderBy('c')
+    );
+    await validateIsFullIndex(query12);
+
+    const query13 = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(query('coll'), filter('c', '==', 1)),
+        filter('d', '==', 1)
+      ),
+      orderBy('e')
+    );
+    await validateIsPartialIndex(query13);
+
+    const query14 = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('c', '==', 1)),
+      filter('d', '<=', 1)
+    );
+    await validateIsFullIndex(query14);
+
+    const query15 = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(query('coll'), filter('c', '==', 1)),
+        filter('d', '>', 1)
+      ),
+      orderBy('d')
+    );
+    await validateIsFullIndex(query15);
+  });
+
+  async function validateIsPartialIndex(query: Query): Promise<void> {
+    const indexType = await indexManager.getIndexType(queryToTarget(query));
+    expect(indexType).to.equal(IndexType.PARTIAL);
+  }
+
+  async function validateIsFullIndex(query: Query): Promise<void> {
+    const indexType = await indexManager.getIndexType(queryToTarget(query));
+    expect(indexType).to.equal(IndexType.FULL);
+  }
 
   async function setUpSingleValueFilter(): Promise<void> {
     await indexManager.addFieldIndex(
