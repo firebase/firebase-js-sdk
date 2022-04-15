@@ -478,7 +478,7 @@ export class IndexedDbIndexManager implements IndexManager {
           if (!index) {
             indexType = IndexType.NONE;
           } else if (
-            indexType != IndexType.NONE &&
+            indexType !== IndexType.NONE &&
             index.fields.length < targetGetSegmentCount(target)
           ) {
             indexType = IndexType.PARTIAL;
