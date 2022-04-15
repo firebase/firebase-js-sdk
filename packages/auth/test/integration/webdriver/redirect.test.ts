@@ -38,6 +38,8 @@ import { START_FUNCTION } from './util/auth_driver';
 
 use(chaiAsPromised);
 
+declare const xit: typeof it;
+
 browserDescribe('WebDriver redirect IdP test', driver => {
   beforeEach(async () => {
     await driver.pause(200); // Race condition on auth init
