@@ -564,7 +564,7 @@ function genericQueryEngineTest(
     verifyResult(results, [doc2]);
   });
 
-  it.only('re-fills indexed limit queries', async () => {
+  it('re-fills indexed limit queries', async () => {
     debugAssert(durable, 'Test requires durable persistence');
 
     const doc1 = doc('coll/1', 1, { 'a': 1 });
