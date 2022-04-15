@@ -996,7 +996,7 @@ export class IndexedDbIndexManager implements IndexManager {
             !offset ||
             indexOffsetComparator(index.indexState.offset, offset) < 0
           ) {
-            offset = IndexOffset.min();
+            offset = index.indexState.offset;
           }
         });
       }

@@ -195,9 +195,11 @@ export class QueryEngine {
                         offset.readTime
                       )
                     ) {
-                      // A limit query whose boundaries change due to local edits can be re-run against the cache
-                      // by excluding the limit. This ensures that all documents that match the query's filters are
-                      // included in the result set. The SDK can then apply the limit once all local edits are
+                      // A limit query whose boundaries change due to local
+                      // edits can be re-run against the cache by excluding the
+                      // limit. This ensures that all documents that match the
+                      // query's filters are included in the result set. The SDK
+                      // can then apply the limit once all local edits are
                       // incorporated.
                       return this.performQueryUsingIndex(
                         transaction,
