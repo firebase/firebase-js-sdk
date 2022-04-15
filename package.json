@@ -140,7 +140,7 @@
     "npm-run-path": "4.0.1",
     "nyc": "15.1.0",
     "ora": "5.4.1",
-    "prettier": "2.4.1",
+    "prettier": "2.6.2",
     "protractor": "5.4.2",
     "request": "2.88.2",
     "semver": "7.3.5",
