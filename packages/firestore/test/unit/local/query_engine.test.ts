@@ -23,6 +23,7 @@ import {
   LimitType,
   Query,
   queryWithAddedFilter,
+  queryWithAddedOrderBy,
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
@@ -585,10 +586,7 @@ function genericQueryEngineTest(
     await addMutation(patchMutation('coll/3', { 'a': 5 }));
 
     const q = queryWithLimit(
-      queryWithAddedFilter(
-        queryWithAddedFilter(query('coll'), filter('a', '==', 1)),
-        filter('b', '==', 1)
-      ),
+      queryWithAddedOrderBy(query('coll'), orderBy('a')),
       3,
       LimitType.First
     );
