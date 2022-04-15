@@ -30,10 +30,15 @@ import {
   AnonFunction,
   CoreFunction,
   EmailFunction,
+  MiddlewareFunction,
   RedirectFunction
 } from './util/functions';
+import { JsLoadCondition } from './util/js_load_condition';
+import { START_FUNCTION } from './util/auth_driver';
 
 use(chaiAsPromised);
+
+declare const xit: typeof it;
 
 browserDescribe('WebDriver redirect IdP test', driver => {
   beforeEach(async () => {
@@ -68,6 +73,26 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     // After the first call to redirect result, redirect result should be
     // null
     expect(await driver.call(RedirectFunction.REDIRECT_RESULT)).to.be.null;
+  });
+
+  // Redirect works with middleware for now
+  xit('is blocked by middleware', async () => {
+    await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
+    const widget = new IdPPage(driver.webDriver);
+
+    // We're now on the widget page; wait for load
+    await widget.pageLoad();
+    await widget.clickAddAccount();
+    await widget.fillEmail('bob@bob.test');
+    await widget.fillDisplayName('Bob Test');
+    await widget.fillScreenName('bob.test');
+    await widget.fillProfilePhoto('http://bob.test/bob.png');
+    await widget.clickSignIn();
+    await driver.webDriver.wait(new JsLoadCondition(START_FUNCTION));
+    await driver.call(MiddlewareFunction.ATTACH_BLOCKING_MIDDLEWARE_ON_START);
+
+    await driver.reinitOnRedirect();
+    expect(await driver.getUserSnapshot()).to.be.null;
   });
 
   it('can link with another account account', async () => {

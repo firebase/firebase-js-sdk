@@ -17,17 +17,21 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { UserCredential } from '@firebase/auth';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { createAnonAccount } from '../../helpers/integration/emulator_rest_helpers';
 import { API_KEY } from '../../helpers/integration/settings';
 import { START_FUNCTION } from './util/auth_driver';
 import {
   AnonFunction,
   CoreFunction,
+  MiddlewareFunction,
   PersistenceFunction
 } from './util/functions';
 import { JsLoadCondition } from './util/js_load_condition';
 import { browserDescribe } from './util/test_runner';
+
+use(chaiAsPromised);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function testPersistedUser() {
@@ -456,6 +460,39 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.selectPopupWindow();
       await driver.pause(500);
       expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
+    });
+
+    it('middleware does not block tab sync', async () => {
+      if (driver.isCompatLayer()) {
+        // Compat layer is skipped because it doesn't support middleware
+        console.warn('Skipping middleware tabs in compat test');
+        return;
+      }
+
+      // Blocking middleware in main page
+      await driver.call(MiddlewareFunction.ATTACH_BLOCKING_MIDDLEWARE);
+
+      // Check that it blocks basic sign in
+      await expect(driver.call(
+        AnonFunction.SIGN_IN_ANONYMOUSLY
+      )).to.be.rejectedWith('auth/login-blocked');
+      const userInPopup = await driver.getUserSnapshot();
+      expect(userInPopup).to.be.null;
+
+      // Now sign in in new page
+      await driver.webDriver.executeScript('window.open(".");');
+      await driver.selectPopupWindow();
+      await driver.webDriver.wait(new JsLoadCondition(START_FUNCTION));
+      await driver.injectConfigAndInitAuth();
+      await driver.waitForAuthInit();
+      const cred: UserCredential = await driver.call(
+        AnonFunction.SIGN_IN_ANONYMOUSLY
+      );
+
+      // And make sure it was updated in main window
+      await driver.selectMainWindow({ noWait: true });
+      await driver.pause(700);
+      expect((await driver.getUserSnapshot()).uid).to.eq(cred.user.uid);
     });
 
     it('sync current user across windows with localStorage', async () => {
