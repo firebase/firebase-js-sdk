@@ -30,6 +30,7 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbCollectionParent,
   DbDocumentMutation,
+  DbDocumentOverlay,
   DbMutationBatch,
   DbMutationQueue,
   DbPrimaryClient,
@@ -52,6 +53,8 @@ import {
   DbDocumentMutationKey,
   DbDocumentMutationPlaceholder,
   DbDocumentMutationStore,
+  DbDocumentOverlayKey,
+  DbDocumentOverlayStore,
   DbMutationBatchKey,
   DbMutationBatchStore,
   DbMutationQueueKey,
@@ -81,6 +84,7 @@ import {
 import {
   fromDbTarget,
   LocalSerializer,
+  toDbDocumentOverlayKey,
   toDbRemoteDocument,
   toDbTarget,
   toDbTimestamp,
@@ -92,6 +96,7 @@ import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { MutableDocument } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
 import { getWindow } from '../../../src/platform/dom';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import {
@@ -1042,6 +1047,214 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       expect(version).to.have.equal(13);
       expect(objectStores).to.have.members(V13_STORES);
     });
+  });
+
+  it('can upgrade from schema version 13 to 14 (overlay migration)', function (this: Context) {
+    // This test creates a database with schema version 13 that has three users,
+    // two of whom have local mutations.
+    const testWriteFoo = {
+      update: {
+        name: 'projects/test-project/databases/(default)/documents/docs/foo',
+        fields: {}
+      }
+    };
+    const testWriteBar = {
+      update: {
+        name: 'projects/test-project/databases/(default)/documents/docs/bar',
+        fields: {}
+      }
+    };
+    const testWriteBaz = {
+      update: {
+        name: 'projects/test-project/databases/(default)/documents/docs/baz',
+        fields: {}
+      }
+    };
+    const testWritePending = {
+      update: {
+        name: 'projects/test-project/databases/(default)/documents/docs/pending',
+        fields: {}
+      }
+    };
+    const testMutations: DbMutationBatch[] = [
+      {
+        userId: 'user1',
+        batchId: 1,
+        localWriteTimeMs: 1337,
+        baseMutations: undefined,
+        mutations: [testWriteFoo]
+      },
+      {
+        userId: 'user1',
+        batchId: 2,
+        localWriteTimeMs: 1337,
+        baseMutations: undefined,
+        mutations: [testWriteFoo]
+      },
+      {
+        userId: 'user2',
+        batchId: 3,
+        localWriteTimeMs: 1337,
+        baseMutations: undefined,
+        mutations: [testWriteBar, testWriteBaz]
+      },
+      {
+        userId: 'user2',
+        batchId: 4,
+        localWriteTimeMs: 1337,
+        baseMutations: undefined,
+        mutations: [testWritePending]
+      },
+      {
+        userId: 'user1',
+        batchId: 5,
+        localWriteTimeMs: 1337,
+        baseMutations: undefined,
+        mutations: [testWritePending]
+      }
+    ];
+
+    return withDb(13, db => {
+      return db.runTransaction(
+        this.test!.fullTitle(),
+        'readwrite',
+        V13_STORES,
+        txn => {
+          const mutationBatchStore = txn.store<
+            DbMutationBatchKey,
+            DbMutationBatch
+          >(DbMutationBatchStore);
+          const documentMutationStore = txn.store<
+            DbDocumentMutationKey,
+            DbDocumentMutation
+          >(DbDocumentMutationStore);
+          const mutationQueuesStore = txn.store<
+            DbMutationQueueKey,
+            DbMutationQueue
+          >(DbMutationQueueStore);
+          // Manually populate the mutation queue and create all indicies.
+          return PersistencePromise.forEach(
+            testMutations,
+            (testMutation: DbMutationBatch) => {
+              return mutationBatchStore.put(testMutation).next(() => {
+                return PersistencePromise.forEach(
+                  testMutation.mutations,
+                  (write: firestoreV1ApiClientInterfaces.Write) => {
+                    const indexKey = newDbDocumentMutationKey(
+                      testMutation.userId,
+                      path(write.update!.name!, 5),
+                      testMutation.batchId
+                    );
+                    return documentMutationStore.put(
+                      indexKey,
+                      DbDocumentMutationPlaceholder
+                    );
+                  }
+                );
+              });
+            }
+          ).next(() =>
+            // Populate the mutation queues' metadata
+            PersistencePromise.waitFor([
+              mutationQueuesStore.put({
+                userId: 'user1',
+                lastAcknowledgedBatchId: -1,
+                lastStreamToken: ''
+              }),
+              mutationQueuesStore.put({
+                userId: 'user2',
+                lastAcknowledgedBatchId: -1,
+                lastStreamToken: ''
+              }),
+              mutationQueuesStore.put({
+                userId: 'user3',
+                lastAcknowledgedBatchId: -1,
+                lastStreamToken: ''
+              })
+            ])
+          );
+        }
+      );
+    }).then(() =>
+      withDb(14, (db, version) => {
+        expect(version).to.be.equal(14);
+
+        return db.runTransaction(
+          this.test!.fullTitle(),
+          'readwrite',
+          V14_STORES,
+          txn => {
+            const documentOverlayStore = txn.store<
+              DbDocumentOverlayKey,
+              DbDocumentOverlay
+            >(DbDocumentOverlayStore);
+
+            // We should have a total of 5 overlays:
+            // For user1: testWriteFoo, and testWritePending
+            // For user2: testWriteBar, testWriteBaz, and testWritePending
+            // For user3: NO OVERLAYS!
+            let p = documentOverlayStore.count().next(count => {
+              expect(count).to.equal(5);
+            });
+            p = p.next(() => {
+              const key = toDbDocumentOverlayKey(
+                'user1',
+                DocumentKey.fromPath('docs/foo')
+              );
+              return documentOverlayStore.get(key).next(overlay => {
+                expect(overlay).to.not.be.null;
+                expect(overlay!.overlayMutation).to.deep.equal(testWriteFoo);
+              });
+            });
+            p = p.next(() => {
+              const key = toDbDocumentOverlayKey(
+                'user1',
+                DocumentKey.fromPath('docs/pending')
+              );
+              return documentOverlayStore.get(key).next(overlay => {
+                expect(overlay).to.not.be.null;
+                expect(overlay!.overlayMutation).to.deep.equal(
+                  testWritePending
+                );
+              });
+            });
+            p = p.next(() => {
+              const key = toDbDocumentOverlayKey(
+                'user2',
+                DocumentKey.fromPath('docs/bar')
+              );
+              return documentOverlayStore.get(key).next(overlay => {
+                expect(overlay).to.not.be.null;
+                expect(overlay!.overlayMutation).to.deep.equal(testWriteBar);
+              });
+            });
+            p = p.next(() => {
+              const key = toDbDocumentOverlayKey(
+                'user2',
+                DocumentKey.fromPath('docs/baz')
+              );
+              return documentOverlayStore.get(key).next(overlay => {
+                expect(overlay).to.not.be.null;
+                expect(overlay!.overlayMutation).to.deep.equal(testWriteBaz);
+              });
+            });
+            p = p.next(() => {
+              const key = toDbDocumentOverlayKey(
+                'user2',
+                DocumentKey.fromPath('docs/pending')
+              );
+              return documentOverlayStore.get(key).next(overlay => {
+                expect(overlay).to.not.be.null;
+                expect(overlay!.overlayMutation).to.deep.equal(
+                  testWritePending
+                );
+              });
+            });
+            return p;
+          }
+        );
+      })
+    );
   });
 
   it('can upgrade from version 13 to 14', async () => {

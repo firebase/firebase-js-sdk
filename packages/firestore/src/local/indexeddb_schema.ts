@@ -31,7 +31,7 @@ import { DbTimestampKey } from './indexeddb_sentinels';
 // TODO(indexing): Remove this constant
 const INDEXING_ENABLED = false;
 
-export const INDEXING_SCHEMA_VERSION = 14;
+export const INDEXING_SCHEMA_VERSION = 15;
 
 /**
  * Schema Version for the Web client:
@@ -57,7 +57,7 @@ export const INDEXING_SCHEMA_VERSION = 14;
  * 14. Add indexing support.
  */
 
-export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 13;
+export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 14;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.

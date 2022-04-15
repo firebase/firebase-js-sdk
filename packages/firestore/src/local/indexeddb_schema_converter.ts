@@ -249,9 +249,11 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 14 && toVersion >= 14) {
-      p = p
-        .next(() => createFieldIndex(db))
-        .next(() => this.runOverlayMigration(db, simpleDbTransaction));
+      p = p.next(() => this.runOverlayMigration(db, simpleDbTransaction));
+    }
+
+    if (fromVersion < 15 && toVersion >= 15) {
+      p = p.next(() => createFieldIndex(db));
     }
 
     return p;
@@ -477,6 +479,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       DbMutationBatch
     >(DbMutationBatchStore);
 
+    const remoteDocumentCache = newIndexedDbRemoteDocumentCache(
+      this.serializer
+    );
+
     const promises: Array<PersistencePromise<void>> = [];
     let userIds = new Set<string>();
 
@@ -491,9 +497,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
           }
           userIds = userIds.add(userId);
           const user = new User(userId);
-          const remoteDocumentCache = newIndexedDbRemoteDocumentCache(
-            this.serializer
-          );
           const documentOverlayCache = IndexedDbDocumentOverlayCache.forUser(
             this.serializer,
             user
