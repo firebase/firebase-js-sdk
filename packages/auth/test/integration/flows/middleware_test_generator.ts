@@ -44,6 +44,15 @@ export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Pr
       expect(auth.currentUser).to.be.null;
     });
 
+    it('can prevent user sign in as a promise', async () => {
+      beforeAuthStateChanged(() => {
+        return Promise.reject('stop sign in');
+      });
+
+      await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
+      expect(auth.currentUser).to.be.null;
+    });
+
     it('keeps previously-logged in user if blocked', async () => {
       // Use a random email/password sign in for the base user
       const {user: baseUser} = await createUserWithEmailAndPassword(auth, randomEmail(), 'password');
@@ -59,6 +68,15 @@ export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Pr
     it('can allow sign in', async () => {
       beforeAuthStateChanged(() => {
         // Pass
+      });
+
+      await expect(signIn()).not.to.be.rejected;
+      expect(auth.currentUser).not.to.be.null;
+    });
+
+    it('can allow sign in as a promise', async () => {
+      beforeAuthStateChanged(() => {
+        return Promise.resolve();
       });
 
       await expect(signIn()).not.to.be.rejected;
