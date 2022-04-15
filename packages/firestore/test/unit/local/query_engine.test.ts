@@ -106,16 +106,16 @@ class TestLocalDocumentsView extends LocalDocumentsView {
   }
 }
 
-describe('MemoryQueryManager', async () => {
+describe('MemoryQueryEngine', async () => {
   genericQueryEngineTest(
     /* durable= */ false,
     persistenceHelpers.testMemoryEagerPersistence
   );
 });
 
-describe('IndexedDbQueryManager', async () => {
+describe('IndexedDbQueryEngine', async () => {
   if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbQueryManager tests.');
+    console.warn('No IndexedDB. Skipping IndexedDbQueryEngine tests.');
     return;
   }
 
@@ -562,6 +562,41 @@ function genericQueryEngineTest(
     );
 
     verifyResult(results, [doc2]);
+  });
+
+  it.only('re-fills indexed limit queries', async () => {
+    debugAssert(durable, 'Test requires durable persistence');
+
+    const doc1 = doc('coll/1', 1, { 'a': 1 });
+    const doc2 = doc('coll/2', 1, { 'a': 2 });
+    const doc3 = doc('coll/3', 1, { 'a': 3 });
+    const doc4 = doc('coll/4', 1, { 'a': 4 });
+    await addDocument(doc1, doc2, doc3, doc4);
+
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+    );
+    await indexManager.updateIndexEntries(documentMap(doc1, doc2, doc3, doc4));
+    await indexManager.updateCollectionGroup(
+      'coll',
+      newIndexOffsetFromDocument(doc4)
+    );
+
+    await addMutation(patchMutation('coll/3', { 'a': 5 }));
+
+    const q = queryWithLimit(
+      queryWithAddedFilter(
+        queryWithAddedFilter(query('coll'), filter('a', '==', 1)),
+        filter('b', '==', 1)
+      ),
+      3,
+      LimitType.First
+    );
+    const results = await expectOptimizedCollectionQuery(() =>
+      runQuery(q, SnapshotVersion.min())
+    );
+
+    verifyResult(results, [doc1, doc2, doc4]);
   });
 }
 

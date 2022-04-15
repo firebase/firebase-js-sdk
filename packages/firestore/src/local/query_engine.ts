@@ -16,8 +16,6 @@
  */
 
 import {
-  hasLimitToFirst,
-  hasLimitToLast,
   LimitType,
   newQueryComparator,
   Query,
@@ -141,12 +139,13 @@ export class QueryEngine {
     }
 
     if (queryMatchesAllDocuments(query)) {
-      // Don't use indexes for queries that can be executed by scanning the
-      // collection.
+      // Queries that match all documents don't benefit from using
+      // key-based lookups. It is more efficient to scan all documents in a
+      // collection, rather than to perform individual lookups.
       return PersistencePromise.resolve<DocumentMap | null>(null);
     }
 
-    let target = queryToTarget(query);
+    const target = queryToTarget(query);
     return this.indexManager
       .getIndexType(transaction, target)
       .next(indexType => {
@@ -163,8 +162,10 @@ export class QueryEngine {
           // may return the correct set of documents in the wrong order (e.g. if
           // the index doesn't include a segment for one of the orderBys).
           // Therefore, a limit should not be applied in such cases.
-          query = queryWithLimit(query, null, LimitType.First);
-          target = queryToTarget(query);
+          return this.performQueryUsingIndex(
+            transaction,
+            queryWithLimit(query, null, LimitType.First)
+          );
         }
 
         return this.indexManager
@@ -187,16 +188,20 @@ export class QueryEngine {
                     );
 
                     if (
-                      (hasLimitToFirst(query) || hasLimitToLast(query)) &&
                       this.needsRefill(
-                        query.limitType,
+                        query,
                         previousResults,
                         sortedKeys,
                         offset.readTime
                       )
                     ) {
-                      return PersistencePromise.resolve<DocumentMap | null>(
-                        null
+                      // A limit query whose boundaries change due to local edits can be re-run against the cache
+                      // by excluding the limit. This ensures that all documents that match the query's filters are
+                      // included in the result set. The SDK can then apply the limit once all local edits are
+                      // incorporated.
+                      return this.performQueryUsingIndex(
+                        transaction,
+                        queryWithLimit(query, null, LimitType.First)
                       );
                     }
 
@@ -222,10 +227,10 @@ export class QueryEngine {
     remoteKeys: DocumentKeySet,
     lastLimboFreeSnapshotVersion: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    // Queries that match all documents don't benefit from using
-    // key-based lookups. It is more efficient to scan all documents in a
-    // collection, rather than to perform individual lookups.
     if (queryMatchesAllDocuments(query)) {
+      // Queries that match all documents don't benefit from using
+      // key-based lookups. It is more efficient to scan all documents in a
+      // collection, rather than to perform individual lookups.
       return this.executeFullCollectionScan(transaction, query);
     }
 
@@ -240,9 +245,8 @@ export class QueryEngine {
         const previousResults = this.applyQuery(query, documents);
 
         if (
-          (hasLimitToFirst(query) || hasLimitToLast(query)) &&
           this.needsRefill(
-            query.limitType,
+            query,
             previousResults,
             remoteKeys,
             lastLimboFreeSnapshotVersion
@@ -295,7 +299,7 @@ export class QueryEngine {
    * Determines if a limit query needs to be refilled from cache, making it
    * ineligible for index-free execution.
    *
-   * @param limitType The limit type used by the query.
+   * @param query The query.
    * @param sortedPreviousResults - The documents that matched the query when it
    * was last synchronized, sorted by the query's comparator.
    * @param remoteKeys - The document keys that matched the query at the last
@@ -304,14 +308,19 @@ export class QueryEngine {
    * query was last synchronized.
    */
   private needsRefill(
-    limitType: LimitType,
+    query: Query,
     sortedPreviousResults: SortedSet<Document>,
     remoteKeys: DocumentKeySet,
     limboFreeSnapshotVersion: SnapshotVersion
   ): boolean {
-    // The query needs to be refilled if a previously matching document no
-    // longer matches.
+    if (query.limit === null) {
+      // Queries without limits do not need to be refilled.
+      return false;
+    }
+
     if (remoteKeys.size !== sortedPreviousResults.size) {
+      // The query needs to be refilled if a previously matching document no
+      // longer matches.
       return true;
     }
 
@@ -324,7 +333,7 @@ export class QueryEngine {
     // will continue to be "rejected" by this boundary. Therefore, we can ignore
     // any modifications that don't affect the last document.
     const docAtLimitEdge =
-      limitType === LimitType.First
+      query.limitType === LimitType.First
         ? sortedPreviousResults.last()
         : sortedPreviousResults.first();
     if (!docAtLimitEdge) {

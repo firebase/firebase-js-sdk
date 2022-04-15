@@ -19,7 +19,6 @@ import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, debugCast, fail } from '../util/assert';
-import { isNullOrUndefined } from '../util/types';
 
 import {
   Bound,
@@ -165,14 +164,6 @@ export function queryMatchesAllDocuments(query: Query): boolean {
       (query.explicitOrderBy.length === 1 &&
         query.explicitOrderBy[0].field.isKeyField()))
   );
-}
-
-export function hasLimitToFirst(query: Query): boolean {
-  return !isNullOrUndefined(query.limit) && query.limitType === LimitType.First;
-}
-
-export function hasLimitToLast(query: Query): boolean {
-  return !isNullOrUndefined(query.limit) && query.limitType === LimitType.Last;
 }
 
 export function getFirstOrderByField(query: Query): FieldPath | null {
