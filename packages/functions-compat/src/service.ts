@@ -48,7 +48,10 @@ export class FunctionsService implements FirebaseFunctions, _FirebaseService {
   httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
     return httpsCallableExp(this._delegate, name, options);
   }
-  httpsCallableFromURL(url: string, options?: HttpsCallableOptions): HttpsCallable {
+  httpsCallableFromURL(
+    url: string,
+    options?: HttpsCallableOptions
+  ): HttpsCallable {
     return httpsCallableFromURLExp(this._delegate, url, options);
   }
   /**

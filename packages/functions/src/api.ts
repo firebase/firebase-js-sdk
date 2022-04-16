@@ -97,7 +97,10 @@ export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
  * @param url - The url of the trigger.
  * @public
  */
-export function httpsCallableFromURL<RequestData = unknown, ResponseData = unknown>(
+export function httpsCallableFromURL<
+  RequestData = unknown,
+  ResponseData = unknown
+>(
   functionsInstance: Functions,
   url: string,
   options?: HttpsCallableOptions

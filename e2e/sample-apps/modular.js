@@ -127,13 +127,16 @@ async function callFunctions(app) {
     if (e.message.includes('Unauthenticated')) {
       console.warn(
         'Functions blocked by App Check. ' +
-        'Activate app check with a live sitekey to allow Functions calls'
+          'Activate app check with a live sitekey to allow Functions calls'
       );
     } else {
       throw e;
     }
   }
-  callTest = httpsCallableByUrl(functions, `https://us-central-${app.options.projectId}.cloudfunctions.net/callTest`);
+  callTest = httpsCallableByUrl(
+    functions,
+    `https://us-central-${app.options.projectId}.cloudfunctions.net/callTest`
+  );
   try {
     const result = await callTest({ data: 'blah' });
     console.log('[FUNCTIONS] result (by URL):', result.data);
@@ -141,7 +144,7 @@ async function callFunctions(app) {
     if (e.message.includes('Unauthenticated')) {
       console.warn(
         'Functions blocked by App Check. ' +
-        'Activate app check with a live sitekey to allow Functions calls'
+          'Activate app check with a live sitekey to allow Functions calls'
       );
     } else {
       throw e;
