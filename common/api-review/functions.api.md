@@ -35,7 +35,7 @@ export type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (data
 // @public
 export function httpsCallable<RequestData = unknown, ResponseData = unknown>(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData>;
 
-// @public (undocumented)
+// @public
 export function httpsCallableFromURL<RequestData = unknown, ResponseData = unknown>(functionsInstance: Functions, url: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData>;
 
 // @public
