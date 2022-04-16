@@ -372,7 +372,7 @@ export class IndexedDbIndexManager implements IndexManager {
           )
         : this.generateEmptyBound(indexId + 1);
 
-      let notInBound = notInValues.map(notIn =>
+      const notInBound = notInValues.map(notIn =>
         this.generateLowerBound(
           indexId,
           arrayValue,
