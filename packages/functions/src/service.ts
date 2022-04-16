@@ -152,20 +152,6 @@ export class FunctionsService implements _FirebaseService {
 
     return `https://${this.region}-${projectId}.cloudfunctions.net/${name}`;
   }
-
-  /**
-   * Returns the emulator URL if connected, or the provided URL.
-   * @param url - The fallback URL.
-   * @internal
-   */
-  _emulatorUrlOr(url: string): string {
-    const projectId = this.app.options.projectId;
-    if (this.emulatorOrigin !== null) {
-      const origin = this.emulatorOrigin;
-      return `${origin}/${projectId}/${this.region}/${name}`;
-    }
-    return url;
-  }
 }
 
 /**
@@ -213,7 +199,7 @@ export function httpsCallableFromURL<RequestData, ResponseData>(
   return (data => {
     return callAtURL(
       functionsInstance,
-      functionsInstance._emulatorUrlOr(url),
+      url,
       data,
       options || {}
     );
