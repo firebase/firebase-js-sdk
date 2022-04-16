@@ -197,12 +197,7 @@ export function httpsCallableFromURL<RequestData, ResponseData>(
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData> {
   return (data => {
-    return callAtURL(
-      functionsInstance,
-      url,
-      data,
-      options || {}
-    );
+    return callAtURL(functionsInstance, url, data, options || {});
   }) as HttpsCallable<RequestData, ResponseData>;
 }
 
