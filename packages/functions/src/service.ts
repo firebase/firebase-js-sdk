@@ -152,6 +152,20 @@ export class FunctionsService implements _FirebaseService {
 
     return `https://${this.region}-${projectId}.cloudfunctions.net/${name}`;
   }
+
+  /**
+   * Returns the emulator URL if connected, or the provided URL.
+   * @param url - The fallback URL.
+   * @internal
+   */
+  _emulatorUrlOr(url: string): string {
+    const projectId = this.app.options.projectId;
+    if (this.emulatorOrigin !== null) {
+      const origin = this.emulatorOrigin;
+      return `${origin}/${projectId}/${this.region}/${name}`;
+    }
+    return url;
+  }
 }
 
 /**
@@ -183,6 +197,21 @@ export function httpsCallable<RequestData, ResponseData>(
 ): HttpsCallable<RequestData, ResponseData> {
   return (data => {
     return call(functionsInstance, name, data, options || {});
+  }) as HttpsCallable<RequestData, ResponseData>;
+}
+
+/**
+ * Returns a reference to the callable https trigger with the given url.
+ * @param url - The url of the trigger.
+ * @public
+ */
+export function httpsCallableFromURL<RequestData, ResponseData>(
+  functionsInstance: FunctionsService,
+  url: string,
+  options?: HttpsCallableOptions
+): HttpsCallable<RequestData, ResponseData> {
+  return (data => {
+    return callAtURL(functionsInstance, functionsInstance._emulatorUrlOr(url), data, options || {});
   }) as HttpsCallable<RequestData, ResponseData>;
 }
 
@@ -235,14 +264,27 @@ async function postJSON(
  * @param name The name of the callable trigger.
  * @param data The data to pass as params to the function.s
  */
-async function call(
+function call(
   functionsInstance: FunctionsService,
   name: string,
   data: unknown,
   options: HttpsCallableOptions
 ): Promise<HttpsCallableResult> {
   const url = functionsInstance._url(name);
+  return callAtURL(functionsInstance, url, data, options);
+}
 
+/**
+ * Calls a callable function asynchronously and returns the result.
+ * @param url The url of the callable trigger.
+ * @param data The data to pass as params to the function.s
+ */
+async function callAtURL(
+  functionsInstance: FunctionsService,
+  url: string,
+  data: unknown,
+  options: HttpsCallableOptions
+): Promise<HttpsCallableResult> {
   // Encode any special types, such as dates, in the input data.
   data = encode(data);
   const body = { data };
