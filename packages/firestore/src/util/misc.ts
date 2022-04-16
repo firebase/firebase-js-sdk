@@ -68,6 +68,10 @@ export interface Equatable<T> {
   isEqual(other: T): boolean;
 }
 
+export interface Iterable<V> {
+  forEach: (cb: (v: V) => void) => void;
+}
+
 /** Helper to compare arrays using isEqual(). */
 export function arrayEquals<T>(
   left: T[],
@@ -86,20 +90,4 @@ export function arrayEquals<T>(
 export function immediateSuccessor(s: string): string {
   // Return the input string, with an additional NUL byte appended.
   return s + '\0';
-}
-
-export interface ValueIterable<V> {
-  forEach: (cb: (v: V) => void) => void;
-}
-
-/**
- * Exposes a `forEach(value)` method on objects that provide an
- * `forEach(key, value)` iterator.
- */
-export function values<K, V>(iterable: {
-  forEach: (cb: (k: K, v: V) => void) => void;
-}): ValueIterable<V> {
-  return {
-    forEach: cb => iterable.forEach((k, v) => cb(v))
-  };
 }

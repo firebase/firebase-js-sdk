@@ -39,7 +39,7 @@ import {
 } from '../model/field_index';
 import { debugAssert } from '../util/assert';
 import { getLogLevel, logDebug, LogLevel } from '../util/log';
-import { ValueIterable, values } from '../util/misc';
+import { Iterable } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
 import { IndexManager, IndexType } from './index_manager';
@@ -209,7 +209,7 @@ export class QueryEngine {
 
                     return this.appendRemainingResults(
                       transaction,
-                      values(indexedDocuments),
+                      previousResults,
                       query,
                       offset
                     ) as PersistencePromise<DocumentMap | null>;
@@ -373,7 +373,7 @@ export class QueryEngine {
    */
   private appendRemainingResults(
     transaction: PersistenceTransaction,
-    indexedResults: ValueIterable<Document>,
+    indexedResults: Iterable<Document>,
     query: Query,
     offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
