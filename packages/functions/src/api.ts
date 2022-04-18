@@ -93,7 +93,7 @@ export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
 }
 
 /**
- * Returns a reference to the callable HTTPS trigger with the given name.
+ * Returns a reference to the callable HTTPS trigger with the specified url.
  * @param url - The url of the trigger.
  * @public
  */

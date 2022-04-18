@@ -22,8 +22,7 @@
             "path": "functions",
             "imports": [
               "getFunctions",
-              "httpsCallable",
-              "httpsCallableFromURL"
+              "httpsCallable"
             ]
           }
         ]

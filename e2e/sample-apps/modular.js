@@ -118,8 +118,8 @@ async function authLogout(app) {
  */
 async function callFunctions(app) {
   console.log('[FUNCTIONS] start');
-  let functions = getFunctions(app);
-  let callTest = httpsCallable(functions, 'callTest');
+  const functions = getFunctions(app);
+  const callTest = httpsCallable(functions, 'callTest');
   try {
     const result = await callTest({ data: 'blah' });
     console.log('[FUNCTIONS] result (by name):', result.data);
