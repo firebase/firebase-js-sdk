@@ -15,24 +15,50 @@
  * limitations under the License.
  */
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 
-import {User} from '../../../src/auth/user';
-import {LimitType, newQueryForCollectionGroup, Query, queryToTarget, queryWithAddedFilter, queryWithAddedOrderBy, queryWithEndAt, queryWithLimit, queryWithStartAt} from '../../../src/core/query';
-import {FieldFilter} from '../../../src/core/target';
-import {IndexedDbPersistence} from '../../../src/local/indexeddb_persistence';
-import {INDEXING_SCHEMA_VERSION} from '../../../src/local/indexeddb_schema';
-import {Persistence} from '../../../src/local/persistence';
-import {documentMap} from '../../../src/model/collections';
-import {Document} from '../../../src/model/document';
-import {IndexKind, IndexOffset, IndexState} from '../../../src/model/field_index';
-import {JsonObject} from '../../../src/model/object_value';
-import {canonicalId} from '../../../src/model/values';
-import {addEqualityMatcher} from '../../util/equality_matcher';
-import {bound, deletedDoc, doc, fieldIndex, filter, key, orderBy, path, query, version, wrap} from '../../util/helpers';
+import { User } from '../../../src/auth/user';
+import {
+  LimitType,
+  newQueryForCollectionGroup,
+  Query,
+  queryToTarget,
+  queryWithAddedFilter,
+  queryWithAddedOrderBy,
+  queryWithEndAt,
+  queryWithLimit,
+  queryWithStartAt
+} from '../../../src/core/query';
+import { FieldFilter } from '../../../src/core/target';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { INDEXING_SCHEMA_VERSION } from '../../../src/local/indexeddb_schema';
+import { Persistence } from '../../../src/local/persistence';
+import { documentMap } from '../../../src/model/collections';
+import { Document } from '../../../src/model/document';
+import {
+  IndexKind,
+  IndexOffset,
+  IndexState
+} from '../../../src/model/field_index';
+import { JsonObject } from '../../../src/model/object_value';
+import { canonicalId } from '../../../src/model/values';
+import { addEqualityMatcher } from '../../util/equality_matcher';
+import {
+  bound,
+  deletedDoc,
+  doc,
+  fieldIndex,
+  filter,
+  key,
+  orderBy,
+  path,
+  query,
+  version,
+  wrap
+} from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
-import {TestIndexManager} from './test_index_manager';
+import { TestIndexManager } from './test_index_manager';
 
 describe('MemoryIndexManager', async () => {
   genericIndexManagerTests(persistenceHelpers.testMemoryEagerPersistence);
@@ -859,17 +885,18 @@ describe('IndexedDbIndexManager', async () => {
 
   it('cannot expand result set from a cursor', async () => {
     await indexManager.addFieldIndex(
-      fieldIndex("coll", {fields: [['c', IndexKind.ASCENDING]]}));
-    await addDoc("coll/val1", {'a': 1, 'b': 1, 'c': 3});
-    await addDoc("coll/val2", {'a': 2, 'b': 2, 'c': 2});
+      fieldIndex('coll', { fields: [['c', IndexKind.ASCENDING]] })
+    );
+    await addDoc('coll/val1', { 'a': 1, 'b': 1, 'c': 3 });
+    await addDoc('coll/val2', { 'a': 2, 'b': 2, 'c': 2 });
 
-    const testingQuery = queryWithStartAt(queryWithAddedOrderBy(
-      queryWithAddedFilter(
-        query('coll'),
-        filter('c', '>', 2)
+    const testingQuery = queryWithStartAt(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(query('coll'), filter('c', '>', 2)),
+        orderBy('c', 'asc')
       ),
-      orderBy('c', 'asc')
-    ), bound([2], /* inclusive= */ true));
+      bound([2], /* inclusive= */ true)
+    );
     await verifyResults(testingQuery, 'coll/val1');
   });
 
