@@ -39,7 +39,6 @@ export class CompatPopupRedirectResolver
     bypassAuthState: boolean
   ) => Promise<exp.UserCredential | null> = exp._getRedirectResult;
   _overrideRedirectResult = exp._overrideRedirectResult;
-  
 
   async _initialize(auth: exp.AuthImpl): Promise<exp.EventManager> {
     await this.selectUnderlyingResolver();
