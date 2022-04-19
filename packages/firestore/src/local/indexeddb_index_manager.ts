@@ -283,9 +283,9 @@ export class IndexedDbIndexManager implements IndexManager {
             index!.indexId,
             arrayValues,
             lowerBoundEncoded,
-            !!lowerBound && lowerBound.inclusive,
+            lowerBound.inclusive,
             upperBoundEncoded,
-            !!upperBound && upperBound.inclusive,
+            upperBound.inclusive,
             notInEncoded
           );
           return PersistencePromise.forEach(
@@ -329,9 +329,9 @@ export class IndexedDbIndexManager implements IndexManager {
   private generateIndexRanges(
     indexId: number,
     arrayValues: ProtoValue[] | null,
-    lowerBounds: Uint8Array[] | null,
+    lowerBounds: Uint8Array[],
     lowerBoundInclusive: boolean,
-    upperBounds: Uint8Array[] | null,
+    upperBounds: Uint8Array[],
     upperBoundInclusive: boolean,
     notInValues: Uint8Array[]
   ): IDBKeyRange[] {
@@ -341,10 +341,7 @@ export class IndexedDbIndexManager implements IndexManager {
     // combined with the values from the query bounds.
     const totalScans =
       (arrayValues != null ? arrayValues.length : 1) *
-      Math.max(
-        lowerBounds != null ? lowerBounds.length : 1,
-        upperBounds != null ? upperBounds.length : 1
-      );
+      Math.max(lowerBounds.length, upperBounds.length);
     const scansPerArrayElement =
       totalScans / (arrayValues != null ? arrayValues.length : 1);
 
@@ -354,22 +351,18 @@ export class IndexedDbIndexManager implements IndexManager {
         ? this.encodeSingleElement(arrayValues[i / scansPerArrayElement])
         : EMPTY_VALUE;
 
-      const lowerBound = lowerBounds
-        ? this.generateLowerBound(
-            indexId,
-            arrayValue,
-            lowerBounds[i % scansPerArrayElement],
-            lowerBoundInclusive
-          )
-        : this.generateEmptyBound(indexId);
-      const upperBound = upperBounds
-        ? this.generateUpperBound(
-            indexId,
-            arrayValue,
-            upperBounds[i % scansPerArrayElement],
-            upperBoundInclusive
-          )
-        : this.generateEmptyBound(indexId + 1);
+      const lowerBound = this.generateLowerBound(
+        indexId,
+        arrayValue,
+        lowerBounds[i % scansPerArrayElement],
+        lowerBoundInclusive
+      );
+      const upperBound = this.generateUpperBound(
+        indexId,
+        arrayValue,
+        upperBounds[i % scansPerArrayElement],
+        upperBoundInclusive
+      );
 
       indexRanges.push(
         ...this.createRange(
@@ -423,19 +416,6 @@ export class IndexedDbIndexManager implements IndexManager {
       directionalValue
     );
     return inclusive ? entry.successor() : entry;
-  }
-
-  /**
-   * Generates an empty bound that scopes the index scan to the current index
-   * and user.
-   */
-  private generateEmptyBound(indexId: number): IndexEntry {
-    return new IndexEntry(
-      indexId,
-      DocumentKey.empty(),
-      EMPTY_VALUE,
-      EMPTY_VALUE
-    );
   }
 
   getFieldIndex(
@@ -550,11 +530,8 @@ export class IndexedDbIndexManager implements IndexManager {
   private encodeBound(
     fieldIndex: FieldIndex,
     target: Target,
-    bound: Bound | null
-  ): Uint8Array[] | null {
-    if (bound == null) {
-      return null;
-    }
+    bound: Bound
+  ): Uint8Array[] {
     return this.encodeValues(fieldIndex, target, bound.position);
   }
 

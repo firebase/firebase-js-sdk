@@ -291,7 +291,7 @@ export function targetGetNotInValues(
 
 /**
  * Returns a lower bound of field values that can be used as a starting point to
- * scan the index defined by `fieldIndex`. Returns `null` if no lower bound
+ * scan the index defined by `fieldIndex`. Returns `MIN_VALUE` if no lower bound
  * exists.
  */
 export function targetGetLowerBound(
@@ -321,7 +321,7 @@ export function targetGetLowerBound(
 
 /**
  * Returns an upper bound of field values that can be used as an ending point
- * when scanning the index defined by `fieldIndex`. Returns `null` if no
+ * when scanning the index defined by `fieldIndex`. Returns `MAX_VALUE` if no
  * upper bound exists.
  */
 export function targetGetUpperBound(
