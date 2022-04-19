@@ -413,7 +413,7 @@ export class IndexedDbIndexManager implements IndexManager {
     return inclusive ? entry.successor() : entry;
   }
 
-  getFieldIndex(
+  private getFieldIndex(
     transaction: PersistenceTransaction,
     target: Target
   ): PersistencePromise<FieldIndex | null> {
