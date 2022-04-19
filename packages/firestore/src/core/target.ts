@@ -297,7 +297,7 @@ export function targetGetNotInValues(
 export function targetGetLowerBound(
   target: Target,
   fieldIndex: FieldIndex
-): Bound | null {
+): Bound {
   const values: ProtoValue[] = [];
   let inclusive = true;
 
@@ -313,10 +313,6 @@ export function targetGetLowerBound(
             target.startAt
           );
 
-    if (!segmentBound.value) {
-      // No lower bound exists
-      return null;
-    }
     values.push(segmentBound.value);
     inclusive &&= segmentBound.inclusive;
   }
@@ -331,7 +327,7 @@ export function targetGetLowerBound(
 export function targetGetUpperBound(
   target: Target,
   fieldIndex: FieldIndex
-): Bound | null {
+): Bound {
   const values: ProtoValue[] = [];
   let inclusive = true;
 
@@ -343,10 +339,6 @@ export function targetGetUpperBound(
         ? targetGetUpperBoundForField(target, segment.fieldPath, target.endAt)
         : targetGetLowerBoundForField(target, segment.fieldPath, target.endAt);
 
-    if (!segmentBound.value) {
-      // No upper bound exists
-      return null;
-    }
     values.push(segmentBound.value);
     inclusive &&= segmentBound.inclusive;
   }
@@ -362,7 +354,7 @@ function targetGetLowerBoundForField(
   target: Target,
   fieldPath: FieldPath,
   bound: Bound | null
-): { value: ProtoValue | undefined; inclusive: boolean } {
+): { value: ProtoValue; inclusive: boolean } {
   let value: ProtoValue = MIN_VALUE;
 
   let inclusive = true;
@@ -437,7 +429,7 @@ function targetGetUpperBoundForField(
   target: Target,
   fieldPath: FieldPath,
   bound: Bound | null
-): { value: ProtoValue | undefined; inclusive: boolean } {
+): { value: ProtoValue; inclusive: boolean } {
   let value: ProtoValue = MAX_VALUE;
   let inclusive = true;
 
