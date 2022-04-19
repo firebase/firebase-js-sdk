@@ -154,7 +154,7 @@ describe('core/credentials/email', () => {
           window.grecaptcha = recaptcha;
           const stub = sinon.stub(recaptcha.enterprise, 'execute');
 
-          // // First verification should fail with 'wrong-site-key'
+          // First verification should fail with 'wrong-site-key'
           stub.withArgs('wrong-site-key', {action: 'signInWithEmailPassword'}).rejects();
           // Second verifcation should succeed with site key refreshed
           stub.withArgs('site-key', {action: 'signInWithEmailPassword'}).returns(Promise.resolve('recaptcha-response'));
