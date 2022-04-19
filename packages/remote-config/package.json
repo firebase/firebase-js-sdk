@@ -1,6 +1,6 @@
 {
   "name": "@firebase/remote-config",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "The Remote Config package of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -40,15 +40,15 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.5.7",
+    "@firebase/installations": "0.5.8",
     "@firebase/logger": "0.3.2",
-    "@firebase/util": "1.5.1",
-    "@firebase/component": "0.5.12",
+    "@firebase/util": "1.5.2",
+    "@firebase/component": "0.5.13",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.7.20",
+    "@firebase/app": "0.7.21",
     "rollup": "2.57.0",
     "rollup-plugin-typescript2": "0.30.0",
     "typescript": "4.2.2"

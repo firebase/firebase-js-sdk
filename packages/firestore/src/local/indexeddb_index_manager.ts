@@ -27,6 +27,7 @@ import {
   targetGetArrayValues,
   targetGetLowerBound,
   targetGetNotInValues,
+  targetGetSegmentCount,
   targetGetUpperBound
 } from '../core/target';
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
@@ -43,6 +44,7 @@ import {
   fieldIndexToString,
   IndexKind,
   IndexOffset,
+  indexOffsetComparator,
   IndexSegment
 } from '../model/field_index';
 import { FieldPath, ResourcePath } from '../model/path';
@@ -59,7 +61,7 @@ import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { IndexManager } from './index_manager';
+import { IndexManager, IndexType } from './index_manager';
 import {
   DbCollectionParent,
   DbIndexConfiguration,
@@ -364,23 +366,16 @@ export class IndexedDbIndexManager implements IndexManager {
         upperBoundInclusive
       );
 
-      indexRanges.push(
-        ...this.createRange(
-          lowerBound,
-          upperBound,
-          notInValues.map(
-            (
-              notIn // make non-nullable
-            ) =>
-              this.generateLowerBound(
-                indexId,
-                arrayValue,
-                notIn,
-                /* inclusive= */ true
-              )
-          )
+      const notInBound = notInValues.map(notIn =>
+        this.generateLowerBound(
+          indexId,
+          arrayValue,
+          notIn,
+          /* inclusive= */ true
         )
       );
+
+      indexRanges.push(...this.createRange(lowerBound, upperBound, notInBound));
     }
 
     return indexRanges;
@@ -429,14 +424,41 @@ export class IndexedDbIndexManager implements IndexManager {
         : target.path.lastSegment();
 
     return this.getFieldIndexes(transaction, collectionGroup).next(indexes => {
-      const matchingIndexes = indexes.filter(i =>
-        targetIndexMatcher.servedByIndex(i)
-      );
-
-      // Return the index that matches the most number of segments.
-      matchingIndexes.sort((l, r) => r.fields.length - l.fields.length);
-      return matchingIndexes.length > 0 ? matchingIndexes[0] : null;
+      // Return the index with the most number of segments.
+      let index: FieldIndex | null = null;
+      for (const candidate of indexes) {
+        const matches = targetIndexMatcher.servedByIndex(candidate);
+        if (
+          matches &&
+          (!index || candidate.fields.length > index.fields.length)
+        ) {
+          index = candidate;
+        }
+      }
+      return index;
     });
+  }
+
+  getIndexType(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexType> {
+    let indexType = IndexType.FULL;
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (target: Target) => {
+        return this.getFieldIndex(transaction, target).next(index => {
+          if (!index) {
+            indexType = IndexType.NONE;
+          } else if (
+            indexType !== IndexType.NONE &&
+            index.fields.length < targetGetSegmentCount(target)
+          ) {
+            indexType = IndexType.PARTIAL;
+          }
+        });
+      }
+    ).next(() => indexType);
   }
 
   /**
@@ -874,7 +896,7 @@ export class IndexedDbIndexManager implements IndexManager {
     upper: IndexEntry,
     notInValues: IndexEntry[]
   ): IDBKeyRange[] {
-    // The notIb values need to be sorted and unique so that we can return a
+    // The notIn values need to be sorted and unique so that we can return a
     // sorted set of non-overlapping ranges.
     notInValues = notInValues
       .sort((l, r) => indexEntryComparator(l, r))
@@ -927,6 +949,28 @@ export class IndexedDbIndexManager implements IndexManager {
       );
     }
     return ranges;
+  }
+
+  getMinOffset(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexOffset> {
+    let offset: IndexOffset | undefined;
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (target: Target) => {
+        return this.getFieldIndex(transaction, target).next(index => {
+          if (!index) {
+            offset = IndexOffset.min();
+          } else if (
+            !offset ||
+            indexOffsetComparator(index.indexState.offset, offset) < 0
+          ) {
+            offset = index.indexState.offset;
+          }
+        });
+      }
+    ).next(() => offset!);
   }
 }
 

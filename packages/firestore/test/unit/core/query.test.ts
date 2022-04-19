@@ -34,7 +34,7 @@ import {
   queryToTarget,
   QueryImpl,
   queryEquals,
-  matchesAllDocuments,
+  queryMatchesAllDocuments,
   queryCollectionGroup,
   newQueryForCollectionGroup
 } from '../../../src/core/query';
@@ -779,25 +779,25 @@ describe('Query', () => {
 
   it('matchesAllDocuments() considers filters, orders and bounds', () => {
     const baseQuery = newQueryForPath(ResourcePath.fromString('collection'));
-    expect(matchesAllDocuments(baseQuery)).to.be.true;
+    expect(queryMatchesAllDocuments(baseQuery)).to.be.true;
 
     let query1 = query('collection', orderBy('__name__'));
-    expect(matchesAllDocuments(query1)).to.be.true;
+    expect(queryMatchesAllDocuments(query1)).to.be.true;
 
     query1 = query('collection', orderBy('foo'));
-    expect(matchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).to.be.false;
 
     query1 = query('collection', filter('foo', '==', 'bar'));
-    expect(matchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).to.be.false;
 
     query1 = queryWithLimit(query('foo'), 1, LimitType.First);
-    expect(matchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).to.be.false;
 
     query1 = queryWithStartAt(baseQuery, bound([], true));
-    expect(matchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).to.be.false;
 
     query1 = queryWithEndAt(baseQuery, bound([], false));
-    expect(matchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).to.be.false;
   });
 
   function assertImplicitOrderBy(query: Query, ...orderBys: OrderBy[]): void {

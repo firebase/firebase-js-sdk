@@ -611,12 +611,36 @@ function dbCollectionGroupKey(
     /* document id */ path.length > 0 ? path[path.length - 1] : ''
   ];
 }
+
 /**
  * Comparator that compares document keys according to the primary key sorting
- * used by the `DbRemoteDocumentDocument` store (by collection path and then
- * document ID).
+ * used by the `DbRemoteDocumentDocument` store (by prefix path, collection id
+ * and then document ID).
+ *
+ * Visible for testing.
  */
-function dbKeyComparator(l: DocumentKey, r: DocumentKey): number {
-  const cmp = l.path.length - r.path.length;
-  return cmp !== 0 ? cmp : DocumentKey.comparator(l, r);
+export function dbKeyComparator(l: DocumentKey, r: DocumentKey): number {
+  const left = l.path.toArray();
+  const right = r.path.toArray();
+
+  // The ordering is based on https://chromium.googlesource.com/chromium/blink/+/fe5c21fef94dae71c1c3344775b8d8a7f7e6d9ec/Source/modules/indexeddb/IDBKey.cpp#74
+  let cmp = 0;
+  for (let i = 0; i < left.length - 2 && i < right.length - 2; ++i) {
+    cmp = primitiveComparator(left[i], right[i]);
+    if (cmp) {
+      return cmp;
+    }
+  }
+
+  cmp = primitiveComparator(left.length, right.length);
+  if (cmp) {
+    return cmp;
+  }
+
+  cmp = primitiveComparator(left[left.length - 2], right[right.length - 2]);
+  if (cmp) {
+    return cmp;
+  }
+
+  return primitiveComparator(left[left.length - 1], right[right.length - 1]);
 }

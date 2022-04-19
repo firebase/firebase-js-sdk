@@ -42,7 +42,7 @@ export class DBWrapper {
   }
   transaction(
     storeNames: string[] | string,
-    mode?: IDBTransactionMode
+    mode: IDBTransactionMode = 'readonly'
   ): TransactionWrapper {
     return new TransactionWrapper(
       this._db.transaction.call(this._db, storeNames, mode)

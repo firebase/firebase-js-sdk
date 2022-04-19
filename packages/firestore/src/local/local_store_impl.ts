@@ -203,7 +203,7 @@ class LocalStoreImpl implements LocalStore {
       this.indexManager
     );
     this.remoteDocuments.setIndexManager(this.indexManager);
-    this.queryEngine.setLocalDocumentsView(this.localDocuments);
+    this.queryEngine.initialize(this.localDocuments, this.indexManager);
   }
 
   collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
