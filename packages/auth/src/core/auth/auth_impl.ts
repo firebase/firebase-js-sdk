@@ -192,12 +192,14 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void> {
     // First check to see if we have a pending redirect event.
-    let storedUser =
+    const previouslyStoredUser =
       (await this.assertedPersistence.getCurrentUser()) as UserInternal | null;
+    let futureCurrentUser = previouslyStoredUser;
+    let needsTocheckMiddleware = false;
     if (popupRedirectResolver && this.config.authDomain) {
       await this.getOrInitRedirectPersistenceManager();
       const redirectUserEventId = this.redirectUser?._redirectEventId;
-      const storedUserEventId = storedUser?._redirectEventId;
+      const storedUserEventId = futureCurrentUser?._redirectEventId;
       const result = await this.tryRedirectSignIn(popupRedirectResolver);
 
       // If the stored user (i.e. the old "currentUser") has a redirectId that
@@ -208,44 +210,51 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         (!redirectUserEventId || redirectUserEventId === storedUserEventId) &&
         result?.user
       ) {
-        storedUser = result.user as UserInternal;
+        futureCurrentUser = result.user as UserInternal;
+        needsTocheckMiddleware = true;
       }
     }
 
     // If no user in persistence, there is no current user. Set to null.
-    if (!storedUser) {
+    if (!futureCurrentUser) {
       return this.directlySetCurrentUser(null);
     }
 
-    if (!storedUser._redirectEventId) {
-      // This isn't a redirect user, we can reload and bail
-      // This will also catch the redirected user, if available, as that method
-      // strips the _redirectEventId
-      return this.reloadAndSetCurrentUserOrClear(storedUser);
+    if (!futureCurrentUser._redirectEventId) {
+      // This isn't a redirect link operation, we can reload and bail.
+      // First though, ensure that we check the middleware is happy.
+      if (needsTocheckMiddleware) {
+        try {
+          await this._runBeforeStateCallbacks(futureCurrentUser);
+        } catch(e) {
+          futureCurrentUser = previouslyStoredUser;
+          // We know this is available since the bit is only set when the
+          // resolver is available
+          this._popupRedirectResolver!._overrideRedirectResult(this, () => Promise.reject(e));
+        }
+      }
+  
+      if (futureCurrentUser) {
+        return this.reloadAndSetCurrentUserOrClear(futureCurrentUser);
+      } else {
+        return this.directlySetCurrentUser(null);
+      }
     }
 
     _assert(this._popupRedirectResolver, this, AuthErrorCode.ARGUMENT_ERROR);
     await this.getOrInitRedirectPersistenceManager();
-
-    // At this point in the flow, this is a redirect user. Run blocking
-    // middleware callbacks before setting the user.
-    try {
-      await this._runBeforeStateCallbacks(storedUser);
-    } catch(e) {
-      return;
-    }
 
     // If the redirect user's event ID matches the current user's event ID,
     // DO NOT reload the current user, otherwise they'll be cleared from storage.
     // This is important for the reauthenticateWithRedirect() flow.
     if (
       this.redirectUser &&
-      this.redirectUser._redirectEventId === storedUser._redirectEventId
+      this.redirectUser._redirectEventId === futureCurrentUser._redirectEventId
     ) {
-      return this.directlySetCurrentUser(storedUser);
+      return this.directlySetCurrentUser(futureCurrentUser);
     }
 
-    return this.reloadAndSetCurrentUserOrClear(storedUser);
+    return this.reloadAndSetCurrentUserOrClear(futureCurrentUser);
   }
 
   private async tryRedirectSignIn(

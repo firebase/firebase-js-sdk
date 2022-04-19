@@ -38,6 +38,7 @@ import { _open, AuthPopup } from './util/popup';
 import { _getRedirectResult } from './strategies/redirect';
 import { _getRedirectUrl } from '../core/util/handler';
 import { _isIOS, _isMobileBrowser, _isSafari } from '../core/util/browser';
+import { _overrideRedirectResult } from '../core/strategies/redirect';
 
 /**
  * The special web storage event
@@ -176,6 +177,8 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
   }
 
   _completeRedirectFn = _getRedirectResult;
+
+  _overrideRedirectResult = _overrideRedirectResult;
 }
 
 /**
