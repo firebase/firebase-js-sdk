@@ -356,7 +356,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     } else {
       this._tenantRecaptchaConfigs[this.tenantId] = config;
     }
-    if (config.emailPasswordEnabled === true) {
+    if (config.emailPasswordEnabled) {
       const verifier = new RecaptchaEnterpriseVerifier(this);
       void verifier.verify();
     }
