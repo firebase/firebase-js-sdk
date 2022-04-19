@@ -372,23 +372,16 @@ export class IndexedDbIndexManager implements IndexManager {
           )
         : this.generateEmptyBound(indexId + 1);
 
-      indexRanges.push(
-        ...this.createRange(
-          lowerBound,
-          upperBound,
-          notInValues.map(
-            (
-              notIn // make non-nullable
-            ) =>
-              this.generateLowerBound(
-                indexId,
-                arrayValue,
-                notIn,
-                /* inclusive= */ true
-              )
-          )
+      const notInBound = notInValues.map(notIn =>
+        this.generateLowerBound(
+          indexId,
+          arrayValue,
+          notIn,
+          /* inclusive= */ true
         )
       );
+
+      indexRanges.push(...this.createRange(lowerBound, upperBound, notInBound));
     }
 
     return indexRanges;
@@ -918,7 +911,7 @@ export class IndexedDbIndexManager implements IndexManager {
     upper: IndexEntry,
     notInValues: IndexEntry[]
   ): IDBKeyRange[] {
-    // The notIb values need to be sorted and unique so that we can return a
+    // The notIn values need to be sorted and unique so that we can return a
     // sorted set of non-overlapping ranges.
     notInValues = notInValues
       .sort((l, r) => indexEntryComparator(l, r))
