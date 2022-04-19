@@ -670,28 +670,26 @@ export function valuesGetUpperBound(value: Value): Value {
   }
 }
 
-export function valuesMax(
-  left: Value | undefined,
-  right: Value | undefined
-): Value | undefined {
-  if (left === undefined) {
-    return right;
-  } else if (right === undefined) {
-    return left;
+export function singleValueBoundCompare(
+  left: {value: Value | undefined, inclusive: boolean},
+  right: {value: Value | undefined, inclusive: boolean}
+): number {
+  if (left.value === undefined) {
+    return -1;
+  } else if (right.value === undefined) {
+    return 1;
   } else {
-    return valueCompare(left, right) > 0 ? left : right;
-  }
-}
+    const cmp = valueCompare(left.value, right.value);
+    if(cmp !== 0) {
+      return cmp;
+    }
 
-export function valuesMin(
-  left: Value | undefined,
-  right: Value | undefined
-): Value | undefined {
-  if (left === undefined) {
-    return right;
-  } else if (right === undefined) {
-    return left;
-  } else {
-    return valueCompare(left, right) < 0 ? left : right;
+    if(left.inclusive && !right.inclusive) {
+      return -1;
+    } else if(!left.inclusive && right.inclusive) {
+      return 1;
+    }
+
+    return 0;
   }
 }
