@@ -17,8 +17,7 @@
 
 import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import {
-  hasLimitToFirst,
-  hasLimitToLast,
+  LimitType,
   newQueryForPath,
   Query,
   queryEquals,
@@ -1006,13 +1005,10 @@ export class SpecBuilder {
     if (query.collectionGroup !== null) {
       spec.collectionGroup = query.collectionGroup;
     }
-    if (hasLimitToFirst(query)) {
-      spec.limit = query.limit!;
-      spec.limitType = 'LimitToFirst';
-    }
-    if (hasLimitToLast(query)) {
-      spec.limit = query.limit!;
-      spec.limitType = 'LimitToLast';
+    if (query.limit !== null) {
+      spec.limit = query.limit;
+      spec.limitType =
+        query.limitType === LimitType.First ? 'LimitToFirst' : 'LimitToLast';
     }
     if (query.filters) {
       spec.filters = query.filters.map((filter: Filter) => {

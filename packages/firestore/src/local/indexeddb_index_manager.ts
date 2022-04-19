@@ -44,6 +44,7 @@ import {
   fieldIndexToString,
   IndexKind,
   IndexOffset,
+  indexOffsetComparator,
   IndexSegment
 } from '../model/field_index';
 import { FieldPath, ResourcePath } from '../model/path';
@@ -462,15 +463,22 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     target: Target
   ): PersistencePromise<IndexType> {
-    // TODO(orqueries): We should look at the subtargets here
-    return this.getFieldIndex(transaction, target).next(index => {
-      if (!index) {
-        return IndexType.NONE as IndexType;
+    let indexType = IndexType.FULL;
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (target: Target) => {
+        return this.getFieldIndex(transaction, target).next(index => {
+          if (!index) {
+            indexType = IndexType.NONE;
+          } else if (
+            indexType !== IndexType.NONE &&
+            index.fields.length < targetGetSegmentCount(target)
+          ) {
+            indexType = IndexType.PARTIAL;
+          }
+        });
       }
-      return index.fields.length < targetGetSegmentCount(target)
-        ? IndexType.PARTIAL
-        : IndexType.FULL;
-    });
+    ).next(() => indexType);
   }
 
   /**
@@ -964,6 +972,28 @@ export class IndexedDbIndexManager implements IndexManager {
       );
     }
     return ranges;
+  }
+
+  getMinOffset(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexOffset> {
+    let offset: IndexOffset | undefined;
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (target: Target) => {
+        return this.getFieldIndex(transaction, target).next(index => {
+          if (!index) {
+            offset = IndexOffset.min();
+          } else if (
+            !offset ||
+            indexOffsetComparator(index.indexState.offset, offset) < 0
+          ) {
+            offset = index.indexState.offset;
+          }
+        });
+      }
+    ).next(() => offset!);
   }
 }
 

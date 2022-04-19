@@ -21,7 +21,7 @@ import {
 } from '@firebase/firestore-types';
 import { getModularInstance } from '@firebase/util';
 
-import { hasLimitToLast } from '../core/query';
+import { LimitType } from '../core/query';
 import { DeleteMutation, Precondition } from '../model/mutation';
 import {
   invokeBatchGetDocumentsRpc,
@@ -172,7 +172,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
         )
     );
 
-    if (hasLimitToLast(query._query)) {
+    if (query._query.limitType === LimitType.Last) {
       // Limit to last queries reverse the orderBy constraint that was
       // specified by the user. As such, we need to reverse the order of the
       // results to return the documents in the expected order.

@@ -79,14 +79,16 @@ export class CountingQueryEngine extends QueryEngine {
     );
   }
 
-  setLocalDocumentsView(localDocuments: LocalDocumentsView): void {
+  initialize(
+    localDocuments: LocalDocumentsView,
+    indexManager: IndexManager
+  ): void {
     const view = new LocalDocumentsView(
       this.wrapRemoteDocumentCache(localDocuments.remoteDocumentCache),
       this.wrapMutationQueue(localDocuments.mutationQueue),
-      localDocuments.indexManager
+      indexManager
     );
-
-    return super.setLocalDocumentsView(view);
+    return super.initialize(view, indexManager);
   }
 
   private wrapRemoteDocumentCache(

@@ -97,6 +97,13 @@ export class MemoryIndexManager implements IndexManager {
     return PersistencePromise.resolve<string | null>(null);
   }
 
+  getMinOffset(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexOffset> {
+    return PersistencePromise.resolve(IndexOffset.min());
+  }
+
   updateCollectionGroup(
     transaction: PersistenceTransaction,
     collectionGroup: string,
