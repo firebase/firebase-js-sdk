@@ -274,6 +274,15 @@ apiDescribe('Queries', (persistence: boolean) => {
       expect(toDataArray(docs)).to.deep.equal([{ k: 'd', sort: 2 }]);
 
       docs = await getDocs(
+        query(collection, orderBy('sort'), startAfter(0), limitToLast(3))
+      );
+      expect(toDataArray(docs)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'c', sort: 1 },
+        { k: 'd', sort: 2 }
+      ]);
+
+      docs = await getDocs(
         query(collection, orderBy('sort'), startAfter(-1), limitToLast(3))
       );
       expect(toDataArray(docs)).to.deep.equal([
