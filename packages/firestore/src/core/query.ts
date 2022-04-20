@@ -315,10 +315,10 @@ export function queryToTarget(query: Query): Target {
 
       // We need to swap the cursors to match the now-flipped query ordering.
       const startAt = queryImpl.endAt
-        ? new Bound(queryImpl.endAt.position, !queryImpl.endAt.inclusive)
+        ? new Bound(queryImpl.endAt.position, queryImpl.endAt.inclusive)
         : null;
       const endAt = queryImpl.startAt
-        ? new Bound(queryImpl.startAt.position, !queryImpl.startAt.inclusive)
+        ? new Bound(queryImpl.startAt.position, queryImpl.startAt.inclusive)
         : null;
 
       // Now return as a LimitType.First query.

@@ -242,6 +242,57 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  it('can issue limitToLast queries with cursors', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      let docs = await getDocs(
+        query(collection, orderBy('sort'), endBefore(2), limitToLast(3))
+      );
+      expect(toDataArray(docs)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'b', sort: 1 },
+        { k: 'c', sort: 1 }
+      ]);
+
+      docs = await getDocs(
+        query(collection, orderBy('sort'), endAt(1), limitToLast(3))
+      );
+      expect(toDataArray(docs)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'b', sort: 1 },
+        { k: 'c', sort: 1 }
+      ]);
+
+      docs = await getDocs(
+        query(collection, orderBy('sort'), startAt(2), limitToLast(3))
+      );
+      expect(toDataArray(docs)).to.deep.equal([{ k: 'd', sort: 2 }]);
+
+      docs = await getDocs(
+        query(collection, orderBy('sort'), startAfter(0), limitToLast(3))
+      );
+      expect(toDataArray(docs)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'c', sort: 1 },
+        { k: 'd', sort: 2 }
+      ]);
+
+      docs = await getDocs(
+        query(collection, orderBy('sort'), startAfter(-1), limitToLast(3))
+      );
+      expect(toDataArray(docs)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'c', sort: 1 },
+        { k: 'd', sort: 2 }
+      ]);
+    });
+  });
+
   it('key order is descending for descending inequality', () => {
     const testDocs = {
       a: {
