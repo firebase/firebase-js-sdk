@@ -20,18 +20,43 @@ import { expect } from 'chai';
 
 import { forceLongPolling, forceWebSockets } from '../src';
 import { BrowserPollConnection } from '../src/realtime/BrowserPollConnection';
+import { TransportManager } from '../src/realtime/TransportManager';
 import { WebSocketConnection } from '../src/realtime/WebSocketConnection';
 
+const transportInitError = 'Transport has already been initialized. Please call this function before calling ref or setting up a listener';
 describe('Force Transport', () => {
+  const oldNodeValue = CONSTANTS.NODE_CLIENT;
+  beforeEach(() => {
+    CONSTANTS.NODE_CLIENT =  false;
+  });
+  afterEach(() => {
+    // Resetting to old values
+    TransportManager.transportInitialized_ = false;
+    CONSTANTS.NODE_CLIENT = oldNodeValue;
+    BrowserPollConnection.forceAllow_ = false;
+    BrowserPollConnection.forceDisallow_ = true;
+    WebSocketConnection.forceDisallow_ = false;
+  });
   it('should enable websockets and disable longPolling', () => {
     forceWebSockets();
     expect(WebSocketConnection.isAvailable()).to.equal(true);
     expect(BrowserPollConnection.isAvailable()).to.equal(false);
   });
+  it('should throw an error when calling forceWebsockets() if TransportManager has already been initialized', () => {
+    TransportManager.transportInitialized_ = true;
+    expect(forceWebSockets).to.throw(transportInitError);
+    expect(WebSocketConnection.isAvailable()).to.equal(true);
+    expect(BrowserPollConnection.isAvailable()).to.equal(false);
+  });
   it('should enable longPolling and disable websockets', () => {
-    CONSTANTS.NODE_CLIENT =  false;
     forceLongPolling();
     expect(WebSocketConnection.isAvailable()).to.equal(false);
     expect(BrowserPollConnection.isAvailable()).to.equal(true);
+  });
+  it('should throw an error when calling forceLongPolling() if TransportManager has already been initialized', () => {
+    TransportManager.transportInitialized_ = true;
+    expect(forceLongPolling).to.throw(transportInitError);
+    expect(WebSocketConnection.isAvailable()).to.equal(true);
+    expect(BrowserPollConnection.isAvailable()).to.equal(false);
   });
 });

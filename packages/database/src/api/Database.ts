@@ -42,7 +42,6 @@ import { parseRepoInfo } from '../core/util/libs/parser';
 import { newEmptyPath, pathIsEmpty } from '../core/util/Path';
 import {
   fatal,
-  warn,
   log,
   enableLogging as enableLoggingImpl
 } from '../core/util/util';
@@ -281,12 +280,11 @@ export class Database implements _FirebaseService {
  */
 export function forceWebSockets() {
   if(TransportManager.IS_INITIALIZED) {
-    warn(
+    fatal(
       'Transport has already been initialized. Please call this function before calling ref or setting up a listener'
     );
-  } else {
-    BrowserPollConnection.forceDisallow();
   }
+  BrowserPollConnection.forceDisallow();
 }
 
 /**
@@ -294,13 +292,12 @@ export function forceWebSockets() {
  */
 export function forceLongPolling() {
   if(TransportManager.IS_INITIALIZED) {
-    warn(
+    fatal(
       'Transport has already been initialized. Please call this function before calling ref or setting up a listener'
     );
-  } else {
-    WebSocketConnection.forceDisallow();
-    BrowserPollConnection.forceAllow();
   }
+  WebSocketConnection.forceDisallow();
+  BrowserPollConnection.forceAllow();
 }
 
 /**
