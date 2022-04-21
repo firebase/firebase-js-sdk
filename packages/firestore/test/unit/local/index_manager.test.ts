@@ -890,10 +890,13 @@ describe('IndexedDbIndexManager', async () => {
     await indexManager.addFieldIndex(
       fieldIndex('coll', { fields: [['c', IndexKind.ASCENDING]] })
     );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['c', IndexKind.DESCENDING]] })
+    );
     await addDoc('coll/val1', { 'a': 1, 'b': 1, 'c': 3 });
     await addDoc('coll/val2', { 'a': 2, 'b': 2, 'c': 2 });
 
-    const testingQuery = queryWithStartAt(
+    let testingQuery = queryWithStartAt(
       queryWithAddedOrderBy(
         queryWithAddedFilter(query('coll'), filter('c', '>', 2)),
         orderBy('c', 'asc')
@@ -901,6 +904,15 @@ describe('IndexedDbIndexManager', async () => {
       bound([2], /* inclusive= */ true)
     );
     await verifyResults(testingQuery, 'coll/val1');
+
+    testingQuery = queryWithStartAt(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(query('coll'), filter('c', '<', 3)),
+        orderBy('c', 'desc')
+      ),
+      bound([3], /* inclusive= */ true)
+    );
+    await verifyResults(testingQuery, 'coll/val2');
   });
 
   it('support advances queries', async () => {

@@ -78,7 +78,7 @@ export function typeOrder(value: Value): TypeOrder {
     if (isServerTimestamp(value)) {
       return TypeOrder.ServerTimestampValue;
     } else if (isMaxValue(value)) {
-      return TypeOrder.ObjectValue;
+      return TypeOrder.MaxValue;
     }
     return TypeOrder.ObjectValue;
   } else {
@@ -678,7 +678,7 @@ export function valuesGetUpperBound(value: Value): Value {
   }
 }
 
-export function singleValueBoundCompare(
+export function lowerBoundCompare(
   left: { value: Value; inclusive: boolean },
   right: { value: Value; inclusive: boolean }
 ): number {
@@ -691,6 +691,24 @@ export function singleValueBoundCompare(
     return -1;
   } else if (!left.inclusive && right.inclusive) {
     return 1;
+  }
+
+  return 0;
+}
+
+export function upperBoundCompare(
+  left: { value: Value; inclusive: boolean },
+  right: { value: Value; inclusive: boolean }
+): number {
+  const cmp = valueCompare(left.value, right.value);
+  if (cmp !== 0) {
+    return cmp;
+  }
+
+  if (left.inclusive && !right.inclusive) {
+    return 1;
+  } else if (!left.inclusive && right.inclusive) {
+    return -1;
   }
 
   return 0;

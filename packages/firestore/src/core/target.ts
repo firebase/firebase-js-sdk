@@ -31,8 +31,9 @@ import {
   isReferenceValue,
   MAX_VALUE,
   MIN_VALUE,
-  singleValueBoundCompare,
+  lowerBoundCompare,
   typeOrder,
+  upperBoundCompare,
   valueCompare,
   valueEquals,
   valuesGetLowerBound,
@@ -384,7 +385,7 @@ function targetGetAscendingBound(
     }
 
     if (
-      singleValueBoundCompare(
+      lowerBoundCompare(
         { value, inclusive },
         { value: filterValue, inclusive: filterInclusive }
       ) < 0
@@ -402,7 +403,7 @@ function targetGetAscendingBound(
       if (orderBy.field.isEqual(fieldPath)) {
         const cursorValue = bound.position[i];
         if (
-          singleValueBoundCompare(
+          lowerBoundCompare(
             { value, inclusive },
             { value: cursorValue, inclusive: bound.inclusive }
           ) < 0
@@ -459,7 +460,7 @@ function targetGetDescendingBound(
     }
 
     if (
-      singleValueBoundCompare(
+      upperBoundCompare(
         { value, inclusive },
         { value: filterValue, inclusive: filterInclusive }
       ) > 0
@@ -477,7 +478,7 @@ function targetGetDescendingBound(
       if (orderBy.field.isEqual(fieldPath)) {
         const cursorValue = bound.position[i];
         if (
-          singleValueBoundCompare(
+          upperBoundCompare(
             { value, inclusive },
             { value: cursorValue, inclusive: bound.inclusive }
           ) > 0
