@@ -22,7 +22,6 @@ import {
   findFilterOperator,
   getFirstOrderByField,
   getInequalityFilterField,
-  hasLimitToLast,
   isCollectionGroupQuery,
   LimitType,
   Query as InternalQuery,
@@ -66,7 +65,10 @@ import {
 export function validateHasExplicitOrderByForLimitToLast(
   query: InternalQuery
 ): void {
-  if (hasLimitToLast(query) && query.explicitOrderBy.length === 0) {
+  if (
+    query.limitType === LimitType.Last &&
+    query.explicitOrderBy.length === 0
+  ) {
     throw new FirestoreError(
       Code.UNIMPLEMENTED,
       'limitToLast() queries require specifying at least one orderBy() clause'

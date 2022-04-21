@@ -1,5 +1,15 @@
 # Unreleased
 
+## 0.12.8
+
+### Patch Changes
+
+- [`7a4e65cef`](https://github.com/firebase/firebase-js-sdk/commit/7a4e65cef9468a20fb32dc112aa7113345bc76c5) [#6126](https://github.com/firebase/firebase-js-sdk/pull/6126) - Fix issue where if a websocket protocol was used in the databaseURL, `webSocketOnly` field was incorrectly set to undefined. (When using `wss` or `ws` protocols in the databaseURL, webSocketOnly will be true and longPolling will be disabled)
+
+- Updated dependencies [[`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59)]:
+  - @firebase/util@1.5.2
+  - @firebase/component@0.5.13
+
 ## 0.12.7
 
 ### Patch Changes

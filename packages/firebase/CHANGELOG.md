@@ -1,5 +1,35 @@
 # firebase
 
+## 9.6.11
+
+### Patch Changes
+
+- Updated dependencies [[`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59), [`05dc9d6a0`](https://github.com/firebase/firebase-js-sdk/commit/05dc9d6a0db3058611dd7a2dc34daa726f9ba20d), [`7a4e65cef`](https://github.com/firebase/firebase-js-sdk/commit/7a4e65cef9468a20fb32dc112aa7113345bc76c5)]:
+  - @firebase/util@1.5.2
+  - @firebase/firestore@3.4.8
+  - @firebase/database@0.12.8
+  - @firebase/database-compat@0.1.8
+  - @firebase/analytics@0.7.8
+  - @firebase/analytics-compat@0.1.9
+  - @firebase/app@0.7.21
+  - @firebase/app-check@0.5.6
+  - @firebase/app-check-compat@0.2.6
+  - @firebase/app-compat@0.1.22
+  - @firebase/auth@0.19.12
+  - @firebase/auth-compat@0.2.12
+  - @firebase/firestore-compat@0.1.17
+  - @firebase/functions@0.7.11
+  - @firebase/functions-compat@0.1.12
+  - @firebase/installations@0.5.8
+  - @firebase/messaging@0.9.12
+  - @firebase/messaging-compat@0.1.12
+  - @firebase/performance@0.5.8
+  - @firebase/performance-compat@0.1.8
+  - @firebase/remote-config@0.3.7
+  - @firebase/remote-config-compat@0.1.8
+  - @firebase/storage@0.9.5
+  - @firebase/storage-compat@0.1.13
+
 ## 9.6.10
 
 ### Patch Changes

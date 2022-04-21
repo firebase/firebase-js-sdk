@@ -29,7 +29,12 @@ import {
   targetGetArrayValues
 } from '../../../src/core/target';
 import { IndexKind } from '../../../src/model/field_index';
-import { canonicalId, valueEquals } from '../../../src/model/values';
+import {
+  canonicalId,
+  MAX_VALUE,
+  MIN_VALUE,
+  valueEquals
+} from '../../../src/model/values';
 import {
   blob,
   bound,
@@ -202,10 +207,12 @@ describe('Target Bounds', () => {
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
-    expect(lowerBound).to.be.null;
+    expect(lowerBound?.position[0]).to.equal(MIN_VALUE);
+    expect(lowerBound?.inclusive).to.be.true;
 
     const upperBound = targetGetUpperBound(target, index);
-    expect(upperBound).to.be.null;
+    expect(upperBound?.position[0]).to.equal(MAX_VALUE);
+    expect(upperBound?.inclusive).to.be.true;
   });
 
   it('orderBy query with filter', () => {
@@ -234,7 +241,8 @@ describe('Target Bounds', () => {
     verifyBound(lowerBound, true, 'bar');
 
     const upperBound = targetGetUpperBound(target, index);
-    expect(upperBound).to.be.null;
+    expect(upperBound?.position[0]).to.equal(MAX_VALUE);
+    expect(upperBound?.inclusive).to.be.true;
   });
 
   it('startAt query with filter', () => {
@@ -329,7 +337,8 @@ describe('Target Bounds', () => {
     const index = fieldIndex('c', { fields: [['foo', IndexKind.ASCENDING]] });
 
     const lowerBound = targetGetLowerBound(target, index);
-    expect(lowerBound).to.be.null;
+    expect(lowerBound?.position[0]).to.equal(MIN_VALUE);
+    expect(lowerBound?.inclusive).to.be.true;
 
     const upperBound = targetGetUpperBound(target, index);
     verifyBound(upperBound, true, 'bar');
