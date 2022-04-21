@@ -76,7 +76,6 @@ export class TransportManager {
       }
       TransportManager.transportInitialized = true;
     }
-    console.log(this.transports_);
   }
 
   /**
