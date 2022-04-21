@@ -42,11 +42,13 @@ import { parseRepoInfo } from '../core/util/libs/parser';
 import { newEmptyPath, pathIsEmpty } from '../core/util/Path';
 import {
   fatal,
+  warn,
   log,
   enableLogging as enableLoggingImpl
 } from '../core/util/util';
 import { validateUrl } from '../core/util/validation';
 import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
+import { TransportManager } from '../realtime/TransportManager';
 import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
 import { ReferenceImpl } from './Reference_impl';
@@ -278,15 +280,27 @@ export class Database implements _FirebaseService {
  *
  */
 export function forceWebSockets() {
-  BrowserPollConnection.forceDisallow();
+  if(TransportManager.IS_INITIALIZED) {
+    warn(
+      'Transport has already been initialized. Please call this function before calling ref or setting up a listener'
+    );
+  } else {
+    BrowserPollConnection.forceDisallow();
+  }
 }
 
 /**
  * Force the use of longPolling instead of websockets. This will be ignored if websocket protocol is used in databaseURL.
  */
 export function forceLongPolling() {
-  WebSocketConnection.forceDisallow();
-  BrowserPollConnection.forceAllow();
+  if(TransportManager.IS_INITIALIZED) {
+    warn(
+      'Transport has already been initialized. Please call this function before calling ref or setting up a listener'
+    );
+  } else {
+    WebSocketConnection.forceDisallow();
+    BrowserPollConnection.forceAllow();
+  }
 }
 
 /**
