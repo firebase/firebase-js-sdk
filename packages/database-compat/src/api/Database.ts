@@ -55,7 +55,7 @@ export class Database implements FirebaseService, Compat<ModularDatabase> {
   INTERNAL = {
     delete: () => this._delegate._delete(),
     forceWebSockets,
-    forceLongPolling,
+    forceLongPolling
   };
 
   /**

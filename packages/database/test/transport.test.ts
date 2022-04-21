@@ -23,11 +23,12 @@ import { BrowserPollConnection } from '../src/realtime/BrowserPollConnection';
 import { TransportManager } from '../src/realtime/TransportManager';
 import { WebSocketConnection } from '../src/realtime/WebSocketConnection';
 
-const transportInitError = 'Transport has already been initialized. Please call this function before calling ref or setting up a listener';
+const transportInitError =
+  'Transport has already been initialized. Please call this function before calling ref or setting up a listener';
 describe('Force Transport', () => {
   const oldNodeValue = CONSTANTS.NODE_CLIENT;
   beforeEach(() => {
-    CONSTANTS.NODE_CLIENT =  false;
+    CONSTANTS.NODE_CLIENT = false;
   });
   afterEach(() => {
     // Resetting to old values

@@ -274,16 +274,20 @@ export class Database implements _FirebaseService {
   }
 }
 
+function checkTransportInit() {
+  if (TransportManager.IS_INITIALIZED) {
+    fatal(
+      'Transport has already been initialized. Please call this function before calling ref or setting up a listener'
+    );
+  }
+}
+
 /**
  * Force the use of websockets instead of longPolling.
  *
  */
 export function forceWebSockets() {
-  if(TransportManager.IS_INITIALIZED) {
-    fatal(
-      'Transport has already been initialized. Please call this function before calling ref or setting up a listener'
-    );
-  }
+  checkTransportInit();
   BrowserPollConnection.forceDisallow();
 }
 
@@ -291,11 +295,7 @@ export function forceWebSockets() {
  * Force the use of longPolling instead of websockets. This will be ignored if websocket protocol is used in databaseURL.
  */
 export function forceLongPolling() {
-  if(TransportManager.IS_INITIALIZED) {
-    fatal(
-      'Transport has already been initialized. Please call this function before calling ref or setting up a listener'
-    );
-  }
+  checkTransportInit();
   WebSocketConnection.forceDisallow();
   BrowserPollConnection.forceAllow();
 }
