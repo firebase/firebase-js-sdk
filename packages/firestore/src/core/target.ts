@@ -31,13 +31,13 @@ import {
   isReferenceValue,
   MAX_VALUE,
   MIN_VALUE,
+  lowerBoundCompare,
   typeOrder,
+  upperBoundCompare,
   valueCompare,
   valueEquals,
   valuesGetLowerBound,
-  valuesGetUpperBound,
-  valuesMax,
-  valuesMin
+  valuesGetUpperBound
 } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, fail } from '../util/assert';
@@ -293,13 +293,13 @@ export function targetGetNotInValues(
 
 /**
  * Returns a lower bound of field values that can be used as a starting point to
- * scan the index defined by `fieldIndex`. Returns `null` if no lower bound
+ * scan the index defined by `fieldIndex`. Returns `MIN_VALUE` if no lower bound
  * exists.
  */
 export function targetGetLowerBound(
   target: Target,
   fieldIndex: FieldIndex
-): Bound | null {
+): Bound {
   const values: ProtoValue[] = [];
   let inclusive = true;
 
@@ -311,10 +311,6 @@ export function targetGetLowerBound(
         ? targetGetAscendingBound(target, segment.fieldPath, target.startAt)
         : targetGetDescendingBound(target, segment.fieldPath, target.startAt);
 
-    if (!segmentBound.value) {
-      // No lower bound exists
-      return null;
-    }
     values.push(segmentBound.value);
     inclusive &&= segmentBound.inclusive;
   }
@@ -323,13 +319,13 @@ export function targetGetLowerBound(
 
 /**
  * Returns an upper bound of field values that can be used as an ending point
- * when scanning the index defined by `fieldIndex`. Returns `null` if no
+ * when scanning the index defined by `fieldIndex`. Returns `MAX_VALUE` if no
  * upper bound exists.
  */
 export function targetGetUpperBound(
   target: Target,
   fieldIndex: FieldIndex
-): Bound | null {
+): Bound {
   const values: ProtoValue[] = [];
   let inclusive = true;
 
@@ -341,10 +337,6 @@ export function targetGetUpperBound(
         ? targetGetDescendingBound(target, segment.fieldPath, target.endAt)
         : targetGetAscendingBound(target, segment.fieldPath, target.endAt);
 
-    if (!segmentBound.value) {
-      // No upper bound exists
-      return null;
-    }
     values.push(segmentBound.value);
     inclusive &&= segmentBound.inclusive;
   }
@@ -360,13 +352,14 @@ function targetGetAscendingBound(
   target: Target,
   fieldPath: FieldPath,
   bound: Bound | null
-): { value: ProtoValue | undefined; inclusive: boolean } {
-  let value: ProtoValue | undefined = undefined;
+): { value: ProtoValue; inclusive: boolean } {
+  let value: ProtoValue = MIN_VALUE;
+
   let inclusive = true;
 
   // Process all filters to find a value for the current field segment
   for (const fieldFilter of targetGetFieldFiltersForPath(target, fieldPath)) {
-    let filterValue: ProtoValue | undefined = undefined;
+    let filterValue: ProtoValue = MIN_VALUE;
     let filterInclusive = true;
 
     switch (fieldFilter.op) {
@@ -391,7 +384,12 @@ function targetGetAscendingBound(
       // Remaining filters cannot be used as lower bounds.
     }
 
-    if (valuesMax(value, filterValue) === filterValue) {
+    if (
+      lowerBoundCompare(
+        { value, inclusive },
+        { value: filterValue, inclusive: filterInclusive }
+      ) < 0
+    ) {
       value = filterValue;
       inclusive = filterInclusive;
     }
@@ -404,7 +402,12 @@ function targetGetAscendingBound(
       const orderBy = target.orderBy[i];
       if (orderBy.field.isEqual(fieldPath)) {
         const cursorValue = bound.position[i];
-        if (valuesMax(value, cursorValue) === cursorValue) {
+        if (
+          lowerBoundCompare(
+            { value, inclusive },
+            { value: cursorValue, inclusive: bound.inclusive }
+          ) < 0
+        ) {
           value = cursorValue;
           inclusive = bound.inclusive;
         }
@@ -424,13 +427,13 @@ function targetGetDescendingBound(
   target: Target,
   fieldPath: FieldPath,
   bound: Bound | null
-): { value: ProtoValue | undefined; inclusive: boolean } {
-  let value: ProtoValue | undefined = undefined;
+): { value: ProtoValue; inclusive: boolean } {
+  let value: ProtoValue = MAX_VALUE;
   let inclusive = true;
 
   // Process all filters to find a value for the current field segment
   for (const fieldFilter of targetGetFieldFiltersForPath(target, fieldPath)) {
-    let filterValue: ProtoValue | undefined = undefined;
+    let filterValue: ProtoValue = MAX_VALUE;
     let filterInclusive = true;
 
     switch (fieldFilter.op) {
@@ -456,7 +459,12 @@ function targetGetDescendingBound(
       // Remaining filters cannot be used as upper bounds.
     }
 
-    if (valuesMin(value, filterValue) === filterValue) {
+    if (
+      upperBoundCompare(
+        { value, inclusive },
+        { value: filterValue, inclusive: filterInclusive }
+      ) > 0
+    ) {
       value = filterValue;
       inclusive = filterInclusive;
     }
@@ -469,7 +477,12 @@ function targetGetDescendingBound(
       const orderBy = target.orderBy[i];
       if (orderBy.field.isEqual(fieldPath)) {
         const cursorValue = bound.position[i];
-        if (valuesMin(value, cursorValue) === cursorValue) {
+        if (
+          upperBoundCompare(
+            { value, inclusive },
+            { value: cursorValue, inclusive: bound.inclusive }
+          ) > 0
+        ) {
           value = cursorValue;
           inclusive = bound.inclusive;
         }

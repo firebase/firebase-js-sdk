@@ -29,7 +29,7 @@ import { EncodedResourcePath } from './encoded_resource_path';
 import { DbTimestampKey } from './indexeddb_sentinels';
 
 // TODO(indexing): Remove this constant
-const INDEXING_ENABLED = false;
+export const INDEXING_ENABLED = false;
 
 export const INDEXING_SCHEMA_VERSION = 14;
 

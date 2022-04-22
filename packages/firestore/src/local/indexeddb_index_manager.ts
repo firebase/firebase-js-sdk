@@ -44,6 +44,7 @@ import {
   fieldIndexToString,
   IndexKind,
   IndexOffset,
+  indexOffsetComparator,
   IndexSegment
 } from '../model/field_index';
 import { FieldPath, ResourcePath } from '../model/path';
@@ -284,9 +285,9 @@ export class IndexedDbIndexManager implements IndexManager {
             index!.indexId,
             arrayValues,
             lowerBoundEncoded,
-            !!lowerBound && lowerBound.inclusive,
+            lowerBound.inclusive,
             upperBoundEncoded,
-            !!upperBound && upperBound.inclusive,
+            upperBound.inclusive,
             notInEncoded
           );
           return PersistencePromise.forEach(
@@ -330,9 +331,9 @@ export class IndexedDbIndexManager implements IndexManager {
   private generateIndexRanges(
     indexId: number,
     arrayValues: ProtoValue[] | null,
-    lowerBounds: Uint8Array[] | null,
+    lowerBounds: Uint8Array[],
     lowerBoundInclusive: boolean,
-    upperBounds: Uint8Array[] | null,
+    upperBounds: Uint8Array[],
     upperBoundInclusive: boolean,
     notInValues: Uint8Array[]
   ): IDBKeyRange[] {
@@ -342,10 +343,7 @@ export class IndexedDbIndexManager implements IndexManager {
     // combined with the values from the query bounds.
     const totalScans =
       (arrayValues != null ? arrayValues.length : 1) *
-      Math.max(
-        lowerBounds != null ? lowerBounds.length : 1,
-        upperBounds != null ? upperBounds.length : 1
-      );
+      Math.max(lowerBounds.length, upperBounds.length);
     const scansPerArrayElement =
       totalScans / (arrayValues != null ? arrayValues.length : 1);
 
@@ -355,40 +353,29 @@ export class IndexedDbIndexManager implements IndexManager {
         ? this.encodeSingleElement(arrayValues[i / scansPerArrayElement])
         : EMPTY_VALUE;
 
-      const lowerBound = lowerBounds
-        ? this.generateLowerBound(
-            indexId,
-            arrayValue,
-            lowerBounds[i % scansPerArrayElement],
-            lowerBoundInclusive
-          )
-        : this.generateEmptyBound(indexId);
-      const upperBound = upperBounds
-        ? this.generateUpperBound(
-            indexId,
-            arrayValue,
-            upperBounds[i % scansPerArrayElement],
-            upperBoundInclusive
-          )
-        : this.generateEmptyBound(indexId + 1);
+      const lowerBound = this.generateLowerBound(
+        indexId,
+        arrayValue,
+        lowerBounds[i % scansPerArrayElement],
+        lowerBoundInclusive
+      );
+      const upperBound = this.generateUpperBound(
+        indexId,
+        arrayValue,
+        upperBounds[i % scansPerArrayElement],
+        upperBoundInclusive
+      );
 
-      indexRanges.push(
-        ...this.createRange(
-          lowerBound,
-          upperBound,
-          notInValues.map(
-            (
-              notIn // make non-nullable
-            ) =>
-              this.generateLowerBound(
-                indexId,
-                arrayValue,
-                notIn,
-                /* inclusive= */ true
-              )
-          )
+      const notInBound = notInValues.map(notIn =>
+        this.generateLowerBound(
+          indexId,
+          arrayValue,
+          notIn,
+          /* inclusive= */ true
         )
       );
+
+      indexRanges.push(...this.createRange(lowerBound, upperBound, notInBound));
     }
 
     return indexRanges;
@@ -426,19 +413,6 @@ export class IndexedDbIndexManager implements IndexManager {
     return inclusive ? entry.successor() : entry;
   }
 
-  /**
-   * Generates an empty bound that scopes the index scan to the current index
-   * and user.
-   */
-  private generateEmptyBound(indexId: number): IndexEntry {
-    return new IndexEntry(
-      indexId,
-      DocumentKey.empty(),
-      EMPTY_VALUE,
-      EMPTY_VALUE
-    );
-  }
-
   private getFieldIndex(
     transaction: PersistenceTransaction,
     target: Target
@@ -469,15 +443,22 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     target: Target
   ): PersistencePromise<IndexType> {
-    // TODO(orqueries): We should look at the subtargets here
-    return this.getFieldIndex(transaction, target).next(index => {
-      if (!index) {
-        return IndexType.NONE as IndexType;
+    let indexType = IndexType.FULL;
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (target: Target) => {
+        return this.getFieldIndex(transaction, target).next(index => {
+          if (!index) {
+            indexType = IndexType.NONE;
+          } else if (
+            indexType !== IndexType.NONE &&
+            index.fields.length < targetGetSegmentCount(target)
+          ) {
+            indexType = IndexType.PARTIAL;
+          }
+        });
       }
-      return index.fields.length < targetGetSegmentCount(target)
-        ? IndexType.PARTIAL
-        : IndexType.FULL;
-    });
+    ).next(() => indexType);
   }
 
   /**
@@ -571,11 +552,8 @@ export class IndexedDbIndexManager implements IndexManager {
   private encodeBound(
     fieldIndex: FieldIndex,
     target: Target,
-    bound: Bound | null
-  ): Uint8Array[] | null {
-    if (bound == null) {
-      return null;
-    }
+    bound: Bound
+  ): Uint8Array[] {
     return this.encodeValues(fieldIndex, target, bound.position);
   }
 
@@ -918,7 +896,7 @@ export class IndexedDbIndexManager implements IndexManager {
     upper: IndexEntry,
     notInValues: IndexEntry[]
   ): IDBKeyRange[] {
-    // The notIb values need to be sorted and unique so that we can return a
+    // The notIn values need to be sorted and unique so that we can return a
     // sorted set of non-overlapping ranges.
     notInValues = notInValues
       .sort((l, r) => indexEntryComparator(l, r))
@@ -971,6 +949,28 @@ export class IndexedDbIndexManager implements IndexManager {
       );
     }
     return ranges;
+  }
+
+  getMinOffset(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexOffset> {
+    let offset: IndexOffset | undefined;
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (target: Target) => {
+        return this.getFieldIndex(transaction, target).next(index => {
+          if (!index) {
+            offset = IndexOffset.min();
+          } else if (
+            !offset ||
+            indexOffsetComparator(index.indexState.offset, offset) < 0
+          ) {
+            offset = index.indexState.offset;
+          }
+        });
+      }
+    ).next(() => offset!);
   }
 }
 

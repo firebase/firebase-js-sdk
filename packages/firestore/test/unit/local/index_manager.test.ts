@@ -886,6 +886,35 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(queryWithRestrictedBound, 'coll/val4');
   });
 
+  it('cannot expand result set from a cursor', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['c', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['c', IndexKind.DESCENDING]] })
+    );
+    await addDoc('coll/val1', { 'a': 1, 'b': 1, 'c': 3 });
+    await addDoc('coll/val2', { 'a': 2, 'b': 2, 'c': 2 });
+
+    let testingQuery = queryWithStartAt(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(query('coll'), filter('c', '>', 2)),
+        orderBy('c', 'asc')
+      ),
+      bound([2], /* inclusive= */ true)
+    );
+    await verifyResults(testingQuery, 'coll/val1');
+
+    testingQuery = queryWithStartAt(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(query('coll'), filter('c', '<', 3)),
+        orderBy('c', 'desc')
+      ),
+      bound([3], /* inclusive= */ true)
+    );
+    await verifyResults(testingQuery, 'coll/val2');
+  });
+
   it('support advances queries', async () => {
     // This test compares local query results with those received from the Java
     // Server SDK.
@@ -1600,11 +1629,7 @@ describe('IndexedDbIndexManager', async () => {
   }
 
   function addDocs(...docs: Document[]): Promise<void> {
-    let data = documentMap();
-    for (const doc of docs) {
-      data = data.insert(doc.key, doc);
-    }
-    return indexManager.updateIndexEntries(data);
+    return indexManager.updateIndexEntries(documentMap(...docs));
   }
 
   function addDoc(key: string, data: JsonObject<unknown>): Promise<void> {

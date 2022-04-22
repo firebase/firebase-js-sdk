@@ -78,7 +78,7 @@ export function typeOrder(value: Value): TypeOrder {
     if (isServerTimestamp(value)) {
       return TypeOrder.ServerTimestampValue;
     } else if (isMaxValue(value)) {
-      return TypeOrder.ArrayValue;
+      return TypeOrder.MaxValue;
     }
     return TypeOrder.ObjectValue;
   } else {
@@ -350,6 +350,14 @@ function compareArrays(left: ArrayValue, right: ArrayValue): number {
 }
 
 function compareMaps(left: MapValue, right: MapValue): number {
+  if (left === MAX_VALUE.mapValue && right === MAX_VALUE.mapValue) {
+    return 0;
+  } else if (left === MAX_VALUE.mapValue) {
+    return 1;
+  } else if (right === MAX_VALUE.mapValue) {
+    return -1;
+  }
+
   const leftMap = left.fields || {};
   const leftKeys = Object.keys(leftMap);
   const rightMap = right.fields || {};
@@ -670,28 +678,38 @@ export function valuesGetUpperBound(value: Value): Value {
   }
 }
 
-export function valuesMax(
-  left: Value | undefined,
-  right: Value | undefined
-): Value | undefined {
-  if (left === undefined) {
-    return right;
-  } else if (right === undefined) {
-    return left;
-  } else {
-    return valueCompare(left, right) > 0 ? left : right;
+export function lowerBoundCompare(
+  left: { value: Value; inclusive: boolean },
+  right: { value: Value; inclusive: boolean }
+): number {
+  const cmp = valueCompare(left.value, right.value);
+  if (cmp !== 0) {
+    return cmp;
   }
+
+  if (left.inclusive && !right.inclusive) {
+    return -1;
+  } else if (!left.inclusive && right.inclusive) {
+    return 1;
+  }
+
+  return 0;
 }
 
-export function valuesMin(
-  left: Value | undefined,
-  right: Value | undefined
-): Value | undefined {
-  if (left === undefined) {
-    return right;
-  } else if (right === undefined) {
-    return left;
-  } else {
-    return valueCompare(left, right) < 0 ? left : right;
+export function upperBoundCompare(
+  left: { value: Value; inclusive: boolean },
+  right: { value: Value; inclusive: boolean }
+): number {
+  const cmp = valueCompare(left.value, right.value);
+  if (cmp !== 0) {
+    return cmp;
   }
+
+  if (left.inclusive && !right.inclusive) {
+    return 1;
+  } else if (!left.inclusive && right.inclusive) {
+    return -1;
+  }
+
+  return 0;
 }
