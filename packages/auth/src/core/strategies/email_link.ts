@@ -93,7 +93,7 @@ export async function sendSignInLinkToEmail(
       _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
     }
   }
-  if (authInternal._recaptchaConfig?.emailPasswordEnabled) {
+  if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
     const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, RecaptchaActionName.GET_OOB_CODE, true);
     setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
     await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);

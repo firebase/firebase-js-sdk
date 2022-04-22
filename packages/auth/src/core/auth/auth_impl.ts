@@ -60,6 +60,7 @@ import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 import { HttpHeader } from '../../api';
+import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -91,7 +92,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _popupRedirectResolver: PopupRedirectResolverInternal | null = null;
   _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams> =
     _DEFAULT_AUTH_ERROR_FACTORY;
-  _recaptchaConfig: RecaptchaConfig | null = null;
+  _agentRecaptchaConfig: RecaptchaConfig | null = null;
+  _tenantRecaptchaConfigs: Record<string, RecaptchaConfig> = {};
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -349,7 +351,23 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   setRecaptchaConfig(config: RecaptchaConfig): void {
-    this._recaptchaConfig = config;
+    if (this.tenantId == null) {
+      this._agentRecaptchaConfig = config;
+    } else {
+      this._tenantRecaptchaConfigs[this.tenantId] = config;
+    }
+    if (config.emailPasswordEnabled) {
+      const verifier = new RecaptchaEnterpriseVerifier(this);
+      void verifier.verify();
+    }
+  }
+
+  _getRecaptchaConfig(): RecaptchaConfig | null {
+    if (this.tenantId == null) {
+      return this._agentRecaptchaConfig;
+    } else {
+      return this._tenantRecaptchaConfigs[this.tenantId];
+    }
   }
 
   _getPersistence(): string {

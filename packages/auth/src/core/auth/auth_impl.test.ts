@@ -476,4 +476,35 @@ describe('core/auth/auth_impl', () => {
       });
     });
   });
+
+  context ('recaptchaConfig', () => {
+    const configAgent = { emailPasswordEnabled: true };
+    const configTenant = { emailPasswordEnabled: false };
+
+    it('recaptcha config should be set for agent if tenant id is null.', async () => {
+      auth.tenantId = null;
+      auth.setRecaptchaConfig(configAgent);
+
+      expect(auth._getRecaptchaConfig()).to.eql(configAgent);
+    });
+
+    it('recaptcha config should be set for tenant if tenant id is not null.', async () => {
+      auth.tenantId = "tenant-id";
+      auth.setRecaptchaConfig(configTenant);
+
+      expect(auth._getRecaptchaConfig()).to.eql(configTenant);
+    });
+
+    it('recaptcha config should dynamically switch if tenant id switches.', async () => {
+      auth.tenantId = null;
+      auth.setRecaptchaConfig(configAgent);
+      auth.tenantId = "tenant-id";
+      auth.setRecaptchaConfig(configTenant);
+
+      auth.tenantId = null;
+      expect(auth._getRecaptchaConfig()).to.eql(configAgent);
+      auth.tenantId = "tenant-id";
+      expect(auth._getRecaptchaConfig()).to.eql(configTenant);
+    });
+  });
 });
