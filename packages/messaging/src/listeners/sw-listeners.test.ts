@@ -477,10 +477,10 @@ function makeEvent<K extends keyof ServiceWorkerGlobalScopeEventMap>(
 }
 
 function makeFakePushSubscriptionChangeEvent(data: {
-  newSubscription: PushSubscription | null,
-  oldSubscription: PushSubscription | null
+  newSubscription: PushSubscription | null;
+  oldSubscription: PushSubscription | null;
 }): PushSubscriptionChangeEvent {
   const event = new FakeEvent('pushsubscriptionchange');
   Object.assign(event, data);
-  return event as unknown as  PushSubscriptionChangeEvent;
+  return event as unknown as PushSubscriptionChangeEvent;
 }
