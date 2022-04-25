@@ -3,4 +3,4 @@
 "@firebase/functions": minor
 ---
 
-Add `httpsCallableFromURL()`.
+Add `httpsCallableFromURL()`, which calls a callable function using its url.
