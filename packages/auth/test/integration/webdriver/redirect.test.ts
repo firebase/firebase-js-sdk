@@ -38,8 +38,6 @@ import { START_FUNCTION } from './util/auth_driver';
 
 use(chaiAsPromised);
 
-declare const xit: typeof it;
-
 browserDescribe('WebDriver redirect IdP test', driver => {
   beforeEach(async () => {
     await driver.pause(200); // Race condition on auth init
@@ -76,7 +74,12 @@ browserDescribe('WebDriver redirect IdP test', driver => {
   });
 
   // Redirect works with middleware for now
-  xit('is blocked by middleware', async () => {
+  it('is blocked by middleware', async function () {
+    if (driver.isCompatLayer()) {
+      console.warn('Skipping middleware tests in compat');
+      this.skip();
+    }
+
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
     const widget = new IdPPage(driver.webDriver);
 
@@ -92,6 +95,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     await driver.call(MiddlewareFunction.ATTACH_BLOCKING_MIDDLEWARE_ON_START);
 
     await driver.reinitOnRedirect();
+    await expect(driver.call(RedirectFunction.REDIRECT_RESULT)).to.be.rejectedWith('auth/login-blocked');
     expect(await driver.getUserSnapshot()).to.be.null;
   });
 

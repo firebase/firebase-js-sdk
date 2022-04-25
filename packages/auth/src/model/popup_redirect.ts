@@ -26,6 +26,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { AuthPopup } from '../platform_browser/util/popup';
 import { AuthInternal } from './auth';
+import { UserCredentialInternal } from './user';
 
 export const enum EventFilter {
   POPUP,
@@ -121,10 +122,11 @@ export interface PopupRedirectResolverInternal extends PopupRedirectResolver {
   _redirectPersistence: Persistence;
   _originValidation(auth: Auth): Promise<void>;
 
-  // This is needed so that auth does not have a hard dependency on redirect
+  // These are needed so that auth does not have a hard dependency on redirect
   _completeRedirectFn: (
     auth: Auth,
     resolver: PopupRedirectResolver,
     bypassAuthState: boolean
   ) => Promise<UserCredential | null>;
+  _overrideRedirectResult: (auth: AuthInternal, resultGetter: () => Promise<UserCredentialInternal|null>) => void;
 }

@@ -175,6 +175,7 @@ describe('popup_redirect/CompatPopupRedirectResolver', () => {
 
 class FakeResolver implements exp.PopupRedirectResolverInternal {
   _completeRedirectFn = async (): Promise<null> => null;
+  _overrideRedirectResult = (): void => {};
   _redirectPersistence = exp.inMemoryPersistence;
   _shouldInitProactively = true;
 

@@ -60,6 +60,8 @@ export function makeMockPopupRedirectResolver(
 
     async _completeRedirectFn(): Promise<void> {}
 
+    async _overrideRedirectResult(): Promise<void> {}
+
     async _originValidation(): Promise<void> {}
   };
 }
