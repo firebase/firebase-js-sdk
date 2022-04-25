@@ -260,9 +260,12 @@ export interface Auth {
    *
    * @param callback - callback triggered before new user value is set.
    *   If this throws, it will block the user from being set.
+   * @param onAbort - callback triggered if a later before state changed
+   *   callback throws, allowing you to undo any side effects.
    */
   beforeAuthStateChanged(
-    callback: (user: User | null) => void | Promise<void>
+    callback: (user: User | null) => void | Promise<void>,
+    onAbort?: () => void,
   ): Unsubscribe;
   /**
    * Adds an observer for changes to the signed-in user's ID token.

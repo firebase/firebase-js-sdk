@@ -48,8 +48,8 @@ export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Pr
      * automatically unsubscribe after every test (since some tests may
      * perform cleanup after that would be affected by the middleware)
      */
-    function beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>): void {
-      unsubscribes.push(auth.beforeAuthStateChanged(callback));
+    function beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): void {
+      unsubscribes.push(auth.beforeAuthStateChanged(callback, onAbort));
     }
 
     it('can prevent user sign in', async () => {
@@ -191,6 +191,19 @@ export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Pr
 
       await expect(auth.signOut()).to.be.rejectedWith('auth/login-blocked');
       expect(auth.currentUser).to.eq(user);
+    });
+
+    it('calls onAbort after rejection', async () => {
+      const onAbort = sinon.spy();
+      beforeAuthStateChanged(() => {
+        // Pass
+      }, onAbort);
+      beforeAuthStateChanged(() => {
+        throw new Error('block sign out');
+      });
+
+      await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
+      expect(onAbort).to.have.been.called;
     });
   });
 }
