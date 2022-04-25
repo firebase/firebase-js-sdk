@@ -60,6 +60,7 @@ import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 import { HttpHeader } from '../../api';
+import { AuthMiddlewareQueue } from './middleware';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -79,7 +80,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private redirectPersistenceManager?: PersistenceUserManager;
   private authStateSubscription = new Subscription<User>(this);
   private idTokenSubscription = new Subscription<User>(this);
-  private beforeStateQueue: Array<(user: User | null) => Promise<void>> = [];
+  private readonly beforeStateQueue = new AuthMiddlewareQueue(this);
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
 
@@ -225,7 +226,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       // First though, ensure that we check the middleware is happy.
       if (needsTocheckMiddleware) {
         try {
-          await this._runBeforeStateCallbacks(futureCurrentUser);
+          await this.beforeStateQueue.runMiddleware(futureCurrentUser);
         } catch(e) {
           futureCurrentUser = previouslyStoredUser;
           // We know this is available since the bit is only set when the
@@ -347,7 +348,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
 
     if (!skipBeforeStateCallbacks) {
-      await this._runBeforeStateCallbacks(user);
+      await this.beforeStateQueue.runMiddleware(user);
     }
 
     return this.queue(async () => {
@@ -356,23 +357,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     });
   }
 
-  async _runBeforeStateCallbacks(user: User | null): Promise<void> {
-    if (this.currentUser === user) {
-      return;
-    }
-    try {
-      for (const beforeStateCallback of this.beforeStateQueue) {
-        await beforeStateCallback(user);
-      }
-    } catch (e) {
-      throw this._errorFactory.create(
-        AuthErrorCode.LOGIN_BLOCKED, { originalMessage: e.message });
-    }
-  }
-
   async signOut(): Promise<void> {
     // Run first, to block _setRedirectUser() if any callbacks fail.
-    await this._runBeforeStateCallbacks(null);
+    await this.beforeStateQueue.runMiddleware(null);
     // Clear the redirect user when signOut is called
     if (this.redirectPersistenceManager || this._popupRedirectResolver) {
       await this._setRedirectUser(null);
@@ -415,29 +402,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   beforeAuthStateChanged(
-    callback: (user: User | null) => void | Promise<void>
+    callback: (user: User | null) => void | Promise<void>,
+    onAbort?: () => void,
   ): Unsubscribe {
-    // The callback could be sync or async. Wrap it into a
-    // function that is always async.
-    const wrappedCallback =
-      (user: User | null): Promise<void> => new Promise((resolve, reject) => {
-        try {
-          const result = callback(user);
-          // Either resolve with existing promise or wrap a non-promise
-          // return value into a promise.
-          resolve(result);
-        } catch (e) {
-          // Sync callback throws.
-          reject(e);
-        }
-      });
-    this.beforeStateQueue.push(wrappedCallback);
-    const index = this.beforeStateQueue.length - 1;
-    return () => {
-      // Unsubscribe. Replace with no-op. Do not remove from array, or it will disturb
-      // indexing of other elements.
-      this.beforeStateQueue[index] = () => Promise.resolve();
-    };
+    return this.beforeStateQueue.pushCallback(callback, onAbort);
   }
 
   onIdTokenChanged(
