@@ -284,13 +284,13 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         .that.contains({ uid: user.uid });
     });
 
-    it('migrates user when switching from indexedDB to localStorage', async () => {
+    it('migrates user when switching from indexedDB to localStorage', async function() {
       // This test only works in the modular SDK: the compat package does not
       // make the distinction between indexedDB and local storage (both are just
       // 'local').
       if (driver.isCompatLayer()) {
         console.warn('Skipping indexedDB to local migration in compat test');
-        return;
+        this.skip();
       }
 
       await driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY);
@@ -462,11 +462,11 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
     });
 
-    it('middleware does not block tab sync', async () => {
+    it('middleware does not block tab sync', async function() {
       if (driver.isCompatLayer()) {
         // Compat layer is skipped because it doesn't support middleware
         console.warn('Skipping middleware tabs in compat test');
-        return;
+        this.skip();
       }
 
       // Blocking middleware in main page

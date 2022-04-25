@@ -472,9 +472,8 @@ describe('core/auth/initializeAuth', () => {
           _getInstance<PersistenceInternal>(inMemoryPersistence)
         );
         stub._get.returns(Promise.resolve(null));
-        let user: UserInternal | null = null;
         completeRedirectFnStub.callsFake((auth: AuthInternal) => {
-          user = testUser(auth, 'uid', 'redirectUser@test.com');
+          const user = testUser(auth, 'uid', 'redirectUser@test.com');
           return Promise.resolve(
             new UserCredentialImpl({
               operationType: OperationType.SIGN_IN,
@@ -490,7 +489,7 @@ describe('core/auth/initializeAuth', () => {
           FAKE_APP.options.authDomain,
           /* blockMiddleware */ true
         );
-        expect(user).not.to.be.null;
+        expect(completeRedirectFnStub).to.have.been.called;
         expect(auth.currentUser).to.be.null;
         expect(reload._reloadWithoutSaving).not.to.have.been.called;
       });
