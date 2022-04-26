@@ -81,7 +81,7 @@
     "@firebase/logger": "0.3.2",
     "@firebase/util": "1.5.2",
     "node-fetch": "2.6.7",
-    "selenium-webdriver": "4.0.0-rc-1",
+    "selenium-webdriver": " 4.1.1",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
@@ -89,7 +89,7 @@
     "@firebase/app": "0.7.21",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-strip": "2.1.0",
-    "chromedriver": "98.0.0",
+    "chromedriver": "98.0.1",
     "rollup": "2.57.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.30.0",
