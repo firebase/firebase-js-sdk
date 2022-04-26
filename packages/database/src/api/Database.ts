@@ -274,7 +274,6 @@ export class Database implements _FirebaseService {
   }
 }
 
-
 function checkTransportInit() {
   if (TransportManager.IS_TRANSPORT_INITIALIZED) {
     fatal(
