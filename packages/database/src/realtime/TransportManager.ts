@@ -32,14 +32,14 @@ import { WebSocketConnection } from './WebSocketConnection';
 export class TransportManager {
   private transports_: TransportConstructor[];
 
-  static transportInitialized_ = false;
+  static globalTransportInitialized_ = false;
 
   static get ALL_TRANSPORTS() {
     return [BrowserPollConnection, WebSocketConnection];
   }
 
-  static get IS_INITIALIZED() {
-    return this.transportInitialized_;
+  static get IS_TRANSPORT_INITIALIZED() {
+    return this.globalTransportInitialized_;
   }
 
   /**
@@ -74,7 +74,7 @@ export class TransportManager {
           transports.push(transport);
         }
       }
-      TransportManager.transportInitialized_ = true;
+      TransportManager.globalTransportInitialized_ = true;
     }
   }
 

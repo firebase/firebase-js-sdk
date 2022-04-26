@@ -32,30 +32,30 @@ describe('Force Transport', () => {
   });
   afterEach(() => {
     // Resetting to old values
-    TransportManager.transportInitialized_ = false;
+    TransportManager.globalTransportInitialized_ = false;
     CONSTANTS.NODE_CLIENT = oldNodeValue;
     BrowserPollConnection.forceAllow_ = false;
     BrowserPollConnection.forceDisallow_ = true;
     WebSocketConnection.forceDisallow_ = false;
   });
   it('should enable websockets and disable longPolling', () => {
-    forceWebSockets();
+    expect(forceWebSockets).to.not.throw();
     expect(WebSocketConnection.isAvailable()).to.equal(true);
     expect(BrowserPollConnection.isAvailable()).to.equal(false);
   });
   it('should throw an error when calling forceWebsockets() if TransportManager has already been initialized', () => {
-    TransportManager.transportInitialized_ = true;
+    TransportManager.globalTransportInitialized_ = true;
     expect(forceWebSockets).to.throw(transportInitError);
     expect(WebSocketConnection.isAvailable()).to.equal(true);
     expect(BrowserPollConnection.isAvailable()).to.equal(false);
   });
   it('should enable longPolling and disable websockets', () => {
-    forceLongPolling();
+    expect(forceLongPolling).to.not.throw();
     expect(WebSocketConnection.isAvailable()).to.equal(false);
     expect(BrowserPollConnection.isAvailable()).to.equal(true);
   });
   it('should throw an error when calling forceLongPolling() if TransportManager has already been initialized', () => {
-    TransportManager.transportInitialized_ = true;
+    TransportManager.globalTransportInitialized_ = true;
     expect(forceLongPolling).to.throw(transportInitError);
     expect(WebSocketConnection.isAvailable()).to.equal(true);
     expect(BrowserPollConnection.isAvailable()).to.equal(false);
