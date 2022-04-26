@@ -39,7 +39,10 @@ export class TransportManager {
     return [BrowserPollConnection, WebSocketConnection];
   }
 
-  // Returns whether transport has been selected.
+  /**
+   * Returns whether transport has been selected to ensure WebSocketConnection or BrowserPollConnection are not called after 
+   * TransportManager has already set up transports_
+   */
   static get IS_TRANSPORT_INITIALIZED() {
     return this.globalTransportInitialized_;
   }
