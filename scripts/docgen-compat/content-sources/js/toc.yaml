@@ -28,6 +28,8 @@ toc:
     path: /docs/reference/js/v8/firebase.appcheck.CustomProvider
   - title: "CustomProviderOptions"
     path: /docs/reference/js/v8/firebase.appcheck.CustomProviderOptions
+  - title: "ReCaptchaEnterpriseProvider"
+    path: /docs/reference/js/v8/firebase.appcheck.ReCaptchaEnterpriseProvider
   - title: "ReCaptchaV3Provider"
     path: /docs/reference/js/v8/firebase.appcheck.ReCaptchaV3Provider
 
@@ -154,6 +156,8 @@ toc:
     path: /docs/reference/js/v8/firebase.database.ServerValue
   - title: "ThenableReference"
     path: /docs/reference/js/v8/firebase.database.ThenableReference
+  - title: "TransactionResult"
+    path: /docs/reference/js/v8/firebase.database.TransactionResult
 
 - title: "firebase.firestore"
   path: /docs/reference/js/v8/firebase.firestore
