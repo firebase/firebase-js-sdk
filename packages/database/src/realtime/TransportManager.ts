@@ -32,12 +32,14 @@ import { WebSocketConnection } from './WebSocketConnection';
 export class TransportManager {
   private transports_: TransportConstructor[];
 
+  // Keeps track of whether the TransportManager has already chosen a transport to use
   static globalTransportInitialized_ = false;
 
   static get ALL_TRANSPORTS() {
     return [BrowserPollConnection, WebSocketConnection];
   }
 
+  // Returns whether transport has been selected.
   static get IS_TRANSPORT_INITIALIZED() {
     return this.globalTransportInitialized_;
   }
