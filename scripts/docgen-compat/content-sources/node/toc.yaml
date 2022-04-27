@@ -112,6 +112,8 @@ toc:
     path: /docs/reference/node/firebase.database.ServerValue
   - title: "ThenableReference"
     path: /docs/reference/node/firebase.database.ThenableReference
+  - title: "TransactionResult"
+    path: /docs/reference/node/firebase.database.TransactionResult
 
 - title: "firebase.firestore"
   path: /docs/reference/node/firebase.firestore
