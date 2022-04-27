@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.7.11",
+  "version": "0.8.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -45,7 +45,7 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.21",
+    "@firebase/app": "0.7.22",
     "rollup": "2.57.0",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.30.0",

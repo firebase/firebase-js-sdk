@@ -1,5 +1,11 @@
 # @firebase/functions
 
+## 0.8.0
+
+### Minor Changes
+
+- [`c69c6898a`](https://github.com/firebase/firebase-js-sdk/commit/c69c6898a3d14ddcc6c6cafd3a219064b500c4f6) [#6162](https://github.com/firebase/firebase-js-sdk/pull/6162) - Add `httpsCallableFromURL()`, which calls a callable function using its url.
+
 ## 0.7.11
 
 ### Patch Changes
