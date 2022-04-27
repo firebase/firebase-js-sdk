@@ -7741,16 +7741,17 @@ fined@^1.0.1:
     object.pick "^1.2.0"
     parse-filepath "^1.0.1"
 
-firebase-functions@3.15.7:
-  version "3.15.7"
-  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.15.7.tgz#ac88657e7e28f5a5926d41ae3e8fae9c94621ccd"
-  integrity sha512-ZD7r8eoWWebgs+mTqfH8NLUT2C0f7/cyAvIA1RSUdBVQZN7MBBt3oSlN/rL3e+m6tdlJz6YbQ3hrOKOGjOVYvQ==
+firebase-functions@3.20.0:
+  version "3.20.0"
+  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.20.0.tgz#78945c167ac4a5c150cd3f40b1672a1060b11c1a"
+  integrity sha512-Srh2iW/A24ia1CUfSIz5wRxCCFN2cQX6cg6whM0zAnoJs2oBwrI8PUfB4ZKDM7alBZSwXGHJbEw+4P/gC0npUg==
   dependencies:
     "@types/cors" "^2.8.5"
     "@types/express" "4.17.3"
     cors "^2.8.5"
     express "^4.17.1"
     lodash "^4.17.14"
+    node-fetch "^2.6.7"
 
 firebase-tools@9.23.0:
   version "9.23.0"
@@ -12042,7 +12043,7 @@ node-emoji@^1.4.1:
   dependencies:
     lodash "^4.17.21"
 
-node-fetch@2.6.7:
+node-fetch@2.6.7, node-fetch@^2.6.7:
   version "2.6.7"
   resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
