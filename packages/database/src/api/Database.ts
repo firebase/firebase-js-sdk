@@ -284,7 +284,6 @@ function checkTransportInit() {
 
 /**
  * Force the use of websockets instead of longPolling.
- *
  */
 export function forceWebSockets() {
   checkTransportInit();
