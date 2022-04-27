@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-
-
 import { CONSTANTS } from '@firebase/util';
 import { expect, use } from 'chai';
 import { createSandbox, SinonSandbox, SinonSpy } from 'sinon';
