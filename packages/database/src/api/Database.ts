@@ -41,6 +41,7 @@ import { RepoInfo } from '../core/RepoInfo';
 import { parseRepoInfo } from '../core/util/libs/parser';
 import { newEmptyPath, pathIsEmpty } from '../core/util/Path';
 import {
+  warn,
   fatal,
   log,
   enableLogging as enableLoggingImpl
@@ -276,7 +277,7 @@ export class Database implements _FirebaseService {
 
 function checkTransportInit() {
   if (TransportManager.IS_TRANSPORT_INITIALIZED) {
-    fatal(
+    warn(
       'Transport has already been initialized. Please call this function before calling ref or setting up a listener'
     );
   }
