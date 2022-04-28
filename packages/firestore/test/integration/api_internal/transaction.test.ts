@@ -133,7 +133,6 @@ apiDescribe.only(
       });
     });
 
-
     it('should fail transaction (maxAttempts: default) when reading a doc twice with different versions', async () => {
       await withTestDb(persistence, async db => {
         asyncQueue(db).skipDelaysForTimerId(TimerId.TransactionRetry);
@@ -147,13 +146,13 @@ apiDescribe.only(
             await transaction.get(docRef);
             // Do a write outside of the transaction. Because the transaction
             // will retry, set the document to a different value each time.
-            await setDoc(docRef, {count: 1234 + counter});
+            await setDoc(docRef, { count: 1234 + counter });
             // Get the docRef again in the transaction with the new
             // version.
             await transaction.get(docRef);
             // Now try to update the docRef from within the transaction.
             // This should fail, because we read 15 earlier.
-            await transaction.set(docRef, {count: 16});
+            await transaction.set(docRef, { count: 16 });
           });
           expect.fail('transaction should fail');
         } catch (err) {
@@ -176,20 +175,24 @@ apiDescribe.only(
         let counter = 0;
         await setDoc(docRef, { count: 15 });
         try {
-          await runTransaction(db, async transaction => {
-            counter++;
-            // Get the docRef once.
-            await transaction.get(docRef);
-            // Do a write outside of the transaction. Because the transaction
-            // will retry, set the document to a different value each time.
-            await setDoc(docRef, {count: 1234 + counter});
-            // Get the docRef again in the transaction with the new
-            // version.
-            await transaction.get(docRef);
-            // Now try to update the docRef from within the transaction.
-            // This should fail, because we read 15 earlier.
-            await transaction.set(docRef, {count: 16});
-          }, options);
+          await runTransaction(
+            db,
+            async transaction => {
+              counter++;
+              // Get the docRef once.
+              await transaction.get(docRef);
+              // Do a write outside of the transaction. Because the transaction
+              // will retry, set the document to a different value each time.
+              await setDoc(docRef, { count: 1234 + counter });
+              // Get the docRef again in the transaction with the new
+              // version.
+              await transaction.get(docRef);
+              // Now try to update the docRef from within the transaction.
+              // This should fail, because we read 15 earlier.
+              await transaction.set(docRef, { count: 16 });
+            },
+            options
+          );
           expect.fail('transaction should fail');
         } catch (err) {
           expect(err).to.exist;
