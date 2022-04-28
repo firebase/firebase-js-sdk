@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.5.7
+
+### Patch Changes
+
+- [`38da5d9be`](https://github.com/firebase/firebase-js-sdk/commit/38da5d9be4a001038548947a85c9b612e5275e32) [#6136](https://github.com/firebase/firebase-js-sdk/pull/6136) - Update App Check to use v1 endpoint instead of v1beta endpoint for both reCAPTCHA v3 and reCAPTCHA Enterprise
+
 ## 0.5.6
 
 ### Patch Changes

@@ -1,5 +1,21 @@
 # firebase
 
+## 9.7.0
+
+### Minor Changes
+
+- [`e76305a0f`](https://github.com/firebase/firebase-js-sdk/commit/e76305a0f2523a9dafe93c091708abcf14ac5b31) [#6191](https://github.com/firebase/firebase-js-sdk/pull/6191) - Minor version bump to umbrella package to match functions bump.
+
+### Patch Changes
+
+- Updated dependencies [[`c69c6898a`](https://github.com/firebase/firebase-js-sdk/commit/c69c6898a3d14ddcc6c6cafd3a219064b500c4f6), [`38da5d9be`](https://github.com/firebase/firebase-js-sdk/commit/38da5d9be4a001038548947a85c9b612e5275e32)]:
+  - @firebase/app@0.7.22
+  - @firebase/functions-compat@0.2.0
+  - @firebase/functions@0.8.0
+  - @firebase/app-check@0.5.7
+  - @firebase/app-compat@0.1.23
+  - @firebase/app-check-compat@0.2.7
+
 ## 9.6.11
 
 ### Patch Changes
