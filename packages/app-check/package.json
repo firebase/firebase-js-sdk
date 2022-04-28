@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-check",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "description": "The App Check component of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -44,7 +44,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.7.21",
+    "@firebase/app": "0.7.22",
     "rollup": "2.57.0",
     "@rollup/plugin-commonjs": "21.0.0",
     "@rollup/plugin-json": "4.1.0",
