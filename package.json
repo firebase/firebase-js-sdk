@@ -108,7 +108,6 @@
     "find-free-port": "2.0.0",
     "firebase-functions": "3.20.0",
     "firebase-tools": "9.23.0",
-    "git-rev-sync": "3.0.1",
     "glob": "7.2.0",
     "http-server": "14.1.0",
     "indexeddbshim": "8.0.0",
