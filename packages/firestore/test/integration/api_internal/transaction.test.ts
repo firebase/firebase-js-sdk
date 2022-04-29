@@ -31,7 +31,7 @@ import {
 import { apiDescribe, withTestDb } from '../util/helpers';
 import { asyncQueue } from '../util/internal_helpers';
 
-apiDescribe.only(
+apiDescribe(
   'Database transactions (with internal API)',
   (persistence: boolean) => {
     it('should increment transactionally', async () => {

@@ -25,7 +25,7 @@ export const DEFAULT_TRANSACTION_OPTIONS: TransactionOptions = {
  * Options to customize transaction behavior.
  */
 export declare interface TransactionOptions {
-  /** maximum number of attempts to commit, after which transaction fails. Default is 5. */
+  /** Maximum number of attempts to commit, after which transaction fails. Default is 5. */
   readonly maxAttempts: number;
 }
 
