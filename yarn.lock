@@ -5456,20 +5456,19 @@ cli-spinners@^2.0.0, cli-spinners@^2.5.0:
   resolved "https://registry.npmjs.org/cli-spinners/-/cli-spinners-2.6.0.tgz#36c7dc98fb6a9a76bd6238ec3f77e2425627e939"
   integrity sha512-t+4/y50K/+4xcCRosKkA7W4gTr1MySvLV0q+PxmG7FJ5g+66ChKurYjxBCjHggHH3HA5Hh9cy+lcUGWDqVH+4Q==
 
+cli-table@0.3.11:
+  version "0.3.11"
+  resolved "https://registry.npmjs.org/cli-table/-/cli-table-0.3.11.tgz#ac69cdecbe81dccdba4889b9a18b7da312a9d3ee"
+  integrity sha512-IqLQi4lO0nIB4tcdTpN4LCB9FI3uqrJZK7RC515EnhZ6qBaglkIgICb1wjeAqpdoOabm1+SuQtkXIPdYC93jhQ==
+  dependencies:
+    colors "1.0.3"
+
 cli-table@^0.3.1:
   version "0.3.6"
   resolved "https://registry.npmjs.org/cli-table/-/cli-table-0.3.6.tgz#e9d6aa859c7fe636981fd3787378c2a20bce92fc"
   integrity sha512-ZkNZbnZjKERTY5NwC2SeMeLeifSPq/pubeRoTpdr3WchLlnZg6hEgvHkK5zL7KNFdd9PmHN8lxrENUwI3cE8vQ==
   dependencies:
     colors "1.0.3"
-
-cli-table@^0.3.8:
-  version "0.3.8"
-  resolved "https://registry.npmjs.org/cli-table/-/cli-table-0.3.8.tgz#d3629cbf893459a8ad99671554e702a1c6d48a01"
-  integrity sha512-5IO15fJRzgM+hHZjvQlqD6UPRuVGWR4Ny5ZzaM5VJxJEQqSIEVyVh9dMAUN6CBAVfMc4/6CFEzbhnRftLRCyug==
-  dependencies:
-    colors "1.0.3"
-    strip-ansi "^6.0.1"
 
 cli-truncate@^0.2.1:
   version "0.2.1"
@@ -7753,10 +7752,10 @@ firebase-functions@3.20.0:
     lodash "^4.17.14"
     node-fetch "^2.6.7"
 
-firebase-tools@9.23.0:
-  version "9.23.0"
-  resolved "https://registry.npmjs.org/firebase-tools/-/firebase-tools-9.23.0.tgz#d69efa48b075fb34b496f98b628c4285ba84e856"
-  integrity sha512-m5Yj8EBk6kyLktSV0qgvjjjjxZpp6p/ujDH5c6wQpq3dcH3LquK9D4gjmz7XJtfd7F5ww0XkjWsXra5mHcg5Iw==
+firebase-tools@9.23.3:
+  version "9.23.3"
+  resolved "https://registry.npmjs.org/firebase-tools/-/firebase-tools-9.23.3.tgz#a20d0b17bbac07a220faafe8ee37cf36ea07c358"
+  integrity sha512-J1S/T96rL3vKObDtTuBkop9JtW3vYnfwyU83NopiuOy9oPBRxFkitgzk034qGrpGyZvDA6Do6ZHI50taB3hrEg==
   dependencies:
     "@google-cloud/pubsub" "^2.7.0"
     "@types/archiver" "^5.1.0"
@@ -7768,7 +7767,7 @@ firebase-tools@9.23.0:
     chokidar "^3.0.2"
     cjson "^0.3.1"
     cli-color "^1.2.0"
-    cli-table "^0.3.8"
+    cli-table "0.3.11"
     commander "^4.0.1"
     configstore "^5.0.1"
     cors "^2.8.5"
