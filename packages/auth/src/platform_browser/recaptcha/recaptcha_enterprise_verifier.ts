@@ -42,12 +42,12 @@ export class RecaptchaEnterpriseVerifier {
   readonly type = RECAPTCHA_ENTERPRISE_VERIFIER_TYPE;
 
   /**
-   * Stores the recaptcha site key per tenant.
+   * Stores the reCAPTCHA site key per tenant.
    */
   static tenantSiteKeys: Record<string, string> = {};
 
   /**
-   * Stores the recaptcha site key for agent.
+   * Stores the reCAPTCHA site key for agent.
    */
    static agentSiteKey: string | null;
 

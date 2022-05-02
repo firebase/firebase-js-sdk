@@ -125,7 +125,7 @@ export class EmailAuthCredential extends AuthCredential {
         } else {
           return signInWithPassword(auth, request).catch(async (error) => {
             if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-              console.log("Sign in with email password is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign in flow.");
+              console.log("Sign-in with email address and password is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.");
               const requestWithRecaptcha = await injectRecaptchaFields(auth, request, RecaptchaActionName.SIGN_IN_WITH_PASSWORD);
               return signInWithPassword(auth, requestWithRecaptcha);
             } else {

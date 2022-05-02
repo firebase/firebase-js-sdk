@@ -94,7 +94,7 @@ export async function sendPasswordResetEmail(
     }
     await authentication.sendPasswordResetEmail(authInternal, request).catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-        console.log("Pssword reset is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the password reset flow.");
+        console.log("Password resets are protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the password reset flow.");
         const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, RecaptchaActionName.GET_OOB_CODE, true);
         if (actionCodeSettings) {
           _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
@@ -260,7 +260,7 @@ export async function createUserWithEmailAndPassword(
   } else {
     signUpResponse = signUp(authInternal, request).catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-        console.log("Sign up is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign up flow.");
+        console.log("Sign-up is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-up flow.");
         const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, RecaptchaActionName.SIGN_UP_PASSWORD);
         return signUp(authInternal, requestWithRecaptcha);
       } else {

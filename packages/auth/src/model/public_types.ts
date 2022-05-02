@@ -347,7 +347,7 @@ export interface Persistence {
  */
 export interface RecaptchaConfig {
   /**
-   * The recaptcha enablement status for the {@link EmailAuthProvider} for the current tenant.
+   * The reCAPTCHA enablement status of the {@link EmailAuthProvider} for the current tenant.
    */
   emailPasswordEnabled: boolean;
 }

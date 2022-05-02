@@ -101,7 +101,7 @@ export async function sendSignInLinkToEmail(
     setActionCodeSettings(request, actionCodeSettings);
     await api.sendSignInLinkToEmail(authInternal, request).catch(async (error) => {
       if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-        console.log("Sign in with email link is protected by reCAPTCHA for this project. Automatically triggers reCAPTCHA flow and restarts the sign in flow.");
+        console.log("Email link sign-in is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.");
         const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, RecaptchaActionName.GET_OOB_CODE, true);
         setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
         await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);

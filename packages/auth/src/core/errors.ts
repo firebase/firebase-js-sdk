@@ -365,25 +365,25 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'same options as when it was originally called, or call getAuth() to return the' +
       ' already initialized instance.',
     [AuthErrorCode.INVALID_RECAPTCHA_SCORE]:
-      'The recaptcha score sent to backend is invalid.',
+      'The reCAPTCHA score sent to backend is invalid.',
     [AuthErrorCode.MISSING_RECAPTCHA_TOKEN]:
-      'The recaptcha token is missing when sending request to the backend.',
+      'The reCAPTCHA token is missing when sending request to the backend.',
     [AuthErrorCode.INVALID_RECAPTCHA_TOKEN]:
-      'The recaptcha token is invalid when sending request to the backend.',
+      'The reCAPTCHA token is invalid when sending request to the backend.',
     [AuthErrorCode.INVALID_RECAPTCHA_ACTION]:
-      'The recaptcha action is invalid when sending request to the backend.',
+      'The reCAPTCHA action is invalid when sending request to the backend.',
     [AuthErrorCode.INVALID_RECAPTCHA_ENFORCEMENT_STATE]:
-      'The recaptcha enforcement state is invalid.',
+      'The reCAPTCHA enforcement state is invalid.',
     [AuthErrorCode.RECAPTCHA_NOT_ENABLED]:
-      'The recaptcha integration is not enabled for this project.',
+      'reCAPTCHA integration is not enabled for this project.',
     [AuthErrorCode.MISSING_CLIENT_TYPE]:
-      'The recaptcha client type is missing when sending request to the backend.',
+      'The reCAPTCHA client type is missing when sending request to the backend.',
     [AuthErrorCode.MISSING_RECAPTCHA_VERSION]:
-      'The recaptcha version is missing when sending request to the backend.',
+      'The reCAPTCHA version is missing when sending request to the backend.',
     [AuthErrorCode.INVALID_REQ_TYPE]:
-      'The recaptcha client type / version is invalid when retrieving the site key.',
+      'The reCAPTCHA client type or version is invalid when retrieving the site key.',
     [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
-      'The recaptcha version is invalid when sending request to the backend.',
+      'The reCAPTCHA version is invalid when sending request to the backend.',
 
   };
 }
