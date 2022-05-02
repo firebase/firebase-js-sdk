@@ -86,7 +86,7 @@
     "@types/tmp": "0.2.1",
     "@types/yargs": "17.0.3",
     "@types/js-yaml": "4.0.5",
-    "@types/request": "2.48.7",
+    "@types/request": "2.48.8",
     "@typescript-eslint/eslint-plugin": "4.31.2",
     "@typescript-eslint/eslint-plugin-tslint": "4.31.2",
     "@typescript-eslint/parser": "4.31.2",
