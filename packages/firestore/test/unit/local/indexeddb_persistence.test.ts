@@ -268,6 +268,23 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
+  function verifyUserHasDocumentOverlay(
+    txn: SimpleDbTransaction,
+    user: string,
+    doc: string,
+    expected: firestoreV1ApiClientInterfaces.Write
+  ): PersistencePromise<void> {
+    const key = toDbDocumentOverlayKey(user, DocumentKey.fromPath(doc));
+    const documentOverlayStore = txn.store<
+      DbDocumentOverlayKey,
+      DbDocumentOverlay
+    >(DbDocumentOverlayStore);
+    return documentOverlayStore.get(key).next(overlay => {
+      expect(overlay).to.not.be.null;
+      expect(overlay!.overlayMutation).to.deep.equal(expected);
+    });
+  }
+
   it('can install schema version 1', () => {
     return withDb(1, async (db, version, objectStores) => {
       expect(version).to.equal(1);
@@ -1070,9 +1087,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         fields: {}
       }
     };
-    const testWritePending = {
+    const testWriteNewDoc = {
       update: {
-        name: 'projects/test-project/databases/(default)/documents/docs/pending',
+        name: 'projects/test-project/databases/(default)/documents/docs/newDoc',
         fields: {}
       }
     };
@@ -1103,14 +1120,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         batchId: 4,
         localWriteTimeMs: 1337,
         baseMutations: undefined,
-        mutations: [testWritePending]
-      },
-      {
-        userId: 'user1',
-        batchId: 5,
-        localWriteTimeMs: 1337,
-        baseMutations: undefined,
-        mutations: [testWritePending]
+        mutations: [testWriteNewDoc]
       }
     ];
 
@@ -1181,7 +1191,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
         return db.runTransaction(
           this.test!.fullTitle(),
-          'readwrite',
+          'readonly',
           V14_STORES,
           txn => {
             const documentOverlayStore = txn.store<
@@ -1189,67 +1199,45 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               DbDocumentOverlay
             >(DbDocumentOverlayStore);
 
-            // We should have a total of 5 overlays:
-            // For user1: testWriteFoo, and testWritePending
+            // We should have a total of 4 overlays:
+            // For user1: testWriteFoo
             // For user2: testWriteBar, testWriteBaz, and testWritePending
             // For user3: NO OVERLAYS!
             let p = documentOverlayStore.count().next(count => {
-              expect(count).to.equal(5);
+              expect(count).to.equal(4);
             });
-            p = p.next(() => {
-              const key = toDbDocumentOverlayKey(
+            p = p.next(() =>
+              verifyUserHasDocumentOverlay(
+                txn,
                 'user1',
-                DocumentKey.fromPath('docs/foo')
-              );
-              return documentOverlayStore.get(key).next(overlay => {
-                expect(overlay).to.not.be.null;
-                expect(overlay!.overlayMutation).to.deep.equal(testWriteFoo);
-              });
-            });
-            p = p.next(() => {
-              const key = toDbDocumentOverlayKey(
-                'user1',
-                DocumentKey.fromPath('docs/pending')
-              );
-              return documentOverlayStore.get(key).next(overlay => {
-                expect(overlay).to.not.be.null;
-                expect(overlay!.overlayMutation).to.deep.equal(
-                  testWritePending
-                );
-              });
-            });
-            p = p.next(() => {
-              const key = toDbDocumentOverlayKey(
+                'docs/foo',
+                testWriteFoo
+              )
+            );
+            p = p.next(() =>
+              verifyUserHasDocumentOverlay(
+                txn,
                 'user2',
-                DocumentKey.fromPath('docs/bar')
-              );
-              return documentOverlayStore.get(key).next(overlay => {
-                expect(overlay).to.not.be.null;
-                expect(overlay!.overlayMutation).to.deep.equal(testWriteBar);
-              });
-            });
-            p = p.next(() => {
-              const key = toDbDocumentOverlayKey(
+                'docs/bar',
+                testWriteBar
+              )
+            );
+            p = p.next(() =>
+              verifyUserHasDocumentOverlay(
+                txn,
                 'user2',
-                DocumentKey.fromPath('docs/baz')
-              );
-              return documentOverlayStore.get(key).next(overlay => {
-                expect(overlay).to.not.be.null;
-                expect(overlay!.overlayMutation).to.deep.equal(testWriteBaz);
-              });
-            });
-            p = p.next(() => {
-              const key = toDbDocumentOverlayKey(
+                'docs/baz',
+                testWriteBaz
+              )
+            );
+            p = p.next(() =>
+              verifyUserHasDocumentOverlay(
+                txn,
                 'user2',
-                DocumentKey.fromPath('docs/pending')
-              );
-              return documentOverlayStore.get(key).next(overlay => {
-                expect(overlay).to.not.be.null;
-                expect(overlay!.overlayMutation).to.deep.equal(
-                  testWritePending
-                );
-              });
-            });
+                'docs/newDoc',
+                testWriteNewDoc
+              )
+            );
             return p;
           }
         );
