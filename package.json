@@ -84,7 +84,7 @@
     "@types/sinon": "9.0.11",
     "@types/sinon-chai": "3.2.5",
     "@types/tmp": "0.2.1",
-    "@types/yargs": "17.0.3",
+    "@types/yargs": "17.0.10",
     "@types/js-yaml": "4.0.5",
     "@types/request": "2.48.8",
     "@typescript-eslint/eslint-plugin": "4.31.2",
@@ -155,6 +155,6 @@
     "typescript": "4.2.2",
     "watch": "1.0.2",
     "webpack": "4.46.0",
-    "yargs": "17.2.0"
+    "yargs": "17.4.1"
   }
 }
