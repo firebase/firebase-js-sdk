@@ -19,7 +19,7 @@ import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
-import simpleGit from 'simple-git/promise';
+import simpleGit from 'simple-git';
 import { TestConfig } from './testConfig';
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
