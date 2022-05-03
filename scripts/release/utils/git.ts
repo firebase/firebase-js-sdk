@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import simpleGit from 'simple-git/promise';
+import simpleGit from 'simple-git';
 import { projectRoot as root } from '../../utils';
 import { exec } from 'child-process-promise';
 import ora from 'ora';
