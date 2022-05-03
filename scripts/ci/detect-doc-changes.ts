@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import simpleGit from 'simple-git/promise';
+import simpleGit from 'simple-git';
 import { spawn } from 'child-process-promise';
 import * as tmp from 'tmp';
 

@@ -18,7 +18,7 @@
 import { doPrettier } from './prettier';
 import { doLicense } from './license';
 import { resolve } from 'path';
-import simpleGit from 'simple-git/promise';
+import simpleGit from 'simple-git';
 import chalk from 'chalk';
 import glob from 'glob';
 import { join } from 'path';
