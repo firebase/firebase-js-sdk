@@ -16,7 +16,7 @@
  */
 
 import { dirname, resolve } from 'path';
-import simpleGit from 'simple-git/promise';
+import simpleGit from 'simple-git';
 import { exec } from 'child-process-promise';
 import { readFile as _readFile } from 'fs';
 import { promisify } from 'util';

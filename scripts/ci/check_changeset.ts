@@ -19,7 +19,7 @@ import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
-import simpleGit from 'simple-git/promise';
+import simpleGit from 'simple-git';
 import fs from 'mz/fs';
 
 const root = resolve(__dirname, '..');
