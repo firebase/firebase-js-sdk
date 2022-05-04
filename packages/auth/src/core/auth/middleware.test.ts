@@ -94,7 +94,7 @@ describe('Auth middleware', () => {
     expect(secondOnAbort).not.to.have.been.called;
   });
 
-  it('calls onAbort in order', async () => {
+  it('calls onAbort in reverse order', async () => {
     const calls: number[] = [];
 
     middlewareQueue.pushCallback(() => {}, () => {calls.push(1);});
