@@ -2,4 +2,4 @@
 '@firebase/firestore': patch
 ---
 
-Add TransactionOptions to runTransaction
+Add `TransactionOptions` param to `runTransaction` method
