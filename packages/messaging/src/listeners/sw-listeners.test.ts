@@ -39,6 +39,7 @@ import {
 } from '../interfaces/internal-message-payload';
 import {
   NotificationEvent,
+  PushSubscriptionChangeEvent,
   ServiceWorkerGlobalScope,
   ServiceWorkerGlobalScopeEventMap,
   WindowClient
@@ -427,9 +428,9 @@ describe('SwController', () => {
 
   describe('onSubChange', () => {
     it('calls deleteToken if there is no new subscription', async () => {
-      const event = makeEvent('pushsubscriptionchange', {
+      const event = makeFakePushSubscriptionChangeEvent({
         oldSubscription: new FakePushSubscription(),
-        newSubscription: undefined
+        newSubscription: null
       });
 
       await callEventListener(event);
@@ -439,7 +440,7 @@ describe('SwController', () => {
     });
 
     it('calls deleteToken and getToken if subscription changed', async () => {
-      const event = makeEvent('pushsubscriptionchange', {
+      const event = makeFakePushSubscriptionChangeEvent({
         oldSubscription: new FakePushSubscription(),
         newSubscription: new FakePushSubscription()
       });
@@ -473,4 +474,13 @@ function makeEvent<K extends keyof ServiceWorkerGlobalScopeEventMap>(
   const event = new FakeEvent(type);
   Object.assign(event, data);
   return event as unknown as ServiceWorkerGlobalScopeEventMap[K];
+}
+
+function makeFakePushSubscriptionChangeEvent(data: {
+  newSubscription: PushSubscription | null;
+  oldSubscription: PushSubscription | null;
+}): PushSubscriptionChangeEvent {
+  const event = new FakeEvent('pushsubscriptionchange');
+  Object.assign(event, data);
+  return event as unknown as PushSubscriptionChangeEvent;
 }
