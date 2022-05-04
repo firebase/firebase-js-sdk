@@ -1,1 +1,22 @@
+# Source files
+# ============
+*.css      text eol=lf
+*.html     text eol=lf
+*.md       text eol=lf
+*.map      text eol=lf
+*.js       text eol=lf
+*.ts       text eol=lf
+*.tsx      text eol=lf
+*.json     text eol=lf
+
+
+# Misc files
+# ==========
+.gitattributes	text eol=lf
+.gitignore   	text eol=lf
+AUTHORS      	text eol=lf
+CHANGELOG    	text eol=lf
+CONTRIBUTORS 	text eol=lf
+LICENSE      	text eol=lf
+
 *.json  linguist-language=JSON-with-Comments
