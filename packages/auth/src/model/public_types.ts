@@ -99,6 +99,9 @@ export interface ParsedToken {
   'iat'?: string;
   /** Firebase specific claims, containing the provider(s) used to authenticate the user. */
   'firebase'?: {
+    'identities'?: {
+      [key: string]: string[];
+    };
     'sign_in_provider'?: string;
     'sign_in_second_factor'?: string;
   };

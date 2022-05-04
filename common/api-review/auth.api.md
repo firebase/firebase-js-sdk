@@ -538,6 +538,9 @@ export interface ParsedToken {
     'auth_time'?: string;
     'exp'?: string;
     'firebase'?: {
+        'identities'?: {
+            [key: string]: string[];
+        };
         'sign_in_provider'?: string;
         'sign_in_second_factor'?: string;
     };
