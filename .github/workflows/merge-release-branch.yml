@@ -1,0 +1,22 @@
+name: Merge Release Into Master
+
+on: repository_dispatch
+
+jobs:
+  merge_to_master:
+    runs-on: ubuntu-latest
+    # Allow GITHUB_TOKEN to have write permissions
+    permissions:
+      contents: write
+    steps:
+      - name: Merge to master
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.repos.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              base: 'master',
+              head: 'release'
+            })
