@@ -108,9 +108,9 @@ module.exports = {
         `$1/platform/${targetPlatform}/$2.ts`
       );
     }),
-    new webpack.EnvironmentPlugin([
-      'RTDB_EMULATOR_PORT',
-      'RTDB_EMULATOR_NAMESPACE'
-    ])
+    new webpack.EnvironmentPlugin({
+      RTDB_EMULATOR_PORT: 3000,
+      RTDB_EMULATOR_NAMESPACE: 'test-project'
+    })
   ]
 };
