@@ -10,13 +10,13 @@ jobs:
       contents: write
     steps:
       - name: Merge to master
-        uses: actions/github-script@0.9.0
+        uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-              github.repos.merge({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                base: 'master',
-                head: 'release'
-              })
+            github.repos.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              base: 'master',
+              head: 'release'
+            })
