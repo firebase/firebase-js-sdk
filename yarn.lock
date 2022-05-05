@@ -3284,10 +3284,10 @@
     "@types/mime" "^1"
     "@types/node" "*"
 
-"@types/sinon-chai@3.2.5":
-  version "3.2.5"
-  resolved "https://registry.npmjs.org/@types/sinon-chai/-/sinon-chai-3.2.5.tgz#df21ae57b10757da0b26f512145c065f2ad45c48"
-  integrity sha512-bKQqIpew7mmIGNRlxW6Zli/QVyc3zikpGzCa797B/tRnD9OtHvZ/ts8sYXV+Ilj9u3QRaUEM8xrjgd1gwm1BpQ==
+"@types/sinon-chai@3.2.8":
+  version "3.2.8"
+  resolved "https://registry.npmjs.org/@types/sinon-chai/-/sinon-chai-3.2.8.tgz#5871d09ab50d671d8e6dd72e9073f8e738ac61dc"
+  integrity sha512-d4ImIQbT/rKMG8+AXpmcan5T2/PNeSjrYhvkwet6z0p8kzYtfgA32xzOBlbU0yqJfq+/0Ml805iFoODO0LP5/g==
   dependencies:
     "@types/chai" "*"
     "@types/sinon" "*"
