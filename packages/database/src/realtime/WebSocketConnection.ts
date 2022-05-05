@@ -140,7 +140,7 @@ export class WebSocketConnection implements Transport {
     if (appCheckToken) {
       urlParams[APP_CHECK_TOKEN_PARAM] = appCheckToken;
     }
-    if(applicationId) {
+    if (applicationId) {
       urlParams[APPLICATION_ID_PARAM] = applicationId;
     }
 
@@ -195,9 +195,8 @@ export class WebSocketConnection implements Transport {
         if (proxy) {
           options['proxy'] = { origin: proxy };
         }
-
       }
-        this.mySock = new WebSocketImpl(this.connURL, [], options);
+      this.mySock = new WebSocketImpl(this.connURL, [], options);
     } catch (e) {
       this.log_('Error instantiating WebSocket.');
       const error = e.message || e.data;
