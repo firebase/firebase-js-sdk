@@ -57,7 +57,7 @@ module.exports = [
     },
     devtool: 'source-map',
     devServer: {
-      contentBase: './build'
+      static: './build'
     }
   },
   {
@@ -96,7 +96,7 @@ module.exports = [
     },
     devtool: 'source-map',
     devServer: {
-      contentBase: './build'
+      static: './build'
     }
   }
 ];
