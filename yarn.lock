@@ -3323,10 +3323,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/tmp@0.2.1":
-  version "0.2.1"
-  resolved "https://registry.npmjs.org/@types/tmp/-/tmp-0.2.1.tgz#83ecf4ec22a8c218c71db25f316619fe5b986011"
-  integrity sha512-7cTXwKP/HLOPVgjg+YhBdQ7bMiobGMuoBmrGmqwIWJv8elC6t1DfVc/mn4fD9UE1IjhwmhaQ5pGVXkmXbH0rhg==
+"@types/tmp@0.2.3":
+  version "0.2.3"
+  resolved "https://registry.npmjs.org/@types/tmp/-/tmp-0.2.3.tgz#908bfb113419fd6a42273674c00994d40902c165"
+  integrity sha512-dDZH/tXzwjutnuk4UacGgFRwV+JSLaXL1ikvidfJprkb7L9Nx1njcRHHmi3Dsvt7pgqqTEeucQuOrWHPFgzVHA==
 
 "@types/tough-cookie@*":
   version "4.0.1"
