@@ -56,7 +56,7 @@
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.30.0",
     "@rollup/plugin-node-resolve": "13.0.5",
-    "ts-node": "10.2.1",
+    "ts-node": "10.7.0",
     "typescript": "4.2.2"
   },
   "license": "Apache-2.0",
