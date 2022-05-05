@@ -111,6 +111,8 @@ export {
 
 export { WriteBatch, writeBatch } from '../src/lite-api/write_batch';
 
+export { TransactionOptions } from '../src/lite-api/transaction_options';
+
 export { Transaction, runTransaction } from '../src/lite-api/transaction';
 
 export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
