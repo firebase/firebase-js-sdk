@@ -243,6 +243,9 @@ export interface AuthSettings {
 }
 
 // @public
+export function beforeAuthStateChanged(auth: Auth, callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
+
+// @public
 export const browserLocalPersistence: Persistence;
 
 // @public
