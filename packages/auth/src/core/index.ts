@@ -89,8 +89,8 @@ export function onIdTokenChanged(
  *
  * @param auth - The {@link Auth} instance.
  * @param callback - callback triggered before new user value is set.
- *   If this throws, it will block the user from being set.
- * @param onAbort - callback triggered if a later before state changed
+ *   If this throws, it blocks the user from being set.
+ * @param onAbort - callback triggered if a later `beforeAuthStateChanged()`
  *   callback throws, allowing you to undo any side effects.
  */
  export function beforeAuthStateChanged(

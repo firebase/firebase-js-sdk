@@ -260,7 +260,7 @@ export interface Auth {
    *
    * @param callback - callback triggered before new user value is set.
    *   If this throws, it blocks the user from being set.
-   * @param onAbort - callback triggered if a later before state changed
+   * @param onAbort - callback triggered if a later `beforeAuthStateChanged()`
    *   callback throws, allowing you to undo any side effects.
    */
   beforeAuthStateChanged(
