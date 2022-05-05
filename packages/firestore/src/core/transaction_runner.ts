@@ -24,23 +24,24 @@ import { Deferred } from '../util/promise';
 import { isNullOrUndefined } from '../util/types';
 
 import { Transaction } from './transaction';
-
-export const DEFAULT_MAX_ATTEMPTS_COUNT = 5;
+import { TransactionOptions } from './transaction_options';
 
 /**
  * TransactionRunner encapsulates the logic needed to run and retry transactions
  * with backoff.
  */
 export class TransactionRunner<T> {
-  private attemptsRemaining = DEFAULT_MAX_ATTEMPTS_COUNT;
+  private attemptsRemaining: number;
   private backoff: ExponentialBackoff;
 
   constructor(
     private readonly asyncQueue: AsyncQueue,
     private readonly datastore: Datastore,
+    private readonly options: TransactionOptions,
     private readonly updateFunction: (transaction: Transaction) => Promise<T>,
     private readonly deferred: Deferred<T>
   ) {
+    this.attemptsRemaining = options.maxAttempts;
     this.backoff = new ExponentialBackoff(
       this.asyncQueue,
       TimerId.TransactionRetry

@@ -89,6 +89,8 @@ export {
 
 export { Unsubscribe, SnapshotListenOptions } from './api/reference_impl';
 
+export { TransactionOptions } from './api/transaction_options';
+
 export { runTransaction, Transaction } from './api/transaction';
 
 export {

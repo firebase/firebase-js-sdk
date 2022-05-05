@@ -82,6 +82,7 @@ import {
   syncEngineWrite
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
+import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
@@ -483,7 +484,8 @@ export function firestoreClientAddSnapshotsInSyncListener(
  */
 export function firestoreClientTransaction<T>(
   client: FirestoreClient,
-  updateFunction: (transaction: Transaction) => Promise<T>
+  updateFunction: (transaction: Transaction) => Promise<T>,
+  options: TransactionOptions
 ): Promise<T> {
   const deferred = new Deferred<T>();
   client.asyncQueue.enqueueAndForget(async () => {
@@ -491,6 +493,7 @@ export function firestoreClientTransaction<T>(
     new TransactionRunner<T>(
       client.asyncQueue,
       datastore,
+      options,
       updateFunction,
       deferred
     ).run();
