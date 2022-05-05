@@ -101,6 +101,7 @@ export interface ParsedToken {
   'firebase'?: {
     'sign_in_provider'?: string;
     'sign_in_second_factor'?: string;
+    'identities'?: Record<string, string>;
   };
   /** Map of any additional custom claims. */
   [key: string]: string | object | undefined;
