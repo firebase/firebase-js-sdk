@@ -1,6 +1,6 @@
 ---
-"@firebase/database-compat": patch
-"@firebase/database": patch
+"@firebase/database-compat": minor
+"@firebase/database": minor
 ---
 
-Add forceWebSockets() and forceLongPolling()
+Add `forceWebSockets()` and `forceLongPolling()`
