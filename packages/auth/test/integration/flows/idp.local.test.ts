@@ -41,6 +41,7 @@ import {
   getTestInstance,
   randomEmail
 } from '../../helpers/integration/helpers';
+import { generateMiddlewareTests } from './middleware_test_generator';
 
 use(chaiAsPromised);
 
@@ -284,5 +285,12 @@ describe('Integration test: headless IdP', () => {
       'google.com',
       'github.com'
     ]);
+  });
+
+  generateMiddlewareTests(() => auth, () => {
+    return signInWithCredential(
+      auth,
+      GoogleAuthProvider.credential(oauthIdToken)
+    );
   });
 });

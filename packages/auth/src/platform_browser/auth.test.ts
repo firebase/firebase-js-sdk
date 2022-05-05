@@ -130,7 +130,8 @@ describe('core/auth/initializeAuth', () => {
     async function initAndWait(
       persistence: Persistence | Persistence[],
       popupRedirectResolver?: PopupRedirectResolver,
-      authDomain = FAKE_APP.options.authDomain
+      authDomain = FAKE_APP.options.authDomain,
+      blockMiddleware = false,
     ): Promise<Auth> {
       const auth = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
         apiKey: FAKE_APP.options.apiKey!,
@@ -146,6 +147,12 @@ describe('core/auth/initializeAuth', () => {
         persistence,
         popupRedirectResolver
       });
+
+      if (blockMiddleware) {
+        auth.beforeAuthStateChanged(() => {
+          throw new Error('blocked');
+        });
+      }
       // Auth initializes async. We can make sure the initialization is
       // flushed by awaiting a method on the queue.
       await auth.setPersistence(inMemoryPersistence);
@@ -407,6 +414,84 @@ describe('core/auth/initializeAuth', () => {
         );
         expect(user).not.to.be.null;
         expect(auth.currentUser).to.eq(user);
+      });
+
+      it('does not halt old user load if middleware throws', async () => {
+        const stub = sinon.stub(
+          _getInstance<PersistenceInternal>(inMemoryPersistence)
+        );
+        const oldUser = testUser(oldAuth, 'old-uid');
+        stub._get.returns(Promise.resolve(oldUser.toJSON()));
+        const overrideSpy = sinon.spy(_getInstance<PopupRedirectResolverInternal>(browserPopupRedirectResolver), '_overrideRedirectResult');
+        const auth = await initAndWait(
+          [inMemoryPersistence],
+          browserPopupRedirectResolver,
+          FAKE_APP.options.authDomain,
+          /* blockMiddleware */ true
+        );
+
+        expect(auth.currentUser!.uid).to.eq(oldUser.uid);
+        expect(reload._reloadWithoutSaving).to.have.been.called;
+        expect(overrideSpy).not.to.have.been.called;
+      });
+
+      it('Reloads and uses old user if middleware throws', async () => {
+        const stub = sinon.stub(
+          _getInstance<PersistenceInternal>(inMemoryPersistence)
+        );
+        const oldUser = testUser(oldAuth, 'old-uid');
+        stub._get.returns(Promise.resolve(oldUser.toJSON()));
+        const overrideSpy = sinon.spy(_getInstance<PopupRedirectResolverInternal>(browserPopupRedirectResolver), '_overrideRedirectResult');
+
+        let user: UserInternal | null = null;
+        completeRedirectFnStub.callsFake((auth: AuthInternal) => {
+          user = testUser(auth, 'uid', 'redirectUser@test.com');
+          return Promise.resolve(
+            new UserCredentialImpl({
+              operationType: OperationType.SIGN_IN,
+              user,
+              providerId: null
+            })
+          );
+        });
+
+        const auth = await initAndWait(
+          [inMemoryPersistence],
+          browserPopupRedirectResolver,
+          FAKE_APP.options.authDomain,
+          /* blockMiddleware */ true
+        );
+        expect(user).not.to.be.null;
+        expect(auth.currentUser!.uid).to.eq(oldUser.uid);
+        expect(reload._reloadWithoutSaving).to.have.been.called;
+        expect(overrideSpy).to.have.been.called;
+      });
+
+      it('Nulls current user if redirect blocked by middleware', async () => {
+        const stub = sinon.stub(
+          _getInstance<PersistenceInternal>(inMemoryPersistence)
+        );
+        stub._get.returns(Promise.resolve(null));
+        completeRedirectFnStub.callsFake((auth: AuthInternal) => {
+          const user = testUser(auth, 'uid', 'redirectUser@test.com');
+          return Promise.resolve(
+            new UserCredentialImpl({
+              operationType: OperationType.SIGN_IN,
+              user,
+              providerId: null
+            })
+          );
+        });
+
+        const auth = await initAndWait(
+          [inMemoryPersistence],
+          browserPopupRedirectResolver,
+          FAKE_APP.options.authDomain,
+          /* blockMiddleware */ true
+        );
+        expect(completeRedirectFnStub).to.have.been.called;
+        expect(auth.currentUser).to.be.null;
+        expect(reload._reloadWithoutSaving).not.to.have.been.called;
       });
     });
   });

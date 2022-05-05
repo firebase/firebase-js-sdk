@@ -77,6 +77,11 @@ export enum PersistenceFunction {
   SET_PERSISTENCE_LOCAL_STORAGE = 'persistence.setPersistenceLocalStorage'
 }
 
+export enum MiddlewareFunction {
+  ATTACH_BLOCKING_MIDDLEWARE = 'middleware.attachBlockingMiddleware',
+  ATTACH_BLOCKING_MIDDLEWARE_ON_START = 'middleware.attachBlockingMiddlewareOnStart',
+}
+
 /** Available firebase UI functions (only for compat tests) */
 export enum UiFunction {
   LOAD = 'ui.loadUiCode',
