@@ -259,7 +259,7 @@ export interface Auth {
    * sets a new user.
    *
    * @param callback - callback triggered before new user value is set.
-   *   If this throws, it will block the user from being set.
+   *   If this throws, it blocks the user from being set.
    */
   beforeAuthStateChanged(
     callback: (user: User | null) => void | Promise<void>
