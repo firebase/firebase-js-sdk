@@ -1,6 +1,11 @@
 name: Merge Release Into Master
 
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'     
+        required: true
 
 jobs:
   merge_to_master:
@@ -14,9 +19,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            github.repos.merge({
+            github.rest.repos.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
               base: 'master',
-              head: 'release'
+              head: 'release',
+              commit_message: 'Release ${{ github.event.inputs.version }}'
             })
