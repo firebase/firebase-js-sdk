@@ -1,6 +1,6 @@
 name: Merge Release Into Master
 
-on: repository_dispatch
+on: workflow_dispatch
 
 jobs:
   merge_to_master:
