@@ -1,5 +1,19 @@
 # Unreleased
 
+## 0.13.0
+
+### Minor Changes
+
+- [`9c6808fea`](https://github.com/firebase/firebase-js-sdk/commit/9c6808fea231d1ab6de6f6ab548c67b751a12a78) [#6171](https://github.com/firebase/firebase-js-sdk/pull/6171) - Add `forceWebSockets()` and `forceLongPolling()`
+
+### Patch Changes
+
+- [`874cdbbcc`](https://github.com/firebase/firebase-js-sdk/commit/874cdbbccbc2bf8f4ee18abe220e87dc52e6a8db) [#6232](https://github.com/firebase/firebase-js-sdk/pull/6232) - Added GMPID to websocket connection.
+
+- Updated dependencies [[`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801)]:
+  - @firebase/util@1.6.0
+  - @firebase/component@0.5.14
+
 ## 0.12.8
 
 ### Patch Changes

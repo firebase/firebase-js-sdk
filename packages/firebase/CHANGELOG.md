@@ -1,5 +1,39 @@
 # firebase
 
+## 9.8.0
+
+### Minor Changes
+
+- [`63caee2a5`](https://github.com/firebase/firebase-js-sdk/commit/63caee2a536892c9359a6ca5860d60294ce633e3) [#6237](https://github.com/firebase/firebase-js-sdk/pull/6237) - Bump main package due to minor bumps in auth and database.
+
+### Patch Changes
+
+- Updated dependencies [[`874cdbbcc`](https://github.com/firebase/firebase-js-sdk/commit/874cdbbccbc2bf8f4ee18abe220e87dc52e6a8db), [`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801), [`dfab18af6`](https://github.com/firebase/firebase-js-sdk/commit/dfab18af66beeed14b2524f926af5bda506856a6), [`1ac3c9d41`](https://github.com/firebase/firebase-js-sdk/commit/1ac3c9d41e8f69a94c64c6e0caf5f1a159b7dc3c), [`9c6808fea`](https://github.com/firebase/firebase-js-sdk/commit/9c6808fea231d1ab6de6f6ab548c67b751a12a78)]:
+  - @firebase/database@0.13.0
+  - @firebase/util@1.6.0
+  - @firebase/app@0.7.23
+  - @firebase/installations@0.5.9
+  - @firebase/messaging@0.9.13
+  - @firebase/firestore@3.4.9
+  - @firebase/auth@0.20.0
+  - @firebase/auth-compat@0.2.13
+  - @firebase/database-compat@0.2.0
+  - @firebase/analytics@0.7.9
+  - @firebase/analytics-compat@0.1.10
+  - @firebase/app-check@0.5.8
+  - @firebase/app-check-compat@0.2.8
+  - @firebase/app-compat@0.1.24
+  - @firebase/firestore-compat@0.1.18
+  - @firebase/functions@0.8.1
+  - @firebase/functions-compat@0.2.1
+  - @firebase/messaging-compat@0.1.13
+  - @firebase/performance@0.5.9
+  - @firebase/performance-compat@0.1.9
+  - @firebase/remote-config@0.3.8
+  - @firebase/remote-config-compat@0.1.9
+  - @firebase/storage@0.9.6
+  - @firebase/storage-compat@0.1.14
+
 ## 9.7.0
 
 ### Minor Changes
