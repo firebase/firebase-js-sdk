@@ -23,7 +23,11 @@ import {
   logEvent
 } from 'firebase/analytics';
 import { initializeAppCheck, CustomProvider } from 'firebase/app-check';
-import { getFunctions, httpsCallable, httpsCallableFromURL } from 'firebase/functions';
+import {
+  getFunctions,
+  httpsCallable,
+  httpsCallableFromURL
+} from 'firebase/functions';
 import {
   getStorage,
   ref,
