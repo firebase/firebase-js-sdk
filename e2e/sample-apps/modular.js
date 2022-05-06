@@ -23,7 +23,11 @@ import {
   logEvent
 } from 'firebase/analytics';
 import { initializeAppCheck, CustomProvider } from 'firebase/app-check';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import {
+  getFunctions,
+  httpsCallable,
+  httpsCallableFromURL
+} from 'firebase/functions';
 import {
   getStorage,
   ref,
@@ -133,7 +137,7 @@ async function callFunctions(app) {
       throw e;
     }
   }
-  callTest = httpsCallableByUrl(
+  callTest = httpsCallableFromURL(
     functions,
     `https://us-central-${app.options.projectId}.cloudfunctions.net/callTest`
   );

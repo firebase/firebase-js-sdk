@@ -58,7 +58,8 @@ module.exports = function (config) {
           directories: ['./node_modules'],
           alias: {
             '@firebase/messaging/sw':
-              'node_modules/@firebase/messaging/dist/index.sw.esm2017.js'
+              'node_modules/@firebase/messaging/dist/index.sw.esm2017.js',
+            'idb': 'node_modules/idb/build/index.js'
           }
         },
         transforms: [
@@ -77,7 +78,14 @@ module.exports = function (config) {
         ]
       },
       compilerOptions: {
-        allowJs: true
+        allowJs: true,
+        'module': 'commonjs',
+        'moduleResolution': 'node',
+        'resolveJsonModule': true,
+        'esModuleInterop': true,
+        'sourceMap': true,
+        'target': 'es5',
+        'importHelpers': true
       }
     },
     plugins: [
