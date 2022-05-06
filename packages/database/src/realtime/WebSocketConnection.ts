@@ -25,6 +25,7 @@ import { logWrapper, splitStringBySize } from '../core/util/util';
 import { SDK_VERSION } from '../core/version';
 
 import {
+  APPLICATION_ID_PARAM,
   APP_CHECK_TOKEN_PARAM,
   FORGE_DOMAIN_RE,
   FORGE_REF,
@@ -99,7 +100,8 @@ export class WebSocketConnection implements Transport {
       repoInfo,
       transportSessionId,
       lastSessionId,
-      appCheckToken
+      appCheckToken,
+      applicationId
     );
     this.nodeAdmin = repoInfo.nodeAdmin;
   }
@@ -115,7 +117,8 @@ export class WebSocketConnection implements Transport {
     repoInfo: RepoInfo,
     transportSessionId?: string,
     lastSessionId?: string,
-    appCheckToken?: string
+    appCheckToken?: string,
+    applicationId?: string
   ): string {
     const urlParams: { [k: string]: string } = {};
     urlParams[VERSION_PARAM] = PROTOCOL_VERSION;
@@ -137,6 +140,9 @@ export class WebSocketConnection implements Transport {
     if (appCheckToken) {
       urlParams[APP_CHECK_TOKEN_PARAM] = appCheckToken;
     }
+    if (applicationId) {
+      urlParams[APPLICATION_ID_PARAM] = applicationId;
+    }
 
     return repoInfoConnectionURL(repoInfo, WEBSOCKET, urlParams);
   }
@@ -156,6 +162,7 @@ export class WebSocketConnection implements Transport {
     PersistentStorage.set('previous_websocket_failure', true);
 
     try {
+      let options: { [k: string]: object };
       if (isNodeSdk()) {
         const device = this.nodeAdmin ? 'AdminNode' : 'Node';
         // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
@@ -188,17 +195,8 @@ export class WebSocketConnection implements Transport {
         if (proxy) {
           options['proxy'] = { origin: proxy };
         }
-
-        this.mySock = new WebSocketImpl(this.connURL, [], options);
-      } else {
-        const options: { [k: string]: object } = {
-          headers: {
-            'X-Firebase-GMPID': this.applicationId || '',
-            'X-Firebase-AppCheck': this.appCheckToken || ''
-          }
-        };
-        this.mySock = new WebSocketImpl(this.connURL, [], options);
       }
+      this.mySock = new WebSocketImpl(this.connURL, [], options);
     } catch (e) {
       this.log_('Error instantiating WebSocket.');
       const error = e.message || e.data;
