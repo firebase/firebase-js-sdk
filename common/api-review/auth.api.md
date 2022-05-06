@@ -81,6 +81,7 @@ export function applyActionCode(auth: Auth, oobCode: string): Promise<void>;
 // @public
 export interface Auth {
     readonly app: FirebaseApp;
+    beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
     readonly config: Config;
     readonly currentUser: User | null;
     readonly emulatorConfig: EmulatorConfig | null;
@@ -240,6 +241,9 @@ export interface AuthProvider {
 export interface AuthSettings {
     appVerificationDisabledForTesting: boolean;
 }
+
+// @public
+export function beforeAuthStateChanged(auth: Auth, callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
 
 // @public
 export const browserLocalPersistence: Persistence;
