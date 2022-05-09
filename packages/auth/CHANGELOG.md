@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.20.1
+
+### Patch Changes
+
+- [`07cf0f1c9`](https://github.com/firebase/firebase-js-sdk/commit/07cf0f1c9033373bf1d3a8a1958385f177506c6c) [#6248](https://github.com/firebase/firebase-js-sdk/pull/6248) (fixes [#6246](https://github.com/firebase/firebase-js-sdk/issues/6246)) - Add `@internal` tags to fix public typings file.
+
 ## 0.20.0
 
 ### Minor Changes
