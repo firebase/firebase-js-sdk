@@ -544,6 +544,7 @@ export interface ParsedToken {
     'firebase'?: {
         'sign_in_provider'?: string;
         'sign_in_second_factor'?: string;
+        'identities'?: Record<string, string>;
     };
     'iat'?: string;
     'sub'?: string;
