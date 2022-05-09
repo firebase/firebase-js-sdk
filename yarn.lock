@@ -7775,10 +7775,10 @@ fined@^1.0.1:
     object.pick "^1.2.0"
     parse-filepath "^1.0.1"
 
-firebase-functions@3.20.0:
-  version "3.20.0"
-  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.20.0.tgz#78945c167ac4a5c150cd3f40b1672a1060b11c1a"
-  integrity sha512-Srh2iW/A24ia1CUfSIz5wRxCCFN2cQX6cg6whM0zAnoJs2oBwrI8PUfB4ZKDM7alBZSwXGHJbEw+4P/gC0npUg==
+firebase-functions@3.20.1:
+  version "3.20.1"
+  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.20.1.tgz#d7c6aa7aaa91d39d55347c4cd3e72e9b9bfe5988"
+  integrity sha512-x8TEWOsaUnytsNBkrpraa2pOokdjMaGnOkcKdC6HDX/tvlBxrdNpvAMc+Vu/u0lzow9Hs+W+3jEe6Ss4duIz6g==
   dependencies:
     "@types/cors" "^2.8.5"
     "@types/express" "4.17.3"
