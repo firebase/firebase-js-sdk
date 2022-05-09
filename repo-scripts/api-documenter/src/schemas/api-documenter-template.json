@@ -17,7 +17,7 @@
    *
    * DEFAULT VALUE: "crlf"
    */
-  // "newlineKind": "crlf",
+  "newlineKind": "lf",
 
   /**
    * This enables an experimental feature that will be officially released with the next major version
