@@ -52,23 +52,9 @@ export class Database implements FirebaseService, Compat<ModularDatabase> {
    */
   constructor(readonly _delegate: ModularDatabase, readonly app: FirebaseApp) {}
 
-  /**
-   * INTERNAL methods for internal-use only (tests, etc.).
-   *
-   * @const
-   */
   INTERNAL = {
-    /**
-     * Deletes a database
-     */
     delete: () => this._delegate._delete(),
-    /**
-     * Forces realtime database to use websockets over longpolling
-     */
     forceWebSockets,
-    /**
-     * Forces realtime database to use longpolling over websockets
-     */
     forceLongPolling
   };
 
