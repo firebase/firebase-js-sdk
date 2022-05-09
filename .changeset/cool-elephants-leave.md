@@ -2,4 +2,4 @@
 "@firebase/auth": patch
 ---
 
-Add missing field to firebase claim in token result typing
+Add missing field to `firebase` claim in token result typing
