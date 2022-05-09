@@ -1,11 +1,7 @@
 name: Merge Release Into Master
 
 on: 
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version'     
-        required: true
+  workflow_dispatch
 
 jobs:
   merge_to_master:
