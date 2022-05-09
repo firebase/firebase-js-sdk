@@ -6022,20 +6022,20 @@ declare namespace firebase.database {
      * INTERNAL methods for internal-use only (tests, etc.).
      *
      * @const
-    */
+     */
     INTERNAL: {
       /**
        * Deletes a database
        */
-      delete: () => Promise<void>,
+      delete: () => Promise<void>;
       /**
        * Force the use of websockets instead of longPolling.
        */
-      forceWebSockets: () => void,
+      forceWebSockets: () => void;
       /**
        * Force the use of longPolling instead of websockets. This will be ignored if websocket protocol is used in databaseURL.
        */
-      forceLongPolling: () => void
+      forceLongPolling: () => void;
     };
     /**
      * Modify this instance to communicate with the Realtime Database emulator.
