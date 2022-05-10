@@ -9,14 +9,28 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout Release Branch
+        uses: actions/checkout@master
+        with:
+          ref: release
+      - name: Get release version
+        id: get-version
+        run: |
+          export VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
+          export VERSION=`node -e "${VERSION_SCRIPT}"`
+          echo "::set-output name=RELEASE_VERSION::$VERSION"
+      - name: Echo version in shell
+        run: |
+          echo "Merging release ${{ steps.get-version.outputs.RELEASE_VERSION }}"
       - name: Merge to master
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            github.repos.merge({
+            github.rest.repos.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
               base: 'master',
-              head: 'release'
+              head: 'release',
+              commit_message: 'Release ${{ steps.get-version.outputs.RELEASE_VERSION }}'
             })
