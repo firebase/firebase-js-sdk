@@ -66,7 +66,9 @@ export function setPersistence(
  *
  * @param auth - The {@link Auth} instance.
  * @param nextOrObserver - callback triggered on change.
- * @param error - callback triggered on error.
+ * @param error - Deprecated. This callback is never triggered. Errors
+ * on signing in/out can be caught in promises returned from
+ * sign-in/sign-out functions.
  * @param completed - callback triggered when observer is removed.
  *
  * @public
@@ -111,7 +113,9 @@ export function onIdTokenChanged(
  *
  * @param auth - The {@link Auth} instance.
  * @param nextOrObserver - callback triggered on change.
- * @param error - callback triggered on error.
+ * @param error - Deprecated. This callback is never triggered. Errors
+ * on signing in/out can be caught in promises returned from
+ * sign-in/sign-out functions.
  * @param completed - callback triggered when observer is removed.
  *
  * @public
