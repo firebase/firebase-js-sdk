@@ -71,7 +71,7 @@ export function setPersistence(
  * @param error - Deprecated. This callback is never triggered. Errors
  * on signing in/out can be caught in promises returned from
  * sign-in/sign-out functions.
- * @param completed - callback triggered when observer is removed.
+ * @param completed - Deprecated. This callback is never triggered.
  *
  * @public
  */
@@ -118,7 +118,7 @@ export function onIdTokenChanged(
  * @param error - Deprecated. This callback is never triggered. Errors
  * on signing in/out can be caught in promises returned from
  * sign-in/sign-out functions.
- * @param completed - callback triggered when observer is removed.
+ * @param completed - Deprecated. This callback is never triggered.
  *
  * @public
  */
