@@ -150,10 +150,7 @@ export class LruScheduler implements Scheduler {
       this.gcTask === null,
       'Cannot schedule GC while a task is pending'
     );
-    logDebug(
-      LOG_TAG,
-      `Garbage collection scheduled in ${delay}ms`
-    );
+    logDebug(LOG_TAG, `Garbage collection scheduled in ${delay}ms`);
     this.gcTask = this.asyncQueue.enqueueAfterDelay(
       TimerId.LruGarbageCollection,
       delay,

@@ -81,7 +81,7 @@ export const enum TimerId {
   /**
    *  A timer used to periodically attempt index backfill.
    */
-  IndexBackfill = 'index_backfill',
+  IndexBackfill = 'index_backfill'
 }
 
 /**

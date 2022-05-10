@@ -35,10 +35,10 @@ import {
   mutableDocumentMap,
   documentKeySet
 } from '../model/collections';
-import {Document, MutableDocument} from '../model/document';
-import {DocumentKey} from '../model/document_key';
-import {IndexOffset, INITIAL_LARGEST_BATCH_ID} from '../model/field_index';
-import {FieldMask} from '../model/field_mask';
+import { Document, MutableDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import { IndexOffset, INITIAL_LARGEST_BATCH_ID } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
 import {
   calculateOverlayMutation,
   mutationApplyToLocalView,
@@ -329,34 +329,51 @@ export class LocalDocumentsView {
     offset: IndexOffset,
     count: number
   ): PersistencePromise<LocalDocumentsResult> {
-    return this.remoteDocumentCache.getAllFromCollectionGroup(transaction, collectionGroup, offset, count)
+    return this.remoteDocumentCache
+      .getAllFromCollectionGroup(transaction, collectionGroup, offset, count)
       .next((originalDocs: MutableDocumentMap) => {
-        const overlaysPromise: PersistencePromise<OverlayMap> = (count - originalDocs.size > 0)
-          ? this.documentOverlayCache.getOverlaysForCollectionGroup(
-            transaction,
-            collectionGroup,
-            offset.largestBatchId,
-            count - originalDocs.size
-          )
-          :  PersistencePromise.resolve(newOverlayMap());
+        const overlaysPromise: PersistencePromise<OverlayMap> =
+          count - originalDocs.size > 0
+            ? this.documentOverlayCache.getOverlaysForCollectionGroup(
+                transaction,
+                collectionGroup,
+                offset.largestBatchId,
+                count - originalDocs.size
+              )
+            : PersistencePromise.resolve(newOverlayMap());
         let largestBatchId = INITIAL_LARGEST_BATCH_ID;
         let modifiedDocs = originalDocs;
         return overlaysPromise.next(overlays => {
-          return PersistencePromise.forEach(overlays, (key: DocumentKey, overlay: Overlay) => {
-            if (largestBatchId < overlay.largestBatchId) {
-              largestBatchId = overlay.largestBatchId;
+          return PersistencePromise.forEach(
+            overlays,
+            (key: DocumentKey, overlay: Overlay) => {
+              if (largestBatchId < overlay.largestBatchId) {
+                largestBatchId = overlay.largestBatchId;
+              }
+              if (originalDocs.get(key)) {
+                return PersistencePromise.resolve();
+              }
+              return this.getBaseDocument(transaction, key, overlay).next(
+                doc => {
+                  modifiedDocs = modifiedDocs.insert(key, doc);
+                }
+              );
             }
-            if (originalDocs.get(key)) {
-              return PersistencePromise.resolve();
-            }
-            return this.getBaseDocument(transaction, key, overlay)
-              .next(doc => {
-                modifiedDocs = modifiedDocs.insert(key, doc);
-              });
-          })
-          .next(() => this.populateOverlays(transaction, overlays, originalDocs))
-          .next(() => this.computeViews(transaction, modifiedDocs, overlays, documentKeySet()))
-          .next(localDocs => new LocalDocumentsResult(largestBatchId, localDocs));
+          )
+            .next(() =>
+              this.populateOverlays(transaction, overlays, originalDocs)
+            )
+            .next(() =>
+              this.computeViews(
+                transaction,
+                modifiedDocs,
+                overlays,
+                documentKeySet()
+              )
+            )
+            .next(
+              localDocs => new LocalDocumentsResult(largestBatchId, localDocs)
+            );
         });
       });
   }
