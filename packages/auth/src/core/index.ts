@@ -61,8 +61,10 @@ export function setPersistence(
   return getModularInstance(auth).setPersistence(persistence);
 }
 /**
- * Adds an observer for changes to the signed-in user's ID token, which includes sign-in,
- * sign-out, and token refresh events.
+ * Adds an observer for changes to the signed-in user's ID token.
+ *
+ * @remarks
+ * This includes sign-in, sign-out, and token refresh events.
  *
  * @param auth - The {@link Auth} instance.
  * @param nextOrObserver - callback triggered on change.

@@ -242,6 +242,7 @@ export interface Auth {
   /**
    * Adds an observer for changes to the user's sign-in state.
    *
+   * @remarks
    * To keep the old behavior, see {@link Auth.onIdTokenChanged}.
    *
    * @param nextOrObserver - callback triggered on change.
