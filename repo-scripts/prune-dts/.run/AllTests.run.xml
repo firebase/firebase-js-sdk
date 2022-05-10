@@ -2,7 +2,7 @@
   <configuration default="false" name="All Tests" type="mocha-javascript-test-runner">
     <node-interpreter>project</node-interpreter>
     <node-options />
-    <mocha-package>$PROJECT_DIR$/../../node_modules/mocha</mocha-package>
+    <mocha-package>$PROJECT_DIR$/node_modules/mocha</mocha-package>
     <working-directory>$PROJECT_DIR$</working-directory>
     <pass-parent-env>true</pass-parent-env>
     <envs>
