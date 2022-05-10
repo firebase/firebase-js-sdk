@@ -17,7 +17,7 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { IndexBackfillerScheduler } from "../local/index_backfiller";
+import { IndexBackfillerScheduler } from '../local/index_backfiller';
 import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
@@ -117,12 +117,15 @@ export class MemoryOfflineComponentProvider
     this.persistence = this.createPersistence(cfg);
     await this.persistence.start();
     this.localStore = this.createLocalStore(cfg);
-    this.gcScheduler = this.createGarbageCollectionScheduler(cfg, this.localStore);
+    this.gcScheduler = this.createGarbageCollectionScheduler(
+      cfg,
+      this.localStore
+    );
   }
 
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration,
-    localStore: LocalStore,
+    localStore: LocalStore
   ): Scheduler | null {
     return null;
   }
@@ -203,7 +206,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
 
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration,
-    localStore: LocalStore,
+    localStore: LocalStore
   ): Scheduler | null {
     const garbageCollector =
       this.persistence.referenceDelegate.garbageCollector;
@@ -212,9 +215,13 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
 
   createIndexBackfiller(
     cfg: ComponentConfiguration,
-    localStore: LocalStore,
+    localStore: LocalStore
   ): Scheduler {
-    return new IndexBackfillerScheduler(cfg.asyncQueue, localStore, this.persistence);
+    return new IndexBackfillerScheduler(
+      cfg.asyncQueue,
+      localStore,
+      this.persistence
+    );
   }
 
   createPersistence(cfg: ComponentConfiguration): IndexedDbPersistence {

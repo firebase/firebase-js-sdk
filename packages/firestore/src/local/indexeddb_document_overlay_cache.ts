@@ -87,14 +87,12 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
   ): PersistencePromise<OverlayMap> {
     const result = newOverlayMap();
     return PersistencePromise.forEach(keys, (key: DocumentKey) => {
-      return this.getOverlay(transaction, key)
-        .next(overlay => {
-          if (overlay !== null) {
-            result.set(key, overlay);
-          }
-        });
-        })
-    .next(() => result);
+      return this.getOverlay(transaction, key).next(overlay => {
+        if (overlay !== null) {
+          result.set(key, overlay);
+        }
+      });
+    }).next(() => result);
   }
 
   saveOverlays(

@@ -18,18 +18,17 @@ import {
   IndexOffset,
   indexOffsetComparator,
   newIndexOffsetFromDocument
-} from "../model/field_index";
-import {debugAssert} from "../util/assert";
-import {AsyncQueue, DelayedOperation, TimerId} from "../util/async_queue";
-import {logDebug} from "../util/log";
+} from '../model/field_index';
+import { debugAssert } from '../util/assert';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
+import { logDebug } from '../util/log';
 
-import {LocalDocumentsResult} from "./local_documents_view";
-import {ignoreIfPrimaryLeaseLoss, LocalStore} from "./local_store";
-import {Persistence, Scheduler} from "./persistence";
-import {PersistencePromise} from "./persistence_promise";
-import {PersistenceTransaction} from "./persistence_transaction";
-import {isIndexedDbTransactionError} from "./simple_db";
-
+import { LocalDocumentsResult } from './local_documents_view';
+import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
+import { Persistence, Scheduler } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
+import { isIndexedDbTransactionError } from './simple_db';
 
 const LOG_TAG = 'IndexBackiller';
 
@@ -43,13 +42,12 @@ const REGULAR_BACKFILL_DELAY_MS = 1;
 const MAX_DOCUMENTS_TO_PROCESS = 50;
 
 export class IndexBackfillerScheduler implements Scheduler {
-
   private task: DelayedOperation<void> | null;
 
   constructor(
     private readonly asyncQueue: AsyncQueue,
     private readonly localStore: LocalStore,
-    private readonly persistence: Persistence,
+    private readonly persistence: Persistence
   ) {
     this.task = null;
   }
@@ -78,7 +76,7 @@ export class IndexBackfillerScheduler implements Scheduler {
       this.task === null,
       'Cannot schedule IndexBackiller while a task is pending'
     );
-    logDebug(LOG_TAG,`Scheduled in ${delay}ms`);
+    logDebug(LOG_TAG, `Scheduled in ${delay}ms`);
     this.task = this.asyncQueue.enqueueAfterDelay(
       TimerId.IndexBackfill,
       delay,
@@ -112,24 +110,33 @@ export class IndexBackfillerScheduler implements Scheduler {
   }
 
   /** Writes index entries until the cap is reached. Returns the number of documents processed. */
-  private writeIndexEntries(transation: PersistenceTransaction): PersistencePromise<number> {
+  private writeIndexEntries(
+    transation: PersistenceTransaction
+  ): PersistencePromise<number> {
     const processedCollectionGroups = new Set<string>();
     let documentsRemaining = MAX_DOCUMENTS_TO_PROCESS;
     let continueLoop = true;
     return PersistencePromise.whileLoop(
       () => continueLoop === true && documentsRemaining > 0,
       () => {
-        return this.localStore.indexManager.getNextCollectionGroupToUpdate(transation)
+        return this.localStore.indexManager
+          .getNextCollectionGroupToUpdate(transation)
           .next((collectionGroup: string | null) => {
-            if (collectionGroup === null || processedCollectionGroups.has(collectionGroup)) {
+            if (
+              collectionGroup === null ||
+              processedCollectionGroups.has(collectionGroup)
+            ) {
               continueLoop = false;
             } else {
               logDebug(LOG_TAG, `Processing collection: ${collectionGroup}`);
-              return this.writeEntriesForCollectionGroup(transation, collectionGroup, documentsRemaining)
-                .next(documentsProcessed => {
-                  documentsRemaining -= documentsProcessed;
-                  processedCollectionGroups.add(collectionGroup);
-                });
+              return this.writeEntriesForCollectionGroup(
+                transation,
+                collectionGroup,
+                documentsRemaining
+              ).next(documentsProcessed => {
+                documentsRemaining -= documentsProcessed;
+                processedCollectionGroups.add(collectionGroup);
+              });
             }
           });
       }
@@ -145,17 +152,30 @@ export class IndexBackfillerScheduler implements Scheduler {
     documentsRemainingUnderCap: number
   ): PersistencePromise<number> {
     // Use the earliest offset of all field indexes to query the local cache.
-    return this.localStore.indexManager.getMinOffsetFromCollectionGroup(transaction, collectionGroup)
-      .next(existingOffset => this.localStore.localDocuments
-        .getNextDocuments(transaction, collectionGroup, existingOffset, documentsRemainingUnderCap)
-        .next(nextBatch => this.localStore.indexManager.updateIndexEntries(transaction, nextBatch.documents)
-          .next(() => this.getNewOffset(existingOffset, nextBatch))
-          .next(newOffset => {
-            logDebug(LOG_TAG, `Updating offset: ${newOffset}`);
-            this.localStore.indexManager.updateCollectionGroup(transaction, collectionGroup, newOffset);
-            return nextBatch.documents.size;
-          })
-        )
+    return this.localStore.indexManager
+      .getMinOffsetFromCollectionGroup(transaction, collectionGroup)
+      .next(existingOffset =>
+        this.localStore.localDocuments
+          .getNextDocuments(
+            transaction,
+            collectionGroup,
+            existingOffset,
+            documentsRemainingUnderCap
+          )
+          .next(nextBatch =>
+            this.localStore.indexManager
+              .updateIndexEntries(transaction, nextBatch.documents)
+              .next(() => this.getNewOffset(existingOffset, nextBatch))
+              .next(newOffset => {
+                logDebug(LOG_TAG, `Updating offset: ${newOffset}`);
+                this.localStore.indexManager.updateCollectionGroup(
+                  transaction,
+                  collectionGroup,
+                  newOffset
+                );
+                return nextBatch.documents.size;
+              })
+          )
       );
   }
 
@@ -178,4 +198,3 @@ export class IndexBackfillerScheduler implements Scheduler {
     );
   }
 }
-

@@ -31,17 +31,14 @@ import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
 } from '../../../src/local/indexeddb_persistence';
-import {LocalStore} from "../../../src/local/local_store";
+import { LocalStore } from '../../../src/local/local_store';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
   MemoryEagerDelegate,
   MemoryLruDelegate,
   MemoryPersistence
 } from '../../../src/local/memory_persistence';
-import {
-  Scheduler,
-  Persistence
-} from '../../../src/local/persistence';
+import { Scheduler, Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   PersistenceTransaction,
@@ -158,7 +155,7 @@ export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineCompone
 
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration,
-    localStore: LocalStore,
+    localStore: LocalStore
   ): Scheduler | null {
     return null;
   }

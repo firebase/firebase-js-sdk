@@ -957,23 +957,28 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     collectionGroup: string
   ): PersistencePromise<IndexOffset> {
-    return this.getFieldIndexes(transaction, collectionGroup)
-      .next(this.getMinOffsetFromFieldIndexes);
+    return this.getFieldIndexes(transaction, collectionGroup).next(
+      this.getMinOffsetFromFieldIndexes
+    );
   }
 
   getMinOffsetFromFieldIndexes(fieldIndexes: FieldIndex[]): IndexOffset {
     let minOffset: IndexOffset = fieldIndexes[0].indexState.offset;
     let maxBatchId: number = minOffset.largestBatchId;
-    for(const fieldIndex of fieldIndexes) {
+    for (const fieldIndex of fieldIndexes) {
       const newOffset: IndexOffset = fieldIndex.indexState.offset;
       if (indexOffsetComparator(newOffset, minOffset) < 0) {
-       minOffset = newOffset;
+        minOffset = newOffset;
       }
       if (maxBatchId < newOffset.largestBatchId) {
-       maxBatchId = newOffset.largestBatchId;
+        maxBatchId = newOffset.largestBatchId;
       }
-   }
-   return new IndexOffset(minOffset.readTime, minOffset.documentKey, maxBatchId);
+    }
+    return new IndexOffset(
+      minOffset.readTime,
+      minOffset.documentKey,
+      maxBatchId
+    );
   }
 
   getMinOffset(
