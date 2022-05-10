@@ -17,6 +17,7 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
+import { IndexBackfillerScheduler } from "../local/index_backfiller";
 import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
@@ -29,7 +30,7 @@ import {
   MemoryEagerDelegate,
   MemoryPersistence
 } from '../local/memory_persistence';
-import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
+import { Scheduler, Persistence } from '../local/persistence';
 import { QueryEngine } from '../local/query_engine';
 import {
   ClientId,
@@ -87,7 +88,7 @@ export interface OfflineComponentProvider {
   persistence: Persistence;
   sharedClientState: SharedClientState;
   localStore: LocalStore;
-  gcScheduler: GarbageCollectionScheduler | null;
+  gcScheduler: Scheduler | null;
   synchronizeTabs: boolean;
 
   initialize(cfg: ComponentConfiguration): Promise<void>;
@@ -105,7 +106,7 @@ export class MemoryOfflineComponentProvider
   persistence!: Persistence;
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
-  gcScheduler!: GarbageCollectionScheduler | null;
+  gcScheduler!: Scheduler | null;
   synchronizeTabs = false;
 
   serializer!: JsonProtoSerializer;
@@ -115,13 +116,14 @@ export class MemoryOfflineComponentProvider
     this.sharedClientState = this.createSharedClientState(cfg);
     this.persistence = this.createPersistence(cfg);
     await this.persistence.start();
-    this.gcScheduler = this.createGarbageCollectionScheduler(cfg);
     this.localStore = this.createLocalStore(cfg);
+    this.gcScheduler = this.createGarbageCollectionScheduler(cfg, this.localStore);
   }
 
   createGarbageCollectionScheduler(
-    cfg: ComponentConfiguration
-  ): GarbageCollectionScheduler | null {
+    cfg: ComponentConfiguration,
+    localStore: LocalStore,
+  ): Scheduler | null {
     return null;
   }
 
@@ -158,7 +160,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   persistence!: IndexedDbPersistence;
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
-  gcScheduler!: GarbageCollectionScheduler | null;
+  gcScheduler!: Scheduler | null;
   synchronizeTabs = false;
 
   constructor(
@@ -184,7 +186,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     // set it after localStore / remoteStore are started.
     await this.persistence.setPrimaryStateListener(() => {
       if (this.gcScheduler && !this.gcScheduler.started) {
-        this.gcScheduler.start(this.localStore);
+        this.gcScheduler.start();
       }
       return Promise.resolve();
     });
@@ -200,11 +202,19 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   }
 
   createGarbageCollectionScheduler(
-    cfg: ComponentConfiguration
-  ): GarbageCollectionScheduler | null {
+    cfg: ComponentConfiguration,
+    localStore: LocalStore,
+  ): Scheduler | null {
     const garbageCollector =
       this.persistence.referenceDelegate.garbageCollector;
-    return new LruScheduler(garbageCollector, cfg.asyncQueue);
+    return new LruScheduler(garbageCollector, cfg.asyncQueue, localStore);
+  }
+
+  createIndexBackfiller(
+    cfg: ComponentConfiguration,
+    localStore: LocalStore,
+  ): Scheduler {
+    return new IndexBackfillerScheduler(cfg.asyncQueue, localStore, this.persistence);
   }
 
   createPersistence(cfg: ComponentConfiguration): IndexedDbPersistence {
@@ -283,7 +293,7 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
       );
       if (this.gcScheduler) {
         if (isPrimary && !this.gcScheduler.started) {
-          this.gcScheduler.start(this.localStore);
+          this.gcScheduler.start();
         } else if (!isPrimary) {
           this.gcScheduler.stop();
         }

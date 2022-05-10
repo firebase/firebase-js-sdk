@@ -330,13 +330,13 @@ function genericDocumentOverlayCacheTests(): void {
 
   it('skips non-existing overlay in batch lookup', async () => {
     const result = await overlayCache.getOverlays(
-      documentKeySet(key('coll/doc1'))
+      [key('coll/doc1')]
     );
     expect(result.isEmpty()).to.equal(true);
   });
 
   it('supports empty batch in batch lookup', async () => {
-    const result = await overlayCache.getOverlays(documentKeySet());
+    const result = await overlayCache.getOverlays([]);
     expect(result.isEmpty()).to.equal(true);
   });
 
@@ -346,7 +346,7 @@ function genericDocumentOverlayCacheTests(): void {
     const m3 = setMutation('coll/c', { 'c': 3 });
     await saveOverlaysForMutations(3, m1, m2, m3);
     const overlays = await overlayCache.getOverlays(
-      documentKeySet(key('coll/a'), key('coll/b'), key('coll/c'))
+      [key('coll/a'), key('coll/b'), key('coll/c')]
     );
     verifyEqualMutations(overlays.get(key('coll/a'))!.mutation, m1);
     verifyEqualMutations(overlays.get(key('coll/b'))!.mutation, m2);

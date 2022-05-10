@@ -138,4 +138,18 @@ export interface IndexManager {
     transaction: PersistenceTransaction,
     documents: DocumentMap
   ): PersistencePromise<void>;
+
+  /**
+   * Iterates over all field indexes that are used to serve the given target,
+   * and returns the minimum offset of them all.
+   */
+  getMinOffset(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexOffset>;
+
+  getMinOffsetFromCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string
+  ): PersistencePromise<IndexOffset>;
 }

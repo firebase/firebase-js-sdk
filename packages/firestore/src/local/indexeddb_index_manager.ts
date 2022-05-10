@@ -43,6 +43,7 @@ import {
   fieldIndexToString,
   IndexKind,
   IndexOffset,
+  indexOffsetComparator,
   IndexSegment
 } from '../model/field_index';
 import { FieldPath, ResourcePath } from '../model/path';
@@ -950,6 +951,51 @@ export class IndexedDbIndexManager implements IndexManager {
       );
     }
     return ranges;
+  }
+
+  getMinOffsetFromCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string
+  ): PersistencePromise<IndexOffset> {
+    return this.getFieldIndexes(transaction, collectionGroup)
+      .next(this.getMinOffsetFromFieldIndexes);
+  }
+
+  getMinOffsetFromFieldIndexes(fieldIndexes: FieldIndex[]): IndexOffset {
+    let minOffset: IndexOffset = fieldIndexes[0].indexState.offset;
+    let maxBatchId: number = minOffset.largestBatchId;
+    for(const fieldIndex of fieldIndexes) {
+      const newOffset: IndexOffset = fieldIndex.indexState.offset;
+      if (indexOffsetComparator(newOffset, minOffset) < 0) {
+       minOffset = newOffset;
+      }
+      if (maxBatchId < newOffset.largestBatchId) {
+       maxBatchId = newOffset.largestBatchId;
+      }
+   }
+   return new IndexOffset(minOffset.readTime, minOffset.documentKey, maxBatchId);
+  }
+
+  getMinOffset(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexOffset> {
+    let offset: IndexOffset | undefined;
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (target: Target) => {
+        return this.getFieldIndex(transaction, target).next(index => {
+          if (!index) {
+            offset = IndexOffset.min();
+          } else if (
+            !offset ||
+            indexOffsetComparator(index.indexState.offset, offset) < 0
+          ) {
+            offset = index.indexState.offset;
+          }
+        });
+      }
+    ).next(() => offset!);
   }
 }
 

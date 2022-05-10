@@ -31,6 +31,7 @@ import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
 } from '../../../src/local/indexeddb_persistence';
+import {LocalStore} from "../../../src/local/local_store";
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
   MemoryEagerDelegate,
@@ -38,7 +39,7 @@ import {
   MemoryPersistence
 } from '../../../src/local/memory_persistence';
 import {
-  GarbageCollectionScheduler,
+  Scheduler,
   Persistence
 } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -156,8 +157,9 @@ export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineCompone
   }
 
   createGarbageCollectionScheduler(
-    cfg: ComponentConfiguration
-  ): GarbageCollectionScheduler | null {
+    cfg: ComponentConfiguration,
+    localStore: LocalStore,
+  ): Scheduler | null {
     return null;
   }
 
@@ -207,7 +209,7 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
 
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration
-  ): GarbageCollectionScheduler | null {
+  ): Scheduler | null {
     return null;
   }
 
