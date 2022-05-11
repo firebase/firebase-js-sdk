@@ -485,7 +485,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     );
 
     const promises: Array<PersistencePromise<void>> = [];
-    let userToDocumentSet = new Map<string, DocumentKeySet>();
+    const userToDocumentSet = new Map<string, DocumentKeySet>();
 
     return mutationsStore
       .loadAll()

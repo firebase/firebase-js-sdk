@@ -1138,11 +1138,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             DbDocumentMutationKey,
             DbDocumentMutation
           >(DbDocumentMutationStore);
-          const mutationQueuesStore = txn.store<
-            DbMutationQueueKey,
-            DbMutationQueue
-          >(DbMutationQueueStore);
-          // Manually populate the mutation queue and create all indicies.
+          // Manually populate the mutations.
           return PersistencePromise.forEach(
             testMutations,
             (testMutation: DbMutationBatch) => {
@@ -1183,7 +1179,6 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             // We should have a total of 4 overlays:
             // For user1: testWriteFoo
             // For user2: testWriteBar, testWriteBaz, and testWritePending
-            // For user3: NO OVERLAYS!
             let p = documentOverlayStore.count().next(count => {
               expect(count).to.equal(4);
             });
