@@ -388,7 +388,7 @@ export interface Promotion {
 // @public
 export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enabled: boolean): void;
 
-// @public
+// @public @deprecated
 export function setCurrentScreen(analyticsInstance: Analytics, screenName: string, options?: AnalyticsCallOptions): void;
 
 // @public

@@ -90,7 +90,7 @@ describe('FirebaseAnalytics methods', () => {
     );
   });
 
-  it('setCurrentScreen() calls gtag correctly (instance)', async () => {
+  it('setCurrentScreen() (deprecated) calls gtag correctly (instance)', async () => {
     await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home');
     expect(gtagStub).to.have.been.calledWith(
       GtagCommand.CONFIG,
@@ -102,7 +102,7 @@ describe('FirebaseAnalytics methods', () => {
     );
   });
 
-  it('setCurrentScreen() calls gtag correctly (global)', async () => {
+  it('setCurrentScreen() (deprecated) calls gtag correctly (global)', async () => {
     await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home', {
       global: true
     });
