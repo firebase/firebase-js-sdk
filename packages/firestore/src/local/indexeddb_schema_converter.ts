@@ -143,7 +143,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    console.log(`in createOrUpgrade from ${fromVersion} to ${toVersion}`);
     debugAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
@@ -250,7 +249,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 14 && toVersion >= 14) {
-      console.log("about to runOverlayMigration");
       p = p.next(() => this.runOverlayMigration(db, simpleDbTransaction));
     }
 
@@ -473,7 +471,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     db: IDBDatabase,
     transaction: SimpleDbTransaction
   ): PersistencePromise<void> {
-    console.log("in runOverlayMigration");
     const mutationsStore = transaction.store<
       DbMutationBatchKey,
       DbMutationBatch
