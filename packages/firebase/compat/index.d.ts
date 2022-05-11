@@ -6019,21 +6019,16 @@ declare namespace firebase.database {
      */
     app: firebase.app.App;
     /**
-     * INTERNAL methods for internal-use only (tests, etc.).
+     * Additional methods for debugging and special cases.
      *
-     * @const
      */
     INTERNAL: {
       /**
-       * Deletes a database
-       */
-      delete: () => Promise<void>;
-      /**
-       * Force the use of websockets instead of longPolling.
+       * Force the use of WebSockets instead of long polling.
        */
       forceWebSockets: () => void;
       /**
-       * Force the use of longPolling instead of websockets. This will be ignored if websocket protocol is used in databaseURL.
+       * Force the use of long polling instead of WebSockets. This will be ignored if the WebSocket protocol is used in `databaseURL`.
        */
       forceLongPolling: () => void;
     };
