@@ -1066,7 +1066,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
   });
 
-  it.only('can upgrade from schema version 13 to 14 (overlay migration)', function (this: Context) {
+  it('can upgrade from schema version 13 to 14 (overlay migration)', function (this: Context) {
     // This test creates a database with schema version 13 that has three users,
     // two of whom have local mutations.
     const testWriteFoo = {
