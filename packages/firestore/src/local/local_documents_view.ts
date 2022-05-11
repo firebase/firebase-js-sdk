@@ -170,7 +170,11 @@ export class LocalDocumentsView {
     });
     return this.documentOverlayCache
       .getOverlays(transaction, missingOverlays)
-      .next(result => result.forEach(overlays.set));
+      .next(result => {
+        result.forEach((key, val) => {
+          overlays.set(key, val);
+        });
+      });
   }
 
   /**
