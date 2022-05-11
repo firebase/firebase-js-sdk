@@ -1066,7 +1066,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
   });
 
-  it('can upgrade from schema version 13 to 14 (overlay migration)', function (this: Context) {
+  it.only('can upgrade from schema version 13 to 14 (overlay migration)', function (this: Context) {
     // This test creates a database with schema version 13 that has three users,
     // two of whom have local mutations.
     const testWriteFoo = {
@@ -1163,25 +1163,6 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 );
               });
             }
-          ).next(() =>
-            // Populate the mutation queues' metadata
-            PersistencePromise.waitFor([
-              mutationQueuesStore.put({
-                userId: 'user1',
-                lastAcknowledgedBatchId: -1,
-                lastStreamToken: ''
-              }),
-              mutationQueuesStore.put({
-                userId: 'user2',
-                lastAcknowledgedBatchId: -1,
-                lastStreamToken: ''
-              }),
-              mutationQueuesStore.put({
-                userId: 'user3',
-                lastAcknowledgedBatchId: -1,
-                lastStreamToken: ''
-              })
-            ])
           );
         }
       );

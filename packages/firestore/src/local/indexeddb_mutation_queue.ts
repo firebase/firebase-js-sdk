@@ -356,6 +356,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     documentKeys: SortedMap<DocumentKey, unknown>
   ): PersistencePromise<MutationBatch[]> {
+    console.log("in getAllMutationBatchesAffectingDocumentKeys");
     let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
 
     const promises: Array<PersistencePromise<void>> = [];
@@ -370,6 +371,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
         { range },
         (indexKey, _, control) => {
           const [userID, encodedPath, batchID] = indexKey;
+
+          console.log("\t iterating documentMutationStore");
+          console.log(`\t batchId=${batchID}`);
 
           // Only consider rows matching exactly the specific key of
           // interest. Note that because we order by path first, and we
@@ -391,8 +395,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
       promises.push(promise);
     });
 
-    return PersistencePromise.waitFor(promises).next(() =>
-      this.lookupMutationBatches(transaction, uniqueBatchIDs)
+    return PersistencePromise.waitFor(promises).next(() => {
+        console.log(`uniqueBatchIDs.size=${uniqueBatchIDs.size}`);
+        return this.lookupMutationBatches(transaction, uniqueBatchIDs)
+      }
     );
   }
 
@@ -458,6 +464,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batchIDs: SortedSet<BatchId>
   ): PersistencePromise<MutationBatch[]> {
+    console.log("in lookupMutationBatches");
+    console.log(`\t batchIDs.size=${batchIDs.size}`);
     const results: MutationBatch[] = [];
     const promises: Array<PersistencePromise<void>> = [];
     // TODO(rockwood): Implement this using iterate.
@@ -477,6 +485,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
+            console.log(`\t found mutation in mutationStore`);
             results.push(fromDbMutationBatch(this.serializer, mutation));
           })
       );

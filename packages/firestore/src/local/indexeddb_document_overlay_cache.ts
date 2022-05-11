@@ -104,6 +104,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     largestBatchId: number,
     overlays: MutationMap
   ): PersistencePromise<void> {
+    console.log("in saveOverlays");
     const promises: Array<PersistencePromise<void>> = [];
     overlays.forEach((_, mutation) => {
       const overlay = new Overlay(largestBatchId, mutation);
@@ -212,6 +213,7 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
     transaction: PersistenceTransaction,
     overlay: Overlay
   ): PersistencePromise<void> {
+    console.log("in saveOverlay");
     return documentOverlayStore(transaction).put(
       toDbDocumentOverlay(this.serializer, this.userId, overlay)
     );

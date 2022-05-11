@@ -215,6 +215,7 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     docs: MutableDocumentMap
   ): PersistencePromise<void> {
+    console.log("in recalculateAndSaveOverlays")
     const masks = newDocumentKeyMap<FieldMask | null>();
     // A reverse lookup map from batch id to the documents within that batch.
     let documentsByBatchId = new SortedMap<number, DocumentKeySet>(
@@ -224,9 +225,13 @@ export class LocalDocumentsView {
     return this.mutationQueue
       .getAllMutationBatchesAffectingDocumentKeys(transaction, docs)
       .next(batches => {
+        console.log("back in recalculateAndSaveOverlays");
+        console.log(`got ${batches.length} batches`);
         for (const batch of batches) {
           batch.keys().forEach(key => {
+            console.log(`\t key=${key.toString()}`);
             const baseDoc = docs.get(key);
+            console.log(`\t baseDoc=${baseDoc ? baseDoc.toString() : "null"}`);
             if (baseDoc === null) {
               return;
             }
@@ -244,14 +249,21 @@ export class LocalDocumentsView {
         }
       })
       .next(() => {
+        console.log("documentsByBatchId=");
+        console.log(documentsByBatchId);
+        console.log("masks=");
+        console.log(masks);
         const promises: Array<PersistencePromise<void>> = [];
         // Iterate in descending order of batch IDs, and skip documents that are
         // already saved.
         const iter = documentsByBatchId.getReverseIterator();
         while (iter.hasNext()) {
+          console.log(`reverse iteration over documentsByBatchId`);
           const entry = iter.getNext();
           const batchId = entry.key;
           const keys = entry.value;
+          console.log(`\t batchId=${batchId}`);
+          console.log(`\t keys=${keys}`);
           const overlays = newMutationMap();
           keys.forEach(key => {
             if (!processed.has(key)) {
@@ -259,6 +271,7 @@ export class LocalDocumentsView {
                 docs.get(key)!,
                 masks.get(key)!
               );
+              console.log(`calculateOverlayMigration resulted in ${overlayMutation ? overlayMutation?.type.toString() : "null"}`);
               if (overlayMutation !== null) {
                 overlays.set(key, overlayMutation);
               }
@@ -285,6 +298,7 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<void> {
+    console.log("in recalculateAndSaveOverlaysForDocumentKeys");
     return this.remoteDocumentCache
       .getEntries(transaction, documentKeys)
       .next(docs => this.recalculateAndSaveOverlays(transaction, docs));

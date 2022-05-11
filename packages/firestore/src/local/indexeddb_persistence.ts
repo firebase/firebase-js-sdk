@@ -217,6 +217,7 @@ export class IndexedDbPersistence implements Persistence {
     private readonly forceOwningTab: boolean,
     private readonly schemaVersion = SCHEMA_VERSION
   ) {
+    console.log(`SCHEMA_VERSION=${schemaVersion}`);
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,

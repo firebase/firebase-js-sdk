@@ -18,7 +18,7 @@
 import { User } from '../auth/user';
 import { ListenSequence } from '../core/listen_sequence';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { documentKeySet } from '../model/collections';
+import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
@@ -143,6 +143,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
+    console.log(`in createOrUpgrade from ${fromVersion} to ${toVersion}`);
     debugAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
@@ -249,6 +250,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 14 && toVersion >= 14) {
+      console.log("about to runOverlayMigration");
       p = p.next(() => this.runOverlayMigration(db, simpleDbTransaction));
     }
 
@@ -471,9 +473,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     db: IDBDatabase,
     transaction: SimpleDbTransaction
   ): PersistencePromise<void> {
-    const queuesStore = transaction.store<DbMutationQueueKey, DbMutationQueue>(
-      DbMutationQueueStore
-    );
+    console.log("in runOverlayMigration");
     const mutationsStore = transaction.store<
       DbMutationBatchKey,
       DbMutationBatch
@@ -482,78 +482,56 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     const remoteDocumentCache = newIndexedDbRemoteDocumentCache(
       this.serializer
     );
+    const memoryPersistence = new MemoryPersistence(
+      MemoryEagerDelegate.factory,
+      this.serializer.remoteSerializer
+    );
 
     const promises: Array<PersistencePromise<void>> = [];
-    let userIds = new Set<string>();
+    let userToDocumentSet = new Map<string, DocumentKeySet>();
 
-    return queuesStore
+    return mutationsStore
       .loadAll()
-      .next(queues => {
-        for (const queue of queues) {
-          const userId = queue.userId;
-          if (userIds.has(userId)) {
-            // We have already processed this user.
-            continue;
-          }
-          userIds = userIds.add(userId);
+      .next(dbBatches => {
+        dbBatches.forEach(dbBatch => {
+          let documentSet =
+            userToDocumentSet.get(dbBatch.userId) ?? documentKeySet();
+          const batch = fromDbMutationBatch(this.serializer, dbBatch);
+          batch.keys().forEach(key => (documentSet = documentSet.add(key)));
+          userToDocumentSet.set(dbBatch.userId, documentSet);
+        });
+      })
+      .next(() => {
+        userToDocumentSet.forEach((allDocumentKeysForUser, userId) => {
           const user = new User(userId);
           const documentOverlayCache = IndexedDbDocumentOverlayCache.forUser(
             this.serializer,
             user
           );
-          let allDocumentKeysForUser = documentKeySet();
-          const range = IDBKeyRange.bound(
-            [userId, BATCHID_UNKNOWN],
-            [userId, Number.POSITIVE_INFINITY]
+          // NOTE: The index manager and the reference delegate are
+          // irrelevant for the purpose of recalculating and saving
+          // overlays. We can therefore simply use the memory
+          // implementation.
+          const indexManager = memoryPersistence.getIndexManager(user);
+          const mutationQueue = IndexedDbMutationQueue.forUser(
+            user,
+            this.serializer,
+            indexManager,
+            memoryPersistence.referenceDelegate
+          );
+          const localDocumentsView = new LocalDocumentsView(
+            remoteDocumentCache,
+            mutationQueue,
+            documentOverlayCache,
+            indexManager
           );
           promises.push(
-            mutationsStore
-              .loadAll(DbMutationBatchUserMutationsIndex, range)
-              .next(dbBatches => {
-                dbBatches.forEach(dbBatch => {
-                  hardAssert(
-                    dbBatch.userId === userId,
-                    `Cannot process batch ${dbBatch.batchId} from unexpected user`
-                  );
-                  const batch = fromDbMutationBatch(this.serializer, dbBatch);
-                  batch
-                    .keys()
-                    .forEach(
-                      key =>
-                        (allDocumentKeysForUser =
-                          allDocumentKeysForUser.add(key))
-                    );
-                });
-              })
-              .next(() => {
-                // NOTE: The index manager and the reference delegate are
-                // irrelevant for the purpose of recalculating and saving
-                // overlays. We can therefore simply use the memory
-                // implementation.
-                const memoryPersistence = new MemoryPersistence(
-                  MemoryEagerDelegate.factory,
-                  this.serializer.remoteSerializer
-                );
-                const indexManager = memoryPersistence.getIndexManager(user);
-                const mutationQueue = IndexedDbMutationQueue.forUser(
-                  user,
-                  this.serializer,
-                  indexManager,
-                  memoryPersistence.referenceDelegate
-                );
-                const localDocumentsView = new LocalDocumentsView(
-                  remoteDocumentCache,
-                  mutationQueue,
-                  documentOverlayCache,
-                  indexManager
-                );
-                return localDocumentsView.recalculateAndSaveOverlaysForDocumentKeys(
-                  new IndexedDbTransaction(transaction, ListenSequence.INVALID),
-                  allDocumentKeysForUser
-                );
-              })
+            localDocumentsView.recalculateAndSaveOverlaysForDocumentKeys(
+              new IndexedDbTransaction(transaction, ListenSequence.INVALID),
+              allDocumentKeysForUser
+            )
           );
-        }
+        });
       })
       .next(() => PersistencePromise.waitFor(promises));
   }
