@@ -74,7 +74,7 @@
     "@types/chai-as-promised": "7.1.5",
     "@types/child-process-promise": "2.2.2",
     "@types/clone": "2.1.1",
-    "@types/eslint": "7.28.0",
+    "@types/eslint": "7.29.0",
     "@types/inquirer": "8.2.1",
     "@types/listr": "0.14.4",
     "@types/long": "4.0.2",

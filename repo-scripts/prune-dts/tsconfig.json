@@ -8,9 +8,8 @@
     "target": "es2017",
     "esModuleInterop": true,
     "declaration": true,
-    "strict": true
+    "strict": true,
+    "skipLibCheck": true
   },
-  "exclude": [
-    "dist/**/*"
-  ]
+  "exclude": ["dist/**/*"]
 }
