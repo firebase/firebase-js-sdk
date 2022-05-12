@@ -144,7 +144,7 @@ export async function isSupported(): Promise<boolean> {
  *
  * @public
  *
- * @deprecated Use logEvent with eventName as 'screen_view' and add relevant eventParams.
+ * @deprecated Use {@link logEvent} with `eventName` as 'screen_view' and add relevant `eventParams`.
  *
  * @param analyticsInstance - The {@link Analytics} instance.
  * @param screenName - Screen name to set.

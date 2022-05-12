@@ -5216,7 +5216,7 @@ declare namespace firebase.analytics {
     /**
      * Use gtag 'config' command to set 'screen_name'.
      *
-     * @deprecated Use logEvent with eventName as 'screen_view' and add relevant eventParams.
+     * @deprecated Use {@link logEvent} with `eventName` as 'screen_view' and add relevant `eventParams`.
      */
     setCurrentScreen(
       screenName: string,
