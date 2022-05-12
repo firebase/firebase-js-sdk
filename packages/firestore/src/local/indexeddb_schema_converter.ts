@@ -18,8 +18,13 @@
 import { User } from '../auth/user';
 import { ListenSequence } from '../core/listen_sequence';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { DocumentKeySet, documentKeySet } from '../model/collections';
+import {
+  DocumentKeyMap,
+  DocumentKeySet,
+  documentKeySet
+} from '../model/collections';
 import { DocumentKey } from '../model/document_key';
+import { FieldMask } from '../model/field_mask';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { BATCHID_UNKNOWN } from '../util/types';
@@ -484,7 +489,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       this.serializer.remoteSerializer
     );
 
-    const promises: Array<PersistencePromise<void>> = [];
+    const promises: Array<
+      PersistencePromise<DocumentKeyMap<FieldMask | null>>
+    > = [];
     const userToDocumentSet = new Map<string, DocumentKeySet>();
 
     return mutationsStore
