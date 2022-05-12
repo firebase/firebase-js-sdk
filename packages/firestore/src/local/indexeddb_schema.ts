@@ -54,7 +54,8 @@ export const INDEXING_SCHEMA_VERSION = 15;
  * 12. Add document overlays.
  * 13. Rewrite the keys of the remote document cache to allow for efficient
  *     document lookup via `getAll()`.
- * 14. Add indexing support.
+ * 14. Add overlays.
+ * 15. Add indexing support.
  */
 
 export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 14;
