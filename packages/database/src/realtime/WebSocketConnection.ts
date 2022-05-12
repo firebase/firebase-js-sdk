@@ -159,6 +159,10 @@ export class WebSocketConnection implements Transport {
 
     this.everConnected_ = false;
     // Assume failure until proven otherwise.
+    /**
+     *  Note: Because of this flow, if the user interrupts the connection(refreshes the page, for example), the failure flag will not have been reset
+     *        This will cause the subsequent attempt to use longpolling first, and then upgrade the connection to WebSockets.
+     */
     PersistentStorage.set('previous_websocket_failure', true);
 
     try {
