@@ -17,7 +17,10 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { IndexBackfillerScheduler } from '../local/index_backfiller';
+import {
+  IndexBackfiller,
+  IndexBackfillerScheduler
+} from '../local/index_backfiller';
 import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
@@ -89,6 +92,7 @@ export interface OfflineComponentProvider {
   sharedClientState: SharedClientState;
   localStore: LocalStore;
   gcScheduler: Scheduler | null;
+  indexBackfillerScheduler: Scheduler | null;
   synchronizeTabs: boolean;
 
   initialize(cfg: ComponentConfiguration): Promise<void>;
@@ -107,6 +111,7 @@ export class MemoryOfflineComponentProvider
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
   gcScheduler!: Scheduler | null;
+  indexBackfillerScheduler!: Scheduler | null;
   synchronizeTabs = false;
 
   serializer!: JsonProtoSerializer;
@@ -121,9 +126,20 @@ export class MemoryOfflineComponentProvider
       cfg,
       this.localStore
     );
+    this.indexBackfillerScheduler = this.createIndexBackfiller(
+      cfg,
+      this.localStore
+    );
   }
 
   createGarbageCollectionScheduler(
+    cfg: ComponentConfiguration,
+    localStore: LocalStore
+  ): Scheduler | null {
+    return null;
+  }
+
+  createIndexBackfiller(
     cfg: ComponentConfiguration,
     localStore: LocalStore
   ): Scheduler | null {
@@ -164,6 +180,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
   gcScheduler!: Scheduler | null;
+  indexBackfillerScheduler!: Scheduler | null;
   synchronizeTabs = false;
 
   constructor(
@@ -191,6 +208,9 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       if (this.gcScheduler && !this.gcScheduler.started) {
         this.gcScheduler.start();
       }
+      if (this.indexBackfillerScheduler && !this.indexBackfillerScheduler.started) {
+        this.indexBackfillerScheduler.start();
+      }
       return Promise.resolve();
     });
   }
@@ -216,12 +236,9 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   createIndexBackfiller(
     cfg: ComponentConfiguration,
     localStore: LocalStore
-  ): Scheduler {
-    return new IndexBackfillerScheduler(
-      cfg.asyncQueue,
-      localStore,
-      this.persistence
-    );
+  ): Scheduler | null {
+    let indexBackfiller = new IndexBackfiller(localStore, this.persistence);
+    return new IndexBackfillerScheduler(cfg.asyncQueue, indexBackfiller);
   }
 
   createPersistence(cfg: ComponentConfiguration): IndexedDbPersistence {
@@ -303,6 +320,13 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
           this.gcScheduler.start();
         } else if (!isPrimary) {
           this.gcScheduler.stop();
+        }
+      }
+      if (this.indexBackfillerScheduler) {
+        if (isPrimary && !this.indexBackfillerScheduler.started) {
+          this.indexBackfillerScheduler.start();
+        } else if (!isPrimary) {
+          this.indexBackfillerScheduler.stop();
         }
       }
     });

@@ -46,8 +46,7 @@ export class IndexBackfillerScheduler implements Scheduler {
 
   constructor(
     private readonly asyncQueue: AsyncQueue,
-    private readonly localStore: LocalStore,
-    private readonly persistence: Persistence
+    private readonly backfiller: IndexBackfiller
   ) {
     this.task = null;
   }
@@ -83,7 +82,7 @@ export class IndexBackfillerScheduler implements Scheduler {
       async () => {
         this.task = null;
         try {
-          const documentsProcessed = await this.backfill();
+          const documentsProcessed = await this.backfiller.backfill();
           logDebug(LOG_TAG, `Documents written: ${documentsProcessed}`);
         } catch (e) {
           if (isIndexedDbTransactionError(e)) {
@@ -100,12 +99,20 @@ export class IndexBackfillerScheduler implements Scheduler {
       }
     );
   }
+}
 
-  private async backfill(): Promise<number> {
+export class IndexBackfiller {
+
+  constructor(
+    private readonly localStore: LocalStore,
+    private readonly persistence: Persistence
+  ) {
+  }
+  public async backfill(): Promise<number> {
     return this.persistence.runTransaction(
       'Backfill Indexes',
       'readwrite-primary',
-      this.writeIndexEntries
+      this.writeIndexEntries.bind(this)
     );
   }
 
@@ -116,7 +123,7 @@ export class IndexBackfillerScheduler implements Scheduler {
     const processedCollectionGroups = new Set<string>();
     let documentsRemaining = MAX_DOCUMENTS_TO_PROCESS;
     let continueLoop = true;
-    return PersistencePromise.whileLoop(
+    return PersistencePromise.loopUntil(
       () => continueLoop === true && documentsRemaining > 0,
       () => {
         return this.localStore.indexManager
@@ -168,13 +175,13 @@ export class IndexBackfillerScheduler implements Scheduler {
               .next(() => this.getNewOffset(existingOffset, nextBatch))
               .next(newOffset => {
                 logDebug(LOG_TAG, `Updating offset: ${newOffset}`);
-                this.localStore.indexManager.updateCollectionGroup(
+                return this.localStore.indexManager.updateCollectionGroup(
                   transaction,
                   collectionGroup,
                   newOffset
                 );
-                return nextBatch.documents.size;
               })
+              .next(() => nextBatch.documents.size)
           )
       );
   }

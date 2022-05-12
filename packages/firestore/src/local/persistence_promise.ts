@@ -253,7 +253,7 @@ export class PersistencePromise<T> {
    * @param condition
    * @param action
    */
-  static whileLoop(
+  static loopUntil(
     condition: () => boolean,
     action: () => PersistencePromise<void>
   ): PersistencePromise<void> {

@@ -160,6 +160,13 @@ export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineCompone
     return null;
   }
 
+  createIndexBackfiller(
+    cfg: ComponentConfiguration,
+    localStore: LocalStore
+  ): Scheduler | null {
+    return null;
+  }
+
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
     const persistenceKey = indexedDbStoragePrefix(
       cfg.databaseInfo.databaseId,
