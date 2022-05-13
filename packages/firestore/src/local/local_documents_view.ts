@@ -94,7 +94,7 @@ export class LocalDocumentsView {
           mutationApplyToLocalView(
             overlay.mutation,
             document,
-            null,
+            FieldMask.empty(),
             Timestamp.now()
           );
         }
@@ -232,7 +232,12 @@ export class LocalDocumentsView {
         recalculateDocuments = recalculateDocuments.insert(doc.key, doc);
       } else if (overlay !== undefined) {
         mutatedFields.set(doc.key, overlay.mutation.getFieldMask());
-        mutationApplyToLocalView(overlay.mutation, doc, null, Timestamp.now());
+        mutationApplyToLocalView(
+          overlay.mutation,
+          doc,
+          overlay.mutation.getFieldMask(),
+          Timestamp.now()
+        );
       }
     });
 
@@ -453,7 +458,7 @@ export class LocalDocumentsView {
             mutationApplyToLocalView(
               overlay.mutation,
               document,
-              null,
+              FieldMask.empty(),
               Timestamp.now()
             );
           }

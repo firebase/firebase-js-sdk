@@ -1425,12 +1425,14 @@ function genericLocalStoreTests(
           )
         )
         .toReturnChanged(doc('foo/bar', 1, { sum: 0, arrayUnion: [] }))
-        .afterMutations([
-          patchMutation('foo/bar', { sum: increment(1) }),
-          patchMutation('foo/bar', {
-            arrayUnion: arrayUnion('foo')
-          })
-        ])
+        .after(patchMutation('foo/bar', { sum: increment(1) }))
+        .toReturnChanged(
+          doc('foo/bar', 1, {
+            sum: 1,
+            arrayUnion: []
+          }).setHasLocalMutations()
+        )
+        .after(patchMutation('foo/bar', { arrayUnion: arrayUnion('foo') }))
         .toReturnChanged(
           doc('foo/bar', 1, {
             sum: 1,
@@ -1454,8 +1456,19 @@ function genericLocalStoreTests(
         )
         .afterAcknowledgingMutation({
           documentVersion: 3,
+          transformResults: [{ integerValue: 1338 }]
+        })
+        .toReturnChanged(
+          doc('foo/bar', 3, {
+            sum: 1338,
+            arrayUnion: ['bar', 'foo']
+          })
+            .setReadTime(SnapshotVersion.fromTimestamp(new Timestamp(0, 3000)))
+            .setHasLocalMutations()
+        )
+        .afterAcknowledgingMutation({
+          documentVersion: 4,
           transformResults: [
-            { integerValue: 1338 },
             {
               arrayValue: {
                 values: [{ stringValue: 'bar' }, { stringValue: 'foo' }]
@@ -1464,11 +1477,11 @@ function genericLocalStoreTests(
           ]
         })
         .toReturnChanged(
-          doc('foo/bar', 3, {
+          doc('foo/bar', 4, {
             sum: 1338,
             arrayUnion: ['bar', 'foo']
           })
-            .setReadTime(SnapshotVersion.fromTimestamp(new Timestamp(0, 3000)))
+            .setReadTime(SnapshotVersion.fromTimestamp(new Timestamp(0, 4000)))
             .setHasCommittedMutations()
         )
         .finish()
