@@ -48,7 +48,7 @@ import {
   statsManagerGetOrCreateReporter
 } from './stats/StatsManager';
 import { StatsReporter, statsReporterIncludeStat } from './stats/StatsReporter';
-import { syncPointGetView, syncPointViewExistsForQuery, syncPointViewForQuery } from './SyncPoint';
+import { syncPointGetView, syncPointIsEmpty, syncPointViewExistsForQuery, syncPointViewForQuery } from './SyncPoint';
 import {
   createNewTag,
   SyncTree,
@@ -483,9 +483,15 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
         );
         eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
       } else {
-        // Otherwise, only overwrite for query
-        console.log('query')
-        syncTreeAddToPath(query, repo.serverSyncTree_);
+        // Simulate `syncTreeAddEventRegistration` without events/listener setup.
+        // TODO: We can probably extract this.
+        const { syncPoint, serverCache, writesCache, serverCacheComplete, viewAlreadyExists, foundAncestorDefaultView } = syncTreeAddToPath(query, repo.serverSyncTree_);
+        if (!viewAlreadyExists && !foundAncestorDefaultView) {
+          const view = syncPointGetView(syncPoint, query, writesCache, serverCache, serverCacheComplete);
+          if (!syncPoint.views.has(query._queryIdentifier)) {
+            syncPoint.views.set(query._queryIdentifier, view);
+          }
+        }
         const tag = syncTreeTagForQuery_(repo.serverSyncTree_, query);
         const events = syncTreeApplyTaggedQueryOverwrite(
           repo.serverSyncTree_,
@@ -494,6 +500,9 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
           tag
         );
         eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
+        // Call `syncTreeRemoveEventRegistration` with a null event registration, since there is none.
+        const cancels = syncTreeRemoveEventRegistration(repo.serverSyncTree_, query, null)
+        assert(cancels.length == 0, "unexpected cancel events in repoGetValue");
       }
       return Promise.resolve(node);
     },
