@@ -482,16 +482,14 @@ export function syncTreeApplyTaggedQueryMerge(
   }
 }
 
-/**
- * Add an event callback for the specified query.
- *
- * @returns Events to raise.
- */
-export function syncTreeAddEventRegistration(
-  syncTree: SyncTree,
-  query: QueryContext,
-  eventRegistration: EventRegistration
-): Event[] {
+export function createNewTag(syncTree: SyncTree, queryKey: string) {
+  const tag = syncTreeGetNextQueryTag_();
+  syncTree.queryToTagMap.set(queryKey, tag);
+  syncTree.tagToQueryMap.set(tag, queryKey);
+  return tag;
+}
+
+export function syncTreeAddToPath(query: QueryContext, syncTree: SyncTree) {
   const path = query._path;
 
   let serverCache: Node | null = null;
@@ -537,6 +535,7 @@ export function syncTreeAddEventRegistration(
     });
   }
 
+  
   const viewAlreadyExists = syncPointViewExistsForQuery(syncPoint, query);
   if (!viewAlreadyExists && !query._queryParams.loadsAllData()) {
     // We need to track a tag for this query
@@ -545,11 +544,26 @@ export function syncTreeAddEventRegistration(
       !syncTree.queryToTagMap.has(queryKey),
       'View does not exist, but we have a tag'
     );
-    const tag = syncTreeGetNextQueryTag_();
-    syncTree.queryToTagMap.set(queryKey, tag);
-    syncTree.tagToQueryMap.set(tag, queryKey);
+    createNewTag(syncTree, queryKey);
   }
   const writesCache = writeTreeChildWrites(syncTree.pendingWriteTree_, path);
+  // TODO: break this down so you do the minimal amount
+  return { syncPoint, writesCache, serverCache, serverCacheComplete, foundAncestorDefaultView, viewAlreadyExists };
+}
+
+/**
+ * Add an event callback for the specified query.
+ *
+ * @returns Events to raise.
+ */
+export function syncTreeAddEventRegistration(
+  syncTree: SyncTree,
+  query: QueryContext,
+  eventRegistration: EventRegistration
+): Event[] {
+
+  const { syncPoint, serverCache, writesCache, serverCacheComplete, viewAlreadyExists, foundAncestorDefaultView } = syncTreeAddToPath(query, syncTree);
+
   let events = syncPointAddEventRegistration(
     syncPoint,
     query,
@@ -803,7 +817,7 @@ function syncTreeCreateListenerForView_(
 /**
  * Return the tag associated with the given query.
  */
-function syncTreeTagForQuery_(
+export function syncTreeTagForQuery_(
   syncTree: SyncTree,
   query: QueryContext
 ): number | null {
@@ -814,7 +828,7 @@ function syncTreeTagForQuery_(
 /**
  * Given a query, computes a "queryKey" suitable for use in our queryToTagMap_.
  */
-function syncTreeMakeQueryKey_(query: QueryContext): string {
+export function syncTreeMakeQueryKey_(query: QueryContext): string {
   return query._path.toString() + '$' + query._queryIdentifier;
 }
 

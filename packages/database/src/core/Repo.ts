@@ -48,10 +48,13 @@ import {
   statsManagerGetOrCreateReporter
 } from './stats/StatsManager';
 import { StatsReporter, statsReporterIncludeStat } from './stats/StatsReporter';
+import { syncPointGetView, syncPointViewExistsForQuery, syncPointViewForQuery } from './SyncPoint';
 import {
+  createNewTag,
   SyncTree,
   syncTreeAckUserWrite,
   syncTreeAddEventRegistration,
+  syncTreeAddToPath,
   syncTreeApplyServerMerge,
   syncTreeApplyServerOverwrite,
   syncTreeApplyTaggedQueryMerge,
@@ -60,7 +63,9 @@ import {
   syncTreeApplyUserOverwrite,
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
-  syncTreeRemoveEventRegistration
+  syncTreeMakeQueryKey_,
+  syncTreeRemoveEventRegistration,
+  syncTreeTagForQuery_
 } from './SyncTree';
 import { Indexable } from './util/misc';
 import {
@@ -466,15 +471,30 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   }
   return repo.server_.get(query).then(
     payload => {
-      const node = nodeFromJSON(payload as string).withIndex(
+      const node = nodeFromJSON(payload).withIndex(
         query._queryParams.getIndex()
       );
-      const events = syncTreeApplyServerOverwrite(
-        repo.serverSyncTree_,
-        query._path,
-        node
-      );
-      eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
+      // if this is not a filtered query, then overwrite at path
+      if(query._queryParams.loadsAllData()) {
+        const events = syncTreeApplyServerOverwrite(
+          repo.serverSyncTree_,
+          query._path,
+          node
+        );
+        eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
+      } else {
+        // Otherwise, only overwrite for query
+        console.log('query')
+        syncTreeAddToPath(query, repo.serverSyncTree_);
+        const tag = syncTreeTagForQuery_(repo.serverSyncTree_, query);
+        const events = syncTreeApplyTaggedQueryOverwrite(
+          repo.serverSyncTree_,
+          query._path,
+          node,
+          tag
+        );
+        eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
+      }
       return Promise.resolve(node);
     },
     err => {
