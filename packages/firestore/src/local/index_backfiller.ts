@@ -108,20 +108,23 @@ export class IndexBackfiller {
     private readonly persistence: Persistence
   ) {
   }
-  public async backfill(): Promise<number> {
+  public async backfill(
+    maxDocumentsToProcess: number = MAX_DOCUMENTS_TO_PROCESS
+  ): Promise<number> {
     return this.persistence.runTransaction(
       'Backfill Indexes',
       'readwrite-primary',
-      this.writeIndexEntries.bind(this)
+      txn => this.writeIndexEntries(txn, maxDocumentsToProcess)
     );
   }
 
   /** Writes index entries until the cap is reached. Returns the number of documents processed. */
   private writeIndexEntries(
-    transation: PersistenceTransaction
+    transation: PersistenceTransaction,
+    maxDocumentsToProcess: number
   ): PersistencePromise<number> {
     const processedCollectionGroups = new Set<string>();
-    let documentsRemaining = MAX_DOCUMENTS_TO_PROCESS;
+    let documentsRemaining = maxDocumentsToProcess;
     let continueLoop = true;
     return PersistencePromise.loopUntil(
       () => continueLoop === true && documentsRemaining > 0,
@@ -147,7 +150,7 @@ export class IndexBackfiller {
             }
           });
       }
-    ).next(() => MAX_DOCUMENTS_TO_PROCESS - documentsRemaining);
+    ).next(() => maxDocumentsToProcess - documentsRemaining);
   }
 
   /**
