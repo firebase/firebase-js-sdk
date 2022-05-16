@@ -655,7 +655,10 @@ function genericIndexBackfillerTests(
     await expectQueryResults(queryB, 'coll/doc2');
   });
 
-  async function addFieldIndex(collectionGroup: string, fieldName: string): Promise<void> {
+  async function addFieldIndex(
+    collectionGroup: string,
+    fieldName: string
+  ): Promise<void> {
     await testIndexManager.addFieldIndex(
       Helpers.fieldIndex(collectionGroup, {
         fields: [[fieldName, IndexKind.ASCENDING]]
@@ -682,7 +685,10 @@ function genericIndexBackfillerTests(
     });
   }
 
-  async function expectQueryResults(query: Query, ...expectedKeys: string[]): Promise<void> {
+  async function expectQueryResults(
+    query: Query,
+    ...expectedKeys: string[]
+  ): Promise<void> {
     const actualKeys = await testIndexManager.getDocumentsMatchingTarget(
       queryToTarget(query)
     );
