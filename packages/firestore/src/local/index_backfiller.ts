@@ -102,13 +102,11 @@ export class IndexBackfillerScheduler implements Scheduler {
 }
 
 export class IndexBackfiller {
-
   constructor(
     private readonly localStore: LocalStore,
     private readonly persistence: Persistence
-  ) {
-  }
-  public async backfill(
+  ) {}
+  async backfill(
     maxDocumentsToProcess: number = MAX_DOCUMENTS_TO_PROCESS
   ): Promise<number> {
     return this.persistence.runTransaction(

@@ -17,41 +17,42 @@
 
 import { expect } from 'chai';
 
-import {Persistence} from "../../../src/local/persistence";
-import * as PersistenceTestHelpers from "./persistence_test_helpers";
-import {newAsyncQueue} from "../../../src/util/async_queue_impl";
-import {User} from "../../../src/auth/user";
-import {IndexedDbPersistence} from "../../../src/local/indexeddb_persistence";
-import {AsyncQueue} from "../../../src/util/async_queue";
-import * as Helpers from '../../util/helpers';
+import { User } from '../../../src/auth/user';
+import { Query, queryToTarget } from '../../../src/core/query';
+import { IndexBackfiller } from '../../../src/local/index_backfiller';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { LocalStore } from '../../../src/local/local_store';
+import { newLocalStore } from '../../../src/local/local_store_impl';
+import { Persistence } from '../../../src/local/persistence';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
+import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { newMutationMap } from '../../../src/model/collections';
+import { MutableDocument } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
 import {
   FieldIndex,
   IndexKind,
   IndexOffset
-} from "../../../src/model/field_index";
-import {PersistenceTransaction} from "../../../src/local/persistence_transaction";
-import {PersistencePromise} from "../../../src/local/persistence_promise";
-import {key, TestSnapshotVersion, version} from "../../util/helpers";
-import {RemoteDocumentCache} from "../../../src/local/remote_document_cache";
-import {MutableDocument} from "../../../src/model/document";
-import {IndexBackfiller} from "../../../src/local/index_backfiller";
-import {LocalStore} from "../../../src/local/local_store";
-import {TestIndexManager} from "./test_index_manager";
-import {JSON_SERIALIZER} from "./persistence_test_helpers";
-import {newLocalStore} from "../../../src/local/local_store_impl";
-import {CountingQueryEngine} from "./counting_query_engine";
-import {DocumentKey} from "../../../src/model/document_key";
-import {Query, queryToTarget} from '../../../src/core/query';
-import {DocumentOverlayCache} from "../../../src/local/document_overlay_cache";
-import {newMutationMap} from "../../../src/model/collections";
-import {TestDocumentOverlayCache} from "./test_document_overlay_cache";
+} from '../../../src/model/field_index';
+import { Mutation } from '../../../src/model/mutation';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { newAsyncQueue } from '../../../src/util/async_queue_impl';
+import { key, version } from '../../util/helpers';
+import * as Helpers from '../../util/helpers';
 
-describe.only('IndexedDb IndexBackfiller', () => {
+import { CountingQueryEngine } from './counting_query_engine';
+import { JSON_SERIALIZER } from './persistence_test_helpers';
+import * as PersistenceTestHelpers from './persistence_test_helpers';
+import { TestDocumentOverlayCache } from './test_document_overlay_cache';
+import { TestIndexManager } from './test_index_manager';
+
+describe('IndexedDb IndexBackfiller', () => {
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn('No IndexedDB. Skipping IndexedDb IndexBackfiller tests.');
     return;
   }
-  genericIndexBackfillerTests((queue) =>
+  genericIndexBackfillerTests(queue =>
     PersistenceTestHelpers.testIndexedDbPersistence({ queue })
   );
 });
@@ -106,8 +107,8 @@ function genericIndexBackfillerTests(
     await addFieldIndex('coll2', 'bar');
     await addDocs(
       Helpers.doc('coll1/docA', 10, { ['foo']: 1 }),
-      Helpers.doc('coll2/docA', 20, { ['bar']: 1 }),
-    )
+      Helpers.doc('coll2/docA', 20, { ['bar']: 1 })
+    );
 
     {
       const documentsProcessed = await backfiller.backfill();
@@ -115,21 +116,25 @@ function genericIndexBackfillerTests(
     }
 
     {
-      const fieldIndex = await getFieldIndex( 'coll1');
-      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(version(10));
+      const fieldIndex = await getFieldIndex('coll1');
+      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(
+        version(10)
+      );
     }
 
     {
-      const fieldIndex = await getFieldIndex( 'coll2');
-      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(version(20));
+      const fieldIndex = await getFieldIndex('coll2');
+      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(
+        version(20)
+      );
     }
 
     await addDocs(
       Helpers.doc('coll1/docB', 50, { ['foo']: 1 }),
       Helpers.doc('coll1/docC', 51, { ['foo']: 1 }),
       Helpers.doc('coll2/docA', 60, { ['bar']: 1 }),
-      Helpers.doc('coll2/docC', 61, { ['bar']: 1 }),
-    )
+      Helpers.doc('coll2/docC', 61, { ['bar']: 1 })
+    );
 
     {
       const documentsProcessed = await backfiller.backfill();
@@ -137,13 +142,17 @@ function genericIndexBackfillerTests(
     }
 
     {
-      const fieldIndex = await getFieldIndex( 'coll1');
-      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(version(51));
+      const fieldIndex = await getFieldIndex('coll1');
+      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(
+        version(51)
+      );
     }
 
     {
-      const fieldIndex = await getFieldIndex( 'coll2');
-      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(version(61));
+      const fieldIndex = await getFieldIndex('coll2');
+      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(
+        version(61)
+      );
     }
   });
 
@@ -156,35 +165,35 @@ function genericIndexBackfillerTests(
     );
 
     // Documents before read time should not be fetched.
-    await addDocs(
-      Helpers.doc('coll1/docA', 9, { ['foo']: 1 }),
-    )
+    await addDocs(Helpers.doc('coll1/docA', 9, { ['foo']: 1 }));
 
     {
       const documentsProcessed = await backfiller.backfill();
       expect(documentsProcessed).to.equal(0);
     }
 
-    { // Read time should be the highest read time from the cache.
-      const fieldIndex = await getFieldIndex('coll1')
+    {
+      // Read time should be the highest read time from the cache.
+      const fieldIndex = await getFieldIndex('coll1');
       expect(fieldIndex.indexState.offset).to.be.deep.equal(
         new IndexOffset(version(10), DocumentKey.empty(), -1)
       );
     }
 
     // Documents that are after the earliest read time but before field index read time are fetched.
-    await addDocs(
-      Helpers.doc('coll1/docB', 19, { ['boo']: 1 }),
-    )
+    await addDocs(Helpers.doc('coll1/docB', 19, { ['boo']: 1 }));
 
     {
       const documentsProcessed = await backfiller.backfill();
       expect(documentsProcessed).to.equal(1);
     }
 
-    { // Field indexes should now hold the latest read time
+    {
+      // Field indexes should now hold the latest read time
       const fieldIndex = await getFieldIndex('coll1');
-      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(version(19));
+      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(
+        version(19)
+      );
     }
   });
 
@@ -195,23 +204,22 @@ function genericIndexBackfillerTests(
       Helpers.doc('coll1/docA', 10, { ['foo']: 1 }),
       Helpers.doc('coll1/docB', 10, { ['bar']: 1 }),
       Helpers.doc('coll2/docA', 10, { ['bar']: 1 }),
-      Helpers.doc('coll2/docB', 10, { ['bar']: 1 }),
-    )
+      Helpers.doc('coll2/docB', 10, { ['bar']: 1 })
+    );
 
     {
       const documentsProcessed = await backfiller.backfill();
       expect(documentsProcessed).to.equal(4);
     }
-
-  })
+  });
 
   it('Writes oldest document first', async () => {
     await addFieldIndex('coll1', 'foo');
     await addDocs(
       Helpers.doc('coll1/docA', 5, { ['foo']: 1 }),
       Helpers.doc('coll1/docB', 3, { ['foo']: 1 }),
-      Helpers.doc('coll1/docC', 10, { ['foo']: 1 }),
-    )
+      Helpers.doc('coll1/docC', 10, { ['foo']: 1 })
+    );
 
     {
       const documentsProcessed = await backfiller.backfill(2);
@@ -220,7 +228,8 @@ function genericIndexBackfillerTests(
 
     await expectQueryResults(
       Helpers.query('coll1', Helpers.orderBy('foo')),
-      'coll1/docA', 'coll1/docB'
+      'coll1/docA',
+      'coll1/docB'
     );
 
     {
@@ -230,7 +239,9 @@ function genericIndexBackfillerTests(
 
     await expectQueryResults(
       Helpers.query('coll1', Helpers.orderBy('foo')),
-      'coll1/docA', 'coll1/docB', 'coll1/docC'
+      'coll1/docA',
+      'coll1/docB',
+      'coll1/docC'
     );
   });
 
@@ -240,43 +251,53 @@ function genericIndexBackfillerTests(
     await addDocs(
       Helpers.doc('coll1/docA', 10, { ['foo']: 1 }),
       Helpers.doc('coll1/docB', 20, { ['foo']: 1 }),
-      Helpers.doc('coll2/docA', 30, { ['foo']: 1 }),
-    )
+      Helpers.doc('coll2/docA', 30, { ['foo']: 1 })
+    );
 
-    expect(await testIndexManager.getNextCollectionGroupToUpdate()).to.equal('coll1');
+    expect(await testIndexManager.getNextCollectionGroupToUpdate()).to.equal(
+      'coll1'
+    );
 
     {
       const documentsProcessed = await backfiller.backfill(2);
       expect(documentsProcessed).to.equal(2);
     }
 
-    expect(await testIndexManager.getNextCollectionGroupToUpdate()).to.equal('coll2');
+    expect(await testIndexManager.getNextCollectionGroupToUpdate()).to.equal(
+      'coll2'
+    );
   });
 
   it('Prioritizes new collection groups', async () => {
     await testIndexManager.addFieldIndex(
-      Helpers.fieldIndex('coll1', { fields: [['foo', IndexKind.ASCENDING]], sequenceNumber: 1 })
+      Helpers.fieldIndex('coll1', {
+        fields: [['foo', IndexKind.ASCENDING]],
+        sequenceNumber: 1
+      })
     );
     await testIndexManager.addFieldIndex(
-      Helpers.fieldIndex('coll2', { fields: [['foo', IndexKind.ASCENDING]], sequenceNumber: 2 })
+      Helpers.fieldIndex('coll2', {
+        fields: [['foo', IndexKind.ASCENDING]],
+        sequenceNumber: 2
+      })
     );
     await testIndexManager.addFieldIndex(
-      Helpers.fieldIndex('coll3', { fields: [['foo', IndexKind.ASCENDING]], sequenceNumber: 0 })
+      Helpers.fieldIndex('coll3', {
+        fields: [['foo', IndexKind.ASCENDING]],
+        sequenceNumber: 0
+      })
     );
 
     await addDocs(
       Helpers.doc('coll1/doc', 10, { ['foo']: 1 }),
       Helpers.doc('coll2/doc', 20, { ['foo']: 1 }),
-      Helpers.doc('coll3/doc', 30, { ['foo']: 1 }),
-    )
-
-    {
-      const documentsProcessed = await backfiller.backfill(1);
-      expect(documentsProcessed).to.equal(1);
-    }
+      Helpers.doc('coll3/doc', 30, { ['foo']: 1 })
+    );
 
     // Check that coll3 is the next collection ID the backfiller should update
-    expect(await testIndexManager.getNextCollectionGroupToUpdate()).to.equal('coll3');
+    expect(await testIndexManager.getNextCollectionGroupToUpdate()).to.equal(
+      'coll3'
+    );
 
     {
       const documentsProcessed = await backfiller.backfill(1);
@@ -296,15 +317,16 @@ function genericIndexBackfillerTests(
       Helpers.doc('coll1/docA', 10, { ['foo']: 1 }),
       Helpers.doc('coll1/docB', 20, { ['foo']: 1 }),
       Helpers.doc('coll2/docA', 30, { ['foo']: 1 }),
-      Helpers.doc('coll2/docB', 40, { ['foo']: 1 }),
-    )
+      Helpers.doc('coll2/docB', 40, { ['foo']: 1 })
+    );
 
     const documentsProcessed = await backfiller.backfill(3);
     expect(documentsProcessed).to.equal(3);
 
     await expectQueryResults(
       Helpers.query('coll1', Helpers.orderBy('foo')),
-      'coll1/docA', 'coll1/docB'
+      'coll1/docA',
+      'coll1/docB'
     );
 
     await expectQueryResults(
@@ -315,14 +337,12 @@ function genericIndexBackfillerTests(
 
   it('Uses latest read time for empty collections', async () => {
     await testIndexManager.addFieldIndex(
-      Helpers.fieldIndex('coll1', {
+      Helpers.fieldIndex('coll', {
         fields: [['foo', IndexKind.ASCENDING]],
         offset: new IndexOffset(version(1), DocumentKey.empty(), -1)
       })
     );
-    await addDocs(
-      Helpers.doc('readtime/doc', 1, { ['foo']: 1 })
-    );
+    await addDocs(Helpers.doc('readtime/doc', 1, { ['foo']: 1 }));
 
     {
       const documentsProcessed = await backfiller.backfill();
@@ -331,8 +351,8 @@ function genericIndexBackfillerTests(
 
     await addDocs(
       Helpers.doc('coll/ignored', 2, { ['foo']: 1 }),
-      Helpers.doc('coll/added', 3, { ['foo']: 1 }),
-    )
+      Helpers.doc('coll/added', 3, { ['foo']: 1 })
+    );
 
     {
       const documentsProcessed = await backfiller.backfill();
@@ -345,8 +365,8 @@ function genericIndexBackfillerTests(
     await addDocs(
       Helpers.doc('coll1/docA', 10, { ['foo']: 1 }),
       Helpers.doc('coll1/docB', 20, { ['foo']: 1 }),
-      Helpers.doc('coll1/docC', 30, { ['foo']: 1 }),
-    )
+      Helpers.doc('coll1/docC', 30, { ['foo']: 1 })
+    );
     await addSetMutationToOverlay(5, 'coll1/docD');
 
     {
@@ -356,7 +376,8 @@ function genericIndexBackfillerTests(
 
     await expectQueryResults(
       Helpers.query('coll1', Helpers.orderBy('foo')),
-      'coll1/docA', 'coll1/docB'
+      'coll1/docA',
+      'coll1/docB'
     );
 
     {
@@ -366,15 +387,16 @@ function genericIndexBackfillerTests(
 
     await expectQueryResults(
       Helpers.query('coll1', Helpers.orderBy('foo')),
-      'coll1/docA', 'coll1/docB', 'coll1/docC', 'coll1/docD'
+      'coll1/docA',
+      'coll1/docB',
+      'coll1/docC',
+      'coll1/docD'
     );
-  })
+  });
 
   it('Mutations up to document limit and updates batchId on index', async () => {
     await addFieldIndex('coll1', 'foo');
-    await addDocs(
-      Helpers.doc('coll1/docA', 10, { ['foo']: 1 }),
-    )
+    await addDocs(Helpers.doc('coll1/docA', 10, { ['foo']: 1 }));
     await addSetMutationToOverlay(2, 'coll1/docB');
     await addSetMutationToOverlay(3, 'coll1/docC');
     await addSetMutationToOverlay(4, 'coll1/docD');
@@ -386,7 +408,8 @@ function genericIndexBackfillerTests(
 
     await expectQueryResults(
       Helpers.query('coll1', Helpers.orderBy('foo')),
-      'coll1/docA', 'coll1/docB'
+      'coll1/docA',
+      'coll1/docB'
     );
 
     {
@@ -401,204 +424,249 @@ function genericIndexBackfillerTests(
 
     await expectQueryResults(
       Helpers.query('coll1', Helpers.orderBy('foo')),
-      'coll1/docA', 'coll1/docB', 'coll1/docC', 'coll1/docD'
+      'coll1/docA',
+      'coll1/docB',
+      'coll1/docC',
+      'coll1/docD'
     );
 
     {
       const fieldIndex = await getFieldIndex('coll1');
       expect(fieldIndex.indexState.offset.largestBatchId).to.be.equal(4);
     }
-  })
-// @Test
-// public void testBackfillMutationsUpToDocumentLimitAndUpdatesBatchIdOnIndex() {
-//     backfiller.setMaxDocumentsToProcess(2);
-//     addFieldIndex("coll1", "foo");
-//     addDoc("coll1/docA", version(10), "foo", 1);
-//     addSetMutationsToOverlay(2, "coll1/docB");
-//     addSetMutationsToOverlay(3, "coll1/docC");
-//     addSetMutationsToOverlay(4, "coll1/docD");
-//
-//     int documentsProcessed = backfiller.backfill();
-//     assertEquals(2, documentsProcessed);
-//     expectQueryResults("coll1", "coll1/docA", "coll1/docB");
-//     FieldIndex fieldIndex = indexManager.getFieldIndexes("coll1").iterator().next();
-//     assertEquals(2, fieldIndex.getIndexState().getOffset().getLargestBatchId());
-//
-//     documentsProcessed = backfiller.backfill();
-//     assertEquals(2, documentsProcessed);
-//     expectQueryResults("coll1", "coll1/docA", "coll1/docB", "coll1/docC", "coll1/docD");
-//     fieldIndex = indexManager.getFieldIndexes("coll1").iterator().next();
-//     assertEquals(4, fieldIndex.getIndexState().getOffset().getLargestBatchId());
-//   }
-//
-// @Test
-// public void testBackfillMutationFinishesMutationBatchEvenIfItExceedsLimit() {
-//     backfiller.setMaxDocumentsToProcess(2);
-//     addFieldIndex("coll1", "foo");
-//     addDoc("coll1/docA", version(10), "foo", 1);
-//     addSetMutationsToOverlay(2, "coll1/docB", "coll1/docC", "coll1/docD");
-//     addSetMutationsToOverlay(3, "coll1/docE");
-//
-//     int documentsProcessed = backfiller.backfill();
-//     assertEquals(4, documentsProcessed);
-//     expectQueryResults("coll1", "coll1/docA", "coll1/docB", "coll1/docC", "coll1/docD");
-//   }
-//
-// @Test
-// public void testBackfillMutationsFromHighWaterMark() {
-//     backfiller.setMaxDocumentsToProcess(2);
-//     addFieldIndex("coll1", "foo");
-//     addDoc("coll1/docA", version(10), "foo", 1);
-//     addSetMutationsToOverlay(3, "coll1/docB");
-//
-//     int documentsProcessed = backfiller.backfill();
-//     assertEquals(2, documentsProcessed);
-//     expectQueryResults("coll1", "coll1/docA", "coll1/docB");
-//
-//     addSetMutationsToOverlay(1, "coll1/docC");
-//     addSetMutationsToOverlay(2, "coll1/docD");
-//     documentsProcessed = backfiller.backfill();
-//     assertEquals(0, documentsProcessed);
-//   }
-//
-// @Test
-// public void testBackfillUpdatesExistingDocToNewValue() {
-//     Query queryA = query("coll").filter(filter("foo", "==", 2));
-//     addFieldIndex("coll", "foo");
-//
-//     addDoc("coll/doc", version(10), "foo", 1);
-//
-//     int documentsProcessed = backfiller.backfill();
-//     assertEquals(1, documentsProcessed);
-//     expectQueryResults(queryA);
-//
-//     // Update doc to new remote version with new value.
-//     addDoc("coll/doc", version(40), "foo", 2);
-//     documentsProcessed = backfiller.backfill();
-//
-//     expectQueryResults(queryA, "coll/doc");
-//   }
-//
-// @Test
-// public void testBackfillUpdatesDocsThatNoLongerMatch() {
-//     Query queryA = query("coll").filter(filter("foo", ">", 0));
-//     addFieldIndex("coll", "foo");
-//     addDoc("coll/doc", version(10), "foo", 1);
-//
-//     int documentsProcessed = backfiller.backfill();
-//     assertEquals(1, documentsProcessed);
-//     expectQueryResults(queryA, "coll/doc");
-//
-//     // Update doc to new remote version with new value that doesn't match field index.
-//     addDoc("coll/doc", version(40), "foo", -1);
-//
-//     documentsProcessed = backfiller.backfill();
-//     assertEquals(1, documentsProcessed);
-//     expectQueryResults(queryA);
-//   }
-//
-// @Test
-// public void testBackfillDoesNotProcessSameDocumentTwice() {
-//     addFieldIndex("coll", "foo");
-//     addDoc("coll/doc", version(5), "foo", 1);
-//     addSetMutationsToOverlay(1, "coll/doc");
-//
-//     int documentsProcessed = backfiller.backfill();
-//     assertEquals(1, documentsProcessed);
-//
-//     FieldIndex fieldIndex = indexManager.getFieldIndexes("coll").iterator().next();
-//     assertEquals(version(5), fieldIndex.getIndexState().getOffset().getReadTime());
-//     assertEquals(1, fieldIndex.getIndexState().getOffset().getLargestBatchId());
-//   }
-//
-// @Test
-// public void testBackfillAppliesSetToRemoteDoc() {
-//     addFieldIndex("coll", "foo");
-//     addDoc("coll/doc", version(5), "boo", 1);
-//
-//     int documentsProcessed = backfiller.backfill();
-//     assertEquals(1, documentsProcessed);
-//
-//     Mutation patch = patchMutation("coll/doc", map("foo", 1));
-//     addMutationToOverlay("coll/doc", patch);
-//     documentsProcessed = backfiller.backfill();
-//     assertEquals(1, documentsProcessed);
-//
-//     expectQueryResults("coll", "coll/doc");
-//   }
-//
-// @Test
-// public void testBackfillAppliesPatchToRemoteDoc() {
-//     Query queryA = query("coll").orderBy(orderBy("a"));
-//     Query queryB = query("coll").orderBy(orderBy("b"));
-//
-//     addFieldIndex("coll", "a");
-//     addFieldIndex("coll", "b");
-//     addDoc("coll/doc", version(5), "a", 1);
-//
-//     int documentsProcessed = backfiller.backfill();
-//     assertEquals(1, documentsProcessed);
-//
-//     expectQueryResults(queryA, "coll/doc");
-//     expectQueryResults(queryB);
-//
-//     Mutation patch = patchMutation("coll/doc", map("b", 1));
-//     addMutationToOverlay("coll/doc", patch);
-//     documentsProcessed = backfiller.backfill();
-//     assertEquals(1, documentsProcessed);
-//
-//     expectQueryResults(queryA, "coll/doc");
-//     expectQueryResults(queryB, "coll/doc");
-//   }
-//
-// @Test
-// public void testBackfillAppliesDeleteToRemoteDoc() {
-//     addFieldIndex("coll", "foo");
-//     addDoc("coll/doc", version(5), "foo", 1);
-//
-//     int documentsProcessed = backfiller.backfill();
-//     assertEquals(1, documentsProcessed);
-//
-//     Mutation delete = deleteMutation("coll/doc");
-//     addMutationToOverlay("coll/doc", delete);
-//     documentsProcessed = backfiller.backfill();
-//     assertEquals(1, documentsProcessed);
-//
-//     Target target = query("coll").filter(filter("foo", "==", 2)).toTarget();
-//     List<DocumentKey> matching = indexManager.getDocumentsMatchingTarget(target);
-//     assertTrue(matching.isEmpty());
-//   }
-//
-// @Test
-// public void testReindexesDocumentsWhenNewIndexIsAdded() {
-//     Query queryA = query("coll").orderBy(orderBy("a"));
-//     Query queryB = query("coll").orderBy(orderBy("b"));
-//
-//     addFieldIndex("coll", "a");
-//     addDoc("coll/doc1", version(1), "a", 1);
-//     addDoc("coll/doc2", version(1), "b", 1);
-//
-//     int documentsProcessed = backfiller.backfill();
-//     assertEquals(2, documentsProcessed);
-//     expectQueryResults(queryA, "coll/doc1");
-//     expectQueryResults(queryB);
-//
-//     addFieldIndex("coll", "b");
-//     documentsProcessed = backfiller.backfill();
-//     assertEquals(2, documentsProcessed);
-//
-//     expectQueryResults(queryA, "coll/doc1");
-//     expectQueryResults(queryB, "coll/doc2");
-//   }
-//
-  async function addFieldIndex(collectionGroup: string, foo: string) {
+  });
+
+  it('Mutation finishes mutation batch even if it exceeds limit', async () => {
+    await addFieldIndex('coll1', 'foo');
+    await addDocs(Helpers.doc('coll1/docA', 10, { ['foo']: 1 }));
+    await addSetMutationToOverlay(2, 'coll1/docB', 'coll1/docC', 'coll1/docD');
+    await addSetMutationToOverlay(3, 'coll1/docE');
+
+    const documentsProcessed = await backfiller.backfill(2);
+    expect(documentsProcessed).to.equal(4);
+
+    await expectQueryResults(
+      Helpers.query('coll1', Helpers.orderBy('foo')),
+      'coll1/docA',
+      'coll1/docB',
+      'coll1/docC',
+      'coll1/docD'
+    );
+  });
+
+  it('Mutations from high water mark', async () => {
+    await addFieldIndex('coll1', 'foo');
+    await addDocs(Helpers.doc('coll1/docA', 10, { ['foo']: 1 }));
+    await addSetMutationToOverlay(3, 'coll1/docB');
+
+    {
+      const documentsProcessed = await backfiller.backfill(2);
+      expect(documentsProcessed).to.equal(2);
+    }
+
+    await expectQueryResults(
+      Helpers.query('coll1', Helpers.orderBy('foo')),
+      'coll1/docA',
+      'coll1/docB'
+    );
+
+    await addSetMutationToOverlay(1, 'coll1/docC');
+    await addSetMutationToOverlay(2, 'coll1/docD');
+
+    {
+      const documentsProcessed = await backfiller.backfill(2);
+      expect(documentsProcessed).to.equal(0);
+    }
+  });
+
+  it('Updates existing doc to new value', async () => {
+    const query = Helpers.query(
+      'coll',
+      Helpers.orderBy('foo'),
+      Helpers.filter('foo', '==', 2)
+    );
+    await addFieldIndex('coll', 'foo');
+    await addDocs(Helpers.doc('coll/doc', 10, { ['foo']: 1 }));
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    await expectQueryResults(query);
+
+    await addDocs(Helpers.doc('coll/doc', 40, { ['foo']: 2 }));
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    await expectQueryResults(query, 'coll/doc');
+  });
+
+  it('Updates docs that no longer match', async () => {
+    const query = Helpers.query(
+      'coll',
+      Helpers.orderBy('foo'),
+      Helpers.filter('foo', '>', 0)
+    );
+    await addFieldIndex('coll', 'foo');
+    await addDocs(Helpers.doc('coll/doc', 10, { ['foo']: 1 }));
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    await expectQueryResults(query, 'coll/doc');
+
+    await addDocs(Helpers.doc('coll/doc', 40, { ['foo']: -1 }));
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    await expectQueryResults(query);
+  });
+
+  it('Does not process same document twice', async () => {
+    await addFieldIndex('coll', 'foo');
+    await addDocs(Helpers.doc('coll/doc', 5, { ['foo']: 1 }));
+    await addSetMutationToOverlay(1, 'coll/doc');
+
+    const documentsProcessed = await backfiller.backfill();
+    expect(documentsProcessed).to.equal(1);
+
+    const fieldIndex = await getFieldIndex('coll');
+    expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(version(5));
+    expect(fieldIndex.indexState.offset.largestBatchId).to.be.equal(1);
+  });
+
+  it('Applies set to remote doc', async () => {
+    await addFieldIndex('coll', 'foo');
+    await addDocs(Helpers.doc('coll/doc', 5, { ['foo']: 1 }));
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    const mutation = Helpers.patchMutation('coll/doc', { 'foo': '1' });
+    await addMutationToOverlay(1, 'coll/doc', mutation);
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    await expectQueryResults(
+      Helpers.query('coll', Helpers.orderBy('foo')),
+      'coll/doc'
+    );
+  });
+
+  it('Applies patch to remote doc', async () => {
+    const queryA = Helpers.query('coll', Helpers.orderBy('a'));
+    const queryB = Helpers.query('coll', Helpers.orderBy('b'));
+    await addFieldIndex('coll', 'a');
+    await addFieldIndex('coll', 'b');
+    await addDocs(Helpers.doc('coll/doc', 5, { ['a']: 1 }));
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    await expectQueryResults(queryA, 'coll/doc');
+    await expectQueryResults(queryB);
+
+    const mutation = Helpers.patchMutation('coll/doc', { 'b': '1' });
+    await addMutationToOverlay(5, 'coll/doc', mutation);
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    await expectQueryResults(queryA, 'coll/doc');
+    await expectQueryResults(queryB, 'coll/doc');
+  });
+
+  it('Applies delete to remote doc', async () => {
+    const query = Helpers.query('coll', Helpers.filter('foo', '==', 1));
+    await addFieldIndex('coll', 'foo');
+    await addDocs(Helpers.doc('coll/doc', 5, { ['foo']: 1 }));
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    {
+      const matching = await testIndexManager.getDocumentsMatchingTarget(
+        queryToTarget(query)
+      );
+      expect(matching).is.not.eql([]);
+    }
+
+    const mutation = Helpers.deleteMutation('coll/doc');
+    await addMutationToOverlay(5, 'coll/doc', mutation);
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    {
+      const matching = await testIndexManager.getDocumentsMatchingTarget(
+        queryToTarget(query)
+      );
+      expect(matching).is.eql([]);
+    }
+  });
+
+  it('Reindexes documents when new index is added', async () => {
+    const queryA = Helpers.query('coll', Helpers.orderBy('a'));
+    const queryB = Helpers.query('coll', Helpers.orderBy('b'));
+    await addFieldIndex('coll', 'a');
+    await addDocs(
+      Helpers.doc('coll/doc1', 5, { ['a']: 1 }),
+      Helpers.doc('coll/doc2', 5, { ['b']: 1 })
+    );
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(2);
+    }
+
+    await expectQueryResults(queryA, 'coll/doc1');
+    await expectQueryResults(queryB);
+
+    await addFieldIndex('coll', 'b');
+
+    {
+      const documentsProcessed = await backfiller.backfill();
+      expect(documentsProcessed).to.equal(2);
+    }
+
+    await expectQueryResults(queryA, 'coll/doc1');
+    await expectQueryResults(queryB, 'coll/doc2');
+  });
+
+  async function addFieldIndex(collectionGroup: string, fieldName: string): Promise<void> {
     await testIndexManager.addFieldIndex(
-      Helpers.fieldIndex(collectionGroup, {fields: [[foo, IndexKind.ASCENDING]]})
+      Helpers.fieldIndex(collectionGroup, {
+        fields: [[fieldName, IndexKind.ASCENDING]]
+      })
     );
   }
 
   async function getFieldIndex(collectionGroup: string): Promise<FieldIndex> {
-    const fieldIndexes = await testIndexManager.getFieldIndexes(collectionGroup)
+    const fieldIndexes = await testIndexManager.getFieldIndexes(
+      collectionGroup
+    );
     expect(fieldIndexes).length(1);
     return fieldIndexes[0];
   }
@@ -614,29 +682,45 @@ function genericIndexBackfillerTests(
     });
   }
 
-  async function expectQueryResults(query: Query, ...expectedKeys: string[]) {
-    const actualKeys = await testIndexManager.getDocumentsMatchingTarget(queryToTarget(query));
+  async function expectQueryResults(query: Query, ...expectedKeys: string[]): Promise<void> {
+    const actualKeys = await testIndexManager.getDocumentsMatchingTarget(
+      queryToTarget(query)
+    );
     if (actualKeys === null) {
       expect(expectedKeys).to.be.empty;
     } else {
-      expect(actualKeys.map(k => k.path.canonicalString())).to.eql(expectedKeys);
+      expect(actualKeys.map(k => k.path.canonicalString())).to.eql(
+        expectedKeys
+      );
     }
   }
 
-  async function addDocs(...docs: MutableDocument[]) {
-    await persistence.runTransaction(
-      'Prepare for test',
-      'readwrite',
-      txn => PersistencePromise.forEach(
-        docs,
-        (doc: MutableDocument) => saveDocumentInRemoteDocumentCache(txn, doc)
+  async function addDocs(...docs: MutableDocument[]): Promise<void> {
+    await persistence.runTransaction('Prepare for test', 'readwrite', txn =>
+      PersistencePromise.forEach(docs, (doc: MutableDocument) =>
+        saveDocumentInRemoteDocumentCache(txn, doc)
       )
     );
   }
 
-  async function addSetMutationToOverlay(largestBatch: number, path: string) {
+  async function addSetMutationToOverlay(
+    largestBatch: number,
+    ...paths: string[]
+  ): Promise<void> {
     const mutationMap = newMutationMap();
-    mutationMap.set(key(path), Helpers.setMutation(path, {foo: 'bar'}))
-    await overlayCache.saveOverlays(largestBatch, mutationMap)
+    for (const path of paths) {
+      mutationMap.set(key(path), Helpers.setMutation(path, { foo: 'bar' }));
+    }
+    await overlayCache.saveOverlays(largestBatch, mutationMap);
+  }
+
+  async function addMutationToOverlay(
+    largestBatch: number,
+    path: string,
+    mutation: Mutation
+  ): Promise<void> {
+    const mutationMap = newMutationMap();
+    mutationMap.set(key(path), mutation);
+    await overlayCache.saveOverlays(largestBatch, mutationMap);
   }
 }

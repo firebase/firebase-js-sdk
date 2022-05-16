@@ -208,7 +208,10 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       if (this.gcScheduler && !this.gcScheduler.started) {
         this.gcScheduler.start();
       }
-      if (this.indexBackfillerScheduler && !this.indexBackfillerScheduler.started) {
+      if (
+        this.indexBackfillerScheduler &&
+        !this.indexBackfillerScheduler.started
+      ) {
         this.indexBackfillerScheduler.start();
       }
       return Promise.resolve();
@@ -237,7 +240,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     cfg: ComponentConfiguration,
     localStore: LocalStore
   ): Scheduler | null {
-    let indexBackfiller = new IndexBackfiller(localStore, this.persistence);
+    const indexBackfiller = new IndexBackfiller(localStore, this.persistence);
     return new IndexBackfillerScheduler(cfg.asyncQueue, indexBackfiller);
   }
 

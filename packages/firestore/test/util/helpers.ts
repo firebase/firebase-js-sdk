@@ -231,7 +231,7 @@ export function fieldIndex(
     id?: number;
     fields?: Array<[field: string, kind: IndexKind]>;
     offset?: IndexOffset;
-    sequenceNumber?: number
+    sequenceNumber?: number;
   } = {}
 ): FieldIndex {
   return new FieldIndex(
