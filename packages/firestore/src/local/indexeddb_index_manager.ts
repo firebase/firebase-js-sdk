@@ -194,7 +194,24 @@ export class IndexedDbIndexManager implements IndexManager {
     const indexes = indexConfigurationStore(transaction);
     const dbIndex = toDbIndexConfiguration(index);
     delete dbIndex.indexId; // `indexId` is auto-populated by IndexedDb
-    return indexes.add(dbIndex).next();
+    const result = indexes.add(dbIndex);
+    if (index.indexState) {
+      const states = indexStateStore(transaction);
+      return result.next(indexId => {
+        if (index.indexState) {
+        }
+        states.put(
+          toDbIndexState(
+            indexId,
+            this.user,
+            index.indexState.sequenceNumber,
+            index.indexState.offset
+          )
+        );
+      });
+    } else {
+      return result.next();
+    }
   }
 
   deleteFieldIndex(
