@@ -126,6 +126,7 @@ jobs:
         BASE_VERSION=${{ steps.get-version.outputs.BASE_VERSION }}
         STAGING_VERSION=${{ steps.get-version.outputs.STAGING_VERSION }}
         OPERATOR=${{ github.actor }}
+        RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
         curl -X POST -H "Content-Type:application/json" \
         -d "{\"version\":\"$BASE_VERSION\",\"tag\":\"$STAGING_VERSION\",\"date\":\"$DATE\",\"operator\":\"$OPERATOR\"}" \
-        https://us-central1-feature-tracker-8ca2b.cloudfunctions.net/logStaging
+        $RELEASE_TRACKER_URL/logStaging
