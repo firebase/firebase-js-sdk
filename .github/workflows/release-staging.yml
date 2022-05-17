@@ -113,12 +113,16 @@ jobs:
         NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
         CI: true
     - name: Launch E2E tests workflow
-      uses: peter-evans/repository-dispatch@v2
-      with:
-        token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
-        repository: firebase/firebase-js-sdk
-        event-type: staging-tests
-        client-payload: '{"versionOrTag": "${{ steps.get-version.outputs.STAGING_VERSION }}"}'
+      # Trigger e2e-test.yml
+      run: |
+        OSS_BOT_GITHUB_TOKEN=${{ secrets.OSS_BOT_GITHUB_TOKEN }}
+        VERSION_OR_TAG=${{ steps.get-version.outputs.STAGING_VERSION }}
+        curl -X POST \
+        -H "Content-Type:application/json" \
+        -H "Accept:application/vnd.github.v3+json" \
+        -H "Authorization:Bearer $OSS_BOT_GITHUB_TOKEN" \
+        -d "{\"event_type\":\"staging-tests\", \"client_payload\":{\"versionOrTag\":\"$VERSION_OR_TAG\"}}" \
+        https://api.github.com/repos/firebase/firebase-js-sdk/dispatches
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       run: |
