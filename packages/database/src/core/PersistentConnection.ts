@@ -206,12 +206,6 @@ export class PersistentConnection extends ServerActions {
       onComplete: (message: { [k: string]: unknown }) => {
         const payload = message['d'] as string;
         if (message['s'] === 'ok') {
-          this.onDataUpdate_(
-            request['p'],
-            payload,
-            /*isMerge*/ false,
-            /*tag*/ null
-          );
           deferred.resolve(payload);
         } else {
           deferred.reject(payload);

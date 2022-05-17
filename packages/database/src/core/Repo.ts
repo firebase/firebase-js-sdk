@@ -485,12 +485,10 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
       } else {
         // Simulate `syncTreeAddEventRegistration` without events/listener setup.
         // TODO: We can probably extract this.
-        const { syncPoint, serverCache, writesCache, serverCacheComplete, viewAlreadyExists, foundAncestorDefaultView } = syncTreeAddToPath(query, repo.serverSyncTree_);
-        if (!viewAlreadyExists && !foundAncestorDefaultView) {
-          const view = syncPointGetView(syncPoint, query, writesCache, serverCache, serverCacheComplete);
-          if (!syncPoint.views.has(query._queryIdentifier)) {
-            syncPoint.views.set(query._queryIdentifier, view);
-          }
+        const { syncPoint, serverCache, writesCache, serverCacheComplete  } = syncTreeAddToPath(query, repo.serverSyncTree_);
+        const view = syncPointGetView(syncPoint, query, writesCache, serverCache, serverCacheComplete);
+        if (!syncPoint.views.has(query._queryIdentifier)) {
+          syncPoint.views.set(query._queryIdentifier, view);
         }
         const tag = syncTreeTagForQuery_(repo.serverSyncTree_, query);
         const events = syncTreeApplyTaggedQueryOverwrite(
