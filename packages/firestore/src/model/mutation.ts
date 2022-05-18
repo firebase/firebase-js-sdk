@@ -213,6 +213,12 @@ export abstract class Mutation {
   abstract readonly key: DocumentKey;
   abstract readonly precondition: Precondition;
   abstract readonly fieldTransforms: FieldTransform[];
+  /**
+   * Returns a `FieldMask` representing the fields that will be changed by
+   * applying this mutation. Returns `null` if the mutation will overwrite the
+   * entire document.
+   */
+  abstract getFieldMask(): FieldMask | null;
 }
 
 /**
@@ -444,6 +450,10 @@ export class SetMutation extends Mutation {
   }
 
   readonly type: MutationType = MutationType.Set;
+
+  getFieldMask(): FieldMask | null {
+    return null;
+  }
 }
 
 function setMutationApplyToRemoteDocument(
@@ -516,6 +526,10 @@ export class PatchMutation extends Mutation {
   }
 
   readonly type: MutationType = MutationType.Patch;
+
+  getFieldMask(): FieldMask | null {
+    return this.fieldMask;
+  }
 }
 
 function patchMutationApplyToRemoteDocument(
@@ -670,6 +684,10 @@ export class DeleteMutation extends Mutation {
 
   readonly type: MutationType = MutationType.Delete;
   readonly fieldTransforms: FieldTransform[] = [];
+
+  getFieldMask(): FieldMask | null {
+    return null;
+  }
 }
 
 function deleteMutationApplyToRemoteDocument(
@@ -720,4 +738,8 @@ export class VerifyMutation extends Mutation {
 
   readonly type: MutationType = MutationType.Verify;
   readonly fieldTransforms: FieldTransform[] = [];
+
+  getFieldMask(): FieldMask | null {
+    return null;
+  }
 }

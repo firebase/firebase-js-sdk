@@ -18,6 +18,7 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
+import { OverlayedDocument } from '../local/overlayed_document';
 import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
 
@@ -25,10 +26,10 @@ import {
   documentKeySet,
   DocumentKeySet,
   MutationMap,
-  DocumentMap,
   DocumentVersionMap,
   documentVersionMap,
-  newMutationMap
+  newMutationMap,
+  DocumentKeyMap
 } from './collections';
 import { MutableDocument } from './document';
 import { FieldMask } from './field_mask';
@@ -104,7 +105,7 @@ export class MutationBatch {
    */
   applyToLocalView(
     document: MutableDocument,
-    mutatedFields: FieldMask | null = FieldMask.empty()
+    mutatedFields: FieldMask | null
   ): FieldMask | null {
     // First, apply the base state. This allows us to apply non-idempotent
     // transform against a consistent set of values.
@@ -139,7 +140,7 @@ export class MutationBatch {
    * replace all the mutation applications.
    */
   applyToLocalDocumentSet(
-    documentMap: DocumentMap,
+    documentMap: DocumentKeyMap<OverlayedDocument>,
     documentsWithoutRemoteVersion: DocumentKeySet
   ): MutationMap {
     // TODO(mrschmidt): This implementation is O(n^2). If we apply the mutations
@@ -147,11 +148,15 @@ export class MutationBatch {
     // to O(n).
     const overlays = newMutationMap();
     this.mutations.forEach(m => {
-      const document = documentMap.get(m.key)!;
+      const overlayedDocument = documentMap.get(m.key)!;
       // TODO(mutabledocuments): This method should take a MutableDocumentMap
       // and we should remove this cast.
-      const mutableDocument = document as MutableDocument;
-      let mutatedFields = this.applyToLocalView(mutableDocument);
+      const mutableDocument =
+        overlayedDocument.overlayedDocument as MutableDocument;
+      let mutatedFields = this.applyToLocalView(
+        mutableDocument,
+        overlayedDocument.mutatedFields
+      );
       // Set mutatedFields to null if the document is only from local mutations.
       // This creates a Set or Delete mutation, instead of trying to create a
       // patch mutation as the overlay.
@@ -162,7 +167,7 @@ export class MutationBatch {
       if (overlay !== null) {
         overlays.set(m.key, overlay);
       }
-      if (!document.isValidDocument()) {
+      if (!mutableDocument.isValidDocument()) {
         mutableDocument.convertToNoDocument(SnapshotVersion.min());
       }
     });

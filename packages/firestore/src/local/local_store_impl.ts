@@ -28,8 +28,10 @@ import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import {
+  DocumentKeyMap,
   documentKeySet,
   DocumentKeySet,
+  documentMap,
   DocumentMap,
   mutableDocumentMap,
   MutableDocumentMap
@@ -75,6 +77,7 @@ import { LocalStore } from './local_store';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
+import { OverlayedDocument } from './overlayed_document';
 import { Persistence } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -315,7 +318,7 @@ export function localStoreWriteLocally(
   const localWriteTime = Timestamp.now();
   const keys = mutations.reduce((keys, m) => keys.add(m.key), documentKeySet());
 
-  let existingDocs: DocumentMap;
+  let overlayedDocuments: DocumentKeyMap<OverlayedDocument>;
   let mutationBatch: MutationBatch;
 
   return localStoreImpl.persistence
@@ -342,13 +345,13 @@ export function localStoreWriteLocally(
           // Load and apply all existing mutations. This lets us compute the
           // current base state for all non-idempotent transforms before applying
           // any additional user-provided writes.
-          return localStoreImpl.localDocuments.getLocalViewOfDocuments(
+          return localStoreImpl.localDocuments.getOverlayedDocuments(
             txn,
             remoteDocs
           );
         })
         .next(docs => {
-          existingDocs = docs;
+          overlayedDocuments = docs;
 
           // For non-idempotent mutations (such as `FieldValue.increment()`),
           // we record the base state in a separate patch mutation. This is
@@ -360,7 +363,7 @@ export function localStoreWriteLocally(
           for (const mutation of mutations) {
             const baseValue = mutationExtractBaseValue(
               mutation,
-              existingDocs.get(mutation.key)!
+              overlayedDocuments.get(mutation.key)!.overlayedDocument
             );
             if (baseValue != null) {
               // NOTE: The base state should only be applied if there's some
@@ -387,7 +390,7 @@ export function localStoreWriteLocally(
         .next(batch => {
           mutationBatch = batch;
           const overlays = batch.applyToLocalDocumentSet(
-            existingDocs,
+            overlayedDocuments,
             docsWithoutRemoteVersion
           );
           return localStoreImpl.documentOverlayCache.saveOverlays(
@@ -398,7 +401,11 @@ export function localStoreWriteLocally(
         });
     })
     .then(() => {
-      return { batchId: mutationBatch.batchId, changes: existingDocs };
+      let documents = documentMap();
+      overlayedDocuments.forEach(
+        (key, val) => (documents = documents.insert(key, val.overlayedDocument))
+      );
+      return { batchId: mutationBatch.batchId, changes: documents };
     });
 }
 

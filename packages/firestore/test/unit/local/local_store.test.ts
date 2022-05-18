@@ -1398,7 +1398,7 @@ function genericLocalStoreTests(
     );
   });
 
-  it('holds back only non-idempotent transforms', () => {
+  it('holds back transforms', () => {
     const query1 = query('foo');
     return (
       expectLocalStore()
@@ -1425,21 +1425,22 @@ function genericLocalStoreTests(
           )
         )
         .toReturnChanged(doc('foo/bar', 1, { sum: 0, arrayUnion: [] }))
-        .afterMutations([
-          patchMutation('foo/bar', { sum: increment(1) }),
-          patchMutation('foo/bar', {
-            arrayUnion: arrayUnion('foo')
-          })
-        ])
+        .after(patchMutation('foo/bar', { sum: increment(1) }))
+        .toReturnChanged(
+          doc('foo/bar', 1, {
+            sum: 1,
+            arrayUnion: []
+          }).setHasLocalMutations()
+        )
+        .after(patchMutation('foo/bar', { arrayUnion: arrayUnion('foo') }))
         .toReturnChanged(
           doc('foo/bar', 1, {
             sum: 1,
             arrayUnion: ['foo']
           }).setHasLocalMutations()
         )
-        // The sum transform is not idempotent and the backend's updated value
-        // is ignored. The ArrayUnion transform is recomputed and includes the
-        // backend value.
+        // The sum transform and array union transform make the SDK ignore the
+        // backend's updated value.
         .afterRemoteEvent(
           docUpdateRemoteEvent(
             doc('foo/bar', 2, { sum: 1337, arrayUnion: ['bar'] }),
@@ -1452,10 +1453,23 @@ function genericLocalStoreTests(
             arrayUnion: ['foo']
           }).setHasLocalMutations()
         )
+        // With a field transform acknowledgement, the overlay is recalculated
+        // with the remaining local mutations.
         .afterAcknowledgingMutation({
           documentVersion: 3,
+          transformResults: [{ integerValue: 1338 }]
+        })
+        .toReturnChanged(
+          doc('foo/bar', 3, {
+            sum: 1338,
+            arrayUnion: ['bar', 'foo']
+          })
+            .setReadTime(SnapshotVersion.fromTimestamp(new Timestamp(0, 3000)))
+            .setHasLocalMutations()
+        )
+        .afterAcknowledgingMutation({
+          documentVersion: 4,
           transformResults: [
-            { integerValue: 1338 },
             {
               arrayValue: {
                 values: [{ stringValue: 'bar' }, { stringValue: 'foo' }]
@@ -1464,11 +1478,11 @@ function genericLocalStoreTests(
           ]
         })
         .toReturnChanged(
-          doc('foo/bar', 3, {
+          doc('foo/bar', 4, {
             sum: 1338,
             arrayUnion: ['bar', 'foo']
           })
-            .setReadTime(SnapshotVersion.fromTimestamp(new Timestamp(0, 3000)))
+            .setReadTime(SnapshotVersion.fromTimestamp(new Timestamp(0, 4000)))
             .setHasCommittedMutations()
         )
         .finish()
@@ -1835,6 +1849,111 @@ function genericLocalStoreTests(
       .toContain(doc('foo/bar', 0, { 'foo': 'bar-set' }).setHasLocalMutations())
       .toContain(
         doc('foo/another', 0, { 'foo': 'another' }).setHasLocalMutations()
+      )
+      .finish();
+  });
+
+  it('can handle multiple field patches on remote docs', () => {
+    const query1 = query('foo', filter('matches', '==', true));
+    return expectLocalStore()
+      .afterAllocatingQuery(query1)
+      .toReturnTargetId(2)
+      .afterRemoteEvent(
+        docAddedRemoteEvent(
+          [doc('foo/bar', 1, { 'likes': 0, 'stars': 0 })],
+          [2],
+          []
+        )
+      )
+      .toReturnChanged(doc('foo/bar', 1, { 'likes': 0, 'stars': 0 }))
+      .toContain(doc('foo/bar', 1, { 'likes': 0, 'stars': 0 }))
+      .after(patchMutation('foo/bar', { 'likes': 1 }))
+      .toReturnChanged(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 0 }).setHasLocalMutations()
+      )
+      .toContain(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 0 }).setHasLocalMutations()
+      )
+      .after(patchMutation('foo/bar', { 'stars': 1 }))
+      .toReturnChanged(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 1 }).setHasLocalMutations()
+      )
+      .toContain(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 1 }).setHasLocalMutations()
+      )
+      .after(patchMutation('foo/bar', { 'stars': 2 }))
+      .toReturnChanged(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 2 }).setHasLocalMutations()
+      )
+      .toContain(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 2 }).setHasLocalMutations()
+      )
+      .finish();
+  });
+
+  it('can handle multiple field patches in one batch on remote docs', () => {
+    const query1 = query('foo');
+    return expectLocalStore()
+      .afterAllocatingQuery(query1)
+      .toReturnTargetId(2)
+      .afterRemoteEvent(
+        docAddedRemoteEvent(
+          [doc('foo/bar', 1, { 'likes': 0, 'stars': 0 })],
+          [2],
+          []
+        )
+      )
+      .toReturnChanged(doc('foo/bar', 1, { 'likes': 0, 'stars': 0 }))
+      .toContain(doc('foo/bar', 1, { 'likes': 0, 'stars': 0 }))
+      .afterMutations([
+        patchMutation('foo/bar', { 'likes': 1 }),
+        patchMutation('foo/bar', { 'stars': 1 })
+      ])
+      .toReturnChanged(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 1 }).setHasLocalMutations()
+      )
+      .toContain(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 1 }).setHasLocalMutations()
+      )
+      .after(patchMutation('foo/bar', { 'stars': 2 }))
+      .toReturnChanged(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 2 }).setHasLocalMutations()
+      )
+      .toContain(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 2 }).setHasLocalMutations()
+      )
+      .finish();
+  });
+
+  it('can handle multiple field patches on local docs', () => {
+    return expectLocalStore()
+      .after(setMutation('foo/bar', { 'likes': 0, 'stars': 0 }))
+      .toReturnChanged(
+        doc('foo/bar', 1, { 'likes': 0, 'stars': 0 }).setHasLocalMutations()
+      )
+      .toContain(
+        doc('foo/bar', 1, { 'likes': 0, 'stars': 0 }).setHasLocalMutations()
+      )
+      .after(patchMutation('foo/bar', { 'likes': 1 }))
+      .toReturnChanged(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 0 }).setHasLocalMutations()
+      )
+      .toContain(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 0 }).setHasLocalMutations()
+      )
+      .after(patchMutation('foo/bar', { 'stars': 1 }))
+      .toReturnChanged(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 1 }).setHasLocalMutations()
+      )
+      .toContain(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 1 }).setHasLocalMutations()
+      )
+      .after(patchMutation('foo/bar', { 'stars': 2 }))
+      .toReturnChanged(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 2 }).setHasLocalMutations()
+      )
+      .toContain(
+        doc('foo/bar', 1, { 'likes': 1, 'stars': 2 }).setHasLocalMutations()
       )
       .finish();
   });
