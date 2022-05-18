@@ -84,6 +84,26 @@ export function onIdTokenChanged(
   );
 }
 /**
+ * Adds a blocking callback that runs before an auth state change
+ * sets a new user.
+ *
+ * @param auth - The {@link Auth} instance.
+ * @param callback - callback triggered before new user value is set.
+ *   If this throws, it blocks the user from being set.
+ * @param onAbort - callback triggered if a later `beforeAuthStateChanged()`
+ *   callback throws, allowing you to undo any side effects.
+ */
+ export function beforeAuthStateChanged(
+  auth: Auth,
+  callback: (user: User|null) => void | Promise<void>,
+  onAbort?: () => void,
+): Unsubscribe {
+  return getModularInstance(auth).beforeAuthStateChanged(
+    callback,
+    onAbort
+  );
+}
+/**
  * Adds an observer for changes to the user's sign-in state.
  *
  * @remarks

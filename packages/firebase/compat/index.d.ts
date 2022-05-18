@@ -6019,6 +6019,20 @@ declare namespace firebase.database {
      */
     app: firebase.app.App;
     /**
+     * Additional methods for debugging and special cases.
+     *
+     */
+    INTERNAL: {
+      /**
+       * Force the use of WebSockets instead of long polling.
+       */
+      forceWebSockets: () => void;
+      /**
+       * Force the use of long polling instead of WebSockets. This will be ignored if the WebSocket protocol is used in `databaseURL`.
+       */
+      forceLongPolling: () => void;
+    };
+    /**
      * Modify this instance to communicate with the Realtime Database emulator.
      *
      * <p>Note: This method must be called before performing any other operation.

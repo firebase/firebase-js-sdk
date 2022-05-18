@@ -30,6 +30,7 @@ import {
   AnonFunction,
   CoreFunction,
   EmailFunction,
+  MiddlewareFunction,
   PopupFunction
 } from './util/functions';
 
@@ -61,6 +62,34 @@ browserDescribe('Popup IdP tests', driver => {
 
     expect(result.operationType).to.eq(OperationType.SIGN_IN);
     expect(result.user).to.eql(currentUser);
+  });
+
+  it('is blocked by auth middleware', async function () {
+    if (driver.isCompatLayer()) {
+      // Compat layer doesn't support middleware yet
+      this.skip();
+    }
+
+    await driver.call(MiddlewareFunction.ATTACH_BLOCKING_MIDDLEWARE);
+    await driver.callNoWait(PopupFunction.IDP_POPUP);
+    await driver.selectPopupWindow();
+    const widget = new IdPPage(driver.webDriver);
+
+    // We're now on the widget page; wait for load
+    await widget.pageLoad();
+    await widget.clickAddAccount();
+    await widget.fillEmail('bob@bob.test');
+    await widget.fillDisplayName('Bob Test');
+    await widget.fillScreenName('bob.test');
+    await widget.fillProfilePhoto('http://bob.test/bob.png');
+    await widget.clickSignIn();
+
+    await driver.selectMainWindow();
+    await expect(driver.call(
+      PopupFunction.POPUP_RESULT
+    )).to.be.rejectedWith('auth/login-blocked');
+    const currentUser = await driver.getUserSnapshot();
+    expect(currentUser).to.be.null;
   });
 
   it('can link with another account account', async () => {

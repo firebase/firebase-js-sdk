@@ -47,10 +47,10 @@ describe('client', () => {
     const { projectId, appId, apiKey } = app.options;
 
     expect(request).to.deep.equal({
-      url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:exchangeRecaptchaToken?key=${apiKey}`,
+      url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:exchangeRecaptchaV3Token?key=${apiKey}`,
       body: {
         // eslint-disable-next-line camelcase
-        recaptcha_token: 'fake-recaptcha-token'
+        recaptcha_v3_token: 'fake-recaptcha-token'
       }
     });
   });
@@ -78,7 +78,7 @@ describe('client', () => {
       Promise.resolve({
         status: 200,
         json: async () => ({
-          attestationToken: 'fake-appcheck-token',
+          token: 'fake-appcheck-token',
           ttl: '3.600s'
         })
       } as Response)
@@ -189,7 +189,7 @@ describe('client', () => {
         status: 200,
         json: () =>
           Promise.resolve({
-            attestationToken: 'fake-appcheck-token',
+            token: 'fake-appcheck-token',
             ttl: 'NAN'
           })
       } as Response)

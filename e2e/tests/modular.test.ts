@@ -65,7 +65,12 @@ import {
   Firestore,
   initializeFirestore
 } from 'firebase/firestore';
-import { Functions, getFunctions, httpsCallable } from 'firebase/functions';
+import {
+  Functions,
+  getFunctions,
+  httpsCallable,
+  httpsCallableFromURL
+} from 'firebase/functions';
 import { getMessaging } from 'firebase/messaging';
 import {
   FirebasePerformance,
@@ -139,6 +144,15 @@ describe('MODULAR', () => {
       const callTest = httpsCallable<{ data: string }, { word: string }>(
         functions,
         'callTest'
+      );
+      const result = await callTest({ data: 'blah' });
+      expect(result.data.word).to.equal('hellooo');
+      // This takes a while. Extend timeout past default (2000)
+    }).timeout(5000);
+    it('httpsCallableFromURL()', async () => {
+      const callTest = httpsCallableFromURL<{ data: string }, { word: string }>(
+        functions,
+        `https://us-central1-${app.options.projectId}.cloudfunctions.net/callTest`
       );
       const result = await callTest({ data: 'blah' });
       expect(result.data.word).to.equal('hellooo');

@@ -31,16 +31,17 @@ import {
   isReferenceValue,
   MAX_VALUE,
   MIN_VALUE,
+  lowerBoundCompare,
   typeOrder,
+  upperBoundCompare,
   valueCompare,
   valueEquals,
   valuesGetLowerBound,
-  valuesGetUpperBound,
-  valuesMax,
-  valuesMin
+  valuesGetUpperBound
 } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, fail } from '../util/assert';
+import { SortedSet } from '../util/sorted_set';
 import { isNullOrUndefined } from '../util/types';
 
 /**
@@ -292,13 +293,13 @@ export function targetGetNotInValues(
 
 /**
  * Returns a lower bound of field values that can be used as a starting point to
- * scan the index defined by `fieldIndex`. Returns `null` if no lower bound
+ * scan the index defined by `fieldIndex`. Returns `MIN_VALUE` if no lower bound
  * exists.
  */
 export function targetGetLowerBound(
   target: Target,
   fieldIndex: FieldIndex
-): Bound | null {
+): Bound {
   const values: ProtoValue[] = [];
   let inclusive = true;
 
@@ -307,17 +308,9 @@ export function targetGetLowerBound(
   for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
     const segmentBound =
       segment.kind === IndexKind.ASCENDING
-        ? targetGetLowerBoundForField(target, segment.fieldPath, target.startAt)
-        : targetGetUpperBoundForField(
-            target,
-            segment.fieldPath,
-            target.startAt
-          );
+        ? targetGetAscendingBound(target, segment.fieldPath, target.startAt)
+        : targetGetDescendingBound(target, segment.fieldPath, target.startAt);
 
-    if (!segmentBound.value) {
-      // No lower bound exists
-      return null;
-    }
     values.push(segmentBound.value);
     inclusive &&= segmentBound.inclusive;
   }
@@ -326,13 +319,13 @@ export function targetGetLowerBound(
 
 /**
  * Returns an upper bound of field values that can be used as an ending point
- * when scanning the index defined by `fieldIndex`. Returns `null` if no
+ * when scanning the index defined by `fieldIndex`. Returns `MAX_VALUE` if no
  * upper bound exists.
  */
 export function targetGetUpperBound(
   target: Target,
   fieldIndex: FieldIndex
-): Bound | null {
+): Bound {
   const values: ProtoValue[] = [];
   let inclusive = true;
 
@@ -341,13 +334,9 @@ export function targetGetUpperBound(
   for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
     const segmentBound =
       segment.kind === IndexKind.ASCENDING
-        ? targetGetUpperBoundForField(target, segment.fieldPath, target.endAt)
-        : targetGetLowerBoundForField(target, segment.fieldPath, target.endAt);
+        ? targetGetDescendingBound(target, segment.fieldPath, target.endAt)
+        : targetGetAscendingBound(target, segment.fieldPath, target.endAt);
 
-    if (!segmentBound.value) {
-      // No upper bound exists
-      return null;
-    }
     values.push(segmentBound.value);
     inclusive &&= segmentBound.inclusive;
   }
@@ -359,17 +348,18 @@ export function targetGetUpperBound(
  * Returns the value to use as the lower bound for ascending index segment at
  * the provided `fieldPath` (or the upper bound for an descending segment).
  */
-function targetGetLowerBoundForField(
+function targetGetAscendingBound(
   target: Target,
   fieldPath: FieldPath,
   bound: Bound | null
-): { value: ProtoValue | undefined; inclusive: boolean } {
-  let value: ProtoValue | undefined = undefined;
+): { value: ProtoValue; inclusive: boolean } {
+  let value: ProtoValue = MIN_VALUE;
+
   let inclusive = true;
 
   // Process all filters to find a value for the current field segment
   for (const fieldFilter of targetGetFieldFiltersForPath(target, fieldPath)) {
-    let filterValue: ProtoValue | undefined = undefined;
+    let filterValue: ProtoValue = MIN_VALUE;
     let filterInclusive = true;
 
     switch (fieldFilter.op) {
@@ -394,7 +384,12 @@ function targetGetLowerBoundForField(
       // Remaining filters cannot be used as lower bounds.
     }
 
-    if (valuesMax(value, filterValue) === filterValue) {
+    if (
+      lowerBoundCompare(
+        { value, inclusive },
+        { value: filterValue, inclusive: filterInclusive }
+      ) < 0
+    ) {
       value = filterValue;
       inclusive = filterInclusive;
     }
@@ -407,7 +402,12 @@ function targetGetLowerBoundForField(
       const orderBy = target.orderBy[i];
       if (orderBy.field.isEqual(fieldPath)) {
         const cursorValue = bound.position[i];
-        if (valuesMax(value, cursorValue) === cursorValue) {
+        if (
+          lowerBoundCompare(
+            { value, inclusive },
+            { value: cursorValue, inclusive: bound.inclusive }
+          ) < 0
+        ) {
           value = cursorValue;
           inclusive = bound.inclusive;
         }
@@ -421,19 +421,19 @@ function targetGetLowerBoundForField(
 
 /**
  * Returns the value to use as the upper bound for ascending index segment at
- * the provided `fieldPath` (or the lower bound for an descending segment).
+ * the provided `fieldPath` (or the lower bound for a descending segment).
  */
-function targetGetUpperBoundForField(
+function targetGetDescendingBound(
   target: Target,
   fieldPath: FieldPath,
   bound: Bound | null
-): { value: ProtoValue | undefined; inclusive: boolean } {
-  let value: ProtoValue | undefined = undefined;
+): { value: ProtoValue; inclusive: boolean } {
+  let value: ProtoValue = MAX_VALUE;
   let inclusive = true;
 
   // Process all filters to find a value for the current field segment
   for (const fieldFilter of targetGetFieldFiltersForPath(target, fieldPath)) {
-    let filterValue: ProtoValue | undefined = undefined;
+    let filterValue: ProtoValue = MAX_VALUE;
     let filterInclusive = true;
 
     switch (fieldFilter.op) {
@@ -459,7 +459,12 @@ function targetGetUpperBoundForField(
       // Remaining filters cannot be used as upper bounds.
     }
 
-    if (valuesMin(value, filterValue) === filterValue) {
+    if (
+      upperBoundCompare(
+        { value, inclusive },
+        { value: filterValue, inclusive: filterInclusive }
+      ) > 0
+    ) {
       value = filterValue;
       inclusive = filterInclusive;
     }
@@ -472,7 +477,12 @@ function targetGetUpperBoundForField(
       const orderBy = target.orderBy[i];
       if (orderBy.field.isEqual(fieldPath)) {
         const cursorValue = bound.position[i];
-        if (valuesMin(value, cursorValue) === cursorValue) {
+        if (
+          upperBoundCompare(
+            { value, inclusive },
+            { value: cursorValue, inclusive: bound.inclusive }
+          ) > 0
+        ) {
           value = cursorValue;
           inclusive = bound.inclusive;
         }
@@ -482,6 +492,46 @@ function targetGetUpperBoundForField(
   }
 
   return { value, inclusive };
+}
+
+/** Returns the number of segments of a perfect index for this target. */
+export function targetGetSegmentCount(target: Target): number {
+  let fields = new SortedSet<FieldPath>(FieldPath.comparator);
+  let hasArraySegment = false;
+
+  for (const filter of target.filters) {
+    // TODO(orquery): Use the flattened filters here
+    const fieldFilter = filter as FieldFilter;
+
+    // __name__ is not an explicit segment of any index, so we don't need to
+    // count it.
+    if (fieldFilter.field.isKeyField()) {
+      continue;
+    }
+
+    // ARRAY_CONTAINS or ARRAY_CONTAINS_ANY filters must be counted separately.
+    // For instance, it is possible to have an index for "a ARRAY a ASC". Even
+    // though these are on the same field, they should be counted as two
+    // separate segments in an index.
+    if (
+      fieldFilter.op === Operator.ARRAY_CONTAINS ||
+      fieldFilter.op === Operator.ARRAY_CONTAINS_ANY
+    ) {
+      hasArraySegment = true;
+    } else {
+      fields = fields.add(fieldFilter.field);
+    }
+  }
+
+  for (const orderBy of target.orderBy) {
+    // __name__ is not an explicit segment of any index, so we don't need to
+    // count it.
+    if (!orderBy.field.isKeyField()) {
+      fields = fields.add(orderBy.field);
+    }
+  }
+
+  return fields.size + (hasArraySegment ? 1 : 0);
 }
 
 export abstract class Filter {

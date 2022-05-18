@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DBWrapper, deleteDB, openDB } from '@firebase/util';
+import { DBSchema, IDBPDatabase, deleteDB, openDB } from 'idb';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { TokenDetails } from '../interfaces/token-details';
@@ -26,13 +26,18 @@ export const DATABASE_NAME = 'firebase-messaging-database';
 const DATABASE_VERSION = 1;
 const OBJECT_STORE_NAME = 'firebase-messaging-store';
 
-let dbPromise: Promise<DBWrapper> | null = null;
-function getDbPromise(): Promise<DBWrapper> {
+interface MessagingDB extends DBSchema {
+  'firebase-messaging-store': {
+    key: string;
+    value: TokenDetails;
+  };
+}
+
+let dbPromise: Promise<IDBPDatabase<MessagingDB>> | null = null;
+function getDbPromise(): Promise<IDBPDatabase<MessagingDB>> {
   if (!dbPromise) {
-    dbPromise = openDB(
-      DATABASE_NAME,
-      DATABASE_VERSION,
-      (upgradeDb, oldVersion) => {
+    dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
+      upgrade: (upgradeDb, oldVersion) => {
         // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
         // because if there are multiple versions between the old version and the current version, we
         // want ALL the migrations that correspond to those versions to run, not only the last one.
@@ -42,7 +47,7 @@ function getDbPromise(): Promise<DBWrapper> {
             upgradeDb.createObjectStore(OBJECT_STORE_NAME);
         }
       }
-    );
+    });
   }
   return dbPromise;
 }
@@ -81,7 +86,7 @@ export async function dbSet(
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).put(tokenDetails, key);
-  await tx.complete;
+  await tx.done;
   return tokenDetails;
 }
 
@@ -93,7 +98,7 @@ export async function dbRemove(
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).delete(key);
-  await tx.complete;
+  await tx.done;
 }
 
 /** Deletes the DB. Useful for tests. */

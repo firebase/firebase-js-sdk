@@ -406,6 +406,19 @@ function genericRemoteDocumentCacheTests(
       });
   });
 
+  it('can set and read several documents with deeply nested keys', () => {
+    // This test verifies that the sorting works correctly in IndexedDB,
+    // which sorts by prefix path first.
+    // Repro of https://github.com/firebase/firebase-js-sdk/issues/6110
+    const keys = ['a/a/a/a/a/a/a/a', 'b/b/b/b/a/a', 'c/c/a/a', 'd/d'];
+    return cache
+      .addEntries(keys.map(k => doc(k, VERSION, DOC_DATA)))
+      .then(() => cache.getEntries(documentKeySet(...keys.map(k => key(k)))))
+      .then(read => {
+        expect(read.size).to.equal(keys.length);
+      });
+  });
+
   it('can set and read several documents including missing document', () => {
     const docs = [
       doc(DOC_PATH, VERSION, DOC_DATA),

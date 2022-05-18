@@ -68,6 +68,10 @@ export interface Equatable<T> {
   isEqual(other: T): boolean;
 }
 
+export interface Iterable<V> {
+  forEach: (cb: (v: V) => void) => void;
+}
+
 /** Helper to compare arrays using isEqual(). */
 export function arrayEquals<T>(
   left: T[],
