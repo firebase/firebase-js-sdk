@@ -535,7 +535,6 @@ export function syncTreeAddToPath(query: QueryContext, syncTree: SyncTree) {
     });
   }
 
-  
   const viewAlreadyExists = syncPointViewExistsForQuery(syncPoint, query);
   if (!viewAlreadyExists && !query._queryParams.loadsAllData()) {
     // We need to track a tag for this query
@@ -548,7 +547,14 @@ export function syncTreeAddToPath(query: QueryContext, syncTree: SyncTree) {
   }
   const writesCache = writeTreeChildWrites(syncTree.pendingWriteTree_, path);
   // TODO: break this down so you do the minimal amount
-  return { syncPoint, writesCache, serverCache, serverCacheComplete, foundAncestorDefaultView, viewAlreadyExists };
+  return {
+    syncPoint,
+    writesCache,
+    serverCache,
+    serverCacheComplete,
+    foundAncestorDefaultView,
+    viewAlreadyExists
+  };
 }
 
 /**
@@ -561,8 +567,14 @@ export function syncTreeAddEventRegistration(
   query: QueryContext,
   eventRegistration: EventRegistration
 ): Event[] {
-
-  const { syncPoint, serverCache, writesCache, serverCacheComplete, viewAlreadyExists, foundAncestorDefaultView } = syncTreeAddToPath(query, syncTree);
+  const {
+    syncPoint,
+    serverCache,
+    writesCache,
+    serverCacheComplete,
+    viewAlreadyExists,
+    foundAncestorDefaultView
+  } = syncTreeAddToPath(query, syncTree);
 
   let events = syncPointAddEventRegistration(
     syncPoint,

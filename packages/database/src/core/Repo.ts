@@ -48,9 +48,8 @@ import {
   statsManagerGetOrCreateReporter
 } from './stats/StatsManager';
 import { StatsReporter, statsReporterIncludeStat } from './stats/StatsReporter';
-import { syncPointGetView, syncPointIsEmpty, syncPointViewExistsForQuery, syncPointViewForQuery } from './SyncPoint';
+import { syncPointGetView } from './SyncPoint';
 import {
-  createNewTag,
   SyncTree,
   syncTreeAckUserWrite,
   syncTreeAddEventRegistration,
@@ -63,7 +62,6 @@ import {
   syncTreeApplyUserOverwrite,
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
-  syncTreeMakeQueryKey_,
   syncTreeRemoveEventRegistration,
   syncTreeTagForQuery_
 } from './SyncTree';
@@ -475,7 +473,7 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
         query._queryParams.getIndex()
       );
       // if this is not a filtered query, then overwrite at path
-      if(query._queryParams.loadsAllData()) {
+      if (query._queryParams.loadsAllData()) {
         const events = syncTreeApplyServerOverwrite(
           repo.serverSyncTree_,
           query._path,
@@ -485,8 +483,15 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
       } else {
         // Simulate `syncTreeAddEventRegistration` without events/listener setup.
         // TODO: We can probably extract this.
-        const { syncPoint, serverCache, writesCache, serverCacheComplete  } = syncTreeAddToPath(query, repo.serverSyncTree_);
-        const view = syncPointGetView(syncPoint, query, writesCache, serverCache, serverCacheComplete);
+        const { syncPoint, serverCache, writesCache, serverCacheComplete } =
+          syncTreeAddToPath(query, repo.serverSyncTree_);
+        const view = syncPointGetView(
+          syncPoint,
+          query,
+          writesCache,
+          serverCache,
+          serverCacheComplete
+        );
         if (!syncPoint.views.has(query._queryIdentifier)) {
           syncPoint.views.set(query._queryIdentifier, view);
         }
@@ -499,8 +504,12 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
         );
         eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
         // Call `syncTreeRemoveEventRegistration` with a null event registration, since there is none.
-        const cancels = syncTreeRemoveEventRegistration(repo.serverSyncTree_, query, null)
-        assert(cancels.length == 0, "unexpected cancel events in repoGetValue");
+        const cancels = syncTreeRemoveEventRegistration(
+          repo.serverSyncTree_,
+          query,
+          null
+        );
+        assert(cancels.length == 0, 'unexpected cancel events in repoGetValue');
       }
       return Promise.resolve(node);
     },
