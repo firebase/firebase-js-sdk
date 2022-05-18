@@ -87,6 +87,9 @@ export const enum IdTokenResponseKind {
   VerifyPassword = 'identitytoolkit#VerifyPasswordResponse'
 }
 
+/**
+ * @internal
+ */
 export interface TaggedWithTokenResponse {
   _tokenResponse?: PhoneOrOauthTokenResponse;
 }

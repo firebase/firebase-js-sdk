@@ -187,6 +187,21 @@ export function httpsCallable<RequestData, ResponseData>(
 }
 
 /**
+ * Returns a reference to the callable https trigger with the given url.
+ * @param url - The url of the trigger.
+ * @public
+ */
+export function httpsCallableFromURL<RequestData, ResponseData>(
+  functionsInstance: FunctionsService,
+  url: string,
+  options?: HttpsCallableOptions
+): HttpsCallable<RequestData, ResponseData> {
+  return (data => {
+    return callAtURL(functionsInstance, url, data, options || {});
+  }) as HttpsCallable<RequestData, ResponseData>;
+}
+
+/**
  * Does an HTTP POST and returns the completed response.
  * @param url The url to post to.
  * @param body The JSON body of the post.
@@ -235,14 +250,27 @@ async function postJSON(
  * @param name The name of the callable trigger.
  * @param data The data to pass as params to the function.s
  */
-async function call(
+function call(
   functionsInstance: FunctionsService,
   name: string,
   data: unknown,
   options: HttpsCallableOptions
 ): Promise<HttpsCallableResult> {
   const url = functionsInstance._url(name);
+  return callAtURL(functionsInstance, url, data, options);
+}
 
+/**
+ * Calls a callable function asynchronously and returns the result.
+ * @param url The url of the callable trigger.
+ * @param data The data to pass as params to the function.s
+ */
+async function callAtURL(
+  functionsInstance: FunctionsService,
+  url: string,
+  data: unknown,
+  options: HttpsCallableOptions
+): Promise<HttpsCallableResult> {
   // Encode any special types, such as dates, in the input data.
   data = encode(data);
   const body = { data };

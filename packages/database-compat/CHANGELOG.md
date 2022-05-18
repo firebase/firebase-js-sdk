@@ -1,5 +1,29 @@
 # @firebase/database-compat
 
+## 0.2.0
+
+### Minor Changes
+
+- [`9c6808fea`](https://github.com/firebase/firebase-js-sdk/commit/9c6808fea231d1ab6de6f6ab548c67b751a12a78) [#6171](https://github.com/firebase/firebase-js-sdk/pull/6171) - Add `forceWebSockets()` and `forceLongPolling()`
+
+### Patch Changes
+
+- Updated dependencies [[`874cdbbcc`](https://github.com/firebase/firebase-js-sdk/commit/874cdbbccbc2bf8f4ee18abe220e87dc52e6a8db), [`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801), [`9c6808fea`](https://github.com/firebase/firebase-js-sdk/commit/9c6808fea231d1ab6de6f6ab548c67b751a12a78)]:
+  - @firebase/database@0.13.0
+  - @firebase/util@1.6.0
+  - @firebase/component@0.5.14
+  - @firebase/database-types@0.9.8
+
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies [[`1c37b5e96`](https://github.com/firebase/firebase-js-sdk/commit/1c37b5e965978d796c46ff6b9f52051cf6070751), [`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59), [`7a4e65cef`](https://github.com/firebase/firebase-js-sdk/commit/7a4e65cef9468a20fb32dc112aa7113345bc76c5)]:
+  - @firebase/database-types@0.9.7
+  - @firebase/util@1.5.2
+  - @firebase/database@0.12.8
+  - @firebase/component@0.5.13
+
 ## 0.1.7
 
 ### Patch Changes

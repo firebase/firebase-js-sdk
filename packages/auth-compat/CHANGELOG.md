@@ -1,5 +1,32 @@
 # @firebase/auth-compat
 
+## 0.2.14
+
+### Patch Changes
+
+- Updated dependencies [[`07cf0f1c9`](https://github.com/firebase/firebase-js-sdk/commit/07cf0f1c9033373bf1d3a8a1958385f177506c6c)]:
+  - @firebase/auth@0.20.1
+
+## 0.2.13
+
+### Patch Changes
+
+- [`1ac3c9d41`](https://github.com/firebase/firebase-js-sdk/commit/1ac3c9d41e8f69a94c64c6e0caf5f1a159b7dc3c) [#6151](https://github.com/firebase/firebase-js-sdk/pull/6151) - Add `beforeAuthStateChanged()` middleware function which allows the user to provide callbacks that are run before an auth state change
+  sets a new user.
+- Updated dependencies [[`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801), [`1ac3c9d41`](https://github.com/firebase/firebase-js-sdk/commit/1ac3c9d41e8f69a94c64c6e0caf5f1a159b7dc3c)]:
+  - @firebase/util@1.6.0
+  - @firebase/auth@0.20.0
+  - @firebase/component@0.5.14
+
+## 0.2.12
+
+### Patch Changes
+
+- Updated dependencies [[`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59)]:
+  - @firebase/util@1.5.2
+  - @firebase/auth@0.19.12
+  - @firebase/component@0.5.13
+
 ## 0.2.11
 
 ### Patch Changes

@@ -38,6 +38,7 @@ import {
   getTestInstance,
   randomEmail
 } from '../../helpers/integration/helpers';
+import { generateMiddlewareTests } from './middleware_test_generator';
 
 use(chaiAsPromised);
 
@@ -167,6 +168,10 @@ describe('Integration test: email/password auth', () => {
         'password'
       );
       expect(userA.uid).to.eq(userB.uid);
+    });
+
+    generateMiddlewareTests(() => auth, () => {
+      return signInWithEmailAndPassword(auth, email, 'password');
     });
   });
 });

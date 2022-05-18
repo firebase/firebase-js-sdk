@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { deleteDB, openDB } from '@firebase/util';
+import { deleteDB, openDB } from 'idb';
 
 import { TokenDetails } from '../interfaces/token-details';
 import { arrayToBase64 } from './array-base64-translator';
@@ -88,10 +88,8 @@ export async function migrateOldDatabase(
 
   let tokenDetails: TokenDetails | null = null;
 
-  const db = await openDB(
-    OLD_DB_NAME,
-    OLD_DB_VERSION,
-    async (db, oldVersion, newVersion, upgradeTransaction) => {
+  const db = await openDB(OLD_DB_NAME, OLD_DB_VERSION, {
+    upgrade: async (db, oldVersion, newVersion, upgradeTransaction) => {
       if (oldVersion < 2) {
         // Database too old, skip migration.
         return;
@@ -162,7 +160,7 @@ export async function migrateOldDatabase(
         };
       }
     }
-  );
+  });
   db.close();
 
   // Delete all old databases.

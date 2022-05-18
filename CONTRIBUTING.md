@@ -77,7 +77,7 @@ Before you start working on a larger contribution, you should get in touch with 
 
 * Create your patch, **including appropriate test cases**. Patches with tests are more likely to be merged.
 * Avoid checking in files that shouldn't be tracked (e.g `node_modules`, `gulp-cache`, `.tmp`, `.idea`). If your development setup automatically creates some of these files, please add them to the `.gitignore` at the root of the package (click [here][gitignore] to read more on how to add entries to the `.gitignore`).
-* Commit your changes using a commit message that follows our [commit message guidelines](#commit-message-guidelines).
+* Commit your changes
 
      ```shell
      git commit -a

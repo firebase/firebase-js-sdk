@@ -10,6 +10,6 @@ jobs:
 
     steps:
       - name: assign techwriters to PR
-        uses: kentaro-m/auto-assign-action@v1.2.0
+        uses: kentaro-m/auto-assign-action@v1.2.1
         with:
           configuration-path: ".github/auto_assign.yml"

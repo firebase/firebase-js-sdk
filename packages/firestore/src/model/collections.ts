@@ -46,8 +46,12 @@ export type DocumentMap = SortedMap<DocumentKey, Document>;
 const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(
   DocumentKey.comparator
 );
-export function documentMap(): DocumentMap {
-  return EMPTY_DOCUMENT_MAP;
+export function documentMap(...docs: Document[]): DocumentMap {
+  let map = EMPTY_DOCUMENT_MAP;
+  for (const doc of docs) {
+    map = map.insert(doc.key, doc);
+  }
+  return map;
 }
 
 export type OverlayMap = ObjectMap<DocumentKey, Overlay>;

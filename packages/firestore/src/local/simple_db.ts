@@ -656,6 +656,8 @@ export class SimpleDbStore<
   loadAll(): PersistencePromise<ValueType[]>;
   /** Loads all elements for the index range from the object store. */
   loadAll(range: IDBKeyRange): PersistencePromise<ValueType[]>;
+  /** Loads all elements ordered by the given index. */
+  loadAll(index: string): PersistencePromise<ValueType[]>;
   /**
    * Loads all elements from the object store that fall into the provided in the
    * index range for the given index.
@@ -845,9 +847,7 @@ export class SimpleDbStore<
           cursor.continue(controller.skipToKey);
         }
       };
-    }).next(() => {
-      return PersistencePromise.waitFor(results);
-    });
+    }).next(() => PersistencePromise.waitFor(results));
   }
 
   private options(

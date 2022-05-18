@@ -10,7 +10,5 @@
     "declaration": true,
     "strict": true
   },
-  "exclude": [
-    "dist/**/*"
-  ]
+  "exclude": ["dist/**/*"]
 }
