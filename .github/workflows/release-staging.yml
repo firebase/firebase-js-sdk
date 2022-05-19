@@ -60,7 +60,12 @@ jobs:
       run: |
         echo "Staging release ${{ steps.get-version.outputs.STAGING_VERSION }}"
     - name: Publish to NPM
-      run: yarn release --releaseType staging
+      # --skipTests No need to run tests
+      # --skipReinstall Yarn install has already been run
+      # --ignoreUnstaged Adding the @firebase/app changeset file means
+      # there's unstaged changes. Ignore.
+      # TODO: Make these flags defaults in the release script.
+      run: yarn release --releaseType staging --skipTests --skipReinstall --ignoreUnstaged
       env:
         NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
         NPM_TOKEN_ANALYTICS_INTEROP_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES}}
