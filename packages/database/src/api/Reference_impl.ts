@@ -808,6 +808,7 @@ export function update(ref: DatabaseReference, values: object): Promise<void> {
  * server is unreachable and there is nothing cached).
  */
 export function get(query: Query): Promise<DataSnapshot> {
+  console.log('get');
   query = getModularInstance(query) as QueryImpl;
   return repoGetValue(query._repo, query).then(node => {
     return new DataSnapshot(

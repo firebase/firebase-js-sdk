@@ -20,7 +20,7 @@ import { initializeApp, deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
-import { onValue, set } from '../../src/api/Reference_impl';
+import { limitToFirst, onValue, query, set } from '../../src/api/Reference_impl';
 import {
   get,
   getDatabase,
@@ -32,7 +32,7 @@ import {
   runTransaction
 } from '../../src/index';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
-import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
+import { DATABASE_ADDRESS, DATABASE_URL, waitFor } from '../helpers/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
@@ -95,6 +95,24 @@ describe('Database@exp Tests', () => {
     const [snap1, snap2] = await ea.promise;
     expect(snap1).to.equal('a');
     expect(snap2).to.equal('b');
+  });
+
+  // Tests to make sure onValue's data does not get mutated after calling get
+  it('calls onValue only once after get request', async () => {
+    const db = getDatabase(defaultApp);
+    const testRef = ref(db, 'foo');
+    const initial = [
+      { name: 'child1' },
+      { name: 'child2' },
+    ];
+    await set(testRef, initial);
+    let count = 0;
+    onValue(testRef, (snapshot) => {
+      count++;
+    });
+    await get(query(testRef, limitToFirst(1)));
+    await waitFor(4000);
+    expect(count).to.equal(1);
   });
 
   it('Can use onlyOnce', async () => {

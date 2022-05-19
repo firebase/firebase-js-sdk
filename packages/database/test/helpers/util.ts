@@ -70,3 +70,9 @@ export function shuffle(arr, randFn = Math.random) {
     arr[j] = tmp;
   }
 }
+
+// Waits for specific number of milliseconds before resolving
+// Example: await waitFor(4000) will wait until 4 seconds to execute the next line of code.
+export function waitFor(waitTimeInMS: number) {
+  return new Promise(resolve => setTimeout(resolve, waitTimeInMS));
+}
