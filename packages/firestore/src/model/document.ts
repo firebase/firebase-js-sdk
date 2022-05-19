@@ -285,11 +285,8 @@ export class MutableDocument implements Document {
   }
 
   setHasLocalMutations(): MutableDocument {
-    debugAssert(
-      this.isFoundDocument(),
-      'Only found documents can have local mutations'
-    );
     this.documentState = DocumentState.HAS_LOCAL_MUTATIONS;
+    this.version = SnapshotVersion.min();
     return this;
   }
 

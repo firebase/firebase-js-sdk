@@ -50,6 +50,12 @@ export class TestDocumentOverlayCache {
     });
   }
 
+  getOverlays(keys: DocumentKeySet): Promise<OverlayMap> {
+    return this.persistence.runTransaction('getOverlays', 'readonly', txn => {
+      return this.cache.getOverlays(txn, keys);
+    });
+  }
+
   getOverlayMutation(docKey: string): Promise<Mutation | null> {
     return this.getOverlay(key(docKey)).then(value => {
       if (!value) {

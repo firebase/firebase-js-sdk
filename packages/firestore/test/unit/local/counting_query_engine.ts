@@ -86,7 +86,8 @@ export class CountingQueryEngine extends QueryEngine {
     const view = new LocalDocumentsView(
       this.wrapRemoteDocumentCache(localDocuments.remoteDocumentCache),
       this.wrapMutationQueue(localDocuments.mutationQueue),
-      indexManager
+      localDocuments.documentOverlayCache,
+      localDocuments.indexManager
     );
     return super.initialize(view, indexManager);
   }

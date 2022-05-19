@@ -70,6 +70,14 @@ export function newMutationMap(): MutationMap {
   );
 }
 
+export type DocumentKeyMap<T> = ObjectMap<DocumentKey, T>;
+export function newDocumentKeyMap<T>(): DocumentKeyMap<T> {
+  return new ObjectMap<DocumentKey, T>(
+    key => key.toString(),
+    (l, r) => l.isEqual(r)
+  );
+}
+
 export type DocumentVersionMap = SortedMap<DocumentKey, SnapshotVersion>;
 const EMPTY_DOCUMENT_VERSION_MAP = new SortedMap<DocumentKey, SnapshotVersion>(
   DocumentKey.comparator
