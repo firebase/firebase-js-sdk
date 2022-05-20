@@ -61,13 +61,17 @@ export function setPersistence(
   return getModularInstance(auth).setPersistence(persistence);
 }
 /**
- * Adds an observer for changes to the signed-in user's ID token, which includes sign-in,
- * sign-out, and token refresh events.
+ * Adds an observer for changes to the signed-in user's ID token.
+ *
+ * @remarks
+ * This includes sign-in, sign-out, and token refresh events.
  *
  * @param auth - The {@link Auth} instance.
  * @param nextOrObserver - callback triggered on change.
- * @param error - callback triggered on error.
- * @param completed - callback triggered when observer is removed.
+ * @param error - Deprecated. This callback is never triggered. Errors
+ * on signing in/out can be caught in promises returned from
+ * sign-in/sign-out functions.
+ * @param completed - Deprecated. This callback is never triggered.
  *
  * @public
  */
@@ -111,8 +115,10 @@ export function onIdTokenChanged(
  *
  * @param auth - The {@link Auth} instance.
  * @param nextOrObserver - callback triggered on change.
- * @param error - callback triggered on error.
- * @param completed - callback triggered when observer is removed.
+ * @param error - Deprecated. This callback is never triggered. Errors
+ * on signing in/out can be caught in promises returned from
+ * sign-in/sign-out functions.
+ * @param completed - Deprecated. This callback is never triggered.
  *
  * @public
  */

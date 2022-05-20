@@ -247,8 +247,10 @@ export interface Auth {
    * To keep the old behavior, see {@link Auth.onIdTokenChanged}.
    *
    * @param nextOrObserver - callback triggered on change.
-   * @param error - callback triggered on error.
-   * @param completed - callback triggered when observer is removed.
+   * @param error - Deprecated. This callback is never triggered. Errors
+   * on signing in/out can be caught in promises returned from
+   * sign-in/sign-out functions.
+   * @param completed - Deprecated. This callback is never triggered.
    */
   onAuthStateChanged(
     nextOrObserver: NextOrObserver<User | null>,
@@ -275,8 +277,10 @@ export interface Auth {
    * This includes sign-in, sign-out, and token refresh events.
    *
    * @param nextOrObserver - callback triggered on change.
-   * @param error - callback triggered on error.
-   * @param completed - callback triggered when observer is removed.
+   * @param error - Deprecated. This callback is never triggered. Errors
+   * on signing in/out can be caught in promises returned from
+   * sign-in/sign-out functions.
+   * @param completed - Deprecated. This callback is never triggered.
    */
   onIdTokenChanged(
     nextOrObserver: NextOrObserver<User | null>,
