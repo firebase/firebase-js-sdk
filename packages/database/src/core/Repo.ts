@@ -482,7 +482,6 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
         eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
       } else {
         // Simulate `syncTreeAddEventRegistration` without events/listener setup.
-        // TODO: We can probably extract this.
         const { syncPoint, serverCache, writesCache, serverCacheComplete } =
           syncTreeAddToPath(query, repo.serverSyncTree_);
         const view = syncPointGetView(
