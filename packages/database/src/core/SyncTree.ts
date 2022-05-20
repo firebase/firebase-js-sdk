@@ -482,7 +482,7 @@ export function syncTreeApplyTaggedQueryMerge(
   }
 }
 
-function syncTreeAddToPath(query: QueryContext, syncTree: SyncTree) {
+export function syncTreeAddToPath(query: QueryContext, syncTree: SyncTree) {
   const path = query._path;
 
   let serverCache: Node | null = null;
@@ -824,7 +824,7 @@ function syncTreeCreateListenerForView_(
 /**
  * Return the tag associated with the given query.
  */
-function syncTreeTagForQuery_(
+export function syncTreeTagForQuery_(
   syncTree: SyncTree,
   query: QueryContext
 ): number | null {
