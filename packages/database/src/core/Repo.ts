@@ -509,7 +509,10 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
           query,
           null
         );
-        assert(cancels.length === 0, 'unexpected cancel events in repoGetValue');
+        assert(
+          cancels.length === 0,
+          'unexpected cancel events in repoGetValue'
+        );
       }
       return Promise.resolve(node);
     },

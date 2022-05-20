@@ -20,7 +20,12 @@ import { initializeApp, deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
-import { limitToFirst, onValue, query, set } from '../../src/api/Reference_impl';
+import {
+  limitToFirst,
+  onValue,
+  query,
+  set
+} from '../../src/api/Reference_impl';
 import {
   get,
   getDatabase,
@@ -101,17 +106,14 @@ describe('Database@exp Tests', () => {
   it('calls onValue only once after get request', async () => {
     const db = getDatabase(defaultApp);
     const testRef = ref(db, 'foo');
-    const initial = [
-      { name: 'child1' },
-      { name: 'child2' },
-    ];
+    const initial = [{ name: 'child1' }, { name: 'child2' }];
     await set(testRef, initial);
     let count = 0;
-    onValue(testRef, (snapshot) => {
+    onValue(testRef, snapshot => {
       count++;
     });
     await get(query(testRef, limitToFirst(1)));
-    await waitFor(4000);
+    await waitFor(2000);
     expect(count).to.equal(1);
   });
 

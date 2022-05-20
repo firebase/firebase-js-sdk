@@ -36,7 +36,7 @@ import {
   endAt,
   endBefore,
   equalTo,
-get,
+  get,
   set,
   update,
   setWithPriority,
