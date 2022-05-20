@@ -109,7 +109,7 @@ describe('Database@exp Tests', () => {
     const initial = [{ name: 'child1' }, { name: 'child2' }];
     await set(testRef, initial);
     let count = 0;
-    onValue(testRef, snapshot => {
+    onValue(testRef, () => {
       count++;
     });
     await get(query(testRef, limitToFirst(1)));
