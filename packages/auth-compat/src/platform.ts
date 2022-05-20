@@ -56,7 +56,6 @@ export function _isAndroidOrIosCordovaScheme(ua: string = getUA()): boolean {
       _getCurrentScheme() === 'capacitor:') &&
     ua.toLowerCase().match(/iphone|ipad|ipod|android/)
   );
-
 }
 
 /**
