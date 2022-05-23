@@ -44,7 +44,7 @@ export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
 }
 
-describe.only('Database@exp Tests', () => {
+describe('Database@exp Tests', () => {
   let defaultApp;
   let mySandbox: Sinon.SinonSandbox;
 
@@ -107,7 +107,7 @@ describe.only('Database@exp Tests', () => {
   });
 
   // Tests to make sure onValue's data does not get mutated after calling get
-  it.only('calls onValue only once after get request', async () => {
+  it('calls onValue only once after get request', async () => {
     const db = getDatabase(defaultApp);
     const testRef = ref(db, 'foo');
     const initial = [{ name: 'child1' }, { name: 'child2' }];
