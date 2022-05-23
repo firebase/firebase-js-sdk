@@ -53,6 +53,9 @@ export async function logEvent(
 /**
  * Set screen_name parameter for this Google Analytics ID.
  *
+ * @deprecated Use {@link logEvent} with `eventName` as 'screen_view' and add relevant `eventParams`.
+ * See {@link https://firebase.google.com/docs/analytics/screenviews | Track Screenviews}.
+ *
  * @param gtagFunction Wrapped gtag function that waits for fid to be set before sending an event
  * @param screenName Screen name string to set.
  */

@@ -144,6 +144,9 @@ export async function isSupported(): Promise<boolean> {
  *
  * @public
  *
+ * @deprecated Use {@link logEvent} with `eventName` as 'screen_view' and add relevant `eventParams`.
+ * See {@link https://firebase.google.com/docs/analytics/screenviews | Track Screenviews}.
+ *
  * @param analyticsInstance - The {@link Analytics} instance.
  * @param screenName - Screen name to set.
  */
