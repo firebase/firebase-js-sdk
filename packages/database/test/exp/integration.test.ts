@@ -112,11 +112,11 @@ describe('Database@exp Tests', () => {
     const initial = [{ name: 'child1' }, { name: 'child2' }];
 
     let count = 0;
+    await set(testRef, initial);
     onValue(testRef, snapshot => {
       expect(snapshot.val()).to.deep.eq(initial);
       count++;
     });
-    await set(testRef, initial);
     await get(query(testRef, limitToFirst(1)));
     await waitFor(2000);
     expect(count).to.equal(1);
