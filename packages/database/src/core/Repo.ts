@@ -53,7 +53,7 @@ import {
   SyncTree,
   syncTreeAckUserWrite,
   syncTreeAddEventRegistration,
-  syncTreeAddToPath,
+  syncTreeRegisterSyncPoint,
   syncTreeApplyServerMerge,
   syncTreeApplyServerOverwrite,
   syncTreeApplyTaggedQueryMerge,
@@ -63,7 +63,8 @@ import {
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
   syncTreeRemoveEventRegistration,
-  syncTreeTagForQuery_
+  syncTreeTagForQuery_,
+  syncTreeRegisterQuery
 } from './SyncTree';
 import { Indexable } from './util/misc';
 import {
@@ -467,6 +468,7 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   if (cached != null) {
     return Promise.resolve(cached);
   }
+  let tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
   return repo.server_.get(query).then(
     payload => {
       const node = nodeFromJSON(payload).withIndex(
@@ -474,34 +476,15 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
       );
       // if this is not a filtered query, then overwrite at path
       if (query._queryParams.loadsAllData()) {
-        const events = syncTreeApplyServerOverwrite(
-          repo.serverSyncTree_,
-          query._path,
-          node
-        );
-        eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
+        syncTreeApplyServerOverwrite(repo.serverSyncTree_, query._path, node);
       } else {
         // Simulate `syncTreeAddEventRegistration` without events/listener setup.
-        const { syncPoint, serverCache, writesCache, serverCacheComplete } =
-          syncTreeAddToPath(query, repo.serverSyncTree_);
-        const view = syncPointGetView(
-          syncPoint,
-          query,
-          writesCache,
-          serverCache,
-          serverCacheComplete
-        );
-        if (!syncPoint.views.has(query._queryIdentifier)) {
-          syncPoint.views.set(query._queryIdentifier, view);
-        }
-        const tag = syncTreeTagForQuery_(repo.serverSyncTree_, query);
-        const events = syncTreeApplyTaggedQueryOverwrite(
+        syncTreeApplyTaggedQueryOverwrite(
           repo.serverSyncTree_,
           query._path,
           node,
           tag
         );
-        eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
         // Call `syncTreeRemoveEventRegistration` with a null event registration, since there is none.
         const cancels = syncTreeRemoveEventRegistration(
           repo.serverSyncTree_,

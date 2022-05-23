@@ -19,6 +19,7 @@
 import { initializeApp, deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
+import Sinon, { createSandbox } from 'sinon';
 
 import {
   limitToFirst,
@@ -26,6 +27,7 @@ import {
   query,
   set
 } from '../../src/api/Reference_impl';
+import * as EventQueue from '../../src/core/view/EventQueue';
 import {
   get,
   getDatabase,
@@ -43,14 +45,17 @@ export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
 }
 
-describe('Database@exp Tests', () => {
+describe.only('Database@exp Tests', () => {
   let defaultApp;
+  let mySandbox: Sinon.SinonSandbox;
 
   beforeEach(() => {
     defaultApp = createTestApp();
+    mySandbox = createSandbox();
   });
 
   afterEach(async () => {
+    mySandbox.restore();
     if (defaultApp) {
       return deleteApp(defaultApp);
     }
@@ -103,16 +108,23 @@ describe('Database@exp Tests', () => {
   });
 
   // Tests to make sure onValue's data does not get mutated after calling get
-  it('calls onValue only once after get request', async () => {
+  it.only('calls onValue only once after get request', async () => {
     const db = getDatabase(defaultApp);
     const testRef = ref(db, 'foo');
     const initial = [{ name: 'child1' }, { name: 'child2' }];
-    await set(testRef, initial);
+
     let count = 0;
-    onValue(testRef, () => {
+    const events = [];
+    onValue(testRef, snapshot => {
+      // expect(snapshot.val()).to.eq(initial);
+      events.push(snapshot.val());
       count++;
     });
-    await get(query(testRef, limitToFirst(1)));
+    await set(testRef, initial);
+    const newValues = [{ name: 'child1' }, { name: 'child3' }];
+    const setPromise = set(testRef, newValues);
+    const getPromise = get(query(testRef, limitToFirst(1)));
+    await Promise.all([getPromise, setPromise]);
     await waitFor(2000);
     expect(count).to.equal(1);
   });

@@ -423,6 +423,25 @@ export function syncTreeRemoveEventRegistration(
   return cancelEvents;
 }
 
+export function syncTreeRegisterQuery(syncTree: SyncTree, query: QueryContext) {
+  if (!query._queryParams.loadsAllData()) {
+    const { syncPoint, serverCache, writesCache, serverCacheComplete } =
+      syncTreeRegisterSyncPoint(query, syncTree);
+    const view = syncPointGetView(
+      syncPoint,
+      query,
+      writesCache,
+      serverCache,
+      serverCacheComplete
+    );
+    if (!syncPoint.views.has(query._queryIdentifier)) {
+      syncPoint.views.set(query._queryIdentifier, view);
+    }
+    return syncTreeTagForQuery_(syncTree, query);
+  }
+  return null;
+}
+
 /**
  * Apply new server data for the specified tagged query.
  *
@@ -482,7 +501,10 @@ export function syncTreeApplyTaggedQueryMerge(
   }
 }
 
-export function syncTreeAddToPath(query: QueryContext, syncTree: SyncTree) {
+export function syncTreeRegisterSyncPoint(
+  query: QueryContext,
+  syncTree: SyncTree
+) {
   const path = query._path;
 
   let serverCache: Node | null = null;
@@ -569,7 +591,7 @@ export function syncTreeAddEventRegistration(
     serverCacheComplete,
     viewAlreadyExists,
     foundAncestorDefaultView
-  } = syncTreeAddToPath(query, syncTree);
+  } = syncTreeRegisterSyncPoint(query, syncTree);
 
   let events = syncPointAddEventRegistration(
     syncPoint,
@@ -958,7 +980,6 @@ function syncTreeSetupListener_(
   const path = query._path;
   const tag = syncTreeTagForQuery_(syncTree, query);
   const listener = syncTreeCreateListenerForView_(syncTree, view);
-
   const events = syncTree.listenProvider_.startListening(
     syncTreeQueryForListening_(query),
     tag,
