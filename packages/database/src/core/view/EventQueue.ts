@@ -84,7 +84,6 @@ export function eventQueueRaiseEventsAtPath(
   path: Path,
   eventDataList: Event[]
 ) {
-  debugger;
   eventQueueQueueEvents(eventQueue, eventDataList);
   eventQueueRaiseQueuedEventsMatchingPredicate(eventQueue, eventPath =>
     pathEquals(eventPath, path)
@@ -105,7 +104,6 @@ export function eventQueueRaiseEventsForChangedPath(
   changedPath: Path,
   eventDataList: Event[]
 ) {
-  debugger;
   eventQueueQueueEvents(eventQueue, eventDataList);
   eventQueueRaiseQueuedEventsMatchingPredicate(
     eventQueue,

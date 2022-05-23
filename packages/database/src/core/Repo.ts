@@ -48,12 +48,10 @@ import {
   statsManagerGetOrCreateReporter
 } from './stats/StatsManager';
 import { StatsReporter, statsReporterIncludeStat } from './stats/StatsReporter';
-import { syncPointGetView } from './SyncPoint';
 import {
   SyncTree,
   syncTreeAckUserWrite,
   syncTreeAddEventRegistration,
-  syncTreeRegisterSyncPoint,
   syncTreeApplyServerMerge,
   syncTreeApplyServerOverwrite,
   syncTreeApplyTaggedQueryMerge,
@@ -63,7 +61,6 @@ import {
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
   syncTreeRemoveEventRegistration,
-  syncTreeTagForQuery_,
   syncTreeRegisterQuery
 } from './SyncTree';
 import { Indexable } from './util/misc';
@@ -468,7 +465,7 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   if (cached != null) {
     return Promise.resolve(cached);
   }
-  let tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
+  const tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
   return repo.server_.get(query).then(
     payload => {
       const node = nodeFromJSON(payload).withIndex(

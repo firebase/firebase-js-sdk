@@ -27,7 +27,6 @@ import {
   query,
   set
 } from '../../src/api/Reference_impl';
-import * as EventQueue from '../../src/core/view/EventQueue';
 import {
   get,
   getDatabase,
@@ -114,17 +113,12 @@ describe.only('Database@exp Tests', () => {
     const initial = [{ name: 'child1' }, { name: 'child2' }];
 
     let count = 0;
-    const events = [];
     onValue(testRef, snapshot => {
-      // expect(snapshot.val()).to.eq(initial);
-      events.push(snapshot.val());
+      expect(snapshot.val()).to.deep.eq(initial);
       count++;
     });
     await set(testRef, initial);
-    const newValues = [{ name: 'child1' }, { name: 'child3' }];
-    const setPromise = set(testRef, newValues);
-    const getPromise = get(query(testRef, limitToFirst(1)));
-    await Promise.all([getPromise, setPromise]);
+    await get(query(testRef, limitToFirst(1)));
     await waitFor(2000);
     expect(count).to.equal(1);
   });
