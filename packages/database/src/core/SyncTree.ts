@@ -846,7 +846,7 @@ function syncTreeCreateListenerForView_(
 /**
  * Return the tag associated with the given query.
  */
-export function syncTreeTagForQuery_(
+function syncTreeTagForQuery_(
   syncTree: SyncTree,
   query: QueryContext
 ): number | null {
