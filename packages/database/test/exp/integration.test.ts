@@ -106,7 +106,7 @@ describe('Database@exp Tests', () => {
   });
 
   // Tests to make sure onValue's data does not get mutated after calling get
-  it('calls onValue only once after get request', async () => {
+  it('calls onValue only once after get request with a non-default query', async () => {
     const db = getDatabase(defaultApp);
     const testRef = ref(db, 'foo');
     const initial = [{ name: 'child1' }, { name: 'child2' }];
@@ -118,6 +118,22 @@ describe('Database@exp Tests', () => {
       count++;
     });
     await get(query(testRef, limitToFirst(1)));
+    await waitFor(2000);
+    expect(count).to.equal(1);
+  });
+
+  it('calls onValue only once after get request with a default query', async() => {
+    const db = getDatabase(defaultApp);
+    const testRef = ref(db, 'foo');
+    const initial = [{ name: 'child1' }, { name: 'child2' }];
+
+    let count = 0;
+    await set(testRef, initial);
+    onValue(testRef, snapshot => {
+      expect(snapshot.val()).to.deep.eq(initial);
+      count++;
+    });
+    await get(query(testRef));
     await waitFor(2000);
     expect(count).to.equal(1);
   });
