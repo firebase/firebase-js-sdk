@@ -46,6 +46,7 @@ export async function runRelease({
   dryRun,
   ci
 }: releaseOptions) {
+  console.log('ci', ci);
   try {
     /**
      * If there are unstaged changes, error.
