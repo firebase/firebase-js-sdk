@@ -49,11 +49,6 @@ jobs:
       # changesets/action created and checked out a new branch
       # return to `release` branch.
       run: git checkout release
-    ## REVERT BEFORE CHECKIN: FOR DEVELOPMENT TESTING ONLY
-    - name: Get new scripts from this branch
-      run: |
-        git pull -f --no-rebase origin ch-staging-fix-2:dev
-        git checkout dev scripts/release
     - name: Publish to NPM
       # --skipTests No need to run tests
       # --skipReinstall Yarn install has already been run
