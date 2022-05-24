@@ -43,11 +43,17 @@ yargs
         default: false
       },
       releaseType: {
-        type: 'string'
+        type: 'string',
+        desc: '"Staging" or "Production" - this is case sensitive!'
       },
       dryRun: {
         type: 'boolean',
         default: false
+      },
+      skipPrompts: {
+        type: 'boolean',
+        default: false,
+        desc: 'Skip all interactive prompts (needed if running in CI)'
       }
     },
     argv => runRelease(argv)

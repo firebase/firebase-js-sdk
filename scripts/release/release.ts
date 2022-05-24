@@ -35,6 +35,7 @@ interface releaseOptions {
   ignoreUnstaged: boolean;
   releaseType?: string;
   dryRun?: boolean;
+  skipPrompts: boolean;
 }
 
 export async function runRelease({
@@ -42,7 +43,8 @@ export async function runRelease({
   skipTests,
   ignoreUnstaged,
   releaseType: inputReleaseType,
-  dryRun
+  dryRun,
+  skipPrompts
 }: releaseOptions) {
   try {
     /**
@@ -88,6 +90,8 @@ export async function runRelease({
       return responses.releaseType;
     })();
 
+    console.log(`Publishing ${inputReleaseType} release.`);
+
     /**
      * Bump versions for staging release
      * NOTE: For prod, versions are bumped in a PR which should be merged before running this script
@@ -95,14 +99,16 @@ export async function runRelease({
     if (releaseType === ReleaseType.Staging) {
       const updatedPackages = await bumpVersionForStaging();
 
-      // We don't need to validate versions for prod releases because prod releases
-      // are validated in the version bump PR which should be merged before running this script
-      const { versionCheck } = await prompt([
-        validateVersions(updatedPackages)
-      ]);
+      if (!skipPrompts) {
+        // We don't need to validate versions for prod releases because prod releases
+        // are validated in the version bump PR which should be merged before running this script
+        const { versionCheck } = await prompt([
+          validateVersions(updatedPackages)
+        ]);
 
-      if (!versionCheck) {
-        throw new Error('Version check failed');
+        if (!versionCheck) {
+          throw new Error('Version check failed');
+        }
       }
     }
 
