@@ -37,7 +37,7 @@ export async function publish(releaseType: string) {
   });
 }
 
-export async function publishInCI(updatedPkgs: string[], npmTag: string) {
+export async function publishInCI(updatedPkgs: string[], npmTag: string, dryRun: boolean) {
   const taskArray = await Promise.all(
     updatedPkgs.map(async pkg => {
       const path = await mapPkgNameToPkgPath(pkg);
@@ -62,7 +62,7 @@ export async function publishInCI(updatedPkgs: string[], npmTag: string) {
 
       return {
         title: `📦  ${pkg}@${version}`,
-        task: () => publishPackageInCI(pkg, npmTag)
+        task: () => publishPackageInCI(pkg, npmTag, dryRun)
       };
     })
   );
@@ -75,7 +75,7 @@ export async function publishInCI(updatedPkgs: string[], npmTag: string) {
   return tasks.run();
 }
 
-async function publishPackageInCI(pkg: string, npmTag: string) {
+async function publishPackageInCI(pkg: string, npmTag: string, dryRun: boolean) {
   try {
     const path = await mapPkgNameToPkgPath(pkg);
 
@@ -91,6 +91,10 @@ async function publishPackageInCI(pkg: string, npmTag: string) {
       '--registry',
       'https://wombat-dressing-room.appspot.com'
     ];
+
+    if (dryRun) {
+      args.push('--dry-run');
+    }
 
     // Write proxy registry token for this package to .npmrc.
     await exec(
