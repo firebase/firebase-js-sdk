@@ -55,7 +55,7 @@ jobs:
       # --ignoreUnstaged Adding the @firebase/app changeset file means
       # there's unstaged changes. Ignore.
       # TODO: Make these flags defaults in the release script.
-      run: yarn release --releaseType Staging --skipTests --skipReinstall --ignoreUnstaged --ci
+      run: yarn release --releaseType Staging  --ci --skipTests --skipReinstall --ignoreUnstaged
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}

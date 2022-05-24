@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.20.1",
+  "version": "0.20.2-20220524222058",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",

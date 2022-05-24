@@ -27,8 +27,6 @@ import { reinstallDeps, buildPackages } from './utils/yarn';
 import { runTests, setupTestDeps } from './utils/tests';
 import { bumpVersionForStaging } from './staging';
 import { ReleaseType } from './utils/enums';
-import { getAllPackages } from './utils/workspace';
-import { release } from 'os';
 const prompt = createPromptModule();
 
 interface releaseOptions {
