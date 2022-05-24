@@ -1,5 +1,29 @@
 # Unreleased
 
+## 0.13.0
+
+### Minor Changes
+
+- [`9c6808fea`](https://github.com/firebase/firebase-js-sdk/commit/9c6808fea231d1ab6de6f6ab548c67b751a12a78) [#6171](https://github.com/firebase/firebase-js-sdk/pull/6171) - Add `forceWebSockets()` and `forceLongPolling()`
+
+### Patch Changes
+
+- [`874cdbbcc`](https://github.com/firebase/firebase-js-sdk/commit/874cdbbccbc2bf8f4ee18abe220e87dc52e6a8db) [#6232](https://github.com/firebase/firebase-js-sdk/pull/6232) - Added GMPID to websocket connection.
+
+- Updated dependencies [[`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801)]:
+  - @firebase/util@1.6.0
+  - @firebase/component@0.5.14
+
+## 0.12.8
+
+### Patch Changes
+
+- [`7a4e65cef`](https://github.com/firebase/firebase-js-sdk/commit/7a4e65cef9468a20fb32dc112aa7113345bc76c5) [#6126](https://github.com/firebase/firebase-js-sdk/pull/6126) - Fix issue where if a websocket protocol was used in the databaseURL, `webSocketOnly` field was incorrectly set to undefined. (When using `wss` or `ws` protocols in the databaseURL, webSocketOnly will be true and longPolling will be disabled)
+
+- Updated dependencies [[`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59)]:
+  - @firebase/util@1.5.2
+  - @firebase/component@0.5.13
+
 ## 0.12.7
 
 ### Patch Changes

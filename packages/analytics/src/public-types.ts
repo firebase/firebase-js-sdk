@@ -93,7 +93,7 @@ export interface AnalyticsSettings {
 
 /**
  * Additional options that can be passed to Analytics method
- * calls such as `logEvent`, `setCurrentScreen`, etc.
+ * calls such as `logEvent`, etc.
  * @public
  */
 export interface AnalyticsCallOptions {

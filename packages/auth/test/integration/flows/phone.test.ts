@@ -42,6 +42,7 @@ import {
   getTestInstance
 } from '../../helpers/integration/helpers';
 import { getPhoneVerificationCodes } from '../../helpers/integration/emulator_rest_helpers';
+import { generateMiddlewareTests } from './middleware_test_generator';
 
 use(chaiAsPromised);
 
@@ -305,5 +306,10 @@ describe('Integration test: phone auth', () => {
       const errorUserCred = await signInWithCredential(auth, credential!);
       expect(errorUserCred.user.uid).to.eq(signUpCred.user.uid);
     });
+  });
+
+  generateMiddlewareTests(() => auth, async () => {
+    const cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
+    await cr.confirm(await code(cr, PHONE_A.code));
   });
 });

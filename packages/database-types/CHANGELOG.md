@@ -1,5 +1,21 @@
 # @firebase/database-types
 
+## 0.9.8
+
+### Patch Changes
+
+- Updated dependencies [[`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801)]:
+  - @firebase/util@1.6.0
+
+## 0.9.7
+
+### Patch Changes
+
+- [`1c37b5e96`](https://github.com/firebase/firebase-js-sdk/commit/1c37b5e965978d796c46ff6b9f52051cf6070751) [#6090](https://github.com/firebase/firebase-js-sdk/pull/6090) (fixes [#6071](https://github.com/firebase/firebase-js-sdk/issues/6071)) - Updated typings for Reference methods
+
+- Updated dependencies [[`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59)]:
+  - @firebase/util@1.5.2
+
 ## 0.9.6
 
 ### Patch Changes

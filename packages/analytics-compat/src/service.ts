@@ -45,6 +45,10 @@ export class AnalyticsService implements FirebaseAnalytics, _FirebaseService {
     logEventExp(this._delegate, eventName as '', eventParams, options);
   }
 
+  /**
+   * @deprecated Use {@link logEvent} with `eventName` as 'screen_view' and add relevant `eventParams`.
+   * See {@link https://firebase.google.com/docs/analytics/screenviews | Track Screenviews}.
+   */
   setCurrentScreen(screenName: string, options?: AnalyticsCallOptions): void {
     setCurrentScreenExp(this._delegate, screenName, options);
   }

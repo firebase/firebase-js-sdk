@@ -32,8 +32,19 @@ import { WebSocketConnection } from './WebSocketConnection';
 export class TransportManager {
   private transports_: TransportConstructor[];
 
+  // Keeps track of whether the TransportManager has already chosen a transport to use
+  static globalTransportInitialized_ = false;
+
   static get ALL_TRANSPORTS() {
     return [BrowserPollConnection, WebSocketConnection];
+  }
+
+  /**
+   * Returns whether transport has been selected to ensure WebSocketConnection or BrowserPollConnection are not called after
+   * TransportManager has already set up transports_
+   */
+  static get IS_TRANSPORT_INITIALIZED() {
+    return this.globalTransportInitialized_;
   }
 
   /**
@@ -68,6 +79,7 @@ export class TransportManager {
           transports.push(transport);
         }
       }
+      TransportManager.globalTransportInitialized_ = true;
     }
   }
 

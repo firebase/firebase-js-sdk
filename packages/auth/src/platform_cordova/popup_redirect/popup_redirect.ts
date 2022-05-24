@@ -42,7 +42,7 @@ import {
 } from './events';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
 import { _getRedirectResult } from '../../platform_browser/strategies/redirect';
-import { _clearRedirectOutcomes } from '../../core/strategies/redirect';
+import { _clearRedirectOutcomes, _overrideRedirectResult } from '../../core/strategies/redirect';
 import { _cordovaWindow } from '../plugins';
 
 /**
@@ -58,6 +58,7 @@ class CordovaPopupRedirectResolver implements PopupRedirectResolverInternal {
   private readonly originValidationPromises: Record<string, Promise<void>> = {};
 
   _completeRedirectFn = _getRedirectResult;
+  _overrideRedirectResult = _overrideRedirectResult;
 
   async _initialize(auth: AuthInternal): Promise<CordovaAuthEventManager> {
     const key = auth._key();

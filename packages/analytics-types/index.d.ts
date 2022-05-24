@@ -23,7 +23,7 @@ export type DataLayer = Array<IArguments>;
 
 /**
  * Additional options that can be passed to Firebase Analytics method
- * calls such as `logEvent`, `setCurrentScreen`, etc.
+ * calls such as `logEvent`, etc.
  */
 export interface AnalyticsCallOptions {
   /**
@@ -453,6 +453,9 @@ export interface FirebaseAnalytics {
 
   /**
    * Use gtag 'config' command to set 'screen_name'.
+   *
+   * @deprecated Use {@link logEvent} with `eventName` as 'screen_view' and add relevant `eventParams`.
+   * See {@link https://firebase.google.com/docs/analytics/screenviews | Track Screenviews}.
    */
   setCurrentScreen(screenName: string, options?: AnalyticsCallOptions): void;
 

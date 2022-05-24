@@ -2,12 +2,8 @@ name: E2E Smoke Tests
 
 # Allows REST trigger. Currently triggered by release-cli script during a staging run.
 on:
-  workflow_dispatch:
-    inputs:
-      versionOrTag:
-        description: 'release version or tag'
-        required: true
-        default: 'next'
+  repository_dispatch:
+    types: [staging-tests]
 
 jobs:
   test:
@@ -39,8 +35,8 @@ jobs:
           echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
       - name: Yarn install
         run: |
-          echo "Installing firebase@${{ github.event.inputs.versionOrTag }}"
-          yarn add firebase@${{ github.event.inputs.versionOrTag }}
+          echo "Installing firebase@${{ github.event.client_payload.versionOrTag }}"
+          yarn add firebase@${{ github.event.client_payload.versionOrTag }}
           yarn
       - name: Deploy "callTest" cloud function
         run: |
