@@ -45,19 +45,6 @@ jobs:
       uses: changesets/action@v1
       env:
         GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
-    - name: Get release version
-      id: get-version
-      # STAGING_VERSION = version with staging hash, e.g. 1.2.3-20430523
-      # BASE_VERSION = version without staging hash, e.g. 1.2.3
-      run: |
-        VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
-        VERSION=`node -e "${VERSION_SCRIPT}"`
-        echo "::set-output name=STAGING_VERSION::$VERSION"
-        BASE_VERSION=$(echo ${{ steps.get-version.outputs.STAGING_VERSION }} | cut -d "-" -f 1)
-        echo "::set-output name=BASE_VERSION::$BASE_VERSION"
-    - name: Echo version in shell
-      run: |
-        echo "Staging release ${{ steps.get-version.outputs.STAGING_VERSION }}"
     - name: Publish to NPM
       # --skipTests No need to run tests
       # --skipReinstall Yarn install has already been run
@@ -116,6 +103,19 @@ jobs:
         NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
         NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
         CI: true
+    - name: Get release version
+      id: get-version
+      # STAGING_VERSION = version with staging hash, e.g. 1.2.3-20430523
+      # BASE_VERSION = version without staging hash, e.g. 1.2.3
+      run: |
+        VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
+        VERSION=`node -e "${VERSION_SCRIPT}"`
+        echo "::set-output name=STAGING_VERSION::$VERSION"
+        BASE_VERSION=$(echo ${{ steps.get-version.outputs.STAGING_VERSION }} | cut -d "-" -f 1)
+        echo "::set-output name=BASE_VERSION::$BASE_VERSION"
+    - name: Echo version in shell
+      run: |
+        echo "Staging release ${{ steps.get-version.outputs.STAGING_VERSION }}"
     - name: Launch E2E tests workflow
       # Trigger e2e-test.yml
       run: |
