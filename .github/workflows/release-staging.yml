@@ -121,11 +121,12 @@ jobs:
         VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
         VERSION=`node -e "${VERSION_SCRIPT}"`
         echo "::set-output name=STAGING_VERSION::$VERSION"
-        BASE_VERSION=$(echo ${{ steps.get-version.outputs.STAGING_VERSION }} | cut -d "-" -f 1)
+        BASE_VERSION=$(echo $VERSION | cut -d "-" -f 1)
         echo "::set-output name=BASE_VERSION::$BASE_VERSION"
-    - name: Echo version in shell
+    - name: Echo versions in shell
       run: |
         echo "Staging release ${{ steps.get-version.outputs.STAGING_VERSION }}"
+        echo "Base version: ${{ steps.get-version.outputs.BASE_VERSION }}"
     - name: Launch E2E tests workflow
       # Trigger e2e-test.yml
       run: |
