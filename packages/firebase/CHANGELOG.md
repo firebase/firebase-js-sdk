@@ -1,5 +1,13 @@
 # firebase
 
+## 9.8.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.7.24
+  - @firebase/app-compat@0.1.25
+
 ## 9.8.0
 
 ### Minor Changes
