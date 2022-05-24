@@ -1,5 +1,14 @@
 # @firebase/auth-compat
 
+## 0.2.15
+
+### Patch Changes
+
+- [`a3e4941c0`](https://github.com/firebase/firebase-js-sdk/commit/a3e4941c07dd766fdf7ae02a510995b3781e597f) [#6295](https://github.com/firebase/firebase-js-sdk/pull/6295) - Fix auth scheme reconition in capacitor env
+
+- Updated dependencies [[`a3e4941c0`](https://github.com/firebase/firebase-js-sdk/commit/a3e4941c07dd766fdf7ae02a510995b3781e597f)]:
+  - @firebase/auth@0.20.2
+
 ## 0.2.14
 
 ### Patch Changes
