@@ -1,15 +1,14 @@
 name: Staging Release
 
-on:
-  push:
-    branches:
-      - master
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
   deploy:
     name: Staging Release
     runs-on: ubuntu-latest
+    # Allow GITHUB_TOKEN to have write permissions
+    permissions:
+      contents: write
 
     steps:
     - name: Set up Node (14)
@@ -21,7 +20,7 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          github.repos.merge({
+          github.rest.repos.merge({
             owner: context.repo.owner,
             repo: context.repo.repo,
             base: 'release',
