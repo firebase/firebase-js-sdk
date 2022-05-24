@@ -45,6 +45,10 @@ jobs:
       uses: changesets/action@v1
       env:
         GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
+    - name: Go back to release branch
+      # changesets/action created and checked out a new branch
+      # return to `release` branch.
+      run: git checkout release
     - name: Publish to NPM
       # --skipTests No need to run tests
       # --skipReinstall Yarn install has already been run
