@@ -8,7 +8,7 @@
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
-  "homepage": "https://github.com/firebase/firebase-js-sdk",
+  "homepage": "https://github.com/Teamworksapp/firebase-js-sdk",
   "keywords": [
     "authentication",
     "database",
@@ -47,14 +47,14 @@
     "size-report": "ts-node-script scripts/size_report/report_binary_size.ts",
     "modular-export-size-report": "ts-node-script scripts/size_report/report_modular_export_binary_size.ts",
     "api-report": "lerna run --scope @firebase/* api-report",
-    "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
+    "postinstall": "npm install --cwd repo-scripts/changelog-generator build",
     "sa": "ts-node-script repo-scripts/size-analysis/cli.ts",
     "api-documenter-devsite": "ts-node-script repo-scripts/api-documenter/src/start.ts",
     "format": "ts-node ./scripts/format/format.ts"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "https://github.com/Teamworksapp/firebase-js-sdk.git"
   },
   "workspaces": [
     "packages/*",
@@ -156,5 +156,9 @@
     "watch": "1.0.2",
     "webpack": "4.46.0",
     "yargs": "17.4.1"
+  },
+  "dependencies": {
+    "@firebase/changelog-generator": "file:repo-scripts/changelog-generator",
+    "build": "^0.1.4"
   }
 }

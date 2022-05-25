@@ -32,7 +32,7 @@
   "repository": {
     "directory": "packages/rules-unit-testing",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "https://github.com/Teamworksapp/firebase-js-sdk.git"
   },
   "typings": "dist/index.d.ts",
   "bugs": {

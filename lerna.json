@@ -1,6 +1,6 @@
 {
   "version": "independent",
-  "npmClient": "yarn",
+  "npmClient": "npm",
   "packages": [
     "packages/*",
     "integration/*",

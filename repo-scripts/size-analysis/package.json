@@ -47,7 +47,7 @@
   "repository": {
     "directory": "repo-scripts/size-analysis",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "https://github.com/Teamworksapp/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
