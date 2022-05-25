@@ -96,11 +96,9 @@ export async function runPrerelease({
   await buildPackages();
 
   /**
-   * Do not acutally publish if it is a dryrun
+   * Publish to NPM
    */
-  if (!dryRun) {
-    await publishInCI(updates, npmTag);
-  }
+  await publishInCI(updates, npmTag, dryRun);
 }
 
 const FORBIDDEN_TAGS = ['latest', 'next', 'exp'];

@@ -50,10 +50,10 @@ yargs
         type: 'boolean',
         default: false
       },
-      skipPrompts: {
+      ci: {
         type: 'boolean',
         default: false,
-        desc: 'Skip all interactive prompts (needed if running in CI)'
+        desc: 'set if running in CI (skips prompts, uses wombot publish)'
       }
     },
     argv => runRelease(argv)
