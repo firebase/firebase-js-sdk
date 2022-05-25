@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.20.2
+
+### Patch Changes
+
+- [`e15e8952b`](https://github.com/firebase/firebase-js-sdk/commit/e15e8952b114d811965a5481699dc3694b4a9fdd) [#6234](https://github.com/firebase/firebase-js-sdk/pull/6234) (fixes [#6218](https://github.com/firebase/firebase-js-sdk/issues/6218)) - Add missing field to `firebase` claim in token result typing
+
 ## 0.20.1
 
 ### Patch Changes

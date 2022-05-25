@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",
@@ -86,7 +86,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.7.24",
+    "@firebase/app": "0.7.25",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-strip": "2.1.0",
     "chromedriver": "98.0.1",
