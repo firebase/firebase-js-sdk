@@ -55,7 +55,8 @@ export function getEmulatorUrl(): string | null {
   const host =
     getKarma()?.config?.authEmulatorHost ||
     (USE_EMULATOR ? EMULATOR_HOST : null);
-  return host ? `http://${host}` : null;
+  const ssl = getKarma()?.config?.ssl ? 'https' : 'http';
+  return host ? `${ssl}://${host}` : null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
