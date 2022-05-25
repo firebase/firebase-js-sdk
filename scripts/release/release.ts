@@ -156,10 +156,10 @@ export async function runRelease({
        * everything in the publish process except publishing.
        */
       if (releaseType === ReleaseType.Staging) {
-        await publishInCI(packagesToPublish, "next", dryRun);
+        await publishInCI(packagesToPublish, 'next', dryRun);
       } else {
         // Production.
-        await publishInCI(packagesToPublish, "latest", dryRun);
+        await publishInCI(packagesToPublish, 'latest', dryRun);
       }
     } else {
       /**
@@ -176,7 +176,7 @@ export async function runRelease({
      * Changeset creates tags for staging releases as well,
      * but we should only push tags to Github for prod releases
      */
-      if (releaseType === ReleaseType.Production && !dryRun) {
+    if (releaseType === ReleaseType.Production && !dryRun) {
       /**
        * Push release tags created by changeset in publish() to Github
        */

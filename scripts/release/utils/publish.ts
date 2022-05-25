@@ -37,7 +37,11 @@ export async function publish(releaseType: string) {
   });
 }
 
-export async function publishInCI(updatedPkgs: string[], npmTag: string, dryRun: boolean) {
+export async function publishInCI(
+  updatedPkgs: string[],
+  npmTag: string,
+  dryRun: boolean
+) {
   const taskArray = await Promise.all(
     updatedPkgs.map(async pkg => {
       const path = await mapPkgNameToPkgPath(pkg);
@@ -75,7 +79,11 @@ export async function publishInCI(updatedPkgs: string[], npmTag: string, dryRun:
   return tasks.run();
 }
 
-async function publishPackageInCI(pkg: string, npmTag: string, dryRun: boolean) {
+async function publishPackageInCI(
+  pkg: string,
+  npmTag: string,
+  dryRun: boolean
+) {
   try {
     const path = await mapPkgNameToPkgPath(pkg);
 
