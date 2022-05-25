@@ -47,9 +47,9 @@ packages/firestore-types  @firebase/firestore-js-team @firebase/jssdk-global-app
 integration/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 
 # Storage Code
-packages/storage  @tonyjhuang @firebase/jssdk-global-approvers
-packages/storage-compat  @tonyjhuang @firebase/jssdk-global-approvers
-packages/storage-types  @tonyjhuang @firebase/jssdk-global-approvers
+packages/storage @maneesht @tonyjhuang @firebase/jssdk-global-approvers
+packages/storage-compat @maneesht @tonyjhuang @firebase/jssdk-global-approvers
+packages/storage-types @maneesht @tonyjhuang @firebase/jssdk-global-approvers
 
 # Messaging Code
 packages/messaging  @zwu52 @firebase/jssdk-global-approvers
