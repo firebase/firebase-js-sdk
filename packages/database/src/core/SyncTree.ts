@@ -425,12 +425,12 @@ export function syncTreeRemoveEventRegistration(
 
 /**
  * This function was added to support non-listener queries,
- * specifically for use in repoGetValue. It sets up all the same 
- * local cache data-structures (SyncPoint + View) that are 
- * needed for listeners without installing an event registration. 
- * If `query` is not `loadsAllData`, it will also provision a tag for 
- * the query so that query results can be merged into the sync 
- * tree using existing logic for tagged listener queries. 
+ * specifically for use in repoGetValue. It sets up all the same
+ * local cache data-structures (SyncPoint + View) that are
+ * needed for listeners without installing an event registration.
+ * If `query` is not `loadsAllData`, it will also provision a tag for
+ * the query so that query results can be merged into the sync
+ * tree using existing logic for tagged listener queries.
  *
  * @param syncTree - Synctree to add the query to.
  * @param query - Query to register
