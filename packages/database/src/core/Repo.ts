@@ -471,11 +471,14 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
       const node = nodeFromJSON(payload).withIndex(
         query._queryParams.getIndex()
       );
-      // if this is not a filtered query, then overwrite at path
+      // if this is a filtered query, then overwrite at path
       if (query._queryParams.loadsAllData()) {
         syncTreeApplyServerOverwrite(repo.serverSyncTree_, query._path, node);
       } else {
-        // Simulate `syncTreeAddEventRegistration` without events/listener setup.
+        // Simulate `syncTreeAddEventRegistration` without events/listener setup. 
+        // We do this (along with the syncTreeRemoveEventRegistration` below) so that 
+        // `repoGetValue` results have the same cache effects as initial listeners 
+        // updates.
         syncTreeApplyTaggedQueryOverwrite(
           repo.serverSyncTree_,
           query._path,

@@ -423,6 +423,19 @@ export function syncTreeRemoveEventRegistration(
   return cancelEvents;
 }
 
+/**
+ * This function was added to support non-listener queries,
+ * specifically for use in repoGetValue. It sets up all the same 
+ * local cache data-structures (SyncPoint + View) that are 
+ * needed for listeners without installing an event registration. 
+ * If `query` is not `loadsAllData`, it will also provision a tag for 
+ * the query so that query results can be merged into the sync 
+ * tree using existing logic for tagged listener queries. 
+ *
+ * @param syncTree - Synctree to add the query to.
+ * @param query - Query to register
+ * @returns tag as a string if query is not a default query, null if query is not.
+ */
 export function syncTreeRegisterQuery(syncTree: SyncTree, query: QueryContext) {
   if (!query._queryParams.loadsAllData()) {
     const { syncPoint, serverCache, writesCache, serverCacheComplete } =
@@ -501,6 +514,11 @@ export function syncTreeApplyTaggedQueryMerge(
   }
 }
 
+/**
+ * Creates a new syncpoint for a query and creates a tag if the view doesn't exist.
+ * Extracted from addEventRegistration to allow `repoGetValue` to properly set up the SyncTree
+ * without actually listening on a query.
+ */
 export function syncTreeRegisterSyncPoint(
   query: QueryContext,
   syncTree: SyncTree
@@ -563,7 +581,6 @@ export function syncTreeRegisterSyncPoint(
     syncTree.tagToQueryMap.set(tag, queryKey);
   }
   const writesCache = writeTreeChildWrites(syncTree.pendingWriteTree_, path);
-  // TODO: break this down so you do the minimal amount
   return {
     syncPoint,
     writesCache,
