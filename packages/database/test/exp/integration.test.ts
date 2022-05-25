@@ -122,7 +122,7 @@ describe('Database@exp Tests', () => {
     expect(count).to.equal(1);
   });
 
-  it('calls onValue only once after get request with a default query', async() => {
+  it('calls onValue only once after get request with a default query', async () => {
     const db = getDatabase(defaultApp);
     const testRef = ref(db, 'foo');
     const initial = [{ name: 'child1' }, { name: 'child2' }];
