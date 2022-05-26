@@ -37,6 +37,7 @@ import {
   getAggregate,
   getAggregateFromCache,
   getAggregateFromServer,
+  getAggregateFromServerDirect,
   last,
   max,
   min,
@@ -79,6 +80,11 @@ class AggregateDemo {
     // Note the use of `upTo` to cap the count, and possibly backend work.
     const snapshot = await getAggregate(aggregateQuery(this.coll, count({upTo: 20})));
     expect(snapshot.get(count())).to.equal(20);
+  }
+
+  async AggregateQuery_DirectFromServer() {
+    const snapshot = await getAggregateFromServerDirect(this.aggregateQuery);
+    expect(snapshot.get(count())).to.equal(50);
   }
 
   async AggregateQuery_FromCacheAndServer() {
@@ -134,7 +140,7 @@ class AggregateDemo {
 
   async AggregateQuery_Listen1() {
     const deferred = new Deferred<AggregateQuerySnapshot>();
-    const unsubscribe = onAggregateSnapshot(this.aggregateQuery, {
+    const unsubscribe = onAggregateSnapshotServerDirect(this.aggregateQuery, {
       next: snapshot => {
         deferred.resolve(snapshot);
       },
