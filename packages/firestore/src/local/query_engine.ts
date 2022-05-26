@@ -154,7 +154,7 @@ export class QueryEngine {
           return null;
         }
 
-        if (indexType === IndexType.PARTIAL) {
+        if (query.limit !== null && indexType === IndexType.PARTIAL) {
           // We cannot apply a limit for targets that are served using a partial
           // index. If a partial index will be used to serve the target, the
           // query may return a superset of documents that match the target
@@ -301,7 +301,7 @@ export class QueryEngine {
    * Determines if a limit query needs to be refilled from cache, making it
    * ineligible for index-free execution.
    *
-   * @param query The query.
+   * @param query - The query.
    * @param sortedPreviousResults - The documents that matched the query when it
    * was last synchronized, sorted by the query's comparator.
    * @param remoteKeys - The document keys that matched the query at the last
