@@ -29,7 +29,7 @@ jobs:
       # --ignoreUnstaged Adding the @firebase/app changeset file means
       # there's unstaged changes. Ignore.
       # TODO: Make these flags defaults in the release script.
-      run: yarn release --releaseType Production --ci --skipTests --skipReinstall --ignoreUnstaged --dryRun
+      run: yarn release --releaseType Production --ci --skipTests --skipReinstall --ignoreUnstaged
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
@@ -92,12 +92,12 @@ jobs:
     - name: Echo version in shell
       run: |
         echo "Base version: ${{ steps.get-version.outputs.BASE_VERSION }}"
-    # - name: Log to release tracker
-    #   # Sends release information to cloud functions endpoint of release tracker.
-    #   run: |
-    #     DATE=$(date +'%m/%d/%Y')
-    #     BASE_VERSION=${{ steps.get-version.outputs.BASE_VERSION }}
-    #     RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
-    #     curl -X POST -H "Content-Type:application/json" \
-    #     -d "{\"version\":\"$BASE_VERSION\",\"date\":\"$DATE\"}" \
-    #     $RELEASE_TRACKER_URL/logProduction
+    - name: Log to release tracker
+      # Sends release information to cloud functions endpoint of release tracker.
+      run: |
+        DATE=$(date +'%m/%d/%Y')
+        BASE_VERSION=${{ steps.get-version.outputs.BASE_VERSION }}
+        RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
+        curl -X POST -H "Content-Type:application/json" \
+        -d "{\"version\":\"$BASE_VERSION\",\"date\":\"$DATE\"}" \
+        $RELEASE_TRACKER_URL/logProduction
