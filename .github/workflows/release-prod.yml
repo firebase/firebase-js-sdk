@@ -1,0 +1,103 @@
+name: Production Release
+
+on: workflow_dispatch
+
+jobs:
+  deploy:
+    name: Production Release
+    runs-on: ubuntu-latest
+    # Allow GITHUB_TOKEN to have write permissions
+    permissions:
+      contents: write
+
+    steps:
+    - name: Set up Node (14)
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - name: Checkout release branch (with history)
+      uses: actions/checkout@master
+      with:
+        # Release script requires git history and tags.
+        fetch-depth: 0
+        ref: release
+    - name: Yarn install
+      run: yarn
+    - name: Publish to NPM
+      # --skipTests No need to run tests
+      # --skipReinstall Yarn install has already been run
+      # --ignoreUnstaged Adding the @firebase/app changeset file means
+      # there's unstaged changes. Ignore.
+      # TODO: Make these flags defaults in the release script.
+      run: yarn release --releaseType Production --ci --skipTests --skipReinstall --ignoreUnstaged
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
+        NPM_TOKEN_ANALYTICS_INTEROP_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES}}
+        NPM_TOKEN_ANALYTICS_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_TYPES}}
+        NPM_TOKEN_APP: ${{secrets.NPM_TOKEN_APP}}
+        NPM_TOKEN_APP_TYPES: ${{secrets.NPM_TOKEN_APP_TYPES}}
+        NPM_TOKEN_APP_CHECK: ${{secrets.NPM_TOKEN_APP_CHECK}}
+        NPM_TOKEN_APP_CHECK_INTEROP_TYPES: ${{secrets.NPM_TOKEN_APP_CHECK_INTEROP_TYPES}}
+        NPM_TOKEN_APP_CHECK_TYPES: ${{secrets.NPM_TOKEN_APP_CHECK_TYPES}}
+        NPM_TOKEN_AUTH: ${{secrets.NPM_TOKEN_AUTH}}
+        NPM_TOKEN_AUTH_INTEROP_TYPES: ${{secrets.NPM_TOKEN_AUTH_INTEROP_TYPES}}
+        NPM_TOKEN_AUTH_TYPES: ${{secrets.NPM_TOKEN_AUTH_TYPES}}
+        NPM_TOKEN_COMPONENT: ${{secrets.NPM_TOKEN_COMPONENT}}
+        NPM_TOKEN_DATABASE: ${{secrets.NPM_TOKEN_DATABASE}}
+        NPM_TOKEN_DATABASE_TYPES: ${{secrets.NPM_TOKEN_DATABASE_TYPES}}
+        NPM_TOKEN_FIRESTORE: ${{secrets.NPM_TOKEN_FIRESTORE}}
+        NPM_TOKEN_FIRESTORE_TYPES: ${{secrets.NPM_TOKEN_FIRESTORE_TYPES}}
+        NPM_TOKEN_FUNCTIONS: ${{secrets.NPM_TOKEN_FUNCTIONS}}
+        NPM_TOKEN_FUNCTIONS_TYPES: ${{secrets.NPM_TOKEN_FUNCTIONS_TYPES}}
+        NPM_TOKEN_INSTALLATIONS: ${{secrets.NPM_TOKEN_INSTALLATIONS}}
+        NPM_TOKEN_INSTALLATIONS_TYPES: ${{secrets.NPM_TOKEN_INSTALLATIONS_TYPES}}
+        NPM_TOKEN_LOGGER: ${{secrets.NPM_TOKEN_LOGGER}}
+        NPM_TOKEN_MESSAGING: ${{secrets.NPM_TOKEN_MESSAGING}}
+        NPM_TOKEN_MESSAGING_TYPES: ${{secrets.NPM_TOKEN_MESSAGING_TYPES}}
+        NPM_TOKEN_PERFORMANCE: ${{secrets.NPM_TOKEN_PERFORMANCE}}
+        NPM_TOKEN_PERFORMANCE_TYPES: ${{secrets.NPM_TOKEN_PERFORMANCE_TYPES}}
+        NPM_TOKEN_POLYFILL: ${{secrets.NPM_TOKEN_POLYFILL}}
+        NPM_TOKEN_REMOTE_CONFIG: ${{secrets.NPM_TOKEN_REMOTE_CONFIG}}
+        NPM_TOKEN_REMOTE_CONFIG_TYPES: ${{secrets.NPM_TOKEN_REMOTE_CONFIG_TYPES}}
+        NPM_TOKEN_RULES_UNIT_TESTING: ${{secrets.NPM_TOKEN_RULES_UNIT_TESTING}}
+        NPM_TOKEN_STORAGE: ${{secrets.NPM_TOKEN_STORAGE}}
+        NPM_TOKEN_STORAGE_TYPES: ${{secrets.NPM_TOKEN_STORAGE_TYPES}}
+        NPM_TOKEN_TESTING: ${{secrets.NPM_TOKEN_TESTING}}
+        NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
+        NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
+        NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
+        NPM_TOKEN_APP_COMPAT: ${{ secrets.NPM_TOKEN_APP_COMPAT }}
+        NPM_TOKEN_INSTALLATIONS_COMPAT: ${{ secrets.NPM_TOKEN_INSTALLATIONS_COMPAT }}
+        NPM_TOKEN_ANALYTICS_COMPAT: ${{ secrets.NPM_TOKEN_ANALYTICS_COMPAT }}
+        NPM_TOKEN_AUTH_COMPAT: ${{ secrets.NPM_TOKEN_AUTH_COMPAT }}
+        NPM_TOKEN_MESSAGING_INTEROP_TYPES: ${{ secrets.NPM_TOKEN_MESSAGING_INTEROP_TYPES }}
+        NPM_TOKEN_FUNCTIONS_COMPAT: ${{ secrets.NPM_TOKEN_FUNCTIONS_COMPAT }}
+        NPM_TOKEN_MESSAGING_COMPAT: ${{ secrets.NPM_TOKEN_MESSAGING_COMPAT }}
+        NPM_TOKEN_PERFORMANCE_COMPAT: ${{ secrets.NPM_TOKEN_PERFORMANCE_COMPAT }}
+        NPM_TOKEN_REMOTE_CONFIG_COMPAT: ${{ secrets.NPM_TOKEN_REMOTE_CONFIG_COMPAT }}
+        NPM_TOKEN_DATABASE_COMPAT: ${{ secrets.NPM_TOKEN_DATABASE_COMPAT }}
+        NPM_TOKEN_FIRESTORE_COMPAT: ${{ secrets.NPM_TOKEN_FIRESTORE_COMPAT }}
+        NPM_TOKEN_STORAGE_COMPAT: ${{ secrets.NPM_TOKEN_STORAGE_COMPAT }}
+        NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
+        NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
+        CI: true
+    - name: Get release version
+      id: get-version
+      # In production, there is only one version number
+      run: |
+        VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
+        VERSION=`node -e "${VERSION_SCRIPT}"`
+        echo "::set-output name=BASE_VERSION::$VERSION"
+    - name: Echo version in shell
+      run: |
+        echo "Base version: ${{ steps.get-version.outputs.BASE_VERSION }}"
+    - name: Log to release tracker
+      # Sends release information to cloud functions endpoint of release tracker.
+      run: |
+        DATE=$(date +'%m/%d/%Y')
+        BASE_VERSION=${{ steps.get-version.outputs.BASE_VERSION }}
+        RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
+        curl -X POST -H "Content-Type:application/json" \
+        -d "{\"version\":\"$BASE_VERSION\",\"date\":\"$DATE\"}" \
+        $RELEASE_TRACKER_URL/logProduction

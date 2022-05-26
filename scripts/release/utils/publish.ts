@@ -64,6 +64,17 @@ export async function publishInCI(
         };
       }
 
+      /**
+       * Skip if this version has already been published.
+       */
+      const { stdout: npmVersion } = await exec('npm info firebase version');
+      if (version === npmVersion.trim()) {
+        return {
+          title: `Skipping publish of ${pkg} - version ${version} is already published`,
+          task: () => {}
+        };
+      }
+
       return {
         title: `📦  ${pkg}@${version}`,
         task: () => publishPackageInCI(pkg, npmTag, dryRun)
