@@ -51,7 +51,9 @@ function _isHttpOrHttps(): boolean {
  */
 export function _isAndroidOrIosCordovaScheme(ua: string = getUA()): boolean {
   return !!(
-    (_getCurrentScheme() === 'file:' || _getCurrentScheme() === 'ionic:') &&
+    (_getCurrentScheme() === 'file:' ||
+      _getCurrentScheme() === 'ionic:' ||
+      _getCurrentScheme() === 'capacitor:') &&
     ua.toLowerCase().match(/iphone|ipad|ipod|android/)
   );
 }

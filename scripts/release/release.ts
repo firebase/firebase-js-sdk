@@ -17,7 +17,7 @@
 
 import { exec } from 'child-process-promise';
 import { createPromptModule } from 'inquirer';
-import { publish } from './utils/publish';
+import { publish, publishInCI } from './utils/publish';
 import { pushReleaseTagsToGithub, cleanTree, hasDiff } from './utils/git';
 import {
   releaseType as releaseTypePrompt,
@@ -34,7 +34,8 @@ interface releaseOptions {
   skipTests: boolean;
   ignoreUnstaged: boolean;
   releaseType?: string;
-  dryRun?: boolean;
+  dryRun: boolean;
+  ci: boolean;
 }
 
 export async function runRelease({
@@ -42,8 +43,10 @@ export async function runRelease({
   skipTests,
   ignoreUnstaged,
   releaseType: inputReleaseType,
-  dryRun
+  dryRun,
+  ci
 }: releaseOptions) {
+  console.log('ci', ci);
   try {
     /**
      * If there are unstaged changes, error.
@@ -88,6 +91,10 @@ export async function runRelease({
       return responses.releaseType;
     })();
 
+    console.log(`Publishing ${inputReleaseType} release.`);
+
+    let packagesToPublish = [];
+
     /**
      * Bump versions for staging release
      * NOTE: For prod, versions are bumped in a PR which should be merged before running this script
@@ -95,14 +102,20 @@ export async function runRelease({
     if (releaseType === ReleaseType.Staging) {
       const updatedPackages = await bumpVersionForStaging();
 
-      // We don't need to validate versions for prod releases because prod releases
-      // are validated in the version bump PR which should be merged before running this script
-      const { versionCheck } = await prompt([
-        validateVersions(updatedPackages)
-      ]);
+      if (!ci) {
+        // We don't need to validate versions for prod releases because prod releases
+        // are validated in the version bump PR which should be merged before running this script
+        const { versionCheck } = await prompt([
+          validateVersions(updatedPackages)
+        ]);
 
-      if (!versionCheck) {
-        throw new Error('Version check failed');
+        if (!versionCheck) {
+          throw new Error('Version check failed');
+        }
+      }
+
+      for (const key of updatedPackages.keys()) {
+        packagesToPublish.push(key);
       }
     }
 
@@ -132,25 +145,42 @@ export async function runRelease({
     }
 
     /**
-     * Do not actually publish if it is a dryrun
+     * Publish new versions to NPM using changeset (if manual)
+     * or using wombot for each package (if CI)
+     * It will also create tags
      */
-    if (!dryRun) {
+    if (ci) {
       /**
-       * Release new versions to NPM using changeset
-       * It will also create tags
+       * If the script is calling each individual npm command
+       * it can add the npm flag --dry-run, to better simulate
+       * everything in the publish process except publishing.
        */
-      await publish(releaseType);
-
-      /**
-       * Changeset creats tags for staging releases as well,
-       * but we should only push tags to Github for prod releases
-       */
-      if (releaseType === ReleaseType.Production) {
-        /**
-         * Push release tags created by changeset in publish() to Github
-         */
-        await pushReleaseTagsToGithub();
+      if (releaseType === ReleaseType.Staging) {
+        await publishInCI(packagesToPublish, 'next', dryRun);
+      } else {
+        // Production.
+        await publishInCI(packagesToPublish, 'latest', dryRun);
       }
+    } else {
+      /**
+       * If the script uses changeset to publish, there's no
+       * way to add the dry-run flag to each npm CLI command.
+       */
+      if (!dryRun) {
+        // Uses changeset
+        await publish(releaseType);
+      }
+    }
+
+    /**
+     * Changeset creates tags for staging releases as well,
+     * but we should only push tags to Github for prod releases
+     */
+    if (releaseType === ReleaseType.Production && !dryRun) {
+      /**
+       * Push release tags created by changeset in publish() to Github
+       */
+      await pushReleaseTagsToGithub();
     }
   } catch (err) {
     /**

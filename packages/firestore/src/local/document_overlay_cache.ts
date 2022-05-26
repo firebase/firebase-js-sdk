@@ -44,6 +44,15 @@ export interface DocumentOverlayCache {
   ): PersistencePromise<Overlay | null>;
 
   /**
+   * Gets the saved overlay mutation for the given document keys. Skips keys for
+   * which there are no overlays.
+   */
+  getOverlays(
+    transaction: PersistenceTransaction,
+    keys: DocumentKeySet
+  ): PersistencePromise<OverlayMap>;
+
+  /**
    * Saves the given document mutation map to persistence as overlays.
    * All overlays will have their largest batch id set to `largestBatchId`.
    */

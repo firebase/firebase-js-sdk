@@ -109,14 +109,14 @@ describe('Firebase Analytics > Service', () => {
     setUserIdStub.resetHistory();
   });
 
-  it('setCurrentScreen() calls modular setCurrentScreen()', () => {
+  it('setCurrentScreen() (deprecated) calls modular setCurrentScreen() (deprecated)', () => {
     service = createTestService(app);
     service.setCurrentScreen('some_screen');
     expect(setCurrentScreenStub).to.be.calledWith(match.any, 'some_screen');
     setCurrentScreenStub.resetHistory();
   });
 
-  it('setCurrentScreen() calls modular setCurrentScreen() with options if provided', () => {
+  it('setCurrentScreen() (deprecated) calls modular setCurrentScreen() (deprecated) with options if provided', () => {
     service = createTestService(app);
     service.setCurrentScreen('some_screen', { global: true });
     expect(setCurrentScreenStub).to.be.calledWith(match.any, 'some_screen', {

@@ -87,4 +87,34 @@ describe('api/authentication/signInWithIdp', () => {
     );
     expect(mock.calls[0].request).to.eql(request);
   });
+  it('should handle user disabled errors and propagate email info', async () => {
+    const response = {
+        email: "test123@gmail.com",
+        error: {
+          code: 400,
+          message: ServerError.USER_DISABLED,
+          errors: [
+            {
+              message: ServerError.USER_DISABLED
+            }
+          ]
+        }
+    };
+
+    const mock = mockEndpoint(
+      Endpoint.SIGN_IN_WITH_IDP,
+      response,
+      400
+    );
+
+    await expect(signInWithIdp(auth, request))
+    .to.be.rejectedWith(FirebaseError, 'auth/user-disabled')
+    .eventually.with.deep.property('customData', {
+      appName: 'test-app',
+      _tokenResponse: response,
+      email: "test123@gmail.com"
+    });
+
+    expect(mock.calls[0].request).to.eql(request);
+  });
 });
