@@ -72,7 +72,7 @@ export async function publishInCI(
         return {
           title: `Skipping publish of ${pkg} - version ${version} is already published`,
           task: () => {}
-        }
+        };
       }
 
       return {
