@@ -477,7 +477,7 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
       } else {
         // Simulate `syncTreeAddEventRegistration` without events/listener setup.
         // We do this (along with the syncTreeRemoveEventRegistration` below) so that
-        // `repoGetValue` results have the same cache effects as initial listeners
+        // `repoGetValue` results have the same cache effects as initial listener(s)
         // updates.
         syncTreeApplyTaggedQueryOverwrite(
           repo.serverSyncTree_,
@@ -486,15 +486,15 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
           tag
         );
         // Call `syncTreeRemoveEventRegistration` with a null event registration, since there is none.
+        // Note: The below code essentially unregisters the query and cleans up any views/syncpoints temporarily created above.
         const cancels = syncTreeRemoveEventRegistration(
           repo.serverSyncTree_,
           query,
           null
         );
-        assert(
-          cancels.length === 0,
-          'unexpected cancel events in repoGetValue'
-        );
+        if (cancels.length > 0) {
+          repoLog(repo, 'unexpected cancel events in repoGetValue');
+        }
       }
       return Promise.resolve(node);
     },
