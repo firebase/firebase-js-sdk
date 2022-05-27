@@ -28,182 +28,208 @@
         "require": "./analytics/dist/index.cjs.js",
         "import": "./analytics/dist/index.mjs"
       },
-      "default": "./analytics/dist/index.esm.js"
+      "default": "./analytics/dist/index.esm.js",
+      "types": "./analytics/dist/analytics/index.d.ts"
     },
     "./app": {
       "node": {
         "require": "./app/dist/index.cjs.js",
         "import": "./app/dist/index.mjs"
       },
-      "default": "./app/dist/index.esm.js"
+      "default": "./app/dist/index.esm.js",
+      "types": "./app/dist/app/index.d.ts"
     },
     "./app-check": {
       "node": {
         "require": "./app-check/dist/index.cjs.js",
         "import": "./app-check/dist/index.mjs"
       },
-      "default": "./app-check/dist/index.esm.js"
+      "default": "./app-check/dist/index.esm.js",
+      "types": "./app-check/dist/app-check/index.d.ts"
     },
     "./auth": {
       "node": {
         "require": "./auth/dist/index.cjs.js",
         "import": "./auth/dist/index.mjs"
       },
-      "default": "./auth/dist/index.esm.js"
+      "default": "./auth/dist/index.esm.js",
+      "types": "./auth/dist/auth/index.d.ts"
     },
     "./auth/cordova": {
       "node": {
         "require": "./auth/cordova/dist/index.cjs.js",
         "import": "./auth/cordova/dist/index.mjs"
       },
-      "default": "./auth/cordova/dist/index.esm.js"
+      "default": "./auth/cordova/dist/index.esm.js",
+      "types": "./auth/cordova/dist/auth/cordova/index.d.ts"
     },
     "./auth/react-native": {
       "node": {
         "require": "./auth/react-native/dist/index.cjs.js",
         "import": "./auth/react-native/dist/index.mjs"
       },
-      "default": "./auth/react-native/dist/index.esm.js"
+      "default": "./auth/react-native/dist/index.esm.js",
+      "types": "./auth/react-native/dist/auth/react-native/index.d.ts"
     },
     "./database": {
       "node": {
         "require": "./database/dist/index.cjs.js",
         "import": "./database/dist/index.mjs"
       },
-      "default": "./database/dist/index.esm.js"
+      "default": "./database/dist/index.esm.js",
+      "types": "./database/dist/database/index.d.ts"
     },
     "./firestore": {
       "node": {
         "require": "./firestore/dist/index.cjs.js",
         "import": "./firestore/dist/index.mjs"
       },
-      "default": "./firestore/dist/index.esm.js"
+      "default": "./firestore/dist/index.esm.js",
+      "types": "./firestore/dist/firestore/index.d.ts"
     },
     "./firestore/lite": {
       "node": {
         "require": "./firestore/lite/dist/index.cjs.js",
         "import": "./firestore/lite/dist/index.mjs"
       },
-      "default": "./firestore/lite/dist/index.esm.js"
+      "default": "./firestore/lite/dist/index.esm.js",
+      "types": "./firestore/lite/dist/firestore/lite/index.d.ts"
     },
     "./functions": {
       "node": {
         "require": "./functions/dist/index.cjs.js",
         "import": "./functions/dist/index.mjs"
       },
-      "default": "./functions/dist/index.esm.js"
+      "default": "./functions/dist/index.esm.js",
+      "types": "./functions/dist/functions/index.d.ts"
     },
     "./messaging": {
       "node": {
         "require": "./messaging/dist/index.cjs.js",
         "import": "./messaging/dist/index.mjs"
       },
-      "default": "./messaging/dist/index.esm.js"
+      "default": "./messaging/dist/index.esm.js",
+      "types": "./messaging/dist/messaging/index.d.ts"
     },
     "./messaging/sw": {
       "node": {
         "require": "./messaging/sw/dist/index.cjs.js",
         "import": "./messaging/sw/dist/index.mjs"
       },
-      "default": "./messaging/sw/dist/index.esm.js"
+      "default": "./messaging/sw/dist/index.esm.js",
+      "types": "./messaging/sw/dist/messaging/sw/index.d.ts"
     },
     "./performance": {
       "node": {
         "require": "./performance/dist/index.cjs.js",
         "import": "./performance/dist/index.mjs"
       },
-      "default": "./performance/dist/index.esm.js"
+      "default": "./performance/dist/index.esm.js",
+      "types": "./performance/dist/performance/index.d.ts"
     },
     "./remote-config": {
       "node": {
         "require": "./remote-config/dist/index.cjs.js",
         "import": "./remote-config/dist/index.mjs"
       },
-      "default": "./remote-config/dist/index.esm.js"
+      "default": "./remote-config/dist/index.esm.js",
+      "types": "./remote-config/dist/remote-config/index.d.ts"
     },
     "./storage": {
       "node": {
         "require": "./storage/dist/index.cjs.js",
         "import": "./storage/dist/index.mjs"
       },
-      "default": "./storage/dist/index.esm.js"
+      "default": "./storage/dist/index.esm.js",
+      "types": "./storage/dist/storage/index.d.ts"
     },
     "./compat/analytics": {
       "node": {
         "require": "./compat/analytics/dist/index.cjs.js",
         "import": "./compat/analytics/dist/index.mjs"
       },
-      "default": "./compat/analytics/dist/index.esm.js"
+      "default": "./compat/analytics/dist/index.esm.js",
+      "types": "./compat/analytics/dist/compat/analytics/index.d.ts"
     },
     "./compat/app": {
       "node": {
         "require": "./compat/app/dist/index.cjs.js",
         "import": "./compat/app/dist/index.mjs"
       },
-      "default": "./compat/app/dist/index.esm.js"
+      "default": "./compat/app/dist/index.esm.js",
+      "types": "./compat/app/dist/compat/app/index.d.ts"
     },
     "./compat/app-check": {
       "node": {
         "require": "./compat/app-check/dist/index.cjs.js",
         "import": "./compat/app-check/dist/index.mjs"
       },
-      "default": "./compat/app-check/dist/index.esm.js"
+      "default": "./compat/app-check/dist/index.esm.js",
+      "types": "./compat/app-check/dist/compat/app-check/index.d.ts"
     },
     "./compat/auth": {
       "node": {
         "require": "./compat/auth/dist/index.cjs.js",
         "import": "./compat/auth/dist/index.mjs"
       },
-      "default": "./compat/auth/dist/index.esm.js"
+      "default": "./compat/auth/dist/index.esm.js",
+      "types": "./compat/auth/dist/compat/auth/index.d.ts"
     },
     "./compat/database": {
       "node": {
         "require": "./compat/database/dist/index.cjs.js",
         "import": "./compat/database/dist/index.mjs"
       },
-      "default": "./compat/database/dist/index.esm.js"
+      "default": "./compat/database/dist/index.esm.js",
+      "types": "./compat/database/dist/compat/database/index.d.ts"
     },
     "./compat/firestore": {
       "node": {
         "require": "./compat/firestore/dist/index.cjs.js",
         "import": "./compat/firestore/dist/index.mjs"
       },
-      "default": "./compat/firestore/dist/index.esm.js"
+      "default": "./compat/firestore/dist/index.esm.js",
+      "types": "./compat/firestore/dist/compat/firestore/index.d.ts"
     },
     "./compat/functions": {
       "node": {
         "require": "./compat/functions/dist/index.cjs.js",
         "import": "./compat/functions/dist/index.mjs"
       },
-      "default": "./compat/functions/dist/index.esm.js"
+      "default": "./compat/functions/dist/index.esm.js",
+      "types": "./compat/functions/dist/compat/functions/index.d.ts"
     },
     "./compat/messaging": {
       "node": {
         "require": "./compat/messaging/dist/index.cjs.js",
         "import": "./compat/messaging/dist/index.mjs"
       },
-      "default": "./compat/messaging/dist/index.esm.js"
+      "default": "./compat/messaging/dist/index.esm.js",
+      "types": "./compat/messaging/dist/compat/messaging/index.d.ts"
     },
     "./compat/performance": {
       "node": {
         "require": "./compat/performance/dist/index.cjs.js",
         "import": "./compat/performance/dist/index.mjs"
       },
-      "default": "./compat/performance/dist/index.esm.js"
+      "default": "./compat/performance/dist/index.esm.js",
+      "types": "./compat/performance/dist/compat/performance/index.d.ts"
     },
     "./compat/remote-config": {
       "node": {
         "require": "./compat/remote-config/dist/index.cjs.js",
         "import": "./compat/remote-config/dist/index.mjs"
       },
-      "default": "./compat/remote-config/dist/index.esm.js"
+      "default": "./compat/remote-config/dist/index.esm.js",
+      "types": "./compat/remote-config/dist/compat/remote-config/index.d.ts"
     },
     "./compat/storage": {
       "node": {
         "require": "./compat/storage/dist/index.cjs.js",
         "import": "./compat/storage/dist/index.mjs"
       },
-      "default": "./compat/storage/dist/index.esm.js"
+      "default": "./compat/storage/dist/index.esm.js",
+      "types": "./compat/storage/dist/compat/storage/index.d.ts"
     },
     "./package.json": "./package.json"
   },
