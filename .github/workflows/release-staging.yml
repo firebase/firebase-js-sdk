@@ -20,21 +20,18 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const mergeResult = await github.rest.repos.merge({
+          await github.rest.repos.merge({
             owner: context.repo.owner,
             repo: context.repo.repo,
             base: 'release',
             head: 'master'
           })
-          console.log(mergeResult)
     - name: Checkout release branch (with history)
       uses: actions/checkout@master
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
         ref: release
-    - name: log
-      run: git log
     - name: Yarn install
       run: yarn
     # Ensures a new @firebase/app is published with every release.
