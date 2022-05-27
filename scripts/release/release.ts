@@ -27,6 +27,7 @@ import { reinstallDeps, buildPackages } from './utils/yarn';
 import { runTests, setupTestDeps } from './utils/tests';
 import { bumpVersionForStaging } from './staging';
 import { ReleaseType } from './utils/enums';
+import { getAllPackages } from './utils/workspace';
 const prompt = createPromptModule();
 
 interface releaseOptions {
@@ -94,12 +95,11 @@ export async function runRelease({
     console.log(`Publishing ${inputReleaseType} release.`);
 
     let packagesToPublish = [];
-
-    /**
-     * Bump versions for staging release
-     * NOTE: For prod, versions are bumped in a PR which should be merged before running this script
-     */
     if (releaseType === ReleaseType.Staging) {
+      /**
+       * Bump versions for staging release
+       * NOTE: For prod, versions are bumped in a PR which should be merged before running this script
+       */
       const updatedPackages = await bumpVersionForStaging();
 
       if (!ci) {
@@ -117,6 +117,13 @@ export async function runRelease({
       for (const key of updatedPackages.keys()) {
         packagesToPublish.push(key);
       }
+    } else {
+      /**
+       * For production releases, pass all packages to publishToCI().
+       * It will only publish if it finds the local version is newer
+       * than NPM's.
+       */
+      packagesToPublish = await getAllPackages();
     }
 
     /**
