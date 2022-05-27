@@ -34,6 +34,8 @@ jobs:
         ref: master
     - name: Merge master into release
       run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
         git checkout release
         git merge master
         git push origin release
@@ -41,13 +43,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     # - name: Yarn install
     #   run: yarn
-    # # Ensures a new @firebase/app is published with every release.
-    # # This keeps the SDK_VERSION variable up to date.
-    # - name: Add a changeset for @firebase/app
-    #   # pull master so changeset can diff against it
-    #   run: |
-    #     git pull -f --no-rebase origin master:master
-    #     yarn ts-node-script scripts/ci/add_changeset.ts
+    # Ensures a new @firebase/app is published with every release.
+    # This keeps the SDK_VERSION variable up to date.
+    - name: Add a changeset for @firebase/app
+      # pull master so changeset can diff against it
+      run: |
+        yarn ts-node-script scripts/ci/add_changeset.ts
     # - name: Create Release Pull Request
     #   uses: changesets/action@v1
     #   env:
