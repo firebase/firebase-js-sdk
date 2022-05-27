@@ -15,7 +15,8 @@
       "esm5": "./dist/esm/index.esm5.js",
       "lite": "./dist/index.lite.js",
       "liteesm5": "./dist/index.lite.esm5.js",
-      "default": "./dist/esm/index.esm2017.js"
+      "default": "./dist/esm/index.esm2017.js",
+      "types": "./dist/app-compat-public.d.ts"
     },
     "./package.json": "./package.json"
   },

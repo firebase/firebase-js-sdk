@@ -15,11 +15,13 @@
       "browser": "./dist/esm/index.esm2017.js",
       "module": "./dist/esm/index.esm2017.js",
       "esm5": "./dist/esm/index.esm.js",
-      "default": "./dist/index.cjs.js"
+      "default": "./dist/index.cjs.js",
+      "types": "./dist/index-public.d.ts"
     },
     "./sw": {
       "node": "./dist/index.sw.cjs",
-      "default": "./dist/index.sw.esm2017.js"
+      "default": "./dist/index.sw.esm2017.js",
+      "types": "./dist/sw/index-public.d.ts"
     },
     "./package.json": "./package.json"
   },

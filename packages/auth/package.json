@@ -14,25 +14,50 @@
     ".": {
       "node": {
         "import": "./dist/node-esm/index.js",
-        "require": "./dist/node/index.js"
+        "require": "./dist/node/index.js",
+        "types": "./dist/node/index.d.ts"
       },
-      "react-native": "./dist/rn/index.js",
-      "cordova": "./dist/cordova/index.js",
-      "webworker": "./dist/index.webworker.esm5.js",
+      "react-native": {
+        "default": "./dist/rn/index.js",
+        "types": "./dist/rn/index.rn.d.ts"
+      },
+      "cordova": {
+        "default": "./dist/cordova/index.js",
+        "types": "./dist/cordova/index.cordova.d.ts"
+      },
+      "webworker": {
+        "default": "./dist/index.webworker.esm5.js",
+        "types": "./dist/index.webworker.d.ts"
+      },
       "esm5": "./dist/esm5/index.js",
-      "default": "./dist/esm2017/index.js"
+      "default": "./dist/esm2017/index.js",
+      "types": "./dist/auth-public.d.ts"
     },
-    "./cordova": "./dist/cordova/index.js",
-    "./react-native": "./dist/rn/index.js",
+    "./cordova": {
+      "default": "./dist/cordova/index.js",
+      "types": "./dist/cordova/index.cordova.d.ts"
+    },
+    "./react-native": {
+      "default": "./dist/rn/index.js",
+      "types": "./dist/rn/index.rn.d.ts"
+    },
     "./internal": {
       "node": {
         "import": "./dist/node-esm/internal.js",
-        "require": "./dist/node/internal.js"
+        "require": "./dist/node/internal.js",
+        "types": "./dist/node/internal/index.d.ts"
       },
-      "react-native": "./dist/rn/internal.js",
-      "cordova": "./dist/cordova/internal.js",
+      "react-native": {
+        "default": "./dist/rn/internal.js",
+        "types": "./dist/rn/internal/index.d.ts"
+      },
+      "cordova": {
+        "default": "./dist/cordova/internal.js",
+        "types": "./dist/cordova/internal/index.d.ts"
+      },
       "esm5": "./dist/esm5/internal.js",
-      "default": "./dist/esm2017/internal.js"
+      "default": "./dist/esm2017/internal.js",
+      "types": "./dist/internal/index.d.ts"
     },
     "./package.json": "./package.json"
   },

@@ -16,7 +16,8 @@
       },
       "react-native": "./dist/index.rn.js",
       "esm5": "./dist/index.esm5.js",
-      "default": "./dist/index.esm2017.js"
+      "default": "./dist/index.esm2017.js",
+      "types": "./dist/src/index.d.ts"
     },
     "./package.json": "./package.json"
   },

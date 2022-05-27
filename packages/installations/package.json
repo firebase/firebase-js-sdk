@@ -10,7 +10,8 @@
     ".": {
       "require": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm.js",
-      "default": "./dist/esm/index.esm2017.js"
+      "default": "./dist/esm/index.esm2017.js",
+      "types": "./dist/installations-public.d.ts"
     },
     "./package.json": "./package.json"
   },

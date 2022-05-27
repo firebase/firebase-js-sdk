@@ -17,13 +17,16 @@
     ".": {
       "node": {
         "import": "./dist/node-esm/index.js",
-        "require": "./dist/index.js"
+        "require": "./dist/index.js",
+        "types": "./dist/database-compat/src/index.node.d.ts"
       },
       "esm5": "./dist/index.esm5.js",
-      "default": "./dist/index.esm2017.js"
+      "default": "./dist/index.esm2017.js",
+      "types": "./dist/database-compat/src/index.d.ts"
     },
     "./standalone": {
-      "node": "./dist/index.standalone.js"
+      "node": "./dist/index.standalone.js",
+      "types": "./dist/database-compat/src/index.standalone.d.ts"
     },
     "./package.json": "./package.json"
   },
