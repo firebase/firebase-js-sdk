@@ -90,9 +90,9 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.24",
-    "@firebase/app-compat": "0.1.25",
-    "@firebase/auth": "0.20.1",
+    "@firebase/app": "0.7.25",
+    "@firebase/app-compat": "0.1.26",
+    "@firebase/auth": "0.20.2",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",
