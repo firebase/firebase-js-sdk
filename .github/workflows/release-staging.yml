@@ -41,8 +41,8 @@ jobs:
         git push origin release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # - name: Yarn install
-    #   run: yarn
+    - name: Yarn install
+      run: yarn
     # Ensures a new @firebase/app is published with every release.
     # This keeps the SDK_VERSION variable up to date.
     - name: Add a changeset for @firebase/app
