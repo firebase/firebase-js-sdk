@@ -180,12 +180,11 @@ export async function runRelease({
     }
 
     /**
-     * Changeset creates tags for staging releases as well,
-     * but we should only push tags to Github for prod releases
+     * Push tags to Github for prod releases only.
      */
     if (releaseType === ReleaseType.Production && !dryRun) {
       /**
-       * Push release tags created by changeset in publish() to Github
+       * Push release tags created by changeset or publishInCI() to Github
        */
       await pushReleaseTagsToGithub();
     }
