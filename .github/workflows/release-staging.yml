@@ -33,6 +33,8 @@ jobs:
         # Release script requires git history and tags.
         fetch-depth: 0
         ref: release
+    - name: log
+      run: git log
     - name: Yarn install
       run: yarn
     # Ensures a new @firebase/app is published with every release.
