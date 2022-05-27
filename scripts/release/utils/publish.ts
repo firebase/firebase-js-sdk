@@ -68,7 +68,9 @@ export async function publishInCI(
     try {
       const { stdout: npmVersion } = await exec(`npm info ${pkg} version`);
       if (version === npmVersion.trim()) {
-        console.log(`Skipping publish of ${pkg} - version ${version} is already published`);
+        console.log(
+          `Skipping publish of ${pkg} - version ${version} is already published`
+        );
         continue;
       }
     } catch (e) {
@@ -119,7 +121,8 @@ async function publishPackageInCI(
 
     // Write proxy registry token for this package to .npmrc.
     await exec(
-      `echo "//wombat-dressing-room.appspot.com/:_authToken=${process.env[getEnvTokenKey(pkg)]
+      `echo "//wombat-dressing-room.appspot.com/:_authToken=${
+        process.env[getEnvTokenKey(pkg)]
       }" >> ~/.npmrc`
     );
 
