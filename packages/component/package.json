@@ -11,8 +11,8 @@
     ".": {
       "require": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm5.js",
-      "default": "./dist/esm/index.esm2017.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },

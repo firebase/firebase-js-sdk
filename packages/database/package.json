@@ -16,8 +16,8 @@
       },
       "esm5": "./dist/index.esm5.js",
       "standalone": "./dist/index.standalone.js",
-      "default": "./dist/index.esm2017.js",
-      "types": "./dist/public.d.ts"
+      "types": "./dist/public.d.ts",
+      "default": "./dist/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },

@@ -14,8 +14,8 @@
         "default": "./dist/index.node.cjs.js"
       },
       "esm5": "./dist/index.esm5.js",
-      "default": "./dist/index.esm2017.js",
-      "types": "./dist/storage-public.d.ts"
+      "types": "./dist/storage-public.d.ts",
+      "default": "./dist/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },

@@ -15,8 +15,8 @@
         "types": "./dist/auth-compat/index.node.d.ts"
       },
       "esm5": "./dist/index.esm.js",
-      "default": "./dist/index.esm2017.js",
-      "types": "./dist/auth-compat/index.d.ts"
+      "types": "./dist/auth-compat/index.d.ts",
+      "default": "./dist/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },

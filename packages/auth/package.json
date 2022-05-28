@@ -18,28 +18,28 @@
         "types": "./dist/node/index.d.ts"
       },
       "react-native": {
-        "default": "./dist/rn/index.js",
-        "types": "./dist/rn/index.rn.d.ts"
+        "types": "./dist/rn/index.rn.d.ts",
+        "default": "./dist/rn/index.js"
       },
       "cordova": {
-        "default": "./dist/cordova/index.js",
-        "types": "./dist/cordova/index.cordova.d.ts"
+        "types": "./dist/cordova/index.cordova.d.ts",
+        "default": "./dist/cordova/index.js"
       },
       "webworker": {
-        "default": "./dist/index.webworker.esm5.js",
-        "types": "./dist/index.webworker.d.ts"
+        "types": "./dist/index.webworker.d.ts",
+        "default": "./dist/index.webworker.esm5.js"
       },
       "esm5": "./dist/esm5/index.js",
-      "default": "./dist/esm2017/index.js",
-      "types": "./dist/auth-public.d.ts"
+      "types": "./dist/auth-public.d.ts",
+      "default": "./dist/esm2017/index.js"
     },
     "./cordova": {
-      "default": "./dist/cordova/index.js",
-      "types": "./dist/cordova/index.cordova.d.ts"
+      "types": "./dist/cordova/index.cordova.d.ts",
+      "default": "./dist/cordova/index.js"
     },
     "./react-native": {
-      "default": "./dist/rn/index.js",
-      "types": "./dist/rn/index.rn.d.ts"
+      "types": "./dist/rn/index.rn.d.ts",
+      "default": "./dist/rn/index.js"
     },
     "./internal": {
       "node": {
@@ -48,16 +48,16 @@
         "types": "./dist/node/internal/index.d.ts"
       },
       "react-native": {
-        "default": "./dist/rn/internal.js",
-        "types": "./dist/rn/internal/index.d.ts"
+        "types": "./dist/rn/internal/index.d.ts",
+        "default": "./dist/rn/internal.js"
       },
       "cordova": {
-        "default": "./dist/cordova/internal.js",
-        "types": "./dist/cordova/internal/index.d.ts"
+        "types": "./dist/cordova/internal/index.d.ts",
+        "default": "./dist/cordova/internal.js"
       },
       "esm5": "./dist/esm5/internal.js",
-      "default": "./dist/esm2017/internal.js",
-      "types": "./dist/internal/index.d.ts"
+      "types": "./dist/internal/index.d.ts",
+      "default": "./dist/esm2017/internal.js"
     },
     "./package.json": "./package.json"
   },
