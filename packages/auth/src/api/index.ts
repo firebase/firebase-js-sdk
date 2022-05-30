@@ -159,6 +159,8 @@ export async function _performFetchWithErrorHandling<V>(
         );
       } else if (serverErrorCode === ServerError.EMAIL_EXISTS) {
         throw _makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
+      } else if (serverErrorCode === ServerError.USER_DISABLED) {
+        throw _makeTaggedError(auth, AuthErrorCode.USER_DISABLED, json);
       }
       const authError =
         errorMap[serverErrorCode as ServerError] ||
