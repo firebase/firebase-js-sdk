@@ -248,24 +248,21 @@ export class PersistencePromise<T> {
    * An alternative to recursive PersistencePromise calls, that avoids
    * potential memory problems from unbounded chains of promises.
    *
-   * The `action` will be called first, then `condition`. If `condition`
-   * return `true`, the process repeats, until `condition` returns false.
-   * @param condition
-   * @param action
+   * The `action` will be called repeatedly while `condition` is true.
    */
-  static loopUntil(
+  static doWhile(
     condition: () => boolean,
     action: () => PersistencePromise<void>
   ): PersistencePromise<void> {
     return new PersistencePromise<void>((resolve, reject) => {
-      const process = (): void => {
-        action().next(() => {
-          if (condition() === true) {
+      const process = () => {
+        if (condition() === true) {
+          action().next(() => {
             process();
-          } else {
-            resolve();
-          }
-        }, reject);
+          }, reject)
+        } else {
+          resolve();
+        }
       };
       process();
     });

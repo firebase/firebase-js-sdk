@@ -165,6 +165,7 @@ export interface IndexManager {
     target: Target
   ): PersistencePromise<IndexOffset>;
 
+  /** Returns the minimum offset for the given collection group. */
   getMinOffsetFromCollectionGroup(
     transaction: PersistenceTransaction,
     collectionGroup: string

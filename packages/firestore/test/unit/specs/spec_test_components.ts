@@ -160,7 +160,7 @@ export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineCompone
     return null;
   }
 
-  createIndexBackfiller(
+  createIndexBackfillerScheduler(
     cfg: ComponentConfiguration,
     localStore: LocalStore
   ): Scheduler | null {

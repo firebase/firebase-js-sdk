@@ -253,7 +253,7 @@ export interface Persistence {
 }
 
 /**
- * Interface to control LRU and IndexBackfiller.
+ * Interface to schedule periodic tasks within SDK.
  */
 export interface Scheduler {
   readonly started: boolean;

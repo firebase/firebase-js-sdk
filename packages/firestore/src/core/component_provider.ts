@@ -126,7 +126,7 @@ export class MemoryOfflineComponentProvider
       cfg,
       this.localStore
     );
-    this.indexBackfillerScheduler = this.createIndexBackfiller(
+    this.indexBackfillerScheduler = this.createIndexBackfillerScheduler(
       cfg,
       this.localStore
     );
@@ -139,7 +139,7 @@ export class MemoryOfflineComponentProvider
     return null;
   }
 
-  createIndexBackfiller(
+  createIndexBackfillerScheduler(
     cfg: ComponentConfiguration,
     localStore: LocalStore
   ): Scheduler | null {
@@ -236,7 +236,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     return new LruScheduler(garbageCollector, cfg.asyncQueue, localStore);
   }
 
-  createIndexBackfiller(
+  createIndexBackfillerScheduler(
     cfg: ComponentConfiguration,
     localStore: LocalStore
   ): Scheduler | null {

@@ -42,6 +42,7 @@ const REGULAR_BACKFILL_DELAY_MS = 1;
 /** The maximum number of documents to process each time backfill() is called. */
 const MAX_DOCUMENTS_TO_PROCESS = 50;
 
+/** This class is responsible for the scheduling of Index Backfiller. */
 export class IndexBackfillerScheduler implements Scheduler {
   private task: DelayedOperation<void> | null;
 
@@ -102,11 +103,13 @@ export class IndexBackfillerScheduler implements Scheduler {
   }
 }
 
+/** Implements the steps for backfilling indexes. */
 export class IndexBackfiller {
   constructor(
     private readonly localStore: LocalStore,
     private readonly persistence: Persistence
   ) {}
+
   async backfill(
     maxDocumentsToProcess: number = MAX_DOCUMENTS_TO_PROCESS
   ): Promise<number> {
@@ -125,7 +128,7 @@ export class IndexBackfiller {
     const processedCollectionGroups = new Set<string>();
     let documentsRemaining = maxDocumentsToProcess;
     let continueLoop = true;
-    return PersistencePromise.loopUntil(
+    return PersistencePromise.doWhile(
       () => continueLoop === true && documentsRemaining > 0,
       () => {
         return this.localStore.indexManager
