@@ -17,6 +17,7 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetId } from '../core/types';
+import { OverlayedDocument } from '../local/overlayed_document';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
@@ -54,20 +55,24 @@ export function documentMap(...docs: Document[]): DocumentMap {
   return map;
 }
 
-export type OverlayMap = ObjectMap<DocumentKey, Overlay>;
-export function newOverlayMap(): OverlayMap {
-  return new ObjectMap<DocumentKey, Overlay>(
-    key => key.toString(),
-    (l, r) => l.isEqual(r)
+export function convertDocumentKeyMapWithOverlayedDocumentToDocumentMap(
+  collection: DocumentKeyMap<OverlayedDocument>
+): DocumentMap {
+  let documents = EMPTY_DOCUMENT_MAP;
+  collection.forEach(
+    (k, v) => (documents = documents.insert(k, v.overlayedDocument))
   );
+  return documents;
 }
 
-export type MutationMap = ObjectMap<DocumentKey, Mutation>;
+export type OverlayMap = DocumentKeyMap<Overlay>;
+export function newOverlayMap(): OverlayMap {
+  return newDocumentKeyMap<Overlay>();
+}
+
+export type MutationMap = DocumentKeyMap<Mutation>;
 export function newMutationMap(): MutationMap {
-  return new ObjectMap<DocumentKey, Mutation>(
-    key => key.toString(),
-    (l, r) => l.isEqual(r)
-  );
+  return newDocumentKeyMap<Mutation>();
 }
 
 export type DocumentKeyMap<T> = ObjectMap<DocumentKey, T>;

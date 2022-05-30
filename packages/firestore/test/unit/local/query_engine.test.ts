@@ -30,10 +30,7 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { View } from '../../../src/core/view';
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import {
-  INDEXING_ENABLED,
-  INDEXING_SCHEMA_VERSION
-} from '../../../src/local/indexeddb_schema';
+import { INDEXING_SCHEMA_VERSION } from '../../../src/local/indexeddb_schema';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
@@ -66,9 +63,10 @@ import {
   key,
   orderBy,
   query,
- fieldIndex,
+  fieldIndex,
   patchMutation,
-  setMutation, version
+  setMutation,
+  version
 } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
@@ -517,10 +515,6 @@ function genericQueryEngineTest(
   });
 
   if (!durable) {
-    return;
-  }
-
-  if (!INDEXING_ENABLED) {
     return;
   }
 

@@ -34,7 +34,8 @@ import {
   documentMap,
   mutableDocumentMap,
   documentKeySet,
-  DocumentKeyMap
+  DocumentKeyMap,
+  convertDocumentKeyMapWithOverlayedDocumentToDocumentMap
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -53,18 +54,12 @@ import { SortedMap } from '../util/sorted_map';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
+import { LocalWriteResult } from './local_store_impl';
 import { MutationQueue } from './mutation_queue';
 import { OverlayedDocument } from './overlayed_document';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentCache } from './remote_document_cache';
-
-export class LocalDocumentsResult {
-  constructor(
-    readonly batchId: number,
-    readonly documents: SortedMap<DocumentKey, Document>
-  ) {}
-}
 
 /**
  * A readonly view of the local state of all documents we're tracking (i.e. we
@@ -383,7 +378,7 @@ export class LocalDocumentsView {
     collectionGroup: string,
     offset: IndexOffset,
     count: number
-  ): PersistencePromise<LocalDocumentsResult> {
+  ): PersistencePromise<LocalWriteResult> {
     return this.remoteDocumentCache
       .getAllFromCollectionGroup(transaction, collectionGroup, offset, count)
       .next((originalDocs: MutableDocumentMap) => {
@@ -426,9 +421,13 @@ export class LocalDocumentsView {
                 documentKeySet()
               )
             )
-            .next(
-              localDocs => new LocalDocumentsResult(largestBatchId, localDocs)
-            );
+            .next(localDocs => ({
+              batchId: largestBatchId,
+              changes:
+                convertDocumentKeyMapWithOverlayedDocumentToDocumentMap(
+                  localDocs
+                )
+            }));
         });
       });
   }

@@ -28,10 +28,10 @@ import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import {
+  convertDocumentKeyMapWithOverlayedDocumentToDocumentMap,
   DocumentKeyMap,
   documentKeySet,
   DocumentKeySet,
-  documentMap,
   DocumentMap,
   mutableDocumentMap,
   MutableDocumentMap
@@ -320,7 +320,6 @@ export function localStoreWriteLocally(
 
   let overlayedDocuments: DocumentKeyMap<OverlayedDocument>;
   let mutationBatch: MutationBatch;
-  let mutationBatch: MutationBatch;
 
   return localStoreImpl.persistence
     .runTransaction('Locally write mutations', 'readwrite', txn => {
@@ -351,7 +350,7 @@ export function localStoreWriteLocally(
             remoteDocs
           );
         })
-        .next(docs => {
+        .next((docs: DocumentKeyMap<OverlayedDocument>) => {
           overlayedDocuments = docs;
 
           // For non-idempotent mutations (such as `FieldValue.increment()`),
@@ -401,13 +400,13 @@ export function localStoreWriteLocally(
           );
         });
     })
-    .then(() => {
-      let documents = documentMap();
-      overlayedDocuments.forEach(
-        (key, val) => (documents = documents.insert(key, val.overlayedDocument))
-      );
-      return { batchId: mutationBatch.batchId, changes: documents };
-    });
+    .then(() => ({
+      batchId: mutationBatch.batchId,
+      changes:
+        convertDocumentKeyMapWithOverlayedDocumentToDocumentMap(
+          overlayedDocuments
+        )
+    }));
 }
 
 /**

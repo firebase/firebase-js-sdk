@@ -279,63 +279,6 @@ export function calculateOverlayMutation(
 }
 
 /**
- * A utility method to calculate a `Mutation` representing the overlay from the
- * final state of the document, and a `FieldMask` representing the fields that
- * are mutated by the local mutations.
- */
-export function calculateOverlayMutation(
-  doc: MutableDocument,
-  mask: FieldMask | null
-): Mutation | null {
-  if (!doc.hasLocalMutations || (mask && mask!.fields.length === 0)) {
-    return null;
-  }
-
-  // mask is null when sets or deletes are applied to the current document.
-  if (mask === null) {
-    if (doc.isNoDocument()) {
-      return new DeleteMutation(doc.key, Precondition.none());
-    } else {
-      return new SetMutation(doc.key, doc.data, Precondition.none());
-    }
-  } else {
-    const docValue = doc.data;
-    const patchValue = ObjectValue.empty();
-    let maskSet = new SortedSet<FieldPath>(FieldPath.comparator);
-    for (let path of mask.fields) {
-      if (!maskSet.has(path)) {
-        let value = docValue.field(path);
-        // If we are deleting a nested field, we take the immediate parent as
-        // the mask used to construct the resulting mutation.
-        // Justification: Nested fields can create parent fields implicitly. If
-        // only a leaf entry is deleted in later mutations, the parent field
-        // should still remain, but we may have lost this information.
-        // Consider mutation (foo.bar 1), then mutation (foo.bar delete()).
-        // This leaves the final result (foo, {}). Despite the fact that `doc`
-        // has the correct result, `foo` is not in `mask`, and the resulting
-        // mutation would miss `foo`.
-        if (value === null && path.length > 1) {
-          path = path.popLast();
-          value = docValue.field(path);
-        }
-        if (value === null) {
-          patchValue.delete(path);
-        } else {
-          patchValue.set(path, value);
-        }
-        maskSet = maskSet.add(path);
-      }
-    }
-    return new PatchMutation(
-      doc.key,
-      patchValue,
-      new FieldMask(maskSet.toArray()),
-      Precondition.none()
-    );
-  }
-}
-
-/**
  * Applies this mutation to the given document for the purposes of computing a
  * new remote document. If the input document doesn't match the expected state
  * (e.g. it is invalid or outdated), the document type may transition to

@@ -484,22 +484,18 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       this.serializer.remoteSerializer
     );
 
-    const promises: Array<PersistencePromise<void>> = [];
-    const userToDocumentSet = new Map<string, DocumentKeySet>();
-
-    return mutationsStore
-      .loadAll()
-      .next(dbBatches => {
-        dbBatches.forEach(dbBatch => {
-          let documentSet =
-            userToDocumentSet.get(dbBatch.userId) ?? documentKeySet();
-          const batch = fromDbMutationBatch(this.serializer, dbBatch);
-          batch.keys().forEach(key => (documentSet = documentSet.add(key)));
-          userToDocumentSet.set(dbBatch.userId, documentSet);
-        });
-      })
-      .next(() => {
-        userToDocumentSet.forEach((allDocumentKeysForUser, userId) => {
+    return mutationsStore.loadAll().next(dbBatches => {
+      const userToDocumentSet = new Map<string, DocumentKeySet>();
+      dbBatches.forEach(dbBatch => {
+        let documentSet =
+          userToDocumentSet.get(dbBatch.userId) ?? documentKeySet();
+        const batch = fromDbMutationBatch(this.serializer, dbBatch);
+        batch.keys().forEach(key => (documentSet = documentSet.add(key)));
+        userToDocumentSet.set(dbBatch.userId, documentSet);
+      });
+      return PersistencePromise.forEach(
+        userToDocumentSet,
+        (allDocumentKeysForUser, userId) => {
           const user = new User(userId);
           const documentOverlayCache = IndexedDbDocumentOverlayCache.forUser(
             this.serializer,
@@ -522,15 +518,15 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             documentOverlayCache,
             indexManager
           );
-          promises.push(
-            localDocumentsView.recalculateAndSaveOverlaysForDocumentKeys(
+          return localDocumentsView
+            .recalculateAndSaveOverlaysForDocumentKeys(
               new IndexedDbTransaction(transaction, ListenSequence.INVALID),
               allDocumentKeysForUser
             )
-          );
-        });
-      })
-      .next(() => PersistencePromise.waitFor(promises));
+            .next();
+        }
+      );
+    });
   }
 }
 

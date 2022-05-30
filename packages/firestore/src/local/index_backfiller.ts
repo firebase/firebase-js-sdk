@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DocumentMap } from '../model/collections';
 import {
   IndexOffset,
   indexOffsetComparator,
@@ -23,8 +24,8 @@ import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { logDebug } from '../util/log';
 
-import { LocalDocumentsResult } from './local_documents_view';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
+import { LocalWriteResult } from './local_store_impl';
 import { Persistence, Scheduler } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -170,9 +171,10 @@ export class IndexBackfiller {
             existingOffset,
             documentsRemainingUnderCap
           )
-          .next(nextBatch =>
-            this.localStore.indexManager
-              .updateIndexEntries(transaction, nextBatch.documents)
+          .next(nextBatch => {
+            const docs: DocumentMap = nextBatch.changes;
+            return this.localStore.indexManager
+              .updateIndexEntries(transaction, docs)
               .next(() => this.getNewOffset(existingOffset, nextBatch))
               .next(newOffset => {
                 logDebug(LOG_TAG, `Updating offset: ${newOffset}`);
@@ -182,18 +184,18 @@ export class IndexBackfiller {
                   newOffset
                 );
               })
-              .next(() => nextBatch.documents.size)
-          )
+              .next(() => docs.size);
+          })
       );
   }
 
   /** Returns the next offset based on the provided documents. */
   private getNewOffset(
     existingOffset: IndexOffset,
-    lookupResult: LocalDocumentsResult
+    lookupResult: LocalWriteResult
   ): IndexOffset {
     let maxOffset: IndexOffset = existingOffset;
-    lookupResult.documents.forEach((key, document) => {
+    lookupResult.changes.forEach((key, document) => {
       const newOffset: IndexOffset = newIndexOffsetFromDocument(document);
       if (indexOffsetComparator(newOffset, maxOffset) > 0) {
         maxOffset = newOffset;

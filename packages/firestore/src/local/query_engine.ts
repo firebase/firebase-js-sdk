@@ -43,7 +43,6 @@ import { Iterable } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
 import { IndexManager, IndexType } from './index_manager';
-import { INDEXING_ENABLED } from './indexeddb_schema';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -134,10 +133,6 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap | null> {
-    if (!INDEXING_ENABLED) {
-      return PersistencePromise.resolve<DocumentMap | null>(null);
-    }
-
     if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
       // key-based lookups. It is more efficient to scan all documents in a
@@ -145,7 +140,7 @@ export class QueryEngine {
       return PersistencePromise.resolve<DocumentMap | null>(null);
     }
 
-    const target = queryToTarget(query);
+    let target = queryToTarget(query);
     return this.indexManager
       .getIndexType(transaction, target)
       .next(indexType => {
@@ -162,10 +157,8 @@ export class QueryEngine {
           // may return the correct set of documents in the wrong order (e.g. if
           // the index doesn't include a segment for one of the orderBys).
           // Therefore, a limit should not be applied in such cases.
-          return this.performQueryUsingIndex(
-            transaction,
-            queryWithLimit(query, null, LimitType.First)
-          );
+          query = queryWithLimit(query, null, LimitType.First);
+          target = queryToTarget(query);
         }
 
         return this.indexManager
