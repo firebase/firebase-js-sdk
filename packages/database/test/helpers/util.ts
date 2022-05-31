@@ -76,3 +76,7 @@ export function shuffle(arr, randFn = Math.random) {
 export function waitFor(waitTimeInMS: number) {
   return new Promise(resolve => setTimeout(resolve, waitTimeInMS));
 }
+
+export function getUniqueID() {
+  return Date.now().toString();
+}
