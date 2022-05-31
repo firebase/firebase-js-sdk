@@ -43,6 +43,7 @@ export async function publishInCI(
   dryRun: boolean
 ) {
   const taskArray = [];
+  const tags = [];
   for (const pkg of updatedPkgs) {
     const path = await mapPkgNameToPkgPath(pkg);
 
@@ -79,8 +80,10 @@ export async function publishInCI(
       continue;
     }
 
+    const tag = `${pkg}@${version}`;
+    tags.push(tag);
     taskArray.push({
-      title: `📦  ${pkg}@${version}`,
+      title: `📦  ${tag}`,
       task: () => publishPackageInCI(pkg, npmTag, dryRun)
     });
   }
@@ -91,7 +94,13 @@ export async function publishInCI(
   });
 
   console.log('\r\nPublishing Packages to NPM:');
-  return tasks.run();
+  await tasks.run();
+
+  // Create git tags.
+  for (const tag of tags) {
+    await exec(`git tag ${tag}`);
+    console.log(`Added git tag ${tag}.`);
+  }
 }
 
 async function publishPackageInCI(
