@@ -265,6 +265,8 @@ export class Transaction {
  * transaction against.
  * @param updateFunction - The function to execute within the transaction
  * context.
+ * @param options - An options object to configure maximum number of attempts to
+ * commit.
  * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
