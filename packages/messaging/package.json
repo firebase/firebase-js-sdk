@@ -11,16 +11,16 @@
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/index-public.d.ts",
       "node": "./dist/index.cjs.js",
       "browser": "./dist/esm/index.esm2017.js",
       "module": "./dist/esm/index.esm2017.js",
       "esm5": "./dist/esm/index.esm.js",
-      "types": "./dist/index-public.d.ts",
       "default": "./dist/index.cjs.js"
     },
     "./sw": {
-      "node": "./dist/index.sw.cjs",
       "types": "./dist/sw/index-public.d.ts",
+      "node": "./dist/index.sw.cjs",
       "default": "./dist/index.sw.esm2017.js"
     },
     "./package.json": "./package.json"

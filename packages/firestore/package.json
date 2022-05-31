@@ -46,23 +46,23 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "node": {
         "require": "./dist/index.node.cjs.js",
         "import": "./dist/index.node.mjs"
       },
       "react-native": "./dist/index.rn.js",
       "esm5": "./dist/index.esm5.js",
-      "types": "./dist/index.d.ts",
       "default": "./dist/index.esm2017.js"
     },
     "./lite": {
+      "types": "./dist/lite/index.d.ts",
       "node": {
         "require": "./dist/lite/index.node.cjs.js",
         "import": "./dist/lite/index.node.mjs"
       },
       "react-native": "./dist/lite/index.rn.esm2017.js",
       "esm5": "./dist/lite/index.browser.esm5.js",
-      "types": "./dist/lite/index.d.ts",
       "default": "./dist/lite/index.browser.esm2017.js"
     },
     "./package.json": "./package.json"

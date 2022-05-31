@@ -12,10 +12,11 @@
   "esm5": "dist/esm5/index.js",
   "exports": {
     ".": {
+      "types": "./dist/auth-public.d.ts",
       "node": {
+        "types": "./dist/node/index.d.ts",
         "import": "./dist/node-esm/index.js",
-        "require": "./dist/node/index.js",
-        "types": "./dist/node/index.d.ts"
+        "require": "./dist/node/index.js"
       },
       "react-native": {
         "types": "./dist/rn/index.rn.d.ts",
@@ -30,7 +31,6 @@
         "default": "./dist/index.webworker.esm5.js"
       },
       "esm5": "./dist/esm5/index.js",
-      "types": "./dist/auth-public.d.ts",
       "default": "./dist/esm2017/index.js"
     },
     "./cordova": {
@@ -42,10 +42,11 @@
       "default": "./dist/rn/index.js"
     },
     "./internal": {
+      "types": "./dist/internal/index.d.ts",
       "node": {
+        "types": "./dist/node/internal/index.d.ts",
         "import": "./dist/node-esm/internal.js",
-        "require": "./dist/node/internal.js",
-        "types": "./dist/node/internal/index.d.ts"
+        "require": "./dist/node/internal.js"
       },
       "react-native": {
         "types": "./dist/rn/internal/index.d.ts",
@@ -56,7 +57,6 @@
         "default": "./dist/cordova/internal.js"
       },
       "esm5": "./dist/esm5/internal.js",
-      "types": "./dist/internal/index.d.ts",
       "default": "./dist/esm2017/internal.js"
     },
     "./package.json": "./package.json"

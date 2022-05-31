@@ -9,9 +9,9 @@
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/remote-config-public.d.ts",
       "require": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm.js",
-      "types": "./dist/remote-config-public.d.ts",
       "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"

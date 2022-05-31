@@ -9,13 +9,13 @@
   "esm5": "dist/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/auth-compat/index.d.ts",
       "node": {
+        "types": "./dist/auth-compat/index.node.d.ts",
         "import": "./dist/esm/index.node.esm.js",
-        "require": "./dist/index.node.cjs.js",
-        "types": "./dist/auth-compat/index.node.d.ts"
+        "require": "./dist/index.node.cjs.js"
       },
       "esm5": "./dist/index.esm.js",
-      "types": "./dist/auth-compat/index.d.ts",
       "default": "./dist/index.esm2017.js"
     },
     "./package.json": "./package.json"

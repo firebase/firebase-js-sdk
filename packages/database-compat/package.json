@@ -15,18 +15,18 @@
   ],
   "exports": {
     ".": {
+      "types": "./dist/database-compat/src/index.d.ts",
       "node": {
+        "types": "./dist/database-compat/src/index.node.d.ts",
         "import": "./dist/node-esm/index.js",
-        "require": "./dist/index.js",
-        "types": "./dist/database-compat/src/index.node.d.ts"
+        "require": "./dist/index.js"
       },
       "esm5": "./dist/index.esm5.js",
-      "types": "./dist/database-compat/src/index.d.ts",
       "default": "./dist/index.esm2017.js"
     },
     "./standalone": {
-      "node": "./dist/index.standalone.js",
-      "types": "./dist/database-compat/src/index.standalone.d.ts"
+      "types": "./dist/database-compat/src/index.standalone.d.ts",
+      "node": "./dist/index.standalone.js"
     },
     "./package.json": "./package.json"
   },
