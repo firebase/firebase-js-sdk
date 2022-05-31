@@ -41,11 +41,13 @@ async function validateIndexedDB(): Promise<boolean> {
     try {
       await validateIndexedDBOpenable();
     } catch (e) {
-      logger.warn(
-        ERROR_FACTORY.create(AnalyticsError.INDEXEDDB_UNAVAILABLE, {
-          errorInfo: e
-        }).message
-      );
+      if ((e as Error)?.stack) {
+        logger.warn(
+          ERROR_FACTORY.create(AnalyticsError.INDEXEDDB_UNAVAILABLE, {
+            errorInfo: (e as Error).stack!
+          }).message
+        );
+      }
       return false;
     }
   }

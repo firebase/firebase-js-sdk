@@ -82,7 +82,7 @@ function registerAnalytics(): void {
       };
     } catch (e) {
       throw ERROR_FACTORY.create(AnalyticsError.INTEROP_COMPONENT_REG_FAILED, {
-        reason: e
+        reason: e as Error
       });
     }
   }
