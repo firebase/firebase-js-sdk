@@ -28,6 +28,9 @@ import {
 import { EncodedResourcePath } from './encoded_resource_path';
 import { DbTimestampKey } from './indexeddb_sentinels';
 
+// TODO(indexing): Remove this constant
+export const INDEXING_ENABLED = false;
+
 export const INDEXING_SCHEMA_VERSION = 15;
 
 /**
@@ -55,7 +58,7 @@ export const INDEXING_SCHEMA_VERSION = 15;
  * 15. Add indexing support.
  */
 
-export const SCHEMA_VERSION = INDEXING_SCHEMA_VERSION;
+export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 14;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
