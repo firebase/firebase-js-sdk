@@ -85,6 +85,20 @@ function generateTocRecursively(
       section: []
     };
 
+    for (const member of apiItem.members) {
+      // only classes and interfaces have dedicated pages
+      if (
+        member.kind === ApiItemKind.Class ||
+        member.kind === ApiItemKind.Interface
+      ) {
+        const fileName = getFilenameForApiItem(member, addFileNameSuffix);
+        entryPointToc.section!.push({
+          title: member.displayName,
+          path: `${g3Path}/${fileName}`
+        });
+      }
+    }
+
     toc.push(entryPointToc);
   } else {
     // travel the api tree to find the next entry point
