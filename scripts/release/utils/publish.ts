@@ -95,7 +95,7 @@ export async function publishInCI(
 
   console.log('\r\nPublishing Packages to NPM:');
   await tasks.run();
-  
+
   // Create git tags.
   for (const tag of tags) {
     await exec(`git tag ${tag}`);
