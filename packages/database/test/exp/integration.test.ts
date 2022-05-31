@@ -21,7 +21,6 @@ import { expect } from 'chai';
 import Sinon, { createSandbox } from 'sinon';
 
 import {
-  limitToFirst,
   onValue,
   query,
   set
@@ -43,7 +42,7 @@ export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
 }
 
-describe('Database@exp Tests', () => {
+describe.only('Database@exp Tests', () => {
   let defaultApp;
   let mySandbox: Sinon.SinonSandbox;
 
@@ -106,7 +105,7 @@ describe('Database@exp Tests', () => {
   });
 
   // Tests to make sure onValue's data does not get mutated after calling get
-  it('calls onValue only once after get request with a non-default query', async () => {
+  it.only('calls onValue only once after get request with a non-default query', async () => {
     const db = getDatabase(defaultApp);
     const testRef = ref(db, 'foo');
     const initial = [{ name: 'child1' }, { name: 'child2' }];
@@ -117,12 +116,28 @@ describe('Database@exp Tests', () => {
       expect(snapshot.val()).to.deep.eq(initial);
       count++;
     });
-    await get(query(testRef, limitToFirst(1)));
+    // await get(query(testRef, limitToFirst(1)));
     await waitFor(2000);
     expect(count).to.equal(1);
   });
 
-  it('calls onValue only once after get request with a default query', async () => {
+  it.only('calls onValue and expects no issues with removing the listener', async () => {
+    const db = getDatabase(defaultApp);
+    const testRef = ref(db, 'foo');
+    const initial = [{ name: 'child1' }, { name: 'child2' }];
+    const eventFactory = EventAccumulatorFactory.waitsForCount(1);
+    await set(testRef, initial);
+    const unsubscribe = onValue(testRef, snapshot => {
+      eventFactory.addEvent(snapshot.val());
+    });
+    await get(query(testRef));
+    const update = [{name: 'child1'}, { name: 'child20'}];
+    unsubscribe();
+    await set(testRef, update);
+    const [snap1] = await eventFactory.promise;
+    expect(snap1).to.deep.eq(initial);
+  });
+  it.only('calls onValue only once after get request with a default query', async () => {
     const db = getDatabase(defaultApp);
     const testRef = ref(db, 'foo');
     const initial = [{ name: 'child1' }, { name: 'child2' }];
@@ -137,8 +152,50 @@ describe('Database@exp Tests', () => {
     await waitFor(2000);
     expect(count).to.equal(1);
   });
+  it.only('calls onValue only once after get request with a nested query', async () => {
+    const db = getDatabase(defaultApp);
+    const testRef = ref(db, 'foo');
+    const initial = {
+      test: {
+        abc: 123
+      }
+    };
 
-  it('Can use onlyOnce', async () => {
+    let count = 0;
+    await set(testRef, initial);
+    onValue(testRef, snapshot => {
+      expect(snapshot.val()).to.deep.eq(initial);
+      count++;
+    });
+    const nestedRef = ref(db, '/foo/test');
+    const result = await get(query(nestedRef));
+    await waitFor(2000);
+    expect(count).to.deep.equal(1);
+    expect(result.val()).to.deep.eq(initial.test);
+  });
+  it.only('calls onValue only once after parent get request', async () => {
+    const db = getDatabase(defaultApp);
+    const testRef = ref(db, 'foo');
+    const initial = {
+      test: {
+        abc: 123
+      }
+    };
+
+    let count = 0;
+    await set(testRef, initial);
+    const nestedRef = ref(db, '/foo/test');
+     onValue(nestedRef, snapshot => {
+      expect(snapshot.val()).to.deep.eq(initial.test);
+      count++;
+    });
+    const result = await get(query(testRef));
+    await waitFor(2000);
+    expect(count).to.equal(1);
+    expect(result.val()).to.deep.eq(initial);
+  });
+
+  it.only('Can use onlyOnce', async () => {
     const db = getDatabase(defaultApp);
     const fooRef = ref(db, 'foo');
 
@@ -158,7 +215,7 @@ describe('Database@exp Tests', () => {
     expect(snap1).to.equal('a');
   });
 
-  it('Can unsubscribe', async () => {
+  it.only('Can unsubscribe', async () => {
     const db = getDatabase(defaultApp);
     const fooRef = ref(db, 'foo');
 
@@ -175,7 +232,7 @@ describe('Database@exp Tests', () => {
     expect(snap1).to.equal('a');
   });
 
-  it('Can goOffline/goOnline', async () => {
+  it.only('Can goOffline/goOnline', async () => {
     const db = getDatabase(defaultApp);
     goOffline(db);
     try {
@@ -188,14 +245,14 @@ describe('Database@exp Tests', () => {
     await get(ref(db, 'foo/bar'));
   });
 
-  it('Can delete app', async () => {
+  it.only('Can delete app', async () => {
     const db = getDatabase(defaultApp);
     await deleteApp(defaultApp);
     expect(() => ref(db)).to.throw('Cannot call ref on a deleted database.');
     defaultApp = undefined;
   });
 
-  it('Can listen to transaction changes', async () => {
+  it.only('Can listen to transaction changes', async () => {
     // Repro for https://github.com/firebase/firebase-js-sdk/issues/5195
     let latestValue = 0;
 
