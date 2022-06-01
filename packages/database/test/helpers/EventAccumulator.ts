@@ -16,7 +16,7 @@
  */
 
 export const EventAccumulatorFactory = {
-  waitsForCount: maxCount => {
+  waitsForCount: maxCount => { // Note: This should be sparingly used as it can result in more events being raised than expected
     let count = 0;
     const condition = () => count >= maxCount;
     const ea = new EventAccumulator(condition);

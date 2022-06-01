@@ -21,6 +21,7 @@ import { expect } from 'chai';
 import Sinon, { createSandbox } from 'sinon';
 
 import {
+  limitToFirst,
   onValue,
   query,
   set
@@ -36,7 +37,7 @@ import {
   runTransaction
 } from '../../src/index';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
-import { DATABASE_ADDRESS, DATABASE_URL, getUniqueID, waitFor } from '../helpers/util';
+import { DATABASE_ADDRESS, DATABASE_URL, waitFor } from '../helpers/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
@@ -91,7 +92,7 @@ describe.only('Database@exp Tests', () => {
     const db = getDatabase(defaultApp);
     const fooRef = ref(db, 'foo');
 
-    const ea = EventAccumulatorFactory.waitsForCount(2);
+    const ea = EventAccumulatorFactory.waitsForExactCount(2);
     onValue(fooRef, snap => {
       ea.addEvent(snap.val());
     });
@@ -107,40 +108,41 @@ describe.only('Database@exp Tests', () => {
   // Tests to make sure onValue's data does not get mutated after calling get
   it('calls onValue only once after get request with a non-default query', async () => {
     const db = getDatabase(defaultApp);
-    const testRef = ref(db, getUniqueID());
+    const testRef = ref(db, 'foo');
     const initial = [{ name: 'child1' }, { name: 'child2' }];
+    const ec = EventAccumulatorFactory.waitsForExactCount(1);
 
-    let count = 0;
     await set(testRef, initial);
     const unsubscribe = onValue(testRef, snapshot => {
-      expect(snapshot.val()).to.deep.eq(initial);
-      count++;
+      ec.addEvent(snapshot.val());
     });
-    // await get(query(testRef, limitToFirst(1)));
+    await get(query(testRef, limitToFirst(1)));
     await waitFor(2000);
-    expect(count).to.equal(1);
+    const events = await ec.promise;
+    expect(events.length).to.equal(1);
+    expect(events[0]).to.deep.equal(initial);
     unsubscribe();
   });
 
-  it('calls onValue and expects no issues with removing the listener', () => {
-    // const db = getDatabase(defaultApp);
-    // const testRef = ref(db, 'foo');
-    // const initial = [{ name: 'child1' }, { name: 'child2' }];
-    // const eventFactory = EventAccumulatorFactory.waitsForCount(1);
-    // await set(testRef, initial);
-    // const unsubscribe = onValue(testRef, snapshot => {
-    //   eventFactory.addEvent(snapshot.val());
-    // });
-    // await get(query(testRef));
-    // const update = [{name: 'child1'}, { name: 'child20'}];
-    // unsubscribe();
-    // await set(testRef, update);
-    // const [snap1] = await eventFactory.promise;
-    // expect(snap1).to.deep.eq(initial);
+  it('calls onValue and expects no issues with removing the listener', async () => {
+    const db = getDatabase(defaultApp);
+    const testRef = ref(db, 'foo');
+    const initial = [{ name: 'child1' }, { name: 'child2' }];
+    const eventFactory = EventAccumulatorFactory.waitsForExactCount(1);
+    await set(testRef, initial);
+    const unsubscribe = onValue(testRef, snapshot => {
+      eventFactory.addEvent(snapshot.val());
+    });
+    await get(query(testRef));
+    const update = [{name: 'child1'}, { name: 'child20'}];
+    unsubscribe();
+    await set(testRef, update);
+    const [snap1] = await eventFactory.promise;
+    expect(snap1).to.deep.eq(initial);
   });
   it('calls onValue only once after get request with a default query', async () => {
     const db = getDatabase(defaultApp);
-    const testRef = ref(db, getUniqueID());
+    const testRef = ref(db, 'foo');
     const initial = [{ name: 'child1' }, { name: 'child2' }];
 
     let count = 0;
@@ -156,7 +158,7 @@ describe.only('Database@exp Tests', () => {
   });
   it('calls onValue only once after get request with a nested query', async () => {
     const db = getDatabase(defaultApp);
-    const uniqueID = getUniqueID();
+    const uniqueID = 'foo';
     const testRef = ref(db, uniqueID);
     const initial = {
       test: {
@@ -179,7 +181,7 @@ describe.only('Database@exp Tests', () => {
   });
   it('calls onValue only once after parent get request', async () => {
     const db = getDatabase(defaultApp);
-    const uniqueID = getUniqueID();
+    const uniqueID = 'foo';
     const testRef = ref(db, uniqueID);
     const initial = {
       test: {
@@ -205,7 +207,7 @@ describe.only('Database@exp Tests', () => {
     const db = getDatabase(defaultApp);
     const fooRef = ref(db, 'foo');
 
-    const ea = EventAccumulatorFactory.waitsForCount(1);
+    const ea = EventAccumulatorFactory.waitsForExactCount(1);
     onValue(
       fooRef,
       snap => {
@@ -218,14 +220,14 @@ describe.only('Database@exp Tests', () => {
     await set(fooRef, 'b');
 
     const [snap1] = await ea.promise;
-    expect(snap1).to.equal('a');
+    expect(snap1).to.equal('a'); // This doesn't necessarily test that onValue was only triggered once
   });
 
   it('Can unsubscribe', async () => {
     const db = getDatabase(defaultApp);
     const fooRef = ref(db, 'foo');
 
-    const ea = EventAccumulatorFactory.waitsForCount(1);
+    const ea = EventAccumulatorFactory.waitsForExactCount(1);
     const unsubscribe = onValue(fooRef, snap => {
       ea.addEvent(snap.val());
     });
@@ -234,8 +236,9 @@ describe.only('Database@exp Tests', () => {
     unsubscribe();
     await set(fooRef, 'b');
 
-    const [snap1] = await ea.promise;
-    expect(snap1).to.equal('a');
+    const events = await ea.promise;
+    expect(events.length).to.equal(1);
+    expect(events[0]).to.equal('a');
   });
 
   it('Can goOffline/goOnline', async () => {
