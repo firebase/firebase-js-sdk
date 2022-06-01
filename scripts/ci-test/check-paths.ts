@@ -20,6 +20,10 @@ import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { projectRoot as root } from '../utils';
 
+/**
+ * Top level fields in package.json that may point to entry point and
+ * typings files.
+ */
 const TOP_LEVEL_FIELDS = [
   'main',
   'browser',
@@ -40,6 +44,10 @@ interface Result {
 }
 const results: Result[] = [];
 
+/**
+ * Get paths to packages. Only check the ones we actually
+ * publish (packages/*).
+ */
 function getPaths(): Promise<string[]> {
   return new Promise((resolve, reject) => {
     glob('packages/*', (err, paths) => {
@@ -49,6 +57,9 @@ function getPaths(): Promise<string[]> {
   });
 }
 
+/**
+ * Recursively check `exports` field in package.json.
+ */
 function checkExports(
   pkgName: string,
   pkgRoot: string,
@@ -81,10 +92,15 @@ function checkExports(
 
 async function main() {
   const paths = await getPaths();
+
   for (const path of paths) {
     const pkgRoot = `${root}/${path}`;
     if (existsSync(`${pkgRoot}/package.json`)) {
       const pkg = require(`${pkgRoot}/package.json`);
+
+      /**
+       * Check top level fields.
+       */
       for (const field of TOP_LEVEL_FIELDS) {
         if (pkg[field]) {
           const filePath = resolve(pkgRoot, pkg[field]);
@@ -100,6 +116,9 @@ async function main() {
           results.push(result);
         }
       }
+      /**
+       * Check all levels of exports field.
+       */
       if (pkg.exports) {
         checkExports(pkg.name, pkgRoot, '', pkg.exports);
       }
@@ -118,6 +137,9 @@ async function main() {
     }
   }
 
+  /**
+   * Fail CI if any missing paths found.
+   */
   if (missingPaths) {
     process.exit(1);
   }
