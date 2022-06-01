@@ -29,6 +29,7 @@ import {
   Firestore,
   FirestoreError,
   getDoc,
+  deleteDoc,
   runTransaction,
   setDoc
 } from '../util/firebase_export';
@@ -607,6 +608,57 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .then(snapshot => {
           expect(snapshot.exists()).to.equal(false);
         });
+    });
+  });
+
+  it('can set and delete inside a transaction on a deleted document', () => {
+    return withTestDb(persistence, db => {
+      const docRef = doc(collection(db, 'foo'));
+
+      // A function that reads a document then sets some data for it inside the
+      // context of the given transaction.
+      const readAndSet: (txn: Transaction) => Promise<Transaction> = (
+        txn: Transaction
+      ) => txn.get(docRef).then(() => txn.set(docRef, { count: 16 }));
+
+      // A function that reads a document then deletes it inside the context of
+      // the given transaction.
+      const readAndDelete: (txn: Transaction) => Promise<Transaction> = (
+        txn: Transaction
+      ) => txn.get(docRef).then(() => txn.delete(docRef));
+
+      return (
+        // Perform a readAndSet, then delete the document, then perform readAndSet
+        // again. This sequence of operations is valid and should succeed.
+        runTransaction(db, txn => readAndSet(txn))
+          .then(() => getDoc(docRef))
+          .then(snapshot => {
+            expect(snapshot.exists()).to.equal(true);
+            expect(snapshot.data()).to.deep.equal({ count: 16 });
+          })
+          .then(() => deleteDoc(docRef))
+          .then(() => getDoc(docRef))
+          .then(snapshot => expect(snapshot.exists()).to.equal(false))
+          // Perform a transaction to read and set for the second time.
+          .then(() => runTransaction(db, txn => readAndSet(txn)))
+          .then(() => getDoc(docRef))
+          .then(snapshot => {
+            expect(snapshot.exists()).to.equal(true);
+            expect(snapshot.data()).to.deep.equal({ count: 16 });
+          })
+          // Perform readAndDelete twice. This is also valid and should succeed.
+          .then(() => runTransaction(db, txn => readAndDelete(txn)))
+          .then(() => getDoc(docRef))
+          .then(snapshot => expect(snapshot.exists()).to.equal(false))
+          .then(() => runTransaction(db, txn => readAndDelete(txn)))
+          .then(() => getDoc(docRef))
+          .then(snapshot => {
+            expect(snapshot.exists()).to.equal(false);
+          })
+          .catch((err: FirestoreError) => {
+            expect.fail('Expected the transaction to succeed, but got ' + err);
+          })
+      );
     });
   });
 
