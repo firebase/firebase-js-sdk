@@ -107,7 +107,7 @@ describe('client', () => {
     const firebaseError = ERROR_FACTORY.create(
       AppCheckError.FETCH_NETWORK_ERROR,
       {
-        originalErrorMessage: originalError.message
+        originalErrorMessage: (originalError as Error)?.message
       }
     );
 
@@ -164,7 +164,7 @@ describe('client', () => {
     const firebaseError = ERROR_FACTORY.create(
       AppCheckError.FETCH_PARSE_ERROR,
       {
-        originalErrorMessage: originalError.message
+        originalErrorMessage: (originalError as Error)?.message
       }
     );
 
@@ -178,7 +178,7 @@ describe('client', () => {
       expect(e).has.property('message', firebaseError.message);
       expect(e).has.nested.property(
         'customData.originalErrorMessage',
-        originalError.message
+        (originalError as Error)?.message
       );
     }
   });

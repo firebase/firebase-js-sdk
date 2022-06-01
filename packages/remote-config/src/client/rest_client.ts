@@ -120,11 +120,11 @@ export class RestClient implements RemoteConfigFetchClient {
       response = await fetchPromise;
     } catch (originalError) {
       let errorCode = ErrorCode.FETCH_NETWORK;
-      if (originalError.name === 'AbortError') {
+      if ((originalError as Error)?.name === 'AbortError') {
         errorCode = ErrorCode.FETCH_TIMEOUT;
       }
       throw ERROR_FACTORY.create(errorCode, {
-        originalErrorMessage: originalError.message
+        originalErrorMessage: (originalError as Error)?.message
       });
     }
 
@@ -144,7 +144,7 @@ export class RestClient implements RemoteConfigFetchClient {
         responseBody = await response.json();
       } catch (originalError) {
         throw ERROR_FACTORY.create(ErrorCode.FETCH_PARSE, {
-          originalErrorMessage: originalError.message
+          originalErrorMessage: (originalError as Error)?.message
         });
       }
       config = responseBody['entries'];

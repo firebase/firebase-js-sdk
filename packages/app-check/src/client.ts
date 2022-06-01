@@ -67,7 +67,7 @@ export async function exchangeToken(
     response = await fetch(url, options);
   } catch (originalError) {
     throw ERROR_FACTORY.create(AppCheckError.FETCH_NETWORK_ERROR, {
-      originalErrorMessage: originalError.message
+      originalErrorMessage: (originalError as Error)?.message
     });
   }
 
@@ -83,7 +83,7 @@ export async function exchangeToken(
     responseBody = await response.json();
   } catch (originalError) {
     throw ERROR_FACTORY.create(AppCheckError.FETCH_PARSE_ERROR, {
-      originalErrorMessage: originalError.message
+      originalErrorMessage: (originalError as Error)?.message
     });
   }
 

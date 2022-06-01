@@ -88,9 +88,9 @@ describe('FirebaseError', () => {
     try {
       throw e;
     } catch (error) {
-      assert.isDefined(error.stack);
+      assert.isDefined((error as Error).stack);
       // Multi-line match trick - .* does not match \n
-      assert.match(error.stack, /FirebaseError[\s\S]/);
+      assert.match((error as Error).stack!, /FirebaseError[\s\S]/);
     }
   });
 
@@ -100,7 +100,8 @@ describe('FirebaseError', () => {
       assert.ok(false);
     } catch (e) {
       assert.instanceOf(e, FirebaseError);
-      assert.match(e.stack, /dummy2[\s\S]*?dummy1/);
+      assert.isDefined((e as FirebaseError).stack);
+      assert.match((e as FirebaseError).stack!, /dummy2[\s\S]*?dummy1/);
     }
   });
 });
