@@ -24,4 +24,4 @@ jobs:
     - name: Swap in public typings
       run: yarn release:prepare
     - name: Check paths
-      run: xvfb-run yarn test:changed core
+      run: yarn ts-node scripts/ci-test/check-paths.ts
