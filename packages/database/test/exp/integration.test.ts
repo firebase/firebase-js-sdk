@@ -43,7 +43,7 @@ export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
 }
 
-describe.only('Database@exp Tests', () => {
+describe('Database@exp Tests', () => {
   let defaultApp;
   let mySandbox: Sinon.SinonSandbox;
 
@@ -110,7 +110,7 @@ describe.only('Database@exp Tests', () => {
     const db = getDatabase(defaultApp);
     const testRef = ref(db, 'foo');
     const initial = [{ name: 'child1' }, { name: 'child2' }];
-    const ec = EventAccumulatorFactory.waitsForExactCount(1);
+    const ec = EventAccumulatorFactory.waitsForCount(1);
 
     await set(testRef, initial);
     const unsubscribe = onValue(testRef, snapshot => {
