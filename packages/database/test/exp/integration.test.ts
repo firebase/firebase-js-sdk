@@ -134,7 +134,7 @@ describe('Database@exp Tests', () => {
       eventFactory.addEvent(snapshot.val());
     });
     await get(query(testRef));
-    const update = [{name: 'child1'}, { name: 'child20'}];
+    const update = [{ name: 'child1' }, { name: 'child20' }];
     unsubscribe();
     await set(testRef, update);
     const [snap1] = await eventFactory.promise;
