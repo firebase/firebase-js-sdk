@@ -30,6 +30,7 @@ import { Persistence, Scheduler } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { isIndexedDbTransactionError } from './simple_db';
+import { INDEXING_ENABLED } from "./indexeddb_schema";
 
 const LOG_TAG = 'IndexBackiller';
 
@@ -58,7 +59,9 @@ export class IndexBackfillerScheduler implements Scheduler {
       this.task === null,
       'Cannot start an already started IndexBackfillerScheduler'
     );
-    this.schedule(INITIAL_BACKFILL_DELAY_MS);
+    if (INDEXING_ENABLED) {
+      this.schedule(INITIAL_BACKFILL_DELAY_MS);
+    }
   }
 
   stop(): void {

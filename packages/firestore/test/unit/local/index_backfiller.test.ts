@@ -46,8 +46,12 @@ import { JSON_SERIALIZER } from './persistence_test_helpers';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { TestDocumentOverlayCache } from './test_document_overlay_cache';
 import { TestIndexManager } from './test_index_manager';
+import { INDEXING_ENABLED } from "../../../src/local/indexeddb_schema";
 
 describe('IndexedDb IndexBackfiller', () => {
+  if (!INDEXING_ENABLED) {
+    return;
+  }
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn('No IndexedDB. Skipping IndexedDb IndexBackfiller tests.');
     return;
