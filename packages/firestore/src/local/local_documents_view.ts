@@ -373,6 +373,21 @@ export class LocalDocumentsView {
     }
   }
 
+  /**
+   * Given a collection group, returns the next documents that follow the provided offset, along
+   * with an updated batch ID.
+   *
+   * <p>The documents returned by this method are ordered by remote version from the provided
+   * offset. If there are no more remote documents after the provided offset, documents with
+   * mutations in order of batch id from the offset are returned. Since all documents in a batch are
+   * returned together, the total number of documents returned can exceed {@code count}.
+   *
+   * @param transaction
+   * @param collectionGroup The collection group for the documents.
+   * @param offset The offset to index into.
+   * @param count The number of documents to return
+   * @return A LocalWriteResult with the documents that follow the provided offset and the last processed batch id.
+   */
   getNextDocuments(
     transaction: PersistenceTransaction,
     collectionGroup: string,
@@ -391,6 +406,10 @@ export class LocalDocumentsView {
                 count - originalDocs.size
               )
             : PersistencePromise.resolve(newOverlayMap());
+        // The callsite will use the largest batch ID together with the latest read time to create
+        // a new index offset. Since we only process batch IDs if all remote documents have been read,
+        // no overlay will increase the overall read time. This is why we only need to special case
+        // the batch id.
         let largestBatchId = INITIAL_LARGEST_BATCH_ID;
         let modifiedDocs = originalDocs;
         return overlaysPromise.next(overlays => {
