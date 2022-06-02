@@ -142,12 +142,18 @@ export class Transaction {
 
   /**
    * Returns the version of this document when it was read in this transaction,
-   * as a precondition, or no precondition if it was not read.
+   * as a precondition, or an existence precondition if the document did not
+   * exist, or no precondition if it was not read.
    */
   private precondition(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key.toString());
     if (!this.writtenDocs.has(key.toString()) && version) {
-      return Precondition.updateTime(version);
+      if (version.isEqual(SnapshotVersion.min())) {
+        // The document doesn't exist.
+        return Precondition.exists(false);
+      } else {
+        return Precondition.updateTime(version);
+      }
     } else {
       return Precondition.none();
     }
