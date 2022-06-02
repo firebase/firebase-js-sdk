@@ -83,7 +83,7 @@ function propagateFcmOptions(
 
   payload.fcmOptions = {};
 
-  const link = messagePayloadInternal.fcmOptions!.link;
+  const link = messagePayloadInternal.fcmOptions?.link ?? messagePayloadInternal.notification?.click_action;
   if (!!link) {
     payload.fcmOptions!.link = link;
   }
