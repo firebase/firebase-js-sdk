@@ -10,6 +10,7 @@
   "standalone": "dist/index.standalone.js",
   "exports": {
     ".": {
+      "types": "./dist/public.d.ts",
       "node": {
         "import": "./dist/node-esm/index.node.esm.js",
         "require": "./dist/index.node.cjs.js"

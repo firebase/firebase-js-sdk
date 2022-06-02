@@ -24,6 +24,7 @@
   ],
   "exports": {
     "./analytics": {
+      "types": "./analytics/dist/analytics/index.d.ts",
       "node": {
         "require": "./analytics/dist/index.cjs.js",
         "import": "./analytics/dist/index.mjs"
@@ -31,6 +32,7 @@
       "default": "./analytics/dist/index.esm.js"
     },
     "./app": {
+      "types": "./app/dist/app/index.d.ts",
       "node": {
         "require": "./app/dist/index.cjs.js",
         "import": "./app/dist/index.mjs"
@@ -38,6 +40,7 @@
       "default": "./app/dist/index.esm.js"
     },
     "./app-check": {
+      "types": "./app-check/dist/app-check/index.d.ts",
       "node": {
         "require": "./app-check/dist/index.cjs.js",
         "import": "./app-check/dist/index.mjs"
@@ -45,6 +48,7 @@
       "default": "./app-check/dist/index.esm.js"
     },
     "./auth": {
+      "types": "./auth/dist/auth/index.d.ts",
       "node": {
         "require": "./auth/dist/index.cjs.js",
         "import": "./auth/dist/index.mjs"
@@ -52,6 +56,7 @@
       "default": "./auth/dist/index.esm.js"
     },
     "./auth/cordova": {
+      "types": "./auth/cordova/dist/auth/cordova/index.d.ts",
       "node": {
         "require": "./auth/cordova/dist/index.cjs.js",
         "import": "./auth/cordova/dist/index.mjs"
@@ -59,6 +64,7 @@
       "default": "./auth/cordova/dist/index.esm.js"
     },
     "./auth/react-native": {
+      "types": "./auth/react-native/dist/auth/react-native/index.d.ts",
       "node": {
         "require": "./auth/react-native/dist/index.cjs.js",
         "import": "./auth/react-native/dist/index.mjs"
@@ -66,6 +72,7 @@
       "default": "./auth/react-native/dist/index.esm.js"
     },
     "./database": {
+      "types": "./database/dist/database/index.d.ts",
       "node": {
         "require": "./database/dist/index.cjs.js",
         "import": "./database/dist/index.mjs"
@@ -73,6 +80,7 @@
       "default": "./database/dist/index.esm.js"
     },
     "./firestore": {
+      "types": "./firestore/dist/firestore/index.d.ts",
       "node": {
         "require": "./firestore/dist/index.cjs.js",
         "import": "./firestore/dist/index.mjs"
@@ -80,6 +88,7 @@
       "default": "./firestore/dist/index.esm.js"
     },
     "./firestore/lite": {
+      "types": "./firestore/lite/dist/firestore/lite/index.d.ts",
       "node": {
         "require": "./firestore/lite/dist/index.cjs.js",
         "import": "./firestore/lite/dist/index.mjs"
@@ -87,6 +96,7 @@
       "default": "./firestore/lite/dist/index.esm.js"
     },
     "./functions": {
+      "types": "./functions/dist/functions/index.d.ts",
       "node": {
         "require": "./functions/dist/index.cjs.js",
         "import": "./functions/dist/index.mjs"
@@ -94,6 +104,7 @@
       "default": "./functions/dist/index.esm.js"
     },
     "./messaging": {
+      "types": "./messaging/dist/messaging/index.d.ts",
       "node": {
         "require": "./messaging/dist/index.cjs.js",
         "import": "./messaging/dist/index.mjs"
@@ -101,6 +112,7 @@
       "default": "./messaging/dist/index.esm.js"
     },
     "./messaging/sw": {
+      "types": "./messaging/sw/dist/messaging/sw/index.d.ts",
       "node": {
         "require": "./messaging/sw/dist/index.cjs.js",
         "import": "./messaging/sw/dist/index.mjs"
@@ -108,6 +120,7 @@
       "default": "./messaging/sw/dist/index.esm.js"
     },
     "./performance": {
+      "types": "./performance/dist/performance/index.d.ts",
       "node": {
         "require": "./performance/dist/index.cjs.js",
         "import": "./performance/dist/index.mjs"
@@ -115,6 +128,7 @@
       "default": "./performance/dist/index.esm.js"
     },
     "./remote-config": {
+      "types": "./remote-config/dist/remote-config/index.d.ts",
       "node": {
         "require": "./remote-config/dist/index.cjs.js",
         "import": "./remote-config/dist/index.mjs"
@@ -122,6 +136,7 @@
       "default": "./remote-config/dist/index.esm.js"
     },
     "./storage": {
+      "types": "./storage/dist/storage/index.d.ts",
       "node": {
         "require": "./storage/dist/index.cjs.js",
         "import": "./storage/dist/index.mjs"
@@ -129,6 +144,7 @@
       "default": "./storage/dist/index.esm.js"
     },
     "./compat/analytics": {
+      "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
       "node": {
         "require": "./compat/analytics/dist/index.cjs.js",
         "import": "./compat/analytics/dist/index.mjs"
@@ -136,6 +152,7 @@
       "default": "./compat/analytics/dist/index.esm.js"
     },
     "./compat/app": {
+      "types": "./compat/app/dist/compat/app/index.d.ts",
       "node": {
         "require": "./compat/app/dist/index.cjs.js",
         "import": "./compat/app/dist/index.mjs"
@@ -143,6 +160,7 @@
       "default": "./compat/app/dist/index.esm.js"
     },
     "./compat/app-check": {
+      "types": "./compat/app-check/dist/compat/app-check/index.d.ts",
       "node": {
         "require": "./compat/app-check/dist/index.cjs.js",
         "import": "./compat/app-check/dist/index.mjs"
@@ -150,6 +168,7 @@
       "default": "./compat/app-check/dist/index.esm.js"
     },
     "./compat/auth": {
+      "types": "./compat/auth/dist/compat/auth/index.d.ts",
       "node": {
         "require": "./compat/auth/dist/index.cjs.js",
         "import": "./compat/auth/dist/index.mjs"
@@ -157,6 +176,7 @@
       "default": "./compat/auth/dist/index.esm.js"
     },
     "./compat/database": {
+      "types": "./compat/database/dist/compat/database/index.d.ts",
       "node": {
         "require": "./compat/database/dist/index.cjs.js",
         "import": "./compat/database/dist/index.mjs"
@@ -164,6 +184,7 @@
       "default": "./compat/database/dist/index.esm.js"
     },
     "./compat/firestore": {
+      "types": "./compat/firestore/dist/compat/firestore/index.d.ts",
       "node": {
         "require": "./compat/firestore/dist/index.cjs.js",
         "import": "./compat/firestore/dist/index.mjs"
@@ -171,6 +192,7 @@
       "default": "./compat/firestore/dist/index.esm.js"
     },
     "./compat/functions": {
+      "types": "./compat/functions/dist/compat/functions/index.d.ts",
       "node": {
         "require": "./compat/functions/dist/index.cjs.js",
         "import": "./compat/functions/dist/index.mjs"
@@ -178,6 +200,7 @@
       "default": "./compat/functions/dist/index.esm.js"
     },
     "./compat/messaging": {
+      "types": "./compat/messaging/dist/compat/messaging/index.d.ts",
       "node": {
         "require": "./compat/messaging/dist/index.cjs.js",
         "import": "./compat/messaging/dist/index.mjs"
@@ -185,6 +208,7 @@
       "default": "./compat/messaging/dist/index.esm.js"
     },
     "./compat/performance": {
+      "types": "./compat/performance/dist/compat/performance/index.d.ts",
       "node": {
         "require": "./compat/performance/dist/index.cjs.js",
         "import": "./compat/performance/dist/index.mjs"
@@ -192,6 +216,7 @@
       "default": "./compat/performance/dist/index.esm.js"
     },
     "./compat/remote-config": {
+      "types": "./compat/remote-config/dist/compat/remote-config/index.d.ts",
       "node": {
         "require": "./compat/remote-config/dist/index.cjs.js",
         "import": "./compat/remote-config/dist/index.mjs"
@@ -199,6 +224,7 @@
       "default": "./compat/remote-config/dist/index.esm.js"
     },
     "./compat/storage": {
+      "types": "./compat/storage/dist/compat/storage/index.d.ts",
       "node": {
         "require": "./compat/storage/dist/index.cjs.js",
         "import": "./compat/storage/dist/index.mjs"

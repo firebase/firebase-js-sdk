@@ -11,6 +11,7 @@
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/index-public.d.ts",
       "node": "./dist/index.cjs.js",
       "browser": "./dist/esm/index.esm2017.js",
       "module": "./dist/esm/index.esm2017.js",
@@ -18,6 +19,7 @@
       "default": "./dist/index.cjs.js"
     },
     "./sw": {
+      "types": "./dist/sw/index-public.d.ts",
       "node": "./dist/index.sw.cjs",
       "default": "./dist/index.sw.esm2017.js"
     },

@@ -9,7 +9,9 @@
   "esm5": "dist/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/auth-compat/index.d.ts",
       "node": {
+        "types": "./dist/auth-compat/index.node.d.ts",
         "import": "./dist/esm/index.node.esm.js",
         "require": "./dist/index.node.cjs.js"
       },

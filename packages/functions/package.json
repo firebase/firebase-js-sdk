@@ -9,6 +9,7 @@
   "esm5": "dist/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/functions-public.d.ts",
       "node": {
         "import": "./dist/esm-node/index.node.esm.js",
         "require": "./dist/index.node.cjs.js"

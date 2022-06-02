@@ -8,13 +8,14 @@
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm.js",
       "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },
-  "typings": "dist/installations-compat.d.ts",
+  "typings": "dist/src/index.d.ts",
   "license": "Apache-2.0",
   "files": [
     "dist"

@@ -11,6 +11,7 @@
   "liteesm5": "dist/index.lite.esm5.js",
   "exports": {
     ".": {
+      "types": "./dist/app-compat-public.d.ts",
       "require": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm5.js",
       "lite": "./dist/index.lite.js",
