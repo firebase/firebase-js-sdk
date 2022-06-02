@@ -63,7 +63,7 @@ function getDBPromise(): Promise<IDBDatabase> {
     } catch (e) {
       reject(
         ERROR_FACTORY.create(AppCheckError.STORAGE_OPEN, {
-          originalErrorMessage: e.message
+          originalErrorMessage: (e as Error)?.message
         })
       );
     }

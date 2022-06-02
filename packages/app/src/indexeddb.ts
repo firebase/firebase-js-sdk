@@ -66,7 +66,7 @@ export async function readHeartbeatsFromIndexedDB(
       .get(computeKey(app)) as Promise<HeartbeatsInIndexedDB | undefined>;
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_GET, {
-      originalErrorMessage: e.message
+      originalErrorMessage: (e as Error)?.message
     });
   }
 }
@@ -83,7 +83,7 @@ export async function writeHeartbeatsToIndexedDB(
     return tx.done;
   } catch (e) {
     throw ERROR_FACTORY.create(AppError.STORAGE_WRITE, {
-      originalErrorMessage: e.message
+      originalErrorMessage: (e as Error)?.message
     });
   }
 }
