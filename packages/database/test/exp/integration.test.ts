@@ -25,16 +25,19 @@ import {
   limitToFirst,
   onValue,
   query,
+  refFromURL,
   set
 } from '../../src/api/Reference_impl';
 import {
   getDatabase,
+  goOffline,
+  goOnline,
   push,
   ref,
   runTransaction
 } from '../../src/index';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
-import { DATABASE_URL, waitFor } from '../helpers/util';
+import { DATABASE_ADDRESS, DATABASE_URL, getUniqueRef, waitFor } from '../helpers/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
@@ -47,7 +50,6 @@ describe.only('Database@exp Tests', () => {
   beforeEach(() => {
     defaultApp = createTestApp();
     mySandbox = createSandbox();
-    waitFor(2000);
   });
 
   afterEach(async () => {
@@ -74,17 +76,17 @@ describe.only('Database@exp Tests', () => {
     expect(db.app).to.equal(defaultApp);
   });
 
-  // it('Can set and get ref', async () => {
-  //   const db = getDatabase(defaultApp);
-  //   await set(ref(db, 'foo/bar'), 'foobar');
-  //   const snap = await get(ref(db, 'foo/bar'));
-  //   expect(snap.val()).to.equal('foobar');
-  // });
+  it('Can set and get ref', async () => {
+    const db = getDatabase(defaultApp);
+    await set(ref(db, 'foo/bar'), 'foobar');
+    const snap = await get(ref(db, 'foo/bar'));
+    expect(snap.val()).to.equal('foobar');
+  });
 
-  // it('Can get refFromUrl', async () => {
-  //   const db = getDatabase(defaultApp);
-  //   await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
-  // });
+  it('Can get refFromUrl', async () => {
+    const db = getDatabase(defaultApp);
+    await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
+  });
 
   it('Can get updates', async () => {
     const db = getDatabase(defaultApp);
@@ -105,9 +107,9 @@ describe.only('Database@exp Tests', () => {
   });
 
   // Tests to make sure onValue's data does not get mutated after calling get
-  it.only('calls onValue only once after get request with a non-default query', async () => {
+  it('calls onValue only once after get request with a non-default query', async () => {
     const db = getDatabase(defaultApp);
-    const testRef = ref(db, 'foo');
+    const { ref: testRef } = getUniqueRef(db);
     const initial = [{ name: 'child1' }, { name: 'child2' }];
     const ec = EventAccumulatorFactory.waitsForExactCount(1);
 
@@ -121,22 +123,18 @@ describe.only('Database@exp Tests', () => {
     expect(events.length).to.equal(1);
     expect(events[0]).to.deep.equal(initial);
     unsubscribe();
-    await set(testRef, {test: 'abc'});
-    await waitFor(2000);
-    const result = await get(query(testRef, limitToFirst(1)));
-    expect(result.val()).to.deep.equal({test: 'abc'});
   });
 
-  it.only('calls onValue and expects no issues with removing the listener', async () => {
+  it('calls onValue and expects no issues with removing the listener', async () => {
     const db = getDatabase(defaultApp);
-    const testRef = ref(db, 'foo');
+    const { ref: testRef } = getUniqueRef(db);
     const initial = [{ name: 'child1' }, { name: 'child2' }];
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
     await set(testRef, initial);
     const unsubscribe = onValue(testRef, snapshot => {
       ea.addEvent(snapshot.val());
     });
-    // await get(query(testRef));
+    await get(query(testRef));
     await waitFor(2000);
     const update = [{ name: 'child1' }, { name: 'child20' }];
     unsubscribe();
@@ -146,7 +144,7 @@ describe.only('Database@exp Tests', () => {
   });
   it('calls onValue only once after get request with a default query', async () => {
     const db = getDatabase(defaultApp);
-    const testRef = ref(db, 'foo');
+    const { ref: testRef } = getUniqueRef(db);
     const initial = [{ name: 'child1' }, { name: 'child2' }];
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
 
@@ -155,17 +153,16 @@ describe.only('Database@exp Tests', () => {
       ea.addEvent(snapshot.val());
       expect(snapshot.val()).to.deep.eq(initial);
     });
-    // await get(query(testRef));
+    await get(query(testRef));
     await waitFor(2000);
     const events = await ea.promise;
     expect(events.length).to.equal(1);
     unsubscribe();
   });
-  it.only('calls onValue only once after get request with a nested query', async () => {
+  it('calls onValue only once after get request with a nested query', async () => {
     const db = getDatabase(defaultApp);
-    const uniqueID = 'foo';
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
-    const testRef = ref(db, uniqueID);
+    const { ref: testRef, path } = getUniqueRef(db);
     const initial = {
       test: {
         abc: 123
@@ -176,7 +173,7 @@ describe.only('Database@exp Tests', () => {
     const unsubscribe = onValue(testRef, snapshot => {
       ea.addEvent(snapshot.val());
     });
-    const nestedRef = ref(db, uniqueID + '/test');
+    const nestedRef = ref(db, path + '/test');
     // const result = await get(query(nestedRef));
     await waitFor(2000);
     const events = await ea.promise;
@@ -187,8 +184,7 @@ describe.only('Database@exp Tests', () => {
   });
   it('calls onValue only once after parent get request', async () => {
     const db = getDatabase(defaultApp);
-    const uniqueID = 'foo';
-    const testRef = ref(db, uniqueID);
+    const { ref: testRef, path } = getUniqueRef(db);
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
     const initial = {
       test: {
@@ -197,16 +193,16 @@ describe.only('Database@exp Tests', () => {
     };
 
     await set(testRef, initial);
-    const nestedRef = ref(db, uniqueID + '/test');
+    const nestedRef = ref(db, path + '/test');
     const unsubscribe = onValue(nestedRef, snapshot => {
       ea.addEvent(snapshot.val());
     });
-    // const result = await get(query(testRef)); // commented out to make sure the unsubscribe isn't due to a recent change.
+    const result = await get(query(testRef)); // commented out to make sure the unsubscribe isn't due to a recent change.
     const events = await ea.promise;
     await waitFor(2000);
     expect(events.length).to.equal(1);
     expect(events[0]).to.deep.eq(initial.test);
-    // expect(result.val()).to.deep.equal(initial);
+    expect(result.val()).to.deep.equal(initial);
     unsubscribe();
   });
 
@@ -249,18 +245,18 @@ describe.only('Database@exp Tests', () => {
     expect(events[0]).to.equal('a');
   });
 
-  // it('Can goOffline/goOnline', async () => {
-  //   const db = getDatabase(defaultApp);
-  //   goOffline(db);
-  //   try {
-  //     await get(ref(db, 'foo/bar'));
-  //     expect.fail('Should have failed since we are offline');
-  //   } catch (e) {
-  //     expect(e.message).to.equal('Error: Client is offline.');
-  //   }
-  //   goOnline(db);
-  //   await get(ref(db, 'foo/bar'));
-  // });
+  it('Can goOffline/goOnline', async () => {
+    const db = getDatabase(defaultApp);
+    goOffline(db);
+    try {
+      await get(ref(db, 'foo/bar'));
+      expect.fail('Should have failed since we are offline');
+    } catch (e) {
+      expect(e.message).to.equal('Error: Client is offline.');
+    }
+    goOnline(db);
+    await get(ref(db, 'foo/bar'));
+  });
 
   it('Can delete app', async () => {
     const db = getDatabase(defaultApp);

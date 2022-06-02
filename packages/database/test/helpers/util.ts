@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import uuid from 'uuid/v4';
+
+import { Database, ref } from '../../src';
 import { ConnectionTarget } from '../../src/api/test_access';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -77,6 +80,8 @@ export function waitFor(waitTimeInMS: number) {
   return new Promise(resolve => setTimeout(resolve, waitTimeInMS));
 }
 
-export function getUniqueID() {
-  return Date.now().toString();
+// Creates a unique reference using uuid
+export function getUniqueRef(db: Database) {
+  const path = uuid();
+  return { ref: ref(db, path), path };
 }
