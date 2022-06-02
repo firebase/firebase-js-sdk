@@ -85,7 +85,7 @@ describe('externalizePayload', () => {
         baz: 'baz'
       },
       fcmOptions: {
-        link: 'link',
+        link: 'https://www.self_orgin.com',
         // eslint-disable-next-line camelcase
         analytics_label: 'label'
       },
@@ -108,7 +108,7 @@ describe('externalizePayload', () => {
         baz: 'baz'
       },
       fcmOptions: {
-        link: 'link',
+        link: 'https://www.self_orgin.com',
         analyticsLabel: 'label'
       },
       from: 'from',
