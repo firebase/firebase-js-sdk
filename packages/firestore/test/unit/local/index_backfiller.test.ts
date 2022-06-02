@@ -21,6 +21,7 @@ import { User } from '../../../src/auth/user';
 import { Query, queryToTarget } from '../../../src/core/query';
 import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { INDEXING_ENABLED } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
 import { newLocalStore } from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
@@ -46,7 +47,6 @@ import { JSON_SERIALIZER } from './persistence_test_helpers';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { TestDocumentOverlayCache } from './test_document_overlay_cache';
 import { TestIndexManager } from './test_index_manager';
-import { INDEXING_ENABLED } from '../../../src/local/indexeddb_schema';
 
 describe('IndexedDb IndexBackfiller', () => {
   if (!INDEXING_ENABLED) {

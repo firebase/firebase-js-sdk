@@ -24,13 +24,13 @@ import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { logDebug } from '../util/log';
 
+import { INDEXING_ENABLED } from './indexeddb_schema';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
 import { LocalWriteResult } from './local_store_impl';
 import { Persistence, Scheduler } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { isIndexedDbTransactionError } from './simple_db';
-import { INDEXING_ENABLED } from './indexeddb_schema';
 
 const LOG_TAG = 'IndexBackiller';
 
