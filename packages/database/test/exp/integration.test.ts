@@ -113,9 +113,9 @@ describe.only('Database@exp Tests', () => {
 
     await set(testRef, initial);
     const unsubscribe = onValue(testRef, snapshot => {
-      ec.addEvent(snapshot.val());
+      ec.addEvent(snapshot.val()); // This is called more than once
     });
-    // await get(query(testRef, limitToFirst(1)));
+    await get(query(testRef, limitToFirst(1)));
     await waitFor(2000);
     const events = await ec.promise;
     expect(events.length).to.equal(1);
