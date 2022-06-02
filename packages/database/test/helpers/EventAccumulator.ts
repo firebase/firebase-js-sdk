@@ -33,6 +33,7 @@ export const EventAccumulatorFactory = {
     let count = 0;
     const condition = () => {
       if (count > maxCount) {
+        console.log(ea.eventData);
         throw new Error('Received more events than expected');
       }
       return count === maxCount;
@@ -66,7 +67,6 @@ export class EventAccumulator {
     });
   }
   addEvent(eventData?: any) {
-    console.log(this.tag + ': Event received', Date.now());
     this.eventData = [...this.eventData, eventData];
     if (typeof this.onEventFxn === 'function') {
       this.onEventFxn();
