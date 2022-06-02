@@ -37,7 +37,12 @@ import {
   runTransaction
 } from '../../src/index';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
-import { DATABASE_ADDRESS, DATABASE_URL, getUniqueRef, waitFor } from '../helpers/util';
+import {
+  DATABASE_ADDRESS,
+  DATABASE_URL,
+  getUniqueRef,
+  waitFor
+} from '../helpers/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
@@ -119,9 +124,8 @@ describe.only('Database@exp Tests', () => {
     });
     await get(query(testRef, limitToFirst(1)));
     await waitFor(2000);
-    const events = await ec.promise;
-    expect(events.length).to.equal(1);
-    expect(events[0]).to.deep.equal(initial);
+    const [snap] = await ec.promise;
+    expect(snap).to.deep.equal(initial);
     unsubscribe();
   });
 
@@ -155,8 +159,8 @@ describe.only('Database@exp Tests', () => {
     });
     await get(query(testRef));
     await waitFor(2000);
-    const events = await ea.promise;
-    expect(events.length).to.equal(1);
+    const [snap] = await ea.promise;
+    expect(snap).to.deep.equal(initial);
     unsubscribe();
   });
   it('calls onValue only once after get request with a nested query', async () => {
@@ -174,12 +178,12 @@ describe.only('Database@exp Tests', () => {
       ea.addEvent(snapshot.val());
     });
     const nestedRef = ref(db, path + '/test');
-    // const result = await get(query(nestedRef));
+    const result = await get(query(nestedRef));
     await waitFor(2000);
     const events = await ea.promise;
     expect(events.length).to.equal(1);
     expect(events[0]).to.deep.equal(initial);
-    // expect(result.val()).to.deep.eq(initial.test);
+    expect(result.val()).to.deep.eq(initial.test);
     unsubscribe();
   });
   it('calls onValue only once after parent get request', async () => {
