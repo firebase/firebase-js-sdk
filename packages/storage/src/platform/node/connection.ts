@@ -69,7 +69,7 @@ abstract class FetchConnection<T extends ConnectionType>
       this.errorCode_ = ErrorCode.NO_ERROR;
       this.body_ = await response.arrayBuffer();
     } catch (e) {
-      this.errorText_ = e.message;
+      this.errorText_ = (e as Error)?.message;
       // emulate XHR which sets status to 0 when encountering a network error
       this.statusCode_ = 0;
       this.errorCode_ = ErrorCode.NETWORK_ERROR;
@@ -171,7 +171,7 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
       this.errorCode_ = ErrorCode.NO_ERROR;
       this.stream_ = response.body;
     } catch (e) {
-      this.errorText_ = e.message;
+      this.errorText_ = (e as Error)?.message;
       // emulate XHR which sets status to 0 when encountering a network error
       this.statusCode_ = 0;
       this.errorCode_ = ErrorCode.NETWORK_ERROR;
