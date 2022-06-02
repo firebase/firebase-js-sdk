@@ -77,8 +77,11 @@ function propagateFcmOptions(
   payload: MessagePayload,
   messagePayloadInternal: MessagePayloadInternal
 ): void {
-    // fcmOptions.link value is written into notification.click_action. see more in b/232072111
-  if (!messagePayloadInternal.fcmOptions && !messagePayloadInternal.notification?.click_action) {
+  // fcmOptions.link value is written into notification.click_action. see more in b/232072111
+  if (
+    !messagePayloadInternal.fcmOptions &&
+    !messagePayloadInternal.notification?.click_action
+  ) {
     return;
   }
 
