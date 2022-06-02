@@ -35,7 +35,7 @@ import {
 import { makeFakeApp, createTestService } from '../test/utils';
 import { httpsCallable } from './service';
 import { FUNCTIONS_TYPE } from './constants';
-import {FunctionsError} from './error';
+import { FunctionsError } from './error';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
