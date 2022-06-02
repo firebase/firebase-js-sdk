@@ -30,7 +30,7 @@ import { Persistence, Scheduler } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { isIndexedDbTransactionError } from './simple_db';
-import { INDEXING_ENABLED } from "./indexeddb_schema";
+import { INDEXING_ENABLED } from './indexeddb_schema';
 
 const LOG_TAG = 'IndexBackiller';
 
