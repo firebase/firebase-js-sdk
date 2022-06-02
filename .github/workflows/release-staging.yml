@@ -10,7 +10,7 @@ jobs:
     if: github.ref != 'refs/heads/release' && !endsWith(github.ref, '-releasebranch')
     steps:
     - name: Log warning
-    - run: echo "This workflow must be run in a release branch. It is being run in ${{ github.ref }}."
+      run: echo "This workflow must be run in a release branch. It is being run in ${{ github.ref }}."
   deploy:
     name: Staging Release
     runs-on: ubuntu-latest
