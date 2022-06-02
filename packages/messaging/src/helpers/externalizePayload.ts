@@ -83,6 +83,7 @@ function propagateFcmOptions(
 
   payload.fcmOptions = {};
 
+  // fcmOptions.link value is written into notification.click_action. see more in b/232072111
   const link = messagePayloadInternal.fcmOptions?.link ?? messagePayloadInternal.notification?.click_action;
   if (!!link) {
     payload.fcmOptions!.link = link;
