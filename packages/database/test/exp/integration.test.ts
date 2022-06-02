@@ -43,7 +43,7 @@ export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
 }
 
-describe('Database@exp Tests', () => {
+describe.only('Database@exp Tests', () => {
   let defaultApp;
   let mySandbox: Sinon.SinonSandbox;
 
@@ -124,7 +124,7 @@ describe('Database@exp Tests', () => {
     unsubscribe();
   });
 
-  it('calls onValue and expects no issues with removing the listener', async () => {
+  it.only('calls onValue and expects no issues with removing the listener', async () => {
     const db = getDatabase(defaultApp);
     const testRef = ref(db, 'foo');
     const initial = [{ name: 'child1' }, { name: 'child2' }];
@@ -133,10 +133,12 @@ describe('Database@exp Tests', () => {
     const unsubscribe = onValue(testRef, snapshot => {
       eventFactory.addEvent(snapshot.val());
     });
-    await get(query(testRef));
+    // await get(query(testRef));
     const update = [{ name: 'child1' }, { name: 'child20' }];
     unsubscribe();
     await set(testRef, update);
+    await waitFor(2000);
+    console.log('waiting for promise');
     const [snap1] = await eventFactory.promise;
     expect(snap1).to.deep.eq(initial);
   });
@@ -220,7 +222,7 @@ describe('Database@exp Tests', () => {
     await set(fooRef, 'b');
 
     const [snap1] = await ea.promise;
-    expect(snap1).to.equal('a'); // This doesn't necessarily test that onValue was only triggered once
+    expect(snap1).to.equal('a'); // This doesn't test that onValue was only triggered once
   });
 
   it('Can unsubscribe', async () => {

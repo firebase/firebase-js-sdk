@@ -49,20 +49,24 @@ export const EventAccumulatorFactory = {
 };
 
 export class EventAccumulator {
+  // TODO: make these typesafe
   eventData = [];
   promise;
   resolve;
   reject;
   private onResetFxn;
   private onEventFxn;
+  private tag: string;
   // eslint-disable-next-line @typescript-eslint/ban-types
   constructor(public condition: Function) {
+    this.tag = Date.now().toString();
     this.promise = new Promise((resolve, reject) => {
       this.resolve = resolve;
       this.reject = reject;
     });
   }
   addEvent(eventData?: any) {
+    console.log(this.tag + ': Event received', Date.now());
     this.eventData = [...this.eventData, eventData];
     if (typeof this.onEventFxn === 'function') {
       this.onEventFxn();
