@@ -27,7 +27,7 @@ describe('externalizePayload', () => {
         title: 'title',
         body: 'body',
         image: 'image',
-        click_action: "https://www.self_orgin.com",
+        click_action: 'https://www.self_orgin.com'
       },
       from: 'from',
       // eslint-disable-next-line camelcase
@@ -42,8 +42,8 @@ describe('externalizePayload', () => {
       collapseKey: 'collapse',
       messageId: 'mid',
       fcmOptions: {
-        link: "https://www.self_orgin.com"
-      },
+        link: 'https://www.self_orgin.com'
+      }
     };
     expect(externalizePayload(internalPayload)).to.deep.equal(payload);
   });
@@ -66,8 +66,7 @@ describe('externalizePayload', () => {
       data: { foo: 'foo', bar: 'bar', baz: 'baz' },
       from: 'from',
       collapseKey: 'collapse',
-      messageId: 'mid',
-      
+      messageId: 'mid'
     };
     expect(externalizePayload(internalPayload)).to.deep.equal(payload);
   });
