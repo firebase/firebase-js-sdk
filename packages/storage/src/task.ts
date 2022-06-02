@@ -275,7 +275,7 @@ export class UploadTask {
           this._makeProgressCallback()
         );
       } catch (e) {
-        this._error = e;
+        this._error = e as StorageError;
         this._transition(InternalTaskState.ERROR);
         return;
       }

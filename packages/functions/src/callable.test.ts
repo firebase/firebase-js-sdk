@@ -35,6 +35,7 @@ import {
 import { makeFakeApp, createTestService } from '../test/utils';
 import { httpsCallable } from './service';
 import { FUNCTIONS_TYPE } from './constants';
+import { FunctionsError } from './error';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
@@ -52,9 +53,10 @@ async function expectError(
     await promise;
   } catch (e) {
     failed = true;
-    expect(e.code).to.equal(`${FUNCTIONS_TYPE}/${code}`);
-    expect(e.message).to.equal(message);
-    expect(e.details).to.deep.equal(details);
+    const error = e as FunctionsError;
+    expect(error.code).to.equal(`${FUNCTIONS_TYPE}/${code}`);
+    expect(error.message).to.equal(message);
+    expect(error.details).to.deep.equal(details);
   }
   if (!failed) {
     expect(false, 'Promise should have failed.').to.be.true;
