@@ -27,6 +27,7 @@ describe('externalizePayload', () => {
         title: 'title',
         body: 'body',
         image: 'image',
+        // eslint-disable-next-line camelcase
         click_action: 'https://www.self_orgin.com'
       },
       from: 'from',
