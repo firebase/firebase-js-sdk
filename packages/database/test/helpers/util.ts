@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import uuid from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 
 import { Database, ref } from '../../src';
 import { ConnectionTarget } from '../../src/api/test_access';
@@ -82,6 +82,6 @@ export function waitFor(waitTimeInMS: number) {
 
 // Creates a unique reference using uuid
 export function getUniqueRef(db: Database) {
-  const path = uuid();
+  const path = uuidv4();
   return { ref: ref(db, path), path };
 }
