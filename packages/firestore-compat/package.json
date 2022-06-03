@@ -10,6 +10,7 @@
   "esm5": "dist/index.esm5.js",
   "exports": {
     ".": {
+      "types": "./dist/src/index.d.ts",
       "node": {
         "import": "./dist/node-esm/index.node.esm.js",
         "require": "./dist/index.node.cjs.js"
@@ -49,7 +50,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.25",
+    "@firebase/app-compat": "0.1.26",
     "@types/eslint": "7.29.0",
     "rollup": "2.72.1",
     "rollup-plugin-sourcemaps": "0.6.3",

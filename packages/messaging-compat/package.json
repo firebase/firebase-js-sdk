@@ -10,6 +10,7 @@
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/src/index.d.ts",
       "node": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm.js",
       "default": "./dist/esm/index.esm2017.js"
@@ -44,7 +45,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.25",
+    "@firebase/app-compat": "0.1.26",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.31.2",
     "ts-essentials": "9.1.2",

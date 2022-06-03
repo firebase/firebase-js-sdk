@@ -9,6 +9,7 @@
   "esm5": "./dist/esm/index.esm5.js",
   "exports": {
     ".": {
+      "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm5.js",
       "default": "./dist/esm/index.esm2017.js"
@@ -44,8 +45,8 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.25",
-    "@firebase/auth-compat": "0.2.14",
+    "@firebase/app-compat": "0.1.26",
+    "@firebase/auth-compat": "0.2.15",
     "rollup": "2.72.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.31.2",

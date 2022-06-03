@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-compat",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -11,6 +11,7 @@
   "liteesm5": "dist/index.lite.esm5.js",
   "exports": {
     ".": {
+      "types": "./dist/app-compat-public.d.ts",
       "require": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm5.js",
       "lite": "./dist/index.lite.js",
@@ -39,7 +40,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/app": "0.7.24",
+    "@firebase/app": "0.7.25",
     "@firebase/util": "1.6.0",
     "@firebase/logger": "0.3.2",
     "@firebase/component": "0.5.14",

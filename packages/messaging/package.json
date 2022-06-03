@@ -11,6 +11,7 @@
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/index-public.d.ts",
       "node": "./dist/index.cjs.js",
       "browser": "./dist/esm/index.esm2017.js",
       "module": "./dist/esm/index.esm2017.js",
@@ -18,6 +19,7 @@
       "default": "./dist/index.cjs.js"
     },
     "./sw": {
+      "types": "./dist/sw/index-public.d.ts",
       "node": "./dist/index.sw.cjs",
       "default": "./dist/index.sw.esm2017.js"
     },
@@ -60,7 +62,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.24",
+    "@firebase/app": "0.7.25",
     "rollup": "2.72.1",
     "rollup-plugin-typescript2": "0.31.2",
     "@rollup/plugin-json": "4.1.0",

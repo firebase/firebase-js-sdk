@@ -1,10 +1,10 @@
-name: Staging Release
+name: Production Release
 
 on: workflow_dispatch
 
 jobs:
   deploy:
-    name: Staging Release
+    name: Production Release
     runs-on: ubuntu-latest
     # Allow GITHUB_TOKEN to have write permissions
     permissions:
@@ -15,17 +15,6 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: 14.x
-    - name: Merge master into release
-      uses: actions/github-script@v6
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          await github.rest.repos.merge({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            base: 'release',
-            head: 'master'
-          })
     - name: Checkout release branch (with history)
       uses: actions/checkout@master
       with:
@@ -34,28 +23,13 @@ jobs:
         ref: release
     - name: Yarn install
       run: yarn
-    # Ensures a new @firebase/app is published with every release.
-    # This keeps the SDK_VERSION variable up to date.
-    - name: Add a changeset for @firebase/app
-      # pull master so changeset can diff against it
-      run: |
-        git pull -f --no-rebase origin master:master
-        yarn ts-node-script scripts/ci/add_changeset.ts
-    - name: Create Release Pull Request
-      uses: changesets/action@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
-    - name: Go back to release branch
-      # changesets/action created and checked out a new branch
-      # return to `release` branch.
-      run: git checkout release
     - name: Publish to NPM
       # --skipTests No need to run tests
       # --skipReinstall Yarn install has already been run
       # --ignoreUnstaged Adding the @firebase/app changeset file means
       # there's unstaged changes. Ignore.
       # TODO: Make these flags defaults in the release script.
-      run: yarn release --releaseType Staging --ci --skipTests --skipReinstall --ignoreUnstaged
+      run: yarn release --releaseType Production --ci --skipTests --skipReinstall --ignoreUnstaged
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
@@ -110,37 +84,20 @@ jobs:
         CI: true
     - name: Get release version
       id: get-version
-      # STAGING_VERSION = version with staging hash, e.g. 1.2.3-20430523
-      # BASE_VERSION = version without staging hash, e.g. 1.2.3
+      # In production, there is only one version number
       run: |
         VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
         VERSION=`node -e "${VERSION_SCRIPT}"`
-        echo "::set-output name=STAGING_VERSION::$VERSION"
-        BASE_VERSION=$(echo $VERSION | cut -d "-" -f 1)
-        echo "::set-output name=BASE_VERSION::$BASE_VERSION"
-    - name: Echo versions in shell
+        echo "::set-output name=BASE_VERSION::$VERSION"
+    - name: Echo version in shell
       run: |
-        echo "Staging release ${{ steps.get-version.outputs.STAGING_VERSION }}"
         echo "Base version: ${{ steps.get-version.outputs.BASE_VERSION }}"
-    - name: Launch E2E tests workflow
-      # Trigger e2e-test.yml
-      run: |
-        OSS_BOT_GITHUB_TOKEN=${{ secrets.OSS_BOT_GITHUB_TOKEN }}
-        VERSION_OR_TAG=${{ steps.get-version.outputs.STAGING_VERSION }}
-        curl -X POST \
-        -H "Content-Type:application/json" \
-        -H "Accept:application/vnd.github.v3+json" \
-        -H "Authorization:Bearer $OSS_BOT_GITHUB_TOKEN" \
-        -d "{\"event_type\":\"staging-tests\", \"client_payload\":{\"versionOrTag\":\"$VERSION_OR_TAG\"}}" \
-        https://api.github.com/repos/firebase/firebase-js-sdk/dispatches
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       run: |
         DATE=$(date +'%m/%d/%Y')
         BASE_VERSION=${{ steps.get-version.outputs.BASE_VERSION }}
-        STAGING_VERSION=${{ steps.get-version.outputs.STAGING_VERSION }}
-        OPERATOR=${{ github.actor }}
         RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
         curl -X POST -H "Content-Type:application/json" \
-        -d "{\"version\":\"$BASE_VERSION\",\"tag\":\"$STAGING_VERSION\",\"date\":\"$DATE\",\"operator\":\"$OPERATOR\"}" \
-        $RELEASE_TRACKER_URL/logStaging
+        -d "{\"version\":\"$BASE_VERSION\",\"date\":\"$DATE\"}" \
+        $RELEASE_TRACKER_URL/logProduction

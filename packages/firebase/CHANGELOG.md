@@ -1,5 +1,15 @@
 # firebase
 
+## 9.8.2
+
+### Patch Changes
+
+- Updated dependencies [[`63ac2ed28`](https://github.com/firebase/firebase-js-sdk/commit/63ac2ed28f237950290a7af2dcdcf1518ddaee4b), [`88517b591`](https://github.com/firebase/firebase-js-sdk/commit/88517b59179410e43d5d5129a1fefc355cd1d4eb), [`63ac2ed28`](https://github.com/firebase/firebase-js-sdk/commit/63ac2ed28f237950290a7af2dcdcf1518ddaee4b)]:
+  - @firebase/app@0.7.25
+  - @firebase/auth@0.20.2
+  - @firebase/auth-compat@0.2.15
+  - @firebase/app-compat@0.1.26
+
 ## 9.8.1
 
 ### Patch Changes

@@ -8,13 +8,14 @@
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm.js",
       "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },
-  "typings": "dist/installations-compat.d.ts",
+  "typings": "dist/src/index.d.ts",
   "license": "Apache-2.0",
   "files": [
     "dist"
@@ -44,7 +45,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.25",
+    "@firebase/app-compat": "0.1.26",
     "rollup": "2.72.1",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",

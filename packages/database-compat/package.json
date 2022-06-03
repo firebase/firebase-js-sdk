@@ -15,7 +15,9 @@
   ],
   "exports": {
     ".": {
+      "types": "./dist/database-compat/src/index.d.ts",
       "node": {
+        "types": "./dist/database-compat/src/index.node.d.ts",
         "import": "./dist/node-esm/index.js",
         "require": "./dist/index.js"
       },
@@ -23,6 +25,7 @@
       "default": "./dist/index.esm2017.js"
     },
     "./standalone": {
+      "types": "./dist/database-compat/src/index.standalone.d.ts",
       "node": "./dist/index.standalone.js"
     },
     "./package.json": "./package.json"
@@ -53,7 +56,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.25"
+    "@firebase/app-compat": "0.1.26"
   },
   "repository": {
     "directory": "packages/database-compat",

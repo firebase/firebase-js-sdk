@@ -128,7 +128,7 @@ describe('RestClient', () => {
       const fetchPromise = client.fetch(DEFAULT_REQUEST);
 
       const firebaseError = ERROR_FACTORY.create(ErrorCode.FETCH_NETWORK, {
-        originalErrorMessage: originalError.message
+        originalErrorMessage: (originalError as Error)?.message
       });
 
       await expect(fetchPromise)
