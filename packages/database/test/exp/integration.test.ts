@@ -48,7 +48,8 @@ export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
 }
 
-describe.only('Database@exp Tests', () => {
+// Note: these run in parallel with the node environment. If you use the same paths in parallel, you may experience race conditions.
+describe('Database@exp Tests', () => {
   let defaultApp;
   let mySandbox: Sinon.SinonSandbox;
 
