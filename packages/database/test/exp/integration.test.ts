@@ -51,15 +51,12 @@ export function createTestApp() {
 // Note: these run in parallel with the node environment. If you use the same paths in parallel, you may experience race conditions.
 describe('Database@exp Tests', () => {
   let defaultApp;
-  let mySandbox: Sinon.SinonSandbox;
 
   beforeEach(() => {
     defaultApp = createTestApp();
-    mySandbox = createSandbox();
   });
 
   afterEach(async () => {
-    mySandbox.restore();
     if (defaultApp) {
       return deleteApp(defaultApp);
     }

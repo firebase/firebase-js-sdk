@@ -17,7 +17,7 @@
 
 export const EventAccumulatorFactory = {
   waitsForCount: maxCount => {
-    // Note: This should be sparingly used as it can result in more events being raised than expected
+    // Note: This should be used sparingly as it can result in more events being raised than expected
     let count = 0;
     const condition = () => count >= maxCount;
     const ea = new EventAccumulator(condition);
@@ -33,7 +33,6 @@ export const EventAccumulatorFactory = {
     let count = 0;
     const condition = () => {
       if (count > maxCount) {
-        console.log(ea.eventData);
         throw new Error('Received more events than expected');
       }
       return count === maxCount;
@@ -57,10 +56,8 @@ export class EventAccumulator {
   reject;
   private onResetFxn;
   private onEventFxn;
-  private tag: string;
   // eslint-disable-next-line @typescript-eslint/ban-types
   constructor(public condition: Function) {
-    this.tag = Date.now().toString();
     this.promise = new Promise((resolve, reject) => {
       this.resolve = resolve;
       this.reject = reject;
