@@ -18,7 +18,6 @@
 import { initializeApp, deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
-import Sinon, { createSandbox } from 'sinon';
 
 import {
   get,
@@ -118,7 +117,7 @@ describe('Database@exp Tests', () => {
 
     await set(testRef, initial);
     const unsubscribe = onValue(testRef, snapshot => {
-      ec.addEvent(snapshot.val()); // This is called more than once
+      ec.addEvent(snapshot.val());
     });
     await get(query(testRef, limitToFirst(1)));
     await waitFor(2000);
