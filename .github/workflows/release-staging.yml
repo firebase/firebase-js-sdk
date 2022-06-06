@@ -3,9 +3,19 @@ name: Staging Release
 on: workflow_dispatch
 
 jobs:
+  warn:
+    name: Warn If Wrong Branch
+    runs-on: ubuntu-latest
+    # Log a warning if run in a non-release branch.
+    if: github.ref != 'refs/heads/release' && !endsWith(github.ref, '-releasebranch')
+    steps:
+    - name: Log warning
+      run: echo "This workflow must be run in a release branch. It is being run in ${{ github.ref }}."
   deploy:
     name: Staging Release
     runs-on: ubuntu-latest
+    # Block this workflow if run in a non-release branch.
+    if: github.ref == 'refs/heads/release' || endsWith(github.ref, '-releasebranch')
     # Allow GITHUB_TOKEN to have write permissions
     permissions:
       contents: write

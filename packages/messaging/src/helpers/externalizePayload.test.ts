@@ -26,7 +26,9 @@ describe('externalizePayload', () => {
       notification: {
         title: 'title',
         body: 'body',
-        image: 'image'
+        image: 'image',
+        // eslint-disable-next-line camelcase
+        click_action: 'https://www.self_orgin.com'
       },
       from: 'from',
       // eslint-disable-next-line camelcase
@@ -39,7 +41,10 @@ describe('externalizePayload', () => {
       notification: { title: 'title', body: 'body', image: 'image' },
       from: 'from',
       collapseKey: 'collapse',
-      messageId: 'mid'
+      messageId: 'mid',
+      fcmOptions: {
+        link: 'https://www.self_orgin.com'
+      }
     };
     expect(externalizePayload(internalPayload)).to.deep.equal(payload);
   });
@@ -80,7 +85,7 @@ describe('externalizePayload', () => {
         baz: 'baz'
       },
       fcmOptions: {
-        link: 'link',
+        link: 'https://www.self_orgin.com',
         // eslint-disable-next-line camelcase
         analytics_label: 'label'
       },
@@ -103,7 +108,7 @@ describe('externalizePayload', () => {
         baz: 'baz'
       },
       fcmOptions: {
-        link: 'link',
+        link: 'https://www.self_orgin.com',
         analyticsLabel: 'label'
       },
       from: 'from',
