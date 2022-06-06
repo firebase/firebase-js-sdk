@@ -11,7 +11,6 @@
       "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/database",
       "args": [
-        // TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js
         "test/{,!(browser)/**/}*.test.ts",
         "--file", "src/index.node.ts",
         "--config", "../../config/mocharc.node.js",
