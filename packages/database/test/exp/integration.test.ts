@@ -177,9 +177,8 @@ describe('Database@exp Tests', () => {
     const nestedRef = ref(db, path + '/test');
     const result = await get(query(nestedRef));
     await waitFor(2000);
-    const events = await ea.promise;
-    expect(events.length).to.equal(1);
-    expect(events[0]).to.deep.equal(initial);
+    const [snap] = await ea.promise;
+    expect(snap).to.deep.equal(initial);
     expect(result.val()).to.deep.eq(initial.test);
     unsubscribe();
   });
