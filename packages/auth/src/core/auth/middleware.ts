@@ -87,7 +87,7 @@ export class AuthMiddlewareQueue {
       }
 
       throw this.auth._errorFactory.create(
-        AuthErrorCode.LOGIN_BLOCKED, { originalMessage: e.message });
+        AuthErrorCode.LOGIN_BLOCKED, { originalMessage: (e as Error)?.message });
     }
   }
 }

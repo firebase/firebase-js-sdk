@@ -294,7 +294,7 @@ describe('Integration test: phone auth', () => {
           )
         );
       } catch (e) {
-        error = e;
+         error = e as FirebaseError;
       }
 
       expect(error!.customData!.phoneNumber).to.eq(PHONE_A.phoneNumber);
