@@ -124,7 +124,8 @@ export class PluginLoader {
               );
             } catch (e) {
               throw new Error(
-                `Failed to construct feature subclass:\n` + (e as Error)?.toString()
+                `Failed to construct feature subclass:\n` +
+                  (e as Error)?.toString()
               );
             }
             if (
@@ -140,7 +141,7 @@ export class PluginLoader {
             } catch (e) {
               throw new Error(
                 'Error occurred during the onInitialized() event: ' +
-                 (e as Error)?.toString()
+                  (e as Error)?.toString()
               );
             }
 
@@ -153,7 +154,8 @@ export class PluginLoader {
         }
       } catch (e) {
         throw new Error(
-          `Error loading plugin ${configPlugin.packageName}: ` + (e as Error)?.message
+          `Error loading plugin ${configPlugin.packageName}: ` +
+            (e as Error)?.message
         );
       }
     }
