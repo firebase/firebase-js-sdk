@@ -154,6 +154,32 @@ describe('Database@exp Tests', () => {
     defaultApp = undefined;
   });
 
+  it.only('waits until the database is online to resolve the get request', async () => {
+    const db = getDatabase(defaultApp);
+    goOffline(db);
+    const r = ref(db, 'foo2');
+    let resolved = false;
+    const getValue = get(r);
+    getValue.then(
+      () => (resolved = true),
+      () => (resolved = true)
+    );
+    // TODO: use new API
+    const deferredTimeout = new Deferred<void>();
+    setTimeout(() => {
+      deferredTimeout.resolve();
+    }, 2000);
+    await deferredTimeout.promise;
+    expect(resolved).to.equal(false);
+    goOnline(db);
+    const deferredTimeout2 = new Deferred<void>();
+    setTimeout(() => {
+      deferredTimeout2.resolve();
+    }, 2000);
+    await deferredTimeout2.promise;
+    expect(resolved).to.equal(true);
+  });
+
   it('Can listen to transaction changes', async () => {
     // Repro for https://github.com/firebase/firebase-js-sdk/issues/5195
     let latestValue = 0;
