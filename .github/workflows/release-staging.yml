@@ -37,12 +37,11 @@ jobs:
             base: branch,
             head: 'master'
           })
-    - name: Checkout release branch (with history)
+    - name: Checkout current branch (with history)
       uses: actions/checkout@master
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
-        ref: release
     - name: Yarn install
       run: yarn
     - name: Publish to NPM
