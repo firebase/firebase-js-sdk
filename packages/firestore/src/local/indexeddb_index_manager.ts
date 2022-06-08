@@ -983,7 +983,7 @@ export class IndexedDbIndexManager implements IndexManager {
       this.getSubTargets(target),
       (subTarget: Target) =>
         this.getFieldIndex(transaction, subTarget).next(index =>
-          !index ? fail('Target cannot be served from index') : index
+          index ? index : fail('Target cannot be served from index')
         )
     ).next(getMinOffsetFromFieldIndexes);
   }

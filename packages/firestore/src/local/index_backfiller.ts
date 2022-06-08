@@ -109,6 +109,13 @@ export class IndexBackfillerScheduler implements Scheduler {
 /** Implements the steps for backfilling indexes. */
 export class IndexBackfiller {
   constructor(
+    /**
+     * LocalStore provides access to IndexManager and LocalDocumentView.
+     * These properties will update when the user changes. Consequently,
+     * making a local copy of IndexManager and LocalDocumentView will require
+     * updates over time. The simpler solution is to rely on LocalStore to have
+     * an up-to-date references to IndexManager and LocalDocumentStore.
+     */
     private readonly localStore: LocalStore,
     private readonly persistence: Persistence
   ) {}

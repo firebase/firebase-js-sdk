@@ -55,8 +55,13 @@ export function documentMap(...docs: Document[]): DocumentMap {
   return map;
 }
 
-export function convertDocumentKeyMapWithOverlayedDocumentToDocumentMap(
-  collection: DocumentKeyMap<OverlayedDocument>
+export type OverlayedDocumentMap = DocumentKeyMap<OverlayedDocument>;
+export function newOverlayedDocumentMap(): OverlayedDocumentMap {
+  return newDocumentKeyMap<OverlayedDocument>();
+}
+
+export function convertOverlayedDocumentMapToDocumentMap(
+  collection: OverlayedDocumentMap
 ): DocumentMap {
   let documents = EMPTY_DOCUMENT_MAP;
   collection.forEach(

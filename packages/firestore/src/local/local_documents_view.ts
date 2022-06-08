@@ -35,7 +35,9 @@ import {
   mutableDocumentMap,
   documentKeySet,
   DocumentKeyMap,
-  convertDocumentKeyMapWithOverlayedDocumentToDocumentMap
+  convertOverlayedDocumentMapToDocumentMap,
+  OverlayedDocumentMap,
+  newOverlayedDocumentMap
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -167,7 +169,7 @@ export class LocalDocumentsView {
   getOverlayedDocuments(
     transaction: PersistenceTransaction,
     docs: MutableDocumentMap
-  ): PersistencePromise<DocumentKeyMap<OverlayedDocument>> {
+  ): PersistencePromise<OverlayedDocumentMap> {
     const overlays = newOverlayMap();
     return this.populateOverlays(transaction, overlays, docs).next(() =>
       this.computeViews(transaction, docs, overlays, documentKeySet())
@@ -215,10 +217,10 @@ export class LocalDocumentsView {
     docs: MutableDocumentMap,
     overlays: OverlayMap,
     existenceStateChanged: DocumentKeySet
-  ): PersistencePromise<DocumentKeyMap<OverlayedDocument>> {
+  ): PersistencePromise<OverlayedDocumentMap> {
     let recalculateDocuments = mutableDocumentMap();
     const mutatedFields = newDocumentKeyMap<FieldMask | null>();
-    const results = newDocumentKeyMap<OverlayedDocument>();
+    const results = newOverlayedDocumentMap();
     docs.forEach((_, doc) => {
       const overlay = overlays.get(doc.key);
       // Recalculate an overlay if the document's existence state changed due to
@@ -442,10 +444,7 @@ export class LocalDocumentsView {
             )
             .next(localDocs => ({
               batchId: largestBatchId,
-              changes:
-                convertDocumentKeyMapWithOverlayedDocumentToDocumentMap(
-                  localDocs
-                )
+              changes: convertOverlayedDocumentMapToDocumentMap(localDocs)
             }));
         });
       });
