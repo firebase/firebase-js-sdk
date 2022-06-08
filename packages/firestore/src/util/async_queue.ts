@@ -76,7 +76,12 @@ export const enum TimerId {
    * A timer used to retry operations scheduled via retryable AsyncQueue
    * operations.
    */
-  AsyncQueueRetry = 'async_queue_retry'
+  AsyncQueueRetry = 'async_queue_retry',
+
+  /**
+   *  A timer used to periodically attempt index backfill.
+   */
+  IndexBackfill = 'index_backfill'
 }
 
 /**

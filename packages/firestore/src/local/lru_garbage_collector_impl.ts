@@ -33,7 +33,7 @@ import {
   LruParams,
   LruResults
 } from './lru_garbage_collector';
-import { GarbageCollectionScheduler } from './persistence';
+import { Scheduler } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { isIndexedDbTransactionError } from './simple_db';
@@ -110,18 +110,18 @@ class RollingSequenceNumberBuffer {
  * This class is responsible for the scheduling of LRU garbage collection. It handles checking
  * whether or not GC is enabled, as well as which delay to use before the next run.
  */
-export class LruScheduler implements GarbageCollectionScheduler {
-  private hasRun: boolean = false;
+export class LruScheduler implements Scheduler {
   private gcTask: DelayedOperation<void> | null;
 
   constructor(
     private readonly garbageCollector: LruGarbageCollector,
-    private readonly asyncQueue: AsyncQueue
+    private readonly asyncQueue: AsyncQueue,
+    private readonly localStore: LocalStore
   ) {
     this.gcTask = null;
   }
 
-  start(localStore: LocalStore): void {
+  start(): void {
     debugAssert(
       this.gcTask === null,
       'Cannot start an already started LruScheduler'
@@ -130,7 +130,7 @@ export class LruScheduler implements GarbageCollectionScheduler {
       this.garbageCollector.params.cacheSizeCollectionThreshold !==
       LRU_COLLECTION_DISABLED
     ) {
-      this.scheduleGC(localStore);
+      this.scheduleGC(INITIAL_GC_DELAY_MS);
     }
   }
 
@@ -145,24 +145,19 @@ export class LruScheduler implements GarbageCollectionScheduler {
     return this.gcTask !== null;
   }
 
-  private scheduleGC(localStore: LocalStore): void {
+  private scheduleGC(delay: number): void {
     debugAssert(
       this.gcTask === null,
       'Cannot schedule GC while a task is pending'
     );
-    const delay = this.hasRun ? REGULAR_GC_DELAY_MS : INITIAL_GC_DELAY_MS;
-    logDebug(
-      'LruGarbageCollector',
-      `Garbage collection scheduled in ${delay}ms`
-    );
+    logDebug(LOG_TAG, `Garbage collection scheduled in ${delay}ms`);
     this.gcTask = this.asyncQueue.enqueueAfterDelay(
       TimerId.LruGarbageCollection,
       delay,
       async () => {
         this.gcTask = null;
-        this.hasRun = true;
         try {
-          await localStore.collectGarbage(this.garbageCollector);
+          await this.localStore.collectGarbage(this.garbageCollector);
         } catch (e) {
           if (isIndexedDbTransactionError(e)) {
             logDebug(
@@ -174,7 +169,7 @@ export class LruScheduler implements GarbageCollectionScheduler {
             await ignoreIfPrimaryLeaseLoss(e);
           }
         }
-        await this.scheduleGC(localStore);
+        await this.scheduleGC(REGULAR_GC_DELAY_MS);
       }
     );
   }

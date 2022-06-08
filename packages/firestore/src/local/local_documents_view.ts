@@ -34,15 +34,19 @@ import {
   documentMap,
   mutableDocumentMap,
   documentKeySet,
-  DocumentKeyMap
+  DocumentKeyMap,
+  convertOverlayedDocumentMapToDocumentMap,
+  OverlayedDocumentMap,
+  newOverlayedDocumentMap
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { IndexOffset } from '../model/field_index';
+import { IndexOffset, INITIAL_LARGEST_BATCH_ID } from '../model/field_index';
 import { FieldMask } from '../model/field_mask';
 import {
   calculateOverlayMutation,
   mutationApplyToLocalView,
+  MutationType,
   PatchMutation
 } from '../model/mutation';
 import { Overlay } from '../model/overlay';
@@ -52,6 +56,7 @@ import { SortedMap } from '../util/sorted_map';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
+import { LocalWriteResult } from './local_store_impl';
 import { MutationQueue } from './mutation_queue';
 import { OverlayedDocument } from './overlayed_document';
 import { PersistencePromise } from './persistence_promise';
@@ -164,7 +169,7 @@ export class LocalDocumentsView {
   getOverlayedDocuments(
     transaction: PersistenceTransaction,
     docs: MutableDocumentMap
-  ): PersistencePromise<DocumentKeyMap<OverlayedDocument>> {
+  ): PersistencePromise<OverlayedDocumentMap> {
     const overlays = newOverlayMap();
     return this.populateOverlays(transaction, overlays, docs).next(() =>
       this.computeViews(transaction, docs, overlays, documentKeySet())
@@ -180,10 +185,10 @@ export class LocalDocumentsView {
     overlays: OverlayMap,
     docs: MutableDocumentMap
   ): PersistencePromise<void> {
-    let missingOverlays = documentKeySet();
+    const missingOverlays: DocumentKey[] = [];
     docs.forEach(key => {
       if (!overlays.has(key)) {
-        missingOverlays = missingOverlays.add(key);
+        missingOverlays.push(key);
       }
     });
     return this.documentOverlayCache
@@ -212,10 +217,10 @@ export class LocalDocumentsView {
     docs: MutableDocumentMap,
     overlays: OverlayMap,
     existenceStateChanged: DocumentKeySet
-  ): PersistencePromise<DocumentKeyMap<OverlayedDocument>> {
+  ): PersistencePromise<OverlayedDocumentMap> {
     let recalculateDocuments = mutableDocumentMap();
     const mutatedFields = newDocumentKeyMap<FieldMask | null>();
-    const results = newDocumentKeyMap<OverlayedDocument>();
+    const results = newOverlayedDocumentMap();
     docs.forEach((_, doc) => {
       const overlay = overlays.get(doc.key);
       // Recalculate an overlay if the document's existence state changed due to
@@ -370,6 +375,81 @@ export class LocalDocumentsView {
     }
   }
 
+  /**
+   * Given a collection group, returns the next documents that follow the provided offset, along
+   * with an updated batch ID.
+   *
+   * <p>The documents returned by this method are ordered by remote version from the provided
+   * offset. If there are no more remote documents after the provided offset, documents with
+   * mutations in order of batch id from the offset are returned. Since all documents in a batch are
+   * returned together, the total number of documents returned can exceed {@code count}.
+   *
+   * @param transaction
+   * @param collectionGroup The collection group for the documents.
+   * @param offset The offset to index into.
+   * @param count The number of documents to return
+   * @return A LocalWriteResult with the documents that follow the provided offset and the last processed batch id.
+   */
+  getNextDocuments(
+    transaction: PersistenceTransaction,
+    collectionGroup: string,
+    offset: IndexOffset,
+    count: number
+  ): PersistencePromise<LocalWriteResult> {
+    return this.remoteDocumentCache
+      .getAllFromCollectionGroup(transaction, collectionGroup, offset, count)
+      .next((originalDocs: MutableDocumentMap) => {
+        const overlaysPromise: PersistencePromise<OverlayMap> =
+          count - originalDocs.size > 0
+            ? this.documentOverlayCache.getOverlaysForCollectionGroup(
+                transaction,
+                collectionGroup,
+                offset.largestBatchId,
+                count - originalDocs.size
+              )
+            : PersistencePromise.resolve(newOverlayMap());
+        // The callsite will use the largest batch ID together with the latest read time to create
+        // a new index offset. Since we only process batch IDs if all remote documents have been read,
+        // no overlay will increase the overall read time. This is why we only need to special case
+        // the batch id.
+        let largestBatchId = INITIAL_LARGEST_BATCH_ID;
+        let modifiedDocs = originalDocs;
+        return overlaysPromise.next(overlays => {
+          return PersistencePromise.forEach(
+            overlays,
+            (key: DocumentKey, overlay: Overlay) => {
+              if (largestBatchId < overlay.largestBatchId) {
+                largestBatchId = overlay.largestBatchId;
+              }
+              if (originalDocs.get(key)) {
+                return PersistencePromise.resolve();
+              }
+              return this.getBaseDocument(transaction, key, overlay).next(
+                doc => {
+                  modifiedDocs = modifiedDocs.insert(key, doc);
+                }
+              );
+            }
+          )
+            .next(() =>
+              this.populateOverlays(transaction, overlays, originalDocs)
+            )
+            .next(() =>
+              this.computeViews(
+                transaction,
+                modifiedDocs,
+                overlays,
+                documentKeySet()
+              )
+            )
+            .next(localDocs => ({
+              batchId: largestBatchId,
+              changes: convertOverlayedDocumentMapToDocumentMap(localDocs)
+            }));
+        });
+      });
+  }
+
   private getDocumentsMatchingDocumentQuery(
     transaction: PersistenceTransaction,
     docPath: ResourcePath
@@ -477,7 +557,7 @@ export class LocalDocumentsView {
     key: DocumentKey,
     overlay: Overlay | null
   ): PersistencePromise<MutableDocument> {
-    return overlay === null || overlay.mutation instanceof PatchMutation
+    return overlay === null || overlay.mutation.type === MutationType.Patch
       ? this.remoteDocumentCache.getEntry(transaction, key)
       : PersistencePromise.resolve(MutableDocument.newInvalidDocument(key));
   }
