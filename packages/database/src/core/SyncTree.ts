@@ -449,7 +449,7 @@ export function syncTreeRegisterQuery(syncTree: SyncTree, query: QueryContext) {
   if (!syncPoint.views.has(query._queryIdentifier)) {
     syncPoint.views.set(query._queryIdentifier, view);
   }
-  if(!query._queryParams.loadsAllData()) {
+  if (!query._queryParams.loadsAllData()) {
     return syncTreeTagForQuery_(syncTree, query);
   }
   return null;
