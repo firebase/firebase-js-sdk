@@ -437,19 +437,19 @@ export function syncTreeRemoveEventRegistration(
  * @returns tag as a string if query is not a default query, null if query is not.
  */
 export function syncTreeRegisterQuery(syncTree: SyncTree, query: QueryContext) {
+  const { syncPoint, serverCache, writesCache, serverCacheComplete } =
+    syncTreeRegisterSyncPoint(query, syncTree);
+  const view = syncPointGetView(
+    syncPoint,
+    query,
+    writesCache,
+    serverCache,
+    serverCacheComplete
+  );
+  if (!syncPoint.views.has(query._queryIdentifier)) {
+    syncPoint.views.set(query._queryIdentifier, view);
+  }
   if (!query._queryParams.loadsAllData()) {
-    const { syncPoint, serverCache, writesCache, serverCacheComplete } =
-      syncTreeRegisterSyncPoint(query, syncTree);
-    const view = syncPointGetView(
-      syncPoint,
-      query,
-      writesCache,
-      serverCache,
-      serverCacheComplete
-    );
-    if (!syncPoint.views.has(query._queryIdentifier)) {
-      syncPoint.views.set(query._queryIdentifier, view);
-    }
     return syncTreeTagForQuery_(syncTree, query);
   }
   return null;
