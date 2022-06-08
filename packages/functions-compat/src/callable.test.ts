@@ -104,7 +104,11 @@ describe('Firebase Functions > Call', () => {
   it('missing result', async () => {
     const functions = createTestService(app, region);
     const func = functions.httpsCallable('missingResultTest');
-    await expectError(func(), 'functions/internal', 'Response is missing data field.');
+    await expectError(
+      func(),
+      'functions/internal',
+      'Response is missing data field.'
+    );
   });
 
   it('unhandled error', async () => {
@@ -138,6 +142,10 @@ describe('Firebase Functions > Call', () => {
   it('timeout', async () => {
     const functions = createTestService(app, region);
     const func = functions.httpsCallable('timeoutTest', { timeout: 10 });
-    await expectError(func(), 'functions/deadline-exceeded', 'deadline-exceeded');
+    await expectError(
+      func(),
+      'functions/deadline-exceeded',
+      'deadline-exceeded'
+    );
   });
 });
