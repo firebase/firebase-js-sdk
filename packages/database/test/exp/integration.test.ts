@@ -119,20 +119,22 @@ describe('Database@exp Tests', () => {
       query(testRef, startAt('child2')),
       query(testRef, limitToFirst(2))
     ];
-    Promise.all(queries.map(async q => {
-      const initial = [{ name: 'child1' }, { name: 'child2' }];
-      const ec = EventAccumulatorFactory.waitsForExactCount(1);
+    await Promise.all(
+      queries.map(async q => {
+        const initial = [{ name: 'child1' }, { name: 'child2' }];
+        const ec = EventAccumulatorFactory.waitsForExactCount(1);
 
-      await set(testRef, initial);
-      const unsubscribe = onValue(testRef, snapshot => {
-        ec.addEvent(snapshot.val());
-      });
-      await get(q);
-      await waitFor(2000);
-      const [snap] = await ec.promise;
-      expect(snap).to.deep.equal(initial);
-      unsubscribe();
-    }));
+        await set(testRef, initial);
+        const unsubscribe = onValue(testRef, snapshot => {
+          ec.addEvent(snapshot.val());
+        });
+        await get(q);
+        await waitFor(2000);
+        const [snap] = await ec.promise;
+        expect(snap).to.deep.equal(initial);
+        unsubscribe();
+      })
+    );
   });
 
   it('calls onValue and expects no issues with removing the listener', async () => {
