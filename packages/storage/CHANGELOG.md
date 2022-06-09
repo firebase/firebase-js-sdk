@@ -1,5 +1,17 @@
 #Unreleased
 
+## 0.9.7
+
+### Patch Changes
+
+- [`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5) [#6307](https://github.com/firebase/firebase-js-sdk/pull/6307) (fixes [#6300](https://github.com/firebase/firebase-js-sdk/issues/6300)) - fix: add type declarations to exports field
+
+* [`d6338f0af`](https://github.com/firebase/firebase-js-sdk/commit/d6338f0af0f9914d2cd9a16435a9e2ef267d2f4c) [#6345](https://github.com/firebase/firebase-js-sdk/pull/6345) (fixes [#6343](https://github.com/firebase/firebase-js-sdk/issues/6343)) - Fixed Node ESM bundle to build from Node entry point. (It was incorrectly using the browser entry point.)
+
+* Updated dependencies [[`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5)]:
+  - @firebase/component@0.5.15
+  - @firebase/util@1.6.1
+
 ## 0.9.6
 
 ### Patch Changes

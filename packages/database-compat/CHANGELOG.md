@@ -1,5 +1,20 @@
 # @firebase/database-compat
 
+## 0.2.1
+
+### Patch Changes
+
+- [`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5) [#6307](https://github.com/firebase/firebase-js-sdk/pull/6307) (fixes [#6300](https://github.com/firebase/firebase-js-sdk/issues/6300)) - fix: add type declarations to exports field
+
+* [`497d34c84`](https://github.com/firebase/firebase-js-sdk/commit/497d34c8472a19cb8baca56985c98346e5a4727d) [#6319](https://github.com/firebase/firebase-js-sdk/pull/6319) - Remove app-compat from peerDependencies to avoid npm install warning in firebase-admin.
+
+* Updated dependencies [[`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5)]:
+  - @firebase/component@0.5.15
+  - @firebase/database@0.13.1
+  - @firebase/logger@0.3.3
+  - @firebase/util@1.6.1
+  - @firebase/database-types@0.9.9
+
 ## 0.2.0
 
 ### Minor Changes
