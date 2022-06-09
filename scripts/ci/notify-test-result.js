@@ -37,22 +37,8 @@ async function notifyTestResults() {
     status = 'succeeded';
   }
 
-  let message = `E2E Tests ${status}`;
-  let versionOrTag;
-
-  // Add version if it can find it in the workflow_dispatch event data.
-  if (process.env.GITHUB_EVENT_PATH) {
-    const wrPayload = require(process.env.GITHUB_EVENT_PATH);
-    if (wrPayload.inputs && wrPayload.inputs.versionOrTag) {
-      message += ` for release ${wrPayload.inputs.versionOrTag}.`;
-      versionOrTag = wrPayload.inputs.versionOrTag;
-    } else {
-      console.log(`Couldn't find versionOrTag in event payload.`);
-    }
-  } else {
-    console.log(`Couldn't find event payload.`);
-  }
-  message += ` ${workflowUrl}`;
+  const versionOrTag = process.env.VERSION_OR_TAG;
+  const message = `E2E Tests ${status} for release ${versionOrTag}. ${workflowUrl}`;
 
   const chatPromise = new Promise((resolve, reject) => {
     console.log(`Sending message to chat: ${message}`);
