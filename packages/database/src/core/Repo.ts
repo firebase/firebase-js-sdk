@@ -465,7 +465,10 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   if (cached != null) {
     return Promise.resolve(cached);
   }
-  const tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
+  let tag: number;
+  if (!query._queryParams.loadsAllData()) {
+    tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
+  }
   return repo.server_.get(query).then(
     payload => {
       const node = nodeFromJSON(payload).withIndex(
