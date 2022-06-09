@@ -30,35 +30,20 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
+          let branch = context.ref.replace("refs/heads/", "")
           await github.rest.repos.merge({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            base: 'release',
+            base: branch,
             head: 'master'
           })
-    - name: Checkout release branch (with history)
+    - name: Checkout current branch (with history)
       uses: actions/checkout@master
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
-        ref: release
     - name: Yarn install
       run: yarn
-    # Ensures a new @firebase/app is published with every release.
-    # This keeps the SDK_VERSION variable up to date.
-    - name: Add a changeset for @firebase/app
-      # pull master so changeset can diff against it
-      run: |
-        git pull -f --no-rebase origin master:master
-        yarn ts-node-script scripts/ci/add_changeset.ts
-    - name: Create Release Pull Request
-      uses: changesets/action@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
-    - name: Go back to release branch
-      # changesets/action created and checked out a new branch
-      # return to `release` branch.
-      run: git checkout release
     - name: Publish to NPM
       # --skipTests No need to run tests
       # --skipReinstall Yarn install has already been run
