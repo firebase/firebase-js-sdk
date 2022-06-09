@@ -1,25 +1,28 @@
 name: Staging Release
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      release-branch:
+        description: 'Release branch'
+        type: string
+        default: 'release'
+        required: true
+      source-branch:
+        description: 'Branch to release from'
+        type: choice
+        default: 'master'
+        required: true
+        options:
+        - master
+        - v8
 
 jobs:
-  warn:
-    name: Warn If Wrong Branch
-    runs-on: ubuntu-latest
-    # Log a warning if run in a non-release branch.
-    if: github.ref != 'refs/heads/release' && !endsWith(github.ref, '-releasebranch')
-    steps:
-    - name: Log warning
-      run: echo "This workflow must be run in a release branch. It is being run in ${{ github.ref }}."
   deploy:
     name: Staging Release
     runs-on: ubuntu-latest
-    # Block this workflow if run in a non-release branch.
-    if: github.ref == 'refs/heads/release' || endsWith(github.ref, '-releasebranch')
-    # Allow GITHUB_TOKEN to have write permissions
-    permissions:
-      contents: write
-
+    # Block this workflow if run on a non-release branch.
+    if: github.event.inputs.release-branch == 'release' || endsWith(github.event.inputs.release-branch, '-releasebranch')
     steps:
     - name: Set up Node (14)
       uses: actions/setup-node@v2
@@ -28,20 +31,21 @@ jobs:
     - name: Merge master into release
       uses: actions/github-script@v6
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
         script: |
-          let branch = context.ref.replace("refs/heads/", "")
-          await github.rest.repos.merge({
+          const result = await github.rest.repos.merge({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            base: branch,
-            head: 'master'
+            base: '${{ github.event.inputs.release-branch }}',
+            head: '${{ github.event.inputs.source-branch }}'
           })
+          console.log(result)
     - name: Checkout current branch (with history)
       uses: actions/checkout@master
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
+        ref: ${{ github.event.inputs.release-branch }}
     - name: Yarn install
       run: yarn
     - name: Publish to NPM
