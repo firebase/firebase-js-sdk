@@ -61,6 +61,7 @@ jobs:
         env:
           WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
           RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
+          VERSION_OR_TAG: ${{ github.event.client_payload.versionOrTag }}
         # run in root
         working-directory: '.'
       - name: Tests failed
@@ -69,5 +70,6 @@ jobs:
         env:
           WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
           RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
+          VERSION_OR_TAG: ${{ github.event.client_payload.versionOrTag }}
         # run in root
         working-directory: '.'
