@@ -49,7 +49,7 @@
  *
  *   catch (e) {
  *     assert(e.message === "Could not find file: foo.txt.");
- *     if (e.code === 'service/file-not-found') {
+ *     if ((e as FirebaseError)?.code === 'service/file-not-found') {
  *       console.log("Could not read file: " + e['file']);
  *     }
  *   }

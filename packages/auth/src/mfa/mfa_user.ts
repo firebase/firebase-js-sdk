@@ -29,7 +29,7 @@ import { UserInternal } from '../model/user';
 import { MultiFactorAssertionImpl } from './mfa_assertion';
 import { MultiFactorInfoImpl } from './mfa_info';
 import { MultiFactorSessionImpl } from './mfa_session';
-import { getModularInstance } from '@firebase/util';
+import { FirebaseError, getModularInstance } from '@firebase/util';
 
 export class MultiFactorUserImpl implements MultiFactorUser {
   enrolledFactors: MultiFactorInfo[] = [];
@@ -94,7 +94,7 @@ export class MultiFactorUserImpl implements MultiFactorUser {
     try {
       await this.user.reload();
     } catch (e) {
-      if (e.code !== `auth/${AuthErrorCode.TOKEN_EXPIRED}`) {
+      if ((e as FirebaseError)?.code !== `auth/${AuthErrorCode.TOKEN_EXPIRED}`) {
         throw e;
       }
     }

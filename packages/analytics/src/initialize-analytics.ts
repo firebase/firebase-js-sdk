@@ -43,7 +43,7 @@ async function validateIndexedDB(): Promise<boolean> {
     } catch (e) {
       logger.warn(
         ERROR_FACTORY.create(AnalyticsError.INDEXEDDB_UNAVAILABLE, {
-          errorInfo: e
+          errorInfo: (e as Error)?.toString()
         }).message
       );
       return false;
