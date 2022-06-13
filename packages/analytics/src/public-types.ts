@@ -70,7 +70,7 @@ export interface GtagConfigParams {
    * If set to false, disables all advertising features with `gtag.js`.
    * See {@link https://developers.google.com/analytics/devguides/collection/ga4/display-features | Disable advertising features }
    */
-  'allow_google_signals?': boolean;
+  'allow_google_signals'?: boolean;
   /**
    * If set to false, disables all advertising personalization with `gtag.js`.
    * See {@link https://developers.google.com/analytics/devguides/collection/ga4/display-features | Disable advertising features }
