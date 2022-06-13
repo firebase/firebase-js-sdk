@@ -96,8 +96,5 @@ export const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(
 
 // Note how this is like typeof/instanceof, but for ErrorCode.
 export function hasErrorCode(e: Error, errorCode: ErrorCode): boolean {
-  return (
-    e instanceof FirebaseError &&
-    (e as FirebaseError)?.code.indexOf(errorCode) !== -1
-  );
+  return e instanceof FirebaseError && e.code.indexOf(errorCode) !== -1;
 }
