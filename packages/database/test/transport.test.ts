@@ -29,7 +29,7 @@ import { WebSocketConnection } from '../src/realtime/WebSocketConnection';
 use(sinonChai);
 const transportInitError =
   'Transport has already been initialized. Please call this function before calling ref or setting up a listener';
-describe.only('Force Transport', () => {
+describe('Force Transport', () => {
   const oldNodeValue = CONSTANTS.NODE_CLIENT;
   let mySandbox: SinonSandbox;
   let spyWarn: SinonSpy;
