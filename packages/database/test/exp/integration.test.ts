@@ -134,19 +134,6 @@ describe('Database@exp Tests', () => {
     expect(snap1).to.equal('a');
   });
 
-  it('Can goOffline/goOnline', async () => {
-    const db = getDatabase(defaultApp);
-    goOffline(db);
-    try {
-      await get(ref(db, 'foo/bar'));
-      expect.fail('Should have failed since we are offline');
-    } catch (e) {
-      expect(e.message).to.equal('Error: Client is offline.');
-    }
-    goOnline(db);
-    await get(ref(db, 'foo/bar'));
-  });
-
   it('Can delete app', async () => {
     const db = getDatabase(defaultApp);
     await deleteApp(defaultApp);
@@ -154,7 +141,7 @@ describe('Database@exp Tests', () => {
     defaultApp = undefined;
   });
 
-  it.only('waits until the database is online to resolve the get request', async () => {
+  it('waits until the database is online to resolve the get request', async () => {
     const db = getDatabase(defaultApp);
     goOffline(db);
     const r = ref(db, 'foo2');
