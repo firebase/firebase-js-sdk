@@ -71,7 +71,7 @@ export class SimpleDbTransaction {
         db.transaction(objectStoreNames, mode)
       );
     } catch (e) {
-      throw new IndexedDbTransactionError(action, e);
+      throw new IndexedDbTransactionError(action, e as Error);
     }
   }
 
@@ -434,7 +434,8 @@ export class SimpleDb {
         // caller.
         await transaction.completionPromise;
         return transactionFnResult;
-      } catch (error) {
+      } catch (e) {
+        const error = e as Error;
         // TODO(schmidt-sebastian): We could probably be smarter about this and
         // not retry exceptions that are likely unrecoverable (such as quota
         // exceeded errors).
