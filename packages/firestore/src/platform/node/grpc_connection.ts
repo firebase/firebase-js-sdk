@@ -177,7 +177,7 @@ export class GrpcConnection implements Connection {
       logDebug(LOG_TAG, `RPC ${rpcName} received result:`, response);
       results.push(response);
       if (
-        typeof expectedResponseCount !== 'undefined' &&
+        expectedResponseCount !== undefined &&
         results.length === expectedResponseCount
       ) {
         callbackFired = true;
