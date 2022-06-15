@@ -188,7 +188,7 @@ export class FirestoreClient {
         deferred.resolve();
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(
-          e,
+          e as Error,
           `Failed to shutdown persistence`
         );
         deferred.reject(firestoreError);
@@ -525,7 +525,7 @@ async function readDocumentFromCache(
     }
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       `Failed to get document '${docKey} from cache`
     );
     result.reject(firestoreError);
@@ -623,7 +623,7 @@ async function executeQueryFromCache(
     result.resolve(viewChange.snapshot!);
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       `Failed to execute query '${query} against cache`
     );
     result.reject(firestoreError);

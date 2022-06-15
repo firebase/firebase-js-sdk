@@ -844,7 +844,7 @@ export async function localStoreNotifyLocalViewChanges(
       }
     );
   } catch (e) {
-    if (isIndexedDbTransactionError(e)) {
+    if (isIndexedDbTransactionError(e as Error)) {
       // If `notifyLocalViewChanges` fails, we did not advance the sequence
       // number for the documents that were included in this transaction.
       // This might trigger them to be deleted earlier than they otherwise
@@ -1039,7 +1039,7 @@ export async function localStoreReleaseTarget(
       );
     }
   } catch (e) {
-    if (isIndexedDbTransactionError(e)) {
+    if (isIndexedDbTransactionError(e as Error)) {
       // All `releaseTarget` does is record the final metadata state for the
       // target, but we've been recording this periodically during target
       // activity. If we lose this write this could cause a very slight

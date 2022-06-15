@@ -451,7 +451,7 @@ async function onWatchStreamChange(
         watchChange.targetIds.join(','),
         e
       );
-      await disableNetworkUntilRecovery(remoteStoreImpl, e);
+      await disableNetworkUntilRecovery(remoteStoreImpl, e as FirestoreError);
     }
     return;
   }
@@ -481,7 +481,7 @@ async function onWatchStreamChange(
       }
     } catch (e) {
       logDebug(LOG_TAG, 'Failed to raise snapshot:', e);
-      await disableNetworkUntilRecovery(remoteStoreImpl, e);
+      await disableNetworkUntilRecovery(remoteStoreImpl, e as FirestoreError);
     }
   }
 }
@@ -675,7 +675,7 @@ export async function fillWritePipeline(
         addToWritePipeline(remoteStoreImpl, batch);
       }
     } catch (e) {
-      await disableNetworkUntilRecovery(remoteStoreImpl, e);
+      await disableNetworkUntilRecovery(remoteStoreImpl, e as FirestoreError);
     }
   }
 

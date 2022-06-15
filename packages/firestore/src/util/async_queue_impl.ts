@@ -158,7 +158,7 @@ export class AsyncQueueImpl implements AsyncQueue {
       this.retryableOps.shift();
       this.backoff.reset();
     } catch (e) {
-      if (isIndexedDbTransactionError(e)) {
+      if (isIndexedDbTransactionError(e as Error)) {
         logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
       } else {
         throw e; // Failure will be handled by AsyncQueue

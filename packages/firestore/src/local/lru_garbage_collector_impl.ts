@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirestoreError } from '../api';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
 import { debugAssert } from '../util/assert';
@@ -159,14 +160,14 @@ export class LruScheduler implements Scheduler {
         try {
           await this.localStore.collectGarbage(this.garbageCollector);
         } catch (e) {
-          if (isIndexedDbTransactionError(e)) {
+          if (isIndexedDbTransactionError(e as Error)) {
             logDebug(
               LOG_TAG,
               'Ignoring IndexedDB error during garbage collection: ',
               e
             );
           } else {
-            await ignoreIfPrimaryLeaseLoss(e);
+            await ignoreIfPrimaryLeaseLoss(e as FirestoreError);
           }
         }
         await this.scheduleGC(REGULAR_GC_DELAY_MS);

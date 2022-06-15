@@ -473,7 +473,10 @@ export async function syncEngineWrite(
   } catch (e) {
     // If we can't persist the mutation, we reject the user callback and
     // don't send the mutation. The user can then retry the write.
-    const error = wrapInUserErrorIfRecoverable(e, `Failed to persist write`);
+    const error = wrapInUserErrorIfRecoverable(
+      e as Error,
+      `Failed to persist write`
+    );
     userCallback.reject(error);
   }
 }
@@ -532,7 +535,7 @@ export async function syncEngineApplyRemoteEvent(
       remoteEvent
     );
   } catch (error) {
-    await ignoreIfPrimaryLeaseLoss(error);
+    await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
 }
 
@@ -684,7 +687,7 @@ export async function syncEngineApplySuccessfulWrite(
     );
     await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
   } catch (error) {
-    await ignoreIfPrimaryLeaseLoss(error);
+    await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
 }
 
@@ -715,7 +718,7 @@ export async function syncEngineRejectFailedWrite(
     );
     await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
   } catch (error) {
-    await ignoreIfPrimaryLeaseLoss(error);
+    await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
 }
 
@@ -752,7 +755,7 @@ export async function syncEngineRegisterPendingWritesCallback(
     syncEngineImpl.pendingWritesCallbacks.set(highestBatchId, callbacks);
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       'Initialization of waitForPendingWrites() operation failed'
     );
     callback.reject(firestoreError);
@@ -1628,7 +1631,7 @@ async function loadBundleImpl(
     return Promise.resolve(result.changedCollectionGroups);
   } catch (e) {
     logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
-    task._failWith(e);
+    task._failWith(e as FirestoreError);
     return Promise.resolve(new Set<string>());
   }
 }

@@ -124,7 +124,7 @@ export class PersistencePromise<T> {
         return PersistencePromise.resolve(result);
       }
     } catch (e) {
-      return PersistencePromise.reject<R>(e);
+      return PersistencePromise.reject<R>(e as Error);
     }
   }
 
