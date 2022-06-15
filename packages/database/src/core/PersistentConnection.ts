@@ -259,7 +259,7 @@ export class PersistentConnection extends ServerActions {
     );
     assert(
       !this.listens.get(pathString)!.has(queryId),
-      'listen() called twice for same path/queryId.'
+      `listen() called twice for same path/queryId.`
     );
     const listenSpec: ListenSpec = {
       onComplete,

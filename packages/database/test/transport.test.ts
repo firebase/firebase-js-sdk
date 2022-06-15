@@ -29,7 +29,7 @@ import { WebSocketConnection } from '../src/realtime/WebSocketConnection';
 use(sinonChai);
 const transportInitError =
   'Transport has already been initialized. Please call this function before calling ref or setting up a listener';
-describe('Force Transport', () => {
+describe.only('Force Transport', () => {
   const oldNodeValue = CONSTANTS.NODE_CLIENT;
   let mySandbox: SinonSandbox;
   let spyWarn: SinonSpy;
@@ -47,6 +47,7 @@ describe('Force Transport', () => {
     WebSocketConnection.forceDisallow_ = false;
     mySandbox.restore();
   });
+  // Fails without retry due to running tests in async
   it('should enable websockets and disable longPolling', () => {
     forceWebSockets();
     expect(spyWarn.called).to.equal(false);

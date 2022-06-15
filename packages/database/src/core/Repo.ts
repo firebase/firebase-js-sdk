@@ -465,7 +465,6 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   if (cached != null) {
     return Promise.resolve(cached);
   }
-  const tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
   return repo.server_.get(query).then(
     payload => {
       const node = nodeFromJSON(payload).withIndex(
@@ -479,6 +478,7 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
         // We do this (along with the syncTreeRemoveEventRegistration` below) so that
         // `repoGetValue` results have the same cache effects as initial listener(s)
         // updates.
+        const tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
         syncTreeApplyTaggedQueryOverwrite(
           repo.serverSyncTree_,
           query._path,
@@ -496,7 +496,7 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
       if (cancels.length > 0) {
         repoLog(repo, 'unexpected cancel events in repoGetValue');
       }
-      return Promise.resolve(node);
+      return node;
     },
     err => {
       repoLog(repo, 'get for query ' + stringify(query) + ' failed: ' + err);
