@@ -208,13 +208,6 @@ describe('Database@exp Tests', () => {
     const unsubscribe = onValue(nestedRef, snapshot => {
       ea.addEvent(snapshot.val());
     });
-    /*
-      1. Set the value.
-      2. Create the addEventRegistration /test
-        a. listen on /test
-      3. Get the value /
-      4. removeEventRegistration for / and then
-    */
     const result = await get(query(testRef));
     const events = await ea.promise;
     await waitFor(2000);
