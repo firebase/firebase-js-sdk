@@ -154,6 +154,7 @@ describe('Database@exp Tests', () => {
     const [snap1] = await ea.promise;
     expect(snap1).to.deep.eq(initial);
   });
+
   it('calls onValue only once after get request with a default query', async () => {
     const db = getDatabase(defaultApp);
     const { ref: testRef } = getUniqueRef(db);
