@@ -50,7 +50,7 @@ export class TestDocumentOverlayCache {
     });
   }
 
-  getOverlays(keys: DocumentKeySet): Promise<OverlayMap> {
+  getOverlays(keys: DocumentKey[]): Promise<OverlayMap> {
     return this.persistence.runTransaction('getOverlays', 'readonly', txn => {
       return this.cache.getOverlays(txn, keys);
     });

@@ -97,7 +97,7 @@ export async function eventManagerListen(
       queryInfo.viewSnap = await eventManagerImpl.onListen(query);
     } catch (e) {
       const firestoreError = wrapInUserErrorIfRecoverable(
-        e,
+        e as Error,
         `Initialization of query '${stringifyQuery(listener.query)}' failed`
       );
       listener.onError(firestoreError);

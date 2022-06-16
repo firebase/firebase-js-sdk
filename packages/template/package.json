@@ -1,6 +1,6 @@
 {
   "name": "@firebase/template",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "A template package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -45,7 +45,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.7.25",
+    "@firebase/app": "0.7.26",
     "rollup": "2.72.1",
     "rollup-plugin-typescript2": "0.31.2",
     "typescript": "4.2.2"

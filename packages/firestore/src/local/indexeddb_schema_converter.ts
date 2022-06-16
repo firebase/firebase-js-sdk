@@ -18,13 +18,8 @@
 import { User } from '../auth/user';
 import { ListenSequence } from '../core/listen_sequence';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {
-  DocumentKeyMap,
-  DocumentKeySet,
-  documentKeySet
-} from '../model/collections';
+import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { FieldMask } from '../model/field_mask';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { BATCHID_UNKNOWN } from '../util/types';
@@ -489,24 +484,18 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       this.serializer.remoteSerializer
     );
 
-    const promises: Array<
-      PersistencePromise<DocumentKeyMap<FieldMask | null>>
-    > = [];
-    const userToDocumentSet = new Map<string, DocumentKeySet>();
-
-    return mutationsStore
-      .loadAll()
-      .next(dbBatches => {
-        dbBatches.forEach(dbBatch => {
-          let documentSet =
-            userToDocumentSet.get(dbBatch.userId) ?? documentKeySet();
-          const batch = fromDbMutationBatch(this.serializer, dbBatch);
-          batch.keys().forEach(key => (documentSet = documentSet.add(key)));
-          userToDocumentSet.set(dbBatch.userId, documentSet);
-        });
-      })
-      .next(() => {
-        userToDocumentSet.forEach((allDocumentKeysForUser, userId) => {
+    return mutationsStore.loadAll().next(dbBatches => {
+      const userToDocumentSet = new Map<string, DocumentKeySet>();
+      dbBatches.forEach(dbBatch => {
+        let documentSet =
+          userToDocumentSet.get(dbBatch.userId) ?? documentKeySet();
+        const batch = fromDbMutationBatch(this.serializer, dbBatch);
+        batch.keys().forEach(key => (documentSet = documentSet.add(key)));
+        userToDocumentSet.set(dbBatch.userId, documentSet);
+      });
+      return PersistencePromise.forEach(
+        userToDocumentSet,
+        (allDocumentKeysForUser, userId) => {
           const user = new User(userId);
           const documentOverlayCache = IndexedDbDocumentOverlayCache.forUser(
             this.serializer,
@@ -529,15 +518,15 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
             documentOverlayCache,
             indexManager
           );
-          promises.push(
-            localDocumentsView.recalculateAndSaveOverlaysForDocumentKeys(
+          return localDocumentsView
+            .recalculateAndSaveOverlaysForDocumentKeys(
               new IndexedDbTransaction(transaction, ListenSequence.INVALID),
               allDocumentKeysForUser
             )
-          );
-        });
-      })
-      .next(() => PersistencePromise.waitFor(promises));
+            .next();
+        }
+      );
+    });
   }
 }
 

@@ -35,6 +35,7 @@ import {
 import {
   createSubscribe,
   ErrorFactory,
+  FirebaseError,
   getModularInstance,
   Observer,
   Subscribe
@@ -301,7 +302,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     try {
       await _reloadWithoutSaving(user);
     } catch (e) {
-      if (e.code !== `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`) {
+      if ((e as FirebaseError)?.code !== `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`) {
         // Something's wrong with the user's token. Log them out and remove
         // them from storage
         return this.directlySetCurrentUser(null);

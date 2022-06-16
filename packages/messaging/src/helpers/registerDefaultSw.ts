@@ -41,7 +41,7 @@ export async function registerDefaultSw(
     });
   } catch (e) {
     throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
-      browserErrorMessage: e.message
+      browserErrorMessage: (e as Error)?.message
     });
   }
 }

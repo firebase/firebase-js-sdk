@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { OperationType } from '../../model/enums';
 import { UserInternal } from '../../model/user';
@@ -54,7 +55,7 @@ export async function _reauthenticate(
     return UserCredentialImpl._forOperation(user, operationType, response);
   } catch (e) {
     // Convert user deleted error into user mismatch
-    if (e?.code === `auth/${AuthErrorCode.USER_DELETED}`) {
+    if ((e as FirebaseError)?.code === `auth/${AuthErrorCode.USER_DELETED}`) {
       _fail(auth, AuthErrorCode.USER_MISMATCH);
     }
     throw e;

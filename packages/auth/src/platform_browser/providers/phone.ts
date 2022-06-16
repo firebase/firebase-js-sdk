@@ -179,7 +179,7 @@ export class PhoneAuthProvider {
    *       auth.currentUser,
    *       PhoneAuthProvider.credential(verificationId, code));
    * } catch (e) {
-   *   if (e.code === 'auth/account-exists-with-different-credential') {
+   *   if ((e as FirebaseError)?.code === 'auth/account-exists-with-different-credential') {
    *     const cred = PhoneAuthProvider.credentialFromError(e);
    *     await linkWithCredential(auth.currentUser, cred);
    *   }

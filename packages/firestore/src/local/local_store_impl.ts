@@ -28,13 +28,13 @@ import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import {
-  DocumentKeyMap,
+  convertOverlayedDocumentMapToDocumentMap,
   documentKeySet,
   DocumentKeySet,
-  documentMap,
   DocumentMap,
   mutableDocumentMap,
-  MutableDocumentMap
+  MutableDocumentMap,
+  OverlayedDocumentMap
 } from '../model/collections';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -77,7 +77,6 @@ import { LocalStore } from './local_store';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
-import { OverlayedDocument } from './overlayed_document';
 import { Persistence } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -318,7 +317,7 @@ export function localStoreWriteLocally(
   const localWriteTime = Timestamp.now();
   const keys = mutations.reduce((keys, m) => keys.add(m.key), documentKeySet());
 
-  let overlayedDocuments: DocumentKeyMap<OverlayedDocument>;
+  let overlayedDocuments: OverlayedDocumentMap;
   let mutationBatch: MutationBatch;
 
   return localStoreImpl.persistence
@@ -350,7 +349,7 @@ export function localStoreWriteLocally(
             remoteDocs
           );
         })
-        .next(docs => {
+        .next((docs: OverlayedDocumentMap) => {
           overlayedDocuments = docs;
 
           // For non-idempotent mutations (such as `FieldValue.increment()`),
@@ -400,13 +399,10 @@ export function localStoreWriteLocally(
           );
         });
     })
-    .then(() => {
-      let documents = documentMap();
-      overlayedDocuments.forEach(
-        (key, val) => (documents = documents.insert(key, val.overlayedDocument))
-      );
-      return { batchId: mutationBatch.batchId, changes: documents };
-    });
+    .then(() => ({
+      batchId: mutationBatch.batchId,
+      changes: convertOverlayedDocumentMapToDocumentMap(overlayedDocuments)
+    }));
 }
 
 /**
@@ -848,7 +844,7 @@ export async function localStoreNotifyLocalViewChanges(
       }
     );
   } catch (e) {
-    if (isIndexedDbTransactionError(e)) {
+    if (isIndexedDbTransactionError(e as Error)) {
       // If `notifyLocalViewChanges` fails, we did not advance the sequence
       // number for the documents that were included in this transaction.
       // This might trigger them to be deleted earlier than they otherwise
@@ -1043,7 +1039,7 @@ export async function localStoreReleaseTarget(
       );
     }
   } catch (e) {
-    if (isIndexedDbTransactionError(e)) {
+    if (isIndexedDbTransactionError(e as Error)) {
       // All `releaseTarget` does is record the final metadata state for the
       // target, but we've been recording this periodically during target
       // activity. If we lose this write this could cause a very slight
