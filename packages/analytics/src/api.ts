@@ -35,11 +35,13 @@ import {
   getModularInstance,
   deepEqual
 } from '@firebase/util';
-import { ANALYTICS_TYPE } from './constants';
+import { ANALYTICS_TYPE, GtagCommand } from './constants';
 import {
   AnalyticsService,
+  gtagCoreFunction,
   initializationPromisesMap,
-  wrappedGtagFunction
+  wrappedGtagFunction,
+  _setDefaultEventParametersForInit
 } from './factory';
 import { logger } from './logger';
 import {
@@ -50,6 +52,7 @@ import {
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled
 } from './functions';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
+import { findGtagScriptOnPage } from './helpers';
 
 export { settings } from './factory';
 
@@ -224,6 +227,23 @@ export function setAnalyticsCollectionEnabled(
     enabled
   ).catch(e => logger.error(e));
 }
+
+/**
+ * Adds data that will be set on every event logged from the SDK, including automatic one.
+ * By using gtag's set command, the values passed persist on the current page and are passed with
+ * all subsequent events.
+ *
+ * @param customParams Any custom params the user may pass to gtag.js.
+ */
+export function setDefaultEventParameters(customParams: CustomParams): void {
+  if (findGtagScriptOnPage()) {
+    // how do I get gtagCore
+    gtagCoreFunction(GtagCommand.SET, customParams);
+  } else {
+    _setDefaultEventParametersForInit(customParams);
+  }
+}
+
 /**
  * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web

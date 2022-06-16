@@ -28,6 +28,7 @@ import {
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 import { findGtagScriptOnPage, insertScriptTag } from './helpers';
 import { AnalyticsSettings } from './public-types';
+import { defaultEventParametersForInit } from './factory';
 
 async function validateIndexedDB(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {
@@ -140,5 +141,11 @@ export async function _initializeAnalytics(
   // Note: This will trigger a page_view event unless 'send_page_view' is set to false in
   // `configProperties`.
   gtagCore(GtagCommand.CONFIG, dynamicConfig.measurementId, configProperties);
+
+  // Detects if there is data that will be set on every event logged from the SDK.
+  if (defaultEventParametersForInit) {
+    gtagCore(GtagCommand.SET, defaultEventParametersForInit);
+  }
+
   return dynamicConfig.measurementId;
 }
