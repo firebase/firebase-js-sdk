@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import { Database, ref } from '../../src';
 import { ConnectionTarget } from '../../src/api/test_access';
 
