@@ -18,7 +18,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
 import { onValue, set } from '../../src/api/Reference_impl';
 import {
@@ -32,7 +33,9 @@ import {
   runTransaction
 } from '../../src/index';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
-import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
+import { DATABASE_ADDRESS, DATABASE_URL, timeoutResolve } from '../helpers/util';
+
+use(chaiAsPromised);
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
@@ -140,31 +143,20 @@ describe('Database@exp Tests', () => {
     expect(() => ref(db)).to.throw('Cannot call ref on a deleted database.');
     defaultApp = undefined;
   });
-
+  
   it('waits until the database is online to resolve the get request', async () => {
     const db = getDatabase(defaultApp);
-    goOffline(db);
     const r = ref(db, 'foo2');
-    let resolved = false;
-    const getValue = get(r);
-    getValue.then(
-      () => (resolved = true),
-      () => (resolved = true)
-    );
-    // TODO: use new API
-    const deferredTimeout = new Deferred<void>();
-    setTimeout(() => {
-      deferredTimeout.resolve();
-    }, 2000);
-    await deferredTimeout.promise;
-    expect(resolved).to.equal(false);
+    const initial = {
+      test: 1
+    };
+    await set(r, initial);
+    goOffline(db);
+    const getValue = timeoutResolve(get(r));
+    expect(getValue).to.be.rejectedWith('timeout!');
     goOnline(db);
-    const deferredTimeout2 = new Deferred<void>();
-    setTimeout(() => {
-      deferredTimeout2.resolve();
-    }, 2000);
-    await deferredTimeout2.promise;
-    expect(resolved).to.equal(true);
+    const deferredTimeout2 = await timeoutResolve(get(r));
+    expect(deferredTimeout2.val()).to.deep.equal(initial);
   });
 
   it('Can listen to transaction changes', async () => {

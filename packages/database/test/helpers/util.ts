@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { Deferred } from '@firebase/util';
+
 import { ConnectionTarget } from '../../src/api/test_access';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -70,3 +72,11 @@ export function shuffle(arr, randFn = Math.random) {
     arr[j] = tmp;
   }
 }
+
+export function timeoutResolve<T>(promise: Promise<T>, timeInMS = 2000) {
+  const deferredPromise = new Deferred<T>();
+  setTimeout(() => deferredPromise.reject('timeout!'), timeInMS);
+  promise.then(deferredPromise.resolve, deferredPromise.reject);
+  return deferredPromise.promise;
+}
+

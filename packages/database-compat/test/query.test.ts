@@ -3222,7 +3222,7 @@ describe('Query Tests', () => {
     expect(snapshot.val()).to.be.null;
   });
 
-  it.only('get for missing node while offline is rejected', async () => {
+  it('get for missing node while offline is rejected', async () => {
     const node = getRandomNode() as Reference;
     node.database.goOffline();
     try {
