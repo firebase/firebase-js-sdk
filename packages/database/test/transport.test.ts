@@ -47,6 +47,7 @@ describe('Force Transport', () => {
     WebSocketConnection.forceDisallow_ = false;
     mySandbox.restore();
   });
+  // Fails without retry due to running tests in async
   it('should enable websockets and disable longPolling', () => {
     forceWebSockets();
     expect(spyWarn.called).to.equal(false);

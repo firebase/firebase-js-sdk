@@ -8,14 +8,15 @@
       "type": "node",
       "request": "launch",
       "name": "RTDB Unit Tests (Node)",
-      "program": "${workspaceRoot}/packages/firebase/node_modules/.bin/_mocha",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/database",
       "args": [
         "test/{,!(browser)/**/}*.test.ts",
-        "--file", "index.node.ts",
-        "--config", "../../config/mocharc.node.js"
+        "--file", "src/index.node.ts",
+        "--config", "../../config/mocharc.node.js",
       ],
       "env": {
+        "TS_NODE_FILES":true,
         "TS_NODE_CACHE": "NO",
         "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
       },
@@ -30,7 +31,7 @@
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "--require", "babel-register.js",
-        "--require", "index.node.ts",
+        "--require", "src/index.node.ts",
         "--timeout", "5000",
         "test/{,!(browser|integration)/**/}*.test.ts",
         "--exit"
