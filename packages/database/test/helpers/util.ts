@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { uuidv4 } from '@firebase/util';
+import * as Util from '@firebase/util';
 
 import { Database, ref } from '../../src';
 import { ConnectionTarget } from '../../src/api/test_access';
@@ -82,6 +82,6 @@ export function waitFor(waitTimeInMS: number) {
 
 // Creates a unique reference using uuid
 export function getUniqueRef(db: Database) {
-  const path = uuidv4();
+  const path = Util.uuidv4();
   return { ref: ref(db, path), path };
 }

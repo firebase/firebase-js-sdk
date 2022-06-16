@@ -422,8 +422,6 @@ export interface Subscribe<T> {
 // @public (undocumented)
 export type Unsubscribe = () => void;
 
-// Warning: (ae-missing-release-tag) "uuidv4" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export const uuidv4: () => string;
 

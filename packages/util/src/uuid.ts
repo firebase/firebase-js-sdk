@@ -18,6 +18,7 @@
 /**
  * Copied from https://stackoverflow.com/a/2117523
  * Generates a new uuid.
+ * @public
  */
 export const uuidv4 = function (): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
