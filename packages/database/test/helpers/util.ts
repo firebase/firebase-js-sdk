@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import { uuidv4 } from '@firebase/util';
 import { Database, ref } from '../../src';
 import { ConnectionTarget } from '../../src/api/test_access';
