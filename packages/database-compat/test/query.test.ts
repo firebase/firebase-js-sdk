@@ -3222,11 +3222,15 @@ describe('Query Tests', () => {
     expect(snapshot.val()).to.be.null;
   });
 
-  it('get for missing node while offline is rejected', async () => {
+  it.only('get for missing node while offline is rejected', async () => {
     const node = getRandomNode() as Reference;
     node.database.goOffline();
     try {
-      await expect(node.get()).to.eventually.be.rejected;
+      const getPromise = new Promise((resolve, reject) => {
+        setTimeout(reject, 2000);
+        node.get().then(resolve);
+      });
+      await expect(getPromise).to.eventually.be.rejected;
     } finally {
       node.database.goOnline();
     }
