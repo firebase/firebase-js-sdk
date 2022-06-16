@@ -29,7 +29,7 @@ import {
 } from '../../database/test/helpers/EventAccumulator';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 
-import { getFreshRepo, getPath, getRandomNode, pause } from './helpers/util';
+import { getFreshRepo, getPath, getRandomNode, pause, timeoutResolve } from './helpers/util';
 
 use(chaiAsPromised);
 
@@ -3226,10 +3226,7 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     node.database.goOffline();
     try {
-      const getPromise = new Promise((resolve, reject) => {
-        setTimeout(reject, 2000);
-        node.get().then(resolve);
-      });
+      const getPromise = timeoutResolve(node.get());
       await expect(getPromise).to.eventually.be.rejected;
     } finally {
       node.database.goOnline();
