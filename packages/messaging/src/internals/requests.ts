@@ -58,7 +58,7 @@ export async function requestGetToken(
     responseData = await response.json();
   } catch (err) {
     throw ERROR_FACTORY.create(ErrorCode.TOKEN_SUBSCRIBE_FAILED, {
-      errorInfo: err
+      errorInfo: (err as Error)?.toString()
     });
   }
 
@@ -98,7 +98,7 @@ export async function requestUpdateToken(
     responseData = await response.json();
   } catch (err) {
     throw ERROR_FACTORY.create(ErrorCode.TOKEN_UPDATE_FAILED, {
-      errorInfo: err
+      errorInfo: (err as Error)?.toString()
     });
   }
 

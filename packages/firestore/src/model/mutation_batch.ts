@@ -18,7 +18,6 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
-import { OverlayedDocument } from '../local/overlayed_document';
 import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
 
@@ -29,7 +28,7 @@ import {
   DocumentVersionMap,
   documentVersionMap,
   newMutationMap,
-  DocumentKeyMap
+  OverlayedDocumentMap
 } from './collections';
 import { MutableDocument } from './document';
 import { FieldMask } from './field_mask';
@@ -140,7 +139,7 @@ export class MutationBatch {
    * replace all the mutation applications.
    */
   applyToLocalDocumentSet(
-    documentMap: DocumentKeyMap<OverlayedDocument>,
+    documentMap: OverlayedDocumentMap,
     documentsWithoutRemoteVersion: DocumentKeySet
   ): MutationMap {
     // TODO(mrschmidt): This implementation is O(n^2). If we apply the mutations

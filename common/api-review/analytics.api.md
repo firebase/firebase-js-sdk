@@ -121,10 +121,10 @@ export function getAnalytics(app?: FirebaseApp): Analytics;
 
 // @public
 export interface GtagConfigParams {
-    'allow_google_signals?': boolean;
     // (undocumented)
     [key: string]: unknown;
     'allow_ad_personalization_signals'?: boolean;
+    'allow_google_signals'?: boolean;
     'cookie_domain'?: string;
     'cookie_expires'?: number;
     'cookie_flags'?: string;

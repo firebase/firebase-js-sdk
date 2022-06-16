@@ -49,7 +49,7 @@ export interface DocumentOverlayCache {
    */
   getOverlays(
     transaction: PersistenceTransaction,
-    keys: DocumentKeySet
+    keys: DocumentKey[]
   ): PersistencePromise<OverlayMap>;
 
   /**

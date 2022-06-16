@@ -83,7 +83,7 @@ export class Transaction {
     try {
       this.write(data.toMutation(key, this.preconditionForUpdate(key)));
     } catch (e) {
-      this.lastWriteError = e;
+      this.lastWriteError = e as FirestoreError | null;
     }
     this.writtenDocs.add(key.toString());
   }

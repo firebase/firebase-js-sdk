@@ -424,6 +424,38 @@ export function syncTreeRemoveEventRegistration(
 }
 
 /**
+ * This function was added to support non-listener queries,
+ * specifically for use in repoGetValue. It sets up all the same
+ * local cache data-structures (SyncPoint + View) that are
+ * needed for listeners without installing an event registration.
+ * If `query` is not `loadsAllData`, it will also provision a tag for
+ * the query so that query results can be merged into the sync
+ * tree using existing logic for tagged listener queries.
+ *
+ * @param syncTree - Synctree to add the query to.
+ * @param query - Query to register
+ * @returns tag as a string if query is not a default query, null if query is not.
+ */
+export function syncTreeRegisterQuery(syncTree: SyncTree, query: QueryContext) {
+  const { syncPoint, serverCache, writesCache, serverCacheComplete } =
+    syncTreeRegisterSyncPoint(query, syncTree);
+  const view = syncPointGetView(
+    syncPoint,
+    query,
+    writesCache,
+    serverCache,
+    serverCacheComplete
+  );
+  if (!syncPoint.views.has(query._queryIdentifier)) {
+    syncPoint.views.set(query._queryIdentifier, view);
+  }
+  if (!query._queryParams.loadsAllData()) {
+    return syncTreeTagForQuery_(syncTree, query);
+  }
+  return null;
+}
+
+/**
  * Apply new server data for the specified tagged query.
  *
  * @returns Events to raise.
@@ -483,15 +515,14 @@ export function syncTreeApplyTaggedQueryMerge(
 }
 
 /**
- * Add an event callback for the specified query.
- *
- * @returns Events to raise.
+ * Creates a new syncpoint for a query and creates a tag if the view doesn't exist.
+ * Extracted from addEventRegistration to allow `repoGetValue` to properly set up the SyncTree
+ * without actually listening on a query.
  */
-export function syncTreeAddEventRegistration(
-  syncTree: SyncTree,
+export function syncTreeRegisterSyncPoint(
   query: QueryContext,
-  eventRegistration: EventRegistration
-): Event[] {
+  syncTree: SyncTree
+) {
   const path = query._path;
 
   let serverCache: Node | null = null;
@@ -550,6 +581,35 @@ export function syncTreeAddEventRegistration(
     syncTree.tagToQueryMap.set(tag, queryKey);
   }
   const writesCache = writeTreeChildWrites(syncTree.pendingWriteTree_, path);
+  return {
+    syncPoint,
+    writesCache,
+    serverCache,
+    serverCacheComplete,
+    foundAncestorDefaultView,
+    viewAlreadyExists
+  };
+}
+
+/**
+ * Add an event callback for the specified query.
+ *
+ * @returns Events to raise.
+ */
+export function syncTreeAddEventRegistration(
+  syncTree: SyncTree,
+  query: QueryContext,
+  eventRegistration: EventRegistration
+): Event[] {
+  const {
+    syncPoint,
+    serverCache,
+    writesCache,
+    serverCacheComplete,
+    viewAlreadyExists,
+    foundAncestorDefaultView
+  } = syncTreeRegisterSyncPoint(query, syncTree);
+
   let events = syncPointAddEventRegistration(
     syncPoint,
     query,
@@ -937,7 +997,6 @@ function syncTreeSetupListener_(
   const path = query._path;
   const tag = syncTreeTagForQuery_(syncTree, query);
   const listener = syncTreeCreateListenerForView_(syncTree, view);
-
   const events = syncTree.listenProvider_.startListening(
     syncTreeQueryForListening_(query),
     tag,

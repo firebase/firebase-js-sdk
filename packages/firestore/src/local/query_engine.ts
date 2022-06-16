@@ -145,7 +145,7 @@ export class QueryEngine {
       return PersistencePromise.resolve<DocumentMap | null>(null);
     }
 
-    const target = queryToTarget(query);
+    let target = queryToTarget(query);
     return this.indexManager
       .getIndexType(transaction, target)
       .next(indexType => {
@@ -162,10 +162,8 @@ export class QueryEngine {
           // may return the correct set of documents in the wrong order (e.g. if
           // the index doesn't include a segment for one of the orderBys).
           // Therefore, a limit should not be applied in such cases.
-          return this.performQueryUsingIndex(
-            transaction,
-            queryWithLimit(query, null, LimitType.First)
-          );
+          query = queryWithLimit(query, null, LimitType.First);
+          target = queryToTarget(query);
         }
 
         return this.indexManager

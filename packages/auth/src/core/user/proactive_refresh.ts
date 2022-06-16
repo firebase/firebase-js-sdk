@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { UserInternal } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 
@@ -92,7 +93,7 @@ export class ProactiveRefresh {
       await this.user.getIdToken(true);
     } catch (e) {
       // Only retry on network errors
-      if (e.code === `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`) {
+      if ((e as FirebaseError)?.code === `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`) {
         this.schedule(/* wasError */ true);
       }
 

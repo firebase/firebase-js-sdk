@@ -32,6 +32,7 @@ export * from './src/sha1';
 export * from './src/subscribe';
 export * from './src/validation';
 export * from './src/utf8';
+export * from './src/uuid';
 export * from './src/exponential_backoff';
 export * from './src/formatters';
 export * from './src/compat';

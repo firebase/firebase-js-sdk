@@ -427,6 +427,9 @@ export function timeoutResolve<T>(promise: Promise<T>, timeInMS?: number): Promi
 // @public (undocumented)
 export type Unsubscribe = () => void;
 
+// @public
+export const uuidv4: () => string;
+
 // Warning: (ae-missing-release-tag) "validateArgCount" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public

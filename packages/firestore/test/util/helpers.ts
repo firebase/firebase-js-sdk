@@ -231,6 +231,7 @@ export function fieldIndex(
     id?: number;
     fields?: Array<[field: string, kind: IndexKind]>;
     offset?: IndexOffset;
+    sequenceNumber?: number;
   } = {}
 ): FieldIndex {
   return new FieldIndex(
@@ -239,7 +240,10 @@ export function fieldIndex(
     (options.fields ?? []).map(
       entry => new IndexSegment(field(entry[0]), entry[1])
     ),
-    new IndexState(INITIAL_SEQUENCE_NUMBER, options.offset ?? IndexOffset.min())
+    new IndexState(
+      options.sequenceNumber ?? INITIAL_SEQUENCE_NUMBER,
+      options.offset ?? IndexOffset.min()
+    )
   );
 }
 
