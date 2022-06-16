@@ -153,11 +153,11 @@ export class GrpcConnection implements Connection {
     path: string,
     request: Req,
     authToken: Token | null,
-    appCheckToken: Token | null
+    appCheckToken: Token | null,
+    expectedResponseCount?: number
   ): Promise<Resp[]> {
     const results: Resp[] = [];
     const responseDeferred = new Deferred<Resp[]>();
-
     logDebug(
       LOG_TAG,
       `RPC '${rpcName}' invoked (streaming) with request:`,
@@ -172,13 +172,24 @@ export class GrpcConnection implements Connection {
     );
     const jsonRequest = { ...request, database: this.databasePath };
     const stream = stub[rpcName](jsonRequest, metadata);
+    let callbackFired = false;
     stream.on('data', (response: Resp) => {
       logDebug(LOG_TAG, `RPC ${rpcName} received result:`, response);
       results.push(response);
+      if (
+        expectedResponseCount !== undefined &&
+        results.length === expectedResponseCount
+      ) {
+        callbackFired = true;
+        responseDeferred.resolve(results);
+      }
     });
     stream.on('end', () => {
       logDebug(LOG_TAG, `RPC '${rpcName}' completed.`);
-      responseDeferred.resolve(results);
+      if (!callbackFired) {
+        callbackFired = true;
+        responseDeferred.resolve(results);
+      }
     });
     stream.on('error', (grpcError: grpc.ServiceError) => {
       logDebug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);

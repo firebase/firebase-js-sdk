@@ -104,7 +104,8 @@ export abstract class RestConnection implements Connection {
     path: string,
     request: Req,
     authToken: Token | null,
-    appCheckToken: Token | null
+    appCheckToken: Token | null,
+    expectedResponseCount?: number
   ): Promise<Resp[]> {
     // The REST API automatically aggregates all of the streamed results, so we
     // can just use the normal invoke() method.
