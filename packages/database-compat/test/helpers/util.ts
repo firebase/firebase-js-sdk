@@ -176,11 +176,3 @@ export function canCreateExtraConnections() {
     typeof MozWebSocket !== 'undefined' || typeof WebSocket !== 'undefined'
   );
 }
-
-// TODO: Move this to @firebase/util
-export function timeoutResolve<T>(promise: Promise<T>, timeInMS = 2000) {
-  const deferredPromise = new Deferred<T>();
-  setTimeout(() => deferredPromise.reject('timeout!'), timeInMS);
-  promise.then(deferredPromise.resolve, deferredPromise.reject);
-  return deferredPromise.promise;
-}
