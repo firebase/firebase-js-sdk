@@ -27,7 +27,7 @@ import { Provider } from '@firebase/component';
 import {
   getModularInstance,
   createMockUserToken,
-  EmulatorMockTokenOptions,
+  EmulatorMockTokenOptions
 } from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
