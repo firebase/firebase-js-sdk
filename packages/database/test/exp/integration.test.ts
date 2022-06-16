@@ -17,7 +17,7 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app';
-import { Deferred } from '@firebase/util';
+import { Deferred, timeoutResolve } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -33,7 +33,7 @@ import {
   runTransaction
 } from '../../src/index';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
-import { DATABASE_ADDRESS, DATABASE_URL, timeoutResolve } from '../helpers/util';
+import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
 
 use(chaiAsPromised);
 

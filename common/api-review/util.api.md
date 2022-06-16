@@ -417,6 +417,11 @@ export interface Subscribe<T> {
     (observer: PartialObserver<T>): Unsubscribe;
 }
 
+// Warning: (ae-missing-release-tag) "timeoutResolve" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function timeoutResolve<T>(promise: Promise<T>, timeInMS?: number): Promise<T>;
+
 // Warning: (ae-missing-release-tag) "Unsubscribe" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)

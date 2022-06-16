@@ -26,6 +26,7 @@ export * from './src/errors';
 export * from './src/json';
 export * from './src/jwt';
 export * from './src/obj';
+export * from './src/promise';
 export * from './src/query';
 export * from './src/sha1';
 export * from './src/subscribe';

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { timeoutResolve } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as _ from 'lodash';
@@ -29,7 +30,7 @@ import {
 } from '../../database/test/helpers/EventAccumulator';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 
-import { getFreshRepo, getPath, getRandomNode, pause, timeoutResolve } from './helpers/util';
+import { getFreshRepo, getPath, getRandomNode, pause } from './helpers/util';
 
 use(chaiAsPromised);
 
