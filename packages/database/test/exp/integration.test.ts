@@ -266,7 +266,7 @@ describe('Database@exp Tests', () => {
     expect(() => ref(db)).to.throw('Cannot call ref on a deleted database.');
     defaultApp = undefined;
   });
-  
+
   it('waits until the database is online to resolve the get request', async () => {
     const db = getDatabase(defaultApp);
     const r = ref(db, 'foo2');
