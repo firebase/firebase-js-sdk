@@ -16,7 +16,7 @@
  */
 
 import { initializeApp, deleteApp } from '@firebase/app';
-import { Deferred, promiseWithTimeout } from '@firebase/util';
+import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
