@@ -3394,8 +3394,8 @@ describe('Query Tests', () => {
     expect(snapshot.val()).to.deep.equal({ data: '1' });
     reader.database.goOffline();
     try {
-      await expect(promiseWithTimeout(reader.child('foo/notCached').get())).to.eventually.be
-        .rejected;
+      await expect(promiseWithTimeout(reader.child('foo/notCached').get())).to
+        .eventually.be.rejected;
     } finally {
       reader.database.goOnline();
     }
