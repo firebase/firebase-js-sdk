@@ -340,7 +340,8 @@ function extractJSDocComment(
   });
 
   if (comments.length > 0) {
-    const jsDocTags = ts.getJSDocTags(symbol.declarations[overloadCount]);
+    const declartions = (symbol.declarations ?? [])[overloadCount];
+    const jsDocTags = ts.getJSDocTags(declartions);
     const maybeNewline = jsDocTags?.length > 0 ? '\n' : '';
     return ts.factory.createJSDocComment(
       comments[0].text + maybeNewline,
@@ -399,7 +400,7 @@ function extractExportedSymbol(
   // See if there is an exported symbol that extends this private symbol.
   // In this case, we can safely use the public symbol instead.
   for (const symbol of allExportedSymbols) {
-    for (const declaration of symbol.declarations) {
+    for (const declaration of symbol.declarations ?? []) {
       if (
         ts.isClassDeclaration(declaration) ||
         ts.isInterfaceDeclaration(declaration)
@@ -426,7 +427,7 @@ function extractExportedSymbol(
   // symbol with a less restrictive type.
   const localSymbol = typeChecker.getSymbolAtLocation(typeName);
   if (localSymbol) {
-    for (const declaration of localSymbol!.declarations) {
+    for (const declaration of localSymbol.declarations ?? []) {
       if (
         ts.isClassDeclaration(declaration) ||
         ts.isInterfaceDeclaration(declaration)

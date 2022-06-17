@@ -24,13 +24,16 @@ import { describe, it } from 'mocha';
 import { pruneDts } from './prune-dts';
 
 const testCasesDir = path.resolve(__dirname, 'tests');
-const tmpDir = os.tmpdir();
+const tmpDir = path.resolve(__dirname, 'tests');
+// const tmpDir = os.tmpdir(); // Update to a hard file path so I can look at the generated files
+// compare temp file to repo-scripts/prune-dts/tests/firestore.output.d.ts
+// if changes are minor, change output file to match. If changes are significant,
 
 const testDataFilter = /(.*).input.d.ts/;
 const testCaseFilterRe = /.*/;
 
 async function runScript(inputFile: string): Promise<string> {
-  const outputFile = path.resolve(tmpDir, 'output.d.ts');
+  const outputFile = path.resolve(testCasesDir, 'output.d.ts');
   pruneDts(inputFile, outputFile);
   return outputFile;
 }
@@ -66,7 +69,7 @@ function getTestCases(): TestCase[] {
 
 describe('Prune DTS', () => {
   for (const testCase of getTestCases()) {
-    it(testCase.name, async () => {
+    if(testCase.name === 'firestore'){it(testCase.name, async () => {
       const absoluteInputFile = path.resolve(
         testCasesDir,
         testCase.inputFileName
@@ -92,8 +95,12 @@ describe('Prune DTS', () => {
         filepath: tmpFile,
         ...prettierConfig
       });
+      // Write the formatted files to diff them
+
+      fs.writeFileSync(`${testCasesDir}/expectedDts.d.ts`, expectedDts);
+      fs.writeFileSync(`${testCasesDir}/eactualDts.d.ts`, actualDts);
 
       expect(actualDts).to.equal(expectedDts);
-    });
+    });}
   }
 });
