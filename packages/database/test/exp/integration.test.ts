@@ -16,7 +16,7 @@
  */
 
 import { initializeApp, deleteApp } from '@firebase/app';
-import { Deferred, timeoutResolve } from '@firebase/util';
+import { Deferred, promiseWithTimeout } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -275,10 +275,10 @@ describe('Database@exp Tests', () => {
     };
     await set(r, initial);
     goOffline(db);
-    const getValue = timeoutResolve(get(r));
+    const getValue = promiseWithTimeout(get(r));
     expect(getValue).to.be.rejectedWith('timeout!');
     goOnline(db);
-    const deferredTimeout2 = await timeoutResolve(get(r));
+    const deferredTimeout2 = await promiseWithTimeout(get(r));
     expect(deferredTimeout2.val()).to.deep.equal(initial);
   });
 

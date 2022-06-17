@@ -17,11 +17,11 @@
 
 import { Deferred } from "./deferred";
 
-/*
-    Rejects if the given promise doesn't resolve in timeInMS milliseconds.
-    @internal
-*/
-export function timeoutResolve<T>(promise: Promise<T>, timeInMS = 2000) {
+/**
+ * Rejects if the given promise doesn't resolve in timeInMS milliseconds.
+ * @internal
+ */
+export function promiseWithTimeout<T>(promise: Promise<T>, timeInMS = 2000): Promise<T> {
   const deferredPromise = new Deferred<T>();
   setTimeout(() => deferredPromise.reject('timeout!'), timeInMS);
   promise.then(deferredPromise.resolve, deferredPromise.reject);

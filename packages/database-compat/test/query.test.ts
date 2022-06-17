@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { timeoutResolve } from '@firebase/util';
+import { promiseWithTimeout } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as _ from 'lodash';
@@ -3227,7 +3227,7 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     node.database.goOffline();
     try {
-      const getPromise = timeoutResolve(node.get());
+      const getPromise = promiseWithTimeout(node.get());
       await expect(getPromise).to.eventually.be.rejected;
     } finally {
       node.database.goOnline();
