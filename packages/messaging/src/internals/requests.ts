@@ -141,7 +141,7 @@ export async function requestDeleteToken(
     }
   } catch (err) {
     throw ERROR_FACTORY.create(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED, {
-      errorInfo: err
+      errorInfo: (err as Error)?.toString()
     });
   }
 }
