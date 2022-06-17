@@ -267,19 +267,29 @@ describe('Database@exp Tests', () => {
     defaultApp = undefined;
   });
 
-  it('waits until the database is online to resolve the get request', async () => {
+  it('blocks get requests until the database is online', async () => {
     const db = getDatabase(defaultApp);
-    const r = ref(db, 'foo2');
+    const r = ref(db, 'foo3');
     const initial = {
       test: 1
     };
     await set(r, initial);
     goOffline(db);
-    const getValue = promiseWithTimeout(get(r));
-    expect(getValue).to.be.rejectedWith('timeout!');
+    const pendingGet = get(r);
+    let resolvedData: any = null;
+    pendingGet.then(
+      data => {
+        resolvedData = data;
+      },
+      () => {
+        resolvedData = new Error('rejected');
+      }
+    );
+    await waitFor(2000);
+    expect(resolvedData).to.equal(null);
     goOnline(db);
-    const deferredTimeout2 = await promiseWithTimeout(get(r));
-    expect(deferredTimeout2.val()).to.deep.equal(initial);
+    await waitFor(2000);
+    expect(resolvedData.val()).to.deep.equal(initial);
   });
 
   it('Can listen to transaction changes', async () => {
