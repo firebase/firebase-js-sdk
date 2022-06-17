@@ -22,7 +22,6 @@ import '../../src/index';
 import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
-import { Deferred } from '@firebase/util';
 
 import { Path } from '../../../database/src/core/util/Path';
 import { Query, Reference } from '../../src/api/Reference';
