@@ -29,7 +29,7 @@ import { FirebaseApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { removeGtagScript } from '../testing/gtag-script-util';
-import {setDefaultEventParameters} from './api';
+import { setDefaultEventParameters } from './api';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeFid = 'fid-1234-zyxw';
@@ -100,7 +100,10 @@ describe('initializeAnalytics()', () => {
   });
   it('calls gtag set if there are default event parameters', async () => {
     stubFetch();
-    const defaultEventParametersForInit = {'github_user': 'dwyfrequency', 'company': 'google'};
+    const defaultEventParametersForInit = {
+      'github_user': 'dwyfrequency',
+      'company': 'google'
+    };
     setDefaultEventParameters(defaultEventParametersForInit);
     await _initializeAnalytics(
       app,
@@ -108,9 +111,12 @@ describe('initializeAnalytics()', () => {
       measurementIdToAppId,
       fakeInstallations,
       gtagStub,
-      'dataLayer',
+      'dataLayer'
     );
-    expect(gtagStub).to.be.calledWith(GtagCommand.SET, defaultEventParametersForInit);
+    expect(gtagStub).to.be.calledWith(
+      GtagCommand.SET,
+      defaultEventParametersForInit
+    );
   });
   it('puts dynamic fetch promise into dynamic promises list', async () => {
     stubFetch();

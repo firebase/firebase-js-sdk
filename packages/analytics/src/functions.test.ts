@@ -26,7 +26,10 @@ import {
   setAnalyticsCollectionEnabled
 } from './functions';
 import { GtagCommand } from './constants';
-import {defaultEventParametersForInit, _setDefaultEventParametersForInit} from './factory';
+import {
+  defaultEventParametersForInit,
+  _setDefaultEventParametersForInit
+} from './factory';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
@@ -172,13 +175,19 @@ describe('FirebaseAnalytics methods', () => {
     delete window[`ga-disable-${fakeMeasurementId}`];
   });
   it('_setDefaultEventParametersForInit() stores individual params correctly', async () => {
-    const eventParametersForInit = {'github_user': 'dwyfrequency', 'company': 'google'};
+    const eventParametersForInit = {
+      'github_user': 'dwyfrequency',
+      'company': 'google'
+    };
     _setDefaultEventParametersForInit(eventParametersForInit);
     expect(defaultEventParametersForInit).to.deep.equal(eventParametersForInit);
   });
   it('_setDefaultEventParametersForInit() adds new params correctly', async () => {
-    const eventParametersForInit = {'github_user': 'dwyfrequency', 'company': 'google'};
-    const additionalParams = {'food': 'sushi'};
+    const eventParametersForInit = {
+      'github_user': 'dwyfrequency',
+      'company': 'google'
+    };
+    const additionalParams = { 'food': 'sushi' };
     _setDefaultEventParametersForInit(eventParametersForInit);
     _setDefaultEventParametersForInit(additionalParams);
     expect(defaultEventParametersForInit).to.deep.equal({
