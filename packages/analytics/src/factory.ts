@@ -81,7 +81,7 @@ let gtagName: string = 'gtag';
  * Reproduction of standard gtag function or reference to existing
  * gtag function on window object.
  */
-export let gtagCoreFunction: Gtag;
+let gtagCoreFunction: Gtag;
 
 /**
  * Wrapper around gtag function that ensures FID is sent with all

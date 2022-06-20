@@ -38,7 +38,6 @@ import {
 import { ANALYTICS_TYPE, GtagCommand } from './constants';
 import {
   AnalyticsService,
-  gtagCoreFunction,
   initializationPromisesMap,
   wrappedGtagFunction,
   _setDefaultEventParametersForInit
@@ -52,7 +51,6 @@ import {
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled
 } from './functions';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
-import { findGtagScriptOnPage } from './helpers';
 
 export { settings } from './factory';
 
@@ -236,9 +234,9 @@ export function setAnalyticsCollectionEnabled(
  * @param customParams Any custom params the user may pass to gtag.js.
  */
 export function setDefaultEventParameters(customParams: CustomParams): void {
-  if (findGtagScriptOnPage()) {
-    // how do I get gtagCore
-    gtagCoreFunction(GtagCommand.SET, customParams);
+  // Check if reference to existing gtag function on window object exists
+  if (wrappedGtagFunction) {
+    wrappedGtagFunction(GtagCommand.SET, customParams);
   } else {
     _setDefaultEventParametersForInit(customParams);
   }
