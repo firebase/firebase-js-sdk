@@ -5228,7 +5228,7 @@ declare namespace firebase.analytics {
      * Use gtag 'config' command to set 'user_id'.
      */
     setUserId(
-      id: string,
+      id: string | null,
       options?: firebase.analytics.AnalyticsCallOptions
     ): void;
 
