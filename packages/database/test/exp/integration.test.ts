@@ -15,29 +15,40 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
-import { onValue, set } from '../../src/api/Reference_impl';
 import {
   get,
+  limitToFirst,
+  onValue,
+  query,
+  refFromURL,
+  set,
+  startAt
+} from '../../src/api/Reference_impl';
+import {
   getDatabase,
   goOffline,
   goOnline,
   push,
   ref,
-  refFromURL,
   runTransaction
 } from '../../src/index';
 import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
-import { DATABASE_ADDRESS, DATABASE_URL } from '../helpers/util';
+import {
+  DATABASE_ADDRESS,
+  DATABASE_URL,
+  getUniqueRef,
+  waitFor
+} from '../helpers/util';
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
 }
 
+// Note: these run in parallel with the node environment. If you use the same paths in parallel, you may experience race conditions.
 describe('Database@exp Tests', () => {
   let defaultApp;
 
@@ -84,8 +95,8 @@ describe('Database@exp Tests', () => {
     const db = getDatabase(defaultApp);
     const fooRef = ref(db, 'foo');
 
-    const ea = EventAccumulatorFactory.waitsForCount(2);
-    onValue(fooRef, snap => {
+    const ea = EventAccumulatorFactory.waitsForExactCount(2);
+    const unsubscribe = onValue(fooRef, snap => {
       ea.addEvent(snap.val());
     });
 
@@ -95,14 +106,124 @@ describe('Database@exp Tests', () => {
     const [snap1, snap2] = await ea.promise;
     expect(snap1).to.equal('a');
     expect(snap2).to.equal('b');
+    unsubscribe();
+  });
+
+  // Tests to make sure onValue's data does not get mutated after calling get
+  it('calls onValue only once after get request with a non-default query', async () => {
+    const db = getDatabase(defaultApp);
+    const { ref: testRef } = getUniqueRef(db);
+    const queries = [
+      query(testRef, limitToFirst(1)),
+      query(testRef, startAt('child1')),
+      query(testRef, startAt('child2')),
+      query(testRef, limitToFirst(2))
+    ];
+    await Promise.all(
+      queries.map(async q => {
+        const initial = [{ name: 'child1' }, { name: 'child2' }];
+        const ec = EventAccumulatorFactory.waitsForExactCount(1);
+
+        await set(testRef, initial);
+        const unsubscribe = onValue(testRef, snapshot => {
+          ec.addEvent(snapshot.val());
+        });
+        await get(q);
+        await waitFor(2000);
+        const [snap] = await ec.promise;
+        expect(snap).to.deep.equal(initial);
+        unsubscribe();
+      })
+    );
+  });
+
+  it('calls onValue and expects no issues with removing the listener', async () => {
+    const db = getDatabase(defaultApp);
+    const { ref: testRef } = getUniqueRef(db);
+    const initial = [{ name: 'child1' }, { name: 'child2' }];
+    const ea = EventAccumulatorFactory.waitsForExactCount(1);
+    await set(testRef, initial);
+    const unsubscribe = onValue(testRef, snapshot => {
+      ea.addEvent(snapshot.val());
+    });
+    await get(query(testRef));
+    await waitFor(2000);
+    const update = [{ name: 'child1' }, { name: 'child20' }];
+    unsubscribe();
+    await set(testRef, update);
+    const [snap1] = await ea.promise;
+    expect(snap1).to.deep.eq(initial);
+  });
+
+  it('calls onValue only once after get request with a default query', async () => {
+    const db = getDatabase(defaultApp);
+    const { ref: testRef } = getUniqueRef(db);
+    const initial = [{ name: 'child1' }, { name: 'child2' }];
+    const ea = EventAccumulatorFactory.waitsForExactCount(1);
+
+    await set(testRef, initial);
+    const unsubscribe = onValue(testRef, snapshot => {
+      ea.addEvent(snapshot.val());
+      expect(snapshot.val()).to.deep.eq(initial);
+    });
+    await get(query(testRef));
+    await waitFor(2000);
+    const [snap] = await ea.promise;
+    expect(snap).to.deep.equal(initial);
+    unsubscribe();
+  });
+  it('calls onValue only once after get request with a nested query', async () => {
+    const db = getDatabase(defaultApp);
+    const ea = EventAccumulatorFactory.waitsForExactCount(1);
+    const { ref: testRef, path } = getUniqueRef(db);
+    const initial = {
+      test: {
+        abc: 123
+      }
+    };
+
+    await set(testRef, initial);
+    const unsubscribe = onValue(testRef, snapshot => {
+      ea.addEvent(snapshot.val());
+    });
+    const nestedRef = ref(db, path + '/test');
+    const result = await get(query(nestedRef));
+    await waitFor(2000);
+    const [snap] = await ea.promise;
+    expect(snap).to.deep.equal(initial);
+    expect(result.val()).to.deep.eq(initial.test);
+    unsubscribe();
+  });
+  it('calls onValue only once after parent get request', async () => {
+    const db = getDatabase(defaultApp);
+    const { ref: testRef, path } = getUniqueRef(db);
+    const ea = EventAccumulatorFactory.waitsForExactCount(1);
+    const initial = {
+      test: {
+        abc: 123
+      }
+    };
+
+    await set(testRef, initial);
+    const nestedRef = ref(db, path + '/test');
+    const unsubscribe = onValue(nestedRef, snapshot => {
+      ea.addEvent(snapshot.val());
+    });
+    const result = await get(query(testRef));
+    const events = await ea.promise;
+    await waitFor(2000);
+    expect(events.length).to.equal(1);
+    expect(events[0]).to.deep.eq(initial.test);
+    expect(result.val()).to.deep.equal(initial);
+    unsubscribe();
   });
 
   it('Can use onlyOnce', async () => {
     const db = getDatabase(defaultApp);
     const fooRef = ref(db, 'foo');
 
-    const ea = EventAccumulatorFactory.waitsForCount(1);
-    onValue(
+    const ea = EventAccumulatorFactory.waitsForExactCount(1);
+    const unsubscribe = onValue(
       fooRef,
       snap => {
         ea.addEvent(snap.val());
@@ -114,14 +235,15 @@ describe('Database@exp Tests', () => {
     await set(fooRef, 'b');
 
     const [snap1] = await ea.promise;
-    expect(snap1).to.equal('a');
+    expect(snap1).to.equal('a'); // This doesn't test that onValue was only triggered once
+    unsubscribe();
   });
 
   it('Can unsubscribe', async () => {
     const db = getDatabase(defaultApp);
     const fooRef = ref(db, 'foo');
 
-    const ea = EventAccumulatorFactory.waitsForCount(1);
+    const ea = EventAccumulatorFactory.waitsForExactCount(1);
     const unsubscribe = onValue(fooRef, snap => {
       ea.addEvent(snap.val());
     });
@@ -130,8 +252,9 @@ describe('Database@exp Tests', () => {
     unsubscribe();
     await set(fooRef, 'b');
 
-    const [snap1] = await ea.promise;
-    expect(snap1).to.equal('a');
+    const events = await ea.promise;
+    expect(events.length).to.equal(1);
+    expect(events[0]).to.equal('a');
   });
 
   it('Can goOffline/goOnline', async () => {
@@ -163,7 +286,7 @@ describe('Database@exp Tests', () => {
     const database = getDatabase(defaultApp);
     const counterRef = push(ref(database, 'counter'));
 
-    onValue(counterRef, snap => {
+    const unsubscribe = onValue(counterRef, snap => {
       latestValue = snap.val();
       deferred.resolve();
     });
@@ -184,5 +307,6 @@ describe('Database@exp Tests', () => {
     expect(latestValue).to.equal(1);
     await incrementViaTransaction();
     expect(latestValue).to.equal(2);
+    unsubscribe();
   });
 });

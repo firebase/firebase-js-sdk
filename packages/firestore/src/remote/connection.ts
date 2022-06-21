@@ -68,7 +68,8 @@ export interface Connection {
     path: string,
     request: Req,
     authToken: Token | null,
-    appCheckToken: Token | null
+    appCheckToken: Token | null,
+    expectedResponseCount?: number
   ): Promise<Resp[]>;
 
   /**

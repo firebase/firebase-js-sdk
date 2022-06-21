@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { uuidv4 } from '@firebase/util';
+
+import { Database, ref } from '../../src';
 import { ConnectionTarget } from '../../src/api/test_access';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -69,4 +72,16 @@ export function shuffle(arr, randFn = Math.random) {
     arr[i] = arr[j];
     arr[j] = tmp;
   }
+}
+
+// Waits for specific number of milliseconds before resolving
+// Example: await waitFor(4000) will wait until 4 seconds to execute the next line of code.
+export function waitFor(waitTimeInMS: number) {
+  return new Promise(resolve => setTimeout(resolve, waitTimeInMS));
+}
+
+// Creates a unique reference using uuid
+export function getUniqueRef(db: Database) {
+  const path = uuidv4();
+  return { ref: ref(db, path), path };
 }

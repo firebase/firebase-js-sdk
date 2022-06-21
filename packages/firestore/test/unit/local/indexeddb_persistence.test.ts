@@ -1246,9 +1246,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       );
       await db.ensureDb(this.test!.fullTitle());
     } catch (e) {
-      error = e;
+      error = e as FirestoreError;
       expect(
-        e.message.indexOf('A newer version of the Firestore SDK')
+        error?.message?.indexOf('A newer version of the Firestore SDK')
       ).to.not.equal(-1);
     }
     expect(error).to.not.be.null;

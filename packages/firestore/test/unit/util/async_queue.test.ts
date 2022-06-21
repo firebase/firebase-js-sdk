@@ -441,7 +441,7 @@ function defer<T>(op: () => T): Promise<T> {
       try {
         resolve(op());
       } catch (e) {
-        reject(e);
+        reject(e as Error);
       }
     }, 0);
   });

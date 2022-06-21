@@ -95,7 +95,7 @@ export class TransactionRunner<T> {
       return userPromise;
     } catch (error) {
       // Do not retry errors thrown by user provided updateFunction.
-      this.deferred.reject(error);
+      this.deferred.reject(error as Error);
       return null;
     }
   }

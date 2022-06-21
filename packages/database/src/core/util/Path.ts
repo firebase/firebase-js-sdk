@@ -230,7 +230,7 @@ export function pathEquals(path: Path, other: Path): boolean {
 }
 
 /**
- * @returns True if this path is a parent (or the same as) other
+ * @returns True if this path is a parent of (or the same as) other
  */
 export function pathContains(path: Path, other: Path): boolean {
   let i = path.pieceNum_;

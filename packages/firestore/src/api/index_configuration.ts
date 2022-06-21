@@ -205,7 +205,7 @@ function tryParseJson(json: string): Record<string, unknown> {
   } catch (e) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      'Failed to parse JSON:' + e.message
+      'Failed to parse JSON:' + (e as Error)?.message
     );
   }
 }
