@@ -39,8 +39,7 @@ import { ANALYTICS_TYPE, GtagCommand } from './constants';
 import {
   AnalyticsService,
   initializationPromisesMap,
-  wrappedGtagFunction,
-  _setDefaultEventParametersForInit
+  wrappedGtagFunction
 } from './factory';
 import { logger } from './logger';
 import {
@@ -48,7 +47,8 @@ import {
   setCurrentScreen as internalSetCurrentScreen,
   setUserId as internalSetUserId,
   setUserProperties as internalSetUserProperties,
-  setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled
+  setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled,
+  _setDefaultEventParametersForInit
 } from './functions';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 

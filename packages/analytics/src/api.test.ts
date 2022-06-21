@@ -29,6 +29,7 @@ import { AnalyticsError } from './errors';
 import * as init from './initialize-analytics';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 import * as factory from './factory';
+import { defaultEventParametersForInit } from './functions';
 
 describe('FirebaseAnalytics API tests', () => {
   let initStub: SinonStub = stub();
@@ -107,9 +108,7 @@ describe('FirebaseAnalytics API tests', () => {
     };
     app = getFullApp(fakeAppParams);
     setDefaultEventParameters(eventParametersForInit);
-    expect(factory.defaultEventParametersForInit).to.deep.equal(
-      eventParametersForInit
-    );
+    expect(defaultEventParametersForInit).to.deep.equal(eventParametersForInit);
   });
   it('setDefaultEventParameters() calls gtag set if wrappedGtagFunction exists', () => {
     const eventParametersForInit = {

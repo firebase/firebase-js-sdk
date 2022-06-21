@@ -28,7 +28,7 @@ import {
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 import { findGtagScriptOnPage, insertScriptTag } from './helpers';
 import { AnalyticsSettings } from './public-types';
-import { defaultEventParametersForInit } from './factory';
+import { defaultEventParametersForInit } from './functions';
 
 async function validateIndexedDB(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {

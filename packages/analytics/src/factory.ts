@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  SettingsOptions,
-  Analytics,
-  AnalyticsSettings,
-  CustomParams
-} from './public-types';
+import { SettingsOptions, Analytics, AnalyticsSettings } from './public-types';
 import { Gtag, DynamicConfig, MinimalDynamicConfig } from './types';
 import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
@@ -88,11 +83,6 @@ let gtagCoreFunction: Gtag;
  * relevant event and config calls.
  */
 export let wrappedGtagFunction: Gtag;
-
-/**
- * Event parameters to set on 'gtag' during initialization.
- */
-export let defaultEventParametersForInit: CustomParams | undefined;
 
 /**
  * Flag to ensure page initialization steps (creation or wrapping of
@@ -244,23 +234,4 @@ export function factory(
   const analyticsInstance: AnalyticsService = new AnalyticsService(app);
 
   return analyticsInstance;
-}
-
-/**
- * Sets the variable {@link defaultEventParametersForInit} for use in the initialization of
- * analytics.
- *
- * @param customParams Any custom params the user may pass to gtag.js.
- */
-export function _setDefaultEventParametersForInit(
-  customParams: CustomParams
-): void {
-  if (defaultEventParametersForInit) {
-    defaultEventParametersForInit = {
-      ...defaultEventParametersForInit,
-      ...customParams
-    };
-  } else {
-    defaultEventParametersForInit = customParams;
-  }
 }

@@ -23,13 +23,11 @@ import {
   logEvent,
   setUserId,
   setUserProperties,
-  setAnalyticsCollectionEnabled
-} from './functions';
-import { GtagCommand } from './constants';
-import {
+  setAnalyticsCollectionEnabled,
   defaultEventParametersForInit,
   _setDefaultEventParametersForInit
-} from './factory';
+} from './functions';
+import { GtagCommand } from './constants';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
