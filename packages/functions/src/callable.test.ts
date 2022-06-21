@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app';
-import { FunctionsErrorCode } from './public-types';
+import { FunctionsErrorCodeCore } from './public-types';
 import {
   Provider,
   ComponentContainer,
@@ -44,7 +44,7 @@ export const TEST_PROJECT = require('../../../config/project.json');
 // https://github.com/chaijs/chai/issues/608
 async function expectError(
   promise: Promise<any>,
-  code: FunctionsErrorCode,
+  code: FunctionsErrorCodeCore,
   message: string,
   details?: any
 ): Promise<void> {
