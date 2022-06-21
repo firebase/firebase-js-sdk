@@ -73,7 +73,7 @@ export interface Functions {
 }
 
 /**
- * Functions error code string before adding "functions/" product prefix.
+ * Functions error code string appended after "functions/" product prefix.
  * See {@link FunctionsErrorCode} for full documentation of codes.
  * @public
  */
