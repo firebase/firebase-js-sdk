@@ -111,7 +111,6 @@ describe('FirebaseAnalytics API tests', () => {
       eventParametersForInit
     );
   });
-
   it('setDefaultEventParameters() calls gtag set if wrappedGtagFunction exists', () => {
     const eventParametersForInit = {
       'github_user': 'dwyfrequency',
