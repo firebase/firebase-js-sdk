@@ -102,13 +102,13 @@ describe('core/util/browser', () => {
   context('_isIOS', () => {
     it('should recognize iPhone', () => {
       const userAgent =
-        'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/1234'
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/1234';
       expect(_isIOS(userAgent)).to.be.true;
     });
 
     it('should recognize iPad without iPad string', () => {
       const userAgent =
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/1234'
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/1234';
       expect(_isIOS(userAgent)).to.be.true;
     });
 
