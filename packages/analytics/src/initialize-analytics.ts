@@ -28,7 +28,10 @@ import {
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 import { findGtagScriptOnPage, insertScriptTag } from './helpers';
 import { AnalyticsSettings } from './public-types';
-import { defaultEventParametersForInit } from './functions';
+import {
+  defaultEventParametersForInit,
+  _setDefaultEventParametersForInit
+} from './functions';
 
 async function validateIndexedDB(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {
@@ -145,6 +148,7 @@ export async function _initializeAnalytics(
   // Detects if there is data that will be set on every event logged from the SDK.
   if (defaultEventParametersForInit) {
     gtagCore(GtagCommand.SET, defaultEventParametersForInit);
+    _setDefaultEventParametersForInit(undefined);
   }
 
   return dynamicConfig.measurementId;

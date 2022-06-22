@@ -150,20 +150,13 @@ export async function setAnalyticsCollectionEnabled(
 }
 
 /**
- * Sets the variable {@link defaultEventParametersForInit} for use in the initialization of
+ * Sets the variable `defaultEventParametersForInit` for use in the initialization of
  * analytics.
  *
  * @param customParams Any custom params the user may pass to gtag.js.
  */
 export function _setDefaultEventParametersForInit(
-  customParams: CustomParams
+  customParams?: CustomParams
 ): void {
-  if (defaultEventParametersForInit) {
-    defaultEventParametersForInit = {
-      ...defaultEventParametersForInit,
-      ...customParams
-    };
-  } else {
-    defaultEventParametersForInit = customParams;
-  }
+  defaultEventParametersForInit = customParams;
 }

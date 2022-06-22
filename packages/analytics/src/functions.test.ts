@@ -180,7 +180,7 @@ describe('FirebaseAnalytics methods', () => {
     _setDefaultEventParametersForInit(eventParametersForInit);
     expect(defaultEventParametersForInit).to.deep.equal(eventParametersForInit);
   });
-  it('_setDefaultEventParametersForInit() adds new params correctly', async () => {
+  it('_setDefaultEventParametersForInit() replaces previous params with new params', async () => {
     const eventParametersForInit = {
       'github_user': 'dwyfrequency',
       'company': 'google'
@@ -189,7 +189,6 @@ describe('FirebaseAnalytics methods', () => {
     _setDefaultEventParametersForInit(eventParametersForInit);
     _setDefaultEventParametersForInit(additionalParams);
     expect(defaultEventParametersForInit).to.deep.equal({
-      ...eventParametersForInit,
       ...additionalParams
     });
   });
