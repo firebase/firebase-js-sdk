@@ -22,6 +22,7 @@ import {
   Analytics,
   AnalyticsCallOptions,
   AnalyticsSettings,
+  ConsentSettings,
   CustomParams,
   EventNameString,
   EventParams
@@ -35,7 +36,7 @@ import {
   getModularInstance,
   deepEqual
 } from '@firebase/util';
-import { ANALYTICS_TYPE } from './constants';
+import { ANALYTICS_TYPE, GtagCommand } from './constants';
 import {
   AnalyticsService,
   initializationPromisesMap,
@@ -47,7 +48,8 @@ import {
   setCurrentScreen as internalSetCurrentScreen,
   setUserId as internalSetUserId,
   setUserProperties as internalSetUserProperties,
-  setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled
+  setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled,
+  _setConsentDefaultForInit
 } from './functions';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 
@@ -716,3 +718,21 @@ export function logEvent(
  * @public
  */
 export type CustomEventName<T> = T extends EventNameString ? never : T;
+
+/**
+ * Sets the applicable end user consent state for this web app across all gtag references once
+ * Firebase Analytics is initialized.
+ *
+ * Use the {@link ConsentSettings} to specify individual consent type values. By default consent
+ * types are set to "granted".
+ *
+ * @param consentSettings Maps the applicable end user consent state for gtag.js.
+ */
+export function setConsent(consentSettings: ConsentSettings): void {
+  // Check if reference to existing gtag function on window object exists
+  if (wrappedGtagFunction) {
+    wrappedGtagFunction(GtagCommand.CONSENT, 'update', consentSettings);
+  } else {
+    _setConsentDefaultForInit(consentSettings);
+  }
+}

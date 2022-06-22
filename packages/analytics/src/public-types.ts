@@ -288,4 +288,14 @@ export interface EventParams {
   page_path?: string;
   [key: string]: unknown;
 }
+
+/** Maps the applicable end user consent state. */
+export interface ConsentSettings {
+  ad_storage?: ConsentStatusString;
+  analytics_storage?: ConsentStatusString;
+}
+
 /* eslint-enable camelcase */
+
+/** Whether a particular consent type has been granted or denied. */
+export type ConsentStatusString = 'granted' | 'denied';
