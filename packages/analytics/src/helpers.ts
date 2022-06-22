@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { CustomParams, ControlParams, EventParams } from './public-types';
+import {
+  CustomParams,
+  ControlParams,
+  EventParams,
+  ConsentSettings
+} from './public-types';
 import { DynamicConfig, DataLayer, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
@@ -219,9 +224,10 @@ function wrapGtag(
    * @param gtagParams Params if event is EVENT/CONFIG.
    */
   async function gtagWrapper(
-    command: 'config' | 'set' | 'event',
+    command: 'config' | 'set' | 'event' | 'consent',
     idOrNameOrParams: string | ControlParams,
-    gtagParams?: ControlParams & EventParams & CustomParams
+    // TODO(dwyfrequency)Unsure if this is the best path.
+    gtagParams?: GtagSetConfigEventParams | ConsentSettings
   ): Promise<void> {
     try {
       // If event, check that relevant initialization promises have completed.
@@ -232,7 +238,7 @@ function wrapGtag(
           initializationPromisesMap,
           dynamicConfigPromisesList,
           idOrNameOrParams as string,
-          gtagParams
+          gtagParams as GtagSetConfigEventParams
         );
       } else if (command === GtagCommand.CONFIG) {
         // If CONFIG, second arg must be measurementId.
@@ -242,8 +248,11 @@ function wrapGtag(
           dynamicConfigPromisesList,
           measurementIdToAppId,
           idOrNameOrParams as string,
-          gtagParams
+          gtagParams as GtagSetConfigEventParams
         );
+      } else if (command === GtagCommand.CONSENT) {
+        // If CONFIG, second arg must be measurementId.
+        gtagCore(GtagCommand.CONSENT, 'update', gtagParams as ConsentSettings);
       } else {
         // If SET, second arg must be params.
         gtagCore(GtagCommand.SET, idOrNameOrParams as CustomParams);
@@ -254,6 +263,8 @@ function wrapGtag(
   }
   return gtagWrapper as Gtag;
 }
+// TODO(dwyfrequency)Unsure if this is the best path and where it should go. Probably the type file
+type GtagSetConfigEventParams = ControlParams & EventParams & CustomParams;
 
 /**
  * Creates global gtag function or wraps existing one if found.
