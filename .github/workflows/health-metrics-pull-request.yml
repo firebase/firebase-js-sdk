@@ -1,6 +1,9 @@
 name: Health Metrics
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ['**']
+  pull_request:
 
 env:
   GITHUB_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
