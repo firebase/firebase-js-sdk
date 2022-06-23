@@ -725,7 +725,7 @@ export type CustomEventName<T> = T extends EventNameString ? never : T;
  *
  * Use the {@link ConsentSettings} to specify individual consent type values. By default consent
  * types are set to "granted".
- *
+ * @public
  * @param consentSettings Maps the applicable end user consent state for gtag.js.
  */
 export function setConsent(consentSettings: ConsentSettings): void {

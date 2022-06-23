@@ -156,14 +156,7 @@ export let defaultConsentSettingsForInit: ConsentSettings | undefined;
  * @param consentSettings Maps the applicable end user consent state for gtag.js.
  */
 export function _setConsentDefaultForInit(
-  consentSettings: ConsentSettings
+  consentSettings?: ConsentSettings
 ): void {
-  if (defaultConsentSettingsForInit) {
-    defaultConsentSettingsForInit = {
-      ...defaultConsentSettingsForInit,
-      ...consentSettings
-    };
-  } else {
-    defaultConsentSettingsForInit = consentSettings;
-  }
+  defaultConsentSettingsForInit = consentSettings;
 }

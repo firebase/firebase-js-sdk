@@ -28,7 +28,10 @@ import {
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 import { findGtagScriptOnPage, insertScriptTag } from './helpers';
 import { AnalyticsSettings } from './public-types';
-import { defaultConsentSettingsForInit } from './functions';
+import {
+  defaultConsentSettingsForInit,
+  _setConsentDefaultForInit
+} from './functions';
 
 async function validateIndexedDB(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {
@@ -122,6 +125,7 @@ export async function _initializeAnalytics(
   // Detects if there are consent settings that need to be configured.
   if (defaultConsentSettingsForInit) {
     gtagCore(GtagCommand.CONSENT, 'default', defaultConsentSettingsForInit);
+    _setConsentDefaultForInit(undefined);
   }
 
   // This command initializes gtag.js and only needs to be called once for the entire web app,
