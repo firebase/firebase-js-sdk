@@ -1,6 +1,9 @@
 name: Test All Packages
 
-on: push
+on:
+  push:
+    branches: ['**']
+
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true

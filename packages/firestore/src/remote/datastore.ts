@@ -120,7 +120,8 @@ class DatastoreImpl extends Datastore {
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
     path: string,
-    request: Req
+    request: Req,
+    expectedResponseCount?: number
   ): Promise<Resp[]> {
     this.verifyInitialized();
     return Promise.all([
@@ -133,7 +134,8 @@ class DatastoreImpl extends Datastore {
           path,
           request,
           authToken,
-          appCheckToken
+          appCheckToken,
+          expectedResponseCount
         );
       })
       .catch((error: FirestoreError) => {
@@ -194,7 +196,7 @@ export async function invokeBatchGetDocumentsRpc(
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoBatchGetDocumentsRequest,
     ProtoBatchGetDocumentsResponse
-  >('BatchGetDocuments', path, request);
+  >('BatchGetDocuments', path, request, keys.length);
 
   const docs = new Map<string, Document>();
   response.forEach(proto => {

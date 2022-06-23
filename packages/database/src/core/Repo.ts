@@ -60,7 +60,8 @@ import {
   syncTreeApplyUserOverwrite,
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
-  syncTreeRemoveEventRegistration
+  syncTreeRemoveEventRegistration,
+  syncTreeRegisterQuery
 } from './SyncTree';
 import { Indexable } from './util/misc';
 import {
@@ -466,16 +467,36 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   }
   return repo.server_.get(query).then(
     payload => {
-      const node = nodeFromJSON(payload as string).withIndex(
+      const node = nodeFromJSON(payload).withIndex(
         query._queryParams.getIndex()
       );
-      const events = syncTreeApplyServerOverwrite(
+      // if this is a filtered query, then overwrite at path
+      if (query._queryParams.loadsAllData()) {
+        syncTreeApplyServerOverwrite(repo.serverSyncTree_, query._path, node);
+      } else {
+        // Simulate `syncTreeAddEventRegistration` without events/listener setup.
+        // We do this (along with the syncTreeRemoveEventRegistration` below) so that
+        // `repoGetValue` results have the same cache effects as initial listener(s)
+        // updates.
+        const tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
+        syncTreeApplyTaggedQueryOverwrite(
+          repo.serverSyncTree_,
+          query._path,
+          node,
+          tag
+        );
+        // Call `syncTreeRemoveEventRegistration` with a null event registration, since there is none.
+        // Note: The below code essentially unregisters the query and cleans up any views/syncpoints temporarily created above.
+      }
+      const cancels = syncTreeRemoveEventRegistration(
         repo.serverSyncTree_,
-        query._path,
-        node
+        query,
+        null
       );
-      eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
-      return Promise.resolve(node);
+      if (cancels.length > 0) {
+        repoLog(repo, 'unexpected cancel events in repoGetValue');
+      }
+      return node;
     },
     err => {
       repoLog(repo, 'get for query ' + stringify(query) + ' failed: ' + err);

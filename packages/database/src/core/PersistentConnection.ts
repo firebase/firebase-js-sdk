@@ -206,12 +206,6 @@ export class PersistentConnection extends ServerActions {
       onComplete: (message: { [k: string]: unknown }) => {
         const payload = message['d'] as string;
         if (message['s'] === 'ok') {
-          this.onDataUpdate_(
-            request['p'],
-            payload,
-            /*isMerge*/ false,
-            /*tag*/ null
-          );
           deferred.resolve(payload);
         } else {
           deferred.reject(payload);
@@ -265,7 +259,7 @@ export class PersistentConnection extends ServerActions {
     );
     assert(
       !this.listens.get(pathString)!.has(queryId),
-      'listen() called twice for same path/queryId.'
+      `listen() called twice for same path/queryId.`
     );
     const listenSpec: ListenSpec = {
       onComplete,

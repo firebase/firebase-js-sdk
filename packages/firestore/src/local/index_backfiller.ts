@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FirestoreError } from '../api';
 import { DocumentMap } from '../model/collections';
 import {
   IndexOffset,
@@ -90,14 +91,14 @@ export class IndexBackfillerScheduler implements Scheduler {
           const documentsProcessed = await this.backfiller.backfill();
           logDebug(LOG_TAG, `Documents written: ${documentsProcessed}`);
         } catch (e) {
-          if (isIndexedDbTransactionError(e)) {
+          if (isIndexedDbTransactionError(e as Error)) {
             logDebug(
               LOG_TAG,
               'Ignoring IndexedDB error during index backfill: ',
               e
             );
           } else {
-            await ignoreIfPrimaryLeaseLoss(e);
+            await ignoreIfPrimaryLeaseLoss(e as FirestoreError);
           }
         }
         await this.schedule(REGULAR_BACKFILL_DELAY_MS);

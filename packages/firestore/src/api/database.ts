@@ -328,15 +328,16 @@ function setPersistenceProviders(
         await setOnlineComponentProvider(client, onlineComponentProvider);
         persistenceResult.resolve();
       } catch (e) {
-        if (!canFallbackFromIndexedDbError(e)) {
-          throw e;
+        const error = e as FirestoreError | DOMException;
+        if (!canFallbackFromIndexedDbError(error)) {
+          throw error;
         }
         console.warn(
           'Error enabling offline persistence. Falling back to ' +
             'persistence disabled: ' +
-            e
+            error
         );
-        persistenceResult.reject(e);
+        persistenceResult.reject(error);
       }
     })
     .then(() => persistenceResult.promise);
@@ -419,7 +420,7 @@ export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
       );
       deferred.resolve();
     } catch (e) {
-      deferred.reject(e);
+      deferred.reject(e as Error | undefined);
     }
   });
   return deferred.promise;

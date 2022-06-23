@@ -196,7 +196,7 @@ describe('extractExports', () => {
 describe('extractAllTopLevelSymbols', () => {
   let subsetExportsBundleFile: string;
   let extractedDeclarations: MemberList;
-  before(function () {
+  before(() => {
     const start = Date.now();
     subsetExportsBundleFile = getSubsetExportsBundleFilePath();
     extractedDeclarations = extractAllTopLevelSymbols(subsetExportsBundleFile);
