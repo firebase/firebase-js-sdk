@@ -1,5 +1,11 @@
 # @firebase/rules-unit-testing
 
+## 2.0.3
+
+### Patch Changes
+
+- [`b091b0228`](https://github.com/firebase/firebase-js-sdk/commit/b091b02288fa0d1439dfe945a33325a0495f568d) [#6360](https://github.com/firebase/firebase-js-sdk/pull/6360) (fixes [#6080](https://github.com/firebase/firebase-js-sdk/issues/6080)) - Add Node ESM build to rules-unit-testing.
+
 ## 2.0.2
 
 ### Patch Changes
