@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.6.2
+
+### Patch Changes
+
+- [`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0) [#6363](https://github.com/firebase/firebase-js-sdk/pull/6363) - Extract uuid function into @firebase/util
+
 ## 1.6.1
 
 ### Patch Changes
