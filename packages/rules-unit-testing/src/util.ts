@@ -162,7 +162,7 @@ export function assertFails(pr: Promise<any>): Promise<any> {
 }
 
 /**
- * Assert the promise to be successful with no Security Rules error.
+ * Assert the promise to be successful.
  *
  * This is a no-op function returning the passed promise as-is, but can be used for documentational
  * purposes in test code to emphasize that a certain request should succeed (e.g. allowed by rules).
