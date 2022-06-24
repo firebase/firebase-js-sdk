@@ -70,10 +70,7 @@ export interface Gtag {
   ): void;
   (
     command: 'consent',
-    // TODO(dwyfrequency) should I make these subCommands their own type
     subCommand: 'default' | 'update',
-    // TODO(dwyfrequency) should this be optional like eventParams and config.
-    // Idk why we would want it as optional
     consentSettings: ConsentSettings
   ): void;
 }

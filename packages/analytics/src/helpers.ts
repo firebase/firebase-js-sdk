@@ -25,6 +25,9 @@ import { DynamicConfig, DataLayer, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
 
+// Possible parameter types for gtag 'event' and 'config' commands
+type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
+
 /**
  * Makeshift polyfill for Promise.allSettled(). Resolves when all promises
  * have either resolved or rejected.
@@ -226,8 +229,7 @@ function wrapGtag(
   async function gtagWrapper(
     command: 'config' | 'set' | 'event' | 'consent',
     idOrNameOrParams: string | ControlParams,
-    // TODO(dwyfrequency)Unsure if this is the best path.
-    gtagParams?: GtagSetConfigEventParams | ConsentSettings
+    gtagParams?: GtagConfigOrEventParams | ConsentSettings
   ): Promise<void> {
     try {
       // If event, check that relevant initialization promises have completed.
@@ -238,7 +240,7 @@ function wrapGtag(
           initializationPromisesMap,
           dynamicConfigPromisesList,
           idOrNameOrParams as string,
-          gtagParams as GtagSetConfigEventParams
+          gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONFIG) {
         // If CONFIG, second arg must be measurementId.
@@ -248,7 +250,7 @@ function wrapGtag(
           dynamicConfigPromisesList,
           measurementIdToAppId,
           idOrNameOrParams as string,
-          gtagParams as GtagSetConfigEventParams
+          gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONSENT) {
         // If CONFIG, second arg must be measurementId.
@@ -263,8 +265,6 @@ function wrapGtag(
   }
   return gtagWrapper as Gtag;
 }
-// TODO(dwyfrequency)Unsure if this is the best path and where it should go. Probably the type file
-type GtagSetConfigEventParams = ControlParams & EventParams & CustomParams;
 
 /**
  * Creates global gtag function or wraps existing one if found.
