@@ -24,10 +24,8 @@ import {
   Bound,
   canonifyTarget,
   Direction,
-  FieldFilter,
   Filter,
   newTarget,
-  Operator,
   OrderBy,
   boundSortsBeforeDocument,
   stringifyTarget,
@@ -323,8 +321,8 @@ export function queryToTarget(query: Query): Target {
 }
 
 export function queryWithAddedFilter(query: Query, filter: Filter): Query {
-  let newInequalityField = filter.getFirstInequalityField();
-  let queryInequalityField = getInequalityFilterField(query);
+  const newInequalityField = filter.getFirstInequalityField();
+  const queryInequalityField = getInequalityFilterField(query);
 
   debugAssert(
     queryInequalityField == null ||

@@ -47,7 +47,6 @@ import { FieldPath as InternalFieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
-import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import {
   validatePositiveNumber,
@@ -217,7 +216,7 @@ class QueryCompositeFilterConstraint extends QueryConstraint {
       })
       .filter(parsedFilter => parsedFilter.getFilters().length > 0);
 
-    if (parsedFilters.length == 1) {
+    if (parsedFilters.length === 1) {
       return parsedFilters[0];
     }
 
@@ -239,12 +238,12 @@ class QueryCompositeFilterConstraint extends QueryConstraint {
     );
   }
 
-  public getQueryConstraints(): QueryConstraint[] {
+  getQueryConstraints(): QueryConstraint[] {
     return this._queryConstraints;
   }
 
-  public getOperator(): CompositeOperator {
-    return this.type == 'and' ? CompositeOperator.AND : CompositeOperator.OR;
+  getOperator(): CompositeOperator {
+    return this.type === 'and' ? CompositeOperator.AND : CompositeOperator.OR;
   }
 }
 
@@ -890,8 +889,6 @@ function validateNewFieldFilter(
   query: InternalQuery,
   fieldFilter: FieldFilter
 ): void {
-  const filterOp = fieldFilter.op;
-
   if (fieldFilter.isInequality()) {
     const existingInequality = getInequalityFilterField(query);
     const newInequality = fieldFilter.field;
@@ -944,7 +941,7 @@ function validateNewFieldFilter(
 function validateNewFilter(query: InternalQuery, filter: Filter): void {
   let testQuery = query;
   const subFilters = filter.getFlattenedFilters();
-  for (let subFilter of subFilters) {
+  for (const subFilter of subFilters) {
     validateNewFieldFilter(testQuery, subFilter);
     testQuery = queryWithAddedFilter(testQuery, subFilter);
   }

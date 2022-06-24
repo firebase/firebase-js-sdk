@@ -697,15 +697,15 @@ export class FieldFilter extends Filter {
     );
   }
 
-  public getFlattenedFilters(): FieldFilter[] {
+  getFlattenedFilters(): FieldFilter[] {
     return [this];
   }
 
-  public getFilters(): Filter[] {
+  getFilters(): Filter[] {
     return [this];
   }
 
-  public getFirstInequalityField(): FieldPath | null {
+  getFirstInequalityField(): FieldPath | null {
     if (this.isInequality()) {
       return this.field;
     }
@@ -738,7 +738,7 @@ export class CompositeFilter extends Filter {
     }
   }
 
-  public getFlattenedFilters(): FieldFilter[] {
+  getFlattenedFilters(): FieldFilter[] {
     // TODO(orquery): memoize this result if this method is used more than once
     let result: FieldFilter[] = [];
     result = this.filters.reduce((result, subfilter) => {
@@ -747,16 +747,16 @@ export class CompositeFilter extends Filter {
     return result;
   }
 
-  public getFilters(): Filter[] {
+  getFilters(): Filter[] {
     return this.filters;
   }
 
-  public getOperator(): CompositeOperator {
+  getOperator(): CompositeOperator {
     return this.op;
   }
 
-  public getFirstInequalityField(): FieldPath | null {
-    let found = this.findFirstMatchingFilter(filter => filter.isInequality());
+  getFirstInequalityField(): FieldPath | null {
+    const found = this.findFirstMatchingFilter(filter => filter.isInequality());
 
     if (found !== null) {
       return found.field;
@@ -786,7 +786,7 @@ export class CompositeFilter extends Filter {
     return null;
   }
 
-  public isConjunction(): boolean {
+  isConjunction(): boolean {
     return this.op === CompositeOperator.AND;
   }
 }
