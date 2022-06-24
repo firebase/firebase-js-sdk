@@ -228,7 +228,7 @@ export function setAnalyticsCollectionEnabled(
 
 /**
  * Adds data that will be set on every event logged from the SDK, including automatic ones.
- * By using gtag's "set" command, the values passed persist on the current page and are passed with
+ * With gtag's "set" command, the values passed persist on the current page and are passed with
  * all subsequent events.
  * @public
  * @param customParams Any custom params the user may pass to gtag.js.
