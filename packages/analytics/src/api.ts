@@ -49,7 +49,8 @@ import {
   setUserId as internalSetUserId,
   setUserProperties as internalSetUserProperties,
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled,
-  _setConsentDefaultForInit
+  _setConsentDefaultForInit,
+  _setDefaultEventParametersForInit
 } from './functions';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 
@@ -226,6 +227,23 @@ export function setAnalyticsCollectionEnabled(
     enabled
   ).catch(e => logger.error(e));
 }
+
+/**
+ * Adds data that will be set on every event logged from the SDK, including automatic ones.
+ * With gtag's "set" command, the values passed persist on the current page and are passed with
+ * all subsequent events.
+ * @public
+ * @param customParams Any custom params the user may pass to gtag.js.
+ */
+export function setDefaultEventParameters(customParams: CustomParams): void {
+  // Check if reference to existing gtag function on window object exists
+  if (wrappedGtagFunction) {
+    wrappedGtagFunction(GtagCommand.SET, customParams);
+  } else {
+    _setDefaultEventParametersForInit(customParams);
+  }
+}
+
 /**
  * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web

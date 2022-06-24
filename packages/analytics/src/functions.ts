@@ -24,6 +24,12 @@ import {
 } from './public-types';
 import { Gtag } from './types';
 import { GtagCommand } from './constants';
+
+/**
+ * Event parameters to set on 'gtag' during initialization.
+ */
+export let defaultEventParametersForInit: CustomParams | undefined;
+
 /**
  * Logs an analytics event through the Firebase SDK.
  *
@@ -159,4 +165,16 @@ export function _setConsentDefaultForInit(
   consentSettings?: ConsentSettings
 ): void {
   defaultConsentSettingsForInit = consentSettings;
+}
+
+/**
+ * Sets the variable `defaultEventParametersForInit` for use in the initialization of
+ * analytics.
+ *
+ * @param customParams Any custom params the user may pass to gtag.js.
+ */
+export function _setDefaultEventParametersForInit(
+  customParams?: CustomParams
+): void {
+  defaultEventParametersForInit = customParams;
 }

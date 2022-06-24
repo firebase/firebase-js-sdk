@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-compat",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -40,10 +40,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/app": "0.7.26",
-    "@firebase/util": "1.6.1",
+    "@firebase/app": "0.7.27",
+    "@firebase/util": "1.6.2",
     "@firebase/logger": "0.3.3",
-    "@firebase/component": "0.5.15",
+    "@firebase/component": "0.5.16",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
