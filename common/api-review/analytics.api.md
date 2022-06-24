@@ -392,6 +392,9 @@ export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enab
 export function setCurrentScreen(analyticsInstance: Analytics, screenName: string, options?: AnalyticsCallOptions): void;
 
 // @public
+export function setDefaultEventParameters(customParams: CustomParams): void;
+
+// @public
 export function settings(options: SettingsOptions): void;
 
 // @public

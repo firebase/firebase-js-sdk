@@ -19,15 +19,22 @@ import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import '../testing/setup';
 import { getFullApp } from '../testing/get-fake-firebase-services';
-import { getAnalytics, initializeAnalytics } from './api';
+import {
+  getAnalytics,
+  initializeAnalytics,
+  setDefaultEventParameters
+} from './api';
 import { FirebaseApp, deleteApp } from '@firebase/app';
 import { AnalyticsError } from './errors';
 import * as init from './initialize-analytics';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
+import * as factory from './factory';
+import { defaultEventParametersForInit } from './functions';
 
 describe('FirebaseAnalytics API tests', () => {
   let initStub: SinonStub = stub();
   let app: FirebaseApp;
+  const wrappedGtag: SinonStub = stub();
 
   beforeEach(() => {
     initStub = stub(init, '_initializeAnalytics').resolves(
@@ -93,5 +100,27 @@ describe('FirebaseAnalytics API tests', () => {
     app = getFullApp(fakeAppParams);
     const analyticsInstance = initializeAnalytics(app);
     expect(getAnalytics(app)).to.equal(analyticsInstance);
+  });
+  it('setDefaultEventParameters() updates defaultEventParametersForInit if gtag does not exist ', () => {
+    const eventParametersForInit = {
+      'github_user': 'dwyfrequency',
+      'company': 'google'
+    };
+    app = getFullApp(fakeAppParams);
+    setDefaultEventParameters(eventParametersForInit);
+    expect(defaultEventParametersForInit).to.deep.equal(eventParametersForInit);
+  });
+  it('setDefaultEventParameters() calls gtag set if wrappedGtagFunction exists', () => {
+    const eventParametersForInit = {
+      'github_user': 'dwyfrequency',
+      'company': 'google'
+    };
+    stub(factory, 'wrappedGtagFunction').get(() => wrappedGtag);
+    app = getFullApp(fakeAppParams);
+    setDefaultEventParameters(eventParametersForInit);
+    expect(wrappedGtag).to.have.been.calledWithExactly(
+      'set',
+      eventParametersForInit
+    );
   });
 });
