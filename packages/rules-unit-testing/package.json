@@ -34,8 +34,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.72.1",
-    "rollup-plugin-typescript2": "0.31.2"
+    "rollup": "2.75.7",
+    "rollup-plugin-typescript2": "0.32.1"
   },
   "peerDependencies": {
     "firebase": "^9.0.0"
