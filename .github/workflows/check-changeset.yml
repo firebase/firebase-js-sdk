@@ -6,8 +6,15 @@ env:
   GITHUB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
   GITHUB_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
 
+permissions:
+  contents: read
+
 jobs:
   check_changeset:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      issues: write  # for peter-evans/create-or-update-comment to create or update comment
+      pull-requests: write  # for peter-evans/create-or-update-comment to create or update comment
     name: Check changeset vs changed files
     runs-on: ubuntu-latest
 
