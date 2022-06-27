@@ -214,6 +214,19 @@ describe('Gtag wrapping functions', () => {
       expect((window['dataLayer'] as DataLayer).length).to.equal(1);
     });
 
+    it('new window.gtag function does not wait when sending "set" calls', async () => {
+      wrapOrCreateGtag(
+        { [fakeAppId]: Promise.resolve(fakeMeasurementId) },
+        fakeDynamicConfigPromises,
+        {},
+        'dataLayer',
+        'gtag'
+      );
+      window['dataLayer'] = [];
+      (window['gtag'] as Gtag)(GtagCommand.SET, { 'language': 'en' });
+      expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+    });
+
     it('new window.gtag function does not wait when sending "consent" calls', async () => {
       const consentParameters: ConsentSettings = {
         'analytics_storage': 'granted',
