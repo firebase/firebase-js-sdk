@@ -25,15 +25,10 @@ export interface AnalyticsSettings {
 export interface ConsentSettings {
     // (undocumented)
     [key: string]: unknown;
-    // (undocumented)
     ad_storage?: ConsentStatusString;
-    // (undocumented)
     analytics_storage?: ConsentStatusString;
-    // (undocumented)
     functionality_storage?: ConsentStatusString;
-    // (undocumented)
     personalization_storage?: ConsentStatusString;
-    // (undocumented)
     security_storage?: ConsentStatusString;
 }
 
