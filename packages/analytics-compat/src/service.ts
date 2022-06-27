@@ -53,7 +53,7 @@ export class AnalyticsService implements FirebaseAnalytics, _FirebaseService {
     setCurrentScreenExp(this._delegate, screenName, options);
   }
 
-  setUserId(id: string, options?: AnalyticsCallOptions): void {
+  setUserId(id: string | null, options?: AnalyticsCallOptions): void {
     setUserIdExp(this._delegate, id, options);
   }
 

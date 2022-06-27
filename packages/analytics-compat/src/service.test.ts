@@ -109,6 +109,13 @@ describe('Firebase Analytics > Service', () => {
     setUserIdStub.resetHistory();
   });
 
+  it('setUserId() calls modular setUserId() with null user id', () => {
+    service = createTestService(app);
+    service.setUserId(null);
+    expect(setUserIdStub).to.be.calledWith(match.any, null);
+    setUserIdStub.resetHistory();
+  });
+
   it('setCurrentScreen() (deprecated) calls modular setCurrentScreen() (deprecated)', () => {
     service = createTestService(app);
     service.setCurrentScreen('some_screen');

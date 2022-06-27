@@ -462,7 +462,7 @@ export interface FirebaseAnalytics {
   /**
    * Use gtag 'config' command to set 'user_id'.
    */
-  setUserId(id: string, options?: AnalyticsCallOptions): void;
+  setUserId(id: string | null, options?: AnalyticsCallOptions): void;
 
   /**
    * Use gtag 'config' command to set all params specified.
