@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { promiseWithTimeout } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as _ from 'lodash';
@@ -3226,7 +3227,8 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     node.database.goOffline();
     try {
-      await expect(node.get()).to.eventually.be.rejected;
+      const getPromise = promiseWithTimeout(node.get());
+      await expect(getPromise).to.eventually.be.rejected;
     } finally {
       node.database.goOnline();
     }
@@ -3392,8 +3394,8 @@ describe('Query Tests', () => {
     expect(snapshot.val()).to.deep.equal({ data: '1' });
     reader.database.goOffline();
     try {
-      await expect(reader.child('foo/notCached').get()).to.eventually.be
-        .rejected;
+      await expect(promiseWithTimeout(reader.child('foo/notCached').get())).to
+        .eventually.be.rejected;
     } finally {
       reader.database.goOnline();
     }

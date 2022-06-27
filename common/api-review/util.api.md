@@ -346,6 +346,11 @@ export function ordinal(i: number): string;
 // @public (undocumented)
 export type PartialObserver<T> = Partial<Observer<T>>;
 
+// Warning: (ae-internal-missing-underscore) The name "promiseWithTimeout" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function promiseWithTimeout<T>(promise: Promise<T>, timeInMS?: number): Promise<T>;
+
 // Warning: (ae-missing-release-tag) "querystring" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
