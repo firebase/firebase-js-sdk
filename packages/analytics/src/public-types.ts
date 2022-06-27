@@ -291,6 +291,9 @@ export interface EventParams {
 
 /**
  * Consent status settings for each consent type.
+ * For more information, see
+ * {@link https://developers.google.com/tag-platform/tag-manager/templates/consent-apis
+ * | the GA4 reference documentation for consent state and consent types}.
  * @public
  */
 export interface ConsentSettings {
