@@ -41,8 +41,10 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
   ArrayContainsAnyFilter,
   ArrayContainsFilter,
+  CompositeFilter,
   Direction,
   FieldFilter,
+  Filter,
   filterEquals,
   InFilter,
   KeyFieldFilter,
@@ -71,13 +73,13 @@ import {
   fromDocument,
   fromDocumentMask,
   fromDocumentsTarget,
-  fromFieldFilter,
+  decodeFieldFilter,
   fromMutation,
   fromName,
   fromOperatorName,
   fromPropertyOrder,
   fromQueryTarget,
-  fromUnaryFilter,
+  decodeUnaryFilter,
   fromWatchChange,
   JsonProtoSerializer,
   toBytes,
@@ -93,8 +95,10 @@ import {
   toPropertyOrder,
   toQueryTarget,
   toTarget,
-  toUnaryOrFieldFilter,
-  toVersion
+  encodeUnaryOrFieldFilter,
+  toVersion,
+  decodeCompositeFilter,
+  encodeCompositeFilter
 } from '../../../src/remote/serializer';
 import {
   DocumentWatchChange,
@@ -113,6 +117,8 @@ import {
   doc,
   field,
   filter,
+  andFilter,
+  orFilter,
   key,
   orderBy,
   patchMutation,
@@ -128,6 +134,9 @@ import {
 const userDataWriter = new ExpUserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
 const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
+
+// TODO(orquery) update this to 'OR' when or is supported by the proto library
+const protoCompositeFilterOrOp: api.CompositeFilterOp = 'OPERATOR_UNSPECIFIED';
 
 /**
  * Runs the serializer test with an optional ProtobufJS verification step
@@ -810,13 +819,13 @@ export function serializerTest(
       expect(fromDocument(s, serialized, undefined).isEqual(d)).to.equal(true);
     });
 
-    describe('to/from FieldFilter', () => {
+    describe('encode/decode FieldFilter', () => {
       addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('makes dotted-property names', () => {
         const path = new FieldPath(['item', 'part', 'top']);
         const input = FieldFilter.create(path, Operator.EQUAL, wrap('food'));
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'item.part.top' },
@@ -824,14 +833,14 @@ export function serializerTest(
             value: { stringValue: 'food' }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts NotEqual', () => {
         const input = filter('field', '!=', 42);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -839,14 +848,14 @@ export function serializerTest(
             value: { integerValue: '42' }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts LessThan', () => {
         const input = filter('field', '<', 42);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -854,14 +863,14 @@ export function serializerTest(
             value: { integerValue: '42' }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts LessThanOrEqual', () => {
         const input = filter('field', '<=', 'food');
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -869,14 +878,14 @@ export function serializerTest(
             value: { stringValue: 'food' }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts GreaterThan', () => {
         const input = filter('field', '>', false);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -884,14 +893,14 @@ export function serializerTest(
             value: { booleanValue: false }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts GreaterThanOrEqual', () => {
         const input = filter('field', '>=', 1e100);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -899,14 +908,14 @@ export function serializerTest(
             value: { doubleValue: 1e100 }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts key field', () => {
         const input = filter(DOCUMENT_KEY_NAME, '==', ref('coll/doc'));
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: '__name__' },
@@ -917,14 +926,14 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(KeyFieldFilter);
       });
 
       it('converts array-contains', () => {
         const input = filter('field', 'array-contains', 42);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -932,14 +941,14 @@ export function serializerTest(
             value: { integerValue: '42' }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(ArrayContainsFilter);
       });
 
       it('converts IN', () => {
         const input = filter('field', 'in', [42]);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -955,14 +964,14 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(InFilter);
       });
 
       it('converts not-in', () => {
         const input = filter('field', 'not-in', [42]);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -978,14 +987,14 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(NotInFilter);
       });
 
       it('converts not-in with null', () => {
         const input = filter('field', 'not-in', [null]);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -1001,14 +1010,14 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(NotInFilter);
       });
 
       it('converts array-contains-any', () => {
         const input = filter('field', 'array-contains-any', [42]);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -1024,61 +1033,157 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = fromFieldFilter(actual);
+        const roundtripped = decodeFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(ArrayContainsAnyFilter);
       });
     });
 
-    describe('to/from UnaryFilter', () => {
+    describe('encode/decode UnaryFilter', () => {
       addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('converts null', () => {
         const input = filter('field', '==', null);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NULL'
           }
         });
-        expect(fromUnaryFilter(actual)).to.deep.equal(input);
+        expect(decodeUnaryFilter(actual)).to.deep.equal(input);
       });
 
       it('converts Nan', () => {
         const input = filter('field', '==', NaN);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NAN'
           }
         });
-        expect(fromUnaryFilter(actual)).to.deep.equal(input);
+        expect(decodeUnaryFilter(actual)).to.deep.equal(input);
       });
 
       it('converts not null', () => {
         const input = filter('field', '!=', null);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NOT_NULL'
           }
         });
-        expect(fromUnaryFilter(actual)).to.deep.equal(input);
+        expect(decodeUnaryFilter(actual)).to.deep.equal(input);
       });
 
       it('converts not NaN', () => {
         const input = filter('field', '!=', NaN);
-        const actual = toUnaryOrFieldFilter(input);
+        const actual = encodeUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NOT_NAN'
           }
         });
-        expect(fromUnaryFilter(actual)).to.deep.equal(input);
+        expect(decodeUnaryFilter(actual)).to.deep.equal(input);
+      });
+    });
+
+    describe('encode/decode CompositeFilter', () => {
+      addEqualityMatcher({ equalsFn: filterEquals, forType: Filter });
+
+      /* eslint-disable no-restricted-properties */
+      it('converts deep collections', () => {
+        const input = orFilter(
+          filter("prop", "<", 42),
+          andFilter(
+            filter('author', '==', 'ehsann'),
+            filter('tags', 'array-contains', 'pending'),
+            orFilter(
+              filter('version', '==', 4),
+              filter('version', '==', NaN)
+            ))
+        );
+
+        // Encode
+        const actual = encodeCompositeFilter(input);
+
+        const propProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'prop' },
+            op: 'LESS_THAN',
+            value: { integerValue: '42' }
+          }
+        };
+
+        const authorProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'author' },
+            op: 'EQUAL',
+            value: { stringValue: 'ehsann' }
+          }
+        };
+
+        const tagsProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'tags' },
+            op: 'ARRAY_CONTAINS',
+            value: { stringValue: 'pending' }
+          }
+        };
+
+        const versionProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'version' },
+            op: 'EQUAL',
+            value: { integerValue: '4' }
+          }
+        };
+
+        const nanVersionProtoFilter = {
+          unaryFilter: {
+            field: { fieldPath: 'version' },
+            op: 'IS_NAN'
+          }
+        };
+
+        const innerOrProtoFilter = {
+          compositeFilter: {
+            op: protoCompositeFilterOrOp,
+            filters: [
+              versionProtoFilter,
+              nanVersionProtoFilter
+            ]
+          }
+        };
+
+        const innerAndProtoFilter = {
+          compositeFilter: {
+            op: 'AND',
+            filters: [
+              authorProtoFilter,
+              tagsProtoFilter,
+              innerOrProtoFilter
+            ]
+          }
+        };
+
+        expect(actual).to.deep.equal({
+          compositeFilter: {
+            op: protoCompositeFilterOrOp,
+            filters: [
+              propProtoFilter,
+              innerAndProtoFilter
+            ]
+          }
+        });
+
+        // Decode
+        const roundtripped = decodeCompositeFilter(actual);
+        expect(roundtripped).to.deep.equal(input);
+        expect(roundtripped).to.be.instanceof(CompositeFilter);
       });
     });
 
@@ -1285,6 +1390,178 @@ export function serializerTest(
                   field: { fieldPath: 'prop' },
                   op: 'LESS_THAN',
                   value: { integerValue: '42' }
+                }
+              },
+              orderBy: [
+                {
+                  field: { fieldPath: 'prop' },
+                  direction: 'ASCENDING'
+                },
+                {
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
+                  direction: 'ASCENDING'
+                }
+              ]
+            }
+          },
+          targetId: 1
+        };
+        expect(result).to.deep.equal(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+      });
+
+      it('converts multi-layer composite filters with OR at the first layer', () => {
+        const q = queryToTarget(
+          query(
+            'docs',
+            orFilter(
+              filter('prop', '<', 42),
+              filter('name', '==', 'dimond'),
+              andFilter(
+                filter('nan', '==', NaN),
+                filter('null', '==', null),
+                filter('tags', 'array-contains', 'pending')
+              )
+            )
+          )
+        );
+        const result = toTarget(s, wrapTargetData(q));
+        const expected = {
+          query: {
+            parent: 'projects/p/databases/d/documents',
+            structuredQuery: {
+              from: [{ collectionId: 'docs' }],
+              where: {
+                compositeFilter: {
+                  op: protoCompositeFilterOrOp,
+                  filters: [
+                    {
+                      fieldFilter: {
+                        field: { fieldPath: 'prop' },
+                        op: 'LESS_THAN',
+                        value: { integerValue: '42' }
+                      }
+                    },
+                    {
+                      fieldFilter: {
+                        field: { fieldPath: 'name' },
+                        op: 'EQUAL',
+                        value: { stringValue: 'dimond' }
+                      }
+                    },
+                    {
+                      compositeFilter: {
+                        op: 'AND',
+                        filters: [
+                          {
+                            unaryFilter: {
+                              field: { fieldPath: 'nan' },
+                              op: 'IS_NAN'
+                            }
+                          },
+                          {
+                            unaryFilter: {
+                              field: { fieldPath: 'null' },
+                              op: 'IS_NULL'
+                            }
+                          },
+                          {
+                            fieldFilter: {
+                              field: { fieldPath: 'tags' },
+                              op: 'ARRAY_CONTAINS',
+                              value: { stringValue: 'pending' }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              orderBy: [
+                {
+                  field: { fieldPath: 'prop' },
+                  direction: 'ASCENDING'
+                },
+                {
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
+                  direction: 'ASCENDING'
+                }
+              ]
+            }
+          },
+          targetId: 1
+        };
+        expect(result).to.deep.equal(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+      });
+
+      it('converts multi-layer composite filters with AND at the first layer', () => {
+        const q = queryToTarget(
+          query(
+            'docs',
+            andFilter(
+              filter('prop', '<', 42),
+              filter('name', '==', 'dimond'),
+              orFilter(
+                filter('nan', '==', NaN),
+                filter('null', '==', null),
+                filter('tags', 'array-contains', 'pending')
+              )
+            )
+          )
+        );
+        const result = toTarget(s, wrapTargetData(q));
+        const expected = {
+          query: {
+            parent: 'projects/p/databases/d/documents',
+            structuredQuery: {
+              from: [{ collectionId: 'docs' }],
+              where: {
+                compositeFilter: {
+                  op: 'AND',
+                  filters: [
+                    {
+                      fieldFilter: {
+                        field: { fieldPath: 'prop' },
+                        op: 'LESS_THAN',
+                        value: { integerValue: '42' }
+                      }
+                    },
+                    {
+                      fieldFilter: {
+                        field: { fieldPath: 'name' },
+                        op: 'EQUAL',
+                        value: { stringValue: 'dimond' }
+                      }
+                    },
+                    {
+                      compositeFilter: {
+                        op: protoCompositeFilterOrOp,
+                        filters: [
+                          {
+                            unaryFilter: {
+                              field: { fieldPath: 'nan' },
+                              op: 'IS_NAN'
+                            }
+                          },
+                          {
+                            unaryFilter: {
+                              field: { fieldPath: 'null' },
+                              op: 'IS_NULL'
+                            }
+                          },
+                          {
+                            fieldFilter: {
+                              field: { fieldPath: 'tags' },
+                              op: 'ARRAY_CONTAINS',
+                              value: { stringValue: 'pending' }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
                 }
               },
               orderBy: [

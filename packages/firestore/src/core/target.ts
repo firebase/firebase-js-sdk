@@ -729,7 +729,7 @@ export class CompositeFilter extends Filter {
   }
 
   matches(doc: Document): boolean {
-    if (this.isConjunction()) {
+    if (compositeFilterIsConjunction(this)) {
       // For conjunctions, all filters must match, so return false if any filter doesn't match.
       return this.filters.find(filter => !filter.matches(doc)) === undefined;
     } else {
@@ -785,10 +785,29 @@ export class CompositeFilter extends Filter {
 
     return null;
   }
+}
 
-  isConjunction(): boolean {
-    return this.op === CompositeOperator.AND;
+export function compositeFilterIsConjunction(compositeFilter: CompositeFilter): boolean {
+  return compositeFilter.op === CompositeOperator.AND;
+}
+
+/**
+ * Returns true if this filter is a conjunction of field filters only. Returns false otherwise.
+ */
+export function compositeFilterIsFlatConjunction(compositeFilter: CompositeFilter): boolean {
+  return compositeFilterIsFlat(compositeFilter) && compositeFilterIsConjunction(compositeFilter);
+}
+
+/**
+ * Returns true if this filter does not contain any composite filters. Returns false otherwise.
+ */
+export function compositeFilterIsFlat(compositeFilter: CompositeFilter): boolean {
+  for (const filter of compositeFilter.filters) {
+    if (filter instanceof CompositeFilter) {
+      return false;
+    }
   }
+  return true;
 }
 
 export function canonifyFilter(filter: Filter): string {
@@ -811,22 +830,44 @@ export function canonifyFilter(filter: Filter): string {
     const canonicalIdsString = filter.filters
       .map(filter => canonifyFilter(filter))
       .join(',');
-    const opString = filter.isConjunction() ? 'and' : 'or';
+    const opString = compositeFilterIsConjunction(filter) ? 'and' : 'or';
     return `${opString}(${canonicalIdsString})`;
   }
 }
 
 export function filterEquals(f1: Filter, f2: Filter): boolean {
-  debugAssert(
-    f1 instanceof FieldFilter && f2 instanceof FieldFilter,
-    'Only FieldFilters can be compared'
-  );
+  if (f1 instanceof FieldFilter) {
+    return fieldFilterEquals(f1, f2);
+  } else if (f1 instanceof CompositeFilter) {
+    return compositeFilterEquals(f1, f2);
+  } else {
+    fail('Only FieldFilters and CompositeFilters can be compared');
+  }
+}
 
+export function fieldFilterEquals(f1: FieldFilter, f2: Filter): boolean {
   return (
+    f2 instanceof FieldFilter &&
     f1.op === f2.op &&
     f1.field.isEqual(f2.field) &&
     valueEquals(f1.value, f2.value)
   );
+}
+
+export function compositeFilterEquals(f1: CompositeFilter, f2: Filter): boolean {
+  if (
+    f2 instanceof CompositeFilter &&
+    f1.op === f2.op &&
+    f1.filters.length === f2.filters.length) {
+    const subFiltersMatch: boolean = f1.filters.reduce(
+      (result: boolean, f1Filter: Filter, index: number): boolean =>
+        (result && filterEquals(f1Filter, f2.filters[index])),
+      true);
+
+    return subFiltersMatch;
+  }
+
+  return false;
 }
 
 /** Returns a debug description for `filter`. */
