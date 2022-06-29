@@ -233,7 +233,7 @@ export function setAnalyticsCollectionEnabled(
  * With gtag's "set" command, the values passed persist on the current page and are passed with
  * all subsequent events.
  * @public
- * @param customParams Any custom params the user may pass to gtag.js.
+ * @param customParams - Any custom params the user may pass to gtag.js.
  */
 export function setDefaultEventParameters(customParams: CustomParams): void {
   // Check if reference to existing gtag function on window object exists
@@ -744,7 +744,7 @@ export type CustomEventName<T> = T extends EventNameString ? never : T;
  * Use the {@link ConsentSettings} to specify individual consent type values. By default consent
  * types are set to "granted".
  * @public
- * @param consentSettings Maps the applicable end user consent state for gtag.js.
+ * @param consentSettings - Maps the applicable end user consent state for gtag.js.
  */
 export function setConsent(consentSettings: ConsentSettings): void {
   // Check if reference to existing gtag function on window object exists
