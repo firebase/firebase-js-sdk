@@ -295,6 +295,7 @@
     "functions",
     "firestore",
     "firestore/lite",
+    "installations",
     "storage",
     "performance",
     "remote-config",
