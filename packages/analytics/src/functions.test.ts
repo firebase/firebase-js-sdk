@@ -25,9 +25,12 @@ import {
   setUserProperties,
   setAnalyticsCollectionEnabled,
   defaultEventParametersForInit,
-  _setDefaultEventParametersForInit
+  _setDefaultEventParametersForInit,
+  _setConsentDefaultForInit,
+  defaultConsentSettingsForInit
 } from './functions';
 import { GtagCommand } from './constants';
+import { ConsentSettings } from './public-types';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
@@ -189,6 +192,28 @@ describe('FirebaseAnalytics methods', () => {
     _setDefaultEventParametersForInit(eventParametersForInit);
     _setDefaultEventParametersForInit(additionalParams);
     expect(defaultEventParametersForInit).to.deep.equal({
+      ...additionalParams
+    });
+  });
+  it('_setConsentDefaultForInit() stores individual params correctly', async () => {
+    const consentParametersForInit: ConsentSettings = {
+      'analytics_storage': 'granted',
+      'functionality_storage': 'denied'
+    };
+    _setConsentDefaultForInit(consentParametersForInit);
+    expect(defaultConsentSettingsForInit).to.deep.equal(
+      consentParametersForInit
+    );
+  });
+  it('_setConsentDefaultForInit() replaces previous params with new params', async () => {
+    const consentParametersForInit: ConsentSettings = {
+      'analytics_storage': 'granted',
+      'functionality_storage': 'denied'
+    };
+    const additionalParams = { 'wait_for_update': 500 };
+    _setConsentDefaultForInit(consentParametersForInit);
+    _setConsentDefaultForInit(additionalParams);
+    expect(defaultConsentSettingsForInit).to.deep.equal({
       ...additionalParams
     });
   });

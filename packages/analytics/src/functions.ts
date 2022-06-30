@@ -19,7 +19,8 @@ import {
   AnalyticsCallOptions,
   CustomParams,
   ControlParams,
-  EventParams
+  EventParams,
+  ConsentSettings
 } from './public-types';
 import { Gtag } from './types';
 import { GtagCommand } from './constants';
@@ -147,6 +148,23 @@ export async function setAnalyticsCollectionEnabled(
 ): Promise<void> {
   const measurementId = await initializationPromise;
   window[`ga-disable-${measurementId}`] = !enabled;
+}
+
+/**
+ * Consent parameters to default to during 'gtag' initialization.
+ */
+export let defaultConsentSettingsForInit: ConsentSettings | undefined;
+
+/**
+ * Sets the variable {@link defaultConsentSettingsForInit} for use in the initialization of
+ * analytics.
+ *
+ * @param consentSettings Maps the applicable end user consent state for gtag.js.
+ */
+export function _setConsentDefaultForInit(
+  consentSettings?: ConsentSettings
+): void {
+  defaultConsentSettingsForInit = consentSettings;
 }
 
 /**

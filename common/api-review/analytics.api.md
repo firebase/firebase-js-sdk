@@ -22,6 +22,20 @@ export interface AnalyticsSettings {
 }
 
 // @public
+export interface ConsentSettings {
+    // (undocumented)
+    [key: string]: unknown;
+    ad_storage?: ConsentStatusString;
+    analytics_storage?: ConsentStatusString;
+    functionality_storage?: ConsentStatusString;
+    personalization_storage?: ConsentStatusString;
+    security_storage?: ConsentStatusString;
+}
+
+// @public
+export type ConsentStatusString = 'granted' | 'denied';
+
+// @public
 export interface ControlParams {
     // (undocumented)
     event_callback?: () => void;
@@ -387,6 +401,9 @@ export interface Promotion {
 
 // @public
 export function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enabled: boolean): void;
+
+// @public
+export function setConsent(consentSettings: ConsentSettings): void;
 
 // @public @deprecated
 export function setCurrentScreen(analyticsInstance: Analytics, screenName: string, options?: AnalyticsCallOptions): void;

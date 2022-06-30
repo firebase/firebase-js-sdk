@@ -34,5 +34,6 @@ export const GTAG_URL = 'https://www.googletagmanager.com/gtag/js';
 export const enum GtagCommand {
   EVENT = 'event',
   SET = 'set',
-  CONFIG = 'config'
+  CONFIG = 'config',
+  CONSENT = 'consent'
 }

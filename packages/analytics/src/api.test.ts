@@ -22,6 +22,7 @@ import { getFullApp } from '../testing/get-fake-firebase-services';
 import {
   getAnalytics,
   initializeAnalytics,
+  setConsent,
   setDefaultEventParameters
 } from './api';
 import { FirebaseApp, deleteApp } from '@firebase/app';
@@ -29,7 +30,11 @@ import { AnalyticsError } from './errors';
 import * as init from './initialize-analytics';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 import * as factory from './factory';
-import { defaultEventParametersForInit } from './functions';
+import {
+  defaultConsentSettingsForInit,
+  defaultEventParametersForInit
+} from './functions';
+import { ConsentSettings } from './public-types';
 
 describe('FirebaseAnalytics API tests', () => {
   let initStub: SinonStub = stub();
@@ -121,6 +126,32 @@ describe('FirebaseAnalytics API tests', () => {
     expect(wrappedGtag).to.have.been.calledWithExactly(
       'set',
       eventParametersForInit
+    );
+  });
+  it('setConsent() updates defaultConsentSettingsForInit if gtag does not exist ', () => {
+    const consentParametersForInit: ConsentSettings = {
+      'analytics_storage': 'granted',
+      'functionality_storage': 'denied'
+    };
+    stub(factory, 'wrappedGtagFunction').get(() => undefined);
+    app = getFullApp(fakeAppParams);
+    setConsent(consentParametersForInit);
+    expect(defaultConsentSettingsForInit).to.deep.equal(
+      consentParametersForInit
+    );
+  });
+  it('setConsent() calls gtag consent "update" if wrappedGtagFunction exists', () => {
+    const consentParametersForInit: ConsentSettings = {
+      'analytics_storage': 'granted',
+      'functionality_storage': 'denied'
+    };
+    stub(factory, 'wrappedGtagFunction').get(() => wrappedGtag);
+    app = getFullApp(fakeAppParams);
+    setConsent(consentParametersForInit);
+    expect(wrappedGtag).to.have.been.calledWithExactly(
+      'consent',
+      'update',
+      consentParametersForInit
     );
   });
 });

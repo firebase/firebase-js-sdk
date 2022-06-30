@@ -30,7 +30,12 @@ import { Deferred } from '@firebase/util';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { removeGtagScript } from '../testing/gtag-script-util';
 import { setDefaultEventParameters } from './api';
-import { defaultEventParametersForInit } from './functions';
+import {
+  defaultConsentSettingsForInit,
+  defaultEventParametersForInit,
+  _setConsentDefaultForInit
+} from './functions';
+import { ConsentSettings } from './public-types';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeFid = 'fid-1234-zyxw';
@@ -117,6 +122,29 @@ describe('initializeAnalytics()', () => {
     expect(gtagStub).to.be.calledWith(GtagCommand.SET, eventParametersForInit);
     // defaultEventParametersForInit is reset after initialization.
     expect(defaultEventParametersForInit).to.equal(undefined);
+  });
+  it('calls gtag consent if there are default consent parameters', async () => {
+    stubFetch();
+    const consentParametersForInit: ConsentSettings = {
+      'analytics_storage': 'granted',
+      'functionality_storage': 'denied'
+    };
+    _setConsentDefaultForInit(consentParametersForInit);
+    await _initializeAnalytics(
+      app,
+      dynamicPromisesList,
+      measurementIdToAppId,
+      fakeInstallations,
+      gtagStub,
+      'dataLayer'
+    );
+    expect(gtagStub).to.be.calledWith(
+      GtagCommand.CONSENT,
+      'default',
+      consentParametersForInit
+    );
+    // defaultEventParametersForInit is reset after initialization.
+    expect(defaultConsentSettingsForInit).to.equal(undefined);
   });
   it('puts dynamic fetch promise into dynamic promises list', async () => {
     stubFetch();
