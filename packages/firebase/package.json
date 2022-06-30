@@ -103,6 +103,14 @@
       },
       "default": "./functions/dist/index.esm.js"
     },
+    "./installations": {
+      "types": "./installations/dist/installations/index.d.ts",
+      "node": {
+        "require": "./installations/dist/index.cjs.js",
+        "import": "./installations/dist/index.mjs"
+      },
+      "default": "./installations/dist/index.esm.js"
+    },
     "./messaging": {
       "types": "./messaging/dist/messaging/index.d.ts",
       "node": {
@@ -198,6 +206,14 @@
         "import": "./compat/functions/dist/index.mjs"
       },
       "default": "./compat/functions/dist/index.esm.js"
+    },
+    "./compat/installations": {
+      "types": "./compat/installations/dist/compat/installations/index.d.ts",
+      "node": {
+        "require": "./compat/installations/dist/index.cjs.js",
+        "import": "./compat/installations/dist/index.mjs"
+      },
+      "default": "./compat/installations/dist/index.esm.js"
     },
     "./compat/messaging": {
       "types": "./compat/messaging/dist/compat/messaging/index.d.ts",
