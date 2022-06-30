@@ -29,6 +29,7 @@ import {
 import { Target } from '../../../src/core/target';
 import { TargetId } from '../../../src/core/types';
 import { IndexBackfiller } from '../../../src/local/index_backfiller';
+import { INDEXING_ENABLED } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
 import {
   localStoreAllocateTarget,
@@ -67,8 +68,6 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import {INDEXING_ENABLED} from "../../../src/local/indexeddb_schema";
-
 
 class AsyncLocalStoreTester {
   private bundleConverter: BundleConverterImpl;
@@ -227,7 +226,6 @@ class AsyncLocalStoreTester {
 }
 
 describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
-
   if (!INDEXING_ENABLED) {
     return;
   }

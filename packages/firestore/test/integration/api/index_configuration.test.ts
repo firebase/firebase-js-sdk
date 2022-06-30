@@ -18,9 +18,9 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { INDEXING_ENABLED } from '../../../src/local/indexeddb_schema';
 import { _setIndexConfiguration as setIndexConfiguration } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
-import {INDEXING_ENABLED} from "../../../src/local/indexeddb_schema";
 
 use(chaiAsPromised);
 
@@ -89,7 +89,9 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
     return withTestDb(persistence, async db => {
       const action: Promise<void> = setIndexConfiguration(db, '{,}');
       if (persistence) {
-        await expect(action).to.eventually.be.rejectedWith(/Failed to parse JSON/);
+        await expect(action).to.eventually.be.rejectedWith(
+          /Failed to parse JSON/
+        );
       } else {
         // Silently do nothing. Parsing is not done and therefore no error is thrown.
         await action;
