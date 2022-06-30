@@ -15,14 +15,17 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
 import { _setIndexConfiguration as setIndexConfiguration } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
 
+use(chaiAsPromised);
+
 apiDescribe('Index Configuration:', (persistence: boolean) => {
   it('supports JSON', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       return setIndexConfiguration(
         db,
         '{\n' +
@@ -59,7 +62,7 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
   });
 
   it('supports schema', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       return setIndexConfiguration(db, {
         indexes: [
           {
@@ -79,14 +82,14 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
 
   it('bad JSON does not crash client', () => {
     return withTestDb(persistence, async db => {
-      expect(() => setIndexConfiguration(db, '{,}')).to.throw(
+      await expect(setIndexConfiguration(db, '{,}')).to.eventually.throw(
         'Failed to parse JSON'
       );
     });
   });
 
   it('bad index does not crash client', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       return setIndexConfiguration(
         db,
         '{\n' +

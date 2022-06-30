@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
+import { getLocalStore } from '../core/firestore_client';
 import { fieldPathFromDotSeparatedString } from '../lite-api/user_data_reader';
+import { localStoreConfigureFieldIndexes } from '../local/local_store_impl';
 import {
   FieldIndex,
   IndexKind,
@@ -145,21 +147,25 @@ export function setIndexConfiguration(
   firestore: Firestore,
   json: string
 ): Promise<void>;
-export function setIndexConfiguration(
+export async function setIndexConfiguration(
   firestore: Firestore,
   jsonOrConfiguration: string | IndexConfiguration
 ): Promise<void> {
   firestore = cast(firestore, Firestore);
-  ensureFirestoreConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
+
+  // PORTING NOTE: We don't return an error if the user has not enabled
+  // persistence since `enableIndexeddbPersistence()` can fail on the Web.
+  if (!client.offlineComponents?.indexBackfillerScheduler) {
+    console.warn('Cannot enable indexes when persistence is disabled');
+    return;
+  }
 
   const indexConfiguration =
     typeof jsonOrConfiguration === 'string'
       ? (tryParseJson(jsonOrConfiguration) as IndexConfiguration)
       : jsonOrConfiguration;
   const parsedIndexes: FieldIndex[] = [];
-
-  // PORTING NOTE: We don't return an error if the user has not enabled
-  // persistence since `enableIndexeddbPersistence()` can fail on the Web.
 
   if (Array.isArray(indexConfiguration.indexes)) {
     for (const index of indexConfiguration.indexes) {
@@ -195,8 +201,8 @@ export function setIndexConfiguration(
     }
   }
 
-  // TODO(indexing): Configure indexes
-  return Promise.resolve();
+  const localStore = await getLocalStore(client);
+  await localStoreConfigureFieldIndexes(localStore, parsedIndexes);
 }
 
 function tryParseJson(json: string): Record<string, unknown> {

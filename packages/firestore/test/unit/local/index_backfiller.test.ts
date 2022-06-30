@@ -168,9 +168,9 @@ function genericIndexBackfillerTests(
       })
     );
 
-    // Documents before read time should not be fetched.
     await addDocs(Helpers.doc('coll1/docA', 9, { ['foo']: 1 }));
 
+    // Documents before read time should not be fetched.
     {
       const documentsProcessed = await backfiller.backfill();
       expect(documentsProcessed).to.equal(0);
@@ -223,6 +223,39 @@ function genericIndexBackfillerTests(
       Helpers.doc('coll1/docA', 5, { ['foo']: 1 }),
       Helpers.doc('coll1/docB', 3, { ['foo']: 1 }),
       Helpers.doc('coll1/docC', 10, { ['foo']: 1 })
+    );
+
+    {
+      const documentsProcessed = await backfiller.backfill(2);
+      expect(documentsProcessed).to.equal(2);
+    }
+
+    await expectQueryResults(
+      Helpers.query('coll1', Helpers.orderBy('foo')),
+      'coll1/docA',
+      'coll1/docB'
+    );
+
+    {
+      const documentsProcessed = await backfiller.backfill(2);
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    await expectQueryResults(
+      Helpers.query('coll1', Helpers.orderBy('foo')),
+      'coll1/docA',
+      'coll1/docB',
+      'coll1/docC'
+    );
+  });
+
+  it('Uses DocumentKey Offset for large Snapshots', async () => {
+    await addFieldIndex('coll1', 'foo');
+
+    await addDocs(
+      Helpers.doc('coll1/docA', 1, { ['foo']: 1 }),
+      Helpers.doc('coll1/docB', 1, { ['foo']: 1 }),
+      Helpers.doc('coll1/docC', 1, { ['foo']: 1 })
     );
 
     {
