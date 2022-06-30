@@ -273,6 +273,7 @@
     "@firebase/functions": "0.8.3",
     "@firebase/functions-compat": "0.2.3",
     "@firebase/installations": "0.5.11",
+    "@firebase/installations-compat": "0.1.11",
     "@firebase/messaging": "0.9.15",
     "@firebase/messaging-compat": "0.1.15",
     "@firebase/polyfill": "0.3.36",
