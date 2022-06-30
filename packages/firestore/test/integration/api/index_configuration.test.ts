@@ -20,10 +20,15 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { _setIndexConfiguration as setIndexConfiguration } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
+import {INDEXING_ENABLED} from "../../../src/local/indexeddb_schema";
 
 use(chaiAsPromised);
 
 apiDescribe('Index Configuration:', (persistence: boolean) => {
+  if (persistence && !INDEXING_ENABLED) {
+    return;
+  }
+
   it('supports JSON', () => {
     return withTestDb(persistence, async db => {
       return setIndexConfiguration(

@@ -67,6 +67,7 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
+import {INDEXING_ENABLED} from "../../../src/local/indexeddb_schema";
 
 
 class AsyncLocalStoreTester {
@@ -226,6 +227,11 @@ class AsyncLocalStoreTester {
 }
 
 describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
+
+  if (!INDEXING_ENABLED) {
+    return;
+  }
+
   let persistence: Persistence;
   let test: AsyncLocalStoreTester;
 
