@@ -82,9 +82,13 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
 
   it('bad JSON does not crash client', () => {
     return withTestDb(persistence, async db => {
-      await expect(setIndexConfiguration(db, '{,}')).to.eventually.throw(
-        'Failed to parse JSON'
-      );
+      const action: Promise<void> = setIndexConfiguration(db, '{,}');
+      if (persistence) {
+        await expect(action).to.eventually.be.rejectedWith(/Failed to parse JSON/);
+      } else {
+        // Silently do nothing. Parsing is not done and therefore no error is thrown.
+        await action;
+      }
     });
   });
 
