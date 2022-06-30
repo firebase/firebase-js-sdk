@@ -999,7 +999,10 @@ function decodeFilters(filter: ProtoFilter): Filter[] {
   // F2, ...
   // TODO(orquery): Once proper support for composite filters has been completed, we can remove
   // this flattening from here.
-  if (result instanceof CompositeFilter && compositeFilterIsFlatConjunction(result)) {
+  if (
+    result instanceof CompositeFilter &&
+    compositeFilterIsFlatConjunction(result)
+  ) {
     return result.getFilters();
   }
 
@@ -1079,7 +1082,9 @@ export function toOperatorName(op: Operator): ProtoFieldFilterOp {
   return OPERATORS[op];
 }
 
-export function toCompositeOperatorName(op: CompositeOperator): ProtoCompositeFilterOp {
+export function toCompositeOperatorName(
+  op: CompositeOperator
+): ProtoCompositeFilterOp {
   return COMPOSITE_OPERATORS[op];
 }
 
@@ -1112,7 +1117,9 @@ export function fromOperatorName(op: ProtoFieldFilterOp): Operator {
   }
 }
 
-export function fromCompositeOperatorName(op: ProtoCompositeFilterOp): CompositeOperator {
+export function fromCompositeOperatorName(
+  op: ProtoCompositeFilterOp
+): CompositeOperator {
   // TODO(orquery) support OR
   switch (op) {
     case 'AND':

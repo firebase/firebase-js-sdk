@@ -787,21 +787,30 @@ export class CompositeFilter extends Filter {
   }
 }
 
-export function compositeFilterIsConjunction(compositeFilter: CompositeFilter): boolean {
+export function compositeFilterIsConjunction(
+  compositeFilter: CompositeFilter
+): boolean {
   return compositeFilter.op === CompositeOperator.AND;
 }
 
 /**
  * Returns true if this filter is a conjunction of field filters only. Returns false otherwise.
  */
-export function compositeFilterIsFlatConjunction(compositeFilter: CompositeFilter): boolean {
-  return compositeFilterIsFlat(compositeFilter) && compositeFilterIsConjunction(compositeFilter);
+export function compositeFilterIsFlatConjunction(
+  compositeFilter: CompositeFilter
+): boolean {
+  return (
+    compositeFilterIsFlat(compositeFilter) &&
+    compositeFilterIsConjunction(compositeFilter)
+  );
 }
 
 /**
  * Returns true if this filter does not contain any composite filters. Returns false otherwise.
  */
-export function compositeFilterIsFlat(compositeFilter: CompositeFilter): boolean {
+export function compositeFilterIsFlat(
+  compositeFilter: CompositeFilter
+): boolean {
   for (const filter of compositeFilter.filters) {
     if (filter instanceof CompositeFilter) {
       return false;
@@ -854,15 +863,20 @@ export function fieldFilterEquals(f1: FieldFilter, f2: Filter): boolean {
   );
 }
 
-export function compositeFilterEquals(f1: CompositeFilter, f2: Filter): boolean {
+export function compositeFilterEquals(
+  f1: CompositeFilter,
+  f2: Filter
+): boolean {
   if (
     f2 instanceof CompositeFilter &&
     f1.op === f2.op &&
-    f1.filters.length === f2.filters.length) {
+    f1.filters.length === f2.filters.length
+  ) {
     const subFiltersMatch: boolean = f1.filters.reduce(
       (result: boolean, f1Filter: Filter, index: number): boolean =>
-        (result && filterEquals(f1Filter, f2.filters[index])),
-      true);
+        result && filterEquals(f1Filter, f2.filters[index]),
+      true
+    );
 
     return subFiltersMatch;
   }

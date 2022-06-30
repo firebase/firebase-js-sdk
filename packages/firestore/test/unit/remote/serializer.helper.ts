@@ -1097,14 +1097,12 @@ export function serializerTest(
       /* eslint-disable no-restricted-properties */
       it('converts deep collections', () => {
         const input = orFilter(
-          filter("prop", "<", 42),
+          filter('prop', '<', 42),
           andFilter(
             filter('author', '==', 'ehsann'),
             filter('tags', 'array-contains', 'pending'),
-            orFilter(
-              filter('version', '==', 4),
-              filter('version', '==', NaN)
-            ))
+            orFilter(filter('version', '==', 4), filter('version', '==', NaN))
+          )
         );
 
         // Encode
@@ -1152,31 +1150,21 @@ export function serializerTest(
         const innerOrProtoFilter = {
           compositeFilter: {
             op: protoCompositeFilterOrOp,
-            filters: [
-              versionProtoFilter,
-              nanVersionProtoFilter
-            ]
+            filters: [versionProtoFilter, nanVersionProtoFilter]
           }
         };
 
         const innerAndProtoFilter = {
           compositeFilter: {
             op: 'AND',
-            filters: [
-              authorProtoFilter,
-              tagsProtoFilter,
-              innerOrProtoFilter
-            ]
+            filters: [authorProtoFilter, tagsProtoFilter, innerOrProtoFilter]
           }
         };
 
         expect(actual).to.deep.equal({
           compositeFilter: {
             op: protoCompositeFilterOrOp,
-            filters: [
-              propProtoFilter,
-              innerAndProtoFilter
-            ]
+            filters: [propProtoFilter, innerAndProtoFilter]
           }
         });
 
