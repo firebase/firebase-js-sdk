@@ -16,6 +16,7 @@
 #   - @lahirumaramba
 #   - @hsubox76
 #   - @allspain
+#   - @dwyfrequency
 
 
 # ===========================================================
@@ -32,7 +33,7 @@
 
 
 # These owners will be the default owners for everything in the repo.
-*       @allspain @hsubox76 @firebase/jssdk-global-approvers
+*       @dwyfrequency @hsubox76 @firebase/jssdk-global-approvers
 
 # Database Code
 packages/database @maneesht @jsdt @firebase/jssdk-global-approvers
