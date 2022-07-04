@@ -151,9 +151,9 @@ export class CountingQueryEngine extends QueryEngine {
         return subject.getEntries(transaction, documentKeys).next(result => {
           result.forEach((key, doc) => {
             if (doc.isValidDocument()) {
-              this.documentsReadByKey++
+              this.documentsReadByKey++;
             }
-          })
+          });
           return result;
         });
       },
