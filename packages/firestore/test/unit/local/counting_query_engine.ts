@@ -149,13 +149,17 @@ export class CountingQueryEngine extends QueryEngine {
       },
       getEntries: (transaction, documentKeys) => {
         return subject.getEntries(transaction, documentKeys).next(result => {
-          this.documentsReadByKey += result.size;
+          result.forEach((key, doc) => {
+            if (doc.isValidDocument()) {
+              this.documentsReadByKey++
+            }
+          })
           return result;
         });
       },
       getEntry: (transaction, documentKey) => {
         return subject.getEntry(transaction, documentKey).next(result => {
-          this.documentsReadByKey += result ? 1 : 0;
+          this.documentsReadByKey += result?.isValidDocument() ? 1 : 0;
           return result;
         });
       },
