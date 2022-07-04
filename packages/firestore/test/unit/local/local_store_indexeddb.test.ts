@@ -29,7 +29,6 @@ import {
 import { Target } from '../../../src/core/target';
 import { TargetId } from '../../../src/core/types';
 import { IndexBackfiller } from '../../../src/local/index_backfiller';
-import { INDEXING_ENABLED } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
 import {
   localStoreAllocateTarget,
@@ -178,58 +177,9 @@ class AsyncLocalStoreTester {
   async backfillIndexes(): Promise<void> {
     await this.indexBackfiller.backfill();
   }
-
-  /**
-   * Asserts the expected number of mutations and documents read by
-   * the MutationQueue and the RemoteDocumentCache.
-   *
-   * @param expectedCount.mutationsByQuery - The number of mutations read by
-   * executing a collection scan against the MutationQueue.
-   * @param expectedCount.mutationsByKey - The number of mutations read by
-   * document key lookups.
-   * @param expectedCount.documentsByQuery - The number of mutations read by
-   * executing a collection scan against the RemoteDocumentCache.
-   * @param expectedCount.documentsByKey - The number of documents read by
-   * document key lookups.
-   */
-  toHaveRead(expectedCount: {
-    mutationsByCollection?: number;
-    mutationsByKey?: number;
-    documentsByCollection?: number;
-    documentsByKey?: number;
-  }): void {
-    if (expectedCount.mutationsByCollection !== undefined) {
-      expect(this.queryEngine.mutationsReadByCollection).to.be.eq(
-        expectedCount.mutationsByCollection,
-        'Mutations read (by collection)'
-      );
-    }
-    if (expectedCount.mutationsByKey !== undefined) {
-      expect(this.queryEngine.mutationsReadByKey).to.be.eq(
-        expectedCount.mutationsByKey,
-        'Mutations read (by key)'
-      );
-    }
-    if (expectedCount.documentsByCollection !== undefined) {
-      expect(this.queryEngine.documentsReadByCollection).to.be.eq(
-        expectedCount.documentsByCollection,
-        'Remote documents read (by collection)'
-      );
-    }
-    if (expectedCount.documentsByKey !== undefined) {
-      expect(this.queryEngine.documentsReadByKey).to.be.eq(
-        expectedCount.documentsByKey,
-        'Remote documents read (by key)'
-      );
-    }
-  }
 }
 
 describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
-  if (!INDEXING_ENABLED) {
-    return;
-  }
-
   let persistence: Persistence;
   let test: AsyncLocalStoreTester;
 
