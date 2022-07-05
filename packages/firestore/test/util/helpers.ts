@@ -264,11 +264,11 @@ export function filter(path: string, op: string, value: unknown): FieldFilter {
   return FieldFilter.create(field(path), operator, dataValue);
 }
 
-export function andFilter(...filters: Filter[]): CompositeFilter {
+export function and(...filters: Filter[]): CompositeFilter {
   return CompositeFilter.create(filters, CompositeOperator.AND);
 }
 
-export function orFilter(...filters: Filter[]): CompositeFilter {
+export function or(...filters: Filter[]): CompositeFilter {
   return CompositeFilter.create(filters, CompositeOperator.OR);
 }
 

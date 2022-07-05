@@ -25,8 +25,12 @@ export {
   orderBy,
   OrderByDirection,
   where,
+  and,
   WhereFilterOp,
   query,
   QueryConstraint,
+  QueryNonFilterConstraint,
+  QueryCompositeFilterConstraint,
+  QueryFilterConstraint,
   QueryConstraintType
 } from '../lite-api/query';

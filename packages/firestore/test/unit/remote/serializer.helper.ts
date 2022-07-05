@@ -117,8 +117,8 @@ import {
   doc,
   field,
   filter,
-  andFilter,
-  orFilter,
+  and,
+  or,
   key,
   orderBy,
   patchMutation,
@@ -1096,12 +1096,12 @@ export function serializerTest(
 
       /* eslint-disable no-restricted-properties */
       it('converts deep collections', () => {
-        const input = orFilter(
+        const input = or(
           filter('prop', '<', 42),
-          andFilter(
+          and(
             filter('author', '==', 'ehsann'),
             filter('tags', 'array-contains', 'pending'),
-            orFilter(filter('version', '==', 4), filter('version', '==', NaN))
+            or(filter('version', '==', 4), filter('version', '==', NaN))
           )
         );
 
@@ -1402,10 +1402,10 @@ export function serializerTest(
         const q = queryToTarget(
           query(
             'docs',
-            orFilter(
+            or(
               filter('prop', '<', 42),
               filter('name', '==', 'dimond'),
-              andFilter(
+              and(
                 filter('nan', '==', NaN),
                 filter('null', '==', null),
                 filter('tags', 'array-contains', 'pending')
@@ -1488,10 +1488,10 @@ export function serializerTest(
         const q = queryToTarget(
           query(
             'docs',
-            andFilter(
+            and(
               filter('prop', '<', 42),
               filter('name', '==', 'dimond'),
-              orFilter(
+              or(
                 filter('nan', '==', NaN),
                 filter('null', '==', null),
                 filter('tags', 'array-contains', 'pending')

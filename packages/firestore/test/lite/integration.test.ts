@@ -45,7 +45,9 @@ import {
   query,
   startAfter,
   startAt,
-  where
+  where,
+  and,
+  QueryConstraint
 } from '../../src/lite-api/query';
 import {
   collection,
@@ -59,7 +61,8 @@ import {
   DocumentData,
   WithFieldValue,
   PartialWithFieldValue,
-  UpdateData
+  UpdateData,
+  Query
 } from '../../src/lite-api/reference';
 import {
   addDoc,
@@ -836,6 +839,46 @@ describe('FieldValue', () => {
       const snap = await getDoc(docRef);
       expect(snap.data()).to.deep.equal({});
     });
+  });
+});
+
+describe('Query overloads', () => {
+  function verifyResults(
+    actual: QuerySnapshot<DocumentData>,
+    ...expected: DocumentData[]
+  ): void {
+    expect(actual.empty).to.equal(expected.length === 0);
+    expect(actual.size).to.equal(expected.length);
+
+    for (let i = 0; i < expected.length; ++i) {
+      expect(actual.docs[i].data()).to.deep.equal(expected[i]);
+    }
+  }
+
+  it.only('supports old types', () => {
+    return withTestCollectionAndInitialData(
+      [
+        { foo: 1, bar: 'baz' },
+        { foo: 2, bar: 'spaz' }
+      ],
+      async collRef => {
+        const collectionRef: CollectionReference<DocumentData> = collRef;
+        const whereFooFilter: QueryConstraint = where('foo', '==', 1);
+        const whereBarFilter: QueryConstraint = where('bar', '==', 'baz');
+        const orderByConstraint: QueryConstraint = orderBy('foo', 'asc');
+        const limitToLastConstraint: QueryConstraint = limitToLast(2);
+
+        const query1: Query<DocumentData> = query(
+          collectionRef,
+          whereFooFilter,
+          whereBarFilter,
+          orderByConstraint,
+          limitToLastConstraint
+        );
+        const result = await getDocs(query1);
+        verifyResults(result, { foo: 1, bar: 'baz' });
+      }
+    );
   });
 });
 

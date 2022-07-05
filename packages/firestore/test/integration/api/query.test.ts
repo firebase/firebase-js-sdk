@@ -48,7 +48,12 @@ import {
   Timestamp,
   updateDoc,
   where,
-  writeBatch
+  writeBatch,
+  and,
+  QueryConstraint,
+  QueryFilterConstraint,
+  QueryCompositeFilterConstraint,
+  QueryNonFilterConstraint
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -833,6 +838,81 @@ apiDescribe('Queries', (persistence: boolean) => {
       expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
     });
   });
+
+  // eslint-disable-next-line no-restricted-properties
+  // it('can perform logical AND of filters', async () => {
+  it.only('can perform logical AND of filters', async () => {
+    // These documents are ordered by value in "zip" since the '!=' filter is
+    // an inequality, which results in documents being sorted by value.
+    const testDocs = {
+      a: { zip: 80301, city: 'Boulder' },
+      b: { zip: 80301, city: 'Valmont' },
+      c: { zip: 80304, city: 'Boulder' },
+      d: { zip: 80401, city: 'Lakewood' },
+      e: { zip: 80401, city: 'Golden' }
+    };
+
+    // implicit AND
+    await withTestCollection(persistence, testDocs, async coll => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const expected: { [name: string]: any } = { ...testDocs };
+      delete expected.a;
+      delete expected.b;
+      delete expected.c;
+      delete expected.d;
+
+      // let filter: QueryCompositeFilterConstraint = and(where('zip', '>', 80401), where('city', '==', 'Golden'));
+      // let order: QueryNonFilterConstraint = orderBy('zip', 'asc');
+
+      let filter = and(where('zip', '>', 80401), where('city', '==', 'Golden'));
+      let order = orderBy('zip', 'asc');
+      let limit = limitToLast(2);
+
+      const snapshot = await getDocs(query(coll, filter, order, limit));
+      const snapshot2 = await getDocs(
+        query(
+          coll,
+          and(where('zip', '>', 80401), where('city', '==', 'Golden'))
+        )
+      );
+      expect(toDataArray(snapshot)).to.deep.equal(Object.values(expected));
+    });
+
+    // with `and(...)`
+    await withTestCollection(persistence, testDocs, async coll => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const expected: { [name: string]: any } = { ...testDocs };
+      delete expected.a;
+      delete expected.b;
+      delete expected.c;
+      delete expected.d;
+      const snapshot = await getDocs(
+        query(
+          coll,
+          and(where('zip', '==', 80401), where('city', '==', 'Golden'))
+        )
+      );
+      expect(toDataArray(snapshot)).to.deep.equal(Object.values(expected));
+    });
+  });
+
+  /* language: TypeScript, SDK: Firebase Web */
+  export class QueryConstraint {}
+  export class QueryFilterConstraint extends QueryConstraint {}
+
+  /* v9 API */
+  export function where(): QueryConstraint {
+    return new QueryFilterConstraint();
+  }
+
+  /* v9.1 API */
+  // Return type change to sub-class
+  export function where(): QueryFilterConstraint {
+    return new QueryFilterConstraint();
+  }
+  export function or(
+    ...filters: QueryFilterConstraint[]
+  ): QueryCompositeFilterConstraint;
 
   it('can use != filters by document ID', async () => {
     const testDocs = {

@@ -79,9 +79,13 @@ export {
   limit,
   limitToLast,
   where,
+  and,
   orderBy,
   query,
   QueryConstraint,
+  QueryFilterConstraint,
+  QueryCompositeFilterConstraint,
+  QueryNonFilterConstraint,
   QueryConstraintType,
   OrderByDirection,
   WhereFilterOp

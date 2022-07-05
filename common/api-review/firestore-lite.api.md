@@ -18,6 +18,9 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 };
 
 // @public
+export function andFilter(...queryConstraints: QueryConstraint[]): QueryConstraint;
+
+// @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
 
 // @public

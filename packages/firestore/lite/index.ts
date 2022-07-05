@@ -64,9 +64,13 @@ export {
   orderBy,
   OrderByDirection,
   where,
+  and,
   WhereFilterOp,
   query,
   QueryConstraint,
+  QueryNonFilterConstraint,
+  QueryFilterConstraint,
+  QueryCompositeFilterConstraint,
   QueryConstraintType
 } from '../src/lite-api/query';
 

@@ -54,6 +54,7 @@ import {
   updateDoc,
   waitForPendingWrites,
   where,
+  and,
   writeBatch,
   QueryDocumentSnapshot,
   DocumentReference,

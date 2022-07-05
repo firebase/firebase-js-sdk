@@ -108,6 +108,33 @@ export abstract class QueryConstraint {
   abstract _apply<T>(query: Query<T>): Query<T>;
 }
 
+export type QueryNonFilterConstraint =
+  | QueryOrderByConstraint
+  | QueryLimitConstraint
+  | QueryStartAtConstraint
+  | QueryEndAtConstraint;
+
+/**
+ * Creates a new immutable instance of {@link Query} that is extended to also include
+ * additional query constraints.
+ *
+ * @param query - The {@link Query} instance to use as a base for the new constraints.
+ * @param filter - The filter {@link QueryFilterConstraint} to apply. See {@link or} or {@link and}
+ * @param queryNonFilterConstraints - The list of {@link QueryConstraint}s to apply.
+ * @throws if any of the provided query constraints cannot be combined with the
+ * existing or new constraints.
+ */
+export function query<T>(
+  query: Query<T>,
+  filter: QueryFilterConstraint | QueryCompositeFilterConstraint,
+  ...queryNonFilterConstraints: QueryNonFilterConstraint[]
+): Query<T>;
+
+export function query<T>(
+  query: Query<T>,
+  ...queryNonFilterConstraints: QueryNonFilterConstraint[]
+): Query<T>;
+
 /**
  * Creates a new immutable instance of {@link Query} that is extended to also include
  * additional query constraints.
@@ -116,18 +143,28 @@ export abstract class QueryConstraint {
  * @param queryConstraints - The list of {@link QueryConstraint}s to apply.
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
+ * @deprecated
  */
 export function query<T>(
   query: Query<T>,
   ...queryConstraints: QueryConstraint[]
+): Query<T>;
+
+export function query<T>(
+  query: Query<T>,
+  firstQueryConstraint?: QueryConstraint,
+  ...queryConstraints: QueryConstraint[]
 ): Query<T> {
+  if (firstQueryConstraint !== undefined) {
+    queryConstraints.unshift(firstQueryConstraint);
+  }
   for (const constraint of queryConstraints) {
     query = constraint._apply(query);
   }
   return query;
 }
 
-class QueryFilterConstraint extends QueryConstraint {
+export class QueryFilterConstraint extends QueryConstraint {
   readonly type = 'where';
 
   constructor(
@@ -195,13 +232,13 @@ export function where(
   fieldPath: string | FieldPath,
   opStr: WhereFilterOp,
   value: unknown
-): QueryConstraint {
+): QueryFilterConstraint {
   const op = opStr as Operator;
   const field = fieldPathFromArgument('where', fieldPath);
   return new QueryFilterConstraint(field, op, value);
 }
 
-class QueryCompositeFilterConstraint extends QueryConstraint {
+export class QueryCompositeFilterConstraint extends QueryConstraint {
   constructor(
     readonly type: 'or' | 'and',
     private readonly _queryConstraints: QueryFilterConstraint[]
@@ -255,7 +292,12 @@ class QueryCompositeFilterConstraint extends QueryConstraint {
  * created with calls to {@link where}, {@link or}, or {@link and}.
  * @returns The created {@link QueryConstraint}.
  */
-export function or(...queryConstraints: QueryConstraint[]): QueryConstraint {
+export function or(
+  ...queryConstraints: (
+    | QueryFilterConstraint
+    | QueryCompositeFilterConstraint
+  )[]
+): QueryCompositeFilterConstraint {
   // Only support QueryFilterConstraints
   queryConstraints.forEach(queryConstraint =>
     validateQueryFilterConstraint('or', queryConstraint)
@@ -275,7 +317,12 @@ export function or(...queryConstraints: QueryConstraint[]): QueryConstraint {
  * created with calls to {@link where}, {@link or}, or {@link and}.
  * @returns The created {@link QueryConstraint}.
  */
-export function and(...queryConstraints: QueryConstraint[]): QueryConstraint {
+export function and(
+  ...queryConstraints: (
+    | QueryFilterConstraint
+    | QueryCompositeFilterConstraint
+  )[]
+): QueryCompositeFilterConstraint {
   // Only support QueryFilterConstraints
   queryConstraints.forEach(queryConstraint =>
     validateQueryFilterConstraint('andQuery', queryConstraint)
@@ -325,7 +372,7 @@ export type OrderByDirection = 'desc' | 'asc';
 export function orderBy(
   fieldPath: string | FieldPath,
   directionStr: OrderByDirection = 'asc'
-): QueryConstraint {
+): QueryOrderByConstraint {
   const direction = directionStr as Direction;
   const path = fieldPathFromArgument('orderBy', fieldPath);
   return new QueryOrderByConstraint(path, direction);
@@ -355,7 +402,7 @@ class QueryLimitConstraint extends QueryConstraint {
  * @param limit - The maximum number of items to return.
  * @returns The created {@link Query}.
  */
-export function limit(limit: number): QueryConstraint {
+export function limit(limit: number): QueryLimitConstraint {
   validatePositiveNumber('limit', limit);
   return new QueryLimitConstraint('limit', limit, LimitType.First);
 }
@@ -369,7 +416,7 @@ export function limit(limit: number): QueryConstraint {
  * @param limit - The maximum number of items to return.
  * @returns The created {@link Query}.
  */
-export function limitToLast(limit: number): QueryConstraint {
+export function limitToLast(limit: number): QueryLimitConstraint {
   validatePositiveNumber('limitToLast', limit);
   return new QueryLimitConstraint('limitToLast', limit, LimitType.Last);
 }
@@ -407,7 +454,9 @@ class QueryStartAtConstraint extends QueryConstraint {
  * @param snapshot - The snapshot of the document to start at.
  * @returns A {@link QueryConstraint} to pass to `query()`.
  */
-export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function startAt(
+  snapshot: DocumentSnapshot<unknown>
+): QueryStartAtConstraint;
 /**
  * Creates a {@link QueryConstraint} that modifies the result set to start at the
  * provided fields relative to the order of the query. The order of the field
@@ -417,10 +466,10 @@ export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
  * of the query's order by.
  * @returns A {@link QueryConstraint} to pass to `query()`.
  */
-export function startAt(...fieldValues: unknown[]): QueryConstraint;
+export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
 export function startAt(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
-): QueryConstraint {
+): QueryStartAtConstraint {
   return new QueryStartAtConstraint(
     'startAt',
     docOrFields,
@@ -439,7 +488,7 @@ export function startAt(
  */
 export function startAfter(
   snapshot: DocumentSnapshot<unknown>
-): QueryConstraint;
+): QueryStartAtConstraint;
 /**
  * Creates a {@link QueryConstraint} that modifies the result set to start after the
  * provided fields relative to the order of the query. The order of the field
@@ -449,10 +498,10 @@ export function startAfter(
  * of the query's order by.
  * @returns A {@link QueryConstraint} to pass to `query()`
  */
-export function startAfter(...fieldValues: unknown[]): QueryConstraint;
+export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
 export function startAfter(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
-): QueryConstraint {
+): QueryStartAtConstraint {
   return new QueryStartAtConstraint(
     'startAfter',
     docOrFields,
@@ -493,7 +542,9 @@ class QueryEndAtConstraint extends QueryConstraint {
  * @param snapshot - The snapshot of the document to end before.
  * @returns A {@link QueryConstraint} to pass to `query()`
  */
-export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function endBefore(
+  snapshot: DocumentSnapshot<unknown>
+): QueryEndAtConstraint;
 /**
  * Creates a {@link QueryConstraint} that modifies the result set to end before the
  * provided fields relative to the order of the query. The order of the field
@@ -503,10 +554,10 @@ export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
  * of the query's order by.
  * @returns A {@link QueryConstraint} to pass to `query()`
  */
-export function endBefore(...fieldValues: unknown[]): QueryConstraint;
+export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 export function endBefore(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
-): QueryConstraint {
+): QueryEndAtConstraint {
   return new QueryEndAtConstraint(
     'endBefore',
     docOrFields,
@@ -523,7 +574,9 @@ export function endBefore(
  * @param snapshot - The snapshot of the document to end at.
  * @returns A {@link QueryConstraint} to pass to `query()`
  */
-export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function endAt(
+  snapshot: DocumentSnapshot<unknown>
+): QueryEndAtConstraint;
 /**
  * Creates a {@link QueryConstraint} that modifies the result set to end at the
  * provided fields relative to the order of the query. The order of the field
@@ -533,10 +586,10 @@ export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
  * of the query's order by.
  * @returns A {@link QueryConstraint} to pass to `query()`
  */
-export function endAt(...fieldValues: unknown[]): QueryConstraint;
+export function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 export function endAt(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
-): QueryConstraint {
+): QueryEndAtConstraint {
   return new QueryEndAtConstraint('endAt', docOrFields, /*inclusive=*/ true);
 }
 
