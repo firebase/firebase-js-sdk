@@ -103,6 +103,14 @@
       },
       "default": "./functions/dist/index.esm.js"
     },
+    "./installations": {
+      "types": "./installations/dist/installations/index.d.ts",
+      "node": {
+        "require": "./installations/dist/index.cjs.js",
+        "import": "./installations/dist/index.mjs"
+      },
+      "default": "./installations/dist/index.esm.js"
+    },
     "./messaging": {
       "types": "./messaging/dist/messaging/index.d.ts",
       "node": {
@@ -199,6 +207,14 @@
       },
       "default": "./compat/functions/dist/index.esm.js"
     },
+    "./compat/installations": {
+      "types": "./compat/installations/dist/compat/installations/index.d.ts",
+      "node": {
+        "require": "./compat/installations/dist/index.cjs.js",
+        "import": "./compat/installations/dist/index.mjs"
+      },
+      "default": "./compat/installations/dist/index.esm.js"
+    },
     "./compat/messaging": {
       "types": "./compat/messaging/dist/compat/messaging/index.d.ts",
       "node": {
@@ -257,6 +273,7 @@
     "@firebase/functions": "0.8.3",
     "@firebase/functions-compat": "0.2.3",
     "@firebase/installations": "0.5.11",
+    "@firebase/installations-compat": "0.1.11",
     "@firebase/messaging": "0.9.15",
     "@firebase/messaging-compat": "0.1.15",
     "@firebase/polyfill": "0.3.36",
@@ -295,6 +312,7 @@
     "functions",
     "firestore",
     "firestore/lite",
+    "installations",
     "storage",
     "performance",
     "remote-config",

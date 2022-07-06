@@ -1,12 +1,6 @@
 /**
- * Cloud Functions for Firebase
- *
- * @packageDocumentation
- */
-
-/**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { registerFunctions } from './config';
 
-export * from './api';
-export * from './public-types';
+import { Deferred } from './deferred';
 
-registerFunctions(fetch.bind(self));
+/**
+ * Rejects if the given promise doesn't resolve in timeInMS milliseconds.
+ * @internal
+ */
+export function promiseWithTimeout<T>(
+  promise: Promise<T>,
+  timeInMS = 2000
+): Promise<T> {
+  const deferredPromise = new Deferred<T>();
+  setTimeout(() => deferredPromise.reject('timeout!'), timeInMS);
+  promise.then(deferredPromise.resolve, deferredPromise.reject);
+  return deferredPromise.promise;
+}
