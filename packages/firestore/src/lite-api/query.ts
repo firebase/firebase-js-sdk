@@ -278,7 +278,7 @@ export function or(...queryConstraints: QueryConstraint[]): QueryConstraint {
 export function and(...queryConstraints: QueryConstraint[]): QueryConstraint {
   // Only support QueryFilterConstraints
   queryConstraints.forEach(queryConstraint =>
-    validateQueryFilterConstraint('andQuery', queryConstraint)
+    validateQueryFilterConstraint('and', queryConstraint)
   );
 
   return new QueryCompositeFilterConstraint(

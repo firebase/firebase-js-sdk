@@ -537,9 +537,9 @@ export function targetGetSegmentCount(target: Target): number {
 export abstract class Filter {
   abstract matches(doc: Document): boolean;
 
-  abstract getFlattenedFilters(): FieldFilter[];
+  abstract getFlattenedFilters(): readonly FieldFilter[];
 
-  abstract getFilters(): Filter[];
+  abstract getFilters(): readonly Filter[];
 
   abstract getFirstInequalityField(): FieldPath | null;
 }
@@ -570,11 +570,12 @@ export const enum Direction {
   DESCENDING = 'desc'
 }
 
+// TODO(orquery) move Filter classes to a new file, e.g. filter.ts
 export class FieldFilter extends Filter {
   protected constructor(
-    public field: FieldPath,
-    public op: Operator,
-    public value: ProtoValue
+    public readonly field: FieldPath,
+    public readonly op: Operator,
+    public readonly value: ProtoValue
   ) {
     super();
   }
@@ -697,11 +698,11 @@ export class FieldFilter extends Filter {
     );
   }
 
-  getFlattenedFilters(): FieldFilter[] {
+  getFlattenedFilters(): readonly FieldFilter[] {
     return [this];
   }
 
-  getFilters(): Filter[] {
+  getFilters(): readonly Filter[] {
     return [this];
   }
 
@@ -714,9 +715,11 @@ export class FieldFilter extends Filter {
 }
 
 export class CompositeFilter extends Filter {
+  private memoizedFlattenedFilters: FieldFilter[] | null = null;
+
   protected constructor(
-    public filters: Filter[],
-    public op: CompositeOperator
+    public readonly filters: readonly Filter[],
+    public readonly op: CompositeOperator
   ) {
     super();
   }
@@ -738,21 +741,20 @@ export class CompositeFilter extends Filter {
     }
   }
 
-  getFlattenedFilters(): FieldFilter[] {
-    // TODO(orquery): memoize this result if this method is used more than once
-    let result: FieldFilter[] = [];
-    result = this.filters.reduce((result, subfilter) => {
+  getFlattenedFilters(): readonly FieldFilter[] {
+    if (this.memoizedFlattenedFilters !== null) {
+      return this.memoizedFlattenedFilters;
+    }
+
+    this.memoizedFlattenedFilters = this.filters.reduce((result, subfilter) => {
       return result.concat(subfilter.getFlattenedFilters());
-    }, result);
-    return result;
+    }, [] as FieldFilter[]);
+
+    return this.memoizedFlattenedFilters;
   }
 
-  getFilters(): Filter[] {
+  getFilters(): readonly Filter[] {
     return this.filters;
-  }
-
-  getOperator(): CompositeOperator {
-    return this.op;
   }
 
   getFirstInequalityField(): FieldPath | null {
@@ -770,16 +772,9 @@ export class CompositeFilter extends Filter {
   private findFirstMatchingFilter(
     predicate: (filter: FieldFilter) => boolean
   ): FieldFilter | null {
-    for (const filter of this.filters) {
-      if (filter instanceof FieldFilter && predicate(filter)) {
-        return filter as FieldFilter;
-      } else if (filter instanceof CompositeFilter) {
-        const found = (filter as CompositeFilter).findFirstMatchingFilter(
-          predicate
-        );
-        if (found !== null) {
-          return found;
-        }
+    for (const fieldFilter of this.getFlattenedFilters()) {
+      if (predicate(fieldFilter)) {
+        return fieldFilter;
       }
     }
 
@@ -811,8 +806,7 @@ export function canonifyFilter(filter: Filter): string {
     const canonicalIdsString = filter.filters
       .map(filter => canonifyFilter(filter))
       .join(',');
-    const opString = filter.isConjunction() ? 'and' : 'or';
-    return `${opString}(${canonicalIdsString})`;
+    return `${filter.op}(${canonicalIdsString})`;
   }
 }
 
