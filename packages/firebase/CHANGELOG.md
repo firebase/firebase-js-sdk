@@ -1,5 +1,44 @@
 # firebase
 
+## 9.9.0
+
+### Minor Changes
+
+- [`1d3a34d7d`](https://github.com/firebase/firebase-js-sdk/commit/1d3a34d7da5bf3c267d014efb587e03c46ff3064) [#6376](https://github.com/firebase/firebase-js-sdk/pull/6376) - Add function `setConsent()` to set the applicable end user "consent" state.
+
+* [`69e2ee064`](https://github.com/firebase/firebase-js-sdk/commit/69e2ee064e0729d8da823f1e60f6fb7f3bbe5700) [#6367](https://github.com/firebase/firebase-js-sdk/pull/6367) - Add function `setDefaultEventParameters()` to set data that will be logged on every Analytics SDK event
+
+### Patch Changes
+
+- [`5edd81fb5`](https://github.com/firebase/firebase-js-sdk/commit/5edd81fb5e99b6db32d8c44681956f8d78d4b42e) [#6404](https://github.com/firebase/firebase-js-sdk/pull/6404) - Add installations CDN build and entry point.
+
+- Updated dependencies [[`c187446a2`](https://github.com/firebase/firebase-js-sdk/commit/c187446a202d881f55800be167cdb37b4d0e4a13), [`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf), [`1d3a34d7d`](https://github.com/firebase/firebase-js-sdk/commit/1d3a34d7da5bf3c267d014efb587e03c46ff3064), [`69e2ee064`](https://github.com/firebase/firebase-js-sdk/commit/69e2ee064e0729d8da823f1e60f6fb7f3bbe5700), [`1261d8323`](https://github.com/firebase/firebase-js-sdk/commit/1261d832345ff4505391a150cb9c32719da37eb0), [`6a8be1337`](https://github.com/firebase/firebase-js-sdk/commit/6a8be1337f19a49db40e0c757f571f42b5b4d494), [`e673dc808`](https://github.com/firebase/firebase-js-sdk/commit/e673dc808adc14baa499c4ecc31fdb82b1ff0757), [`ad773fa45`](https://github.com/firebase/firebase-js-sdk/commit/ad773fa451b13f9d58b3f27f7ec6570117b0cc27), [`8c52a96ed`](https://github.com/firebase/firebase-js-sdk/commit/8c52a96edac5b65501ee4eeb234c4bb8e70a5dd5)]:
+  - @firebase/database@0.13.3
+  - @firebase/util@1.6.3
+  - @firebase/analytics@0.8.0
+  - @firebase/auth@0.20.5
+  - @firebase/functions@0.8.4
+  - @firebase/firestore@3.4.12
+  - @firebase/database-compat@0.2.3
+  - @firebase/analytics-compat@0.1.13
+  - @firebase/app@0.7.28
+  - @firebase/app-check@0.5.11
+  - @firebase/app-check-compat@0.2.11
+  - @firebase/app-compat@0.1.29
+  - @firebase/auth-compat@0.2.18
+  - @firebase/firestore-compat@0.1.21
+  - @firebase/functions-compat@0.2.4
+  - @firebase/installations@0.5.12
+  - @firebase/installations-compat@0.1.12
+  - @firebase/messaging@0.9.16
+  - @firebase/messaging-compat@0.1.16
+  - @firebase/performance@0.5.12
+  - @firebase/performance-compat@0.1.12
+  - @firebase/remote-config@0.3.11
+  - @firebase/remote-config-compat@0.1.12
+  - @firebase/storage@0.9.9
+  - @firebase/storage-compat@0.1.17
+
 ## 9.8.4
 
 ### Patch Changes

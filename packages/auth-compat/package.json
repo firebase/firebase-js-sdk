@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth-compat",
-  "version": "0.2.17",
+  "version": "0.2.18",
   "description": "FirebaseAuth compatibility package that uses API style compatible with Firebase@8 and prior versions",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -45,17 +45,17 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/auth": "0.20.4",
+    "@firebase/auth": "0.20.5",
     "@firebase/auth-types": "0.11.0",
-    "@firebase/component": "0.5.16",
-    "@firebase/util": "1.6.2",
+    "@firebase/component": "0.5.17",
+    "@firebase/util": "1.6.3",
     "node-fetch": "2.6.7",
     "selenium-webdriver": "4.1.2",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.1.28",
+    "@firebase/app-compat": "0.1.29",
     "@rollup/plugin-json": "4.1.0",
     "rollup": "2.72.1",
     "rollup-plugin-replace": "2.2.0",

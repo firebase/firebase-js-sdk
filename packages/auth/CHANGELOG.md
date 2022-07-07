@@ -1,5 +1,17 @@
 # @firebase/auth
 
+## 0.20.5
+
+### Patch Changes
+
+- [`1261d8323`](https://github.com/firebase/firebase-js-sdk/commit/1261d832345ff4505391a150cb9c32719da37eb0) [#6421](https://github.com/firebase/firebase-js-sdk/pull/6421) (fixes [#6133](https://github.com/firebase/firebase-js-sdk/issues/6133)) - Fix a bug causing ReCAPTCHA conflicts between Auth and App Check.
+
+* [`8c52a96ed`](https://github.com/firebase/firebase-js-sdk/commit/8c52a96edac5b65501ee4eeb234c4bb8e70a5dd5) [#6379](https://github.com/firebase/firebase-js-sdk/pull/6379) (fixes [#6331](https://github.com/firebase/firebase-js-sdk/issues/6331)) - Update user agent detection to better detect iPad; fixes bug for some iPad devices running Cordova apps
+
+* Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf)]:
+  - @firebase/util@1.6.3
+  - @firebase/component@0.5.17
+
 ## 0.20.4
 
 ### Patch Changes

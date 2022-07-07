@@ -1,5 +1,15 @@
 # @firebase/functions
 
+## 0.8.4
+
+### Patch Changes
+
+- [`e673dc808`](https://github.com/firebase/firebase-js-sdk/commit/e673dc808adc14baa499c4ecc31fdb82b1ff0757) [#6344](https://github.com/firebase/firebase-js-sdk/pull/6344) (fixes [#6281](https://github.com/firebase/firebase-js-sdk/issues/6281)) - Update public `FunctionsErrorCode` type to include "functions/" prefix.
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf)]:
+  - @firebase/util@1.6.3
+  - @firebase/component@0.5.17
+
 ## 0.8.3
 
 ### Patch Changes
