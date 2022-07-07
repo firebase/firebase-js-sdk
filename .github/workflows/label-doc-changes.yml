@@ -33,4 +33,9 @@ jobs:
       if: ${{steps.check-doc-changes.outputs.DOC_CHANGED == 'true'}}
       with:
         labels: doc-changes
-        github_token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
+        github_token: ${{ github.token }}
+    - name: assign techwriters to PR
+      if: ${{steps.check-doc-changes.outputs.DOC_CHANGED == 'true'}}
+      uses: kentaro-m/auto-assign-action@v1.2.1
+      with:
+        configuration-path: ".github/auto_assign.yml"
