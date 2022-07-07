@@ -1,6 +1,9 @@
 name: Check Changeset
 
-on: pull_request
+on:
+  pull_request:
+    branches-ignore:
+      - release
 
 env:
   GITHUB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -8,7 +11,6 @@ env:
 
 jobs:
   check_changeset:
-    if: github.event.pull_request.title != "Version Packages"
     name: Check changeset vs changed files
     runs-on: ubuntu-latest
 
