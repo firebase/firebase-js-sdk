@@ -1,5 +1,14 @@
 # @firebase/analytics-compat
 
+## 0.1.13
+
+### Patch Changes
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf), [`1d3a34d7d`](https://github.com/firebase/firebase-js-sdk/commit/1d3a34d7da5bf3c267d014efb587e03c46ff3064), [`69e2ee064`](https://github.com/firebase/firebase-js-sdk/commit/69e2ee064e0729d8da823f1e60f6fb7f3bbe5700)]:
+  - @firebase/util@1.6.3
+  - @firebase/analytics@0.8.0
+  - @firebase/component@0.5.17
+
 ## 0.1.12
 
 ### Patch Changes
