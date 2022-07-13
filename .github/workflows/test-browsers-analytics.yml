@@ -34,5 +34,7 @@ jobs:
         run: |
           cp config/ci.config.json config/project.json
           yarn
+      - name: yarn build
+        run: yarn --cwd packages/analytics build:deps
       - name: Run unit tests
         run: xvfb-run yarn --cwd packages/analytics test
