@@ -1,4 +1,4 @@
-name: Test All Packages
+name: Test Multiple Browsers for Analytics Package
 
 on:
   push:
