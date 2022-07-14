@@ -25,6 +25,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
+      - name: install Firefox stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install firefox
       - name: Bump Node memory limit
         run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Write project config
