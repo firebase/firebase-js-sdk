@@ -27,6 +27,8 @@ module.exports = function (config) {
       'test/**/*.ts': ['webpack', 'sourcemap']
     },
 
+    browsers: ['ChromeHeadless'],
+
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
