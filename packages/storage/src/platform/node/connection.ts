@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
- import {
+import {
   Connection,
   ConnectionType,
   ErrorCode
