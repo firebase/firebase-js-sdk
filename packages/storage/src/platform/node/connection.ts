@@ -71,12 +71,15 @@ abstract class FetchConnection<T extends ConnectionType>
       this.errorCode_ = ErrorCode.NO_ERROR;
       this.body_ = response.data;
     } catch (e) {
-      if (e instanceof AxiosError && (e as AxiosError)?.response?.status === 404) {
-        const axiosError = (e as AxiosError);
+      if (
+        e instanceof AxiosError &&
+        (e as AxiosError)?.response?.status === 404
+      ) {
+        const axiosError = e as AxiosError;
         this.headers_ = axiosError?.response?.headers;
-        this.statusCode_ = (axiosError)?.response?.status;
+        this.statusCode_ = axiosError?.response?.status;
         this.errorCode_ = ErrorCode.NO_ERROR;
-        this.body_ = (axiosError?.response?.data as ArrayBuffer);
+        this.body_ = axiosError?.response?.data as ArrayBuffer;
         return;
       }
       this.errorText_ = (e as Error)?.message;
@@ -183,12 +186,15 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
       this.errorCode_ = ErrorCode.NO_ERROR;
       this.stream_ = response.data;
     } catch (e) {
-      if (e instanceof AxiosError && (e as AxiosError)?.response?.status === 404) {
-        const axiosError = (e as AxiosError);
+      if (
+        e instanceof AxiosError &&
+        (e as AxiosError)?.response?.status === 404
+      ) {
+        const axiosError = e as AxiosError;
         this.headers_ = axiosError?.response?.headers;
-        this.statusCode_ = (axiosError)?.response?.status;
+        this.statusCode_ = axiosError?.response?.status;
         this.errorCode_ = ErrorCode.NO_ERROR;
-        this.stream_ = (axiosError?.response?.data as NodeJS.ReadableStream);
+        this.stream_ = axiosError?.response?.data as NodeJS.ReadableStream;
         return;
       }
 
