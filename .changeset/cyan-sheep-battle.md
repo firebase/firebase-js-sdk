@@ -1,5 +1,5 @@
 ---
-'@firebase/app-check': minor
+'@firebase/app-check': patch
 ---
 
 Fix logic to trigger app check throttling
