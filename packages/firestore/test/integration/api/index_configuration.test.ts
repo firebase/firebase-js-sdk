@@ -15,13 +15,10 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import { expect } from 'chai';
 
 import { _setIndexConfiguration as setIndexConfiguration } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
-
-use(chaiAsPromised);
 
 apiDescribe('Index Configuration:', (persistence: boolean) => {
   it('supports JSON', () => {
@@ -82,14 +79,12 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
 
   it('bad JSON does not crash client', () => {
     return withTestDb(persistence, async db => {
-      const action: Promise<void> = setIndexConfiguration(db, '{,}');
+      const action = (): Promise<void> => setIndexConfiguration(db, '{,}');
       if (persistence) {
-        await expect(action).to.eventually.be.rejectedWith(
-          /Failed to parse JSON/
-        );
+        expect(action).to.throw(/Failed to parse JSON/);
       } else {
         // Silently do nothing. Parsing is not done and therefore no error is thrown.
-        await action;
+        await action();
       }
     });
   });

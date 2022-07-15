@@ -1496,7 +1496,7 @@ export async function localStoreConfigureFieldIndexes(
   const promises: Array<PersistencePromise<void>> = [];
   return localStoreImpl.persistence.runTransaction(
     'Configure indexes',
-    'readwrite-primary',
+    'readwrite',
     transaction =>
       indexManager
         .getFieldIndexes(transaction)

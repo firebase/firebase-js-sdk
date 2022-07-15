@@ -26,6 +26,7 @@ import {
 } from '../model/field_index';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
+import { logWarn } from '../util/log';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 
@@ -147,7 +148,7 @@ export function setIndexConfiguration(
   firestore: Firestore,
   json: string
 ): Promise<void>;
-export async function setIndexConfiguration(
+export function setIndexConfiguration(
   firestore: Firestore,
   jsonOrConfiguration: string | IndexConfiguration
 ): Promise<void> {
@@ -157,10 +158,18 @@ export async function setIndexConfiguration(
   // PORTING NOTE: We don't return an error if the user has not enabled
   // persistence since `enableIndexeddbPersistence()` can fail on the Web.
   if (!client.offlineComponents?.indexBackfillerScheduler) {
-    console.warn('Cannot enable indexes when persistence is disabled');
-    return;
+    logWarn('Cannot enable indexes when persistence is disabled');
+    return Promise.resolve();
   }
+  const parsedIndexes = parseIndexes(jsonOrConfiguration);
+  return getLocalStore(client).then(localStore =>
+    localStoreConfigureFieldIndexes(localStore, parsedIndexes)
+  );
+}
 
+export function parseIndexes(
+  jsonOrConfiguration: string | IndexConfiguration
+): FieldIndex[] {
   const indexConfiguration =
     typeof jsonOrConfiguration === 'string'
       ? (tryParseJson(jsonOrConfiguration) as IndexConfiguration)
@@ -200,9 +209,7 @@ export async function setIndexConfiguration(
       );
     }
   }
-
-  const localStore = await getLocalStore(client);
-  await localStoreConfigureFieldIndexes(localStore, parsedIndexes);
+  return parsedIndexes;
 }
 
 function tryParseJson(json: string): Record<string, unknown> {

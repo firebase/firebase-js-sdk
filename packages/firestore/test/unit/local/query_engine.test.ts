@@ -30,7 +30,6 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { View } from '../../../src/core/view';
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { INDEXING_SCHEMA_VERSION } from '../../../src/local/indexeddb_schema';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
@@ -122,9 +121,7 @@ describe('IndexedDbQueryEngine', async () => {
 
   let persistencePromise: Promise<Persistence>;
   beforeEach(async () => {
-    persistencePromise = persistenceHelpers.testIndexedDbPersistence({
-      schemaVersion: INDEXING_SCHEMA_VERSION
-    });
+    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
   });
 
   genericQueryEngineTest(/* durable= */ true, () => persistencePromise);

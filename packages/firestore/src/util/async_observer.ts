@@ -18,6 +18,7 @@
 import { Observer } from '../core/event_manager';
 
 import { FirestoreError } from './error';
+import { logError } from './log';
 import { EventHandler } from './misc';
 
 /*
@@ -44,7 +45,7 @@ export class AsyncObserver<T> implements Observer<T> {
     if (this.observer.error) {
       this.scheduleEvent(this.observer.error, error);
     } else {
-      console.error('Uncaught Error in snapshot listener:', error);
+      logError('Uncaught Error in snapshot listener:', error);
     }
   }
 
