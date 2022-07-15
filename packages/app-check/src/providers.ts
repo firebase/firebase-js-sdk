@@ -80,7 +80,10 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
         this._heartbeatServiceProvider!
       );
     } catch (e) {
-      if ((e as FirebaseError).code === AppCheckError.FETCH_STATUS_ERROR) {
+      console.log({ coder: (e as FirebaseError).code });
+      if (
+        (e as FirebaseError).code?.includes(AppCheckError.FETCH_STATUS_ERROR)
+      ) {
         this._throttleData = setBackoff(
           Number((e as FirebaseError).customData?.httpStatus),
           this._throttleData
@@ -167,7 +170,9 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
         this._heartbeatServiceProvider!
       );
     } catch (e) {
-      if ((e as FirebaseError).code === AppCheckError.FETCH_STATUS_ERROR) {
+      if (
+        (e as FirebaseError).code?.includes(AppCheckError.FETCH_STATUS_ERROR)
+      ) {
         this._throttleData = setBackoff(
           Number((e as FirebaseError).customData?.httpStatus),
           this._throttleData
