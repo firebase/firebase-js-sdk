@@ -421,7 +421,6 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.writeMutations(deleteMutation('coll/b'));
     await test.backfillIndexes();
 
-    // The query engine first reads the documents by key and then re-runs the query without limit.
     await test.executeQuery(queryCount);
     test.assertRemoteDocumentsRead(2, 0);
     test.assertOverlaysRead(2, 0);
