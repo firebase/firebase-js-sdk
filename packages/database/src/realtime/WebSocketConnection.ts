@@ -166,7 +166,7 @@ export class WebSocketConnection implements Transport {
       if (isNodeSdk()) {
         const device = this.nodeAdmin ? 'AdminNode' : 'Node';
         // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
-        const options: { [k: string]: object } = {
+        options = {
           headers: {
             'User-Agent': `Firebase/${PROTOCOL_VERSION}/${SDK_VERSION}/${process.platform}/${device}`,
             'X-Firebase-GMPID': this.applicationId || ''

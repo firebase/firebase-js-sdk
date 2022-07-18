@@ -15,10 +15,18 @@
  * limitations under the License.
  */
 
-import { CustomParams, ControlParams, EventParams } from './public-types';
+import {
+  CustomParams,
+  ControlParams,
+  EventParams,
+  ConsentSettings
+} from './public-types';
 import { DynamicConfig, DataLayer, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
+
+// Possible parameter types for gtag 'event' and 'config' commands
+type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
 
 /**
  * Makeshift polyfill for Promise.allSettled(). Resolves when all promises
@@ -219,9 +227,9 @@ function wrapGtag(
    * @param gtagParams Params if event is EVENT/CONFIG.
    */
   async function gtagWrapper(
-    command: 'config' | 'set' | 'event',
+    command: 'config' | 'set' | 'event' | 'consent',
     idOrNameOrParams: string | ControlParams,
-    gtagParams?: ControlParams & EventParams & CustomParams
+    gtagParams?: GtagConfigOrEventParams | ConsentSettings
   ): Promise<void> {
     try {
       // If event, check that relevant initialization promises have completed.
@@ -232,7 +240,7 @@ function wrapGtag(
           initializationPromisesMap,
           dynamicConfigPromisesList,
           idOrNameOrParams as string,
-          gtagParams
+          gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONFIG) {
         // If CONFIG, second arg must be measurementId.
@@ -242,8 +250,11 @@ function wrapGtag(
           dynamicConfigPromisesList,
           measurementIdToAppId,
           idOrNameOrParams as string,
-          gtagParams
+          gtagParams as GtagConfigOrEventParams
         );
+      } else if (command === GtagCommand.CONSENT) {
+        // If CONFIG, second arg must be measurementId.
+        gtagCore(GtagCommand.CONSENT, 'update', gtagParams as ConsentSettings);
       } else {
         // If SET, second arg must be params.
         gtagCore(GtagCommand.SET, idOrNameOrParams as CustomParams);

@@ -21,6 +21,7 @@ jobs:
         # Release script requires git history and tags.
         fetch-depth: 0
         ref: release
+        token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
     - name: Yarn install
       run: yarn
     - name: Publish to NPM
@@ -31,7 +32,6 @@ jobs:
       # TODO: Make these flags defaults in the release script.
       run: yarn release --releaseType Production --ci --skipTests --skipReinstall --ignoreUnstaged
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
         NPM_TOKEN_ANALYTICS_INTEROP_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES}}
         NPM_TOKEN_ANALYTICS_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_TYPES}}

@@ -1,5 +1,23 @@
 # @firebase/firestore-compat
 
+## 0.1.21
+
+### Patch Changes
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf), [`ad773fa45`](https://github.com/firebase/firebase-js-sdk/commit/ad773fa451b13f9d58b3f27f7ec6570117b0cc27)]:
+  - @firebase/util@1.6.3
+  - @firebase/firestore@3.4.12
+  - @firebase/component@0.5.17
+
+## 0.1.20
+
+### Patch Changes
+
+- Updated dependencies [[`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0)]:
+  - @firebase/util@1.6.2
+  - @firebase/component@0.5.16
+  - @firebase/firestore@3.4.11
+
 ## 0.1.19
 
 ### Patch Changes

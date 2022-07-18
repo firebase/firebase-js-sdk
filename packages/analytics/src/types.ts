@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { ControlParams, EventParams, CustomParams } from './public-types';
+import {
+  ControlParams,
+  EventParams,
+  CustomParams,
+  ConsentSettings
+} from './public-types';
 
 /**
  * Encapsulates metadata concerning throttled fetch requests.
@@ -62,6 +67,11 @@ export interface Gtag {
     command: 'event',
     eventName: string,
     eventParams?: ControlParams | EventParams | CustomParams
+  ): void;
+  (
+    command: 'consent',
+    subCommand: 'default' | 'update',
+    consentSettings: ConsentSettings
   ): void;
 }
 

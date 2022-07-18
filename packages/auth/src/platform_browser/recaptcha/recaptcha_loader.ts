@@ -49,7 +49,12 @@ export interface ReCaptchaLoader {
 export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   private hostLanguage = '';
   private counter = 0;
-  private readonly librarySeparatelyLoaded = !!_window().grecaptcha;
+  /**
+   * Check for `render()` method. `window.grecaptcha` will exist if the Enterprise
+   * version of the ReCAPTCHA script was loaded by someone else (e.g. App Check) but
+   * `window.grecaptcha.render()` will not. Another load will add it.
+   */
+  private readonly librarySeparatelyLoaded = !!_window().grecaptcha?.render;
 
   load(auth: AuthInternal, hl = ''): Promise<Recaptcha> {
     _assert(isHostLanguageValid(hl), auth, AuthErrorCode.ARGUMENT_ERROR);
@@ -112,7 +117,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
     // In cases (2) and (3), we _can't_ reload as it would break the recaptchas
     // that are already in the page
     return (
-      !!_window().grecaptcha &&
+      !!_window().grecaptcha?.render &&
       (hl === this.hostLanguage ||
         this.counter > 0 ||
         this.librarySeparatelyLoaded)

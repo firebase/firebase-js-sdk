@@ -1,5 +1,31 @@
 # @firebase/analytics
 
+## 0.8.0
+
+### Minor Changes
+
+- [`1d3a34d7d`](https://github.com/firebase/firebase-js-sdk/commit/1d3a34d7da5bf3c267d014efb587e03c46ff3064) [#6376](https://github.com/firebase/firebase-js-sdk/pull/6376) - Add function `setConsent()` to set the applicable end user "consent" state.
+
+* [`69e2ee064`](https://github.com/firebase/firebase-js-sdk/commit/69e2ee064e0729d8da823f1e60f6fb7f3bbe5700) [#6367](https://github.com/firebase/firebase-js-sdk/pull/6367) - Add function `setDefaultEventParameters()` to set data that will be logged on every Analytics SDK event
+
+### Patch Changes
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf)]:
+  - @firebase/util@1.6.3
+  - @firebase/component@0.5.17
+  - @firebase/installations@0.5.12
+
+## 0.7.11
+
+### Patch Changes
+
+- [`835f1d46a`](https://github.com/firebase/firebase-js-sdk/commit/835f1d46a6780535bc660ef7dc23293350d5fe43) [#6357](https://github.com/firebase/firebase-js-sdk/pull/6357) - Fix typo in GtagConfigParams
+
+- Updated dependencies [[`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0)]:
+  - @firebase/util@1.6.2
+  - @firebase/component@0.5.16
+  - @firebase/installations@0.5.11
+
 ## 0.7.10
 
 ### Patch Changes
