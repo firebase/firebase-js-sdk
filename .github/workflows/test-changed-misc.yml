@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   test:
-    name: Test Misc Packages If Changed
+    name: Test Rules Unit Testing package
     runs-on: ubuntu-latest
 
     steps:

@@ -1,6 +1,7 @@
 {
   "functions": {
-    "source": "./functions"
+    "source": "./functions",
+    "runtime": "nodejs16"
   },
   "storage": {
     "rules": "test/storage.rules"
