@@ -25,7 +25,6 @@ module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
     files: files,
-    browsers: ['ChromeHeadless'],
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
