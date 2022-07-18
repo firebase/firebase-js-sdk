@@ -80,7 +80,6 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
         this._heartbeatServiceProvider!
       );
     } catch (e) {
-      console.log({ coder: (e as FirebaseError).code });
       if (
         (e as FirebaseError).code?.includes(AppCheckError.FETCH_STATUS_ERROR)
       ) {
