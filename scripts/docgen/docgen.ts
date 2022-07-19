@@ -111,7 +111,16 @@ async function generateDocs(forDevsite: boolean = false) {
 
   await spawn(
     'yarn',
-    [command, 'markdown', '--input', 'temp', '--output', outputFolder, '--project', 'js'],
+    [
+      command,
+      'markdown',
+      '--input',
+      'temp',
+      '--output',
+      outputFolder,
+      '--project',
+      'js'
+    ],
     { stdio: 'inherit' }
   );
 
@@ -120,7 +129,10 @@ async function generateDocs(forDevsite: boolean = false) {
     for (const mdFile of mdFiles) {
       const fullPath = join(projectRoot, outputFolder, mdFile);
       const content = fs.readFileSync(fullPath, 'utf-8');
-      fs.writeFileSync(fullPath, content.replace('\n# ', `\n${GOOGLE3_HEADER}\n# `));
+      fs.writeFileSync(
+        fullPath,
+        content.replace('\n# ', `\n${GOOGLE3_HEADER}\n# `)
+      );
     }
   }
 

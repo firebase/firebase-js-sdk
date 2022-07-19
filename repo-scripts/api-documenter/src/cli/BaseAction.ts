@@ -115,7 +115,13 @@ export abstract class BaseAction extends CommandLineAction {
 
     this._applyInheritDoc(apiModel, apiModel);
 
-    return { apiModel, inputFolder, outputFolder, addFileNameSuffix, projectName: this._projectNameParameter.value };
+    return {
+      apiModel,
+      inputFolder,
+      outputFolder,
+      addFileNameSuffix,
+      projectName: this._projectNameParameter.value
+    };
   }
 
   // TODO: This is a temporary workaround.  The long term plan is for API Extractor's DocCommentEnhancer

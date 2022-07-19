@@ -171,11 +171,10 @@ export class MarkdownDocumenter {
       `Project: /docs/reference/${this._projectName}/_project.yaml
 Book: /docs/reference/_book.yaml
 page_type: reference
-`);
-
-    stringBuilder.append(
-      `# ${headingNode.title}\n`
+`
     );
+
+    stringBuilder.append(`# ${headingNode.title}\n`);
 
     this._markdownEmitter.emit(stringBuilder, output, {
       contextApiItem: apiItem,
@@ -256,8 +255,9 @@ page_type: reference
         output.push(
           new DocHeading({
             configuration,
-            title: `${packageName}${apiItem.displayName && '/' + apiItem.displayName
-              }`
+            title: `${packageName}${
+              apiItem.displayName && '/' + apiItem.displayName
+            }`
           })
         );
         break;
