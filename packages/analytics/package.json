@@ -30,6 +30,7 @@
     "test:all": "run-p test:browser test:integration",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run --nocache",
+    "test:cross-browser": "karma start ./karma.browser.conf.js --single-run --nocache",
     "test:integration": "karma start ./karma.integration.conf.js --single-run --nocache",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
