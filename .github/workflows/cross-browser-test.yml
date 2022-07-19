@@ -2,8 +2,7 @@ name: Cross-Browser Test Flow
 
 on:
   push:
-    branches:
-      - master
+    branches: ['**']
 
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
