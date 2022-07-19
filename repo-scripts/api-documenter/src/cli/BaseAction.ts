@@ -84,7 +84,6 @@ export abstract class BaseAction extends CommandLineAction {
 
     this._projectNameParameter = this.defineStringParameter({
       parameterLongName: '--project',
-      parameterShortName: '-p',
       argumentName: 'PROJECT',
       description:
         `Name of the project (js, admin, functions, etc.). This will be ` +
