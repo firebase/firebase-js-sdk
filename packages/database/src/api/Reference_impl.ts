@@ -1600,12 +1600,11 @@ export function onChildRemoved(
 export { EventType };
 
 /**
- * Detaches a callback previously attached with `on()`.
+ * Detaches a callback previously attached with the corresponding `on*()` (`onValue`, `onChildAdded`) listener.
+ * Note: This is not the recommended way to remove a listener. Instead, please use the returned callback function from
+ * the respective `on*` callbacks.
  *
- * Detach a callback previously attached with `on()`. Note that if `on()` was
- * called multiple times with the same eventType and callback, the callback
- * will be called multiple times for each event, and `off()` must be called
- * multiple times to remove the callback. Calling `off()` on a parent listener
+ * Detach a callback previously attached with `on*()`. Calling `off()` on a parent listener
  * will not automatically remove listeners registered on child nodes, `off()`
  * must also be called on any child listeners to remove the callback.
  *
