@@ -22,18 +22,18 @@ const glob = require('glob');
 const path = require('path');
 const chalk = require('chalk');
 
-// Check for 'configFiles' flag to run on specified karma.browser.js files instead
+// Check for 'configFiles' flag to run on specified karma.browser.conf.js files instead
 // of on all files.
 const { configFiles } = yargs
   .option('configFiles', {
     default: [],
-    describe: 'specify individual karma.browser.js files to run on',
+    describe: 'specify individual karma.browser.conf.js files to run on',
     type: 'array'
   })
   .version(false)
   .help().argv;
 
-// Get all karma.browser.js files that need to be run.
+// Get all karma.browser.conf.js files that need to be run.
 // runNextTest() pulls filenames one-by-one from this queue.
 const testFiles = configFiles.length
   ? configFiles
@@ -76,7 +76,7 @@ async function runTest(testFile) {
 /**
  * Runs the karma test command for one package.
  *
- * @param {string} testFile - path to karma.browser.js file
+ * @param {string} testFile - path to karma.browser.conf.js file
  * @param {string} testTag - package label for messages (usually package name)
  */
 async function runKarma(testFile, testTag) {
