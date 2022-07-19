@@ -22,7 +22,7 @@ const glob = require('glob');
 const path = require('path');
 const chalk = require('chalk');
 
-// Check for 'configFiles' flag to run on specified karma.conf.js files instead
+// Check for 'configFiles' flag to run on specified karma.browser.js files instead
 // of on all files.
 const { configFiles } = yargs
   .option('configFiles', {
@@ -33,14 +33,11 @@ const { configFiles } = yargs
   .version(false)
   .help().argv;
 
-// Get all karma.conf.js files that need to be run.
+// Get all karma.browser.js files that need to be run.
 // runNextTest() pulls filenames one-by-one from this queue.
 const testFiles = configFiles.length
   ? configFiles
-  : glob
-      .sync(`packages/*/karma.browser.conf.js`)
-      // Exclude database - currently too many failures.
-      .filter(name => !name.includes('packages/database'));
+  : glob.sync(`packages/*/karma.browser.conf.js`);
 
 // Get CI build number or generate one if running locally.
 const buildNumber =
@@ -48,7 +45,7 @@ const buildNumber =
   `local_${process.env.USER}_${new Date().getTime()}`;
 
 /**
- * Runs a set of SauceLabs browser tests based on this karma config file.
+ * Runs a set of browser tests based on this karma config file.
  *
  * @param {string} testFile Path to karma.conf.js file that defines this test
  * group.
@@ -79,7 +76,7 @@ async function runTest(testFile) {
 /**
  * Runs the karma test command for one package.
  *
- * @param {string} testFile - path to karma.conf.js file
+ * @param {string} testFile - path to karma.browser.js file
  * @param {string} testTag - package label for messages (usually package name)
  */
 async function runKarma(testFile, testTag) {
@@ -118,7 +115,7 @@ async function runKarma(testFile, testTag) {
  * @param {number} maxExitCode Current highest exit code from all processes
  * run so far. When main process is complete, it will exit with highest code
  * of all child processes.  This allows any failing test to result in a CI
- * build failure for the whole Saucelabs run.
+ * build failure for the whole browser test run.
  */
 async function runNextTest(maxExitCode = 0, results = {}) {
   // When test queue is empty, exit with code 0 if no tests failed or
