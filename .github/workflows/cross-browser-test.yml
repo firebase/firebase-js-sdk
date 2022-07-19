@@ -5,13 +5,14 @@ on:
     branches:
       - master
 
+env:
+  # make chromedriver detect installed Chrome version and download the corresponding driver
+  DETECT_CHROMEDRIVER_VERSION: true
+
 jobs:
   cross-browser-test:
-    name: Cross-Browser (Saucelabs) Tests
+    name: Cross-Browser Tests
     runs-on: ubuntu-latest
-    env:
-      SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
-      SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
 
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
