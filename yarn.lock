@@ -8047,10 +8047,10 @@ firebase-frameworks@^0.4.2:
     semver "^7.3.7"
     tslib "^2.3.1"
 
-firebase-functions@3.21.0:
-  version "3.21.0"
-  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.21.0.tgz#46b4c771781891929408bd4424959fe552d6cd6c"
-  integrity sha512-Xl0EFV05+RSB9hJHlo12LguoRqAmpSXmBnpI0MANeNj07dGW0QCWPHtaAewxYEzRS3RfSCL8WH12rjvo0PPKGw==
+firebase-functions@3.22.0:
+  version "3.22.0"
+  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-3.22.0.tgz#d1b6c190551e29705d91819d8369a752ba5e061a"
+  integrity sha512-d1BxBpT95MhvVqXkpLWDvWbyuX7e2l69cFAiqG3U1XQDaMV88bM9S+Zg7H8i9pitEGFr+76ErjKgrY0n+g3ZDA==
   dependencies:
     "@types/cors" "^2.8.5"
     "@types/express" "4.17.3"
