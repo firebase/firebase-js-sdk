@@ -394,7 +394,9 @@ export class DataSnapshot {
    * @returns true if enumeration was canceled due to your callback returning
    * true.
    */
-  forEach(action: (child: DataSnapshot) => boolean | void): boolean {
+  forEach(
+    action: (child: DataSnapshot & { key: string }) => boolean | void
+  ): boolean {
     if (this._node.isLeafNode()) {
       return false;
     }
