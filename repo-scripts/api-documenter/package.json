@@ -1,6 +1,6 @@
 {
   "name": "@firebase/api-documenter",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Read JSON files from api-extractor, generate documentation pages",
   "repository": {
     "directory": "repo-scripts/documenter",

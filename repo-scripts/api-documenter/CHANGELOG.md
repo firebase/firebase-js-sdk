@@ -1,5 +1,9 @@
 # @firebase/api-documenter
 
+## 0.2.0
+### Minor Changes
+
+- [#6449](https://github.com/firebase/firebase-js-sdk/pull/6449) Updates to work with devsite changes. Added a required `--project` flag for generating markdown docs.
 ## 0.1.2
 ### Patch Changes
 
