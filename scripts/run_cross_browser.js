@@ -39,11 +39,6 @@ const testFiles = configFiles.length
   ? configFiles
   : glob.sync(`packages/*/karma.browser.conf.js`);
 
-// Get CI build number or generate one if running locally.
-const buildNumber =
-  process.env.GITHUB_RUN_ID ||
-  `local_${process.env.USER}_${new Date().getTime()}`;
-
 /**
  * Runs a set of browser tests based on this karma config file.
  *
@@ -80,14 +75,7 @@ async function runTest(testFile) {
  * @param {string} testTag - package label for messages (usually package name)
  */
 async function runKarma(testFile, testTag) {
-  const karmaArgs = [
-    'karma',
-    'start',
-    testFile,
-    '--single-run',
-    '--buildNumber',
-    buildNumber
-  ];
+  const karmaArgs = ['karma', 'start', testFile, '--single-run'];
 
   const promise = spawn('npx', karmaArgs, { stdio: 'inherit' });
   const childProcess = promise.childProcess;
