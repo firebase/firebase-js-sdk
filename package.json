@@ -146,7 +146,7 @@
     "sinon": "9.2.4",
     "sinon-chai": "3.7.0",
     "source-map-loader": "1.1.3",
-    "terser": "5.13.1",
+    "terser": "5.14.2",
     "ts-loader": "8.4.0",
     "ts-node": "10.7.0",
     "tslint": "6.1.3",
