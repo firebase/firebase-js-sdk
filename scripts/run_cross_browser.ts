@@ -45,7 +45,7 @@ const testFiles = configFiles.length
  * @param {string} testFile Path to karma.conf.js file that defines this test
  * group.
  */
-async function runTest(testFile) {
+async function runTest(testFile: string) {
   if (!(await exists(testFile))) {
     console.error(chalk`{red ERROR: ${testFile} does not exist.}`);
     return 1;
@@ -74,15 +74,15 @@ async function runTest(testFile) {
  * @param {string} testFile - path to karma.browser.conf.js file
  * @param {string} testTag - package label for messages (usually package name)
  */
-async function runKarma(testFile, testTag) {
+async function runKarma(testFile: string, testTag: string) {
   const karmaArgs = ['karma', 'start', testFile, '--single-run'];
 
   const promise = spawn('npx', karmaArgs, { stdio: 'inherit' });
   const childProcess = promise.childProcess;
-  let exitCode = 0;
+  let exitCode: number = 0;
 
   // Capture exit code of this single package test run
-  childProcess.on('exit', code => {
+  childProcess.on('exit', (code: number) => {
     exitCode = code;
   });
 
@@ -91,10 +91,16 @@ async function runKarma(testFile, testTag) {
       console.log(chalk`{green [${testTag}] ******* DONE *******}`);
       return exitCode;
     })
-    .catch(err => {
-      console.error(chalk`{red [${testTag}] ERROR: ${err.message}}`);
+    .catch((err: unknown) => {
+      console.error(
+        chalk`{red [${testTag}] ERROR: ${(err as Error)?.message}}`
+      );
       return exitCode;
     });
+}
+
+interface TestResults {
+  [key: string]: number;
 }
 
 /**
@@ -105,10 +111,10 @@ async function runKarma(testFile, testTag) {
  * of all child processes.  This allows any failing test to result in a CI
  * build failure for the whole browser test run.
  */
-async function runNextTest(maxExitCode = 0, results = {}) {
+async function runNextTest(maxExitCode = 0, results: TestResults = {}) {
   // When test queue is empty, exit with code 0 if no tests failed or
   // 1 if any tests failed.
-  if (!testFiles.length) {
+  if (testFiles.length === 0) {
     for (const fileName of Object.keys(results)) {
       if (results[fileName] > 0) {
         console.log(`FAILED: ${fileName}`);
@@ -120,8 +126,8 @@ async function runNextTest(maxExitCode = 0, results = {}) {
   let exitCode;
   try {
     exitCode = await runTest(nextFile);
-  } catch (e) {
-    console.error(chalk`{red [${nextFile}] ERROR: ${e.message}}`);
+  } catch (e: unknown) {
+    console.error(chalk`{red [${nextFile}] ERROR: ${(e as Error)?.message}}`);
     exitCode = 1;
   }
   runNextTest(Math.max(exitCode, maxExitCode), {
