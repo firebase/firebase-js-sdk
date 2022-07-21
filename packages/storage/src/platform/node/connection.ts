@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import {
+ import {
   Connection,
   ConnectionType,
   ErrorCode
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
-import nodeFetch, { Headers } from 'node-fetch';
+import axios, { AxiosResponseHeaders, AxiosError } from 'axios';
 
 /** An override for the text-based Connection. Used in tests. */
 let textFactoryOverride: (() => Connection<string>) | null = null;
@@ -39,9 +39,9 @@ abstract class FetchConnection<T extends ConnectionType>
   protected statusCode_: number | undefined;
   protected body_: ArrayBuffer | undefined;
   protected errorText_ = '';
-  protected headers_: Headers | undefined;
+  protected headers_: AxiosResponseHeaders | undefined;
   protected sent_: boolean = false;
-  protected fetch_ = nodeFetch;
+  protected fetch_ = axios.request;
 
   constructor() {
     this.errorCode_ = ErrorCode.NO_ERROR;
@@ -59,16 +59,29 @@ abstract class FetchConnection<T extends ConnectionType>
     this.sent_ = true;
 
     try {
-      const response = await this.fetch_(url, {
+      const response = await this.fetch_({
         method,
-        headers: headers || {},
-        body: body as ArrayBufferView | string
+        url,
+        data: body,
+        headers,
+        responseType: 'arraybuffer'
       });
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
-      this.body_ = await response.arrayBuffer();
+      this.body_ = response.data;
     } catch (e) {
+      if (
+        e instanceof AxiosError &&
+        (e as AxiosError)?.response?.status === 404
+      ) {
+        const axiosError = e as AxiosError;
+        this.headers_ = axiosError?.response?.headers;
+        this.statusCode_ = axiosError?.response?.status;
+        this.errorCode_ = ErrorCode.NO_ERROR;
+        this.body_ = axiosError?.response?.data as ArrayBuffer;
+        return;
+      }
       this.errorText_ = (e as Error)?.message;
       // emulate XHR which sets status to 0 when encountering a network error
       this.statusCode_ = 0;
@@ -106,7 +119,7 @@ abstract class FetchConnection<T extends ConnectionType>
         'cannot .getResponseHeader() before receiving response'
       );
     }
-    return this.headers_.get(header);
+    return this.headers_[header];
   }
 
   addUploadProgressListener(listener: (p1: ProgressEvent) => void): void {
@@ -161,16 +174,30 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
     this.sent_ = true;
 
     try {
-      const response = await this.fetch_(url, {
+      const response = await this.fetch_({
         method,
-        headers: headers || {},
-        body: body as ArrayBufferView | string
+        url,
+        data: body,
+        headers,
+        responseType: 'stream'
       });
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
-      this.stream_ = response.body;
+      this.stream_ = response.data;
     } catch (e) {
+      if (
+        e instanceof AxiosError &&
+        (e as AxiosError)?.response?.status === 404
+      ) {
+        const axiosError = e as AxiosError;
+        this.headers_ = axiosError?.response?.headers;
+        this.statusCode_ = axiosError?.response?.status;
+        this.errorCode_ = ErrorCode.NO_ERROR;
+        this.stream_ = axiosError?.response?.data as NodeJS.ReadableStream;
+        return;
+      }
+
       this.errorText_ = (e as Error)?.message;
       // emulate XHR which sets status to 0 when encountering a network error
       this.statusCode_ = 0;
