@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "3.4.12",
+  "version": "3.4.13",
   "engines": {
     "node": ">=10.10.0"
   },
@@ -92,8 +92,8 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.28",
-    "@firebase/app-compat": "0.1.29",
+    "@firebase/app": "0.7.29",
+    "@firebase/app-compat": "0.1.30",
     "@firebase/auth": "0.20.5",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",

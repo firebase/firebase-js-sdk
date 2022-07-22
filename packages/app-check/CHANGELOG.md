@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.5.12
+
+### Patch Changes
+
+- [`f36d627af`](https://github.com/firebase/firebase-js-sdk/commit/f36d627af6e1f5ed98e21f9be29f59d2c8c503cb) [#6439](https://github.com/firebase/firebase-js-sdk/pull/6439) - Fix logic to trigger app check throttling
+
 ## 0.5.11
 
 ### Patch Changes

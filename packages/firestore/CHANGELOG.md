@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 3.4.13
+
+### Patch Changes
+
+- [`1703bb31a`](https://github.com/firebase/firebase-js-sdk/commit/1703bb31afa806087167079641af79c9293ab423) [#6442](https://github.com/firebase/firebase-js-sdk/pull/6442) (fixes [#6438](https://github.com/firebase/firebase-js-sdk/issues/6438)) - Update `@grpc/proto-loader` and `firebase-admin` dependencies to address `protobufjs` security issue.
+
 ## 3.4.12
 
 ### Patch Changes
