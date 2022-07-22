@@ -40,25 +40,32 @@ const tmpDir = `${projectRoot}/temp`;
 const EXCLUDED_PACKAGES = ['app-compat', 'util', 'rules-unit-testing'];
 
 yargs
-  .command('$0', 'generate standard reference docs', {
-    skipBuild: {
-      type: 'boolean',
-      default: false
-    }
-  }, _argv =>
-    generateDocs(/* forDevsite */ false, _argv.skipBuild)
+  .command(
+    '$0',
+    'generate standard reference docs',
+    {
+      skipBuild: {
+        type: 'boolean',
+        default: false
+      }
+    },
+    _argv => generateDocs(/* forDevsite */ false, _argv.skipBuild)
   )
-  .command('devsite', 'generate reference docs for devsite', {
-    skipBuild: {
-      type: 'boolean',
-      default: false
-    }
-  }, _argv =>
-    generateDocs(/* forDevsite */ true, _argv.skipBuild)
+  .command(
+    'devsite',
+    'generate reference docs for devsite',
+    {
+      skipBuild: {
+        type: 'boolean',
+        default: false
+      }
+    },
+    _argv => generateDocs(/* forDevsite */ true, _argv.skipBuild)
   )
   .command('toc', 'generate devsite TOC', {}, _argv => generateToc())
   .option('skipBuild', {
-    describe: 'Skip yarn build and api-report - only do this if you have already generated the most up to date .api.json files',
+    describe:
+      'Skip yarn build and api-report - only do this if you have already generated the most up to date .api.json files',
     type: 'boolean'
   })
   .demandCommand()
@@ -99,7 +106,10 @@ async function generateToc() {
 }
 
 // create *.api.json files
-async function generateDocs(forDevsite: boolean = false, skipBuild: boolean = false) {
+async function generateDocs(
+  forDevsite: boolean = false,
+  skipBuild: boolean = false
+) {
   const outputFolder = forDevsite ? 'docs-devsite' : 'docs';
   const command = forDevsite ? 'api-documenter-devsite' : 'api-documenter';
 
