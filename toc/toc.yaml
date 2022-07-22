@@ -11,6 +11,8 @@ toc:
         path: docs/reference/js/v9/analytics.analyticscalloptions.md
       - title: AnalyticsSettings
         path: docs/reference/js/v9/analytics.analyticssettings.md
+      - title: ConsentSettings
+        path: docs/reference/js/v9/analytics.consentsettings.md
       - title: ControlParams
         path: docs/reference/js/v9/analytics.controlparams.md
       - title: CustomParams
@@ -32,8 +34,6 @@ toc:
         path: docs/reference/js/v9/app.firebaseapp.md
       - title: FirebaseAppSettings
         path: docs/reference/js/v9/app.firebaseappsettings.md
-      - title: FirebaseError
-        path: docs/reference/js/v9/app.firebaseerror.md
       - title: FirebaseOptions
         path: docs/reference/js/v9/app.firebaseoptions.md
   - title: app-check
@@ -55,17 +55,6 @@ toc:
         path: docs/reference/js/v9/app-check.recaptchaenterpriseprovider.md
       - title: ReCaptchaV3Provider
         path: docs/reference/js/v9/app-check.recaptchav3provider.md
-  - title: app-compat
-    path: docs/reference/js/v9/app-compat.md
-    section:
-      - title: _FirebaseNamespace
-        path: docs/reference/js/v9/app-compat._firebasenamespace.md
-      - title: _FirebaseService
-        path: docs/reference/js/v9/app-compat._firebaseservice.md
-      - title: FirebaseApp
-        path: docs/reference/js/v9/app-compat.firebaseapp.md
-      - title: FirebaseNamespace
-        path: docs/reference/js/v9/app-compat.firebasenamespace.md
   - title: auth
     path: docs/reference/js/v9/auth.md
     section:
@@ -354,17 +343,6 @@ toc:
         path: docs/reference/js/v9/remote-config.remoteconfigsettings.md
       - title: Value
         path: docs/reference/js/v9/remote-config.value.md
-  - title: rules-unit-testing
-    path: docs/reference/js/v9/rules-unit-testing.md
-    section:
-      - title: HostAndPort
-        path: docs/reference/js/v9/rules-unit-testing.hostandport.md
-      - title: RulesTestContext
-        path: docs/reference/js/v9/rules-unit-testing.rulestestcontext.md
-      - title: RulesTestEnvironment
-        path: docs/reference/js/v9/rules-unit-testing.rulestestenvironment.md
-      - title: TestEnvironmentConfig
-        path: docs/reference/js/v9/rules-unit-testing.testenvironmentconfig.md
   - title: storage
     path: docs/reference/js/v9/storage.md
     section:
@@ -392,26 +370,3 @@ toc:
         path: docs/reference/js/v9/storage.uploadtask.md
       - title: UploadTaskSnapshot
         path: docs/reference/js/v9/storage.uploadtasksnapshot.md
-  - title: util
-    path: docs/reference/js/v9/util.md
-    section:
-      - title: Compat
-        path: docs/reference/js/v9/util.compat.md
-      - title: Deferred
-        path: docs/reference/js/v9/util.deferred.md
-      - title: ErrorData
-        path: docs/reference/js/v9/util.errordata.md
-      - title: ErrorFactory
-        path: docs/reference/js/v9/util.errorfactory.md
-      - title: FirebaseError
-        path: docs/reference/js/v9/util.firebaseerror.md
-      - title: Observable
-        path: docs/reference/js/v9/util.observable.md
-      - title: Observer
-        path: docs/reference/js/v9/util.observer.md
-      - title: Sha1
-        path: docs/reference/js/v9/util.sha1.md
-      - title: StringLike
-        path: docs/reference/js/v9/util.stringlike.md
-      - title: Subscribe
-        path: docs/reference/js/v9/util.subscribe.md
