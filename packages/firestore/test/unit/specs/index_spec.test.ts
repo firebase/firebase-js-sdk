@@ -42,6 +42,7 @@ describeSpec('Client Side Index', [], () => {
       fields: [['price', IndexKind.ASCENDING]]
     })
   ];
+
   specTest('Index Creation visible on all clients', ['multi-client'], () => {
     return client(0)
       .expectPrimaryState(true)
@@ -51,6 +52,7 @@ describeSpec('Client Side Index', [], () => {
       .expectPrimaryState(false)
       .expectIndexes(expectedIndexes);
   });
+
   specTest(
     'Index Creation succeeds even if not primary',
     ['multi-client'],
