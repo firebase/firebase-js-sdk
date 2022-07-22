@@ -1,8 +1,8 @@
 name: Cross-Browser Test Flow
 
 on:
-  push:
-    branches: ['**']
+  repository_dispatch:
+    types: ['cross-browser-tests']
 
 jobs:
   cross-browser-test:
