@@ -94,3 +94,4 @@ tsdoc-metadata.json
 # generated html docs
 docs-*/
 docs/
+toc/
