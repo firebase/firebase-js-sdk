@@ -1,5 +1,13 @@
 # @firebase/rules-unit-testing
 
+## 2.0.4
+
+### Patch Changes
+
+- [`1703bb31a`](https://github.com/firebase/firebase-js-sdk/commit/1703bb31afa806087167079641af79c9293ab423) [#6442](https://github.com/firebase/firebase-js-sdk/pull/6442) (fixes [#6438](https://github.com/firebase/firebase-js-sdk/issues/6438)) - Update `@grpc/proto-loader` and `firebase-admin` dependencies to address `protobufjs` security issue.
+
+* [`1a15c7da7`](https://github.com/firebase/firebase-js-sdk/commit/1a15c7da7e27cb1571dc1bfa2f144d68fa6b8583) [#6454](https://github.com/firebase/firebase-js-sdk/pull/6454) - Update firebase-functions to a version compatible with firebase-admin.
+
 ## 2.0.3
 
 ### Patch Changes
