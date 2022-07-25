@@ -23,7 +23,7 @@ const files = [`**/*.test.ts`];
 module.exports = function (config) {
   config.set({
     ...karmaBase,
-    browsers: ['Firefox'],
+    browsers: process.env?.BROWSERS?.split(',') ?? ['Firefox'],
     files,
     preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
     frameworks: ['mocha']
