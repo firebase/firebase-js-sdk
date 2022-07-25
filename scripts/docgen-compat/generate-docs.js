@@ -293,7 +293,7 @@ async function setProjectYamlPath(api) {
   const projectFilePath = PROJECT_FILE_PATH[api];
   console.log('replacing', projectFilePath);
   const replacedText = defaultTemplateText.replace(
-    /(<meta name="project_path" value=")[a-z\/_\.]+(" \/>)/,
+    /(<meta name="project_path" value=")[a-zA-Z0-9\/_\.]+(" \/>)/,
     `$1${projectFilePath}$2`
   );
   await fs.writeFile(defaultTemplatePath, replacedText);
