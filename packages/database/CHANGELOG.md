@@ -1,5 +1,31 @@
 # Unreleased
 
+## 0.13.3
+
+### Patch Changes
+
+- [`c187446a2`](https://github.com/firebase/firebase-js-sdk/commit/c187446a202d881f55800be167cdb37b4d0e4a13) [#6410](https://github.com/firebase/firebase-js-sdk/pull/6410) - Removed uuid as a dependency for @firebase/database
+
+* [`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf) [#6340](https://github.com/firebase/firebase-js-sdk/pull/6340) (fixes [#6036](https://github.com/firebase/firebase-js-sdk/issues/6036)) - Forced `get()` to wait until db is online to resolve.
+
+- [`6a8be1337`](https://github.com/firebase/firebase-js-sdk/commit/6a8be1337f19a49db40e0c757f571f42b5b4d494) [#6399](https://github.com/firebase/firebase-js-sdk/pull/6399) - Fix setting of headers on Node.
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf)]:
+  - @firebase/util@1.6.3
+  - @firebase/component@0.5.17
+
+## 0.13.2
+
+### Patch Changes
+
+- [`578dc5836`](https://github.com/firebase/firebase-js-sdk/commit/578dc58365c6c71d8ad01dd8b9dbe829e76de068) [#6273](https://github.com/firebase/firebase-js-sdk/pull/6273) - Fixed issue where `get()` saved results incorrectly for non-default queries.
+
+* [`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0) [#6363](https://github.com/firebase/firebase-js-sdk/pull/6363) - Extract uuid function into @firebase/util
+
+* Updated dependencies [[`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0)]:
+  - @firebase/util@1.6.2
+  - @firebase/component@0.5.16
+
 ## 0.13.1
 
 ### Patch Changes

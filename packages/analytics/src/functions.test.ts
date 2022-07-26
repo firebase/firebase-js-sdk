@@ -23,9 +23,14 @@ import {
   logEvent,
   setUserId,
   setUserProperties,
-  setAnalyticsCollectionEnabled
+  setAnalyticsCollectionEnabled,
+  defaultEventParametersForInit,
+  _setDefaultEventParametersForInit,
+  _setConsentDefaultForInit,
+  defaultConsentSettingsForInit
 } from './functions';
 import { GtagCommand } from './constants';
+import { ConsentSettings } from './public-types';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
@@ -169,5 +174,47 @@ describe('FirebaseAnalytics methods', () => {
     await setAnalyticsCollectionEnabled(fakeInitializationPromise, false);
     expect(window[`ga-disable-${fakeMeasurementId}`]).to.be.true;
     delete window[`ga-disable-${fakeMeasurementId}`];
+  });
+  it('_setDefaultEventParametersForInit() stores individual params correctly', async () => {
+    const eventParametersForInit = {
+      'github_user': 'dwyfrequency',
+      'company': 'google'
+    };
+    _setDefaultEventParametersForInit(eventParametersForInit);
+    expect(defaultEventParametersForInit).to.deep.equal(eventParametersForInit);
+  });
+  it('_setDefaultEventParametersForInit() replaces previous params with new params', async () => {
+    const eventParametersForInit = {
+      'github_user': 'dwyfrequency',
+      'company': 'google'
+    };
+    const additionalParams = { 'food': 'sushi' };
+    _setDefaultEventParametersForInit(eventParametersForInit);
+    _setDefaultEventParametersForInit(additionalParams);
+    expect(defaultEventParametersForInit).to.deep.equal({
+      ...additionalParams
+    });
+  });
+  it('_setConsentDefaultForInit() stores individual params correctly', async () => {
+    const consentParametersForInit: ConsentSettings = {
+      'analytics_storage': 'granted',
+      'functionality_storage': 'denied'
+    };
+    _setConsentDefaultForInit(consentParametersForInit);
+    expect(defaultConsentSettingsForInit).to.deep.equal(
+      consentParametersForInit
+    );
+  });
+  it('_setConsentDefaultForInit() replaces previous params with new params', async () => {
+    const consentParametersForInit: ConsentSettings = {
+      'analytics_storage': 'granted',
+      'functionality_storage': 'denied'
+    };
+    const additionalParams = { 'wait_for_update': 500 };
+    _setConsentDefaultForInit(consentParametersForInit);
+    _setConsentDefaultForInit(additionalParams);
+    expect(defaultConsentSettingsForInit).to.deep.equal({
+      ...additionalParams
+    });
   });
 });

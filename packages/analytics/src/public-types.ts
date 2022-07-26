@@ -288,4 +288,37 @@ export interface EventParams {
   page_path?: string;
   [key: string]: unknown;
 }
+
+/**
+ * Consent status settings for each consent type.
+ * For more information, see
+ * {@link https://developers.google.com/tag-platform/tag-manager/templates/consent-apis
+ * | the GA4 reference documentation for consent state and consent types}.
+ * @public
+ */
+export interface ConsentSettings {
+  /** Enables storage, such as cookies, related to advertising */
+  ad_storage?: ConsentStatusString;
+  /** Enables storage, such as cookies, related to analytics (for example, visit duration) */
+  analytics_storage?: ConsentStatusString;
+  /**
+   * Enables storage that supports the functionality of the website or app such as language settings
+   */
+  functionality_storage?: ConsentStatusString;
+  /** Enables storage related to personalization such as video recommendations */
+  personalization_storage?: ConsentStatusString;
+  /**
+   * Enables storage related to security such as authentication functionality, fraud prevention,
+   * and other user protection.
+   */
+  security_storage?: ConsentStatusString;
+  [key: string]: unknown;
+}
+
 /* eslint-enable camelcase */
+
+/**
+ * Whether a particular consent type has been granted or denied.
+ * @public
+ */
+export type ConsentStatusString = 'granted' | 'denied';

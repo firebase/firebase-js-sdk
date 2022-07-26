@@ -17,7 +17,8 @@
 
 import { initializeApp, deleteApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
 import {
   get,
@@ -43,6 +44,8 @@ import {
   getUniqueRef,
   waitFor
 } from '../helpers/util';
+
+use(chaiAsPromised);
 
 export function createTestApp() {
   return initializeApp({ databaseURL: DATABASE_URL });
@@ -257,24 +260,36 @@ describe('Database@exp Tests', () => {
     expect(events[0]).to.equal('a');
   });
 
-  it('Can goOffline/goOnline', async () => {
-    const db = getDatabase(defaultApp);
-    goOffline(db);
-    try {
-      await get(ref(db, 'foo/bar'));
-      expect.fail('Should have failed since we are offline');
-    } catch (e) {
-      expect(e.message).to.equal('Error: Client is offline.');
-    }
-    goOnline(db);
-    await get(ref(db, 'foo/bar'));
-  });
-
   it('Can delete app', async () => {
     const db = getDatabase(defaultApp);
     await deleteApp(defaultApp);
     expect(() => ref(db)).to.throw('Cannot call ref on a deleted database.');
     defaultApp = undefined;
+  });
+
+  it('blocks get requests until the database is online', async () => {
+    const db = getDatabase(defaultApp);
+    const r = ref(db, 'foo3');
+    const initial = {
+      test: 1
+    };
+    await set(r, initial);
+    goOffline(db);
+    const pendingGet = get(r);
+    let resolvedData: any = null;
+    pendingGet.then(
+      data => {
+        resolvedData = data;
+      },
+      () => {
+        resolvedData = new Error('rejected');
+      }
+    );
+    await waitFor(2000);
+    expect(resolvedData).to.equal(null);
+    goOnline(db);
+    await waitFor(2000);
+    expect(resolvedData.val()).to.deep.equal(initial);
   });
 
   it('Can listen to transaction changes', async () => {

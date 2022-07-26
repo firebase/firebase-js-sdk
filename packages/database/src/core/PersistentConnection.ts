@@ -44,7 +44,6 @@ import { QueryContext } from './view/EventRegistration';
 
 const RECONNECT_MIN_DELAY = 1000;
 const RECONNECT_MAX_DELAY_DEFAULT = 60 * 5 * 1000; // 5 minutes in milliseconds (Case: 1858)
-const GET_CONNECT_TIMEOUT = 3 * 1000;
 const RECONNECT_MAX_DELAY_FOR_ADMINS = 30 * 1000; // 30 seconds for admin clients (likely to be a backend server)
 const RECONNECT_DELAY_MULTIPLIER = 1.3;
 const RECONNECT_DELAY_RESET_TIMEOUT = 30000; // Reset delay back to MIN_DELAY after being connected for 30sec.
@@ -215,22 +214,6 @@ export class PersistentConnection extends ServerActions {
     this.outstandingGets_.push(outstandingGet);
     this.outstandingGetCount_++;
     const index = this.outstandingGets_.length - 1;
-
-    if (!this.connected_) {
-      setTimeout(() => {
-        const get = this.outstandingGets_[index];
-        if (get === undefined || outstandingGet !== get) {
-          return;
-        }
-        delete this.outstandingGets_[index];
-        this.outstandingGetCount_--;
-        if (this.outstandingGetCount_ === 0) {
-          this.outstandingGets_ = [];
-        }
-        this.log_('get ' + index + ' timed out on connection');
-        deferred.reject(new Error('Client is offline.'));
-      }, GET_CONNECT_TIMEOUT);
-    }
 
     if (this.connected_) {
       this.sendGet_(index);

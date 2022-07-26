@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,18 @@
  * limitations under the License.
  */
 
+import { Deferred } from './deferred';
+
 /**
- * Type constant for Firebase Analytics.
+ * Rejects if the given promise doesn't resolve in timeInMS milliseconds.
+ * @internal
  */
-export const ANALYTICS_TYPE = 'analytics';
-
-// Key to attach FID to in gtag params.
-export const GA_FID_KEY = 'firebase_id';
-export const ORIGIN_KEY = 'origin';
-
-export const FETCH_TIMEOUT_MILLIS = 60 * 1000;
-
-export const DYNAMIC_CONFIG_URL =
-  'https://firebase.googleapis.com/v1alpha/projects/-/apps/{app-id}/webConfig';
-
-export const GTAG_URL = 'https://www.googletagmanager.com/gtag/js';
-
-export const enum GtagCommand {
-  EVENT = 'event',
-  SET = 'set',
-  CONFIG = 'config',
-  CONSENT = 'consent'
+export function promiseWithTimeout<T>(
+  promise: Promise<T>,
+  timeInMS = 2000
+): Promise<T> {
+  const deferredPromise = new Deferred<T>();
+  setTimeout(() => deferredPromise.reject('timeout!'), timeInMS);
+  promise.then(deferredPromise.resolve, deferredPromise.reject);
+  return deferredPromise.promise;
 }
