@@ -473,24 +473,25 @@ export class FirebaseAppCheckTokenProvider
     asyncQueue: AsyncQueue,
     changeListener: CredentialChangeListener<string>
   ): void {
-    const onTokenChanged: (tokenResult: AppCheckTokenResult) => Promise<void> =
-      tokenResult => {
-        if (tokenResult.error != null) {
-          logDebug(
-            'FirebaseAppCheckTokenProvider',
-            `Error getting App Check token; using placeholder token instead. Error: ${tokenResult.error.message}`
-          );
-        }
-        const tokenUpdated = tokenResult.token !== this.latestAppCheckToken;
-        this.latestAppCheckToken = tokenResult.token;
+    const onTokenChanged: (
+      tokenResult: AppCheckTokenResult
+    ) => Promise<void> = tokenResult => {
+      if (tokenResult.error != null) {
         logDebug(
           'FirebaseAppCheckTokenProvider',
-          `Received ${tokenUpdated ? 'new' : 'existing'} token.`
+          `Error getting App Check token; using placeholder token instead. Error: ${tokenResult.error.message}`
         );
-        return tokenUpdated
-          ? changeListener(tokenResult.token)
-          : Promise.resolve();
-      };
+      }
+      const tokenUpdated = tokenResult.token !== this.latestAppCheckToken;
+      this.latestAppCheckToken = tokenResult.token;
+      logDebug(
+        'FirebaseAppCheckTokenProvider',
+        `Received ${tokenUpdated ? 'new' : 'existing'} token.`
+      );
+      return tokenUpdated
+        ? changeListener(tokenResult.token)
+        : Promise.resolve();
+    };
 
     this.tokenListener = (tokenResult: AppCheckTokenResult) => {
       asyncQueue.enqueueRetryable(() => onTokenChanged(tokenResult));

@@ -25,7 +25,6 @@ import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { logDebug } from '../util/log';
 
-import { INDEXING_ENABLED } from './indexeddb_schema';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
 import { LocalWriteResult } from './local_store_impl';
 import { Persistence, Scheduler } from './persistence';
@@ -60,9 +59,7 @@ export class IndexBackfillerScheduler implements Scheduler {
       this.task === null,
       'Cannot start an already started IndexBackfillerScheduler'
     );
-    if (INDEXING_ENABLED) {
-      this.schedule(INITIAL_BACKFILL_DELAY_MS);
-    }
+    this.schedule(INITIAL_BACKFILL_DELAY_MS);
   }
 
   stop(): void {

@@ -22,7 +22,7 @@ import { apiDescribe, withTestDb } from '../util/helpers';
 
 apiDescribe('Index Configuration:', (persistence: boolean) => {
   it('supports JSON', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       return setIndexConfiguration(
         db,
         '{\n' +
@@ -59,7 +59,7 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
   });
 
   it('supports schema', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       return setIndexConfiguration(db, {
         indexes: [
           {
@@ -79,14 +79,18 @@ apiDescribe('Index Configuration:', (persistence: boolean) => {
 
   it('bad JSON does not crash client', () => {
     return withTestDb(persistence, async db => {
-      expect(() => setIndexConfiguration(db, '{,}')).to.throw(
-        'Failed to parse JSON'
-      );
+      const action = (): Promise<void> => setIndexConfiguration(db, '{,}');
+      if (persistence) {
+        expect(action).to.throw(/Failed to parse JSON/);
+      } else {
+        // Silently do nothing. Parsing is not done and therefore no error is thrown.
+        await action();
+      }
     });
   });
 
   it('bad index does not crash client', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       return setIndexConfiguration(
         db,
         '{\n' +

@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
+import { getLocalStore } from '../core/firestore_client';
 import { fieldPathFromDotSeparatedString } from '../lite-api/user_data_reader';
+import { localStoreConfigureFieldIndexes } from '../local/local_store_impl';
 import {
   FieldIndex,
   IndexKind,
@@ -24,6 +26,7 @@ import {
 } from '../model/field_index';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
+import { logWarn } from '../util/log';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 
@@ -150,16 +153,28 @@ export function setIndexConfiguration(
   jsonOrConfiguration: string | IndexConfiguration
 ): Promise<void> {
   firestore = cast(firestore, Firestore);
-  ensureFirestoreConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
 
+  // PORTING NOTE: We don't return an error if the user has not enabled
+  // persistence since `enableIndexeddbPersistence()` can fail on the Web.
+  if (!client.offlineComponents?.indexBackfillerScheduler) {
+    logWarn('Cannot enable indexes when persistence is disabled');
+    return Promise.resolve();
+  }
+  const parsedIndexes = parseIndexes(jsonOrConfiguration);
+  return getLocalStore(client).then(localStore =>
+    localStoreConfigureFieldIndexes(localStore, parsedIndexes)
+  );
+}
+
+export function parseIndexes(
+  jsonOrConfiguration: string | IndexConfiguration
+): FieldIndex[] {
   const indexConfiguration =
     typeof jsonOrConfiguration === 'string'
       ? (tryParseJson(jsonOrConfiguration) as IndexConfiguration)
       : jsonOrConfiguration;
   const parsedIndexes: FieldIndex[] = [];
-
-  // PORTING NOTE: We don't return an error if the user has not enabled
-  // persistence since `enableIndexeddbPersistence()` can fail on the Web.
 
   if (Array.isArray(indexConfiguration.indexes)) {
     for (const index of indexConfiguration.indexes) {
@@ -194,9 +209,7 @@ export function setIndexConfiguration(
       );
     }
   }
-
-  // TODO(indexing): Configure indexes
-  return Promise.resolve();
+  return parsedIndexes;
 }
 
 function tryParseJson(json: string): Record<string, unknown> {
@@ -205,7 +218,7 @@ function tryParseJson(json: string): Record<string, unknown> {
   } catch (e) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      'Failed to parse JSON:' + (e as Error)?.message
+      'Failed to parse JSON: ' + (e as Error)?.message
     );
   }
 }
