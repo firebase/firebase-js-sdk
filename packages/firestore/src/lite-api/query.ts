@@ -19,7 +19,6 @@ import { getModularInstance } from '@firebase/util';
 
 import { DatabaseId } from '../core/database_info';
 import {
-  findFilterOperator,
   getFirstOrderByField,
   getInequalityFilterField,
   isCollectionGroupQuery,
@@ -38,7 +37,9 @@ import {
   FieldFilter,
   Filter,
   Operator,
-  OrderBy
+  CompositeOperator,
+  OrderBy,
+  CompositeFilter
 } from '../core/target';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -46,7 +47,6 @@ import { FieldPath as InternalFieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
-import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import {
   validatePositiveNumber,
@@ -85,7 +85,9 @@ export type QueryConstraintType =
   | 'startAt'
   | 'startAfter'
   | 'endAt'
-  | 'endBefore';
+  | 'endBefore'
+  | 'and'
+  | 'or';
 
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
@@ -137,6 +139,16 @@ class QueryFilterConstraint extends QueryConstraint {
   }
 
   _apply<T>(query: Query<T>): Query<T> {
+    const filter = this._parse(query);
+    validateNewFieldFilter(query._query, filter);
+    return new Query(
+      query.firestore,
+      query.converter,
+      queryWithAddedFilter(query._query, filter)
+    );
+  }
+
+  _parse<T>(query: Query<T>): FieldFilter {
     const reader = newUserDataReader(query.firestore);
     const filter = newQueryFilter(
       query._query,
@@ -147,11 +159,7 @@ class QueryFilterConstraint extends QueryConstraint {
       this._op,
       this._value
     );
-    return new Query(
-      query.firestore,
-      query.converter,
-      queryWithAddedFilter(query._query, filter)
-    );
+    return filter;
   }
 }
 
@@ -181,7 +189,7 @@ export type WhereFilterOp =
  * @param opStr - The operation string (e.g "&lt;", "&lt;=", "==", "&lt;",
  *   "&lt;=", "!=").
  * @param value - The value for comparison
- * @returns The created {@link Query}.
+ * @returns The created {@link QueryConstraint}.
  */
 export function where(
   fieldPath: string | FieldPath,
@@ -191,6 +199,92 @@ export function where(
   const op = opStr as Operator;
   const field = fieldPathFromArgument('where', fieldPath);
   return new QueryFilterConstraint(field, op, value);
+}
+
+class QueryCompositeFilterConstraint extends QueryConstraint {
+  constructor(
+    readonly type: 'or' | 'and',
+    private readonly _queryConstraints: QueryFilterConstraint[]
+  ) {
+    super();
+  }
+
+  _parse<T>(query: Query<T>): Filter {
+    const parsedFilters = this._queryConstraints
+      .map(queryConstraint => {
+        return queryConstraint._parse(query);
+      })
+      .filter(parsedFilter => parsedFilter.getFilters().length > 0);
+
+    if (parsedFilters.length === 1) {
+      return parsedFilters[0];
+    }
+
+    return CompositeFilter.create(parsedFilters, this.getOperator());
+  }
+
+  _apply<T>(query: Query<T>): Query<T> {
+    const parsedFilter = this._parse(query);
+    if (parsedFilter.getFilters().length === 0) {
+      // Return the existing query if not adding any more filters (e.g. an empty composite filter).
+      return query;
+    }
+    validateNewFilter(query._query, parsedFilter);
+
+    return new Query(
+      query.firestore,
+      query.converter,
+      queryWithAddedFilter(query._query, parsedFilter)
+    );
+  }
+
+  getQueryConstraints(): QueryConstraint[] {
+    return this._queryConstraints;
+  }
+
+  getOperator(): CompositeOperator {
+    return this.type === 'and' ? CompositeOperator.AND : CompositeOperator.OR;
+  }
+}
+
+/**
+ * Creates a {@link QueryConstraint} that performs a logical OR
+ * of all the provided `queryConstraints`
+ *
+ * @param queryConstraints - Optional. The {@link queryConstraints} for OR operation. These must be
+ * created with calls to {@link where}, {@link or}, or {@link and}.
+ * @returns The created {@link QueryConstraint}.
+ */
+export function or(...queryConstraints: QueryConstraint[]): QueryConstraint {
+  // Only support QueryFilterConstraints
+  queryConstraints.forEach(queryConstraint =>
+    validateQueryFilterConstraint('or', queryConstraint)
+  );
+
+  return new QueryCompositeFilterConstraint(
+    CompositeOperator.OR,
+    queryConstraints as QueryFilterConstraint[]
+  );
+}
+
+/**
+ * Creates a {@link QueryConstraint} that performs a logical AND
+ * of all the provided `queryConstraints`
+ *
+ * @param queryConstraints - Optional. The {@link queryConstraints} for AND operation. These must be
+ * created with calls to {@link where}, {@link or}, or {@link and}.
+ * @returns The created {@link QueryConstraint}.
+ */
+export function and(...queryConstraints: QueryConstraint[]): QueryConstraint {
+  // Only support QueryFilterConstraints
+  queryConstraints.forEach(queryConstraint =>
+    validateQueryFilterConstraint('and', queryConstraint)
+  );
+
+  return new QueryCompositeFilterConstraint(
+    CompositeOperator.AND,
+    queryConstraints as QueryFilterConstraint[]
+  );
 }
 
 class QueryOrderByConstraint extends QueryConstraint {
@@ -518,7 +612,6 @@ export function newQueryFilter(
     );
   }
   const filter = FieldFilter.create(fieldPath, op, fieldValue);
-  validateNewFilter(query, filter);
   return filter;
 }
 
@@ -792,44 +885,82 @@ function conflictingOps(op: Operator): Operator[] {
   }
 }
 
-function validateNewFilter(query: InternalQuery, filter: Filter): void {
-  debugAssert(filter instanceof FieldFilter, 'Only FieldFilters are supported');
+function validateNewFieldFilter(
+  query: InternalQuery,
+  fieldFilter: FieldFilter
+): void {
+  if (fieldFilter.isInequality()) {
+    const existingInequality = getInequalityFilterField(query);
+    const newInequality = fieldFilter.field;
 
-  if (filter.isInequality()) {
-    const existingField = getInequalityFilterField(query);
-    if (existingField !== null && !existingField.isEqual(filter.field)) {
+    if (
+      existingInequality !== null &&
+      !existingInequality.isEqual(newInequality)
+    ) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid query. All where filters with an inequality' +
           ' (<, <=, !=, not-in, >, or >=) must be on the same field. But you have' +
-          ` inequality filters on '${existingField.toString()}'` +
-          ` and '${filter.field.toString()}'`
+          ` inequality filters on '${existingInequality.toString()}'` +
+          ` and '${newInequality.toString()}'`
       );
     }
 
     const firstOrderByField = getFirstOrderByField(query);
     if (firstOrderByField !== null) {
-      validateOrderByAndInequalityMatch(query, filter.field, firstOrderByField);
+      validateOrderByAndInequalityMatch(
+        query,
+        newInequality,
+        firstOrderByField
+      );
     }
   }
 
-  const conflictingOp = findFilterOperator(query, conflictingOps(filter.op));
+  const conflictingOp = findOpInsideFilters(
+    query.filters,
+    conflictingOps(fieldFilter.op)
+  );
   if (conflictingOp !== null) {
     // Special case when it's a duplicate op to give a slightly clearer error message.
-    if (conflictingOp === filter.op) {
+    if (conflictingOp === fieldFilter.op) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid query. You cannot use more than one ' +
-          `'${filter.op.toString()}' filter.`
+          `'${fieldFilter.op.toString()}' filter.`
       );
     } else {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
+        `Invalid query. You cannot use '${fieldFilter.op.toString()}' filters ` +
           `with '${conflictingOp.toString()}' filters.`
       );
     }
   }
+}
+
+function validateNewFilter(query: InternalQuery, filter: Filter): void {
+  let testQuery = query;
+  const subFilters = filter.getFlattenedFilters();
+  for (const subFilter of subFilters) {
+    validateNewFieldFilter(testQuery, subFilter);
+    testQuery = queryWithAddedFilter(testQuery, subFilter);
+  }
+}
+
+// Checks if any of the provided filter operators are included in the given list of filters and
+// returns the first one that is, or null if none are.
+function findOpInsideFilters(
+  filters: Filter[],
+  operators: Operator[]
+): Operator | null {
+  for (const filter of filters) {
+    for (const fieldFilter of filter.getFlattenedFilters()) {
+      if (operators.indexOf(fieldFilter.op) >= 0) {
+        return fieldFilter.op;
+      }
+    }
+  }
+  return null;
 }
 
 function validateNewOrderBy(query: InternalQuery, orderBy: OrderBy): void {
@@ -855,6 +986,18 @@ function validateOrderByAndInequalityMatch(
         `and so you must also use '${inequality.toString()}' ` +
         `as your first argument to orderBy(), but your first orderBy() ` +
         `is on field '${orderBy.toString()}' instead.`
+    );
+  }
+}
+
+export function validateQueryFilterConstraint(
+  functionName: string,
+  queryConstraint: QueryConstraint
+): void {
+  if (!(queryConstraint instanceof QueryFilterConstraint)) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Function ${functionName}() requires QueryContraints created with a call to 'where(...)'.`
     );
   }
 }

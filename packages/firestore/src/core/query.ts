@@ -24,16 +24,15 @@ import {
   Bound,
   canonifyTarget,
   Direction,
-  FieldFilter,
   Filter,
   newTarget,
-  Operator,
   OrderBy,
   boundSortsBeforeDocument,
   stringifyTarget,
   Target,
   targetEquals,
-  boundSortsAfterDocument
+  boundSortsAfterDocument,
+  CompositeFilter
 } from './target';
 
 export const enum LimitType {
@@ -166,6 +165,13 @@ export function queryMatchesAllDocuments(query: Query): boolean {
   );
 }
 
+export function queryContainsCompositeFilters(query: Query): boolean {
+  return (
+    query.filters.find(filter => filter instanceof CompositeFilter) !==
+    undefined
+  );
+}
+
 export function getFirstOrderByField(query: Query): FieldPath | null {
   return query.explicitOrderBy.length > 0
     ? query.explicitOrderBy[0].field
@@ -174,34 +180,12 @@ export function getFirstOrderByField(query: Query): FieldPath | null {
 
 export function getInequalityFilterField(query: Query): FieldPath | null {
   for (const filter of query.filters) {
-    debugAssert(
-      filter instanceof FieldFilter,
-      'Only FieldFilters are supported'
-    );
-    if (filter.isInequality()) {
-      return filter.field;
+    const result = filter.getFirstInequalityField();
+    if (result !== null) {
+      return result;
     }
   }
-  return null;
-}
 
-/**
- * Checks if any of the provided Operators are included in the query and
- * returns the first one that is, or null if none are.
- */
-export function findFilterOperator(
-  query: Query,
-  operators: Operator[]
-): Operator | null {
-  for (const filter of query.filters) {
-    debugAssert(
-      filter instanceof FieldFilter,
-      'Only FieldFilters are supported'
-    );
-    if (operators.indexOf(filter.op) >= 0) {
-      return filter.op;
-    }
-  }
   return null;
 }
 
@@ -337,11 +321,13 @@ export function queryToTarget(query: Query): Target {
 }
 
 export function queryWithAddedFilter(query: Query, filter: Filter): Query {
+  const newInequalityField = filter.getFirstInequalityField();
+  const queryInequalityField = getInequalityFilterField(query);
+
   debugAssert(
-    getInequalityFilterField(query) == null ||
-      !(filter instanceof FieldFilter) ||
-      !filter.isInequality() ||
-      filter.field.isEqual(getInequalityFilterField(query)!),
+    queryInequalityField == null ||
+      newInequalityField == null ||
+      newInequalityField.isEqual(queryInequalityField),
     'Query must only have one inequality field.'
   );
 

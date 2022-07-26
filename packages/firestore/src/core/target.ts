@@ -536,6 +536,12 @@ export function targetGetSegmentCount(target: Target): number {
 
 export abstract class Filter {
   abstract matches(doc: Document): boolean;
+
+  abstract getFlattenedFilters(): readonly FieldFilter[];
+
+  abstract getFilters(): readonly Filter[];
+
+  abstract getFirstInequalityField(): FieldPath | null;
 }
 
 export const enum Operator {
@@ -551,6 +557,11 @@ export const enum Operator {
   ARRAY_CONTAINS_ANY = 'array-contains-any'
 }
 
+export const enum CompositeOperator {
+  OR = 'or',
+  AND = 'and'
+}
+
 /**
  * The direction of sorting in an order by.
  */
@@ -559,11 +570,12 @@ export const enum Direction {
   DESCENDING = 'desc'
 }
 
+// TODO(orquery) move Filter classes to a new file, e.g. filter.ts
 export class FieldFilter extends Filter {
   protected constructor(
-    public field: FieldPath,
-    public op: Operator,
-    public value: ProtoValue
+    public readonly field: FieldPath,
+    public readonly op: Operator,
+    public readonly value: ProtoValue
   ) {
     super();
   }
@@ -685,21 +697,117 @@ export class FieldFilter extends Filter {
       ].indexOf(this.op) >= 0
     );
   }
+
+  getFlattenedFilters(): readonly FieldFilter[] {
+    return [this];
+  }
+
+  getFilters(): readonly Filter[] {
+    return [this];
+  }
+
+  getFirstInequalityField(): FieldPath | null {
+    if (this.isInequality()) {
+      return this.field;
+    }
+    return null;
+  }
+}
+
+export class CompositeFilter extends Filter {
+  private memoizedFlattenedFilters: FieldFilter[] | null = null;
+
+  protected constructor(
+    public readonly filters: readonly Filter[],
+    public readonly op: CompositeOperator
+  ) {
+    super();
+  }
+
+  /**
+   * Creates a filter based on the provided arguments.
+   */
+  static create(filters: Filter[], op: CompositeOperator): CompositeFilter {
+    return new CompositeFilter(filters, op);
+  }
+
+  matches(doc: Document): boolean {
+    if (this.isConjunction()) {
+      // For conjunctions, all filters must match, so return false if any filter doesn't match.
+      return this.filters.find(filter => !filter.matches(doc)) === undefined;
+    } else {
+      // For disjunctions, at least one filter should match.
+      return this.filters.find(filter => filter.matches(doc)) !== undefined;
+    }
+  }
+
+  getFlattenedFilters(): readonly FieldFilter[] {
+    if (this.memoizedFlattenedFilters !== null) {
+      return this.memoizedFlattenedFilters;
+    }
+
+    this.memoizedFlattenedFilters = this.filters.reduce((result, subfilter) => {
+      return result.concat(subfilter.getFlattenedFilters());
+    }, [] as FieldFilter[]);
+
+    return this.memoizedFlattenedFilters;
+  }
+
+  getFilters(): readonly Filter[] {
+    return this.filters;
+  }
+
+  getFirstInequalityField(): FieldPath | null {
+    const found = this.findFirstMatchingFilter(filter => filter.isInequality());
+
+    if (found !== null) {
+      return found.field;
+    }
+    return null;
+  }
+
+  // Performs a depth-first search to find and return the first FieldFilter in the composite filter
+  // that satisfies the predicate. Returns `null` if none of the FieldFilters satisfy the
+  // predicate.
+  private findFirstMatchingFilter(
+    predicate: (filter: FieldFilter) => boolean
+  ): FieldFilter | null {
+    for (const fieldFilter of this.getFlattenedFilters()) {
+      if (predicate(fieldFilter)) {
+        return fieldFilter;
+      }
+    }
+
+    return null;
+  }
+
+  isConjunction(): boolean {
+    return this.op === CompositeOperator.AND;
+  }
 }
 
 export function canonifyFilter(filter: Filter): string {
   debugAssert(
-    filter instanceof FieldFilter,
-    'canonifyFilter() only supports FieldFilters'
+    filter instanceof FieldFilter || filter instanceof CompositeFilter,
+    'canonifyFilter() only supports FieldFilters and CompositeFilters'
   );
-  // TODO(b/29183165): Technically, this won't be unique if two values have
-  // the same description, such as the int 3 and the string "3". So we should
-  // add the types in here somehow, too.
-  return (
-    filter.field.canonicalString() +
-    filter.op.toString() +
-    canonicalId(filter.value)
-  );
+
+  if (filter instanceof FieldFilter) {
+    // TODO(b/29183165): Technically, this won't be unique if two values have
+    // the same description, such as the int 3 and the string "3". So we should
+    // add the types in here somehow, too.
+    return (
+      filter.field.canonicalString() +
+      filter.op.toString() +
+      canonicalId(filter.value)
+    );
+  } else {
+    // filter instanceof CompositeFilter
+    const canonicalIdsString = filter.filters
+      .map(filter => canonifyFilter(filter))
+      .join(',');
+    return `${filter.op}(${canonicalIdsString})`;
+  }
 }
 
 export function filterEquals(f1: Filter, f2: Filter): boolean {
