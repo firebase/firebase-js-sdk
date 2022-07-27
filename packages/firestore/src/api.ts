@@ -119,6 +119,15 @@ export {
   deleteField
 } from './api/field_value_impl';
 
+export {
+  AggregateQuery,
+  AggregateQuerySnapshot,
+  aggregateQueryEqual,
+  aggregateQuerySnapshotEqual,
+  countQuery,
+  getAggregateFromServerDirect
+} from './api/aggregate';
+
 export { setLogLevel, LogLevelString as LogLevel } from './util/log';
 
 export { Bytes } from './api/bytes';
