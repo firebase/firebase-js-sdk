@@ -10,6 +10,9 @@ import { FirebaseApp } from '@firebase/app';
 export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
 
 // @public
+export function connectRemoteConfigEmulator(remoteConfig: RemoteConfig, url: string): void;
+
+// @public
 export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void>;
 
 // @public

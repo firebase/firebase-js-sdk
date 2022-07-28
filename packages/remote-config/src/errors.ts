@@ -31,7 +31,8 @@ export const enum ErrorCode {
   FETCH_THROTTLE = 'fetch-throttle',
   FETCH_PARSE = 'fetch-client-parse',
   FETCH_STATUS = 'fetch-status',
-  INDEXED_DB_UNAVAILABLE = 'indexed-db-unavailable'
+  INDEXED_DB_UNAVAILABLE = 'indexed-db-unavailable',
+  ALREADY_FETCHED = 'already-fetched'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -67,7 +68,9 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.FETCH_STATUS]:
     'Fetch server returned an HTTP error status. HTTP status: {$httpStatus}.',
   [ErrorCode.INDEXED_DB_UNAVAILABLE]:
-    'Indexed DB is not supported by current browser'
+    'Indexed DB is not supported by current browser',
+  [ErrorCode.ALREADY_FETCHED]:
+    'Cannot connect to emulator after a fetch has been made.'
 };
 
 // Note this is effectively a type system binding a code to params. This approach overlaps with the

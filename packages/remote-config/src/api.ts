@@ -23,7 +23,7 @@ import {
 } from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
 import { RC_COMPONENT_NAME } from './constants';
-import { ErrorCode, hasErrorCode } from './errors';
+import { ErrorCode, ERROR_FACTORY, hasErrorCode } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Value as ValueImpl } from './value';
 import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
@@ -71,6 +71,36 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
     rc._storage.setActiveConfigEtag(lastSuccessfulFetchResponse.eTag)
   ]);
   return true;
+}
+
+/**
+ * Configures the Remote Config SDK to talk to a local emulator
+ * instead of product.
+ * 
+ * Must be called before performing any fetches against production
+ * Remote Config.
+ *
+ * @param remoteConfig - The {@link RemoteConfig} instance.
+ * @param url - The url of the local emulator
+ *
+ * @public
+ */
+ export function connectRemoteConfigEmulator(
+  remoteConfig: RemoteConfig,
+  url: string
+) {
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
+
+  // To avoid the footgun of fetching from prod first,
+  // then the emulator, only allow emulator setup
+  // if no fetches have been made.
+  if (rc._storageCache.getLastFetchStatus() !== undefined) {
+    throw ERROR_FACTORY.create(ErrorCode.ALREADY_FETCHED);
+  }
+
+  window.FIREBASE_REMOTE_CONFIG_URL_BASE = url;
+
+  rc._logger.debug('Connected to the Remote Config emulator.');
 }
 
 /**
