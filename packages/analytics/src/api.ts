@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-// WHo is doing this????
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import {
   Analytics,
