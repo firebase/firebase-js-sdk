@@ -76,7 +76,7 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
 /**
  * Configures the Remote Config SDK to talk to a local emulator
  * instead of product.
- * 
+ *
  * Must be called before performing any fetches against production
  * Remote Config.
  *
@@ -85,10 +85,10 @@ export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
  *
  * @public
  */
- export function connectRemoteConfigEmulator(
+export function connectRemoteConfigEmulator(
   remoteConfig: RemoteConfig,
   url: string
-) {
+): void {
   const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
 
   // To avoid the footgun of fetching from prod first,

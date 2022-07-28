@@ -518,4 +518,28 @@ describe('RemoteConfig', () => {
       );
     });
   });
+
+  describe('connectRemoteConfigEmulator', () => {
+    it('changes the remote config API URL', () => {
+      const emulatorUrl = 'http://localhost:9200';
+
+      // init storage as if it had never fetched
+      storageCache.getLastFetchStatus = sinon.stub().returns(undefined);
+
+      api.connectRemoteConfigEmulator(rc, emulatorUrl);
+      expect(window.FIREBASE_REMOTE_CONFIG_URL_BASE === emulatorUrl).to.be.true;
+    });
+
+    it('can not be called if a fetch has already happened', () => {
+      const emulatorUrl = 'http://localhost:9200';
+
+      // init storage as if it had never fetched
+      storageCache.getLastFetchStatus = sinon.stub().returns('success');
+
+      const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_FETCHED);
+      expect(() => api.connectRemoteConfigEmulator(rc, emulatorUrl)).to.throw(
+        expectedError.message
+      );
+    });
+  });
 });
