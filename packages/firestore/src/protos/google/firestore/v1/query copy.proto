@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,14 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 
 syntax = "proto3";
 
 package google.firestore.v1;
 
+import "google/api/annotations.proto";
 import "google/firestore/v1/document.proto";
 import "google/protobuf/wrappers.proto";
-import "google/api/annotations.proto";
 
 option csharp_namespace = "Google.Cloud.Firestore.V1";
 option go_package = "google.golang.org/genproto/googleapis/firestore/v1;firestore";
@@ -27,7 +28,7 @@ option java_outer_classname = "QueryProto";
 option java_package = "com.google.firestore.v1";
 option objc_class_prefix = "GCFS";
 option php_namespace = "Google\\Cloud\\Firestore\\V1";
-option ruby_package = "Google::Cloud::Firestore::V1";
+
 
 // A Firestore query.
 message StructuredQuery {
@@ -65,8 +66,11 @@ message StructuredQuery {
       // Unspecified. This value must not be used.
       OPERATOR_UNSPECIFIED = 0;
 
-      // The results are required to satisfy each of the combined filters.
+      // Documents are required to satisfy all of the combined filters.
       AND = 1;
+
+      // Documents are required to satisfy at least one of the combined filters.
+      OR = 2;
     }
 
     // The operator for combining multiple filters.
@@ -112,7 +116,7 @@ message StructuredQuery {
       // * That `field` come first in `order_by`.
       GREATER_THAN_OR_EQUAL = 4;
 
-      // The given `field` is equal to the given `value`.
+      // The given `field` is equal to the given `value`..
       EQUAL = 5;
 
       // The given `field` is not equal to the given `value`.
@@ -131,7 +135,7 @@ message StructuredQuery {
       // Requires:
       //
       // * That `value` is a non-empty `ArrayValue` with at most 10 values.
-      // * No other `IN` or `ARRAY_CONTAINS_ANY` or `NOT_IN`.
+      // * No other `IN` or `ARRAY_CONTAINS_ANY`. (-- or `NOT_IN` --)
       IN = 8;
 
       // The given `field` is an array that contains any of the values in the
@@ -140,7 +144,7 @@ message StructuredQuery {
       // Requires:
       //
       // * That `value` is a non-empty `ArrayValue` with at most 10 values.
-      // * No other `IN` or `ARRAY_CONTAINS_ANY` or `NOT_IN`.
+      // * No other `IN` or `ARRAY_CONTAINS_ANY`. (-- or `NOT_IN` --)
       ARRAY_CONTAINS_ANY = 9;
 
       // The value of the `field` is not in the given array.
@@ -168,30 +172,30 @@ message StructuredQuery {
   message UnaryFilter {
     // A unary operator.
     enum Operator {
-      // Unspecified. This value must not be used.
-      OPERATOR_UNSPECIFIED = 0;
+     // Unspecified. This value must not be used.
+     OPERATOR_UNSPECIFIED = 0;
 
-      // The given `field` is equal to `NaN`.
-      IS_NAN = 2;
+     // The given `field` is equal to `NaN`.
+     IS_NAN = 2;
 
-      // The given `field` is equal to `NULL`.
-      IS_NULL = 3;
+     // The given `field` is equal to `NULL`.
+     IS_NULL = 3;
 
-      // The given `field` is not equal to `NaN`.
-      //
-      // Requires:
-      //
-      // * No other `NOT_EQUAL`, `NOT_IN`, `IS_NOT_NULL`, or `IS_NOT_NAN`.
-      // * That `field` comes first in the `order_by`.
-      IS_NOT_NAN = 4;
+     // The given `field` is not equal to `NaN`.
+     //
+     // Requires:
+     //
+     // * No other `NOT_EQUAL`, `NOT_IN`, `IS_NOT_NULL`, or `IS_NOT_NAN`.
+     // * That `field` comes first in the `order_by`.
+     IS_NOT_NAN = 4;
 
-      // The given `field` is not equal to `NULL`.
-      //
-      // Requires:
-      //
-      // * A single `NOT_EQUAL`, `NOT_IN`, `IS_NOT_NULL`, or `IS_NOT_NAN`.
-      // * That `field` comes first in the `order_by`.
-      IS_NOT_NULL = 5;
+     // The given `field` is not equal to `NULL`.
+     //
+     // Requires:
+     //
+     // * A single `NOT_EQUAL`, `NOT_IN`, `IS_NOT_NULL`, or `IS_NOT_NAN`.
+     // * That `field` comes first in the `order_by`.
+     IS_NOT_NULL = 5;
     }
 
     // The unary operator to apply.
