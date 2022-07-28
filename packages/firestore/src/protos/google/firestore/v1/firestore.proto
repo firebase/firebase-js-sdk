@@ -17,9 +17,9 @@ syntax = "proto3";
 package google.firestore.v1;
 
 import "google/api/annotations.proto";
-import "google/firestore/v1/aggregation_result.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
+import "google/firestore/v1/aggregation_result.proto";
 import "google/firestore/v1/common.proto";
 import "google/firestore/v1/document.proto";
 import "google/firestore/v1/query.proto";
@@ -553,7 +553,7 @@ message RunAggregationQueryRequest {
   // For example:
   // `projects/my-project/databases/my-database/documents` or
   // `projects/my-project/databases/my-database/documents/chatrooms/my-chatroom`
-  string parent = 1 [(google.api.field_behavior) = REQUIRED];;
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
 
   // The query to run.
   oneof query_type {
@@ -561,6 +561,26 @@ message RunAggregationQueryRequest {
     StructuredAggregationQuery structured_aggregation_query = 2;
   }
 
+  // The consistency mode for the query, defaults to strong consistency.
+  oneof consistency_selector {
+    // Run the aggregation within an already active transaction.
+    //
+    // The value here is the opaque transaction ID to execute the query in.
+    bytes transaction = 4;
+
+    // Starts a new transaction as part of the query, defaulting to read-only.
+    //
+    // The new transaction ID will be returned as the first response in the
+    // stream.
+    TransactionOptions new_transaction = 5;
+
+    // Executes the query at the given timestamp.
+    //
+    // Requires:
+    //
+    // * Cannot be more than 270 seconds in the past.
+    google.protobuf.Timestamp read_time = 6;
+  }
 }
 
 // The response for [Firestore.RunAggregationQuery][google.firestore.v1.Firestore.RunAggregationQuery].
@@ -580,6 +600,7 @@ message RunAggregationQueryResponse {
   // The time at which the aggregate value is valid for.
   google.protobuf.Timestamp read_time = 3;
 }
+
 // The request for [Firestore.PartitionQuery][google.firestore.v1.Firestore.PartitionQuery].
 message PartitionQueryRequest {
   // Required. The parent resource name. In the format:
