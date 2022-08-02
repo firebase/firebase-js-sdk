@@ -39,8 +39,13 @@ export function toByteStreamReaderHelper(
     `toByteStreamReader expects positive bytesPerRead, but got ${bytesPerRead}`
   );
   let readFrom = 0;
-  const reader: ReadableStreamReader<Uint8Array> = {
-    async read(): Promise<ReadableStreamDefaultReadResult<Uint8Array>> {
+  // The TypeScript definition for ReadableStreamReader changed. We use
+  // `any` here to allow this code to compile with different versions.
+  // See https://github.com/microsoft/TypeScript/issues/42970
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const reader: any = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async read(): Promise<any> {
       if (readFrom < source.byteLength) {
         const result = {
           value: source.slice(readFrom, readFrom + bytesPerRead),

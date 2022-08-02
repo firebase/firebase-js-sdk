@@ -170,7 +170,7 @@ describe('ObjectValue', () => {
       'map.nested.d',
       'emptymap'
     );
-    const actualMask = extractFieldMask(objValue.toProto().mapValue);
+    const actualMask = extractFieldMask(objValue.value.mapValue);
     expect(actualMask.isEqual(expectedMask)).to.be.true;
   });
 

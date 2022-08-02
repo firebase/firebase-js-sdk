@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ParsedSetData, ParsedUpdateData } from '../lite/user_data_reader';
+import { ParsedSetData, ParsedUpdateData } from '../lite-api/user_data_reader';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -83,7 +83,7 @@ export class Transaction {
     try {
       this.write(data.toMutation(key, this.preconditionForUpdate(key)));
     } catch (e) {
-      this.lastWriteError = e;
+      this.lastWriteError = e as FirestoreError | null;
     }
     this.writtenDocs.add(key.toString());
   }

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
+
 /**
  * The set of Firestore status codes. The codes are the same at the ones
  * exposed by gRPC here:
@@ -208,10 +210,7 @@ export const Code = {
 };
 
 /** An error returned by a Firestore operation. */
-export class FirestoreError extends Error {
-  /** The custom name for all FirestoreErrors. */
-  readonly name: string = 'FirebaseError';
-
+export class FirestoreError extends FirebaseError {
   /** The stack of the error. */
   readonly stack?: string;
 
@@ -226,7 +225,7 @@ export class FirestoreError extends Error {
      */
     readonly message: string
   ) {
-    super(message);
+    super(code, message);
 
     // HACK: We write a toString property directly because Error is not a real
     // class and so inheritance does not work correctly. We could alternatively

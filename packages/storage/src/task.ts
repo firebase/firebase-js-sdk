@@ -22,7 +22,7 @@ import { FbsBlob } from './implementation/blob';
 import {
   canceled,
   StorageErrorCode,
-  FirebaseStorageError
+  StorageError
 } from './implementation/error';
 import {
   InternalTaskState,
@@ -32,15 +32,14 @@ import {
 } from './implementation/taskenums';
 import { Metadata } from './metadata';
 import {
-  CompleteFn,
-  ErrorFn,
   Observer,
-  StorageObserver,
   Subscribe,
-  Unsubscribe
+  Unsubscribe,
+  StorageObserver as StorageObserverInternal,
+  NextFn
 } from './implementation/observer';
 import { Request } from './implementation/request';
-import { UploadTaskSnapshot } from './tasksnapshot';
+import { UploadTaskSnapshot, StorageObserver } from './public-types';
 import { async as fbsAsync } from './implementation/async';
 import { Mappings, getMappings } from './implementation/metadata';
 import {
@@ -53,6 +52,7 @@ import {
   multipartUpload
 } from './implementation/requests';
 import { Reference } from './reference';
+import { newTextConnection } from './platform/connection';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -76,20 +76,20 @@ export class UploadTask {
   _transferred: number = 0;
   private _needToFetchStatus: boolean = false;
   private _needToFetchMetadata: boolean = false;
-  private _observers: Array<StorageObserver<UploadTaskSnapshot>> = [];
+  private _observers: Array<StorageObserverInternal<UploadTaskSnapshot>> = [];
   private _resumable: boolean;
   /**
    * Upload state.
    */
   _state: InternalTaskState;
-  private _error?: FirebaseStorageError = undefined;
+  private _error?: StorageError = undefined;
   private _uploadUrl?: string = undefined;
   private _request?: Request<unknown> = undefined;
   private _chunkMultiplier: number = 1;
-  private _errorHandler: (p1: FirebaseStorageError) => void;
-  private _metadataErrorHandler: (p1: FirebaseStorageError) => void;
+  private _errorHandler: (p1: StorageError) => void;
+  private _metadataErrorHandler: (p1: StorageError) => void;
   private _resolve?: (p1: UploadTaskSnapshot) => void = undefined;
-  private _reject?: (p1: FirebaseStorageError) => void = undefined;
+  private _reject?: (p1: StorageError) => void = undefined;
   private _promise: Promise<UploadTaskSnapshot>;
 
   /**
@@ -172,12 +172,17 @@ export class UploadTask {
     }
   }
 
-  private _resolveToken(callback: (p1: string | null) => void): void {
+  private _resolveToken(
+    callback: (authToken: string | null, appCheckToken: string | null) => void
+  ): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._ref.storage._getAuthToken().then(authToken => {
+    Promise.all([
+      this._ref.storage._getAuthToken(),
+      this._ref.storage._getAppCheckToken()
+    ]).then(([authToken, appCheckToken]) => {
       switch (this._state) {
         case InternalTaskState.RUNNING:
-          callback(authToken);
+          callback(authToken, appCheckToken);
           break;
         case InternalTaskState.CANCELING:
           this._transition(InternalTaskState.CANCELED);
@@ -193,7 +198,7 @@ export class UploadTask {
   // TODO(andysoto): assert false
 
   private _createResumable(): void {
-    this._resolveToken(authToken => {
+    this._resolveToken((authToken, appCheckToken) => {
       const requestInfo = createResumableUpload(
         this._ref.storage,
         this._ref._location,
@@ -203,7 +208,9 @@ export class UploadTask {
       );
       const createRequest = this._ref.storage._makeRequest(
         requestInfo,
-        authToken
+        newTextConnection,
+        authToken,
+        appCheckToken
       );
       this._request = createRequest;
       createRequest.getPromise().then((url: string) => {
@@ -218,7 +225,7 @@ export class UploadTask {
   private _fetchStatus(): void {
     // TODO(andysoto): assert(this.uploadUrl_ !== null);
     const url = this._uploadUrl as string;
-    this._resolveToken(authToken => {
+    this._resolveToken((authToken, appCheckToken) => {
       const requestInfo = getResumableUploadStatus(
         this._ref.storage,
         this._ref._location,
@@ -227,7 +234,9 @@ export class UploadTask {
       );
       const statusRequest = this._ref.storage._makeRequest(
         requestInfo,
-        authToken
+        newTextConnection,
+        authToken,
+        appCheckToken
       );
       this._request = statusRequest;
       statusRequest.getPromise().then(status => {
@@ -252,7 +261,7 @@ export class UploadTask {
 
     // TODO(andysoto): assert(this.uploadUrl_ !== null);
     const url = this._uploadUrl as string;
-    this._resolveToken(authToken => {
+    this._resolveToken((authToken, appCheckToken) => {
       let requestInfo;
       try {
         requestInfo = continueResumableUpload(
@@ -266,13 +275,15 @@ export class UploadTask {
           this._makeProgressCallback()
         );
       } catch (e) {
-        this._error = e;
+        this._error = e as StorageError;
         this._transition(InternalTaskState.ERROR);
         return;
       }
       const uploadRequest = this._ref.storage._makeRequest(
         requestInfo,
-        authToken
+        newTextConnection,
+        authToken,
+        appCheckToken
       );
       this._request = uploadRequest;
       uploadRequest.getPromise().then((newStatus: ResumableUploadStatus) => {
@@ -299,7 +310,7 @@ export class UploadTask {
   }
 
   private _fetchMetadata(): void {
-    this._resolveToken(authToken => {
+    this._resolveToken((authToken, appCheckToken) => {
       const requestInfo = getMetadata(
         this._ref.storage,
         this._ref._location,
@@ -307,7 +318,9 @@ export class UploadTask {
       );
       const metadataRequest = this._ref.storage._makeRequest(
         requestInfo,
-        authToken
+        newTextConnection,
+        authToken,
+        appCheckToken
       );
       this._request = metadataRequest;
       metadataRequest.getPromise().then(metadata => {
@@ -319,7 +332,7 @@ export class UploadTask {
   }
 
   private _oneShotUpload(): void {
-    this._resolveToken(authToken => {
+    this._resolveToken((authToken, appCheckToken) => {
       const requestInfo = multipartUpload(
         this._ref.storage,
         this._ref._location,
@@ -329,7 +342,9 @@ export class UploadTask {
       );
       const multipartRequest = this._ref.storage._makeRequest(
         requestInfo,
-        authToken
+        newTextConnection,
+        authToken,
+        appCheckToken
       );
       this._request = multipartRequest;
       multipartRequest.getPromise().then(metadata => {
@@ -459,7 +474,7 @@ export class UploadTask {
    *     The `next` function, which gets called for each item in
    *     the event stream, or an observer object with some or all of these three
    *     properties (`next`, `error`, `complete`).
-   * @param error - A function that gets called with a `FirebaseStorageError`
+   * @param error - A function that gets called with a `StorageError`
    *     if the event stream ends due to an error.
    * @param completed - A function that gets called if the
    *     event stream ends normally.
@@ -473,11 +488,18 @@ export class UploadTask {
     type: TaskEvent,
     nextOrObserver?:
       | StorageObserver<UploadTaskSnapshot>
-      | ((a: UploadTaskSnapshot) => unknown),
-    error?: ErrorFn,
-    completed?: CompleteFn
+      | null
+      | ((snapshot: UploadTaskSnapshot) => unknown),
+    error?: ((a: StorageError) => unknown) | null,
+    completed?: Unsubscribe | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
-    const observer = new Observer(nextOrObserver, error, completed);
+    const observer = new Observer(
+      (nextOrObserver as
+        | StorageObserverInternal<UploadTaskSnapshot>
+        | NextFn<UploadTaskSnapshot>) || undefined,
+      error || undefined,
+      completed || undefined
+    );
     this._addObserver(observer);
     return () => {
       this._removeObserver(observer);
@@ -492,7 +514,7 @@ export class UploadTask {
    */
   then<U>(
     onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null,
-    onRejected?: ((error: FirebaseStorageError) => U | Promise<U>) | null
+    onRejected?: ((error: StorageError) => U | Promise<U>) | null
   ): Promise<U> {
     // These casts are needed so that TypeScript can infer the types of the
     // resulting Promise.
@@ -505,9 +527,7 @@ export class UploadTask {
   /**
    * Equivalent to calling `then(null, onRejected)`.
    */
-  catch<T>(
-    onRejected: (p1: FirebaseStorageError) => T | Promise<T>
-  ): Promise<T> {
+  catch<T>(onRejected: (p1: StorageError) => T | Promise<T>): Promise<T> {
     return this.then(null, onRejected);
   }
 
@@ -546,8 +566,8 @@ export class UploadTask {
           break;
         case TaskState.CANCELED:
         case TaskState.ERROR:
-          const toCall = this._reject as (p1: FirebaseStorageError) => void;
-          fbsAsync(toCall.bind(null, this._error as FirebaseStorageError))();
+          const toCall = this._reject as (p1: StorageError) => void;
+          fbsAsync(toCall.bind(null, this._error as StorageError))();
           break;
         default:
           triggered = false;
@@ -578,7 +598,7 @@ export class UploadTask {
       case TaskState.ERROR:
         if (observer.error) {
           fbsAsync(
-            observer.error.bind(observer, this._error as FirebaseStorageError)
+            observer.error.bind(observer, this._error as StorageError)
           )();
         }
         break;
@@ -586,7 +606,7 @@ export class UploadTask {
         // TODO(andysoto): assert(false);
         if (observer.error) {
           fbsAsync(
-            observer.error.bind(observer, this._error as FirebaseStorageError)
+            observer.error.bind(observer, this._error as StorageError)
           )();
         }
     }

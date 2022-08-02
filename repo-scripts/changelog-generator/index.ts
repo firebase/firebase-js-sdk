@@ -89,15 +89,19 @@ const changelogFunctions: ChangelogFunctions = {
   }
 };
 
-const fixedIssueRegex = /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) [^\s]*(#|issues\/)([\d]+)/i;
+const fixedIssueRegex =
+  /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) [^\s]*(#|issues\/)([\d]+)/i;
 async function getFixedIssueLink(
   prNumber: number,
   repo: string
 ): Promise<string> {
   const { body }: { body: string } = await fetch(
-    `https://api.github.com/repos/${repo}/pulls/${prNumber}?access_token=${process.env.GITHUB_TOKEN}`,
+    `https://api.github.com/repos/${repo}/pulls/${prNumber}`,
     {
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`
+      }
     }
   ).then(data => data.json());
 

@@ -451,7 +451,7 @@ async function onWatchStreamChange(
         watchChange.targetIds.join(','),
         e
       );
-      await disableNetworkUntilRecovery(remoteStoreImpl, e);
+      await disableNetworkUntilRecovery(remoteStoreImpl, e as FirestoreError);
     }
     return;
   }
@@ -470,9 +470,10 @@ async function onWatchStreamChange(
 
   if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
     try {
-      const lastRemoteSnapshotVersion = await localStoreGetLastRemoteSnapshotVersion(
-        remoteStoreImpl.localStore
-      );
+      const lastRemoteSnapshotVersion =
+        await localStoreGetLastRemoteSnapshotVersion(
+          remoteStoreImpl.localStore
+        );
       if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
         // We have received a target change with a global snapshot if the snapshot
         // version is not equal to SnapshotVersion.min().
@@ -480,7 +481,7 @@ async function onWatchStreamChange(
       }
     } catch (e) {
       logDebug(LOG_TAG, 'Failed to raise snapshot:', e);
-      await disableNetworkUntilRecovery(remoteStoreImpl, e);
+      await disableNetworkUntilRecovery(remoteStoreImpl, e as FirestoreError);
     }
   }
 }
@@ -554,9 +555,8 @@ function raiseWatchSnapshot(
     !snapshotVersion.isEqual(SnapshotVersion.min()),
     "Can't raise event for unknown SnapshotVersion"
   );
-  const remoteEvent = remoteStoreImpl.watchChangeAggregator!.createRemoteEvent(
-    snapshotVersion
-  );
+  const remoteEvent =
+    remoteStoreImpl.watchChangeAggregator!.createRemoteEvent(snapshotVersion);
 
   // Update in-memory resume tokens. LocalStore will update the
   // persistent view of these when applying the completed RemoteEvent.
@@ -675,7 +675,7 @@ export async function fillWritePipeline(
         addToWritePipeline(remoteStoreImpl, batch);
       }
     } catch (e) {
-      await disableNetworkUntilRecovery(remoteStoreImpl, e);
+      await disableNetworkUntilRecovery(remoteStoreImpl, e as FirestoreError);
     }
   }
 

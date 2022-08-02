@@ -123,7 +123,6 @@ export interface VersionService {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'app': FirebaseApp;
     'app-version': VersionService;
     'platform-identifier': VersionService;
   }

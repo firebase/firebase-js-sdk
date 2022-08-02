@@ -24,6 +24,7 @@ import {
   stringify
 } from '@firebase/util';
 
+import { AppCheckTokenProvider } from './AppCheckTokenProvider';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
@@ -59,7 +60,8 @@ import {
   syncTreeApplyUserOverwrite,
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
-  syncTreeRemoveEventRegistration
+  syncTreeRemoveEventRegistration,
+  syncTreeRegisterQuery
 } from './SyncTree';
 import { Indexable } from './util/misc';
 import {
@@ -187,7 +189,8 @@ export class Repo {
   constructor(
     public repoInfo_: RepoInfo,
     public forceRestClient_: boolean,
-    public authTokenProvider_: AuthTokenProvider
+    public authTokenProvider_: AuthTokenProvider,
+    public appCheckProvider_: AppCheckTokenProvider
   ) {
     // This key is intentionally not updated if RepoInfo is later changed or replaced
     this.key = this.repoInfo_.toURLString();
@@ -221,7 +224,8 @@ export function repoStart(
       ) => {
         repoOnDataUpdate(repo, pathString, data, isMerge, tag);
       },
-      repo.authTokenProvider_
+      repo.authTokenProvider_,
+      repo.appCheckProvider_
     );
 
     // Minor hack: Fire onConnect immediately, since there's no actual connection.
@@ -259,6 +263,7 @@ export function repoStart(
         repoOnServerInfoUpdate(repo, updates);
       },
       repo.authTokenProvider_,
+      repo.appCheckProvider_,
       authOverride
     );
 
@@ -267,6 +272,10 @@ export function repoStart(
 
   repo.authTokenProvider_.addTokenChangeListener(token => {
     repo.server_.refreshAuthToken(token);
+  });
+
+  repo.appCheckProvider_.addTokenChangeListener(result => {
+    repo.server_.refreshAppCheckToken(result.token);
   });
 
   // In the case of multiple Repos for the same repoInfo (i.e. there are multiple Firebase.Contexts being used),
@@ -458,14 +467,36 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   }
   return repo.server_.get(query).then(
     payload => {
-      const node = nodeFromJSON(payload as string);
-      const events = syncTreeApplyServerOverwrite(
-        repo.serverSyncTree_,
-        query._path,
-        node
+      const node = nodeFromJSON(payload).withIndex(
+        query._queryParams.getIndex()
       );
-      eventQueueRaiseEventsAtPath(repo.eventQueue_, query._path, events);
-      return Promise.resolve(node);
+      // if this is a filtered query, then overwrite at path
+      if (query._queryParams.loadsAllData()) {
+        syncTreeApplyServerOverwrite(repo.serverSyncTree_, query._path, node);
+      } else {
+        // Simulate `syncTreeAddEventRegistration` without events/listener setup.
+        // We do this (along with the syncTreeRemoveEventRegistration` below) so that
+        // `repoGetValue` results have the same cache effects as initial listener(s)
+        // updates.
+        const tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
+        syncTreeApplyTaggedQueryOverwrite(
+          repo.serverSyncTree_,
+          query._path,
+          node,
+          tag
+        );
+        // Call `syncTreeRemoveEventRegistration` with a null event registration, since there is none.
+        // Note: The below code essentially unregisters the query and cleans up any views/syncpoints temporarily created above.
+      }
+      const cancels = syncTreeRemoveEventRegistration(
+        repo.serverSyncTree_,
+        query,
+        null
+      );
+      if (cancels.length > 0) {
+        repoLog(repo, 'unexpected cancel events in repoGetValue');
+      }
+      return node;
     },
     err => {
       repoLog(repo, 'get for query ' + stringify(query) + ' failed: ' + err);

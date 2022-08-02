@@ -93,6 +93,7 @@ export async function testIndexedDbPersistence(
     dontPurgeData?: boolean;
     synchronizeTabs?: boolean;
     queue?: AsyncQueue;
+    schemaVersion?: number;
   } = {},
   lruParams: LruParams = LruParams.DEFAULT
 ): Promise<IndexedDbPersistence> {
@@ -112,7 +113,8 @@ export async function testIndexedDbPersistence(
     getDocument(),
     JSON_SERIALIZER,
     MOCK_SEQUENCE_NUMBER_SYNCER,
-    /** forceOwningTab= */ false
+    /** forceOwningTab= */ false,
+    options.schemaVersion
   );
   await persistence.start();
   return persistence;

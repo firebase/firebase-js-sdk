@@ -22,6 +22,8 @@ export interface TransportConstructor {
     connId: string,
     repoInfo: RepoInfo,
     applicationId?: string,
+    appCheckToken?: string,
+    authToken?: string,
     transportSessionId?: string,
     lastSessionId?: string
   ): Transport;

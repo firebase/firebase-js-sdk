@@ -16,12 +16,13 @@
  */
 
 import { unknown, invalidFormat } from './error';
+import { decodeBase64 } from '../platform/base64';
 
 /**
  * An enumeration of the possible string formats for upload.
  * @public
  */
-export type StringFormat = string;
+export type StringFormat = typeof StringFormat[keyof typeof StringFormat];
 /**
  * An enumeration of the possible string formats for upload.
  * @public
@@ -59,7 +60,7 @@ export const StringFormat = {
    * be overridden in the metadata object).
    */
   DATA_URL: 'data_url'
-};
+} as const;
 
 export class StringData {
   contentType: string | null;
@@ -69,6 +70,9 @@ export class StringData {
   }
 }
 
+/**
+ * @internal
+ */
 export function dataFromString(
   format: StringFormat,
   stringData: string
@@ -178,7 +182,7 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
   }
   let bytes;
   try {
-    bytes = atob(value);
+    bytes = decodeBase64(value);
   } catch (e) {
     throw invalidFormat(format, 'Invalid character found');
   }

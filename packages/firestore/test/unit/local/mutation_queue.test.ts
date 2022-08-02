@@ -71,7 +71,10 @@ function genericMutationQueueTests(): void {
   beforeEach(() => {
     mutationQueue = new TestMutationQueue(
       persistence,
-      persistence.getMutationQueue(new User('user'))
+      persistence.getMutationQueue(
+        new User('user'),
+        persistence.getIndexManager(new User('user'))
+      )
     );
   });
 
@@ -222,9 +225,10 @@ function genericMutationQueueTests(): void {
       batches.push(batch);
     }
     const expected = [batches[1], batches[2]];
-    const matches = await mutationQueue.getAllMutationBatchesAffectingDocumentKey(
-      key('foo/bar')
-    );
+    const matches =
+      await mutationQueue.getAllMutationBatchesAffectingDocumentKey(
+        key('foo/bar')
+      );
     expectEqualArrays(matches, expected);
   });
 
@@ -244,9 +248,10 @@ function genericMutationQueueTests(): void {
       batches.push(batch);
     }
     const expected = [batches[1], batches[2], batches[4]];
-    const matches = await mutationQueue.getAllMutationBatchesAffectingDocumentKeys(
-      documentKeySet().add(key('foo/bar')).add(key('foo/baz'))
-    );
+    const matches =
+      await mutationQueue.getAllMutationBatchesAffectingDocumentKeys(
+        documentKeySet().add(key('foo/bar')).add(key('foo/baz'))
+      );
     expectEqualArrays(matches, expected);
   });
 

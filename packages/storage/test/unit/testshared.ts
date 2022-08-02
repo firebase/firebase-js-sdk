@@ -15,16 +15,19 @@
  * limitations under the License.
  */
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 
 use(chaiAsPromised);
 
 import { FirebaseApp } from '@firebase/app-types';
 import { CONFIG_STORAGE_BUCKET_KEY } from '../../src/implementation/constants';
-import { FirebaseStorageError } from '../../src/implementation/error';
-import { Headers, XhrIo } from '../../src/implementation/xhrio';
-import { XhrIoPool } from '../../src/implementation/xhriopool';
-import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';
+import { StorageError } from '../../src/implementation/error';
+import {
+  Headers,
+  Connection,
+  ConnectionType
+} from '../../src/implementation/connection';
+import { newTestConnection, TestingConnection } from './connection';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   Provider,
@@ -32,10 +35,13 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
-import { StorageService } from '../../src/service';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { FirebaseStorageImpl } from '../../src/service';
 import { Metadata } from '../../src/metadata';
+import { injectTestConnection } from '../../src/platform/connection';
 
 export const authToken = 'totally-legit-auth-token';
+export const appCheckToken = 'totally-shady-token';
 export const bucket = 'mybucket';
 export const fakeApp = makeFakeApp();
 export const fakeAuthProvider = makeFakeAuthProvider({
@@ -45,6 +51,9 @@ export const emptyAuthProvider = new Provider<FirebaseAuthInternalName>(
   'auth-internal',
   new ComponentContainer('storage-container')
 );
+export const fakeAppCheckTokenProvider = makeFakeAppCheckProvider({
+  token: appCheckToken
+});
 
 export function makeFakeApp(bucketArg?: string): FirebaseApp {
   const app: any = {};
@@ -79,26 +88,42 @@ export function makeFakeAuthProvider(token: {
   return provider as Provider<FirebaseAuthInternalName>;
 }
 
-export function makePool(sendHook: SendHook | null): XhrIoPool {
-  const pool: any = {
-    createXhrIo() {
-      return new TestingXhrIo(sendHook);
-    }
-  };
-  return pool as XhrIoPool;
+export function makeFakeAppCheckProvider(tokenResult: {
+  token: string;
+}): Provider<AppCheckInternalComponentName> {
+  const provider = new Provider(
+    'app-check-internal',
+    new ComponentContainer('storage-container')
+  );
+  provider.setComponent(
+    new Component(
+      'app-check-internal',
+      () => {
+        return {
+          getToken: () => Promise.resolve(tokenResult)
+        } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+      },
+      ComponentType.PRIVATE
+    )
+  );
+
+  return provider as Provider<AppCheckInternalComponentName>;
 }
 
 /**
  * Returns something that looks like an fbs.XhrIo with the given headers
  * and status.
  */
-export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
-  const lower: StringHeaders = {};
+export function fakeXhrIo<I extends ConnectionType = string>(
+  headers: Headers,
+  status: number = 200
+): Connection<I> {
+  const lower: Headers = {};
   for (const [key, value] of Object.entries(headers)) {
     lower[key.toLowerCase()] = value.toString();
   }
 
-  const fakeXhrIo: any = {
+  const fakeConnection: any = {
     getResponseHeader(name: string): string {
       const lowerName = name.toLowerCase();
       if (lower.hasOwnProperty(lowerName)) {
@@ -112,7 +137,7 @@ export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
     }
   };
 
-  return fakeXhrIo as XhrIo;
+  return fakeConnection as Connection<I>;
 }
 
 /**
@@ -125,27 +150,24 @@ export function bind(f: Function, ctx: any, ...args: any[]): () => void {
   };
 }
 
-export function assertThrows(
-  f: () => void,
-  code: string
-): FirebaseStorageError {
-  let captured: FirebaseStorageError | null = null;
+export function assertThrows(f: () => void, code: string): StorageError {
+  let captured: StorageError | null = null;
   expect(() => {
     try {
       f();
     } catch (e) {
-      captured = e;
+      captured = e as StorageError;
       throw e;
     }
   }).to.throw();
   // @ts-ignore Compiler does not know callback is invoked immediately and
   // thinks catch block is unreachable. This is an open TS issue:
   // https://github.com/microsoft/TypeScript/issues/11498
-  expect(captured).to.be.an.instanceof(FirebaseStorageError);
+  expect(captured).to.be.an.instanceof(StorageError);
   // @ts-ignore See above.
   expect(captured.code).to.equal(code);
   // @ts-ignore See above.
-  return captured as FirebaseStorageError;
+  return captured as StorageError;
 }
 
 export function assertUint8ArrayEquals(
@@ -173,7 +195,7 @@ const defaultFakeMetadata: Partial<Metadata> = { 'downloadTokens': ['a', 'b'] };
 interface Response {
   status: number;
   body: string;
-  headers: StringHeaders;
+  headers: Headers;
 }
 type RequestHandler = (
   url: string,
@@ -184,22 +206,27 @@ type RequestHandler = (
 
 export function storageServiceWithHandler(
   handler: RequestHandler
-): StorageService {
+): FirebaseStorageImpl {
   function newSend(
-    xhrio: TestingXhrIo,
+    connection: TestingConnection,
     url: string,
     method: string,
     body?: ArrayBufferView | Blob | string | null,
     headers?: Headers
   ): void {
     const response = handler(url, method, body, headers);
-    xhrio.simulateResponse(response.status, response.body, response.headers);
+    connection.simulateResponse(
+      response.status,
+      response.body,
+      response.headers
+    );
   }
 
-  return new StorageService(
+  injectTestConnection(() => newTestConnection(newSend));
+  return new FirebaseStorageImpl(
     {} as FirebaseApp,
     emptyAuthProvider,
-    makePool(newSend)
+    fakeAppCheckTokenProvider
   );
 }
 
@@ -215,10 +242,7 @@ export function fakeServerHandler(
 
   let nextId: number = 0;
 
-  function statusHeaders(
-    status: string,
-    existing?: StringHeaders
-  ): StringHeaders {
+  function statusHeaders(status: string, existing?: Headers): Headers {
     if (existing) {
       existing['X-Goog-Upload-Status'] = status;
       return existing;

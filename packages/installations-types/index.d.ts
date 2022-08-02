@@ -49,6 +49,6 @@ export type FirebaseInstallationsName = 'installations';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'installations': FirebaseInstallations;
+    'installations-compat': FirebaseInstallations;
   }
 }

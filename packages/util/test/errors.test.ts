@@ -48,13 +48,13 @@ describe('FirebaseError', () => {
     const e = ERROR_FACTORY.create('generic-error');
     assert.instanceOf(e, Error);
     assert.instanceOf(e, FirebaseError);
-    assert.equal(e.code, 'fake/generic-error');
+    assert.equal((e as FirebaseError)?.code, 'fake/generic-error');
     assert.equal(e.message, 'Fake: Unknown error (fake/generic-error).');
   });
 
   it('replaces template values with data', () => {
     const e = ERROR_FACTORY.create('file-not-found', { file: 'foo.txt' });
-    assert.equal(e.code, 'fake/file-not-found');
+    assert.equal((e as FirebaseError)?.code, 'fake/file-not-found');
     assert.equal(
       e.message,
       "Fake: Could not find file: 'foo.txt' (fake/file-not-found)."
@@ -64,8 +64,8 @@ describe('FirebaseError', () => {
 
   it('uses "Error" as template when template is missing', () => {
     // Cast to avoid compile-time error.
-    const e = ERROR_FACTORY.create(('no-such-code' as any) as ErrorCode);
-    assert.equal(e.code, 'fake/no-such-code');
+    const e = ERROR_FACTORY.create('no-such-code' as any as ErrorCode);
+    assert.equal((e as FirebaseError)?.code, 'fake/no-such-code');
     assert.equal(e.message, 'Fake: Error (fake/no-such-code).');
   });
 
@@ -73,7 +73,7 @@ describe('FirebaseError', () => {
     const e = ERROR_FACTORY.create('file-not-found', {
       fileX: 'foo.txt'
     } as any);
-    assert.equal(e.code, 'fake/file-not-found');
+    assert.equal((e as FirebaseError)?.code, 'fake/file-not-found');
     assert.equal(
       e.message,
       "Fake: Could not find file: '<file?>' (fake/file-not-found)."
@@ -88,9 +88,9 @@ describe('FirebaseError', () => {
     try {
       throw e;
     } catch (error) {
-      assert.isDefined(error.stack);
+      assert.isDefined((error as Error).stack);
       // Multi-line match trick - .* does not match \n
-      assert.match(error.stack, /FirebaseError[\s\S]/);
+      assert.match((error as Error).stack!, /FirebaseError[\s\S]/);
     }
   });
 
@@ -100,7 +100,8 @@ describe('FirebaseError', () => {
       assert.ok(false);
     } catch (e) {
       assert.instanceOf(e, FirebaseError);
-      assert.match(e.stack, /dummy2[\s\S]*?dummy1/);
+      assert.isDefined((e as FirebaseError).stack);
+      assert.match((e as FirebaseError).stack!, /dummy2[\s\S]*?dummy1/);
     }
   });
 });

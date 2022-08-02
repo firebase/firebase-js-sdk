@@ -15,18 +15,27 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api/timestamp';
+import { User } from '../auth/user';
 import { BundleMetadata, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
-import { Timestamp } from '../exp/timestamp';
+import { canonifyTarget, Target, targetIsDocumentTarget } from '../core/target';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { MutationBatch } from '../model/mutation_batch';
 import {
+  FieldIndex,
+  IndexOffset,
+  IndexSegment,
+  IndexState
+} from '../model/field_index';
+import { MutationBatch } from '../model/mutation_batch';
+import { Overlay } from '../model/overlay';
+import { FieldPath } from '../model/path';
+import {
+  BundledQuery as ProtoBundledQuery,
   BundleMetadata as ProtoBundleMetadata,
-  NamedQuery as ProtoNamedQuery,
-  BundledQuery as ProtoBundledQuery
+  NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
 import { DocumentsTarget as PublicDocumentsTarget } from '../protos/firestore_proto_api';
 import {
@@ -46,17 +55,22 @@ import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 
 import {
+  decodeResourcePath,
+  encodeResourcePath
+} from './encoded_resource_path';
+import {
   DbBundle,
+  DbDocumentOverlay,
+  DbIndexConfiguration,
+  DbIndexState,
   DbMutationBatch,
   DbNamedQuery,
-  DbNoDocument,
   DbQuery,
   DbRemoteDocument,
   DbTarget,
-  DbTimestamp,
-  DbTimestampKey,
-  DbUnknownDocument
+  DbTimestamp
 } from './indexeddb_schema';
+import { DbDocumentOverlayKey, DbTimestampKey } from './indexeddb_sentinels';
 import { TargetData, TargetPurpose } from './target_data';
 
 /** Serializer for values stored in the LocalStore. */
@@ -69,8 +83,9 @@ export function fromDbRemoteDocument(
   localSerializer: LocalSerializer,
   remoteDoc: DbRemoteDocument
 ): MutableDocument {
+  let doc: MutableDocument;
   if (remoteDoc.document) {
-    return fromDocument(
+    doc = fromDocument(
       localSerializer.remoteSerializer,
       remoteDoc.document,
       !!remoteDoc.hasCommittedMutations
@@ -78,64 +93,55 @@ export function fromDbRemoteDocument(
   } else if (remoteDoc.noDocument) {
     const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
     const version = fromDbTimestamp(remoteDoc.noDocument.readTime);
-    const document = MutableDocument.newNoDocument(key, version);
-    return remoteDoc.hasCommittedMutations
-      ? document.setHasCommittedMutations()
-      : document;
+    doc = MutableDocument.newNoDocument(key, version);
+    if (remoteDoc.hasCommittedMutations) {
+      doc.setHasCommittedMutations();
+    }
   } else if (remoteDoc.unknownDocument) {
     const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
     const version = fromDbTimestamp(remoteDoc.unknownDocument.version);
-    return MutableDocument.newUnknownDocument(key, version);
+    doc = MutableDocument.newUnknownDocument(key, version);
   } else {
     return fail('Unexpected DbRemoteDocument');
   }
+
+  if (remoteDoc.readTime) {
+    doc.setReadTime(fromDbTimestampKey(remoteDoc.readTime));
+  }
+
+  return doc;
 }
 
 /** Encodes a document for storage locally. */
 export function toDbRemoteDocument(
   localSerializer: LocalSerializer,
-  document: MutableDocument,
-  readTime: SnapshotVersion
+  document: MutableDocument
 ): DbRemoteDocument {
-  const dbReadTime = toDbTimestampKey(readTime);
-  const parentPath = document.key.path.popLast().toArray();
+  const key = document.key;
+  const remoteDoc: DbRemoteDocument = {
+    prefixPath: key.getCollectionPath().popLast().toArray(),
+    collectionGroup: key.collectionGroup,
+    documentId: key.path.lastSegment(),
+    readTime: toDbTimestampKey(document.readTime),
+    hasCommittedMutations: document.hasCommittedMutations
+  };
+
   if (document.isFoundDocument()) {
-    const doc = toDocument(localSerializer.remoteSerializer, document);
-    const hasCommittedMutations = document.hasCommittedMutations;
-    return new DbRemoteDocument(
-      /* unknownDocument= */ null,
-      /* noDocument= */ null,
-      doc,
-      hasCommittedMutations,
-      dbReadTime,
-      parentPath
-    );
+    remoteDoc.document = toDocument(localSerializer.remoteSerializer, document);
   } else if (document.isNoDocument()) {
-    const path = document.key.path.toArray();
-    const readTime = toDbTimestamp(document.version);
-    const hasCommittedMutations = document.hasCommittedMutations;
-    return new DbRemoteDocument(
-      /* unknownDocument= */ null,
-      new DbNoDocument(path, readTime),
-      /* document= */ null,
-      hasCommittedMutations,
-      dbReadTime,
-      parentPath
-    );
+    remoteDoc.noDocument = {
+      path: key.path.toArray(),
+      readTime: toDbTimestamp(document.version)
+    };
   } else if (document.isUnknownDocument()) {
-    const path = document.key.path.toArray();
-    const readTime = toDbTimestamp(document.version);
-    return new DbRemoteDocument(
-      new DbUnknownDocument(path, readTime),
-      /* noDocument= */ null,
-      /* document= */ null,
-      /* hasCommittedMutations= */ true,
-      dbReadTime,
-      parentPath
-    );
+    remoteDoc.unknownDocument = {
+      path: key.path.toArray(),
+      version: toDbTimestamp(document.version)
+    };
   } else {
     return fail('Unexpected Document ' + document);
   }
+  return remoteDoc;
 }
 
 export function toDbTimestampKey(
@@ -152,9 +158,9 @@ export function fromDbTimestampKey(
   return SnapshotVersion.fromTimestamp(timestamp);
 }
 
-function toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
+export function toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
   const timestamp = snapshotVersion.toTimestamp();
-  return new DbTimestamp(timestamp.seconds, timestamp.nanoseconds);
+  return { seconds: timestamp.seconds, nanoseconds: timestamp.nanoseconds };
 }
 
 function fromDbTimestamp(dbTimestamp: DbTimestamp): SnapshotVersion {
@@ -174,13 +180,13 @@ export function toDbMutationBatch(
   const serializedMutations = batch.mutations.map(m =>
     toMutation(localSerializer.remoteSerializer, m)
   );
-  return new DbMutationBatch(
+  return {
     userId,
-    batch.batchId,
-    batch.localWriteTime.toMillis(),
-    serializedBaseMutations,
-    serializedMutations
-  );
+    batchId: batch.batchId,
+    localWriteTimeMs: batch.localWriteTime.toMillis(),
+    baseMutations: serializedBaseMutations,
+    mutations: serializedMutations
+  };
 }
 
 /** Decodes a DbMutationBatch into a MutationBatch */
@@ -209,7 +215,8 @@ export function fromDbMutationBatch(
         'TransformMutation should be preceded by a patch or set mutation'
       );
       const transformMutation = dbBatch.mutations[i + 1];
-      currentMutation.updateTransforms = transformMutation.transform!.fieldTransforms;
+      currentMutation.updateTransforms =
+        transformMutation.transform!.fieldTransforms;
       dbBatch.mutations.splice(i + 1, 1);
       ++i;
     }
@@ -269,7 +276,7 @@ export function toDbTarget(
     targetData.lastLimboFreeSnapshotVersion
   );
   let queryProto: DbQuery;
-  if (isDocumentTarget(targetData.target)) {
+  if (targetIsDocumentTarget(targetData.target)) {
     queryProto = toDocumentsTarget(
       localSerializer.remoteSerializer,
       targetData.target
@@ -286,15 +293,15 @@ export function toDbTarget(
   const resumeToken = targetData.resumeToken.toBase64();
 
   // lastListenSequenceNumber is always 0 until we do real GC.
-  return new DbTarget(
-    targetData.targetId,
-    canonifyTarget(targetData.target),
-    dbTimestamp,
+  return {
+    targetId: targetData.targetId,
+    canonicalId: canonifyTarget(targetData.target),
+    readTime: dbTimestamp,
     resumeToken,
-    targetData.sequenceNumber,
-    dbLastLimboFreeTimestamp,
-    queryProto
-  );
+    lastListenSequenceNumber: targetData.sequenceNumber,
+    lastLimboFreeSnapshotVersion: dbLastLimboFreeTimestamp,
+    query: queryProto
+  };
 }
 
 /**
@@ -378,5 +385,107 @@ export function fromBundleMetadata(
     id: metadata.id!,
     version: metadata.version!,
     createTime: fromVersion(metadata.createTime!)
+  };
+}
+
+/** Encodes a DbDocumentOverlay object to an Overlay model object. */
+export function fromDbDocumentOverlay(
+  localSerializer: LocalSerializer,
+  dbDocumentOverlay: DbDocumentOverlay
+): Overlay {
+  return new Overlay(
+    dbDocumentOverlay.largestBatchId,
+    fromMutation(
+      localSerializer.remoteSerializer,
+      dbDocumentOverlay.overlayMutation
+    )
+  );
+}
+
+/** Decodes an Overlay model object into a DbDocumentOverlay object. */
+export function toDbDocumentOverlay(
+  localSerializer: LocalSerializer,
+  userId: string,
+  overlay: Overlay
+): DbDocumentOverlay {
+  const [_, collectionPath, documentId] = toDbDocumentOverlayKey(
+    userId,
+    overlay.mutation.key
+  );
+  return {
+    userId,
+    collectionPath,
+    documentId,
+    collectionGroup: overlay.mutation.key.getCollectionGroup(),
+    largestBatchId: overlay.largestBatchId,
+    overlayMutation: toMutation(
+      localSerializer.remoteSerializer,
+      overlay.mutation
+    )
+  };
+}
+
+/**
+ * Returns the DbDocumentOverlayKey corresponding to the given user and
+ * document key.
+ */
+export function toDbDocumentOverlayKey(
+  userId: string,
+  docKey: DocumentKey
+): DbDocumentOverlayKey {
+  const docId = docKey.path.lastSegment();
+  const collectionPath = encodeResourcePath(docKey.path.popLast());
+  return [userId, collectionPath, docId];
+}
+
+export function toDbIndexConfiguration(
+  index: FieldIndex
+): DbIndexConfiguration {
+  return {
+    indexId: index.indexId,
+    collectionGroup: index.collectionGroup,
+    fields: index.fields.map(s => [s.fieldPath.canonicalString(), s.kind])
+  };
+}
+
+export function fromDbIndexConfiguration(
+  index: DbIndexConfiguration,
+  state: DbIndexState | null
+): FieldIndex {
+  const decodedState = state
+    ? new IndexState(
+        state.sequenceNumber,
+        new IndexOffset(
+          fromDbTimestamp(state.readTime),
+          new DocumentKey(decodeResourcePath(state.documentKey)),
+          state.largestBatchId
+        )
+      )
+    : IndexState.empty();
+  const decodedSegments = index.fields.map(
+    ([fieldPath, kind]) =>
+      new IndexSegment(FieldPath.fromServerFormat(fieldPath), kind)
+  );
+  return new FieldIndex(
+    index.indexId!,
+    index.collectionGroup,
+    decodedSegments,
+    decodedState
+  );
+}
+
+export function toDbIndexState(
+  indexId: number,
+  user: User,
+  sequenceNumber: number,
+  offset: IndexOffset
+): DbIndexState {
+  return {
+    indexId,
+    uid: user.uid || '',
+    sequenceNumber,
+    readTime: toDbTimestamp(offset.readTime),
+    documentKey: encodeResourcePath(offset.documentKey.path),
+    largestBatchId: offset.largestBatchId
   };
 }

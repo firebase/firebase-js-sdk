@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="{{YOUR PACKAGE NAME / BUNDLE ID HERE}}" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Cordova Auth Demo</name>
+    <content src="index.html" />
+    <!-- CAUTION: THESE PERMISSIONS ARE OVERLY BROAD AND SHOULD ONLY BE USED FOR DEMO PURPOSES -->
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <universal-links>
+        <host name="{{DYNAMIC LINK DOMAIN}}" scheme="https" />
+        <host name="{{YOUR AUTH DOMAIN HERE}}" scheme="https">
+            <path url="/__/auth/callback"/>
+        </host>
+    </universal-links>
+    <preference name="AndroidLaunchMode" value="singleTask" />
+    <preference name="android-minSdkVersion" value="22" />
+</widget>

@@ -60,6 +60,9 @@ export function logError(msg: string, ...obj: unknown[]): void {
   }
 }
 
+/**
+ * @internal
+ */
 export function logWarn(msg: string, ...obj: unknown[]): void {
   if (logClient.logLevel <= LogLevel.WARN) {
     const args = obj.map(argToString);

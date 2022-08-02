@@ -49,7 +49,7 @@
  *
  *   catch (e) {
  *     assert(e.message === "Could not find file: foo.txt.");
- *     if (e.code === 'service/file-not-found') {
+ *     if ((e as FirebaseError)?.code === 'service/file-not-found') {
  *       console.log("Could not read file: " + e['file']);
  *     }
  *   }
@@ -72,11 +72,14 @@ export interface ErrorData {
 // Based on code from:
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
 export class FirebaseError extends Error {
-  readonly name = ERROR_NAME;
+  /** The custom name for all FirebaseErrors. */
+  readonly name: string = ERROR_NAME;
 
   constructor(
+    /** The error code for this error. */
     readonly code: string,
     message: string,
+    /** Custom data for this error. */
     public customData?: Record<string, unknown>
   ) {
     super(message);

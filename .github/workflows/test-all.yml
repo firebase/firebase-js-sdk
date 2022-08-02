@@ -1,6 +1,12 @@
 name: Test All Packages
 
-on: push
+on:
+  push:
+    branches: ['**']
+
+env:
+  # make chromedriver detect installed Chrome version and download the corresponding driver
+  DETECT_CHROMEDRIVER_VERSION: true
 
 jobs:
   test:
@@ -8,15 +14,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Node (10)
-      uses: actions/setup-node@v2
-      with:
-        node-version: 10.x
+    # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
         sudo apt-get update
         sudo apt-get install google-chrome-stable
+    - uses: actions/checkout@v2
+    - name: Set up Node (16)
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
     - name: Bump Node memory limit
       run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
@@ -31,6 +38,8 @@ jobs:
       run: |
         xvfb-run yarn test:ci
         node scripts/print_test_logs.js
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
     - name: Generate coverage file
       run: yarn ci:coverage
     - name: Run coverage

@@ -31,6 +31,7 @@ import {
 } from '../core/util/util';
 
 import {
+  APP_CHECK_TOKEN_PARAM,
   APPLICATION_ID_PARAM,
   FORGE_DOMAIN_RE,
   FORGE_REF,
@@ -99,25 +100,34 @@ export class BrowserPollConnection implements Transport {
   private onDisconnect_: ((a?: boolean) => void) | null;
 
   /**
-   * @param connId - An identifier for this connection, used for logging
-   * @param repoInfo - The info for the endpoint to send data to.
-   * @param applicationId - The Firebase App ID for this project.
-   * @param transportSessionId - Optional transportSessionid if we are reconnecting for an existing
-   *                                         transport session
-   * @param lastSessionId - Optional lastSessionId if the PersistentConnection has already created a
-   *                                     connection previously
+   * @param connId An identifier for this connection, used for logging
+   * @param repoInfo The info for the endpoint to send data to.
+   * @param applicationId The Firebase App ID for this project.
+   * @param appCheckToken The AppCheck token for this client.
+   * @param authToken The AuthToken to use for this connection.
+   * @param transportSessionId Optional transportSessionid if we are
+   * reconnecting for an existing transport session
+   * @param lastSessionId Optional lastSessionId if the PersistentConnection has
+   * already created a connection previously
    */
   constructor(
     public connId: string,
     public repoInfo: RepoInfo,
     private applicationId?: string,
+    private appCheckToken?: string,
+    private authToken?: string,
     public transportSessionId?: string,
     public lastSessionId?: string
   ) {
     this.log_ = logWrapper(connId);
     this.stats_ = statsManagerGetCollection(repoInfo);
-    this.urlFn = (params: { [k: string]: string }) =>
-      repoInfoConnectionURL(repoInfo, LONG_POLLING, params);
+    this.urlFn = (params: { [k: string]: string }) => {
+      // Always add the token if we have one.
+      if (this.appCheckToken) {
+        params[APP_CHECK_TOKEN_PARAM] = this.appCheckToken;
+      }
+      return repoInfoConnectionURL(repoInfo, LONG_POLLING, params);
+    };
   }
 
   /**
@@ -199,9 +209,8 @@ export class BrowserPollConnection implements Transport {
         Math.random() * 100000000
       );
       if (this.scriptTagHolder.uniqueCallbackIdentifier) {
-        urlParams[
-          FIREBASE_LONGPOLL_CALLBACK_ID_PARAM
-        ] = this.scriptTagHolder.uniqueCallbackIdentifier;
+        urlParams[FIREBASE_LONGPOLL_CALLBACK_ID_PARAM] =
+          this.scriptTagHolder.uniqueCallbackIdentifier;
       }
       urlParams[VERSION_PARAM] = PROTOCOL_VERSION;
       if (this.transportSessionId) {
@@ -212,6 +221,9 @@ export class BrowserPollConnection implements Transport {
       }
       if (this.applicationId) {
         urlParams[APPLICATION_ID_PARAM] = this.applicationId;
+      }
+      if (this.appCheckToken) {
+        urlParams[APP_CHECK_TOKEN_PARAM] = this.appCheckToken;
       }
       if (
         typeof location !== 'undefined' &&
@@ -236,7 +248,7 @@ export class BrowserPollConnection implements Transport {
     this.addDisconnectPingFrame(this.id, this.password);
   }
 
-  private static forceAllow_: boolean;
+  static forceAllow_: boolean;
 
   /**
    * Forces long polling to be considered as a potential transport
@@ -245,7 +257,7 @@ export class BrowserPollConnection implements Transport {
     BrowserPollConnection.forceAllow_ = true;
   }
 
-  private static forceDisallow_: boolean;
+  static forceDisallow_: boolean;
 
   /**
    * Forces longpolling to not be considered as a potential transport
@@ -443,9 +455,8 @@ export class FirebaseIFrameScriptHolder {
       window[
         FIREBASE_LONGPOLL_COMMAND_CB_NAME + this.uniqueCallbackIdentifier
       ] = commandCB;
-      window[
-        FIREBASE_LONGPOLL_DATA_CB_NAME + this.uniqueCallbackIdentifier
-      ] = onMessageCB;
+      window[FIREBASE_LONGPOLL_DATA_CB_NAME + this.uniqueCallbackIdentifier] =
+        onMessageCB;
 
       //Create an iframe for us to add script tags to.
       this.myIFrame = FirebaseIFrameScriptHolder.createIFrame_();
@@ -708,18 +719,19 @@ export class FirebaseIFrameScriptHolder {
           newScript.async = true;
           newScript.src = url;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          newScript.onload = (newScript as any).onreadystatechange = function () {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const rstate = (newScript as any).readyState;
-            if (!rstate || rstate === 'loaded' || rstate === 'complete') {
+          newScript.onload = (newScript as any).onreadystatechange =
+            function () {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              newScript.onload = (newScript as any).onreadystatechange = null;
-              if (newScript.parentNode) {
-                newScript.parentNode.removeChild(newScript);
+              const rstate = (newScript as any).readyState;
+              if (!rstate || rstate === 'loaded' || rstate === 'complete') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                newScript.onload = (newScript as any).onreadystatechange = null;
+                if (newScript.parentNode) {
+                  newScript.parentNode.removeChild(newScript);
+                }
+                loadCB();
               }
-              loadCB();
-            }
-          };
+            };
           newScript.onerror = () => {
             log('Long-poll script failed to load: ' + url);
             this.sendNewPolls = false;

@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { remoteDocumentCacheGetNewDocumentChanges } from '../../../src/local/indexeddb_remote_document_cache';
+import { IndexManager } from '../../../src/local/index_manager';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
@@ -28,6 +27,8 @@ import {
 } from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { IndexOffset } from '../../../src/model/field_index';
+import { ResourcePath } from '../../../src/model/path';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a
@@ -40,14 +41,15 @@ export class TestRemoteDocumentCache {
     this.cache = persistence.getRemoteDocumentCache();
   }
 
+  setIndexManager(indexManager: IndexManager): void {
+    this.cache.setIndexManager(indexManager);
+  }
+
   /**
    * Reads all of the documents first so we can safely add them and keep the size calculation in
    * sync.
    */
-  addEntries(
-    documents: MutableDocument[],
-    readTime: SnapshotVersion
-  ): Promise<void> {
+  addEntries(documents: MutableDocument[]): Promise<void> {
     return this.persistence.runTransaction(
       'addEntry',
       'readwrite-primary',
@@ -57,7 +59,7 @@ export class TestRemoteDocumentCache {
           changeBuffer.getEntry(txn, document.key).next(() => {})
         ).next(() => {
           for (const document of documents) {
-            changeBuffer.addEntry(document, readTime);
+            changeBuffer.addEntry(document);
           }
           return changeBuffer.apply(txn);
         });
@@ -70,7 +72,7 @@ export class TestRemoteDocumentCache {
    * Reads the document first to track the document size internally.
    */
   addEntry(document: MutableDocument): Promise<void> {
-    return this.addEntries([document], document.version);
+    return this.addEntries([document]);
   }
 
   removeEntry(
@@ -85,7 +87,10 @@ export class TestRemoteDocumentCache {
           version ? { trackRemovals: true } : undefined
         );
         return changeBuffer.getEntry(txn, documentKey).next(() => {
-          changeBuffer.removeEntry(documentKey, version);
+          changeBuffer.removeEntry(
+            documentKey,
+            version ?? SnapshotVersion.min()
+          );
           return changeBuffer.apply(txn);
         });
       }
@@ -104,35 +109,32 @@ export class TestRemoteDocumentCache {
     });
   }
 
-  getDocumentsMatchingQuery(
-    query: Query,
-    sinceReadTime: SnapshotVersion
+  getAllFromCollection(
+    collection: ResourcePath,
+    offset: IndexOffset
   ): Promise<MutableDocumentMap> {
     return this.persistence.runTransaction(
-      'getDocumentsMatchingQuery',
+      'getAllFromCollection',
       'readonly',
-      txn => {
-        return this.cache.getDocumentsMatchingQuery(txn, query, sinceReadTime);
-      }
+      txn => this.cache.getAllFromCollection(txn, collection, offset)
     );
   }
 
-  getNewDocumentChanges(
-    sinceReadTime: SnapshotVersion
-  ): Promise<{
-    changedDocs: MutableDocumentMap;
-    readTime: SnapshotVersion;
-  }> {
+  getAllFromCollectionGroup(
+    collectionGroup: string,
+    offset: IndexOffset,
+    limit: number
+  ): Promise<MutableDocumentMap> {
     return this.persistence.runTransaction(
-      'getNewDocumentChanges',
+      'getAllFromCollectionGroup',
       'readonly',
-      txn => {
-        return remoteDocumentCacheGetNewDocumentChanges(
-          this.cache,
+      txn =>
+        this.cache.getAllFromCollectionGroup(
           txn,
-          sinceReadTime
-        );
-      }
+          collectionGroup,
+          offset,
+          limit
+        )
     );
   }
 

@@ -22,8 +22,8 @@ import { LimitType } from '../../../src/protos/firestore_bundle_proto';
 import { toVersion } from '../../../src/remote/serializer';
 import {
   doc,
-  query,
   filter,
+  query,
   TestSnapshotVersion,
   version,
   wrapObject
@@ -76,7 +76,7 @@ function bundleWithDocumentAndQuery(
       testDoc.key,
       toVersion(JSON_SERIALIZER, version(testDoc.createTime)),
       toVersion(JSON_SERIALIZER, version(testDoc.updateTime!)),
-      wrapObject(testDoc.content!).toProto().mapValue.fields!
+      wrapObject(testDoc.content!).value.mapValue.fields!
     );
   }
   return builder.build(

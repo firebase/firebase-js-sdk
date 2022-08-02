@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from 'firebase-exp/compat';
+import firebase from 'firebase/compat';
 import { FirebaseAuth, User } from '@firebase/auth-types';
 import { FirebaseAnalytics } from '@firebase/analytics-types';
 import { FirebaseApp } from '@firebase/app-compat';
@@ -28,7 +28,7 @@ import { FirebaseFunctions } from '@firebase/functions-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
 // Get type directly from messaging package, messaging-compat does not implement
 // the current messaging API.
-import { MessagingCompat } from '../../packages-exp/messaging-compat/src/messaging-compat';
+import { MessagingCompat } from '../../packages/messaging-compat/src/messaging-compat';
 import { FirebasePerformance } from '@firebase/performance-types';
 import { RemoteConfig } from '@firebase/remote-config-types';
 import {

@@ -1,1 +1,5 @@
+# Source files
+# ============
+*.md       text eol=lf
+
 *.json  linguist-language=JSON-with-Comments

@@ -112,6 +112,7 @@ abstract class BasePath<B extends BasePath<B>> {
   }
 
   lastSegment(): string {
+    debugAssert(!this.isEmpty(), "Can't call lastSegment() on empty path");
     return this.get(this.length - 1);
   }
 
@@ -190,6 +191,8 @@ abstract class BasePath<B extends BasePath<B>> {
 /**
  * A slash-separated path for navigating resources (documents and collections)
  * within Firestore.
+ *
+ * @internal
  */
 export class ResourcePath extends BasePath<ResourcePath> {
   protected construct(
@@ -244,7 +247,10 @@ export class ResourcePath extends BasePath<ResourcePath> {
 
 const identifierRegExp = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 
-/** A dot-separated path for navigating sub-objects within a document. */
+/**
+ * A dot-separated path for navigating sub-objects within a document.
+ * @internal
+ */
 export class FieldPath extends BasePath<FieldPath> {
   protected construct(
     segments: string[],

@@ -147,6 +147,6 @@ export interface HttpsError extends Error {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'functions': FirebaseFunctions;
+    'functions-compat': FirebaseFunctions;
   }
 }

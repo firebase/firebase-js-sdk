@@ -91,6 +91,8 @@ export interface IMarkdownDocumenterOptions {
   apiModel: ApiModel;
   documenterConfig: DocumenterConfig | undefined;
   outputFolder: string;
+  addFileNameSuffix: boolean;
+  projectName: string;
 }
 
 /**
@@ -104,11 +106,15 @@ export class MarkdownDocumenter {
   private readonly _markdownEmitter: CustomMarkdownEmitter;
   private readonly _outputFolder: string;
   private readonly _pluginLoader: PluginLoader;
+  private readonly _addFileNameSuffix: boolean;
+  private readonly _projectName: string;
 
   public constructor(options: IMarkdownDocumenterOptions) {
     this._apiModel = options.apiModel;
     this._documenterConfig = options.documenterConfig;
     this._outputFolder = options.outputFolder;
+    this._addFileNameSuffix = options.addFileNameSuffix;
+    this._projectName = options.projectName;
     this._tsdocConfiguration = CustomDocNodes.configuration;
     this._markdownEmitter = new CustomMarkdownEmitter(this._apiModel);
 
@@ -123,7 +129,7 @@ export class MarkdownDocumenter {
           outputFolder: this._outputFolder,
           documenter: new MarkdownDocumenterAccessor({
             getLinkForApiItem: (apiItem: ApiItem) => {
-              return getLinkForApiItem(apiItem);
+              return getLinkForApiItem(apiItem, this._addFileNameSuffix);
             }
           })
         });
@@ -156,27 +162,26 @@ export class MarkdownDocumenter {
     // write to file
     const filename: string = path.join(
       this._outputFolder,
-      getFilenameForApiItem(apiItem)
+      getFilenameForApiItem(apiItem, this._addFileNameSuffix)
     );
     const stringBuilder: StringBuilder = new StringBuilder();
 
     // devsite headers
     stringBuilder.append(
-      '{% extends "_internal/templates/reference.html" %}\n'
+      `Project: /docs/reference/${this._projectName}/_project.yaml
+Book: /docs/reference/_book.yaml
+page_type: reference
+`
     );
-    stringBuilder.append(
-      `{% block title %}${headingNode.title}{% endblock title %}\n`
-    );
-    stringBuilder.append('{% block body %}\n');
+
+    stringBuilder.append(`# ${headingNode.title}\n`);
 
     this._markdownEmitter.emit(stringBuilder, output, {
       contextApiItem: apiItem,
       onGetFilenameForApiItem: (apiItemForFilename: ApiItem) => {
-        return getLinkForApiItem(apiItemForFilename);
+        return getLinkForApiItem(apiItemForFilename, this._addFileNameSuffix);
       }
     });
-
-    stringBuilder.append('{% endblock body %}\n');
 
     let pageContent: string = stringBuilder.toString();
 
@@ -326,7 +331,9 @@ export class MarkdownDocumenter {
         output.push(...createThrowsSection(apiItem, configuration));
         break;
       case ApiItemKind.Namespace:
-        // this._writeEntryPointOrNamespace(output, apiItem as ApiNamespace);
+        output.push(
+          ...this._createEntryPointOrNamespace(apiItem as ApiNamespace)
+        );
         break;
       case ApiItemKind.Model:
         output.push(...this._createModelTable(apiItem as ApiModel));
@@ -393,7 +400,11 @@ export class MarkdownDocumenter {
         case ApiItemKind.Constructor: {
           constructorsTable.addRow(
             new DocTableRow({ configuration }, [
-              createTitleCell(apiMember, configuration),
+              createTitleCell(
+                apiMember,
+                configuration,
+                this._addFileNameSuffix
+              ),
               createModifiersCell(apiMember, configuration),
               createDescriptionCell(apiMember, configuration)
             ])
@@ -407,7 +418,11 @@ export class MarkdownDocumenter {
         case ApiItemKind.Method: {
           methodsTable.addRow(
             new DocTableRow({ configuration }, [
-              createTitleCell(apiMember, configuration),
+              createTitleCell(
+                apiMember,
+                configuration,
+                this._addFileNameSuffix
+              ),
               createModifiersCell(apiMember, configuration),
               createDescriptionCell(apiMember, configuration)
             ])
@@ -422,7 +437,11 @@ export class MarkdownDocumenter {
           if ((apiMember as ApiPropertyItem).isEventProperty) {
             eventsTable.addRow(
               new DocTableRow({ configuration }, [
-                createTitleCell(apiMember, configuration),
+                createTitleCell(
+                  apiMember,
+                  configuration,
+                  this._addFileNameSuffix
+                ),
                 createModifiersCell(apiMember, configuration),
                 this._createPropertyTypeCell(apiMember),
                 createDescriptionCell(apiMember, configuration)
@@ -435,7 +454,11 @@ export class MarkdownDocumenter {
           } else {
             propertiesTable.addRow(
               new DocTableRow({ configuration }, [
-                createTitleCell(apiMember, configuration),
+                createTitleCell(
+                  apiMember,
+                  configuration,
+                  this._addFileNameSuffix
+                ),
                 createModifiersCell(apiMember, configuration),
                 this._createPropertyTypeCell(apiMember),
                 createDescriptionCell(apiMember, configuration)
@@ -509,7 +532,11 @@ export class MarkdownDocumenter {
         case ApiItemKind.MethodSignature: {
           methodsTable.addRow(
             new DocTableRow({ configuration }, [
-              createTitleCell(apiMember, configuration),
+              createTitleCell(
+                apiMember,
+                configuration,
+                this._addFileNameSuffix
+              ),
               createDescriptionCell(apiMember, configuration)
             ])
           );
@@ -523,7 +550,11 @@ export class MarkdownDocumenter {
           if ((apiMember as ApiPropertyItem).isEventProperty) {
             eventsTable.addRow(
               new DocTableRow({ configuration }, [
-                createTitleCell(apiMember, configuration),
+                createTitleCell(
+                  apiMember,
+                  configuration,
+                  this._addFileNameSuffix
+                ),
                 this._createPropertyTypeCell(apiMember),
                 createDescriptionCell(apiMember, configuration)
               ])
@@ -534,7 +565,11 @@ export class MarkdownDocumenter {
           } else {
             propertiesTable.addRow(
               new DocTableRow({ configuration }, [
-                createTitleCell(apiMember, configuration),
+                createTitleCell(
+                  apiMember,
+                  configuration,
+                  this._addFileNameSuffix
+                ),
                 this._createPropertyTypeCell(apiMember),
                 createDescriptionCell(apiMember, configuration)
               ])
@@ -675,10 +710,11 @@ export class MarkdownDocumenter {
         token.kind === ExcerptTokenKind.Reference &&
         token.canonicalReference
       ) {
-        const apiItemResult: IResolveDeclarationReferenceResult = this._apiModel.resolveDeclarationReference(
-          token.canonicalReference,
-          undefined
-        );
+        const apiItemResult: IResolveDeclarationReferenceResult =
+          this._apiModel.resolveDeclarationReference(
+            token.canonicalReference,
+            undefined
+          );
 
         if (apiItemResult.resolvedApiItem) {
           docNodeContainer.appendNode(
@@ -686,7 +722,10 @@ export class MarkdownDocumenter {
               configuration,
               tagName: '@link',
               linkText: unwrappedTokenText,
-              urlDestination: getLinkForApiItem(apiItemResult.resolvedApiItem)
+              urlDestination: getLinkForApiItem(
+                apiItemResult.resolvedApiItem,
+                this._addFileNameSuffix
+              )
             })
           );
           continue;
@@ -714,7 +753,7 @@ export class MarkdownDocumenter {
 
     for (const apiMember of apiModel.members) {
       const row: DocTableRow = new DocTableRow({ configuration }, [
-        createTitleCell(apiMember, configuration),
+        createTitleCell(apiMember, configuration, this._addFileNameSuffix),
         createDescriptionCell(apiMember, configuration)
       ]);
 
@@ -755,7 +794,11 @@ export class MarkdownDocumenter {
 
     for (const entryPoint of apiContainer.entryPoints) {
       const row: DocTableRow = new DocTableRow({ configuration }, [
-        createEntryPointTitleCell(entryPoint, configuration),
+        createEntryPointTitleCell(
+          entryPoint,
+          configuration,
+          this._addFileNameSuffix
+        ),
         createDescriptionCell(entryPoint, configuration)
       ]);
 
@@ -828,7 +871,7 @@ export class MarkdownDocumenter {
 
     for (const apiMember of apiMembers) {
       const row: DocTableRow = new DocTableRow({ configuration }, [
-        createTitleCell(apiMember, configuration),
+        createTitleCell(apiMember, configuration, this._addFileNameSuffix),
         createDescriptionCell(apiMember, configuration)
       ]);
 
@@ -878,6 +921,11 @@ export class MarkdownDocumenter {
       }
     }
 
+    if (functionsTable.rows.length > 0) {
+      output.push(new DocHeading({ configuration, title: 'Functions' }));
+      output.push(functionsTable);
+    }
+
     if (classesTable.rows.length > 0) {
       output.push(new DocHeading({ configuration, title: 'Classes' }));
       output.push(classesTable);
@@ -886,10 +934,6 @@ export class MarkdownDocumenter {
     if (enumerationsTable.rows.length > 0) {
       output.push(new DocHeading({ configuration, title: 'Enumerations' }));
       output.push(enumerationsTable);
-    }
-    if (functionsTable.rows.length > 0) {
-      output.push(new DocHeading({ configuration, title: 'Functions' }));
-      output.push(functionsTable);
     }
 
     if (interfacesTable.rows.length > 0) {

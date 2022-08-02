@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,8 @@ import {
   isValidMetricName,
   convertMetricValueToInteger
 } from '../utils/metric_utils';
-import { PerformanceTrace } from '@firebase/performance-types';
+import { PerformanceTrace } from '../public_types';
+import { PerformanceController } from '../controllers/perf';
 
 const enum TraceState {
   UNINITIALIZED = 1,
@@ -56,6 +57,7 @@ export class Trace implements PerformanceTrace {
   private traceMeasure!: string;
 
   /**
+   * @param performanceController The performance controller running.
    * @param name The name of the trace.
    * @param isAuto If the trace is auto-instrumented.
    * @param traceMeasureName The name of the measure marker in user timing specification. This field
@@ -63,6 +65,7 @@ export class Trace implements PerformanceTrace {
    * api (performance.mark and performance.measure).
    */
   constructor(
+    readonly performanceController: PerformanceController,
     readonly name: string,
     readonly isAuto = false,
     traceMeasureName?: string
@@ -148,9 +151,11 @@ export class Trace implements PerformanceTrace {
       this.customAttributes = { ...options.attributes };
     }
     if (options && options.metrics) {
-      for (const metric of Object.keys(options.metrics)) {
-        if (!isNaN(Number(options.metrics[metric]))) {
-          this.counters[metric] = Number(Math.floor(options.metrics[metric]));
+      for (const metricName of Object.keys(options.metrics)) {
+        if (!isNaN(Number(options.metrics[metricName]))) {
+          this.counters[metricName] = Math.floor(
+            Number(options.metrics[metricName])
+          );
         }
       }
     }
@@ -180,7 +185,7 @@ export class Trace implements PerformanceTrace {
    */
   putMetric(counter: string, numAsInteger: number): void {
     if (isValidMetricName(counter, this.name)) {
-      this.counters[counter] = convertMetricValueToInteger(numAsInteger);
+      this.counters[counter] = convertMetricValueToInteger(numAsInteger ?? 0);
     } else {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_CUSTOM_METRIC_NAME, {
         customMetricName: counter
@@ -271,6 +276,7 @@ export class Trace implements PerformanceTrace {
    * @param firstInputDelay First input delay in millisec
    */
   static createOobTrace(
+    performanceController: PerformanceController,
     navigationTimings: PerformanceNavigationTiming[],
     paintTimings: PerformanceEntry[],
     firstInputDelay?: number
@@ -279,7 +285,11 @@ export class Trace implements PerformanceTrace {
     if (!route) {
       return;
     }
-    const trace = new Trace(OOB_TRACE_PAGE_LOAD_PREFIX + route, true);
+    const trace = new Trace(
+      performanceController,
+      OOB_TRACE_PAGE_LOAD_PREFIX + route,
+      true
+    );
     const timeOriginUs = Math.floor(Api.getInstance().getTimeOrigin() * 1000);
     trace.setStartTime(timeOriginUs);
 
@@ -333,8 +343,16 @@ export class Trace implements PerformanceTrace {
     logTrace(trace);
   }
 
-  static createUserTimingTrace(measureName: string): void {
-    const trace = new Trace(measureName, false, measureName);
+  static createUserTimingTrace(
+    performanceController: PerformanceController,
+    measureName: string
+  ): void {
+    const trace = new Trace(
+      performanceController,
+      measureName,
+      false,
+      measureName
+    );
     logTrace(trace);
   }
 }

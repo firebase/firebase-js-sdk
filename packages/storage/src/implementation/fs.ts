@@ -20,7 +20,7 @@
  * bloats the size of the released binary.
  */
 import { isNativeBlobDefined } from './type';
-import { StorageErrorCode, FirebaseStorageError } from './error';
+import { StorageErrorCode, StorageError } from './error';
 
 function getBlobBuilder(): typeof IBlobBuilder | undefined {
   if (typeof BlobBuilder !== 'undefined') {
@@ -50,7 +50,7 @@ export function getBlob(...args: Array<string | Blob | ArrayBuffer>): Blob {
     if (isNativeBlobDefined()) {
       return new Blob(args);
     } else {
-      throw new FirebaseStorageError(
+      throw new StorageError(
         StorageErrorCode.UNSUPPORTED_ENVIRONMENT,
         "This browser doesn't seem to support creating Blobs"
       );

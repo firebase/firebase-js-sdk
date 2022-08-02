@@ -18,6 +18,7 @@
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import pkg from './package.json';
 import typescript from 'typescript';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
 const plugins = [
   typescriptPlugin({
@@ -25,13 +26,34 @@ const plugins = [
   })
 ];
 
+const es2017BuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    }
+  })
+];
+
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-export default {
-  input: 'index.ts',
-  output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-  plugins: [...plugins],
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-};
+export default [
+  {
+    input: 'index.ts',
+    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    plugins: [...plugins],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'index.ts',
+    output: [
+      { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }
+    ],
+    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];

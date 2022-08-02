@@ -20,14 +20,16 @@
  */
 import { UrlParams } from './requestinfo';
 
-export function makeUrl(urlPart: string, host: string): string {
-  const protocolMatch = host.match(/^(\w+):\/\/.+/);
-  const protocol = protocolMatch?.[1];
+export function makeUrl(
+  urlPart: string,
+  host: string,
+  protocol: string
+): string {
   let origin = host;
   if (protocol == null) {
     origin = `https://${host}`;
   }
-  return `${origin}/v0${urlPart}`;
+  return `${protocol}://${origin}/v0${urlPart}`;
 }
 
 export function makeQueryString(params: UrlParams): string {

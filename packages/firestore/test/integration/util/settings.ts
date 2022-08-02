@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
+import { PrivateSettings } from './firebase_export';
 
 /**
  * NOTE: These helpers are used by api/ tests and therefore may not have any
@@ -47,7 +47,7 @@ export const DEFAULT_SETTINGS = getDefaultSettings();
 // eslint-disable-next-line no-console
 console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 
-function getDefaultSettings(): firestore.Settings {
+function getDefaultSettings(): PrivateSettings {
   const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
   if (karma && karma.config.firestoreSettings) {
     return karma.config.firestoreSettings;

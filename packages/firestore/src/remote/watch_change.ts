@@ -16,7 +16,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { isDocumentTarget } from '../core/target';
+import { targetIsDocumentTarget } from '../core/target';
 import { TargetId } from '../core/types';
 import { ChangeType } from '../core/view_snapshot';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -115,10 +115,8 @@ class TargetState {
    * These changes are continuously updated as we receive document updates and
    * always reflect the current set of changes against the last issued snapshot.
    */
-  private documentChanges: SortedMap<
-    DocumentKey,
-    ChangeType
-  > = snapshotChangesMap();
+  private documentChanges: SortedMap<DocumentKey, ChangeType> =
+    snapshotChangesMap();
 
   /** See public getters for explanations of these fields. */
   private _resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING;
@@ -389,7 +387,7 @@ export class WatchChangeAggregator {
     const targetData = this.targetDataForActiveTarget(targetId);
     if (targetData) {
       const target = targetData.target;
-      if (isDocumentTarget(target)) {
+      if (targetIsDocumentTarget(target)) {
         if (expectedCount === 0) {
           // The existence filter told us the document does not exist. We deduce
           // that this document does not exist and apply a deleted document to
@@ -431,7 +429,7 @@ export class WatchChangeAggregator {
     this.targetStates.forEach((targetState, targetId) => {
       const targetData = this.targetDataForActiveTarget(targetId);
       if (targetData) {
-        if (targetState.current && isDocumentTarget(targetData.target)) {
+        if (targetState.current && targetIsDocumentTarget(targetData.target)) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
           // delete if we have not previously received the document. This
@@ -489,6 +487,10 @@ export class WatchChangeAggregator {
       }
     });
 
+    this.pendingDocumentUpdates.forEach((_, doc) =>
+      doc.setReadTime(snapshotVersion)
+    );
+
     const remoteEvent = new RemoteEvent(
       snapshotVersion,
       targetChanges,
@@ -526,10 +528,11 @@ export class WatchChangeAggregator {
       document
     );
 
-    this.pendingDocumentTargetMapping = this.pendingDocumentTargetMapping.insert(
-      document.key,
-      this.ensureDocumentTargetMapping(document.key).add(targetId)
-    );
+    this.pendingDocumentTargetMapping =
+      this.pendingDocumentTargetMapping.insert(
+        document.key,
+        this.ensureDocumentTargetMapping(document.key).add(targetId)
+      );
   }
 
   /**
@@ -558,10 +561,11 @@ export class WatchChangeAggregator {
       targetState.removeDocumentChange(key);
     }
 
-    this.pendingDocumentTargetMapping = this.pendingDocumentTargetMapping.insert(
-      key,
-      this.ensureDocumentTargetMapping(key).delete(targetId)
-    );
+    this.pendingDocumentTargetMapping =
+      this.pendingDocumentTargetMapping.insert(
+        key,
+        this.ensureDocumentTargetMapping(key).delete(targetId)
+      );
 
     if (updatedDocument) {
       this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
@@ -614,10 +618,8 @@ export class WatchChangeAggregator {
 
     if (!targetMapping) {
       targetMapping = new SortedSet<TargetId>(primitiveComparator);
-      this.pendingDocumentTargetMapping = this.pendingDocumentTargetMapping.insert(
-        key,
-        targetMapping
-      );
+      this.pendingDocumentTargetMapping =
+        this.pendingDocumentTargetMapping.insert(key, targetMapping);
     }
 
     return targetMapping;

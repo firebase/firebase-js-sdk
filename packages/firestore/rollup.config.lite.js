@@ -22,12 +22,11 @@ import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import sourcemaps from 'rollup-plugin-sourcemaps';
-import copy from 'rollup-plugin-copy';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
-import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 import pkg from './lite/package.json';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 const util = require('./rollup.shared');
 
@@ -41,21 +40,10 @@ const nodePlugins = function () {
         }
       },
       cacheDir: tmp.dirSync(),
-      abortOnError: false,
-      transformers: [util.removeAssertTransformer, importPathTransformer]
+      abortOnError: true,
+      transformers: [util.removeAssertTransformer]
     }),
-    json({ preferConst: true }),
-    copy({
-      targets: [
-        {
-          src: 'src/protos',
-          dest: 'dist/lite/src'
-        }
-      ]
-    }),
-    replace({
-      'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
-    })
+    json({ preferConst: true })
   ];
 };
 
@@ -69,11 +57,8 @@ const browserPlugins = function () {
         }
       },
       cacheDir: tmp.dirSync(),
-      abortOnError: false,
-      transformers: [
-        util.removeAssertAndPrefixInternalTransformer,
-        importPathTransformer
-      ]
+      abortOnError: true,
+      transformers: [util.removeAssertAndPrefixInternalTransformer]
     }),
     json({ preferConst: true }),
     terser(util.manglePrivatePropertiesOptions)
@@ -81,7 +66,9 @@ const browserPlugins = function () {
 };
 
 const allBuilds = [
-  // Node ESM build
+  // Intermidiate Node ESM build without build target reporting
+  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // which add build target reporting
   {
     input: './lite/index.ts',
     output: {
@@ -89,20 +76,25 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('node_lite')), ...nodePlugins()],
+    plugins: [
+      alias(util.generateAliasConfig('node_lite')),
+      ...nodePlugins(),
+      replace({
+        '__RUNTIME_ENV__': 'node'
+      })
+    ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     },
     onwarn: util.onwarn
   },
-  // Node UMD build
+  // Node CJS build
   {
     input: path.resolve('./lite', pkg['main-esm']),
     output: {
       file: path.resolve('./lite', pkg.main),
-      format: 'umd',
-      name: 'firebase.firestore',
+      format: 'cjs',
       sourcemap: true
     },
     plugins: [
@@ -115,14 +107,31 @@ const allBuilds = [
         include: ['dist/lite/*.js']
       }),
       json(),
-      sourcemaps()
+      sourcemaps(),
+      replace(generateBuildTargetReplaceConfig('cjs', 5))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
   },
-  // Browser build
+  // Node ESM build
+  {
+    input: path.resolve('./lite', pkg['main-esm']),
+    output: {
+      file: path.resolve('./lite', pkg['main-esm']),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Intermidiate browser build without build target reporting
+  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // which add build target reporting
   {
     input: './lite/index.ts',
     output: {
@@ -132,8 +141,47 @@ const allBuilds = [
     },
     plugins: [
       alias(util.generateAliasConfig('browser_lite')),
-      ...browserPlugins()
+      ...browserPlugins(),
+      // setting it to empty string because browser is the default env
+      replace({
+        '__RUNTIME_ENV__': ''
+      })
     ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Convert es2017 build to ES5
+  {
+    input: path.resolve('./lite', pkg.browser),
+    output: [
+      {
+        file: path.resolve('./lite', pkg.esm5),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: [
+      ...util.es2017ToEs5Plugins(/* mangled= */ true),
+      replace(generateBuildTargetReplaceConfig('esm', 5))
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Browser es2017 build
+  {
+    input: path.resolve('./lite', pkg.browser),
+    output: [
+      {
+        file: path.resolve('./lite', pkg.browser),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -147,7 +195,14 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('rn_lite')), ...browserPlugins()],
+    plugins: [
+      alias(util.generateAliasConfig('rn_lite')),
+      ...browserPlugins(),
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 2017),
+        '__RUNTIME_ENV__': 'rn'
+      })
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false

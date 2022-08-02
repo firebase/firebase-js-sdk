@@ -75,3 +75,8 @@ export interface NameServiceMapping {}
 
 export type Name = keyof NameServiceMapping;
 export type Service = NameServiceMapping[Name];
+
+export type OnInitCallBack<T extends Name> = (
+  instance: NameServiceMapping[T],
+  identifier: string
+) => void;

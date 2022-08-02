@@ -26,6 +26,7 @@ import { primitiveComparator } from './misc';
  * sent on the wire. This class abstracts away this differentiation by holding
  * the proto byte string in a common class that must be converted into a string
  * before being sent as a proto.
+ * @internal
  */
 export class ByteString {
   static readonly EMPTY_BYTE_STRING = new ByteString('');
@@ -38,8 +39,23 @@ export class ByteString {
   }
 
   static fromUint8Array(array: Uint8Array): ByteString {
+    // TODO(indexing); Remove the copy of the byte string here as this method
+    // is frequently called during indexing.
     const binaryString = binaryStringFromUint8Array(array);
     return new ByteString(binaryString);
+  }
+
+  [Symbol.iterator](): Iterator<number> {
+    let i = 0;
+    return {
+      next: () => {
+        if (i < this.binaryString.length) {
+          return { value: this.binaryString.charCodeAt(i++), done: false };
+        } else {
+          return { value: undefined, done: true };
+        }
+      }
+    };
   }
 
   toBase64(): string {

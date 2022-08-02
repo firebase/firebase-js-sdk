@@ -39,14 +39,45 @@ export function pruneDts(inputLocation: string, outputLocation: string): void {
   const program = ts.createProgram([inputLocation], compilerOptions, host);
   const printer: ts.Printer = ts.createPrinter();
   const sourceFile = program.getSourceFile(inputLocation)!;
-  const result: ts.TransformationResult<ts.SourceFile> = ts.transform<ts.SourceFile>(
-    sourceFile,
-    [dropPrivateApiTransformer.bind(null, program, host)]
-  );
-  const transformedSourceFile: ts.SourceFile = result.transformed[0];
 
-  const content = printer.printFile(transformedSourceFile);
+  const result: ts.TransformationResult<ts.SourceFile> =
+    ts.transform<ts.SourceFile>(sourceFile, [
+      dropPrivateApiTransformer.bind(null, program, host)
+    ]);
+  const transformedSourceFile: ts.SourceFile = result.transformed[0];
+  let content = printer.printFile(transformedSourceFile);
+
   fs.writeFileSync(outputLocation, content);
+}
+
+export async function addBlankLines(outputLocation: string): Promise<void> {
+  const eslint = new ESLint({
+    fix: true,
+    overrideConfig: {
+      parserOptions: {
+        ecmaVersion: 2017,
+        sourceType: 'module',
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.eslint.json']
+      },
+      env: {
+        es6: true
+      },
+      plugins: ['@typescript-eslint'],
+      parser: '@typescript-eslint/parser',
+      rules: {
+        'unused-imports/no-unused-imports-ts': ['off'],
+        // add blank lines after imports. Otherwise removeUnusedImports() will remove the comment
+        // of the first item after the import block
+        'padding-line-between-statements': [
+          'error',
+          { 'blankLine': 'always', 'prev': 'import', 'next': '*' }
+        ]
+      }
+    }
+  });
+  const results = await eslint.lintFiles(outputLocation);
+  await ESLint.outputFixes(results);
 }
 
 export async function removeUnusedImports(
@@ -88,11 +119,15 @@ function isExported(
   sourceFile: ts.SourceFile,
   name: ts.Identifier
 ): boolean {
+  const declarations =
+    typeChecker.getSymbolAtLocation(name)?.declarations ?? [];
+
   // Check is this is a public symbol (e.g. part of the DOM library)
-  const sourceFileNames = typeChecker
-    .getSymbolAtLocation(name)
-    ?.declarations?.map(d => d.getSourceFile().fileName);
-  if (sourceFileNames?.find(s => s.indexOf('typescript/lib') != -1)) {
+  const isTypescriptType = declarations.find(
+    d => d.getSourceFile().fileName.indexOf('typescript/lib') != -1
+  );
+  const isImported = declarations.find(d => ts.isImportSpecifier(d));
+  if (isTypescriptType || isImported) {
     return true;
   }
 
@@ -489,16 +524,18 @@ function dropPrivateApiTransformer(
   };
 }
 
-const argv = yargs.options({
-  input: {
-    type: 'string',
-    desc: 'The location of the index.ts file'
-  },
-  output: {
-    type: 'string',
-    desc: 'The location for the index.d.ts file'
-  }
-}).argv;
+const argv = yargs
+  .options({
+    input: {
+      type: 'string',
+      desc: 'The location of the index.ts file'
+    },
+    output: {
+      type: 'string',
+      desc: 'The location for the index.d.ts file'
+    }
+  })
+  .parseSync();
 
 if (argv.input && argv.output) {
   console.log('Removing private exports...');

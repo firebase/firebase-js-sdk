@@ -187,10 +187,11 @@ export class CustomMarkdownEmitter extends MarkdownEmitter {
   ): void {
     const options: ICustomMarkdownEmitterOptions = context.options;
 
-    const result: IResolveDeclarationReferenceResult = this._apiModel.resolveDeclarationReference(
-      docLinkTag.codeDestination!,
-      options.contextApiItem
-    );
+    const result: IResolveDeclarationReferenceResult =
+      this._apiModel.resolveDeclarationReference(
+        docLinkTag.codeDestination!,
+        options.contextApiItem
+      );
 
     if (result.resolvedApiItem) {
       const filename: string | undefined = options.onGetFilenameForApiItem(

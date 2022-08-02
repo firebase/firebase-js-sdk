@@ -20,11 +20,17 @@ import { fail, hardAssert } from '../util/assert';
 
 import {
   DbDocumentMutation,
-  DbDocumentMutationKey,
   DbMutationBatch,
-  DbMutationBatchKey,
   DbRemoteDocument
 } from './indexeddb_schema';
+import { DbRemoteDocument as DbRemoteDocumentLegacy } from './indexeddb_schema_legacy';
+import {
+  DbDocumentMutationKey,
+  DbDocumentMutationStore,
+  DbMutationBatchKey,
+  DbMutationBatchStore,
+  newDbDocumentMutationKey
+} from './indexeddb_sentinels';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbTransaction } from './simple_db';
 
@@ -38,10 +44,10 @@ export function removeMutationBatch(
   batch: { batchId: number; mutations: Array<{ key: DocumentKey }> }
 ): PersistencePromise<DocumentKey[]> {
   const mutationStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
-    DbMutationBatch.store
+    DbMutationBatchStore
   );
   const indexTxn = txn.store<DbDocumentMutationKey, DbDocumentMutation>(
-    DbDocumentMutation.store
+    DbDocumentMutationStore
   );
   const promises: Array<PersistencePromise<void>> = [];
 
@@ -65,7 +71,7 @@ export function removeMutationBatch(
   );
   const removedDocuments: DocumentKey[] = [];
   for (const mutation of batch.mutations) {
-    const indexKey = DbDocumentMutation.key(
+    const indexKey = newDbDocumentMutationKey(
       userId,
       mutation.key.path,
       batch.batchId
@@ -79,7 +85,9 @@ export function removeMutationBatch(
 /**
  * Returns an approximate size for the given document.
  */
-export function dbDocumentSize(doc: DbRemoteDocument | null): number {
+export function dbDocumentSize(
+  doc: DbRemoteDocument | DbRemoteDocumentLegacy | null
+): number {
   if (!doc) {
     return 0;
   }

@@ -124,7 +124,7 @@ export class PersistencePromise<T> {
         return PersistencePromise.resolve(result);
       }
     } catch (e) {
-      return PersistencePromise.reject<R>(e);
+      return PersistencePromise.reject<R>(e as Error);
     }
   }
 
@@ -136,7 +136,7 @@ export class PersistencePromise<T> {
       return this.wrapUserFunction(() => nextFn(value));
     } else {
       // If there's no nextFn, then R must be the same as T
-      return PersistencePromise.resolve<R>((value as unknown) as R);
+      return PersistencePromise.resolve<R>(value as unknown as R);
     }
   }
 
@@ -204,9 +204,8 @@ export class PersistencePromise<T> {
   static or(
     predicates: Array<() => PersistencePromise<boolean>>
   ): PersistencePromise<boolean> {
-    let p: PersistencePromise<boolean> = PersistencePromise.resolve<boolean>(
-      false
-    );
+    let p: PersistencePromise<boolean> =
+      PersistencePromise.resolve<boolean>(false);
     for (const predicate of predicates) {
       p = p.next(isTrue => {
         if (isTrue) {
@@ -243,5 +242,56 @@ export class PersistencePromise<T> {
       promises.push(f.call(this, r, s));
     });
     return this.waitFor(promises);
+  }
+
+  /**
+   * Concurrently map all array elements through asynchronous function.
+   */
+  static mapArray<T, U>(
+    array: T[],
+    f: (t: T) => PersistencePromise<U>
+  ): PersistencePromise<U[]> {
+    return new PersistencePromise<U[]>((resolve, reject) => {
+      const expectedCount = array.length;
+      const results: U[] = new Array(expectedCount);
+      let resolvedCount = 0;
+      for (let i = 0; i < expectedCount; i++) {
+        const current = i;
+        f(array[current]).next(
+          result => {
+            results[current] = result;
+            ++resolvedCount;
+            if (resolvedCount === expectedCount) {
+              resolve(results);
+            }
+          },
+          err => reject(err)
+        );
+      }
+    });
+  }
+
+  /**
+   * An alternative to recursive PersistencePromise calls, that avoids
+   * potential memory problems from unbounded chains of promises.
+   *
+   * The `action` will be called repeatedly while `condition` is true.
+   */
+  static doWhile(
+    condition: () => boolean,
+    action: () => PersistencePromise<void>
+  ): PersistencePromise<void> {
+    return new PersistencePromise<void>((resolve, reject) => {
+      const process = (): void => {
+        if (condition() === true) {
+          action().next(() => {
+            process();
+          }, reject);
+        } else {
+          resolve();
+        }
+      };
+      process();
+    });
   }
 }

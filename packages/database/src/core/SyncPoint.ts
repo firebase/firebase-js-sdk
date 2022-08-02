@@ -17,7 +17,7 @@
 
 import { assert } from '@firebase/util';
 
-import { ReferenceConstructor } from '../exp/Reference';
+import { ReferenceConstructor } from '../api/Reference';
 
 import { Operation } from './operation/Operation';
 import { ChildrenNode } from './snap/ChildrenNode';

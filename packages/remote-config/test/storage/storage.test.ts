@@ -64,7 +64,8 @@ describe('Storage', () => {
       lastSuccessfulFetchTimestampMillis
     );
 
-    const actualMetadata = await storage.getLastSuccessfulFetchTimestampMillis();
+    const actualMetadata =
+      await storage.getLastSuccessfulFetchTimestampMillis();
 
     expect(actualMetadata).to.deep.eq(lastSuccessfulFetchTimestampMillis);
   });

@@ -99,7 +99,8 @@ describe('IndexedDbTargetCache', () => {
     const actualTargetData = await targetCache2.getTargetData(target);
     expect(targetData).to.deep.equal(actualTargetData);
 
-    const actualSnapshotVersion = await targetCache2.getLastRemoteSnapshotVersion();
+    const actualSnapshotVersion =
+      await targetCache2.getLastRemoteSnapshotVersion();
     expect(snapshotVersion.isEqual(actualSnapshotVersion)).to.be.true;
     await db2.shutdown();
     await persistenceHelpers.clearTestPersistence();

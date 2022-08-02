@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
+import './setup';
 
 import { AssertionError, expect } from 'chai';
 

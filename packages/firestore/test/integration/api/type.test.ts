@@ -15,160 +15,166 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { EventsAccumulator } from '../util/events_accumulator';
-import * as firebaseExport from '../util/firebase_export';
+import {
+  Bytes,
+  collection,
+  doc,
+  DocumentSnapshot,
+  Firestore,
+  GeoPoint,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  QuerySnapshot,
+  runTransaction,
+  setDoc,
+  Timestamp,
+  updateDoc
+} from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
-
-const Blob = firebaseExport.Blob;
-const GeoPoint = firebaseExport.GeoPoint;
-const Timestamp = firebaseExport.Timestamp;
 
 apiDescribe('Firestore', (persistence: boolean) => {
   addEqualityMatcher();
 
   async function expectRoundtrip(
-    db: firestore.FirebaseFirestore,
+    db: Firestore,
     data: {},
-    validateSnapshots = true
-  ): Promise<void> {
-    const collection = db.collection(db.collection('a').doc().id);
-    const doc = collection.doc();
-    await doc.set(data);
+    validateSnapshots = true,
+    expectedData?: {}
+  ): Promise<DocumentSnapshot> {
+    expectedData = expectedData ?? data;
 
-    let docSnapshot = await doc.get();
-    expect(docSnapshot.data()).to.deep.equal(data);
+    const collRef = collection(db, doc(collection(db, 'a')).id);
+    const docRef = doc(collRef);
+
+    await setDoc(docRef, data);
+    let docSnapshot = await getDoc(docRef);
+    expect(docSnapshot.data()).to.deep.equal(expectedData);
+
+    await updateDoc(docRef, data);
+    docSnapshot = await getDoc(docRef);
+    expect(docSnapshot.data()).to.deep.equal(expectedData);
 
     // Validate that the transaction API returns the same types
-    await db.runTransaction(async transaction => {
-      docSnapshot = await transaction.get(doc);
-      expect(docSnapshot.data()).to.deep.equal(data);
+    await runTransaction(db, async transaction => {
+      docSnapshot = await transaction.get(docRef);
+      expect(docSnapshot.data()).to.deep.equal(expectedData);
     });
 
     if (validateSnapshots) {
-      let querySnapshot = await collection.get();
+      let querySnapshot = await getDocs(collRef);
       docSnapshot = querySnapshot.docs[0];
-      expect(docSnapshot.data()).to.deep.equal(data);
+      expect(docSnapshot.data()).to.deep.equal(expectedData);
 
-      const eventsAccumulator = new EventsAccumulator<firestore.QuerySnapshot>();
-      const unlisten = collection.onSnapshot(eventsAccumulator.storeEvent);
+      const eventsAccumulator = new EventsAccumulator<QuerySnapshot>();
+      const unlisten = onSnapshot(collRef, eventsAccumulator.storeEvent);
       querySnapshot = await eventsAccumulator.awaitEvent();
       docSnapshot = querySnapshot.docs[0];
-      expect(docSnapshot.data()).to.deep.equal(data);
+      expect(docSnapshot.data()).to.deep.equal(expectedData);
 
       unlisten();
     }
+
+    return docSnapshot;
   }
 
   it('can read and write null fields', () => {
-    return withTestDb(persistence, db => {
-      return expectRoundtrip(db, { a: 1, b: null });
+    return withTestDb(persistence, async db => {
+      await expectRoundtrip(db, { a: 1, b: null });
     });
   });
 
   it('can read and write number fields', () => {
-    return withTestDb(persistence, db => {
-      // TODO(b/174486484): If we build ViewSnapshots from IndexedDb, this test
-      // fails since we first store the backend proto in IndexedDb, which turns
-      // -0.0 into 0.0.
+    return withTestDb(persistence, async db => {
+      // TODO(b/174486484): This test should always test -0.0, but right now
+      // this leaks to flakes as we turn -0.0 into 0.0 when we build the
+      // snapshot from IndexedDb
       const validateSnapshots = !persistence;
-      return expectRoundtrip(
+      await expectRoundtrip(
         db,
-        { a: 1, b: NaN, c: Infinity, d: -0.0 },
+        { a: 1, b: NaN, c: Infinity, d: persistence ? 0.0 : -0.0 },
         validateSnapshots
       );
     });
   });
 
   it('can read and write array fields', () => {
-    return withTestDb(persistence, db => {
-      return expectRoundtrip(db, { array: [1, 'foo', { deep: true }, null] });
+    return withTestDb(persistence, async db => {
+      await expectRoundtrip(db, { array: [1, 'foo', { deep: true }, null] });
     });
   });
 
   it('can read and write geo point fields', () => {
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set({
-          geopoint1: new GeoPoint(1.23, 4.56),
-          geopoint2: new GeoPoint(0, 0)
-        })
-        .then(() => {
-          return doc.get();
-        })
-        .then(docSnapshot => {
-          const latLong = docSnapshot.data()!['geopoint1'];
-          expect(latLong instanceof GeoPoint).to.equal(true);
-          expect(latLong.latitude).to.equal(1.23);
-          expect(latLong.longitude).to.equal(4.56);
+    return withTestDb(persistence, async db => {
+      const docSnapshot = await expectRoundtrip(db, {
+        geopoint1: new GeoPoint(1.23, 4.56),
+        geopoint2: new GeoPoint(0, 0)
+      });
 
-          const zeroLatLong = docSnapshot.data()!['geopoint2'];
-          expect(zeroLatLong instanceof GeoPoint).to.equal(true);
-          expect(zeroLatLong.latitude).to.equal(0);
-          expect(zeroLatLong.longitude).to.equal(0);
-        });
+      const latLong = docSnapshot.data()!['geopoint1'];
+      expect(latLong instanceof GeoPoint).to.equal(true);
+      expect(latLong.latitude).to.equal(1.23);
+      expect(latLong.longitude).to.equal(4.56);
+
+      const zeroLatLong = docSnapshot.data()!['geopoint2'];
+      expect(zeroLatLong instanceof GeoPoint).to.equal(true);
+      expect(zeroLatLong.latitude).to.equal(0);
+      expect(zeroLatLong.longitude).to.equal(0);
     });
   });
 
   it('can read and write bytes fields', () => {
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set({
-          bytes: Blob.fromUint8Array(new Uint8Array([0, 1, 255]))
-        })
-        .then(() => {
-          return doc.get();
-        })
-        .then(docSnapshot => {
-          const blob = docSnapshot.data()!['bytes'];
-          // TODO(firestorexp): As part of the Compat migration, the SDK
-          // should re-wrap the firestore-exp types into the Compat API.
-          // Comment this change back in once this is complete (note that this
-          // check passes in the legacy API).
-          // expect(blob instanceof Blob).to.equal(true);
-          expect(blob.toUint8Array()).to.deep.equal(
-            new Uint8Array([0, 1, 255])
-          );
-        });
+    return withTestDb(persistence, async db => {
+      const docSnapshot = await expectRoundtrip(db, {
+        bytes: Bytes.fromUint8Array(new Uint8Array([0, 1, 255]))
+      });
+
+      const blob = docSnapshot.data()!['bytes'];
+      // TODO(firestorexp): As part of the Compat migration, the SDK
+      // should re-wrap the firestore-exp types into the Compat API.
+      // Comment this change back in once this is complete (note that this
+      // check passes in the legacy API).
+      // expect(blob instanceof Blob).to.equal(true);
+      expect(blob.toUint8Array()).to.deep.equal(new Uint8Array([0, 1, 255]));
     });
   });
 
   it('can read and write date fields', () => {
-    return withTestDb(persistence, db => {
-      const dateValue = new Date('2017-04-10T09:10:11.123Z');
-      // Dates are returned as Timestamps, so expectRoundtrip can't be used
-      // here.
-      const doc = db.collection('rooms').doc();
-      return doc
-        .set({ date: dateValue })
-        .then(() => doc.get())
-        .then(snapshot => {
-          expect(snapshot.data()).to.deep.equal({
-            date: Timestamp.fromDate(dateValue)
-          });
-        });
+    return withTestDb(persistence, async db => {
+      const date = new Date('2017-04-10T09:10:11.123Z');
+      // Dates are returned as Timestamps
+      const data = { date };
+      const expectedData = { date: Timestamp.fromDate(date) };
+
+      await expectRoundtrip(
+        db,
+        data,
+        /* validateSnapshot= */ true,
+        expectedData
+      );
     });
   });
 
   it('can read and write timestamp fields', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       const timestampValue = Timestamp.now();
-      return expectRoundtrip(db, { timestamp: timestampValue });
+      await expectRoundtrip(db, { timestamp: timestampValue });
     });
   });
 
   it('can read and write document references', () => {
-    return withTestDoc(persistence, doc => {
-      return expectRoundtrip(doc.firestore, { a: 42, ref: doc });
+    return withTestDoc(persistence, async (doc, db) => {
+      await expectRoundtrip(db, { a: 42, ref: doc });
     });
   });
 
   it('can read and write document references in an array', () => {
-    return withTestDoc(persistence, doc => {
-      return expectRoundtrip(doc.firestore, { a: 42, refs: [doc] });
+    return withTestDoc(persistence, async (doc, db) => {
+      await expectRoundtrip(db, { a: 42, refs: [doc] });
     });
   });
 });

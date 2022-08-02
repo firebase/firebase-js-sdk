@@ -17,7 +17,10 @@
 
 import { expect } from 'chai';
 
-import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
+import {
+  EmptyAuthCredentialsProvider,
+  Token
+} from '../../../src/api/credentials';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { MutationResult } from '../../../src/model/mutation';
 import {
@@ -147,7 +150,7 @@ describe('Watch Stream', () => {
   });
 });
 
-class MockCredentialsProvider extends EmptyCredentialsProvider {
+class MockAuthCredentialsProvider extends EmptyAuthCredentialsProvider {
   private states: string[] = [];
 
   get observedStates(): string[] {
@@ -240,7 +243,7 @@ describe('Write Stream', () => {
   });
 
   it('force refreshes auth token on receiving unauthenticated error', () => {
-    const credentials = new MockCredentialsProvider();
+    const credentials = new MockAuthCredentialsProvider();
 
     return withTestWriteStream(async (writeStream, streamListener) => {
       await streamListener.awaitCallback('open');
@@ -274,13 +277,31 @@ describe('Write Stream', () => {
   });
 });
 
+it('token is not invalidated once the stream is healthy', () => {
+  const credentials = new MockAuthCredentialsProvider();
+
+  return withTestWriteStream(async (writeStream, streamListener, queue) => {
+    await streamListener.awaitCallback('open');
+
+    await queue.runAllDelayedOperationsUntil(TimerId.HealthCheckTimeout);
+
+    // Simulate callback from GRPC with an unauthenticated error -- this should
+    // NOT invalidate the token.
+    await writeStream.handleStreamClose(
+      new FirestoreError(Code.UNAUTHENTICATED, '')
+    );
+    await streamListener.awaitCallback('close');
+    expect(credentials.observedStates).to.deep.equal(['getToken']);
+  }, credentials);
+});
+
 export async function withTestWriteStream(
   fn: (
     writeStream: PersistentWriteStream,
     streamListener: StreamStatusListener,
     queue: AsyncQueueImpl
   ) => Promise<void>,
-  credentialsProvider = new EmptyCredentialsProvider()
+  credentialsProvider = new EmptyAuthCredentialsProvider()
 ): Promise<void> {
   await withTestDatastore(async datastore => {
     const queue = newAsyncQueue() as AsyncQueueImpl;

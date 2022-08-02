@@ -1,5 +1,355 @@
 # @firebase/firestore
 
+## 3.4.13
+
+### Patch Changes
+
+- [`1703bb31a`](https://github.com/firebase/firebase-js-sdk/commit/1703bb31afa806087167079641af79c9293ab423) [#6442](https://github.com/firebase/firebase-js-sdk/pull/6442) (fixes [#6438](https://github.com/firebase/firebase-js-sdk/issues/6438)) - Update `@grpc/proto-loader` and `firebase-admin` dependencies to address `protobufjs` security issue.
+
+## 3.4.12
+
+### Patch Changes
+
+- [`ad773fa45`](https://github.com/firebase/firebase-js-sdk/commit/ad773fa451b13f9d58b3f27f7ec6570117b0cc27) [#6418](https://github.com/firebase/firebase-js-sdk/pull/6418) (fixes [#6414](https://github.com/firebase/firebase-js-sdk/issues/6414)) - Fix Node ESM export paths for firestore/lite.
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf)]:
+  - @firebase/util@1.6.3
+  - @firebase/component@0.5.17
+
+## 3.4.11
+
+### Patch Changes
+
+- Updated dependencies [[`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0)]:
+  - @firebase/util@1.6.2
+  - @firebase/component@0.5.16
+
+## 3.4.10
+
+### Patch Changes
+
+- [`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5) [#6307](https://github.com/firebase/firebase-js-sdk/pull/6307) (fixes [#6300](https://github.com/firebase/firebase-js-sdk/issues/6300)) - fix: add type declarations to exports field
+
+* [`d4b52b612`](https://github.com/firebase/firebase-js-sdk/commit/d4b52b612cf73610c57a3c08a0415ab7b622a70a) [#6321](https://github.com/firebase/firebase-js-sdk/pull/6321) - Fix incorrect paths in package.json
+
+* Updated dependencies [[`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5)]:
+  - @firebase/component@0.5.15
+  - @firebase/logger@0.3.3
+  - @firebase/util@1.6.1
+  - @firebase/webchannel-wrapper@0.6.2
+
+## 3.4.9
+
+### Patch Changes
+
+- [`dfab18af6`](https://github.com/firebase/firebase-js-sdk/commit/dfab18af66beeed14b2524f926af5bda506856a6) [#6189](https://github.com/firebase/firebase-js-sdk/pull/6189) - Add `TransactionOptions` param to `runTransaction` method
+
+- Updated dependencies [[`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801)]:
+  - @firebase/util@1.6.0
+  - @firebase/component@0.5.14
+
+## 3.4.8
+
+### Patch Changes
+
+- [`05dc9d6a0`](https://github.com/firebase/firebase-js-sdk/commit/05dc9d6a0db3058611dd7a2dc34daa726f9ba20d) [#6128](https://github.com/firebase/firebase-js-sdk/pull/6128) (fixes [#6110](https://github.com/firebase/firebase-js-sdk/issues/6110)) - Fixes an issue during multi-document lookup that resulted in the IndexedDB error "The parameter is less than or equal to this cursor's".
+
+- Updated dependencies [[`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59)]:
+  - @firebase/util@1.5.2
+  - @firebase/component@0.5.13
+
+## 3.4.7
+
+### Patch Changes
+
+- [`69aa7b02d`](https://github.com/firebase/firebase-js-sdk/commit/69aa7b02df3b4d1f9832b7713951936b6bf32ca9) [#5988](https://github.com/firebase/firebase-js-sdk/pull/5988) - The format of some of the IndexedDB data changed. This increases the performance of document lookups after an initial migration. If you do not want to migrate data, you can call `clearIndexedDbPersistence()` before invoking `enableIndexedDbPersistence()`.
+
+- Updated dependencies [[`3198d58dc`](https://github.com/firebase/firebase-js-sdk/commit/3198d58dcedbf7583914dbcc76984f6f7df8d2ef)]:
+  - @firebase/util@1.5.1
+  - @firebase/component@0.5.12
+
+## 3.4.6
+
+### Patch Changes
+
+- Updated dependencies [[`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03)]:
+  - @firebase/util@1.5.0
+  - @firebase/component@0.5.11
+
+## 3.4.5
+
+### Patch Changes
+
+- [`bb8f37c3e`](https://github.com/firebase/firebase-js-sdk/commit/bb8f37c3e83e73876d14fa751cb04ae5e1367394) [#5993](https://github.com/firebase/firebase-js-sdk/pull/5993) - Fixed a bug that caused Firestore streams to get restarted with the same App Check token.
+
+* [`f5ac47fb1`](https://github.com/firebase/firebase-js-sdk/commit/f5ac47fb1a44f7b985fcae1d934e1ffb6ba41d67) [#5982](https://github.com/firebase/firebase-js-sdk/pull/5982) - On browsers that support IndexedDB V3, we now invoke `transaction.commit()` to speed up data processing.
+
+- [`c1b9cf120`](https://github.com/firebase/firebase-js-sdk/commit/c1b9cf1201807fc177a89c9613c06130524563e4) [#5985](https://github.com/firebase/firebase-js-sdk/pull/5985) - Some database operations now use `IndexedDB.getAll()` on browsers where support is availbe.
+
+* [`e9619685b`](https://github.com/firebase/firebase-js-sdk/commit/e9619685b9153f7d6f8767e09e2e1eacc337df76) [#5980](https://github.com/firebase/firebase-js-sdk/pull/5980) - Queries are now send to the backend before the SDK starts local processing, which reduces overall Query latency.
+
+## 3.4.4
+
+### Patch Changes
+
+- [`e28b0e413`](https://github.com/firebase/firebase-js-sdk/commit/e28b0e413decb115c846a7b5ed1e63dbf55c56ab) [#5902](https://github.com/firebase/firebase-js-sdk/pull/5902) (fixes [#5842](https://github.com/firebase/firebase-js-sdk/issues/5842)) - Fixed an AppCheck issue that caused Firestore listeners to stop working and
+  receive a "Permission Denied" error. This issue only occurred for AppCheck users
+  that set their expiration time to under an hour.
+
+* [`d612d6f6e`](https://github.com/firebase/firebase-js-sdk/commit/d612d6f6e4d3113d45427b7df68459c0a3e31a1f) [#5928](https://github.com/firebase/firebase-js-sdk/pull/5928) - Upgrade `node-fetch` dependency due to a security issue.
+
+## 3.4.3
+
+### Patch Changes
+
+- [`044a8d7f9`](https://github.com/firebase/firebase-js-sdk/commit/044a8d7f95a0ba0d34123ff5fd7a4bcb1bd3d328) [#5830](https://github.com/firebase/firebase-js-sdk/pull/5830) (fixes [#5823](https://github.com/firebase/firebase-js-sdk/issues/5823)) - Fix Proto loading for Vercel/Next.js.
+
+* [`ff2f7d4c8`](https://github.com/firebase/firebase-js-sdk/commit/ff2f7d4c85c0bda94b14d66237faa0e5da93bfa4) [#5883](https://github.com/firebase/firebase-js-sdk/pull/5883) - The Node SDK now uses JSON to load its internal Protobuf definition, which allows the Node SDK to work with bundlers such as Rollup and Webpack.
+
+## 3.4.2
+
+### Patch Changes
+
+- [`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49) [#5831](https://github.com/firebase/firebase-js-sdk/pull/5831) (fixes [#5754](https://github.com/firebase/firebase-js-sdk/issues/5754)) - FirestoreError and StorageError now extend FirebaseError
+
+* [`7f05d22e8`](https://github.com/firebase/firebase-js-sdk/commit/7f05d22e827f1fd0732ad33fda203a20566d3964) [#5835](https://github.com/firebase/firebase-js-sdk/pull/5835) - Fixed an issue that can cause incomplete Query snapshots when the SDK is backgrounded during query execution.
+
+* Updated dependencies [[`3b481f572`](https://github.com/firebase/firebase-js-sdk/commit/3b481f572456e1eab3435bfc25717770d95a8c49)]:
+  - @firebase/util@1.4.3
+  - @firebase/component@0.5.10
+
+## 3.4.1
+
+### Patch Changes
+
+- [`fd8cd3ec4`](https://github.com/firebase/firebase-js-sdk/commit/fd8cd3ec4b7d0747fca258d468ee094573a08bbb) [#5809](https://github.com/firebase/firebase-js-sdk/pull/5809) - Hardcode grpc-js version as a temporary fix for `createRequire` issues in Node CJS.
+
+* [`8298cf8a9`](https://github.com/firebase/firebase-js-sdk/commit/8298cf8a9343dbba6c628d64941dfbe5d17c44aa) [#5741](https://github.com/firebase/firebase-js-sdk/pull/5741) - fix firestore node tests
+
+## 3.4.0
+
+### Minor Changes
+
+- [`086df7c7e`](https://github.com/firebase/firebase-js-sdk/commit/086df7c7e0299cedd9f3cff9080f46ca25cab7cd) [#5634](https://github.com/firebase/firebase-js-sdk/pull/5634) - AppCheck integration for Firestore
+
+## 3.3.1
+
+### Patch Changes
+
+- [`7a5bc84bd`](https://github.com/firebase/firebase-js-sdk/commit/7a5bc84bd84a8d1b422204f30a59f06d5b60f1bd) [#5717](https://github.com/firebase/firebase-js-sdk/pull/5717) (fixes [#5716](https://github.com/firebase/firebase-js-sdk/issues/5716)) - The SDK no longer accesses IndexedDB during a page unload event on Safari 15. This aims to reduce the occurrence of an IndexedDB bug in Safari (https://bugs.webkit.org/show_bug.cgi?id=226547).
+
+* [`ce39a1a07`](https://github.com/firebase/firebase-js-sdk/commit/ce39a1a07e8710e43cc66d9e7db882f185211a9a) [#5738](https://github.com/firebase/firebase-js-sdk/pull/5738) (fixes [#5687](https://github.com/firebase/firebase-js-sdk/issues/5687)) - better meta url polyfill
+
+## 3.3.0
+
+### Minor Changes
+
+- [`532b3cd93`](https://github.com/firebase/firebase-js-sdk/commit/532b3cd939c5a2c13987a21e38a0a121c5dfca04) [#5675](https://github.com/firebase/firebase-js-sdk/pull/5675) (fixes [#5661](https://github.com/firebase/firebase-js-sdk/issues/5661)) - Expanded `Firestore.WithFieldValue<T>` to include `T`. This allows developers to delegate `WithFieldValue<T>` inside wrappers of type `T` to avoid exposing Firebase types beyond Firebase-specific logic.
+
+### Patch Changes
+
+- [`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a) [#5708](https://github.com/firebase/firebase-js-sdk/pull/5708) (fixes [#1487](https://github.com/firebase/firebase-js-sdk/issues/1487)) - Update build scripts to work with the exports field
+
+- Updated dependencies [[`3281315fa`](https://github.com/firebase/firebase-js-sdk/commit/3281315fae9c6f535f9d5052ee17d60861ea569a)]:
+  - @firebase/component@0.5.9
+  - @firebase/logger@0.3.2
+  - @firebase/util@1.4.2
+
+## 3.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`2322b6023`](https://github.com/firebase/firebase-js-sdk/commit/2322b6023c628cd9f4f4172767c17d215dd91684)]:
+  - @firebase/component@0.5.8
+  - @firebase/logger@0.3.1
+  - @firebase/util@1.4.1
+  - @firebase/webchannel-wrapper@0.6.1
+
+## 3.2.0
+
+### Minor Changes
+
+- [`4d3640481`](https://github.com/firebase/firebase-js-sdk/commit/4d36404812a7ca24ced5e1aabf6d8aa03de4e08a) [#5532](https://github.com/firebase/firebase-js-sdk/pull/5532) (fixes [#5499](https://github.com/firebase/firebase-js-sdk/issues/5499)) - Fix exports field to also point to Node ESM builds. This change requires Node.js version 10+.
+
+### Patch Changes
+
+- [`f48527617`](https://github.com/firebase/firebase-js-sdk/commit/f485276173ac0f6fb212328d00334892f4b33a9a) [#5668](https://github.com/firebase/firebase-js-sdk/pull/5668) - Add missing compat Firestore conversion for runTransaction
+
+* [`c75bbe957`](https://github.com/firebase/firebase-js-sdk/commit/c75bbe9574133ce6d1487a601c7acb4204e417aa) [#5643](https://github.com/firebase/firebase-js-sdk/pull/5643) - Change the networking API to use XHR instead of `fetch()` for ReactNative.
+
+## 3.1.1
+
+### Patch Changes
+
+- [`93795c780`](https://github.com/firebase/firebase-js-sdk/commit/93795c7801d6b28ccbbe5855fd2f3fc377b1db5f) [#5596](https://github.com/firebase/firebase-js-sdk/pull/5596) - report build variants for packages
+
+## 3.1.0
+
+### Minor Changes
+
+- [`f78ceca1c`](https://github.com/firebase/firebase-js-sdk/commit/f78ceca1cf9198f5d371320e8814c859c261cf67) [#5394](https://github.com/firebase/firebase-js-sdk/pull/5394) - Fixed a bug where `UpdateData` did not recognize union types or optional, dot-separated string fields.
+
+### Patch Changes
+
+- [`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39) [#5539](https://github.com/firebase/firebase-js-sdk/pull/5539) - use `constructor.name` for Object type
+
+- Updated dependencies [[`a99943fe3`](https://github.com/firebase/firebase-js-sdk/commit/a99943fe3bd5279761aa29d138ec91272b06df39), [`456d664ae`](https://github.com/firebase/firebase-js-sdk/commit/456d664aef582fc18326ffbd418de0d7d3ef86b7), [`b835b4cba`](https://github.com/firebase/firebase-js-sdk/commit/b835b4cbabc4b7b180ae38b908c49205ce31a422)]:
+  - @firebase/logger@0.3.0
+  - @firebase/util@1.4.0
+  - @firebase/webchannel-wrapper@0.6.0
+  - @firebase/component@0.5.7
+
+## 3.0.2
+
+### Patch Changes
+
+- [`8180a2b77`](https://github.com/firebase/firebase-js-sdk/commit/8180a2b77d331c4d01a000e35f51dc61af660eb7) [#5396](https://github.com/firebase/firebase-js-sdk/pull/5396) - Improved the error handling when opening IndexedDb fails in a Firefox private browsing session.
+
+* [`b8462f248`](https://github.com/firebase/firebase-js-sdk/commit/b8462f2489fb6f37691b136c9a5d453207dccc06) [#5434](https://github.com/firebase/firebase-js-sdk/pull/5434) - Fixes a deadlock during asynchronous initialization of both Firestore and Auth.
+
+- [`bf5772f64`](https://github.com/firebase/firebase-js-sdk/commit/bf5772f645207c24f3218914d27fdbe4e76584a2) [#5440](https://github.com/firebase/firebase-js-sdk/pull/5440) - Fix the implementation of `collection()` with multiple path segments.
+
+* [`dca28a10d`](https://github.com/firebase/firebase-js-sdk/commit/dca28a10dac4409c84d5a991094f7b5a4f3e5c7f) [#5461](https://github.com/firebase/firebase-js-sdk/pull/5461) - Temporary fix for a bug causing `initializeFirestore()` to not work with certain bundling pipelines.
+
+## 3.0.1
+
+### Patch Changes
+
+- [`cd15df0d1`](https://github.com/firebase/firebase-js-sdk/commit/cd15df0d1f51110f448e4284244b06be8d37f1c3) [#5400](https://github.com/firebase/firebase-js-sdk/pull/5400) (fixes [#2903](https://github.com/firebase/firebase-js-sdk/issues/2903)) - Make firestore/lite available in nodejs
+
+* [`6163bb282`](https://github.com/firebase/firebase-js-sdk/commit/6163bb282b4e3b6fe5f405c3b3e35d5691d41677) [#5399](https://github.com/firebase/firebase-js-sdk/pull/5399) - Addressed incorrect use of the `node-fetch` polyfill
+
+## 3.0.0
+
+### Major Changes
+
+- [`5bc6afb75`](https://github.com/firebase/firebase-js-sdk/commit/5bc6afb75b5267bad5940c32458c315e5394321d) [#5268](https://github.com/firebase/firebase-js-sdk/pull/5268) (fixes [#4277](https://github.com/firebase/firebase-js-sdk/issues/4277)) - This change contains multiple quality-of-life improvements when using the `FirestoreDataConverter` in `@firebase/firestore/lite` and `@firebase/firestore`:
+  - Support for passing in `FieldValue` property values when using a converter (via `WithFieldValue<T>` and `PartialWithFieldValue<T>`).
+  - Support for omitting properties in nested fields when performing a set operation with `{merge: true}` with a converter (via `PartialWithFieldValue<T>`).
+  - Support for typed update operations when using a converter (via the newly typed `UpdateData`). Improperly typed fields in
+    update operations on typed document references will no longer compile.
+
+* [`cdada6c68`](https://github.com/firebase/firebase-js-sdk/commit/cdada6c68f9740d13dd6674bcb658e28e68253b6) [#5345](https://github.com/firebase/firebase-js-sdk/pull/5345) (fixes [#5015](https://github.com/firebase/firebase-js-sdk/issues/5015)) - Release modularized SDKs
+
+## 2.4.0
+
+### Minor Changes
+
+- [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131) [#5282](https://github.com/firebase/firebase-js-sdk/pull/5282) - Implement mockUserToken for Storage and fix JWT format bugs.
+
+### Patch Changes
+
+- [`f825b1d83`](https://github.com/firebase/firebase-js-sdk/commit/f825b1d83228747e404aaefd9f3948d12257d0fc) [#5288](https://github.com/firebase/firebase-js-sdk/pull/5288) - Fixed a regression that prevented the garbage collector from running if multi-tab was disabled.
+
+- Updated dependencies [[`bb6b5abff`](https://github.com/firebase/firebase-js-sdk/commit/bb6b5abff6f89ce9ec1bd66ff4e795a059a98eec), [`3c6a11c8d`](https://github.com/firebase/firebase-js-sdk/commit/3c6a11c8d0b35afddb50e9c3e0c4d2e30f642131)]:
+  - @firebase/component@0.5.6
+  - @firebase/firestore-types@2.4.0
+  - @firebase/util@1.3.0
+
+## 2.3.10
+
+### Patch Changes
+
+- Updated dependencies [[`a3cbe719b`](https://github.com/firebase/firebase-js-sdk/commit/a3cbe719b1bd733a5c4c15ee0d0e6388d512054c)]:
+  - @firebase/util@1.2.0
+  - @firebase/component@0.5.5
+
+## 2.3.9
+
+### Patch Changes
+
+- [`b51be1da3`](https://github.com/firebase/firebase-js-sdk/commit/b51be1da318a8f79ff159bcb8be9797d192519fd) [#5166](https://github.com/firebase/firebase-js-sdk/pull/5166) (fixes [#4076](https://github.com/firebase/firebase-js-sdk/issues/4076)) - The SDK no longer accesses IndexedDB during a page unload event on Safari 14. This aims to reduce the occurrence of an IndexedDB bug in Safari (https://bugs.webkit.org/show_bug.cgi?id=226547).
+
+* [`2cd9d7c39`](https://github.com/firebase/firebase-js-sdk/commit/2cd9d7c394dd0c84f285fbcfa4b0a5d79509451f) [#5147](https://github.com/firebase/firebase-js-sdk/pull/5147) (fixes [#5047](https://github.com/firebase/firebase-js-sdk/issues/5047)) - Fixed an issue that prevented Timestamps from being used via `update()` when connected to the Emulator
+
+## 2.3.8
+
+### Patch Changes
+
+- Updated dependencies [[`85f73abb5`](https://github.com/firebase/firebase-js-sdk/commit/85f73abb5c5dd5625c82b874adbfbb4acd1d70d7), [`56a6a9d4a`](https://github.com/firebase/firebase-js-sdk/commit/56a6a9d4af2766154584a0f66d3c4d8024d74ba5)]:
+  - @firebase/webchannel-wrapper@0.5.1
+  - @firebase/component@0.5.4
+
+## 2.3.7
+
+### Patch Changes
+
+- Updated dependencies [[`725ab4684`](https://github.com/firebase/firebase-js-sdk/commit/725ab4684ef0999a12f71e704c204a00fb030e5d)]:
+  - @firebase/component@0.5.3
+
+## 2.3.6
+
+### Patch Changes
+
+- [`1d54447ca`](https://github.com/firebase/firebase-js-sdk/commit/1d54447ca928ab50228600858978bb3b341c0507) [#5010](https://github.com/firebase/firebase-js-sdk/pull/5010) - Fixes a regression that prevented Firestore from detecting Auth during its initial initialization, which could cause some writes to not be send.
+  [4971](https://github.com/firebase/firebase-js-sdk/pull/4971) didn't actually fix it.
+
+## 2.3.5
+
+### Patch Changes
+
+- [`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b) [#4971](https://github.com/firebase/firebase-js-sdk/pull/4971) - Fixes a regression that prevented Firestore from detecting Auth during its initial initialization, which could cause some writes to not be send.
+
+- Updated dependencies [[`4c4b6aed9`](https://github.com/firebase/firebase-js-sdk/commit/4c4b6aed9757c9a7e75fb698a15e53274f93880b)]:
+  - @firebase/component@0.5.2
+
+## 2.3.4
+
+### Patch Changes
+
+- Updated dependencies [[`10fb5b87f`](https://github.com/firebase/firebase-js-sdk/commit/10fb5b87faecf3aa79e15545b21de99af3e51a71)]:
+  - @firebase/webchannel-wrapper@0.5.0
+
+## 2.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`5fbc5fb01`](https://github.com/firebase/firebase-js-sdk/commit/5fbc5fb0140d7da980fd7ebbfbae810f8c64ae19)]:
+  - @firebase/component@0.5.1
+
+## 2.3.2
+
+### Patch Changes
+
+- [`169174520`](https://github.com/firebase/firebase-js-sdk/commit/169174520f6451f5741fd50e8957d4097895e97a) [#4929](https://github.com/firebase/firebase-js-sdk/pull/4929) - Added a warning message when the host settings are overridden without `{merge: true}`.
+
+## 2.3.1
+
+### Patch Changes
+
+- [`96a47097f`](https://github.com/firebase/firebase-js-sdk/commit/96a47097f36fa33f16b3f63b8cc72d256710e528) [#4886](https://github.com/firebase/firebase-js-sdk/pull/4886) - Use 'pagehide' for page termination by default.
+
+## 2.3.0
+
+### Minor Changes
+
+- [`97f61e6f3`](https://github.com/firebase/firebase-js-sdk/commit/97f61e6f3d24e5b4c92ed248bb531233a94b9eaf) [#4837](https://github.com/firebase/firebase-js-sdk/pull/4837) (fixes [#4715](https://github.com/firebase/firebase-js-sdk/issues/4715)) - Add mockUserToken support for Firestore.
+
+### Patch Changes
+
+- Updated dependencies [[`c34ac7a92`](https://github.com/firebase/firebase-js-sdk/commit/c34ac7a92a616915f38d192654db7770d81747ae), [`97f61e6f3`](https://github.com/firebase/firebase-js-sdk/commit/97f61e6f3d24e5b4c92ed248bb531233a94b9eaf), [`ac4ad08a2`](https://github.com/firebase/firebase-js-sdk/commit/ac4ad08a284397ec966e991dd388bb1fba857467)]:
+  - @firebase/component@0.5.0
+  - @firebase/firestore-types@2.3.0
+  - @firebase/util@1.1.0
+
+## 2.2.5
+
+### Patch Changes
+
+- [`633463e2a`](https://github.com/firebase/firebase-js-sdk/commit/633463e2abfdef7dbb6d9bf5275df21d6a01fcb6) [#4788](https://github.com/firebase/firebase-js-sdk/pull/4788) - Ensure that errors get wrapped in FirestoreError
+
+* [`c65883680`](https://github.com/firebase/firebase-js-sdk/commit/c658836806e0a5fef11fa61cd68f98960567f31b) [#4810](https://github.com/firebase/firebase-js-sdk/pull/4810) (fixes [#4795](https://github.com/firebase/firebase-js-sdk/issues/4795)) - Don't send empty X-Firebase-GMPID header when AppId is not set in FirebaseOptions
+
+## 2.2.4
+
+### Patch Changes
+
+- [`6db185be5`](https://github.com/firebase/firebase-js-sdk/commit/6db185be5ed297ba2a8b6c0a098319131da7b552) [#4745](https://github.com/firebase/firebase-js-sdk/pull/4745) - Fixed a bug where decimal inputs to `Timestamp.fromMillis()` calculated incorrectly due to floating point precision loss
+
+- Updated dependencies [[`7354a0ed4`](https://github.com/firebase/firebase-js-sdk/commit/7354a0ed438f4e3df6577e4927e8c8f8f1fbbfda)]:
+  - @firebase/util@1.0.0
+  - @firebase/component@0.4.1
+
 ## 2.2.3
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,7 +162,8 @@ function sendEventsToFl(
 }
 
 function postToFlEndpoint(data: TransportBatchLogFormat): Promise<Response> {
-  const flTransportFullUrl = SettingsService.getInstance().getFlTransportFullUrl();
+  const flTransportFullUrl =
+    SettingsService.getInstance().getFlTransportFullUrl();
   return fetch(flTransportFullUrl, {
     method: 'POST',
     body: JSON.stringify(data)

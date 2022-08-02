@@ -18,18 +18,21 @@
 // Helpers here mock Firestore in order to unit-test API types. Do NOT use
 // these in any integration test, where we expect working Firestore object.
 
-import { Provider, ComponentContainer } from '@firebase/component';
-
 import {
-  CollectionReference,
   DocumentReference,
-  DocumentSnapshot,
+  ensureFirestoreConfigured,
   Firestore,
-  IndexedDbPersistenceProvider,
   Query,
+  CollectionReference,
   QuerySnapshot,
-  UserDataWriter
-} from '../../src/api/database';
+  DocumentSnapshot,
+  SnapshotMetadata
+} from '../../src';
+import {
+  EmptyAppCheckTokenProvider,
+  EmptyAuthCredentialsProvider
+} from '../../src/api/credentials';
+import { ExpUserDataWriter } from '../../src/api/reference_impl';
 import { DatabaseId } from '../../src/core/database_info';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
@@ -37,20 +40,6 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from '../../src/core/view_snapshot';
-import {
-  ensureFirestoreConfigured,
-  FirebaseFirestore
-} from '../../src/exp/database';
-import {
-  Query as ExpQuery,
-  CollectionReference as ExpCollectionReference
-} from '../../src/exp/reference';
-import { ExpUserDataWriter } from '../../src/exp/reference_impl';
-import {
-  QuerySnapshot as ExpQuerySnapshot,
-  DocumentSnapshot as ExpDocumentSnapshot,
-  SnapshotMetadata
-} from '../../src/exp/snapshot';
 import { DocumentKeySet } from '../../src/model/collections';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
@@ -70,31 +59,21 @@ export function firestore(): Firestore {
 export function newTestFirestore(projectId = 'new-project'): Firestore {
   return new Firestore(
     new DatabaseId(projectId),
-    new FirebaseFirestore(
-      new DatabaseId(projectId),
-      new Provider('auth-internal', new ComponentContainer('default'))
-    ),
-    new IndexedDbPersistenceProvider()
+    new EmptyAuthCredentialsProvider(),
+    new EmptyAppCheckTokenProvider()
   );
 }
 
 export function collectionReference(path: string): CollectionReference {
   const db = firestore();
-  ensureFirestoreConfigured(db._delegate);
-  return new CollectionReference(
-    db,
-    new ExpCollectionReference(
-      db._delegate,
-      /* converter= */ null,
-      pathFrom(path)
-    )
-  );
+  ensureFirestoreConfigured(db);
+  return new CollectionReference(db, /* converter= */ null, pathFrom(path));
 }
 
 export function documentReference(path: string): DocumentReference {
   const db = firestore();
-  ensureFirestoreConfigured(db._delegate);
-  return DocumentReference.forKey(key(path), db, /* converter= */ null);
+  ensureFirestoreConfigured(db);
+  return new DocumentReference(db, /* converter= */ null, key(path));
 }
 
 export function documentSnapshot(
@@ -103,44 +82,31 @@ export function documentSnapshot(
   fromCache: boolean
 ): DocumentSnapshot {
   const db = firestore();
-  const userDataWriter = new UserDataWriter(db);
+  const userDataWriter = new ExpUserDataWriter(db);
   if (data) {
     return new DocumentSnapshot(
-      firestore(),
-      new ExpDocumentSnapshot(
-        db._delegate,
-        userDataWriter,
-        key(path),
-        doc(path, 1, data),
-        new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
-        /* converter= */ null
-      )
+      db,
+      userDataWriter,
+      key(path),
+      doc(path, 1, data),
+      new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+      /* converter= */ null
     );
   } else {
     return new DocumentSnapshot(
-      firestore(),
-      new ExpDocumentSnapshot(
-        db._delegate,
-        userDataWriter,
-        key(path),
-        null,
-        new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
-        /* converter= */ null
-      )
+      db,
+      userDataWriter,
+      key(path),
+      null,
+      new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+      /* converter= */ null
     );
   }
 }
 
 export function query(path: string): Query {
   const db = firestore();
-  return new Query(
-    db,
-    new ExpQuery(
-      db._delegate,
-      /* converter= */ null,
-      newQueryForPath(pathFrom(path))
-    )
-  );
+  return new Query(db, /* converter= */ null, newQueryForPath(pathFrom(path)));
 }
 
 /**
@@ -191,11 +157,8 @@ export function querySnapshot(
   const db = firestore();
   return new QuerySnapshot(
     db,
-    new ExpQuerySnapshot(
-      db._delegate,
-      new ExpUserDataWriter(db._delegate),
-      new ExpQuery(db._delegate, /* converter= */ null, query),
-      viewSnapshot
-    )
+    new ExpUserDataWriter(db),
+    new Query(db, /* converter= */ null, query),
+    viewSnapshot
   );
 }

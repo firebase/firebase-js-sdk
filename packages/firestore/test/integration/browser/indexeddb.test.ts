@@ -15,9 +15,15 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
+import {
+  enableIndexedDbPersistence,
+  collection,
+  doc,
+  FirestoreError,
+  setDoc
+} from '../util/firebase_export';
 import { isPersistenceAvailable, withTestDb } from '../util/helpers';
 
 describe('where persistence is unsupported, enablePersistence', () => {
@@ -31,11 +37,9 @@ describe('where persistence is unsupported, enablePersistence', () => {
     // withTestDb will fail the test if persistence is requested but it fails
     // so we'll enable persistence here instead.
     return withTestDb(/* persistence= */ false, db => {
-      return db.enablePersistence().then(
-        () => {
-          expect.fail('enablePersistence should not have succeeded!');
-        },
-        (error: firestore.FirestoreError) => {
+      return enableIndexedDbPersistence(db).then(
+        () => expect.fail('enablePersistence should not have succeeded!'),
+        (error: FirestoreError) => {
           expect(error.code).to.equal('unimplemented');
         }
       );
@@ -44,15 +48,17 @@ describe('where persistence is unsupported, enablePersistence', () => {
 
   it('falls back without requiring a wait for the promise', () => {
     return withTestDb(/* persistence= */ false, db => {
-      const persistenceFailedPromise = db
-        .enablePersistence()
-        .catch((err: firestore.FirestoreError) => {
+      const persistenceFailedPromise = enableIndexedDbPersistence(db).catch(
+        (err: FirestoreError) => {
           expect(err.code).to.equal('unimplemented');
-        });
+        }
+      );
 
       // Do the set immediately without waiting on the promise.
-      const doc = db.collection('test-collection').doc();
-      return doc.set({ foo: 'bar' }).then(() => persistenceFailedPromise);
+      const testDoc = doc(collection(db, 'test-collection'));
+      return setDoc(testDoc, { foo: 'bar' }).then(
+        () => persistenceFailedPromise
+      );
     });
   });
 });

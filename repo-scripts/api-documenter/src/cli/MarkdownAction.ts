@@ -35,12 +35,19 @@ export class MarkdownAction extends BaseAction {
 
   protected async onExecute(): Promise<void> {
     // override
-    const { apiModel, outputFolder } = this.buildApiModel();
+    const { apiModel, outputFolder, addFileNameSuffix, projectName } =
+      this.buildApiModel();
+
+    if (!projectName) {
+      throw new Error('No project name provided. Use --project.');
+    }
 
     const markdownDocumenter: MarkdownDocumenter = new MarkdownDocumenter({
       apiModel,
       documenterConfig: undefined,
-      outputFolder
+      outputFolder,
+      addFileNameSuffix,
+      projectName
     });
     markdownDocumenter.generateFiles();
   }

@@ -32,21 +32,9 @@ module.exports = function (config) {
 
 function getTestFiles(argv) {
   let unitTestFiles = ['test/unit/*'];
-  let integrationTestFiles = [];
-  if (argv.exp) {
-    unitTestFiles = unitTestFiles.filter(
-      filename => !filename.includes('.compat.')
-    );
-    integrationTestFiles = ['test/integration/*exp*'];
-  } else if (argv.compat) {
-    unitTestFiles = unitTestFiles.filter(
-      filename => !filename.includes('.exp.')
-    );
-    integrationTestFiles = ['test/integration/*compat*'];
-  } else {
-    integrationTestFiles = ['test/integration/*'];
-  }
-  if (argv.unit) {
+  let integrationTestFiles = ['test/integration/*', 'test/browser/*'];
+
+  if (argv.unit || process.env?.BROWSERS) {
     return unitTestFiles;
   } else if (argv.integration) {
     return integrationTestFiles;

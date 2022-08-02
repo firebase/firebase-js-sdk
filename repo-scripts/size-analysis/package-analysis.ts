@@ -69,11 +69,15 @@ export async function analyzePackageSize(
     writeReportToFile(jsonReport, resolve(argv.output));
   } else if (!argv.inputDtsFile && !argv.inputBundleFile) {
     // retrieve All Module Names
-    // TODO: update the workspace once exp packages are officially released
     let allModulesLocation = await mapWorkspaceToPackages([
-      `${projectRoot}/packages-exp/*`
+      `${projectRoot}/packages/*`
     ]);
     allModulesLocation = allModulesLocation.filter(path => {
+      const pkgJsonPath = `${path}/package.json`;
+      if (!fs.existsSync(pkgJsonPath)) {
+        return false;
+      }
+
       const json = JSON.parse(
         fs.readFileSync(`${path}/package.json`, { encoding: 'utf-8' })
       );
@@ -119,7 +123,9 @@ function mapWorkspaceToPackages(workspaces: string[]): Promise<string[]> {
       workspace =>
         new Promise(resolve => {
           glob(workspace, (err, paths) => {
-            if (err) throw err;
+            if (err) {
+              throw err;
+            }
             resolve(paths);
           });
         })

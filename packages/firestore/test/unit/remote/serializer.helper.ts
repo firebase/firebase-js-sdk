@@ -17,11 +17,18 @@
 
 import { expect } from 'chai';
 
-import { Blob } from '../../../src/api/blob';
-import { DocumentReference, UserDataWriter } from '../../../src/api/database';
-import { FieldValue } from '../../../src/api/field_value';
-import { GeoPoint } from '../../../src/api/geo_point';
-import { Timestamp } from '../../../src/api/timestamp';
+import {
+  arrayRemove,
+  arrayUnion,
+  Bytes,
+  DocumentReference,
+  GeoPoint,
+  increment,
+  refEqual,
+  serverTimestamp,
+  Timestamp
+} from '../../../src';
+import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
   LimitType,
@@ -46,7 +53,7 @@ import {
   targetEquals,
   TargetImpl
 } from '../../../src/core/target';
-import { parseQueryValue } from '../../../src/lite/user_data_reader';
+import { parseQueryValue } from '../../../src/lite-api/user_data_reader';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { FieldMask } from '../../../src/model/field_mask';
 import {
@@ -118,7 +125,7 @@ import {
   wrapObject
 } from '../../util/helpers';
 
-const userDataWriter = new UserDataWriter(firestore());
+const userDataWriter = new ExpUserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
 const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
 
@@ -179,15 +186,14 @@ export function serializerTest(
           value
         );
         expect(actualJsonProto).to.deep.equal({ [valueType]: jsonValue });
-        const actualReturnFieldValue = userDataWriter.convertValue(
-          actualJsonProto
-        );
+        const actualReturnFieldValue =
+          userDataWriter.convertValue(actualJsonProto);
 
         if (
           actualReturnFieldValue instanceof DocumentReference &&
           value instanceof DocumentReference
         ) {
-          expect(actualReturnFieldValue.isEqual(value)).to.be.true;
+          expect(refEqual(actualReturnFieldValue, value)).to.be.true;
         } else {
           expect(actualReturnFieldValue).to.deep.equal(value);
         }
@@ -199,9 +205,8 @@ export function serializerTest(
           value
         );
         expect(actualProtoJsProto).to.deep.equal({ [valueType]: protoJsValue });
-        const actualProtoJsReturnFieldValue = userDataWriter.convertValue(
-          actualProtoJsProto
-        );
+        const actualProtoJsReturnFieldValue =
+          userDataWriter.convertValue(actualProtoJsProto);
         expect(actualProtoJsReturnFieldValue).to.deep.equal(value);
 
         // If we're using protobufJs JSON (not Proto3Json), then round-trip through protobufjs.
@@ -414,7 +419,7 @@ export function serializerTest(
         const bytes = new Uint8Array([0, 1, 2, 3, 4, 5]);
 
         verifyFieldValueRoundTrip({
-          value: Blob.fromUint8Array(bytes),
+          value: Bytes.fromUint8Array(bytes),
           valueType: 'bytesValue',
           jsonValue: 'AAECAwQF',
           protoJsValue: bytes
@@ -665,8 +670,8 @@ export function serializerTest(
 
       it('ServerTimestamp transform', () => {
         const mutation = setMutation('baz/quux', {
-          a: FieldValue.serverTimestamp(),
-          'bar': FieldValue.serverTimestamp()
+          a: serverTimestamp(),
+          'bar': serverTimestamp()
         });
         const proto = {
           update: toMutationDocument(s, mutation.key, mutation.value),
@@ -678,7 +683,7 @@ export function serializerTest(
         verifyMutation(mutation, proto);
 
         const mutation2 = setMutation('baz/quux', {
-          a: FieldValue.serverTimestamp()
+          a: serverTimestamp()
         });
         const proto2 = {
           update: toMutationDocument(s, mutation2.key, mutation2.value),
@@ -691,8 +696,8 @@ export function serializerTest(
 
       it('Numeric Add transform', () => {
         const mutation = setMutation('baz/quux', {
-          integer: FieldValue.increment(42),
-          double: FieldValue.increment(13.37)
+          integer: increment(42),
+          double: increment(13.37)
         });
         const proto = {
           update: toMutationDocument(s, mutation.key, mutation.value),
@@ -704,8 +709,8 @@ export function serializerTest(
         verifyMutation(mutation, proto);
 
         const mutation2 = setMutation('baz/quux', {
-          integer: FieldValue.increment(42),
-          double: FieldValue.increment(13.37)
+          integer: increment(42),
+          double: increment(13.37)
         });
         const proto2 = {
           update: toMutationDocument(s, mutation2.key, mutation2.value),
@@ -719,8 +724,8 @@ export function serializerTest(
 
       it('Array transforms', () => {
         const mutation = patchMutation('docs/1', {
-          a: FieldValue.arrayUnion('a', 2),
-          'bar.baz': FieldValue.arrayRemove({ x: 1 })
+          a: arrayUnion('a', 2),
+          'bar.baz': arrayRemove({ x: 1 })
         });
         const proto = {
           update: toMutationDocument(s, mutation.key, mutation.data),
@@ -742,8 +747,8 @@ export function serializerTest(
         verifyMutation(mutation, proto);
 
         const mutation2 = setMutation('docs/1', {
-          a: FieldValue.arrayUnion('a', 2),
-          bar: FieldValue.arrayRemove({ x: 1 })
+          a: arrayUnion('a', 2),
+          bar: arrayRemove({ x: 1 })
         });
         const proto2 = {
           update: toMutationDocument(s, mutation2.key, mutation2.value),
@@ -797,7 +802,7 @@ export function serializerTest(
       const d = doc('foo/bar', 42, { a: 5, b: 'b' });
       const proto = {
         name: toName(s, d.key),
-        fields: d.data.toProto().mapValue.fields,
+        fields: d.data.value.mapValue.fields,
         updateTime: toVersion(s, d.version)
       };
       const serialized = toDocument(s, d);
@@ -1356,15 +1361,9 @@ export function serializerTest(
           queryWithEndAt(
             queryWithStartAt(
               query('docs'),
-              bound(
-                [[DOCUMENT_KEY_NAME, ref('foo/bar'), 'asc']],
-                /*before=*/ true
-              )
+              bound([ref('foo/bar')], /*inclusive=*/ true)
             ),
-            bound(
-              [[DOCUMENT_KEY_NAME, ref('foo/bar'), 'asc']],
-              /*before=*/ false
-            )
+            bound([ref('foo/bar')], /*inclusive=*/ true)
           )
         );
         const result = toTarget(s, wrapTargetData(q));
@@ -1505,10 +1504,10 @@ export function serializerTest(
 
       // TODO(dimond): RPC status cause
       it('converts target change with added', () => {
-        const expected = new WatchTargetChange(WatchTargetChangeState.Added, [
-          1,
-          4
-        ]);
+        const expected = new WatchTargetChange(
+          WatchTargetChangeState.Added,
+          [1, 4]
+        );
         const actual = fromWatchChange(s, {
           targetChange: { targetChangeType: 'ADD', targetIds: [1, 4] }
         });

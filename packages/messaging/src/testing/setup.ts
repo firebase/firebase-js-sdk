@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import * as chaiAsPromised from 'chai-as-promised';
-import * as sinonChai from 'sinon-chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 
-import { dbDelete } from '../helpers/idb-manager';
-import { deleteDb } from 'idb';
+import { dbDelete } from '../internals/idb-manager';
+import { deleteDB } from 'idb';
 import { restore } from 'sinon';
 import { use } from 'chai';
 
@@ -29,5 +29,5 @@ use(sinonChai);
 afterEach(async () => {
   restore();
   await dbDelete();
-  await deleteDb('fcm_token_details_db');
+  await deleteDB('fcm_token_details_db');
 });

@@ -22,7 +22,8 @@ import {
   InitializeOptions,
   InstantiationMode,
   Name,
-  NameServiceMapping
+  NameServiceMapping,
+  OnInitCallBack
 } from './types';
 import { Component } from './component';
 
@@ -37,6 +38,9 @@ export class Provider<T extends Name> {
     string,
     Deferred<NameServiceMapping[T]>
   > = new Map();
+  private readonly instancesOptions: Map<string, Record<string, unknown>> =
+    new Map();
+  private onInitCallbacks: Map<string, Set<OnInitCallBack<T>>> = new Map();
 
   constructor(
     private readonly name: T,
@@ -47,7 +51,7 @@ export class Provider<T extends Name> {
    * @param identifier A provider can provide mulitple instances of a service
    * if this.component.multipleInstances is true.
    */
-  get(identifier: string = DEFAULT_ENTRY_NAME): Promise<NameServiceMapping[T]> {
+  get(identifier?: string): Promise<NameServiceMapping[T]> {
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
 
@@ -97,13 +101,11 @@ export class Provider<T extends Name> {
     identifier?: string;
     optional?: boolean;
   }): NameServiceMapping[T] | null {
-    const { identifier, optional } = {
-      identifier: DEFAULT_ENTRY_NAME,
-      optional: false,
-      ...options
-    };
     // if multipleInstances is not supported, use the default name
-    const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+    const normalizedIdentifier = this.normalizeInstanceIdentifier(
+      options?.identifier
+    );
+    const optional = options?.optional ?? false;
 
     if (
       this.isInitialized(normalizedIdentifier) ||
@@ -171,9 +173,8 @@ export class Provider<T extends Name> {
       instanceIdentifier,
       instanceDeferred
     ] of this.instancesDeferred.entries()) {
-      const normalizedIdentifier = this.normalizeInstanceIdentifier(
-        instanceIdentifier
-      );
+      const normalizedIdentifier =
+        this.normalizeInstanceIdentifier(instanceIdentifier);
 
       try {
         // `getOrInitializeService()` should always return a valid instance since a component is guaranteed. use ! to make typescript happy.
@@ -190,6 +191,7 @@ export class Provider<T extends Name> {
 
   clearInstance(identifier: string = DEFAULT_ENTRY_NAME): void {
     this.instancesDeferred.delete(identifier);
+    this.instancesOptions.delete(identifier);
     this.instances.delete(identifier);
   }
 
@@ -218,10 +220,14 @@ export class Provider<T extends Name> {
     return this.instances.has(identifier);
   }
 
+  getOptions(identifier: string = DEFAULT_ENTRY_NAME): Record<string, unknown> {
+    return this.instancesOptions.get(identifier) || {};
+  }
+
   initialize(opts: InitializeOptions = {}): NameServiceMapping[T] {
-    const { instanceIdentifier = DEFAULT_ENTRY_NAME, options = {} } = opts;
+    const { options = {} } = opts;
     const normalizedIdentifier = this.normalizeInstanceIdentifier(
-      instanceIdentifier
+      opts.instanceIdentifier
     );
     if (this.isInitialized(normalizedIdentifier)) {
       throw Error(
@@ -243,14 +249,61 @@ export class Provider<T extends Name> {
       instanceIdentifier,
       instanceDeferred
     ] of this.instancesDeferred.entries()) {
-      const normalizedDeferredIdentifier = this.normalizeInstanceIdentifier(
-        instanceIdentifier
-      );
+      const normalizedDeferredIdentifier =
+        this.normalizeInstanceIdentifier(instanceIdentifier);
       if (normalizedIdentifier === normalizedDeferredIdentifier) {
         instanceDeferred.resolve(instance);
       }
     }
+
     return instance;
+  }
+
+  /**
+   *
+   * @param callback - a function that will be invoked  after the provider has been initialized by calling provider.initialize().
+   * The function is invoked SYNCHRONOUSLY, so it should not execute any longrunning tasks in order to not block the program.
+   *
+   * @param identifier An optional instance identifier
+   * @returns a function to unregister the callback
+   */
+  onInit(callback: OnInitCallBack<T>, identifier?: string): () => void {
+    const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+    const existingCallbacks =
+      this.onInitCallbacks.get(normalizedIdentifier) ??
+      new Set<OnInitCallBack<T>>();
+    existingCallbacks.add(callback);
+    this.onInitCallbacks.set(normalizedIdentifier, existingCallbacks);
+
+    const existingInstance = this.instances.get(normalizedIdentifier);
+    if (existingInstance) {
+      callback(existingInstance, normalizedIdentifier);
+    }
+
+    return () => {
+      existingCallbacks.delete(callback);
+    };
+  }
+
+  /**
+   * Invoke onInit callbacks synchronously
+   * @param instance the service instance`
+   */
+  private invokeOnInitCallbacks(
+    instance: NameServiceMapping[T],
+    identifier: string
+  ): void {
+    const callbacks = this.onInitCallbacks.get(identifier);
+    if (!callbacks) {
+      return;
+    }
+    for (const callback of callbacks) {
+      try {
+        callback(instance, identifier);
+      } catch {
+        // ignore errors in the onInit callback
+      }
+    }
   }
 
   private getOrInitializeService({
@@ -267,6 +320,14 @@ export class Provider<T extends Name> {
         options
       });
       this.instances.set(instanceIdentifier, instance);
+      this.instancesOptions.set(instanceIdentifier, options);
+
+      /**
+       * Invoke onInit listeners.
+       * Note this.component.onInstanceCreated is different, which is used by the component creator,
+       * while onInit listeners are registered by consumers of the provider.
+       */
+      this.invokeOnInitCallbacks(instance, instanceIdentifier);
 
       /**
        * Order is important
@@ -289,7 +350,9 @@ export class Provider<T extends Name> {
     return instance || null;
   }
 
-  private normalizeInstanceIdentifier(identifier: string): string {
+  private normalizeInstanceIdentifier(
+    identifier: string = DEFAULT_ENTRY_NAME
+  ): string {
     if (this.component) {
       return this.component.multipleInstances ? identifier : DEFAULT_ENTRY_NAME;
     } else {

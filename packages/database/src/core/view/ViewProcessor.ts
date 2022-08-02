@@ -297,12 +297,13 @@ function viewProcessorGenerateEventCacheAfterServerEvent(
         let newEventChild;
         if (oldEventSnap.isCompleteForChild(childKey)) {
           serverNode = viewCache.serverCache.getNode();
-          const eventChildUpdate = writeTreeRefCalcEventCacheAfterServerOverwrite(
-            writesCache,
-            changePath,
-            oldEventSnap.getNode(),
-            serverNode
-          );
+          const eventChildUpdate =
+            writeTreeRefCalcEventCacheAfterServerOverwrite(
+              writesCache,
+              changePath,
+              oldEventSnap.getNode(),
+              serverNode
+            );
           if (eventChildUpdate != null) {
             newEventChild = oldEventSnap
               .getNode()

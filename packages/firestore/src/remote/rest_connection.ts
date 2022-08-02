@@ -39,8 +39,12 @@ RPC_NAME_URL_MAPPING['Commit'] = 'commit';
 RPC_NAME_URL_MAPPING['RunQuery'] = 'runQuery';
 
 const RPC_URL_VERSION = 'v1';
-const X_GOOG_API_CLIENT_VALUE = 'gl-js/ fire/' + SDK_VERSION;
 
+// SDK_VERSION is updated to different value at runtime depending on the entry point,
+// so we need to get its value when we need it in a function.
+function getGoogApiClientValue(): string {
+  return 'gl-js/ fire/' + SDK_VERSION;
+}
 /**
  * Base class for all Rest-based connections to the backend (WebChannel and
  * HTTP).
@@ -66,13 +70,14 @@ export abstract class RestConnection implements Connection {
     rpcName: string,
     path: string,
     req: Req,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Promise<Resp> {
     const url = this.makeUrl(rpcName, path);
     logDebug(LOG_TAG, 'Sending: ', url, req);
 
     const headers = {};
-    this.modifyHeadersForRequest(headers, token);
+    this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
     return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
       response => {
@@ -98,16 +103,25 @@ export abstract class RestConnection implements Connection {
     rpcName: string,
     path: string,
     request: Req,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null,
+    expectedResponseCount?: number
   ): Promise<Resp[]> {
     // The REST API automatically aggregates all of the streamed results, so we
     // can just use the normal invoke() method.
-    return this.invokeRPC<Req, Resp[]>(rpcName, path, request, token);
+    return this.invokeRPC<Req, Resp[]>(
+      rpcName,
+      path,
+      request,
+      authToken,
+      appCheckToken
+    );
   }
 
   abstract openStream<Req, Resp>(
     rpcName: string,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<Req, Resp>;
 
   /**
@@ -116,10 +130,10 @@ export abstract class RestConnection implements Connection {
    */
   protected modifyHeadersForRequest(
     headers: StringMap,
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): void {
-    headers['X-Goog-Api-Client'] = X_GOOG_API_CLIENT_VALUE;
-    headers['X-Firebase-GMPID'] = this.databaseInfo.appId;
+    headers['X-Goog-Api-Client'] = getGoogApiClientValue();
 
     // Content-Type: text/plain will avoid preflight requests which might
     // mess with CORS and redirects by proxies. If we add custom headers
@@ -127,12 +141,15 @@ export abstract class RestConnection implements Connection {
     // parameter supported by ESF to avoid triggering preflight requests.
     headers['Content-Type'] = 'text/plain';
 
-    if (token) {
-      for (const header in token.authHeaders) {
-        if (token.authHeaders.hasOwnProperty(header)) {
-          headers[header] = token.authHeaders[header];
-        }
-      }
+    if (this.databaseInfo.appId) {
+      headers['X-Firebase-GMPID'] = this.databaseInfo.appId;
+    }
+
+    if (authToken) {
+      authToken.headers.forEach((value, key) => (headers[key] = value));
+    }
+    if (appCheckToken) {
+      appCheckToken.headers.forEach((value, key) => (headers[key] = value));
     }
   }
 

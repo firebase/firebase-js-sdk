@@ -165,9 +165,8 @@ export class MarkdownEmitter {
       }
       case DocNodeKind.Paragraph: {
         const docParagraph: DocParagraph = docNode as DocParagraph;
-        const trimmedParagraph: DocParagraph = DocNodeTransforms.trimSpacesInParagraph(
-          docParagraph
-        );
+        const trimmedParagraph: DocParagraph =
+          DocNodeTransforms.trimSpacesInParagraph(docParagraph);
         if (context.insideTable) {
           if (docNodeSiblings) {
             writer.write('<p>');

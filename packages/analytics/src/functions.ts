@@ -17,12 +17,19 @@
 
 import {
   AnalyticsCallOptions,
-  Gtag,
   CustomParams,
   ControlParams,
-  EventParams
-} from '@firebase/analytics-types';
+  EventParams,
+  ConsentSettings
+} from './public-types';
+import { Gtag } from './types';
 import { GtagCommand } from './constants';
+
+/**
+ * Event parameters to set on 'gtag' during initialization.
+ */
+export let defaultEventParametersForInit: CustomParams | undefined;
+
 /**
  * Logs an analytics event through the Firebase SDK.
  *
@@ -52,6 +59,9 @@ export async function logEvent(
 
 /**
  * Set screen_name parameter for this Google Analytics ID.
+ *
+ * @deprecated Use {@link logEvent} with `eventName` as 'screen_view' and add relevant `eventParams`.
+ * See {@link https://firebase.google.com/docs/analytics/screenviews | Track Screenviews}.
  *
  * @param gtagFunction Wrapped gtag function that waits for fid to be set before sending an event
  * @param screenName Screen name string to set.
@@ -138,4 +148,33 @@ export async function setAnalyticsCollectionEnabled(
 ): Promise<void> {
   const measurementId = await initializationPromise;
   window[`ga-disable-${measurementId}`] = !enabled;
+}
+
+/**
+ * Consent parameters to default to during 'gtag' initialization.
+ */
+export let defaultConsentSettingsForInit: ConsentSettings | undefined;
+
+/**
+ * Sets the variable {@link defaultConsentSettingsForInit} for use in the initialization of
+ * analytics.
+ *
+ * @param consentSettings Maps the applicable end user consent state for gtag.js.
+ */
+export function _setConsentDefaultForInit(
+  consentSettings?: ConsentSettings
+): void {
+  defaultConsentSettingsForInit = consentSettings;
+}
+
+/**
+ * Sets the variable `defaultEventParametersForInit` for use in the initialization of
+ * analytics.
+ *
+ * @param customParams Any custom params the user may pass to gtag.js.
+ */
+export function _setDefaultEventParametersForInit(
+  customParams?: CustomParams
+): void {
+  defaultEventParametersForInit = customParams;
 }

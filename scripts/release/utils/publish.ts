@@ -37,45 +37,77 @@ export async function publish(releaseType: string) {
   });
 }
 
-export async function publishInCI(updatedPkgs: string[], npmTag: string) {
-  const taskArray = await Promise.all(
-    updatedPkgs.map(async pkg => {
-      const path = await mapPkgNameToPkgPath(pkg);
+export async function publishInCI(
+  updatedPkgs: string[],
+  npmTag: string,
+  dryRun: boolean
+) {
+  const taskArray = [];
+  const tags = [];
+  for (const pkg of updatedPkgs) {
+    const path = await mapPkgNameToPkgPath(pkg);
 
-      /**
-       * Can't require here because we have a cached version of the required JSON
-       * in memory and it doesn't contain the updates
-       */
-      const { version, private: isPrivate } = JSON.parse(
-        await readFile(`${path}/package.json`, 'utf8')
-      );
+    /**
+     * Can't require here because we have a cached version of the required JSON
+     * in memory and it doesn't contain the updates
+     */
+    const { version, private: isPrivate } = JSON.parse(
+      await readFile(`${path}/package.json`, 'utf8')
+    );
 
-      /**
-       * Skip private packages
-       */
-      if (isPrivate) {
-        return {
-          title: `Skipping private package: ${pkg}.`,
-          task: () => {}
-        };
+    /**
+     * Skip private packages
+     */
+    if (isPrivate) {
+      console.log(`Skipping private package: ${pkg}.`);
+      continue;
+    }
+
+    /**
+     * Skip if this version has already been published.
+     */
+    try {
+      const { stdout: npmVersion } = await exec(`npm info ${pkg} version`);
+      if (version === npmVersion.trim()) {
+        console.log(
+          `Skipping publish of ${pkg} - version ${version} is already published`
+        );
+        continue;
       }
+    } catch (e) {
+      // 404 from NPM indicates the package doesn't exist there.
+      console.log(`Skipping pkg: ${pkg} - it has never been published to NPM.`);
+      continue;
+    }
 
-      return {
-        title: `📦  ${pkg}@${version}`,
-        task: () => publishPackageInCI(pkg, npmTag)
-      };
-    })
-  );
+    const tag = `${pkg}@${version}`;
+    tags.push(tag);
+    taskArray.push({
+      title: `📦  ${tag}`,
+      task: () => publishPackageInCI(pkg, npmTag, dryRun)
+    });
+  }
+
   const tasks = new Listr(taskArray, {
     concurrent: false,
     exitOnError: false
   });
 
   console.log('\r\nPublishing Packages to NPM:');
-  return tasks.run();
+  await tasks.run();
+
+  // Create git tags.
+  for (const tag of tags) {
+    await exec(`git tag ${tag}`);
+    console.log(`Added git tag ${tag}.`);
+  }
 }
 
-async function publishPackageInCI(pkg: string, npmTag: string) {
+async function publishPackageInCI(
+  pkg: string,
+  npmTag: string,
+  dryRun: boolean
+) {
   try {
     const path = await mapPkgNameToPkgPath(pkg);
 
@@ -91,6 +123,10 @@ async function publishPackageInCI(pkg: string, npmTag: string) {
       '--registry',
       'https://wombat-dressing-room.appspot.com'
     ];
+
+    if (dryRun) {
+      args.push('--dry-run');
+    }
 
     // Write proxy registry token for this package to .npmrc.
     await exec(

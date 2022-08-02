@@ -1,4 +1,13 @@
 /**
+ * Firestore Lite
+ *
+ * @remarks Firestore Lite is a small online-only SDK that allows read
+ * and write access to your Firestore database. All operations connect
+ * directly to the backend, and `onSnapshot()` APIs are not supported.
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2020 Google LLC
  *
@@ -18,20 +27,23 @@
 import { registerFirestore } from './register';
 registerFirestore();
 
-export { Settings } from '../src/lite/settings';
+export { FirestoreSettings as Settings } from '../src/lite-api/settings';
 
 export {
-  FirebaseFirestore,
+  Firestore as Firestore,
+  EmulatorMockTokenOptions,
   initializeFirestore,
   getFirestore,
   terminate,
-  useFirestoreEmulator
-} from '../src/lite/database';
+  connectFirestoreEmulator
+} from '../src/lite-api/database';
 
 export {
-  SetOptions,
   DocumentData,
   UpdateData,
+  WithFieldValue,
+  PartialWithFieldValue,
+  SetOptions,
   DocumentReference,
   Query,
   CollectionReference,
@@ -40,7 +52,7 @@ export {
   doc,
   refEqual,
   queryEqual
-} from '../src/lite/reference';
+} from '../src/lite-api/reference';
 
 export {
   endAt,
@@ -56,7 +68,7 @@ export {
   query,
   QueryConstraint,
   QueryConstraintType
-} from '../src/lite/query';
+} from '../src/lite-api/query';
 
 export {
   addDoc,
@@ -65,13 +77,21 @@ export {
   setDoc,
   getDoc,
   getDocs
-} from '../src/lite/reference_impl';
+} from '../src/lite-api/reference_impl';
+
+export {
+  Primitive,
+  NestedUpdateFields,
+  ChildUpdateFields,
+  AddPrefixToKeys,
+  UnionToIntersection
+} from '../src/lite-api/types';
 
 // TOOD(firestorelite): Add tests when Queries are usable
-export { FieldPath, documentId } from '../src/lite/field_path';
+export { FieldPath, documentId } from '../src/lite-api/field_path';
 
 // TOOD(firestorelite): Add tests when setDoc() is available
-export { FieldValue } from '../src/lite/field_value';
+export { FieldValue } from '../src/lite-api/field_value';
 
 export {
   increment,
@@ -79,7 +99,7 @@ export {
   arrayUnion,
   serverTimestamp,
   deleteField
-} from '../src/lite/field_value_impl';
+} from '../src/lite-api/field_value_impl';
 
 export {
   FirestoreDataConverter,
@@ -87,18 +107,20 @@ export {
   QueryDocumentSnapshot,
   QuerySnapshot,
   snapshotEqual
-} from '../src/lite/snapshot';
+} from '../src/lite-api/snapshot';
 
-export { WriteBatch, writeBatch } from '../src/lite/write_batch';
+export { WriteBatch, writeBatch } from '../src/lite-api/write_batch';
 
-export { Transaction, runTransaction } from '../src/lite/transaction';
+export { TransactionOptions } from '../src/lite-api/transaction_options';
+
+export { Transaction, runTransaction } from '../src/lite-api/transaction';
 
 export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
-export { Bytes } from '../src/lite/bytes';
+export { Bytes } from '../src/lite-api/bytes';
 
-export { GeoPoint } from '../src/lite/geo_point';
+export { GeoPoint } from '../src/lite-api/geo_point';
 
-export { Timestamp } from '../src/lite/timestamp';
+export { Timestamp } from '../src/lite-api/timestamp';
 
 export { FirestoreErrorCode, FirestoreError } from '../src/util/error';

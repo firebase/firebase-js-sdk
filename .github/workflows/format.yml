@@ -1,0 +1,32 @@
+name: Formatting Check (Run yarn format locally if this fails)
+
+on: pull_request
+
+env:
+  GITHUB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+  GITHUB_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+
+jobs:
+  format:
+    name: Run license and prettier formatting tasks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@master
+      with:
+        # get all history for the diff
+        fetch-depth: 0
+    - name: Set up Node (14)
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - name: Yarn install
+      run: yarn
+    - name: Run formatting script
+      run: yarn format
+    - name: Check for changes (fail if so)
+      run: git diff --exit-code
+    - name: Formatting needs to be updated. See message below.
+      if: ${{ failure() }}
+      run: echo "Something was changed by formatting. Run \`yarn format\` locally to do a prettier/license pass. Use \`yarn format --help\` to see options."

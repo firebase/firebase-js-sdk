@@ -17,7 +17,7 @@
 
 import { isSafari } from '@firebase/util';
 import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import chaiAsPromised from 'chai-as-promised';
 
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
 import { fail } from '../../../src/util/assert';
@@ -87,7 +87,7 @@ describe('AsyncQueue', () => {
 
   it('handles failures', () => {
     const queue = newAsyncQueue() as AsyncQueueImpl;
-    const expected = new Error('Firit cestore Test Simulated Error');
+    const expected = new Error('Firestore Test Simulated Error');
 
     // Disable logging for this test to avoid the assertion being logged
     const oldLogLevel = getLogLevel();
@@ -142,7 +142,7 @@ describe('AsyncQueue', () => {
       }).to.throw(/already failed:.*Simulated Error/);
 
       // Finally, restore log level.
-      setLogLevel((oldLogLevel as unknown) as LogLevelString);
+      setLogLevel(oldLogLevel as unknown as LogLevelString);
     });
   });
 
@@ -417,6 +417,22 @@ describe('AsyncQueue', () => {
     await queue.drain();
     expect(completedSteps).to.deep.equal([1, 2, 4]);
   });
+
+  it('Does not run existing operations if opted out', async () => {
+    const queue = newAsyncQueue() as AsyncQueueImpl;
+    const completedSteps: number[] = [];
+    const doStep = (n: number): Promise<void> =>
+      defer(() => {
+        completedSteps.push(n);
+      });
+
+    queue.enqueueAndForget(() => doStep(1));
+    queue.enqueueAndForgetEvenWhileRestricted(() => doStep(2));
+    queue.enterRestrictedMode(/* purgeExistingTasks =*/ true);
+
+    await queue.drain();
+    expect(completedSteps).to.deep.equal([2]);
+  });
 });
 
 function defer<T>(op: () => T): Promise<T> {
@@ -425,7 +441,7 @@ function defer<T>(op: () => T): Promise<T> {
       try {
         resolve(op());
       } catch (e) {
-        reject(e);
+        reject(e as Error);
       }
     }, 0);
   });

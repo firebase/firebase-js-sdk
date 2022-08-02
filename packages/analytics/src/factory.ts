@@ -15,42 +15,33 @@
  * limitations under the License.
  */
 
-import {
-  FirebaseAnalytics,
-  Gtag,
-  SettingsOptions,
-  DynamicConfig,
-  MinimalDynamicConfig,
-  AnalyticsCallOptions,
-  CustomParams,
-  EventParams
-} from '@firebase/analytics-types';
-import {
-  logEvent,
-  setCurrentScreen,
-  setUserId,
-  setUserProperties,
-  setAnalyticsCollectionEnabled
-} from './functions';
+import { SettingsOptions, Analytics, AnalyticsSettings } from './public-types';
+import { Gtag, DynamicConfig, MinimalDynamicConfig } from './types';
 import { getOrCreateDataLayer, wrapOrCreateGtag } from './helpers';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
-import { initializeIds } from './initialize-ids';
+import { _initializeAnalytics } from './initialize-analytics';
 import { logger } from './logger';
-import { FirebaseService } from '@firebase/app-types/private';
+import { FirebaseApp, _FirebaseService } from '@firebase/app';
 
-interface FirebaseAnalyticsInternal
-  extends FirebaseAnalytics,
-    FirebaseService {}
+/**
+ * Analytics Service class.
+ */
+export class AnalyticsService implements Analytics, _FirebaseService {
+  constructor(public app: FirebaseApp) {}
+  _delete(): Promise<void> {
+    delete initializationPromisesMap[this.app.options.appId!];
+    return Promise.resolve();
+  }
+}
 
 /**
  * Maps appId to full initialization promise. Wrapped gtag calls must wait on
  * all or some of these, depending on the call's `send_to` param and the status
  * of the dynamic config fetches (see below).
  */
-let initializationPromisesMap: {
+export let initializationPromisesMap: {
   [appId: string]: Promise<string>; // Promise contains measurement ID string.
 } = {};
 
@@ -91,7 +82,7 @@ let gtagCoreFunction: Gtag;
  * Wrapper around gtag function that ensures FID is sent with all
  * relevant event and config calls.
  */
-let wrappedGtagFunction: Gtag;
+export let wrappedGtagFunction: Gtag;
 
 /**
  * Flag to ensure page initialization steps (creation or wrapping of
@@ -101,6 +92,7 @@ let globalInitDone: boolean = false;
 
 /**
  * For testing
+ * @internal
  */
 export function resetGlobalVars(
   newGlobalInitDone = false,
@@ -116,6 +108,7 @@ export function resetGlobalVars(
 
 /**
  * For testing
+ * @internal
  */
 export function getGlobalVars(): {
   initializationPromisesMap: { [appId: string]: Promise<string> };
@@ -130,9 +123,16 @@ export function getGlobalVars(): {
 }
 
 /**
- * This must be run before calling firebase.analytics() or it won't
+ * Configures Firebase Analytics to use custom `gtag` or `dataLayer` names.
+ * Intended to be used if `gtag.js` script has been installed on
+ * this page independently of Firebase Analytics, and is using non-default
+ * names for either the `gtag` function or for `dataLayer`.
+ * Must be called before calling `getAnalytics()` or it won't
  * have any effect.
- * @param options Custom gtag and dataLayer names.
+ *
+ * @public
+ *
+ * @param options - Custom gtag and dataLayer names.
  */
 export function settings(options: SettingsOptions): void {
   if (globalInitDone) {
@@ -170,10 +170,15 @@ function warnOnBrowserContextMismatch(): void {
   }
 }
 
+/**
+ * Analytics instance factory.
+ * @internal
+ */
 export function factory(
   app: FirebaseApp,
-  installations: FirebaseInstallations
-): FirebaseAnalytics {
+  installations: _FirebaseInstallationsInternal,
+  options?: AnalyticsSettings
+): AnalyticsService {
   warnOnBrowserContextMismatch();
   const appId = app.options.appId;
   if (!appId) {
@@ -216,69 +221,17 @@ export function factory(
   }
   // Async but non-blocking.
   // This map reflects the completion state of all promises for each appId.
-  initializationPromisesMap[appId] = initializeIds(
+  initializationPromisesMap[appId] = _initializeAnalytics(
     app,
     dynamicConfigPromisesList,
     measurementIdToAppId,
     installations,
     gtagCoreFunction,
-    dataLayerName
+    dataLayerName,
+    options
   );
 
-  const analyticsInstance: FirebaseAnalyticsInternal = {
-    app,
-    // Public methods return void for API simplicity and to better match gtag,
-    // while internal implementations return promises.
-    logEvent: (
-      eventName: string,
-      eventParams?: EventParams | CustomParams,
-      options?: AnalyticsCallOptions
-    ) => {
-      logEvent(
-        wrappedGtagFunction,
-        initializationPromisesMap[appId],
-        eventName,
-        eventParams,
-        options
-      ).catch(e => logger.error(e));
-    },
-    setCurrentScreen: (screenName, options) => {
-      setCurrentScreen(
-        wrappedGtagFunction,
-        initializationPromisesMap[appId],
-        screenName,
-        options
-      ).catch(e => logger.error(e));
-    },
-    setUserId: (id, options) => {
-      setUserId(
-        wrappedGtagFunction,
-        initializationPromisesMap[appId],
-        id,
-        options
-      ).catch(e => logger.error(e));
-    },
-    setUserProperties: (properties, options) => {
-      setUserProperties(
-        wrappedGtagFunction,
-        initializationPromisesMap[appId],
-        properties,
-        options
-      ).catch(e => logger.error(e));
-    },
-    setAnalyticsCollectionEnabled: enabled => {
-      setAnalyticsCollectionEnabled(
-        initializationPromisesMap[appId],
-        enabled
-      ).catch(e => logger.error(e));
-    },
-    INTERNAL: {
-      delete: (): Promise<void> => {
-        delete initializationPromisesMap[appId];
-        return Promise.resolve();
-      }
-    }
-  };
+  const analyticsInstance: AnalyticsService = new AnalyticsService(app);
 
   return analyticsInstance;
 }

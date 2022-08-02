@@ -2,7 +2,6 @@
 
 <!-- BADGES -->
 ![Build Status](https://img.shields.io/github/workflow/status/firebase/firebase-js-sdk/Run%20All%20Tests.svg)
-[![Build Status](https://saucelabs.com/buildstatus/firebase-oss)](https://saucelabs.com/u/firebase-oss)
 [![Version](https://img.shields.io/npm/v/firebase.svg?label=version)](https://www.npmjs.com/package/firebase)
 [![Coverage Status](https://coveralls.io/repos/github/firebase/firebase-js-sdk/badge.svg?branch=master)](https://coveralls.io/github/firebase/firebase-js-sdk?branch=master)
 <!-- END BADGES -->
@@ -19,6 +18,8 @@ To get started using Firebase, see
 
 [![Release Notes](https://img.shields.io/npm/v/firebase.svg?style=flat-square&label=Release%20Notes%20for&labelColor=039be5&color=666)](https://firebase.google.com/support/release-notes/js)
 
+## Upgrade to Version 9
+Version 9 has a redesigned API that supports tree-shaking. Read the [Upgrade Guide](https://firebase.google.com/docs/web/modular-upgrade) to learn more.
 ## Supported Environments
 Please see [Environment Support](https://firebase.google.com/support/guides/environments_js-sdk).
 
@@ -88,9 +89,26 @@ $ yarn build
 A production project is required to test the Firebase JS SDK. You can create a
 new project by visiting the [Firebase Console](https://console.firebase.google.com/).
 
+#### Web App Setup
+
+Visit the "Project Overview" and select "Add app" under your project name. Register the app with a
+nickname and click through the remaining steps. Without performing this step, you will encounter
+the error in the test setup:
+
+```
+FirebaseError: There are no WEB apps associated with this Firebase project
+```
+
 #### Firestore Database Setup
 
-Visit the "Database" section of the console and create a Cloud Firestore
+Visit the "Firestore Database" section of the console and create a Cloud Firestore
+database. When prompted to select the set of initial security rules, select
+any option (e.g. "Start in Production Mode") since these permission settings
+will be overwritten below.
+
+#### Realtime Database Setup
+
+Visit the "Realtime Database" section of the console and create a realtime
 database. When prompted to select the set of initial security rules, select
 any option (e.g. "Start in Production Mode") since these permission settings
 will be overwritten below.
@@ -143,12 +161,26 @@ an individual package directory.
 The Firebase JS SDK is built with a series of individual packages that are all
 contained in this repository. Development is coordinated via [yarn
 workspaces](https://yarnpkg.com/blog/2017/08/02/introducing-workspaces/) and
-[Lerna](https://lernajs.io/) (a monorepo management tool).
+[Lerna](https://lerna.js.org/) (a monorepo management tool).
 
 Each package in the `packages` directory, constitute a piece of our
 implementation. The SDK is built via a combination of all of these packages
 which are published under the [`firebase`
 scope](https://www.npmjs.com/search?q=scope%3Afirebase) on NPM.
+
+### Testing the SDK Locally
+
+Please be sure to build your repo before proceeding any further.
+In order to manually test your SDK changes locally, you must use [yarn link](https://classic.yarnpkg.com/en/docs/cli/link):
+
+```shell
+$ cd packages/firebase
+$ yarn link # initialize the linking to the other folder
+$ cd ../<my-test-app-dir> # cd into your personal project directory
+$ yarn link firebase # tell yarn to use the locally built firebase SDK instead
+```
+
+This will create a symlink and point your `<my-test-app-dir>` to the locally built version of the firebase SDK.
 
 ### Helper Scripts
 

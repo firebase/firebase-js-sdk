@@ -49,13 +49,19 @@ import { DocNoteBox } from '../nodes/DocNoteBox';
 import { DocTableRow } from '../nodes/DocTableRow';
 import { DocTableCell } from '../nodes/DocTableCell';
 
-export function getLinkForApiItem(apiItem: ApiItem) {
-  const fileName = getFilenameForApiItem(apiItem);
+export function getLinkForApiItem(
+  apiItem: ApiItem,
+  addFileNameSuffix: boolean
+) {
+  const fileName = getFilenameForApiItem(apiItem, addFileNameSuffix);
   const headingAnchor = getHeadingAnchorForApiItem(apiItem);
   return `./${fileName}#${headingAnchor}`;
 }
 
-export function getFilenameForApiItem(apiItem: ApiItem): string {
+export function getFilenameForApiItem(
+  apiItem: ApiItem,
+  addFileNameSuffix: boolean
+): string {
   if (apiItem.kind === ApiItemKind.Model) {
     return 'index.md';
   }
@@ -96,9 +102,16 @@ export function getFilenameForApiItem(apiItem: ApiItem): string {
           multipleEntryPoints = true;
         }
         break;
+      case ApiItemKind.Namespace:
+        baseName += '.' + qualifiedName;
+        if (addFileNameSuffix) {
+          baseName += '_n';
+        }
+        break;
       case ApiItemKind.Class:
       case ApiItemKind.Interface:
         baseName += '.' + qualifiedName;
+        break;
     }
   }
   return baseName + '.md';
@@ -224,7 +237,8 @@ export function createExampleSection(
 
 export function createTitleCell(
   apiItem: ApiItem,
-  configuration: TSDocConfiguration
+  configuration: TSDocConfiguration,
+  addFileNameSuffix: boolean
 ): DocTableCell {
   return new DocTableCell({ configuration }, [
     new DocParagraph({ configuration }, [
@@ -232,7 +246,7 @@ export function createTitleCell(
         configuration,
         tagName: '@link',
         linkText: Utilities.getConciseSignature(apiItem),
-        urlDestination: getLinkForApiItem(apiItem)
+        urlDestination: getLinkForApiItem(apiItem, addFileNameSuffix)
       })
     ])
   ]);
@@ -339,7 +353,8 @@ export function createThrowsSection(
 
 export function createEntryPointTitleCell(
   apiItem: ApiEntryPoint,
-  configuration: TSDocConfiguration
+  configuration: TSDocConfiguration,
+  addFileNameSuffix: boolean
 ): DocTableCell {
   return new DocTableCell({ configuration }, [
     new DocParagraph({ configuration }, [
@@ -347,7 +362,7 @@ export function createEntryPointTitleCell(
         configuration,
         tagName: '@link',
         linkText: `/${apiItem.displayName}`,
-        urlDestination: getLinkForApiItem(apiItem)
+        urlDestination: getLinkForApiItem(apiItem, addFileNameSuffix)
       })
     ])
   ]);

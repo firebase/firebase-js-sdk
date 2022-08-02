@@ -29,13 +29,13 @@ import {
   Direction,
   FieldFilter,
   Filter,
-  isDocumentTarget,
+  targetIsDocumentTarget,
   Operator,
   OrderBy,
   Target
 } from '../core/target';
 import { TargetId } from '../core/types';
-import { Timestamp } from '../lite/timestamp';
+import { Timestamp } from '../lite-api/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -379,7 +379,7 @@ export function toMutationDocument(
 ): ProtoDocument {
   return {
     name: toName(serializer, key),
-    fields: fields.toProto().mapValue.fields
+    fields: fields.value.mapValue.fields
   };
 }
 
@@ -393,7 +393,7 @@ export function toDocument(
   );
   return {
     name: toName(serializer, document.key),
-    fields: document.data.toProto().mapValue.fields,
+    fields: document.data.value.mapValue.fields,
     updateTime: toTimestamp(serializer, document.version.toTimestamp())
   };
 }
@@ -843,10 +843,10 @@ export function toQueryTarget(
   }
 
   if (target.startAt) {
-    result.structuredQuery!.startAt = toCursor(target.startAt);
+    result.structuredQuery!.startAt = toStartAtCursor(target.startAt);
   }
   if (target.endAt) {
-    result.structuredQuery!.endAt = toCursor(target.endAt);
+    result.structuredQuery!.endAt = toEndAtCursor(target.endAt);
   }
 
   return result;
@@ -888,12 +888,12 @@ export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
 
   let startAt: Bound | null = null;
   if (query.startAt) {
-    startAt = fromCursor(query.startAt);
+    startAt = fromStartAtCursor(query.startAt);
   }
 
   let endAt: Bound | null = null;
   if (query.endAt) {
-    endAt = fromCursor(query.endAt);
+    endAt = fromEndAtCursor(query.endAt);
   }
 
   return newQuery(
@@ -949,7 +949,7 @@ export function toTarget(
   let result: ProtoTarget;
   const target = targetData.target;
 
-  if (isDocumentTarget(target)) {
+  if (targetIsDocumentTarget(target)) {
     result = { documents: toDocumentsTarget(serializer, target) };
   } else {
     result = { query: toQueryTarget(serializer, target) };
@@ -1016,17 +1016,30 @@ function fromOrder(orderBys: ProtoOrder[]): OrderBy[] {
   return orderBys.map(order => fromPropertyOrder(order));
 }
 
-function toCursor(cursor: Bound): ProtoCursor {
+function toStartAtCursor(cursor: Bound): ProtoCursor {
   return {
-    before: cursor.before,
+    before: cursor.inclusive,
     values: cursor.position
   };
 }
 
-function fromCursor(cursor: ProtoCursor): Bound {
-  const before = !!cursor.before;
+function toEndAtCursor(cursor: Bound): ProtoCursor {
+  return {
+    before: !cursor.inclusive,
+    values: cursor.position
+  };
+}
+
+function fromStartAtCursor(cursor: ProtoCursor): Bound {
+  const inclusive = !!cursor.before;
   const position = cursor.values || [];
-  return new Bound(position, before);
+  return new Bound(position, inclusive);
+}
+
+function fromEndAtCursor(cursor: ProtoCursor): Bound {
+  const inclusive = !cursor.before;
+  const position = cursor.values || [];
+  return new Bound(position, inclusive);
 }
 
 // visible for testing

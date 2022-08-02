@@ -1,6 +1,7 @@
 {
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
+    "outDir": "dist",
     "downlevelIteration": true,
     "resolveJsonModule": true,
     "noUnusedLocals": true,
@@ -8,5 +9,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["dist/**/*"]
 }

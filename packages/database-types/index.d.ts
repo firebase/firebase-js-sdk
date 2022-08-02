@@ -16,12 +16,15 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { EmulatorMockTokenOptions } from '@firebase/util';
 
 export interface DataSnapshot {
   child(path: string): DataSnapshot;
   exists(): boolean;
   exportVal(): any;
-  forEach(action: (a: DataSnapshot) => boolean | void): boolean;
+  forEach(
+    action: (a: DataSnapshot & { key: string }) => boolean | void
+  ): boolean;
   getPriority(): string | number | null;
   hasChild(path: string): boolean;
   hasChildren(): boolean;
@@ -34,7 +37,13 @@ export interface DataSnapshot {
 
 export interface Database {
   app: FirebaseApp;
-  useEmulator(host: string, port: number): void;
+  useEmulator(
+    host: string,
+    port: number,
+    options?: {
+      mockUserToken?: EmulatorMockTokenOptions | string;
+    }
+  ): void;
   goOffline(): void;
   goOnline(): void;
   ref(path?: string | Reference): Reference;
@@ -44,7 +53,13 @@ export interface Database {
 export class FirebaseDatabase implements Database {
   private constructor();
   app: FirebaseApp;
-  useEmulator(host: string, port: number): void;
+  useEmulator(
+    host: string,
+    port: number,
+    options?: {
+      mockUserToken?: EmulatorMockTokenOptions | string;
+    }
+  ): void;
   goOffline(): void;
   goOnline(): void;
   ref(path?: string | Reference): Reference;
@@ -112,29 +127,34 @@ export interface Reference extends Query {
   onDisconnect(): OnDisconnect;
   parent: Reference | null;
   push(value?: any, onComplete?: (a: Error | null) => any): ThenableReference;
-  remove(onComplete?: (a: Error | null) => any): Promise<any>;
+  remove(onComplete?: (a: Error | null) => void): Promise<void>;
   root: Reference;
-  set(value: any, onComplete?: (a: Error | null) => any): Promise<any>;
+  set(value: any, onComplete?: (a: Error | null) => void): Promise<void>;
   setPriority(
     priority: string | number | null,
-    onComplete: (a: Error | null) => any
-  ): Promise<any>;
+    onComplete: (a: Error | null) => void
+  ): Promise<void>;
   setWithPriority(
     newVal: any,
     newPriority: string | number | null,
-    onComplete?: (a: Error | null) => any
-  ): Promise<any>;
+    onComplete?: (a: Error | null) => void
+  ): Promise<void>;
   transaction(
     transactionUpdate: (a: any) => any,
-    onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => any,
+    onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => void,
     applyLocally?: boolean
-  ): Promise<any>;
-  update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
+  ): Promise<TransactionResult>;
+  update(values: Object, onComplete?: (a: Error | null) => void): Promise<void>;
 }
 
 export interface ServerValue {
   TIMESTAMP: Object;
   increment(delta: number): Object;
+}
+
+export interface TransactionResult {
+  committed: boolean;
+  snapshot: DataSnapshot;
 }
 
 export interface ThenableReference
@@ -148,6 +168,6 @@ export function enableLogging(
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'database': FirebaseDatabase;
+    'database-compat': FirebaseDatabase;
   }
 }

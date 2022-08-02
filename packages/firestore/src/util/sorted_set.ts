@@ -188,3 +188,76 @@ export class SortedSetIterator<T> {
     return this.iter.hasNext();
   }
 }
+
+/**
+ * Compares two sorted sets for equality using their natural ordering. The
+ * method computes the intersection and invokes `onAdd` for every element that
+ * is in `after` but not `before`. `onRemove` is invoked for every element in
+ * `before` but missing from `after`.
+ *
+ * The method creates a copy of both `before` and `after` and runs in O(n log
+ * n), where n is the size of the two lists.
+ *
+ * @param before - The elements that exist in the original set.
+ * @param after - The elements to diff against the original set.
+ * @param comparator - The comparator for the elements in before and after.
+ * @param onAdd - A function to invoke for every element that is part of `
+ * after` but not `before`.
+ * @param onRemove - A function to invoke for every element that is part of
+ * `before` but not `after`.
+ */
+export function diffSortedSets<T>(
+  before: SortedSet<T>,
+  after: SortedSet<T>,
+  comparator: (l: T, r: T) => number,
+  onAdd: (entry: T) => void,
+  onRemove: (entry: T) => void
+): void {
+  const beforeIt = before.getIterator();
+  const afterIt = after.getIterator();
+
+  let beforeValue = advanceIterator(beforeIt);
+  let afterValue = advanceIterator(afterIt);
+
+  // Walk through the two sets at the same time, using the ordering defined by
+  // `comparator`.
+  while (beforeValue || afterValue) {
+    let added = false;
+    let removed = false;
+
+    if (beforeValue && afterValue) {
+      const cmp = comparator(beforeValue, afterValue);
+      if (cmp < 0) {
+        // The element was removed if the next element in our ordered
+        // walkthrough is only in `before`.
+        removed = true;
+      } else if (cmp > 0) {
+        // The element was added if the next element in our ordered walkthrough
+        // is only in `after`.
+        added = true;
+      }
+    } else if (beforeValue != null) {
+      removed = true;
+    } else {
+      added = true;
+    }
+
+    if (added) {
+      onAdd(afterValue!);
+      afterValue = advanceIterator(afterIt);
+    } else if (removed) {
+      onRemove(beforeValue!);
+      beforeValue = advanceIterator(beforeIt);
+    } else {
+      beforeValue = advanceIterator(beforeIt);
+      afterValue = advanceIterator(afterIt);
+    }
+  }
+}
+
+/**
+ * Returns the next element from the iterator or `undefined` if none available.
+ */
+function advanceIterator<T>(it: SortedSetIterator<T>): T | undefined {
+  return it.hasNext() ? it.getNext() : undefined;
+}

@@ -41,7 +41,9 @@ export function start(
   // Would type this as "number" but that doesn't work for Node so ¯\_(ツ)_/¯
   // TODO: find a way to exclude Node type definition for storage because storage only works in browser
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let timeoutId: any = null;
+  let retryTimeoutId: any = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let globalTimeoutId: any = null;
   let hitTimeout = false;
   let cancelState = 0;
 
@@ -58,22 +60,31 @@ export function start(
   }
 
   function callWithDelay(millis: number): void {
-    timeoutId = setTimeout(() => {
-      timeoutId = null;
+    retryTimeoutId = setTimeout(() => {
+      retryTimeoutId = null;
       f(handler, canceled());
     }, millis);
   }
 
+  function clearGlobalTimeout(): void {
+    if (globalTimeoutId) {
+      clearTimeout(globalTimeoutId);
+    }
+  }
+
   function handler(success: boolean, ...args: any[]): void {
     if (triggeredCallback) {
+      clearGlobalTimeout();
       return;
     }
     if (success) {
+      clearGlobalTimeout();
       triggerCallback.call(null, success, ...args);
       return;
     }
     const mustStop = canceled() || hitTimeout;
     if (mustStop) {
+      clearGlobalTimeout();
       triggerCallback.call(null, success, ...args);
       return;
     }
@@ -97,14 +108,15 @@ export function start(
       return;
     }
     stopped = true;
+    clearGlobalTimeout();
     if (triggeredCallback) {
       return;
     }
-    if (timeoutId !== null) {
+    if (retryTimeoutId !== null) {
       if (!wasTimeout) {
         cancelState = 2;
       }
-      clearTimeout(timeoutId);
+      clearTimeout(retryTimeoutId);
       callWithDelay(0);
     } else {
       if (!wasTimeout) {
@@ -113,7 +125,7 @@ export function start(
     }
   }
   callWithDelay(0);
-  setTimeout(() => {
+  globalTimeoutId = setTimeout(() => {
     hitTimeout = true;
     stop(true);
   }, timeout);

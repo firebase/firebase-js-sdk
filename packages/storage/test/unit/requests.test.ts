@@ -32,24 +32,26 @@ import {
   getResumableUploadStatus,
   ResumableUploadStatus,
   continueResumableUpload,
-  RESUMABLE_UPLOAD_CHUNK_SIZE
+  RESUMABLE_UPLOAD_CHUNK_SIZE,
+  getBytes
 } from '../../src/implementation/requests';
 import { makeUrl } from '../../src/implementation/url';
 import { unknown, StorageErrorCode } from '../../src/implementation/error';
 import { RequestInfo } from '../../src/implementation/requestinfo';
-import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { Metadata } from '../../src/metadata';
-import { StorageService } from '../../src/service';
+import { FirebaseStorageImpl } from '../../src/service';
 import {
   assertObjectIncludes,
   fakeXhrIo,
-  fakeAuthProvider
+  fakeAuthProvider,
+  fakeAppCheckTokenProvider
 } from './testshared';
 import {
   DEFAULT_HOST,
   CONFIG_STORAGE_BUCKET_KEY
 } from '../../src/implementation/constants';
 import { FirebaseApp } from '@firebase/app-types';
+import { decodeUint8Array } from '../../src/platform/base64';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
@@ -62,9 +64,9 @@ describe('Firebase Storage > Requests', () => {
   const locationEscapes = new Location('b/', 'o?');
   const locationEscapesUrl = '/b/b%2F/o/o%3F';
   const locationEscapesNoObjUrl = '/b/b%2F/o';
-  const smallBlob = new FbsBlob(new Blob(['a']));
+  const smallBlob = new FbsBlob(new Uint8Array([97]));
   const smallBlobString = 'a';
-  const bigBlob = new FbsBlob(new Blob([new ArrayBuffer(1024 * 1024)]));
+  const bigBlob = new FbsBlob(new ArrayBuffer(1024 * 1024));
 
   const mappings = getMappings();
 
@@ -77,20 +79,20 @@ describe('Firebase Storage > Requests', () => {
     delete: async () => undefined
   };
 
-  const storageService = new StorageService(
+  const storageService = new FirebaseStorageImpl(
     mockApp,
     fakeAuthProvider,
-    new XhrIoPool()
+    fakeAppCheckTokenProvider
   );
 
   const contentTypeInMetadata = 'application/jason';
-  const metadata = ({
+  const metadata = {
     contentType: contentTypeInMetadata,
     customMetadata: {
       // no-inline
       foo: 'bar'
     }
-  } as any) as Metadata;
+  } as any as Metadata;
   const metadataString = JSON.stringify({
     // no-inline
     contentType: contentTypeInMetadata,
@@ -156,7 +158,7 @@ describe('Firebase Storage > Requests', () => {
     });
   }
 
-  function assertBodyEquals(
+  async function assertBodyEquals(
     body: Blob | string | Uint8Array | null,
     expectedStr: string
   ): Promise<void> {
@@ -164,26 +166,27 @@ describe('Firebase Storage > Requests', () => {
       assert.fail('body was null');
     }
 
-    if (body instanceof Blob) {
+    if (typeof Blob !== 'undefined' && body instanceof Blob) {
       return readBlob(body).then(str => {
         assert.equal(str, expectedStr);
       });
     } else if (body instanceof Uint8Array) {
-      return readBlob(new Blob([body])).then(str => {
-        assert.equal(str, expectedStr);
-      });
+      const str = decodeUint8Array(body);
+      assert.equal(str, expectedStr);
     } else {
       assert.equal(body as string, expectedStr);
       return Promise.resolve(undefined);
     }
   }
 
-  function checkMetadataHandler(requestInfo: RequestInfo<Metadata>): void {
+  function checkMetadataHandler(
+    requestInfo: RequestInfo<string, Metadata>
+  ): void {
     const metadata = requestInfo.handler(fakeXhrIo({}), serverResourceString);
     assert.deepEqual(metadata, metadataFromServerResource);
   }
 
-  function checkNoOpHandler<T>(requestInfo: RequestInfo<T>): void {
+  function checkNoOpHandler<T>(requestInfo: RequestInfo<string, T>): void {
     try {
       requestInfo.handler(fakeXhrIo({}), '');
     } catch (e) {
@@ -200,7 +203,7 @@ describe('Firebase Storage > Requests', () => {
       const requestInfo = getMetadata(storageService, location, mappings);
       assertObjectIncludes(
         {
-          url: makeUrl(url, storageService.host),
+          url: makeUrl(url, storageService.host, storageService._protocol),
           method: 'GET',
           body: null,
           headers: {},
@@ -220,7 +223,11 @@ describe('Firebase Storage > Requests', () => {
     const requestInfo = list(storageService, locationRoot, '/');
     assertObjectIncludes(
       {
-        url: makeUrl(locationNormalNoObjUrl, storageService.host),
+        url: makeUrl(
+          locationNormalNoObjUrl,
+          storageService.host,
+          storageService._protocol
+        ),
         method: 'GET',
         body: null,
         headers: {},
@@ -250,7 +257,11 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: makeUrl(locationNoObjectUrl, storageService.host),
+          url: makeUrl(
+            locationNoObjectUrl,
+            storageService.host,
+            storageService._protocol
+          ),
           method: 'GET',
           body: null,
           headers: {},
@@ -317,7 +328,7 @@ describe('Firebase Storage > Requests', () => {
       const requestInfo = getDownloadUrl(storageService, location, mappings);
       assertObjectIncludes(
         {
-          url: makeUrl(url, storageService.host),
+          url: makeUrl(url, storageService.host, storageService._protocol),
           method: 'GET',
           body: null,
           headers: {},
@@ -336,6 +347,14 @@ describe('Firebase Storage > Requests', () => {
     const url = requestInfo.handler(fakeXhrIo({}), serverResourceString);
     assert.equal(url, downloadUrlFromServerResource);
   });
+  it('getBytes handler', () => {
+    const requestInfo = getBytes(storageService, locationNormal);
+    const bytes = requestInfo.handler(
+      fakeXhrIo({}),
+      new Uint8Array([1, 128, 255])
+    ) as ArrayBuffer; // Narrow type to ArrayBuffer
+    assert.deepEqual(new Uint8Array(bytes), new Uint8Array([1, 128, 255]));
+  });
   it('updateMetadata requestinfo', () => {
     const maps = [
       [locationNormal, locationNormalUrl],
@@ -352,7 +371,7 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: makeUrl(url, storageService.host),
+          url: makeUrl(url, storageService.host, storageService._protocol),
           method: 'PATCH',
           body: metadataString,
           headers: { 'Content-Type': metadataContentType },
@@ -383,7 +402,7 @@ describe('Firebase Storage > Requests', () => {
       const requestInfo = deleteObject(storageService, location);
       assertObjectIncludes(
         {
-          url: makeUrl(url, storageService.host),
+          url: makeUrl(url, storageService.host, storageService._protocol),
           method: 'DELETE',
           body: null,
           headers: {},
@@ -398,7 +417,8 @@ describe('Firebase Storage > Requests', () => {
     checkNoOpHandler(requestInfo);
   });
   it('multipartUpload request info', () => {
-    const multipartHeaderRegex = /^multipart\/related; boundary=([A-Za-z0-9]+)$/;
+    const multipartHeaderRegex =
+      /^multipart\/related; boundary=([A-Za-z0-9]+)$/;
 
     const maps = [
       [locationNormal, locationNormalNoObjUrl],
@@ -448,7 +468,7 @@ describe('Firebase Storage > Requests', () => {
 
       assertObjectIncludes(
         {
-          url: makeUrl(url, storageService.host),
+          url: makeUrl(url, storageService.host, storageService._protocol),
           method: 'POST',
           urlParams: { name: location.path },
           headers: {
@@ -493,13 +513,13 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: makeUrl(url, storageService.host),
+          url: makeUrl(url, storageService.host, storageService._protocol),
           method: 'POST',
           urlParams: { name: location.path },
           headers: {
             'X-Goog-Upload-Protocol': 'resumable',
             'X-Goog-Upload-Command': 'start',
-            'X-Goog-Upload-Header-Content-Length': smallBlob.size(),
+            'X-Goog-Upload-Header-Content-Length': `${smallBlob.size()}`,
             'X-Goog-Upload-Header-Content-Type': contentTypeInMetadata,
             'Content-Type': metadataContentType
           }
@@ -604,7 +624,7 @@ describe('Firebase Storage > Requests', () => {
         urlParams: {},
         headers: {
           'X-Goog-Upload-Command': 'upload, finalize',
-          'X-Goog-Upload-Offset': 0
+          'X-Goog-Upload-Offset': '0'
         }
       },
       requestInfo

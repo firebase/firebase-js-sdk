@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,37 @@ import { Trace } from '../resources/trace';
 import { expect } from 'chai';
 import { Api, setupApi } from '../services/api_service';
 import * as perfLogger from '../services/perf_logger';
+import { PerformanceController } from '../controllers/perf';
+import { FirebaseApp } from '@firebase/app';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 import '../../test/setup';
 
 describe('Firebase Performance > trace', () => {
   setupApi(window);
+  const fakeFirebaseConfig = {
+    apiKey: 'api-key',
+    authDomain: 'project-id.firebaseapp.com',
+    databaseURL: 'https://project-id.firebaseio.com',
+    projectId: 'project-id',
+    storageBucket: 'project-id.appspot.com',
+    messagingSenderId: 'sender-id',
+    appId: '1:111:web:a1234'
+  };
+
+  const fakeFirebaseApp = {
+    options: fakeFirebaseConfig
+  } as unknown as FirebaseApp;
+
+  const fakeInstallations = {} as unknown as FirebaseInstallations;
+  const performanceController = new PerformanceController(
+    fakeFirebaseApp,
+    fakeInstallations
+  );
+
   let trace: Trace;
   const createTrace = (): Trace => {
-    return new Trace('test');
+    return new Trace(performanceController, 'test');
   };
 
   beforeEach(() => {
@@ -81,6 +104,12 @@ describe('Firebase Performance > trace', () => {
       expect(() => trace.record(1000, -200)).to.throw();
     });
 
+    it('logs a trace without metrics or custom attributes', () => {
+      trace.record(1, 20);
+
+      expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
+    });
+
     it('logs a trace with metrics', () => {
       trace.record(1, 20, { metrics: { cacheHits: 1 } });
 
@@ -104,6 +133,15 @@ describe('Firebase Performance > trace', () => {
       expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
       expect(trace.getAttributes()).to.eql({ level: '1' });
       expect(trace.getMetric('cacheHits')).to.eql(1);
+    });
+
+    it('does not log counter with invalid counter value', () => {
+      trace.record(1, 20, {
+        metrics: { level: NaN }
+      });
+
+      expect((perfLogger.logTrace as any).calledOnceWith(trace)).to.be.true;
+      expect(trace.getMetric('level')).to.eql(0);
     });
   });
 
@@ -158,6 +196,12 @@ describe('Firebase Performance > trace', () => {
       trace.putMetric('cacheHits', 400);
 
       expect(trace.getMetric('cacheHits')).to.eql(400);
+    });
+
+    it('replaces undefined metrics with 0', () => {
+      trace.putMetric('cacheHits', undefined);
+
+      expect(trace.getMetric('cacheHits')).to.eql(0);
     });
 
     it('throws error if metric doesnt exist and has invalid name', () => {

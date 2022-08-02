@@ -92,8 +92,8 @@ export const parseRepoInfo = function (
       parsedUrl.host,
       parsedUrl.secure,
       namespace,
-      nodeAdmin,
       webSocketOnly,
+      nodeAdmin,
       /*persistenceKey=*/ '',
       /*includeNamespaceInQueryParams=*/ namespace !== parsedUrl.subdomain
     ),
@@ -101,9 +101,7 @@ export const parseRepoInfo = function (
   };
 };
 
-export const parseDatabaseURL = function (
-  dataURL: string
-): {
+export const parseDatabaseURL = function (dataURL: string): {
   host: string;
   port: number;
   domain: string;

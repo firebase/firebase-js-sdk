@@ -34,7 +34,7 @@ describe('Document', () => {
     const document = doc('rooms/Eros', 1, data);
 
     const value = document.data;
-    expect(value.toProto()).to.deep.equal(
+    expect(value.value).to.deep.equal(
       wrap({
         desc: 'Discuss all the project related stuff',
         owner: 'Jonny'

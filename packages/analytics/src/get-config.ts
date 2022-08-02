@@ -19,12 +19,8 @@
  * @fileoverview Most logic is copied from packages/remote-config/src/client/retrying_client.ts
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import {
-  DynamicConfig,
-  ThrottleMetadata,
-  MinimalDynamicConfig
-} from '@firebase/analytics-types';
+import { FirebaseApp } from '@firebase/app';
+import { DynamicConfig, ThrottleMetadata, MinimalDynamicConfig } from './types';
 import { FirebaseError, calculateBackoffMillis } from '@firebase/util';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { DYNAMIC_CONFIG_URL, FETCH_TIMEOUT_MILLIS } from './constants';
@@ -192,7 +188,9 @@ async function attemptFetchDynamicConfigWithRetry(
       logger.warn(
         `Timed out fetching this Firebase app's measurement ID from the server.` +
           ` Falling back to the measurement ID ${measurementId}` +
-          ` provided in the "measurementId" field in the local Firebase config. [${e.message}]`
+          ` provided in the "measurementId" field in the local Firebase config. [${
+            (e as Error)?.message
+          }]`
       );
       return { appId, measurementId };
     }
@@ -207,13 +205,14 @@ async function attemptFetchDynamicConfigWithRetry(
 
     return response;
   } catch (e) {
-    if (!isRetriableError(e)) {
+    const error = e as Error;
+    if (!isRetriableError(error)) {
       retryData.deleteThrottleMetadata(appId);
       if (measurementId) {
         logger.warn(
           `Failed to fetch this Firebase app's measurement ID from the server.` +
             ` Falling back to the measurement ID ${measurementId}` +
-            ` provided in the "measurementId" field in the local Firebase config. [${e.message}]`
+            ` provided in the "measurementId" field in the local Firebase config. [${error?.message}]`
         );
         return { appId, measurementId };
       } else {
@@ -222,7 +221,7 @@ async function attemptFetchDynamicConfigWithRetry(
     }
 
     const backoffMillis =
-      Number(e.customData.httpStatus) === 503
+      Number(error?.customData?.httpStatus) === 503
         ? calculateBackoffMillis(
             backoffCount,
             retryData.intervalMillis,

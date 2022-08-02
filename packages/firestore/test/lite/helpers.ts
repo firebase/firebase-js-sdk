@@ -16,24 +16,22 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp } from '@firebase/app-exp';
+import { initializeApp } from '@firebase/app';
 import { expect } from 'chai';
 
-import {
-  initializeFirestore,
-  FirebaseFirestore
-} from '../../src/lite/database';
+import { initializeFirestore, Firestore } from '../../src/lite-api/database';
 import {
   doc,
   collection,
   DocumentData,
   CollectionReference,
   DocumentReference,
-  SetOptions
-} from '../../src/lite/reference';
-import { setDoc } from '../../src/lite/reference_impl';
-import { Settings } from '../../src/lite/settings';
-import { QueryDocumentSnapshot } from '../../src/lite/snapshot';
+  SetOptions,
+  PartialWithFieldValue
+} from '../../src/lite-api/reference';
+import { setDoc } from '../../src/lite-api/reference_impl';
+import { FirestoreSettings } from '../../src/lite-api/settings';
+import { QueryDocumentSnapshot } from '../../src/lite-api/snapshot';
 import { AutoId } from '../../src/util/misc';
 import {
   DEFAULT_PROJECT_ID,
@@ -44,8 +42,8 @@ let appCount = 0;
 
 export async function withTestDbSettings(
   projectId: string,
-  settings: Settings,
-  fn: (db: FirebaseFirestore) => void | Promise<void>
+  settings: FirestoreSettings,
+  fn: (db: Firestore) => void | Promise<void>
 ): Promise<void> {
   const app = initializeApp(
     { apiKey: 'fake-api-key', projectId },
@@ -57,7 +55,7 @@ export async function withTestDbSettings(
 }
 
 export function withTestDb(
-  fn: (db: FirebaseFirestore) => void | Promise<void>
+  fn: (db: Firestore) => void | Promise<void>
 ): Promise<void> {
   return withTestDbSettings(DEFAULT_PROJECT_ID, DEFAULT_SETTINGS, fn);
 }
@@ -105,7 +103,11 @@ export function withTestCollection(
 
 // Used for testing the FirestoreDataConverter.
 export class Post {
-  constructor(readonly title: string, readonly author: string) {}
+  constructor(
+    readonly title: string,
+    readonly author: string,
+    readonly id = 1
+  ) {}
   byline(): string {
     return this.title + ', by ' + this.author;
   }
@@ -122,7 +124,10 @@ export const postConverter = {
 };
 
 export const postConverterMerge = {
-  toFirestore(post: Partial<Post>, options?: SetOptions): DocumentData {
+  toFirestore(
+    post: PartialWithFieldValue<Post>,
+    options?: SetOptions
+  ): DocumentData {
     if (
       options &&
       ((options as { merge: true }).merge ||

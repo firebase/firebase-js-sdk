@@ -39,6 +39,7 @@ describeFn('WebChannel', () => {
     const conn = new WebChannelConnection(info);
     const stream = conn.openStream<api.ListenRequest, api.ListenResponse>(
       'Listen',
+      null,
       null
     );
 

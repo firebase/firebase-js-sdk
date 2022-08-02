@@ -17,18 +17,18 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetId } from '../core/types';
+import { OverlayedDocument } from '../local/overlayed_document';
 import { primitiveComparator } from '../util/misc';
+import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import { Document, MutableDocument } from './document';
 import { DocumentKey } from './document_key';
+import { Mutation } from './mutation';
+import { Overlay } from './overlay';
 
 /** Miscellaneous collection types / constants. */
-export interface DocumentSizeEntry {
-  document: MutableDocument;
-  size: number;
-}
 
 export type MutableDocumentMap = SortedMap<DocumentKey, MutableDocument>;
 const EMPTY_MUTABLE_DOCUMENT_MAP = new SortedMap<DocumentKey, MutableDocument>(
@@ -47,8 +47,45 @@ export type DocumentMap = SortedMap<DocumentKey, Document>;
 const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(
   DocumentKey.comparator
 );
-export function documentMap(): DocumentMap {
-  return EMPTY_DOCUMENT_MAP;
+export function documentMap(...docs: Document[]): DocumentMap {
+  let map = EMPTY_DOCUMENT_MAP;
+  for (const doc of docs) {
+    map = map.insert(doc.key, doc);
+  }
+  return map;
+}
+
+export type OverlayedDocumentMap = DocumentKeyMap<OverlayedDocument>;
+export function newOverlayedDocumentMap(): OverlayedDocumentMap {
+  return newDocumentKeyMap<OverlayedDocument>();
+}
+
+export function convertOverlayedDocumentMapToDocumentMap(
+  collection: OverlayedDocumentMap
+): DocumentMap {
+  let documents = EMPTY_DOCUMENT_MAP;
+  collection.forEach(
+    (k, v) => (documents = documents.insert(k, v.overlayedDocument))
+  );
+  return documents;
+}
+
+export type OverlayMap = DocumentKeyMap<Overlay>;
+export function newOverlayMap(): OverlayMap {
+  return newDocumentKeyMap<Overlay>();
+}
+
+export type MutationMap = DocumentKeyMap<Mutation>;
+export function newMutationMap(): MutationMap {
+  return newDocumentKeyMap<Mutation>();
+}
+
+export type DocumentKeyMap<T> = ObjectMap<DocumentKey, T>;
+export function newDocumentKeyMap<T>(): DocumentKeyMap<T> {
+  return new ObjectMap<DocumentKey, T>(
+    key => key.toString(),
+    (l, r) => l.isEqual(r)
+  );
 }
 
 export type DocumentVersionMap = SortedMap<DocumentKey, SnapshotVersion>;

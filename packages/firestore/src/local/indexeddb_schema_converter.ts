@@ -15,44 +15,106 @@
  * limitations under the License.
  */
 
+import { User } from '../auth/user';
+import { ListenSequence } from '../core/listen_sequence';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { DocumentKeySet, documentKeySet } from '../model/collections';
+import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
-import { debugAssert, hardAssert } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
+import { IndexedDbDocumentOverlayCache } from './indexeddb_document_overlay_cache';
 import {
   dbDocumentSize,
   removeMutationBatch
 } from './indexeddb_mutation_batch_impl';
+import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
+import { newIndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
-  DbBundle,
-  DbClientMetadata,
   DbCollectionParent,
-  DbCollectionParentKey,
   DbDocumentMutation,
-  DbDocumentMutationKey,
   DbMutationBatch,
-  DbMutationBatchKey,
   DbMutationQueue,
-  DbMutationQueueKey,
-  DbNamedQuery,
-  DbPrimaryClient,
   DbRemoteDocument,
   DbRemoteDocumentGlobal,
-  DbRemoteDocumentGlobalKey,
-  DbRemoteDocumentKey,
   DbTarget,
   DbTargetDocument,
-  DbTargetDocumentKey,
   DbTargetGlobal,
-  DbTargetGlobalKey,
-  DbTargetKey,
   SCHEMA_VERSION
 } from './indexeddb_schema';
+import {
+  DbRemoteDocument as DbRemoteDocumentLegacy,
+  DbRemoteDocumentStore as DbRemoteDocumentStoreLegacy,
+  DbRemoteDocumentKey as DbRemoteDocumentKeyLegacy
+} from './indexeddb_schema_legacy';
+import {
+  DbBundleKeyPath,
+  DbBundleStore,
+  DbClientMetadataKeyPath,
+  DbClientMetadataStore,
+  DbCollectionParentKey,
+  DbCollectionParentKeyPath,
+  DbCollectionParentStore,
+  DbDocumentMutationKey,
+  DbDocumentMutationStore,
+  DbDocumentOverlayCollectionGroupOverlayIndex,
+  DbDocumentOverlayCollectionGroupOverlayIndexPath,
+  DbDocumentOverlayCollectionPathOverlayIndex,
+  DbDocumentOverlayCollectionPathOverlayIndexPath,
+  DbDocumentOverlayKeyPath,
+  DbDocumentOverlayStore,
+  DbIndexConfigurationCollectionGroupIndex,
+  DbIndexConfigurationCollectionGroupIndexPath,
+  DbIndexConfigurationKeyPath,
+  DbIndexConfigurationStore,
+  DbIndexEntryDocumentKeyIndex,
+  DbIndexEntryDocumentKeyIndexPath,
+  DbIndexEntryKeyPath,
+  DbIndexEntryStore,
+  DbIndexStateKeyPath,
+  DbIndexStateSequenceNumberIndex,
+  DbIndexStateSequenceNumberIndexPath,
+  DbIndexStateStore,
+  DbMutationBatchKey,
+  DbMutationBatchKeyPath,
+  DbMutationBatchStore,
+  DbMutationBatchUserMutationsIndex,
+  DbMutationBatchUserMutationsKeyPath,
+  DbMutationQueueKey,
+  DbMutationQueueKeyPath,
+  DbMutationQueueStore,
+  DbNamedQueryKeyPath,
+  DbNamedQueryStore,
+  DbPrimaryClientStore,
+  DbRemoteDocumentCollectionGroupIndex,
+  DbRemoteDocumentCollectionGroupIndexPath,
+  DbRemoteDocumentDocumentKeyIndex,
+  DbRemoteDocumentDocumentKeyIndexPath,
+  DbRemoteDocumentGlobalKey,
+  DbRemoteDocumentGlobalStore,
+  DbRemoteDocumentKey,
+  DbRemoteDocumentKeyPath,
+  DbRemoteDocumentStore,
+  DbTargetDocumentDocumentTargetsIndex,
+  DbTargetDocumentDocumentTargetsKeyPath,
+  DbTargetDocumentKey,
+  DbTargetDocumentKeyPath,
+  DbTargetDocumentStore,
+  DbTargetGlobalKey,
+  DbTargetGlobalStore,
+  DbTargetKey,
+  DbTargetKeyPath,
+  DbTargetQueryTargetsIndexName,
+  DbTargetQueryTargetsKeyPath,
+  DbTargetStore
+} from './indexeddb_sentinels';
+import { IndexedDbTransaction } from './indexeddb_transaction';
+import { LocalDocumentsView } from './local_documents_view';
 import {
   fromDbMutationBatch,
   fromDbTarget,
@@ -60,6 +122,7 @@ import {
   toDbTarget
 } from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
+import { MemoryEagerDelegate, MemoryPersistence } from './memory_persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
@@ -80,7 +143,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    hardAssert(
+    debugAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
         toVersion <= SCHEMA_VERSION,
@@ -93,7 +156,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       createPrimaryClientStore(db);
       createMutationQueue(db);
       createQueryCache(db);
-      createRemoteDocumentCache(db);
+      createLegacyRemoteDocumentCache(db);
     }
 
     // Migration 2 to populate the targetGlobal object no longer needed since
@@ -155,7 +218,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         // to the DbRemoteDocument object store itself. Since the previous change
         // log only contained transient data, we can drop its object store.
         dropRemoteDocumentChangesStore(db);
-        createRemoteDocumentReadTimeIndex(txn);
+
+        // Note: Schema version 9 used to create a read time index for the
+        // RemoteDocumentCache. This is now done with schema version 13.
       });
     }
 
@@ -169,25 +234,49 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         createNamedQueriesStore(db);
       });
     }
+
+    if (fromVersion < 12 && toVersion >= 12) {
+      p = p.next(() => {
+        createDocumentOverlayStore(db);
+      });
+    }
+
+    if (fromVersion < 13 && toVersion >= 13) {
+      p = p
+        .next(() => createRemoteDocumentCache(db))
+        .next(() => this.rewriteRemoteDocumentCache(db, simpleDbTransaction))
+        .next(() => db.deleteObjectStore(DbRemoteDocumentStoreLegacy));
+    }
+
+    if (fromVersion < 14 && toVersion >= 14) {
+      p = p.next(() => this.runOverlayMigration(db, simpleDbTransaction));
+    }
+
+    if (fromVersion < 15 && toVersion >= 15) {
+      p = p.next(() => createFieldIndex(db));
+    }
+
     return p;
   }
 
   private addDocumentGlobal(
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
-    let byteCount = 0;
+    let byteSize = 0;
     return txn
-      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+      .store<DbRemoteDocumentKeyLegacy, DbRemoteDocumentLegacy>(
+        DbRemoteDocumentStoreLegacy
+      )
       .iterate((_, doc) => {
-        byteCount += dbDocumentSize(doc);
+        byteSize += dbDocumentSize(doc);
       })
       .next(() => {
-        const metadata = new DbRemoteDocumentGlobal(byteCount);
+        const metadata: DbRemoteDocumentGlobal = { byteSize };
         return txn
           .store<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
-            DbRemoteDocumentGlobal.store
+            DbRemoteDocumentGlobalStore
           )
-          .put(DbRemoteDocumentGlobal.key, metadata);
+          .put(DbRemoteDocumentGlobalKey, metadata);
       });
   }
 
@@ -195,10 +284,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
     const queuesStore = txn.store<DbMutationQueueKey, DbMutationQueue>(
-      DbMutationQueue.store
+      DbMutationQueueStore
     );
     const mutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
-      DbMutationBatch.store
+      DbMutationBatchStore
     );
 
     return queuesStore.loadAll().next(queues => {
@@ -209,7 +298,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         );
 
         return mutationsStore
-          .loadAll(DbMutationBatch.userMutationsIndex, range)
+          .loadAll(DbMutationBatchUserMutationsIndex, range)
           .next(dbBatches => {
             return PersistencePromise.forEach(
               dbBatches,
@@ -220,11 +309,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
                 );
                 const batch = fromDbMutationBatch(this.serializer, dbBatch);
 
-                return removeMutationBatch(
-                  txn,
-                  queue.userId,
-                  batch
-                ).next(() => {});
+                return removeMutationBatch(txn, queue.userId, batch).next(
+                  () => {}
+                );
               }
             );
           });
@@ -242,15 +329,16 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     const documentTargetStore = txn.store<
       DbTargetDocumentKey,
       DbTargetDocument
-    >(DbTargetDocument.store);
-    const documentsStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-      DbRemoteDocument.store
-    );
+    >(DbTargetDocumentStore);
+    const documentsStore = txn.store<
+      DbRemoteDocumentKeyLegacy,
+      DbRemoteDocumentKeyLegacy
+    >(DbRemoteDocumentStoreLegacy);
     const globalTargetStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-      DbTargetGlobal.store
+      DbTargetGlobalStore
     );
 
-    return globalTargetStore.get(DbTargetGlobal.key).next(metadata => {
+    return globalTargetStore.get(DbTargetGlobalKey).next(metadata => {
       debugAssert(
         !!metadata,
         'Metadata should have been written during the version 3 migration'
@@ -258,13 +346,11 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       const writeSentinelKey = (
         path: ResourcePath
       ): PersistencePromise<void> => {
-        return documentTargetStore.put(
-          new DbTargetDocument(
-            0,
-            encodeResourcePath(path),
-            metadata!.highestListenSequenceNumber!
-          )
-        );
+        return documentTargetStore.put({
+          targetId: 0,
+          path: encodeResourcePath(path),
+          sequenceNumber: metadata!.highestListenSequenceNumber!
+        });
       };
 
       const promises: Array<PersistencePromise<void>> = [];
@@ -291,14 +377,14 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
     // Create the index.
-    db.createObjectStore(DbCollectionParent.store, {
-      keyPath: DbCollectionParent.keyPath
+    db.createObjectStore(DbCollectionParentStore, {
+      keyPath: DbCollectionParentKeyPath
     });
 
     const collectionParentsStore = txn.store<
       DbCollectionParentKey,
       DbCollectionParent
-    >(DbCollectionParent.store);
+    >(DbCollectionParentStore);
 
     // Helper to add an index entry iff we haven't already written it.
     const cache = new MemoryCollectionParentIndex();
@@ -317,7 +403,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     // Index existing remote documents.
     return txn
-      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+      .store<DbRemoteDocumentKeyLegacy, DbRemoteDocumentLegacy>(
+        DbRemoteDocumentStoreLegacy
+      )
       .iterate({ keysOnly: true }, (pathSegments, _) => {
         const path = new ResourcePath(pathSegments);
         return addEntry(path.popLast());
@@ -326,7 +414,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         // Index existing mutations.
         return txn
           .store<DbDocumentMutationKey, DbDocumentMutation>(
-            DbDocumentMutation.store
+            DbDocumentMutationStore
           )
           .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
             const path = decodeResourcePath(encodedPath);
@@ -338,11 +426,106 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
   private rewriteCanonicalIds(
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
-    const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+    const targetStore = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
     return targetStore.iterate((key, originalDbTarget) => {
       const originalTargetData = fromDbTarget(originalDbTarget);
       const updatedDbTarget = toDbTarget(this.serializer, originalTargetData);
       return targetStore.put(updatedDbTarget);
+    });
+  }
+
+  private rewriteRemoteDocumentCache(
+    db: IDBDatabase,
+    transaction: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const legacyRemoteDocumentStore = transaction.store<
+      DbRemoteDocumentKeyLegacy,
+      DbRemoteDocumentLegacy
+    >(DbRemoteDocumentStoreLegacy);
+
+    const writes: Array<PersistencePromise<void>> = [];
+    return legacyRemoteDocumentStore
+      .iterate((_, legacyDocument) => {
+        const remoteDocumentStore = transaction.store<
+          DbRemoteDocumentKey,
+          DbRemoteDocument
+        >(DbRemoteDocumentStore);
+
+        const path = extractKey(legacyDocument).path.toArray();
+        const dbRemoteDocument = {
+          prefixPath: path.slice(0, path.length - 2),
+          collectionGroup: path[path.length - 2],
+          documentId: path[path.length - 1],
+          readTime: legacyDocument.readTime || [0, 0],
+          unknownDocument: legacyDocument.unknownDocument,
+          noDocument: legacyDocument.noDocument,
+          document: legacyDocument.document,
+          hasCommittedMutations: !!legacyDocument.hasCommittedMutations
+        };
+        writes.push(remoteDocumentStore.put(dbRemoteDocument));
+      })
+      .next(() => PersistencePromise.waitFor(writes));
+  }
+
+  private runOverlayMigration(
+    db: IDBDatabase,
+    transaction: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const mutationsStore = transaction.store<
+      DbMutationBatchKey,
+      DbMutationBatch
+    >(DbMutationBatchStore);
+
+    const remoteDocumentCache = newIndexedDbRemoteDocumentCache(
+      this.serializer
+    );
+    const memoryPersistence = new MemoryPersistence(
+      MemoryEagerDelegate.factory,
+      this.serializer.remoteSerializer
+    );
+
+    return mutationsStore.loadAll().next(dbBatches => {
+      const userToDocumentSet = new Map<string, DocumentKeySet>();
+      dbBatches.forEach(dbBatch => {
+        let documentSet =
+          userToDocumentSet.get(dbBatch.userId) ?? documentKeySet();
+        const batch = fromDbMutationBatch(this.serializer, dbBatch);
+        batch.keys().forEach(key => (documentSet = documentSet.add(key)));
+        userToDocumentSet.set(dbBatch.userId, documentSet);
+      });
+      return PersistencePromise.forEach(
+        userToDocumentSet,
+        (allDocumentKeysForUser, userId) => {
+          const user = new User(userId);
+          const documentOverlayCache = IndexedDbDocumentOverlayCache.forUser(
+            this.serializer,
+            user
+          );
+          // NOTE: The index manager and the reference delegate are
+          // irrelevant for the purpose of recalculating and saving
+          // overlays. We can therefore simply use the memory
+          // implementation.
+          const indexManager = memoryPersistence.getIndexManager(user);
+          const mutationQueue = IndexedDbMutationQueue.forUser(
+            user,
+            this.serializer,
+            indexManager,
+            memoryPersistence.referenceDelegate
+          );
+          const localDocumentsView = new LocalDocumentsView(
+            remoteDocumentCache,
+            mutationQueue,
+            documentOverlayCache,
+            indexManager
+          );
+          return localDocumentsView
+            .recalculateAndSaveOverlaysForDocumentKeys(
+              new IndexedDbTransaction(transaction, ListenSequence.INVALID),
+              allDocumentKeysForUser
+            )
+            .next();
+        }
+      );
     });
   }
 }
@@ -352,25 +535,25 @@ function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
 }
 
 function createPrimaryClientStore(db: IDBDatabase): void {
-  db.createObjectStore(DbPrimaryClient.store);
+  db.createObjectStore(DbPrimaryClientStore);
 }
 
 function createMutationQueue(db: IDBDatabase): void {
-  db.createObjectStore(DbMutationQueue.store, {
-    keyPath: DbMutationQueue.keyPath
+  db.createObjectStore(DbMutationQueueStore, {
+    keyPath: DbMutationQueueKeyPath
   });
 
-  const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
-    keyPath: DbMutationBatch.keyPath,
+  const mutationBatchesStore = db.createObjectStore(DbMutationBatchStore, {
+    keyPath: DbMutationBatchKeyPath,
     autoIncrement: true
   });
   mutationBatchesStore.createIndex(
-    DbMutationBatch.userMutationsIndex,
-    DbMutationBatch.userMutationsKeyPath,
+    DbMutationBatchUserMutationsIndex,
+    DbMutationBatchUserMutationsKeyPath,
     { unique: true }
   );
 
-  db.createObjectStore(DbDocumentMutation.store);
+  db.createObjectStore(DbDocumentMutationStore);
 }
 
 /**
@@ -382,23 +565,23 @@ function upgradeMutationBatchSchemaAndMigrateData(
   txn: SimpleDbTransaction
 ): PersistencePromise<void> {
   const v1MutationsStore = txn.store<[string, number], DbMutationBatch>(
-    DbMutationBatch.store
+    DbMutationBatchStore
   );
   return v1MutationsStore.loadAll().next(existingMutations => {
-    db.deleteObjectStore(DbMutationBatch.store);
+    db.deleteObjectStore(DbMutationBatchStore);
 
-    const mutationsStore = db.createObjectStore(DbMutationBatch.store, {
-      keyPath: DbMutationBatch.keyPath,
+    const mutationsStore = db.createObjectStore(DbMutationBatchStore, {
+      keyPath: DbMutationBatchKeyPath,
       autoIncrement: true
     });
     mutationsStore.createIndex(
-      DbMutationBatch.userMutationsIndex,
-      DbMutationBatch.userMutationsKeyPath,
+      DbMutationBatchUserMutationsIndex,
+      DbMutationBatchUserMutationsKeyPath,
       { unique: true }
     );
 
     const v3MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
-      DbMutationBatch.store
+      DbMutationBatchStore
     );
     const writeAll = existingMutations.map(mutation =>
       v3MutationsStore.put(mutation)
@@ -408,41 +591,55 @@ function upgradeMutationBatchSchemaAndMigrateData(
   });
 }
 
+function createLegacyRemoteDocumentCache(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocumentStoreLegacy);
+}
+
 function createRemoteDocumentCache(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocument.store);
+  const remoteDocumentStore = db.createObjectStore(DbRemoteDocumentStore, {
+    keyPath: DbRemoteDocumentKeyPath
+  });
+  remoteDocumentStore.createIndex(
+    DbRemoteDocumentDocumentKeyIndex,
+    DbRemoteDocumentDocumentKeyIndexPath
+  );
+  remoteDocumentStore.createIndex(
+    DbRemoteDocumentCollectionGroupIndex,
+    DbRemoteDocumentCollectionGroupIndexPath
+  );
 }
 
 function createDocumentGlobalStore(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocumentGlobal.store);
+  db.createObjectStore(DbRemoteDocumentGlobalStore);
 }
 
 function createQueryCache(db: IDBDatabase): void {
-  const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
-    keyPath: DbTargetDocument.keyPath
+  const targetDocumentsStore = db.createObjectStore(DbTargetDocumentStore, {
+    keyPath: DbTargetDocumentKeyPath
   });
   targetDocumentsStore.createIndex(
-    DbTargetDocument.documentTargetsIndex,
-    DbTargetDocument.documentTargetsKeyPath,
+    DbTargetDocumentDocumentTargetsIndex,
+    DbTargetDocumentDocumentTargetsKeyPath,
     { unique: true }
   );
 
-  const targetStore = db.createObjectStore(DbTarget.store, {
-    keyPath: DbTarget.keyPath
+  const targetStore = db.createObjectStore(DbTargetStore, {
+    keyPath: DbTargetKeyPath
   });
 
   // NOTE: This is unique only because the TargetId is the suffix.
   targetStore.createIndex(
-    DbTarget.queryTargetsIndexName,
-    DbTarget.queryTargetsKeyPath,
+    DbTargetQueryTargetsIndexName,
+    DbTargetQueryTargetsKeyPath,
     { unique: true }
   );
-  db.createObjectStore(DbTargetGlobal.store);
+  db.createObjectStore(DbTargetGlobalStore);
 }
 
 function dropQueryCache(db: IDBDatabase): void {
-  db.deleteObjectStore(DbTargetDocument.store);
-  db.deleteObjectStore(DbTarget.store);
-  db.deleteObjectStore(DbTargetGlobal.store);
+  db.deleteObjectStore(DbTargetDocumentStore);
+  db.deleteObjectStore(DbTargetStore);
+  db.deleteObjectStore(DbTargetGlobalStore);
 }
 
 function dropRemoteDocumentChangesStore(db: IDBDatabase): void {
@@ -460,49 +657,94 @@ function writeEmptyTargetGlobalEntry(
   txn: SimpleDbTransaction
 ): PersistencePromise<void> {
   const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-    DbTargetGlobal.store
+    DbTargetGlobalStore
   );
-  const metadata = new DbTargetGlobal(
-    /*highestTargetId=*/ 0,
-    /*lastListenSequenceNumber=*/ 0,
-    SnapshotVersion.min().toTimestamp(),
-    /*targetCount=*/ 0
-  );
-  return globalStore.put(DbTargetGlobal.key, metadata);
-}
-
-/**
- * Creates indices on the RemoteDocuments store used for both multi-tab
- * and Index-Free queries.
- */
-function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
-  const remoteDocumentStore = txn.objectStore(DbRemoteDocument.store);
-  remoteDocumentStore.createIndex(
-    DbRemoteDocument.readTimeIndex,
-    DbRemoteDocument.readTimeIndexPath,
-    { unique: false }
-  );
-  remoteDocumentStore.createIndex(
-    DbRemoteDocument.collectionReadTimeIndex,
-    DbRemoteDocument.collectionReadTimeIndexPath,
-    { unique: false }
-  );
+  const metadata: DbTargetGlobal = {
+    highestTargetId: 0,
+    highestListenSequenceNumber: 0,
+    lastRemoteSnapshotVersion: SnapshotVersion.min().toTimestamp(),
+    targetCount: 0
+  };
+  return globalStore.put(DbTargetGlobalKey, metadata);
 }
 
 function createClientMetadataStore(db: IDBDatabase): void {
-  db.createObjectStore(DbClientMetadata.store, {
-    keyPath: DbClientMetadata.keyPath
+  db.createObjectStore(DbClientMetadataStore, {
+    keyPath: DbClientMetadataKeyPath
   });
 }
 
 function createBundlesStore(db: IDBDatabase): void {
-  db.createObjectStore(DbBundle.store, {
-    keyPath: DbBundle.keyPath
+  db.createObjectStore(DbBundleStore, {
+    keyPath: DbBundleKeyPath
   });
 }
 
 function createNamedQueriesStore(db: IDBDatabase): void {
-  db.createObjectStore(DbNamedQuery.store, {
-    keyPath: DbNamedQuery.keyPath
+  db.createObjectStore(DbNamedQueryStore, {
+    keyPath: DbNamedQueryKeyPath
   });
+}
+
+function createFieldIndex(db: IDBDatabase): void {
+  const indexConfigurationStore = db.createObjectStore(
+    DbIndexConfigurationStore,
+    {
+      keyPath: DbIndexConfigurationKeyPath,
+      autoIncrement: true
+    }
+  );
+  indexConfigurationStore.createIndex(
+    DbIndexConfigurationCollectionGroupIndex,
+    DbIndexConfigurationCollectionGroupIndexPath,
+    { unique: false }
+  );
+
+  const indexStateStore = db.createObjectStore(DbIndexStateStore, {
+    keyPath: DbIndexStateKeyPath
+  });
+  indexStateStore.createIndex(
+    DbIndexStateSequenceNumberIndex,
+    DbIndexStateSequenceNumberIndexPath,
+    { unique: false }
+  );
+
+  const indexEntryStore = db.createObjectStore(DbIndexEntryStore, {
+    keyPath: DbIndexEntryKeyPath
+  });
+  indexEntryStore.createIndex(
+    DbIndexEntryDocumentKeyIndex,
+    DbIndexEntryDocumentKeyIndexPath,
+    { unique: false }
+  );
+}
+
+function createDocumentOverlayStore(db: IDBDatabase): void {
+  const documentOverlayStore = db.createObjectStore(DbDocumentOverlayStore, {
+    keyPath: DbDocumentOverlayKeyPath
+  });
+  documentOverlayStore.createIndex(
+    DbDocumentOverlayCollectionPathOverlayIndex,
+    DbDocumentOverlayCollectionPathOverlayIndexPath,
+    { unique: false }
+  );
+  documentOverlayStore.createIndex(
+    DbDocumentOverlayCollectionGroupOverlayIndex,
+    DbDocumentOverlayCollectionGroupOverlayIndexPath,
+    { unique: false }
+  );
+}
+
+function extractKey(remoteDoc: DbRemoteDocumentLegacy): DocumentKey {
+  if (remoteDoc.document) {
+    return new DocumentKey(
+      ResourcePath.fromString(remoteDoc.document.name!).popFirst(5)
+    );
+  } else if (remoteDoc.noDocument) {
+    return DocumentKey.fromSegments(remoteDoc.noDocument.path);
+  } else if (remoteDoc.unknownDocument) {
+    return DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
+  } else {
+    return fail('Unexpected DbRemoteDocument');
+  }
 }

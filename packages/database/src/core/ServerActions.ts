@@ -61,6 +61,12 @@ export abstract class ServerActions {
    */
   refreshAuthToken(token: string) {}
 
+  /**
+   * Refreshes the app check token for the current connection.
+   * @param token The app check token
+   */
+  refreshAppCheckToken(token: string) {}
+
   onDisconnectPut(
     pathString: string,
     data: unknown,

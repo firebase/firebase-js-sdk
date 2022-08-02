@@ -28,7 +28,7 @@ import { FakePushSubscription } from '../testing/fakes/service-worker';
 import { base64ToArray } from './array-base64-translator';
 import { expect } from 'chai';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
-import { openDb } from 'idb';
+import { openDB } from 'idb';
 
 describe('migrateOldDb', () => {
   it("does nothing if old DB didn't exist", async () => {
@@ -179,25 +179,24 @@ describe('migrateOldDb', () => {
 });
 
 async function put(version: number, value: object): Promise<void> {
-  const db = await openDb('fcm_token_details_db', version, upgradeDb => {
-    if (upgradeDb.oldVersion === 0) {
-      const objectStore = upgradeDb.createObjectStore(
-        'fcm_token_object_Store',
-        {
+  const db = await openDB('fcm_token_details_db', version, {
+    upgrade: (db, oldVersion) => {
+      if (oldVersion === 0) {
+        const objectStore = db.createObjectStore('fcm_token_object_Store', {
           keyPath: 'swScope'
-        }
-      );
-      objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
-        unique: false
-      });
-      objectStore.createIndex('fcmToken', 'fcmToken', { unique: true });
+        });
+        objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
+          unique: false
+        });
+        objectStore.createIndex('fcmToken', 'fcmToken', { unique: true });
+      }
     }
   });
 
   try {
     const tx = db.transaction('fcm_token_object_Store', 'readwrite');
     await tx.objectStore('fcm_token_object_Store').put(value);
-    await tx.complete;
+    await tx.done;
   } finally {
     db.close();
   }

@@ -43,11 +43,17 @@ yargs
         default: false
       },
       releaseType: {
-        type: 'string'
+        type: 'string',
+        desc: '"Staging" or "Production" - this is case sensitive!'
       },
       dryRun: {
         type: 'boolean',
         default: false
+      },
+      ci: {
+        type: 'boolean',
+        default: false,
+        desc: 'set if running in CI (skips prompts, uses wombot publish)'
       }
     },
     argv => runRelease(argv)
@@ -76,15 +82,13 @@ yargs
         type: 'string',
         alias: 'p',
         demandOption: true,
-        desc:
-          'The prerelease label used in verison number. e.g. 1.0.0-<prereleaseName>'
+        desc: 'The prerelease label used in verison number. e.g. 1.0.0-<prereleaseName>'
       },
       npmTag: {
         type: 'string',
         alias: 't',
         demandOption: true,
-        desc:
-          'The npm tag the packages are published to. e.g. npm install firebase@<npmTag>'
+        desc: 'The npm tag the packages are published to. e.g. npm install firebase@<npmTag>'
       },
       dryRun: {
         type: 'boolean',

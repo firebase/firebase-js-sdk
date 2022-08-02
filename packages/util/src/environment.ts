@@ -140,7 +140,7 @@ export function isSafari(): boolean {
  * @return true if indexedDB is supported by current browser/service worker context
  */
 export function isIndexedDBAvailable(): boolean {
-  return 'indexedDB' in self && indexedDB != null;
+  return typeof indexedDB === 'object';
 }
 
 /**
@@ -184,8 +184,25 @@ export function validateIndexedDBOpenable(): Promise<boolean> {
  * @return true if cookie is enabled within current browser
  */
 export function areCookiesEnabled(): boolean {
-  if (!navigator || !navigator.cookieEnabled) {
+  if (typeof navigator === 'undefined' || !navigator.cookieEnabled) {
     return false;
   }
   return true;
+}
+
+/**
+ * Polyfill for `globalThis` object.
+ * @returns the `globalThis` object for the given environment.
+ */
+export function getGlobal(): typeof globalThis {
+  if (typeof self !== 'undefined') {
+    return self;
+  }
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+  if (typeof global !== 'undefined') {
+    return global;
+  }
+  throw new Error('Unable to locate global object.');
 }

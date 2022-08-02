@@ -16,6 +16,7 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
+import { User } from '../auth/user';
 import { Query, queryToTarget } from '../core/query';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -64,7 +65,8 @@ class DatastoreImpl extends Datastore {
   terminated = false;
 
   constructor(
-    readonly credentials: CredentialsProvider,
+    readonly authCredentials: CredentialsProvider<User>,
+    readonly appCheckCredentials: CredentialsProvider<string>,
     readonly connection: Connection,
     readonly serializer: JsonProtoSerializer
   ) {
@@ -81,69 +83,93 @@ class DatastoreImpl extends Datastore {
     }
   }
 
-  /** Gets an auth token and invokes the provided RPC. */
+  /** Invokes the provided RPC with auth and AppCheck tokens. */
   invokeRPC<Req, Resp>(
     rpcName: string,
     path: string,
     request: Req
   ): Promise<Resp> {
     this.verifyInitialized();
-    return this.credentials
-      .getToken()
-      .then(token => {
+    return Promise.all([
+      this.authCredentials.getToken(),
+      this.appCheckCredentials.getToken()
+    ])
+      .then(([authToken, appCheckToken]) => {
         return this.connection.invokeRPC<Req, Resp>(
           rpcName,
           path,
           request,
-          token
+          authToken,
+          appCheckToken
         );
       })
       .catch((error: FirestoreError) => {
-        if (error.code === Code.UNAUTHENTICATED) {
-          this.credentials.invalidateToken();
+        if (error.name === 'FirebaseError') {
+          if (error.code === Code.UNAUTHENTICATED) {
+            this.authCredentials.invalidateToken();
+            this.appCheckCredentials.invalidateToken();
+          }
+          throw error;
+        } else {
+          throw new FirestoreError(Code.UNKNOWN, error.toString());
         }
-        throw error;
       });
   }
 
-  /** Gets an auth token and invokes the provided RPC with streamed results. */
+  /** Invokes the provided RPC with streamed results with auth and AppCheck tokens. */
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
     path: string,
-    request: Req
+    request: Req,
+    expectedResponseCount?: number
   ): Promise<Resp[]> {
     this.verifyInitialized();
-    return this.credentials
-      .getToken()
-      .then(token => {
+    return Promise.all([
+      this.authCredentials.getToken(),
+      this.appCheckCredentials.getToken()
+    ])
+      .then(([authToken, appCheckToken]) => {
         return this.connection.invokeStreamingRPC<Req, Resp>(
           rpcName,
           path,
           request,
-          token
+          authToken,
+          appCheckToken,
+          expectedResponseCount
         );
       })
       .catch((error: FirestoreError) => {
-        if (error.code === Code.UNAUTHENTICATED) {
-          this.credentials.invalidateToken();
+        if (error.name === 'FirebaseError') {
+          if (error.code === Code.UNAUTHENTICATED) {
+            this.authCredentials.invalidateToken();
+            this.appCheckCredentials.invalidateToken();
+          }
+          throw error;
+        } else {
+          throw new FirestoreError(Code.UNKNOWN, error.toString());
         }
-        throw error;
       });
   }
 
   terminate(): void {
-    this.terminated = false;
+    this.terminated = true;
   }
 }
 
 // TODO(firestorexp): Make sure there is only one Datastore instance per
 // firestore-exp client.
 export function newDatastore(
-  credentials: CredentialsProvider,
+  authCredentials: CredentialsProvider<User>,
+  appCheckCredentials: CredentialsProvider<string>,
   connection: Connection,
   serializer: JsonProtoSerializer
 ): Datastore {
-  return new DatastoreImpl(credentials, connection, serializer);
+  return new DatastoreImpl(
+    authCredentials,
+    appCheckCredentials,
+    connection,
+    serializer
+  );
 }
 
 export async function invokeCommitRpc(
@@ -170,7 +196,7 @@ export async function invokeBatchGetDocumentsRpc(
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoBatchGetDocumentsRequest,
     ProtoBatchGetDocumentsResponse
-  >('BatchGetDocuments', path, request);
+  >('BatchGetDocuments', path, request, keys.length);
 
   const docs = new Map<string, Document>();
   response.forEach(proto => {
@@ -216,7 +242,8 @@ export function newPersistentWriteStream(
   return new PersistentWriteStream(
     queue,
     datastoreImpl.connection,
-    datastoreImpl.credentials,
+    datastoreImpl.authCredentials,
+    datastoreImpl.appCheckCredentials,
     datastoreImpl.serializer,
     listener
   );
@@ -232,7 +259,8 @@ export function newPersistentWatchStream(
   return new PersistentListenStream(
     queue,
     datastoreImpl.connection,
-    datastoreImpl.credentials,
+    datastoreImpl.authCredentials,
+    datastoreImpl.appCheckCredentials,
     datastoreImpl.serializer,
     listener
   );

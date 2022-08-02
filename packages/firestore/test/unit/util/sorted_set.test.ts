@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 
 import { primitiveComparator } from '../../../src/util/misc';
-import { SortedSet } from '../../../src/util/sorted_set';
+import { diffSortedSets, SortedSet } from '../../../src/util/sorted_set';
 import { expectSetToEqual } from '../../util/helpers';
 
 describe('SortedSet', () => {
@@ -156,4 +156,63 @@ describe('SortedSet', () => {
     expect(set.indexOf(4)).to.equal(-1);
     expect(set.indexOf(5)).to.equal(4);
   });
+
+  it('diff sorted sets with missing element', () => {
+    const { added, removed } = computeDiffs(['a', 'b', 'c'], ['a', 'b']);
+    expect(added).to.have.members([]);
+    expect(removed).to.have.members(['c']);
+  });
+
+  it('diff sorted sets with added element', () => {
+    const { added, removed } = computeDiffs(['a', 'b'], ['a', 'b', 'c']);
+    expect(added).to.have.members(['c']);
+    expect(removed).to.have.members([]);
+  });
+
+  it('diff sorted sets with empty sets', () => {
+    {
+      const { added, removed } = computeDiffs(['a'], []);
+      expect(added).to.have.members([]);
+      expect(removed).to.have.members(['a']);
+    }
+    {
+      const { added, removed } = computeDiffs([], ['a']);
+      expect(added).to.have.members(['a']);
+      expect(removed).to.have.members([]);
+    }
+    {
+      const { added, removed } = computeDiffs([], []);
+      expect(added).to.have.members([]);
+      expect(removed).to.have.members([]);
+    }
+  });
+
+  function computeDiffs(
+    before: string[],
+    after: string[]
+  ): { added: string[]; removed: string[] } {
+    let beforeSorted = new SortedSet<string>(primitiveComparator);
+    let afterSorted = new SortedSet<string>(primitiveComparator);
+    before.forEach(v => {
+      beforeSorted = beforeSorted.add(v);
+    });
+    after.forEach(v => {
+      afterSorted = afterSorted.add(v);
+    });
+
+    const added: string[] = [];
+    const removed: string[] = [];
+    diffSortedSets(
+      beforeSorted,
+      afterSorted,
+      primitiveComparator,
+      v => {
+        added.push(v);
+      },
+      v => {
+        removed.push(v);
+      }
+    );
+    return { added, removed };
+  }
 });

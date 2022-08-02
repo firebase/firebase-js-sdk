@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import { LoadBundleTask } from '../api/bundle';
 import { User } from '../auth/user';
-import { LoadBundleTask } from '../exp/bundle';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
   localStoreAcknowledgeBatch,
@@ -92,6 +92,7 @@ import {
   newQueryForPath,
   Query,
   queryEquals,
+  queryCollectionGroup,
   queryToTarget,
   stringifyQuery
 } from './query';
@@ -314,6 +315,9 @@ export async function syncEngineListen(
       syncEngineImpl.localStore,
       queryToTarget(query)
     );
+    if (syncEngineImpl.isPrimaryClient) {
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
+    }
 
     const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
       targetData.targetId
@@ -325,9 +329,6 @@ export async function syncEngineListen(
       targetId,
       status === 'current'
     );
-    if (syncEngineImpl.isPrimaryClient) {
-      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-    }
   }
 
   return viewSnapshot;
@@ -356,10 +357,11 @@ async function initializeViewAndComputeSnapshot(
   );
   const view = new View(query, queryResult.remoteKeys);
   const viewDocChanges = view.computeDocChanges(queryResult.documents);
-  const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
-    targetId,
-    current && syncEngineImpl.onlineState !== OnlineState.Offline
-  );
+  const synthesizedTargetChange =
+    TargetChange.createSynthesizedTargetChangeForCurrentChange(
+      targetId,
+      current && syncEngineImpl.onlineState !== OnlineState.Offline
+    );
   const viewChange = view.applyChanges(
     viewDocChanges,
     /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
@@ -413,9 +415,8 @@ export async function syncEngineUnlisten(
     // We need to remove the local query target first to allow us to verify
     // whether any other client is still interested in this target.
     syncEngineImpl.sharedClientState.removeLocalQueryTarget(queryView.targetId);
-    const targetRemainsActive = syncEngineImpl.sharedClientState.isActiveQueryTarget(
-      queryView.targetId
-    );
+    const targetRemainsActive =
+      syncEngineImpl.sharedClientState.isActiveQueryTarget(queryView.targetId);
 
     if (!targetRemainsActive) {
       await localStoreReleaseTarget(
@@ -472,7 +473,10 @@ export async function syncEngineWrite(
   } catch (e) {
     // If we can't persist the mutation, we reject the user callback and
     // don't send the mutation. The user can then retry the write.
-    const error = wrapInUserErrorIfRecoverable(e, `Failed to persist write`);
+    const error = wrapInUserErrorIfRecoverable(
+      e as Error,
+      `Failed to persist write`
+    );
     userCallback.reject(error);
   }
 }
@@ -495,9 +499,8 @@ export async function syncEngineApplyRemoteEvent(
     );
     // Update `receivedDocument` as appropriate for any limbo targets.
     remoteEvent.targetChanges.forEach((targetChange, targetId) => {
-      const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
-        targetId
-      );
+      const limboResolution =
+        syncEngineImpl.activeLimboResolutionsByTarget.get(targetId);
       if (limboResolution) {
         // Since this is a limbo resolution lookup, it's for a single document
         // and it could be added, modified, or removed, but not a combination.
@@ -532,7 +535,7 @@ export async function syncEngineApplyRemoteEvent(
       remoteEvent
     );
   } catch (error) {
-    await ignoreIfPrimaryLeaseLoss(error);
+    await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
 }
 
@@ -606,9 +609,8 @@ export async function syncEngineRejectListen(
   // PORTING NOTE: Multi-tab only.
   syncEngineImpl.sharedClientState.updateQueryState(targetId, 'rejected', err);
 
-  const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
-    targetId
-  );
+  const limboResolution =
+    syncEngineImpl.activeLimboResolutionsByTarget.get(targetId);
   const limboKey = limboResolution && limboResolution.key;
   if (limboKey) {
     // TODO(klimt): We really only should do the following on permission
@@ -621,6 +623,9 @@ export async function syncEngineRejectListen(
     let documentUpdates = new SortedMap<DocumentKey, MutableDocument>(
       DocumentKey.comparator
     );
+    // TODO(b/217189216): This limbo document should ideally have a read time,
+    // so that it is picked up by any read-time based scans. The backend,
+    // however, does not send a read time for target removals.
     documentUpdates = documentUpdates.insert(
       limboKey,
       MutableDocument.newNoDocument(limboKey, SnapshotVersion.min())
@@ -641,9 +646,8 @@ export async function syncEngineRejectListen(
     // RemoteEvent. If `applyRemoteEvent()` throws, we want to re-listen to
     // this query when the RemoteStore restarts the Watch stream, which should
     // re-trigger the target failure.
-    syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.remove(
-      limboKey
-    );
+    syncEngineImpl.activeLimboTargetsByKey =
+      syncEngineImpl.activeLimboTargetsByKey.remove(limboKey);
     syncEngineImpl.activeLimboResolutionsByTarget.delete(targetId);
     pumpEnqueuedLimboResolutions(syncEngineImpl);
   } else {
@@ -683,7 +687,7 @@ export async function syncEngineApplySuccessfulWrite(
     );
     await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
   } catch (error) {
-    await ignoreIfPrimaryLeaseLoss(error);
+    await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
 }
 
@@ -714,7 +718,7 @@ export async function syncEngineRejectFailedWrite(
     );
     await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
   } catch (error) {
-    await ignoreIfPrimaryLeaseLoss(error);
+    await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
 }
 
@@ -751,7 +755,7 @@ export async function syncEngineRegisterPendingWritesCallback(
     syncEngineImpl.pendingWritesCallbacks.set(highestBatchId, callbacks);
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       'Initialization of waitForPendingWrites() operation failed'
     );
     callback.reject(firestoreError);
@@ -800,9 +804,8 @@ function addMutationCallback(
     newCallbacks = new SortedMap<BatchId, Deferred<void>>(primitiveComparator);
   }
   newCallbacks = newCallbacks.insert(batchId, callback);
-  syncEngineImpl.mutationUserCallbacks[
-    syncEngineImpl.currentUser.toKey()
-  ] = newCallbacks;
+  syncEngineImpl.mutationUserCallbacks[syncEngineImpl.currentUser.toKey()] =
+    newCallbacks;
 }
 
 /**
@@ -834,9 +837,8 @@ function processUserCallback(
       }
       newCallbacks = newCallbacks.remove(batchId);
     }
-    syncEngineImpl.mutationUserCallbacks[
-      syncEngineImpl.currentUser.toKey()
-    ] = newCallbacks;
+    syncEngineImpl.mutationUserCallbacks[syncEngineImpl.currentUser.toKey()] =
+      newCallbacks;
   }
 }
 
@@ -863,13 +865,11 @@ function removeAndCleanupTarget(
   syncEngineImpl.queriesByTarget.delete(targetId);
 
   if (syncEngineImpl.isPrimaryClient) {
-    const limboKeys = syncEngineImpl.limboDocumentRefs.removeReferencesForId(
-      targetId
-    );
+    const limboKeys =
+      syncEngineImpl.limboDocumentRefs.removeReferencesForId(targetId);
     limboKeys.forEach(limboKey => {
-      const isReferenced = syncEngineImpl.limboDocumentRefs.containsKey(
-        limboKey
-      );
+      const isReferenced =
+        syncEngineImpl.limboDocumentRefs.containsKey(limboKey);
       if (!isReferenced) {
         // We removed the last reference for this key
         removeLimboTarget(syncEngineImpl, limboKey);
@@ -893,9 +893,8 @@ function removeLimboTarget(
   }
 
   remoteStoreUnlisten(syncEngineImpl.remoteStore, limboTargetId);
-  syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.remove(
-    key
-  );
+  syncEngineImpl.activeLimboTargetsByKey =
+    syncEngineImpl.activeLimboTargetsByKey.remove(key);
   syncEngineImpl.activeLimboResolutionsByTarget.delete(limboTargetId);
   pumpEnqueuedLimboResolutions(syncEngineImpl);
 }
@@ -958,8 +957,9 @@ function pumpEnqueuedLimboResolutions(syncEngineImpl: SyncEngineImpl): void {
     syncEngineImpl.activeLimboTargetsByKey.size <
       syncEngineImpl.maxConcurrentLimboResolutions
   ) {
-    const keyString = syncEngineImpl.enqueuedLimboResolutions.values().next()
-      .value;
+    const keyString = syncEngineImpl.enqueuedLimboResolutions
+      .values()
+      .next().value;
     syncEngineImpl.enqueuedLimboResolutions.delete(keyString);
     const key = new DocumentKey(ResourcePath.fromString(keyString));
     const limboTargetId = syncEngineImpl.limboTargetIdGenerator.next();
@@ -967,10 +967,8 @@ function pumpEnqueuedLimboResolutions(syncEngineImpl: SyncEngineImpl): void {
       limboTargetId,
       new LimboResolution(key)
     );
-    syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.insert(
-      key,
-      limboTargetId
-    );
+    syncEngineImpl.activeLimboTargetsByKey =
+      syncEngineImpl.activeLimboTargetsByKey.insert(key, limboTargetId);
     remoteStoreListen(
       syncEngineImpl.remoteStore,
       new TargetData(
@@ -1123,9 +1121,8 @@ export function syncEngineGetRemoteKeysForTarget(
   targetId: TargetId
 ): DocumentKeySet {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
-    targetId
-  );
+  const limboResolution =
+    syncEngineImpl.activeLimboResolutionsByTarget.get(targetId);
   if (limboResolution && limboResolution.receivedDocument) {
     return documentKeySet().add(limboResolution.key);
   } else {
@@ -1160,9 +1157,8 @@ async function synchronizeViewAndComputeSnapshot(
     queryView.query,
     /* usePreviousResults= */ true
   );
-  const viewSnapshot = queryView.view.synchronizeWithPersistedState(
-    queryResult
-  );
+  const viewSnapshot =
+    queryView.view.synchronizeWithPersistedState(queryResult);
   if (syncEngineImpl.isPrimaryClient) {
     updateTrackedLimbos(
       syncEngineImpl,
@@ -1179,12 +1175,14 @@ async function synchronizeViewAndComputeSnapshot(
  */
 // PORTING NOTE: Multi-Tab only.
 export async function syncEngineSynchronizeWithChangedDocuments(
-  syncEngine: SyncEngine
+  syncEngine: SyncEngine,
+  collectionGroup: string
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
 
   return localStoreGetNewDocumentChanges(
-    syncEngineImpl.localStore
+    syncEngineImpl.localStore,
+    collectionGroup
   ).then(changes =>
     syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
   );
@@ -1253,7 +1251,8 @@ export async function syncEngineApplyPrimaryState(
     // server considers to be in the target). So when a secondary becomes
     // primary, we need to need to make sure that all views for all targets
     // match the state on disk.
-    const activeTargets = syncEngineImpl.sharedClientState.getAllActiveQueryTargets();
+    const activeTargets =
+      syncEngineImpl.sharedClientState.getAllActiveQueryTargets();
     const activeQueries = await synchronizeQueryViewsAndRaiseSnapshots(
       syncEngineImpl,
       activeTargets.toArray(),
@@ -1440,17 +1439,20 @@ export async function syncEngineApplyTargetState(
     return;
   }
 
-  if (syncEngineImpl.queriesByTarget.has(targetId)) {
+  const query = syncEngineImpl.queriesByTarget.get(targetId);
+  if (query && query.length > 0) {
     switch (state) {
       case 'current':
       case 'not-current': {
         const changes = await localStoreGetNewDocumentChanges(
-          syncEngineImpl.localStore
+          syncEngineImpl.localStore,
+          queryCollectionGroup(query[0])
         );
-        const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
-          targetId,
-          state === 'current'
-        );
+        const synthesizedRemoteEvent =
+          RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
+            targetId,
+            state === 'current'
+          );
         await syncEngineEmitNewSnapsAndNotifyLocalStore(
           syncEngineImpl,
           changes,
@@ -1532,26 +1534,16 @@ export async function syncEngineApplyActiveTargetsChange(
 
 function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.applyRemoteEvent = syncEngineApplyRemoteEvent.bind(
-    null,
-    syncEngineImpl
-  );
-  syncEngineImpl.remoteStore.remoteSyncer.getRemoteKeysForTarget = syncEngineGetRemoteKeysForTarget.bind(
-    null,
-    syncEngineImpl
-  );
-  syncEngineImpl.remoteStore.remoteSyncer.rejectListen = syncEngineRejectListen.bind(
-    null,
-    syncEngineImpl
-  );
-  syncEngineImpl.syncEngineListener.onWatchChange = eventManagerOnWatchChange.bind(
-    null,
-    syncEngineImpl.eventManager
-  );
-  syncEngineImpl.syncEngineListener.onWatchError = eventManagerOnWatchError.bind(
-    null,
-    syncEngineImpl.eventManager
-  );
+  syncEngineImpl.remoteStore.remoteSyncer.applyRemoteEvent =
+    syncEngineApplyRemoteEvent.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.getRemoteKeysForTarget =
+    syncEngineGetRemoteKeysForTarget.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.rejectListen =
+    syncEngineRejectListen.bind(null, syncEngineImpl);
+  syncEngineImpl.syncEngineListener.onWatchChange =
+    eventManagerOnWatchChange.bind(null, syncEngineImpl.eventManager);
+  syncEngineImpl.syncEngineListener.onWatchError =
+    eventManagerOnWatchError.bind(null, syncEngineImpl.eventManager);
   return syncEngineImpl;
 }
 
@@ -1559,14 +1551,10 @@ export function syncEngineEnsureWriteCallbacks(
   syncEngine: SyncEngine
 ): SyncEngineImpl {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.applySuccessfulWrite = syncEngineApplySuccessfulWrite.bind(
-    null,
-    syncEngineImpl
-  );
-  syncEngineImpl.remoteStore.remoteSyncer.rejectFailedWrite = syncEngineRejectFailedWrite.bind(
-    null,
-    syncEngineImpl
-  );
+  syncEngineImpl.remoteStore.remoteSyncer.applySuccessfulWrite =
+    syncEngineApplySuccessfulWrite.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.rejectFailedWrite =
+    syncEngineRejectFailedWrite.bind(null, syncEngineImpl);
   return syncEngineImpl;
 }
 
@@ -1586,16 +1574,17 @@ export function syncEngineLoadBundle(
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  loadBundleImpl(syncEngineImpl, bundleReader, task).then(() => {
-    syncEngineImpl.sharedClientState.notifyBundleLoaded();
+  loadBundleImpl(syncEngineImpl, bundleReader, task).then(collectionGroups => {
+    syncEngineImpl.sharedClientState.notifyBundleLoaded(collectionGroups);
   });
 }
 
+/** Loads a bundle and returns the list of affected collection groups. */
 async function loadBundleImpl(
   syncEngine: SyncEngineImpl,
   reader: BundleReader,
   task: LoadBundleTask
-): Promise<void> {
+): Promise<Set<string>> {
   try {
     const metadata = await reader.getMetadata();
     const skip = await localStoreHasNewerBundle(
@@ -1605,7 +1594,7 @@ async function loadBundleImpl(
     if (skip) {
       await reader.close();
       task._completeWith(bundleSuccessProgress(metadata));
-      return;
+      return Promise.resolve(new Set<string>());
     }
 
     task._updateProgress(bundleInitialProgress(metadata));
@@ -1630,9 +1619,6 @@ async function loadBundleImpl(
     }
 
     const result = await loader.complete();
-    // TODO(b/160876443): This currently raises snapshots with
-    // `fromCache=false` if users already listen to some queries and bundles
-    // has newer version.
     await syncEngineEmitNewSnapsAndNotifyLocalStore(
       syncEngine,
       result.changedDocs,
@@ -1642,8 +1628,10 @@ async function loadBundleImpl(
     // Save metadata, so loading the same bundle will skip.
     await localStoreSaveBundle(syncEngine.localStore, metadata);
     task._completeWith(result.progress);
+    return Promise.resolve(result.changedCollectionGroups);
   } catch (e) {
     logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
-    task._failWith(e);
+    task._failWith(e as FirestoreError);
+    return Promise.resolve(new Set<string>());
   }
 }

@@ -19,7 +19,7 @@ import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
-import simpleGit from 'simple-git/promise';
+import simpleGit from 'simple-git';
 import { TestConfig } from './testConfig';
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
@@ -92,7 +92,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
   const allPackageNames = packageInfo.map(info => info.name);
 
   const depGraph: { [key: string]: any } = JSON.parse(
-    (await exec('npx lerna ls --graph', { cwd: root })).stdout
+    (await exec('npx lerna ls --all --graph', { cwd: root })).stdout
   );
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
@@ -122,7 +122,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
       }
     }
     // Check for changed files inside package dirs.
-    const match = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
+    const match = filename.match('^(packages/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const pkgJsonPath = resolve(root, match[1], 'package.json');
 
@@ -198,4 +198,21 @@ export function filterTasks(
   }
 
   return filteredTasks;
+}
+
+export function logTasks(testTasks: TestTask[]): void {
+  for (const task of testTasks) {
+    switch (task.reason) {
+      case TestReason.Changed:
+        console.log(chalk`{yellow ${task.pkgName} (contains modified files)}`);
+        break;
+      case TestReason.Dependent:
+        console.log(
+          chalk`{yellow ${task.pkgName} (depends on modified files)}`
+        );
+        break;
+      default:
+        console.log(chalk`{yellow ${task.pkgName} (running all tests)}`);
+    }
+  }
 }

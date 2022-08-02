@@ -16,6 +16,7 @@
  */
 
 import { CredentialsProvider, Token } from '../api/credentials';
+import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetId } from '../core/types';
 import { TargetData } from '../local/target_data';
@@ -98,6 +99,13 @@ const enum PersistentStreamState {
   Open,
 
   /**
+   * The stream is healthy and has been connected for more than 10 seconds. We
+   * therefore assume that the credentials we passed were valid. Both
+   * isStarted() and isOpen() will return true.
+   */
+  Healthy,
+
+  /**
    * The stream encountered an error. The next start attempt will back off.
    * While in this state isStarted() will return false.
    */
@@ -131,6 +139,9 @@ export interface PersistentStreamListener {
 
 /** The time a stream stays open after it is marked idle. */
 const IDLE_TIMEOUT_MS = 60 * 1000;
+
+/** The time a stream stays open until we consider it healthy. */
+const HEALTHY_TIMEOUT_MS = 10 * 1000;
 
 /**
  * A PersistentStream is an abstract base class that represents a streaming RPC
@@ -178,6 +189,7 @@ export abstract class PersistentStream<
   private closeCount = 0;
 
   private idleTimer: DelayedOperation<void> | null = null;
+  private healthCheck: DelayedOperation<void> | null = null;
   private stream: Stream<SendType, ReceiveType> | null = null;
 
   protected backoff: ExponentialBackoff;
@@ -186,8 +198,10 @@ export abstract class PersistentStream<
     private queue: AsyncQueue,
     connectionTimerId: TimerId,
     private idleTimerId: TimerId,
+    private healthTimerId: TimerId,
     protected connection: Connection,
-    private credentialsProvider: CredentialsProvider,
+    private authCredentialsProvider: CredentialsProvider<User>,
+    private appCheckCredentialsProvider: CredentialsProvider<string>,
     protected listener: ListenerType
   ) {
     this.backoff = new ExponentialBackoff(queue, connectionTimerId);
@@ -203,8 +217,8 @@ export abstract class PersistentStream<
   isStarted(): boolean {
     return (
       this.state === PersistentStreamState.Starting ||
-      this.state === PersistentStreamState.Open ||
-      this.state === PersistentStreamState.Backoff
+      this.state === PersistentStreamState.Backoff ||
+      this.isOpen()
     );
   }
 
@@ -213,7 +227,10 @@ export abstract class PersistentStream<
    * called) and the stream is ready for outbound requests.
    */
   isOpen(): boolean {
-    return this.state === PersistentStreamState.Open;
+    return (
+      this.state === PersistentStreamState.Open ||
+      this.state === PersistentStreamState.Healthy
+    );
   }
 
   /**
@@ -311,6 +328,14 @@ export abstract class PersistentStream<
     }
   }
 
+  /** Cancels the health check delayed operation. */
+  private cancelHealthCheck(): void {
+    if (this.healthCheck) {
+      this.healthCheck.cancel();
+      this.healthCheck = null;
+    }
+  }
+
   /**
    * Closes the stream and cleans up as necessary:
    *
@@ -336,6 +361,7 @@ export abstract class PersistentStream<
 
     // Cancel any outstanding timers (they're guaranteed not to execute).
     this.cancelIdleCheck();
+    this.cancelHealthCheck();
     this.backoff.cancel();
 
     // Invalidates any stream-related callbacks (e.g. from auth or the
@@ -352,10 +378,19 @@ export abstract class PersistentStream<
         'Using maximum backoff delay to prevent overloading the backend.'
       );
       this.backoff.resetToMax();
-    } else if (error && error.code === Code.UNAUTHENTICATED) {
-      // "unauthenticated" error means the token was rejected. Try force refreshing it in case it
-      // just expired.
-      this.credentialsProvider.invalidateToken();
+    } else if (
+      error &&
+      error.code === Code.UNAUTHENTICATED &&
+      this.state !== PersistentStreamState.Healthy
+    ) {
+      // "unauthenticated" error means the token was rejected. This should rarely
+      // happen since both Auth and AppCheck ensure a sufficient TTL when we
+      // request a token. If a user manually resets their system clock this can
+      // fail, however. In this case, we should get a Code.UNAUTHENTICATED error
+      // before we received the first message and we need to invalidate the token
+      // to ensure that we fetch a new token.
+      this.authCredentialsProvider.invalidateToken();
+      this.appCheckCredentialsProvider.invalidateToken();
     }
 
     // Clean up the underlying stream because we are no longer interested in events.
@@ -384,7 +419,8 @@ export abstract class PersistentStream<
    * connection stream.
    */
   protected abstract startRpc(
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<SendType, ReceiveType>;
 
   /**
@@ -407,8 +443,11 @@ export abstract class PersistentStream<
     // TODO(mikelehen): Just use dispatchIfNotClosed, but see TODO below.
     const closeCount = this.closeCount;
 
-    this.credentialsProvider.getToken().then(
-      token => {
+    Promise.all([
+      this.authCredentialsProvider.getToken(),
+      this.appCheckCredentialsProvider.getToken()
+    ]).then(
+      ([authToken, appCheckToken]) => {
         // Stream can be stopped while waiting for authentication.
         // TODO(mikelehen): We really should just use dispatchIfNotClosed
         // and let this dispatch onto the queue, but that opened a spec test can
@@ -417,7 +456,7 @@ export abstract class PersistentStream<
           // Normally we'd have to schedule the callback on the AsyncQueue.
           // However, the following calls are safe to be called outside the
           // AsyncQueue since they don't chain asynchronous calls
-          this.startStream(token);
+          this.startStream(authToken, appCheckToken);
         }
       },
       (error: Error) => {
@@ -432,7 +471,10 @@ export abstract class PersistentStream<
     );
   }
 
-  private startStream(token: Token | null): void {
+  private startStream(
+    authToken: Token | null,
+    appCheckToken: Token | null
+  ): void {
     debugAssert(
       this.state === PersistentStreamState.Starting,
       'Trying to start stream in a non-starting state'
@@ -440,7 +482,7 @@ export abstract class PersistentStream<
 
     const dispatchIfNotClosed = this.getCloseGuardedDispatcher(this.closeCount);
 
-    this.stream = this.startRpc(token);
+    this.stream = this.startRpc(authToken, appCheckToken);
     this.stream.onOpen(() => {
       dispatchIfNotClosed(() => {
         debugAssert(
@@ -448,6 +490,20 @@ export abstract class PersistentStream<
           'Expected stream to be in state Starting, but was ' + this.state
         );
         this.state = PersistentStreamState.Open;
+        debugAssert(
+          this.healthCheck === null,
+          'Expected healthCheck to be null'
+        );
+        this.healthCheck = this.queue.enqueueAfterDelay(
+          this.healthTimerId,
+          HEALTHY_TIMEOUT_MS,
+          () => {
+            if (this.isOpen()) {
+              this.state = PersistentStreamState.Healthy;
+            }
+            return Promise.resolve();
+          }
+        );
         return this.listener!.onOpen();
       });
     });
@@ -551,7 +607,8 @@ export class PersistentListenStream extends PersistentStream<
   constructor(
     queue: AsyncQueue,
     connection: Connection,
-    credentials: CredentialsProvider,
+    authCredentials: CredentialsProvider<User>,
+    appCheckCredentials: CredentialsProvider<string>,
     private serializer: JsonProtoSerializer,
     listener: WatchStreamListener
   ) {
@@ -559,18 +616,22 @@ export class PersistentListenStream extends PersistentStream<
       queue,
       TimerId.ListenStreamConnectionBackoff,
       TimerId.ListenStreamIdle,
+      TimerId.HealthCheckTimeout,
       connection,
-      credentials,
+      authCredentials,
+      appCheckCredentials,
       listener
     );
   }
 
   protected startRpc(
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<ProtoListenRequest, ProtoListenResponse> {
     return this.connection.openStream<ProtoListenRequest, ProtoListenResponse>(
       'Listen',
-      token
+      authToken,
+      appCheckToken
     );
   }
 
@@ -659,7 +720,8 @@ export class PersistentWriteStream extends PersistentStream<
   constructor(
     queue: AsyncQueue,
     connection: Connection,
-    credentials: CredentialsProvider,
+    authCredentials: CredentialsProvider<User>,
+    appCheckCredentials: CredentialsProvider<string>,
     private serializer: JsonProtoSerializer,
     listener: WriteStreamListener
   ) {
@@ -667,8 +729,10 @@ export class PersistentWriteStream extends PersistentStream<
       queue,
       TimerId.WriteStreamConnectionBackoff,
       TimerId.WriteStreamIdle,
+      TimerId.HealthCheckTimeout,
       connection,
-      credentials,
+      authCredentials,
+      appCheckCredentials,
       listener
     );
   }
@@ -705,11 +769,13 @@ export class PersistentWriteStream extends PersistentStream<
   }
 
   protected startRpc(
-    token: Token | null
+    authToken: Token | null,
+    appCheckToken: Token | null
   ): Stream<ProtoWriteRequest, ProtoWriteResponse> {
     return this.connection.openStream<ProtoWriteRequest, ProtoWriteResponse>(
       'Write',
-      token
+      authToken,
+      appCheckToken
     );
   }
 

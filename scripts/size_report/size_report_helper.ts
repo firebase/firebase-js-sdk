@@ -27,7 +27,7 @@ export enum RequestEndpoint {
 }
 export const runId = process.env.GITHUB_RUN_ID || 'local-run-id';
 
-const METRICS_SERVICE_URL = process.env.METRICS_SERVICE_URL!;
+const METRICS_SERVICE_URL = 'https://api.firebase-sdk-health-metrics.com';
 
 function constructRequestPath(requestEndpoint: string): string {
   const repo = process.env.GITHUB_REPOSITORY;

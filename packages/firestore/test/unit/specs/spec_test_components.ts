@@ -31,16 +31,14 @@ import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
 } from '../../../src/local/indexeddb_persistence';
+import { LocalStore } from '../../../src/local/local_store';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
   MemoryEagerDelegate,
   MemoryLruDelegate,
   MemoryPersistence
 } from '../../../src/local/memory_persistence';
-import {
-  GarbageCollectionScheduler,
-  Persistence
-} from '../../../src/local/persistence';
+import { Scheduler, Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   PersistenceTransaction,
@@ -135,7 +133,12 @@ export class MockOnlineComponentProvider extends OnlineComponentProvider {
       cfg.databaseInfo.databaseId,
       /* useProto3Json= */ true
     );
-    return newDatastore(cfg.credentials, this.connection, serializer);
+    return newDatastore(
+      cfg.authCredentials,
+      cfg.appCheckCredentials,
+      this.connection,
+      serializer
+    );
   }
 }
 
@@ -151,8 +154,16 @@ export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineCompone
   }
 
   createGarbageCollectionScheduler(
-    cfg: ComponentConfiguration
-  ): GarbageCollectionScheduler | null {
+    cfg: ComponentConfiguration,
+    localStore: LocalStore
+  ): Scheduler | null {
+    return null;
+  }
+
+  createIndexBackfillerScheduler(
+    cfg: ComponentConfiguration,
+    localStore: LocalStore
+  ): Scheduler | null {
     return null;
   }
 
@@ -202,7 +213,7 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
 
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration
-  ): GarbageCollectionScheduler | null {
+  ): Scheduler | null {
     return null;
   }
 
@@ -217,10 +228,8 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
 }
 
 export class MockConnection implements Connection {
-  watchStream: StreamBridge<
-    api.ListenRequest,
-    api.ListenResponse
-  > | null = null;
+  watchStream: StreamBridge<api.ListenRequest, api.ListenResponse> | null =
+    null;
   writeStream: StreamBridge<api.WriteRequest, api.WriteResponse> | null = null;
   /**
    * Used to make sure a write was actually sent out on the network before the

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { MessagePayload } from '@firebase/messaging-types';
+import { MessagePayload } from '../interfaces/public-types';
 import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
 
 export function externalizePayload(
@@ -24,7 +24,9 @@ export function externalizePayload(
   const payload: MessagePayload = {
     from: internalPayload.from,
     // eslint-disable-next-line camelcase
-    collapseKey: internalPayload.collapse_key
+    collapseKey: internalPayload.collapse_key,
+    // eslint-disable-next-line camelcase
+    messageId: internalPayload.fcmMessageId
   } as MessagePayload;
 
   propagateNotificationPayload(payload, internalPayload);
@@ -75,19 +77,26 @@ function propagateFcmOptions(
   payload: MessagePayload,
   messagePayloadInternal: MessagePayloadInternal
 ): void {
-  if (!messagePayloadInternal.fcmOptions) {
+  // fcmOptions.link value is written into notification.click_action. see more in b/232072111
+  if (
+    !messagePayloadInternal.fcmOptions &&
+    !messagePayloadInternal.notification?.click_action
+  ) {
     return;
   }
 
   payload.fcmOptions = {};
 
-  const link = messagePayloadInternal.fcmOptions!.link;
+  const link =
+    messagePayloadInternal.fcmOptions?.link ??
+    messagePayloadInternal.notification?.click_action;
+
   if (!!link) {
     payload.fcmOptions!.link = link;
   }
 
   // eslint-disable-next-line camelcase
-  const analyticsLabel = messagePayloadInternal.fcmOptions!.analytics_label;
+  const analyticsLabel = messagePayloadInternal.fcmOptions?.analytics_label;
   if (!!analyticsLabel) {
     payload.fcmOptions!.analyticsLabel = analyticsLabel;
   }

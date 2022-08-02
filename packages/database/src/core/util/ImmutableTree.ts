@@ -91,10 +91,11 @@ export class ImmutableTree<T> {
         const front = pathGetFront(relativePath);
         const child = this.children.get(front);
         if (child !== null) {
-          const childExistingPathAndValue = child.findRootMostMatchingPathAndValue(
-            pathPopFront(relativePath),
-            predicate
-          );
+          const childExistingPathAndValue =
+            child.findRootMostMatchingPathAndValue(
+              pathPopFront(relativePath),
+              predicate
+            );
           if (childExistingPathAndValue != null) {
             const fullPath = pathChild(
               new Path(front),

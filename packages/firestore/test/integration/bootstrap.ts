@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import '../../index';
+import '../../src/index';
 
 /**
  * This will include all of the test files and compile them as needed

@@ -16,11 +16,11 @@
  */
 
 import { expect } from 'chai';
-import { fake, SinonSpy } from 'sinon';
+import { fake, SinonSpy, match } from 'sinon';
 import { ComponentContainer } from './component_container';
 import { FirebaseService } from '@firebase/app-types/private';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { _FirebaseService } from '@firebase/app-exp';
+import { _FirebaseService } from '@firebase/app';
 import { Provider } from './provider';
 import { getFakeApp, getFakeComponent } from '../test/util';
 import '../test/setup';
@@ -142,6 +142,117 @@ describe('Provider', () => {
       provider.initialize();
       expect((provider as any).instances.size).to.equal(1);
       return expect(servicePromise).to.eventually.deep.equal({ test: true });
+    });
+
+    it('invokes onInit callbacks synchronously', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback1 = fake();
+      provider.onInit(callback1);
+
+      provider.initialize();
+      expect(callback1).to.have.been.calledOnce;
+    });
+  });
+
+  describe('onInit', () => {
+    it('registers onInit callbacks', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback1 = fake();
+      const callback2 = fake();
+      provider.onInit(callback1);
+      provider.onInit(callback2);
+
+      provider.initialize();
+      expect(callback1).to.have.been.calledOnce;
+      expect(callback2).to.have.been.calledOnce;
+    });
+
+    it('invokes callback for existing instance', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback = fake();
+      provider.initialize();
+      provider.onInit(callback);
+
+      expect(callback).to.have.been.calledOnce;
+    });
+
+    it('passes service instance', () => {
+      const serviceInstance = { test: true };
+      provider.setComponent(getFakeComponent('test', () => serviceInstance));
+      const callback = fake();
+
+      // initialize the service instance
+      provider.getImmediate();
+
+      provider.onInit(callback);
+
+      expect(callback).to.have.been.calledOnce;
+      expect(callback).to.have.been.calledWith(serviceInstance);
+    });
+
+    it('passes instance identifier', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          true,
+          InstantiationMode.EAGER
+        )
+      );
+      const callback1 = fake();
+      const callback2 = fake();
+
+      provider.getImmediate({ identifier: 'id1' });
+      provider.getImmediate({ identifier: 'id2' });
+
+      provider.onInit(callback1, 'id1');
+      provider.onInit(callback2, 'id2');
+
+      expect(callback1).to.have.been.calledOnce;
+      expect(callback1).to.have.been.calledWith(match.any, 'id1');
+      expect(callback2).to.have.been.calledOnce;
+      expect(callback2).to.have.been.calledWith(match.any, 'id2');
+    });
+
+    it('returns a function to unregister the callback', () => {
+      provider.setComponent(
+        getFakeComponent(
+          'test',
+          () => ({ test: true }),
+          false,
+          InstantiationMode.EXPLICIT
+        )
+      );
+      const callback1 = fake();
+      const callback2 = fake();
+      provider.onInit(callback1);
+      const unregister = provider.onInit(callback2);
+      unregister();
+
+      provider.initialize();
+      expect(callback1).to.have.been.calledOnce;
+      expect(callback2).to.not.have.been.called;
     });
   });
 

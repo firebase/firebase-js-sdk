@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../lite/timestamp';
+import { Timestamp } from '../lite-api/timestamp';
 
 /**
  * A version of a document in Firestore. This corresponds to the version
@@ -28,6 +28,10 @@ export class SnapshotVersion {
 
   static min(): SnapshotVersion {
     return new SnapshotVersion(new Timestamp(0, 0));
+  }
+
+  static max(): SnapshotVersion {
+    return new SnapshotVersion(new Timestamp(253402300799, 1e9 - 1));
   }
 
   private constructor(private timestamp: Timestamp) {}

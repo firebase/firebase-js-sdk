@@ -23,9 +23,14 @@ import {
   logEvent,
   setUserId,
   setUserProperties,
-  setAnalyticsCollectionEnabled
+  setAnalyticsCollectionEnabled,
+  defaultEventParametersForInit,
+  _setDefaultEventParametersForInit,
+  _setConsentDefaultForInit,
+  defaultConsentSettingsForInit
 } from './functions';
-import { GtagCommand, EventName } from './constants';
+import { GtagCommand } from './constants';
+import { ConsentSettings } from './public-types';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
@@ -38,57 +43,45 @@ describe('FirebaseAnalytics methods', () => {
   });
 
   it('logEvent() calls gtag function correctly', async () => {
-    await logEvent(gtagStub, fakeInitializationPromise, EventName.ADD_TO_CART, {
+    await logEvent(gtagStub, fakeInitializationPromise, 'add_to_cart', {
       currency: 'USD'
     });
 
-    expect(gtagStub).to.have.been.calledWith(
-      GtagCommand.EVENT,
-      EventName.ADD_TO_CART,
-      {
-        'send_to': fakeMeasurementId,
-        currency: 'USD'
-      }
-    );
+    expect(gtagStub).to.have.been.calledWith(GtagCommand.EVENT, 'add_to_cart', {
+      'send_to': fakeMeasurementId,
+      currency: 'USD'
+    });
   });
 
   it('logEvent() with no event params calls gtag function correctly', async () => {
-    await logEvent(gtagStub, fakeInitializationPromise, EventName.VIEW_ITEM);
+    await logEvent(gtagStub, fakeInitializationPromise, 'view_item');
 
-    expect(gtagStub).to.have.been.calledWith(
-      GtagCommand.EVENT,
-      EventName.VIEW_ITEM,
-      {
-        'send_to': fakeMeasurementId
-      }
-    );
+    expect(gtagStub).to.have.been.calledWith(GtagCommand.EVENT, 'view_item', {
+      'send_to': fakeMeasurementId
+    });
   });
 
   it('logEvent() globally calls gtag function correctly', async () => {
     await logEvent(
       gtagStub,
       fakeInitializationPromise,
-      EventName.ADD_TO_CART,
+      'add_to_cart',
       {
         currency: 'USD'
       },
       { global: true }
     );
 
-    expect(gtagStub).to.have.been.calledWith(
-      GtagCommand.EVENT,
-      EventName.ADD_TO_CART,
-      {
-        currency: 'USD'
-      }
-    );
+    expect(gtagStub).to.have.been.calledWith(GtagCommand.EVENT, 'add_to_cart', {
+      currency: 'USD'
+    });
   });
 
   it('logEvent() with no event params globally calls gtag function correctly', async () => {
     await logEvent(
       gtagStub,
       fakeInitializationPromise,
-      EventName.ADD_TO_CART,
+      'add_to_cart',
       undefined,
       {
         global: true
@@ -97,12 +90,12 @@ describe('FirebaseAnalytics methods', () => {
 
     expect(gtagStub).to.have.been.calledWith(
       GtagCommand.EVENT,
-      EventName.ADD_TO_CART,
+      'add_to_cart',
       undefined
     );
   });
 
-  it('setCurrentScreen() calls gtag correctly (instance)', async () => {
+  it('setCurrentScreen() (deprecated) calls gtag correctly (instance)', async () => {
     await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home');
     expect(gtagStub).to.have.been.calledWith(
       GtagCommand.CONFIG,
@@ -114,7 +107,7 @@ describe('FirebaseAnalytics methods', () => {
     );
   });
 
-  it('setCurrentScreen() calls gtag correctly (global)', async () => {
+  it('setCurrentScreen() (deprecated) calls gtag correctly (global)', async () => {
     await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home', {
       global: true
     });
@@ -181,5 +174,47 @@ describe('FirebaseAnalytics methods', () => {
     await setAnalyticsCollectionEnabled(fakeInitializationPromise, false);
     expect(window[`ga-disable-${fakeMeasurementId}`]).to.be.true;
     delete window[`ga-disable-${fakeMeasurementId}`];
+  });
+  it('_setDefaultEventParametersForInit() stores individual params correctly', async () => {
+    const eventParametersForInit = {
+      'github_user': 'dwyfrequency',
+      'company': 'google'
+    };
+    _setDefaultEventParametersForInit(eventParametersForInit);
+    expect(defaultEventParametersForInit).to.deep.equal(eventParametersForInit);
+  });
+  it('_setDefaultEventParametersForInit() replaces previous params with new params', async () => {
+    const eventParametersForInit = {
+      'github_user': 'dwyfrequency',
+      'company': 'google'
+    };
+    const additionalParams = { 'food': 'sushi' };
+    _setDefaultEventParametersForInit(eventParametersForInit);
+    _setDefaultEventParametersForInit(additionalParams);
+    expect(defaultEventParametersForInit).to.deep.equal({
+      ...additionalParams
+    });
+  });
+  it('_setConsentDefaultForInit() stores individual params correctly', async () => {
+    const consentParametersForInit: ConsentSettings = {
+      'analytics_storage': 'granted',
+      'functionality_storage': 'denied'
+    };
+    _setConsentDefaultForInit(consentParametersForInit);
+    expect(defaultConsentSettingsForInit).to.deep.equal(
+      consentParametersForInit
+    );
+  });
+  it('_setConsentDefaultForInit() replaces previous params with new params', async () => {
+    const consentParametersForInit: ConsentSettings = {
+      'analytics_storage': 'granted',
+      'functionality_storage': 'denied'
+    };
+    const additionalParams = { 'wait_for_update': 500 };
+    _setConsentDefaultForInit(consentParametersForInit);
+    _setConsentDefaultForInit(additionalParams);
+    expect(defaultConsentSettingsForInit).to.deep.equal({
+      ...additionalParams
+    });
   });
 });

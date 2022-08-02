@@ -342,6 +342,15 @@ export const base64Encode = function (str: string): string {
 };
 
 /**
+ * URL-safe base64 encoding (without "." padding in the end).
+ * e.g. Used in JSON Web Token (JWT) parts.
+ */
+export const base64urlEncodeWithoutPadding = function (str: string): string {
+  // Use base64url encoding and remove padding in the end (dot characters).
+  return base64Encode(str).replace(/\./g, '');
+};
+
+/**
  * URL-safe base64 decoding
  *
  * NOTE: DO NOT use the global atob() function - it does NOT support the

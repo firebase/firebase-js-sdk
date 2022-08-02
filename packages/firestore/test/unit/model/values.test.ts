@@ -17,15 +17,18 @@
 
 import { expect } from 'chai';
 
-import { GeoPoint } from '../../../src/api/geo_point';
-import { Timestamp } from '../../../src/api/timestamp';
+import { GeoPoint, Timestamp } from '../../../src';
+import { DatabaseId } from '../../../src/core/database_info';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
 import {
   canonicalId,
   valueCompare,
   valueEquals,
   estimateByteSize,
-  refValue
+  refValue,
+  deepClone,
+  valuesGetLowerBound,
+  valuesGetUpperBound
 } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -355,6 +358,109 @@ describe('Values', () => {
     }
   });
 
+  it('computes lower bound', () => {
+    const groups = [
+      // null first
+      [valuesGetLowerBound({ nullValue: 'NULL_VALUE' }), wrap(null)],
+
+      // booleans
+      [valuesGetLowerBound({ booleanValue: true }), wrap(false)],
+      [wrap(true)],
+
+      // numbers
+      [valuesGetLowerBound({ doubleValue: 0 }), wrap(NaN)],
+      [wrap(Number.NEGATIVE_INFINITY)],
+      [wrap(Number.MIN_VALUE)],
+
+      // dates
+      [valuesGetLowerBound({ timestampValue: {} })],
+      [wrap(date1)],
+
+      // strings
+      [valuesGetLowerBound({ stringValue: '' }), wrap('')],
+      [wrap('\u0000')],
+
+      // resource names
+      [
+        valuesGetLowerBound({ referenceValue: '' }),
+        refValue(DatabaseId.empty(), key(''))
+      ],
+      [refValue(DatabaseId.empty(), key('a/a'))],
+
+      // geo points
+      [
+        valuesGetLowerBound({ geoPointValue: {} }),
+        wrap(new GeoPoint(-90, -180))
+      ],
+      [wrap(new GeoPoint(-90, 0))],
+
+      // arrays
+      [valuesGetLowerBound({ arrayValue: {} }), wrap([])],
+      [wrap([false])],
+
+      // objects
+      [valuesGetLowerBound({ mapValue: {} }), wrap({})]
+    ];
+
+    expectCorrectComparisonGroups(
+      groups,
+      (left: api.Value, right: api.Value) => {
+        return valueCompare(left, right);
+      }
+    );
+  });
+
+  it('computes upper bound', () => {
+    const groups = [
+      // null first
+      [wrap(null)],
+      [valuesGetUpperBound({ nullValue: 'NULL_VALUE' })],
+
+      // booleans
+      [wrap(true)],
+      [valuesGetUpperBound({ booleanValue: false })],
+
+      // numbers
+      [wrap(Number.MAX_SAFE_INTEGER)],
+      [wrap(Number.POSITIVE_INFINITY)],
+      [valuesGetUpperBound({ doubleValue: NaN })],
+
+      // dates
+      [wrap(date1)],
+      [valuesGetUpperBound({ timestampValue: {} })],
+
+      // strings
+      [wrap('\u0000')],
+      [valuesGetUpperBound({ stringValue: '' })],
+
+      // blobs
+      [wrap(blob(255))],
+      [valuesGetUpperBound({ bytesValue: '' })],
+
+      // resource names
+      [refValue(dbId('', ''), key('a/a'))],
+      [valuesGetUpperBound({ referenceValue: '' })],
+
+      // geo points
+      [wrap(new GeoPoint(90, 180))],
+      [valuesGetUpperBound({ geoPointValue: {} })],
+
+      // arrays
+      [wrap([false])],
+      [valuesGetUpperBound({ arrayValue: {} })],
+
+      // objects
+      [wrap({ 'a': 'b' })]
+    ];
+
+    expectCorrectComparisonGroups(
+      groups,
+      (left: api.Value, right: api.Value) => {
+        return valueCompare(left, right);
+      }
+    );
+  });
+
   it('canonicalizes values', () => {
     expect(canonicalId(wrap(null))).to.equal('null');
     expect(canonicalId(wrap(true))).to.equal('true');
@@ -404,5 +510,42 @@ describe('Values', () => {
         })
       )
     ).to.equal('{a:1,b:2,c:3}');
+  });
+
+  it('clones properties without normalization', () => {
+    const values = [
+      { integerValue: '1' },
+      { integerValue: 1 },
+      { doubleValue: '2' },
+      { doubleValue: 2 },
+      { timestampValue: '2007-04-05T14:30:01Z' },
+      { timestampValue: { seconds: 1175783401 } },
+      { timestampValue: '2007-04-05T14:30:01.999Z' },
+      {
+        timestampValue: { seconds: 1175783401, nanos: 999000000 }
+      },
+      { timestampValue: '2007-04-05T14:30:02Z' },
+      { timestampValue: { seconds: 1175783402 } },
+      { timestampValue: '2007-04-05T14:30:02.100Z' },
+      {
+        timestampValue: { seconds: 1175783402, nanos: 100000000 }
+      },
+      { timestampValue: '2007-04-05T14:30:02.100001Z' },
+      {
+        timestampValue: { seconds: 1175783402, nanos: 100001000 }
+      },
+      { bytesValue: new Uint8Array([0, 1, 2]) },
+      { bytesValue: 'AAEC' },
+      { bytesValue: new Uint8Array([0, 1, 3]) },
+      { bytesValue: 'AAED' }
+    ];
+
+    for (const value of values) {
+      expect(deepClone(value)).to.deep.equal(value);
+      const mapValue = { mapValue: { fields: { foo: value } } };
+      expect(deepClone(mapValue)).to.deep.equal(mapValue);
+      const arrayValue = { arrayValue: { values: [value] } };
+      expect(deepClone(arrayValue)).to.deep.equal(arrayValue);
+    }
   });
 });

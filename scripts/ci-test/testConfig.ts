@@ -34,19 +34,19 @@ export const testConfig: {
   'core': {
     'ignorePackages': [
       '@firebase/firestore',
+      '@firebase/firestore-compat',
       'firebase-firestore-integration-test',
       'firebase-messaging-integration-test',
       'firebase-namespace-integration-test',
       'firebase-compat-typings-test',
       '@firebase/rules-unit-testing',
-      'rxfire',
       '@firebase/auth',
-      'firebase',
-      'firebase-exp'
+      '@firebase/auth-compat',
+      'firebase'
     ]
   },
   'firestore': {
-    'onlyIncludePackages': ['@firebase/firestore']
+    'onlyIncludePackages': ['@firebase/firestore', '@firebase/firestore-compat']
   },
   'firestore-integration': {
     'onlyIncludePackages': ['firebase-firestore-integration-test']
@@ -55,12 +55,12 @@ export const testConfig: {
     'onlyIncludePackages': ['firebase-messaging-integration-test']
   },
   'misc': {
-    'onlyIncludePackages': ['@firebase/rules-unit-testing', 'rxfire']
+    'onlyIncludePackages': ['@firebase/rules-unit-testing']
   },
   'firebase-integration': {
     'alwaysIncludePackages': ['firebase-namespace-integration-test']
   },
   'auth': {
-    'onlyIncludePackages': ['@firebase/auth']
+    'onlyIncludePackages': ['@firebase/auth', '@firebase/auth-compat']
   }
 };

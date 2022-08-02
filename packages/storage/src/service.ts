@@ -19,28 +19,27 @@ import { Location } from './implementation/location';
 import { FailRequest } from './implementation/failrequest';
 import { Request, makeRequest } from './implementation/request';
 import { RequestInfo } from './implementation/requestinfo';
-import { XhrIoPool } from './implementation/xhriopool';
 import { Reference, _getChild } from './reference';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import {
-  FirebaseApp,
-  FirebaseOptions,
-  _FirebaseService
-  // eslint-disable-next-line import/no-extraneous-dependencies
-} from '@firebase/app-exp';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { FirebaseApp, FirebaseOptions } from '@firebase/app';
 import {
   CONFIG_STORAGE_BUCKET_KEY,
   DEFAULT_HOST,
   DEFAULT_MAX_OPERATION_RETRY_TIME,
   DEFAULT_MAX_UPLOAD_RETRY_TIME
-} from '../src/implementation/constants';
+} from './implementation/constants';
 import {
   invalidArgument,
   appDeleted,
   noDefaultBucket
 } from './implementation/error';
 import { validateNumber } from './implementation/type';
+import { FirebaseStorage } from './public-types';
+import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
+import { Connection, ConnectionType } from './implementation/connection';
 
 export function isUrl(path?: string): boolean {
   return /^[A-Za-z]+:\/\//.test(path as string);
@@ -49,7 +48,7 @@ export function isUrl(path?: string): boolean {
 /**
  * Returns a firebaseStorage.Reference for the given url.
  */
-function refFromURL(service: StorageService, url: string): Reference {
+function refFromURL(service: FirebaseStorageImpl, url: string): Reference {
   return new Reference(service, url);
 }
 
@@ -58,10 +57,10 @@ function refFromURL(service: StorageService, url: string): Reference {
  * bucket.
  */
 function refFromPath(
-  ref: StorageService | Reference,
+  ref: FirebaseStorageImpl | Reference,
   path?: string
 ): Reference {
-  if (ref instanceof StorageService) {
+  if (ref instanceof FirebaseStorageImpl) {
     const service = ref;
     if (service._bucket == null) {
       throw noDefaultBucket();
@@ -75,9 +74,6 @@ function refFromPath(
   } else {
     // ref is a Reference
     if (path !== undefined) {
-      if (path.includes('..')) {
-        throw invalidArgument('`path` param cannot contain ".."');
-      }
       return _getChild(ref, path);
     } else {
       return ref;
@@ -91,7 +87,7 @@ function refFromPath(
  * @param url - URL. If empty, returns root reference.
  * @public
  */
-export function ref(storage: StorageService, url?: string): Reference;
+export function ref(storage: FirebaseStorageImpl, url?: string): Reference;
 /**
  * Returns a storage Reference for the given path in the
  * default bucket.
@@ -101,15 +97,15 @@ export function ref(storage: StorageService, url?: string): Reference;
  * @public
  */
 export function ref(
-  storageOrRef: StorageService | Reference,
+  storageOrRef: FirebaseStorageImpl | Reference,
   path?: string
 ): Reference;
 export function ref(
-  serviceOrRef: StorageService | Reference,
+  serviceOrRef: FirebaseStorageImpl | Reference,
   pathOrUrl?: string
 ): Reference | null {
   if (pathOrUrl && isUrl(pathOrUrl)) {
-    if (serviceOrRef instanceof StorageService) {
+    if (serviceOrRef instanceof FirebaseStorageImpl) {
       return refFromURL(serviceOrRef, pathOrUrl);
     } else {
       throw invalidArgument(
@@ -132,33 +128,46 @@ function extractBucket(
   return Location.makeFromBucketSpec(bucketString, host);
 }
 
-export function useStorageEmulator(
-  storage: StorageService,
+export function connectStorageEmulator(
+  storage: FirebaseStorageImpl,
   host: string,
-  port: number
+  port: number,
+  options: {
+    mockUserToken?: EmulatorMockTokenOptions | string;
+  } = {}
 ): void {
-  storage.host = `http://${host}:${port}`;
+  storage.host = `${host}:${port}`;
+  storage._protocol = 'http';
+  const { mockUserToken } = options;
+  if (mockUserToken) {
+    storage._overrideAuthToken =
+      typeof mockUserToken === 'string'
+        ? mockUserToken
+        : createMockUserToken(mockUserToken, storage.app.options.projectId);
+  }
 }
 
 /**
  * A service that provides Firebase Storage Reference instances.
- * @public
  * @param opt_url - gs:// url to a custom Storage Bucket
+ *
+ * @internal
  */
-export class StorageService implements _FirebaseService {
+export class FirebaseStorageImpl implements FirebaseStorage {
   _bucket: Location | null = null;
   /**
    * This string can be in the formats:
    * - host
    * - host:port
-   * - protocol://host:port
    */
   private _host: string = DEFAULT_HOST;
+  _protocol: string = 'https';
   protected readonly _appId: string | null = null;
   private readonly _requests: Set<Request<unknown>>;
   private _deleted: boolean = false;
   private _maxOperationRetryTime: number;
   private _maxUploadRetryTime: number;
+  _overrideAuthToken?: string;
 
   constructor(
     /**
@@ -166,7 +175,13 @@ export class StorageService implements _FirebaseService {
      */
     readonly app: FirebaseApp,
     readonly _authProvider: Provider<FirebaseAuthInternalName>,
-    readonly _pool: XhrIoPool,
+    /**
+     * @internal
+     */
+    readonly _appCheckProvider: Provider<AppCheckInternalComponentName>,
+    /**
+     * @internal
+     */
     readonly _url?: string,
     readonly _firebaseVersion?: string
   ) {
@@ -180,15 +195,14 @@ export class StorageService implements _FirebaseService {
     }
   }
 
+  /**
+   * The host string for this service, in the form of `host` or
+   * `host:port`.
+   */
   get host(): string {
     return this._host;
   }
 
-  /**
-   * Set host string for this service.
-   * @param host - host string in the form of host, host:port,
-   * or protocol://host:port
-   */
   set host(host: string) {
     this._host = host;
     if (this._url != null) {
@@ -234,6 +248,9 @@ export class StorageService implements _FirebaseService {
   }
 
   async _getAuthToken(): Promise<string | null> {
+    if (this._overrideAuthToken) {
+      return this._overrideAuthToken;
+    }
     const auth = this._authProvider.getImmediate({ optional: true });
     if (auth) {
       const tokenData = await auth.getToken();
@@ -244,13 +261,28 @@ export class StorageService implements _FirebaseService {
     return null;
   }
 
+  async _getAppCheckToken(): Promise<string | null> {
+    const appCheck = this._appCheckProvider.getImmediate({ optional: true });
+    if (appCheck) {
+      const result = await appCheck.getToken();
+      // TODO: What do we want to do if there is an error getting the token?
+      // Context: appCheck.getToken() will never throw even if an error happened. In the error case, a dummy token will be
+      // returned along with an error field describing the error. In general, we shouldn't care about the error condition and just use
+      // the token (actual or dummy) to send requests.
+      return result.token;
+    }
+    return null;
+  }
+
   /**
    * Stop running requests and prevent more from being created.
    */
   _delete(): Promise<void> {
-    this._deleted = true;
-    this._requests.forEach(request => request.cancel());
-    this._requests.clear();
+    if (!this._deleted) {
+      this._deleted = true;
+      this._requests.forEach(request => request.cancel());
+      this._requests.clear();
+    }
     return Promise.resolve();
   }
 
@@ -266,16 +298,19 @@ export class StorageService implements _FirebaseService {
    * @param requestInfo - HTTP RequestInfo object
    * @param authToken - Firebase auth token
    */
-  _makeRequest<T>(
-    requestInfo: RequestInfo<T>,
-    authToken: string | null
-  ): Request<T> {
+  _makeRequest<I extends ConnectionType, O>(
+    requestInfo: RequestInfo<I, O>,
+    requestFactory: () => Connection<I>,
+    authToken: string | null,
+    appCheckToken: string | null
+  ): Request<O> {
     if (!this._deleted) {
       const request = makeRequest(
         requestInfo,
         this._appId,
         authToken,
-        this._pool,
+        appCheckToken,
+        requestFactory,
         this._firebaseVersion
       );
       this._requests.add(request);
@@ -288,5 +323,22 @@ export class StorageService implements _FirebaseService {
     } else {
       return new FailRequest(appDeleted());
     }
+  }
+
+  async makeRequestWithTokens<I extends ConnectionType, O>(
+    requestInfo: RequestInfo<I, O>,
+    requestFactory: () => Connection<I>
+  ): Promise<O> {
+    const [authToken, appCheckToken] = await Promise.all([
+      this._getAuthToken(),
+      this._getAppCheckToken()
+    ]);
+
+    return this._makeRequest(
+      requestInfo,
+      requestFactory,
+      authToken,
+      appCheckToken
+    ).getPromise();
   }
 }

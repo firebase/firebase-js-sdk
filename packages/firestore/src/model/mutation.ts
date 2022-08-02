@@ -16,10 +16,11 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../lite/timestamp';
+import { Timestamp } from '../lite-api/timestamp';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
+import { SortedSet } from '../util/sorted_set';
 
 import { Document, MutableDocument } from './document';
 import { DocumentKey } from './document_key';
@@ -204,7 +205,7 @@ export function preconditionIsValidForDocument(
  *
  * Every type of mutation needs to implement its own applyToRemoteDocument() and
  * applyToLocalView() to implement the actual behavior of applying the mutation
- * to some source document (see `applySetMutationToRemoteDocument()` for an
+ * to some source document (see `setMutationApplyToRemoteDocument()` for an
  * example).
  */
 export abstract class Mutation {
@@ -212,6 +213,69 @@ export abstract class Mutation {
   abstract readonly key: DocumentKey;
   abstract readonly precondition: Precondition;
   abstract readonly fieldTransforms: FieldTransform[];
+  /**
+   * Returns a `FieldMask` representing the fields that will be changed by
+   * applying this mutation. Returns `null` if the mutation will overwrite the
+   * entire document.
+   */
+  abstract getFieldMask(): FieldMask | null;
+}
+
+/**
+ * A utility method to calculate a `Mutation` representing the overlay from the
+ * final state of the document, and a `FieldMask` representing the fields that
+ * are mutated by the local mutations.
+ */
+export function calculateOverlayMutation(
+  doc: MutableDocument,
+  mask: FieldMask | null
+): Mutation | null {
+  if (!doc.hasLocalMutations || (mask && mask!.fields.length === 0)) {
+    return null;
+  }
+
+  // mask is null when sets or deletes are applied to the current document.
+  if (mask === null) {
+    if (doc.isNoDocument()) {
+      return new DeleteMutation(doc.key, Precondition.none());
+    } else {
+      return new SetMutation(doc.key, doc.data, Precondition.none());
+    }
+  } else {
+    const docValue = doc.data;
+    const patchValue = ObjectValue.empty();
+    let maskSet = new SortedSet<FieldPath>(FieldPath.comparator);
+    for (let path of mask.fields) {
+      if (!maskSet.has(path)) {
+        let value = docValue.field(path);
+        // If we are deleting a nested field, we take the immediate parent as
+        // the mask used to construct the resulting mutation.
+        // Justification: Nested fields can create parent fields implicitly. If
+        // only a leaf entry is deleted in later mutations, the parent field
+        // should still remain, but we may have lost this information.
+        // Consider mutation (foo.bar 1), then mutation (foo.bar delete()).
+        // This leaves the final result (foo, {}). Despite the fact that `doc`
+        // has the correct result, `foo` is not in `mask`, and the resulting
+        // mutation would miss `foo`.
+        if (value === null && path.length > 1) {
+          path = path.popLast();
+          value = docValue.field(path);
+        }
+        if (value === null) {
+          patchValue.delete(path);
+        } else {
+          patchValue.set(path, value);
+        }
+        maskSet = maskSet.add(path);
+      }
+    }
+    return new PatchMutation(
+      doc.key,
+      patchValue,
+      new FieldMask(maskSet.toArray()),
+      Precondition.none()
+    );
+  }
 }
 
 /**
@@ -226,22 +290,22 @@ export abstract class Mutation {
  *     of the document.
  * @param mutationResult - The result of applying the mutation from the backend.
  */
-export function applyMutationToRemoteDocument(
+export function mutationApplyToRemoteDocument(
   mutation: Mutation,
   document: MutableDocument,
   mutationResult: MutationResult
 ): void {
-  verifyMutationKeyMatches(mutation, document);
+  mutationVerifyKeyMatches(mutation, document);
   if (mutation instanceof SetMutation) {
-    applySetMutationToRemoteDocument(mutation, document, mutationResult);
+    setMutationApplyToRemoteDocument(mutation, document, mutationResult);
   } else if (mutation instanceof PatchMutation) {
-    applyPatchMutationToRemoteDocument(mutation, document, mutationResult);
+    patchMutationApplyToRemoteDocument(mutation, document, mutationResult);
   } else {
     debugAssert(
       mutation instanceof DeleteMutation,
       'Unexpected mutation type: ' + mutation
     );
-    applyDeleteMutationToRemoteDocument(mutation, document, mutationResult);
+    deleteMutationApplyToRemoteDocument(mutation, document, mutationResult);
   }
 }
 
@@ -254,26 +318,39 @@ export function applyMutationToRemoteDocument(
  * @param document - The document to mutate. The input document can be an
  *     invalid document if the client has no knowledge of the pre-mutation state
  *     of the document.
+ * @param previousMask - The fields that have been updated before applying this mutation.
  * @param localWriteTime - A timestamp indicating the local write time of the
  *     batch this mutation is a part of.
+ * @returns A `FieldMask` representing the fields that are changed by applying this mutation.
  */
-export function applyMutationToLocalView(
+export function mutationApplyToLocalView(
   mutation: Mutation,
   document: MutableDocument,
+  previousMask: FieldMask | null,
   localWriteTime: Timestamp
-): void {
-  verifyMutationKeyMatches(mutation, document);
+): FieldMask | null {
+  mutationVerifyKeyMatches(mutation, document);
 
   if (mutation instanceof SetMutation) {
-    applySetMutationToLocalView(mutation, document, localWriteTime);
+    return setMutationApplyToLocalView(
+      mutation,
+      document,
+      previousMask,
+      localWriteTime
+    );
   } else if (mutation instanceof PatchMutation) {
-    applyPatchMutationToLocalView(mutation, document, localWriteTime);
+    return patchMutationApplyToLocalView(
+      mutation,
+      document,
+      previousMask,
+      localWriteTime
+    );
   } else {
     debugAssert(
       mutation instanceof DeleteMutation,
       'Unexpected mutation type: ' + mutation
     );
-    applyDeleteMutationToLocalView(mutation, document);
+    return deleteMutationApplyToLocalView(mutation, document, previousMask);
   }
 }
 
@@ -293,7 +370,7 @@ export function applyMutationToLocalView(
  * @returns a base value to store along with the mutation, or null for
  * idempotent mutations.
  */
-export function extractMutationBaseValue(
+export function mutationExtractBaseValue(
   mutation: Mutation,
   document: Document
 ): ObjectValue | null {
@@ -306,7 +383,7 @@ export function extractMutationBaseValue(
     );
 
     if (coercedValue != null) {
-      if (baseObject == null) {
+      if (baseObject === null) {
         baseObject = ObjectValue.empty();
       }
       baseObject.set(fieldTransform.field, coercedValue);
@@ -348,7 +425,7 @@ export function mutationEquals(left: Mutation, right: Mutation): boolean {
   return true;
 }
 
-function verifyMutationKeyMatches(
+function mutationVerifyKeyMatches(
   mutation: Mutation,
   document: MutableDocument
 ): void {
@@ -356,16 +433,6 @@ function verifyMutationKeyMatches(
     document.key.isEqual(mutation.key),
     'Can only apply a mutation to a document with the same key'
   );
-}
-
-/**
- * Returns the version from the given document for use as the result of a
- * mutation. Mutations are defined to return the version of the base document
- * only if it is an existing document. Deleted and unknown documents have a
- * post-mutation version of SnapshotVersion.min().
- */
-function getPostMutationVersion(document: MutableDocument): SnapshotVersion {
-  return document.isFoundDocument() ? document.version : SnapshotVersion.min();
 }
 
 /**
@@ -383,14 +450,18 @@ export class SetMutation extends Mutation {
   }
 
   readonly type: MutationType = MutationType.Set;
+
+  getFieldMask(): FieldMask | null {
+    return null;
+  }
 }
 
-function applySetMutationToRemoteDocument(
+function setMutationApplyToRemoteDocument(
   mutation: SetMutation,
   document: MutableDocument,
   mutationResult: MutationResult
 ): void {
-  // Unlike applySetMutationToLocalView, if we're applying a mutation to a
+  // Unlike setMutationApplyToLocalView, if we're applying a mutation to a
   // remote document the server has accepted the mutation so the precondition
   // must have held.
   const newData = mutation.value.clone();
@@ -405,15 +476,16 @@ function applySetMutationToRemoteDocument(
     .setHasCommittedMutations();
 }
 
-function applySetMutationToLocalView(
+function setMutationApplyToLocalView(
   mutation: SetMutation,
   document: MutableDocument,
+  previousMask: FieldMask | null,
   localWriteTime: Timestamp
-): void {
+): FieldMask | null {
   if (!preconditionIsValidForDocument(mutation.precondition, document)) {
     // The mutation failed to apply (e.g. a document ID created with add()
     // caused a name collision).
-    return;
+    return previousMask;
   }
 
   const newData = mutation.value.clone();
@@ -424,8 +496,9 @@ function applySetMutationToLocalView(
   );
   newData.setAll(transformResults);
   document
-    .convertToFoundDocument(getPostMutationVersion(document), newData)
+    .convertToFoundDocument(document.version, newData)
     .setHasLocalMutations();
+  return null; // SetMutation overwrites all fields.
 }
 
 /**
@@ -453,9 +526,13 @@ export class PatchMutation extends Mutation {
   }
 
   readonly type: MutationType = MutationType.Patch;
+
+  getFieldMask(): FieldMask | null {
+    return this.fieldMask;
+  }
 }
 
-function applyPatchMutationToRemoteDocument(
+function patchMutationApplyToRemoteDocument(
   mutation: PatchMutation,
   document: MutableDocument,
   mutationResult: MutationResult
@@ -482,13 +559,14 @@ function applyPatchMutationToRemoteDocument(
     .setHasCommittedMutations();
 }
 
-function applyPatchMutationToLocalView(
+function patchMutationApplyToLocalView(
   mutation: PatchMutation,
   document: MutableDocument,
+  previousMask: FieldMask | null,
   localWriteTime: Timestamp
-): void {
+): FieldMask | null {
   if (!preconditionIsValidForDocument(mutation.precondition, document)) {
-    return;
+    return previousMask;
   }
 
   const transformResults = localTransformResults(
@@ -500,8 +578,16 @@ function applyPatchMutationToLocalView(
   newData.setAll(getPatch(mutation));
   newData.setAll(transformResults);
   document
-    .convertToFoundDocument(getPostMutationVersion(document), newData)
+    .convertToFoundDocument(document.version, newData)
     .setHasLocalMutations();
+
+  if (previousMask === null) {
+    return null;
+  }
+
+  return previousMask
+    .unionWith(mutation.fieldMask.fields)
+    .unionWith(mutation.fieldTransforms.map(transform => transform.field));
 }
 
 /**
@@ -565,8 +651,7 @@ function serverTransformResults(
  * @param fieldTransforms - The field transforms to apply the result to.
  * @param localWriteTime - The local time of the mutation (used to
  *     generate ServerTimestampValues).
- * @param mutableDocument - The current state of the document after applying all
- *     previous mutations.
+ * @param mutableDocument - The document to apply transforms on.
  * @returns The transform results list.
  */
 function localTransformResults(
@@ -599,9 +684,13 @@ export class DeleteMutation extends Mutation {
 
   readonly type: MutationType = MutationType.Delete;
   readonly fieldTransforms: FieldTransform[] = [];
+
+  getFieldMask(): FieldMask | null {
+    return null;
+  }
 }
 
-function applyDeleteMutationToRemoteDocument(
+function deleteMutationApplyToRemoteDocument(
   mutation: DeleteMutation,
   document: MutableDocument,
   mutationResult: MutationResult
@@ -619,19 +708,20 @@ function applyDeleteMutationToRemoteDocument(
     .setHasCommittedMutations();
 }
 
-function applyDeleteMutationToLocalView(
+function deleteMutationApplyToLocalView(
   mutation: DeleteMutation,
-  document: MutableDocument
-): void {
+  document: MutableDocument,
+  previousMask: FieldMask | null
+): FieldMask | null {
   debugAssert(
     document.key.isEqual(mutation.key),
     'Can only apply mutation to document with same key'
   );
   if (preconditionIsValidForDocument(mutation.precondition, document)) {
-    // We don't call `setHasLocalMutations()` since we want to be backwards
-    // compatible with the existing SDK behavior.
-    document.convertToNoDocument(SnapshotVersion.min());
+    document.convertToNoDocument(document.version).setHasLocalMutations();
+    return null;
   }
+  return previousMask;
 }
 
 /**
@@ -648,4 +738,8 @@ export class VerifyMutation extends Mutation {
 
   readonly type: MutationType = MutationType.Verify;
   readonly fieldTransforms: FieldTransform[] = [];
+
+  getFieldMask(): FieldMask | null {
+    return null;
+  }
 }

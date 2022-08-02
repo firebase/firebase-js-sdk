@@ -32,11 +32,11 @@ export class TestRemoteDocumentChangeBuffer {
   ) {}
 
   addEntry(document: MutableDocument, readTime: SnapshotVersion): void {
-    this.buffer.addEntry(document, readTime);
+    this.buffer.addEntry(document);
   }
 
-  removeEntry(key: DocumentKey): void {
-    this.buffer.removeEntry(key);
+  removeEntry(key: DocumentKey, readTime: SnapshotVersion): void {
+    this.buffer.removeEntry(key, readTime);
   }
 
   getEntry(documentKey: DocumentKey): Promise<MutableDocument> {

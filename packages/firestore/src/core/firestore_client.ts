@@ -17,12 +17,12 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
+import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { LoadBundleTask } from '../exp/bundle';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -82,6 +82,7 @@ import {
   syncEngineWrite
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
+import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
@@ -97,14 +98,19 @@ export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 export class FirestoreClient {
   private user = User.UNAUTHENTICATED;
   private readonly clientId = AutoId.newId();
-  private credentialListener: CredentialChangeListener = () => {};
-  private readonly receivedInitialUser = new Deferred<void>();
+  private authCredentialListener: CredentialChangeListener<User> = () =>
+    Promise.resolve();
+  private appCheckCredentialListener: (
+    appCheckToken: string,
+    user: User
+  ) => Promise<void> = () => Promise.resolve();
 
   offlineComponents?: OfflineComponentProvider;
   onlineComponents?: OnlineComponentProvider;
 
   constructor(
-    private credentials: CredentialsProvider,
+    private authCredentials: CredentialsProvider<User>,
+    private appCheckCredentials: CredentialsProvider<string>,
     /**
      * Asynchronous queue responsible for all of our internal processing. When
      * we get incoming work from the user (via public API) or the network
@@ -116,33 +122,37 @@ export class FirestoreClient {
     public asyncQueue: AsyncQueue,
     private databaseInfo: DatabaseInfo
   ) {
-    this.credentials.setChangeListener(user => {
+    this.authCredentials.start(asyncQueue, async user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
+      await this.authCredentialListener(user);
       this.user = user;
-      this.credentialListener(user);
-      this.receivedInitialUser.resolve();
+    });
+    this.appCheckCredentials.start(asyncQueue, newAppCheckToken => {
+      logDebug(LOG_TAG, 'Received new app check token=', newAppCheckToken);
+      return this.appCheckCredentialListener(newAppCheckToken, this.user);
     });
   }
 
   async getConfiguration(): Promise<ComponentConfiguration> {
-    await this.receivedInitialUser.promise;
-
     return {
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
       clientId: this.clientId,
-      credentials: this.credentials,
+      authCredentials: this.authCredentials,
+      appCheckCredentials: this.appCheckCredentials,
       initialUser: this.user,
       maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
     };
   }
 
-  setCredentialChangeListener(listener: (user: User) => void): void {
-    this.credentialListener = listener;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.receivedInitialUser.promise.then(() =>
-      this.credentialListener(this.user)
-    );
+  setCredentialChangeListener(listener: (user: User) => Promise<void>): void {
+    this.authCredentialListener = listener;
+  }
+
+  setAppCheckTokenChangeListener(
+    listener: (appCheckToken: string, user: User) => Promise<void>
+  ): void {
+    this.appCheckCredentialListener = listener;
   }
 
   /**
@@ -170,14 +180,15 @@ export class FirestoreClient {
           await this.offlineComponents.terminate();
         }
 
-        // `removeChangeListener` must be called after shutting down the
-        // RemoteStore as it will prevent the RemoteStore from retrieving
-        // auth tokens.
-        this.credentials.removeChangeListener();
+        // The credentials provider must be terminated after shutting down the
+        // RemoteStore as it will prevent the RemoteStore from retrieving auth
+        // tokens.
+        this.authCredentials.shutdown();
+        this.appCheckCredentials.shutdown();
         deferred.resolve();
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(
-          e,
+          e as Error,
           `Failed to shutdown persistence`
         );
         deferred.reject(firestoreError);
@@ -198,15 +209,13 @@ export async function setOfflineComponentProvider(
   await offlineComponentProvider.initialize(configuration);
 
   let currentUser = configuration.initialUser;
-  client.setCredentialChangeListener(user => {
+  client.setCredentialChangeListener(async user => {
     if (!currentUser.isEqual(user)) {
+      await localStoreHandleUserChange(
+        offlineComponentProvider.localStore,
+        user
+      );
       currentUser = user;
-      client.asyncQueue.enqueueRetryable(async () => {
-        await localStoreHandleUserChange(
-          offlineComponentProvider.localStore,
-          user
-        );
-      });
     }
   });
 
@@ -236,12 +245,10 @@ export async function setOnlineComponentProvider(
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
   client.setCredentialChangeListener(user =>
-    client.asyncQueue.enqueueRetryable(() =>
-      remoteStoreHandleCredentialChange(
-        onlineComponentProvider.remoteStore,
-        user
-      )
-    )
+    remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
+  );
+  client.setAppCheckTokenChangeListener((_, user) =>
+    remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
   client.onlineComponents = onlineComponentProvider;
 }
@@ -477,7 +484,8 @@ export function firestoreClientAddSnapshotsInSyncListener(
  */
 export function firestoreClientTransaction<T>(
   client: FirestoreClient,
-  updateFunction: (transaction: Transaction) => Promise<T>
+  updateFunction: (transaction: Transaction) => Promise<T>,
+  options: TransactionOptions
 ): Promise<T> {
   const deferred = new Deferred<T>();
   client.asyncQueue.enqueueAndForget(async () => {
@@ -485,6 +493,7 @@ export function firestoreClientTransaction<T>(
     new TransactionRunner<T>(
       client.asyncQueue,
       datastore,
+      options,
       updateFunction,
       deferred
     ).run();
@@ -516,7 +525,7 @@ async function readDocumentFromCache(
     }
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       `Failed to get document '${docKey} from cache`
     );
     result.reject(firestoreError);
@@ -614,7 +623,7 @@ async function executeQueryFromCache(
     result.resolve(viewChange.snapshot!);
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       `Failed to execute query '${query} against cache`
     );
     result.reject(firestoreError);

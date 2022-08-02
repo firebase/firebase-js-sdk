@@ -22,7 +22,7 @@ export interface RemoteConfig {
   settings: Settings;
 
   /**
-   * Object containing default values for conigs.
+   * Object containing default values for configs.
    */
   defaultConfig: { [key: string]: string | number | boolean };
 
@@ -175,6 +175,6 @@ export type LogLevel = 'debug' | 'error' | 'silent';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'remoteConfig': RemoteConfig;
+    'remoteConfig-compat': RemoteConfig;
   }
 }

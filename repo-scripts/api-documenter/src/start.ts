@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -25,8 +27,8 @@ import { PackageJsonLookup } from '@rushstack/node-core-library';
 
 import { ApiDocumenterCommandLine } from './cli/ApiDocumenterCommandLine';
 
-const myPackageVersion: string = PackageJsonLookup.loadOwnPackageJson(__dirname)
-  .version;
+const myPackageVersion: string =
+  PackageJsonLookup.loadOwnPackageJson(__dirname).version;
 
 console.log(
   os.EOL + colors.bold(`@firebase/api-documenter ${myPackageVersion} ` + os.EOL)

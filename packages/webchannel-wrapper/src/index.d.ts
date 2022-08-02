@@ -130,3 +130,7 @@ export interface WebChannelTransport {
 export function createWebChannelTransport(): WebChannelTransport;
 
 export function getStatEventTarget(): EventTarget;
+
+export class FetchXmlHttpFactory {
+  constructor(options: {});
+}

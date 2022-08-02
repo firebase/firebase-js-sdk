@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
  */
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
-import json from '@rollup/plugin-json';
+import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
+import json from '@rollup/plugin-json';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-/**
- * ES5 Builds
- */
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript
@@ -34,51 +34,6 @@ const es5BuildPlugins = [
   json()
 ];
 
-const es5Builds = [
-  {
-    input: 'index.ts',
-    output: [{ file: pkg.module, format: 'es', sourcemap: true }],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'index.node.ts',
-    output: {
-      file: pkg.main,
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'index.rn.ts',
-    output: {
-      file: pkg['react-native'],
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: es5BuildPlugins,
-    external: id =>
-      [...deps, 'react-native'].some(
-        dep => id === dep || id.startsWith(`${dep}/`)
-      )
-  },
-  {
-    input: 'index.lite.ts',
-    output: {
-      file: pkg.lite,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
-
-/**
- * ES2017 Builds
- */
 const es2017BuildPlugins = [
   typescriptPlugin({
     typescript,
@@ -93,30 +48,55 @@ const es2017BuildPlugins = [
   })
 ];
 
-const es2017Builds = [
+const esmBuilds = [
   /**
-   *  Browser Builds
+   * Browser Builds
    */
   {
-    input: 'index.ts',
-    output: {
-      file: pkg.esm2017,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    input: 'src/index.ts',
+    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    plugins: [
+      ...es5BuildPlugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 5),
+        '__RUNTIME_ENV__': ''
+      }),
+      emitModulePackageFile()
+    ]
   },
   {
-    input: 'index.lite.ts',
+    input: 'src/index.ts',
     output: {
-      file: pkg['lite-esm2017'],
+      file: pkg.browser,
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    plugins: [
+      ...es2017BuildPlugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 2017),
+        '__RUNTIME_ENV__': ''
+      }),
+      emitModulePackageFile()
+    ]
   }
 ];
 
-export default [...es5Builds, ...es2017Builds];
+const cjsBuilds = [
+  {
+    input: 'src/index.ts',
+    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    plugins: [
+      ...es5BuildPlugins,
+      replace({
+        ...generateBuildTargetReplaceConfig('cjs', 5),
+        '__RUNTIME_ENV__': 'node'
+      })
+    ]
+  }
+];
+
+export default [...esmBuilds, ...cjsBuilds];

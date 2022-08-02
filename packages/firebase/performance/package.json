@@ -1,6 +1,7 @@
 {
   "name": "firebase/performance",
   "main": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
-  "typings": "../empty-import.d.ts"
+  "typings": "dist/performance/index.d.ts"
 }

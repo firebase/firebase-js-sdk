@@ -23,7 +23,7 @@ import {
 } from 'child-process-promise';
 import * as path from 'path';
 // @ts-ignore
-import * as freePortFinder from 'find-free-port';
+import freePortFinder from 'find-free-port';
 
 import { FirestoreEmulator } from './emulators/firestore-emulator';
 

@@ -25,6 +25,8 @@ import { logWrapper, splitStringBySize } from '../core/util/util';
 import { SDK_VERSION } from '../core/version';
 
 import {
+  APPLICATION_ID_PARAM,
+  APP_CHECK_TOKEN_PARAM,
   FORGE_DOMAIN_RE,
   FORGE_REF,
   LAST_SESSION_PARAM,
@@ -73,17 +75,22 @@ export class WebSocketConnection implements Transport {
   private nodeAdmin: boolean;
 
   /**
-   * @param connId - identifier for this transport
-   * @param repoInfo - The info for the websocket endpoint.
-   * @param applicationId - The Firebase App ID for this project.
-   * @param transportSessionId - Optional transportSessionId if this is connecting to an existing transport
-   *                                         session
-   * @param lastSessionId - Optional lastSessionId if there was a previous connection
+   * @param connId identifier for this transport
+   * @param repoInfo The info for the websocket endpoint.
+   * @param applicationId The Firebase App ID for this project.
+   * @param appCheckToken The App Check Token for this client.
+   * @param authToken The Auth Token for this client.
+   * @param transportSessionId Optional transportSessionId if this is connecting
+   * to an existing transport session
+   * @param lastSessionId Optional lastSessionId if there was a previous
+   * connection
    */
   constructor(
     public connId: string,
     repoInfo: RepoInfo,
     private applicationId?: string,
+    private appCheckToken?: string,
+    private authToken?: string,
     transportSessionId?: string,
     lastSessionId?: string
   ) {
@@ -92,7 +99,9 @@ export class WebSocketConnection implements Transport {
     this.connURL = WebSocketConnection.connectionURL_(
       repoInfo,
       transportSessionId,
-      lastSessionId
+      lastSessionId,
+      appCheckToken,
+      applicationId
     );
     this.nodeAdmin = repoInfo.nodeAdmin;
   }
@@ -107,7 +116,9 @@ export class WebSocketConnection implements Transport {
   private static connectionURL_(
     repoInfo: RepoInfo,
     transportSessionId?: string,
-    lastSessionId?: string
+    lastSessionId?: string,
+    appCheckToken?: string,
+    applicationId?: string
   ): string {
     const urlParams: { [k: string]: string } = {};
     urlParams[VERSION_PARAM] = PROTOCOL_VERSION;
@@ -126,6 +137,13 @@ export class WebSocketConnection implements Transport {
     if (lastSessionId) {
       urlParams[LAST_SESSION_PARAM] = lastSessionId;
     }
+    if (appCheckToken) {
+      urlParams[APP_CHECK_TOKEN_PARAM] = appCheckToken;
+    }
+    if (applicationId) {
+      urlParams[APPLICATION_ID_PARAM] = applicationId;
+    }
+
     return repoInfoConnectionURL(repoInfo, WEBSOCKET, urlParams);
   }
 
@@ -144,15 +162,28 @@ export class WebSocketConnection implements Transport {
     PersistentStorage.set('previous_websocket_failure', true);
 
     try {
+      let options: { [k: string]: object };
       if (isNodeSdk()) {
         const device = this.nodeAdmin ? 'AdminNode' : 'Node';
         // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
-        const options: { [k: string]: object } = {
+        options = {
           headers: {
             'User-Agent': `Firebase/${PROTOCOL_VERSION}/${SDK_VERSION}/${process.platform}/${device}`,
             'X-Firebase-GMPID': this.applicationId || ''
           }
         };
+
+        // If using Node with admin creds, AppCheck-related checks are unnecessary.
+        // Note that we send the credentials here even if they aren't admin credentials, which is
+        // not a problem.
+        // Note that this header is just used to bypass appcheck, and the token should still be sent
+        // through the websocket connection once it is established.
+        if (this.authToken) {
+          options.headers['Authorization'] = `Bearer ${this.authToken}`;
+        }
+        if (this.appCheckToken) {
+          options.headers['X-Firebase-AppCheck'] = this.appCheckToken;
+        }
 
         // Plumb appropriate http_proxy environment variable into faye-websocket if it exists.
         const env = process['env'];
@@ -164,16 +195,8 @@ export class WebSocketConnection implements Transport {
         if (proxy) {
           options['proxy'] = { origin: proxy };
         }
-
-        this.mySock = new WebSocketImpl(this.connURL, [], options);
-      } else {
-        const options: { [k: string]: object } = {
-          headers: {
-            'X-Firebase-GMPID': this.applicationId || ''
-          }
-        };
-        this.mySock = new WebSocketImpl(this.connURL, [], options);
       }
+      this.mySock = new WebSocketImpl(this.connURL, [], options);
     } catch (e) {
       this.log_('Error instantiating WebSocket.');
       const error = e.message || e.data;

@@ -30,6 +30,8 @@ export class DatabaseInfo {
    * when using WebChannel as the network transport.
    * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
    * option when using WebChannel as the network transport.
+   * @param useFetchStreams Whether to use the Fetch API instead of
+   * XMLHTTPRequest
    */
   constructor(
     readonly databaseId: DatabaseId,
@@ -38,18 +40,26 @@ export class DatabaseInfo {
     readonly host: string,
     readonly ssl: boolean,
     readonly forceLongPolling: boolean,
-    readonly autoDetectLongPolling: boolean
+    readonly autoDetectLongPolling: boolean,
+    readonly useFetchStreams: boolean
   ) {}
 }
 
 /** The default database name for a project. */
 const DEFAULT_DATABASE_NAME = '(default)';
 
-/** Represents the database ID a Firestore client is associated with. */
+/**
+ * Represents the database ID a Firestore client is associated with.
+ * @internal
+ */
 export class DatabaseId {
   readonly database: string;
   constructor(readonly projectId: string, database?: string) {
     this.database = database ? database : DEFAULT_DATABASE_NAME;
+  }
+
+  static empty(): DatabaseId {
+    return new DatabaseId('', '');
   }
 
   get isDefaultDatabase(): boolean {

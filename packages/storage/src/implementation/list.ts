@@ -21,7 +21,7 @@
 import { Location } from './location';
 import { jsonObjectOrNull } from './json';
 import { ListResult } from '../list';
-import { StorageService } from '../service';
+import { FirebaseStorageImpl } from '../service';
 
 /**
  * Represents the simplified object metadata returned by List API.
@@ -46,7 +46,7 @@ const PREFIXES_KEY = 'prefixes';
 const ITEMS_KEY = 'items';
 
 function fromBackendResponse(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   bucket: string,
   resource: ListResultResponse
 ): ListResult {
@@ -77,7 +77,7 @@ function fromBackendResponse(
 }
 
 export function fromResponseString(
-  service: StorageService,
+  service: FirebaseStorageImpl,
   bucket: string,
   resourceString: string
 ): ListResult | null {
@@ -85,6 +85,6 @@ export function fromResponseString(
   if (obj === null) {
     return null;
   }
-  const resource = (obj as unknown) as ListResultResponse;
+  const resource = obj as unknown as ListResultResponse;
   return fromBackendResponse(service, bucket, resource);
 }

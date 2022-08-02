@@ -1,24 +1,45 @@
 {
   "name": "@firebase/installations",
-  "version": "0.4.24",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
-  "types": "dist/src/index.d.ts",
+  "version": "0.5.12",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.cjs.js",
+  "module": "dist/esm/index.esm2017.js",
+  "browser": "dist/esm/index.esm2017.js",
+  "esm5": "dist/esm/index.esm.js",
+  "exports": {
+    ".": {
+      "types": "./dist/installations-public.d.ts",
+      "require": "./dist/index.cjs.js",
+      "esm5": "./dist/esm/index.esm.js",
+      "default": "./dist/esm/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typings": "dist/src/index.d.ts",
   "license": "Apache-2.0",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
-    "build": "rollup -c",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/installations --include-dependencies build",
-    "test": "run-p lint test:karma",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:karma",
+    "build:release": "yarn build && yarn typings:public",
+    "dev": "rollup -c -w",
+    "test": "yarn type-check && yarn test:karma && yarn lint",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "type-check": "tsc -p . --noEmit",
     "serve": "yarn serve:build && yarn serve:host",
     "serve:build": "rollup -c test-app/rollup.config.js",
-    "serve:host": "http-server -c-1 test-app"
+    "serve:host": "http-server -c-1 test-app",
+    "api-report": "api-extractor run --local --verbose",
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn build && yarn doc",
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/installations-public.d.ts",
+    "typings:internal": "node ../../scripts/build/use_typings.js ./dist/src/index.d.ts"
   },
   "repository": {
     "directory": "packages/installations",
@@ -29,24 +50,22 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.19",
-    "rollup": "2.35.1",
-    "@rollup/plugin-commonjs": "17.1.0",
+    "@firebase/app": "0.7.29",
+    "rollup": "2.72.1",
+    "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",
-    "@rollup/plugin-node-resolve": "11.2.0",
-    "rollup-plugin-typescript2": "0.29.0",
+    "@rollup/plugin-node-resolve": "13.3.0",
+    "rollup-plugin-typescript2": "0.31.2",
     "rollup-plugin-uglify": "6.0.4",
     "typescript": "4.2.2"
   },
   "peerDependencies": {
-    "@firebase/app": "0.x",
-    "@firebase/app-types": "0.x"
+    "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/installations-types": "0.3.4",
-    "@firebase/util": "0.4.1",
-    "@firebase/component": "0.4.0",
-    "idb": "3.0.2",
+    "@firebase/util": "1.6.3",
+    "@firebase/component": "0.5.17",
+    "idb": "7.0.1",
     "tslib": "^2.1.0"
   }
 }

@@ -35,11 +35,10 @@ module.exports = async webdriver => {
       const db = dbOpenReq.result;
       const tx = db.transaction(BACKGROUND_MESSAGES_OBJECT_STORE, 'readonly');
 
-      tx
-        .objectStore(BACKGROUND_MESSAGES_OBJECT_STORE)
-        .getAll().onsuccess = e => {
-        window.backgroundMessages = e.target.result;
-      };
+      tx.objectStore(BACKGROUND_MESSAGES_OBJECT_STORE).getAll().onsuccess =
+        e => {
+          window.backgroundMessages = e.target.result;
+        };
     };
   });
 

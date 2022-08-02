@@ -17,8 +17,26 @@
 
 export const EventAccumulatorFactory = {
   waitsForCount: maxCount => {
+    // Note: This should be used sparingly as it can result in more events being raised than expected
     let count = 0;
     const condition = () => count >= maxCount;
+    const ea = new EventAccumulator(condition);
+    ea.onReset(() => {
+      count = 0;
+    });
+    ea.onEvent(() => {
+      count++;
+    });
+    return ea;
+  },
+  waitsForExactCount: maxCount => {
+    let count = 0;
+    const condition = () => {
+      if (count > maxCount) {
+        throw new Error('Received more events than expected');
+      }
+      return count === maxCount;
+    };
     const ea = new EventAccumulator(condition);
     ea.onReset(() => {
       count = 0;
@@ -31,6 +49,7 @@ export const EventAccumulatorFactory = {
 };
 
 export class EventAccumulator {
+  // TODO: make these typesafe
   eventData = [];
   promise;
   resolve;
