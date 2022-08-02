@@ -24,10 +24,10 @@ export const enum AppError {
   APP_DELETED = 'app-deleted',
   INVALID_APP_ARGUMENT = 'invalid-app-argument',
   INVALID_LOG_ARGUMENT = 'invalid-log-argument',
-  STORAGE_OPEN = 'storage-open',
-  STORAGE_GET = 'storage-get',
-  STORAGE_WRITE = 'storage-set',
-  STORAGE_DELETE = 'storage-delete'
+  IDB_OPEN = 'idb-open',
+  IDB_GET = 'idb-get',
+  IDB_WRITE = 'idb-set',
+  IDB_DELETE = 'idb-delete'
 }
 
 const ERRORS: ErrorMap<AppError> = {
@@ -43,14 +43,14 @@ const ERRORS: ErrorMap<AppError> = {
     'Firebase App instance.',
   [AppError.INVALID_LOG_ARGUMENT]:
     'First argument to `onLog` must be null or a function.',
-  [AppError.STORAGE_OPEN]:
-    'Error thrown when opening storage. Original error: {$originalErrorMessage}.',
-  [AppError.STORAGE_GET]:
-    'Error thrown when reading from storage. Original error: {$originalErrorMessage}.',
-  [AppError.STORAGE_WRITE]:
-    'Error thrown when writing to storage. Original error: {$originalErrorMessage}.',
-  [AppError.STORAGE_DELETE]:
-    'Error thrown when deleting from storage. Original error: {$originalErrorMessage}.'
+  [AppError.IDB_OPEN]:
+    'Error thrown when opening IndexedDB. Original error: {$originalErrorMessage}.',
+  [AppError.IDB_GET]:
+    'Error thrown when reading from IndexedDB. Original error: {$originalErrorMessage}.',
+  [AppError.IDB_WRITE]:
+    'Error thrown when writing to IndexedDB. Original error: {$originalErrorMessage}.',
+  [AppError.IDB_DELETE]:
+    'Error thrown when deleting from IndexedDB. Original error: {$originalErrorMessage}.'
 };
 
 interface ErrorParams {
@@ -59,10 +59,10 @@ interface ErrorParams {
   [AppError.DUPLICATE_APP]: { appName: string };
   [AppError.APP_DELETED]: { appName: string };
   [AppError.INVALID_APP_ARGUMENT]: { appName: string };
-  [AppError.STORAGE_OPEN]: { originalErrorMessage?: string };
-  [AppError.STORAGE_GET]: { originalErrorMessage?: string };
-  [AppError.STORAGE_WRITE]: { originalErrorMessage?: string };
-  [AppError.STORAGE_DELETE]: { originalErrorMessage?: string };
+  [AppError.IDB_OPEN]: { originalErrorMessage?: string };
+  [AppError.IDB_GET]: { originalErrorMessage?: string };
+  [AppError.IDB_WRITE]: { originalErrorMessage?: string };
+  [AppError.IDB_DELETE]: { originalErrorMessage?: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AppError, ErrorParams>(
