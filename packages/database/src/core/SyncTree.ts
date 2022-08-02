@@ -18,6 +18,7 @@
 import { assert } from '@firebase/util';
 
 import { ReferenceConstructor } from '../api/Reference';
+import { ValueEventRegistration } from '../api/Reference_impl';
 
 import { AckUserWrite } from './operation/AckUserWrite';
 import { ListenComplete } from './operation/ListenComplete';
@@ -29,6 +30,7 @@ import {
   Operation
 } from './operation/Operation';
 import { Overwrite } from './operation/Overwrite';
+import { Repo } from './Repo';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { Node } from './snap/Node';
 import {
@@ -56,7 +58,10 @@ import {
 import { each, errorForServerCode } from './util/util';
 import { CacheNode } from './view/CacheNode';
 import { Event } from './view/Event';
-import { EventRegistration, QueryContext } from './view/EventRegistration';
+import {
+  EventRegistration,
+  QueryContext
+} from './view/EventRegistration';
 import { View, viewGetCompleteNode, viewGetServerCache } from './view/View';
 import {
   newWriteTree,
@@ -324,7 +329,8 @@ export function syncTreeRemoveEventRegistration(
   syncTree: SyncTree,
   query: QueryContext,
   eventRegistration: EventRegistration | null,
-  cancelError?: Error
+  cancelError?: Error,
+  skipListenerDedup = false
 ): Event[] {
   // Find the syncPoint first. Then deal with whether or not it has matching listeners
   const path = query._path;
@@ -347,72 +353,76 @@ export function syncTreeRemoveEventRegistration(
     if (syncPointIsEmpty(maybeSyncPoint)) {
       syncTree.syncPointTree_ = syncTree.syncPointTree_.remove(path);
     }
+
     const removed = removedAndEvents.removed;
     cancelEvents = removedAndEvents.events;
-    // We may have just removed one of many listeners and can short-circuit this whole process
-    // We may also not have removed a default listener, in which case all of the descendant listeners should already be
-    // properly set up.
-    //
-    // Since indexed queries can shadow if they don't have other query constraints, check for loadsAllData(), instead of
-    // queryId === 'default'
-    const removingDefault =
-      -1 !==
-      removed.findIndex(query => {
-        return query._queryParams.loadsAllData();
-      });
-    const covered = syncTree.syncPointTree_.findOnPath(
-      path,
-      (relativePath, parentSyncPoint) =>
-        syncPointHasCompleteView(parentSyncPoint)
-    );
 
-    if (removingDefault && !covered) {
-      const subtree = syncTree.syncPointTree_.subtree(path);
-      // There are potentially child listeners. Determine what if any listens we need to send before executing the
-      // removal
-      if (!subtree.isEmpty()) {
-        // We need to fold over our subtree and collect the listeners to send
-        const newViews = syncTreeCollectDistinctViewsForSubTree_(subtree);
-
-        // Ok, we've collected all the listens we need. Set them up.
-        for (let i = 0; i < newViews.length; ++i) {
-          const view = newViews[i],
-            newQuery = view.query;
-          const listener = syncTreeCreateListenerForView_(syncTree, view);
-          syncTree.listenProvider_.startListening(
-            syncTreeQueryForListening_(newQuery),
-            syncTreeTagForQuery_(syncTree, newQuery),
-            listener.hashFn,
-            listener.onComplete
-          );
-        }
-      } else {
-        // There's nothing below us, so nothing we need to start listening on
-      }
-    }
-    // If we removed anything and we're not covered by a higher up listen, we need to stop listening on this query
-    // The above block has us covered in terms of making sure we're set up on listens lower in the tree.
-    // Also, note that if we have a cancelError, it's already been removed at the provider level.
-    if (!covered && removed.length > 0 && !cancelError) {
-      // If we removed a default, then we weren't listening on any of the other queries here. Just cancel the one
-      // default. Otherwise, we need to iterate through and cancel each individual query
-      if (removingDefault) {
-        // We don't tag default listeners
-        const defaultTag: number | null = null;
-        syncTree.listenProvider_.stopListening(
-          syncTreeQueryForListening_(query),
-          defaultTag
-        );
-      } else {
-        removed.forEach((queryToRemove: QueryContext) => {
-          const tagToRemove = syncTree.queryToTagMap.get(
-            syncTreeMakeQueryKey_(queryToRemove)
-          );
-          syncTree.listenProvider_.stopListening(
-            syncTreeQueryForListening_(queryToRemove),
-            tagToRemove
-          );
+    if (!skipListenerDedup) {
+      // We may have just removed one of many listeners and can short-circuit this whole process
+      // We may also not have removed a default listener, in which case all of the descendant listeners should already be
+      // properly set up.
+      //
+      // Since indexed queries can shadow if they don't have other query constraints, check for loadsAllData(), instead of
+      // queryId === 'default'
+      const removingDefault =
+        -1 !==
+        removed.findIndex(query => {
+          return query._queryParams.loadsAllData();
         });
+      const covered = syncTree.syncPointTree_.findOnPath(
+        path,
+        (relativePath, parentSyncPoint) =>
+          syncPointHasCompleteView(parentSyncPoint)
+      );
+
+      if (removingDefault && !covered) {
+        const subtree = syncTree.syncPointTree_.subtree(path);
+        // There are potentially child listeners. Determine what if any listens we need to send before executing the
+        // removal
+        if (!subtree.isEmpty()) {
+          // We need to fold over our subtree and collect the listeners to send
+          const newViews = syncTreeCollectDistinctViewsForSubTree_(subtree);
+
+          // Ok, we've collected all the listens we need. Set them up.
+          for (let i = 0; i < newViews.length; ++i) {
+            const view = newViews[i],
+              newQuery = view.query;
+            const listener = syncTreeCreateListenerForView_(syncTree, view);
+            syncTree.listenProvider_.startListening(
+              syncTreeQueryForListening_(newQuery),
+              syncTreeTagForQuery_(syncTree, newQuery),
+              listener.hashFn,
+              listener.onComplete
+            );
+          }
+        } else {
+          // There's nothing below us, so nothing we need to start listening on
+        }
+      }
+      // If we removed anything and we're not covered by a higher up listen, we need to stop listening on this query
+      // The above block has us covered in terms of making sure we're set up on listens lower in the tree.
+      // Also, note that if we have a cancelError, it's already been removed at the provider level.
+      if (!covered && removed.length > 0 && !cancelError) {
+        // If we removed a default, then we weren't listening on any of the other queries here. Just cancel the one
+        // default. Otherwise, we need to iterate through and cancel each individual query
+        if (removingDefault) {
+          // We don't tag default listeners
+          const defaultTag: number | null = null;
+          syncTree.listenProvider_.stopListening(
+            syncTreeQueryForListening_(query),
+            defaultTag
+          );
+        } else {
+          removed.forEach((queryToRemove: QueryContext) => {
+            const tagToRemove = syncTree.queryToTagMap.get(
+              syncTreeMakeQueryKey_(queryToRemove)
+            );
+            syncTree.listenProvider_.stopListening(
+              syncTreeQueryForListening_(queryToRemove),
+              tagToRemove
+            );
+          });
+        }
       }
     }
     // Now, clear all of the tags we're tracking for the removed listens
@@ -421,38 +431,6 @@ export function syncTreeRemoveEventRegistration(
     // No-op, this listener must've been already removed
   }
   return cancelEvents;
-}
-
-/**
- * This function was added to support non-listener queries,
- * specifically for use in repoGetValue. It sets up all the same
- * local cache data-structures (SyncPoint + View) that are
- * needed for listeners without installing an event registration.
- * If `query` is not `loadsAllData`, it will also provision a tag for
- * the query so that query results can be merged into the sync
- * tree using existing logic for tagged listener queries.
- *
- * @param syncTree - Synctree to add the query to.
- * @param query - Query to register
- * @returns tag as a string if query is not a default query, null if query is not.
- */
-export function syncTreeRegisterQuery(syncTree: SyncTree, query: QueryContext) {
-  const { syncPoint, serverCache, writesCache, serverCacheComplete } =
-    syncTreeRegisterSyncPoint(query, syncTree);
-  const view = syncPointGetView(
-    syncPoint,
-    query,
-    writesCache,
-    serverCache,
-    serverCacheComplete
-  );
-  if (!syncPoint.views.has(query._queryIdentifier)) {
-    syncPoint.views.set(query._queryIdentifier, view);
-  }
-  if (!query._queryParams.loadsAllData()) {
-    return syncTreeTagForQuery_(syncTree, query);
-  }
-  return null;
 }
 
 /**
@@ -515,14 +493,16 @@ export function syncTreeApplyTaggedQueryMerge(
 }
 
 /**
- * Creates a new syncpoint for a query and creates a tag if the view doesn't exist.
- * Extracted from addEventRegistration to allow `repoGetValue` to properly set up the SyncTree
- * without actually listening on a query.
+ * Add an event callback for the specified query.
+ *
+ * @returns Events to raise.
  */
-export function syncTreeRegisterSyncPoint(
+export function syncTreeAddEventRegistration(
+  syncTree: SyncTree,
   query: QueryContext,
-  syncTree: SyncTree
-) {
+  eventRegistration: EventRegistration,
+  skipSetupListener = false
+): Event[] {
   const path = query._path;
 
   let serverCache: Node | null = null;
@@ -581,35 +561,6 @@ export function syncTreeRegisterSyncPoint(
     syncTree.tagToQueryMap.set(tag, queryKey);
   }
   const writesCache = writeTreeChildWrites(syncTree.pendingWriteTree_, path);
-  return {
-    syncPoint,
-    writesCache,
-    serverCache,
-    serverCacheComplete,
-    foundAncestorDefaultView,
-    viewAlreadyExists
-  };
-}
-
-/**
- * Add an event callback for the specified query.
- *
- * @returns Events to raise.
- */
-export function syncTreeAddEventRegistration(
-  syncTree: SyncTree,
-  query: QueryContext,
-  eventRegistration: EventRegistration
-): Event[] {
-  const {
-    syncPoint,
-    serverCache,
-    writesCache,
-    serverCacheComplete,
-    viewAlreadyExists,
-    foundAncestorDefaultView
-  } = syncTreeRegisterSyncPoint(query, syncTree);
-
   let events = syncPointAddEventRegistration(
     syncPoint,
     query,
@@ -618,7 +569,7 @@ export function syncTreeAddEventRegistration(
     serverCache,
     serverCacheComplete
   );
-  if (!viewAlreadyExists && !foundAncestorDefaultView) {
+  if (!viewAlreadyExists && !foundAncestorDefaultView && !skipSetupListener) {
     const view = syncPointViewForQuery(syncPoint, query);
     events = events.concat(syncTreeSetupListener_(syncTree, query, view));
   }
@@ -863,7 +814,7 @@ function syncTreeCreateListenerForView_(
 /**
  * Return the tag associated with the given query.
  */
-function syncTreeTagForQuery_(
+export function syncTreeTagForQuery_(
   syncTree: SyncTree,
   query: QueryContext
 ): number | null {
@@ -997,6 +948,7 @@ function syncTreeSetupListener_(
   const path = query._path;
   const tag = syncTreeTagForQuery_(syncTree, query);
   const listener = syncTreeCreateListenerForView_(syncTree, view);
+
   const events = syncTree.listenProvider_.startListening(
     syncTreeQueryForListening_(query),
     tag,
@@ -1046,6 +998,46 @@ function syncTreeSetupListener_(
         syncTreeTagForQuery_(syncTree, queryToStop)
       );
     }
+  }
+  return events;
+}
+
+/**
+ * Added to support non-listener data queries (Used by `get()`).
+ * Simulates `onValue` `onlyOnce` where it adds the event registration,
+ * and then applies the changes to the tree.
+ * @param repo - repo reference to the overall Repo.
+ * @param query - query to be added.
+ * @param node - Data needed to be added to the tree
+ * @param eventRegistration - a dummy event registration to add to the SyncTree
+ */
+export function syncTreeAddGetRegistration(
+  repo: Repo,
+  query: QueryContext,
+  node: Node,
+  eventRegistration: ValueEventRegistration
+) {
+  syncTreeAddEventRegistration(
+    repo.serverSyncTree_,
+    query,
+    eventRegistration,
+    true
+  );
+  let events: Event[];
+  if (query._queryParams.loadsAllData()) {
+    events = syncTreeApplyServerOverwrite(
+      repo.serverSyncTree_,
+      query._path,
+      node
+    );
+  } else {
+    const tag = syncTreeTagForQuery_(repo.serverSyncTree_, query);
+    events = syncTreeApplyTaggedQueryOverwrite(
+      repo.serverSyncTree_,
+      query._path,
+      node,
+      tag
+    );
   }
   return events;
 }

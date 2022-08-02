@@ -34,18 +34,17 @@ import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
 import { Node } from '../core/snap/Node';
 import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
-import { syncTreeSetReferenceConstructor } from '../core/SyncTree';
 import { parseRepoInfo } from '../core/util/libs/parser';
 import { nextPushId } from '../core/util/NextPushId';
 import {
   Path,
-  pathChild,
   pathEquals,
   pathGetBack,
   pathGetFront,
-  pathIsEmpty,
+  pathChild,
   pathParent,
-  pathToUrlEncodedString
+  pathToUrlEncodedString,
+  pathIsEmpty
 } from '../core/util/Path';
 import {
   fatal,
@@ -246,7 +245,6 @@ function validateLimit(params: QueryParams) {
     );
   }
 }
-
 /**
  * @internal
  */
@@ -465,6 +463,7 @@ export class DataSnapshot {
     return this._node.val();
   }
 }
+
 /**
  *
  * Returns a `Reference` representing the location in the Database
@@ -525,7 +524,6 @@ export function refFromURL(db: Database, url: string): DatabaseReference {
 
   return ref(db, parsedURL.path.toString());
 }
-
 /**
  * Gets a `Reference` for the location at the specified relative path.
  *
@@ -811,7 +809,9 @@ export function update(ref: DatabaseReference, values: object): Promise<void> {
  */
 export function get(query: Query): Promise<DataSnapshot> {
   query = getModularInstance(query) as QueryImpl;
-  return repoGetValue(query._repo, query).then(node => {
+  const callbackContext = new CallbackContext(() => {});
+  const container = new ValueEventRegistration(callbackContext);
+  return repoGetValue(query._repo, query, container).then(node => {
     return new DataSnapshot(
       node,
       new ReferenceImpl(query._repo, query._path),
@@ -819,7 +819,6 @@ export function get(query: Query): Promise<DataSnapshot> {
     );
   });
 }
-
 /**
  * Represents registration for 'value' events.
  */
@@ -2260,4 +2259,3 @@ export function query(
  * dependency issues
  */
 syncPointSetReferenceConstructor(ReferenceImpl);
-syncTreeSetReferenceConstructor(ReferenceImpl);
