@@ -398,7 +398,7 @@ interface Gapi {
 export class FirstPartyToken implements Token {
   type = 'FirstParty' as TokenType;
   user = User.FIRST_PARTY;
-  headers = new Map();
+  private _headers = new Map();
 
   constructor(
     private readonly gapi: Gapi,
@@ -426,18 +426,18 @@ export class FirstPartyToken implements Token {
     }
   }
 
-  get authHeaders(): { [header: string]: string } {
-    const headers: { [header: string]: string } = {
-      'X-Goog-AuthUser': this.sessionIndex
-    };
+  get headers(): Map<string, string> {
+    this._headers.set('X-Goog-AuthUser', this.sessionIndex);
     // Use array notation to prevent minification
     const authHeaderTokenValue = this.getAuthToken();
     if (authHeaderTokenValue) {
-      headers['Authorization'] = authHeaderTokenValue;
+      this._headers.set('Authorization', authHeaderTokenValue);
     }
-    if (iamToken) {
-      this.headers.set('X-Goog-Iam-Authorization-Token', iamToken);
+    if (this.iamToken) {
+      this._headers.set('X-Goog-Iam-Authorization-Token', this.iamToken);
     }
+
+    return this._headers;
   }
 }
 
