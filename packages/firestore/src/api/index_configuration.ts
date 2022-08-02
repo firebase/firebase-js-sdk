@@ -107,7 +107,6 @@ export interface IndexConfiguration {
  * before setting an index configuration. If IndexedDb is not enabled, any
  * index configuration is ignored.
  *
- * @internal
  * @param firestore - The {@link Firestore} instance to configure indexes for.
  * @param configuration -The index definition.
  * @throws FirestoreError if the JSON format is invalid.
@@ -118,6 +117,7 @@ export function setIndexConfiguration(
   firestore: Firestore,
   configuration: IndexConfiguration
 ): Promise<void>;
+
 /**
  * Configures indexing for local query execution. Any previous index
  * configuration is overridden. The `Promise` resolves once the index
@@ -137,7 +137,6 @@ export function setIndexConfiguration(
  * firestore:indexes`). If the JSON format is invalid, this method throws an
  * error.
  *
- * @internal
  * @param firestore - The {@link Firestore} instance to configure indexes for.
  * @param json -The JSON format exported by the Firebase CLI.
  * @throws FirestoreError if the JSON format is invalid.
@@ -148,6 +147,7 @@ export function setIndexConfiguration(
   firestore: Firestore,
   json: string
 ): Promise<void>;
+
 export function setIndexConfiguration(
   firestore: Firestore,
   jsonOrConfiguration: string | IndexConfiguration
