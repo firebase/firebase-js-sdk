@@ -39,8 +39,6 @@ export {
 
 /**
  * A single field element in an index configuration.
- *
- * @internal
  */
 export interface IndexField {
   /** The field path to index. */
@@ -65,8 +63,6 @@ export interface IndexField {
 
 /**
  * The SDK definition of a Firestore index.
- *
- * @internal
  */
 export interface Index {
   /** The ID of the collection to index. */

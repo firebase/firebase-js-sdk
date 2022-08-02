@@ -143,7 +143,12 @@ export {
   UnionToIntersection
 } from '../src/lite-api/types';
 
-export { setIndexConfiguration } from './api/index_configuration';
+export {
+  setIndexConfiguration,
+  Index,
+  IndexConfiguration,
+  IndexField
+} from './api/index_configuration';
 
 /**
  * Internal exports
