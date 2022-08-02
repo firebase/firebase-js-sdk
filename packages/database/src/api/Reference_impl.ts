@@ -34,6 +34,7 @@ import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
 import { Node } from '../core/snap/Node';
 import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
+import { syncTreeSetReferenceConstructor } from '../core/SyncTree';
 import { parseRepoInfo } from '../core/util/libs/parser';
 import { nextPushId } from '../core/util/NextPushId';
 import {
@@ -2259,3 +2260,4 @@ export function query(
  * dependency issues
  */
 syncPointSetReferenceConstructor(ReferenceImpl);
+syncTreeSetReferenceConstructor(ReferenceImpl);
