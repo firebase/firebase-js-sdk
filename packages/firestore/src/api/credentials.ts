@@ -672,7 +672,7 @@ export function makeAuthCredentialsProvider(
   switch (credentials['type']) {
     case 'gapi':
       const client = credentials['client'] as Gapi;
-      return new FirstPartyCredentialsProvider(
+      return new FirstPartyAuthCredentialsProvider(
         client,
         credentials['sessionIndex'] || '0',
         credentials['iamToken'] || null,
