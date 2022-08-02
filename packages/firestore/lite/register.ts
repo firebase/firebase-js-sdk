@@ -42,7 +42,7 @@ export function registerFirestore(): void {
   _registerComponent(
     new Component(
       'firestore/lite',
-      (container, { options: settings }: { options?: FirestoreSettings }) => {
+      (container, { instanceIdentifier: databaseId, options: settings }: { options?: FirestoreSettings }) => {
         const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
           app,
@@ -59,7 +59,7 @@ export function registerFirestore(): void {
         return firestoreInstance;
       },
       'PUBLIC' as ComponentType.PUBLIC
-    )
+    ).setMultipleInstances(true)
   );
   // RUNTIME_ENV and BUILD_TARGET are replaced by real values during the compilation
   registerVersion('firestore-lite', version, '__RUNTIME_ENV__');
