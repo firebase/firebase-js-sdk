@@ -82,8 +82,6 @@ export interface Index {
  *
  * See {@link https://firebase.google.com/docs/reference/firestore/indexes/#json_format | JSON Format}
  * for a description of the format of the index definition.
- *
- * @internal
  */
 export interface IndexConfiguration {
   /** A list of all Firestore indexes. */
