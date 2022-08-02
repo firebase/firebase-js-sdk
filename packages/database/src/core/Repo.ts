@@ -63,7 +63,7 @@ import {
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
   syncTreeRemoveEventRegistration,
-  syncTreeAddGetRegistration // TODO: Rename this.
+  syncTreeAddGetRegistration
 } from './SyncTree';
 import { Indexable } from './util/misc';
 import {
