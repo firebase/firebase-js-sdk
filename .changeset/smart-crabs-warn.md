@@ -2,4 +2,4 @@
 "@firebase/database": patch
 ---
 
-Fix filtered get() cache and therefore fixing https://github.com/firebase/firebase-js-sdk/issues/6397
+Fix filtered get() cache and fixed issue where events weren't getting propagated to listeners.
