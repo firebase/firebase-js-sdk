@@ -2,4 +2,5 @@
 "@firebase/database": patch
 ---
 
-Fix filtered get() cache and fixed issue where events weren't getting propagated to listeners.
+Fix issue with how get results for filtered queries are added to cache.
+Fix issue with events not getting propagated to listeners by get.
