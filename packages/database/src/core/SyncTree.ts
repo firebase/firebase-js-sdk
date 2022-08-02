@@ -58,10 +58,7 @@ import {
 import { each, errorForServerCode } from './util/util';
 import { CacheNode } from './view/CacheNode';
 import { Event } from './view/Event';
-import {
-  EventRegistration,
-  QueryContext
-} from './view/EventRegistration';
+import { EventRegistration, QueryContext } from './view/EventRegistration';
 import { View, viewGetCompleteNode, viewGetServerCache } from './view/View';
 import {
   newWriteTree,

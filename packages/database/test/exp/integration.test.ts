@@ -140,8 +140,6 @@ describe('Database@exp Tests', () => {
     );
   });
 
-
-
   it('calls onValue() listener when get() is called on a parent node', async () => {
     // Test that when get() is pending on a parent node, and then onValue is called on a child node, that after the get() comes back, the onValue() listener fires.
     const db = getDatabase(defaultApp);
@@ -155,17 +153,17 @@ describe('Database@exp Tests', () => {
       }
     });
     let resolved = false;
-    get(readerRef).then(() => resolved = true);
+    get(readerRef).then(() => (resolved = true));
     const childPath = ref(db, readerRef._path + '/foo1');
     expect(resolved).to.be.false;
     const ec = EventAccumulatorFactory.waitsForExactCount(1);
-    onValue(childPath, (snapshot) => {
+    onValue(childPath, snapshot => {
       ec.addEvent(snapshot.val());
     });
     const events = await ec.promise;
     expect(events.length).to.eq(1);
     const snapshot = events[0];
-    expect(snapshot).to.deep.eq({ a: 1});
+    expect(snapshot).to.deep.eq({ a: 1 });
   });
 
   it('calls onValue and expects no issues with removing the listener', async () => {
@@ -207,7 +205,7 @@ describe('Database@exp Tests', () => {
   it('calls onValue only once after get request with a nested query', async () => {
     const db = getDatabase(defaultApp);
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
-    const { readerRef, writerRef  } = getRWRefs(db);
+    const { readerRef, writerRef } = getRWRefs(db);
     const initial = {
       test: {
         abc: 123

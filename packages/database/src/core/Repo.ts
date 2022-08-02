@@ -106,10 +106,7 @@ import {
   eventQueueRaiseEventsAtPath,
   eventQueueRaiseEventsForChangedPath
 } from './view/EventQueue';
-import {
-  EventRegistration,
-  QueryContext
-} from './view/EventRegistration';
+import { EventRegistration, QueryContext } from './view/EventRegistration';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -507,7 +504,8 @@ export function repoGetValue(
         query._path,
         events
       );
-      syncTreeRemoveEventRegistration( // syncTreeAddGetRegistration calls syncTreeAddEventRegistration. We need to clean that up here.
+      syncTreeRemoveEventRegistration(
+        // syncTreeAddGetRegistration calls syncTreeAddEventRegistration. We need to clean that up here.
         repo.serverSyncTree_,
         query,
         eventRegistration,
