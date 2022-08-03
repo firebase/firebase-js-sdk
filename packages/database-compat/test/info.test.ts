@@ -130,8 +130,7 @@ describe('.info Tests', function () {
 
     await ea.promise;
 
-    expect(typeof offsets[0]).to.equal('number');
-    expect(offsets[0]).to.be.greaterThanOrEqual(0); // There is no way for us to guarantee that the latency will be exactly 0.
+    expect(offsets[0]).to.be.a('number');
 
     // Make sure push still works
     ref.push();

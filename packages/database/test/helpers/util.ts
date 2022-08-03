@@ -130,3 +130,17 @@ export async function writeAndValidate(
   const [snap] = await ec.promise;
   expect(snap.val()).to.deep.eq(toWrite);
 }
+
+// Waits until callback function returns true
+export async function waitUntil(cb: () => boolean, maxRetries = 5) {
+  let count = 1;
+  return new Promise((resolve, reject) => {
+    if (cb()) {
+      resolve(true);
+    } else {
+      if (count++ === maxRetries) {
+        reject('waited too many times for conditional to be true');
+      }
+    }
+  });
+}
