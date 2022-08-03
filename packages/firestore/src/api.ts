@@ -14,6 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ export {
+  AggregateQuery,
+  AggregateQuerySnapshot,
+  aggregateQueryEqual,
+  aggregateQuerySnapshotEqual,
+  countQuery,
+  getAggregateFromServerDirect
+} from './api/aggregate';
 
 export { FieldPath, documentId } from './api/field_path';
 
