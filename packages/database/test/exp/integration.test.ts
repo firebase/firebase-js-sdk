@@ -45,7 +45,8 @@ import {
   DATABASE_URL,
   getFreshRepo,
   getRWRefs,
-  waitFor
+  waitFor,
+  writeAndValidate
 } from '../helpers/util';
 
 use(chaiAsPromised);
@@ -351,27 +352,6 @@ describe('Database@exp Tests', () => {
     goOnline(db);
   });
 
-  // TODO(mtewani): Remove this. This shouldn't work, right? A child level listener doesn't fulfill the full serverCache.
-  // it.only('resolves get to serverCache when the database is offline and using a child-level listener', async () => {
-  //   const db = getDatabase(defaultApp);
-  //   const { readerRef, writerRef } = getRWRefs(db);
-  //   const toWrite = {
-  //     test: 'ghi'
-  //   };
-  //   const ec = EventAccumulatorFactory.waitsForExactCount(1);
-  //   await(
-  //     set(writerRef, toWrite)
-  //   );
-  //   onValue(child(readerRef, 'test'), (snapshot) => {
-  //     ec.addEvent(snapshot);
-  //   });
-  //   await ec.promise; // TODO: check value of this.
-  //   goOffline(db);
-  //   const result = await get(readerRef);
-  //   expect(result.val()).to.deep.eq(toWrite);
-  //   goOnline(db);
-  // });
-
   it('only fires listener once when calling get with limitTo', async () => {
     const db = getDatabase(defaultApp);
     const { readerRef, writerRef } = getRWRefs(db);
@@ -380,12 +360,7 @@ describe('Database@exp Tests', () => {
       child1: 'test1',
       child2: 'test2'
     };
-    await set(writerRef, toWrite);
-    onValue(readerRef, snapshot => {
-      ec.addEvent(snapshot);
-    });
-    const [snap] = await ec.promise;
-    expect(snap.val()).to.deep.eq(toWrite);
+    writeAndValidate(writerRef, readerRef, toWrite, ec);
     const q = query(readerRef, limitToFirst(1));
     const snapshot = await get(q);
     const expected = {
@@ -402,14 +377,8 @@ describe('Database@exp Tests', () => {
       child2: 'test2',
       child3: 'test3'
     };
-    await set(writerRef, toWrite);
     const ec = EventAccumulatorFactory.waitsForExactCount(1);
-    onValue(readerRef, snapshot => {
-      ec.addEvent(snapshot);
-    });
-    const events = await ec.promise;
-    expect(events.length).to.eq(1);
-    expect(events[0].val()).to.deep.eq(toWrite);
+    writeAndValidate(writerRef, readerRef, toWrite, ec);
     const otherChildrenQuery = query(
       readerRef,
       orderByKey(),
@@ -437,14 +406,13 @@ describe('Database@exp Tests', () => {
       ec.addEvent(snapshot);
     });
     const events = await ec.promise;
-    expect(events.length).to.eq(1); // TODO(mtewani): can get rid of this.
     const expected = { child1: 'test1' };
     expect(events[0].val()).to.deep.eq(expected);
     const snapshot = await get(readerRef);
     expect(snapshot.val()).to.deep.eq(toWrite);
   });
 
-  it('should test start with get with listener only fires once', async () => {
+  it('should test startAt get with listener only fires once', async () => {
     const db = getDatabase(defaultApp);
     const { readerRef, writerRef } = getRWRefs(db);
     const expected = {
@@ -453,12 +421,7 @@ describe('Database@exp Tests', () => {
       child3: 'test3'
     };
     const ec = EventAccumulatorFactory.waitsForExactCount(1);
-    await set(writerRef, expected); // TODO(mtewani): Can extract this out to something like writeAndValidate()
-    onValue(readerRef, snapshot => {
-      ec.addEvent(snapshot);
-    });
-    const [snap] = await ec.promise;
-    expect(snap.val()).to.deep.eq(expected);
+    writeAndValidate(writerRef, readerRef, expected, ec);
     const q = query(readerRef, orderByKey(), startAt('child2'));
     const snapshot = await get(q);
     const expectedQRes = {
