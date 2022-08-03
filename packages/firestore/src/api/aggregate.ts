@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
- export {
-    AggregateQuery,
-    AggregateQuerySnapshot,
-    aggregateQueryEqual,
-    aggregateQuerySnapshotEqual,
-    countQuery,
-    getAggregateFromServerDirect
-  } from '../lite-api/aggregate';
+export {
+  AggregateQuery,
+  AggregateQuerySnapshot,
+  aggregateQueryEqual,
+  aggregateQuerySnapshotEqual,
+  countQuery,
+  getAggregateFromServerDirect
+} from '../lite-api/aggregate';

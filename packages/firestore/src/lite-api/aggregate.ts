@@ -15,45 +15,55 @@
  * limitations under the License.
  */
 
- import {DocumentData, Query, queryEqual} from './reference';
+import { DocumentData, Query, queryEqual } from './reference';
 
+export class AggregateQuery<T = DocumentData> {
+  readonly type = 'AggregateQuery';
+  readonly query: Query<T>;
 
- export class AggregateQuery<T = DocumentData>{
-   readonly type = "AggregateQuery";
-   readonly query: Query<T>;
+  /** @hideconstructor */
+  constructor(query: Query<T>) {
+    this.query = query;
+  }
+}
 
-   /** @hideconstructor */
-   constructor(query: Query<T>) {
-     this.query = query;
-   }
- }
- 
- export class AggregateQuerySnapshot {
-   readonly type = "AggregateQuerySnapshot";
-   readonly query: AggregateQuery;
- 
-   /** @hideconstructor */
-   constructor(query: AggregateQuery, readonly _count: number) {
-     this.query = query;
-   }
- 
-   getCount(): number | null {
-     return this._count;
-   }
- }
- 
- export function countQuery(query: Query): AggregateQuery {
-   return new AggregateQuery(query);
- }
- 
- export function getAggregateFromServerDirect(query: AggregateQuery): Promise<AggregateQuerySnapshot> {
-   return Promise.resolve(new AggregateQuerySnapshot(query, 42));
- }
- 
- export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery): boolean {
-   return queryEqual(left.query, right.query);
- }
- 
- export function aggregateQuerySnapshotEqual(left: AggregateQuerySnapshot, right: AggregateQuerySnapshot): boolean {
-   return aggregateQueryEqual(left.query, right.query) && left.getCount() === right.getCount();
- }
+export class AggregateQuerySnapshot {
+  readonly type = 'AggregateQuerySnapshot';
+  readonly query: AggregateQuery;
+
+  /** @hideconstructor */
+  constructor(query: AggregateQuery, readonly _count: number) {
+    this.query = query;
+  }
+
+  getCount(): number | null {
+    return this._count;
+  }
+}
+
+export function countQuery(query: Query): AggregateQuery {
+  return new AggregateQuery(query);
+}
+
+export function getAggregateFromServerDirect(
+  query: AggregateQuery
+): Promise<AggregateQuerySnapshot> {
+  return Promise.resolve(new AggregateQuerySnapshot(query, 42));
+}
+
+export function aggregateQueryEqual(
+  left: AggregateQuery,
+  right: AggregateQuery
+): boolean {
+  return queryEqual(left.query, right.query);
+}
+
+export function aggregateQuerySnapshotEqual(
+  left: AggregateQuerySnapshot,
+  right: AggregateQuerySnapshot
+): boolean {
+  return (
+    aggregateQueryEqual(left.query, right.query) &&
+    left.getCount() === right.getCount()
+  );
+}
