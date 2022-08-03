@@ -11018,6 +11018,13 @@ karma-typescript@5.5.3:
     util "^0.12.1"
     vm-browserify "^1.1.2"
 
+karma-webkit-launcher@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.npmjs.org/karma-webkit-launcher/-/karma-webkit-launcher-1.0.2.tgz#d576902b0c1308de8fac3fc666ac2e0a1e6a574d"
+  integrity sha512-FJVxo3rVDCORh84ETTE0oTUPa76lGKIzHkZ1+7zQ+iLNBMpxGGUJ8k6FMqqZCLB/dYuTkV6azDf1q/sB2olIfQ==
+  dependencies:
+    uuid "^8.3.2"
+
 karma-webpack@4.0.2:
   version "4.0.2"
   resolved "https://registry.npmjs.org/karma-webpack/-/karma-webpack-4.0.2.tgz#23219bd95bdda853e3073d3874d34447c77bced0"
@@ -13706,6 +13713,26 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
   integrity sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==
   dependencies:
     find-up "^4.0.0"
+
+playright@0.0.22:
+  version "0.0.22"
+  resolved "https://registry.npmjs.org/playright/-/playright-0.0.22.tgz#61ca7be2696d35c2faeceab9e7db33c64c5a06d2"
+  integrity sha512-CAnov0flTUoiXrypVkbtDmY/K0iKCrW/RGlUO9a8jIah7u7NkTteLFt3GKHkIWOAM7rp9N751MgBGg9IkhdiYw==
+  dependencies:
+    playwright "^1.12.2"
+    typescript "^4.1.2"
+
+playwright-core@1.24.2:
+  version "1.24.2"
+  resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.24.2.tgz#47bc5adf3dcfcc297a5a7a332449c9009987db26"
+  integrity sha512-zfAoDoPY/0sDLsgSgLZwWmSCevIg1ym7CppBwllguVBNiHeixZkc1AdMuYUPZC6AdEYc4CxWEyLMBTw2YcmRrA==
+
+playwright@^1.12.2:
+  version "1.24.2"
+  resolved "https://registry.npmjs.org/playwright/-/playwright-1.24.2.tgz#51e60f128b386023e5ee83deca23453aaf73ba6d"
+  integrity sha512-iMWDLgaFRT+7dXsNeYwgl8nhLHsUrzFyaRVC+ftr++P1dVs70mPrFKBZrGp1fOKigHV9d1syC03IpPbqLKlPsg==
+  dependencies:
+    playwright-core "1.24.2"
 
 plugin-error@^1.0.1:
   version "1.0.1"
@@ -16714,6 +16741,11 @@ typescript@4.2.2:
   version "4.2.2"
   resolved "https://registry.npmjs.org/typescript/-/typescript-4.2.2.tgz#1450f020618f872db0ea17317d16d8da8ddb8c4c"
   integrity sha512-tbb+NVrLfnsJy3M59lsDgrzWIflR4d4TIUjz+heUnHZwdF7YsrMTKoRERiIvI2lvBG95dfpLxB21WZhys1bgaQ==
+
+typescript@^4.1.2:
+  version "4.7.4"
+  resolved "https://registry.npmjs.org/typescript/-/typescript-4.7.4.tgz#1a88596d1cf47d59507a1bcdfb5b9dfe4d488235"
+  integrity sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==
 
 typescript@~4.1.3:
   version "4.1.6"
