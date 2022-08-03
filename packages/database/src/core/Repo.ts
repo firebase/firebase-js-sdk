@@ -63,7 +63,7 @@ import {
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
   syncTreeRemoveEventRegistration,
-  syncTreeAddGetRegistration
+  syncTreeTagForQuery
 } from './SyncTree';
 import { Indexable } from './util/misc';
 import {
@@ -478,17 +478,33 @@ export function repoGetValue(
       );
       /**
        * Below we simulate the actions of an `onlyOnce` `onValue()` event where:
-       * we add an event registration,
-       * update data at the path,
-       * trigger the events,
-       * and then cleanup the SyncTree
+       * Add an event registration,
+       * Update data at the path,
+       * Raise any events,
+       * Cleanup the SyncTree
        */
-      const events = syncTreeAddGetRegistration(
-        repo,
+      syncTreeAddEventRegistration(
+        repo.serverSyncTree_,
         query,
-        node,
-        eventRegistration
+        eventRegistration,
+        true
       );
+      let events: Event[];
+      if (query._queryParams.loadsAllData()) {
+        events = syncTreeApplyServerOverwrite(
+          repo.serverSyncTree_,
+          query._path,
+          node
+        );
+      } else {
+        const tag = syncTreeTagForQuery(repo.serverSyncTree_, query);
+        events = syncTreeApplyTaggedQueryOverwrite(
+          repo.serverSyncTree_,
+          query._path,
+          node,
+          tag
+        );
+      }
       /*
        * We need to raise events in the scenario where `get()` is called at a parent path, and
        * while the `get()` is pending, `onValue` is called at a child location. While get() is waiting
@@ -505,7 +521,6 @@ export function repoGetValue(
         events
       );
       syncTreeRemoveEventRegistration(
-        // syncTreeAddGetRegistration calls syncTreeAddEventRegistration. We need to clean that up here.
         repo.serverSyncTree_,
         query,
         eventRegistration,

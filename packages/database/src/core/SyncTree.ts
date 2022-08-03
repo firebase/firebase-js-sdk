@@ -18,7 +18,6 @@
 import { assert } from '@firebase/util';
 
 import { ReferenceConstructor } from '../api/Reference';
-import { ValueEventRegistration } from '../api/Reference_impl';
 
 import { AckUserWrite } from './operation/AckUserWrite';
 import { ListenComplete } from './operation/ListenComplete';
@@ -30,7 +29,6 @@ import {
   Operation
 } from './operation/Operation';
 import { Overwrite } from './operation/Overwrite';
-import { Repo } from './Repo';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { Node } from './snap/Node';
 import {
@@ -355,10 +353,12 @@ export function syncTreeRemoveEventRegistration(
     cancelEvents = removedAndEvents.events;
 
     if (!skipListenerDedup) {
-      // We may have just removed one of many listeners and can short-circuit this whole process
-      // We may also not have removed a default listener, in which case all of the descendant listeners should already be
-      // properly set up.
-      //
+      /**
+       * We may have just removed one of many listeners and can short-circuit this whole process
+       * We may also not have removed a default listener, in which case all of the descendant listeners should already be
+       * properly set up.
+       */
+
       // Since indexed queries can shadow if they don't have other query constraints, check for loadsAllData(), instead of
       // queryId === 'default'
       const removingDefault =
@@ -387,7 +387,7 @@ export function syncTreeRemoveEventRegistration(
             const listener = syncTreeCreateListenerForView_(syncTree, view);
             syncTree.listenProvider_.startListening(
               syncTreeQueryForListening_(newQuery),
-              syncTreeTagForQuery_(syncTree, newQuery),
+              syncTreeTagForQuery(syncTree, newQuery),
               listener.hashFn,
               listener.onComplete
             );
@@ -779,7 +779,7 @@ function syncTreeCreateListenerForView_(
   view: View
 ): { hashFn(): string; onComplete(a: string, b?: unknown): Event[] } {
   const query = view.query;
-  const tag = syncTreeTagForQuery_(syncTree, query);
+  const tag = syncTreeTagForQuery(syncTree, query);
 
   return {
     hashFn: () => {
@@ -811,7 +811,7 @@ function syncTreeCreateListenerForView_(
 /**
  * Return the tag associated with the given query.
  */
-export function syncTreeTagForQuery_(
+export function syncTreeTagForQuery(
   syncTree: SyncTree,
   query: QueryContext
 ): number | null {
@@ -943,7 +943,7 @@ function syncTreeSetupListener_(
   view: View
 ): Event[] {
   const path = query._path;
-  const tag = syncTreeTagForQuery_(syncTree, query);
+  const tag = syncTreeTagForQuery(syncTree, query);
   const listener = syncTreeCreateListenerForView_(syncTree, view);
 
   const events = syncTree.listenProvider_.startListening(
@@ -992,49 +992,9 @@ function syncTreeSetupListener_(
       const queryToStop = queriesToStop[i];
       syncTree.listenProvider_.stopListening(
         syncTreeQueryForListening_(queryToStop),
-        syncTreeTagForQuery_(syncTree, queryToStop)
+        syncTreeTagForQuery(syncTree, queryToStop)
       );
     }
-  }
-  return events;
-}
-
-/**
- * Added to support non-listener data queries (Used by `get()`).
- * Simulates `onValue` `onlyOnce` where it adds the event registration,
- * and then applies the changes to the tree.
- * @param repo - repo reference to the overall Repo.
- * @param query - query to be added.
- * @param node - Data needed to be added to the tree
- * @param eventRegistration - a dummy event registration to add to the SyncTree
- */
-export function syncTreeAddGetRegistration(
-  repo: Repo,
-  query: QueryContext,
-  node: Node,
-  eventRegistration: ValueEventRegistration
-) {
-  syncTreeAddEventRegistration(
-    repo.serverSyncTree_,
-    query,
-    eventRegistration,
-    true
-  );
-  let events: Event[];
-  if (query._queryParams.loadsAllData()) {
-    events = syncTreeApplyServerOverwrite(
-      repo.serverSyncTree_,
-      query._path,
-      node
-    );
-  } else {
-    const tag = syncTreeTagForQuery_(repo.serverSyncTree_, query);
-    events = syncTreeApplyTaggedQueryOverwrite(
-      repo.serverSyncTree_,
-      query._path,
-      node,
-      tag
-    );
   }
   return events;
 }
