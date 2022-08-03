@@ -381,8 +381,13 @@ describe('Database@exp Tests', () => {
       child2: 'test2',
       child3: 'test3'
     };
-    const ec = EventAccumulatorFactory.waitsForExactCount(1);
+    let ec = EventAccumulatorFactory.waitsForExactCount(1);
     writeAndValidate(writerRef, readerRef, toWrite, ec);
+    ec = EventAccumulatorFactory.waitsForExactCount(1);
+    const child1Ref = child(readerRef, 'child1');
+    onValue(child1Ref, snapshot => {
+      ec.addEvent(snapshot);
+    });
     const otherChildrenQuery = query(
       readerRef,
       orderByKey(),
@@ -392,6 +397,8 @@ describe('Database@exp Tests', () => {
       child2: 'test2',
       child3: 'test3'
     };
+    const [child1Snapshot] = await ec.promise;
+    expect(child1Snapshot.val()).to.eq('test1');
     const snapshot = await get(otherChildrenQuery);
     expect(snapshot.val()).to.deep.eq(expected);
   });
