@@ -423,7 +423,7 @@ describe('Database@exp Tests', () => {
     expect(snapshot.val()).to.deep.eq(toWrite);
   });
 
-  it.only('should test startAt get with listener only fires once', async () => {
+  it('should test startAt get with listener only fires once', async () => {
     const db = getDatabase(defaultApp);
     const { readerRef, writerRef } = getRWRefs(db);
     const expected = {
