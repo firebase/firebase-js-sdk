@@ -403,26 +403,6 @@ describe('Database@exp Tests', () => {
     expect(snapshot.val()).to.deep.eq(expected);
   });
 
-  it('should test get with limitTo listener only fires once', async () => {
-    const db = getDatabase(defaultApp);
-    const { readerRef, writerRef } = getRWRefs(db);
-    const readQuery = query(readerRef, limitToFirst(1));
-    const toWrite = {
-      child1: 'test1',
-      child2: 'test2'
-    };
-    await set(writerRef, toWrite);
-    const ec = EventAccumulatorFactory.waitsForExactCount(1);
-    onValue(readQuery, snapshot => {
-      ec.addEvent(snapshot);
-    });
-    const events = await ec.promise;
-    const expected = { child1: 'test1' };
-    expect(events[0].val()).to.deep.eq(expected);
-    const snapshot = await get(readerRef);
-    expect(snapshot.val()).to.deep.eq(toWrite);
-  });
-
   it('should test startAt get with listener only fires once', async () => {
     const db = getDatabase(defaultApp);
     const { readerRef, writerRef } = getRWRefs(db);
