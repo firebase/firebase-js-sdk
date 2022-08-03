@@ -364,7 +364,7 @@ describe('Database@exp Tests', () => {
       child1: 'test1',
       child2: 'test2'
     };
-    writeAndValidate(writerRef, readerRef, toWrite, ec);
+    await writeAndValidate(writerRef, readerRef, toWrite, ec);
     const q = query(readerRef, limitToFirst(1));
     const snapshot = await get(q);
     const expected = {
@@ -382,7 +382,7 @@ describe('Database@exp Tests', () => {
       child3: 'test3'
     };
     let ec = EventAccumulatorFactory.waitsForExactCount(1);
-    writeAndValidate(writerRef, readerRef, toWrite, ec);
+    await writeAndValidate(writerRef, readerRef, toWrite, ec);
     ec = EventAccumulatorFactory.waitsForExactCount(1);
     const child1Ref = child(readerRef, 'child1');
     onValue(child1Ref, snapshot => {
@@ -423,7 +423,7 @@ describe('Database@exp Tests', () => {
     expect(snapshot.val()).to.deep.eq(toWrite);
   });
 
-  it('should test startAt get with listener only fires once', async () => {
+  it.only('should test startAt get with listener only fires once', async () => {
     const db = getDatabase(defaultApp);
     const { readerRef, writerRef } = getRWRefs(db);
     const expected = {
@@ -432,7 +432,7 @@ describe('Database@exp Tests', () => {
       child3: 'test3'
     };
     const ec = EventAccumulatorFactory.waitsForExactCount(1);
-    writeAndValidate(writerRef, readerRef, expected, ec);
+    await writeAndValidate(writerRef, readerRef, expected, ec);
     const q = query(readerRef, orderByKey(), startAt('child2'));
     const snapshot = await get(q);
     const expectedQRes = {
