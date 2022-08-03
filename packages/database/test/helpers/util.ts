@@ -29,6 +29,7 @@ import {
 } from '../../src';
 import { ConnectionTarget } from '../../src/api/test_access';
 import { Path } from '../../src/core/util/Path';
+
 import { EventAccumulator } from './EventAccumulator';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
