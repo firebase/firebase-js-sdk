@@ -146,10 +146,10 @@ describe('Database@exp Tests', () => {
   async function waitUntil(cb: () => boolean, maxRetries = 5) {
     let count = 1;
     return new Promise((resolve, reject) => {
-      if(cb()) {
+      if (cb()) {
         resolve(true);
       } else {
-        if(count++ === maxRetries) {
+        if (count++ === maxRetries) {
           reject('waited too many times for conditional to be true');
         }
       }
@@ -168,7 +168,8 @@ describe('Database@exp Tests', () => {
         b: 1
       }
     });
-    await waitUntil(() => { // Because this is a test reliant on network latency, it can be difficult to reproduce. There are situations when get() resolves immediately, and the above behavior is not observed.
+    await waitUntil(() => {
+      // Because this is a test reliant on network latency, it can be difficult to reproduce. There are situations when get() resolves immediately, and the above behavior is not observed.
       let resolved = false;
       get(readerRef).then(() => (resolved = true));
       return !resolved;
