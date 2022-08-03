@@ -143,7 +143,20 @@ describe('Database@exp Tests', () => {
     );
   });
 
-  it('calls onValue() listener when get() is called on a parent node', async () => {
+  async function waitUntil(cb: () => boolean, maxRetries = 5) {
+    let count = 1;
+    return new Promise((resolve, reject) => {
+      if(cb()) {
+        resolve(true);
+      } else {
+        if(count++ === maxRetries) {
+          reject('waited too many times for conditional to be true');
+        }
+      }
+    });
+  }
+
+  it('[smoketest] - calls onValue() listener when get() is called on a parent node', async () => {
     // Test that when get() is pending on a parent node, and then onValue is called on a child node, that after the get() comes back, the onValue() listener fires.
     const db = getDatabase(defaultApp);
     const { readerRef, writerRef } = getRWRefs(db);
@@ -155,10 +168,12 @@ describe('Database@exp Tests', () => {
         b: 1
       }
     });
-    let resolved = false;
-    get(readerRef).then(() => (resolved = true));
+    await waitUntil(() => { // Because this is a test reliant on network latency, it can be difficult to reproduce. There are situations when get() resolves immediately, and the above behavior is not observed.
+      let resolved = false;
+      get(readerRef).then(() => (resolved = true));
+      return !resolved;
+    });
     const childPath = child(readerRef, 'foo1');
-    expect(resolved).to.be.false;
     const ec = EventAccumulatorFactory.waitsForExactCount(1);
     onValue(childPath, snapshot => {
       ec.addEvent(snapshot.val());
