@@ -33,4 +33,21 @@ apiDescribe('Aggregation COUNT query:', (persistence: boolean) => {
       });
     });
   });
+  
+  it.only('test collection count equals to 6', () => {
+    const testDocs = {
+      a: { k: 'a' },
+      b: { k: 'b' },
+      c: { k: 'c' },
+      d: { k: 'd' },
+      e: { k: 'e' },
+      f: { k: 'f' }
+    };
+    return withTestCollection(persistence, testDocs, collection => {
+      const countQuery_ = countQuery(query(collection));
+      return getAggregateFromServerDirect(countQuery_).then(snapshot => {
+        expect(snapshot.getCount()).to.equal(6);
+      });
+    });
+  });
 });
