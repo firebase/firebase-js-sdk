@@ -20,7 +20,7 @@ import {
   registerVersion,
   SDK_VERSION
 } from '@firebase/app';
-import { Component, ComponentType } from '@firebase/component';
+import { Component, ComponentType, InstanceFactoryOptions } from '@firebase/component';
 
 import { version } from '../package.json';
 import {
@@ -42,7 +42,7 @@ export function registerFirestore(): void {
   _registerComponent(
     new Component(
       'firestore/lite',
-      (container, { instanceIdentifier: databaseId, options: settings }: { options?: FirestoreSettings }) => {
+      (container, { instanceIdentifier: databaseId, options: settings }) => {
         const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
           app,

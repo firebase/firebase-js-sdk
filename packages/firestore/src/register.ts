@@ -40,7 +40,7 @@ export function registerFirestore(
   _registerComponent(
     new Component(
       'firestore',
-      (container, { options: settings }: { options?: PrivateSettings }) => {
+      (container, { instanceIdentifier: databaseId, options: settings }) => {
         const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
           app,
