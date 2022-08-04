@@ -99,6 +99,7 @@
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",
     "@types/json-stable-stringify": "1.0.34",
+    "chai-exclude": "2.1.0",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.11.3",
     "rollup": "2.72.1",

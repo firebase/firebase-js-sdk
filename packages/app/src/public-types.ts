@@ -107,7 +107,7 @@ export interface FirebaseOptions {
   storageBucket?: string;
   /**
    * Unique numerical value used to identify each sender that can send
-   * Firebse Cloud Messaging messages to client apps.
+   * Firebase Cloud Messaging messages to client apps.
    */
   messagingSenderId?: string;
   /**

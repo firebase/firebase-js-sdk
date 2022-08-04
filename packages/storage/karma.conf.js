@@ -34,7 +34,7 @@ function getTestFiles(argv) {
   let unitTestFiles = ['test/unit/*'];
   let integrationTestFiles = ['test/integration/*', 'test/browser/*'];
 
-  if (argv.unit) {
+  if (argv.unit || process.env?.BROWSERS) {
     return unitTestFiles;
   } else if (argv.integration) {
     return integrationTestFiles;

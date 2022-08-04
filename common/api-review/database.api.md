@@ -33,7 +33,9 @@ export class DataSnapshot {
     child(path: string): DataSnapshot;
     exists(): boolean;
     exportVal(): any;
-    forEach(action: (child: DataSnapshot) => boolean | void): boolean;
+    forEach(action: (child: DataSnapshot & {
+        key: string;
+    }) => boolean | void): boolean;
     hasChild(path: string): boolean;
     hasChildren(): boolean;
     get key(): string | null;

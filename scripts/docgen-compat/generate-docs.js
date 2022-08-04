@@ -281,6 +281,24 @@ function fixAllLinks(htmlFiles) {
   return Promise.all(writePromises);
 }
 
+const PROJECT_FILE_PATH = {
+  'js': '/docs/reference/js/v8/_project.yaml',
+  'node': '/docs/reference/node/_project.yaml'
+};
+async function setProjectYamlPath(api) {
+  const defaultTemplatePath = path.resolve(
+    `${__dirname}/theme/layouts/default.hbs`
+  );
+  const defaultTemplateText = await fs.readFile(defaultTemplatePath, 'utf8');
+  const projectFilePath = PROJECT_FILE_PATH[api];
+  console.log('replacing', projectFilePath);
+  const replacedText = defaultTemplateText.replace(
+    /(<meta name="project_path" value=")[a-zA-Z0-9\/_\.]+(" \/>)/,
+    `$1${projectFilePath}$2`
+  );
+  await fs.writeFile(defaultTemplatePath, replacedText);
+}
+
 /**
  * Generate an temporary abridged version of index.d.ts used to create
  * Node docs.
@@ -356,6 +374,9 @@ Promise.all([
     if (apiType === 'node') {
       return generateNodeSource();
     }
+  })
+  .then(() => {
+    setProjectYamlPath(apiType);
   })
   // Run main Typedoc process (uses index.d.ts and generated temp file above).
   .then(runTypedoc)
