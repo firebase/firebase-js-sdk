@@ -422,7 +422,7 @@ export class FirstPartyToken implements Token {
         ),
         'unexpected gapi interface'
       );
-      return this.gapi['auth']['getAuthHeaderValueForFirstParty']([]);
+      return this.gapi!['auth']['getAuthHeaderValueForFirstParty']([]);
     }
   }
 
