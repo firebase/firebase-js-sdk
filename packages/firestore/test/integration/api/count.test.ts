@@ -15,39 +15,39 @@
  * limitations under the License.
  */
 
- import { expect } from 'chai';
- import {
-   countQuery,
-   getAggregateFromServerDirect,
-   query
- } from '../util/firebase_export';
- import { apiDescribe, withTestCollection } from '../util/helpers';
- 
- apiDescribe('Aggregation COUNT query:', (persistence: boolean) => {
-   it.only('empty collection count equals to 0', () => {
-     const testDocs = {};
-     return withTestCollection(persistence, testDocs, collection => {
-       const countQuery_ = countQuery(query(collection));
-       return getAggregateFromServerDirect(countQuery_).then(snapshot => {
-         expect(snapshot.getCount()).to.equal(0);
-       });
-     });
-   });
-   
-   it.only('test collection count equals to 6', () => {
-     const testDocs = {
-       a: { k: 'a' },
-       b: { k: 'b' },
-       c: { k: 'c' },
-       d: { k: 'd' },
-       e: { k: 'e' },
-       f: { k: 'f' }
-     };
-     return withTestCollection(persistence, testDocs, collection => {
-       const countQuery_ = countQuery(query(collection));
-       return getAggregateFromServerDirect(countQuery_).then(snapshot => {
-         expect(snapshot.getCount()).to.equal(6);
-       });
-     });
-   });
- });
+import { expect } from 'chai';
+import {
+  countQuery,
+  getAggregateFromServerDirect,
+  query
+} from '../util/firebase_export';
+import { apiDescribe, withTestCollection } from '../util/helpers';
+
+apiDescribe('Aggregation COUNT query:', (persistence: boolean) => {
+  it.only('empty collection count equals to 0', () => {
+    const testDocs = {};
+    return withTestCollection(persistence, testDocs, collection => {
+      const countQuery_ = countQuery(query(collection));
+      return getAggregateFromServerDirect(countQuery_).then(snapshot => {
+        expect(snapshot.getCount()).to.equal(0);
+      });
+    });
+  });
+
+  it.only('test collection count equals to 6', () => {
+    const testDocs = {
+      a: { k: 'a' },
+      b: { k: 'b' },
+      c: { k: 'c' },
+      d: { k: 'd' },
+      e: { k: 'e' },
+      f: { k: 'f' }
+    };
+    return withTestCollection(persistence, testDocs, collection => {
+      const countQuery_ = countQuery(query(collection));
+      return getAggregateFromServerDirect(countQuery_).then(snapshot => {
+        expect(snapshot.getCount()).to.equal(6);
+      });
+    });
+  });
+});
