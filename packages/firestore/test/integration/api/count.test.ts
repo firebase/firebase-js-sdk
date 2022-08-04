@@ -24,7 +24,7 @@ import {
 import { apiDescribe, withTestCollection } from '../util/helpers';
 
 apiDescribe('Aggregation COUNT query:', (persistence: boolean) => {
-  it.only('empty collection count equals to 0', () => {
+  it('empty collection count equals to 0', () => {
     const testDocs = {};
     return withTestCollection(persistence, testDocs, collection => {
       const countQuery_ = countQuery(query(collection));
@@ -34,7 +34,7 @@ apiDescribe('Aggregation COUNT query:', (persistence: boolean) => {
     });
   });
 
-  it.only('test collection count equals to 6', () => {
+  it('test collection count equals to 6', () => {
     const testDocs = {
       a: { k: 'a' },
       b: { k: 'b' },
