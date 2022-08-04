@@ -401,7 +401,7 @@ export class FirstPartyToken implements Token {
   private _headers = new Map();
 
   constructor(
-    private readonly gapi: Gapi,
+    private readonly gapi: Gapi | null,
     private readonly sessionIndex: string,
     private readonly iamToken: string | null,
     private readonly authTokenFactory: AuthTokenFactory | null
@@ -450,7 +450,7 @@ export class FirstPartyAuthCredentialsProvider
   implements CredentialsProvider<User>
 {
   constructor(
-    private gapi: Gapi,
+    private gapi: Gapi | null,
     private sessionIndex: string,
     private iamToken: string | null,
     private authTokenFactory: AuthTokenFactory | null
