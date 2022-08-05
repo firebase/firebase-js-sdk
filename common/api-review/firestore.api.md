@@ -234,15 +234,6 @@ export function getFirestore(app?: FirebaseApp): Firestore;
 export function increment(n: number): FieldValue;
 
 // @public
-export interface IndexField {
-    // (undocumented)
-    [key: string]: unknown;
-    readonly arrayConfig?: 'CONTAINS';
-    readonly fieldPath: string;
-    readonly order?: 'ASCENDING' | 'DESCENDING';
-}
-
-// @public
 export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings): Firestore;
 
 // @public
