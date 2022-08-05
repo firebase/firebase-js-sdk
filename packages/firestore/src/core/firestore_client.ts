@@ -82,6 +82,7 @@ import {
   syncEngineWrite
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
+import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
@@ -187,7 +188,7 @@ export class FirestoreClient {
         deferred.resolve();
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(
-          e,
+          e as Error,
           `Failed to shutdown persistence`
         );
         deferred.reject(firestoreError);
@@ -483,7 +484,8 @@ export function firestoreClientAddSnapshotsInSyncListener(
  */
 export function firestoreClientTransaction<T>(
   client: FirestoreClient,
-  updateFunction: (transaction: Transaction) => Promise<T>
+  updateFunction: (transaction: Transaction) => Promise<T>,
+  options: TransactionOptions
 ): Promise<T> {
   const deferred = new Deferred<T>();
   client.asyncQueue.enqueueAndForget(async () => {
@@ -491,6 +493,7 @@ export function firestoreClientTransaction<T>(
     new TransactionRunner<T>(
       client.asyncQueue,
       datastore,
+      options,
       updateFunction,
       deferred
     ).run();
@@ -522,7 +525,7 @@ async function readDocumentFromCache(
     }
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       `Failed to get document '${docKey} from cache`
     );
     result.reject(firestoreError);
@@ -620,7 +623,7 @@ async function executeQueryFromCache(
     result.resolve(viewChange.snapshot!);
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       `Failed to execute query '${query} against cache`
     );
     result.reject(firestoreError);

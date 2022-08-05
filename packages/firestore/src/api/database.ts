@@ -56,6 +56,7 @@ import { AsyncQueue } from '../util/async_queue';
 import { newAsyncQueue } from '../util/async_queue_impl';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
+import { logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
@@ -328,15 +329,16 @@ function setPersistenceProviders(
         await setOnlineComponentProvider(client, onlineComponentProvider);
         persistenceResult.resolve();
       } catch (e) {
-        if (!canFallbackFromIndexedDbError(e)) {
-          throw e;
+        const error = e as FirestoreError | DOMException;
+        if (!canFallbackFromIndexedDbError(error)) {
+          throw error;
         }
-        console.warn(
+        logWarn(
           'Error enabling offline persistence. Falling back to ' +
             'persistence disabled: ' +
-            e
+            error
         );
-        persistenceResult.reject(e);
+        persistenceResult.reject(error);
       }
     })
     .then(() => persistenceResult.promise);
@@ -419,7 +421,7 @@ export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
       );
       deferred.resolve();
     } catch (e) {
-      deferred.reject(e);
+      deferred.reject(e as Error | undefined);
     }
   });
   return deferred.promise;

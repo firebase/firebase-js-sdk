@@ -26,13 +26,15 @@ import {
   deleteField
 } from '../../../src';
 import { MutableDocument } from '../../../src/model/document';
+import { FieldMask } from '../../../src/model/field_mask';
 import {
   mutationApplyToLocalView,
   mutationApplyToRemoteDocument,
   mutationExtractBaseValue,
   Mutation,
   MutationResult,
-  Precondition
+  Precondition,
+  calculateOverlayMutation
 } from '../../../src/model/mutation';
 import { serverTimestamp as serverTimestampInternal } from '../../../src/model/server_timestamps';
 import {
@@ -42,12 +44,15 @@ import {
 import { Dict } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
+  computeCombinations,
+  computePermutations,
   deletedDoc,
   deleteMutation,
   doc,
   field,
   invalidDoc,
   key,
+  mergeMutation,
   mutationResult,
   patchMutation,
   setMutation,
@@ -62,12 +67,93 @@ describe('Mutation', () => {
 
   const timestamp = Timestamp.now();
 
+  /**
+   * For each document in `docs`, calculate the overlay mutations of each
+   * possible permutation, check whether this holds:
+   * document + overlay_mutation = document + mutation_list
+   * Returns how many cases it has run.
+   */
+  function runPermutationTests(
+    docs: MutableDocument[],
+    mutations: Mutation[]
+  ): number {
+    let testCases = 0;
+    const permutations = computePermutations(mutations);
+    docs.forEach(doc => {
+      permutations.forEach(permutation => {
+        verifyOverlayRoundTrips(doc, ...permutation);
+        testCases++;
+      });
+    });
+    return testCases;
+  }
+
+  function getDescription(
+    document: MutableDocument,
+    mutations: Mutation[],
+    overlay: Mutation | null
+  ): string {
+    let result = 'Overlay Mutation failed with:\n';
+    result += 'document:\n';
+    result += document.toString();
+    result += '\n\n';
+
+    result += 'mutations:\n';
+    mutations.forEach(mutation => {
+      result += mutation.toString() + '\n';
+    });
+    result += '\n';
+
+    result += 'overlay:\n';
+    result += overlay === null ? 'null' : overlay.toString();
+    result += '\n\n';
+    return result;
+  }
+
+  function verifyOverlayRoundTrips(
+    doc: MutableDocument,
+    ...mutations: Mutation[]
+  ): void {
+    const docForMutations = doc.mutableCopy();
+    const docForOverlay = doc.mutableCopy();
+
+    let mask: FieldMask | null = null;
+    for (const mutation of mutations) {
+      mask = mutationApplyToLocalView(
+        mutation,
+        docForMutations,
+        mask,
+        timestamp
+      );
+    }
+
+    const overlay = calculateOverlayMutation(docForMutations, mask);
+    if (overlay !== null) {
+      mutationApplyToLocalView(
+        overlay,
+        docForOverlay,
+        /* previousMask= */ null,
+        timestamp
+      );
+    }
+
+    expect(docForOverlay).to.deep.equal(
+      docForMutations,
+      getDescription(doc, mutations, overlay)
+    );
+  }
+
   it('can apply sets to documents', () => {
     const docData = { foo: 'foo-value', baz: 'baz-value' };
     const document = doc('collection/key', 0, docData);
 
     const set = setMutation('collection/key', { bar: 'bar-value' });
-    mutationApplyToLocalView(set, document, timestamp);
+    mutationApplyToLocalView(
+      set,
+      document,
+      /* previousMask= */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, { bar: 'bar-value' }).setHasLocalMutations()
     );
@@ -81,7 +167,12 @@ describe('Mutation', () => {
       'foo.bar': 'new-bar-value'
     });
 
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask= */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' },
@@ -100,7 +191,12 @@ describe('Mutation', () => {
       Precondition.none()
     );
 
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask= */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' }
@@ -118,7 +214,12 @@ describe('Mutation', () => {
       Precondition.none()
     );
 
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask= */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' }
@@ -134,7 +235,12 @@ describe('Mutation', () => {
       'foo.bar': deleteField()
     });
 
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask= */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { baz: 'baz-value' }
@@ -151,7 +257,12 @@ describe('Mutation', () => {
       'foo.bar': 'new-bar-value'
     });
 
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask= */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' },
@@ -163,7 +274,12 @@ describe('Mutation', () => {
   it('patching a NoDocument yields a NoDocument', () => {
     const document = deletedDoc('collection/key', 0);
     const patch = patchMutation('collection/key', { foo: 'bar' });
-    mutationApplyToLocalView(patch, document, timestamp);
+    mutationApplyToLocalView(
+      patch,
+      document,
+      /* previousMask= */ null,
+      timestamp
+    );
     expect(document).to.deep.equal(deletedDoc('collection/key', 0));
   });
 
@@ -175,7 +291,12 @@ describe('Mutation', () => {
       'foo.bar': serverTimestamp()
     });
 
-    mutationApplyToLocalView(transform, document, timestamp);
+    mutationApplyToLocalView(
+      transform,
+      document,
+      /* previousMask= */ null,
+      timestamp
+    );
 
     // Server timestamps aren't parsed, so we manually insert it.
     const data = wrapObject({
@@ -193,13 +314,13 @@ describe('Mutation', () => {
   // test once we have integration tests.
   it('can create arrayUnion() transform.', () => {
     const transform = patchMutation('collection/key', {
-      foo: arrayUnion('tag'),
+      a: arrayUnion('tag'),
       'bar.baz': arrayUnion(true, { nested: { a: [1, 2] } })
     });
     expect(transform.fieldTransforms).to.have.lengthOf(2);
 
     const first = transform.fieldTransforms[0];
-    expect(first.field).to.deep.equal(field('foo'));
+    expect(first.field).to.deep.equal(field('a'));
     expect(first.transform).to.deep.equal(
       new ArrayUnionTransformOperation([wrap('tag')])
     );
@@ -340,7 +461,12 @@ describe('Mutation', () => {
 
     for (const transformData of transforms) {
       const transform = patchMutation('collection/key', transformData);
-      mutationApplyToLocalView(transform, document, timestamp);
+      mutationApplyToLocalView(
+        transform,
+        document,
+        /* previousMask= */ null,
+        timestamp
+      );
     }
 
     const expectedDoc = doc(
@@ -479,8 +605,15 @@ describe('Mutation', () => {
     const document = doc('collection/key', 0, { foo: 'bar' });
 
     const mutation = deleteMutation('collection/key');
-    mutationApplyToLocalView(mutation, document, Timestamp.now());
-    expect(document).to.deep.equal(deletedDoc('collection/key', 0));
+    mutationApplyToLocalView(
+      mutation,
+      document,
+      /* previousMask= */ null,
+      Timestamp.now()
+    );
+    expect(document).to.deep.equal(
+      deletedDoc('collection/key', 0).setHasLocalMutations()
+    );
   });
 
   it('can apply sets with mutation results', () => {
@@ -627,10 +760,333 @@ describe('Mutation', () => {
     const inc = { sum: increment(1) };
     const transform = setMutation('collection/key', inc);
 
-    mutationApplyToLocalView(transform, document, Timestamp.now());
-    mutationApplyToLocalView(transform, document, Timestamp.now());
+    mutationApplyToLocalView(
+      transform,
+      document,
+      /* previousMask= */ null,
+      Timestamp.now()
+    );
+    mutationApplyToLocalView(
+      transform,
+      document,
+      /* previousMask= */ null,
+      Timestamp.now()
+    );
 
     expect(document.isFoundDocument()).to.be.true;
     expect(document.data.field(field('sum'))).to.deep.equal(wrap(2));
+  });
+
+  // Mutation Overlay tests
+
+  it('overlay with no mutation', () => {
+    const doc1 = doc('collection/key', 1, {
+      'foo': 'foo-value',
+      'baz': 'baz-value'
+    });
+    verifyOverlayRoundTrips(doc1);
+  });
+
+  it('overlay with mutations fail by preconditions', () => {
+    verifyOverlayRoundTrips(
+      deletedDoc('collection/key', 1),
+      patchMutation('collection/key', { 'foo': 'bar' }),
+      patchMutation('collection/key', { 'a': 1 })
+    );
+  });
+
+  it('overlay with patch on invalid document', () => {
+    verifyOverlayRoundTrips(
+      MutableDocument.newInvalidDocument(key('collection/key')),
+      patchMutation('collection/key', { 'a': 1 })
+    );
+  });
+
+  it('overlay with one set mutation', () => {
+    const doc1 = doc('collection/key', 1, {
+      'foo': 'foo-value',
+      'baz': 'baz-value'
+    });
+    verifyOverlayRoundTrips(
+      doc1,
+      setMutation('collection/key', { 'bar': 'bar-value' })
+    );
+  });
+
+  it('overlay with one patch mutation', () => {
+    const doc1 = doc('collection/key', 1, {
+      'foo': { 'bar': 'bar-value' },
+      'baz': 'baz-value'
+    });
+    verifyOverlayRoundTrips(
+      doc1,
+      patchMutation('collection/key', { 'foo.bar': 'new-bar-value' })
+    );
+  });
+
+  it('overlay with patch then merge', () => {
+    const upsert = mergeMutation(
+      'collection/key',
+      { 'foo.bar': 'new-bar-value' },
+      [field('foo.bar')]
+    );
+
+    verifyOverlayRoundTrips(deletedDoc('collection/key', 1), upsert);
+  });
+
+  it('overlay with delete then patch', () => {
+    const doc1 = doc('collection/key', 1, { 'foo': 1 });
+    const deleteMutation1 = deleteMutation('collection/key');
+    const patchMutation1 = patchMutation('collection/key', {
+      'foo.bar': 'new-bar-value'
+    });
+
+    verifyOverlayRoundTrips(doc1, deleteMutation1, patchMutation1);
+  });
+
+  it('overlay with delete then merge', () => {
+    const doc1 = doc('collection/key', 1, { 'foo': 1 });
+    const deleteMutation1 = deleteMutation('collection/key');
+    const mergeMutation1 = mergeMutation(
+      'collection/key',
+      { 'foo.bar': 'new-bar-value' },
+      [field('foo.bar')]
+    );
+
+    verifyOverlayRoundTrips(doc1, deleteMutation1, mergeMutation1);
+  });
+
+  it('overlay with patch then patch to delete field', () => {
+    const doc1 = doc('collection/key', 1, { 'foo': 1 });
+    const patch = patchMutation('collection/key', {
+      'foo': 'foo-patched-value',
+      'bar.baz': increment(1)
+    });
+    const patchToDeleteField = patchMutation('collection/key', {
+      'foo': 'foo-patched-value',
+      'bar.baz': deleteField()
+    });
+
+    verifyOverlayRoundTrips(doc1, patch, patchToDeleteField);
+  });
+
+  it('overlay with patch then merge with array union', () => {
+    const doc1 = doc('collection/key', 1, { 'foo': 1 });
+    const patch = patchMutation('collection/key', {
+      'foo': 'foo-patched-value',
+      'bar.baz': increment(1)
+    });
+    const merge = mergeMutation(
+      'collection/key',
+      { 'arrays': arrayUnion(1, 2, 3) },
+      [field('arrays')]
+    );
+
+    verifyOverlayRoundTrips(doc1, patch, merge);
+  });
+
+  it('overlay with array union then remove', () => {
+    const doc1 = doc('collection/key', 1, { 'foo': 1 });
+    const union = mergeMutation(
+      'collection/key',
+      { 'arrays': arrayUnion(1, 2, 3) },
+      []
+    );
+    const remove = mergeMutation(
+      'collection/key',
+      { 'foo': 'xxx', 'arrays': arrayRemove(2) },
+      [field('foo')]
+    );
+
+    verifyOverlayRoundTrips(doc1, union, remove);
+  });
+
+  it('overlay with set then increment', () => {
+    const doc1 = doc('collection/key', 1, { 'foo': 1 });
+    const set = setMutation('collection/key', { 'foo': 2 });
+    const update = patchMutation('collection/key', { 'foo': increment(2) });
+
+    verifyOverlayRoundTrips(doc1, set, update);
+  });
+
+  it('overlay with set then patch on deleted doc', () => {
+    const doc1 = deletedDoc('collection/key', 1);
+    const set = setMutation('collection/key', { 'bar': 'bar-value' });
+    const patch = patchMutation('collection/key', {
+      'foo': 'foo-patched-value',
+      'bar.baz': serverTimestamp()
+    });
+
+    verifyOverlayRoundTrips(doc1, set, patch);
+  });
+
+  it('overlay with field deletion of nested field', () => {
+    const doc1 = doc('collection/key', 1, { 'foo': 1 });
+    const patch1 = patchMutation('collection/key', {
+      'foo': 'foo-patched-value',
+      'bar.baz': increment(1)
+    });
+    const patch2 = patchMutation('collection/key', {
+      'foo': 'foo-patched-value',
+      'bar.baz': serverTimestamp()
+    });
+    const patch3 = patchMutation('collection/key', {
+      'foo': 'foo-patched-value',
+      'bar.baz': deleteField()
+    });
+
+    verifyOverlayRoundTrips(doc1, patch1, patch2, patch3);
+  });
+
+  it('overlay created from empty set with merge', () => {
+    const doc1 = deletedDoc('collection/key', 1);
+    const merge = mergeMutation('collection/key', {}, []);
+    verifyOverlayRoundTrips(doc1, merge);
+
+    const doc2 = doc('collection/key', 1, { 'foo': 'foo-value' });
+    verifyOverlayRoundTrips(doc2, merge);
+  });
+
+  // Below tests run on automatically generated mutation list, they are
+  // deterministic, but hard to debug when they fail. They will print the
+  // failure case, and the best way to debug is recreate the case manually in a
+  // separate test.
+
+  it('overlay with mutation with multiple deletes', () => {
+    const docs = [
+      doc('collection/key', 1, { 'foo': 'foo-value', 'bar.baz': 1 }),
+      deletedDoc('collection/key', 1),
+      unknownDoc('collection/key', 1)
+    ];
+
+    const mutations = [
+      setMutation('collection/key', { 'bar': 'bar-value' }),
+      deleteMutation('collection/key'),
+      deleteMutation('collection/key'),
+      patchMutation('collection/key', {
+        'foo': 'foo-patched-value',
+        'bar.baz': serverTimestamp()
+      })
+    ];
+
+    const testCases = runPermutationTests(docs, mutations);
+
+    // There are 4! * 3 cases
+    expect(testCases).to.equal(72);
+  });
+
+  it('overlay by combinations and permutations', () => {
+    const docs: MutableDocument[] = [
+      doc('collection/key', 1, { 'foo': 'foo-value', 'bar': 1 }),
+      deletedDoc('collection/key', 1),
+      unknownDoc('collection/key', 1)
+    ];
+
+    const mutations: Mutation[] = [
+      setMutation('collection/key', { 'bar': 'bar-value' }),
+      setMutation('collection/key', { 'bar.rab': 'bar.rab-value' }),
+      deleteMutation('collection/key'),
+      patchMutation('collection/key', {
+        'foo': 'foo-patched-value-incr',
+        'bar': increment(1)
+      }),
+      patchMutation('collection/key', {
+        'foo': 'foo-patched-value-delete',
+        'bar': deleteField()
+      }),
+      patchMutation('collection/key', {
+        'foo': 'foo-patched-value-st',
+        'bar': serverTimestamp()
+      }),
+      mergeMutation('collection/key', { 'arrays': arrayUnion(1, 2, 3) }, [
+        field('arrays')
+      ])
+    ];
+
+    // Take all possible combinations of the subsets of the mutation list, run each combination for
+    // all possible permutation, for all 3 different type of documents.
+    let testCases = 0;
+    computeCombinations(mutations).forEach(combination => {
+      testCases += runPermutationTests(docs, combination);
+    });
+
+    // There are (0! + 7*1! + 21*2! + 35*3! + 35*4! + 21*5! + 7*6! + 7!) * 3 = 41100 cases.
+    expect(testCases).to.equal(41100);
+  });
+
+  it('overlay by combinations and permutations for array transforms', () => {
+    const docs: MutableDocument[] = [
+      doc('collection/key', 1, { 'foo': 'foo-value', 'bar.baz': 1 }),
+      deletedDoc('collection/key', 1),
+      unknownDoc('collection/key', 1)
+    ];
+
+    const mutations: Mutation[] = [
+      setMutation('collection/key', { 'bar': 'bar-value' }),
+      mergeMutation(
+        'collection/key',
+        { 'foo': 'xxx', 'arrays': arrayRemove(2) },
+        [field('foo')]
+      ),
+      deleteMutation('collection/key'),
+      patchMutation('collection/key', {
+        'foo': 'foo-patched-value-1',
+        'arrays': arrayUnion(4, 5)
+      }),
+      patchMutation('collection/key', {
+        'foo': 'foo-patched-value-2',
+        'arrays': arrayRemove(5, 6)
+      }),
+      mergeMutation(
+        'collection/key',
+        { 'foo': 'yyy', 'arrays': arrayUnion(1, 2, 3, 999) },
+        [field('foo')]
+      )
+    ];
+
+    let testCases = 0;
+    computeCombinations(mutations).forEach(combination => {
+      testCases += runPermutationTests(docs, combination);
+    });
+
+    // There are (0! + 6*1! + 15*2! + 20*3! + 15*4! + 6*5! + 6!) * 3 = 5871 cases.
+    expect(testCases).to.equal(5871);
+  });
+
+  it('overlay by combinations and permutations for increments', () => {
+    const docs: MutableDocument[] = [
+      doc('collection/key', 1, { 'foo': 'foo-value', 'bar': 1 }),
+      deletedDoc('collection/key', 1),
+      unknownDoc('collection/key', 1)
+    ];
+
+    const mutations: Mutation[] = [
+      setMutation('collection/key', { 'bar': 'bar-value' }),
+      mergeMutation(
+        'collection/key',
+        { 'foo': 'foo-merge', 'bar': increment(2) },
+        [field('foo')]
+      ),
+      deleteMutation('collection/key'),
+      patchMutation('collection/key', {
+        'foo': 'foo-patched-value-1',
+        'bar': increment(-1.4)
+      }),
+      patchMutation('collection/key', {
+        'foo': 'foo-patched-value-2',
+        'bar': increment(3.3)
+      }),
+      mergeMutation('collection/key', { 'foo': 'yyy', 'bar': increment(-41) }, [
+        field('foo')
+      ])
+    ];
+
+    let testCases = 0;
+    computeCombinations(mutations).forEach(combination => {
+      testCases += runPermutationTests(docs, combination);
+    });
+
+    // There are (0! + 6*1! + 15*2! + 20*3! + 15*4! + 6*5! + 6!) * 3 = 5871 cases.
+    expect(testCases).to.equal(5871);
   });
 });

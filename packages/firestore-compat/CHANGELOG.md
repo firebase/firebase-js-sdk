@@ -1,5 +1,57 @@
 # @firebase/firestore-compat
 
+## 0.1.23
+
+### Patch Changes
+
+- Updated dependencies [[`f5426a512`](https://github.com/firebase/firebase-js-sdk/commit/f5426a51275bb611a5d9a6df3200d0fe5095afa2), [`10765511f`](https://github.com/firebase/firebase-js-sdk/commit/10765511f7ba33293f7a15af1f98d69a261c019d)]:
+  - @firebase/firestore@3.4.14
+
+## 0.1.22
+
+### Patch Changes
+
+- Updated dependencies [[`1703bb31a`](https://github.com/firebase/firebase-js-sdk/commit/1703bb31afa806087167079641af79c9293ab423)]:
+  - @firebase/firestore@3.4.13
+
+## 0.1.21
+
+### Patch Changes
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf), [`ad773fa45`](https://github.com/firebase/firebase-js-sdk/commit/ad773fa451b13f9d58b3f27f7ec6570117b0cc27)]:
+  - @firebase/util@1.6.3
+  - @firebase/firestore@3.4.12
+  - @firebase/component@0.5.17
+
+## 0.1.20
+
+### Patch Changes
+
+- Updated dependencies [[`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0)]:
+  - @firebase/util@1.6.2
+  - @firebase/component@0.5.16
+  - @firebase/firestore@3.4.11
+
+## 0.1.19
+
+### Patch Changes
+
+- [`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5) [#6307](https://github.com/firebase/firebase-js-sdk/pull/6307) (fixes [#6300](https://github.com/firebase/firebase-js-sdk/issues/6300)) - fix: add type declarations to exports field
+
+- Updated dependencies [[`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5), [`d4b52b612`](https://github.com/firebase/firebase-js-sdk/commit/d4b52b612cf73610c57a3c08a0415ab7b622a70a)]:
+  - @firebase/component@0.5.15
+  - @firebase/firestore@3.4.10
+  - @firebase/util@1.6.1
+
+## 0.1.18
+
+### Patch Changes
+
+- Updated dependencies [[`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801), [`dfab18af6`](https://github.com/firebase/firebase-js-sdk/commit/dfab18af66beeed14b2524f926af5bda506856a6)]:
+  - @firebase/util@1.6.0
+  - @firebase/firestore@3.4.9
+  - @firebase/component@0.5.14
+
 ## 0.1.17
 
 ### Patch Changes

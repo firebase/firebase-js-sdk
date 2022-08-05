@@ -297,7 +297,11 @@ export class Firestore
         collection(this._delegate, pathString)
       );
     } catch (e) {
-      throw replaceFunctionName(e, 'collection()', 'Firestore.collection()');
+      throw replaceFunctionName(
+        e as Error,
+        'collection()',
+        'Firestore.collection()'
+      );
     }
   }
 
@@ -305,7 +309,7 @@ export class Firestore
     try {
       return new DocumentReference(this, doc(this._delegate, pathString));
     } catch (e) {
-      throw replaceFunctionName(e, 'doc()', 'Firestore.doc()');
+      throw replaceFunctionName(e as Error, 'doc()', 'Firestore.doc()');
     }
   }
 
@@ -314,7 +318,7 @@ export class Firestore
       return new Query(this, collectionGroup(this._delegate, collectionId));
     } catch (e) {
       throw replaceFunctionName(
-        e,
+        e as Error,
         'collectionGroup()',
         'Firestore.collectionGroup()'
       );
@@ -687,7 +691,7 @@ export class DocumentReference<T = PublicDocumentData>
       );
     } catch (e) {
       throw replaceFunctionName(
-        e,
+        e as Error,
         'collection()',
         'DocumentReference.collection()'
       );
@@ -718,7 +722,11 @@ export class DocumentReference<T = PublicDocumentData>
         return setDoc(this._delegate, value as WithFieldValue<T>);
       }
     } catch (e) {
-      throw replaceFunctionName(e, 'setDoc()', 'DocumentReference.set()');
+      throw replaceFunctionName(
+        e as Error,
+        'setDoc()',
+        'DocumentReference.set()'
+      );
     }
   }
 
@@ -745,7 +753,11 @@ export class DocumentReference<T = PublicDocumentData>
         );
       }
     } catch (e) {
-      throw replaceFunctionName(e, 'updateDoc()', 'DocumentReference.update()');
+      throw replaceFunctionName(
+        e as Error,
+        'updateDoc()',
+        'DocumentReference.update()'
+      );
     }
   }
 
@@ -991,7 +1003,11 @@ export class Query<T = PublicDocumentData>
         query(this._delegate, where(fieldPath as string, opStr, value))
       );
     } catch (e) {
-      throw replaceFunctionName(e, /(orderBy|where)\(\)/, 'Query.$1()');
+      throw replaceFunctionName(
+        e as Error,
+        /(orderBy|where)\(\)/,
+        'Query.$1()'
+      );
     }
   }
 
@@ -1008,7 +1024,11 @@ export class Query<T = PublicDocumentData>
         query(this._delegate, orderBy(fieldPath as string, directionStr))
       );
     } catch (e) {
-      throw replaceFunctionName(e, /(orderBy|where)\(\)/, 'Query.$1()');
+      throw replaceFunctionName(
+        e as Error,
+        /(orderBy|where)\(\)/,
+        'Query.$1()'
+      );
     }
   }
 
@@ -1016,7 +1036,7 @@ export class Query<T = PublicDocumentData>
     try {
       return new Query<T>(this.firestore, query(this._delegate, limit(n)));
     } catch (e) {
-      throw replaceFunctionName(e, 'limit()', 'Query.limit()');
+      throw replaceFunctionName(e as Error, 'limit()', 'Query.limit()');
     }
   }
 
@@ -1027,7 +1047,11 @@ export class Query<T = PublicDocumentData>
         query(this._delegate, limitToLast(n))
       );
     } catch (e) {
-      throw replaceFunctionName(e, 'limitToLast()', 'Query.limitToLast()');
+      throw replaceFunctionName(
+        e as Error,
+        'limitToLast()',
+        'Query.limitToLast()'
+      );
     }
   }
 
@@ -1035,7 +1059,7 @@ export class Query<T = PublicDocumentData>
     try {
       return new Query(this.firestore, query(this._delegate, startAt(...args)));
     } catch (e) {
-      throw replaceFunctionName(e, 'startAt()', 'Query.startAt()');
+      throw replaceFunctionName(e as Error, 'startAt()', 'Query.startAt()');
     }
   }
 
@@ -1046,7 +1070,11 @@ export class Query<T = PublicDocumentData>
         query(this._delegate, startAfter(...args))
       );
     } catch (e) {
-      throw replaceFunctionName(e, 'startAfter()', 'Query.startAfter()');
+      throw replaceFunctionName(
+        e as Error,
+        'startAfter()',
+        'Query.startAfter()'
+      );
     }
   }
 
@@ -1057,7 +1085,7 @@ export class Query<T = PublicDocumentData>
         query(this._delegate, endBefore(...args))
       );
     } catch (e) {
-      throw replaceFunctionName(e, 'endBefore()', 'Query.endBefore()');
+      throw replaceFunctionName(e as Error, 'endBefore()', 'Query.endBefore()');
     }
   }
 
@@ -1065,7 +1093,7 @@ export class Query<T = PublicDocumentData>
     try {
       return new Query(this.firestore, query(this._delegate, endAt(...args)));
     } catch (e) {
-      throw replaceFunctionName(e, 'endAt()', 'Query.endAt()');
+      throw replaceFunctionName(e as Error, 'endAt()', 'Query.endAt()');
     }
   }
 
@@ -1265,7 +1293,11 @@ export class CollectionReference<T = PublicDocumentData>
         );
       }
     } catch (e) {
-      throw replaceFunctionName(e, 'doc()', 'CollectionReference.doc()');
+      throw replaceFunctionName(
+        e as Error,
+        'doc()',
+        'CollectionReference.doc()'
+      );
     }
   }
 

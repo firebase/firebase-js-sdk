@@ -61,7 +61,7 @@ export async function generateReportForBundles(
       input: version ? `${outputDir}/${bundle}` : `${definitionDir}/${bundle}`,
       bundler: Bundler.Rollup,
       mode: version ? Mode.Npm : Mode.Local,
-      output: output,
+      output,
       debug: true
     };
     console.log(`Running for bundle "${bundle}" with mode "${option.mode}".`);
@@ -78,7 +78,7 @@ function overwriteVersion(
   bundle: string,
   temp: string,
   version: string
-) {
+): void {
   const definitions = JSON.parse(
     fs.readFileSync(`${definitionDir}/${bundle}`, { encoding: 'utf-8' })
   );
@@ -93,7 +93,7 @@ function overwriteVersion(
   });
 }
 
-function parseAnalysisOutput(product: string, output: string) {
+function parseAnalysisOutput(product: string, output: string): Report[] {
   const analyses = JSON.parse(fs.readFileSync(output, { encoding: 'utf-8' }));
   const results: Report[] = [];
   for (const analysis of analyses) {

@@ -148,7 +148,9 @@ describe('Firestore', () => {
       getDoc(doc(firestore, 'coll/doc'));
       expect.fail();
     } catch (e) {
-      expect(e.message).to.equal('The client has already been terminated.');
+      expect((e as Error)?.message).to.equal(
+        'The client has already been terminated.'
+      );
     }
   });
 

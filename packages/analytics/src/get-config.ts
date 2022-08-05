@@ -188,7 +188,9 @@ async function attemptFetchDynamicConfigWithRetry(
       logger.warn(
         `Timed out fetching this Firebase app's measurement ID from the server.` +
           ` Falling back to the measurement ID ${measurementId}` +
-          ` provided in the "measurementId" field in the local Firebase config. [${e.message}]`
+          ` provided in the "measurementId" field in the local Firebase config. [${
+            (e as Error)?.message
+          }]`
       );
       return { appId, measurementId };
     }
@@ -203,13 +205,14 @@ async function attemptFetchDynamicConfigWithRetry(
 
     return response;
   } catch (e) {
-    if (!isRetriableError(e)) {
+    const error = e as Error;
+    if (!isRetriableError(error)) {
       retryData.deleteThrottleMetadata(appId);
       if (measurementId) {
         logger.warn(
           `Failed to fetch this Firebase app's measurement ID from the server.` +
             ` Falling back to the measurement ID ${measurementId}` +
-            ` provided in the "measurementId" field in the local Firebase config. [${e.message}]`
+            ` provided in the "measurementId" field in the local Firebase config. [${error?.message}]`
         );
         return { appId, measurementId };
       } else {
@@ -218,7 +221,7 @@ async function attemptFetchDynamicConfigWithRetry(
     }
 
     const backoffMillis =
-      Number(e.customData.httpStatus) === 503
+      Number(error?.customData?.httpStatus) === 503
         ? calculateBackoffMillis(
             backoffCount,
             retryData.intervalMillis,

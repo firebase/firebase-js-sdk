@@ -51,7 +51,7 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { TargetIndexMatcher } from '../model/target_index_matcher';
 import { isArray, refValue } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
-import { debugAssert } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { logDebug } from '../util/log';
 import { immediateSuccessor, primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
@@ -195,7 +195,22 @@ export class IndexedDbIndexManager implements IndexManager {
     const indexes = indexConfigurationStore(transaction);
     const dbIndex = toDbIndexConfiguration(index);
     delete dbIndex.indexId; // `indexId` is auto-populated by IndexedDb
-    return indexes.add(dbIndex).next();
+    const result = indexes.add(dbIndex);
+    if (index.indexState) {
+      const states = indexStateStore(transaction);
+      return result.next(indexId => {
+        states.put(
+          toDbIndexState(
+            indexId,
+            this.user,
+            index.indexState.sequenceNumber,
+            index.indexState.offset
+          )
+        );
+      });
+    } else {
+      return result.next();
+    }
   }
 
   deleteFieldIndex(
@@ -951,26 +966,26 @@ export class IndexedDbIndexManager implements IndexManager {
     return ranges;
   }
 
+  getMinOffsetFromCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string
+  ): PersistencePromise<IndexOffset> {
+    return this.getFieldIndexes(transaction, collectionGroup).next(
+      getMinOffsetFromFieldIndexes
+    );
+  }
+
   getMinOffset(
     transaction: PersistenceTransaction,
     target: Target
   ): PersistencePromise<IndexOffset> {
-    let offset: IndexOffset | undefined;
-    return PersistencePromise.forEach(
+    return PersistencePromise.mapArray(
       this.getSubTargets(target),
-      (target: Target) => {
-        return this.getFieldIndex(transaction, target).next(index => {
-          if (!index) {
-            offset = IndexOffset.min();
-          } else if (
-            !offset ||
-            indexOffsetComparator(index.indexState.offset, offset) < 0
-          ) {
-            offset = index.indexState.offset;
-          }
-        });
-      }
-    ).next(() => offset!);
+      (subTarget: Target) =>
+        this.getFieldIndex(transaction, subTarget).next(index =>
+          index ? index : fail('Target cannot be served from index')
+        )
+    ).next(getMinOffsetFromFieldIndexes);
   }
 }
 
@@ -1015,4 +1030,24 @@ function indexStateStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbIndexStateKey, DbIndexState> {
   return getStore<DbIndexStateKey, DbIndexState>(txn, DbIndexStateStore);
+}
+
+function getMinOffsetFromFieldIndexes(fieldIndexes: FieldIndex[]): IndexOffset {
+  hardAssert(
+    fieldIndexes.length !== 0,
+    'Found empty index group when looking for least recent index offset.'
+  );
+
+  let minOffset: IndexOffset = fieldIndexes[0].indexState.offset;
+  let maxBatchId: number = minOffset.largestBatchId;
+  for (let i = 1; i < fieldIndexes.length; i++) {
+    const newOffset: IndexOffset = fieldIndexes[i].indexState.offset;
+    if (indexOffsetComparator(newOffset, minOffset) < 0) {
+      minOffset = newOffset;
+    }
+    if (maxBatchId < newOffset.largestBatchId) {
+      maxBatchId = newOffset.largestBatchId;
+    }
+  }
+  return new IndexOffset(minOffset.readTime, minOffset.documentKey, maxBatchId);
 }

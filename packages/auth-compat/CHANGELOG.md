@@ -1,5 +1,61 @@
 # @firebase/auth-compat
 
+## 0.2.18
+
+### Patch Changes
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf), [`1261d8323`](https://github.com/firebase/firebase-js-sdk/commit/1261d832345ff4505391a150cb9c32719da37eb0), [`8c52a96ed`](https://github.com/firebase/firebase-js-sdk/commit/8c52a96edac5b65501ee4eeb234c4bb8e70a5dd5)]:
+  - @firebase/util@1.6.3
+  - @firebase/auth@0.20.5
+  - @firebase/component@0.5.17
+
+## 0.2.17
+
+### Patch Changes
+
+- Updated dependencies [[`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0)]:
+  - @firebase/util@1.6.2
+  - @firebase/auth@0.20.4
+  - @firebase/component@0.5.16
+
+## 0.2.16
+
+### Patch Changes
+
+- [`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5) [#6307](https://github.com/firebase/firebase-js-sdk/pull/6307) (fixes [#6300](https://github.com/firebase/firebase-js-sdk/issues/6300)) - fix: add type declarations to exports field
+
+- Updated dependencies [[`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5), [`d4b52b612`](https://github.com/firebase/firebase-js-sdk/commit/d4b52b612cf73610c57a3c08a0415ab7b622a70a)]:
+  - @firebase/auth@0.20.3
+  - @firebase/component@0.5.15
+  - @firebase/util@1.6.1
+
+## 0.2.15
+
+### Patch Changes
+
+- [`63ac2ed28`](https://github.com/firebase/firebase-js-sdk/commit/63ac2ed28f237950290a7af2dcdcf1518ddaee4b) - Fix auth scheme reconition in capacitor env
+
+- Updated dependencies [[`63ac2ed28`](https://github.com/firebase/firebase-js-sdk/commit/63ac2ed28f237950290a7af2dcdcf1518ddaee4b), [`88517b591`](https://github.com/firebase/firebase-js-sdk/commit/88517b59179410e43d5d5129a1fefc355cd1d4eb)]:
+  - @firebase/auth@0.20.2
+
+## 0.2.14
+
+### Patch Changes
+
+- Updated dependencies [[`07cf0f1c9`](https://github.com/firebase/firebase-js-sdk/commit/07cf0f1c9033373bf1d3a8a1958385f177506c6c)]:
+  - @firebase/auth@0.20.1
+
+## 0.2.13
+
+### Patch Changes
+
+- [`1ac3c9d41`](https://github.com/firebase/firebase-js-sdk/commit/1ac3c9d41e8f69a94c64c6e0caf5f1a159b7dc3c) [#6151](https://github.com/firebase/firebase-js-sdk/pull/6151) - Add `beforeAuthStateChanged()` middleware function which allows the user to provide callbacks that are run before an auth state change
+  sets a new user.
+- Updated dependencies [[`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801), [`1ac3c9d41`](https://github.com/firebase/firebase-js-sdk/commit/1ac3c9d41e8f69a94c64c6e0caf5f1a159b7dc3c)]:
+  - @firebase/util@1.6.0
+  - @firebase/auth@0.20.0
+  - @firebase/component@0.5.14
+
 ## 0.2.12
 
 ### Patch Changes

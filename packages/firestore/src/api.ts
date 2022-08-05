@@ -89,6 +89,8 @@ export {
 
 export { Unsubscribe, SnapshotListenOptions } from './api/reference_impl';
 
+export { TransactionOptions } from './api/transaction_options';
+
 export { runTransaction, Transaction } from './api/transaction';
 
 export {
@@ -141,6 +143,13 @@ export {
   UnionToIntersection
 } from '../src/lite-api/types';
 
+export {
+  setIndexConfiguration,
+  Index,
+  IndexConfiguration,
+  IndexField
+} from './api/index_configuration';
+
 /**
  * Internal exports
  */
@@ -158,4 +167,3 @@ export type { ByteString as _ByteString } from './util/byte_string';
 export { logWarn as _logWarn } from './util/log';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
-export { setIndexConfiguration as _setIndexConfiguration } from './api/index_configuration';

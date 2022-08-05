@@ -41,11 +41,15 @@ import { RepoInfo } from '../core/RepoInfo';
 import { parseRepoInfo } from '../core/util/libs/parser';
 import { newEmptyPath, pathIsEmpty } from '../core/util/Path';
 import {
+  warn,
   fatal,
   log,
   enableLogging as enableLoggingImpl
 } from '../core/util/util';
 import { validateUrl } from '../core/util/validation';
+import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
+import { TransportManager } from '../realtime/TransportManager';
+import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
 import { ReferenceImpl } from './Reference_impl';
 
@@ -269,6 +273,31 @@ export class Database implements _FirebaseService {
       fatal('Cannot call ' + apiName + ' on a deleted database.');
     }
   }
+}
+
+function checkTransportInit() {
+  if (TransportManager.IS_TRANSPORT_INITIALIZED) {
+    warn(
+      'Transport has already been initialized. Please call this function before calling ref or setting up a listener'
+    );
+  }
+}
+
+/**
+ * Force the use of websockets instead of longPolling.
+ */
+export function forceWebSockets() {
+  checkTransportInit();
+  BrowserPollConnection.forceDisallow();
+}
+
+/**
+ * Force the use of longPolling instead of websockets. This will be ignored if websocket protocol is used in databaseURL.
+ */
+export function forceLongPolling() {
+  checkTransportInit();
+  WebSocketConnection.forceDisallow();
+  BrowserPollConnection.forceAllow();
 }
 
 /**

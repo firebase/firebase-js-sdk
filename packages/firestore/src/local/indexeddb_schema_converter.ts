@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
+import { User } from '../auth/user';
+import { ListenSequence } from '../core/listen_sequence';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail, hardAssert } from '../util/assert';
@@ -25,10 +28,13 @@ import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
+import { IndexedDbDocumentOverlayCache } from './indexeddb_document_overlay_cache';
 import {
   dbDocumentSize,
   removeMutationBatch
 } from './indexeddb_mutation_batch_impl';
+import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
+import { newIndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   DbCollectionParent,
   DbDocumentMutation,
@@ -39,7 +45,7 @@ import {
   DbTarget,
   DbTargetDocument,
   DbTargetGlobal,
-  INDEXING_SCHEMA_VERSION
+  SCHEMA_VERSION
 } from './indexeddb_schema';
 import {
   DbRemoteDocument as DbRemoteDocumentLegacy,
@@ -107,6 +113,8 @@ import {
   DbTargetQueryTargetsKeyPath,
   DbTargetStore
 } from './indexeddb_sentinels';
+import { IndexedDbTransaction } from './indexeddb_transaction';
+import { LocalDocumentsView } from './local_documents_view';
 import {
   fromDbMutationBatch,
   fromDbTarget,
@@ -114,6 +122,7 @@ import {
   toDbTarget
 } from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
+import { MemoryEagerDelegate, MemoryPersistence } from './memory_persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
@@ -137,7 +146,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     debugAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
-        toVersion <= INDEXING_SCHEMA_VERSION,
+        toVersion <= SCHEMA_VERSION,
       `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
     );
 
@@ -240,9 +249,11 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 14 && toVersion >= 14) {
-      p = p.next(() => {
-        createFieldIndex(db);
-      });
+      p = p.next(() => this.runOverlayMigration(db, simpleDbTransaction));
+    }
+
+    if (fromVersion < 15 && toVersion >= 15) {
+      p = p.next(() => createFieldIndex(db));
     }
 
     return p;
@@ -454,6 +465,68 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         writes.push(remoteDocumentStore.put(dbRemoteDocument));
       })
       .next(() => PersistencePromise.waitFor(writes));
+  }
+
+  private runOverlayMigration(
+    db: IDBDatabase,
+    transaction: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const mutationsStore = transaction.store<
+      DbMutationBatchKey,
+      DbMutationBatch
+    >(DbMutationBatchStore);
+
+    const remoteDocumentCache = newIndexedDbRemoteDocumentCache(
+      this.serializer
+    );
+    const memoryPersistence = new MemoryPersistence(
+      MemoryEagerDelegate.factory,
+      this.serializer.remoteSerializer
+    );
+
+    return mutationsStore.loadAll().next(dbBatches => {
+      const userToDocumentSet = new Map<string, DocumentKeySet>();
+      dbBatches.forEach(dbBatch => {
+        let documentSet =
+          userToDocumentSet.get(dbBatch.userId) ?? documentKeySet();
+        const batch = fromDbMutationBatch(this.serializer, dbBatch);
+        batch.keys().forEach(key => (documentSet = documentSet.add(key)));
+        userToDocumentSet.set(dbBatch.userId, documentSet);
+      });
+      return PersistencePromise.forEach(
+        userToDocumentSet,
+        (allDocumentKeysForUser, userId) => {
+          const user = new User(userId);
+          const documentOverlayCache = IndexedDbDocumentOverlayCache.forUser(
+            this.serializer,
+            user
+          );
+          // NOTE: The index manager and the reference delegate are
+          // irrelevant for the purpose of recalculating and saving
+          // overlays. We can therefore simply use the memory
+          // implementation.
+          const indexManager = memoryPersistence.getIndexManager(user);
+          const mutationQueue = IndexedDbMutationQueue.forUser(
+            user,
+            this.serializer,
+            indexManager,
+            memoryPersistence.referenceDelegate
+          );
+          const localDocumentsView = new LocalDocumentsView(
+            remoteDocumentCache,
+            mutationQueue,
+            documentOverlayCache,
+            indexManager
+          );
+          return localDocumentsView
+            .recalculateAndSaveOverlaysForDocumentKeys(
+              new IndexedDbTransaction(transaction, ListenSequence.INVALID),
+              allDocumentKeysForUser
+            )
+            .next();
+        }
+      );
+    });
   }
 }
 

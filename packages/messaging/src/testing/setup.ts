@@ -19,7 +19,7 @@ import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 
 import { dbDelete } from '../internals/idb-manager';
-import { deleteDB } from '@firebase/util';
+import { deleteDB } from 'idb';
 import { restore } from 'sinon';
 import { use } from 'chai';
 

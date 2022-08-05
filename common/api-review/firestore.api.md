@@ -234,6 +234,30 @@ export function getFirestore(app?: FirebaseApp): Firestore;
 export function increment(n: number): FieldValue;
 
 // @public
+export interface Index {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly collectionGroup: string;
+    readonly fields?: IndexField[];
+}
+
+// @public
+export interface IndexConfiguration {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly indexes?: Index[];
+}
+
+// @public
+export interface IndexField {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly arrayConfig?: 'CONTAINS';
+    readonly fieldPath: string;
+    readonly order?: 'ASCENDING' | 'DESCENDING';
+}
+
+// @public
 export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings): Firestore;
 
 // @public
@@ -385,7 +409,7 @@ export class QuerySnapshot<T = DocumentData> {
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
 // @public
-export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
+export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
 
 // @public
 export function serverTimestamp(): FieldValue;
@@ -395,6 +419,12 @@ export function setDoc<T>(reference: DocumentReference<T>, data: WithFieldValue<
 
 // @public
 export function setDoc<T>(reference: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): Promise<void>;
+
+// @public
+export function setIndexConfiguration(firestore: Firestore, configuration: IndexConfiguration): Promise<void>;
+
+// @public
+export function setIndexConfiguration(firestore: Firestore, json: string): Promise<void>;
 
 // @public
 export function setLogLevel(logLevel: LogLevel): void;
@@ -473,6 +503,11 @@ export class Transaction {
     set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): this;
     update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
+}
+
+// @public
+export interface TransactionOptions {
+    readonly maxAttempts?: number;
 }
 
 // @public

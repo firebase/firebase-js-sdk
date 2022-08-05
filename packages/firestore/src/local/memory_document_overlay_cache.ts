@@ -50,6 +50,20 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     return PersistencePromise.resolve(this.overlays.get(key));
   }
 
+  getOverlays(
+    transaction: PersistenceTransaction,
+    keys: DocumentKey[]
+  ): PersistencePromise<OverlayMap> {
+    const result = newOverlayMap();
+    return PersistencePromise.forEach(keys, (key: DocumentKey) => {
+      return this.getOverlay(transaction, key).next(overlay => {
+        if (overlay !== null) {
+          result.set(key, overlay);
+        }
+      });
+    }).next(() => result);
+  }
+
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,
@@ -152,10 +166,6 @@ export class MemoryDocumentOverlayCache implements DocumentOverlayCache {
     largestBatchId: number,
     mutation: Mutation
   ): void {
-    if (mutation === null) {
-      return;
-    }
-
     // Remove the association of the overlay to its batch id.
     const existing = this.overlays.get(mutation.key);
     if (existing !== null) {

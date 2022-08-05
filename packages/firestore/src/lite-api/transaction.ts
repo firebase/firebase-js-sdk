@@ -18,6 +18,11 @@
 import { getModularInstance } from '@firebase/util';
 
 import { Transaction as InternalTransaction } from '../core/transaction';
+import {
+  DEFAULT_TRANSACTION_OPTIONS,
+  TransactionOptions as TranasactionOptionsInternal,
+  validateTransactionOptions
+} from '../core/transaction_options';
 import { TransactionRunner } from '../core/transaction_runner';
 import { fail } from '../util/assert';
 import { newAsyncQueue } from '../util/async_queue_impl';
@@ -39,6 +44,7 @@ import {
   LiteUserDataWriter
 } from './reference_impl';
 import { DocumentSnapshot } from './snapshot';
+import { TransactionOptions } from './transaction_options';
 import {
   newUserDataReader,
   parseSetData,
@@ -259,6 +265,8 @@ export class Transaction {
  * transaction against.
  * @param updateFunction - The function to execute within the transaction
  * context.
+ * @param options - An options object to configure maximum number of attempts to
+ * commit.
  * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
@@ -266,14 +274,21 @@ export class Transaction {
  */
 export function runTransaction<T>(
   firestore: Firestore,
-  updateFunction: (transaction: Transaction) => Promise<T>
+  updateFunction: (transaction: Transaction) => Promise<T>,
+  options?: TransactionOptions
 ): Promise<T> {
   firestore = cast(firestore, Firestore);
   const datastore = getDatastore(firestore);
+  const optionsWithDefaults: TranasactionOptionsInternal = {
+    ...DEFAULT_TRANSACTION_OPTIONS,
+    ...options
+  };
+  validateTransactionOptions(optionsWithDefaults);
   const deferred = new Deferred<T>();
   new TransactionRunner<T>(
     newAsyncQueue(),
     datastore,
+    optionsWithDefaults,
     internalTransaction =>
       updateFunction(new Transaction(firestore, internalTransaction)),
     deferred

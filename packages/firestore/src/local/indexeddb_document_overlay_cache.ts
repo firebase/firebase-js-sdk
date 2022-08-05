@@ -81,6 +81,20 @@ export class IndexedDbDocumentOverlayCache implements DocumentOverlayCache {
       });
   }
 
+  getOverlays(
+    transaction: PersistenceTransaction,
+    keys: DocumentKey[]
+  ): PersistencePromise<OverlayMap> {
+    const result = newOverlayMap();
+    return PersistencePromise.forEach(keys, (key: DocumentKey) => {
+      return this.getOverlay(transaction, key).next(overlay => {
+        if (overlay !== null) {
+          result.set(key, overlay);
+        }
+      });
+    }).next(() => result);
+  }
+
   saveOverlays(
     transaction: PersistenceTransaction,
     largestBatchId: number,

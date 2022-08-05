@@ -28,11 +28,6 @@ import {
 import { EncodedResourcePath } from './encoded_resource_path';
 import { DbTimestampKey } from './indexeddb_sentinels';
 
-// TODO(indexing): Remove this constant
-export const INDEXING_ENABLED = false;
-
-export const INDEXING_SCHEMA_VERSION = 14;
-
 /**
  * Schema Version for the Web client:
  * 1.  Initial version including Mutation Queue, Query Cache, and Remote
@@ -54,10 +49,11 @@ export const INDEXING_SCHEMA_VERSION = 14;
  * 12. Add document overlays.
  * 13. Rewrite the keys of the remote document cache to allow for efficient
  *     document lookup via `getAll()`.
- * 14. Add indexing support.
+ * 14. Add overlays.
+ * 15. Add indexing support.
  */
 
-export const SCHEMA_VERSION = INDEXING_ENABLED ? INDEXING_SCHEMA_VERSION : 13;
+export const SCHEMA_VERSION = 15;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.

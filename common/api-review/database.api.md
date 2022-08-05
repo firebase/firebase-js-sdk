@@ -33,7 +33,9 @@ export class DataSnapshot {
     child(path: string): DataSnapshot;
     exists(): boolean;
     exportVal(): any;
-    forEach(action: (child: DataSnapshot) => boolean | void): boolean;
+    forEach(action: (child: DataSnapshot & {
+        key: string;
+    }) => boolean | void): boolean;
     hasChild(path: string): boolean;
     hasChildren(): boolean;
     get key(): string | null;
@@ -63,6 +65,12 @@ export function equalTo(value: number | string | boolean | null, key?: string): 
 
 // @public
 export type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
+
+// @public
+export function forceLongPolling(): void;
+
+// @public
+export function forceWebSockets(): void;
 
 // @public
 export function get(query: Query): Promise<DataSnapshot>;

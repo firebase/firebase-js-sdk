@@ -87,25 +87,6 @@ export function createMockUserToken(token: EmulatorMockTokenOptions, projectId?:
 // @public
 export function createSubscribe<T>(executor: Executor<T>, onNoObservers?: Executor<T>): Subscribe<T>;
 
-// Warning: (ae-internal-missing-underscore) The name "DBWrapper" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export class DBWrapper {
-    constructor(_db: IDBDatabase);
-    // (undocumented)
-    close(): void;
-    // Warning: (ae-forgotten-export) The symbol "ObjectStoreWrapper" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    createObjectStore(storeName: string, options?: IDBObjectStoreParameters): ObjectStoreWrapper;
-    // (undocumented)
-    objectStoreNames: DOMStringList;
-    // Warning: (ae-forgotten-export) The symbol "TransactionWrapper" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    transaction(storeNames: string[] | string, mode?: IDBTransactionMode): TransactionWrapper;
-}
-
 // Warning: (ae-forgotten-export) The symbol "DecodedToken" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "decode" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -140,11 +121,6 @@ export class Deferred<R> {
     resolve: (value?: unknown) => void;
     wrapCallback(callback?: (error?: unknown, value?: unknown) => void): (error: unknown, value?: unknown) => void;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "deleteDB" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export function deleteDB(dbName: string): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "FirebaseIdToken" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "EmulatorMockTokenOptions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -360,11 +336,6 @@ export interface Observer<T> {
     next: NextFn<T>;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "openDB" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export function openDB(dbName: string, dbVersion: number, upgradeCallback: (db: DBWrapper, oldVersion: number, newVersion: number | null, transaction: TransactionWrapper) => void): Promise<DBWrapper>;
-
 // Warning: (ae-missing-release-tag) "ordinal" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -374,6 +345,11 @@ export function ordinal(i: number): string;
 //
 // @public (undocumented)
 export type PartialObserver<T> = Partial<Observer<T>>;
+
+// Warning: (ae-internal-missing-underscore) The name "promiseWithTimeout" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function promiseWithTimeout<T>(promise: Promise<T>, timeInMS?: number): Promise<T>;
 
 // Warning: (ae-missing-release-tag) "querystring" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -450,6 +426,9 @@ export interface Subscribe<T> {
 //
 // @public (undocumented)
 export type Unsubscribe = () => void;
+
+// @public
+export const uuidv4: () => string;
 
 // Warning: (ae-missing-release-tag) "validateArgCount" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

@@ -139,6 +139,10 @@ export function _clearRedirectOutcomes(): void {
   redirectOutcomeMap.clear();
 }
 
+export function _overrideRedirectResult(auth: AuthInternal, result: () => Promise<UserCredentialInternal | null>): void {
+  redirectOutcomeMap.set(auth._key(), result);
+}
+
 function resolverPersistence(
   resolver: PopupRedirectResolverInternal
 ): PersistenceInternal {

@@ -28,6 +28,12 @@ import {
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 import { findGtagScriptOnPage, insertScriptTag } from './helpers';
 import { AnalyticsSettings } from './public-types';
+import {
+  defaultConsentSettingsForInit,
+  _setConsentDefaultForInit,
+  defaultEventParametersForInit,
+  _setDefaultEventParametersForInit
+} from './functions';
 
 async function validateIndexedDB(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {
@@ -43,7 +49,7 @@ async function validateIndexedDB(): Promise<boolean> {
     } catch (e) {
       logger.warn(
         ERROR_FACTORY.create(AnalyticsError.INDEXEDDB_UNAVAILABLE, {
-          errorInfo: e
+          errorInfo: (e as Error)?.toString()
         }).message
       );
       return false;
@@ -118,6 +124,12 @@ export async function _initializeAnalytics(
     insertScriptTag(dataLayerName, dynamicConfig.measurementId);
   }
 
+  // Detects if there are consent settings that need to be configured.
+  if (defaultConsentSettingsForInit) {
+    gtagCore(GtagCommand.CONSENT, 'default', defaultConsentSettingsForInit);
+    _setConsentDefaultForInit(undefined);
+  }
+
   // This command initializes gtag.js and only needs to be called once for the entire web app,
   // but since it is idempotent, we can call it multiple times.
   // We keep it together with other initialization logic for better code structure.
@@ -140,5 +152,12 @@ export async function _initializeAnalytics(
   // Note: This will trigger a page_view event unless 'send_page_view' is set to false in
   // `configProperties`.
   gtagCore(GtagCommand.CONFIG, dynamicConfig.measurementId, configProperties);
+
+  // Detects if there is data that will be set on every event logged from the SDK.
+  if (defaultEventParametersForInit) {
+    gtagCore(GtagCommand.SET, defaultEventParametersForInit);
+    _setDefaultEventParametersForInit(undefined);
+  }
+
   return dynamicConfig.measurementId;
 }

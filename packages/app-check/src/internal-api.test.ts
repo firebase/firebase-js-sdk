@@ -41,11 +41,11 @@ import * as util from './util';
 import { logger } from './logger';
 import { getState, clearState, setState, getDebugState } from './state';
 import { AppCheckTokenListener } from './public-types';
-import { Deferred, FirebaseError } from '@firebase/util';
+import { Deferred } from '@firebase/util';
 import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
 import { ListenerType } from './types';
-import { AppCheckError } from './errors';
+import { AppCheckError, ERROR_FACTORY } from './errors';
 
 const fakeRecaptchaToken = 'fake-recaptcha-token';
 const fakeRecaptchaAppCheckToken = {
@@ -396,11 +396,9 @@ describe('internal api', () => {
       const warnStub = stub(logger, 'warn');
       stub(client, 'exchangeToken').returns(
         Promise.reject(
-          new FirebaseError(
-            AppCheckError.FETCH_STATUS_ERROR,
-            'test error msg',
-            { httpStatus: 503 }
-          )
+          ERROR_FACTORY.create(AppCheckError.FETCH_STATUS_ERROR, {
+            httpStatus: 503
+          })
         )
       );
 
@@ -424,11 +422,9 @@ describe('internal api', () => {
       const warnStub = stub(logger, 'warn');
       stub(client, 'exchangeToken').returns(
         Promise.reject(
-          new FirebaseError(
-            AppCheckError.FETCH_STATUS_ERROR,
-            'test error msg',
-            { httpStatus: 403 }
-          )
+          ERROR_FACTORY.create(AppCheckError.FETCH_STATUS_ERROR, {
+            httpStatus: 403
+          })
         )
       );
 

@@ -73,6 +73,30 @@ export interface Functions {
 }
 
 /**
+ * Functions error code string appended after "functions/" product prefix.
+ * See {@link FunctionsErrorCode} for full documentation of codes.
+ * @public
+ */
+export type FunctionsErrorCodeCore =
+  | 'ok'
+  | 'cancelled'
+  | 'unknown'
+  | 'invalid-argument'
+  | 'deadline-exceeded'
+  | 'not-found'
+  | 'already-exists'
+  | 'permission-denied'
+  | 'resource-exhausted'
+  | 'failed-precondition'
+  | 'aborted'
+  | 'out-of-range'
+  | 'unimplemented'
+  | 'internal'
+  | 'unavailable'
+  | 'data-loss'
+  | 'unauthenticated';
+
+/**
  * The set of Firebase Functions status codes. The codes are the same at the
  * ones exposed by gRPC here:
  * https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
@@ -112,24 +136,7 @@ export interface Functions {
  *   credentials for the operation.
  * @public
  */
-export type FunctionsErrorCode =
-  | 'ok'
-  | 'cancelled'
-  | 'unknown'
-  | 'invalid-argument'
-  | 'deadline-exceeded'
-  | 'not-found'
-  | 'already-exists'
-  | 'permission-denied'
-  | 'resource-exhausted'
-  | 'failed-precondition'
-  | 'aborted'
-  | 'out-of-range'
-  | 'unimplemented'
-  | 'internal'
-  | 'unavailable'
-  | 'data-loss'
-  | 'unauthenticated';
+export type FunctionsErrorCode = `functions/${FunctionsErrorCodeCore}`;
 
 /**
  * An error returned by the Firebase Functions client SDK.

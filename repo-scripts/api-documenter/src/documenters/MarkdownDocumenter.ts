@@ -92,6 +92,7 @@ export interface IMarkdownDocumenterOptions {
   documenterConfig: DocumenterConfig | undefined;
   outputFolder: string;
   addFileNameSuffix: boolean;
+  projectName: string;
 }
 
 /**
@@ -106,12 +107,14 @@ export class MarkdownDocumenter {
   private readonly _outputFolder: string;
   private readonly _pluginLoader: PluginLoader;
   private readonly _addFileNameSuffix: boolean;
+  private readonly _projectName: string;
 
   public constructor(options: IMarkdownDocumenterOptions) {
     this._apiModel = options.apiModel;
     this._documenterConfig = options.documenterConfig;
     this._outputFolder = options.outputFolder;
     this._addFileNameSuffix = options.addFileNameSuffix;
+    this._projectName = options.projectName;
     this._tsdocConfiguration = CustomDocNodes.configuration;
     this._markdownEmitter = new CustomMarkdownEmitter(this._apiModel);
 
@@ -165,12 +168,13 @@ export class MarkdownDocumenter {
 
     // devsite headers
     stringBuilder.append(
-      '{% extends "_internal/templates/reference.html" %}\n'
+      `Project: /docs/reference/${this._projectName}/_project.yaml
+Book: /docs/reference/_book.yaml
+page_type: reference
+`
     );
-    stringBuilder.append(
-      `{% block title %}${headingNode.title}{% endblock title %}\n`
-    );
-    stringBuilder.append('{% block body %}\n');
+
+    stringBuilder.append(`# ${headingNode.title}\n`);
 
     this._markdownEmitter.emit(stringBuilder, output, {
       contextApiItem: apiItem,
@@ -178,8 +182,6 @@ export class MarkdownDocumenter {
         return getLinkForApiItem(apiItemForFilename, this._addFileNameSuffix);
       }
     });
-
-    stringBuilder.append('{% endblock body %}\n');
 
     let pageContent: string = stringBuilder.toString();
 

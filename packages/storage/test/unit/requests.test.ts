@@ -352,7 +352,7 @@ describe('Firebase Storage > Requests', () => {
     const bytes = requestInfo.handler(
       fakeXhrIo({}),
       new Uint8Array([1, 128, 255])
-    );
+    ) as ArrayBuffer; // Narrow type to ArrayBuffer
     assert.deepEqual(new Uint8Array(bytes), new Uint8Array([1, 128, 255]));
   });
   it('updateMetadata requestinfo', () => {

@@ -28,15 +28,19 @@ import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import {
+  convertOverlayedDocumentMapToDocumentMap,
   documentKeySet,
   DocumentKeySet,
   DocumentMap,
   mutableDocumentMap,
-  MutableDocumentMap
+  MutableDocumentMap,
+  OverlayedDocumentMap
 } from '../model/collections';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
+  FieldIndex,
+  fieldIndexSemanticComparator,
   INITIAL_LARGEST_BATCH_ID,
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
@@ -55,6 +59,7 @@ import {
 } from '../protos/firestore_bundle_proto';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
+import { diffArrays } from '../util/array';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { logDebug } from '../util/log';
@@ -64,6 +69,7 @@ import { SortedMap } from '../util/sorted_map';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
@@ -130,6 +136,12 @@ class LocalStoreImpl implements LocalStore {
    */
   mutationQueue!: MutationQueue;
 
+  /**
+   * The overlays that can be used to short circuit applying all mutations from
+   * mutation queue.
+   */
+  documentOverlayCache!: DocumentOverlayCache;
+
   /** The set of all cached remote documents. */
   remoteDocuments: RemoteDocumentCache;
 
@@ -192,6 +204,7 @@ class LocalStoreImpl implements LocalStore {
   initializeUserComponents(user: User): void {
     // TODO(indexing): Add spec tests that test these components change after a
     // user change
+    this.documentOverlayCache = this.persistence.getDocumentOverlayCache(user);
     this.indexManager = this.persistence.getIndexManager(user);
     this.mutationQueue = this.persistence.getMutationQueue(
       user,
@@ -200,6 +213,7 @@ class LocalStoreImpl implements LocalStore {
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
       this.mutationQueue,
+      this.documentOverlayCache,
       this.indexManager
     );
     this.remoteDocuments.setIndexManager(this.indexManager);
@@ -213,6 +227,11 @@ class LocalStoreImpl implements LocalStore {
       txn => garbageCollector.collect(txn, this.targetDataByTarget)
     );
   }
+}
+
+interface DocumentChangeResult {
+  changedDocuments: MutableDocumentMap;
+  existenceChangedKeys: DocumentKeySet;
 }
 
 export function newLocalStore(
@@ -301,17 +320,40 @@ export function localStoreWriteLocally(
   const localWriteTime = Timestamp.now();
   const keys = mutations.reduce((keys, m) => keys.add(m.key), documentKeySet());
 
-  let existingDocs: DocumentMap;
+  let overlayedDocuments: OverlayedDocumentMap;
+  let mutationBatch: MutationBatch;
 
   return localStoreImpl.persistence
     .runTransaction('Locally write mutations', 'readwrite', txn => {
-      // Load and apply all existing mutations. This lets us compute the
-      // current base state for all non-idempotent transforms before applying
-      // any additional user-provided writes.
-      return localStoreImpl.localDocuments
-        .getDocuments(txn, keys)
+      // Figure out which keys do not have a remote version in the cache, this
+      // is needed to create the right overlay mutation: if no remote version
+      // presents, we do not need to create overlays as patch mutations.
+      // TODO(Overlay): Is there a better way to determine this? Using the
+      //  document version does not work because local mutations set them back
+      //  to 0.
+      let remoteDocs = mutableDocumentMap();
+      let docsWithoutRemoteVersion = documentKeySet();
+      return localStoreImpl.remoteDocuments
+        .getEntries(txn, keys)
         .next(docs => {
-          existingDocs = docs;
+          remoteDocs = docs;
+          remoteDocs.forEach((key, doc) => {
+            if (!doc.isValidDocument()) {
+              docsWithoutRemoteVersion = docsWithoutRemoteVersion.add(key);
+            }
+          });
+        })
+        .next(() => {
+          // Load and apply all existing mutations. This lets us compute the
+          // current base state for all non-idempotent transforms before applying
+          // any additional user-provided writes.
+          return localStoreImpl.localDocuments.getOverlayedDocuments(
+            txn,
+            remoteDocs
+          );
+        })
+        .next((docs: OverlayedDocumentMap) => {
+          overlayedDocuments = docs;
 
           // For non-idempotent mutations (such as `FieldValue.increment()`),
           // we record the base state in a separate patch mutation. This is
@@ -323,7 +365,7 @@ export function localStoreWriteLocally(
           for (const mutation of mutations) {
             const baseValue = mutationExtractBaseValue(
               mutation,
-              existingDocs.get(mutation.key)!
+              overlayedDocuments.get(mutation.key)!.overlayedDocument
             );
             if (baseValue != null) {
               // NOTE: The base state should only be applied if there's some
@@ -346,12 +388,24 @@ export function localStoreWriteLocally(
             baseMutations,
             mutations
           );
+        })
+        .next(batch => {
+          mutationBatch = batch;
+          const overlays = batch.applyToLocalDocumentSet(
+            overlayedDocuments,
+            docsWithoutRemoteVersion
+          );
+          return localStoreImpl.documentOverlayCache.saveOverlays(
+            txn,
+            batch.batchId,
+            overlays
+          );
         });
     })
-    .then(batch => {
-      batch.applyToLocalDocumentSet(existingDocs);
-      return { batchId: batch.batchId, changes: existingDocs };
-    });
+    .then(() => ({
+      batchId: mutationBatch.batchId,
+      changes: convertOverlayedDocumentMapToDocumentMap(overlayedDocuments)
+    }));
 }
 
 /**
@@ -389,9 +443,36 @@ export function localStoreAcknowledgeBatch(
       )
         .next(() => documentBuffer.apply(txn))
         .next(() => localStoreImpl.mutationQueue.performConsistencyCheck(txn))
+        .next(() =>
+          localStoreImpl.documentOverlayCache.removeOverlaysForBatchId(
+            txn,
+            affected,
+            batchResult.batch.batchId
+          )
+        )
+        .next(() =>
+          localStoreImpl.localDocuments.recalculateAndSaveOverlaysForDocumentKeys(
+            txn,
+            getKeysWithTransformResults(batchResult)
+          )
+        )
         .next(() => localStoreImpl.localDocuments.getDocuments(txn, affected));
     }
   );
+}
+
+function getKeysWithTransformResults(
+  batchResult: MutationBatchResult
+): DocumentKeySet {
+  let result = documentKeySet();
+
+  for (let i = 0; i < batchResult.mutationResults.length; ++i) {
+    const mutationResult = batchResult.mutationResults[i];
+    if (mutationResult.transformResults.length > 0) {
+      result = result.add(batchResult.batch.mutations[i].key);
+    }
+  }
+  return result;
 }
 
 /**
@@ -418,6 +499,19 @@ export function localStoreRejectBatch(
           return localStoreImpl.mutationQueue.removeMutationBatch(txn, batch);
         })
         .next(() => localStoreImpl.mutationQueue.performConsistencyCheck(txn))
+        .next(() =>
+          localStoreImpl.documentOverlayCache.removeOverlaysForBatchId(
+            txn,
+            affectedKeys,
+            batchId
+          )
+        )
+        .next(() =>
+          localStoreImpl.localDocuments.recalculateAndSaveOverlaysForDocumentKeys(
+            txn,
+            affectedKeys
+          )
+        )
         .next(() =>
           localStoreImpl.localDocuments.getDocuments(txn, affectedKeys)
         );
@@ -536,6 +630,7 @@ export function localStoreApplyRemoteEventToLocalCache(
       });
 
       let changedDocs = mutableDocumentMap();
+      let existenceChangedKeys = documentKeySet();
       remoteEvent.documentUpdates.forEach(key => {
         if (remoteEvent.resolvedLimboDocuments.has(key)) {
           promises.push(
@@ -547,15 +642,16 @@ export function localStoreApplyRemoteEventToLocalCache(
         }
       });
 
-      // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
-      // documents in advance in a single call.
+      // Each loop iteration only affects its "own" doc, so it's safe to get all
+      // the remote documents in advance in a single call.
       promises.push(
         populateDocumentChangeBuffer(
           txn,
           documentBuffer,
           remoteEvent.documentUpdates
         ).next(result => {
-          changedDocs = result;
+          changedDocs = result.changedDocuments;
+          existenceChangedKeys = result.existenceChangedKeys;
         })
       );
 
@@ -586,9 +682,10 @@ export function localStoreApplyRemoteEventToLocalCache(
       return PersistencePromise.waitFor(promises)
         .next(() => documentBuffer.apply(txn))
         .next(() =>
-          localStoreImpl.localDocuments.applyLocalViewToDocuments(
+          localStoreImpl.localDocuments.getLocalViewOfDocuments(
             txn,
-            changedDocs
+            changedDocs,
+            existenceChangedKeys
           )
         )
         .next(() => changedDocs);
@@ -601,31 +698,31 @@ export function localStoreApplyRemoteEventToLocalCache(
 
 /**
  * Populates document change buffer with documents from backend or a bundle.
- * Returns the document changes resulting from applying those documents.
+ * Returns the document changes resulting from applying those documents, and
+ * also a set of documents whose existence state are changed as a result.
  *
  * @param txn - Transaction to use to read existing documents from storage.
  * @param documentBuffer - Document buffer to collect the resulted changes to be
  *        applied to storage.
  * @param documents - Documents to be applied.
- * @param globalVersion - A `SnapshotVersion` representing the read time if all
- *        documents have the same read time.
- * @param documentVersions - A DocumentKey-to-SnapshotVersion map if documents
- *        have their own read time.
- *
- * Note: this function will use `documentVersions` if it is defined;
- * when it is not defined, resorts to `globalVersion`.
  */
 function populateDocumentChangeBuffer(
   txn: PersistenceTransaction,
   documentBuffer: RemoteDocumentChangeBuffer,
   documents: MutableDocumentMap
-): PersistencePromise<MutableDocumentMap> {
+): PersistencePromise<DocumentChangeResult> {
   let updatedKeys = documentKeySet();
+  let existenceChangedKeys = documentKeySet();
   documents.forEach(k => (updatedKeys = updatedKeys.add(k)));
   return documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
-    let changedDocs = mutableDocumentMap();
+    let changedDocuments = mutableDocumentMap();
     documents.forEach((key, doc) => {
       const existingDoc = existingDocs.get(key)!;
+
+      // Check if see if there is a existence state change for this document.
+      if (doc.isFoundDocument() !== existingDoc.isFoundDocument()) {
+        existenceChangedKeys = existenceChangedKeys.add(key);
+      }
 
       // Note: The order of the steps below is important, since we want
       // to ensure that rejected limbo resolutions (which fabricate
@@ -636,7 +733,7 @@ function populateDocumentChangeBuffer(
         // events. We remove these documents from cache since we lost
         // access.
         documentBuffer.removeEntry(key, doc.readTime);
-        changedDocs = changedDocs.insert(key, doc);
+        changedDocuments = changedDocuments.insert(key, doc);
       } else if (
         !existingDoc.isValidDocument() ||
         doc.version.compareTo(existingDoc.version) > 0 ||
@@ -648,7 +745,7 @@ function populateDocumentChangeBuffer(
           'Cannot add a document when the remote version is zero'
         );
         documentBuffer.addEntry(doc);
-        changedDocs = changedDocs.insert(key, doc);
+        changedDocuments = changedDocuments.insert(key, doc);
       } else {
         logDebug(
           LOG_TAG,
@@ -661,7 +758,7 @@ function populateDocumentChangeBuffer(
         );
       }
     });
-    return changedDocs;
+    return { changedDocuments, existenceChangedKeys };
   });
 }
 
@@ -750,7 +847,7 @@ export async function localStoreNotifyLocalViewChanges(
       }
     );
   } catch (e) {
-    if (isIndexedDbTransactionError(e)) {
+    if (isIndexedDbTransactionError(e as Error)) {
       // If `notifyLocalViewChanges` fails, we did not advance the sequence
       // number for the documents that were included in this transaction.
       // This might trigger them to be deleted earlier than they otherwise
@@ -945,7 +1042,7 @@ export async function localStoreReleaseTarget(
       );
     }
   } catch (e) {
-    if (isIndexedDbTransactionError(e)) {
+    if (isIndexedDbTransactionError(e as Error)) {
       // All `releaseTarget` does is record the final metadata state for the
       // target, but we've been recording this periodically during target
       // activity. If we lose this write this could cause a very slight
@@ -1242,11 +1339,11 @@ export async function localStoreApplyBundledDocuments(
     'readwrite',
     txn => {
       return populateDocumentChangeBuffer(txn, documentBuffer, documentMap)
-        .next(changedDocs => {
+        .next(documentChangeResult => {
           documentBuffer.apply(txn);
-          return changedDocs;
+          return documentChangeResult;
         })
-        .next(changedDocs => {
+        .next(documentChangeResult => {
           return localStoreImpl.targetCache
             .removeMatchingKeysForTargetId(txn, umbrellaTargetData.targetId)
             .next(() =>
@@ -1257,12 +1354,13 @@ export async function localStoreApplyBundledDocuments(
               )
             )
             .next(() =>
-              localStoreImpl.localDocuments.applyLocalViewToDocuments(
+              localStoreImpl.localDocuments.getLocalViewOfDocuments(
                 txn,
-                changedDocs
+                documentChangeResult.changedDocuments,
+                documentChangeResult.existenceChangedKeys
               )
             )
-            .next(() => changedDocs);
+            .next(() => documentChangeResult.changedDocuments);
         });
     }
   );
@@ -1386,5 +1484,39 @@ export async function localStoreSaveNamedQuery(
           localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
         );
     }
+  );
+}
+
+export async function localStoreConfigureFieldIndexes(
+  localStore: LocalStore,
+  newFieldIndexes: FieldIndex[]
+): Promise<void> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const indexManager = localStoreImpl.indexManager;
+  const promises: Array<PersistencePromise<void>> = [];
+  return localStoreImpl.persistence.runTransaction(
+    'Configure indexes',
+    'readwrite',
+    transaction =>
+      indexManager
+        .getFieldIndexes(transaction)
+        .next(oldFieldIndexes =>
+          diffArrays(
+            oldFieldIndexes,
+            newFieldIndexes,
+            fieldIndexSemanticComparator,
+            fieldIndex => {
+              promises.push(
+                indexManager.addFieldIndex(transaction, fieldIndex)
+              );
+            },
+            fieldIndex => {
+              promises.push(
+                indexManager.deleteFieldIndex(transaction, fieldIndex)
+              );
+            }
+          )
+        )
+        .next(() => PersistencePromise.waitFor(promises))
   );
 }

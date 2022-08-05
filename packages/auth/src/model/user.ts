@@ -90,6 +90,9 @@ export interface UserInternal extends User {
   toJSON(): PersistedBlob;
 }
 
+/**
+ * @internal
+ */
 export interface UserCredentialInternal
   extends UserCredential,
     TaggedWithTokenResponse {

@@ -28,11 +28,8 @@ import {
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { View } from '../../../src/core/view';
+import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import {
-  INDEXING_ENABLED,
-  INDEXING_SCHEMA_VERSION
-} from '../../../src/local/indexeddb_schema';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
@@ -43,8 +40,9 @@ import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
 import {
   documentKeySet,
-  documentMap,
-  DocumentMap
+  DocumentMap,
+  newMutationMap,
+  documentMap
 } from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -58,13 +56,14 @@ import {
 import { Mutation } from '../../../src/model/mutation';
 import { debugAssert } from '../../../src/util/assert';
 import {
+  deleteMutation,
   doc,
-  fieldIndex,
   filter,
   key,
   orderBy,
-  patchMutation,
   query,
+  fieldIndex,
+  patchMutation,
   setMutation,
   version
 } from '../../util/helpers';
@@ -122,9 +121,7 @@ describe('IndexedDbQueryEngine', async () => {
 
   let persistencePromise: Promise<Persistence>;
   beforeEach(async () => {
-    persistencePromise = persistenceHelpers.testIndexedDbPersistence({
-      schemaVersion: INDEXING_SCHEMA_VERSION
-    });
+    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
   });
 
   genericQueryEngineTest(/* durable= */ true, () => persistencePromise);
@@ -144,6 +141,7 @@ function genericQueryEngineTest(
 ): void {
   let persistence!: Persistence;
   let remoteDocumentCache!: RemoteDocumentCache;
+  let documentOverlayCache!: DocumentOverlayCache;
   let targetCache!: TargetCache;
   let queryEngine!: QueryEngine;
   let indexManager!: TestIndexManager;
@@ -175,10 +173,20 @@ function genericQueryEngineTest(
   }
 
   /** Adds a mutation to the mutation queue. */
-  async function addMutation(mutation: Mutation): Promise<void> {
-    await persistence.runTransaction('addMutation', 'readwrite', txn =>
-      mutationQueue.addMutationBatch(txn, Timestamp.now(), [], [mutation])
-    );
+  function addMutation(mutation: Mutation): Promise<void> {
+    return persistence.runTransaction('addMutation', 'readwrite', txn => {
+      return mutationQueue
+        .addMutationBatch(txn, Timestamp.now(), [], [mutation])
+        .next(batch => {
+          const overlayMap = newMutationMap();
+          overlayMap.set(mutation.key, mutation);
+          return documentOverlayCache.saveOverlays(
+            txn,
+            batch.batchId,
+            overlayMap
+          );
+        });
+    });
   }
 
   async function expectOptimizedCollectionQuery<T>(
@@ -250,10 +258,13 @@ function genericQueryEngineTest(
       User.UNAUTHENTICATED,
       underlyingIndexManager
     );
-
+    documentOverlayCache = persistence.getDocumentOverlayCache(
+      User.UNAUTHENTICATED
+    );
     localDocuments = new TestLocalDocumentsView(
       remoteDocumentCache,
       mutationQueue,
+      documentOverlayCache,
       underlyingIndexManager
     );
     queryEngine.initialize(localDocuments, underlyingIndexManager);
@@ -487,11 +498,20 @@ function genericQueryEngineTest(
     ]);
   });
 
-  if (!durable) {
-    return;
-  }
+  it('does not include documents deleted by mutation', async () => {
+    const query1 = query('coll');
+    await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
+    await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
 
-  if (!INDEXING_ENABLED) {
+    // Add an unacknowledged mutation
+    await addMutation(deleteMutation('coll/b'));
+    const docs = await expectFullCollectionQuery(() =>
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(docs, [MATCHING_DOC_A]);
+  });
+
+  if (!durable) {
     return;
   }
 
