@@ -37,8 +37,8 @@ export {
 
 /**
  * A single field element in an index configuration.
+ * @beta
  */
-/** @beta */
 export interface IndexField {
   /** The field path to index. */
   readonly fieldPath: string;
@@ -62,8 +62,8 @@ export interface IndexField {
 
 /**
  * The SDK definition of a Firestore index.
+ * @beta
  */
-/** @beta */
 export interface Index {
   /** The ID of the collection to index. */
   readonly collectionGroup: string;
@@ -78,8 +78,8 @@ export interface Index {
  *
  * See {@link https://firebase.google.com/docs/reference/firestore/indexes/#json_format | JSON Format}
  * for a description of the format of the index definition.
+ * @beta
  */
-/** @beta */
 export interface IndexConfiguration {
   /** A list of all Firestore indexes. */
   readonly indexes?: Index[];
@@ -107,8 +107,8 @@ export interface IndexConfiguration {
  * @throws FirestoreError if the JSON format is invalid.
  * @returns A `Promise` that resolves once all indices are successfully
  * configured.
+ * @beta
  */
-/** @beta */
 export function setIndexConfiguration(
   firestore: Firestore,
   configuration: IndexConfiguration
@@ -138,8 +138,8 @@ export function setIndexConfiguration(
  * @throws FirestoreError if the JSON format is invalid.
  * @returns A `Promise` that resolves once all indices are successfully
  * configured.
+ * @beta
  */
-/** @beta */
 export function setIndexConfiguration(
   firestore: Firestore,
   json: string
