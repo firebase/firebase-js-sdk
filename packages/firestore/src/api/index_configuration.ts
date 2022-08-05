@@ -38,6 +38,7 @@ export {
 /**
  * A single field element in an index configuration.
  */
+/** @beta */
 export interface IndexField {
   /** The field path to index. */
   readonly fieldPath: string;
