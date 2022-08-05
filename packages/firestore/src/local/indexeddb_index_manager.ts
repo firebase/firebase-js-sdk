@@ -966,6 +966,25 @@ export class IndexedDbIndexManager implements IndexManager {
     return ranges;
   }
 
+  canServeFromIndex(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<boolean> {
+
+    // Predicates to determine if sub-targets cannot be served from an index
+    let noIndexPredicates = this.getSubTargets(target)
+      .map(subTarget => {
+        return () => {
+          return this.getFieldIndex(transaction, subTarget).next(index => !index);
+        }});
+    
+    return PersistencePromise.or(noIndexPredicates).next((fieldIndexNotFound) => {
+      // If any of the sub-targets cannot be served from the index, the target as a whole cannot be
+      // served from the index.
+      return !fieldIndexNotFound;
+    });
+  }
+
   getMinOffsetFromCollectionGroup(
     transaction: PersistenceTransaction,
     collectionGroup: string
