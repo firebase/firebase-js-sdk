@@ -31,8 +31,11 @@ import {
   Filter,
   targetIsDocumentTarget,
   Operator,
+  CompositeOperator,
   OrderBy,
-  Target
+  Target,
+  CompositeFilter,
+  compositeFilterIsFlatConjunction
 } from '../core/target';
 import { TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
@@ -64,6 +67,7 @@ import { isNanValue, isNullValue } from '../model/values';
 import {
   ApiClientObjectMap as ProtoApiClientObjectMap,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
+  CompositeFilterOp as ProtoCompositeFilterOp,
   Cursor as ProtoCursor,
   Document as ProtoDocument,
   DocumentMask as ProtoDocumentMask,
@@ -119,6 +123,14 @@ const OPERATORS = (() => {
   ops[Operator.IN] = 'IN';
   ops[Operator.NOT_IN] = 'NOT_IN';
   ops[Operator.ARRAY_CONTAINS_ANY] = 'ARRAY_CONTAINS_ANY';
+  return ops;
+})();
+
+const COMPOSITE_OPERATORS = (() => {
+  const ops: { [op: string]: ProtoCompositeFilterOp } = {};
+  ops[CompositeOperator.AND] = 'AND';
+  // TODO(orquery) change 'OPERATOR_UNSPECIFIED' to 'OR' when the updated protos are published
+  ops[CompositeOperator.OR] = 'OPERATOR_UNSPECIFIED';
   return ops;
 })();
 
@@ -827,7 +839,7 @@ export function toQueryTarget(
     result.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
   }
 
-  const where = toFilter(target.filters);
+  const where = toFilters(target.filters);
   if (where) {
     result.structuredQuery!.where = where;
   }
@@ -873,7 +885,7 @@ export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
 
   let filterBy: Filter[] = [];
   if (query.where) {
-    filterBy = fromFilter(query.where);
+    filterBy = fromFilters(query.where);
   }
 
   let orderBy: OrderBy[] = [];
@@ -972,34 +984,39 @@ export function toTarget(
   return result;
 }
 
-function toFilter(filters: Filter[]): ProtoFilter | undefined {
+function toFilters(filters: Filter[]): ProtoFilter | undefined {
   if (filters.length === 0) {
     return;
   }
-  const protos = filters.map(filter => {
-    debugAssert(
-      filter instanceof FieldFilter,
-      'Only FieldFilters are supported'
-    );
-    return toUnaryOrFieldFilter(filter);
-  });
-  if (protos.length === 1) {
-    return protos[0];
-  }
-  return { compositeFilter: { op: 'AND', filters: protos } };
+
+  return toFilter(CompositeFilter.create(filters, CompositeOperator.AND));
 }
 
-function fromFilter(filter: ProtoFilter | undefined): Filter[] {
-  if (!filter) {
-    return [];
-  } else if (filter.unaryFilter !== undefined) {
-    return [fromUnaryFilter(filter)];
+function fromFilters(filter: ProtoFilter): Filter[] {
+  const result = fromFilter(filter);
+
+  // Instead of a singletonList containing AND(F1, F2, ...), we can return a list containing F1,
+  // F2, ...
+  // TODO(orquery): Once proper support for composite filters has been completed, we can remove
+  // this flattening from here.
+  if (
+    result instanceof CompositeFilter &&
+    compositeFilterIsFlatConjunction(result)
+  ) {
+    // Copy the readonly array into a mutable array
+    return Object.assign([], result.getFilters());
+  }
+
+  return [result];
+}
+
+function fromFilter(filter: ProtoFilter): Filter {
+  if (filter.unaryFilter !== undefined) {
+    return fromUnaryFilter(filter);
   } else if (filter.fieldFilter !== undefined) {
-    return [fromFieldFilter(filter)];
+    return fromFieldFilter(filter);
   } else if (filter.compositeFilter !== undefined) {
-    return filter.compositeFilter
-      .filters!.map(f => fromFilter(f))
-      .reduce((accum, current) => accum.concat(current));
+    return fromCompositeFilter(filter);
   } else {
     return fail('Unknown filter: ' + JSON.stringify(filter));
   }
@@ -1066,6 +1083,12 @@ export function toOperatorName(op: Operator): ProtoFieldFilterOp {
   return OPERATORS[op];
 }
 
+export function toCompositeOperatorName(
+  op: CompositeOperator
+): ProtoCompositeFilterOp {
+  return COMPOSITE_OPERATORS[op];
+}
+
 export function fromOperatorName(op: ProtoFieldFilterOp): Operator {
   switch (op) {
     case 'EQUAL':
@@ -1090,6 +1113,22 @@ export function fromOperatorName(op: ProtoFieldFilterOp): Operator {
       return Operator.ARRAY_CONTAINS_ANY;
     case 'OPERATOR_UNSPECIFIED':
       return fail('Unspecified operator');
+    default:
+      return fail('Unknown operator');
+  }
+}
+
+export function fromCompositeOperatorName(
+  op: ProtoCompositeFilterOp
+): CompositeOperator {
+  // TODO(orquery) support OR
+  switch (op) {
+    case 'AND':
+      return CompositeOperator.AND;
+    // TODO(orquery) update when OR operator is supported in ProtoCompositeFilterOp
+    //    OPERATOR_UNSPECIFIED should fail and OR should return OR
+    case 'OPERATOR_UNSPECIFIED':
+      return CompositeOperator.OR;
     default:
       return fail('Unknown operator');
   }
@@ -1120,15 +1159,32 @@ export function fromPropertyOrder(orderBy: ProtoOrder): OrderBy {
   );
 }
 
-export function fromFieldFilter(filter: ProtoFilter): Filter {
-  return FieldFilter.create(
-    fromFieldPathReference(filter.fieldFilter!.field!),
-    fromOperatorName(filter.fieldFilter!.op!),
-    filter.fieldFilter!.value!
-  );
+// visible for testing
+export function toFilter(filter: Filter): ProtoFilter {
+  if (filter instanceof FieldFilter) {
+    return toUnaryOrFieldFilter(filter);
+  } else if (filter instanceof CompositeFilter) {
+    return toCompositeFilter(filter);
+  } else {
+    return fail('Unrecognized filter type ' + JSON.stringify(filter));
+  }
 }
 
-// visible for testing
+export function toCompositeFilter(filter: CompositeFilter): ProtoFilter {
+  const protos = filter.getFilters().map(filter => toFilter(filter));
+
+  if (protos.length === 1) {
+    return protos[0];
+  }
+
+  return {
+    compositeFilter: {
+      op: toCompositeOperatorName(filter.op),
+      filters: protos
+    }
+  };
+}
+
 export function toUnaryOrFieldFilter(filter: FieldFilter): ProtoFilter {
   if (filter.op === Operator.EQUAL) {
     if (isNanValue(filter.value)) {
@@ -1199,6 +1255,21 @@ export function fromUnaryFilter(filter: ProtoFilter): Filter {
     default:
       return fail('Unknown filter');
   }
+}
+
+export function fromFieldFilter(filter: ProtoFilter): FieldFilter {
+  return FieldFilter.create(
+    fromFieldPathReference(filter.fieldFilter!.field!),
+    fromOperatorName(filter.fieldFilter!.op!),
+    filter.fieldFilter!.value!
+  );
+}
+
+export function fromCompositeFilter(filter: ProtoFilter): CompositeFilter {
+  return CompositeFilter.create(
+    filter.compositeFilter!.filters!.map(filter => fromFilter(filter)),
+    fromCompositeOperatorName(filter.compositeFilter!.op!)
+  );
 }
 
 export function toDocumentMask(fieldMask: FieldMask): ProtoDocumentMask {

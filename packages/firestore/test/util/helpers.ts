@@ -32,9 +32,11 @@ import {
   Bound,
   Direction,
   FieldFilter,
+  CompositeFilter,
   Filter,
   Operator,
-  OrderBy
+  OrderBy,
+  CompositeOperator
 } from '../../src/core/target';
 import { TargetId } from '../../src/core/types';
 import {
@@ -260,6 +262,14 @@ export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
   const operator = op as Operator;
   return FieldFilter.create(field(path), operator, dataValue);
+}
+
+export function andFilter(...filters: Filter[]): CompositeFilter {
+  return CompositeFilter.create(filters, CompositeOperator.AND);
+}
+
+export function orFilter(...filters: Filter[]): CompositeFilter {
+  return CompositeFilter.create(filters, CompositeOperator.OR);
 }
 
 export function setMutation(
