@@ -436,7 +436,6 @@ describe('Query', () => {
     expect(queryMatches(query1, doc5)).to.equal(true);
   });
 
-  // TODO(orquery) this will be useful for testing
   it('filters based on array value', () => {
     const baseQuery = query('collection');
     const doc1 = doc('collection/doc', 0, { tags: ['foo', 1, true] });
