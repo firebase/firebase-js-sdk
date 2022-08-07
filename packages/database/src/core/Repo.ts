@@ -443,7 +443,6 @@ function repoUpdateInfo(repo: Repo, pathString: string, value: unknown): void {
 function repoGetNextWriteId(repo: Repo): number {
   return repo.nextWriteId_++;
 }
-
 /**
  * The purpose of `getValue` is to return the latest known value
  * satisfying `query`.
@@ -952,7 +951,7 @@ export function repoStartTransaction(
     // Mark as run and add to our queue.
     transaction.status = TransactionStatus.RUN;
     const queueNode = treeSubTree(repo.transactionQueueTree_, path);
-    const nodeQueue = treeGetValue(queueNode) || [];
+    const nodeQueue = treeGetValue(queueNode) ?? [];
     nodeQueue.push(transaction);
 
     treeSetValue(queueNode, nodeQueue);
@@ -1037,7 +1036,7 @@ function repoSendReadyTransactions(
     repoPruneCompletedTransactionsBelowNode(repo, node);
   }
 
-  if (treeGetValue(node)) {
+  if (treeGetValue(node) !== undefined) {
     const queue = repoBuildTransactionQueue(repo, node);
     assert(queue.length > 0, 'Sending zero length transaction queue');
 
@@ -1413,7 +1412,7 @@ function repoAggregateTransactionQueuesForNode(
   queue: Transaction[]
 ): void {
   const nodeQueue = treeGetValue(node);
-  if (nodeQueue) {
+  if (nodeQueue !== undefined) {
     for (let i = 0; i < nodeQueue.length; i++) {
       queue.push(nodeQueue[i]);
     }
@@ -1432,7 +1431,7 @@ function repoPruneCompletedTransactionsBelowNode(
   node: Tree<Transaction[]>
 ): void {
   const queue = treeGetValue(node);
-  if (queue) {
+  if (queue !== undefined) {
     let to = 0;
     for (let from = 0; from < queue.length; from++) {
       if (queue[from].status !== TransactionStatus.COMPLETED) {
@@ -1484,7 +1483,7 @@ function repoAbortTransactionsOnNode(
   node: Tree<Transaction[]>
 ): void {
   const queue = treeGetValue(node);
-  if (queue) {
+  if (queue !== undefined) {
     // Queue up the callbacks and fire them after cleaning up all of our
     // transaction state, since the callback could trigger more transactions
     // or sets.
