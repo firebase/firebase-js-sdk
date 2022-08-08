@@ -30,6 +30,7 @@ import {
 import { setSDKVersion } from '../src/core/version';
 import { Firestore } from '../src/lite-api/database';
 import { FirestoreSettings } from '../src/lite-api/settings';
+import {databaseIdFromApp} from "../src/core/database_info";
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -45,13 +46,14 @@ export function registerFirestore(): void {
       (container, { instanceIdentifier: databaseId, options: settings }) => {
         const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
-          app,
           new LiteAuthCredentialsProvider(
             container.getProvider('auth-internal')
           ),
           new LiteAppCheckTokenProvider(
             container.getProvider('app-check-internal')
-          )
+          ),
+          databaseIdFromApp(app, databaseId),
+          app,
         );
         if (settings) {
           firestoreInstance._setSettings(settings);

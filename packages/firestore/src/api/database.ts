@@ -103,17 +103,18 @@ export class Firestore extends LiteFirestore {
 
   /** @hideconstructor */
   constructor(
-    databaseIdOrApp: DatabaseId | FirebaseApp,
     authCredentialsProvider: CredentialsProvider<User>,
-    appCheckCredentialsProvider: CredentialsProvider<string>
+    appCheckCredentialsProvider: CredentialsProvider<string>,
+    databaseId: DatabaseId,
+    app?: FirebaseApp
   ) {
     super(
-      databaseIdOrApp,
       authCredentialsProvider,
-      appCheckCredentialsProvider
+      appCheckCredentialsProvider,
+      databaseId,
+      app
     );
-    this._persistenceKey =
-      'name' in databaseIdOrApp ? databaseIdOrApp.name : '[DEFAULT]';
+    this._persistenceKey = app?.name || '[DEFAULT]';
   }
 
   _terminate(): Promise<void> {
@@ -175,6 +176,14 @@ export function initializeFirestore(
 
 /**
  * Returns the existing {@link Firestore} instance that is associated with the
+ * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @returns The {@link Firestore} instance of the provided app.
+ */
+export function getFirestore(): Firestore;
+/**
+ * Returns the existing {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
@@ -182,12 +191,29 @@ export function initializeFirestore(
  * instance is associated with.
  * @returns The {@link Firestore} instance of the provided app.
  */
+export function getFirestore(app: FirebaseApp): Firestore;
+/**
+ * Returns the existing {@link Firestore} instance that is associated with the
+ * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param databaseId - The name of database.
+ * @returns The {@link Firestore} instance of the provided app.
+ */
+export function getFirestore(databaseId: string): Firestore;
+/**
+ * Returns the existing {@link Firestore} instance that is associated with the
+ * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
+ * instance is associated with.
+ * @param databaseId - The name of database.
+ * @returns The {@link Firestore} instance of the provided app.
+ */
 export function getFirestore(
   app: FirebaseApp,
-  databaseId?: string
-): Firestore;
-export function getFirestore(
-  databaseId?: string
+  databaseId: string
 ): Firestore;
 export function getFirestore(
   appOrDatabaseId?: FirebaseApp | string,
@@ -195,7 +221,7 @@ export function getFirestore(
 ): Firestore {
   const app: FirebaseApp = typeof appOrDatabaseId === 'object' ? appOrDatabaseId : getApp();
   const databaseId = typeof appOrDatabaseId === 'string' ? appOrDatabaseId : optionalDatabaseId || '(default)';
-  return _getProvider(app || getApp(), 'firestore').getImmediate({
+  return _getProvider(app, 'firestore').getImmediate({
     identifier: databaseId
   }) as Firestore;
 }

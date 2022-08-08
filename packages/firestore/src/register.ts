@@ -31,6 +31,7 @@ import { setSDKVersion } from '../src/core/version';
 
 import { Firestore } from './api/database';
 import { PrivateSettings } from './lite-api/settings';
+import {databaseIdFromApp} from "./core/database_info";
 
 export function registerFirestore(
   variant?: string,
@@ -43,13 +44,14 @@ export function registerFirestore(
       (container, { instanceIdentifier: databaseId, options: settings }) => {
         const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
-          app,
           new FirebaseAuthCredentialsProvider(
             container.getProvider('auth-internal')
           ),
           new FirebaseAppCheckTokenProvider(
             container.getProvider('app-check-internal')
-          )
+          ),
+          databaseIdFromApp(app, databaseId),
+          app,
         );
         settings = { useFetchStreams, ...settings };
         firestoreInstance._setSettings(settings);

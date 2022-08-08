@@ -96,7 +96,7 @@ import {
 
 use(chaiAsPromised);
 
-describe('Firestore', () => {
+describe.only('Firestore', () => {
   it('can provide setting', () => {
     const app = initializeApp(
       { apiKey: 'fake-api-key', projectId: 'test-project' },
@@ -106,14 +106,57 @@ describe('Firestore', () => {
     expect(fs1).to.be.an.instanceOf(Firestore);
   });
 
-  it('returns same instance', () => {
+  it('returns same default instance from named app', () => {
     const app = initializeApp(
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-getFirestore'
     );
     const fs1 = getFirestore(app);
     const fs2 = getFirestore(app);
-    expect(fs1 === fs2).to.be.true;
+    const fs3 = getFirestore(app, '(default)');
+    expect(fs1).to.be.equal(fs2).and.equal(fs3);
+  });
+
+  it('returns different instance from named app', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore'
+    );
+    const fs1 = getFirestore(app);
+    const fs2 = getFirestore(app, 'name1');
+    const fs3 = getFirestore(app, 'name2');
+    expect(fs1).to.not.be.equal(fs2).and.equal(fs3);
+    expect(fs2).to.not.be.equal(fs3);
+  });
+
+  it('returns same default instance from default app', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' }
+    );
+    const fs1 = getFirestore();
+    const fs2 = getFirestore(app);
+    const fs3 = getFirestore( '(default)');
+    const fs4 = getFirestore(app, '(default)');
+    expect(fs1).to.be.equal(fs2).and.equal(fs3).and.equal(fs4);
+  });
+
+  it('returns different instance from different named app', () => {
+    initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+    );
+    const app1 = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore-1'
+    );
+    const app2 = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore-2'
+    );
+    const fs1 = getFirestore();
+    const fs2 = getFirestore(app1);
+    const fs3 = getFirestore(app2);
+    expect(fs1).to.not.be.equal(fs2).and.equal(fs3);
+    expect(fs2).to.not.be.equal(fs3);
   });
 
   it('cannot call initializeFirestore() twice', () => {
