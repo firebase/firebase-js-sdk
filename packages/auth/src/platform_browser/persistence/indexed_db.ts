@@ -307,6 +307,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 
   async _isAvailable(): Promise<boolean> {
     try {
+      console.log(indexedDB);
       if (!indexedDB) {
         return false;
       }

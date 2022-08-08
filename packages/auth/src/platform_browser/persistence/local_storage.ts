@@ -51,7 +51,10 @@ class BrowserLocalPersistence
   static type: 'LOCAL' = 'LOCAL';
 
   constructor() {
-    super(() => window.localStorage, PersistenceType.LOCAL);
+    super(() => {
+      console.log({localStorageInConstructor: window.localStorage.setItem('', '')});
+      return window.localStorage;
+    }, PersistenceType.LOCAL);
   }
 
   private readonly boundEventHandler = (event: StorageEvent, poll?: boolean): void => this.onStorageEvent(event, poll);

@@ -33,6 +33,7 @@ export abstract class BrowserPersistenceClass {
 
   _isAvailable(): Promise<boolean> {
     try {
+      console.log({storageInfo: JSON.stringify(this.storage)});
       if (!this.storage) {
         return Promise.resolve(false);
       }

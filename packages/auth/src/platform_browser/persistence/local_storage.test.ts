@@ -64,14 +64,18 @@ describe('platform_browser/persistence/local_storage', () => {
     expect(await persistence._get(key)).to.be.null;
   });
 
-  describe('#isAvailable', () => {
+  describe.only('#isAvailable', () => {
     it('should emit false if localStorage setItem throws', async () => {
-      sinon.stub(localStorage, 'setItem').throws(new Error('nope'));
+      // When reading localstorage in the constructor, it's not 
+      // getting the stubbed version.
+      // in local_storage.ts clg the stub
+      // something wrong with the stubbing
+      sinon.spy(window.localStorage, 'setItem').throws(new Error('nope'));
       expect(await persistence._isAvailable()).to.be.false;
     });
 
     it('should emit false if localStorage removeItem throws', async () => {
-      sinon.stub(localStorage, 'removeItem').throws(new Error('nope'));
+      sinon.stub(window.localStorage, 'removeItem').throws(new Error('nope'));
       expect(await persistence._isAvailable()).to.be.false;
     });
 
