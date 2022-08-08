@@ -17,18 +17,18 @@
 
 import { cast } from '../util/input_validation';
 import { Query, queryEqual } from './reference';
-import {  Firestore } from './database';
+import { Firestore } from './database';
 import { getDatastore } from './components';
 import { LiteUserDataWriter } from './reference_impl';
-import { invokeRunQueryRpc } from '../remote/datastore';
-import { QueryDocumentSnapshot, QuerySnapshot } from './snapshot';
+import { invokeRunAggregateQueryRpc } from '../remote/datastore';
+import { QueryDocumentSnapshot } from './snapshot';
 
 export class AggregateQuery {
   readonly type = 'AggregateQuery';
-    /**
+  /**
    * The query on which you called {@link countQuery} in order to get this
    * `AggregateQuery`.
-   * Qury type is set to unknown to avoid error caused by quey type converter.
+   * Query type is set to unknown to avoid error caused by query type converter.
    * might change it back to T after testing if the error do exist or not
    */
   readonly query: Query<unknown>;
@@ -44,26 +44,22 @@ export class AggregateQuerySnapshot {
   readonly query: AggregateQuery;
 
   /** @hideconstructor */
-  constructor(query: AggregateQuery, readonly _count: number, readonly docs:QueryDocumentSnapshot<unknown>[]) {
+  constructor(query: AggregateQuery, readonly _count: number) {
     this.query = query;
   }
 
+  //which one we prefer? method or accessor?
   getCount(): number | null {
     return this._count;
-  }
-
-  getdocs(): Array<QueryDocumentSnapshot<unknown>> {
-    return [...this.docs];
   }
 
   get count(): number | null {
     return this._count;
   }
 
-  compare(){
-    //which one we prefer?
-    console.log(this.getCount())
-    console.log(this.count)
+  compare() {
+    console.log(this.getCount());
+    console.log(this.count);
   }
 }
 
@@ -74,13 +70,15 @@ export function countQuery(query: Query<unknown>): AggregateQuery {
 export function getAggregateFromServerDirect(
   aggregateQuery: AggregateQuery
 ): Promise<AggregateQuerySnapshot> {
-  
-  // const firestore = cast(aggregateQuery.query.firestore, Firestore);
-  const datastore = getDatastore(aggregateQuery.query.firestore);
-  const userDataWriter = new LiteUserDataWriter(aggregateQuery.query.firestore);
-  console.log("===========",datastore)
+  const firestore = cast(aggregateQuery.query.firestore, Firestore);
+  const datastore = getDatastore(firestore);
+  const userDataWriter = new LiteUserDataWriter(firestore);
 
-  return invokeRunQueryRpc(datastore, aggregateQuery.query._query).then(result => {
+  return invokeRunAggregateQueryRpc(
+    datastore,
+    aggregateQuery.query._query
+  ).then(result => {
+    console.log('==========result', result);
     const docs = result.map(
       doc =>
         new QueryDocumentSnapshot(
@@ -91,8 +89,11 @@ export function getAggregateFromServerDirect(
           aggregateQuery.query.converter
         )
     );
+    console.log('==========docs', docs);
 
-    return Promise.resolve(new AggregateQuerySnapshot(aggregateQuery, 42, docs));
+    return Promise.resolve(
+      new AggregateQuerySnapshot(aggregateQuery, docs.length)
+    );
   });
 }
 

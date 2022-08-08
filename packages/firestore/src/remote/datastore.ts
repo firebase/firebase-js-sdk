@@ -232,6 +232,26 @@ export async function invokeRunQueryRpc(
   );
 }
 
+export async function invokeRunAggregateQueryRpc(
+  datastore: Datastore,
+  query: Query
+): Promise<Document[]> {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  const request = toQueryTarget(datastoreImpl.serializer, queryToTarget(query));
+  const response = await datastoreImpl.invokeStreamingRPC<
+    ProtoRunQueryRequest,
+    ProtoRunQueryResponse
+  >('RunQuery', request.parent!, { structuredQuery: request.structuredQuery });
+  return (
+    response
+      // Omit RunQueryResponses that only contain readTimes.
+      .filter(proto => !!proto.document)
+      .map(proto =>
+        fromDocument(datastoreImpl.serializer, proto.document!, undefined)
+      )
+  );
+}
+
 export function newPersistentWriteStream(
   datastore: Datastore,
   queue: AsyncQueue,
