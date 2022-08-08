@@ -16,18 +16,36 @@
  */
 
 import { expect } from 'chai';
+
 import {
   countQuery,
   getAggregateFromServerDirect,
-  query
+  query,
+  collection,
+  doc,
+  documentId,
+  endAt,
+  endBefore,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  setDoc,
+  startAfter,
+  startAt,
+  Timestamp,
+  where
 } from '../util/firebase_export';
-import { apiDescribe, withTestCollection } from '../util/helpers';
+
+import { apiDescribe, withTestCollection,toDataArray } from '../util/helpers';
 
 apiDescribe('Aggregation COUNT query:', (persistence: boolean) => {
   it('empty collection count equals to 0', () => {
     const testDocs = {};
-    return withTestCollection(persistence, testDocs, collection => {
-      const countQuery_ = countQuery(query(collection));
+    return withTestCollection(persistence, testDocs, coll => {
+      const countQuery_ = countQuery(query(coll));
+
+      expect(countQuery_.type).to.equal("AggregateQuery");
       return getAggregateFromServerDirect(countQuery_).then(snapshot => {
         expect(snapshot.getCount()).to.equal(0);
       });
@@ -45,6 +63,7 @@ apiDescribe('Aggregation COUNT query:', (persistence: boolean) => {
     };
     return withTestCollection(persistence, testDocs, collection => {
       const countQuery_ = countQuery(query(collection));
+      console.log("?",countQuery_);
       return getAggregateFromServerDirect(countQuery_).then(snapshot => {
         expect(snapshot.getCount()).to.equal(6);
       });
