@@ -20,17 +20,19 @@ import {
   registerVersion,
   SDK_VERSION
 } from '@firebase/app';
-import { Component, ComponentType, InstanceFactoryOptions } from '@firebase/component';
+import {
+  Component,
+  ComponentType
+} from '@firebase/component';
 
 import { version } from '../package.json';
 import {
   LiteAppCheckTokenProvider,
   LiteAuthCredentialsProvider
 } from '../src/api/credentials';
+import { databaseIdFromApp } from '../src/core/database_info';
 import { setSDKVersion } from '../src/core/version';
 import { Firestore } from '../src/lite-api/database';
-import { FirestoreSettings } from '../src/lite-api/settings';
-import {databaseIdFromApp} from "../src/core/database_info";
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -53,7 +55,7 @@ export function registerFirestore(): void {
             container.getProvider('app-check-internal')
           ),
           databaseIdFromApp(app, databaseId),
-          app,
+          app
         );
         if (settings) {
           firestoreInstance._setSettings(settings);

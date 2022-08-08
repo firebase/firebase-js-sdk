@@ -96,7 +96,7 @@ import {
 
 use(chaiAsPromised);
 
-describe.only('Firestore', () => {
+describe('Firestore', () => {
   it('can provide setting', () => {
     const app = initializeApp(
       { apiKey: 'fake-api-key', projectId: 'test-project' },
@@ -130,20 +130,19 @@ describe.only('Firestore', () => {
   });
 
   it('returns same default instance from default app', () => {
-    const app = initializeApp(
-      { apiKey: 'fake-api-key', projectId: 'test-project' }
-    );
+    const app = initializeApp({
+      apiKey: 'fake-api-key',
+      projectId: 'test-project'
+    });
     const fs1 = getFirestore();
     const fs2 = getFirestore(app);
-    const fs3 = getFirestore( '(default)');
+    const fs3 = getFirestore('(default)');
     const fs4 = getFirestore(app, '(default)');
     expect(fs1).to.be.equal(fs2).and.equal(fs3).and.equal(fs4);
   });
 
   it('returns different instance from different named app', () => {
-    initializeApp(
-      { apiKey: 'fake-api-key', projectId: 'test-project' },
-    );
+    initializeApp({ apiKey: 'fake-api-key', projectId: 'test-project' });
     const app1 = initializeApp(
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-getFirestore-1'

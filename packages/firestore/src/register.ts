@@ -30,8 +30,7 @@ import {
 import { setSDKVersion } from '../src/core/version';
 
 import { Firestore } from './api/database';
-import { PrivateSettings } from './lite-api/settings';
-import {databaseIdFromApp} from "./core/database_info";
+import { databaseIdFromApp } from './core/database_info';
 
 export function registerFirestore(
   variant?: string,
@@ -51,7 +50,7 @@ export function registerFirestore(
             container.getProvider('app-check-internal')
           ),
           databaseIdFromApp(app, databaseId),
-          app,
+          app
         );
         settings = { useFetchStreams, ...settings };
         firestoreInstance._setSettings(settings);

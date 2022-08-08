@@ -218,16 +218,17 @@ export function getFirestore(databaseId: string): Firestore;
  * @param databaseId - The name of database.
  * @returns The {@link Firestore} instance of the provided app.
  */
-export function getFirestore(
-  app: FirebaseApp,
-  databaseId: string
-): Firestore;
+export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 export function getFirestore(
   appOrDatabaseId?: FirebaseApp | string,
   optionalDatabaseId?: string
 ): Firestore {
-  const app: FirebaseApp = typeof appOrDatabaseId === 'object' ? appOrDatabaseId : getApp();
-  const databaseId = typeof appOrDatabaseId === 'string' ? appOrDatabaseId : optionalDatabaseId || '(default)';
+  const app: FirebaseApp =
+    typeof appOrDatabaseId === 'object' ? appOrDatabaseId : getApp();
+  const databaseId =
+    typeof appOrDatabaseId === 'string'
+      ? appOrDatabaseId
+      : optionalDatabaseId || '(default)';
   return _getProvider(app, 'firestore/lite').getImmediate({
     identifier: databaseId
   }) as Firestore;

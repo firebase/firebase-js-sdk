@@ -1,5 +1,6 @@
-import { FirebaseApp } from "@firebase/app";
-import {Code, FirestoreError} from "../util/error";
+import { FirebaseApp } from '@firebase/app';
+
+import { Code, FirestoreError } from '../util/error';
 
 /**
  * @license
@@ -78,7 +79,10 @@ export class DatabaseId {
   }
 }
 
-export function databaseIdFromApp(app: FirebaseApp, database?: string): DatabaseId {
+export function databaseIdFromApp(
+  app: FirebaseApp,
+  database?: string
+): DatabaseId {
   if (!Object.prototype.hasOwnProperty.apply(app.options, ['projectId'])) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
