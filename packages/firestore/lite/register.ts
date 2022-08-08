@@ -20,10 +20,7 @@ import {
   registerVersion,
   SDK_VERSION
 } from '@firebase/app';
-import {
-  Component,
-  ComponentType
-} from '@firebase/component';
+import { Component, ComponentType } from '@firebase/component';
 
 import { version } from '../package.json';
 import {
