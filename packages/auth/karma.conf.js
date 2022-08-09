@@ -20,7 +20,7 @@ const { argv } = require('yargs');
 
 module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
-    browsers: ['Firefox'],
+    browsers: getTestBrowsers(argv),
     // files to load into karma
     files: getTestFiles(argv),
     // frameworks to use
@@ -34,24 +34,30 @@ module.exports = function (config) {
 };
 
 function getTestFiles(argv) {
-  return [`src/platform_browser/persistence/local_storage.test.ts`];
-  // if (argv.unit) {
-  //   return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
-  // } else if (argv.integration) {
-  //   return argv.local
-  //     ? ['test/integration/flows/*.test.ts']
-  //     : ['test/integration/flows/*!(local).test.ts'];
-  // } else if (argv.cordova) {
-  //   return ['src/platform_cordova/**/*.test.ts'];
-  // } else {
-  //   // For the catch-all yarn:test, ignore the phone integration test
-  //   return [
-  //     'src/**/*.test.ts',
-  //     'test/helpers/**/*.test.ts',
-  //     'test/integration/flows/anonymous.test.ts',
-  //     'test/integration/flows/email.test.ts'
-  //   ];
-  // }
+  if (argv.unit) {
+    return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
+  } else if (argv.integration) {
+    return argv.local
+      ? ['test/integration/flows/*.test.ts']
+      : ['test/integration/flows/*!(local).test.ts'];
+  } else if (argv.cordova) {
+    return ['src/platform_cordova/**/*.test.ts'];
+  } else {
+    // For the catch-all yarn:test, ignore the phone integration test
+    return [
+      'src/**/*.test.ts',
+      'test/helpers/**/*.test.ts',
+      'test/integration/flows/anonymous.test.ts',
+      'test/integration/flows/email.test.ts'
+    ];
+  }
+}
+
+function getTestBrowsers(argv) {
+  if (argv.unit) {
+    return ["ChromeHeadless", 'Firefox'];
+  } 
+  return ["ChromeHeadless"];
 }
 
 function getClientConfig(argv) {
