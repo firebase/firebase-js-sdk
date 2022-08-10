@@ -1533,15 +1533,15 @@ describe('Transaction Tests', () => {
     await incrementViaTransaction();
     expect(latestValue).to.equal(2);
   });
-  it.only('can send valid input with concurrent writes', async() => {
+  it.only('can send valid input with concurrent writes', async () => {
     const rwRef = getFreshRepo(new Path('/')) as Reference;
     const wRef = getFreshRepo(new Path('/')) as Reference;
     async function runTransactions() {
-      while(1) {
+      while (1) {
         console.log(getPath(rwRef));
         await rwRef.child('abc').transaction((data: any) => {
           console.log(data);
-          if(data) {
+          if (data) {
             expect(!!data.test && !!data.timestamp).to.be.true;
           }
           return data;
@@ -1551,8 +1551,8 @@ describe('Transaction Tests', () => {
       console.log('done read');
     }
     async function runWrites() {
-        console.log(getPath(wRef));
-      while(1) {
+      console.log(getPath(wRef));
+      while (1) {
         await wRef.child('abc').set({
           test: 'abc',
           timestamp: Date.now()

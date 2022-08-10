@@ -30,7 +30,13 @@ import {
 } from '../../database/test/helpers/EventAccumulator';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 
-import { getFreshRepo, getPath, getRandomNode, pause } from './helpers/util';
+import {
+  createTestApp,
+  getFreshRepo,
+  getPath,
+  getRandomNode,
+  pause
+} from './helpers/util';
 
 use(chaiAsPromised);
 
@@ -4663,6 +4669,33 @@ describe('Query Tests', () => {
           });
         });
     });
+  });
+  it.only('can properly handle unknown deep merges', async () => {
+    const app = createTestApp();
+    const root = app.database().ref().child('testing');
+    await root.remove();
+
+    const query = root.orderByChild('lease').limitToFirst(2);
+
+    await root
+      .child('i|1')
+      .set({ lease: 3, timestamp: Date.now(), action: 'test' });
+    await root
+      .child('i|2')
+      .set({ lease: 1, timestamp: Date.now(), action: 'test' });
+    await root
+      .child('i|3')
+      .set({ lease: 2, timestamp: Date.now(), action: 'test' });
+    query.on('child_added', snap => {
+      const value = snap.val();
+      expect(value).to.haveOwnProperty('timestamp');
+      expect(value).to.haveOwnProperty('action');
+    });
+    root.child('i|1').on('value', snap => {
+      //no-op
+    });
+    await root.child('i|1').update({ timestamp: `${Date.now()}|1` });
+    await new Promise(resolve => setTimeout(resolve, 4000));
   });
 
   it('Can JSON serialize refs', () => {
