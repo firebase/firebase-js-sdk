@@ -639,6 +639,14 @@ describe('IndexedDbIndexManager', async () => {
       .be.null;
   });
 
+  it('handles when no matching filter exists', async () => {
+    await setUpSingleValueFilter();
+    const q = queryWithAddedFilter(query('coll'), filter('unknown', '==', true));
+    
+    expect(await indexManager.getIndexType(queryToTarget(q))).to.equal(IndexType.NONE);
+    expect(await indexManager.getDocumentsMatchingTarget(queryToTarget(q))).to.be.null;
+  });
+
   it('returns empty results when no matching documents exists', async () => {
     await setUpSingleValueFilter();
     const q = queryWithAddedFilter(query('coll'), filter('count', '==', -1));
@@ -756,6 +764,19 @@ describe('IndexedDbIndexManager', async () => {
 
     q = queryWithAddedOrderBy(query('coll'), orderBy('count', 'desc'));
     await verifyResults(q, 'coll/val2', 'coll/val1b', 'coll/val1a');
+  });
+
+  it('supports order by filter', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['count', IndexKind.ASCENDING]] })
+    );
+
+    await addDoc('coll/val1a', { 'count': 1 });
+    await addDoc('coll/val1b', { 'count': 1 });
+    await addDoc('coll/val2', { 'count': 2 });
+
+    let q = queryWithAddedOrderBy(query('coll'), orderBy('count'));
+    await verifyResults(q, 'coll/val1a', 'coll/val1b', 'coll/val2');
   });
 
   it('supports ascending order with greater than filter', async () => {

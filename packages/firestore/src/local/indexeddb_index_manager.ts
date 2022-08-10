@@ -555,9 +555,9 @@ export class IndexedDbIndexManager implements IndexManager {
   private encodeValues(
     fieldIndex: FieldIndex,
     target: Target,
-    bound: ProtoValue[] | null
+    values: ProtoValue[] | null
   ): Uint8Array[] {
-    if (bound === null) {
+    if (values === null) {
       return [];
     }
 
@@ -566,7 +566,7 @@ export class IndexedDbIndexManager implements IndexManager {
 
     let boundIdx = 0;
     for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
-      const value = bound[boundIdx++];
+      const value = values[boundIdx++];
       for (const encoder of encoders) {
         if (this.isInFilter(target, segment.fieldPath) && isArray(value)) {
           encoders = this.expandIndexValues(encoders, segment, value);
@@ -986,26 +986,6 @@ export class IndexedDbIndexManager implements IndexManager {
       );
     }
     return ranges;
-  }
-
-  canServeFromIndex(
-    transaction: PersistenceTransaction,
-    target: Target
-  ): PersistencePromise<boolean> {
-
-    // Predicates to determine if sub-targets cannot be served from an index
-    const noIndexPredicates = this.getSubTargets(target)
-      .map(subTarget => {
-        return () => {
-          return this.getFieldIndex(transaction, subTarget).next(index => !index);
-        };
-      });
-    
-    return PersistencePromise.or(noIndexPredicates).next((fieldIndexNotFound) => {
-      // If any of the sub-targets cannot be served from the index, the target as a whole cannot be
-      // served from the index.
-      return !fieldIndexNotFound;
-    });
   }
 
   getMinOffsetFromCollectionGroup(

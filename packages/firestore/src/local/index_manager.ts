@@ -118,12 +118,6 @@ export interface IndexManager {
     transaction: PersistenceTransaction,
     target: Target
   ): PersistencePromise<IndexType>;
- 
-  /** Returns whether we can serve the given target from an index. */
-  canServeFromIndex(
-    transaction: PersistenceTransaction,
-    target: Target
-  ): PersistencePromise<boolean>;
 
   /**
    * Returns the documents that match the given target based on the provided
