@@ -23,6 +23,7 @@
  */
 
 import { initializeApp } from '@firebase/app';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from '@firebase/app-check';
 import {
   applyActionCode,
   browserLocalPersistence,
@@ -1671,7 +1672,11 @@ function initApp() {
   if (USE_AUTH_EMULATOR) {
     connectAuthEmulator(auth, AUTH_EMULATOR_URL);
   }
-  
+
+  const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaEnterpriseProvider("6Ldrr14hAAAAACIkoPa33vNj7IW6A62Qy9zcsuE5"),
+  isTokenAutoRefreshEnabled: true // Set to true to allow auto-refresh.
+  });
 
   tempApp = initializeApp(
     {
