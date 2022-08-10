@@ -1003,7 +1003,7 @@ function decodeFilters(filter: ProtoFilter): Filter[] {
     result instanceof CompositeFilter &&
     compositeFilterIsFlatConjunction(result)
   ) {
-    return Object.assign([], result.getFilters());
+    return result.getFilters();
   }
 
   return [result];

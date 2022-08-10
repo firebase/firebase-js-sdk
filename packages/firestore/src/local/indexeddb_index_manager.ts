@@ -20,7 +20,11 @@ import { DatabaseId } from '../core/database_info';
 import {
   Bound,
   canonifyTarget,
+  CompositeFilter,
+  CompositeOperator,
   FieldFilter,
+  Filter,
+  newTarget,
   Operator,
   Target,
   targetEquals,
@@ -53,6 +57,7 @@ import { isArray, refValue } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { logDebug } from '../util/log';
+import { getDnfTerms } from '../util/logic_utils';
 import { immediateSuccessor, primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { diffSortedSets, SortedSet } from '../util/sorted_set';
@@ -333,8 +338,25 @@ export class IndexedDbIndexManager implements IndexManager {
     if (subTargets) {
       return subTargets;
     }
-    // TODO(orquery): Implement DNF transform
-    subTargets = [target];
+    
+    if (target.filters.length === 0) {
+      subTargets = [target];
+    }
+    else {
+      // There is an implicit AND operation between all the filters stored in the target
+      const dnf: Filter[] =
+        getDnfTerms(CompositeFilter.create(target.filters, CompositeOperator.AND));
+
+      subTargets = dnf.map(term => newTarget(
+          target.path,
+          target.collectionGroup,
+          target.orderBy,
+          term.getFilters(),
+          target.limit,
+          target.startAt,
+          target.endAt));
+    }
+
     this.targetToDnfSubTargets.set(target, subTargets);
     return subTargets;
   }
@@ -972,11 +994,12 @@ export class IndexedDbIndexManager implements IndexManager {
   ): PersistencePromise<boolean> {
 
     // Predicates to determine if sub-targets cannot be served from an index
-    let noIndexPredicates = this.getSubTargets(target)
+    const noIndexPredicates = this.getSubTargets(target)
       .map(subTarget => {
         return () => {
           return this.getFieldIndex(transaction, subTarget).next(index => !index);
-        }});
+        };
+      });
     
     return PersistencePromise.or(noIndexPredicates).next((fieldIndexNotFound) => {
       // If any of the sub-targets cannot be served from the index, the target as a whole cannot be

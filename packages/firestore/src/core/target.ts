@@ -539,7 +539,7 @@ export abstract class Filter {
 
   abstract getFlattenedFilters(): readonly FieldFilter[];
 
-  abstract getFilters(): readonly Filter[];
+  abstract getFilters(): Filter[];
 
   abstract getFirstInequalityField(): FieldPath | null;
 }
@@ -702,7 +702,7 @@ export class FieldFilter extends Filter {
     return [this];
   }
 
-  getFilters(): readonly Filter[] {
+  getFilters(): Filter[] {
     return [this];
   }
 
@@ -753,8 +753,9 @@ export class CompositeFilter extends Filter {
     return this.memoizedFlattenedFilters;
   }
 
-  getFilters(): readonly Filter[] {
-    return this.filters;
+  // Returns a mutable copy of `this.filters`
+  getFilters(): Filter[] {
+    return Object.assign([], this.filters);
   }
 
   getFirstInequalityField(): FieldPath | null {
@@ -786,6 +787,12 @@ export function compositeFilterIsConjunction(
   compositeFilter: CompositeFilter
 ): boolean {
   return compositeFilter.op === CompositeOperator.AND;
+}
+
+export function compositeFilterIsDisjunction(
+  compositeFilter: CompositeFilter
+): boolean {
+  return compositeFilter.op === CompositeOperator.OR;
 }
 
 /**
