@@ -4673,6 +4673,7 @@ describe('Query Tests', () => {
   it.only('can properly handle unknown deep merges', async () => {
     const app = createTestApp();
     const root = app.database().ref().child('testing');
+    // TODO(mtewani): This repro requires an index to be created.
     await root.remove();
 
     const query = root.orderByChild('lease').limitToFirst(2);
