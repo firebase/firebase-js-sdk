@@ -55,8 +55,8 @@ function getTestFiles(argv) {
 
 function getTestBrowsers(argv) {
   let browsers = ["ChromeHeadless"]; 
-  if (argv.unit) {
-    browsers = ['ChromeHeadless', 'Firefox'];
+  if (process.env?.BROWSERS && argv.unit) {
+    browsers = process.env?.BROWSERS?.split(',');
   } 
   return browsers;
 }
