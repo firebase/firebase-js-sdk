@@ -64,5 +64,5 @@ jobs:
         run: yarn build:changed auth
       - name: Run tests on changed packages
         run: xvfb-run yarn --cwd packages/auth test:browser:unit
-      env:
+        env:
           BROWSERS: 'Firefox'
