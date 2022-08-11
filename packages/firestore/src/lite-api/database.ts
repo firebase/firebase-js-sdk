@@ -31,7 +31,7 @@ import {
   OAuthToken
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { DatabaseId } from '../core/database_info';
+import { DatabaseId, DEFAULT_DATABASE_NAME } from '../core/database_info';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
@@ -163,26 +163,34 @@ export class Firestore implements FirestoreService {
  * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
+ * @param databaseId - The name of database.
  * @returns A newly initialized `Firestore` instance.
  */
 export function initializeFirestore(
   app: FirebaseApp,
-  settings: FirestoreSettings
+  settings: FirestoreSettings,
+  databaseId?: string
 ): Firestore {
+  if (!databaseId) {
+    databaseId = DEFAULT_DATABASE_NAME;
+  }
   const provider = _getProvider(app, 'firestore/lite');
 
-  if (provider.isInitialized()) {
+  if (provider.isInitialized(databaseId)) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       'Firestore can only be initialized once per app.'
     );
   }
 
-  return provider.initialize({ options: settings });
+  return provider.initialize({
+    options: settings,
+    instanceIdentifier: databaseId
+  });
 }
 
 /**
- * Returns the existing {@link Firestore} instance that is associated with the
+ * Returns the existing default {@link Firestore} instance that is associated with the
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
@@ -190,7 +198,7 @@ export function initializeFirestore(
  */
 export function getFirestore(): Firestore;
 /**
- * Returns the existing {@link Firestore} instance that is associated with the
+ * Returns the existing default {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *

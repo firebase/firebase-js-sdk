@@ -31,7 +31,7 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from '../core/component_provider';
-import { DatabaseId } from '../core/database_info';
+import { DatabaseId, DEFAULT_DATABASE_NAME } from '../core/database_info';
 import {
   FirestoreClient,
   firestoreClientDisableNetwork,
@@ -136,17 +136,26 @@ export class Firestore extends LiteFirestore {
  * @param app - The {@link @firebase/app#FirebaseApp} with which the {@link Firestore} instance will
  * be associated.
  * @param settings - A settings object to configure the {@link Firestore} instance.
+ * @param databaseId - The name of database.
  * @returns A newly initialized {@link Firestore} instance.
  */
 export function initializeFirestore(
   app: FirebaseApp,
-  settings: FirestoreSettings
+  settings: FirestoreSettings,
+  databaseId?: string
 ): Firestore {
+  if (!databaseId) {
+    databaseId = DEFAULT_DATABASE_NAME;
+  }
   const provider = _getProvider(app, 'firestore');
 
-  if (provider.isInitialized()) {
-    const existingInstance = provider.getImmediate();
-    const initialSettings = provider.getOptions() as FirestoreSettings;
+  if (provider.isInitialized(databaseId)) {
+    const existingInstance = provider.getImmediate({
+      identifier: databaseId
+    });
+    const initialSettings = provider.getOptions(
+      databaseId
+    ) as FirestoreSettings;
     if (deepEqual(initialSettings, settings)) {
       return existingInstance;
     } else {
@@ -171,11 +180,14 @@ export function initializeFirestore(
     );
   }
 
-  return provider.initialize({ options: settings });
+  return provider.initialize({
+    options: settings,
+    instanceIdentifier: databaseId
+  });
 }
 
 /**
- * Returns the existing {@link Firestore} instance that is associated with the
+ * Returns the existing default {@link Firestore} instance that is associated with the
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
@@ -183,7 +195,7 @@ export function initializeFirestore(
  */
 export function getFirestore(): Firestore;
 /**
- * Returns the existing {@link Firestore} instance that is associated with the
+ * Returns the existing default {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
@@ -221,7 +233,7 @@ export function getFirestore(
   const databaseId =
     typeof appOrDatabaseId === 'string'
       ? appOrDatabaseId
-      : optionalDatabaseId || '(default)';
+      : optionalDatabaseId || DEFAULT_DATABASE_NAME;
   return _getProvider(app, 'firestore').getImmediate({
     identifier: databaseId
   }) as Firestore;
@@ -539,7 +551,11 @@ export function disableNetwork(firestore: Firestore): Promise<void> {
  * terminated.
  */
 export function terminate(firestore: Firestore): Promise<void> {
-  _removeServiceInstance(firestore.app, 'firestore');
+  _removeServiceInstance(
+    firestore.app,
+    'firestore',
+    firestore._databaseId.database
+  );
   return firestore._delete();
 }
 

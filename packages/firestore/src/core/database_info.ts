@@ -50,7 +50,7 @@ export class DatabaseInfo {
 }
 
 /** The default database name for a project. */
-const DEFAULT_DATABASE_NAME = '(default)';
+export const DEFAULT_DATABASE_NAME = '(default)';
 
 /**
  * Represents the database ID a Firestore client is associated with.

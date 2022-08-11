@@ -122,11 +122,21 @@ describe('Firestore', () => {
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-getFirestore'
     );
-    const fs1 = getFirestore(app);
-    const fs2 = getFirestore(app, 'name1');
-    const fs3 = getFirestore(app, 'name2');
-    expect(fs1).to.not.be.equal(fs2).and.equal(fs3);
+    const fs1 = initializeFirestore(app, DEFAULT_SETTINGS, 'init1');
+    const fs2 = initializeFirestore(app, DEFAULT_SETTINGS, 'init2');
+    const fs3 = getFirestore(app);
+    const fs4 = getFirestore(app, 'name1');
+    const fs5 = getFirestore(app, 'name2');
+    expect(fs1).to.not.be.equal(fs2);
+    expect(fs1).to.not.be.equal(fs3);
+    expect(fs1).to.not.be.equal(fs4);
+    expect(fs1).to.not.be.equal(fs5);
     expect(fs2).to.not.be.equal(fs3);
+    expect(fs2).to.not.be.equal(fs4);
+    expect(fs2).to.not.be.equal(fs5);
+    expect(fs3).to.not.be.equal(fs4);
+    expect(fs3).to.not.be.equal(fs5);
+    expect(fs4).to.not.be.equal(fs5);
   });
 
   it('returns same default instance from default app', () => {
@@ -134,11 +144,15 @@ describe('Firestore', () => {
       apiKey: 'fake-api-key',
       projectId: 'test-project'
     });
-    const fs1 = getFirestore();
-    const fs2 = getFirestore(app);
-    const fs3 = getFirestore('(default)');
-    const fs4 = getFirestore(app, '(default)');
-    expect(fs1).to.be.equal(fs2).and.equal(fs3).and.equal(fs4);
+    const fs1 = initializeFirestore(app, DEFAULT_SETTINGS);
+    const fs2 = getFirestore();
+    const fs3 = getFirestore(app);
+    const fs4 = getFirestore('(default)');
+    const fs5 = getFirestore(app, '(default)');
+    expect(fs1).to.be.equal(fs2);
+    expect(fs1).to.be.equal(fs3);
+    expect(fs1).to.be.equal(fs4);
+    expect(fs1).to.be.equal(fs5);
   });
 
   it('returns different instance from different named app', () => {
@@ -154,7 +168,8 @@ describe('Firestore', () => {
     const fs1 = getFirestore();
     const fs2 = getFirestore(app1);
     const fs3 = getFirestore(app2);
-    expect(fs1).to.not.be.equal(fs2).and.equal(fs3);
+    expect(fs1).to.not.be.equal(fs2);
+    expect(fs1).to.not.be.equal(fs3);
     expect(fs2).to.not.be.equal(fs3);
   });
 

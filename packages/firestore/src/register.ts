@@ -57,7 +57,7 @@ export function registerFirestore(
         return firestoreInstance;
       },
       'PUBLIC' as ComponentType.PUBLIC
-    )
+    ).setMultipleInstances(true)
   );
   registerVersion(name, version, variant);
   // BUILD_TARGET will be replaced by values like esm5, esm2017, cjs5, etc during the compilation

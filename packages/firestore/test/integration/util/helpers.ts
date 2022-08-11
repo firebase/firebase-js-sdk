@@ -31,7 +31,8 @@ import {
   setDoc,
   PrivateSettings,
   SnapshotListenOptions,
-  newTestFirestore
+  newTestFirestore,
+  newTestApp
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -182,7 +183,34 @@ export async function withTestDbsSettings(
   const dbs: Firestore[] = [];
 
   for (let i = 0; i < numDbs; i++) {
-    const db = newTestFirestore(projectId, /* name =*/ undefined, settings);
+    const db = newTestFirestore(newTestApp(projectId), settings);
+    if (persistence) {
+      await enableIndexedDbPersistence(db);
+    }
+    dbs.push(db);
+  }
+
+  try {
+    await fn(dbs);
+  } finally {
+    for (const db of dbs) {
+      await terminate(db);
+      if (persistence) {
+        await clearIndexedDbPersistence(db);
+      }
+    }
+  }
+}
+
+export async function withNamedTestDbs(
+  persistence: boolean,
+  dbNames: string[],
+  fn: (db: Firestore[]) => Promise<void>
+): Promise<void> {
+  const app = newTestApp(DEFAULT_PROJECT_ID);
+  const dbs: Firestore[] = [];
+  for (const dbName of dbNames) {
+    const db = newTestFirestore(app, DEFAULT_SETTINGS, dbName);
     if (persistence) {
       await enableIndexedDbPersistence(db);
     }
