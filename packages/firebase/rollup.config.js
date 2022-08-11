@@ -23,6 +23,7 @@ import { resolve } from 'path';
 import resolveModule from '@rollup/plugin-node-resolve';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
+import { terser } from 'rollup-plugin-terser';
 import typescript from 'typescript';
 
 const external = Object.keys(pkg.dependencies || {});
@@ -124,7 +125,13 @@ const cdnBuilds = [
           sourcemap: true,
           format: 'es'
         },
-        plugins: [...plugins, typescriptPluginCDN],
+        plugins: [
+          ...plugins,
+          typescriptPluginCDN,
+          terser({
+            format: { comments: false }
+          })
+        ],
         external: ['@firebase/app']
       };
     })
