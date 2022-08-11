@@ -1713,14 +1713,14 @@ apiDescribe('Database', (persistence: boolean) => {
     return withNamedTestDbs(persistence, ['db1', 'db2'], async ([db1, db2]) => {
       const data = { name: 'Rafi', email: 'abc@xyz.com' };
 
-      const ref1 = await doc(collection(db1, 'users'));
+      const ref1 = await doc(collection(db1, 'users'), 'doc1');
       await setDoc(ref1, data);
       const snapshot1 = await getDoc(ref1);
       expect(snapshot1.exists()).to.be.ok;
       expect(snapshot1.data()).to.be.deep.equals(data);
 
-      const ref2 = await doc(collection(db2, 'users'));
-      const snapshot2 = await getDoc(ref2);
+      const ref2 = await doc(collection(db2, 'users'), 'doc1');
+      const snapshot2 = await getDocFromServer(ref2);
       expect(snapshot2.exists()).to.not.be.ok;
     });
   });

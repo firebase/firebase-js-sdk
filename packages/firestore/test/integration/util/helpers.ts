@@ -37,7 +37,8 @@ import {
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  USE_EMULATOR
 } from './settings';
 
 /* eslint-disable no-restricted-globals */
@@ -207,6 +208,12 @@ export async function withNamedTestDbs(
   dbNames: string[],
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
+  // Named DBs requires preparing project with DBs beforehand.
+  // Emulator does not DB to have been created beforehand.
+  // TODO: Improve integration testing to have more than just (default) available.
+  if (!USE_EMULATOR) {
+    return Promise.resolve();
+  }
   const app = newTestApp(DEFAULT_PROJECT_ID);
   const dbs: Firestore[] = [];
   for (const dbName of dbNames) {
