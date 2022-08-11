@@ -4687,16 +4687,25 @@ describe('Query Tests', () => {
     await root
       .child('i|3')
       .set({ lease: 2, timestamp: Date.now(), action: 'test' });
-    query.on('child_added', snap => {
+    const childAdded = query.on('child_added', snap => {
       const value = snap.val();
+      console.log('onChildAdded', value);
+      if(value.timestamp && !value.lease) {
+        console.log("ERR: missing value");
+      }
       expect(value).to.haveOwnProperty('timestamp');
       expect(value).to.haveOwnProperty('action');
+      expect(value).to.haveOwnProperty('lease');
     });
-    root.child('i|1').on('value', snap => {
+    const onValue = root.child('i|1').on('value', snap => {
+      console.log('onValue', snap.val());
       //no-op
     });
     await root.child('i|1').update({ timestamp: `${Date.now()}|1` });
+    console.log('wrote value');
     await new Promise(resolve => setTimeout(resolve, 4000));
+    root.child('i|1').off('value', onValue);
+    query.off('child_added', childAdded);
   });
 
   it('Can JSON serialize refs', () => {

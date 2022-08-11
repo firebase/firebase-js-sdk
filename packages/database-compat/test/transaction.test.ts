@@ -20,7 +20,6 @@ import { _TEST_ACCESS_hijackHash as hijackHash } from '@firebase/database';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
-import { Path } from '../../database/src/core/util/Path';
 import {
   EventAccumulator,
   EventAccumulatorFactory
@@ -30,9 +29,7 @@ import { Reference } from '../src/api/Reference';
 import { eventTestHelper } from './helpers/events';
 import {
   canCreateExtraConnections,
-  getFreshRepo,
   getFreshRepoFromReference,
-  getPath,
   getRandomNode,
   getVal
 } from './helpers/util';
@@ -1533,35 +1530,4 @@ describe('Transaction Tests', () => {
     await incrementViaTransaction();
     expect(latestValue).to.equal(2);
   });
-  it.only('can send valid input with concurrent writes', async () => {
-    const rwRef = getFreshRepo(new Path('/')) as Reference;
-    const wRef = getFreshRepo(new Path('/')) as Reference;
-    async function runTransactions() {
-      while (1) {
-        console.log(getPath(rwRef));
-        await rwRef.child('abc').transaction((data: any) => {
-          console.log(data);
-          if (data) {
-            expect(!!data.test && !!data.timestamp).to.be.true;
-          }
-          return data;
-        });
-        await new Promise(resolve => setTimeout(resolve, 150));
-      }
-      console.log('done read');
-    }
-    async function runWrites() {
-      console.log(getPath(wRef));
-      while (1) {
-        await wRef.child('abc').set({
-          test: 'abc',
-          timestamp: Date.now()
-        });
-      }
-      console.log('done writing');
-    }
-    runWrites();
-    runTransactions();
-    await new Promise(resolve => setTimeout(resolve, 20000));
-  }).timeout(30000);
 });
