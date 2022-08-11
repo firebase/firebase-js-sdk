@@ -1,10 +1,12 @@
 name: Test Auth Firefox
 
-on: pull_request
+on:
+  push:
+    branches: ['**']
 
 jobs:
   test-firefox:
-    name: Test Auth on Firefox If Changed
+    name: Test Auth on Firefox Unit Browser
     runs-on: ubuntu-latest
 
     steps:
@@ -12,11 +14,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install firefox
-      - name: Checkout Repo
-        uses: actions/checkout@master
-        with:
-          # This makes Actions fetch all Git history so run-changed script can diff properly.
-          fetch-depth: 0
+      - uses: actions/checkout@v2
       - name: Set up Node (14)
         uses: actions/setup-node@v2
         with:
@@ -31,5 +29,5 @@ jobs:
         run: yarn build:changed auth
       - name: Run tests on changed packages
         run: xvfb-run yarn --cwd packages/auth test:browser:unit
-      env:
+        env:
           BROWSERS: 'Firefox'
