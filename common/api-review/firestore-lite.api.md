@@ -191,7 +191,7 @@ export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 export function increment(n: number): FieldValue;
 
 // @public
-export function initializeFirestore(app: FirebaseApp, settings: Settings): Firestore;
+export function initializeFirestore(app: FirebaseApp, settings: Settings, databaseId?: string): Firestore;
 
 // @public
 export function limit(limit: number): QueryConstraint;

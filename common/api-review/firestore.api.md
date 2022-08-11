@@ -243,7 +243,7 @@ export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 export function increment(n: number): FieldValue;
 
 // @public
-export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings): Firestore;
+export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings, databaseId?: string): Firestore;
 
 // @public
 export function limit(limit: number): QueryConstraint;
