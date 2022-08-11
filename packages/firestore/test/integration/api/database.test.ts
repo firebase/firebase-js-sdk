@@ -1712,7 +1712,7 @@ apiDescribe('Database', (persistence: boolean) => {
   it('can keep docs separate with multi-db when online', () => {
     return withNamedTestDbs(
       persistence,
-      ['db1', 'db2', 'db1'],
+      ['db1', 'db2'],
       async ([db1, db2]) => {
         const data = { name: 'Rafi', email: 'abc@xyz.com' };
 
@@ -1732,7 +1732,7 @@ apiDescribe('Database', (persistence: boolean) => {
   it('can keep docs separate with multi-db when offline', () => {
     return withNamedTestDbs(
       persistence,
-      ['db1', 'db2', 'db1'],
+      ['db1', 'db2'],
       async ([db1, db2]) => {
         await disableNetwork(db1);
         await disableNetwork(db2);
