@@ -26,7 +26,7 @@ import {
   Firestore,
   terminate,
   getDoc
-} from '../../../src';
+} from '../util/firebase_export';
 import { DEFAULT_SETTINGS } from '../util/settings';
 
 use(chaiAsPromised);
