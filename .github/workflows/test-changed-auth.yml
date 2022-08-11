@@ -8,7 +8,7 @@ env:
 
 jobs:
   test-chrome:
-    name: Test Auth on Chrome If Changed
+    name: Test Auth on Chrome and Node If Changed
     runs-on: ubuntu-latest
 
     steps:
