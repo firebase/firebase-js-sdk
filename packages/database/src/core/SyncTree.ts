@@ -318,6 +318,8 @@ export function syncTreeApplyTaggedListenComplete(
  *
  * @param eventRegistration - If null, all callbacks are removed.
  * @param cancelError - If a cancelError is provided, appropriate cancel events will be returned.
+ * @param skipListenerDedup - When performing a `get()`, we don't add any new listeners, so no
+ *  deduping needs to take place. This flag allows toggling of that behavior
  * @returns Cancel events, if cancelError was provided.
  */
 export function syncTreeRemoveEventRegistration(
@@ -392,9 +394,8 @@ export function syncTreeRemoveEventRegistration(
               listener.onComplete
             );
           }
-        } else {
-          // There's nothing below us, so nothing we need to start listening on
         }
+        // Otherwise there's nothing below us, so nothing we need to start listening on
       }
       // If we removed anything and we're not covered by a higher up listen, we need to stop listening on this query
       // The above block has us covered in terms of making sure we're set up on listens lower in the tree.
