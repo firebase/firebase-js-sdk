@@ -21,7 +21,6 @@ import { User } from '../../../src/auth/user';
 import { Query, queryToTarget } from '../../../src/core/query';
 import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { INDEXING_ENABLED } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
 import { newLocalStore } from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
@@ -49,9 +48,6 @@ import { TestDocumentOverlayCache } from './test_document_overlay_cache';
 import { TestIndexManager } from './test_index_manager';
 
 describe('IndexedDb IndexBackfiller', () => {
-  if (!INDEXING_ENABLED) {
-    return;
-  }
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn('No IndexedDB. Skipping IndexedDb IndexBackfiller tests.');
     return;
@@ -168,9 +164,9 @@ function genericIndexBackfillerTests(
       })
     );
 
-    // Documents before read time should not be fetched.
     await addDocs(Helpers.doc('coll1/docA', 9, { ['foo']: 1 }));
 
+    // Documents before read time should not be fetched.
     {
       const documentsProcessed = await backfiller.backfill();
       expect(documentsProcessed).to.equal(0);
@@ -223,6 +219,39 @@ function genericIndexBackfillerTests(
       Helpers.doc('coll1/docA', 5, { ['foo']: 1 }),
       Helpers.doc('coll1/docB', 3, { ['foo']: 1 }),
       Helpers.doc('coll1/docC', 10, { ['foo']: 1 })
+    );
+
+    {
+      const documentsProcessed = await backfiller.backfill(2);
+      expect(documentsProcessed).to.equal(2);
+    }
+
+    await expectQueryResults(
+      Helpers.query('coll1', Helpers.orderBy('foo')),
+      'coll1/docA',
+      'coll1/docB'
+    );
+
+    {
+      const documentsProcessed = await backfiller.backfill(2);
+      expect(documentsProcessed).to.equal(1);
+    }
+
+    await expectQueryResults(
+      Helpers.query('coll1', Helpers.orderBy('foo')),
+      'coll1/docA',
+      'coll1/docB',
+      'coll1/docC'
+    );
+  });
+
+  it('Uses DocumentKey Offset for large Snapshots', async () => {
+    await addFieldIndex('coll1', 'foo');
+
+    await addDocs(
+      Helpers.doc('coll1/docA', 1, { ['foo']: 1 }),
+      Helpers.doc('coll1/docB', 1, { ['foo']: 1 }),
+      Helpers.doc('coll1/docC', 1, { ['foo']: 1 })
     );
 
     {

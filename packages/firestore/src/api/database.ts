@@ -56,6 +56,7 @@ import { AsyncQueue } from '../util/async_queue';
 import { newAsyncQueue } from '../util/async_queue_impl';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
+import { logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
@@ -332,7 +333,7 @@ function setPersistenceProviders(
         if (!canFallbackFromIndexedDbError(error)) {
           throw error;
         }
-        console.warn(
+        logWarn(
           'Error enabling offline persistence. Falling back to ' +
             'persistence disabled: ' +
             error

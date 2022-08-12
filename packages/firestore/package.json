@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "3.4.13",
+  "version": "3.4.14",
   "engines": {
     "node": ">=10.10.0"
   },
@@ -92,13 +92,14 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.29",
-    "@firebase/app-compat": "0.1.30",
+    "@firebase/app": "0.7.30",
+    "@firebase/app-compat": "0.1.31",
     "@firebase/auth": "0.20.5",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",
     "@types/json-stable-stringify": "1.0.34",
+    "chai-exclude": "2.1.0",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.11.3",
     "rollup": "2.72.1",

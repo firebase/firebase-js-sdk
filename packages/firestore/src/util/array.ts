@@ -55,3 +55,59 @@ export function findIndex<A>(
   }
   return null;
 }
+
+/**
+ * Compares two array for equality using comparator. The method computes the
+ * intersection and invokes `onAdd` for every element that is in `after` but not
+ * `before`. `onRemove` is invoked for every element in `before` but missing
+ * from `after`.
+ *
+ * The method creates a copy of both `before` and `after` and runs in O(n log
+ * n), where n is the size of the two lists.
+ *
+ * @param before - The elements that exist in the original array.
+ * @param after - The elements to diff against the original array.
+ * @param comparator - The comparator for the elements in before and after.
+ * @param onAdd - A function to invoke for every element that is part of `
+ * after` but not `before`.
+ * @param onRemove - A function to invoke for every element that is part of
+ * `before` but not `after`.
+ */
+export function diffArrays<T>(
+  before: T[],
+  after: T[],
+  comparator: (l: T, r: T) => number,
+  onAdd: (entry: T) => void,
+  onRemove: (entry: T) => void
+): void {
+  before = [...before];
+  after = [...after];
+  before.sort(comparator);
+  after.sort(comparator);
+
+  const bLen = before.length;
+  const aLen = after.length;
+  let a = 0;
+  let b = 0;
+  while (a < aLen && b < bLen) {
+    const cmp = comparator(before[b], after[a]);
+    if (cmp < 0) {
+      // The element was removed if the next element in our ordered
+      // walkthrough is only in `before`.
+      onRemove(before[b++]);
+    } else if (cmp > 0) {
+      // The element was added if the next element in our ordered walkthrough
+      // is only in `after`.
+      onAdd(after[a++]);
+    } else {
+      a++;
+      b++;
+    }
+  }
+  while (a < aLen) {
+    onAdd(after[a++]);
+  }
+  while (b < bLen) {
+    onRemove(before[b++]);
+  }
+}
