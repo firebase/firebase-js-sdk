@@ -73,13 +73,13 @@ import {
   fromDocument,
   fromDocumentMask,
   fromDocumentsTarget,
-  decodeFieldFilter,
+  fromFieldFilter,
   fromMutation,
   fromName,
   fromOperatorName,
   fromPropertyOrder,
   fromQueryTarget,
-  decodeUnaryFilter,
+  fromUnaryFilter,
   fromWatchChange,
   JsonProtoSerializer,
   toBytes,
@@ -95,10 +95,10 @@ import {
   toPropertyOrder,
   toQueryTarget,
   toTarget,
-  encodeUnaryOrFieldFilter,
+  toUnaryOrFieldFilter,
   toVersion,
-  decodeCompositeFilter,
-  encodeCompositeFilter
+  fromCompositeFilter,
+  toCompositeFilter
 } from '../../../src/remote/serializer';
 import {
   DocumentWatchChange,
@@ -819,13 +819,13 @@ export function serializerTest(
       expect(fromDocument(s, serialized, undefined).isEqual(d)).to.equal(true);
     });
 
-    describe('encode/decode FieldFilter', () => {
+    describe('to/from UnaryOrieldFilter', () => {
       addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('makes dotted-property names', () => {
         const path = new FieldPath(['item', 'part', 'top']);
         const input = FieldFilter.create(path, Operator.EQUAL, wrap('food'));
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'item.part.top' },
@@ -833,14 +833,14 @@ export function serializerTest(
             value: { stringValue: 'food' }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts NotEqual', () => {
         const input = filter('field', '!=', 42);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -848,14 +848,14 @@ export function serializerTest(
             value: { integerValue: '42' }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts LessThan', () => {
         const input = filter('field', '<', 42);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -863,14 +863,14 @@ export function serializerTest(
             value: { integerValue: '42' }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts LessThanOrEqual', () => {
         const input = filter('field', '<=', 'food');
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -878,14 +878,14 @@ export function serializerTest(
             value: { stringValue: 'food' }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts GreaterThan', () => {
         const input = filter('field', '>', false);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -893,14 +893,14 @@ export function serializerTest(
             value: { booleanValue: false }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts GreaterThanOrEqual', () => {
         const input = filter('field', '>=', 1e100);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -908,14 +908,14 @@ export function serializerTest(
             value: { doubleValue: 1e100 }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts key field', () => {
         const input = filter(DOCUMENT_KEY_NAME, '==', ref('coll/doc'));
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: '__name__' },
@@ -926,14 +926,14 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(KeyFieldFilter);
       });
 
       it('converts array-contains', () => {
         const input = filter('field', 'array-contains', 42);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -941,14 +941,14 @@ export function serializerTest(
             value: { integerValue: '42' }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(ArrayContainsFilter);
       });
 
       it('converts IN', () => {
         const input = filter('field', 'in', [42]);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -964,14 +964,14 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(InFilter);
       });
 
       it('converts not-in', () => {
         const input = filter('field', 'not-in', [42]);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -987,14 +987,14 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(NotInFilter);
       });
 
       it('converts not-in with null', () => {
         const input = filter('field', 'not-in', [null]);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -1010,14 +1010,14 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(NotInFilter);
       });
 
       it('converts array-contains-any', () => {
         const input = filter('field', 'array-contains-any', [42]);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -1033,65 +1033,65 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = decodeFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(ArrayContainsAnyFilter);
       });
     });
 
-    describe('encode/decode UnaryFilter', () => {
+    describe('to/from UnaryFilter', () => {
       addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('converts null', () => {
         const input = filter('field', '==', null);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NULL'
           }
         });
-        expect(decodeUnaryFilter(actual)).to.deep.equal(input);
+        expect(fromUnaryFilter(actual)).to.deep.equal(input);
       });
 
       it('converts Nan', () => {
         const input = filter('field', '==', NaN);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NAN'
           }
         });
-        expect(decodeUnaryFilter(actual)).to.deep.equal(input);
+        expect(fromUnaryFilter(actual)).to.deep.equal(input);
       });
 
       it('converts not null', () => {
         const input = filter('field', '!=', null);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NOT_NULL'
           }
         });
-        expect(decodeUnaryFilter(actual)).to.deep.equal(input);
+        expect(fromUnaryFilter(actual)).to.deep.equal(input);
       });
 
       it('converts not NaN', () => {
         const input = filter('field', '!=', NaN);
-        const actual = encodeUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NOT_NAN'
           }
         });
-        expect(decodeUnaryFilter(actual)).to.deep.equal(input);
+        expect(fromUnaryFilter(actual)).to.deep.equal(input);
       });
     });
 
-    describe('encode/decode CompositeFilter', () => {
+    describe('to/from CompositeFilter', () => {
       addEqualityMatcher({ equalsFn: filterEquals, forType: Filter });
 
       /* eslint-disable no-restricted-properties */
@@ -1106,7 +1106,7 @@ export function serializerTest(
         );
 
         // Encode
-        const actual = encodeCompositeFilter(input);
+        const actual = toCompositeFilter(input);
 
         const propProtoFilter = {
           fieldFilter: {
@@ -1169,7 +1169,91 @@ export function serializerTest(
         });
 
         // Decode
-        const roundtripped = decodeCompositeFilter(actual);
+        const roundtripped = fromCompositeFilter(actual);
+        expect(roundtripped).to.deep.equal(input);
+        expect(roundtripped).to.be.instanceof(CompositeFilter);
+      });
+    });
+
+    describe('to/from CompositeFilter', () => {
+      addEqualityMatcher({ equalsFn: filterEquals, forType: Filter });
+
+      /* eslint-disable no-restricted-properties */
+      it('converts deep collections', () => {
+        const input = orFilter(
+          filter('prop', '<', 42),
+          andFilter(
+            filter('author', '==', 'ehsann'),
+            filter('tags', 'array-contains', 'pending'),
+            orFilter(filter('version', '==', 4), filter('version', '==', NaN))
+          )
+        );
+
+        // Encode
+        const actual = toCompositeFilter(input);
+
+        const propProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'prop' },
+            op: 'LESS_THAN',
+            value: { integerValue: '42' }
+          }
+        };
+
+        const authorProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'author' },
+            op: 'EQUAL',
+            value: { stringValue: 'ehsann' }
+          }
+        };
+
+        const tagsProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'tags' },
+            op: 'ARRAY_CONTAINS',
+            value: { stringValue: 'pending' }
+          }
+        };
+
+        const versionProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'version' },
+            op: 'EQUAL',
+            value: { integerValue: '4' }
+          }
+        };
+
+        const nanVersionProtoFilter = {
+          unaryFilter: {
+            field: { fieldPath: 'version' },
+            op: 'IS_NAN'
+          }
+        };
+
+        const innerOrProtoFilter = {
+          compositeFilter: {
+            op: protoCompositeFilterOrOp,
+            filters: [versionProtoFilter, nanVersionProtoFilter]
+          }
+        };
+
+        const innerAndProtoFilter = {
+          compositeFilter: {
+            op: 'AND',
+            filters: [authorProtoFilter, tagsProtoFilter, innerOrProtoFilter]
+          }
+        };
+
+        expect(actual).to.deep.equal({
+          compositeFilter: {
+            op: protoCompositeFilterOrOp,
+            filters: [propProtoFilter, innerAndProtoFilter]
+          }
+        });
+
+        // Decode
+        const roundtripped = fromCompositeFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(CompositeFilter);
       });

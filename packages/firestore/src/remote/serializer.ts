@@ -839,7 +839,7 @@ export function toQueryTarget(
     result.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
   }
 
-  const where = encodeFilters(target.filters);
+  const where = toFilters(target.filters);
   if (where) {
     result.structuredQuery!.where = where;
   }
@@ -885,7 +885,7 @@ export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
 
   let filterBy: Filter[] = [];
   if (query.where) {
-    filterBy = decodeFilters(query.where);
+    filterBy = fromFilters(query.where);
   }
 
   let orderBy: OrderBy[] = [];
@@ -984,16 +984,16 @@ export function toTarget(
   return result;
 }
 
-function encodeFilters(filters: Filter[]): ProtoFilter | undefined {
+function toFilters(filters: Filter[]): ProtoFilter | undefined {
   if (filters.length === 0) {
     return;
   }
 
-  return encodeFilter(CompositeFilter.create(filters, CompositeOperator.AND));
+  return toFilter(CompositeFilter.create(filters, CompositeOperator.AND));
 }
 
-function decodeFilters(filter: ProtoFilter): Filter[] {
-  const result = decodeFilter(filter);
+function fromFilters(filter: ProtoFilter): Filter[] {
+  const result = fromFilter(filter);
 
   // Instead of a singletonList containing AND(F1, F2, ...), we can return a list containing F1,
   // F2, ...
@@ -1003,19 +1003,20 @@ function decodeFilters(filter: ProtoFilter): Filter[] {
     result instanceof CompositeFilter &&
     compositeFilterIsFlatConjunction(result)
   ) {
+
     return result.getFilters();
   }
 
   return [result];
 }
 
-function decodeFilter(filter: ProtoFilter): Filter {
+function fromFilter(filter: ProtoFilter): Filter {
   if (filter.unaryFilter !== undefined) {
-    return decodeUnaryFilter(filter);
+    return fromUnaryFilter(filter);
   } else if (filter.fieldFilter !== undefined) {
-    return decodeFieldFilter(filter);
+    return fromFieldFilter(filter);
   } else if (filter.compositeFilter !== undefined) {
-    return decodeCompositeFilter(filter);
+    return fromCompositeFilter(filter);
   } else {
     return fail('Unknown filter: ' + JSON.stringify(filter));
   }
@@ -1124,9 +1125,8 @@ export function fromCompositeOperatorName(
   switch (op) {
     case 'AND':
       return CompositeOperator.AND;
-    // TODO(orquery) update when OR operatore is supported in ProtoCompositeFilterOp
-    // case 'OPERATOR_UNSPECIFIED':
-    //   return fail('Unspecified operator');
+    // TODO(orquery) update when OR operator is supported in ProtoCompositeFilterOp
+    //    OPERATOR_UNSPECIFIED should fail and OR should return OR
     case 'OPERATOR_UNSPECIFIED':
       return CompositeOperator.OR;
     default:
@@ -1160,18 +1160,18 @@ export function fromPropertyOrder(orderBy: ProtoOrder): OrderBy {
 }
 
 // visible for testing
-export function encodeFilter(filter: Filter): ProtoFilter {
+export function toFilter(filter: Filter): ProtoFilter {
   if (filter instanceof FieldFilter) {
-    return encodeUnaryOrFieldFilter(filter);
+    return toUnaryOrFieldFilter(filter);
   } else if (filter instanceof CompositeFilter) {
-    return encodeCompositeFilter(filter);
+    return toCompositeFilter(filter);
   } else {
     return fail('Unrecognized filter type ' + JSON.stringify(filter));
   }
 }
 
-export function encodeCompositeFilter(filter: CompositeFilter): ProtoFilter {
-  const protos = filter.getFilters().map(filter => encodeFilter(filter));
+export function toCompositeFilter(filter: CompositeFilter): ProtoFilter {
+  const protos = filter.getFilters().map(filter => toFilter(filter));
 
   if (protos.length === 1) {
     return protos[0];
@@ -1185,7 +1185,7 @@ export function encodeCompositeFilter(filter: CompositeFilter): ProtoFilter {
   };
 }
 
-export function encodeUnaryOrFieldFilter(filter: FieldFilter): ProtoFilter {
+export function toUnaryOrFieldFilter(filter: FieldFilter): ProtoFilter {
   if (filter.op === Operator.EQUAL) {
     if (isNanValue(filter.value)) {
       return {
@@ -1228,7 +1228,7 @@ export function encodeUnaryOrFieldFilter(filter: FieldFilter): ProtoFilter {
   };
 }
 
-export function decodeUnaryFilter(filter: ProtoFilter): Filter {
+export function fromUnaryFilter(filter: ProtoFilter): Filter {
   switch (filter.unaryFilter!.op!) {
     case 'IS_NAN':
       const nanField = fromFieldPathReference(filter.unaryFilter!.field!);
@@ -1257,7 +1257,7 @@ export function decodeUnaryFilter(filter: ProtoFilter): Filter {
   }
 }
 
-export function decodeFieldFilter(filter: ProtoFilter): FieldFilter {
+export function fromFieldFilter(filter: ProtoFilter): FieldFilter {
   return FieldFilter.create(
     fromFieldPathReference(filter.fieldFilter!.field!),
     fromOperatorName(filter.fieldFilter!.op!),
@@ -1265,9 +1265,9 @@ export function decodeFieldFilter(filter: ProtoFilter): FieldFilter {
   );
 }
 
-export function decodeCompositeFilter(filter: ProtoFilter): CompositeFilter {
+export function fromCompositeFilter(filter: ProtoFilter): CompositeFilter {
   return CompositeFilter.create(
-    filter.compositeFilter!.filters!.map(filter => decodeFilter(filter)),
+    filter.compositeFilter!.filters!.map(filter => fromFilter(filter)),
     fromCompositeOperatorName(filter.compositeFilter!.op!)
   );
 }
