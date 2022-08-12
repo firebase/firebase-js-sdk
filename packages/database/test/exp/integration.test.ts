@@ -29,7 +29,6 @@ import {
   orderByChild,
   query,
   refFromURL,
-  remove,
   set,
   startAt,
   update,
