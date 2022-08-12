@@ -21,13 +21,15 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import {
+  child,
   get,
   limitToFirst,
   onValue,
   query,
   refFromURL,
   set,
-  startAt
+  startAt,
+  orderByKey
 } from '../../src/api/Reference_impl';
 import {
   getDatabase,
@@ -41,8 +43,11 @@ import { EventAccumulatorFactory } from '../helpers/EventAccumulator';
 import {
   DATABASE_ADDRESS,
   DATABASE_URL,
-  getUniqueRef,
-  waitFor
+  getFreshRepo,
+  getRWRefs,
+  waitFor,
+  waitUntil,
+  writeAndValidate
 } from '../helpers/util';
 
 use(chaiAsPromised);
@@ -114,92 +119,120 @@ describe('Database@exp Tests', () => {
 
   // Tests to make sure onValue's data does not get mutated after calling get
   it('calls onValue only once after get request with a non-default query', async () => {
-    const db = getDatabase(defaultApp);
-    const { ref: testRef } = getUniqueRef(db);
+    const { readerRef } = getRWRefs(getDatabase(defaultApp));
     const queries = [
-      query(testRef, limitToFirst(1)),
-      query(testRef, startAt('child1')),
-      query(testRef, startAt('child2')),
-      query(testRef, limitToFirst(2))
+      query(readerRef, limitToFirst(1)),
+      query(readerRef, startAt('child1')),
+      query(readerRef, startAt('child2')),
+      query(readerRef, limitToFirst(2))
     ];
     await Promise.all(
       queries.map(async q => {
         const initial = [{ name: 'child1' }, { name: 'child2' }];
         const ec = EventAccumulatorFactory.waitsForExactCount(1);
-
-        await set(testRef, initial);
-        const unsubscribe = onValue(testRef, snapshot => {
-          ec.addEvent(snapshot.val());
+        const writerPath = getFreshRepo(readerRef._path);
+        await set(writerPath, initial);
+        const unsubscribe = onValue(readerRef, snapshot => {
+          ec.addEvent(snapshot);
         });
         await get(q);
         await waitFor(2000);
         const [snap] = await ec.promise;
-        expect(snap).to.deep.equal(initial);
+        expect(snap.val()).to.deep.equal(initial);
         unsubscribe();
       })
     );
   });
 
+  it('[smoketest] - calls onValue() listener when get() is called on a parent node', async () => {
+    // Test that when get() is pending on a parent node, and then onValue is called on a child node, that after the get() comes back, the onValue() listener fires.
+    const db = getDatabase(defaultApp);
+    const { readerRef, writerRef } = getRWRefs(db);
+    await set(writerRef, {
+      foo1: {
+        a: 1
+      },
+      foo2: {
+        b: 1
+      }
+    });
+    await waitUntil(() => {
+      // Because this is a test reliant on network latency, it can be difficult to reproduce. There are situations when get() resolves immediately, and the above behavior is not observed.
+      let pending = false;
+      get(readerRef).then(() => (pending = true));
+      return !pending;
+    });
+    const childPath = child(readerRef, 'foo1');
+    const ec = EventAccumulatorFactory.waitsForExactCount(1);
+    onValue(childPath, snapshot => {
+      ec.addEvent(snapshot.val());
+    });
+    const events = await ec.promise;
+    expect(events.length).to.eq(1);
+    const snapshot = events[0];
+    expect(snapshot).to.deep.eq({ a: 1 });
+  });
+
   it('calls onValue and expects no issues with removing the listener', async () => {
     const db = getDatabase(defaultApp);
-    const { ref: testRef } = getUniqueRef(db);
+    const { readerRef, writerRef } = getRWRefs(db);
     const initial = [{ name: 'child1' }, { name: 'child2' }];
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
-    await set(testRef, initial);
-    const unsubscribe = onValue(testRef, snapshot => {
+    await set(writerRef, initial);
+    const unsubscribe = onValue(readerRef, snapshot => {
       ea.addEvent(snapshot.val());
     });
-    await get(query(testRef));
+    await get(query(readerRef));
     await waitFor(2000);
     const update = [{ name: 'child1' }, { name: 'child20' }];
     unsubscribe();
-    await set(testRef, update);
+    await set(writerRef, update);
     const [snap1] = await ea.promise;
     expect(snap1).to.deep.eq(initial);
   });
 
   it('calls onValue only once after get request with a default query', async () => {
     const db = getDatabase(defaultApp);
-    const { ref: testRef } = getUniqueRef(db);
+    const { readerRef, writerRef } = getRWRefs(db);
     const initial = [{ name: 'child1' }, { name: 'child2' }];
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
 
-    await set(testRef, initial);
-    const unsubscribe = onValue(testRef, snapshot => {
-      ea.addEvent(snapshot.val());
+    await set(writerRef, initial);
+    const unsubscribe = onValue(readerRef, snapshot => {
+      ea.addEvent(snapshot);
       expect(snapshot.val()).to.deep.eq(initial);
     });
-    await get(query(testRef));
+    await get(query(readerRef));
     await waitFor(2000);
     const [snap] = await ea.promise;
-    expect(snap).to.deep.equal(initial);
+    expect(snap.val()).to.deep.equal(initial);
     unsubscribe();
   });
+
   it('calls onValue only once after get request with a nested query', async () => {
     const db = getDatabase(defaultApp);
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
-    const { ref: testRef, path } = getUniqueRef(db);
+    const { readerRef, writerRef } = getRWRefs(db);
     const initial = {
       test: {
         abc: 123
       }
     };
-
-    await set(testRef, initial);
-    const unsubscribe = onValue(testRef, snapshot => {
-      ea.addEvent(snapshot.val());
+    await set(writerRef, initial);
+    const unsubscribe = onValue(readerRef, snapshot => {
+      ea.addEvent(snapshot);
     });
-    const nestedRef = ref(db, path + '/test');
+    const nestedRef = child(readerRef, 'test');
     const result = await get(query(nestedRef));
     await waitFor(2000);
     const [snap] = await ea.promise;
-    expect(snap).to.deep.equal(initial);
+    expect(snap.val()).to.deep.equal(initial);
     expect(result.val()).to.deep.eq(initial.test);
     unsubscribe();
   });
   it('calls onValue only once after parent get request', async () => {
     const db = getDatabase(defaultApp);
-    const { ref: testRef, path } = getUniqueRef(db);
+    const { readerRef, writerRef } = getRWRefs(db);
     const ea = EventAccumulatorFactory.waitsForExactCount(1);
     const initial = {
       test: {
@@ -207,16 +240,16 @@ describe('Database@exp Tests', () => {
       }
     };
 
-    await set(testRef, initial);
-    const nestedRef = ref(db, path + '/test');
+    await set(writerRef, initial);
+    const nestedRef = child(readerRef, 'test');
     const unsubscribe = onValue(nestedRef, snapshot => {
-      ea.addEvent(snapshot.val());
+      ea.addEvent(snapshot);
     });
-    const result = await get(query(testRef));
+    const result = await get(query(readerRef));
     const events = await ea.promise;
     await waitFor(2000);
     expect(events.length).to.equal(1);
-    expect(events[0]).to.deep.eq(initial.test);
+    expect(events[0].val()).to.deep.eq(initial.test);
     expect(result.val()).to.deep.equal(initial);
     unsubscribe();
   });
@@ -290,6 +323,103 @@ describe('Database@exp Tests', () => {
     goOnline(db);
     await waitFor(2000);
     expect(resolvedData.val()).to.deep.equal(initial);
+  });
+
+  it('resolves get to serverCache when the database is offline', async () => {
+    const db = getDatabase(defaultApp);
+    const { writerRef } = getRWRefs(db);
+    const expected = {
+      test: 'abc'
+    };
+    await set(writerRef, expected);
+    goOffline(db);
+    const result = await get(writerRef);
+    expect(result.val()).to.deep.eq(expected);
+    goOnline(db);
+  });
+
+  it('resolves get to serverCache when the database is offline and using a parent-level listener', async () => {
+    const db = getDatabase(defaultApp);
+    const { readerRef, writerRef } = getRWRefs(db);
+    const toWrite = {
+      test: 'def'
+    };
+    const ec = EventAccumulatorFactory.waitsForExactCount(1);
+    await set(writerRef, toWrite);
+    onValue(readerRef, snapshot => {
+      ec.addEvent(snapshot);
+    });
+    await ec.promise;
+    goOffline(db);
+    const result = await get(child(readerRef, 'test'));
+    expect(result.val()).to.deep.eq(toWrite.test);
+    goOnline(db);
+  });
+
+  it('only fires listener once when calling get with limitTo', async () => {
+    const db = getDatabase(defaultApp);
+    const { readerRef, writerRef } = getRWRefs(db);
+    const ec = EventAccumulatorFactory.waitsForExactCount(1);
+    const toWrite = {
+      child1: 'test1',
+      child2: 'test2'
+    };
+    await writeAndValidate(writerRef, readerRef, toWrite, ec);
+    const q = query(readerRef, limitToFirst(1));
+    const snapshot = await get(q);
+    const expected = {
+      child1: 'test1'
+    };
+    expect(snapshot.val()).to.deep.eq(expected);
+  });
+
+  it('should listen to a disjointed path and get should return the corresponding value', async () => {
+    const db = getDatabase(defaultApp);
+    const { readerRef, writerRef } = getRWRefs(db);
+    const toWrite = {
+      child1: 'test1',
+      child2: 'test2',
+      child3: 'test3'
+    };
+    let ec = EventAccumulatorFactory.waitsForExactCount(1);
+    await writeAndValidate(writerRef, readerRef, toWrite, ec);
+    ec = EventAccumulatorFactory.waitsForExactCount(1);
+    const child1Ref = child(readerRef, 'child1');
+    onValue(child1Ref, snapshot => {
+      ec.addEvent(snapshot);
+    });
+    const otherChildrenQuery = query(
+      readerRef,
+      orderByKey(),
+      startAt('child2')
+    );
+    const expected = {
+      child2: 'test2',
+      child3: 'test3'
+    };
+    const [child1Snapshot] = await ec.promise;
+    expect(child1Snapshot.val()).to.eq('test1');
+    const snapshot = await get(otherChildrenQuery);
+    expect(snapshot.val()).to.deep.eq(expected);
+  });
+
+  it('should test startAt get with listener only fires once', async () => {
+    const db = getDatabase(defaultApp);
+    const { readerRef, writerRef } = getRWRefs(db);
+    const expected = {
+      child1: 'test1',
+      child2: 'test2',
+      child3: 'test3'
+    };
+    const ec = EventAccumulatorFactory.waitsForExactCount(1);
+    await writeAndValidate(writerRef, readerRef, expected, ec);
+    const q = query(readerRef, orderByKey(), startAt('child2'));
+    const snapshot = await get(q);
+    const expectedQRes = {
+      child2: 'test2',
+      child3: 'test3'
+    };
+    expect(snapshot.val()).to.deep.eq(expectedQRes);
   });
 
   it('Can listen to transaction changes', async () => {
