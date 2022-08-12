@@ -41,7 +41,7 @@ export class DatabaseEmulator extends Emulator {
         {
           uri: `http://localhost:${this.port}/.settings/rules.json?ns=${this.namespace}`,
           headers: { Authorization: 'Bearer owner' },
-          body: '{ "rules": { ".read": true, ".write": true } }'
+          body: '{ "rules": { ".read": true, ".write": true, "testing": { ".indexOn": "testIndex" } } }'
         },
         (error, response, body) => {
           if (error) reject(error);

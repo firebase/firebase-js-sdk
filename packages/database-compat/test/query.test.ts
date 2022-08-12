@@ -4676,26 +4676,22 @@ describe('Query Tests', () => {
     // TODO(mtewani): This repro requires an index to be created.
     await root.remove();
 
-    const query = root.orderByChild('lease').limitToFirst(2);
+    const query = root.orderByChild('testIndex').limitToFirst(2);
 
     await root
       .child('i|1')
-      .set({ lease: 3, timestamp: Date.now(), action: 'test' });
+      .set({ testIndex: 3, timestamp: Date.now(), action: 'test' });
     await root
       .child('i|2')
-      .set({ lease: 1, timestamp: Date.now(), action: 'test' });
+      .set({ testIndex: 1, timestamp: Date.now(), action: 'test' });
     await root
       .child('i|3')
-      .set({ lease: 2, timestamp: Date.now(), action: 'test' });
+      .set({ testIndex: 2, timestamp: Date.now(), action: 'test' });
     const childAdded = query.on('child_added', snap => {
       const value = snap.val();
-      console.log('onChildAdded', value);
-      if(value.timestamp && !value.lease) {
-        console.log("ERR: missing value");
-      }
       expect(value).to.haveOwnProperty('timestamp');
       expect(value).to.haveOwnProperty('action');
-      expect(value).to.haveOwnProperty('lease');
+      expect(value).to.haveOwnProperty('testIndex');
     });
     const onValue = root.child('i|1').on('value', snap => {
       console.log('onValue', snap.val());

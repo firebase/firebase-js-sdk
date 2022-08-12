@@ -21,13 +21,18 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import {
+  child,
   get,
   limitToFirst,
+  onChildAdded,
   onValue,
+  orderByChild,
   query,
   refFromURL,
+  remove,
   set,
-  startAt
+  startAt,
+  update
 } from '../../src/api/Reference_impl';
 import {
   getDatabase,
@@ -110,6 +115,51 @@ describe('Database@exp Tests', () => {
     expect(snap1).to.equal('a');
     expect(snap2).to.equal('b');
     unsubscribe();
+  });
+
+  it('can properly handle unknown deep merges', async () => {
+    const database = getDatabase(defaultApp);
+    const root = ref(database, 'testing');
+    await remove(root);
+
+    const q = query(root, orderByChild('testIndex'), limitToFirst(2));
+
+    const i1 = child(root, 'i1');
+    await set(root, {
+      i1: {
+        testIndex: 3,
+        timestamp: Date.now(),
+        action: 'test'
+      },
+      i2: {
+        testIndex: 1,
+        timestamp: Date.now(),
+        action: 'test'
+      },
+      i3: {
+        testIndex: 2,
+        timestamp: Date.now(),
+        action: 'test'
+      }
+    });
+    const ec = EventAccumulatorFactory.waitsForExactCount(1);
+    const onChildAddedCb = onChildAdded(q, snap => {
+      const value = snap.val();
+      ec.addEvent(snap);
+    });
+    const onValueCb = onValue(i1, () => {
+      //no-op
+    });
+    await update(i1, {
+      timestamp: `${Date.now()}|1`
+    });
+    const [result] = await ec.promise;
+    const value = result.val();
+    expect(value).to.haveOwnProperty('timestamp');
+    expect(value).to.haveOwnProperty('action');
+    expect(value).to.haveOwnProperty('testIndex');
+    onChildAddedCb();
+    onValueCb();
   });
 
   // Tests to make sure onValue's data does not get mutated after calling get

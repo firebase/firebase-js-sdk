@@ -3,7 +3,7 @@
     ".read": true,
     ".write": true,
     "testing": {
-      ".indexOn": "lease"
+      ".indexOn": "testIndex"
     }
   }
 }

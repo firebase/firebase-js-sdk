@@ -82,6 +82,7 @@ export async function initializeTestEnvironment(
   }
 
   if (config.database?.rules) {
+    console.log('RUNNING RULES');
     assertEmulatorRunning(emulators, 'database');
     await loadDatabaseRules(
       emulators.database,
