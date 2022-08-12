@@ -24,8 +24,6 @@ import {
   stringify
 } from '@firebase/util';
 
-import { ValueEventRegistration } from '../api/Reference_impl';
-
 import { AppCheckTokenProvider } from './AppCheckTokenProvider';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { PersistentConnection } from './PersistentConnection';
@@ -63,7 +61,7 @@ import {
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
   syncTreeRemoveEventRegistration,
-  syncTreeTagForQuery
+  syncTreeRegisterQuery
 } from './SyncTree';
 import { Indexable } from './util/misc';
 import {
@@ -445,6 +443,7 @@ function repoUpdateInfo(repo: Repo, pathString: string, value: unknown): void {
 function repoGetNextWriteId(repo: Repo): number {
   return repo.nextWriteId_++;
 }
+
 /**
  * The purpose of `getValue` is to return the latest known value
  * satisfying `query`.
@@ -453,18 +452,14 @@ function repoGetNextWriteId(repo: Repo): number {
  * belonging to active listeners. If they are found, such values
  * are considered to be the most up-to-date.
  *
- * If the client is not connected, this method will wait until the
- *  repo has established a connection and then request the value for `query`.
- * If the client is not able to retrieve the query result for another reason,
- * it reports an error.
+ * If the client is not connected, this method will try to
+ * establish a connection and request the value for `query`. If
+ * the client is not able to retrieve the query result, it reports
+ * an error.
  *
  * @param query - The query to surface a value for.
  */
-export function repoGetValue(
-  repo: Repo,
-  query: QueryContext,
-  eventRegistration: ValueEventRegistration
-): Promise<Node> {
+export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
   // Only active queries are cached. There is no persisted cache.
   const cached = syncTreeGetServerValue(repo.serverSyncTree_, query);
   if (cached != null) {
@@ -475,57 +470,32 @@ export function repoGetValue(
       const node = nodeFromJSON(payload).withIndex(
         query._queryParams.getIndex()
       );
-      /**
-       * Below we simulate the actions of an `onlyOnce` `onValue()` event where:
-       * Add an event registration,
-       * Update data at the path,
-       * Raise any events,
-       * Cleanup the SyncTree
-       */
-      syncTreeAddEventRegistration(
-        repo.serverSyncTree_,
-        query,
-        eventRegistration,
-        true
-      );
-      let events: Event[];
+      // if this is a filtered query, then overwrite at path
       if (query._queryParams.loadsAllData()) {
-        events = syncTreeApplyServerOverwrite(
-          repo.serverSyncTree_,
-          query._path,
-          node
-        );
+        syncTreeApplyServerOverwrite(repo.serverSyncTree_, query._path, node);
       } else {
-        const tag = syncTreeTagForQuery(repo.serverSyncTree_, query);
-        events = syncTreeApplyTaggedQueryOverwrite(
+        // Simulate `syncTreeAddEventRegistration` without events/listener setup.
+        // We do this (along with the syncTreeRemoveEventRegistration` below) so that
+        // `repoGetValue` results have the same cache effects as initial listener(s)
+        // updates.
+        const tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
+        syncTreeApplyTaggedQueryOverwrite(
           repo.serverSyncTree_,
           query._path,
           node,
           tag
         );
+        // Call `syncTreeRemoveEventRegistration` with a null event registration, since there is none.
+        // Note: The below code essentially unregisters the query and cleans up any views/syncpoints temporarily created above.
       }
-      /*
-       * We need to raise events in the scenario where `get()` is called at a parent path, and
-       * while the `get()` is pending, `onValue` is called at a child location. While get() is waiting
-       * for the data, `onValue` will register a new event. Then, get() will come back, and update the syncTree
-       * and its corresponding serverCache, including the child location where `onValue` is called. Then,
-       * `onValue` will receive the event from the server, but look at the syncTree and see that the data received
-       * from the server is already at the SyncPoint, and so the `onValue` callback will never get fired.
-       * Calling `eventQueueRaiseEventsForChangedPath()` is the correct way to propagate the events and
-       * ensure the corresponding child events will get fired.
-       */
-      eventQueueRaiseEventsForChangedPath(
-        repo.eventQueue_,
-        query._path,
-        events
-      );
-      syncTreeRemoveEventRegistration(
+      const cancels = syncTreeRemoveEventRegistration(
         repo.serverSyncTree_,
         query,
-        eventRegistration,
-        null,
-        true
+        null
       );
+      if (cancels.length > 0) {
+        repoLog(repo, 'unexpected cancel events in repoGetValue');
+      }
       return node;
     },
     err => {
@@ -982,7 +952,7 @@ export function repoStartTransaction(
     // Mark as run and add to our queue.
     transaction.status = TransactionStatus.RUN;
     const queueNode = treeSubTree(repo.transactionQueueTree_, path);
-    const nodeQueue = treeGetValue(queueNode) ?? [];
+    const nodeQueue = treeGetValue(queueNode) || [];
     nodeQueue.push(transaction);
 
     treeSetValue(queueNode, nodeQueue);
@@ -1067,7 +1037,7 @@ function repoSendReadyTransactions(
     repoPruneCompletedTransactionsBelowNode(repo, node);
   }
 
-  if (treeGetValue(node) !== undefined) {
+  if (treeGetValue(node)) {
     const queue = repoBuildTransactionQueue(repo, node);
     assert(queue.length > 0, 'Sending zero length transaction queue');
 
@@ -1443,7 +1413,7 @@ function repoAggregateTransactionQueuesForNode(
   queue: Transaction[]
 ): void {
   const nodeQueue = treeGetValue(node);
-  if (nodeQueue !== undefined) {
+  if (nodeQueue) {
     for (let i = 0; i < nodeQueue.length; i++) {
       queue.push(nodeQueue[i]);
     }
@@ -1462,7 +1432,7 @@ function repoPruneCompletedTransactionsBelowNode(
   node: Tree<Transaction[]>
 ): void {
   const queue = treeGetValue(node);
-  if (queue !== undefined) {
+  if (queue) {
     let to = 0;
     for (let from = 0; from < queue.length; from++) {
       if (queue[from].status !== TransactionStatus.COMPLETED) {
@@ -1514,7 +1484,7 @@ function repoAbortTransactionsOnNode(
   node: Tree<Transaction[]>
 ): void {
   const queue = treeGetValue(node);
-  if (queue !== undefined) {
+  if (queue) {
     // Queue up the callbacks and fire them after cleaning up all of our
     // transaction state, since the callback could trigger more transactions
     // or sets.

@@ -30,13 +30,7 @@ import {
 } from '../../database/test/helpers/EventAccumulator';
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 
-import {
-  createTestApp,
-  getFreshRepo,
-  getPath,
-  getRandomNode,
-  pause
-} from './helpers/util';
+import { getFreshRepo, getPath, getRandomNode, pause } from './helpers/util';
 
 use(chaiAsPromised);
 
@@ -4669,39 +4663,6 @@ describe('Query Tests', () => {
           });
         });
     });
-  });
-  it.only('can properly handle unknown deep merges', async () => {
-    const app = createTestApp();
-    const root = app.database().ref().child('testing');
-    // TODO(mtewani): This repro requires an index to be created.
-    await root.remove();
-
-    const query = root.orderByChild('testIndex').limitToFirst(2);
-
-    await root
-      .child('i|1')
-      .set({ testIndex: 3, timestamp: Date.now(), action: 'test' });
-    await root
-      .child('i|2')
-      .set({ testIndex: 1, timestamp: Date.now(), action: 'test' });
-    await root
-      .child('i|3')
-      .set({ testIndex: 2, timestamp: Date.now(), action: 'test' });
-    const childAdded = query.on('child_added', snap => {
-      const value = snap.val();
-      expect(value).to.haveOwnProperty('timestamp');
-      expect(value).to.haveOwnProperty('action');
-      expect(value).to.haveOwnProperty('testIndex');
-    });
-    const onValue = root.child('i|1').on('value', snap => {
-      console.log('onValue', snap.val());
-      //no-op
-    });
-    await root.child('i|1').update({ timestamp: `${Date.now()}|1` });
-    console.log('wrote value');
-    await new Promise(resolve => setTimeout(resolve, 4000));
-    root.child('i|1').off('value', onValue);
-    query.off('child_added', childAdded);
   });
 
   it('Can JSON serialize refs', () => {
