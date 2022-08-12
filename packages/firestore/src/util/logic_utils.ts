@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { filter } from "../../test/util/helpers";
 import { CompositeFilter, compositeFilterIsConjunction, compositeFilterIsDisjunction, compositeFilterIsFlat, CompositeOperator, FieldFilter, Filter } from "../core/target";
 
 import { hardAssert } from "./assert";
@@ -63,7 +62,7 @@ function isSingleFieldFilter(filter: Filter): boolean {
  * Returns true if the given filter is the conjunction of one or more field filters. e.g. (a == 10
  * && b == 20)
  */
-function isFlatConjunction(result: Filter): boolean {
+function isFlatConjunction(filter: Filter): boolean {
     return (filter instanceof CompositeFilter) && compositeFilterIsConjunction(filter);
 }
 
