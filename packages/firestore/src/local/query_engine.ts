@@ -229,8 +229,7 @@ export class QueryEngine {
     lastLimboFreeSnapshotVersion: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
     if (
-      queryMatchesAllDocuments(query) ||
-      queryContainsCompositeFilters(query)
+      queryMatchesAllDocuments(query)
     ) {
       // Queries that match all documents don't benefit from using
       // key-based lookups. It is more efficient to scan all documents in a
