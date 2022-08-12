@@ -121,10 +121,10 @@ describe('Database@exp Tests', () => {
     unsubscribe();
   });
 
-  it('can properly handle unknown deep merges', async () => {
+  it.only('can properly handle unknown deep merges', async () => {
     const database = getDatabase(defaultApp);
     const root = ref(database, 'testing');
-    await remove(root);
+    await set(root, {});
 
     const q = query(root, orderByChild('testIndex'), limitToFirst(2));
 
@@ -146,9 +146,8 @@ describe('Database@exp Tests', () => {
         action: 'test'
       }
     });
-    const ec = EventAccumulatorFactory.waitsForExactCount(1);
+    const ec = EventAccumulatorFactory.waitsForExactCount(2);
     const onChildAddedCb = onChildAdded(q, snap => {
-      const value = snap.val();
       ec.addEvent(snap);
     });
     const onValueCb = onValue(i1, () => {
@@ -157,11 +156,13 @@ describe('Database@exp Tests', () => {
     await update(i1, {
       timestamp: `${Date.now()}|1`
     });
-    const [result] = await ec.promise;
-    const value = result.val();
-    expect(value).to.haveOwnProperty('timestamp');
-    expect(value).to.haveOwnProperty('action');
-    expect(value).to.haveOwnProperty('testIndex');
+    const results = await ec.promise;
+    results.forEach(result => {
+      const value = result.val();
+      expect(value).to.haveOwnProperty('timestamp');
+      expect(value).to.haveOwnProperty('action');
+      expect(value).to.haveOwnProperty('testIndex');
+    });
     onChildAddedCb();
     onValueCb();
   });

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export const EventAccumulatorFactory = {
+export const EventAccumulatorFactory = { // TODO: Convert to use generics to take the most advantage of types.
   waitsForCount: maxCount => {
     // Note: This should be used sparingly as it can result in more events being raised than expected
     let count = 0;
