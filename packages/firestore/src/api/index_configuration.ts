@@ -35,10 +35,9 @@ export {
   EmulatorMockTokenOptions
 } from '../lite-api/database';
 
-// TODO(indexing): Remove "@internal" from the API.
-
 /**
  * A single field element in an index configuration.
+ * @beta
  */
 export interface IndexField {
   /** The field path to index. */
@@ -63,6 +62,7 @@ export interface IndexField {
 
 /**
  * The SDK definition of a Firestore index.
+ * @beta
  */
 export interface Index {
   /** The ID of the collection to index. */
@@ -78,6 +78,7 @@ export interface Index {
  *
  * See {@link https://firebase.google.com/docs/reference/firestore/indexes/#json_format | JSON Format}
  * for a description of the format of the index definition.
+ * @beta
  */
 export interface IndexConfiguration {
   /** A list of all Firestore indexes. */
@@ -106,6 +107,7 @@ export interface IndexConfiguration {
  * @throws FirestoreError if the JSON format is invalid.
  * @returns A `Promise` that resolves once all indices are successfully
  * configured.
+ * @beta
  */
 export function setIndexConfiguration(
   firestore: Firestore,
@@ -136,6 +138,7 @@ export function setIndexConfiguration(
  * @throws FirestoreError if the JSON format is invalid.
  * @returns A `Promise` that resolves once all indices are successfully
  * configured.
+ * @beta
  */
 export function setIndexConfiguration(
   firestore: Firestore,

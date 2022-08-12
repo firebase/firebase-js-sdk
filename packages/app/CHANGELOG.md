@@ -1,5 +1,11 @@
 # @firebase/app
 
+## 0.7.30
+
+### Patch Changes
+
+- [`82a6add13`](https://github.com/firebase/firebase-js-sdk/commit/82a6add1354fe7e4ac1d444157ac027cdd41da6e) [#6480](https://github.com/firebase/firebase-js-sdk/pull/6480) - Prevent core app from throwing if IndexedDB heartbeat functions throw.
+
 ## 0.7.29
 
 ### Patch Changes
