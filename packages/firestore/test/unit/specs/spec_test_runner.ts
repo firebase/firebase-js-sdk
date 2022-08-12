@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { assert, expect, use } from 'chai';
+import chaiExclude from 'chai-exclude';
 
 import { LoadBundleTask } from '../../../src/api/bundle';
 import {
   EmptyAppCheckTokenProvider,
   EmptyAuthCredentialsProvider
 } from '../../../src/api/credentials';
+import {
+  IndexConfiguration,
+  parseIndexes
+} from '../../../src/api/index_configuration';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
@@ -72,6 +77,7 @@ import {
   DbPrimaryClientStore
 } from '../../../src/local/indexeddb_sentinels';
 import { LocalStore } from '../../../src/local/local_store';
+import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
 import {
   ClientId,
   SharedClientState
@@ -79,6 +85,7 @@ import {
 import { SimpleDb } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentKey } from '../../../src/model/document_key';
+import { FieldIndex } from '../../../src/model/field_index';
 import { Mutation } from '../../../src/model/mutation';
 import { JsonObject } from '../../../src/model/object_value';
 import { encodeBase64 } from '../../../src/platform/base64';
@@ -167,6 +174,8 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
+
+use(chaiExclude);
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -392,6 +401,8 @@ abstract class TestRunner {
       return this.doRemoveSnapshotsInSyncListener();
     } else if ('loadBundle' in step) {
       return this.doLoadBundle(step.loadBundle!);
+    } else if ('setIndexConfiguration' in step) {
+      return this.doSetIndexConfiguration(step.setIndexConfiguration!);
     } else if ('watchAck' in step) {
       return this.doWatchAck(step.watchAck!);
     } else if ('watchCurrent' in step) {
@@ -547,6 +558,15 @@ abstract class TestRunner {
       await task.catch(e => {
         logWarn(`Loading bundle failed with ${e}`);
       });
+    });
+  }
+
+  private async doSetIndexConfiguration(
+    jsonOrConfiguration: string | IndexConfiguration
+  ): Promise<void> {
+    return this.queue.enqueue(async () => {
+      const parsedIndexes = parseIndexes(jsonOrConfiguration);
+      return localStoreConfigureFieldIndexes(this.localStore, parsedIndexes);
     });
   }
 
@@ -938,6 +958,21 @@ abstract class TestRunner {
       }
       if ('isShutdown' in expectedState) {
         expect(this.started).to.equal(!expectedState.isShutdown);
+      }
+      if ('indexes' in expectedState) {
+        const fieldIndexes: FieldIndex[] =
+          await this.persistence.runTransaction(
+            'getFieldIndexes ',
+            'readonly',
+            transaction =>
+              this.localStore.indexManager.getFieldIndexes(transaction)
+          );
+
+        assert.deepEqualExcluding(
+          fieldIndexes,
+          expectedState.indexes!,
+          'indexId'
+        );
       }
     }
 
@@ -1385,6 +1420,11 @@ export interface SpecStep {
   failDatabase?: false | PersistenceAction[];
 
   /**
+   * Set Index Configuration
+   */
+  setIndexConfiguration?: string | IndexConfiguration;
+
+  /**
    * Run a queued timer task (without waiting for the delay to expire). See
    * TimerId enum definition for possible values).
    */
@@ -1634,6 +1674,8 @@ export interface StateExpectation {
     acknowledgedDocs: string[];
     rejectedDocs: string[];
   };
+  /** Indexes */
+  indexes?: FieldIndex[];
 }
 
 async function clearCurrentPrimaryLease(): Promise<void> {

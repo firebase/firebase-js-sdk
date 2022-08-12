@@ -39,6 +39,8 @@ import {
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
+  FieldIndex,
+  fieldIndexSemanticComparator,
   INITIAL_LARGEST_BATCH_ID,
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
@@ -57,6 +59,7 @@ import {
 } from '../protos/firestore_bundle_proto';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
+import { diffArrays } from '../util/array';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { logDebug } from '../util/log';
@@ -1481,5 +1484,39 @@ export async function localStoreSaveNamedQuery(
           localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
         );
     }
+  );
+}
+
+export async function localStoreConfigureFieldIndexes(
+  localStore: LocalStore,
+  newFieldIndexes: FieldIndex[]
+): Promise<void> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const indexManager = localStoreImpl.indexManager;
+  const promises: Array<PersistencePromise<void>> = [];
+  return localStoreImpl.persistence.runTransaction(
+    'Configure indexes',
+    'readwrite',
+    transaction =>
+      indexManager
+        .getFieldIndexes(transaction)
+        .next(oldFieldIndexes =>
+          diffArrays(
+            oldFieldIndexes,
+            newFieldIndexes,
+            fieldIndexSemanticComparator,
+            fieldIndex => {
+              promises.push(
+                indexManager.addFieldIndex(transaction, fieldIndex)
+              );
+            },
+            fieldIndex => {
+              promises.push(
+                indexManager.deleteFieldIndex(transaction, fieldIndex)
+              );
+            }
+          )
+        )
+        .next(() => PersistencePromise.waitFor(promises))
   );
 }

@@ -32,7 +32,6 @@ import {
 import { FieldFilter } from '../../../src/core/target';
 import { IndexType } from '../../../src/local/index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { INDEXING_SCHEMA_VERSION } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
 import { documentMap } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
@@ -73,9 +72,7 @@ describe('IndexedDbIndexManager', async () => {
 
   let persistencePromise: Promise<Persistence>;
   beforeEach(async () => {
-    persistencePromise = persistenceHelpers.testIndexedDbPersistence({
-      schemaVersion: INDEXING_SCHEMA_VERSION
-    });
+    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
   });
 
   async function getIndexManager(

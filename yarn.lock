@@ -5424,6 +5424,13 @@ chai-as-promised@7.1.1:
   dependencies:
     check-error "^1.0.2"
 
+chai-exclude@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.npmjs.org/chai-exclude/-/chai-exclude-2.1.0.tgz#653d1218144eafb49b563684ad90b76d12bbc3f9"
+  integrity sha512-IBnm50Mvl3O1YhPpTgbU8MK0Gw7NHcb18WT2TxGdPKOMtdtZVKLHmQwdvOF7mTlHVQStbXuZKFwkevFtbHjpVg==
+  dependencies:
+    fclone "^1.0.11"
+
 chai@4.3.6:
   version "4.3.6"
   resolved "https://registry.npmjs.org/chai/-/chai-4.3.6.tgz#ffe4ba2d9fa9d6680cc0b370adae709ec9011e9c"
@@ -7852,6 +7859,11 @@ fb-watchman@^2.0.0:
   integrity sha512-DkPJKQeY6kKwmuMretBhr7G6Vodr7bFwDYTXIkfG1gjvNpaxBTQV3PbXg6bR1c1UP4jPOX0jHUbbHANL9vRjVg==
   dependencies:
     bser "2.1.1"
+
+fclone@^1.0.11:
+  version "1.0.11"
+  resolved "https://registry.npmjs.org/fclone/-/fclone-1.0.11.tgz#10e85da38bfea7fc599341c296ee1d77266ee640"
+  integrity sha512-GDqVQezKzRABdeqflsgMr7ktzgF9CyS+p2oe0jJqUY6izSSbhPIQJDpoU4PtGcD7VPM9xh/dVrTu6z1nwgmEGw==
 
 fd-slicer@~1.1.0:
   version "1.1.0"

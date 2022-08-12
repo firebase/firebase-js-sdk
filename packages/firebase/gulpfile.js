@@ -33,7 +33,7 @@ gulp.task('cdn-type-module-path', function () {
       .pipe(sourcemaps.init({ loadMaps: true }))
       // gulp-replace doesn't work with gulp-sourcemaps, so no change is made to the existing sourcemap.
       // Therefore the sourcemap become slightly inaccurate
-      .pipe(replace('@firebase/app', FIREBASE_APP_URL))
+      .pipe(replace(/(['"])@firebase\/app(['"])/g, `$1${FIREBASE_APP_URL}$2`))
       .pipe(sourcemaps.write('.'))
       .pipe(gulp.dest('.'))
   );
