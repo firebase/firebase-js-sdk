@@ -19,9 +19,7 @@ import { cast } from '../util/input_validation';
 import { Query, queryEqual } from './reference';
 import { Firestore } from './database';
 import { getDatastore } from './components';
-import { LiteUserDataWriter } from './reference_impl';
-import { invokeRunAggregateQueryRpc } from '../remote/datastore';
-import { QueryDocumentSnapshot } from './snapshot';
+import { invokeRunAggregationQueryRpc, invokeRunQueryRpc } from '../remote/datastore';
 
 export class AggregateQuery {
   readonly type = 'AggregateQuery';
@@ -72,27 +70,13 @@ export function getAggregateFromServerDirect(
 ): Promise<AggregateQuerySnapshot> {
   const firestore = cast(aggregateQuery.query.firestore, Firestore);
   const datastore = getDatastore(firestore);
-  const userDataWriter = new LiteUserDataWriter(firestore);
 
-  return invokeRunAggregateQueryRpc(
+return invokeRunAggregationQueryRpc(
     datastore,
     aggregateQuery.query._query
   ).then(result => {
-    console.log('==========result', result);
-    const docs = result.map(
-      doc =>
-        new QueryDocumentSnapshot(
-          aggregateQuery.query.firestore,
-          userDataWriter,
-          doc.key,
-          doc,
-          aggregateQuery.query.converter
-        )
-    );
-    console.log('==========docs', docs);
-
     return Promise.resolve(
-      new AggregateQuerySnapshot(aggregateQuery, docs.length)
+      new AggregateQuerySnapshot(aggregateQuery, result.length)
     );
   });
 }

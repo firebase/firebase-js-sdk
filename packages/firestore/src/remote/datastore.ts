@@ -25,7 +25,10 @@ import {
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
   RunQueryRequest as ProtoRunQueryRequest,
-  RunQueryResponse as ProtoRunQueryResponse
+  RunQueryResponse as ProtoRunQueryResponse,
+  RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
+  RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
+  Value,
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
@@ -45,7 +48,8 @@ import {
   JsonProtoSerializer,
   toMutation,
   toName,
-  toQueryTarget
+  toQueryTarget,
+  toRunAggregationQueryRequest
 } from './serializer';
 
 /**
@@ -232,22 +236,23 @@ export async function invokeRunQueryRpc(
   );
 }
 
-export async function invokeRunAggregateQueryRpc(
+export async function invokeRunAggregationQueryRpc(
   datastore: Datastore,
   query: Query
-): Promise<Document[]> {
+): Promise< (Value|undefined)[]> {
+
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const request = toQueryTarget(datastoreImpl.serializer, queryToTarget(query));
-  const response = await datastoreImpl.invokeStreamingRPC<
-    ProtoRunQueryRequest,
-    ProtoRunQueryResponse
-  >('RunQuery', request.parent!, { structuredQuery: request.structuredQuery });
+  const request = toRunAggregationQueryRequest(datastoreImpl.serializer, queryToTarget(query));
+  console.log("request--------", request)
+  const response = await datastoreImpl.invokeStreamingRPC<ProtoRunAggregationQueryRequest,
+  ProtoRunAggregationQueryResponse
+>('RunAggregationQuery', request.parent!, {structuredAggregationQuery: request.structuredAggregationQuery});
+  console.log("response--------", response)
   return (
     response
-      // Omit RunQueryResponses that only contain readTimes.
-      .filter(proto => !!proto.document)
-      .map(proto =>
-        fromDocument(datastoreImpl.serializer, proto.document!, undefined)
+      .filter(proto => !!proto.result)
+      .map(proto => proto.result?.aggregateFields!["count"]
+        // fromDocument(datastoreImpl.serializer, proto.result!, undefined)
       )
   );
 }

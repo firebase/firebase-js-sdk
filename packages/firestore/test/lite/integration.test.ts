@@ -78,6 +78,11 @@ import { Timestamp } from '../../src/lite-api/timestamp';
 import { runTransaction } from '../../src/lite-api/transaction';
 import { writeBatch } from '../../src/lite-api/write_batch';
 import {
+  countQuery,
+  getAggregateFromServerDirect
+} from '../../src/lite-api/aggregate';
+
+import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from '../integration/util/settings';
@@ -2035,6 +2040,36 @@ describe('withConverter() support', () => {
           });
         });
       });
+    });
+  });
+});
+
+describe('countQuery()', () => {
+  it.only('empty collection count equals to 0', () => {
+    return withTestCollection(async coll => {
+      const countQuery_ = countQuery(query(coll));
+      expect(countQuery_.type).to.equal('AggregateQuery');
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(0);
+      expect(snapshot.count).to.equal(0);
+    });
+  });
+
+  it.only('test collection count equals to 6', () => {
+    const testDocs = [
+      { k: 'a' },
+      { k: 'b' },
+      { k: 'c' },
+      { k: 'd' },
+      { k: 'e' },
+      { k: 'f' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const countQuery_ = countQuery(query(collection));
+      expect(countQuery_.type).to.equal('AggregateQuery');
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(6);
+      expect(snapshot.count).to.equal(6);
     });
   });
 });

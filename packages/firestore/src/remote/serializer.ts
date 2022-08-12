@@ -82,7 +82,8 @@ import {
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
   Write as ProtoWrite,
-  WriteResult as ProtoWriteResult
+  WriteResult as ProtoWriteResult,
+  RunAggregationQueryRequest as ProtoRunAggregationQueryRequest
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -806,6 +807,7 @@ export function toQueryTarget(
   // Dissect the path into parent, collectionId, and optional key filter.
   const result: ProtoQueryTarget = { structuredQuery: {} };
   const path = target.path;
+
   if (target.collectionGroup !== null) {
     debugAssert(
       path.length % 2 === 0,
@@ -847,6 +849,70 @@ export function toQueryTarget(
   }
   if (target.endAt) {
     result.structuredQuery!.endAt = toEndAtCursor(target.endAt);
+  }
+
+  return result;
+}
+
+export function toRunAggregationQueryRequest(
+  serializer: JsonProtoSerializer,
+  target: Target
+): ProtoRunAggregationQueryRequest {
+  // Dissect the path into parent, collectionId, and optional key filter.
+  const result: ProtoRunAggregationQueryRequest = {
+    structuredAggregationQuery: {
+      aggregations: [
+        {
+          count: {}
+        }
+      ],
+      structuredQuery: {}
+    }
+  };
+  const path = target.path;
+  if (target.collectionGroup !== null) {
+    debugAssert(
+      path.length % 2 === 0,
+      'Collection Group queries should be within a document path or root.'
+    );
+    result.parent = toQueryPath(serializer, path);
+    result.structuredAggregationQuery!.structuredQuery!.from = [
+      {
+        collectionId: target.collectionGroup,
+        allDescendants: true
+      }
+    ];
+  } else {
+    debugAssert(
+      path.length % 2 !== 0,
+      'Document queries with filters are not supported.'
+    );
+    result.parent = toQueryPath(serializer, path.popLast());
+    result.structuredAggregationQuery!.structuredQuery!.from = [
+      { collectionId: path.lastSegment() }
+    ];
+  }
+
+  const where = toFilter(target.filters);
+  if (where) {
+    result.structuredAggregationQuery!.structuredQuery!.where = where;
+  }
+  
+  const orderBy = toOrder(target.orderBy);
+  if (orderBy) {
+    result.structuredAggregationQuery!.structuredQuery!.orderBy = orderBy;
+  }
+  
+  const limit = toInt32Proto(serializer, target.limit);
+  if (limit !== null) {
+    result.structuredAggregationQuery!.structuredQuery!.limit = limit;
+  }
+  
+  if (target.startAt) {
+    result.structuredAggregationQuery!.structuredQuery!.startAt = toStartAtCursor(target.startAt);
+  }
+  if (target.endAt) {
+    result.structuredAggregationQuery!.structuredQuery!.endAt = toEndAtCursor(target.endAt);
   }
 
   return result;
