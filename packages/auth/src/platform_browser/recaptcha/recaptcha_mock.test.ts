@@ -161,7 +161,7 @@ describe('platform_browser/recaptcha/recaptcha_mock', () => {
           'expired-callback': sinon.spy()
         };
         pendingTimers = stubTimeouts();
-        timeoutStub = (window.setTimeout as unknown) as sinon.SinonStub;
+        timeoutStub = window.setTimeout as unknown as sinon.SinonStub;
         widget = new MockWidget(container, auth.name, callbacks);
       });
 

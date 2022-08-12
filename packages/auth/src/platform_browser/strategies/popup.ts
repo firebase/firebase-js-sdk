@@ -25,7 +25,12 @@ import {
 
 import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
-import { _assert, debugAssert, _createError, _assertInstanceOf } from '../../core/util/assert';
+import {
+  _assert,
+  debugAssert,
+  _createError,
+  _assertInstanceOf
+} from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
 import { AuthInternal } from '../../model/auth';

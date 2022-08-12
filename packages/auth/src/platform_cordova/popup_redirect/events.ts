@@ -89,10 +89,7 @@ export function _savePartialEvent(
   auth: AuthInternal,
   event: AuthEvent
 ): Promise<void> {
-  return storage()._set(
-    persistenceKey(auth),
-    (event as object) as PersistedBlob
-  );
+  return storage()._set(persistenceKey(auth), event as object as PersistedBlob);
 }
 
 export async function _getAndRemoveEvent(

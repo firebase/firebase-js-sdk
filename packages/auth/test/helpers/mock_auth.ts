@@ -46,7 +46,7 @@ const FAKE_APP: FirebaseApp = {
 };
 
 export const FAKE_HEARTBEAT_CONTROLLER = {
-  getHeartbeatsHeader: async () => '',
+  getHeartbeatsHeader: async () => ''
 };
 
 export const FAKE_HEARTBEAT_CONTROLLER_PROVIDER: Provider<'heartbeat'> = {
@@ -73,15 +73,19 @@ export async function testAuth(
   popupRedirectResolver?: PopupRedirectResolver,
   persistence = new MockPersistenceLayer()
 ): Promise<TestAuth> {
-  const auth: TestAuth = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
-    apiKey: TEST_KEY,
-    authDomain: TEST_AUTH_DOMAIN,
-    apiHost: TEST_HOST,
-    apiScheme: TEST_SCHEME,
-    tokenApiHost: TEST_TOKEN_HOST,
-    clientPlatform: ClientPlatform.BROWSER,
-    sdkClientVersion: 'testSDK/0.0.0'
-  }) as TestAuth;
+  const auth: TestAuth = new AuthImpl(
+    FAKE_APP,
+    FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+    {
+      apiKey: TEST_KEY,
+      authDomain: TEST_AUTH_DOMAIN,
+      apiHost: TEST_HOST,
+      apiScheme: TEST_SCHEME,
+      tokenApiHost: TEST_TOKEN_HOST,
+      clientPlatform: ClientPlatform.BROWSER,
+      sdkClientVersion: 'testSDK/0.0.0'
+    }
+  ) as TestAuth;
   auth._updateErrorMap(debugErrorMap);
 
   await auth._initializeWithPersistence([persistence], popupRedirectResolver);

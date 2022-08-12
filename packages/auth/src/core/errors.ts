@@ -24,7 +24,7 @@ import { AuthCredential } from './credentials';
 
 /**
  * Enumeration of Firebase Auth error codes.
- * 
+ *
  * @internal
  */
 export const enum AuthErrorCode {
@@ -246,7 +246,8 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The verification ID used to create the phone auth credential is invalid.',
     [AuthErrorCode.INVALID_TENANT_ID]:
       "The Auth instance's tenant ID is invalid.",
-    [AuthErrorCode.LOGIN_BLOCKED]: "Login blocked by user-provided method: {$originalMessage}",
+    [AuthErrorCode.LOGIN_BLOCKED]:
+      'Login blocked by user-provided method: {$originalMessage}',
     [AuthErrorCode.MISSING_ANDROID_PACKAGE_NAME]:
       'An Android Package Name must be provided if the Android App is required to be installed.',
     [AuthErrorCode.MISSING_AUTH_DOMAIN]:
@@ -430,7 +431,10 @@ export interface AuthErrorParams extends GenericAuthErrorParams {
   [AuthErrorCode.ARGUMENT_ERROR]: { appName?: AppName };
   [AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH]: { appName?: AppName };
   [AuthErrorCode.INTERNAL_ERROR]: { appName?: AppName };
-  [AuthErrorCode.LOGIN_BLOCKED]: { appName?: AppName, originalMessage?: string };
+  [AuthErrorCode.LOGIN_BLOCKED]: {
+    appName?: AppName;
+    originalMessage?: string;
+  };
   [AuthErrorCode.OPERATION_NOT_SUPPORTED]: { appName?: AppName };
   [AuthErrorCode.NO_AUTH_EVENT]: { appName?: AppName };
   [AuthErrorCode.MFA_REQUIRED]: {
