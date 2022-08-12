@@ -73,8 +73,8 @@ describe('platform_cordova/popup_redirect/events', () => {
       const spy = sinon.spy(Storage.prototype, 'setItem');
       const event = _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT);
       await _savePartialEvent(auth, event);
-      spy.calledWith('firebase:authEvent:test-api-key:test-app',
-      JSON.stringify(event));
+      expect(spy.calledWith('firebase:authEvent:test-api-key:test-app',
+      JSON.stringify(event))).to.be.true;
     });
   });
 
@@ -91,9 +91,9 @@ describe('platform_cordova/popup_redirect/events', () => {
       sinon.stub(Storage.prototype, 'getItem').returns(event);
       const spy = sinon.spy(Storage.prototype, 'removeItem');
       expect(await _getAndRemoveEvent(auth)).to.eql(JSON.parse(event));
-      spy.calledWith(
+      expect(spy.calledWith(
         'firebase:authEvent:test-api-key:test-app'
-      );
+      )).to.be.true;
     });
   });
 
