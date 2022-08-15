@@ -32,7 +32,8 @@ import {
   targetGetLowerBound,
   targetGetNotInValues,
   targetGetSegmentCount,
-  targetGetUpperBound
+  targetGetUpperBound,
+  targetHasLimit
 } from '../core/target';
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../index/index_byte_encoder';
@@ -481,8 +482,9 @@ export class IndexedDbIndexManager implements IndexManager {
     target: Target
   ): PersistencePromise<IndexType> {
     let indexType = IndexType.FULL;
+    const subTargets = this.getSubTargets(target);
     return PersistencePromise.forEach(
-      this.getSubTargets(target),
+      subTargets,
       (target: Target) => {
         return this.getFieldIndex(transaction, target).next(index => {
           if (!index) {
@@ -495,7 +497,16 @@ export class IndexedDbIndexManager implements IndexManager {
           }
         });
       }
-    ).next(() => indexType);
+    ).next(() => {
+      // OR queries have more than one sub-target (one sub-target per DNF term). We currently consider
+      // OR queries that have a `limit` to have a partial index. For such queries we perform sorting
+      // and apply the limit in memory as a post-processing step.
+      if (targetHasLimit(target) && subTargets.length > 1 && indexType == IndexType.FULL) {
+        return IndexType.PARTIAL;
+      }
+
+      return indexType;
+    });
   }
 
   /**

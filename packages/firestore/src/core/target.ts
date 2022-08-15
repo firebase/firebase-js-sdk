@@ -500,26 +500,26 @@ export function targetGetSegmentCount(target: Target): number {
   let hasArraySegment = false;
 
   for (const filter of target.filters) {
-    // TODO(orquery): Use the flattened filters here
-    const fieldFilter = filter as FieldFilter;
+    for (const subFilter of filter.getFlattenedFilters()) {
 
-    // __name__ is not an explicit segment of any index, so we don't need to
-    // count it.
-    if (fieldFilter.field.isKeyField()) {
-      continue;
-    }
+      // __name__ is not an explicit segment of any index, so we don't need to
+      // count it.
+      if (subFilter.field.isKeyField()) {
+        continue;
+      }
 
-    // ARRAY_CONTAINS or ARRAY_CONTAINS_ANY filters must be counted separately.
-    // For instance, it is possible to have an index for "a ARRAY a ASC". Even
-    // though these are on the same field, they should be counted as two
-    // separate segments in an index.
-    if (
-      fieldFilter.op === Operator.ARRAY_CONTAINS ||
-      fieldFilter.op === Operator.ARRAY_CONTAINS_ANY
-    ) {
-      hasArraySegment = true;
-    } else {
-      fields = fields.add(fieldFilter.field);
+      // ARRAY_CONTAINS or ARRAY_CONTAINS_ANY filters must be counted separately.
+      // For instance, it is possible to have an index for "a ARRAY a ASC". Even
+      // though these are on the same field, they should be counted as two
+      // separate segments in an index.
+      if (
+        subFilter.op === Operator.ARRAY_CONTAINS ||
+        subFilter.op === Operator.ARRAY_CONTAINS_ANY
+      ) {
+        hasArraySegment = true;
+      } else {
+        fields = fields.add(subFilter.field);
+      }
     }
   }
 
@@ -533,6 +533,12 @@ export function targetGetSegmentCount(target: Target): number {
 
   return fields.size + (hasArraySegment ? 1 : 0);
 }
+
+export function targetHasLimit(target: Target): boolean {
+  return target.limit !== null;
+}
+
+
 
 export abstract class Filter {
   abstract matches(doc: Document): boolean;

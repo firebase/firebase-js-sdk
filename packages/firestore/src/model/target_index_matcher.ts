@@ -22,7 +22,7 @@ import {
   OrderBy,
   Target
 } from '../core/target';
-import { debugAssert } from '../util/assert';
+import {debugAssert, hardAssert} from '../util/assert';
 
 import {
   FieldIndex,
@@ -107,7 +107,7 @@ export class TargetIndexMatcher {
    *   omitted.
    */
   servedByIndex(index: FieldIndex): boolean {
-    debugAssert(
+    hardAssert(
       index.collectionGroup === this.collectionId,
       'Collection IDs do not match'
     );

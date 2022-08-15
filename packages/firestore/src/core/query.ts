@@ -468,7 +468,7 @@ function queryMatchesPathAndCollectionGroup(
  * in the results.
  */
 function queryMatchesOrderBy(query: Query, doc: Document): boolean {
-  for (const orderBy of query.explicitOrderBy) {
+  for (const orderBy of queryOrderBy(query)) {
     // order by key always matches
     if (!orderBy.field.isKeyField() && doc.data.field(orderBy.field) === null) {
       return false;
