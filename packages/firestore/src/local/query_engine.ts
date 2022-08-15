@@ -19,7 +19,6 @@ import {
   LimitType,
   newQueryComparator,
   Query,
-  queryContainsCompositeFilters,
   queryMatches,
   queryMatchesAllDocuments,
   queryToTarget,

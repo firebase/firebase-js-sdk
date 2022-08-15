@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import {expect} from 'chai';
 
-import { Timestamp } from '../../../src';
-import { User } from '../../../src/auth/user';
+import {Timestamp} from '../../../src';
+import {User} from '../../../src/auth/user';
 import {
   LimitType,
   Query,
@@ -26,50 +26,54 @@ import {
   queryWithAddedOrderBy,
   queryWithLimit
 } from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { View } from '../../../src/core/view';
-import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { LocalDocumentsView } from '../../../src/local/local_documents_view';
-import { MutationQueue } from '../../../src/local/mutation_queue';
-import { Persistence } from '../../../src/local/persistence';
-import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
-import { QueryEngine } from '../../../src/local/query_engine';
-import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { TargetCache } from '../../../src/local/target_cache';
+import {SnapshotVersion} from '../../../src/core/snapshot_version';
+import {View} from '../../../src/core/view';
+import {DocumentOverlayCache} from '../../../src/local/document_overlay_cache';
+import {IndexedDbPersistence} from '../../../src/local/indexeddb_persistence';
+import {LocalDocumentsView} from '../../../src/local/local_documents_view';
+import {MutationQueue} from '../../../src/local/mutation_queue';
+import {Persistence} from '../../../src/local/persistence';
+import {PersistencePromise} from '../../../src/local/persistence_promise';
+import {
+  PersistenceTransaction
+} from '../../../src/local/persistence_transaction';
+import {QueryEngine} from '../../../src/local/query_engine';
+import {RemoteDocumentCache} from '../../../src/local/remote_document_cache';
+import {TargetCache} from '../../../src/local/target_cache';
 import {
   documentKeySet,
   DocumentMap,
-  newMutationMap,
-  documentMap
+  documentMap,
+  newMutationMap
 } from '../../../src/model/collections';
-import { Document, MutableDocument } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
-import { DocumentSet } from '../../../src/model/document_set';
+import {Document, MutableDocument} from '../../../src/model/document';
+import {DocumentKey} from '../../../src/model/document_key';
+import {DocumentSet} from '../../../src/model/document_set';
 import {
   IndexKind,
   IndexOffset,
   indexOffsetComparator,
   newIndexOffsetFromDocument
 } from '../../../src/model/field_index';
-import { Mutation } from '../../../src/model/mutation';
-import { debugAssert } from '../../../src/util/assert';
+import {Mutation} from '../../../src/model/mutation';
+import {debugAssert} from '../../../src/util/assert';
 import {
+  andFilter,
   deleteMutation,
   doc,
+  fieldIndex,
   filter,
   key,
   orderBy,
-  query,
-  fieldIndex,
+  orFilter,
   patchMutation,
+  query,
   setMutation,
   version
 } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
-import { TestIndexManager } from './test_index_manager';
+import {TestIndexManager} from './test_index_manager';
 
 const TEST_TARGET_ID = 1;
 
@@ -218,7 +222,7 @@ function genericQueryEngineTest(
     debugAssert(
       localDocuments.expectFullCollectionScan !== undefined,
       'Encountered runQuery() call not wrapped in ' +
-        'expectOptimizedCollectionQuery()/expectFullCollectionQuery()'
+      'expectOptimizedCollectionQuery()/expectFullCollectionQuery()'
     );
 
     return persistence.runTransaction('runQuery', 'readonly', txn => {
@@ -299,7 +303,7 @@ function genericQueryEngineTest(
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
 
     // Add a mutation that is not yet part of query's set of remote keys.
-    await addMutation(patchMutation('coll/a', { 'matches': false }));
+    await addMutation(patchMutation('coll/a', {'matches': false}));
 
     const docs = await expectOptimizedCollectionQuery(() =>
       runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
@@ -400,7 +404,7 @@ function genericQueryEngineTest(
     // Add a query mapping for a document that matches, but that sorts below
     // another document due to a pending write.
     await addDocument(MATCHING_DOC_A);
-    await addMutation(patchMutation('coll/a', { order: 1 }));
+    await addMutation(patchMutation('coll/a', {order: 1}));
     await persistQueryMapping(MATCHING_DOC_A.key);
 
     await addDocument(MATCHING_DOC_B);
@@ -420,7 +424,7 @@ function genericQueryEngineTest(
     // Add a query mapping for a document that matches, but that sorts below
     // another document due to a pending write.
     await addDocument(MATCHING_DOC_A);
-    await addMutation(patchMutation('coll/a', { order: 2 }));
+    await addMutation(patchMutation('coll/a', {order: 2}));
     await persistQueryMapping(MATCHING_DOC_A.key);
 
     await addDocument(MATCHING_DOC_B);
@@ -479,12 +483,12 @@ function genericQueryEngineTest(
       LimitType.First
     );
 
-    await addDocument(doc('coll/a', 1, { order: 1 }));
-    await addDocument(doc('coll/b', 1, { order: 3 }));
+    await addDocument(doc('coll/a', 1, {order: 1}));
+    await addDocument(doc('coll/b', 1, {order: 3}));
     await persistQueryMapping(key('coll/a'), key('coll/b'));
 
     // Update "coll/a" but make sure it still sorts before "coll/b"
-    await addMutation(patchMutation('coll/a', { order: 2 }));
+    await addMutation(patchMutation('coll/a', {order: 2}));
 
     // Since the last document in the limit didn't change (and hence we know
     // that all documents written prior to query execution still sort after
@@ -493,8 +497,8 @@ function genericQueryEngineTest(
       runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [
-      doc('coll/a', 1, { order: 2 }).setHasLocalMutations(),
-      doc('coll/b', 1, { order: 3 })
+      doc('coll/a', 1, {order: 2}).setHasLocalMutations(),
+      doc('coll/b', 1, {order: 3})
     ]);
   });
 
@@ -510,6 +514,126 @@ function genericQueryEngineTest(
     );
     verifyResult(docs, [MATCHING_DOC_A]);
   });
+
+
+  it.only('can perform OR queries using full collection scan', async () => {
+    const doc1 = doc("coll/1", 1, {'a': 1, 'b': 0});
+    const doc2 = doc("coll/2", 1, {'a': 2, 'b': 1});
+    const doc3 = doc("coll/3", 1, {'a': 3, 'b': 2});
+    const doc4 = doc("coll/4", 1, {'a': 1, 'b': 3});
+    const doc5 = doc("coll/5", 1, {'a': 1, 'b': 1});
+
+    await addDocument(doc1, doc2, doc3, doc4, doc5);
+
+    // Two equalities: a==1 || b==1.
+    const query1 = query("coll", orFilter(filter("a", "==", 1), filter("b", "==", 1)));
+    const result1 =
+      await expectFullCollectionQuery(() => runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result1, [doc1, doc2, doc4, doc5]);
+
+    // with one inequality: a>2 || b==1.
+    const query2 = query("coll", orFilter(filter("a", ">", 2), filter("b", "==", 1)));
+    const result2 =
+      await expectFullCollectionQuery(() => runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result2, [doc2, doc3, doc5]);
+
+    // (a==1 && b==0) || (a==3 && b==2)
+    const query3 = query("coll",
+      orFilter(
+        andFilter(filter("a", "==", 1), filter("b", "==", 0)),
+        andFilter(filter("a", "==", 3), filter("b", "==", 2))));
+    const result3 =
+      await expectFullCollectionQuery(() => runQuery(query3, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result3, [doc1, doc3]);
+
+    // a==1 && (b==0 || b==3)
+    const query4 = query("coll",
+      andFilter(
+        filter("a", "==", 1),
+        orFilter(filter("b", "==", 0), filter("b", "==", 3))));
+    const result4 =
+      await expectFullCollectionQuery(() => runQuery(query4, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result4, [doc1, doc4]);
+
+    // (a==2 || b==2) && (a==3 || b==3)
+    const query5 = query("coll",
+      andFilter(
+        orFilter(filter("a", "==", 2), filter("b", "==", 2)),
+        orFilter(filter("a", "==", 3), filter("b", "==", 3))));
+    const result5 =
+      await expectFullCollectionQuery(() => runQuery(query5, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result5, [doc3]);
+
+    // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
+    const query6 = queryWithLimit(
+      query("coll",
+        orFilter(
+          filter("a", "==", 1),
+          filter("b", ">", 0))),
+      2,
+      LimitType.First);
+    const result6 =
+      await expectFullCollectionQuery(() => runQuery(query6, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result6, [doc1, doc2]);
+
+    // Test with limits (implicit order by DESC): (a==1) || (b > 0) LIMIT_TO_LAST 2
+    const query7 = queryWithLimit(
+      query("coll",
+        orFilter(
+          filter("a", "==", 1),
+          filter("b", ">", 0))),
+      2,
+      LimitType.Last);
+    const result7 =
+      await expectFullCollectionQuery(() => runQuery(query7, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result7, [doc3, doc4]);
+
+    // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
+    const query8 =
+      queryWithAddedOrderBy(
+        queryWithLimit(
+          query("coll",
+            orFilter(
+              filter("a", "==", 2),
+              filter("b", "==", 1))),
+          1,
+          LimitType.First),
+        orderBy('a', 'asc'));
+    const result8 =
+      await expectFullCollectionQuery(() => runQuery(query8, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result8, [doc5]);
+
+    // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
+    const query9 =
+      queryWithAddedOrderBy(
+        queryWithLimit(
+          query("coll",
+            orFilter(
+              filter("a", "==", 2),
+              filter("b", "==", 1))),
+          1,
+          LimitType.Last),
+        orderBy('a', 'desc'));
+    const result9 =
+      await expectFullCollectionQuery(() => runQuery(query9, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result9, [doc5]);
+
+    // Test with limits without orderBy (the __name__ ordering is the tie breaker).
+    const query10 =
+        queryWithLimit(
+          query("coll",
+            orFilter(
+              filter("a", "==", 2),
+              filter("b", "==", 1))),
+          1,
+          LimitType.First);
+    const result10 =
+      await expectFullCollectionQuery(() => runQuery(query10, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result10, [doc2]);
+
+
+  });
+
 
   if (!durable) {
     return;

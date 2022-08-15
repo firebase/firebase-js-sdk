@@ -772,7 +772,7 @@ describe('IndexedDbIndexManager', async () => {
     await addDoc('coll/val1b', { 'count': 1 });
     await addDoc('coll/val2', { 'count': 2 });
 
-    let q = queryWithAddedOrderBy(query('coll'), orderBy('count'));
+    const q = queryWithAddedOrderBy(query('coll'), orderBy('count'));
     await verifyResults(q, 'coll/val1a', 'coll/val1b', 'coll/val2');
   });
 
