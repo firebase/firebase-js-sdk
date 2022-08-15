@@ -123,7 +123,7 @@ describe('Database@exp Tests', () => {
   it('can properly handle unknown deep merges', async () => {
     // Note: This test requires `testIndex` to be added as an index.
     // Without an index, the test will erroneously pass.
-    // But we are unable to add indexes on the fly to the actual db, so 
+    // But we are unable to add indexes on the fly to the actual db, so
     // running on the emulator is the best way to test this.
     const database = getDatabase(defaultApp);
     const root = ref(database, 'testing');
