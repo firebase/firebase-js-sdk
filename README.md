@@ -127,7 +127,7 @@ command, as follows:
 
 ```bash
 # Select the Firebase project via the text-based UI. This will run tools/config.js
-# and deploy from config/ to your local project.
+# and deploy from config/ to your Firebase project.
 $ yarn test:setup
 
 # Specify the Firebase project via the command-line arguments.
