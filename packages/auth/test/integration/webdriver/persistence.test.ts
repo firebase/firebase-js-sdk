@@ -209,6 +209,10 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
     });
 
     it('use in-memory and clear all persistences if indexedDB and localStorage are both broken', async () => {
+      if (browser === 'firefox') {
+        // TODO(b/198792664): Investigate Firefox timeout failures caused by this test
+        return;
+      }
       await driver.webDriver.navigate().refresh();
       // Simulate browsers that do not support indexedDB.
       await driver.webDriver.executeScript('delete window.indexedDB;');
