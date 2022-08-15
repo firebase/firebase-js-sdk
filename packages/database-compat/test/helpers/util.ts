@@ -146,7 +146,7 @@ export function getFreshRepo(path: Path) {
     'ISOLATED_REPO_' + freshRepoId++
   );
   activeFreshApps.push(app);
-  return (app as any).database().ref(path.toString());
+  return (app as any).database().ref(path.toString()); // TODO(mtewani): Remove explicit any
 }
 
 export function getFreshRepoFromReference(ref) {
