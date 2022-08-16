@@ -509,6 +509,8 @@ export declare type RunAggregationQueryRequest =
   firestoreV1ApiClientInterfaces.RunAggregationQueryRequest;
 export declare type RunAggregationQueryResponse =
   firestoreV1ApiClientInterfaces.RunAggregationQueryResponse;
+export declare type AggregationResult =
+  firestoreV1ApiClientInterfaces.AggregationResult;
 export declare type Status = firestoreV1ApiClientInterfaces.Status;
 export declare type StructuredQuery =
   firestoreV1ApiClientInterfaces.StructuredQuery;

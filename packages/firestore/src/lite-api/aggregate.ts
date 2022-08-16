@@ -19,7 +19,8 @@ import { cast } from '../util/input_validation';
 import { Query, queryEqual } from './reference';
 import { Firestore } from './database';
 import { getDatastore } from './components';
-import { invokeRunAggregationQueryRpc, invokeRunQueryRpc } from '../remote/datastore';
+import { invokeRunAggregationQueryRpc } from '../remote/datastore';
+import {ObjectValue} from "../model/object_value";
 
 export class AggregateQuery {
   readonly type = 'AggregateQuery';
@@ -35,29 +36,34 @@ export class AggregateQuery {
   constructor(query: Query<unknown>) {
     this.query = query;
   }
+
+  getQuery(): Query<unknown> {
+    return this.query;
+  }
 }
 
 export class AggregateQuerySnapshot {
   readonly type = 'AggregateQuerySnapshot';
   readonly query: AggregateQuery;
+  readonly count: number | null;
 
   /** @hideconstructor */
-  constructor(query: AggregateQuery, readonly _count: number) {
+  constructor(query: AggregateQuery, count: number | null) {
     this.query = query;
+    this.count = count;
   }
 
-  //which one we prefer? method or accessor?
+  /** @return The original {@link AggregateQuery} this snapshot is a result of. */
+  getQuery(): AggregateQuery {
+    return this.query;
+  }
+
+  /**
+   * @return The result of a document count aggregation. Returns null if no count aggregation is
+   *     available in the result.
+   */
   getCount(): number | null {
-    return this._count;
-  }
-
-  get count(): number | null {
-    return this._count;
-  }
-
-  compare() {
-    console.log(this.getCount());
-    console.log(this.count);
+    return this.count;
   }
 }
 
@@ -71,14 +77,23 @@ export function getAggregateFromServerDirect(
   const firestore = cast(aggregateQuery.query.firestore, Firestore);
   const datastore = getDatastore(firestore);
 
-return invokeRunAggregationQueryRpc(
+  return invokeRunAggregationQueryRpc(
     datastore,
     aggregateQuery.query._query
   ).then(result => {
+    console.log("aggregarte result:" , result)
+    let count= null;
+    const aggregationFields = result.map(proto=>{
+      for (const [key, value] of Object.entries(proto)) {
+        if (key == "count") count = parseInt(value.integerValue)
+      }
+      return proto
+    })
     return Promise.resolve(
-      new AggregateQuerySnapshot(aggregateQuery, result.length)
+      new AggregateQuerySnapshot(aggregateQuery, count)
     );
   });
+
 }
 
 export function aggregateQueryEqual(

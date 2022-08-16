@@ -28,7 +28,8 @@ import {
   RunQueryResponse as ProtoRunQueryResponse,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
-  Value,
+  AggregationResult,
+  Value
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
@@ -239,21 +240,24 @@ export async function invokeRunQueryRpc(
 export async function invokeRunAggregationQueryRpc(
   datastore: Datastore,
   query: Query
-): Promise< (Value|undefined)[]> {
-
+): Promise<Value[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const request = toRunAggregationQueryRequest(datastoreImpl.serializer, queryToTarget(query));
-  console.log("request--------", request)
-  const response = await datastoreImpl.invokeStreamingRPC<ProtoRunAggregationQueryRequest,
-  ProtoRunAggregationQueryResponse
->('RunAggregationQuery', request.parent!, {structuredAggregationQuery: request.structuredAggregationQuery});
-  console.log("response--------", response)
+  const request = toRunAggregationQueryRequest(
+    datastoreImpl.serializer,
+    queryToTarget(query)
+  );
+  const response = await datastoreImpl.invokeStreamingRPC<
+    ProtoRunAggregationQueryRequest,
+    ProtoRunAggregationQueryResponse
+  >('RunAggregationQuery', request.parent!, {
+    structuredAggregationQuery: request.structuredAggregationQuery
+  });
+  console.log("rpc response : ", response)
   return (
     response
-      .filter(proto => !!proto.result)
-      .map(proto => proto.result?.aggregateFields!["count"]
-        // fromDocument(datastoreImpl.serializer, proto.result!, undefined)
-      )
+      // Omit RunQueryResponses that only contain readTimes.
+      .filter(proto => !!proto.result && !!proto.result.aggregateFields)
+      .map(proto => proto.result!.aggregateFields!)
   );
 }
 

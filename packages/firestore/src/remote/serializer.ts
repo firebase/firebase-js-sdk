@@ -404,6 +404,7 @@ export function fromDocument(
   document: ProtoDocument,
   hasCommittedMutations?: boolean
 ): MutableDocument {
+  console.log("documents", document)
   const key = fromName(serializer, document.name!);
   const version = fromVersion(document.updateTime!);
   const data = new ObjectValue({ mapValue: { fields: document.fields } });
@@ -863,8 +864,15 @@ export function toRunAggregationQueryRequest(
     structuredAggregationQuery: {
       aggregations: [
         {
-          count: {}
-        }
+          count: {
+          },
+          alias:"count"
+        },
+        // {
+        //   count: {
+        //   },
+        //   alias:"count2"
+        // },
       ],
       structuredQuery: {}
     }
