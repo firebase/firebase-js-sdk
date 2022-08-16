@@ -516,7 +516,7 @@ function genericQueryEngineTest(
   });
 
 
-  it.only('can perform OR queries using full collection scan', async () => {
+  it('can perform OR queries using full collection scan', async () => {
     const doc1 = doc("coll/1", 1, {'a': 1, 'b': 0});
     const doc2 = doc("coll/2", 1, {'a': 2, 'b': 1});
     const doc3 = doc("coll/3", 1, {'a': 3, 'b': 2});

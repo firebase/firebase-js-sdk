@@ -100,7 +100,7 @@ function isDisjunctionOfFieldFiltersAndFlatConjunctions(filter: Filter): boolean
     return false;
 }
 
-function computeDistributedNormalForm(filter: Filter): Filter {
+export function computeDistributedNormalForm(filter: Filter): Filter {
     hardAssert(
         filter instanceof FieldFilter || filter instanceof CompositeFilter,
         "Only field filters and composite filters are accepted.");
@@ -131,7 +131,7 @@ function computeDistributedNormalForm(filter: Filter): Filter {
         .reduce((runningResult, filter) => applyDistribution(runningResult, filter));
 }
 
-function applyDistribution(lhs: Filter, rhs: Filter): Filter {
+export function applyDistribution(lhs: Filter, rhs: Filter): Filter {
     hardAssert(lhs instanceof FieldFilter || lhs instanceof CompositeFilter,
         "Only field filters and composite filters are accepted.");
     hardAssert(rhs instanceof FieldFilter || rhs instanceof CompositeFilter,
@@ -220,7 +220,7 @@ function applyDistributionFieldAndCompositeFilters(fieldFilter: FieldFilter, com
  *
  * <p>For more info, visit: https://en.wikipedia.org/wiki/Associative_property#Propositional_logic
  */
-function applyAssociation(filter: Filter): Filter {
+export function applyAssociation(filter: Filter): Filter {
     hardAssert(
         filter instanceof FieldFilter || filter instanceof CompositeFilter,
         "Only field filters and composite filters are accepted.");
