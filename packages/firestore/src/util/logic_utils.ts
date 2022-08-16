@@ -15,7 +15,16 @@
  * limitations under the License.
  */
 
-import { CompositeFilter, compositeFilterIsConjunction, compositeFilterIsDisjunction, compositeFilterIsFlat, CompositeOperator, FieldFilter, Filter } from "../core/target";
+import {
+  CompositeFilter,
+  compositeFilterIsConjunction,
+  compositeFilterIsDisjunction,
+  compositeFilterIsFlat,
+  compositeFilterIsFlatConjunction,
+  CompositeOperator,
+  FieldFilter,
+  Filter
+} from "../core/target";
 
 import { hardAssert } from "./assert";
 
@@ -63,7 +72,7 @@ function isSingleFieldFilter(filter: Filter): boolean {
  * && b == 20)
  */
 function isFlatConjunction(filter: Filter): boolean {
-    return (filter instanceof CompositeFilter) && compositeFilterIsConjunction(filter);
+    return (filter instanceof CompositeFilter) && compositeFilterIsFlatConjunction(filter);
 }
 
 /**
