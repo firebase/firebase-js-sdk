@@ -19,6 +19,8 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 
 // @public (undocumented)
 export class AggregateQuery {
+    // (undocumented)
+    getQuery(): Query<unknown>;
     readonly query: Query<unknown>;
     // (undocumented)
     readonly type = "AggregateQuery";
@@ -30,11 +32,9 @@ export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery)
 // @public (undocumented)
 export class AggregateQuerySnapshot {
     // (undocumented)
-    compare(): void;
-    // (undocumented)
-    get count(): number | null;
-    // (undocumented)
+    readonly count: number | null;
     getCount(): number | null;
+    getQuery(): AggregateQuery;
     // (undocumented)
     readonly query: AggregateQuery;
     // (undocumented)
