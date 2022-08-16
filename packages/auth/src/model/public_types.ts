@@ -268,7 +268,7 @@ export interface Auth {
    */
   beforeAuthStateChanged(
     callback: (user: User | null) => void | Promise<void>,
-    onAbort?: () => void,
+    onAbort?: () => void
   ): Unsubscribe;
   /**
    * Adds an observer for changes to the signed-in user's ID token.
@@ -620,14 +620,14 @@ export interface MultiFactorAssertion {
  *
  * @public
  */
- export interface MultiFactorError extends AuthError {
-   /** Details about the MultiFactorError. */
+export interface MultiFactorError extends AuthError {
+  /** Details about the MultiFactorError. */
   readonly customData: AuthError['customData'] & {
     /**
      * The type of operation (sign-in, linking, or re-authentication) that raised the error.
      */
     readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
-  }
+  };
 }
 
 /**

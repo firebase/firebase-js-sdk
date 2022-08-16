@@ -33,7 +33,11 @@ import {
 import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
 import { AuthInternal } from '../../model/auth';
 import { AuthEventManager } from '../auth/auth_event_manager';
-import { RedirectAction, _clearRedirectOutcomes, _getAndClearPendingRedirectStatus } from './redirect';
+import {
+  RedirectAction,
+  _clearRedirectOutcomes,
+  _getAndClearPendingRedirectStatus
+} from './redirect';
 import {
   AuthEvent,
   AuthEventType,
@@ -61,12 +65,11 @@ describe('core/strategies/redirect', () => {
   let redirectPersistence: RedirectPersistence;
 
   beforeEach(async () => {
-    eventManager = new AuthEventManager(({} as unknown) as TestAuth);
+    eventManager = new AuthEventManager({} as unknown as TestAuth);
     idpStubs = sinon.stub(idpTasks);
     resolver = makeMockPopupRedirectResolver(eventManager);
-    _getInstance<PopupRedirectResolverInternal>(
-      resolver
-    )._redirectPersistence = RedirectPersistence;
+    _getInstance<PopupRedirectResolverInternal>(resolver)._redirectPersistence =
+      RedirectPersistence;
     auth = await testAuth();
     redirectAction = new RedirectAction(auth, _getInstance(resolver), false);
     redirectPersistence = _getInstance(RedirectPersistence);
@@ -201,9 +204,8 @@ describe('core/strategies/redirect', () => {
 
   it('bypasses initialization if no key set', async () => {
     await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
-    const resolverInstance = _getInstance<PopupRedirectResolverInternal>(
-      resolver
-    );
+    const resolverInstance =
+      _getInstance<PopupRedirectResolverInternal>(resolver);
 
     sinon.spy(resolverInstance, '_initialize');
     redirectPersistence.hasPendingRedirect = false;
@@ -221,17 +223,25 @@ describe('core/strategies/redirect', () => {
 
     it('returns false if the key is not set', async () => {
       redirectPersistence.hasPendingRedirect = false;
-      expect(await _getAndClearPendingRedirectStatus(_getInstance(resolver), auth)).to.be.false;
+      expect(
+        await _getAndClearPendingRedirectStatus(_getInstance(resolver), auth)
+      ).to.be.false;
     });
 
     it('returns true if the key is found', async () => {
       redirectPersistence.hasPendingRedirect = true;
-      expect(await _getAndClearPendingRedirectStatus(_getInstance(resolver), auth)).to.be.true;
+      expect(
+        await _getAndClearPendingRedirectStatus(_getInstance(resolver), auth)
+      ).to.be.true;
     });
 
     it('returns false if sessionStorage is permission denied', async () => {
-      _getInstance<PopupRedirectResolverInternal>(resolver)._redirectPersistence = ErroringUnavailablePersistence as unknown as Persistence;
-      expect(await _getAndClearPendingRedirectStatus(_getInstance(resolver), auth)).to.be.false;
+      _getInstance<PopupRedirectResolverInternal>(
+        resolver
+      )._redirectPersistence = ErroringUnavailablePersistence as unknown as Persistence;
+      expect(
+        await _getAndClearPendingRedirectStatus(_getInstance(resolver), auth)
+      ).to.be.false;
     });
   });
 });

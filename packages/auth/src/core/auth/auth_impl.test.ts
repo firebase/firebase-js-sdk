@@ -23,7 +23,12 @@ import sinonChai from 'sinon-chai';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 
-import { FAKE_HEARTBEAT_CONTROLLER, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, testAuth, testUser } from '../../../test/helpers/mock_auth';
+import {
+  FAKE_HEARTBEAT_CONTROLLER,
+  FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+  testAuth,
+  testUser
+} from '../../../test/helpers/mock_auth';
 import { AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { PersistenceInternal } from '../persistence';
@@ -54,14 +59,18 @@ describe('core/auth/auth_impl', () => {
 
   beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    const authImpl = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
-      apiKey: FAKE_APP.options.apiKey!,
-      apiHost: DefaultConfig.API_HOST,
-      apiScheme: DefaultConfig.API_SCHEME,
-      tokenApiHost: DefaultConfig.TOKEN_API_HOST,
-      clientPlatform: ClientPlatform.BROWSER,
-      sdkClientVersion: 'v'
-    });
+    const authImpl = new AuthImpl(
+      FAKE_APP,
+      FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+      {
+        apiKey: FAKE_APP.options.apiKey!,
+        apiHost: DefaultConfig.API_HOST,
+        apiScheme: DefaultConfig.API_SCHEME,
+        tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+        clientPlatform: ClientPlatform.BROWSER,
+        sdkClientVersion: 'v'
+      }
+    );
 
     _initializeAuthInstance(authImpl, { persistence: inMemoryPersistence });
     auth = authImpl;
@@ -142,7 +151,9 @@ describe('core/auth/auth_impl', () => {
     it('is blocked if a beforeAuthStateChanged callback throws', async () => {
       await auth._updateCurrentUser(testUser(auth, 'test'));
       auth.beforeAuthStateChanged(sinon.stub().throws());
-      await expect(auth.signOut()).to.be.rejectedWith(AuthErrorCode.LOGIN_BLOCKED);
+      await expect(auth.signOut()).to.be.rejectedWith(
+        AuthErrorCode.LOGIN_BLOCKED
+      );
     });
   });
 
@@ -344,7 +355,9 @@ describe('core/auth/auth_impl', () => {
         auth.beforeAuthStateChanged(cb1);
         auth.beforeAuthStateChanged(cb2);
 
-        await expect(auth._updateCurrentUser(user)).to.be.rejectedWith(AuthErrorCode.LOGIN_BLOCKED);
+        await expect(auth._updateCurrentUser(user)).to.be.rejectedWith(
+          AuthErrorCode.LOGIN_BLOCKED
+        );
         expect(cb2).not.to.be.called;
       });
 
@@ -355,7 +368,9 @@ describe('core/auth/auth_impl', () => {
         auth.beforeAuthStateChanged(cb1);
         auth.beforeAuthStateChanged(cb2);
 
-        await expect(auth._updateCurrentUser(user)).to.be.rejectedWith(AuthErrorCode.LOGIN_BLOCKED);
+        await expect(auth._updateCurrentUser(user)).to.be.rejectedWith(
+          AuthErrorCode.LOGIN_BLOCKED
+        );
         expect(cb2).not.to.be.called;
       });
     });
@@ -505,14 +520,18 @@ describe('core/auth/auth_impl', () => {
     });
 
     it('prevents initialization from completing', async () => {
-      const authImpl = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
-        apiKey: FAKE_APP.options.apiKey!,
-        apiHost: DefaultConfig.API_HOST,
-        apiScheme: DefaultConfig.API_SCHEME,
-        tokenApiHost: DefaultConfig.TOKEN_API_HOST,
-        clientPlatform: ClientPlatform.BROWSER,
-        sdkClientVersion: 'v'
-      });
+      const authImpl = new AuthImpl(
+        FAKE_APP,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
 
       persistenceStub._get.returns(
         Promise.resolve(testUser(auth, 'uid').toJSON())
@@ -538,7 +557,7 @@ describe('core/auth/auth_impl', () => {
   context('#_getAdditionalHeaders', () => {
     it('always adds the client version', async () => {
       expect(await auth._getAdditionalHeaders()).to.eql({
-        'X-Client-Version': 'v',
+        'X-Client-Version': 'v'
       });
     });
 
@@ -546,30 +565,36 @@ describe('core/auth/auth_impl', () => {
       auth.app.options.appId = 'app-id';
       expect(await auth._getAdditionalHeaders()).to.eql({
         'X-Client-Version': 'v',
-        'X-Firebase-gmpid': 'app-id',
+        'X-Firebase-gmpid': 'app-id'
       });
       delete auth.app.options.appId;
     });
 
     it('adds the heartbeat if available', async () => {
-      sinon.stub(FAKE_HEARTBEAT_CONTROLLER, 'getHeartbeatsHeader').returns(Promise.resolve('heartbeat'));
+      sinon
+        .stub(FAKE_HEARTBEAT_CONTROLLER, 'getHeartbeatsHeader')
+        .returns(Promise.resolve('heartbeat'));
       expect(await auth._getAdditionalHeaders()).to.eql({
         'X-Client-Version': 'v',
-        'X-Firebase-Client': 'heartbeat',
+        'X-Firebase-Client': 'heartbeat'
       });
     });
 
     it('does not add heartbeat if none returned', async () => {
-      sinon.stub(FAKE_HEARTBEAT_CONTROLLER, 'getHeartbeatsHeader').returns(Promise.resolve(''));
+      sinon
+        .stub(FAKE_HEARTBEAT_CONTROLLER, 'getHeartbeatsHeader')
+        .returns(Promise.resolve(''));
       expect(await auth._getAdditionalHeaders()).to.eql({
-        'X-Client-Version': 'v',
+        'X-Client-Version': 'v'
       });
     });
 
     it('does not add heartbeat if controller unavailable', async () => {
-      sinon.stub(FAKE_HEARTBEAT_CONTROLLER_PROVIDER, 'getImmediate').returns(undefined as any);
+      sinon
+        .stub(FAKE_HEARTBEAT_CONTROLLER_PROVIDER, 'getImmediate')
+        .returns(undefined as any);
       expect(await auth._getAdditionalHeaders()).to.eql({
-        'X-Client-Version': 'v',
+        'X-Client-Version': 'v'
       });
     });
   });

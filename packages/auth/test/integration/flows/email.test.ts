@@ -170,8 +170,11 @@ describe('Integration test: email/password auth', () => {
       expect(userA.uid).to.eq(userB.uid);
     });
 
-    generateMiddlewareTests(() => auth, () => {
-      return signInWithEmailAndPassword(auth, email, 'password');
-    });
+    generateMiddlewareTests(
+      () => auth,
+      () => {
+        return signInWithEmailAndPassword(auth, email, 'password');
+      }
+    );
   });
 });

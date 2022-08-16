@@ -130,7 +130,10 @@ describe('Integration test: anonymous auth', () => {
     });
   });
 
-  generateMiddlewareTests(() => auth, () => {
-    return signInAnonymously(auth);
-  });
+  generateMiddlewareTests(
+    () => auth,
+    () => {
+      return signInAnonymously(auth);
+    }
+  );
 });

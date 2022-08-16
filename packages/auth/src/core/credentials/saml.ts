@@ -86,11 +86,8 @@ export class SAMLAuthCredential extends AuthCredential {
    */
   static fromJSON(json: string | object): SAMLAuthCredential | null {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
-    const {
-      providerId,
-      signInMethod,
-      pendingToken
-    }: Record<string, string> = obj;
+    const { providerId, signInMethod, pendingToken }: Record<string, string> =
+      obj;
     if (
       !providerId ||
       !signInMethod ||
