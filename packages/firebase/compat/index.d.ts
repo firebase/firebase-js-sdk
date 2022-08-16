@@ -5819,9 +5819,7 @@ declare namespace firebase.database {
      *   returning true.
      */
     forEach(
-      action: (
-        a: firebase.database.DataSnapshot & { key: string }
-      ) => boolean | void
+      action: (a: firebase.database.DataSnapshot) => boolean | void
     ): boolean;
     /**
      * Gets the priority value of the data in this `DataSnapshot`.
