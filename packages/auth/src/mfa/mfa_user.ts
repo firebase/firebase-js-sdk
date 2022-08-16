@@ -94,7 +94,9 @@ export class MultiFactorUserImpl implements MultiFactorUser {
     try {
       await this.user.reload();
     } catch (e) {
-      if ((e as FirebaseError)?.code !== `auth/${AuthErrorCode.TOKEN_EXPIRED}`) {
+      if (
+        (e as FirebaseError)?.code !== `auth/${AuthErrorCode.TOKEN_EXPIRED}`
+      ) {
         throw e;
       }
     }

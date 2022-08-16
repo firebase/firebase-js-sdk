@@ -36,9 +36,9 @@
 *       @dwyfrequency @hsubox76 @firebase/jssdk-global-approvers
 
 # Database Code
-packages/database @maneesht @jsdt @firebase/jssdk-global-approvers
-packages/database-compat @maneesht @jsdt @firebase/jssdk-global-approvers
-packages/database-types @maneesht @jsdt @firebase/jssdk-global-approvers
+packages/database @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
+packages/database-compat @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
+packages/database-types @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers

@@ -144,7 +144,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         // If this fails, don't halt auth loading
         try {
           await this._popupRedirectResolver._initialize(this);
-        } catch (e) { /* Ignore the error */ }
+        } catch (e) {
+          /* Ignore the error */
+        }
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
@@ -228,14 +230,16 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       if (needsTocheckMiddleware) {
         try {
           await this.beforeStateQueue.runMiddleware(futureCurrentUser);
-        } catch(e) {
+        } catch (e) {
           futureCurrentUser = previouslyStoredUser;
           // We know this is available since the bit is only set when the
           // resolver is available
-          this._popupRedirectResolver!._overrideRedirectResult(this, () => Promise.reject(e));
+          this._popupRedirectResolver!._overrideRedirectResult(this, () =>
+            Promise.reject(e)
+          );
         }
       }
-  
+
       if (futureCurrentUser) {
         return this.reloadAndSetCurrentUserOrClear(futureCurrentUser);
       } else {
@@ -302,7 +306,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     try {
       await _reloadWithoutSaving(user);
     } catch (e) {
-      if ((e as FirebaseError)?.code !== `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`) {
+      if (
+        (e as FirebaseError)?.code !==
+        `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`
+      ) {
         // Something's wrong with the user's token. Log them out and remove
         // them from storage
         return this.directlySetCurrentUser(null);
@@ -336,7 +343,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this._updateCurrentUser(user && user._clone(this));
   }
 
-  async _updateCurrentUser(user: User | null, skipBeforeStateCallbacks: boolean = false): Promise<void> {
+  async _updateCurrentUser(
+    user: User | null,
+    skipBeforeStateCallbacks: boolean = false
+  ): Promise<void> {
     if (this._deleted) {
       return;
     }
@@ -404,7 +414,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
   beforeAuthStateChanged(
     callback: (user: User | null) => void | Promise<void>,
-    onAbort?: () => void,
+    onAbort?: () => void
   ): Unsubscribe {
     return this.beforeStateQueue.pushCallback(callback, onAbort);
   }
@@ -467,7 +477,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     // Make sure we've cleared any pending persistence actions if we're not in
     // the initializer
     if (this._isInitialized) {
-      await this.queue(async () => { });
+      await this.queue(async () => {});
     }
 
     if (this._currentUser?._redirectEventId === id) {
@@ -538,7 +548,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     completed?: CompleteFn
   ): Unsubscribe {
     if (this._deleted) {
-      return () => { };
+      return () => {};
     }
 
     const cb =
@@ -619,7 +629,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   async _getAdditionalHeaders(): Promise<Record<string, string>> {
     // Additional headers on every request
     const headers: Record<string, string> = {
-      [HttpHeader.X_CLIENT_VERSION]: this.clientVersion,
+      [HttpHeader.X_CLIENT_VERSION]: this.clientVersion
     };
 
     if (this.app.options.appId) {
@@ -627,9 +637,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
 
     // If the heartbeat service exists, add the heartbeat string
-    const heartbeatsHeader = await this.heartbeatServiceProvider.getImmediate({
-      optional: true,
-    })?.getHeartbeatsHeader();
+    const heartbeatsHeader = await this.heartbeatServiceProvider
+      .getImmediate({
+        optional: true
+      })
+      ?.getHeartbeatsHeader();
     if (heartbeatsHeader) {
       headers[HttpHeader.X_FIREBASE_CLIENT] = heartbeatsHeader;
     }
@@ -654,7 +666,7 @@ class Subscription<T> {
     observer => (this.observer = observer)
   );
 
-  constructor(readonly auth: AuthInternal) { }
+  constructor(readonly auth: AuthInternal) {}
 
   get next(): NextFn<T | null> {
     _assert(this.observer, this.auth, AuthErrorCode.INTERNAL_ERROR);

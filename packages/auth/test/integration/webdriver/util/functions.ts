@@ -79,7 +79,7 @@ export enum PersistenceFunction {
 
 export enum MiddlewareFunction {
   ATTACH_BLOCKING_MIDDLEWARE = 'middleware.attachBlockingMiddleware',
-  ATTACH_BLOCKING_MIDDLEWARE_ON_START = 'middleware.attachBlockingMiddlewareOnStart',
+  ATTACH_BLOCKING_MIDDLEWARE_ON_START = 'middleware.attachBlockingMiddlewareOnStart'
 }
 
 /** Available firebase UI functions (only for compat tests) */

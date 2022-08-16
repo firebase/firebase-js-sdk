@@ -19,6 +19,8 @@ import * as request from 'request';
 
 import { Emulator } from './emulator';
 
+import * as rulesJSON from '../../../config/database.rules.json';
+
 export class DatabaseEmulator extends Emulator {
   namespace: string;
 
@@ -35,13 +37,14 @@ export class DatabaseEmulator extends Emulator {
   }
 
   setPublicRules(): Promise<number> {
-    console.log('Setting rule {".read": true, ".write": true} to emulator ...');
+    const jsonRules = JSON.stringify(rulesJSON);
+    console.log(`Setting rule ${jsonRules} to emulator ...`);
     return new Promise<number>((resolve, reject) => {
       request.put(
         {
           uri: `http://localhost:${this.port}/.settings/rules.json?ns=${this.namespace}`,
           headers: { Authorization: 'Bearer owner' },
-          body: '{ "rules": { ".read": true, ".write": true } }'
+          body: jsonRules
         },
         (error, response, body) => {
           if (error) reject(error);

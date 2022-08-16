@@ -18,7 +18,8 @@
 import { SDK_VERSION } from '@firebase/app';
 import { expect } from 'chai';
 import { ClientPlatform, _getClientVersion } from './version';
-import { isNode } from '@firebase/util';
+import { getUA, isNode } from '@firebase/util';
+import { _getBrowserName } from './browser';
 
 describe('core/util/_getClientVersion', () => {
   if (isNode()) {
@@ -33,7 +34,7 @@ describe('core/util/_getClientVersion', () => {
     context('browser', () => {
       it('should set the correct version', () => {
         expect(_getClientVersion(ClientPlatform.BROWSER)).to.eq(
-          `Chrome/JsCore/${SDK_VERSION}/FirebaseCore-web`
+          `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/FirebaseCore-web`
         );
       });
     });
@@ -41,7 +42,7 @@ describe('core/util/_getClientVersion', () => {
     context('worker', () => {
       it('should set the correct version', () => {
         expect(_getClientVersion(ClientPlatform.WORKER)).to.eq(
-          `Chrome-Worker/JsCore/${SDK_VERSION}/FirebaseCore-web`
+          `${_getBrowserName(getUA())}-Worker/JsCore/${SDK_VERSION}/FirebaseCore-web`
         );
       });
     });

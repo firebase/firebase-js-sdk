@@ -35,7 +35,8 @@ import {
  */
 export class PhoneMultiFactorAssertionImpl
   extends MultiFactorAssertionImpl
-  implements PhoneMultiFactorAssertion {
+  implements PhoneMultiFactorAssertion
+{
   private constructor(private readonly credential: PhoneAuthCredential) {
     super(FactorId.PHONE);
   }

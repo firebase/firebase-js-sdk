@@ -65,13 +65,15 @@ describe('platform_browser/persistence/local_storage', () => {
   });
 
   describe('#isAvailable', () => {
+    afterEach(() => sinon.restore());
+
     it('should emit false if localStorage setItem throws', async () => {
-      sinon.stub(localStorage, 'setItem').throws(new Error('nope'));
+      sinon.stub(Storage.prototype, 'setItem').throws(new Error('nope'));
       expect(await persistence._isAvailable()).to.be.false;
     });
 
     it('should emit false if localStorage removeItem throws', async () => {
-      sinon.stub(localStorage, 'removeItem').throws(new Error('nope'));
+      sinon.stub(Storage.prototype, 'removeItem').throws(new Error('nope'));
       expect(await persistence._isAvailable()).to.be.false;
     });
 

@@ -203,5 +203,5 @@ export const SERVER_ERROR_MAP: Partial<ServerErrorMap<ServerError>> = {
     AuthErrorCode.SECOND_FACTOR_LIMIT_EXCEEDED,
 
   // Blocking functions related errors.
-  [ServerError.BLOCKING_FUNCTION_ERROR_RESPONSE]: AuthErrorCode.INTERNAL_ERROR,
+  [ServerError.BLOCKING_FUNCTION_ERROR_RESPONSE]: AuthErrorCode.INTERNAL_ERROR
 };

@@ -36,11 +36,8 @@ use(sinonChai);
 
 describe('platform_cordova/popup_redirect/events', () => {
   let auth: TestAuth;
-  let storageStub: sinon.SinonStubbedInstance<typeof localStorage>;
-
   beforeEach(async () => {
     auth = await testAuth();
-    storageStub = sinon.stub(localStorage);
   });
 
   afterEach(() => {
@@ -73,18 +70,17 @@ describe('platform_cordova/popup_redirect/events', () => {
 
   describe('_savePartialEvent', () => {
     it('sets the event', async () => {
+      const spy = sinon.spy(Storage.prototype, 'setItem');
       const event = _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT);
       await _savePartialEvent(auth, event);
-      expect(storageStub.setItem).to.have.been.calledWith(
-        'firebase:authEvent:test-api-key:test-app',
-        JSON.stringify(event)
-      );
+      expect(spy).to.have.been.calledWith('firebase:authEvent:test-api-key:test-app',
+      JSON.stringify(event));
     });
   });
 
   describe('_getAndRemoveEvent', () => {
     it('returns null if no event is present', async () => {
-      storageStub.getItem.returns(null);
+      sinon.stub(Storage.prototype, 'getItem').returns(null);
       expect(await _getAndRemoveEvent(auth)).to.be.null;
     });
 
@@ -92,9 +88,10 @@ describe('platform_cordova/popup_redirect/events', () => {
       const event = JSON.stringify(
         _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT)
       );
-      storageStub.getItem.returns(event);
+      sinon.stub(Storage.prototype, 'getItem').returns(event);
+      const spy = sinon.spy(Storage.prototype, 'removeItem');
       expect(await _getAndRemoveEvent(auth)).to.eql(JSON.parse(event));
-      expect(storageStub.removeItem).to.have.been.calledWith(
+      expect(spy).to.have.been.calledWith(
         'firebase:authEvent:test-api-key:test-app'
       );
     });

@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { _performApiRequest, Endpoint, HttpMethod, _addTidIfNecessary } from '../index';
+import {
+  _performApiRequest,
+  Endpoint,
+  HttpMethod,
+  _addTidIfNecessary
+} from '../index';
 import { Auth } from '../../model/public_types';
 import { IdTokenResponse } from '../../model/id_token';
 import { MfaEnrollment } from '../account_management/mfa';
@@ -60,7 +65,12 @@ export function startSignInPhoneMfa(
   return _performApiRequest<
     StartPhoneMfaSignInRequest,
     StartPhoneMfaSignInResponse
-  >(auth, HttpMethod.POST, Endpoint.START_PHONE_MFA_SIGN_IN, _addTidIfNecessary(auth, request));
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.START_PHONE_MFA_SIGN_IN,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 export interface FinalizePhoneMfaSignInRequest {
@@ -73,12 +83,17 @@ export interface FinalizePhoneMfaSignInResponse extends FinalizeMfaResponse {}
 
 export function finalizeSignInPhoneMfa(
   auth: Auth,
-  request: FinalizePhoneMfaSignInRequest,
+  request: FinalizePhoneMfaSignInRequest
 ): Promise<FinalizePhoneMfaSignInResponse> {
   return _performApiRequest<
     FinalizePhoneMfaSignInRequest,
     FinalizePhoneMfaSignInResponse
-  >(auth, HttpMethod.POST, Endpoint.FINALIZE_PHONE_MFA_SIGN_IN, _addTidIfNecessary(auth, request));
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.FINALIZE_PHONE_MFA_SIGN_IN,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 /**
