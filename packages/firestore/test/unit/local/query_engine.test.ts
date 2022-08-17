@@ -515,7 +515,6 @@ function genericQueryEngineTest(
     verifyResult(docs, [MATCHING_DOC_A]);
   });
 
-
   it('can perform OR queries using full collection scan', async () => {
     const doc1 = doc("coll/1", 1, {'a': 1, 'b': 0});
     const doc2 = doc("coll/2", 1, {'a': 2, 'b': 1});
@@ -630,10 +629,66 @@ function genericQueryEngineTest(
     const result10 =
       await expectFullCollectionQuery(() => runQuery(query10, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
     verifyResult(result10, [doc2]);
-
-
   });
 
+  it('query does not include documents with missing fields', async () => {
+    const doc1 = doc("coll/1", 1, {"a": 1, "b": 0});
+    const doc2 = doc("coll/2", 1, {"b": 1});
+    const doc3 = doc("coll/3", 1, {"a": 3, "b": 2});
+    const doc4 = doc("coll/4", 1, {"a": 1, "b": 3});
+    const doc5 = doc("coll/5", 1, {"a": 1});
+    const doc6 = doc("coll/6", 1, {"a": 2});
+    addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    // Query: a==1 || b==1 order by a.
+    // doc2 should not be included because it's missing the field 'a', and we have "orderBy a".
+    const query1 =
+      query("coll",
+        orFilter(filter("a", "==", 1), filter("b", "==", 1)),
+        orderBy("a", "asc"));
+    const result1 =
+      await expectFullCollectionQuery(() => runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result1, [doc1, doc4, doc5]);
+
+    // Query: a==1 || b==1 order by b.
+    // doc5 should not be included because it's missing the field 'b', and we have "orderBy b".
+    const query2 =
+      query("coll",
+        orFilter(filter("a", "==", 1), filter("b", "==", 1)),
+        orderBy("b", "asc"));
+    const result2 =
+      await expectFullCollectionQuery(() => runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result2, [doc1, doc2, doc4]);
+
+    // Query: a>2 || b==1.
+    // This query has an implicit 'order by a'.
+    // doc2 should not be included because it's missing the field 'a'.
+    const query3 = query("coll",
+      orFilter(filter("a", ">", 2), filter("b", "==", 1)));
+    const result3 =
+      await expectFullCollectionQuery(() => runQuery(query3, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result3, [doc3]);
+
+    // Query: a>1 || b==1 order by a order by b.
+    // doc6 should not be included because it's missing the field 'b'.
+    // doc2 should not be included because it's missing the field 'a'.
+    const query4 =
+      query("coll",
+        orFilter(filter("a", ">", 1), filter("b", "==", 1)),
+        orderBy("a", "asc"),
+        orderBy("b", "asc"));
+    const result4 =
+      await expectFullCollectionQuery(() => runQuery(query4, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result4, [doc3]);
+
+    // Query: a==1 || b==1
+    // There's no explicit nor implicit orderBy. Documents with missing 'a' or missing 'b' should be
+    // allowed if the document matches at least one disjunction term.
+    const query5 = query("coll", orFilter(filter("a", "==", 1), filter("b", "==", 1)));
+    const result5 =
+      await expectFullCollectionQuery(() => runQuery(query5, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    verifyResult(result5, [doc1, doc2, doc4, doc5]);
+  });
 
   if (!durable) {
     return;

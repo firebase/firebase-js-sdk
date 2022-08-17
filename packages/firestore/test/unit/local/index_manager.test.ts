@@ -276,7 +276,7 @@ describe('IndexedDbIndexManager', async () => {
     );
   });
 
-  it.only('supports partial and full index', async () => {
+  it('supports partial and full index', async () => {
     await indexManager.addFieldIndex(
       fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
     );
