@@ -79,7 +79,6 @@ export abstract class RestConnection implements Connection {
 
     const headers = {};
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
-    
     return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
       response => {
         logDebug(LOG_TAG, 'Received: ', response);

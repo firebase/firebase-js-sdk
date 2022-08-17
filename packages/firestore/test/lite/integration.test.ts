@@ -20,6 +20,10 @@ import { initializeApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import {
+  countQuery,
+  getAggregateFromServerDirect
+} from '../../src/lite-api/aggregate';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
   Firestore,
@@ -77,10 +81,6 @@ import {
 import { Timestamp } from '../../src/lite-api/timestamp';
 import { runTransaction } from '../../src/lite-api/transaction';
 import { writeBatch } from '../../src/lite-api/write_batch';
-import {
-  countQuery,
-  getAggregateFromServerDirect
-} from '../../src/lite-api/aggregate';
 
 import {
   DEFAULT_PROJECT_ID,
@@ -2045,7 +2045,7 @@ describe('withConverter() support', () => {
 });
 
 describe('countQuery()', () => {
-  it.only('empty collection count equals to 0', () => {
+  it('empty collection count equals to 0', () => {
     return withTestCollection(async coll => {
       const countQuery_ = countQuery(query(coll));
       expect(countQuery_.type).to.equal('AggregateQuery');
@@ -2055,7 +2055,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it.only('test collection count equals to 6', () => {
+  it('test collection count equals to 6', () => {
     const testDocs = [
       { k: 'a' },
       { k: 'b' },
