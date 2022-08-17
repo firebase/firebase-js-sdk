@@ -650,7 +650,7 @@ function genericQueryEngineTest(
     const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
     const doc5 = doc('coll/5', 1, { 'a': 1 });
     const doc6 = doc('coll/6', 1, { 'a': 2 });
-    addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
 
     // Query: a==1 || b==1 order by a.
     // doc2 should not be included because it's missing the field 'a', and we have "orderBy a".

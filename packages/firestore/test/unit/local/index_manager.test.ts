@@ -293,28 +293,28 @@ describe('IndexedDbIndexManager', async () => {
     );
 
     const query1 = query('coll', filter('a', '==', 1));
-    validateIsFullIndex(query1);
+    await validateIsFullIndex(query1);
 
     const query2 = query('coll', filter('b', '==', 1));
-    validateIsFullIndex(query2);
+    await validateIsFullIndex(query2);
 
     const query3 = query('coll', filter('a', '==', 1), orderBy('a'));
-    validateIsFullIndex(query3);
+    await validateIsFullIndex(query3);
 
     const query4 = query('coll', filter('b', '==', 1), orderBy('b'));
-    validateIsFullIndex(query4);
+    await validateIsFullIndex(query4);
 
     const query5 = query('coll', filter('a', '==', 1), filter('b', '==', 1));
-    validateIsPartialIndex(query5);
+    await validateIsPartialIndex(query5);
 
     const query6 = query('coll', filter('a', '==', 1), orderBy('b'));
-    validateIsPartialIndex(query6);
+    await validateIsPartialIndex(query6);
 
     const query7 = query('coll', filter('b', '==', 1), orderBy('a'));
-    validateIsPartialIndex(query7);
+    await validateIsPartialIndex(query7);
 
     const query8 = query('coll', filter('c', '==', 1), filter('d', '==', 1));
-    validateIsFullIndex(query8);
+    await validateIsFullIndex(query8);
 
     const query9 = query(
       'coll',
@@ -322,7 +322,7 @@ describe('IndexedDbIndexManager', async () => {
       filter('d', '==', 1),
       orderBy('c')
     );
-    validateIsFullIndex(query9);
+    await validateIsFullIndex(query9);
 
     const query10 = query(
       'coll',
@@ -330,7 +330,7 @@ describe('IndexedDbIndexManager', async () => {
       filter('d', '==', 1),
       orderBy('d')
     );
-    validateIsFullIndex(query10);
+    await validateIsFullIndex(query10);
 
     const query11 = query(
       'coll',
@@ -339,7 +339,7 @@ describe('IndexedDbIndexManager', async () => {
       orderBy('c'),
       orderBy('d')
     );
-    validateIsFullIndex(query11);
+    await validateIsFullIndex(query11);
 
     const query12 = query(
       'coll',
@@ -348,7 +348,7 @@ describe('IndexedDbIndexManager', async () => {
       orderBy('d'),
       orderBy('c')
     );
-    validateIsFullIndex(query12);
+    await validateIsFullIndex(query12);
 
     const query13 = query(
       'coll',
@@ -356,10 +356,10 @@ describe('IndexedDbIndexManager', async () => {
       filter('d', '==', 1),
       orderBy('e')
     );
-    validateIsFullIndex(query13);
+    await validateIsFullIndex(query13);
 
     const query14 = query('coll', filter('c', '==', 1), filter('d', '<=', 1));
-    validateIsFullIndex(query14);
+    await validateIsFullIndex(query14);
 
     const query15 = query(
       'coll',
@@ -367,7 +367,7 @@ describe('IndexedDbIndexManager', async () => {
       filter('d', '>', 1),
       orderBy('d')
     );
-    validateIsFullIndex(query15);
+    await validateIsFullIndex(query15);
   });
 
   it('adds documents', async () => {
