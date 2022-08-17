@@ -404,7 +404,6 @@ export function fromDocument(
   document: ProtoDocument,
   hasCommittedMutations?: boolean
 ): MutableDocument {
-  console.log("documents", document)
   const key = fromName(serializer, document.name!);
   const version = fromVersion(document.updateTime!);
   const data = new ObjectValue({ mapValue: { fields: document.fields } });
@@ -808,7 +807,6 @@ export function toQueryTarget(
   // Dissect the path into parent, collectionId, and optional key filter.
   const result: ProtoQueryTarget = { structuredQuery: {} };
   const path = target.path;
-
   if (target.collectionGroup !== null) {
     debugAssert(
       path.length % 2 === 0,

@@ -18,16 +18,17 @@
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { Query, queryToTarget } from '../core/query';
+import { AggregateQuery } from '../lite-api/aggregate';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import {
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
-  RunQueryRequest as ProtoRunQueryRequest,
-  RunQueryResponse as ProtoRunQueryResponse,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
+  RunQueryRequest as ProtoRunQueryRequest,
+  RunQueryResponse as ProtoRunQueryResponse,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
@@ -51,7 +52,6 @@ import {
   toQueryTarget,
   toRunAggregationQueryRequest
 } from './serializer';
-import { AggregateQuery } from '../lite-api/aggregate';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google

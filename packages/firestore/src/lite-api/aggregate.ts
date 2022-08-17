@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { cast } from '../util/input_validation';
-import { Query, queryEqual } from './reference';
-import { Firestore } from './database';
-import { getDatastore } from './components';
 import { invokeRunAggregationQueryRpc } from '../remote/datastore';
+import { cast } from '../util/input_validation';
+import { getDatastore } from './components';
+import { Firestore } from './database';
+import { Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 
 /**

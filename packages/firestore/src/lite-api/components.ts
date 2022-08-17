@@ -84,9 +84,9 @@ export function getDatastore(firestore: FirestoreService): Datastore {
       connection,
       serializer
     );
+
     datastoreInstances.set(firestore, datastore);
   }
-
   return datastoreInstances.get(firestore)!;
 }
 
