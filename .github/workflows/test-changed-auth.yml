@@ -61,7 +61,7 @@ jobs:
           cp config/ci.config.json config/project.json
           yarn
       - name: build
-        run: yarn build:changed auth
+        run: yarn build
       - name: Run tests on auth changed packages
         run: xvfb-run yarn --cwd packages/auth test:browser:unit
         env:
