@@ -866,13 +866,8 @@ export function toRunAggregationQueryRequest(
         {
           count: {
           },
-          alias:"count"
+          alias:"count_alias"
         },
-        // {
-        //   count: {
-        //   },
-        //   alias:"count2"
-        // },
       ],
       structuredQuery: {}
     }

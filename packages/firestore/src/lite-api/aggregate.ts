@@ -22,6 +22,14 @@ import { getDatastore } from './components';
 import { invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { LiteUserDataWriter } from './reference_impl';
 
+/**
+ * A {@code AggregateQuery} computes some aggregation statistics from the result set of a base
+ * {@link Query}.
+ *
+ * <p><b>Subclassing Note</b>: Cloud Firestore classes are not meant to be subclassed except for use
+ * in test mocks. Subclassing is not supported in production code and new SDK releases may break
+ * code that does so.
+ */
 export class AggregateQuery {
   readonly type = 'AggregateQuery';
   /**
@@ -37,11 +45,19 @@ export class AggregateQuery {
     this.query = query;
   }
 
+  /** Returns the base {@link Query} for this aggregate query. */
   getQuery(): Query<unknown> {
     return this.query;
   }
 }
 
+/**
+ * A {@code AggregateQuerySnapshot} contains results of a {@link AggregateQuery}.
+ *
+ * <p><b>Subclassing Note</b>: Cloud Firestore classes are not meant to be subclassed except for use
+ * in test mocks. Subclassing is not supported in production code and new SDK releases may break
+ * code that does so.
+ */
 export class AggregateQuerySnapshot {
   readonly type = 'AggregateQuerySnapshot';
   readonly query: AggregateQuery;
@@ -60,14 +76,23 @@ export class AggregateQuerySnapshot {
 
   /**
    * @return The result of a document count aggregation. Returns null if no count aggregation is
-   *     available in the result.
+   * available in the result.
    */
   getCount(): number | null {
     return this.count;
   }
 }
 
+/**
+ * Creates an {@link AggregateQuery} counting the number of documents matching this query.
+ *
+ * @return An {@link AggregateQuery} object that can be used to count the number of documents in
+ * the result set of this query.
+ */
 export function countQuery(query: Query<unknown>): AggregateQuery {
+  /**
+   * TODO(mila): add the "count" aggregateField to the params after the AggregateQuery is updated.
+   */
   return new AggregateQuery(query);
 }
 
@@ -82,10 +107,10 @@ export function getAggregateFromServerDirect(
     result => {
       const aggregationFields = new Map();
       /**
-       * while getting aggregation fields from server direct, it should get only
-       * one ProtoRunAggregationQueryResponse returned.
+       * while getting aggregation fields from server direct, it should have only
+       * one RunAggregationQueryResponse returned.
        * But we used streaming rpc here, so we will have an array of
-       * (onr , or possibly more)RunAggregationQueryResponse. For this specific
+       * (one, or possibly more) RunAggregationQueryResponse. For this specific
        * function, we get the first RunAggregationQueryResponse only.
        */
       for (const [key, value] of Object.entries(result[0])) {
@@ -94,7 +119,7 @@ export function getAggregateFromServerDirect(
       return Promise.resolve(
         new AggregateQuerySnapshot(
           aggregateQuery,
-          aggregationFields.get('count')
+          aggregationFields.get('count_alias')
         )
       );
     }
