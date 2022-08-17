@@ -994,7 +994,7 @@ export function validateQueryFilterConstraint(
   functionName: string,
   queryConstraint: QueryConstraint
 ): void {
-  if (!(queryConstraint instanceof QueryFilterConstraint)) {
+  if (!(queryConstraint instanceof QueryFilterConstraint) && !(queryConstraint instanceof QueryCompositeFilterConstraint)) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `Function ${functionName}() requires QueryContraints created with a call to 'where(...)'.`

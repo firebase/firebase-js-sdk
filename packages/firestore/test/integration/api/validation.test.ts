@@ -1332,7 +1332,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           where('r', '>', 's')
         )
       ).to.throw(
-        "All where filters with an inequality (notEqualTo, notIn, lessThan, lessThanOrEqualTo, greaterThan, or greaterThanOrEqualTo) must be on the same field. But you have filters on 'c' and 'r'"
+        "Invalid query. All where filters with an inequality (<, <=, !=, not-in, >, or >=) must be on the same field. But you have inequality filters on 'c' and 'r'"
       );
 
       // OrderBy and inequality on different fields. Inequality inside a nested composite filter.
@@ -1346,7 +1346,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           orderBy('r')
         )
       ).to.throw(
-        "Invalid query. You have an inequality where filter (whereLessThan(), whereGreaterThan(), etc.) on field 'c' and so you must also have 'c' as your first orderBy() field, but your first orderBy() is currently on field 'r' instead."
+        "Invalid query. You have a where filter with an inequality (<, <=, !=, not-in, >, or >=) on field 'c' and so you must also use 'c' as your first argument to orderBy(), but your first orderBy() is on field 'r' instead."
       );
 
       // Conflicting operations within a composite filter.
@@ -1359,7 +1359,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           )
         )
       ).to.throw(
-        "Invalid Query. You cannot use 'not_in' filters with 'in' filters."
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
 
       // Conflicting operations between a field filter and a composite filter.
@@ -1373,7 +1373,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           where('i', 'not-in', ['j', 'k'])
         )
       ).to.throw(
-        "Invalid Query. You cannot use 'not_in' filters with 'in' filters."
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
 
       // Conflicting operations between two composite filters.
@@ -1390,7 +1390,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           )
         )
       ).to.throw(
-        "Invalid Query. You cannot use 'not_in' filters with 'in' filters."
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
     });
   });
