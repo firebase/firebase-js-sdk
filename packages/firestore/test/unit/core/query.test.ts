@@ -846,7 +846,7 @@ describe('Query', () => {
     assertQueryMatches(query5, [doc3], [doc1, doc2, doc4, doc5]);
   });
 
-  function assertQueryMatches(query: Query, matching: MutableDocument[], nonMatching: MutableDocument[]) {
+  function assertQueryMatches(query: Query, matching: MutableDocument[], nonMatching: MutableDocument[]): void {
     for(const doc of matching) {
       expect(queryMatches(query, doc)).true;
     }

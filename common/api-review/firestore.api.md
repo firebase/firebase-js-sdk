@@ -18,6 +18,9 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 };
 
 // @public
+export function and(...queryConstraints: QueryConstraint[]): QueryConstraint;
+
+// @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
 
 // @public
@@ -320,6 +323,9 @@ export function onSnapshotsInSync(firestore: Firestore, observer: {
 
 // @public
 export function onSnapshotsInSync(firestore: Firestore, onSync: () => void): Unsubscribe;
+
+// @public
+export function or(...queryConstraints: QueryConstraint[]): QueryConstraint;
 
 // @public
 export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryConstraint;

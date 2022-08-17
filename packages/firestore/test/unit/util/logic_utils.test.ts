@@ -16,9 +16,8 @@
  */
 
 import { expect } from 'chai';
+
 import {
-  CompositeFilter,
-  compositeFilterEquals,
   FieldFilter, Filter, filterEquals
 } from "../../../src/core/target";
 import {
@@ -27,9 +26,8 @@ import {
   computeDistributedNormalForm,
   getDnfTerms
 } from "../../../src/util/logic_utils";
-import {filter, andFilter, orFilter} from "../../util/helpers";
 import {addEqualityMatcher} from "../../util/equality_matcher";
-import {queryEquals, QueryImpl} from "../../../src/core/query";
+import {filter, andFilter, orFilter} from "../../util/helpers";
 
 describe('LogicUtils', () => {
   addEqualityMatcher({ equalsFn: filterEquals, forType: Filter });
@@ -62,19 +60,19 @@ describe('LogicUtils', () => {
 
   it("implements field filter associativity", () => {
     const f = filter('foo', '==', 'bar');
-    expect(f).to.equal(applyAssociation(f))
+    expect(f).to.equal(applyAssociation(f));
   });
 
   it("implements composite filter associativity", () => {
 
     // AND(AND(X)) --> X
     const compositeFilter1 = andFilter(andFilter(A));
-    let actualResult1 = applyAssociation(compositeFilter1);
+    const actualResult1 = applyAssociation(compositeFilter1);
     expect(filterEquals(A, actualResult1)).to.be.true;
 
     // OR(OR(X)) --> X
     const compositeFilter2 = orFilter(orFilter(A));
-    let actualResult2 = applyAssociation(compositeFilter2);
+    const actualResult2 = applyAssociation(compositeFilter2);
     expect(filterEquals(A, actualResult2)).to.be.true;
 
     // (A | (B) | ((C) | (D | E)) | (F | (G & (H & I))) --> A | B | C | D | E | F | (G & H & I)
@@ -149,7 +147,7 @@ describe('LogicUtils', () => {
   it("implements field filter compute DNF", () => {
     expect(computeDistributedNormalForm(A)).to.deep.equal(A);
     expect(getDnfTerms(andFilter(A))).to.deep.equal([A]);
-    expect(getDnfTerms(orFilter(A))).to.deep.equal([A])
+    expect(getDnfTerms(orFilter(A))).to.deep.equal([A]);
   });
 
   it("implements compute dnf flat AND filter", () => {

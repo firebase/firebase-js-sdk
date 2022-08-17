@@ -49,7 +49,9 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
-  where
+  where,
+  or,
+  and
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -1315,6 +1317,61 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() => query(coll, orderBy('foo'), startAt(undefined))).to.throw(
         'Function startAt() called with invalid data. Unsupported field value: undefined'
       );
+    });
+
+    validationIt(persistence, 'invalid query filters fail', db => {
+      // Multiple inequalities, one of which is inside a nested composite filter.
+      const coll = collection(db, 'test');
+      expect(
+        () =>
+          query(coll,
+              or(
+                and(where("a", "==", "b"), where("c", ">", "d")),
+                and(where("e", "==", "f"), where("g", "==", "h"))),
+            where("r", ">", "s")))
+        .to.throw("All where filters with an inequality (notEqualTo, notIn, lessThan, lessThanOrEqualTo, greaterThan, or greaterThanOrEqualTo) must be on the same field. But you have filters on 'c' and 'r'");
+
+      // OrderBy and inequality on different fields. Inequality inside a nested composite filter.
+      expect(
+        () =>
+          query(coll,
+              or(
+                and(where("a", "==", "b"), where("c", ">", "d")),
+                and(where("e", "==", "f"), where("g",  "==", "h"))),
+            orderBy("r")
+        ))
+        .to.throw("Invalid query. You have an inequality where filter (whereLessThan(), whereGreaterThan(), etc.) on field 'c' and so you must also have 'c' as your first orderBy() field, but your first orderBy() is currently on field 'r' instead.");
+
+      // Conflicting operations within a composite filter.
+      expect(
+        () =>
+          query(coll,
+            or(
+              and(where("a", "==", "b"), where("c", "in", ["d", "e"])),
+              and(where("e", "==", "f"), where("c", "not-in", ["f", "g"])))))
+        .to.throw("Invalid Query. You cannot use 'not_in' filters with 'in' filters.");
+
+      // Conflicting operations between a field filter and a composite filter.
+      expect(
+        () =>
+          query(coll,
+              or(
+                and(where("a", "==", "b"), where("c", "in",["d", "e"])),
+                and(where("e", "==", "f"), where("g", "==", "h"))),
+              where("i", "not-in", ["j", "k"])))
+        .to.throw("Invalid Query. You cannot use 'not_in' filters with 'in' filters.");
+
+      // Conflicting operations between two composite filters.
+      expect(
+        () =>
+          query(coll,
+              or(
+                and(where("a", "==", "b"), where("c", "in", ["d", "e"])),
+                and(where("e", "==", "f"), where("g", "==", "h"))),
+              or(
+                and(where("i", "==", "j"), where("l", "not-in", ["m", "n"])),
+                and(where("o", "==", "p"), where("q", "==", "r")))))
+            .to.throw("Invalid Query. You cannot use 'not_in' filters with 'in' filters.");
     });
   });
 });

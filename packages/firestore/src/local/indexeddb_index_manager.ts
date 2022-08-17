@@ -501,7 +501,7 @@ export class IndexedDbIndexManager implements IndexManager {
       // OR queries have more than one sub-target (one sub-target per DNF term). We currently consider
       // OR queries that have a `limit` to have a partial index. For such queries we perform sorting
       // and apply the limit in memory as a post-processing step.
-      if (targetHasLimit(target) && subTargets.length > 1 && indexType == IndexType.FULL) {
+      if (targetHasLimit(target) && subTargets.length > 1 && indexType === IndexType.FULL) {
         return IndexType.PARTIAL;
       }
 
