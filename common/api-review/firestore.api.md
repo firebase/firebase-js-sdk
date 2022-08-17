@@ -17,9 +17,8 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
     [K in keyof T & string as `${Prefix}.${K}`]+?: T[K];
 };
 
-// @public (undocumented)
+// @public
 export class AggregateQuery {
-    // (undocumented)
     getQuery(): Query<unknown>;
     readonly query: Query<unknown>;
     // (undocumented)
@@ -29,7 +28,7 @@ export class AggregateQuery {
 // @public (undocumented)
 export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery): boolean;
 
-// @public (undocumented)
+// @public
 export class AggregateQuerySnapshot {
     // (undocumented)
     readonly count: number | null;
@@ -96,7 +95,7 @@ export function connectFirestoreEmulator(firestore: Firestore, host: string, por
     mockUserToken?: EmulatorMockTokenOptions | string;
 }): void;
 
-// @public (undocumented)
+// @public
 export function countQuery(query: Query<unknown>): AggregateQuery;
 
 // @public
