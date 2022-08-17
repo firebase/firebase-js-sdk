@@ -24,9 +24,9 @@ import {
   CompositeOperator,
   FieldFilter,
   Filter
-} from "../core/target";
+} from '../core/target';
 
-import { hardAssert } from "./assert";
+import { hardAssert } from './assert';
 
 /**
  * Provides utility functions that help with boolean logic transformations needed for handling
@@ -45,26 +45,27 @@ import { hardAssert } from "./assert";
  * @return the terms in the DNF transform.
  */
 export function getDnfTerms(filter: CompositeFilter): Filter[] {
-    if (filter.getFilters().length === 0) {
-        return [];
-    }
+  if (filter.getFilters().length === 0) {
+    return [];
+  }
 
-    const result: Filter = computeDistributedNormalForm(filter);
+  const result: Filter = computeDistributedNormalForm(filter);
 
-    hardAssert(
-        isDisjunctiveNormalForm(result),
-        "computeDistributedNormalForm did not result in disjunctive normal form");
+  hardAssert(
+    isDisjunctiveNormalForm(result),
+    'computeDistributedNormalForm did not result in disjunctive normal form'
+  );
 
-    if (isSingleFieldFilter(result) || isFlatConjunction(result)) {
-        return [result];
-    }
+  if (isSingleFieldFilter(result) || isFlatConjunction(result)) {
+    return [result];
+  }
 
-    return result.getFilters();
+  return result.getFilters();
 }
 
 /** Returns true if the given filter is a single field filter. e.g. (a == 10). */
 function isSingleFieldFilter(filter: Filter): boolean {
-    return filter instanceof FieldFilter;
+  return filter instanceof FieldFilter;
 }
 
 /**
@@ -72,7 +73,10 @@ function isSingleFieldFilter(filter: Filter): boolean {
  * && b == 20)
  */
 function isFlatConjunction(filter: Filter): boolean {
-    return (filter instanceof CompositeFilter) && compositeFilterIsFlatConjunction(filter);
+  return (
+    filter instanceof CompositeFilter &&
+    compositeFilterIsFlatConjunction(filter)
+  );
 }
 
 /**
@@ -84,139 +88,175 @@ function isFlatConjunction(filter: Filter): boolean {
  * <p>For more info, visit: https://en.wikipedia.org/wiki/Disjunctive_normal_form
  */
 function isDisjunctiveNormalForm(filter: Filter): boolean {
-    return isSingleFieldFilter(filter)
-        || isFlatConjunction(filter)
-        || isDisjunctionOfFieldFiltersAndFlatConjunctions(filter);
+  return (
+    isSingleFieldFilter(filter) ||
+    isFlatConjunction(filter) ||
+    isDisjunctionOfFieldFiltersAndFlatConjunctions(filter)
+  );
 }
 
 /**
  * Returns true if the given filter is the disjunction of one or more "flat conjunctions" and
  * field filters. e.g. (a == 10) || (b==20 && c==30)
  */
-function isDisjunctionOfFieldFiltersAndFlatConjunctions(filter: Filter): boolean {
-    if (filter instanceof CompositeFilter) {
-        if (compositeFilterIsDisjunction(filter)) {
-            for (const subFilter of filter.getFilters()) {
-                if (!isSingleFieldFilter(subFilter) && !isFlatConjunction(subFilter)) {
-                    return false;
-                }
-            }
-
-            return true;
+function isDisjunctionOfFieldFiltersAndFlatConjunctions(
+  filter: Filter
+): boolean {
+  if (filter instanceof CompositeFilter) {
+    if (compositeFilterIsDisjunction(filter)) {
+      for (const subFilter of filter.getFilters()) {
+        if (!isSingleFieldFilter(subFilter) && !isFlatConjunction(subFilter)) {
+          return false;
         }
-    }
+      }
 
-    return false;
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export function computeDistributedNormalForm(filter: Filter): Filter {
-    hardAssert(
-        filter instanceof FieldFilter || filter instanceof CompositeFilter,
-        "Only field filters and composite filters are accepted.");
+  hardAssert(
+    filter instanceof FieldFilter || filter instanceof CompositeFilter,
+    'Only field filters and composite filters are accepted.'
+  );
 
-    if (filter instanceof FieldFilter) {
-        return filter;
-    }
+  if (filter instanceof FieldFilter) {
+    return filter;
+  }
 
-    if (filter.filters.length === 1) {
-        return computeDistributedNormalForm(filter.filters[0]);
-    }
+  if (filter.filters.length === 1) {
+    return computeDistributedNormalForm(filter.filters[0]);
+  }
 
-    // Compute DNF for each of the subfilters first
-    const result = filter.filters.map(subfilter => computeDistributedNormalForm(subfilter));
+  // Compute DNF for each of the subfilters first
+  const result = filter.filters.map(subfilter =>
+    computeDistributedNormalForm(subfilter)
+  );
 
-    let newFilter: Filter = CompositeFilter.create(result, filter.op);
-    newFilter = applyAssociation(newFilter);
+  let newFilter: Filter = CompositeFilter.create(result, filter.op);
+  newFilter = applyAssociation(newFilter);
 
-    if (isDisjunctiveNormalForm(newFilter)) {
-        return newFilter;
-    }
+  if (isDisjunctiveNormalForm(newFilter)) {
+    return newFilter;
+  }
 
-    hardAssert(newFilter instanceof CompositeFilter, "field filters are already in DNF form");
-    hardAssert(compositeFilterIsConjunction(newFilter), "Disjunction of filters all of which are already in DNF form is itself in DNF form.");
-    hardAssert(newFilter.filters.length > 1, "Single-filter composite filters are already in DNF form.");
+  hardAssert(
+    newFilter instanceof CompositeFilter,
+    'field filters are already in DNF form'
+  );
+  hardAssert(
+    compositeFilterIsConjunction(newFilter),
+    'Disjunction of filters all of which are already in DNF form is itself in DNF form.'
+  );
+  hardAssert(
+    newFilter.filters.length > 1,
+    'Single-filter composite filters are already in DNF form.'
+  );
 
-    return newFilter.filters
-        .reduce((runningResult, filter) => applyDistribution(runningResult, filter));
+  return newFilter.filters.reduce((runningResult, filter) =>
+    applyDistribution(runningResult, filter)
+  );
 }
 
 export function applyDistribution(lhs: Filter, rhs: Filter): Filter {
-    hardAssert(lhs instanceof FieldFilter || lhs instanceof CompositeFilter,
-        "Only field filters and composite filters are accepted.");
-    hardAssert(rhs instanceof FieldFilter || rhs instanceof CompositeFilter,
-        "Only field filters and composite filters are accepted.");
+  hardAssert(
+    lhs instanceof FieldFilter || lhs instanceof CompositeFilter,
+    'Only field filters and composite filters are accepted.'
+  );
+  hardAssert(
+    rhs instanceof FieldFilter || rhs instanceof CompositeFilter,
+    'Only field filters and composite filters are accepted.'
+  );
 
-    let result: Filter;
+  let result: Filter;
 
-    if (lhs instanceof FieldFilter) {
-        if (rhs instanceof FieldFilter) {
-            // FieldFilter FieldFilter
-            result = applyDistributionFieldFilters(lhs, rhs);
-        }
-        else {
-            // FieldFilter CompositeFilter
-            result = applyDistributionFieldAndCompositeFilters(lhs, rhs);
-        }
+  if (lhs instanceof FieldFilter) {
+    if (rhs instanceof FieldFilter) {
+      // FieldFilter FieldFilter
+      result = applyDistributionFieldFilters(lhs, rhs);
+    } else {
+      // FieldFilter CompositeFilter
+      result = applyDistributionFieldAndCompositeFilters(lhs, rhs);
     }
-    else {
-        if (rhs instanceof FieldFilter) {
-            // CompositeFilter FieldFilter
-            result = applyDistributionFieldAndCompositeFilters(rhs, lhs);
-        }
-        else {
-            // CompositeFilter CompositeFilter
-            result = applyDistributionCompositeFilters(lhs, rhs);
-        }
+  } else {
+    if (rhs instanceof FieldFilter) {
+      // CompositeFilter FieldFilter
+      result = applyDistributionFieldAndCompositeFilters(rhs, lhs);
+    } else {
+      // CompositeFilter CompositeFilter
+      result = applyDistributionCompositeFilters(lhs, rhs);
     }
+  }
 
-    return applyAssociation(result);
+  return applyAssociation(result);
 }
 
-function applyDistributionFieldFilters(lhs: FieldFilter, rhs: FieldFilter): Filter {
-    // Conjunction distribution for two field filters is the conjunction of them.
-    return CompositeFilter.create([lhs, rhs], CompositeOperator.AND);
+function applyDistributionFieldFilters(
+  lhs: FieldFilter,
+  rhs: FieldFilter
+): Filter {
+  // Conjunction distribution for two field filters is the conjunction of them.
+  return CompositeFilter.create([lhs, rhs], CompositeOperator.AND);
 }
 
-function applyDistributionCompositeFilters(lhs: CompositeFilter, rhs: CompositeFilter): Filter {
-    hardAssert(lhs.filters.length > 0 && rhs.filters.length > 0,
-        "Found an empty composite filter");
+function applyDistributionCompositeFilters(
+  lhs: CompositeFilter,
+  rhs: CompositeFilter
+): Filter {
+  hardAssert(
+    lhs.filters.length > 0 && rhs.filters.length > 0,
+    'Found an empty composite filter'
+  );
 
-    // There are four cases:
-    // (A & B) & (C & D) --> (A & B & C & D)
-    // (A & B) & (C | D) --> (A & B & C) | (A & B & D)
-    // (A | B) & (C & D) --> (C & D & A) | (C & D & B)
-    // (A | B) & (C | D) --> (A & C) | (A & D) | (B & C) | (B & D)
+  // There are four cases:
+  // (A & B) & (C & D) --> (A & B & C & D)
+  // (A & B) & (C | D) --> (A & B & C) | (A & B & D)
+  // (A | B) & (C & D) --> (C & D & A) | (C & D & B)
+  // (A | B) & (C | D) --> (A & C) | (A & D) | (B & C) | (B & D)
 
-    // Case 1 is a merge.
-    if (compositeFilterIsConjunction(lhs) && compositeFilterIsConjunction(rhs)) {
-        return CompositeFilter.create(lhs.filters.concat(rhs.filters), CompositeOperator.AND);
-    }
+  // Case 1 is a merge.
+  if (compositeFilterIsConjunction(lhs) && compositeFilterIsConjunction(rhs)) {
+    return CompositeFilter.create(
+      lhs.filters.concat(rhs.filters),
+      CompositeOperator.AND
+    );
+  }
 
-    // Case 2,3,4 all have at least one side (lhs or rhs) that is a disjunction. In all three cases
-    // we should take each element of the disjunction and distribute it over the other side, and
-    // return the disjunction of the distribution results.
-    const disjunctionSide = compositeFilterIsDisjunction(lhs) ? lhs : rhs;
-    const otherSide = compositeFilterIsDisjunction(lhs) ? rhs : lhs;
-    const results = disjunctionSide.filters.map(subfilter => applyDistribution(subfilter, otherSide));
-    return CompositeFilter.create(results, CompositeOperator.OR);
+  // Case 2,3,4 all have at least one side (lhs or rhs) that is a disjunction. In all three cases
+  // we should take each element of the disjunction and distribute it over the other side, and
+  // return the disjunction of the distribution results.
+  const disjunctionSide = compositeFilterIsDisjunction(lhs) ? lhs : rhs;
+  const otherSide = compositeFilterIsDisjunction(lhs) ? rhs : lhs;
+  const results = disjunctionSide.filters.map(subfilter =>
+    applyDistribution(subfilter, otherSide)
+  );
+  return CompositeFilter.create(results, CompositeOperator.OR);
 }
 
-function applyDistributionFieldAndCompositeFilters(fieldFilter: FieldFilter, compositeFilter: CompositeFilter): Filter {
-    // There are two cases:
-    // A & (B & C) --> (A & B & C)
-    // A & (B | C) --> (A & B) | (A & C)
-    if (compositeFilterIsConjunction(compositeFilter)) {
-        // Case 1
-        return CompositeFilter.create(compositeFilter.filters.concat(fieldFilter.getFilters()),
-            CompositeOperator.AND);
-    }
-    else {
-        // Case 2
-        const newFilters =
-            compositeFilter.filters.map(subfilter => applyDistribution(fieldFilter, subfilter));
+function applyDistributionFieldAndCompositeFilters(
+  fieldFilter: FieldFilter,
+  compositeFilter: CompositeFilter
+): Filter {
+  // There are two cases:
+  // A & (B & C) --> (A & B & C)
+  // A & (B | C) --> (A & B) | (A & C)
+  if (compositeFilterIsConjunction(compositeFilter)) {
+    // Case 1
+    return CompositeFilter.create(
+      compositeFilter.filters.concat(fieldFilter.getFilters()),
+      CompositeOperator.AND
+    );
+  } else {
+    // Case 2
+    const newFilters = compositeFilter.filters.map(subfilter =>
+      applyDistribution(fieldFilter, subfilter)
+    );
 
-        return CompositeFilter.create(newFilters, CompositeOperator.OR);
-    }
+    return CompositeFilter.create(newFilters, CompositeOperator.OR);
+  }
 }
 
 /**
@@ -230,59 +270,60 @@ function applyDistributionFieldAndCompositeFilters(fieldFilter: FieldFilter, com
  * <p>For more info, visit: https://en.wikipedia.org/wiki/Associative_property#Propositional_logic
  */
 export function applyAssociation(filter: Filter): Filter {
-    hardAssert(
-        filter instanceof FieldFilter || filter instanceof CompositeFilter,
-        "Only field filters and composite filters are accepted.");
+  hardAssert(
+    filter instanceof FieldFilter || filter instanceof CompositeFilter,
+    'Only field filters and composite filters are accepted.'
+  );
 
-    if (filter instanceof FieldFilter) {
-        return filter;
+  if (filter instanceof FieldFilter) {
+    return filter;
+  }
+
+  const filters = filter.getFilters();
+
+  // If the composite filter only contains 1 filter, apply associativity to it.
+  if (filters.length === 1) {
+    return applyAssociation(filters[0]);
+  }
+
+  // Associativity applied to a flat composite filter results is itself.
+  if (compositeFilterIsFlat(filter)) {
+    return filter;
+  }
+
+  // First apply associativity to all subfilters. This will in turn recursively apply
+  // associativity to all nested composite filters and field filters.
+  const updatedFilters = filters.map(subfilter => applyAssociation(subfilter));
+
+  // For composite subfilters that perform the same kind of logical operation as `compositeFilter`
+  // take out their filters and add them to `compositeFilter`. For example:
+  // compositeFilter = (A | (B | C | D))
+  // compositeSubfilter = (B | C | D)
+  // Result: (A | B | C | D)
+  // Note that the `compositeSubfilter` has been eliminated, and its filters (B, C, D) have been
+  // added to the top-level "compositeFilter".
+  const newSubfilters: Filter[] = [];
+  updatedFilters.forEach(subfilter => {
+    if (subfilter instanceof FieldFilter) {
+      newSubfilters.push(subfilter);
+    } else if (subfilter instanceof CompositeFilter) {
+      if (subfilter.op === filter.op) {
+        // compositeFilter: (A | (B | C))
+        // compositeSubfilter: (B | C)
+        // Result: (A | B | C)
+        newSubfilters.push(...subfilter.filters);
+      } else {
+        // compositeFilter: (A | (B & C))
+        // compositeSubfilter: (B & C)
+        // Result: (A | (B & C))
+        newSubfilters.push(subfilter);
+      }
     }
+  });
 
-    const filters = filter.getFilters();
+  if (newSubfilters.length === 1) {
+    return newSubfilters[0];
+  }
 
-    // If the composite filter only contains 1 filter, apply associativity to it.
-    if (filters.length === 1) {
-        return applyAssociation(filters[0]);
-    }
-
-    // Associativity applied to a flat composite filter results is itself.
-    if (compositeFilterIsFlat(filter)) {
-        return filter;
-    }
-
-    // First apply associativity to all subfilters. This will in turn recursively apply
-    // associativity to all nested composite filters and field filters.
-    const updatedFilters = filters.map(subfilter => applyAssociation(subfilter));
-
-    // For composite subfilters that perform the same kind of logical operation as `compositeFilter`
-    // take out their filters and add them to `compositeFilter`. For example:
-    // compositeFilter = (A | (B | C | D))
-    // compositeSubfilter = (B | C | D)
-    // Result: (A | B | C | D)
-    // Note that the `compositeSubfilter` has been eliminated, and its filters (B, C, D) have been
-    // added to the top-level "compositeFilter".
-    const newSubfilters: Filter[] = [];
-    updatedFilters.forEach(subfilter => {
-        if (subfilter instanceof FieldFilter) {
-            newSubfilters.push(subfilter);
-        } else if (subfilter instanceof CompositeFilter) {
-            if (subfilter.op === filter.op) {
-                // compositeFilter: (A | (B | C))
-                // compositeSubfilter: (B | C)
-                // Result: (A | B | C)
-                newSubfilters.push(...(subfilter.filters));
-            } else {
-                // compositeFilter: (A | (B & C))
-                // compositeSubfilter: (B & C)
-                // Result: (A | (B & C))
-                newSubfilters.push(subfilter);
-            }
-        }
-    });
-
-    if (newSubfilters.length === 1) {
-        return newSubfilters[0];
-    }
-
-    return CompositeFilter.create(newSubfilters, filter.op);
+  return CompositeFilter.create(newSubfilters, filter.op);
 }

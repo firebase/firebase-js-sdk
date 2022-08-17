@@ -501,7 +501,6 @@ export function targetGetSegmentCount(target: Target): number {
 
   for (const filter of target.filters) {
     for (const subFilter of filter.getFlattenedFilters()) {
-
       // __name__ is not an explicit segment of any index, so we don't need to
       // count it.
       if (subFilter.field.isKeyField()) {
@@ -537,8 +536,6 @@ export function targetGetSegmentCount(target: Target): number {
 export function targetHasLimit(target: Target): boolean {
   return target.limit !== null;
 }
-
-
 
 export abstract class Filter {
   abstract matches(doc: Document): boolean;

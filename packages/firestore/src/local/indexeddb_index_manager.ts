@@ -339,23 +339,26 @@ export class IndexedDbIndexManager implements IndexManager {
     if (subTargets) {
       return subTargets;
     }
-    
+
     if (target.filters.length === 0) {
       subTargets = [target];
-    }
-    else {
+    } else {
       // There is an implicit AND operation between all the filters stored in the target
-      const dnf: Filter[] =
-        getDnfTerms(CompositeFilter.create(target.filters, CompositeOperator.AND));
+      const dnf: Filter[] = getDnfTerms(
+        CompositeFilter.create(target.filters, CompositeOperator.AND)
+      );
 
-      subTargets = dnf.map(term => newTarget(
+      subTargets = dnf.map(term =>
+        newTarget(
           target.path,
           target.collectionGroup,
           target.orderBy,
           term.getFilters(),
           target.limit,
           target.startAt,
-          target.endAt));
+          target.endAt
+        )
+      );
     }
 
     this.targetToDnfSubTargets.set(target, subTargets);
@@ -483,25 +486,26 @@ export class IndexedDbIndexManager implements IndexManager {
   ): PersistencePromise<IndexType> {
     let indexType = IndexType.FULL;
     const subTargets = this.getSubTargets(target);
-    return PersistencePromise.forEach(
-      subTargets,
-      (target: Target) => {
-        return this.getFieldIndex(transaction, target).next(index => {
-          if (!index) {
-            indexType = IndexType.NONE;
-          } else if (
-            indexType !== IndexType.NONE &&
-            index.fields.length < targetGetSegmentCount(target)
-          ) {
-            indexType = IndexType.PARTIAL;
-          }
-        });
-      }
-    ).next(() => {
+    return PersistencePromise.forEach(subTargets, (target: Target) => {
+      return this.getFieldIndex(transaction, target).next(index => {
+        if (!index) {
+          indexType = IndexType.NONE;
+        } else if (
+          indexType !== IndexType.NONE &&
+          index.fields.length < targetGetSegmentCount(target)
+        ) {
+          indexType = IndexType.PARTIAL;
+        }
+      });
+    }).next(() => {
       // OR queries have more than one sub-target (one sub-target per DNF term). We currently consider
       // OR queries that have a `limit` to have a partial index. For such queries we perform sorting
       // and apply the limit in memory as a post-processing step.
-      if (targetHasLimit(target) && subTargets.length > 1 && indexType === IndexType.FULL) {
+      if (
+        targetHasLimit(target) &&
+        subTargets.length > 1 &&
+        indexType === IndexType.FULL
+      ) {
         return IndexType.PARTIAL;
       }
 

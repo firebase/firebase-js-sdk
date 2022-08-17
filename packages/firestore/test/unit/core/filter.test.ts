@@ -17,25 +17,19 @@
 
 import { expect } from 'chai';
 
-
-
 import {
   compositeFilterIsConjunction,
   compositeFilterIsDisjunction,
   compositeFilterIsFlat,
   compositeFilterIsFlatConjunction,
   FieldFilter,
-  Operator,
+  Operator
 } from '../../../src/core/target';
-import {
-  andFilter,
-  filter, orFilter,
-} from '../../util/helpers';
-
+import { andFilter, filter, orFilter } from '../../util/helpers';
 
 describe('FieldFilter', () => {
   it('exposes field filter members', () => {
-    const f = filter("foo", "==", "bar");
+    const f = filter('foo', '==', 'bar');
 
     expect(f.field.toString()).to.equal('foo');
     expect(f.value.stringValue).to.equal('bar');
@@ -50,16 +44,15 @@ describe('CompositeFilter', () => {
   let d: FieldFilter;
 
   function nameFilter(name: string): FieldFilter {
-    return filter("name", "==", name);
+    return filter('name', '==', name);
   }
 
   beforeEach(async () => {
-    a = nameFilter("A");
-    b = nameFilter("B");
-    c = nameFilter("C");
-    d = nameFilter("D");
+    a = nameFilter('A');
+    b = nameFilter('B');
+    c = nameFilter('C');
+    d = nameFilter('D');
   });
-
 
   it('exposes composite filter members for AND filter', () => {
     const f = andFilter(a, b, c);
@@ -67,7 +60,6 @@ describe('CompositeFilter', () => {
     expect(compositeFilterIsConjunction(f)).to.be.true;
     expect(f.getFilters()).to.deep.equal([a, b, c]);
   });
-
 
   it('exposes composite filter members for OR filter', () => {
     const f = orFilter(a, b, c);

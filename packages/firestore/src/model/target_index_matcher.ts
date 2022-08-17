@@ -22,7 +22,7 @@ import {
   OrderBy,
   Target
 } from '../core/target';
-import {debugAssert, hardAssert} from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 
 import {
   FieldIndex,

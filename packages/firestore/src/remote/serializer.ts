@@ -1003,7 +1003,6 @@ function fromFilters(filter: ProtoFilter): Filter[] {
     result instanceof CompositeFilter &&
     compositeFilterIsFlatConjunction(result)
   ) {
-
     return result.getFilters();
   }
 

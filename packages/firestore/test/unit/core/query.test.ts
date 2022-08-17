@@ -44,7 +44,7 @@ import {
   canonifyTarget,
   OrderBy
 } from '../../../src/core/target';
-import {MutableDocument} from "../../../src/model/document";
+import { MutableDocument } from '../../../src/model/document';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -804,53 +804,66 @@ describe('Query', () => {
   });
 
   it('matches composite queries', () => {
-    const doc1 = doc("collection/1", 0, {a: 1, b: 0});
-    const doc2 = doc("collection/2", 0, {a: 2, b: 1});
-    const doc3 = doc("collection/3", 0, {a: 3, b: 2});
-    const doc4 = doc("collection/4", 0, {a: 1, b: 3});
-    const doc5 = doc("collection/5", 0, {a: 1, b: 1});
+    const doc1 = doc('collection/1', 0, { a: 1, b: 0 });
+    const doc2 = doc('collection/2', 0, { a: 2, b: 1 });
+    const doc3 = doc('collection/3', 0, { a: 3, b: 2 });
+    const doc4 = doc('collection/4', 0, { a: 1, b: 3 });
+    const doc5 = doc('collection/5', 0, { a: 1, b: 1 });
 
     // Two equalities: a==1 || b==1.
-    const query1 = query('collection',
-      orFilter(
-        filter('a', '==', 1),
-        filter('b', '==', 1)));
+    const query1 = query(
+      'collection',
+      orFilter(filter('a', '==', 1), filter('b', '==', 1))
+    );
     assertQueryMatches(query1, [doc1, doc2, doc4, doc5], [doc3]);
 
     // with one inequality: a>2 || b==1.
-    const query2 = query('collection',
-      orFilter(
-        filter('a', '>', 2),
-        filter('b', '==', 1)));
+    const query2 = query(
+      'collection',
+      orFilter(filter('a', '>', 2), filter('b', '==', 1))
+    );
     assertQueryMatches(query2, [doc2, doc3, doc5], [doc1, doc4]);
 
     // (a==1 && b==0) || (a==3 && b==2)
-    const query3 = query('collection',
+    const query3 = query(
+      'collection',
       orFilter(
         andFilter(filter('a', '==', 1), filter('b', '==', 0)),
-        andFilter(filter('a', '==', 3), filter('b', '==', 2))));
+        andFilter(filter('a', '==', 3), filter('b', '==', 2))
+      )
+    );
     assertQueryMatches(query3, [doc1, doc3], [doc2, doc4, doc5]);
 
     // a==1 && (b==0 || b==3).
-    const query4 = query('collection',
+    const query4 = query(
+      'collection',
       andFilter(
         filter('a', '==', 1),
-        orFilter(filter('b', '==', 0), filter('b', '==', 3))));
+        orFilter(filter('b', '==', 0), filter('b', '==', 3))
+      )
+    );
     assertQueryMatches(query4, [doc1, doc4], [doc2, doc3, doc5]);
 
     // (a==2 || b==2) && (a==3 || b==3)
-    const query5 = query('collection',
+    const query5 = query(
+      'collection',
       andFilter(
         orFilter(filter('a', '==', 2), filter('b', '==', 2)),
-        orFilter(filter('a', '==', 3), filter('b', '==', 3))));
+        orFilter(filter('a', '==', 3), filter('b', '==', 3))
+      )
+    );
     assertQueryMatches(query5, [doc3], [doc1, doc2, doc4, doc5]);
   });
 
-  function assertQueryMatches(query: Query, matching: MutableDocument[], nonMatching: MutableDocument[]): void {
-    for(const doc of matching) {
+  function assertQueryMatches(
+    query: Query,
+    matching: MutableDocument[],
+    nonMatching: MutableDocument[]
+  ): void {
+    for (const doc of matching) {
       expect(queryMatches(query, doc)).true;
     }
-    for(const doc of nonMatching) {
+    for (const doc of nonMatching) {
       expect(queryMatches(query, doc)).false;
     }
   }
