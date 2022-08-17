@@ -28,8 +28,7 @@ import {
   RunQueryResponse as ProtoRunQueryResponse,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
-  AggregationResult,
-  Value
+  Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
@@ -52,6 +51,7 @@ import {
   toQueryTarget,
   toRunAggregationQueryRequest
 } from './serializer';
+import { AggregateQuery } from '../lite-api/aggregate';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google
@@ -239,12 +239,12 @@ export async function invokeRunQueryRpc(
 
 export async function invokeRunAggregationQueryRpc(
   datastore: Datastore,
-  query: Query
-): Promise<Value[]> {
+  aggregateQuery: AggregateQuery
+): Promise<ProtoValue[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const request = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
-    queryToTarget(query)
+    queryToTarget(aggregateQuery.query._query)
   );
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunAggregationQueryRequest,
@@ -252,7 +252,6 @@ export async function invokeRunAggregationQueryRpc(
   >('RunAggregationQuery', request.parent!, {
     structuredAggregationQuery: request.structuredAggregationQuery
   });
-  console.log("rpc response : ", response)
   return (
     response
       // Omit RunQueryResponses that only contain readTimes.

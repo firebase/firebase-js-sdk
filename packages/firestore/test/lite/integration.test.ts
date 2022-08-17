@@ -2049,9 +2049,9 @@ describe('countQuery()', () => {
     return withTestCollection(async coll => {
       const countQuery_ = countQuery(query(coll));
       expect(countQuery_.type).to.equal('AggregateQuery');
+
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(0);
-      expect(snapshot.count).to.equal(0);
     });
   });
 
@@ -2067,9 +2067,9 @@ describe('countQuery()', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const countQuery_ = countQuery(query(collection));
       expect(countQuery_.type).to.equal('AggregateQuery');
+
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(6);
-      expect(snapshot.count).to.equal(6);
     });
   });
 });

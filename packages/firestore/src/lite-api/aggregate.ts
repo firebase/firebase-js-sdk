@@ -20,7 +20,7 @@ import { Query, queryEqual } from './reference';
 import { Firestore } from './database';
 import { getDatastore } from './components';
 import { invokeRunAggregationQueryRpc } from '../remote/datastore';
-import {ObjectValue} from "../model/object_value";
+import { LiteUserDataWriter } from './reference_impl';
 
 export class AggregateQuery {
   readonly type = 'AggregateQuery';
@@ -76,24 +76,29 @@ export function getAggregateFromServerDirect(
 ): Promise<AggregateQuerySnapshot> {
   const firestore = cast(aggregateQuery.query.firestore, Firestore);
   const datastore = getDatastore(firestore);
+  const userDataWriter = new LiteUserDataWriter(firestore);
 
-  return invokeRunAggregationQueryRpc(
-    datastore,
-    aggregateQuery.query._query
-  ).then(result => {
-    console.log("aggregarte result:" , result)
-    let count= null;
-    const aggregationFields = result.map(proto=>{
-      for (const [key, value] of Object.entries(proto)) {
-        if (key == "count") count = parseInt(value.integerValue)
+  return invokeRunAggregationQueryRpc(datastore, aggregateQuery).then(
+    result => {
+      const aggregationFields = new Map();
+      /**
+       * while getting aggregation fields from server direct, it should get only
+       * one ProtoRunAggregationQueryResponse returned.
+       * But we used streaming rpc here, so we will have an array of
+       * (onr , or possibly more)RunAggregationQueryResponse. For this specific
+       * function, we get the first RunAggregationQueryResponse only.
+       */
+      for (const [key, value] of Object.entries(result[0])) {
+        aggregationFields.set(key, userDataWriter.convertValue(value));
       }
-      return proto
-    })
-    return Promise.resolve(
-      new AggregateQuerySnapshot(aggregateQuery, count)
-    );
-  });
-
+      return Promise.resolve(
+        new AggregateQuerySnapshot(
+          aggregateQuery,
+          aggregationFields.get('count')
+        )
+      );
+    }
+  );
 }
 
 export function aggregateQueryEqual(

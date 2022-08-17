@@ -358,7 +358,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     alias?: string;
   }
   interface Count {
-    upTo?: number
+    upTo?: number;
   }
   interface Status {
     code?: number;
@@ -500,17 +500,15 @@ export declare type QueryTarget = firestoreV1ApiClientInterfaces.QueryTarget;
 export declare type ReadOnly = firestoreV1ApiClientInterfaces.ReadOnly;
 export declare type ReadWrite = firestoreV1ApiClientInterfaces.ReadWrite;
 export declare type RollbackRequest =
-firestoreV1ApiClientInterfaces.RollbackRequest;
+  firestoreV1ApiClientInterfaces.RollbackRequest;
 export declare type RunQueryRequest =
-firestoreV1ApiClientInterfaces.RunQueryRequest;
+  firestoreV1ApiClientInterfaces.RunQueryRequest;
 export declare type RunQueryResponse =
-firestoreV1ApiClientInterfaces.RunQueryResponse;
+  firestoreV1ApiClientInterfaces.RunQueryResponse;
 export declare type RunAggregationQueryRequest =
   firestoreV1ApiClientInterfaces.RunAggregationQueryRequest;
 export declare type RunAggregationQueryResponse =
   firestoreV1ApiClientInterfaces.RunAggregationQueryResponse;
-export declare type AggregationResult =
-  firestoreV1ApiClientInterfaces.AggregationResult;
 export declare type Status = firestoreV1ApiClientInterfaces.Status;
 export declare type StructuredQuery =
   firestoreV1ApiClientInterfaces.StructuredQuery;
