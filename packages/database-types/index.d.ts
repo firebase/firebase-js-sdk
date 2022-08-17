@@ -22,9 +22,7 @@ export interface DataSnapshot {
   child(path: string): DataSnapshot;
   exists(): boolean;
   exportVal(): any;
-  forEach(
-    action: (a: DataSnapshot & { key: string }) => boolean | void
-  ): boolean;
+  forEach(action: (a: DataSnapshot) => boolean | void): boolean;
   getPriority(): string | number | null;
   hasChild(path: string): boolean;
   hasChildren(): boolean;
