@@ -276,6 +276,86 @@ describe('IndexedDbIndexManager', async () => {
     );
   });
 
+  it.only('supports partial and full index', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['c', IndexKind.ASCENDING], ['d', IndexKind.ASCENDING]] })
+    );
+
+    const query1 = query("coll", filter("a", "==", 1));
+    validateIsFullIndex(query1);
+
+    const query2 = query("coll", filter("b", "==", 1));
+    validateIsFullIndex(query2);
+
+    const query3 = query("coll", filter("a", "==", 1), orderBy("a"));
+    validateIsFullIndex(query3);
+
+    const query4 = query("coll", filter("b", "==", 1), orderBy("b"));
+    validateIsFullIndex(query4);
+
+    const query5 = query("coll", filter("a", "==", 1), filter("b", "==", 1));
+    validateIsPartialIndex(query5);
+
+    const query6 = query("coll", filter("a", "==", 1), orderBy("b"));
+    validateIsPartialIndex(query6);
+
+    const query7 = query("coll", filter("b", "==", 1), orderBy("a"));
+    validateIsPartialIndex(query7);
+
+    const query8 = query("coll", filter("c", "==", 1), filter("d", "==", 1));
+    validateIsFullIndex(query8);
+
+    const query9 =
+      query("coll",filter("c", "==", 1), filter("d", "==", 1), orderBy("c"));
+    validateIsFullIndex(query9);
+
+    const query10 =
+      query("coll",
+        filter("c", "==", 1),
+        filter("d", "==", 1),
+        orderBy("d"));
+    validateIsFullIndex(query10);
+
+    const query11 =
+      query("coll",
+        filter("c", "==", 1),
+        filter("d", "==", 1),
+        orderBy("c"),
+        orderBy("d"));
+    validateIsFullIndex(query11);
+
+    const query12 =
+      query("coll",
+        filter("c", "==", 1),
+        filter("d", "==", 1),
+        orderBy("d"),
+        orderBy("c"));
+    validateIsFullIndex(query12);
+
+    const query13 =
+      query("coll",
+        filter("c", "==", 1),
+        filter("d", "==", 1),
+        orderBy("e"));
+    validateIsFullIndex(query13);
+
+    const query14 = query("coll", filter("c", "==", 1), filter("d", "<=", 1));
+    validateIsFullIndex(query14);
+
+    const query15 =
+      query("coll",
+        filter("c", "==", 1),
+        filter("d", ">", 1),
+        orderBy("d"));
+    validateIsFullIndex(query15);
+  });
+
   it('adds documents', async () => {
     await indexManager.addFieldIndex(
       fieldIndex('coll', { fields: [['exists', IndexKind.ASCENDING]] })
