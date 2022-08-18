@@ -861,6 +861,7 @@ export function toRunAggregationQueryRequest(
   const result: ProtoRunAggregationQueryRequest = {
     structuredAggregationQuery: {
       aggregations: [
+        //TODO: dynamically add the aggregate fields in future development
         {
           count: {
           },
@@ -898,7 +899,9 @@ export function toRunAggregationQueryRequest(
   if (where) {
     result.structuredAggregationQuery!.structuredQuery!.where = where;
   }
-  
+  /** QUESTION: in count query, do we need to add OrderBy? Number of
+   *  documents shouldn't be impacted by how the documents are ordered.
+   */
   const orderBy = toOrder(target.orderBy);
   if (orderBy) {
     result.structuredAggregationQuery!.structuredQuery!.orderBy = orderBy;
@@ -907,13 +910,6 @@ export function toRunAggregationQueryRequest(
   const limit = toInt32Proto(serializer, target.limit);
   if (limit !== null) {
     result.structuredAggregationQuery!.structuredQuery!.limit = limit;
-  }
-  
-  if (target.startAt) {
-    result.structuredAggregationQuery!.structuredQuery!.startAt = toStartAtCursor(target.startAt);
-  }
-  if (target.endAt) {
-    result.structuredAggregationQuery!.structuredQuery!.endAt = toEndAtCursor(target.endAt);
   }
 
   return result;

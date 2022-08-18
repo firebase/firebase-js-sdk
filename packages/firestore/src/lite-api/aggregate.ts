@@ -19,7 +19,7 @@ import { invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { cast } from '../util/input_validation';
 import { getDatastore } from './components';
 import { Firestore } from './database';
-import { Query, queryEqual } from './reference';
+import { DocumentData, Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 
 /**
@@ -30,7 +30,7 @@ import { LiteUserDataWriter } from './reference_impl';
  * in test mocks. Subclassing is not supported in production code and new SDK releases may break
  * code that does so.
  */
-export class AggregateQuery {
+export class AggregateQuery<T = DocumentData> {
   readonly type = 'AggregateQuery';
   /**
    * The query on which you called {@link countQuery} in order to get this
@@ -38,15 +38,15 @@ export class AggregateQuery {
    * Query type is set to unknown to avoid error caused by query type converter.
    * might change it back to T after testing if the error do exist or not
    */
-  readonly query: Query<unknown>;
+  readonly query: Query<T>;
 
   /** @hideconstructor */
-  constructor(query: Query<unknown>) {
+  constructor(query: Query<T>) {
     this.query = query;
   }
 
   /** Returns the base {@link Query} for this aggregate query. */
-  getQuery(): Query<unknown> {
+  getQuery(): Query<T> {
     return this.query;
   }
 }
@@ -89,15 +89,15 @@ export class AggregateQuerySnapshot {
  * @return An {@link AggregateQuery} object that can be used to count the number of documents in
  * the result set of this query.
  */
-export function countQuery(query: Query<unknown>): AggregateQuery {
+export function countQuery<T>(query: Query<T>): AggregateQuery<T> {
   /**
    * TODO(mila): add the "count" aggregateField to the params after the AggregateQuery is updated.
    */
   return new AggregateQuery(query);
 }
 
-export function getAggregateFromServerDirect(
-  aggregateQuery: AggregateQuery
+export function getAggregateFromServerDirect<T>(
+  aggregateQuery: AggregateQuery<T>
 ): Promise<AggregateQuerySnapshot> {
   const firestore = cast(aggregateQuery.query.firestore, Firestore);
   const datastore = getDatastore(firestore);
