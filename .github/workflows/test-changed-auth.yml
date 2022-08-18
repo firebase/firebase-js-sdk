@@ -63,10 +63,6 @@ jobs:
       - name: build
         run: yarn build:changed auth
       - name: Run tests on auth changed packages
-        run: xvfb-run yarn --cwd packages/auth test:browser:unit
-        env:
-          BROWSERS: 'Firefox'
-      - name: Run tests on auth-compat changed packages
-        run: xvfb-run yarn --cwd packages/auth-compat test:browser:unit
+        run: xvfb-run yarn test:changed auth
         env:
           BROWSERS: 'Firefox'
