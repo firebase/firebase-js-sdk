@@ -21,6 +21,7 @@ const { spawn } = require('child-process-promise');
 const { writeFileSync } = require('fs');
 
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
+const crossBrowserPackages = { 'packages/auth': 'test:browser:unit' };
 
 function writeLogs(status, name, logText) {
   const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
@@ -49,13 +50,20 @@ const argv = yargs.options({
 
 (async () => {
   const myPath = argv.d;
-  const scriptName = argv.s;
+  let scriptName = argv.s;
   const dir = path.resolve(myPath);
   const { name } = require(`${dir}/package.json`);
 
   let stdout = '';
   let stderr = '';
   try {
+    if (process.env?.BROWSERS) {
+      for (const package in crossBrowserPackages) {
+        if (dir.endsWith(package)) {
+          scriptName = crossBrowserPackages[package];
+        }
+      }
+    }
     const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
 
     testProcess.childProcess.stdout.on('data', data => {
