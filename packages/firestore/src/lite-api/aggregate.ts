@@ -105,7 +105,7 @@ export function getAggregateFromServerDirect(
 
   return invokeRunAggregationQueryRpc(datastore, aggregateQuery).then(
     result => {
-      const aggregationFields = new Map();
+      const aggregationFields = new Map<string, any>();
       /**
        * while getting aggregation fields from server direct, it should have only
        * one RunAggregationQueryResponse returned.
@@ -119,7 +119,10 @@ export function getAggregateFromServerDirect(
       return Promise.resolve(
         new AggregateQuerySnapshot(
           aggregateQuery,
-          aggregationFields.get('count_alias')
+          //return the count value , or null if count is undfined
+          aggregationFields.has('count_alias')
+            ? aggregationFields.get('count_alias')
+            : null
         )
       );
     }
