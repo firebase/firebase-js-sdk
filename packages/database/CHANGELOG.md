@@ -1,5 +1,16 @@
 # Unreleased
 
+## 0.13.5
+
+### Patch Changes
+
+- [`9f1e3c667`](https://github.com/firebase/firebase-js-sdk/commit/9f1e3c66747126c8e24894d73f7fa27480bec08d) [#6536](https://github.com/firebase/firebase-js-sdk/pull/6536) - Revert "Updated type of action parameter for DataSnapshot#forEach"
+
+* [`a5d9e1083`](https://github.com/firebase/firebase-js-sdk/commit/a5d9e10831c2877e9d15c8a33b15557e4251c4de) [#6497](https://github.com/firebase/firebase-js-sdk/pull/6497) - Fix issue with how get results for filtered queries are added to cache.
+  Fix issue with events not getting propagated to listeners by get.
+
+- [`fcd4b8ac3`](https://github.com/firebase/firebase-js-sdk/commit/fcd4b8ac36636a60d83cd3370969ff9192f9e6ad) [#6508](https://github.com/firebase/firebase-js-sdk/pull/6508) - Fixed faulty transaction bug causing filtered index queries to override default queries.
+
 ## 0.13.4
 
 ### Patch Changes
