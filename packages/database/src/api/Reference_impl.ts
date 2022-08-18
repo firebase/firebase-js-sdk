@@ -376,7 +376,7 @@ export class DataSnapshot {
   }
 
   /**
-   * Enumerates the top-level children in the `DataSnapshot`.
+   * Enumerates the top-level children in the `IteratorDataSnapshot`.
    *
    * Because of the way JavaScript objects work, the ordering of data in the
    * JavaScript object returned by `val()` is not guaranteed to match the
@@ -394,7 +394,7 @@ export class DataSnapshot {
    * true.
    */
   forEach(
-    action: (child: DataSnapshot & { key: string }) => boolean | void
+    action: (child: IteratedDataSnapshot) => boolean | void
   ): boolean {
     if (this._node.isLeafNode()) {
       return false;
@@ -463,6 +463,13 @@ export class DataSnapshot {
   val(): any {
     return this._node.val();
   }
+}
+
+/**
+ * Represents a child snapshot of an iterated `Reference`. The key will never be undefined.
+ */
+export interface IteratedDataSnapshot extends DataSnapshot {
+  key: string;
 }
 
 /**

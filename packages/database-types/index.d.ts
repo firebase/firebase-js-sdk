@@ -18,12 +18,19 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { EmulatorMockTokenOptions } from '@firebase/util';
 
+/**
+ * Represents a child snapshot of an iterated `Reference`. The key will never be undefined.
+ */
+export interface IteratedDataSnapshot extends DataSnapshot {
+  key: string;
+}
+
 export interface DataSnapshot {
   child(path: string): DataSnapshot;
   exists(): boolean;
   exportVal(): any;
   forEach(
-    action: (a: DataSnapshot & { key: string }) => boolean | void
+    action: (a: IteratedDataSnapshot) => boolean | void
   ): boolean;
   getPriority(): string | number | null;
   hasChild(path: string): boolean;

@@ -156,6 +156,8 @@ export class DataSnapshot implements Compat<ModularDataSnapshot> {
     return this._delegate.priority;
   }
 
+  
+
   /**
    * Iterates through child nodes and calls the specified action for each one.
    *
@@ -165,7 +167,7 @@ export class DataSnapshot implements Compat<ModularDataSnapshot> {
    * one of the child nodes.
    */
   forEach(
-    action: (snapshot: DataSnapshot & { key: string }) => boolean | void
+    action: (snapshot: IteratedDataSnapshot) => boolean | void
   ): boolean {
     validateArgCount('DataSnapshot.forEach', 1, 1, arguments.length);
     validateCallback('DataSnapshot.forEach', 'action', action, false);
@@ -208,6 +210,10 @@ export class DataSnapshot implements Compat<ModularDataSnapshot> {
   get ref(): Reference {
     return this.getRef();
   }
+}
+
+export interface IteratedDataSnapshot extends DataSnapshot {
+  key: string;
 }
 
 export interface SnapshotCallback {

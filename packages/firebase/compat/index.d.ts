@@ -5820,7 +5820,7 @@ declare namespace firebase.database {
      */
     forEach(
       action: (
-        a: firebase.database.DataSnapshot & { key: string }
+        a: firebase.database.IteratorDataSnapshot
       ) => boolean | void
     ): boolean;
     /**
