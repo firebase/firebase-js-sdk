@@ -276,7 +276,6 @@
     "@firebase/installations-compat": "0.1.12",
     "@firebase/messaging": "0.9.16",
     "@firebase/messaging-compat": "0.1.16",
-    "@firebase/polyfill": "0.3.36",
     "@firebase/storage": "0.9.9",
     "@firebase/storage-compat": "0.1.17",
     "@firebase/performance": "0.5.12",
