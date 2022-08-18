@@ -306,6 +306,65 @@ describe('core/auth/auth_impl', () => {
         });
       });
 
+      context('with Proactive Refresh', () => {
+        let oldUser: UserInternal;
+
+        beforeEach(() => {
+          oldUser = testUser(auth, 'old-user-uid');
+
+          for (const u of [user, oldUser]) {
+            sinon.spy(u, '_startProactiveRefresh');
+            sinon.spy(u, '_stopProactiveRefresh');
+          }
+        });
+
+        it('null -> user: does not turn on if not enabled', async () => {
+          await auth._updateCurrentUser(null);
+          await auth._updateCurrentUser(user);
+
+          expect(user._startProactiveRefresh).not.to.have.been.called;
+        });
+
+        it('null -> user: turns on if enabled', async () => {
+          await auth._updateCurrentUser(null);
+          auth._startProactiveRefresh();
+          await auth._updateCurrentUser(user);
+
+          expect(user._startProactiveRefresh).to.have.been.called;
+        });
+
+        it('user -> user: does not turn on if not enabled', async () => {
+          await auth._updateCurrentUser(oldUser);
+          await auth._updateCurrentUser(user);
+
+          expect(user._startProactiveRefresh).not.to.have.been.called;
+        });
+
+        it('user -> user: turns on if enabled', async () => {
+          auth._startProactiveRefresh();
+          await auth._updateCurrentUser(oldUser);
+          await auth._updateCurrentUser(user);
+
+          expect(oldUser._stopProactiveRefresh).to.have.been.called;
+          expect(user._startProactiveRefresh).to.have.been.called;
+        });
+
+        it('calling start on auth triggers user to start', async () => {
+          await auth._updateCurrentUser(user);
+          auth._startProactiveRefresh();
+
+          expect(user._startProactiveRefresh).to.have.been.calledOnce;
+        });
+
+        it('calling stop stops the refresh on the current user', async () => {
+          auth._startProactiveRefresh();
+          await auth._updateCurrentUser(user);
+          auth._stopProactiveRefresh();
+
+          expect(user._stopProactiveRefresh).to.have.been.called;
+        });
+      });
+
       it('onAuthStateChange works for multiple listeners', async () => {
         const cb1 = sinon.spy();
         const cb2 = sinon.spy();
