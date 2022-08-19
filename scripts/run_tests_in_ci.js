@@ -21,8 +21,8 @@ const { spawn } = require('child-process-promise');
 const { writeFileSync } = require('fs');
 
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
-// Maps the packages that have standalone cross browser testing to the necessary test script.
-// Note, the standalone tests are not covered by `test:changed core`
+// Maps the packages where we should not run `test:all` and instead isolate the cross-browser tests.
+// TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
 const crossBrowserPackages = { 'packages/auth': 'test:browser:unit' };
 
 function writeLogs(status, name, logText) {
