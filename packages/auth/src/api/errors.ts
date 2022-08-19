@@ -17,6 +17,7 @@
 
 import { AuthErrorCode } from '../core/errors';
 
+// Hmmm
 /**
  * Errors that can be returned by the backend
  */
