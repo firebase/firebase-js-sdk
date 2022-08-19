@@ -208,8 +208,11 @@ export class DataSnapshot implements Compat<ModularDataSnapshot> {
   }
 }
 
+/**
+ * Represents a child snapshot of a `Reference` that is being iterated over. The key will never be undefined.
+ */
 export interface IteratedDataSnapshot extends DataSnapshot {
-  key: string;
+  key: string; // key of the location of this snapshot.
 }
 
 export interface SnapshotCallback {

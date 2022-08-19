@@ -376,7 +376,7 @@ export class DataSnapshot {
   }
 
   /**
-   * Enumerates the top-level children in the `IteratorDataSnapshot`.
+   * Enumerates the top-level children in the `IteratedDataSnapshot`.
    *
    * Because of the way JavaScript objects work, the ordering of data in the
    * JavaScript object returned by `val()` is not guaranteed to match the
@@ -464,10 +464,10 @@ export class DataSnapshot {
 }
 
 /**
- * Represents a child snapshot of an iterated `Reference`. The key will never be undefined.
+ * Represents a child snapshot of a `Reference` that is being iterated over. The key will never be undefined.
  */
 export interface IteratedDataSnapshot extends DataSnapshot {
-  key: string;
+  key: string; // key of the location of this snapshot.
 }
 
 /**
