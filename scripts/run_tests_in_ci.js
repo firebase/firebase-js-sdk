@@ -21,6 +21,8 @@ const { spawn } = require('child-process-promise');
 const { writeFileSync } = require('fs');
 
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
+// Maps the packages that have standalone cross browser testing to the necessary test script.
+// Note, the standalone tests are not covered by `test:changed core`
 const crossBrowserPackages = { 'packages/auth': 'test:browser:unit' };
 
 function writeLogs(status, name, logText) {
