@@ -156,8 +156,6 @@ export class DataSnapshot implements Compat<ModularDataSnapshot> {
     return this._delegate.priority;
   }
 
-  
-
   /**
    * Iterates through child nodes and calls the specified action for each one.
    *
@@ -166,9 +164,7 @@ export class DataSnapshot implements Compat<ModularDataSnapshot> {
    * @returns True if forEach was canceled by action returning true for
    * one of the child nodes.
    */
-  forEach(
-    action: (snapshot: IteratedDataSnapshot) => boolean | void
-  ): boolean {
+  forEach(action: (snapshot: IteratedDataSnapshot) => boolean | void): boolean {
     validateArgCount('DataSnapshot.forEach', 1, 1, arguments.length);
     validateCallback('DataSnapshot.forEach', 'action', action, false);
     return this._delegate.forEach(expDataSnapshot =>
