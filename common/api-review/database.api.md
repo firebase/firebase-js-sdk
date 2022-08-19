@@ -6,7 +6,6 @@
 
 import { EmulatorMockTokenOptions } from '@firebase/util';
 import { FirebaseApp } from '@firebase/app';
-import { _FirebaseService } from '@firebase/app';
 
 // @public
 export function child(parent: DatabaseReference, path: string): DatabaseReference;
@@ -17,7 +16,7 @@ export function connectDatabaseEmulator(db: Database, host: string, port: number
 }): void;
 
 // @public
-export class Database implements _FirebaseService {
+export class Database {
     readonly app: FirebaseApp;
     readonly 'type' = "database";
 }
