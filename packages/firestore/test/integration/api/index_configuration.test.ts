@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { _setIndexConfiguration as setIndexConfiguration } from '../util/firebase_export';
+import { setIndexConfiguration } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
 
 apiDescribe('Index Configuration:', (persistence: boolean) => {

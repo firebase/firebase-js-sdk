@@ -37,7 +37,7 @@ export function makeMockPopupRedirectResolver(
   return class implements PopupRedirectResolver {
     async _initialize(): Promise<EventManager> {
       return (
-        eventManager || new AuthEventManager(({} as unknown) as AuthInternal)
+        eventManager || new AuthEventManager({} as unknown as AuthInternal)
       );
     }
 

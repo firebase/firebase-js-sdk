@@ -1,5 +1,29 @@
 # firebase
 
+## 9.9.3
+
+### Patch Changes
+
+- [`dcfebe8dc`](https://github.com/firebase/firebase-js-sdk/commit/dcfebe8dc801bb4dad23c48d9a379510ac86011e) [#6543](https://github.com/firebase/firebase-js-sdk/pull/6543) (fixes [#6503](https://github.com/firebase/firebase-js-sdk/issues/6503)) - Removed all references to `@firebase/polyfill`.
+
+- Updated dependencies [[`9f1e3c667`](https://github.com/firebase/firebase-js-sdk/commit/9f1e3c66747126c8e24894d73f7fa27480bec08d), [`a5d9e1083`](https://github.com/firebase/firebase-js-sdk/commit/a5d9e10831c2877e9d15c8a33b15557e4251c4de), [`fcd4b8ac3`](https://github.com/firebase/firebase-js-sdk/commit/fcd4b8ac36636a60d83cd3370969ff9192f9e6ad)]:
+  - @firebase/app@0.7.31
+  - @firebase/database-compat@0.2.5
+  - @firebase/database@0.13.5
+  - @firebase/app-compat@0.1.32
+
+## 9.9.2
+
+### Patch Changes
+
+- Updated dependencies [[`82a6add13`](https://github.com/firebase/firebase-js-sdk/commit/82a6add1354fe7e4ac1d444157ac027cdd41da6e), [`f5426a512`](https://github.com/firebase/firebase-js-sdk/commit/f5426a51275bb611a5d9a6df3200d0fe5095afa2), [`10765511f`](https://github.com/firebase/firebase-js-sdk/commit/10765511f7ba33293f7a15af1f98d69a261c019d), [`65838089d`](https://github.com/firebase/firebase-js-sdk/commit/65838089da47965e5e39e58c76a81a74666b215e)]:
+  - @firebase/app@0.7.30
+  - @firebase/firestore@3.4.14
+  - @firebase/database@0.13.4
+  - @firebase/database-compat@0.2.4
+  - @firebase/app-compat@0.1.31
+  - @firebase/firestore-compat@0.1.23
+
 ## 9.9.1
 
 ### Patch Changes

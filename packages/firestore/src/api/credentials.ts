@@ -37,12 +37,15 @@ import { Deferred } from '../util/promise';
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.
 
+export type AuthTokenFactory = () => string;
+
 export interface FirstPartyCredentialsSettings {
   // These are external types. Prevent minification.
   ['type']: 'gapi';
   ['client']: unknown;
   ['sessionIndex']: string;
   ['iamToken']: string | null;
+  ['authTokenFactory']: AuthTokenFactory | null;
 }
 
 export interface ProviderCredentialsSettings {
@@ -395,17 +398,46 @@ interface Gapi {
 export class FirstPartyToken implements Token {
   type = 'FirstParty' as TokenType;
   user = User.FIRST_PARTY;
-  headers = new Map();
+  private _headers = new Map();
 
-  constructor(gapi: Gapi, sessionIndex: string, iamToken: string | null) {
-    this.headers.set('X-Goog-AuthUser', sessionIndex);
-    const authHeader = gapi['auth']['getAuthHeaderValueForFirstParty']([]);
-    if (authHeader) {
-      this.headers.set('Authorization', authHeader);
+  constructor(
+    private readonly gapi: Gapi | null,
+    private readonly sessionIndex: string,
+    private readonly iamToken: string | null,
+    private readonly authTokenFactory: AuthTokenFactory | null
+  ) {}
+
+  /** Gets an authorization token, using a provided factory function, or falling back to First Party GAPI. */
+  private getAuthToken(): string | null {
+    if (this.authTokenFactory) {
+      return this.authTokenFactory();
+    } else {
+      // Make sure this really is a Gapi client.
+      hardAssert(
+        !!(
+          typeof this.gapi === 'object' &&
+          this.gapi !== null &&
+          this.gapi['auth'] &&
+          this.gapi['auth']['getAuthHeaderValueForFirstParty']
+        ),
+        'unexpected gapi interface'
+      );
+      return this.gapi!['auth']['getAuthHeaderValueForFirstParty']([]);
     }
-    if (iamToken) {
-      this.headers.set('X-Goog-Iam-Authorization-Token', iamToken);
+  }
+
+  get headers(): Map<string, string> {
+    this._headers.set('X-Goog-AuthUser', this.sessionIndex);
+    // Use array notation to prevent minification
+    const authHeaderTokenValue = this.getAuthToken();
+    if (authHeaderTokenValue) {
+      this._headers.set('Authorization', authHeaderTokenValue);
     }
+    if (this.iamToken) {
+      this._headers.set('X-Goog-Iam-Authorization-Token', this.iamToken);
+    }
+
+    return this._headers;
   }
 }
 
@@ -418,14 +450,20 @@ export class FirstPartyAuthCredentialsProvider
   implements CredentialsProvider<User>
 {
   constructor(
-    private gapi: Gapi,
+    private gapi: Gapi | null,
     private sessionIndex: string,
-    private iamToken: string | null
+    private iamToken: string | null,
+    private authTokenFactory: AuthTokenFactory | null
   ) {}
 
   getToken(): Promise<Token | null> {
     return Promise.resolve(
-      new FirstPartyToken(this.gapi, this.sessionIndex, this.iamToken)
+      new FirstPartyToken(
+        this.gapi,
+        this.sessionIndex,
+        this.iamToken,
+        this.authTokenFactory
+      )
     );
   }
 
@@ -634,20 +672,11 @@ export function makeAuthCredentialsProvider(
   switch (credentials['type']) {
     case 'gapi':
       const client = credentials['client'] as Gapi;
-      // Make sure this really is a Gapi client.
-      hardAssert(
-        !!(
-          typeof client === 'object' &&
-          client !== null &&
-          client['auth'] &&
-          client['auth']['getAuthHeaderValueForFirstParty']
-        ),
-        'unexpected gapi interface'
-      );
       return new FirstPartyAuthCredentialsProvider(
         client,
         credentials['sessionIndex'] || '0',
-        credentials['iamToken'] || null
+        credentials['iamToken'] || null,
+        credentials['authTokenFactory'] || null
       );
 
     case 'provider':
