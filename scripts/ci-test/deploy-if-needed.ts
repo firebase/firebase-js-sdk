@@ -43,7 +43,6 @@ const projectConfigGroups = [
   { file: 'config/functions/index.js', flag: 'functions' }
 ];
 
-
 /**
  * Deploy Firebase project config files (functions, rules) to CI
  * test project if there have been any changes to them.
