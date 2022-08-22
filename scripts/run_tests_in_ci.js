@@ -23,7 +23,10 @@ const { writeFileSync } = require('fs');
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
 // Maps the packages where we should not run `test:all` and instead isolate the cross-browser tests.
 // TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
-const crossBrowserPackages = { 'packages/auth': 'test:browser:unit' };
+const crossBrowserPackages = {
+  'packages/auth': 'test:browser:unit',
+  'packages/firestore': 'test:browser:unit'
+};
 
 function writeLogs(status, name, logText) {
   const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
