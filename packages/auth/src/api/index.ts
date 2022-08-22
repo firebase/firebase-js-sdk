@@ -18,7 +18,11 @@
 import { FirebaseError, querystring } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
-import { _createError, _errorWithCustomMessage, _fail } from '../core/util/assert';
+import {
+  _createError,
+  _errorWithCustomMessage,
+  _fail
+} from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
@@ -38,7 +42,7 @@ export const enum HttpHeader {
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
   X_CLIENT_VERSION = 'X-Client-Version',
   X_FIREBASE_GMPID = 'X-Firebase-gmpid',
-  X_FIREBASE_CLIENT = 'X-Firebase-Client',
+  X_FIREBASE_CLIENT = 'X-Firebase-Client'
 }
 
 export const enum Endpoint {
@@ -164,9 +168,9 @@ export async function _performFetchWithErrorHandling<V>(
       }
       const authError =
         errorMap[serverErrorCode as ServerError] ||
-        ((serverErrorCode
+        (serverErrorCode
           .toLowerCase()
-          .replace(/[_\s]+/g, '-') as unknown) as AuthErrorCode);
+          .replace(/[_\s]+/g, '-') as unknown as AuthErrorCode);
       if (serverErrorMessage) {
         throw _errorWithCustomMessage(auth, authError, serverErrorMessage);
       } else {
@@ -226,7 +230,9 @@ class NetworkTimeout<T> {
   private timer: any | null = null;
   readonly promise = new Promise<T>((_, reject) => {
     this.timer = setTimeout(() => {
-      return reject(_createError(this.auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
+      return reject(
+        _createError(this.auth, AuthErrorCode.NETWORK_REQUEST_FAILED)
+      );
     }, DEFAULT_API_TIMEOUT_MS.get());
   });
 

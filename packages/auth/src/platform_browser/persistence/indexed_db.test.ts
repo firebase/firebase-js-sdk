@@ -199,7 +199,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     let persistence: TestPersistence;
 
     beforeEach(() => {
-      serviceWorker = (new FakeServiceWorker() as unknown) as ServiceWorker;
+      serviceWorker = new FakeServiceWorker() as unknown as ServiceWorker;
     });
 
     afterEach(() => {
@@ -214,7 +214,8 @@ describe('platform_browser/persistence/indexed_db', () => {
         sender = new Sender(serviceWorker);
         sinon.stub(workerUtil, '_isWorker').returns(true);
         sinon.stub(workerUtil, '_getWorkerGlobalScope').returns(serviceWorker);
-        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<TestPersistence>)();
+        persistence =
+          new (indexedDBLocalPersistence as unknown as SingletonInstantiator<TestPersistence>)();
         db = await _openDatabase();
       });
 
@@ -288,7 +289,8 @@ describe('platform_browser/persistence/indexed_db', () => {
         sinon
           .stub(workerUtil, '_getServiceWorkerController')
           .returns(serviceWorker);
-        persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<TestPersistence>)();
+        persistence =
+          new (indexedDBLocalPersistence as unknown as SingletonInstantiator<TestPersistence>)();
       });
 
       it('should send a ping on init', async () => {
@@ -344,9 +346,11 @@ describe('platform_browser/persistence/indexed_db', () => {
   describe('closed IndexedDB connection', () => {
     it('should retry by reopening the connection', async () => {
       const closeDb = async (): Promise<void> => {
-        const db = await ((persistence as unknown) as {
-          _openDb(): Promise<IDBDatabase>;
-        })._openDb();
+        const db = await (
+          persistence as unknown as {
+            _openDb(): Promise<IDBDatabase>;
+          }
+        )._openDb();
         db.close();
       };
       const key = 'my-super-special-persistence-type';

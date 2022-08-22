@@ -17,11 +17,7 @@
 
 import { expect } from 'chai';
 
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '../../model/enums';
+import { OperationType, ProviderId, SignInMethod } from '../../model/enums';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { testUser, testAuth } from '../../../test/helpers/mock_auth';
@@ -122,11 +118,11 @@ describe('core/providers/oauth', () => {
     const provider = new OAuthProvider('foo.test');
     const cred = provider.credential({
       idToken: 'foo',
-      rawNonce: 'i-am-a-nonce',
+      rawNonce: 'i-am-a-nonce'
     });
     expect(cred.idToken).to.eq('foo');
     expect(cred.providerId).to.eq('foo.test');
     expect(cred.signInMethod).to.eq('foo.test');
-    expect((cred.toJSON() as {nonce: string}).nonce).to.eq('i-am-a-nonce');
+    expect((cred.toJSON() as { nonce: string }).nonce).to.eq('i-am-a-nonce');
   });
 });

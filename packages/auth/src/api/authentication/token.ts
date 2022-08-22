@@ -50,32 +50,33 @@ export async function requestStsToken(
   auth: Auth,
   refreshToken: string
 ): Promise<RequestStsTokenResponse> {
-  const response = await _performFetchWithErrorHandling<RequestStsTokenServerResponse>(
-    auth,
-    {},
-    async () => {
-      const body = querystring({
-        'grant_type': 'refresh_token',
-        'refresh_token': refreshToken
-      }).slice(1);
-      const { tokenApiHost, apiKey } = auth.config;
-      const url = _getFinalTarget(
-        auth,
-        tokenApiHost,
-        Endpoint.TOKEN,
-        `key=${apiKey}`
-      );
+  const response =
+    await _performFetchWithErrorHandling<RequestStsTokenServerResponse>(
+      auth,
+      {},
+      async () => {
+        const body = querystring({
+          'grant_type': 'refresh_token',
+          'refresh_token': refreshToken
+        }).slice(1);
+        const { tokenApiHost, apiKey } = auth.config;
+        const url = _getFinalTarget(
+          auth,
+          tokenApiHost,
+          Endpoint.TOKEN,
+          `key=${apiKey}`
+        );
 
-      const headers = await (auth as AuthInternal)._getAdditionalHeaders();
-      headers[HttpHeader.CONTENT_TYPE] = 'application/x-www-form-urlencoded';
+        const headers = await (auth as AuthInternal)._getAdditionalHeaders();
+        headers[HttpHeader.CONTENT_TYPE] = 'application/x-www-form-urlencoded';
 
-      return FetchProvider.fetch()(url, {
-        method: HttpMethod.POST,
-        headers,
-        body
-      });
-    }
-  );
+        return FetchProvider.fetch()(url, {
+          method: HttpMethod.POST,
+          headers,
+          body
+        });
+      }
+    );
 
   // The response comes back in snake_case. Convert to camel:
   return {

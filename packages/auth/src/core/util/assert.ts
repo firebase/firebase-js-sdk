@@ -83,28 +83,42 @@ export function _createError<K extends AuthErrorCode>(
   return createErrorInternal(authOrCode, ...rest);
 }
 
-export function _errorWithCustomMessage(auth: Auth, code: AuthErrorCode, message: string): FirebaseError {
-  const errorMap = {...(prodErrorMap as ErrorMapRetriever)(), [code]: message};
+export function _errorWithCustomMessage(
+  auth: Auth,
+  code: AuthErrorCode,
+  message: string
+): FirebaseError {
+  const errorMap = {
+    ...(prodErrorMap as ErrorMapRetriever)(),
+    [code]: message
+  };
   const factory = new ErrorFactory<AuthErrorCode, AuthErrorParams>(
     'auth',
     'Firebase',
     errorMap
   );
   return factory.create(code, {
-    appName: auth.name,
+    appName: auth.name
   });
 }
 
-export function _assertInstanceOf(auth: Auth, object: object, instance: unknown): void {
-  const constructorInstance =  (instance as { new (...args: unknown[]): unknown });
+export function _assertInstanceOf(
+  auth: Auth,
+  object: object,
+  instance: unknown
+): void {
+  const constructorInstance = instance as { new (...args: unknown[]): unknown };
   if (!(object instanceof constructorInstance)) {
     if (constructorInstance.name !== object.constructor.name) {
       _fail(auth, AuthErrorCode.ARGUMENT_ERROR);
     }
 
-    throw _errorWithCustomMessage(auth, AuthErrorCode.ARGUMENT_ERROR,
+    throw _errorWithCustomMessage(
+      auth,
+      AuthErrorCode.ARGUMENT_ERROR,
       `Type of ${object.constructor.name} does not match expected instance.` +
-      `Did you pass a reference from a different Auth SDK?`);
+        `Did you pass a reference from a different Auth SDK?`
+    );
   }
 }
 
@@ -271,4 +285,3 @@ export function debugAssert(
     debugFail(message);
   }
 }
-
