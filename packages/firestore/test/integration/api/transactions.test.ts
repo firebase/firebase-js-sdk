@@ -203,6 +203,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           await setDoc(this.docRef, { foo: 'bar0' });
           await deleteDoc(this.docRef);
           break;
+        default:
+          throw new Error(`invalid fromDocumentType: ${this.fromDocumentType}`);
       }
     }
 
