@@ -73,7 +73,7 @@ import {
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData,
-  withNamedTestDbs
+  withNamedTestDbsOrSkipUnlessUsingEmulator
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -1710,7 +1710,7 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   it('can keep docs separate with multi-db when online', () => {
-    return withNamedTestDbs(persistence, ['db1', 'db2'], async ([db1, db2]) => {
+    return withNamedTestDbsOrSkipUnlessUsingEmulator(persistence, ['db1', 'db2'], async ([db1, db2]) => {
       const data = { name: 'Rafi', email: 'abc@xyz.com' };
 
       const ref1 = await doc(collection(db1, 'users'), 'doc1');
@@ -1726,7 +1726,7 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   it('can keep docs separate with multi-db when offline', () => {
-    return withNamedTestDbs(persistence, ['db1', 'db2'], async ([db1, db2]) => {
+    return withNamedTestDbsOrSkipUnlessUsingEmulator(persistence, ['db1', 'db2'], async ([db1, db2]) => {
       await disableNetwork(db1);
       await disableNetwork(db2);
       const data = { name: 'Rafi', email: 'abc@xyz.com' };

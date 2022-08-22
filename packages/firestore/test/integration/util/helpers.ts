@@ -203,14 +203,15 @@ export async function withTestDbsSettings(
   }
 }
 
-export async function withNamedTestDbs(
+export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   persistence: boolean,
   dbNames: string[],
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
-  // Named DBs requires preparing project with DBs beforehand.
-  // Emulator does not DB to have been created beforehand.
-  // TODO: Improve integration testing to have more than just (default) available.
+  // Tests with named DBs can only run on emulator for now. This is because the
+  // emulator does not require DB to be created before use.
+  // TODO: Design ability to run named DB tests on backend. Maybe create DBs
+  // TODO: beforehand, or create DBs as part of test setup.
   if (!USE_EMULATOR) {
     return Promise.resolve();
   }
