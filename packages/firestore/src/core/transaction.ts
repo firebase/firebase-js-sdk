@@ -40,7 +40,7 @@ import { SnapshotVersion } from './snapshot_version';
  */
 export class Transaction {
   // The version of each document that was read during this transaction.
-  private readVersions = new Map</* path */ string, SnapshotVersion>();
+  private readVersions = new Map</* path */ string, SnapshotVersion | null>();
   private mutations: Mutation[] = [];
   private committed = false;
 
@@ -115,20 +115,24 @@ export class Transaction {
   }
 
   private recordVersion(doc: Document): void {
-    let docVersion: SnapshotVersion;
+    let docVersion: SnapshotVersion | null;
 
     if (doc.isFoundDocument()) {
       docVersion = doc.version;
     } else if (doc.isNoDocument()) {
-      // For deleted docs, we must use baseVersion 0 when we overwrite them.
-      docVersion = SnapshotVersion.min();
+      // For deleted docs, we must use {exists: false} when we overwrite them.
+      docVersion = null;
     } else {
       throw fail('Document in a transaction was a ' + doc.constructor.name);
     }
 
     const existingVersion = this.readVersions.get(doc.key.toString());
-    if (existingVersion) {
-      if (!docVersion.isEqual(existingVersion)) {
+    if (existingVersion !== undefined && existingVersion !== docVersion) {
+      if (
+        docVersion == null ||
+        existingVersion == null ||
+        !docVersion.isEqual(existingVersion)
+      ) {
         // This transaction will fail no matter what.
         throw new FirestoreError(
           Code.ABORTED,
@@ -146,8 +150,12 @@ export class Transaction {
    */
   private precondition(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key.toString());
-    if (!this.writtenDocs.has(key.toString()) && version) {
-      return Precondition.updateTime(version);
+    if (!this.writtenDocs.has(key.toString()) && version !== undefined) {
+      if (version == null) {
+        return Precondition.exists(false);
+      } else {
+        return Precondition.updateTime(version);
+      }
     } else {
       return Precondition.none();
     }
@@ -160,8 +168,8 @@ export class Transaction {
     const version = this.readVersions.get(key.toString());
     // The first time a document is written, we want to take into account the
     // read time and existence
-    if (!this.writtenDocs.has(key.toString()) && version) {
-      if (version.isEqual(SnapshotVersion.min())) {
+    if (!this.writtenDocs.has(key.toString()) && version !== undefined) {
+      if (version === null) {
         // The document doesn't exist, so fail the transaction.
 
         // This has to be validated locally because you can't send a
