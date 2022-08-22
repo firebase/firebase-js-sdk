@@ -176,13 +176,22 @@ export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnap
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // @public
-export function getFirestore(app?: FirebaseApp): Firestore;
+export function getFirestore(): Firestore;
+
+// @public
+export function getFirestore(app: FirebaseApp): Firestore;
+
+// @public
+export function getFirestore(databaseId: string): Firestore;
+
+// @public
+export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 
 // @public
 export function increment(n: number): FieldValue;
 
 // @public
-export function initializeFirestore(app: FirebaseApp, settings: Settings): Firestore;
+export function initializeFirestore(app: FirebaseApp, settings: Settings, databaseId?: string): Firestore;
 
 // @public
 export function limit(limit: number): QueryConstraint;

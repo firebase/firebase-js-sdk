@@ -106,14 +106,71 @@ describe('Firestore', () => {
     expect(fs1).to.be.an.instanceOf(Firestore);
   });
 
-  it('returns same instance', () => {
+  it('returns same default instance from named app', () => {
     const app = initializeApp(
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-getFirestore'
     );
     const fs1 = getFirestore(app);
     const fs2 = getFirestore(app);
-    expect(fs1 === fs2).to.be.true;
+    const fs3 = getFirestore(app, '(default)');
+    expect(fs1).to.be.equal(fs2).and.equal(fs3);
+  });
+
+  it('returns different instance from named app', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore'
+    );
+    const fs1 = initializeFirestore(app, DEFAULT_SETTINGS, 'init1');
+    const fs2 = initializeFirestore(app, DEFAULT_SETTINGS, 'init2');
+    const fs3 = getFirestore(app);
+    const fs4 = getFirestore(app, 'name1');
+    const fs5 = getFirestore(app, 'name2');
+    expect(fs1).to.not.be.equal(fs2);
+    expect(fs1).to.not.be.equal(fs3);
+    expect(fs1).to.not.be.equal(fs4);
+    expect(fs1).to.not.be.equal(fs5);
+    expect(fs2).to.not.be.equal(fs3);
+    expect(fs2).to.not.be.equal(fs4);
+    expect(fs2).to.not.be.equal(fs5);
+    expect(fs3).to.not.be.equal(fs4);
+    expect(fs3).to.not.be.equal(fs5);
+    expect(fs4).to.not.be.equal(fs5);
+  });
+
+  it('returns same default instance from default app', () => {
+    const app = initializeApp({
+      apiKey: 'fake-api-key',
+      projectId: 'test-project'
+    });
+    const fs1 = initializeFirestore(app, DEFAULT_SETTINGS);
+    const fs2 = getFirestore();
+    const fs3 = getFirestore(app);
+    const fs4 = getFirestore('(default)');
+    const fs5 = getFirestore(app, '(default)');
+    expect(fs1).to.be.equal(fs2);
+    expect(fs1).to.be.equal(fs3);
+    expect(fs1).to.be.equal(fs4);
+    expect(fs1).to.be.equal(fs5);
+  });
+
+  it('returns different instance from different named app', () => {
+    initializeApp({ apiKey: 'fake-api-key', projectId: 'test-project' });
+    const app1 = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore-1'
+    );
+    const app2 = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore-2'
+    );
+    const fs1 = getFirestore();
+    const fs2 = getFirestore(app1);
+    const fs3 = getFirestore(app2);
+    expect(fs1).to.not.be.equal(fs2);
+    expect(fs1).to.not.be.equal(fs3);
+    expect(fs2).to.not.be.equal(fs3);
   });
 
   it('cannot call initializeFirestore() twice', () => {
