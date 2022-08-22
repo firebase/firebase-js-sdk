@@ -1710,37 +1710,45 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   it('can keep docs separate with multi-db when online', () => {
-    return withNamedTestDbsOrSkipUnlessUsingEmulator(persistence, ['db1', 'db2'], async ([db1, db2]) => {
-      const data = { name: 'Rafi', email: 'abc@xyz.com' };
+    return withNamedTestDbsOrSkipUnlessUsingEmulator(
+      persistence,
+      ['db1', 'db2'],
+      async ([db1, db2]) => {
+        const data = { name: 'Rafi', email: 'abc@xyz.com' };
 
-      const ref1 = await doc(collection(db1, 'users'), 'doc1');
-      await setDoc(ref1, data);
-      const snapshot1 = await getDoc(ref1);
-      expect(snapshot1.exists()).to.be.ok;
-      expect(snapshot1.data()).to.be.deep.equals(data);
+        const ref1 = await doc(collection(db1, 'users'), 'doc1');
+        await setDoc(ref1, data);
+        const snapshot1 = await getDoc(ref1);
+        expect(snapshot1.exists()).to.be.ok;
+        expect(snapshot1.data()).to.be.deep.equals(data);
 
-      const ref2 = await doc(collection(db2, 'users'), 'doc1');
-      const snapshot2 = await getDocFromServer(ref2);
-      expect(snapshot2.exists()).to.not.be.ok;
-    });
+        const ref2 = await doc(collection(db2, 'users'), 'doc1');
+        const snapshot2 = await getDocFromServer(ref2);
+        expect(snapshot2.exists()).to.not.be.ok;
+      }
+    );
   });
 
   it('can keep docs separate with multi-db when offline', () => {
-    return withNamedTestDbsOrSkipUnlessUsingEmulator(persistence, ['db1', 'db2'], async ([db1, db2]) => {
-      await disableNetwork(db1);
-      await disableNetwork(db2);
-      const data = { name: 'Rafi', email: 'abc@xyz.com' };
+    return withNamedTestDbsOrSkipUnlessUsingEmulator(
+      persistence,
+      ['db1', 'db2'],
+      async ([db1, db2]) => {
+        await disableNetwork(db1);
+        await disableNetwork(db2);
+        const data = { name: 'Rafi', email: 'abc@xyz.com' };
 
-      const ref1 = await doc(collection(db1, 'users'));
-      void setDoc(ref1, data);
-      const snapshot = await getDocFromCache(ref1);
-      expect(snapshot.exists()).to.be.ok;
-      expect(snapshot.data()).to.be.deep.equals(data);
+        const ref1 = await doc(collection(db1, 'users'));
+        void setDoc(ref1, data);
+        const snapshot = await getDocFromCache(ref1);
+        expect(snapshot.exists()).to.be.ok;
+        expect(snapshot.data()).to.be.deep.equals(data);
 
-      const ref2 = await doc(collection(db2, 'users'));
-      await expect(getDocFromCache(ref2)).to.eventually.rejectedWith(
-        'Failed to get document from cache.'
-      );
-    });
+        const ref2 = await doc(collection(db2, 'users'));
+        await expect(getDocFromCache(ref2)).to.eventually.rejectedWith(
+          'Failed to get document from cache.'
+        );
+      }
+    );
   });
 });
