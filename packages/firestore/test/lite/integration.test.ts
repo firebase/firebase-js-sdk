@@ -2046,12 +2046,12 @@ describe('withConverter() support', () => {
 
 describe('countQuery()', () => {
   const converter = {
-    toFirestore(value: string): DocumentData {
-      return { key: value };
+    toFirestore(input: { id: string, content: string}): DocumentData {
+      return { key: input.id, value:input.content };
     },
-    fromFirestore(snapshot: QueryDocumentSnapshot): string {
+    fromFirestore(snapshot: QueryDocumentSnapshot): {id: string, content: string} {
       const data = snapshot.data();
-      return data.value;
+      return {content:data.value, id:data.documentId} ;
     }
   };
 
@@ -2139,40 +2139,40 @@ describe('countQuery()', () => {
 
   it.only('test collection count with converter on query', () => {
     const testDocs = [
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' },
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' }
+      { key: 'a', value:"Adam" },
+      { key: 'b' , value: "Bob"},
+      { key: 'c', value: "Chris" },
+      { key: 'a', value:"Anna" },
+      { key: 'b' , value: "Bill"},
+      { key: 'c', value: "Cooper" }
     ];
     //testing out the converter impact on the AggregateQuery type
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      let query_ = query(collection).withConverter(converter);
+      let query_ = query(collection, where('key', '==', 'a')).withConverter(converter);
 
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
-      expect(snapshot.getCount()).to.equal(6);
+      expect(snapshot.getCount()).to.equal(2);
     });
   });
 
   it.only('test collection count with converter on collection', () => {
     const testDocs = [
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' },
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' }
+      { key: 'a', value:"Adam" },
+      { key: 'b' , value: "Bob"},
+      { key: 'c', value: "Chris" },
+      { key: 'a', value:"Anna" },
+      { key: 'b' , value: "Bill"},
+      { key: 'c', value: "Cooper" }
     ];
     //testing out the converter impact on the AggregateQuery type
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const ref = collection.withConverter(converter);
-      let query_ = query(ref);
+      let query_ = query(ref,where('key', '==', 'a'));
 
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
-      expect(snapshot.getCount()).to.equal(6);
+      expect(snapshot.getCount()).to.equal(2);
     });
   });
 });

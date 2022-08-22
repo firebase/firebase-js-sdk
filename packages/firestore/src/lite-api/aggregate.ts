@@ -30,7 +30,7 @@ import { LiteUserDataWriter } from './reference_impl';
  * in test mocks. Subclassing is not supported in production code and new SDK releases may break
  * code that does so.
  */
-export class AggregateQuery<T = DocumentData> {
+export class AggregateQuery {
   readonly type = 'AggregateQuery';
   /**
    * The query on which you called {@link countQuery} in order to get this
@@ -38,17 +38,13 @@ export class AggregateQuery<T = DocumentData> {
    * Query type is set to unknown to avoid error caused by query type converter.
    * might change it back to T after testing if the error do exist or not
    */
-  readonly query: Query<T>;
+  readonly query: Query<unknown>;
 
   /** @hideconstructor */
-  constructor(query: Query<T>) {
+  constructor(query: Query<unknown>) {
     this.query = query;
   }
 
-  /** Returns the base {@link Query} for this aggregate query. */
-  getQuery(): Query<T> {
-    return this.query;
-  }
 }
 
 /**
@@ -61,17 +57,10 @@ export class AggregateQuery<T = DocumentData> {
 export class AggregateQuerySnapshot {
   readonly type = 'AggregateQuerySnapshot';
   readonly query: AggregateQuery;
-  readonly count: number | null;
 
   /** @hideconstructor */
-  constructor(query: AggregateQuery, count: number | null) {
+  constructor(query: AggregateQuery, private readonly _count: number) {
     this.query = query;
-    this.count = count;
-  }
-
-  /** @return The original {@link AggregateQuery} this snapshot is a result of. */
-  getQuery(): AggregateQuery {
-    return this.query;
   }
 
   /**
@@ -79,7 +68,7 @@ export class AggregateQuerySnapshot {
    * available in the result.
    */
   getCount(): number | null {
-    return this.count;
+    return this._count;
   }
 }
 
@@ -89,15 +78,15 @@ export class AggregateQuerySnapshot {
  * @return An {@link AggregateQuery} object that can be used to count the number of documents in
  * the result set of this query.
  */
-export function countQuery<T>(query: Query<T>): AggregateQuery<T> {
+export function countQuery(query: Query<unknown>): AggregateQuery {
   /**
    * TODO(mila): add the "count" aggregateField to the params after the AggregateQuery is updated.
    */
   return new AggregateQuery(query);
 }
 
-export function getAggregateFromServerDirect<T>(
-  aggregateQuery: AggregateQuery<T>
+export function getAggregateFromServerDirect(
+  aggregateQuery: AggregateQuery
 ): Promise<AggregateQuerySnapshot> {
   const firestore = cast(aggregateQuery.query.firestore, Firestore);
   const datastore = getDatastore(firestore);
