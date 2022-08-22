@@ -18,9 +18,8 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 };
 
 // @public
-export class AggregateQuery<T = DocumentData> {
-    getQuery(): Query<T>;
-    readonly query: Query<T>;
+export class AggregateQuery {
+    readonly query: Query<unknown>;
     // (undocumented)
     readonly type = "AggregateQuery";
 }
@@ -30,10 +29,7 @@ export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery)
 
 // @public
 export class AggregateQuerySnapshot {
-    // (undocumented)
-    readonly count: number | null;
     getCount(): number | null;
-    getQuery(): AggregateQuery;
     // (undocumented)
     readonly query: AggregateQuery;
     // (undocumented)
@@ -96,7 +92,7 @@ export function connectFirestoreEmulator(firestore: Firestore, host: string, por
 }): void;
 
 // @public
-export function countQuery<T>(query: Query<T>): AggregateQuery<T>;
+export function countQuery(query: Query<unknown>): AggregateQuery;
 
 // @public
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
@@ -239,7 +235,7 @@ export class GeoPoint {
 }
 
 // @public (undocumented)
-export function getAggregateFromServerDirect<T>(aggregateQuery: AggregateQuery<T>): Promise<AggregateQuerySnapshot>;
+export function getAggregateFromServerDirect(aggregateQuery: AggregateQuery): Promise<AggregateQuerySnapshot>;
 
 // @public
 export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
