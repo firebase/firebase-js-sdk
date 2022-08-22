@@ -34,6 +34,19 @@ import { Code, FirestoreError } from '../util/error';
 
 import { SnapshotVersion } from './snapshot_version';
 
+function nullableSnapshotVersionsEqual(
+  v1: SnapshotVersion | null,
+  v2: SnapshotVersion | null
+): boolean {
+  if (v1 === v2) {
+    return true;
+  } else if (v1 === null || v2 === null) {
+    return false;
+  } else {
+    return v1.isEqual(v2);
+  }
+}
+
 /**
  * Internal transaction object responsible for accumulating the mutations to
  * perform and the base versions for any documents read.
@@ -127,12 +140,8 @@ export class Transaction {
     }
 
     const existingVersion = this.readVersions.get(doc.key.toString());
-    if (existingVersion !== undefined && existingVersion !== docVersion) {
-      if (
-        docVersion == null ||
-        existingVersion == null ||
-        !docVersion.isEqual(existingVersion)
-      ) {
+    if (existingVersion !== undefined) {
+      if (!nullableSnapshotVersionsEqual(existingVersion, docVersion)) {
         // This transaction will fail no matter what.
         throw new FirestoreError(
           Code.ABORTED,
