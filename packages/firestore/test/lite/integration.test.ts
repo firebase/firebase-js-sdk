@@ -22,7 +22,9 @@ import chaiAsPromised from 'chai-as-promised';
 
 import {
   countQuery,
-  getAggregateFromServerDirect
+  getAggregateFromServerDirect,
+  aggregateQueryEqual,
+  aggregateQuerySnapshotEqual
 } from '../../src/lite-api/aggregate';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
@@ -2046,16 +2048,28 @@ describe('withConverter() support', () => {
 
 describe('countQuery()', () => {
   const converter = {
-    toFirestore(input: { id: string, content: string}): DocumentData {
-      return { key: input.id, value:input.content };
+    toFirestore(input: { id: string; content: string }): DocumentData {
+      return { key: input.id, value: input.content };
     },
-    fromFirestore(snapshot: QueryDocumentSnapshot): {id: string, content: string} {
+    fromFirestore(snapshot: QueryDocumentSnapshot): {
+      id: string;
+      content: string;
+    } {
       const data = snapshot.data();
-      return {content:data.value, id:data.documentId} ;
+      return { content: data.value, id: data.documentId };
     }
   };
 
-  it.only('empty collection count equals to 0', () => {
+  const testDocs = [
+    { key: 'a', value: 'Adam' },
+    { key: 'b', value: 'Bob' },
+    { key: 'c', value: 'Chris' },
+    { key: 'a', value: 'Anna' },
+    { key: 'b', value: 'Bill' },
+    { key: 'c', value: 'Cooper' }
+  ];
+
+  it('empty collection count equals to 0', () => {
     return withTestCollection(async coll => {
       const countQuery_ = countQuery(query(coll));
       expect(countQuery_.type).to.equal('AggregateQuery');
@@ -2065,15 +2079,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it.only('test collection count equals to 6', () => {
-    const testDocs = [
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' },
-      { key: 'd' },
-      { key: 'e' },
-      { key: 'f' }
-    ];
+  it('test collection count equals to 6', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const countQuery_ = countQuery(query(collection));
       const snapshot = await getAggregateFromServerDirect(countQuery_);
@@ -2081,17 +2087,9 @@ describe('countQuery()', () => {
     });
   });
 
-  it.only('test collection count with filter', () => {
-    const testDocs = [
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' },
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' }
-    ];
+  it('test collection count with filter', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      let query_ = query(collection, where('key', '==', 'a'));
+      const query_ = query(collection, where('key', '==', 'a'));
 
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
@@ -2099,18 +2097,10 @@ describe('countQuery()', () => {
     });
   });
 
-  it.only('test collection count with filter effected by small limit', () => {
-    const testDocs = [
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' },
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' }
-    ];
+  it('test collection count with filter effected by small limit', () => {
     // limit that is less that the actual count would work like count up_to.
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      let query_ = query(collection, where('key', '==', 'a'), limit(1));
+      const query_ = query(collection, where('key', '==', 'a'), limit(1));
 
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
@@ -2118,18 +2108,10 @@ describe('countQuery()', () => {
     });
   });
 
-  it.only('test collection count with filter not effected by large limit', () => {
-    const testDocs = [
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' },
-      { key: 'a' },
-      { key: 'b' },
-      { key: 'c' }
-    ];
+  it('test collection count with filter not effected by large limit', () => {
     //limit that is larger than actual count wouldn't impact the return value
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      let query_ = query(collection, where('key', '==', 'a'), limit(3));
+      const query_ = query(collection, where('key', '==', 'a'), limit(3));
 
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
@@ -2137,18 +2119,12 @@ describe('countQuery()', () => {
     });
   });
 
-  it.only('test collection count with converter on query', () => {
-    const testDocs = [
-      { key: 'a', value:"Adam" },
-      { key: 'b' , value: "Bob"},
-      { key: 'c', value: "Chris" },
-      { key: 'a', value:"Anna" },
-      { key: 'b' , value: "Bill"},
-      { key: 'c', value: "Cooper" }
-    ];
+  it('test collection count with converter on query', () => {
     //testing out the converter impact on the AggregateQuery type
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      let query_ = query(collection, where('key', '==', 'a')).withConverter(converter);
+      const query_ = query(collection, where('key', '==', 'a')).withConverter(
+        converter
+      );
 
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
@@ -2156,23 +2132,55 @@ describe('countQuery()', () => {
     });
   });
 
-  it.only('test collection count with converter on collection', () => {
-    const testDocs = [
-      { key: 'a', value:"Adam" },
-      { key: 'b' , value: "Bob"},
-      { key: 'c', value: "Chris" },
-      { key: 'a', value:"Anna" },
-      { key: 'b' , value: "Bill"},
-      { key: 'c', value: "Cooper" }
-    ];
+  it('test collection count with converter on collection', () => {
     //testing out the converter impact on the AggregateQuery type
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const ref = collection.withConverter(converter);
-      let query_ = query(ref,where('key', '==', 'a'));
+      const query_ = query(ref, where('key', '==', 'a'));
 
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
+    });
+  });
+
+  it('aggregateQueryEqual returns true on same queries', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_1 = query(collection, where('key', '==', 'a'));
+      const query_2 = query(collection, where('key', '==', 'a'));
+
+      const countQuery_1 = countQuery(query_1);
+      const countQuery_2 = countQuery(query_2);
+      expect(aggregateQueryEqual(countQuery_1, countQuery_2)).to.be.true;
+    });
+  });
+  
+  it('aggregateQueryEqual returns false on different queries', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_1 = query(collection, where('key', '==', 'a'));
+      const query_2 = query(collection, where('key', '!=', 'a'));
+
+      const countQuery_1 = countQuery(query_1);
+      const countQuery_2 = countQuery(query_2);
+      expect(aggregateQueryEqual(countQuery_1, countQuery_2)).to.be.false;
+    });
+  });
+
+  it('aggregateQuerySnapshotEqual returns true on same queries', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_original = query(collection, where('key', '==', 'a'));
+      const query_copy = query(collection, where('key', '==', 'a'));
+
+      const countQuery_original_1 = countQuery(query_original);
+      const countQuery_original_2 = countQuery(query_original);
+      const countQuery_copy = countQuery(query_copy);
+
+      const snapshot_original_1 = await getAggregateFromServerDirect(countQuery_original_1);
+      const snapshot_original_2 = await getAggregateFromServerDirect(countQuery_original_2);
+      const snapshot_copy = await getAggregateFromServerDirect(countQuery_copy);
+
+      expect(aggregateQuerySnapshotEqual(snapshot_original_1, snapshot_original_2)).to.be.true;
+      expect(aggregateQuerySnapshotEqual(snapshot_original_1, snapshot_copy)).to.be.true;
     });
   });
 });
