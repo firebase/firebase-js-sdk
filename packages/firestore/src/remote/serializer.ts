@@ -77,13 +77,13 @@ import {
   OrderDirection as ProtoOrderDirection,
   Precondition as ProtoPrecondition,
   QueryTarget as ProtoQueryTarget,
+  RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   Status as ProtoStatus,
   Target as ProtoTarget,
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
   Write as ProtoWrite,
-  WriteResult as ProtoWriteResult,
-  RunAggregationQueryRequest as ProtoRunAggregationQueryRequest
+  WriteResult as ProtoWriteResult
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -857,62 +857,20 @@ export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
   target: Target
 ): ProtoRunAggregationQueryRequest {
-  // Dissect the path into parent, collectionId, and optional key filter.
-  const result: ProtoRunAggregationQueryRequest = {
+  const queryTarget = toQueryTarget(serializer, target);
+
+  return {
     structuredAggregationQuery: {
       aggregations: [
-        //TODO: dynamically add the aggregate fields in future development
         {
-          count: {
-          },
-          alias:"count_alias"
-        },
+          count: {},
+          alias: 'count_alias'
+        }
       ],
-      structuredQuery: {}
-    }
+      structuredQuery: queryTarget.structuredQuery
+    },
+    parent: queryTarget.parent
   };
-  const path = target.path;
-  if (target.collectionGroup !== null) {
-    debugAssert(
-      path.length % 2 === 0,
-      'Collection Group queries should be within a document path or root.'
-    );
-    result.parent = toQueryPath(serializer, path);
-    result.structuredAggregationQuery!.structuredQuery!.from = [
-      {
-        collectionId: target.collectionGroup,
-        allDescendants: true
-      }
-    ];
-  } else {
-    debugAssert(
-      path.length % 2 !== 0,
-      'Document queries with filters are not supported.'
-    );
-    result.parent = toQueryPath(serializer, path.popLast());
-    result.structuredAggregationQuery!.structuredQuery!.from = [
-      { collectionId: path.lastSegment() }
-    ];
-  }
-
-  const where = toFilter(target.filters);
-  if (where) {
-    result.structuredAggregationQuery!.structuredQuery!.where = where;
-  }
-  /** QUESTION: in count query, do we need to add OrderBy? Number of
-   *  documents shouldn't be impacted by how the documents are ordered.
-   */
-  const orderBy = toOrder(target.orderBy);
-  if (orderBy) {
-    result.structuredAggregationQuery!.structuredQuery!.orderBy = orderBy;
-  }
-  
-  const limit = toInt32Proto(serializer, target.limit);
-  if (limit !== null) {
-    result.structuredAggregationQuery!.structuredQuery!.limit = limit;
-  }
-
-  return result;
 }
 
 export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {

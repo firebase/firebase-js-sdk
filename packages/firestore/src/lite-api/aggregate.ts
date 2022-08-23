@@ -16,25 +16,21 @@
  */
 
 import { invokeRunAggregationQueryRpc } from '../remote/datastore';
+import { hardAssert } from '../util/assert';
 import { cast } from '../util/input_validation';
 import { getDatastore } from './components';
 import { Firestore } from './database';
-import { DocumentData, Query, queryEqual } from './reference';
+import { Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 
 /**
- * A {@code AggregateQuery} computes some aggregation statistics from the result set of a base
- * {@link Query}.
- *
- * <p><b>Subclassing Note</b>: Cloud Firestore classes are not meant to be subclassed except for use
- * in test mocks. Subclassing is not supported in production code and new SDK releases may break
- * code that does so.
+ * A `AggregateQuery` computes some aggregation statistics from the result set of
+ * a base `Query`.
  */
 export class AggregateQuery {
   readonly type = 'AggregateQuery';
   /**
-   * The query on which you called {@link countQuery} in order to get this
-   * `AggregateQuery`.
+   * The query on which you called `countQuery` in order to get this `AggregateQuery`.
    * Query type is set to unknown to avoid error caused by query type converter.
    * might change it back to T after testing if the error do exist or not
    */
@@ -44,15 +40,10 @@ export class AggregateQuery {
   constructor(query: Query<unknown>) {
     this.query = query;
   }
-
 }
 
 /**
- * A {@code AggregateQuerySnapshot} contains results of a {@link AggregateQuery}.
- *
- * <p><b>Subclassing Note</b>: Cloud Firestore classes are not meant to be subclassed except for use
- * in test mocks. Subclassing is not supported in production code and new SDK releases may break
- * code that does so.
+ * A `AggregateQuerySnapshot` contains results of a `AggregateQuery`.
  */
 export class AggregateQuerySnapshot {
   readonly type = 'AggregateQuerySnapshot';
@@ -73,15 +64,12 @@ export class AggregateQuerySnapshot {
 }
 
 /**
- * Creates an {@link AggregateQuery} counting the number of documents matching this query.
+ * Creates an `AggregateQuery` counting the number of documents matching this query.
  *
- * @return An {@link AggregateQuery} object that can be used to count the number of documents in
+ * @return An `AggregateQuery` object that can be used to count the number of documents in
  * the result set of this query.
  */
 export function countQuery(query: Query<unknown>): AggregateQuery {
-  /**
-   * TODO(mila): add the "count" aggregateField to the params after the AggregateQuery is updated.
-   */
   return new AggregateQuery(query);
 }
 
@@ -95,24 +83,18 @@ export function getAggregateFromServerDirect(
   return invokeRunAggregationQueryRpc(datastore, aggregateQuery).then(
     result => {
       const aggregationFields = new Map<string, any>();
-      /**
-       * while getting aggregation fields from server direct, it should have only
-       * one RunAggregationQueryResponse returned.
-       * But we used streaming rpc here, so we will have an array of
-       * (one, or possibly more) RunAggregationQueryResponse. For this specific
-       * function, we get the first RunAggregationQueryResponse only.
-       */
+
       for (const [key, value] of Object.entries(result[0])) {
         aggregationFields.set(key, userDataWriter.convertValue(value));
       }
+      const countField = aggregationFields.get('count_alias');
+
+      hardAssert(
+        countField !== undefined && typeof countField === 'number',
+        'Count aggeragte field is invalid. countField:' + countField
+      );
       return Promise.resolve(
-        new AggregateQuerySnapshot(
-          aggregateQuery,
-          //return the count value , or null if count is undfined
-          aggregationFields.has('count_alias')
-            ? aggregationFields.get('count_alias')
-            : null
-        )
+        new AggregateQuerySnapshot(aggregateQuery, countField!)
       );
     }
   );

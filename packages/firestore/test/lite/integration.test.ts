@@ -2069,17 +2069,29 @@ describe('countQuery()', () => {
     { key: 'c', value: 'Cooper' }
   ];
 
-  it('empty collection count equals to 0', () => {
+  it.only('AggregateQuery and AggregateQuerySnapshot inherits the original query', () => {
+    return withTestCollection(async coll => {
+      const query_ = query(coll);
+
+      const countQuery_ = countQuery(query_);
+      expect(countQuery_.type).to.equal('AggregateQuery');
+      expect(countQuery_.query).to.equal(query_);
+
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.query.query).to.equal(query_);
+    });
+  });
+
+  it.only('empty collection count equals to 0', () => {
     return withTestCollection(async coll => {
       const countQuery_ = countQuery(query(coll));
-      expect(countQuery_.type).to.equal('AggregateQuery');
 
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(0);
     });
   });
 
-  it('test collection count equals to 6', () => {
+  it.only('test collection count equals to 6', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const countQuery_ = countQuery(query(collection));
       const snapshot = await getAggregateFromServerDirect(countQuery_);
@@ -2087,100 +2099,88 @@ describe('countQuery()', () => {
     });
   });
 
-  it('test collection count with filter', () => {
+  it.only('test collection count with filter', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, where('key', '==', 'a'));
-
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
     });
   });
 
-  it('test collection count with filter effected by small limit', () => {
-    // limit that is less that the actual count would work like count up_to.
+  it.only('test collection count with filter and a small limit size', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, where('key', '==', 'a'), limit(1));
-
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(1);
     });
   });
 
-  it('test collection count with filter not effected by large limit', () => {
-    //limit that is larger than actual count wouldn't impact the return value
+  it.only('test collection count with filter and a large limit size', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, where('key', '==', 'a'), limit(3));
-
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
     });
   });
 
-  it('test collection count with converter on query', () => {
-    //testing out the converter impact on the AggregateQuery type
+  it.only('test collection count with converter on query', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, where('key', '==', 'a')).withConverter(
         converter
       );
-
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
     });
   });
 
-  it('test collection count with converter on collection', () => {
-    //testing out the converter impact on the AggregateQuery type
+  it.only('aggregateQueryEqual returns true on same queries', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      const ref = collection.withConverter(converter);
-      const query_ = query(ref, where('key', '==', 'a'));
-
-      const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
-      expect(snapshot.getCount()).to.equal(2);
+      const query1 = query(collection, where('key', '==', 'a'));
+      const query2 = query(collection, where('key', '==', 'a'));
+      const countQuery1 = countQuery(query1);
+      const countQuery2 = countQuery(query2);
+      expect(aggregateQueryEqual(countQuery1, countQuery2)).to.be.true;
     });
   });
 
-  it('aggregateQueryEqual returns true on same queries', () => {
+  it.only('aggregateQueryEqual returns false on different queries', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_1 = query(collection, where('key', '==', 'a'));
-      const query_2 = query(collection, where('key', '==', 'a'));
-
-      const countQuery_1 = countQuery(query_1);
-      const countQuery_2 = countQuery(query_2);
-      expect(aggregateQueryEqual(countQuery_1, countQuery_2)).to.be.true;
-    });
-  });
-  
-  it('aggregateQueryEqual returns false on different queries', () => {
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_1 = query(collection, where('key', '==', 'a'));
-      const query_2 = query(collection, where('key', '!=', 'a'));
-
-      const countQuery_1 = countQuery(query_1);
-      const countQuery_2 = countQuery(query_2);
-      expect(aggregateQueryEqual(countQuery_1, countQuery_2)).to.be.false;
+      const query1 = query(collection, where('key', '==', 'a'));
+      const query2 = query(collection, where('key', '!=', 'a'));
+      const countQuery1 = countQuery(query1);
+      const countQuery2 = countQuery(query2);
+      expect(aggregateQueryEqual(countQuery1, countQuery2)).to.be.false;
     });
   });
 
-  it('aggregateQuerySnapshotEqual returns true on same queries', () => {
+  it.only('aggregateQuerySnapshotEqual returns true on same queries', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_original = query(collection, where('key', '==', 'a'));
-      const query_copy = query(collection, where('key', '==', 'a'));
+      const query1 = query(collection, where('key', '==', 'a'));
+      const query2 = query(collection, where('key', '==', 'a'));
+      const countQuery1A = countQuery(query1);
+      const countQuery1B = countQuery(query1);
+      const countQuery2 = countQuery(query2);
+      const snapshot1A = await getAggregateFromServerDirect(countQuery1A);
+      const snapshot1B = await getAggregateFromServerDirect(countQuery1B);
+      const snapshot2 = await getAggregateFromServerDirect(countQuery2);
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.true;
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.true;
+    });
+  });
 
-      const countQuery_original_1 = countQuery(query_original);
-      const countQuery_original_2 = countQuery(query_original);
-      const countQuery_copy = countQuery(query_copy);
-
-      const snapshot_original_1 = await getAggregateFromServerDirect(countQuery_original_1);
-      const snapshot_original_2 = await getAggregateFromServerDirect(countQuery_original_2);
-      const snapshot_copy = await getAggregateFromServerDirect(countQuery_copy);
-
-      expect(aggregateQuerySnapshotEqual(snapshot_original_1, snapshot_original_2)).to.be.true;
-      expect(aggregateQuerySnapshotEqual(snapshot_original_1, snapshot_copy)).to.be.true;
+  it.only('aggregateQuerySnapshotEqual returns false on different queries', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query1 = query(collection, where('key', '==', 'a'));
+      const query2 = query(collection, where('key', '==', 'b'));
+      const countQuery1 = countQuery(query1);
+      const countQuery2 = countQuery(query2);
+      const snapshot1 = await getAggregateFromServerDirect(countQuery1);
+      const snapshot2 = await getAggregateFromServerDirect(countQuery2);
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
     });
   });
 });

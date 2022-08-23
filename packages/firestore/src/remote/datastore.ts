@@ -254,7 +254,7 @@ export async function invokeRunAggregationQueryRpc(
   });
   return (
     response
-      // Omit RunQueryResponses that only contain readTimes.
+      // Omit RunAggregationQueryResponse that only contain readTimes.
       .filter(proto => !!proto.result && !!proto.result.aggregateFields)
       .map(proto => proto.result!.aggregateFields!)
   );
