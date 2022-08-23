@@ -891,22 +891,25 @@ export function compositeFilterEquals(
 /** Returns a debug description for `filter`. */
 export function stringifyFilter(filter: Filter): string {
   debugAssert(
-    (filter instanceof FieldFilter) || (filter instanceof CompositeFilter),
+    filter instanceof FieldFilter || filter instanceof CompositeFilter,
     'stringifyFilter() only supports FieldFilters and CompositeFilters'
   );
   if (filter instanceof FieldFilter) {
     return stringifyFieldFilter(filter);
-  }
-  else if (filter instanceof CompositeFilter) {
+  } else if (filter instanceof CompositeFilter) {
     return stringifyCompositeFilter(filter);
-  }
-  else {
+  } else {
     return 'Filter';
   }
 }
 
 export function stringifyCompositeFilter(filter: CompositeFilter): string {
-  return filter.op.toString() + ` {` + filter.getFilters().map(stringifyFilter).join(' ,') + '}';
+  return (
+    filter.op.toString() +
+    ` {` +
+    filter.getFilters().map(stringifyFilter).join(' ,') +
+    '}'
+  );
 }
 
 export function stringifyFieldFilter(filter: FieldFilter): string {

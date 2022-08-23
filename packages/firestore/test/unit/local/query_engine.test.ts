@@ -724,19 +724,24 @@ function genericQueryEngineTest(
     const doc6 = doc('coll/6', 1, { 'a': 2 });
     await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
 
-    const query1 =
-      query("coll",
-        orFilter(filter("a", "==", 2), filter("b", "in", [2, 3])));
-    const result1 =
-      await expectFullCollectionQuery(() => runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'in', [2, 3]))
+    );
+    const result1 = await expectFullCollectionQuery(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
     verifyResult(result1, [doc3, doc4, doc6]);
 
     // a==2 || (b != 2 && b != 3)
     // Has implicit "orderBy b"
-    const query2 =
-      query("coll", orFilter(filter("a", "==", 2), filter("b", "not-in", [2, 3])));
-    const result2 =
-      await expectFullCollectionQuery(() => runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'not-in', [2, 3]))
+    );
+    const result2 = await expectFullCollectionQuery(() =>
+      runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
     verifyResult(result2, [doc1, doc2]);
   });
 
@@ -749,17 +754,22 @@ function genericQueryEngineTest(
     const doc6 = doc('coll/6', 1, { 'a': 2 });
     await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
 
-    const query1 =
-      query("coll",
-        orFilter(filter("a", "==", 2), filter("b", "array-contains", 7)));
-    const result1 =
-      await expectFullCollectionQuery(() => runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'array-contains', 7))
+    );
+    const result1 = await expectFullCollectionQuery(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
     verifyResult(result1, [doc3, doc4, doc6]);
 
-    const query2 =
-      query("coll", orFilter(filter("a", "==", 2), filter("b", "array-contains-any", [0, 3])));
-    const result2 =
-      await expectFullCollectionQuery(() => runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'array-contains-any', [0, 3]))
+    );
+    const result2 = await expectFullCollectionQuery(() =>
+      runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
     verifyResult(result2, [doc1, doc4, doc6]);
   });
 
@@ -878,28 +888,46 @@ function genericQueryEngineTest(
     const doc6 = doc('coll/6', 1, { 'a': 2 });
     await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
 
-    await indexManager.addFieldIndex(fieldIndex("coll", { fields: [['a', IndexKind.ASCENDING]] }));
-    await indexManager.addFieldIndex(fieldIndex("coll", { fields: [['a', IndexKind.DESCENDING]] }));
-    await indexManager.addFieldIndex(fieldIndex("coll", { fields: [['b', IndexKind.ASCENDING]] }));
-    await indexManager.addFieldIndex(fieldIndex("coll", { fields: [['b', IndexKind.DESCENDING]] }));
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['b', IndexKind.DESCENDING]] })
+    );
 
-    await indexManager.updateIndexEntries(documentMap(doc1, doc2, doc3, doc4, doc5, doc6));
-    await indexManager.updateCollectionGroup("coll", newIndexOffsetFromDocument(doc6));
+    await indexManager.updateIndexEntries(
+      documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
+    );
+    await indexManager.updateCollectionGroup(
+      'coll',
+      newIndexOffsetFromDocument(doc6)
+    );
 
-    const query1 =
-      query("coll",
-        orFilter(filter("a", "==", 2), filter("b", "in", [2, 3])));
-    const result1 =
-      await expectOptimizedCollectionQuery(() => runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'in', [2, 3]))
+    );
+    const result1 = await expectOptimizedCollectionQuery(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
 
     verifyResult(result1, [doc3, doc4, doc6]);
 
     // a==2 || (b != 2 && b != 3)
     // Has implicit "orderBy b"
-    const query2 =
-      query("coll", orFilter(filter("a", "==", 2), filter("b", "not-in", [2, 3])));
-    const result2 =
-      await expectOptimizedCollectionQuery(() => runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'not-in', [2, 3]))
+    );
+    const result2 = await expectOptimizedCollectionQuery(() =>
+      runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
     verifyResult(result2, [doc1, doc2]);
   });
 
@@ -912,24 +940,40 @@ function genericQueryEngineTest(
     const doc6 = doc('coll/6', 1, { 'a': 2 });
     await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
 
-    await indexManager.addFieldIndex(fieldIndex("coll", { fields: [['a', IndexKind.ASCENDING]] }));
-    await indexManager.addFieldIndex(fieldIndex("coll", { fields: [['a', IndexKind.DESCENDING]] }));
-    await indexManager.addFieldIndex(fieldIndex("coll", { fields: [['b', IndexKind.CONTAINS]] }));
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['b', IndexKind.CONTAINS]] })
+    );
 
-    await indexManager.updateIndexEntries(documentMap(doc1, doc2, doc3, doc4, doc5, doc6));
-    await indexManager.updateCollectionGroup("coll", newIndexOffsetFromDocument(doc6));
+    await indexManager.updateIndexEntries(
+      documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
+    );
+    await indexManager.updateCollectionGroup(
+      'coll',
+      newIndexOffsetFromDocument(doc6)
+    );
 
-    const query1 =
-      query("coll",
-        orFilter(filter("a", "==", 2), filter("b", "array-contains", 7)));
-    const result1 =
-      await expectOptimizedCollectionQuery(() => runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'array-contains', 7))
+    );
+    const result1 = await expectOptimizedCollectionQuery(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
     verifyResult(result1, [doc3, doc4, doc6]);
 
-    const query2 =
-      query("coll", orFilter(filter("a", "==", 2), filter("b", "array-contains-any", [0, 3])));
-    const result2 =
-      await expectOptimizedCollectionQuery(() => runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT));
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'array-contains-any', [0, 3]))
+    );
+    const result2 = await expectOptimizedCollectionQuery(() =>
+      runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
     verifyResult(result2, [doc1, doc4, doc6]);
   });
 }
