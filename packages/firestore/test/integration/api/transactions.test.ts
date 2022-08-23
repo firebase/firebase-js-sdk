@@ -316,6 +316,11 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
+  // This test is identical to the test above, except that withNonexistentDoc()
+  // is replaced by withDeletedDoc(), to guard against regression of
+  // https://github.com/firebase/firebase-js-sdk/issues/5871, where transactions
+  // would incorrectly fail with FAILED_PRECONDITION when operations were
+  // performed on a deleted document (rather than a non-existent document).
   it('runs transactions after getting a deleted document', async () => {
     return withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
