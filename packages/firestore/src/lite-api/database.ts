@@ -163,9 +163,30 @@ export class Firestore implements FirestoreService {
  * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
- * @param databaseId - The name of database.
  * @returns A newly initialized `Firestore` instance.
  */
+export function initializeFirestore(
+  app: FirebaseApp,
+  settings: FirestoreSettings
+): Firestore;
+/**
+ * Initializes a new instance of Cloud Firestore with the provided settings.
+ * Can only be called before any other functions, including
+ * {@link getFirestore}. If the custom settings are empty, this function is
+ * equivalent to calling {@link getFirestore}.
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
+ * be associated.
+ * @param settings - A settings object to configure the `Firestore` instance.
+ * @param databaseId - The name of database.
+ * @returns A newly initialized `Firestore` instance.
+ * @internal
+ */
+export function initializeFirestore(
+  app: FirebaseApp,
+  settings: FirestoreSettings,
+  databaseId?: string
+): Firestore;
 export function initializeFirestore(
   app: FirebaseApp,
   settings: FirestoreSettings,
@@ -214,6 +235,7 @@ export function getFirestore(app: FirebaseApp): Firestore;
  *
  * @param databaseId - The name of database.
  * @returns The {@link Firestore} instance of the provided app.
+ * @internal
  */
 export function getFirestore(databaseId: string): Firestore;
 /**
@@ -225,6 +247,7 @@ export function getFirestore(databaseId: string): Firestore;
  * instance is associated with.
  * @param databaseId - The name of database.
  * @returns The {@link Firestore} instance of the provided app.
+ * @internal
  */
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 export function getFirestore(

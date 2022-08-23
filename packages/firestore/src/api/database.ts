@@ -211,6 +211,7 @@ export function getFirestore(app: FirebaseApp): Firestore;
  *
  * @param databaseId - The name of database.
  * @returns The {@link Firestore} instance of the provided app.
+ * @internal
  */
 export function getFirestore(databaseId: string): Firestore;
 /**
@@ -222,6 +223,7 @@ export function getFirestore(databaseId: string): Firestore;
  * instance is associated with.
  * @param databaseId - The name of database.
  * @returns The {@link Firestore} instance of the provided app.
+ * @internal
  */
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 export function getFirestore(
