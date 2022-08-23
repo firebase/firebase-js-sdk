@@ -29,25 +29,27 @@ import { PrivateSettings } from '../../../src/lite-api/settings';
 // every test and never clean them up. We may need to revisit.
 let appCount = 0;
 
-export function newTestApp(projectId: string, appName?: string): FirebaseApp {
-  if (appName === undefined) {
-    appName = 'test-app-' + appCount++;
-  }
-  return initializeApp(
-    {
-      apiKey: 'fake-api-key',
-      projectId
-    },
-    appName
-  );
-}
-
 export function newTestFirestore(
-  app: FirebaseApp,
-  settings?: PrivateSettings,
-  dbName?: string
+  projectId: string,
+  nameOrApp?: string | FirebaseApp,
+  settings?: PrivateSettings
 ): Firestore {
-  return initializeFirestore(app, settings || {}, dbName);
+  if (nameOrApp === undefined) {
+    nameOrApp = 'test-app-' + appCount++;
+  }
+
+  const app =
+    typeof nameOrApp === 'string'
+      ? initializeApp(
+          {
+            apiKey: 'fake-api-key',
+            projectId
+          },
+          nameOrApp
+        )
+      : nameOrApp;
+
+  return initializeFirestore(app, settings || {});
 }
 
 export * from '../../../src';

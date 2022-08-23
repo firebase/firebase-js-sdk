@@ -58,9 +58,9 @@ export function firestore(): Firestore {
 
 export function newTestFirestore(projectId = 'new-project'): Firestore {
   return new Firestore(
+    new DatabaseId(projectId),
     new EmptyAuthCredentialsProvider(),
-    new EmptyAppCheckTokenProvider(),
-    new DatabaseId(projectId)
+    new EmptyAppCheckTokenProvider()
   );
 }
 

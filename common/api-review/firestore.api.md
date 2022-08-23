@@ -228,22 +228,13 @@ export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 export function getDocsFromServer<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // @public
-export function getFirestore(): Firestore;
-
-// @public
-export function getFirestore(app: FirebaseApp): Firestore;
-
-// @public
-export function getFirestore(databaseId: string): Firestore;
-
-// @public
-export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
+export function getFirestore(app?: FirebaseApp): Firestore;
 
 // @public
 export function increment(n: number): FieldValue;
 
 // @public
-export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings, databaseId?: string): Firestore;
+export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings): Firestore;
 
 // @public
 export function limit(limit: number): QueryConstraint;
