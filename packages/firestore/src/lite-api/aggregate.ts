@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { CompositeFilterOpEnum } from '../protos/firestore_proto_api';
 import { invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { hardAssert } from '../util/assert';
 import { cast } from '../util/input_validation';
@@ -82,19 +83,24 @@ export function getAggregateFromServerDirect(
 
   return invokeRunAggregationQueryRpc(datastore, aggregateQuery).then(
     result => {
-      const aggregationFields = new Map<string, any>();
-
-      for (const [key, value] of Object.entries(result[0])) {
-        aggregationFields.set(key, userDataWriter.convertValue(value));
-      }
-      const countField = aggregationFields.get('count_alias');
-
       hardAssert(
-        countField !== undefined && typeof countField === 'number',
-        'Count aggeragte field is invalid. countField:' + countField
+        result[0] !== undefined,
+        'Aggregation fields are missing from result.'
+      );
+
+      const countField = (result[0] as any).count_alias;
+      hardAssert(
+        countField !== undefined,
+        'Count field is missing from result.'
+      );
+
+      const countAggregateResult = userDataWriter.convertValue(countField);
+      hardAssert(
+        typeof countAggregateResult === 'number',
+        'Count aggeragte field is not a number: ' + countAggregateResult
       );
       return Promise.resolve(
-        new AggregateQuerySnapshot(aggregateQuery, countField!)
+        new AggregateQuerySnapshot(aggregateQuery, countAggregateResult)
       );
     }
   );
