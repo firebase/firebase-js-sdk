@@ -1,5 +1,5 @@
 ---
-'@firebase/firestore': minor
+'@firebase/firestore': patch
 '@firebase/firestore-compat': patch
 ---
 
