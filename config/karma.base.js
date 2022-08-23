@@ -27,8 +27,6 @@ const config = {
   // disable watcher
   autoWatch: false,
 
-  browsers: ['WebkitHeadless'],
-
   // Doing 65 seconds to allow for the 20 second firestore tests
   browserNoActivityTimeout: 65000,
 
