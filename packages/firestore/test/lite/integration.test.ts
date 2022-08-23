@@ -2132,7 +2132,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('aggregateQueryEqual returns true on same queries', () => {
+  it('aggregateQueryEqual on same queries', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query1 = query(collection, where('author', '==', 'authorA'));
       const query2 = query(collection, where('author', '==', 'authorA'));
@@ -2142,7 +2142,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('aggregateQueryEqual returns false on different queries', () => {
+  it('aggregateQueryEqual on different queries', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query1 = query(collection, where('author', '==', 'authorA'));
       const query2 = query(collection, where('author', '==', 'authorB'));
@@ -2152,7 +2152,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('aggregateQuerySnapshotEqual returns true on same queries', () => {
+  it('aggregateQuerySnapshotEqual on same queries', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query1 = query(collection, where('author', '==', 'authorA'));
       const query2 = query(collection, where('author', '==', 'authorA'));
@@ -2167,7 +2167,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('aggregateQuerySnapshotEqual returns false on different queries', () => {
+  it('aggregateQuerySnapshotEqual on different queries', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query1 = query(collection, where('author', '==', 'authorA'));
       const query2 = query(collection, where('author', '==', 'authorB'));
