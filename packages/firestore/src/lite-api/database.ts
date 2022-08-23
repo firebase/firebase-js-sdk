@@ -31,7 +31,7 @@ import {
   OAuthToken
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { DatabaseId } from '../core/database_info';
+import { DatabaseId, DEFAULT_DATABASE_NAME } from '../core/database_info';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
@@ -61,7 +61,6 @@ export class Firestore implements FirestoreService {
    */
   type: 'firestore-lite' | 'firestore' = 'firestore-lite';
 
-  readonly _databaseId: DatabaseId;
   readonly _persistenceKey: string = '(lite)';
 
   private _settings = new FirestoreSettingsImpl({});
@@ -71,21 +70,13 @@ export class Firestore implements FirestoreService {
   // all components have shut down.
   private _terminateTask?: Promise<void>;
 
-  _app?: FirebaseApp;
-
   /** @hideconstructor */
   constructor(
-    databaseIdOrApp: DatabaseId | FirebaseApp,
     public _authCredentials: CredentialsProvider<User>,
-    public _appCheckCredentials: CredentialsProvider<string>
-  ) {
-    if (databaseIdOrApp instanceof DatabaseId) {
-      this._databaseId = databaseIdOrApp;
-    } else {
-      this._app = databaseIdOrApp as FirebaseApp;
-      this._databaseId = databaseIdFromApp(databaseIdOrApp as FirebaseApp);
-    }
-  }
+    public _appCheckCredentials: CredentialsProvider<string>,
+    readonly _databaseId: DatabaseId,
+    readonly _app?: FirebaseApp
+  ) {}
 
   /**
    * The {@link @firebase/app#FirebaseApp} associated with this `Firestore` service
@@ -163,17 +154,6 @@ export class Firestore implements FirestoreService {
   }
 }
 
-function databaseIdFromApp(app: FirebaseApp): DatabaseId {
-  if (!Object.prototype.hasOwnProperty.apply(app.options, ['projectId'])) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      '"projectId" not provided in firebase.initializeApp.'
-    );
-  }
-
-  return new DatabaseId(app.options.projectId!);
-}
-
 /**
  * Initializes a new instance of Cloud Firestore with the provided settings.
  * Can only be called before any other functions, including
@@ -183,35 +163,83 @@ function databaseIdFromApp(app: FirebaseApp): DatabaseId {
  * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
+ * @param databaseId - The name of database.
  * @returns A newly initialized `Firestore` instance.
  */
 export function initializeFirestore(
   app: FirebaseApp,
-  settings: FirestoreSettings
+  settings: FirestoreSettings,
+  databaseId?: string
 ): Firestore {
+  if (!databaseId) {
+    databaseId = DEFAULT_DATABASE_NAME;
+  }
   const provider = _getProvider(app, 'firestore/lite');
 
-  if (provider.isInitialized()) {
+  if (provider.isInitialized(databaseId)) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       'Firestore can only be initialized once per app.'
     );
   }
 
-  return provider.initialize({ options: settings });
+  return provider.initialize({
+    options: settings,
+    instanceIdentifier: databaseId
+  });
 }
 
 /**
- * Returns the existing `Firestore` instance that is associated with the
+ * Returns the existing default {@link Firestore} instance that is associated with the
+ * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @returns The {@link Firestore} instance of the provided app.
+ */
+export function getFirestore(): Firestore;
+/**
+ * Returns the existing default {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned `Firestore`
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
  * instance is associated with.
- * @returns The `Firestore` instance of the provided app.
+ * @returns The {@link Firestore} instance of the provided app.
  */
-export function getFirestore(app: FirebaseApp = getApp()): Firestore {
-  return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
+export function getFirestore(app: FirebaseApp): Firestore;
+/**
+ * Returns the existing {@link Firestore} instance that is associated with the
+ * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param databaseId - The name of database.
+ * @returns The {@link Firestore} instance of the provided app.
+ */
+export function getFirestore(databaseId: string): Firestore;
+/**
+ * Returns the existing {@link Firestore} instance that is associated with the
+ * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
+ * instance is associated with.
+ * @param databaseId - The name of database.
+ * @returns The {@link Firestore} instance of the provided app.
+ */
+export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
+export function getFirestore(
+  appOrDatabaseId?: FirebaseApp | string,
+  optionalDatabaseId?: string
+): Firestore {
+  const app: FirebaseApp =
+    typeof appOrDatabaseId === 'object' ? appOrDatabaseId : getApp();
+  const databaseId =
+    typeof appOrDatabaseId === 'string'
+      ? appOrDatabaseId
+      : optionalDatabaseId || '(default)';
+  return _getProvider(app, 'firestore/lite').getImmediate({
+    identifier: databaseId
+  }) as Firestore;
 }
 
 export { EmulatorMockTokenOptions } from '@firebase/util';
