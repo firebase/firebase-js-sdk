@@ -91,9 +91,9 @@ export class Firestore extends FirestoreCompat {
     super(
       databaseIdFromFirestoreDatabase(firestoreDatabase),
       new FirestoreExp(
+        databaseIdFromFirestoreDatabase(firestoreDatabase),
         new _EmptyAuthCredentialsProvider(),
-        new _EmptyAppCheckTokenProvider(),
-        databaseIdFromFirestoreDatabase(firestoreDatabase)
+        new _EmptyAppCheckTokenProvider()
       ),
       new MemoryPersistenceProvider()
     );

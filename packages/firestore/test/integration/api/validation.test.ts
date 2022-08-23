@@ -49,8 +49,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
-  where,
-  newTestApp
+  where
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -157,19 +156,19 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'enforces minimum cache size', () => {
       expect(() =>
-        newTestFirestore(newTestApp('test-project'), { cacheSizeBytes: 1 })
+        newTestFirestore('test-project', undefined, { cacheSizeBytes: 1 })
       ).to.throw('cacheSizeBytes must be at least 1048576');
     });
 
     validationIt(persistence, 'garbage collection can be disabled', () => {
       // Verify that this doesn't throw.
-      newTestFirestore(newTestApp('test-project'), {
+      newTestFirestore('test-project', undefined, {
         cacheSizeBytes: /* CACHE_SIZE_UNLIMITED= */ -1
       });
     });
 
     validationIt(persistence, 'useEmulator can set host and port', () => {
-      const db = newTestFirestore(newTestApp('test-project'));
+      const db = newTestFirestore('test-project');
       // Verify that this doesn't throw.
       connectFirestoreEmulator(db, 'localhost', 9000);
     });
@@ -192,7 +191,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       persistence,
       'useEmulator can set mockUserToken object',
       () => {
-        const db = newTestFirestore(newTestApp('test-project'));
+        const db = newTestFirestore('test-project');
         // Verify that this doesn't throw.
         connectFirestoreEmulator(db, 'localhost', 9000, {
           mockUserToken: { sub: 'foo' }
@@ -204,7 +203,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       persistence,
       'useEmulator can set mockUserToken string',
       () => {
-        const db = newTestFirestore(newTestApp('test-project'));
+        const db = newTestFirestore('test-project');
         // Verify that this doesn't throw.
         connectFirestoreEmulator(db, 'localhost', 9000, {
           mockUserToken: 'my-mock-user-token'
