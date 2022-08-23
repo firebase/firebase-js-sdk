@@ -994,10 +994,6 @@ function toFilters(filters: Filter[]): ProtoFilter | undefined {
 function fromFilters(filter: ProtoFilter): Filter[] {
   const result = fromFilter(filter);
 
-  // Instead of a singletonList containing AND(F1, F2, ...), we can return a list containing F1,
-  // F2, ...
-  // TODO(orquery): Once proper support for composite filters has been completed, we can remove
-  // this flattening from here.
   if (
     result instanceof CompositeFilter &&
     compositeFilterIsFlatConjunction(result)
