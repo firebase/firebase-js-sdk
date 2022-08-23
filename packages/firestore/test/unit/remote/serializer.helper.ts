@@ -135,8 +135,7 @@ const userDataWriter = new ExpUserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
 const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
 
-// TODO(orquery) update this to 'OR' when or is supported by the proto library
-const protoCompositeFilterOrOp: api.CompositeFilterOp = 'OPERATOR_UNSPECIFIED';
+const protoCompositeFilterOrOp: api.CompositeFilterOp = 'OR';
 
 /**
  * Runs the serializer test with an optional ProtobufJS verification step

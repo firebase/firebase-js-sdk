@@ -129,8 +129,7 @@ const OPERATORS = (() => {
 const COMPOSITE_OPERATORS = (() => {
   const ops: { [op: string]: ProtoCompositeFilterOp } = {};
   ops[CompositeOperator.AND] = 'AND';
-  // TODO(orquery) change 'OPERATOR_UNSPECIFIED' to 'OR' when the updated protos are published
-  ops[CompositeOperator.OR] = 'OPERATOR_UNSPECIFIED';
+  ops[CompositeOperator.OR] = 'OR';
   return ops;
 })();
 
@@ -1120,13 +1119,10 @@ export function fromOperatorName(op: ProtoFieldFilterOp): Operator {
 export function fromCompositeOperatorName(
   op: ProtoCompositeFilterOp
 ): CompositeOperator {
-  // TODO(orquery) support OR
   switch (op) {
     case 'AND':
       return CompositeOperator.AND;
-    // TODO(orquery) update when OR operator is supported in ProtoCompositeFilterOp
-    //    OPERATOR_UNSPECIFIED should fail and OR should return OR
-    case 'OPERATOR_UNSPECIFIED':
+    case 'OR':
       return CompositeOperator.OR;
     default:
       return fail('Unknown operator');
