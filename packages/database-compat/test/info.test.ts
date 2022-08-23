@@ -113,7 +113,7 @@ describe('.info Tests', function () {
     return ea.promise;
   });
 
-  it('.info/serverTimeOffset', async () => {
+  it.skip('.info/serverTimeOffset', async () => {
     const ref = getRootNode() as Reference;
 
     // make sure push works
