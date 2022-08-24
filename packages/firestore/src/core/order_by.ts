@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {FieldPath} from "../model/path";
+import { FieldPath } from '../model/path';
 
 /**
  * The direction of sorting in an order by.

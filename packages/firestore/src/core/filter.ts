@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
-import {Document} from "../model/document";
-import {DocumentKey} from "../model/document_key";
-import {FieldPath} from "../model/path";
+import { Document } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import { FieldPath } from '../model/path';
 import {
   arrayValueContains,
   canonicalId,
   isArray,
   isReferenceValue,
   typeOrder,
-  valueCompare, valueEquals
-} from "../model/values";
-import {Value as ProtoValue} from "../protos/firestore_proto_api";
-import {debugAssert, fail} from "../util/assert";
+  valueCompare,
+  valueEquals
+} from '../model/values';
+import { Value as ProtoValue } from '../protos/firestore_proto_api';
+import { debugAssert, fail } from '../util/assert';
 
 // The operator of a FieldFilter
 export const enum Operator {
@@ -123,12 +124,12 @@ export class FieldFilter extends Filter {
     debugAssert(
       isArray(value),
       `Comparing on key with ${op.toString()}` +
-      ', but filter value not an ArrayValue'
+        ', but filter value not an ArrayValue'
     );
     debugAssert(
       (value.arrayValue.values || []).every(elem => isReferenceValue(elem)),
       `Comparing on key with ${op.toString()}` +
-      ', but an array value was not a RefValue'
+        ', but an array value was not a RefValue'
     );
 
     return op === Operator.IN
@@ -462,7 +463,7 @@ function extractDocumentKeysFromArrayValue(
     debugAssert(
       isReferenceValue(v),
       `Comparing on key with ${op.toString()}, but an array value was not ` +
-      `a ReferenceValue`
+        `a ReferenceValue`
     );
     return DocumentKey.fromName(v.referenceValue);
   });

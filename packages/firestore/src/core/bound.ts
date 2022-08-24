@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import {Document} from "../model/document";
-import {DocumentKey} from "../model/document_key";
-import {isReferenceValue, valueCompare, valueEquals} from "../model/values";
-import {Value as ProtoValue} from "../protos/firestore_proto_api";
-import {debugAssert} from "../util/assert";
+import { Document } from '../model/document';
+import { DocumentKey } from '../model/document_key';
+import { isReferenceValue, valueCompare, valueEquals } from '../model/values';
+import { Value as ProtoValue } from '../protos/firestore_proto_api';
+import { debugAssert } from '../util/assert';
 
-import {Direction, OrderBy} from "./order_by";
+import { Direction, OrderBy } from './order_by';
 
 /**
  * Represents a bound of a query.
