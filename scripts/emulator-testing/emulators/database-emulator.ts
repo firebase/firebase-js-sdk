@@ -19,7 +19,7 @@ import * as request from 'request';
 
 import { Emulator } from './emulator';
 
-import * as rulesJSON from '../../../config/database.rules.json';
+import rulesJSON from '../../../config/database.rules.json';
 
 export class DatabaseEmulator extends Emulator {
   namespace: string;
