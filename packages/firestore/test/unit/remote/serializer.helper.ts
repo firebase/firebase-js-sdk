@@ -31,6 +31,19 @@ import {
 import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
+  ArrayContainsAnyFilter,
+  ArrayContainsFilter,
+  CompositeFilter,
+  FieldFilter,
+  Filter,
+  filterEquals,
+  InFilter,
+  KeyFieldFilter,
+  NotInFilter,
+  Operator
+} from '../../../src/core/filter';
+import { Direction, OrderBy } from '../../../src/core/order_by';
+import {
   LimitType,
   queryToTarget,
   queryWithEndAt,
@@ -38,23 +51,7 @@ import {
   queryWithStartAt
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import {
-  ArrayContainsAnyFilter,
-  ArrayContainsFilter,
-  CompositeFilter,
-  Direction,
-  FieldFilter,
-  Filter,
-  filterEquals,
-  InFilter,
-  KeyFieldFilter,
-  NotInFilter,
-  Operator,
-  OrderBy,
-  Target,
-  targetEquals,
-  TargetImpl
-} from '../../../src/core/target';
+import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
 import { parseQueryValue } from '../../../src/lite-api/user_data_reader';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { FieldMask } from '../../../src/model/field_mask';

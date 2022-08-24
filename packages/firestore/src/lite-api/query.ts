@@ -17,7 +17,16 @@
 
 import { getModularInstance } from '@firebase/util';
 
+import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
+import {
+  CompositeFilter,
+  CompositeOperator,
+  FieldFilter,
+  Filter,
+  Operator
+} from '../core/filter';
+import { Direction, OrderBy } from '../core/order_by';
 import {
   getFirstOrderByField,
   getInequalityFilterField,
@@ -31,16 +40,6 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../core/query';
-import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
-  Operator,
-  CompositeOperator,
-  OrderBy,
-  CompositeFilter
-} from '../core/target';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath as InternalFieldPath, ResourcePath } from '../model/path';

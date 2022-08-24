@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { FieldFilter, Filter, filterEquals } from '../../../src/core/target';
+import { FieldFilter, Filter, filterEquals } from '../../../src/core/filter';
 import {
   applyAssociation,
   applyDistribution,

@@ -22,17 +22,17 @@ import { debugAssert, debugCast, fail } from '../util/assert';
 
 import {
   Bound,
+  boundSortsAfterDocument,
+  boundSortsBeforeDocument
+} from './bound';
+import { CompositeFilter, Filter } from './filter';
+import { Direction, OrderBy } from './order_by';
+import {
   canonifyTarget,
-  Direction,
-  Filter,
   newTarget,
-  OrderBy,
-  boundSortsBeforeDocument,
   stringifyTarget,
   Target,
-  targetEquals,
-  boundSortsAfterDocument,
-  CompositeFilter
+  targetEquals
 } from './target';
 
 export const enum LimitType {

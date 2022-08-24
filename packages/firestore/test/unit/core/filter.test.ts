@@ -24,7 +24,7 @@ import {
   compositeFilterIsFlatConjunction,
   FieldFilter,
   Operator
-} from '../../../src/core/target';
+} from '../../../src/core/filter';
 import { andFilter, filter, orFilter } from '../../util/helpers';
 
 describe('FieldFilter', () => {
