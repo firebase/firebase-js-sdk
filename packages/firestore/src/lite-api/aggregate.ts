@@ -33,8 +33,6 @@ export class AggregateQuery {
   readonly type = 'AggregateQuery';
   /**
    * The query on which you called `countQuery` in order to get this `AggregateQuery`.
-   * Query type is set to unknown to avoid error caused by query type converter.
-   * might change it back to T after testing if the error do exist or not
    */
   readonly query: Query<unknown>;
 
@@ -94,12 +92,8 @@ export function getAggregateFromServerDirect(
 
     const count = counts[0];
     hardAssert(
-      count !== undefined,
-      'count_alias property is missing from result.'
-    );
-    hardAssert(
       typeof count === 'number',
-      'Count aggeragte field is not a number: ' + count
+      'Count aggeragte field value is not a number: ' + count
     );
 
     return Promise.resolve(new AggregateQuerySnapshot(query, count));
