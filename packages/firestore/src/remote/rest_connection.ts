@@ -37,6 +37,7 @@ const RPC_NAME_URL_MAPPING: StringMap = {};
 RPC_NAME_URL_MAPPING['BatchGetDocuments'] = 'batchGet';
 RPC_NAME_URL_MAPPING['Commit'] = 'commit';
 RPC_NAME_URL_MAPPING['RunQuery'] = 'runQuery';
+RPC_NAME_URL_MAPPING['RunAggregationQuery'] = 'runAggregationQuery';
 
 const RPC_URL_VERSION = 'v1';
 
@@ -78,7 +79,6 @@ export abstract class RestConnection implements Connection {
 
     const headers = {};
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
-
     return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
       response => {
         logDebug(LOG_TAG, 'Received: ', response);

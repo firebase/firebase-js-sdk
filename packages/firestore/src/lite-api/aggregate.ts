@@ -15,40 +15,89 @@
  * limitations under the License.
  */
 
-import { DocumentData, Query, queryEqual } from './reference';
+import { Value } from '../protos/firestore_proto_api';
+import { invokeRunAggregationQueryRpc } from '../remote/datastore';
+import { hardAssert } from '../util/assert';
+import { cast } from '../util/input_validation';
 
-export class AggregateQuery<T = DocumentData> {
+import { getDatastore } from './components';
+import { Firestore } from './database';
+import { Query, queryEqual } from './reference';
+import { LiteUserDataWriter } from './reference_impl';
+
+/**
+ * An `AggregateQuery` computes some aggregation statistics from the result set of
+ * a base `Query`.
+ */
+export class AggregateQuery {
   readonly type = 'AggregateQuery';
-  readonly query: Query<T>;
+  /**
+   * The query on which you called `countQuery` in order to get this `AggregateQuery`.
+   */
+  readonly query: Query<unknown>;
 
   /** @hideconstructor */
-  constructor(query: Query<T>) {
+  constructor(query: Query<unknown>) {
     this.query = query;
   }
 }
 
+/**
+ * An `AggregateQuerySnapshot` contains results of a `AggregateQuery`.
+ */
 export class AggregateQuerySnapshot {
   readonly type = 'AggregateQuerySnapshot';
   readonly query: AggregateQuery;
 
   /** @hideconstructor */
-  constructor(query: AggregateQuery, readonly _count: number) {
+  constructor(query: AggregateQuery, private readonly _count: number) {
     this.query = query;
   }
 
+  /**
+   * @returns The result of a document count aggregation. Returns null if no count aggregation is
+   * available in the result.
+   */
   getCount(): number | null {
     return this._count;
   }
 }
 
-export function countQuery(query: Query): AggregateQuery {
+/**
+ * Creates an `AggregateQuery` counting the number of documents matching this query.
+ *
+ * @returns An `AggregateQuery` object that can be used to count the number of documents in
+ * the result set of this query.
+ */
+export function countQuery(query: Query<unknown>): AggregateQuery {
   return new AggregateQuery(query);
 }
 
 export function getAggregateFromServerDirect(
   query: AggregateQuery
 ): Promise<AggregateQuerySnapshot> {
-  return Promise.resolve(new AggregateQuerySnapshot(query, 42));
+  const firestore = cast(query.query.firestore, Firestore);
+  const datastore = getDatastore(firestore);
+  const userDataWriter = new LiteUserDataWriter(firestore);
+
+  return invokeRunAggregationQueryRpc(datastore, query).then(result => {
+    hardAssert(
+      result[0] !== undefined,
+      'Aggregation fields are missing from result.'
+    );
+
+    const counts = Object.entries(result[0])
+      .filter(([key, value]) => key === 'count_alias')
+      .map(([key, value]) => userDataWriter.convertValue(value as Value));
+
+    const count = counts[0];
+    hardAssert(
+      typeof count === 'number',
+      'Count aggeragte field value is not a number: ' + count
+    );
+
+    return Promise.resolve(new AggregateQuerySnapshot(query, count));
+  });
 }
 
 export function aggregateQueryEqual(

@@ -20,6 +20,12 @@ import { initializeApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import {
+  countQuery,
+  getAggregateFromServerDirect,
+  aggregateQueryEqual,
+  aggregateQuerySnapshotEqual
+} from '../../src/lite-api/aggregate';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
   Firestore,
@@ -2035,6 +2041,137 @@ describe('withConverter() support', () => {
           });
         });
       });
+    });
+  });
+});
+
+describe('countQuery()', () => {
+  const testDocs = [
+    { author: 'authorA', title: 'titleA' },
+    { author: 'authorA', title: 'titleB' },
+    { author: 'authorB', title: 'titleC' },
+    { author: 'authorB', title: 'titleD' },
+    { author: 'authorB', title: 'titleE' }
+  ];
+
+  it('AggregateQuery and AggregateQuerySnapshot inherits the original query', () => {
+    return withTestCollection(async coll => {
+      const query_ = query(coll);
+      const countQuery_ = countQuery(query_);
+      expect(countQuery_.query).to.equal(query_);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.query).to.equal(countQuery_);
+      expect(snapshot.query.query).to.equal(query_);
+    });
+  });
+
+  it('empty test collection count', () => {
+    return withTestCollection(async coll => {
+      const countQuery_ = countQuery(query(coll));
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(0);
+    });
+  });
+
+  it('test collection count with 5 docs', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const countQuery_ = countQuery(query(collection));
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(5);
+    });
+  });
+
+  it('test collection count with filter', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_ = query(collection, where('author', '==', 'authorA'));
+      const countQuery_ = countQuery(query_);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(2);
+    });
+  });
+
+  it('test collection count with filter and a small limit size', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_ = query(
+        collection,
+        where('author', '==', 'authorA'),
+        limit(1)
+      );
+      const countQuery_ = countQuery(query_);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(1);
+    });
+  });
+
+  it('test collection count with filter and a large limit size', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_ = query(
+        collection,
+        where('author', '==', 'authorA'),
+        limit(3)
+      );
+      const countQuery_ = countQuery(query_);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(2);
+    });
+  });
+
+  it('test collection count with converter on query', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_ = query(
+        collection,
+        where('author', '==', 'authorA')
+      ).withConverter(postConverter);
+      const countQuery_ = countQuery(query_);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(2);
+    });
+  });
+
+  it('aggregateQueryEqual on same queries', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query1 = query(collection, where('author', '==', 'authorA'));
+      const query2 = query(collection, where('author', '==', 'authorA'));
+      const countQuery1 = countQuery(query1);
+      const countQuery2 = countQuery(query2);
+      expect(aggregateQueryEqual(countQuery1, countQuery2)).to.be.true;
+    });
+  });
+
+  it('aggregateQueryEqual on different queries', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query1 = query(collection, where('author', '==', 'authorA'));
+      const query2 = query(collection, where('author', '==', 'authorB'));
+      const countQuery1 = countQuery(query1);
+      const countQuery2 = countQuery(query2);
+      expect(aggregateQueryEqual(countQuery1, countQuery2)).to.be.false;
+    });
+  });
+
+  it('aggregateQuerySnapshotEqual on same queries', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query1 = query(collection, where('author', '==', 'authorA'));
+      const query2 = query(collection, where('author', '==', 'authorA'));
+      const countQuery1A = countQuery(query1);
+      const countQuery1B = countQuery(query1);
+      const countQuery2 = countQuery(query2);
+      const snapshot1A = await getAggregateFromServerDirect(countQuery1A);
+      const snapshot1B = await getAggregateFromServerDirect(countQuery1B);
+      const snapshot2 = await getAggregateFromServerDirect(countQuery2);
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.true;
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.true;
+    });
+  });
+
+  it('aggregateQuerySnapshotEqual on different queries', () => {
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query1 = query(collection, where('author', '==', 'authorA'));
+      const query2 = query(collection, where('author', '==', 'authorB'));
+      const countQuery1 = countQuery(query1);
+      const countQuery2 = countQuery(query2);
+      const snapshot1 = await getAggregateFromServerDirect(countQuery1);
+      const snapshot2 = await getAggregateFromServerDirect(countQuery2);
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
     });
   });
 });
