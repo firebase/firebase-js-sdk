@@ -618,11 +618,12 @@ export const setTimeoutNonBlocking = function (
   time: number
 ): number | object {
   const timeout: number | object = setTimeout(fn, time);
-  // @ts-ignore Deno and unrefTimer are only defined in Deno environments.
   // Note: at the time of this comment, unrefTimer is under the unstable set of APIs. Run with --unstable to enable the API.
   if (
     typeof timeout === 'number' &&
+    // @ts-ignore Is only defined in Deno environments.
     typeof Deno !== 'undefined' &&
+    // @ts-ignore Deno and unrefTimer are only defined in Deno environments.
     Deno['unrefTimer']
   ) {
     // @ts-ignore Deno and unrefTimer are only defined in Deno environments.
