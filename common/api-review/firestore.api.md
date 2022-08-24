@@ -29,6 +29,7 @@ export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery)
 
 // @public
 export class AggregateQuerySnapshot {
+    // (undocumented)
     getCount(): number | null;
     // (undocumented)
     readonly query: AggregateQuery;
@@ -235,7 +236,7 @@ export class GeoPoint {
 }
 
 // @public (undocumented)
-export function getAggregateFromServerDirect(aggregateQuery: AggregateQuery): Promise<AggregateQuerySnapshot>;
+export function getAggregateFromServerDirect(query: AggregateQuery): Promise<AggregateQuerySnapshot>;
 
 // @public
 export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
