@@ -83,7 +83,6 @@ import {
 import { Timestamp } from '../../src/lite-api/timestamp';
 import { runTransaction } from '../../src/lite-api/transaction';
 import { writeBatch } from '../../src/lite-api/write_batch';
-
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
@@ -2058,12 +2057,10 @@ describe('countQuery()', () => {
   it('AggregateQuery and AggregateQuerySnapshot inherits the original query', () => {
     return withTestCollection(async coll => {
       const query_ = query(coll);
-
       const countQuery_ = countQuery(query_);
-      expect(countQuery_.type).to.equal('AggregateQuery');
       expect(countQuery_.query).to.equal(query_);
-
       const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.query).to.equal(countQuery_);
       expect(snapshot.query.query).to.equal(query_);
     });
   });
@@ -2071,13 +2068,12 @@ describe('countQuery()', () => {
   it('empty test collection count', () => {
     return withTestCollection(async coll => {
       const countQuery_ = countQuery(query(coll));
-
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(0);
     });
   });
 
-  it('test collection count with sample docs ', () => {
+  it('test collection count with 5 docs', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const countQuery_ = countQuery(query(collection));
       const snapshot = await getAggregateFromServerDirect(countQuery_);
