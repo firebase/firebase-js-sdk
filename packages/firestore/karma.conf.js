@@ -17,6 +17,10 @@
 
 const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
+const playwright = require('playwright');
+
+process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
+process.env.BROWSERS = 'WebkitHeadless';
 
 module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
