@@ -20,7 +20,6 @@ import { debugAssert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import { Deferred } from '../util/promise';
 
-// This is just for testing purposes
 /**
  * Represents the state of bundle loading tasks.
  *
