@@ -59,7 +59,7 @@ const es6InputOptions = {
 const es6OutputOptions = {
   file: `${OUTPUT_FOLDER}/${OUTPUT_FILE}`,
   name: EXPORTNAME,
-  format: 'es'
+  format: 'iife'
 };
 
 const POSTFIX = `window['${EXPORTNAME}']=${EXPORTNAME};`;
