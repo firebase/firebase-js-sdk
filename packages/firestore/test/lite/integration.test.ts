@@ -2173,9 +2173,9 @@ describe('countQuery()', () => {
       const collectionGroupId = doc(collection(db, 'countTest')).id;
       const docPaths = [
         `${collectionGroupId}/cg-doc1`,
-        `abc/123/${collectionGroupId}/cg-doc1`,
-        `invalid${collectionGroupId}/cg-doc4`,
-        `abc/123/invalid${collectionGroupId}/cg-doc2`,
+        `abc/123/${collectionGroupId}/cg-doc2`,
+        `invalid${collectionGroupId}/cg-doc3`,
+        `abc/123/invalid${collectionGroupId}/cg-doc4`,
         `abc/123/invalid/${collectionGroupId}`
       ];
       const batch = writeBatch(db);
