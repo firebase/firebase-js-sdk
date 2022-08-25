@@ -85,6 +85,6 @@ jobs:
       - name: build
         run: yarn build:changed firestore
       - name: Run tests on changed packages
-        run: xvfb-run yarn test:changed firestore
+        run: yarn test:changed firestore
         env:
           BROWSERS: 'WebkitHeadless'
