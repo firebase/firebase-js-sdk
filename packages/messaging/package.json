@@ -58,7 +58,7 @@
     "@firebase/messaging-interop-types": "0.1.0",
     "@firebase/util": "1.6.3",
     "@firebase/component": "0.5.17",
-    "idb": "7.0.1",
+    "idb": "7.0.2",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
