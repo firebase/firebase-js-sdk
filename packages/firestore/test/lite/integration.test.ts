@@ -2047,12 +2047,12 @@ describe('withConverter() support', () => {
 
 describe('countQuery()', () => {
   const testDocs = [
-    { id: 3 ,author: 'authorA', title: 'titleA'},
-    { id: 4, author: 'authorA', title: 'titleB'},
-    { id: 2 ,author: 'authorB', title: 'titleC'},
-    { id: null,author: 'authorB', title: 'titleD'},
-    { id: 1, author: 'authorB'},
-    { id: 5, author: null, title: 'titleE'},
+    { id: 3, author: 'authorA', title: 'titleA' },
+    { id: 4, author: 'authorA', title: 'titleB' },
+    { id: 2, author: 'authorB', title: 'titleC' },
+    { id: null, author: 'authorB', title: 'titleD' },
+    { id: 1, author: 'authorB' },
+    { id: 5, author: null, title: 'titleE' }
   ];
 
   it('AggregateQuery and AggregateQuerySnapshot inherits the original query', () => {
@@ -2117,7 +2117,6 @@ describe('countQuery()', () => {
     });
   });
 
-  
   it('count with filter and order by', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query1 = query(
@@ -2133,16 +2132,8 @@ describe('countQuery()', () => {
 
   it('count with order by and startAt, startAfter', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query1 = query(
-        collection,
-        orderBy('id'),
-        startAt(2)
-      );
-      const query2 = query(
-        collection,
-        orderBy('id'),
-        startAfter(2)
-      );
+      const query1 = query(collection, orderBy('id'), startAt(2));
+      const query2 = query(collection, orderBy('id'), startAfter(2));
       const countQuery1 = countQuery(query1);
       const countQuery2 = countQuery(query2);
       const snapshot1 = await getAggregateFromServerDirect(countQuery1);
@@ -2154,18 +2145,8 @@ describe('countQuery()', () => {
 
   it('count with order by and endAt, endBefore', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query1 = query(
-        collection,
-        orderBy('id'),
-        startAt(1),
-        endAt(2)
-      );
-      const query2 = query(
-        collection,
-        orderBy('id'),
-        startAt(1),
-        endBefore(2)
-      );
+      const query1 = query(collection, orderBy('id'), startAt(1), endAt(2));
+      const query2 = query(collection, orderBy('id'), startAt(1), endBefore(2));
       const countQuery1 = countQuery(query1);
       const countQuery2 = countQuery(query2);
       const snapshot1 = await getAggregateFromServerDirect(countQuery1);
@@ -2195,7 +2176,7 @@ describe('countQuery()', () => {
         `abc/123/${collectionGroupId}/cg-doc1`,
         `invalid${collectionGroupId}/cg-doc4`,
         `abc/123/invalid${collectionGroupId}/cg-doc2`,
-        `abc/123/invalid/${collectionGroupId}`,
+        `abc/123/invalid/${collectionGroupId}`
       ];
       const batch = writeBatch(db);
       for (const docPath of docPaths) {
@@ -2203,10 +2184,9 @@ describe('countQuery()', () => {
       }
       await batch.commit();
 
-      const countQuery_ = countQuery(collectionGroup(db, collectionGroupId))
+      const countQuery_ = countQuery(collectionGroup(db, collectionGroupId));
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
-      ;
     });
   });
 
