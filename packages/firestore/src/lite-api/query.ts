@@ -112,14 +112,66 @@ export abstract class QueryConstraint {
  * additional query constraints.
  *
  * @param query - The {@link Query} instance to use as a base for the new constraints.
- * @param queryConstraints - The list of {@link QueryConstraint}s to apply.
+ * @param filter - The {@link QueryFilterConstraint} to apply. If multiple {@link QueryFilterConstraint}s are needed, use {@link and} or {@link or}.
+ * @param queryConstraints - Additional {@link QueryNonFilterConstraint}s to apply (e.g. {@link orderBy}, {@link limit}).
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
 export function query<T>(
   query: Query<T>,
+  filter: QueryFilterConstraint,
+  ...queryConstraints: QueryNonFilterConstraint[]
+): Query<T>;
+
+/**
+ * Creates a new immutable instance of {@link Query} that is extended to also include
+ * additional query constraints.
+ *
+ * @param query - The {@link Query} instance to use as a base for the new constraints.
+ * @param queryConstraints - The {@link QueryNonFilterConstraint}s to apply (e.g. {@link orderBy}, {@link limit}).
+ * @throws if any of the provided query constraints cannot be combined with the
+ * existing or new constraints.
+ */
+export function query<T>(
+  query: Query<T>,
+  ...queryConstraints: QueryNonFilterConstraint[]
+): Query<T>;
+
+/**
+ * Creates a new immutable instance of {@link Query} that is extended to also include
+ * additional query constraints.
+ *
+ * @param query - The {@link Query} instance to use as a base for the new constraints.
+ * @param queryConstraints - The list of {@link QueryConstraint}s to apply.
+ * @throws if any of the provided query constraints cannot be combined with the
+ * existing or new constraints.
+ * @deprecated To avoid implicit AND operations, use and overload accepting QueryFilterConstraint {@link (query:1)}. Use {@link and} or {@link or} for multiple top level filters.
+ */
+export function query<T>(
+  query: Query<T>,
   ...queryConstraints: QueryConstraint[]
+): Query<T>;
+
+export function query<T>(
+  query: Query<T>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filterOrQueryConstraints: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ...nonFilters: any
 ): Query<T> {
+  let queryConstraints: QueryConstraint[] = [];
+  if (filterOrQueryConstraints instanceof QueryConstraint) {
+    queryConstraints.push(filterOrQueryConstraints);
+  } else if (Array.isArray(filterOrQueryConstraints)) {
+    queryConstraints.concat(filterOrQueryConstraints as QueryConstraint[]);
+  }
+
+  if (nonFilters !== undefined) {
+    queryConstraints = queryConstraints.concat(
+      nonFilters as QueryNonFilterConstraint[]
+    );
+  }
+
   for (const constraint of queryConstraints) {
     query = constraint._apply(query);
   }
@@ -284,6 +336,21 @@ export class QueryCompositeFilterConstraint extends QueryFilterConstraint {
     return this.type === 'and' ? CompositeOperator.AND : CompositeOperator.OR;
   }
 }
+
+/**
+ * `QueryNonFilterConstraint` is a helper union type that represents all QueryConstraints which do not inherit from QueryFilterConstraint.
+ * These used to narrow the set of documents returned by a
+ * Firestore query but do not explicitly filter on a document field. `QueryNonFilterConstraint`s are created by invoking
+ * {@link orderBy}, {@link (startAt:1)}, {@link (startAfter:1)},
+ * {@link (endBefore:1)}, {@link (endAt:1)}, {@link limit} or {@link limitToLast} and
+ * can then be passed to {@link query} to create a new query instance that
+ * also contains this `QueryConstraint`.
+ */
+export type QueryNonFilterConstraint =
+  | QueryOrderByConstraint
+  | QueryLimitConstraint
+  | QueryStartAtConstraint
+  | QueryEndAtConstraint;
 
 /**
  * Creates a {@link QueryCompositeFilterConstraint} that performs a logical OR
