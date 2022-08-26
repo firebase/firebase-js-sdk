@@ -581,6 +581,24 @@ describe('Transaction', () => {
     });
   });
 
+  // This test is identical to the test above, except that a non-existent
+  // document is replaced by a deleted document, to guard against regression of
+  // https://github.com/firebase/firebase-js-sdk/issues/5871, where transactions
+  // would incorrectly fail with FAILED_PRECONDITION when operations were
+  // performed on a deleted document (rather than a non-existent document).
+  it('can read deleted doc then write', () => {
+    return withTestDocAndInitialData({ counter: 1 }, async doc => {
+      await deleteDoc(doc);
+      await runTransaction(doc.firestore, async transaction => {
+        const snap = await transaction.get(doc);
+        expect(snap.exists()).to.be.false;
+        transaction.set(doc, { counter: 1 });
+      });
+      const result = await getDoc(doc);
+      expect(result.get('counter')).to.equal(1);
+    });
+  });
+
   it('retries when document is modified', () => {
     return withTestDoc(async doc => {
       let retryCounter = 0;
