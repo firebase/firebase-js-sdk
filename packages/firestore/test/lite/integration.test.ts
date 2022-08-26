@@ -2313,8 +2313,54 @@ describe('countQuery()', () => {
       await terminate(collection.firestore);
       const countQuery_ = countQuery(query(collection));
       expect(() => getAggregateFromServerDirect(countQuery_)).to.throw(
-        'The client has already been terminated'
+        'The client has already been terminated.'
       );
+    });
+  });
+
+  it.only('terminate Firestore while calling count query', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const countQuery_ = countQuery(query(collection));
+
+      //This will pass
+      // const snapshot = getAggregateFromServerDirect(countQuery_)
+      // await terminate(collection.firestore)
+      // expect((await snapshot).getCount()).to.equal(3);
+
+      //this will pass
+      // const [snapshot,voidResult] = await Promise.all([
+      //   getAggregateFromServerDirect(countQuery_),
+      //   terminate(collection.firestore),
+      // ])
+      // expect(snapshot.getCount()).to.equal(3);
+
+      //if terminate comes first, it will throw error
+      // expect(() => Promise.all([
+      //   terminate(collection.firestore),
+      //   getAggregateFromServerDirect(countQuery_),
+      // ])).to.throw(
+      //   'The client has already been terminated.'
+      // );
+
+      // not sure why, this is not getting to the "then" block
+      Promise.all([
+        getAggregateFromServerDirect(countQuery_),
+        terminate(collection.firestore)
+      ])
+        .then(([snapshot, voidResult]) => {
+          console.log('snapshot', snapshot);
+          expect(snapshot.getCount()).to.equal(100);
+        })
+        .catch(e => {
+          expect((e as Error)?.message).to.equal(
+            'The client has already been terminated.'
+          );
+        });
     });
   });
 });
