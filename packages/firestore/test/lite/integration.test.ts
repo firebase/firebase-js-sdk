@@ -2236,4 +2236,14 @@ describe('countQuery()', () => {
       expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
     });
   });
+
+  it('count query on a terminated Firestore', () => {
+    return withTestCollection(async collection => {
+      await terminate(collection.firestore);
+      const countQuery_ = countQuery(query(collection));
+      expect(() => getAggregateFromServerDirect(countQuery_)).to.throw(
+        'The client has already been terminated'
+      );
+    });
+  });
 });
