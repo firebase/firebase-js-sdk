@@ -104,7 +104,7 @@ export interface ParsedToken {
     'identities'?: Record<string, string>;
   };
   /** Map of any additional custom claims. */
-  [key: string]: string | object | undefined;
+  [key: string]: string | object | undefined | unknown;
 }
 
 /**
