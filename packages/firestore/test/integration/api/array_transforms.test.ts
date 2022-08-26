@@ -29,7 +29,8 @@ import {
   setDoc,
   updateDoc,
   arrayRemove,
-  arrayUnion
+  arrayUnion,
+  FirestoreError
 } from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
@@ -191,7 +192,7 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
         try {
           await getDocFromCache(docRef);
         } catch (err) {
-          expect(err.code).to.equal('unavailable');
+          expect((err as FirestoreError).code).to.equal('unavailable');
           errCaught = true;
         }
         expect(errCaught).to.be.true;

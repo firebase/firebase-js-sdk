@@ -19,7 +19,7 @@ import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
-import simpleGit from 'simple-git/promise';
+import simpleGit from 'simple-git';
 import fs from 'mz/fs';
 
 const root = resolve(__dirname, '..');
@@ -126,10 +126,11 @@ async function main() {
     await exec(`yarn changeset status`);
     console.log(`::set-output name=BLOCKING_FAILURE::false`);
   } catch (e) {
-    if (e.message.match('No changesets present')) {
+    const error = e as Error;
+    if (error.message.match('No changesets present')) {
       console.log(`::set-output name=BLOCKING_FAILURE::false`);
     } else {
-      const messageLines = e.message.replace(/🦋  error /g, '').split('\n');
+      const messageLines = error.message.replace(/🦋  error /g, '').split('\n');
       let formattedStatusError =
         '- Changeset formatting error in following file:%0A';
       formattedStatusError += '    ```%0A';

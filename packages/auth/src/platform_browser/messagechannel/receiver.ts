@@ -85,9 +85,8 @@ export class Receiver {
     const messageEvent = event as MessageEvent<SenderMessageEvent<S>>;
     const { eventId, eventType, data } = messageEvent.data;
 
-    const handlers: Set<ReceiverHandler<T, S>> | undefined = this.handlersMap[
-      eventType
-    ];
+    const handlers: Set<ReceiverHandler<T, S>> | undefined =
+      this.handlersMap[eventType];
     if (!handlers?.size) {
       return;
     }

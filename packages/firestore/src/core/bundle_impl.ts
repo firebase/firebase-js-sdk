@@ -25,6 +25,7 @@ import {
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { ResourcePath } from '../model/path';
 import {
   BundleMetadata as ProtoBundleMetadata,
   NamedQuery as ProtoNamedQuery
@@ -91,6 +92,8 @@ export class BundleLoader {
   private queries: ProtoNamedQuery[] = [];
   /** Batched documents to be saved into storage */
   private documents: BundledDocuments = [];
+  /** The collection groups affected by this bundle. */
+  private collectionGroups = new Set<string>();
 
   constructor(
     private bundleMetadata: ProtoBundleMetadata,
@@ -120,6 +123,14 @@ export class BundleLoader {
       if (!element.payload.documentMetadata.exists) {
         ++documentsLoaded;
       }
+      const path = ResourcePath.fromString(
+        element.payload.documentMetadata.name!
+      );
+      debugAssert(
+        path.length >= 2,
+        'The document name does not point to a document.'
+      );
+      this.collectionGroups.add(path.get(path.length - 2));
     } else if (element.payload.document) {
       debugAssert(
         this.documents.length > 0 &&
@@ -173,7 +184,7 @@ export class BundleLoader {
     );
     debugAssert(!!this.bundleMetadata.id, 'Bundle ID must be set.');
 
-    const changedDocuments = await localStoreApplyBundledDocuments(
+    const changedDocs = await localStoreApplyBundledDocuments(
       this.localStore,
       new BundleConverterImpl(this.serializer),
       this.documents,
@@ -191,7 +202,11 @@ export class BundleLoader {
     }
 
     this.progress.taskState = 'Success';
-    return new BundleLoadResult({ ...this.progress }, changedDocuments);
+    return {
+      progress: this.progress,
+      changedCollectionGroups: this.collectionGroups,
+      changedDocs
+    };
   }
 }
 

@@ -16,13 +16,14 @@
  */
 
 import { Target } from '../core/target';
-import { DocumentKeySet, DocumentMap } from '../model/collections';
+import { DocumentMap } from '../model/collections';
+import { DocumentKey } from '../model/document_key';
 import { FieldIndex, IndexOffset } from '../model/field_index';
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { SortedSet } from '../util/sorted_set';
 
-import { IndexManager } from './index_manager';
+import { IndexManager, IndexType } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 
@@ -68,17 +69,17 @@ export class MemoryIndexManager implements IndexManager {
   getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<DocumentKeySet | null> {
+  ): PersistencePromise<DocumentKey[] | null> {
     // Field indices are not supported with memory persistence.
-    return PersistencePromise.resolve<DocumentKeySet | null>(null);
+    return PersistencePromise.resolve<DocumentKey[] | null>(null);
   }
 
-  getFieldIndex(
+  getIndexType(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<FieldIndex | null> {
+  ): PersistencePromise<IndexType> {
     // Field indices are not supported with memory persistence.
-    return PersistencePromise.resolve<FieldIndex | null>(null);
+    return PersistencePromise.resolve<IndexType>(IndexType.NONE);
   }
 
   getFieldIndexes(
@@ -94,6 +95,20 @@ export class MemoryIndexManager implements IndexManager {
   ): PersistencePromise<string | null> {
     // Field indices are not supported with memory persistence.
     return PersistencePromise.resolve<string | null>(null);
+  }
+
+  getMinOffset(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexOffset> {
+    return PersistencePromise.resolve(IndexOffset.min());
+  }
+
+  getMinOffsetFromCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string
+  ): PersistencePromise<IndexOffset> {
+    return PersistencePromise.resolve(IndexOffset.min());
   }
 
   updateCollectionGroup(

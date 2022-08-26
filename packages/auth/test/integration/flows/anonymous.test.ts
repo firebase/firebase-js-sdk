@@ -37,6 +37,7 @@ import {
   getTestInstance,
   randomEmail
 } from '../../helpers/integration/helpers';
+import { generateMiddlewareTests } from './middleware_test_generator';
 
 use(chaiAsPromised);
 
@@ -128,4 +129,11 @@ describe('Integration test: anonymous auth', () => {
       );
     });
   });
+
+  generateMiddlewareTests(
+    () => auth,
+    () => {
+      return signInAnonymously(auth);
+    }
+  );
 });

@@ -27,19 +27,25 @@ import {
 
 let appCount = 0;
 
-export function newTestFirestore(
-  projectId: string,
-  nameOrApp?: string | FirebaseApp,
-  settings?: FirestoreSettings
-): Firestore {
-  if (nameOrApp === undefined) {
-    nameOrApp = 'test-app-' + appCount++;
+export function newTestApp(projectId: string, appName?: string): FirebaseApp {
+  if (appName === undefined) {
+    appName = 'test-app-' + appCount++;
   }
-  const app =
-    typeof nameOrApp === 'string'
-      ? initializeApp({ apiKey: 'fake-api-key', projectId }, nameOrApp)
-      : nameOrApp;
-  return initializeFirestore(app, settings || {});
+  return initializeApp(
+    {
+      apiKey: 'fake-api-key',
+      projectId
+    },
+    appName
+  );
+}
+
+export function newTestFirestore(
+  app: FirebaseApp,
+  settings?: FirestoreSettings,
+  dbName?: string
+): Firestore {
+  return initializeFirestore(app, settings || {}, dbName);
 }
 
 export * from '@firebase/firestore';

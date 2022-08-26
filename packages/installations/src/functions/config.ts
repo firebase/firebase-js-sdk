@@ -36,12 +36,12 @@ const publicFactory: InstanceFactory<'installations'> = (
   const app = container.getProvider('app').getImmediate();
   // Throws if app isn't configured properly.
   const appConfig = extractAppConfig(app);
-  const platformLoggerProvider = _getProvider(app, 'platform-logger');
+  const heartbeatServiceProvider = _getProvider(app, 'heartbeat');
 
   const installationsImpl: FirebaseInstallationsImpl = {
     app,
     appConfig,
-    platformLoggerProvider,
+    heartbeatServiceProvider,
     _delete: () => Promise.resolve()
   };
   return installationsImpl;

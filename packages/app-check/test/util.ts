@@ -30,6 +30,7 @@ import {
 } from '@firebase/component';
 import { AppCheckService } from '../src/factory';
 import { AppCheck, CustomProvider } from '../src';
+import { HeartbeatService } from '@firebase/app/dist/app/src/types';
 
 export const FAKE_SITE_KEY = 'fake-site-key';
 
@@ -55,7 +56,7 @@ export function getFakeApp(overrides: Record<string, any> = {}): FirebaseApp {
 export function getFakeAppCheck(app: FirebaseApp): AppCheck {
   return {
     app,
-    platformLoggerProvider: getFakePlatformLoggingProvider()
+    heartbeatServiceProvider: getFakeHeartbeatServiceProvider()
   } as AppCheck;
 }
 
@@ -63,7 +64,7 @@ export function getFullApp(): FirebaseApp {
   const app = initializeApp(fakeConfig);
   _registerComponent(
     new Component(
-      'platform-logger',
+      'heartbeat',
       () => {
         return {} as any;
       },
@@ -92,19 +93,22 @@ export function getFakeCustomTokenProvider(): CustomProvider {
   });
 }
 
-export function getFakePlatformLoggingProvider(
+export function getFakeHeartbeatServiceProvider(
   fakeLogString: string = 'a/1.2.3 b/2.3.4'
-): Provider<'platform-logger'> {
+): Provider<'heartbeat'> {
   const container = new ComponentContainer('test');
   container.addComponent(
     new Component(
-      'platform-logger',
-      () => ({ getPlatformInfoString: () => fakeLogString }),
+      'heartbeat',
+      () =>
+        ({
+          getHeartbeatsHeader: () => Promise.resolve(fakeLogString)
+        } as HeartbeatService),
       ComponentType.PRIVATE
     )
   );
 
-  return container.getProvider('platform-logger');
+  return container.getProvider('heartbeat');
 }
 
 export function getFakeGreCAPTCHA(

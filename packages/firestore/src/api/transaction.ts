@@ -17,6 +17,11 @@
 
 import { firestoreClientTransaction } from '../core/firestore_client';
 import { Transaction as InternalTransaction } from '../core/transaction';
+import {
+  TransactionOptions as TranasactionOptionsInternal,
+  DEFAULT_TRANSACTION_OPTIONS,
+  validateTransactionOptions
+} from '../core/transaction_options';
 import { DocumentReference } from '../lite-api/reference';
 import { Transaction as LiteTransaction } from '../lite-api/transaction';
 import { validateReference } from '../lite-api/write_batch';
@@ -25,6 +30,7 @@ import { cast } from '../util/input_validation';
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { ExpUserDataWriter } from './reference_impl';
 import { DocumentSnapshot, SnapshotMetadata } from './snapshot';
+import { TransactionOptions } from './transaction_options';
 
 /**
  * A reference to a transaction.
@@ -85,6 +91,8 @@ export class Transaction extends LiteTransaction {
  * transaction against.
  * @param updateFunction - The function to execute within the transaction
  * context.
+ * @param options - An options object to configure maximum number of attempts to
+ * commit.
  * @returns If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
  * `updateFunction `is returned here. Otherwise, if the transaction failed, a
@@ -92,11 +100,20 @@ export class Transaction extends LiteTransaction {
  */
 export function runTransaction<T>(
   firestore: Firestore,
-  updateFunction: (transaction: Transaction) => Promise<T>
+  updateFunction: (transaction: Transaction) => Promise<T>,
+  options?: TransactionOptions
 ): Promise<T> {
   firestore = cast(firestore, Firestore);
+  const optionsWithDefaults: TranasactionOptionsInternal = {
+    ...DEFAULT_TRANSACTION_OPTIONS,
+    ...options
+  };
+  validateTransactionOptions(optionsWithDefaults);
   const client = ensureFirestoreConfigured(firestore);
-  return firestoreClientTransaction(client, internalTransaction =>
-    updateFunction(new Transaction(firestore, internalTransaction))
+  return firestoreClientTransaction(
+    client,
+    internalTransaction =>
+      updateFunction(new Transaction(firestore, internalTransaction)),
+    optionsWithDefaults
   );
 }

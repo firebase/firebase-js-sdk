@@ -43,11 +43,17 @@ yargs
         default: false
       },
       releaseType: {
-        type: 'string'
+        type: 'string',
+        desc: '"Staging" or "Production" - this is case sensitive!'
       },
       dryRun: {
         type: 'boolean',
         default: false
+      },
+      ci: {
+        type: 'boolean',
+        default: false,
+        desc: 'set if running in CI (skips prompts, uses wombot publish)'
       }
     },
     argv => runRelease(argv)

@@ -17,7 +17,6 @@
 
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexManager } from '../../../src/local/index_manager';
-import { remoteDocumentCacheGetNewDocumentChanges } from '../../../src/local/indexeddb_remote_document_cache';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
@@ -28,6 +27,7 @@ import {
 } from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { IndexOffset } from '../../../src/model/field_index';
 import { ResourcePath } from '../../../src/model/path';
 
 /**
@@ -109,31 +109,32 @@ export class TestRemoteDocumentCache {
     });
   }
 
-  getAll(
+  getAllFromCollection(
     collection: ResourcePath,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): Promise<MutableDocumentMap> {
     return this.persistence.runTransaction(
-      'getDocumentsMatchingQuery',
+      'getAllFromCollection',
       'readonly',
-      txn => this.cache.getAll(txn, collection, sinceReadTime)
+      txn => this.cache.getAllFromCollection(txn, collection, offset)
     );
   }
 
-  getNewDocumentChanges(sinceReadTime: SnapshotVersion): Promise<{
-    changedDocs: MutableDocumentMap;
-    readTime: SnapshotVersion;
-  }> {
+  getAllFromCollectionGroup(
+    collectionGroup: string,
+    offset: IndexOffset,
+    limit: number
+  ): Promise<MutableDocumentMap> {
     return this.persistence.runTransaction(
-      'getNewDocumentChanges',
+      'getAllFromCollectionGroup',
       'readonly',
-      txn => {
-        return remoteDocumentCacheGetNewDocumentChanges(
-          this.cache,
+      txn =>
+        this.cache.getAllFromCollectionGroup(
           txn,
-          sinceReadTime
-        );
-      }
+          collectionGroup,
+          offset,
+          limit
+        )
     );
   }
 

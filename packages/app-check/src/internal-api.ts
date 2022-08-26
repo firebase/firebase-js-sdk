@@ -106,7 +106,7 @@ export async function getToken(
     if (!state.exchangeTokenPromise) {
       state.exchangeTokenPromise = exchangeToken(
         getExchangeDebugTokenRequest(app, await getDebugToken()),
-        appCheck.platformLoggerProvider
+        appCheck.heartbeatServiceProvider
       ).then(token => {
         state.exchangeTokenPromise = undefined;
         return token;

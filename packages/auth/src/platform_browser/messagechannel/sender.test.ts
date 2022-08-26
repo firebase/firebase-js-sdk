@@ -45,7 +45,7 @@ describe('platform_browser/messagechannel/sender', () => {
     let pendingTimeouts: TimerMap;
 
     beforeEach(() => {
-      serviceWorker = (new FakeServiceWorker() as unknown) as ServiceWorker;
+      serviceWorker = new FakeServiceWorker() as unknown as ServiceWorker;
       sender = new Sender(serviceWorker);
       pendingTimeouts = stubTimeouts();
       sinon.stub(window, 'clearTimeout');

@@ -16,6 +16,7 @@
  */
 
 import { User } from '../auth/user';
+import { DatabaseId } from '../core/database_info';
 import {
   Bound,
   canonifyTarget,
@@ -26,32 +27,31 @@ import {
   targetGetArrayValues,
   targetGetLowerBound,
   targetGetNotInValues,
+  targetGetSegmentCount,
   targetGetUpperBound
 } from '../core/target';
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../index/index_byte_encoder';
 import { IndexEntry, indexEntryComparator } from '../index/index_entry';
-import {
-  documentKeySet,
-  DocumentKeySet,
-  DocumentMap
-} from '../model/collections';
+import { documentKeySet, DocumentMap } from '../model/collections';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   FieldIndex,
   fieldIndexGetArraySegment,
   fieldIndexGetDirectionalSegments,
+  fieldIndexGetKeyOrder,
   fieldIndexToString,
   IndexKind,
   IndexOffset,
+  indexOffsetComparator,
   IndexSegment
 } from '../model/field_index';
 import { FieldPath, ResourcePath } from '../model/path';
 import { TargetIndexMatcher } from '../model/target_index_matcher';
-import { isArray } from '../model/values';
+import { isArray, refValue } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
-import { debugAssert } from '../util/assert';
+import { debugAssert, fail, hardAssert } from '../util/assert';
 import { logDebug } from '../util/log';
 import { immediateSuccessor, primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
@@ -61,7 +61,7 @@ import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { IndexManager } from './index_manager';
+import { IndexManager, IndexType } from './index_manager';
 import {
   DbCollectionParent,
   DbIndexConfiguration,
@@ -123,7 +123,7 @@ export class IndexedDbIndexManager implements IndexManager {
     (l, r) => targetEquals(l, r)
   );
 
-  constructor(private user: User) {
+  constructor(private user: User, private readonly databaseId: DatabaseId) {
     this.uid = user.uid || '';
   }
 
@@ -195,7 +195,22 @@ export class IndexedDbIndexManager implements IndexManager {
     const indexes = indexConfigurationStore(transaction);
     const dbIndex = toDbIndexConfiguration(index);
     delete dbIndex.indexId; // `indexId` is auto-populated by IndexedDb
-    return indexes.add(dbIndex).next();
+    const result = indexes.add(dbIndex);
+    if (index.indexState) {
+      const states = indexStateStore(transaction);
+      return result.next(indexId => {
+        states.put(
+          toDbIndexState(
+            indexId,
+            this.user,
+            index.indexState.sequenceNumber,
+            index.indexState.offset
+          )
+        );
+      });
+    } else {
+      return result.next();
+    }
   }
 
   deleteFieldIndex(
@@ -232,7 +247,7 @@ export class IndexedDbIndexManager implements IndexManager {
   getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<DocumentKeySet | null> {
+  ): PersistencePromise<DocumentKey[] | null> {
     const indexEntries = indexEntriesStore(transaction);
 
     let canServeTarget = true;
@@ -248,9 +263,10 @@ export class IndexedDbIndexManager implements IndexManager {
       }
     ).next(() => {
       if (!canServeTarget) {
-        return PersistencePromise.resolve(null as DocumentKeySet | null);
+        return PersistencePromise.resolve(null as DocumentKey[] | null);
       } else {
-        let result = documentKeySet();
+        let existingKeys = documentKeySet();
+        const result: DocumentKey[] = [];
         return PersistencePromise.forEach(indexes, (index, subTarget) => {
           logDebug(
             LOG_TAG,
@@ -284,9 +300,9 @@ export class IndexedDbIndexManager implements IndexManager {
             index!.indexId,
             arrayValues,
             lowerBoundEncoded,
-            !!lowerBound && lowerBound.inclusive,
+            lowerBound.inclusive,
             upperBoundEncoded,
-            !!upperBound && upperBound.inclusive,
+            upperBound.inclusive,
             notInEncoded
           );
           return PersistencePromise.forEach(
@@ -296,14 +312,18 @@ export class IndexedDbIndexManager implements IndexManager {
                 .loadFirst(indexRange, target.limit)
                 .next(entries => {
                   entries.forEach(entry => {
-                    result = result.add(
-                      new DocumentKey(decodeResourcePath(entry.documentKey))
+                    const documentKey = DocumentKey.fromSegments(
+                      entry.documentKey
                     );
+                    if (!existingKeys.has(documentKey)) {
+                      existingKeys = existingKeys.add(documentKey);
+                      result.push(documentKey);
+                    }
                   });
                 });
             }
           );
-        }).next(() => result as DocumentKeySet | null);
+        }).next(() => result as DocumentKey[] | null);
       }
     });
   }
@@ -326,9 +346,9 @@ export class IndexedDbIndexManager implements IndexManager {
   private generateIndexRanges(
     indexId: number,
     arrayValues: ProtoValue[] | null,
-    lowerBounds: Uint8Array[] | null,
+    lowerBounds: Uint8Array[],
     lowerBoundInclusive: boolean,
-    upperBounds: Uint8Array[] | null,
+    upperBounds: Uint8Array[],
     upperBoundInclusive: boolean,
     notInValues: Uint8Array[]
   ): IDBKeyRange[] {
@@ -338,10 +358,7 @@ export class IndexedDbIndexManager implements IndexManager {
     // combined with the values from the query bounds.
     const totalScans =
       (arrayValues != null ? arrayValues.length : 1) *
-      Math.max(
-        lowerBounds != null ? lowerBounds.length : 1,
-        upperBounds != null ? upperBounds.length : 1
-      );
+      Math.max(lowerBounds.length, upperBounds.length);
     const scansPerArrayElement =
       totalScans / (arrayValues != null ? arrayValues.length : 1);
 
@@ -351,40 +368,29 @@ export class IndexedDbIndexManager implements IndexManager {
         ? this.encodeSingleElement(arrayValues[i / scansPerArrayElement])
         : EMPTY_VALUE;
 
-      const lowerBound = lowerBounds
-        ? this.generateLowerBound(
-            indexId,
-            arrayValue,
-            lowerBounds[i % scansPerArrayElement],
-            lowerBoundInclusive
-          )
-        : this.generateEmptyBound(indexId);
-      const upperBound = upperBounds
-        ? this.generateUpperBound(
-            indexId,
-            arrayValue,
-            upperBounds[i % scansPerArrayElement],
-            upperBoundInclusive
-          )
-        : this.generateEmptyBound(indexId + 1);
+      const lowerBound = this.generateLowerBound(
+        indexId,
+        arrayValue,
+        lowerBounds[i % scansPerArrayElement],
+        lowerBoundInclusive
+      );
+      const upperBound = this.generateUpperBound(
+        indexId,
+        arrayValue,
+        upperBounds[i % scansPerArrayElement],
+        upperBoundInclusive
+      );
 
-      indexRanges.push(
-        ...this.createRange(
-          lowerBound,
-          upperBound,
-          notInValues.map(
-            (
-              notIn // make non-nullable
-            ) =>
-              this.generateLowerBound(
-                indexId,
-                arrayValue,
-                notIn,
-                /* inclusive= */ true
-              )
-          )
+      const notInBound = notInValues.map(notIn =>
+        this.generateLowerBound(
+          indexId,
+          arrayValue,
+          notIn,
+          /* inclusive= */ true
         )
       );
+
+      indexRanges.push(...this.createRange(lowerBound, upperBound, notInBound));
     }
 
     return indexRanges;
@@ -422,20 +428,7 @@ export class IndexedDbIndexManager implements IndexManager {
     return inclusive ? entry.successor() : entry;
   }
 
-  /**
-   * Generates an empty bound that scopes the index scan to the current index
-   * and user.
-   */
-  private generateEmptyBound(indexId: number): IndexEntry {
-    return new IndexEntry(
-      indexId,
-      DocumentKey.empty(),
-      EMPTY_VALUE,
-      EMPTY_VALUE
-    );
-  }
-
-  getFieldIndex(
+  private getFieldIndex(
     transaction: PersistenceTransaction,
     target: Target
   ): PersistencePromise<FieldIndex | null> {
@@ -446,14 +439,41 @@ export class IndexedDbIndexManager implements IndexManager {
         : target.path.lastSegment();
 
     return this.getFieldIndexes(transaction, collectionGroup).next(indexes => {
-      const matchingIndexes = indexes.filter(i =>
-        targetIndexMatcher.servedByIndex(i)
-      );
-
-      // Return the index that matches the most number of segments.
-      matchingIndexes.sort((l, r) => r.fields.length - l.fields.length);
-      return matchingIndexes.length > 0 ? matchingIndexes[0] : null;
+      // Return the index with the most number of segments.
+      let index: FieldIndex | null = null;
+      for (const candidate of indexes) {
+        const matches = targetIndexMatcher.servedByIndex(candidate);
+        if (
+          matches &&
+          (!index || candidate.fields.length > index.fields.length)
+        ) {
+          index = candidate;
+        }
+      }
+      return index;
     });
+  }
+
+  getIndexType(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexType> {
+    let indexType = IndexType.FULL;
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (target: Target) => {
+        return this.getFieldIndex(transaction, target).next(index => {
+          if (!index) {
+            indexType = IndexType.NONE;
+          } else if (
+            indexType !== IndexType.NONE &&
+            index.fields.length < targetGetSegmentCount(target)
+          ) {
+            indexType = IndexType.PARTIAL;
+          }
+        });
+      }
+    ).next(() => indexType);
   }
 
   /**
@@ -486,6 +506,22 @@ export class IndexedDbIndexManager implements IndexManager {
     FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
       value,
       encoder.forKind(IndexKind.ASCENDING)
+    );
+    return encoder.encodedBytes();
+  }
+
+  /**
+   * Returns an encoded form of the document key that sorts based on the key
+   * ordering of the field index.
+   */
+  private encodeDirectionalKey(
+    fieldIndex: FieldIndex,
+    documentKey: DocumentKey
+  ): Uint8Array {
+    const encoder = new IndexByteEncoder();
+    FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
+      refValue(this.databaseId, documentKey),
+      encoder.forKind(fieldIndexGetKeyOrder(fieldIndex))
     );
     return encoder.encodedBytes();
   }
@@ -531,11 +567,8 @@ export class IndexedDbIndexManager implements IndexManager {
   private encodeBound(
     fieldIndex: FieldIndex,
     target: Target,
-    bound: Bound | null
-  ): Uint8Array[] | null {
-    if (bound == null) {
-      return null;
-    }
+    bound: Bound
+  ): Uint8Array[] {
     return this.encodeValues(fieldIndex, target, bound.position);
   }
 
@@ -692,6 +725,7 @@ export class IndexedDbIndexManager implements IndexManager {
                 return this.updateEntries(
                   transaction,
                   doc,
+                  fieldIndex,
                   existingEntries,
                   newEntries
                 );
@@ -707,6 +741,7 @@ export class IndexedDbIndexManager implements IndexManager {
   private addIndexEntry(
     transaction: PersistenceTransaction,
     document: Document,
+    fieldIndex: FieldIndex,
     indexEntry: IndexEntry
   ): PersistencePromise<void> {
     const indexEntries = indexEntriesStore(transaction);
@@ -715,13 +750,15 @@ export class IndexedDbIndexManager implements IndexManager {
       uid: this.uid,
       arrayValue: indexEntry.arrayValue,
       directionalValue: indexEntry.directionalValue,
-      documentKey: encodeResourcePath(document.key.path)
+      orderedDocumentKey: this.encodeDirectionalKey(fieldIndex, document.key),
+      documentKey: document.key.path.toArray()
     });
   }
 
   private deleteIndexEntry(
     transaction: PersistenceTransaction,
     document: Document,
+    fieldIndex: FieldIndex,
     indexEntry: IndexEntry
   ): PersistencePromise<void> {
     const indexEntries = indexEntriesStore(transaction);
@@ -730,7 +767,8 @@ export class IndexedDbIndexManager implements IndexManager {
       this.uid,
       indexEntry.arrayValue,
       indexEntry.directionalValue,
-      encodeResourcePath(document.key.path)
+      this.encodeDirectionalKey(fieldIndex, document.key),
+      document.key.path.toArray()
     ]);
   }
 
@@ -748,7 +786,7 @@ export class IndexedDbIndexManager implements IndexManager {
           range: IDBKeyRange.only([
             fieldIndex.indexId,
             this.uid,
-            encodeResourcePath(documentKey.path)
+            this.encodeDirectionalKey(fieldIndex, documentKey)
           ])
         },
         (_, entry) => {
@@ -817,6 +855,7 @@ export class IndexedDbIndexManager implements IndexManager {
   private updateEntries(
     transaction: PersistenceTransaction,
     document: Document,
+    fieldIndex: FieldIndex,
     existingEntries: SortedSet<IndexEntry>,
     newEntries: SortedSet<IndexEntry>
   ): PersistencePromise<void> {
@@ -828,10 +867,14 @@ export class IndexedDbIndexManager implements IndexManager {
       newEntries,
       indexEntryComparator,
       /* onAdd= */ entry => {
-        promises.push(this.addIndexEntry(transaction, document, entry));
+        promises.push(
+          this.addIndexEntry(transaction, document, fieldIndex, entry)
+        );
       },
       /* onRemove= */ entry => {
-        promises.push(this.deleteIndexEntry(transaction, document, entry));
+        promises.push(
+          this.deleteIndexEntry(transaction, document, fieldIndex, entry)
+        );
       }
     );
 
@@ -868,7 +911,7 @@ export class IndexedDbIndexManager implements IndexManager {
     upper: IndexEntry,
     notInValues: IndexEntry[]
   ): IDBKeyRange[] {
-    // The notIb values need to be sorted and unique so that we can return a
+    // The notIn values need to be sorted and unique so that we can return a
     // sorted set of non-overlapping ranges.
     notInValues = notInValues
       .sort((l, r) => indexEntryComparator(l, r))
@@ -906,19 +949,43 @@ export class IndexedDbIndexManager implements IndexManager {
             this.uid,
             bounds[i].arrayValue,
             bounds[i].directionalValue,
-            ''
-          ],
+            EMPTY_VALUE,
+            []
+          ] as DbIndexEntryKey,
           [
             bounds[i + 1].indexId,
             this.uid,
             bounds[i + 1].arrayValue,
             bounds[i + 1].directionalValue,
-            ''
-          ]
+            EMPTY_VALUE,
+            []
+          ] as DbIndexEntryKey
         )
       );
     }
     return ranges;
+  }
+
+  getMinOffsetFromCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string
+  ): PersistencePromise<IndexOffset> {
+    return this.getFieldIndexes(transaction, collectionGroup).next(
+      getMinOffsetFromFieldIndexes
+    );
+  }
+
+  getMinOffset(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexOffset> {
+    return PersistencePromise.mapArray(
+      this.getSubTargets(target),
+      (subTarget: Target) =>
+        this.getFieldIndex(transaction, subTarget).next(index =>
+          index ? index : fail('Target cannot be served from index')
+        )
+    ).next(getMinOffsetFromFieldIndexes);
   }
 }
 
@@ -963,4 +1030,24 @@ function indexStateStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbIndexStateKey, DbIndexState> {
   return getStore<DbIndexStateKey, DbIndexState>(txn, DbIndexStateStore);
+}
+
+function getMinOffsetFromFieldIndexes(fieldIndexes: FieldIndex[]): IndexOffset {
+  hardAssert(
+    fieldIndexes.length !== 0,
+    'Found empty index group when looking for least recent index offset.'
+  );
+
+  let minOffset: IndexOffset = fieldIndexes[0].indexState.offset;
+  let maxBatchId: number = minOffset.largestBatchId;
+  for (let i = 1; i < fieldIndexes.length; i++) {
+    const newOffset: IndexOffset = fieldIndexes[i].indexState.offset;
+    if (indexOffsetComparator(newOffset, minOffset) < 0) {
+      minOffset = newOffset;
+    }
+    if (maxBatchId < newOffset.largestBatchId) {
+      maxBatchId = newOffset.largestBatchId;
+    }
+  }
+  return new IndexOffset(minOffset.readTime, minOffset.documentKey, maxBatchId);
 }

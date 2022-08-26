@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { SnapshotVersion } from '../core/snapshot_version';
 import { DocumentKeySet, MutableDocumentMap } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { IndexOffset } from '../model/field_index';
 import { ResourcePath } from '../model/path';
 
 import { IndexManager } from './index_manager';
@@ -65,14 +65,29 @@ export interface RemoteDocumentCache {
    * Returns the documents from the provided collection.
    *
    * @param collection - The collection to read.
-   * @param sinceReadTime - If not set to SnapshotVersion.min(), return only
-   *     documents that have been read since this snapshot version (exclusive).
+   * @param offset - The offset to start the scan at (exclusive).
    * @returns The set of matching documents.
    */
-  getAll(
+  getAllFromCollection(
     transaction: PersistenceTransaction,
     collection: ResourcePath,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
+  ): PersistencePromise<MutableDocumentMap>;
+
+  /**
+   * Looks up the next `limit` documents for a collection group based on the
+   * provided offset. The ordering is based on the document's read time and key.
+   *
+   * @param collectionGroup - The collection group to scan.
+   * @param offset - The offset to start the scan at (exclusive).
+   * @param limit - The maximum number of results to return.
+   * @returns The set of matching documents.
+   */
+  getAllFromCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string,
+    offset: IndexOffset,
+    limit: number
   ): PersistencePromise<MutableDocumentMap>;
 
   /**

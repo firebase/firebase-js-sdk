@@ -24,6 +24,7 @@ import sinonChai from 'sinon-chai';
 import { Auth } from './auth';
 import { CompatPopupRedirectResolver } from './popup_redirect';
 import * as platform from './platform';
+import { FAKE_HEARTBEAT_CONTROLLER_PROVIDER } from '../test/helpers/helpers';
 
 use(sinonChai);
 
@@ -41,9 +42,13 @@ describe('auth compat', () => {
 
     beforeEach(() => {
       app = { options: { apiKey: 'api-key' } } as FirebaseApp;
-      underlyingAuth = new exp.AuthImpl(app, {
-        apiKey: 'api-key'
-      } as exp.ConfigInternal);
+      underlyingAuth = new exp.AuthImpl(
+        app,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        {
+          apiKey: 'api-key'
+        } as exp.ConfigInternal
+      );
       sinon.stub(underlyingAuth, '_initializeWithPersistence');
 
       providerStub = sinon.createStubInstance(Provider);

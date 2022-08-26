@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance",
-  "version": "0.5.5",
+  "version": "0.5.12",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -9,6 +9,7 @@
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
+      "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm.js",
       "default": "./dist/esm/index.esm2017.js"
@@ -38,18 +39,18 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/logger": "0.3.2",
-    "@firebase/installations": "0.5.5",
-    "@firebase/util": "1.4.3",
-    "@firebase/component": "0.5.10",
+    "@firebase/logger": "0.3.3",
+    "@firebase/installations": "0.5.12",
+    "@firebase/util": "1.6.3",
+    "@firebase/component": "0.5.17",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.7.17",
-    "rollup": "2.57.0",
+    "@firebase/app": "0.7.31",
+    "rollup": "2.72.1",
     "@rollup/plugin-json": "4.1.0",
-    "rollup-plugin-typescript2": "0.30.0",
+    "rollup-plugin-typescript2": "0.31.2",
     "typescript": "4.2.2"
   },
   "repository": {

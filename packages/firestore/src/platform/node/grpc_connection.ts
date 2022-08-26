@@ -59,9 +59,13 @@ function createMetadata(
     metadata.set('X-Firebase-GMPID', appId);
   }
   metadata.set('X-Goog-Api-Client', X_GOOG_API_CLIENT_VALUE);
-  // This header is used to improve routing and project isolation by the
+  // These headers are used to improve routing and project isolation by the
   // backend.
+  // TODO(b/199767712): We are keeping 'Google-Cloud-Resource-Prefix' until Emulators can be
+  // released with cl/428820046. Currently blocked because Emulators are now built with Java
+  // 11 from Google3.
   metadata.set('Google-Cloud-Resource-Prefix', databasePath);
+  metadata.set('x-goog-request-params', databasePath);
   return metadata;
 }
 
@@ -149,11 +153,11 @@ export class GrpcConnection implements Connection {
     path: string,
     request: Req,
     authToken: Token | null,
-    appCheckToken: Token | null
+    appCheckToken: Token | null,
+    expectedResponseCount?: number
   ): Promise<Resp[]> {
     const results: Resp[] = [];
     const responseDeferred = new Deferred<Resp[]>();
-
     logDebug(
       LOG_TAG,
       `RPC '${rpcName}' invoked (streaming) with request:`,
@@ -168,13 +172,24 @@ export class GrpcConnection implements Connection {
     );
     const jsonRequest = { ...request, database: this.databasePath };
     const stream = stub[rpcName](jsonRequest, metadata);
+    let callbackFired = false;
     stream.on('data', (response: Resp) => {
       logDebug(LOG_TAG, `RPC ${rpcName} received result:`, response);
       results.push(response);
+      if (
+        expectedResponseCount !== undefined &&
+        results.length === expectedResponseCount
+      ) {
+        callbackFired = true;
+        responseDeferred.resolve(results);
+      }
     });
     stream.on('end', () => {
       logDebug(LOG_TAG, `RPC '${rpcName}' completed.`);
-      responseDeferred.resolve(results);
+      if (!callbackFired) {
+        callbackFired = true;
+        responseDeferred.resolve(results);
+      }
     });
     stream.on('error', (grpcError: grpc.ServiceError) => {
       logDebug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);

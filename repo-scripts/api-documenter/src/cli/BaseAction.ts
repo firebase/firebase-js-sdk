@@ -41,12 +41,14 @@ export interface IBuildApiModelResult {
   inputFolder: string;
   outputFolder: string;
   addFileNameSuffix: boolean;
+  projectName?: string;
 }
 
 export abstract class BaseAction extends CommandLineAction {
   private _inputFolderParameter!: CommandLineStringParameter;
   private _outputFolderParameter!: CommandLineStringParameter;
   private _fileNameSuffixParameter!: CommandLineFlagParameter;
+  private _projectNameParameter!: CommandLineStringParameter;
 
   protected onDefineParameters(): void {
     // override
@@ -79,6 +81,14 @@ export abstract class BaseAction extends CommandLineAction {
         `This is to avoid name conflict in case packageA also has, for example, an entry point with the same name in lowercase.` +
         `This option is specifically designed for the Admin SDK where such case occurs.`
     });
+
+    this._projectNameParameter = this.defineStringParameter({
+      parameterLongName: '--project',
+      argumentName: 'PROJECT',
+      description:
+        `Name of the project (js, admin, functions, etc.). This will be ` +
+        `used in the devsite header path to the _project.yaml file.`
+    });
   }
 
   protected buildApiModel(): IBuildApiModelResult {
@@ -105,7 +115,13 @@ export abstract class BaseAction extends CommandLineAction {
 
     this._applyInheritDoc(apiModel, apiModel);
 
-    return { apiModel, inputFolder, outputFolder, addFileNameSuffix };
+    return {
+      apiModel,
+      inputFolder,
+      outputFolder,
+      addFileNameSuffix,
+      projectName: this._projectNameParameter.value
+    };
   }
 
   // TODO: This is a temporary workaround.  The long term plan is for API Extractor's DocCommentEnhancer

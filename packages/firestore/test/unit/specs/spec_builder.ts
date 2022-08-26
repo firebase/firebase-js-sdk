@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
+import { IndexConfiguration } from '../../../src/api/index_configuration';
 import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import {
-  hasLimitToFirst,
-  hasLimitToLast,
+  LimitType,
   newQueryForPath,
   Query,
   queryEquals,
@@ -35,6 +35,7 @@ import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { FieldIndex } from '../../../src/model/field_index';
 import { JsonObject } from '../../../src/model/object_value';
 import { ResourcePath } from '../../../src/model/path';
 import {
@@ -387,6 +388,16 @@ export class SpecBuilder {
     return this;
   }
 
+  setIndexConfiguration(
+    jsonOrConfiguration: string | IndexConfiguration
+  ): this {
+    this.nextStep();
+    this.currentStep = {
+      setIndexConfiguration: jsonOrConfiguration
+    };
+    return this;
+  }
+
   // PORTING NOTE: Only used by web multi-tab tests.
   becomeHidden(): this {
     this.nextStep();
@@ -506,6 +517,15 @@ export class SpecBuilder {
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.isShutdown = true;
+    return this;
+  }
+
+  /** Expects indexes to exist (in any order) */
+  expectIndexes(indexes: FieldIndex[]): this {
+    this.assertStep('Indexes expectation requires previous step');
+    const currentStep = this.currentStep!;
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.indexes = indexes;
     return this;
   }
 
@@ -1006,13 +1026,10 @@ export class SpecBuilder {
     if (query.collectionGroup !== null) {
       spec.collectionGroup = query.collectionGroup;
     }
-    if (hasLimitToFirst(query)) {
-      spec.limit = query.limit!;
-      spec.limitType = 'LimitToFirst';
-    }
-    if (hasLimitToLast(query)) {
-      spec.limit = query.limit!;
-      spec.limitType = 'LimitToLast';
+    if (query.limit !== null) {
+      spec.limit = query.limit;
+      spec.limitType =
+        query.limitType === LimitType.First ? 'LimitToFirst' : 'LimitToLast';
     }
     if (query.filters) {
       spec.filters = query.filters.map((filter: Filter) => {

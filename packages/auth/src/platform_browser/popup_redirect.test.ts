@@ -58,7 +58,8 @@ describe('platform_browser/popup_redirect', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver = new (browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>)();
+    resolver =
+      new (browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolverInternal>)();
 
     sinon.stub(validateOrigin, '_validateOrigin').returns(Promise.resolve());
     iframeSendStub = sinon.stub();
@@ -74,7 +75,7 @@ describe('platform_browser/popup_redirect', () => {
 
   function setGapiStub(): void {
     loadGapiStub.returns(
-      Promise.resolve(({
+      Promise.resolve({
         open: () =>
           Promise.resolve({
             register: (
@@ -83,7 +84,7 @@ describe('platform_browser/popup_redirect', () => {
             ) => (onIframeMessage = cb),
             send: iframeSendStub
           })
-      } as unknown) as gapi.iframes.Context)
+      } as unknown as gapi.iframes.Context)
     );
   }
 
@@ -250,7 +251,7 @@ describe('platform_browser/popup_redirect', () => {
       const error = new Error();
       loadGapiStub.rejects(error);
       await expect(resolver._initialize(auth)).to.be.rejectedWith(error);
-      setGapiStub();  // Reset the gapi load stub
+      setGapiStub(); // Reset the gapi load stub
       await expect(resolver._initialize(auth)).not.to.be.rejected;
     });
 
@@ -277,7 +278,7 @@ describe('platform_browser/popup_redirect', () => {
       expect(() =>
         onIframeMessage({
           type: 'authEvent',
-          authEvent: (null as unknown) as AuthEvent
+          authEvent: null as unknown as AuthEvent
         })
       ).to.throw(FirebaseError, 'auth/invalid-auth-event');
     });
@@ -285,9 +286,10 @@ describe('platform_browser/popup_redirect', () => {
     it('errors with invalid event if everything is null', async () => {
       const manager = (await resolver._initialize(auth)) as AuthEventManager;
       sinon.stub(manager, 'onEvent').returns(true);
-      expect(() =>
-        onIframeMessage((null as unknown) as GapiAuthEvent)
-      ).to.throw(FirebaseError, 'auth/invalid-auth-event');
+      expect(() => onIframeMessage(null as unknown as GapiAuthEvent)).to.throw(
+        FirebaseError,
+        'auth/invalid-auth-event'
+      );
     });
 
     it('returns error to the iframe if the event was not handled', async () => {

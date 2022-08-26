@@ -22,6 +22,8 @@ export {
   enableLogging,
   goOffline,
   goOnline,
+  forceWebSockets,
+  forceLongPolling,
   connectDatabaseEmulator
 } from './api/Database';
 export {

@@ -22,7 +22,6 @@ import { DocumentKey } from '../model/document_key';
 import { BundleCache } from './bundle_cache';
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
-import { LocalStore } from './local_store';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import {
@@ -254,11 +253,10 @@ export interface Persistence {
 }
 
 /**
- * Interface implemented by the LRU scheduler to start(), stop() and restart
- * garbage collection.
+ * Interface to schedule periodic tasks within SDK.
  */
-export interface GarbageCollectionScheduler {
+export interface Scheduler {
   readonly started: boolean;
-  start(localStore: LocalStore): void;
+  start(): void;
   stop(): void;
 }

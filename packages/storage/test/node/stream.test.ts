@@ -68,7 +68,7 @@ describe('Firebase Storage > getStream', () => {
       await readData(stream);
       expect.fail();
     } catch (e) {
-      expect(e.message).to.satisfy((v: string) =>
+      expect((e as Error)?.message).to.satisfy((v: string) =>
         v.match(/Object 'public\/exp-bytes-missing' does not exist/)
       );
     }

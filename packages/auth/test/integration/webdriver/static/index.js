@@ -21,6 +21,7 @@ import * as core from './core';
 import * as popup from './popup';
 import * as email from './email';
 import * as persistence from './persistence';
+import * as middleware from './middleware';
 import { initializeApp } from '@firebase/app';
 import { getAuth, connectAuthEmulator } from '@firebase/auth';
 
@@ -30,6 +31,7 @@ window.redirect = redirect;
 window.popup = popup;
 window.email = email;
 window.persistence = persistence;
+window.middleware = middleware;
 
 window.auth = null;
 window.legacyAuth = null;

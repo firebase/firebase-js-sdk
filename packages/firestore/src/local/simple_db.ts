@@ -71,7 +71,7 @@ export class SimpleDbTransaction {
         db.transaction(objectStoreNames, mode)
       );
     } catch (e) {
-      throw new IndexedDbTransactionError(action, e);
+      throw new IndexedDbTransactionError(action, e as Error);
     }
   }
 
@@ -434,7 +434,8 @@ export class SimpleDb {
         // caller.
         await transaction.completionPromise;
         return transactionFnResult;
-      } catch (error) {
+      } catch (e) {
+        const error = e as Error;
         // TODO(schmidt-sebastian): We could probably be smarter about this and
         // not retry exceptions that are likely unrecoverable (such as quota
         // exceeded errors).
@@ -656,6 +657,8 @@ export class SimpleDbStore<
   loadAll(): PersistencePromise<ValueType[]>;
   /** Loads all elements for the index range from the object store. */
   loadAll(range: IDBKeyRange): PersistencePromise<ValueType[]>;
+  /** Loads all elements ordered by the given index. */
+  loadAll(index: string): PersistencePromise<ValueType[]>;
   /**
    * Loads all elements from the object store that fall into the provided in the
    * index range for the given index.
@@ -845,9 +848,7 @@ export class SimpleDbStore<
           cursor.continue(controller.skipToKey);
         }
       };
-    }).next(() => {
-      return PersistencePromise.waitFor(results);
-    });
+    }).next(() => PersistencePromise.waitFor(results));
   }
 
   private options(

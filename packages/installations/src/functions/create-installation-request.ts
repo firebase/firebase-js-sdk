@@ -29,15 +29,27 @@ import {
   getInstallationsEndpoint,
   retryIfServerError
 } from './common';
-import { AppConfig } from '../interfaces/installation-impl';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 
 export async function createInstallationRequest(
-  appConfig: AppConfig,
+  { appConfig, heartbeatServiceProvider }: FirebaseInstallationsImpl,
   { fid }: InProgressInstallationEntry
 ): Promise<RegisteredInstallationEntry> {
   const endpoint = getInstallationsEndpoint(appConfig);
 
   const headers = getHeaders(appConfig);
+
+  // If heartbeat service exists, add the heartbeat string to the header.
+  const heartbeatService = heartbeatServiceProvider.getImmediate({
+    optional: true
+  });
+  if (heartbeatService) {
+    const heartbeatsHeader = await heartbeatService.getHeartbeatsHeader();
+    if (heartbeatsHeader) {
+      headers.append('x-firebase-client', heartbeatsHeader);
+    }
+  }
+
   const body = {
     fid,
     authVersion: INTERNAL_AUTH_VERSION,

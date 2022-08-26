@@ -28,6 +28,7 @@ import {
 } from './helpers';
 import { GtagCommand } from './constants';
 import { Deferred } from '@firebase/util';
+import { ConsentSettings } from './public-types';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeAppId = 'my-test-app-1234';
@@ -223,6 +224,27 @@ describe('Gtag wrapping functions', () => {
       );
       window['dataLayer'] = [];
       (window['gtag'] as Gtag)(GtagCommand.SET, { 'language': 'en' });
+      expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+    });
+
+    it('new window.gtag function does not wait when sending "consent" calls', async () => {
+      const consentParameters: ConsentSettings = {
+        'analytics_storage': 'granted',
+        'functionality_storage': 'denied'
+      };
+      wrapOrCreateGtag(
+        { [fakeAppId]: Promise.resolve(fakeMeasurementId) },
+        fakeDynamicConfigPromises,
+        {},
+        'dataLayer',
+        'gtag'
+      );
+      window['dataLayer'] = [];
+      (window['gtag'] as Gtag)(
+        GtagCommand.CONSENT,
+        'update',
+        consentParameters
+      );
       expect((window['dataLayer'] as DataLayer).length).to.equal(1);
     });
 

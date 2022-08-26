@@ -27,7 +27,7 @@ import { FieldPath } from './path';
  * The initial mutation batch id for each index. Gets updated during index
  * backfill.
  */
-const INITIAL_LARGEST_BATCH_ID = -1;
+export const INITIAL_LARGEST_BATCH_ID = -1;
 
 /**
  * The initial sequence number for each index. Gets updated during index
@@ -77,6 +77,18 @@ export function fieldIndexGetDirectionalSegments(
   fieldIndex: FieldIndex
 ): IndexSegment[] {
   return fieldIndex.fields.filter(s => s.kind !== IndexKind.CONTAINS);
+}
+
+/**
+ * Returns the order of the document key component for the given index.
+ *
+ * PORTING NOTE: This is only used in the Web IndexedDb implementation.
+ */
+export function fieldIndexGetKeyOrder(fieldIndex: FieldIndex): IndexKind {
+  const directionalSegments = fieldIndexGetDirectionalSegments(fieldIndex);
+  return directionalSegments.length === 0
+    ? IndexKind.ASCENDING
+    : directionalSegments[directionalSegments.length - 1].kind;
 }
 
 /**
@@ -222,10 +234,19 @@ export class IndexOffset {
     readonly largestBatchId: number
   ) {}
 
-  /** The state of an index that has not yet been backfilled. */
+  /** Returns an offset that sorts before all regular offsets. */
   static min(): IndexOffset {
     return new IndexOffset(
       SnapshotVersion.min(),
+      DocumentKey.empty(),
+      INITIAL_LARGEST_BATCH_ID
+    );
+  }
+
+  /** Returns an offset that sorts after all regular offsets. */
+  static max(): IndexOffset {
+    return new IndexOffset(
+      SnapshotVersion.max(),
       DocumentKey.empty(),
       INITIAL_LARGEST_BATCH_ID
     );

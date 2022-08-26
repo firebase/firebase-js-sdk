@@ -92,6 +92,7 @@ import {
   newQueryForPath,
   Query,
   queryEquals,
+  queryCollectionGroup,
   queryToTarget,
   stringifyQuery
 } from './query';
@@ -472,7 +473,10 @@ export async function syncEngineWrite(
   } catch (e) {
     // If we can't persist the mutation, we reject the user callback and
     // don't send the mutation. The user can then retry the write.
-    const error = wrapInUserErrorIfRecoverable(e, `Failed to persist write`);
+    const error = wrapInUserErrorIfRecoverable(
+      e as Error,
+      `Failed to persist write`
+    );
     userCallback.reject(error);
   }
 }
@@ -531,7 +535,7 @@ export async function syncEngineApplyRemoteEvent(
       remoteEvent
     );
   } catch (error) {
-    await ignoreIfPrimaryLeaseLoss(error);
+    await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
 }
 
@@ -683,7 +687,7 @@ export async function syncEngineApplySuccessfulWrite(
     );
     await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
   } catch (error) {
-    await ignoreIfPrimaryLeaseLoss(error);
+    await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
 }
 
@@ -714,7 +718,7 @@ export async function syncEngineRejectFailedWrite(
     );
     await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
   } catch (error) {
-    await ignoreIfPrimaryLeaseLoss(error);
+    await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
 }
 
@@ -751,7 +755,7 @@ export async function syncEngineRegisterPendingWritesCallback(
     syncEngineImpl.pendingWritesCallbacks.set(highestBatchId, callbacks);
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       'Initialization of waitForPendingWrites() operation failed'
     );
     callback.reject(firestoreError);
@@ -1171,13 +1175,16 @@ async function synchronizeViewAndComputeSnapshot(
  */
 // PORTING NOTE: Multi-Tab only.
 export async function syncEngineSynchronizeWithChangedDocuments(
-  syncEngine: SyncEngine
+  syncEngine: SyncEngine,
+  collectionGroup: string
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
 
-  return localStoreGetNewDocumentChanges(syncEngineImpl.localStore).then(
-    changes =>
-      syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
+  return localStoreGetNewDocumentChanges(
+    syncEngineImpl.localStore,
+    collectionGroup
+  ).then(changes =>
+    syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
   );
 }
 
@@ -1432,12 +1439,14 @@ export async function syncEngineApplyTargetState(
     return;
   }
 
-  if (syncEngineImpl.queriesByTarget.has(targetId)) {
+  const query = syncEngineImpl.queriesByTarget.get(targetId);
+  if (query && query.length > 0) {
     switch (state) {
       case 'current':
       case 'not-current': {
         const changes = await localStoreGetNewDocumentChanges(
-          syncEngineImpl.localStore
+          syncEngineImpl.localStore,
+          queryCollectionGroup(query[0])
         );
         const synthesizedRemoteEvent =
           RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
@@ -1565,16 +1574,17 @@ export function syncEngineLoadBundle(
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  loadBundleImpl(syncEngineImpl, bundleReader, task).then(() => {
-    syncEngineImpl.sharedClientState.notifyBundleLoaded();
+  loadBundleImpl(syncEngineImpl, bundleReader, task).then(collectionGroups => {
+    syncEngineImpl.sharedClientState.notifyBundleLoaded(collectionGroups);
   });
 }
 
+/** Loads a bundle and returns the list of affected collection groups. */
 async function loadBundleImpl(
   syncEngine: SyncEngineImpl,
   reader: BundleReader,
   task: LoadBundleTask
-): Promise<void> {
+): Promise<Set<string>> {
   try {
     const metadata = await reader.getMetadata();
     const skip = await localStoreHasNewerBundle(
@@ -1584,7 +1594,7 @@ async function loadBundleImpl(
     if (skip) {
       await reader.close();
       task._completeWith(bundleSuccessProgress(metadata));
-      return;
+      return Promise.resolve(new Set<string>());
     }
 
     task._updateProgress(bundleInitialProgress(metadata));
@@ -1609,9 +1619,6 @@ async function loadBundleImpl(
     }
 
     const result = await loader.complete();
-    // TODO(b/160876443): This currently raises snapshots with
-    // `fromCache=false` if users already listen to some queries and bundles
-    // has newer version.
     await syncEngineEmitNewSnapsAndNotifyLocalStore(
       syncEngine,
       result.changedDocs,
@@ -1621,8 +1628,10 @@ async function loadBundleImpl(
     // Save metadata, so loading the same bundle will skip.
     await localStoreSaveBundle(syncEngine.localStore, metadata);
     task._completeWith(result.progress);
+    return Promise.resolve(result.changedCollectionGroups);
   } catch (e) {
     logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
-    task._failWith(e);
+    task._failWith(e as FirestoreError);
+    return Promise.resolve(new Set<string>());
   }
 }

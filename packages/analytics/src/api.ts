@@ -22,6 +22,7 @@ import {
   Analytics,
   AnalyticsCallOptions,
   AnalyticsSettings,
+  ConsentSettings,
   CustomParams,
   EventNameString,
   EventParams
@@ -35,7 +36,7 @@ import {
   getModularInstance,
   deepEqual
 } from '@firebase/util';
-import { ANALYTICS_TYPE } from './constants';
+import { ANALYTICS_TYPE, GtagCommand } from './constants';
 import {
   AnalyticsService,
   initializationPromisesMap,
@@ -47,7 +48,9 @@ import {
   setCurrentScreen as internalSetCurrentScreen,
   setUserId as internalSetUserId,
   setUserProperties as internalSetUserProperties,
-  setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled
+  setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled,
+  _setConsentDefaultForInit,
+  _setDefaultEventParametersForInit
 } from './functions';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 
@@ -144,6 +147,9 @@ export async function isSupported(): Promise<boolean> {
  *
  * @public
  *
+ * @deprecated Use {@link logEvent} with `eventName` as 'screen_view' and add relevant `eventParams`.
+ * See {@link https://firebase.google.com/docs/analytics/screenviews | Track Screenviews}.
+ *
  * @param analyticsInstance - The {@link Analytics} instance.
  * @param screenName - Screen name to set.
  */
@@ -221,6 +227,23 @@ export function setAnalyticsCollectionEnabled(
     enabled
   ).catch(e => logger.error(e));
 }
+
+/**
+ * Adds data that will be set on every event logged from the SDK, including automatic ones.
+ * With gtag's "set" command, the values passed persist on the current page and are passed with
+ * all subsequent events.
+ * @public
+ * @param customParams - Any custom params the user may pass to gtag.js.
+ */
+export function setDefaultEventParameters(customParams: CustomParams): void {
+  // Check if reference to existing gtag function on window object exists
+  if (wrappedGtagFunction) {
+    wrappedGtagFunction(GtagCommand.SET, customParams);
+  } else {
+    _setDefaultEventParametersForInit(customParams);
+  }
+}
+
 /**
  * Sends a Google Analytics event with given `eventParams`. This method
  * automatically associates this logged event with this Firebase web
@@ -713,3 +736,21 @@ export function logEvent(
  * @public
  */
 export type CustomEventName<T> = T extends EventNameString ? never : T;
+
+/**
+ * Sets the applicable end user consent state for this web app across all gtag references once
+ * Firebase Analytics is initialized.
+ *
+ * Use the {@link ConsentSettings} to specify individual consent type values. By default consent
+ * types are set to "granted".
+ * @public
+ * @param consentSettings - Maps the applicable end user consent state for gtag.js.
+ */
+export function setConsent(consentSettings: ConsentSettings): void {
+  // Check if reference to existing gtag function on window object exists
+  if (wrappedGtagFunction) {
+    wrappedGtagFunction(GtagCommand.CONSENT, 'update', consentSettings);
+  } else {
+    _setConsentDefaultForInit(consentSettings);
+  }
+}

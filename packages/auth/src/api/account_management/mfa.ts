@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _addTidIfNecessary, _performApiRequest } from '../index';
+import {
+  Endpoint,
+  HttpMethod,
+  _addTidIfNecessary,
+  _performApiRequest
+} from '../index';
 import { SignInWithPhoneNumberRequest } from '../authentication/sms';
 import { FinalizeMfaResponse } from '../authentication/mfa';
 import { AuthInternal } from '../../model/auth';
@@ -63,7 +68,12 @@ export function startEnrollPhoneMfa(
   return _performApiRequest<
     StartPhoneMfaEnrollmentRequest,
     StartPhoneMfaEnrollmentResponse
-  >(auth, HttpMethod.POST, Endpoint.START_PHONE_MFA_ENROLLMENT, _addTidIfNecessary(auth, request));
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.START_PHONE_MFA_ENROLLMENT,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 export interface FinalizePhoneMfaEnrollmentRequest {
@@ -83,7 +93,12 @@ export function finalizeEnrollPhoneMfa(
   return _performApiRequest<
     FinalizePhoneMfaEnrollmentRequest,
     FinalizePhoneMfaEnrollmentResponse
-  >(auth, HttpMethod.POST, Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT, _addTidIfNecessary(auth, request));
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,
+    _addTidIfNecessary(auth, request)
+  );
 }
 
 export interface WithdrawMfaRequest {

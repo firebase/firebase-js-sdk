@@ -19,7 +19,7 @@ import '../test/setup';
 import { expect } from 'chai';
 import { stub, SinonStub, useFakeTimers } from 'sinon';
 import { FirebaseApp } from '@firebase/app';
-import { getFakeApp, getFakePlatformLoggingProvider } from '../test/util';
+import { getFakeApp, getFakeHeartbeatServiceProvider } from '../test/util';
 import {
   getExchangeRecaptchaV3TokenRequest,
   exchangeToken,
@@ -47,10 +47,10 @@ describe('client', () => {
     const { projectId, appId, apiKey } = app.options;
 
     expect(request).to.deep.equal({
-      url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:exchangeRecaptchaToken?key=${apiKey}`,
+      url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:exchangeRecaptchaV3Token?key=${apiKey}`,
       body: {
         // eslint-disable-next-line camelcase
-        recaptcha_token: 'fake-recaptcha-token'
+        recaptcha_v3_token: 'fake-recaptcha-token'
       }
     });
   });
@@ -78,7 +78,7 @@ describe('client', () => {
       Promise.resolve({
         status: 200,
         json: async () => ({
-          attestationToken: 'fake-appcheck-token',
+          token: 'fake-appcheck-token',
           ttl: '3.600s'
         })
       } as Response)
@@ -86,7 +86,7 @@ describe('client', () => {
 
     const response = await exchangeToken(
       getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
-      getFakePlatformLoggingProvider('a/1.2.3 fire-app-check/2.3.4')
+      getFakeHeartbeatServiceProvider('a/1.2.3 fire-app-check/2.3.4')
     );
 
     expect(
@@ -107,14 +107,14 @@ describe('client', () => {
     const firebaseError = ERROR_FACTORY.create(
       AppCheckError.FETCH_NETWORK_ERROR,
       {
-        originalErrorMessage: originalError.message
+        originalErrorMessage: (originalError as Error)?.message
       }
     );
 
     try {
       await exchangeToken(
         getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
-        getFakePlatformLoggingProvider()
+        getFakeHeartbeatServiceProvider()
       );
     } catch (e) {
       expect(e).instanceOf(FirebaseError);
@@ -143,7 +143,7 @@ describe('client', () => {
     try {
       await exchangeToken(
         getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
-        getFakePlatformLoggingProvider()
+        getFakeHeartbeatServiceProvider()
       );
     } catch (e) {
       expect(e).instanceOf(FirebaseError);
@@ -164,21 +164,21 @@ describe('client', () => {
     const firebaseError = ERROR_FACTORY.create(
       AppCheckError.FETCH_PARSE_ERROR,
       {
-        originalErrorMessage: originalError.message
+        originalErrorMessage: (originalError as Error)?.message
       }
     );
 
     try {
       await exchangeToken(
         getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
-        getFakePlatformLoggingProvider()
+        getFakeHeartbeatServiceProvider()
       );
     } catch (e) {
       expect(e).instanceOf(FirebaseError);
       expect(e).has.property('message', firebaseError.message);
       expect(e).has.nested.property(
         'customData.originalErrorMessage',
-        originalError.message
+        (originalError as Error)?.message
       );
     }
   });
@@ -189,7 +189,7 @@ describe('client', () => {
         status: 200,
         json: () =>
           Promise.resolve({
-            attestationToken: 'fake-appcheck-token',
+            token: 'fake-appcheck-token',
             ttl: 'NAN'
           })
       } as Response)
@@ -205,7 +205,7 @@ describe('client', () => {
     try {
       await exchangeToken(
         getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
-        getFakePlatformLoggingProvider()
+        getFakeHeartbeatServiceProvider()
       );
     } catch (e) {
       expect(e).instanceOf(FirebaseError);

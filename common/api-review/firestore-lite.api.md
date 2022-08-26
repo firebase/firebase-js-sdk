@@ -176,7 +176,10 @@ export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnap
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // @public
-export function getFirestore(app?: FirebaseApp): Firestore;
+export function getFirestore(): Firestore;
+
+// @public
+export function getFirestore(app: FirebaseApp): Firestore;
 
 // @public
 export function increment(n: number): FieldValue;
@@ -254,7 +257,7 @@ export class QuerySnapshot<T = DocumentData> {
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
 // @public
-export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
+export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
 
 // @public
 export function serverTimestamp(): FieldValue;
@@ -329,6 +332,11 @@ export class Transaction {
     set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): this;
     update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
+}
+
+// @public
+export interface TransactionOptions {
+    readonly maxAttempts?: number;
 }
 
 // @public

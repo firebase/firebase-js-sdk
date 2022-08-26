@@ -156,7 +156,7 @@ export function assertThrows(f: () => void, code: string): StorageError {
     try {
       f();
     } catch (e) {
-      captured = e;
+      captured = e as StorageError;
       throw e;
     }
   }).to.throw();

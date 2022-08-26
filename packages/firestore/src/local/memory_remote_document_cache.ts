@@ -23,8 +23,13 @@ import {
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import {
+  IndexOffset,
+  indexOffsetComparator,
+  newIndexOffsetFromDocument
+} from '../model/field_index';
 import { ResourcePath } from '../model/path';
-import { debugAssert } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
 import { IndexManager } from './index_manager';
@@ -154,10 +159,10 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
-  getAll(
+  getAllFromCollection(
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath,
-    sinceReadTime: SnapshotVersion
+    offset: IndexOffset
   ): PersistencePromise<MutableDocumentMap> {
     let results = mutableDocumentMap();
 
@@ -177,12 +182,26 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
         // Exclude entries from subcollections.
         continue;
       }
-      if (document.readTime.compareTo(sinceReadTime) <= 0) {
+      if (
+        indexOffsetComparator(newIndexOffsetFromDocument(document), offset) <= 0
+      ) {
+        // The document sorts before the offset.
         continue;
       }
       results = results.insert(document.key, document.mutableCopy());
     }
     return PersistencePromise.resolve(results);
+  }
+
+  getAllFromCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string,
+    offset: IndexOffset,
+    limti: number
+  ): PersistencePromise<MutableDocumentMap> {
+    // This method should only be called from the IndexBackfiller if persistence
+    // is enabled.
+    fail('getAllFromCollectionGroup() is not supported.');
   }
 
   forEachDocumentKey(

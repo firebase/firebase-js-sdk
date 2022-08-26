@@ -34,6 +34,7 @@
     "packages/firestore/src/protos/firestore_proto_api.ts",
     "packages/firestore/src/util/error.ts",
     "packages/firestore/src/local/indexeddb_schema.ts",
+    "packages/firestore/src/local/indexeddb_schema_legacy.ts",
     "packages/firestore/src/local/shared_client_state_schema.ts"
   ]
 }

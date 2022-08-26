@@ -55,5 +55,5 @@ export interface SharedClientStateSyncer {
    * Retrieves newly changed documents from remote document cache and raises
    * snapshots if needed.
    */
-  synchronizeWithChangedDocuments(): Promise<void>;
+  synchronizeWithChangedDocuments(collectionGroup: string): Promise<void>;
 }

@@ -16,6 +16,7 @@
  */
 
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
+import { Provider } from '@firebase/component';
 import {
   Auth,
   AuthErrorMap,
@@ -34,6 +35,7 @@ import {
 import {
   createSubscribe,
   ErrorFactory,
+  FirebaseError,
   getModularInstance,
   Observer,
   Subscribe
@@ -59,6 +61,7 @@ import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 import { HttpHeader } from '../../api';
+import { AuthMiddlewareQueue } from './middleware';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -78,6 +81,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private redirectPersistenceManager?: PersistenceUserManager;
   private authStateSubscription = new Subscription<User>(this);
   private idTokenSubscription = new Subscription<User>(this);
+  private readonly beforeStateQueue = new AuthMiddlewareQueue(this);
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
 
@@ -103,6 +107,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
   constructor(
     public readonly app: FirebaseApp,
+    private readonly heartbeatServiceProvider: Provider<'heartbeat'>,
     public readonly config: ConfigInternal
   ) {
     this.name = app.name;
@@ -139,7 +144,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         // If this fails, don't halt auth loading
         try {
           await this._popupRedirectResolver._initialize(this);
-        } catch (e) { /* Ignore the error */ }
+        } catch (e) {
+          /* Ignore the error */
+        }
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
@@ -181,19 +188,22 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
 
     // Update current Auth state. Either a new login or logout.
-    await this._updateCurrentUser(user);
+    // Skip blocking callbacks, they should not apply to a change in another tab.
+    await this._updateCurrentUser(user, /* skipBeforeStateCallbacks */ true);
   }
 
   private async initializeCurrentUser(
     popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void> {
     // First check to see if we have a pending redirect event.
-    let storedUser =
+    const previouslyStoredUser =
       (await this.assertedPersistence.getCurrentUser()) as UserInternal | null;
+    let futureCurrentUser = previouslyStoredUser;
+    let needsTocheckMiddleware = false;
     if (popupRedirectResolver && this.config.authDomain) {
       await this.getOrInitRedirectPersistenceManager();
       const redirectUserEventId = this.redirectUser?._redirectEventId;
-      const storedUserEventId = storedUser?._redirectEventId;
+      const storedUserEventId = futureCurrentUser?._redirectEventId;
       const result = await this.tryRedirectSignIn(popupRedirectResolver);
 
       // If the stored user (i.e. the old "currentUser") has a redirectId that
@@ -204,20 +214,37 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         (!redirectUserEventId || redirectUserEventId === storedUserEventId) &&
         result?.user
       ) {
-        storedUser = result.user as UserInternal;
+        futureCurrentUser = result.user as UserInternal;
+        needsTocheckMiddleware = true;
       }
     }
 
     // If no user in persistence, there is no current user. Set to null.
-    if (!storedUser) {
+    if (!futureCurrentUser) {
       return this.directlySetCurrentUser(null);
     }
 
-    if (!storedUser._redirectEventId) {
-      // This isn't a redirect user, we can reload and bail
-      // This will also catch the redirected user, if available, as that method
-      // strips the _redirectEventId
-      return this.reloadAndSetCurrentUserOrClear(storedUser);
+    if (!futureCurrentUser._redirectEventId) {
+      // This isn't a redirect link operation, we can reload and bail.
+      // First though, ensure that we check the middleware is happy.
+      if (needsTocheckMiddleware) {
+        try {
+          await this.beforeStateQueue.runMiddleware(futureCurrentUser);
+        } catch (e) {
+          futureCurrentUser = previouslyStoredUser;
+          // We know this is available since the bit is only set when the
+          // resolver is available
+          this._popupRedirectResolver!._overrideRedirectResult(this, () =>
+            Promise.reject(e)
+          );
+        }
+      }
+
+      if (futureCurrentUser) {
+        return this.reloadAndSetCurrentUserOrClear(futureCurrentUser);
+      } else {
+        return this.directlySetCurrentUser(null);
+      }
     }
 
     _assert(this._popupRedirectResolver, this, AuthErrorCode.ARGUMENT_ERROR);
@@ -228,12 +255,12 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     // This is important for the reauthenticateWithRedirect() flow.
     if (
       this.redirectUser &&
-      this.redirectUser._redirectEventId === storedUser._redirectEventId
+      this.redirectUser._redirectEventId === futureCurrentUser._redirectEventId
     ) {
-      return this.directlySetCurrentUser(storedUser);
+      return this.directlySetCurrentUser(futureCurrentUser);
     }
 
-    return this.reloadAndSetCurrentUserOrClear(storedUser);
+    return this.reloadAndSetCurrentUserOrClear(futureCurrentUser);
   }
 
   private async tryRedirectSignIn(
@@ -279,7 +306,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     try {
       await _reloadWithoutSaving(user);
     } catch (e) {
-      if (e.code !== `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`) {
+      if (
+        (e as FirebaseError)?.code !==
+        `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`
+      ) {
         // Something's wrong with the user's token. Log them out and remove
         // them from storage
         return this.directlySetCurrentUser(null);
@@ -313,7 +343,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this._updateCurrentUser(user && user._clone(this));
   }
 
-  async _updateCurrentUser(user: User | null): Promise<void> {
+  async _updateCurrentUser(
+    user: User | null,
+    skipBeforeStateCallbacks: boolean = false
+  ): Promise<void> {
     if (this._deleted) {
       return;
     }
@@ -325,6 +358,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       );
     }
 
+    if (!skipBeforeStateCallbacks) {
+      await this.beforeStateQueue.runMiddleware(user);
+    }
+
     return this.queue(async () => {
       await this.directlySetCurrentUser(user as UserInternal | null);
       this.notifyAuthListeners();
@@ -332,12 +369,16 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async signOut(): Promise<void> {
+    // Run first, to block _setRedirectUser() if any callbacks fail.
+    await this.beforeStateQueue.runMiddleware(null);
     // Clear the redirect user when signOut is called
     if (this.redirectPersistenceManager || this._popupRedirectResolver) {
       await this._setRedirectUser(null);
     }
 
-    return this._updateCurrentUser(null);
+    // Prevent callbacks from being called again in _updateCurrentUser, as
+    // they were already called in the first line.
+    return this._updateCurrentUser(null, /* skipBeforeStateCallbacks */ true);
   }
 
   setPersistence(persistence: Persistence): Promise<void> {
@@ -369,6 +410,13 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       error,
       completed
     );
+  }
+
+  beforeAuthStateChanged(
+    callback: (user: User | null) => void | Promise<void>,
+    onAbort?: () => void
+  ): Unsubscribe {
+    return this.beforeStateQueue.pushCallback(callback, onAbort);
   }
 
   onIdTokenChanged(
@@ -533,9 +581,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   ): Promise<void> {
     if (this.currentUser && this.currentUser !== user) {
       this._currentUser._stopProactiveRefresh();
-      if (user && this.isProactiveRefreshEnabled) {
-        user._startProactiveRefresh();
-      }
+    }
+    if (user && this.isProactiveRefreshEnabled) {
+      user._startProactiveRefresh();
     }
 
     this.currentUser = user;
@@ -581,10 +629,21 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   async _getAdditionalHeaders(): Promise<Record<string, string>> {
     // Additional headers on every request
     const headers: Record<string, string> = {
-      [HttpHeader.X_CLIENT_VERSION]: this.clientVersion,
+      [HttpHeader.X_CLIENT_VERSION]: this.clientVersion
     };
+
     if (this.app.options.appId) {
       headers[HttpHeader.X_FIREBASE_GMPID] = this.app.options.appId;
+    }
+
+    // If the heartbeat service exists, add the heartbeat string
+    const heartbeatsHeader = await this.heartbeatServiceProvider
+      .getImmediate({
+        optional: true
+      })
+      ?.getHeartbeatsHeader();
+    if (heartbeatsHeader) {
+      headers[HttpHeader.X_FIREBASE_CLIENT] = heartbeatsHeader;
     }
     return headers;
   }

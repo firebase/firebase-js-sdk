@@ -16,12 +16,30 @@
  */
 
 import { Target } from '../core/target';
-import { DocumentKeySet, DocumentMap } from '../model/collections';
+import { DocumentMap } from '../model/collections';
+import { DocumentKey } from '../model/document_key';
 import { FieldIndex, IndexOffset } from '../model/field_index';
 import { ResourcePath } from '../model/path';
 
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+
+/** Represents the index state as it relates to a particular target. */
+export const enum IndexType {
+  /** Indicates that no index could be found for serving the target. */
+  NONE,
+  /**
+   * Indicates that only a "partial index" could be found for serving the
+   * target. A partial index is one which does not have a segment for every
+   * filter/orderBy in the target.
+   */
+  PARTIAL,
+  /**
+   * Indicates that a "full index" could be found for serving the target. A full
+   * index is one which has a segment for every filter/orderBy in the target.
+   */
+  FULL
+}
 
 /**
  * Represents a set of indexes that are used to execute queries efficiently.
@@ -93,13 +111,13 @@ export interface IndexManager {
   ): PersistencePromise<FieldIndex[]>;
 
   /**
-   * Returns an index that can be used to serve the provided target. Returns
-   * `null` if no index is configured.
+   * Returns the type of index (if any) that can be used to serve the given
+   * target.
    */
-  getFieldIndex(
+  getIndexType(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<FieldIndex | null>;
+  ): PersistencePromise<IndexType>;
 
   /**
    * Returns the documents that match the given target based on the provided
@@ -108,7 +126,7 @@ export interface IndexManager {
   getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<DocumentKeySet | null>;
+  ): PersistencePromise<DocumentKey[] | null>;
 
   /**
    * Returns the next collection group to update. Returns `null` if no group
@@ -137,4 +155,19 @@ export interface IndexManager {
     transaction: PersistenceTransaction,
     documents: DocumentMap
   ): PersistencePromise<void>;
+
+  /**
+   * Iterates over all field indexes that are used to serve the given target,
+   * and returns the minimum offset of them all.
+   */
+  getMinOffset(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<IndexOffset>;
+
+  /** Returns the minimum offset for the given collection group. */
+  getMinOffsetFromCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string
+  ): PersistencePromise<IndexOffset>;
 }

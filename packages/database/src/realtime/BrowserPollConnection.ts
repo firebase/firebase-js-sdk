@@ -248,7 +248,7 @@ export class BrowserPollConnection implements Transport {
     this.addDisconnectPingFrame(this.id, this.password);
   }
 
-  private static forceAllow_: boolean;
+  static forceAllow_: boolean;
 
   /**
    * Forces long polling to be considered as a potential transport
@@ -257,7 +257,7 @@ export class BrowserPollConnection implements Transport {
     BrowserPollConnection.forceAllow_ = true;
   }
 
-  private static forceDisallow_: boolean;
+  static forceDisallow_: boolean;
 
   /**
    * Forces longpolling to not be considered as a potential transport

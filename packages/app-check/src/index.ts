@@ -48,8 +48,8 @@ function registerAppCheck(): void {
       container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const platformLoggerProvider = container.getProvider('platform-logger');
-        return factory(app, platformLoggerProvider);
+        const heartbeatServiceProvider = container.getProvider('heartbeat');
+        return factory(app, heartbeatServiceProvider);
       },
       ComponentType.PUBLIC
     )
