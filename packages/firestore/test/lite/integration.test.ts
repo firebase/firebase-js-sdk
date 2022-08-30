@@ -2046,20 +2046,12 @@ describe('withConverter() support', () => {
 });
 
 describe('countQuery()', () => {
-  const testDocs = [
-    { author: 'authorA', title: 'titleA' },
-    { author: 'authorA', title: 'titleB' },
-    { author: 'authorB', title: 'titleC' },
-    { author: 'authorB', title: 'titleD' },
-    { author: 'authorB', title: 'titleE' }
-  ];
-
   it('AggregateQuery and AggregateQuerySnapshot inherits the original query', () => {
     return withTestCollection(async coll => {
       const query_ = query(coll);
       const countQuery_ = countQuery(query_);
-      expect(countQuery_.query).to.equal(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(countQuery_.query).to.equal(query_);
       expect(snapshot.query).to.equal(countQuery_);
       expect(snapshot.query.query).to.equal(query_);
     });
@@ -2073,15 +2065,25 @@ describe('countQuery()', () => {
     });
   });
 
-  it('test collection count with 5 docs', () => {
+  it('test collection count with 3 docs', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const countQuery_ = countQuery(query(collection));
       const snapshot = await getAggregateFromServerDirect(countQuery_);
-      expect(snapshot.getCount()).to.equal(5);
+      expect(snapshot.getCount()).to.equal(3);
     });
   });
 
   it('test collection count with filter', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, where('author', '==', 'authorA'));
       const countQuery_ = countQuery(query_);
@@ -2091,6 +2093,11 @@ describe('countQuery()', () => {
   });
 
   it('test collection count with filter and a small limit size', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(
         collection,
@@ -2104,6 +2111,11 @@ describe('countQuery()', () => {
   });
 
   it('test collection count with filter and a large limit size', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(
         collection,
@@ -2116,7 +2128,87 @@ describe('countQuery()', () => {
     });
   });
 
+  it('count with order by', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: null },
+      { author: 'authorB' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_ = query(collection, orderBy('title'));
+      const countQuery_ = countQuery(query_);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(3);
+    });
+  });
+
+  it('count with order by and startAt', () => {
+    const testDocs = [
+      { id: 3, author: 'authorA', title: 'titleA' },
+      { id: 1, author: 'authorA', title: 'titleB' },
+      { id: 2, author: 'authorB', title: 'titleC' },
+      { id: null, author: 'authorB', title: 'titleD' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_ = query(collection, orderBy('id'), startAt(2));
+      const countQuery_ = countQuery(query_);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(2);
+    });
+  });
+
+  it('count with order by and startAfter', () => {
+    const testDocs = [
+      { id: 3, author: 'authorA', title: 'titleA' },
+      { id: 1, author: 'authorA', title: 'titleB' },
+      { id: 2, author: 'authorB', title: 'titleC' },
+      { id: null, author: 'authorB', title: 'titleD' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_ = query(collection, orderBy('id'), startAfter(2));
+      const countQuery_ = countQuery(query_);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(1);
+    });
+  });
+
+  it('count with order by and endAt', () => {
+    const testDocs = [
+      { id: 3, author: 'authorA', title: 'titleA' },
+      { id: 1, author: 'authorA', title: 'titleB' },
+      { id: 2, author: 'authorB', title: 'titleC' },
+      { id: null, author: 'authorB', title: 'titleD' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_ = query(collection, orderBy('id'), startAt(1), endAt(2));
+      const countQuery_ = countQuery(query_);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(2);
+    });
+  });
+
+  it('count with order by and endBefore', () => {
+    const testDocs = [
+      { id: 3, author: 'authorA', title: 'titleA' },
+      { id: 1, author: 'authorA', title: 'titleB' },
+      { id: 2, author: 'authorB', title: 'titleC' },
+      { id: null, author: 'authorB', title: 'titleD' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const query_ = query(collection, orderBy('id'), startAt(1), endBefore(2));
+      const countQuery_ = countQuery(query_);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(1);
+    });
+  });
+
   it('test collection count with converter on query', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(
         collection,
@@ -2128,7 +2220,33 @@ describe('countQuery()', () => {
     });
   });
 
+  it('count query with collection groups', () => {
+    return withTestDb(async db => {
+      const collectionGroupId = doc(collection(db, 'countTest')).id;
+      const docPaths = [
+        `${collectionGroupId}/cg-doc1`,
+        `abc/123/${collectionGroupId}/cg-doc2`,
+        `zzz${collectionGroupId}/cg-doc3`,
+        `abc/123/zzz${collectionGroupId}/cg-doc4`,
+        `abc/123/zzz/${collectionGroupId}`
+      ];
+      const batch = writeBatch(db);
+      for (const docPath of docPaths) {
+        batch.set(doc(db, docPath), { x: 1 });
+      }
+      await batch.commit();
+      const countQuery_ = countQuery(collectionGroup(db, collectionGroupId));
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(2);
+    });
+  });
+
   it('aggregateQueryEqual on same queries', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query1 = query(collection, where('author', '==', 'authorA'));
       const query2 = query(collection, where('author', '==', 'authorA'));
@@ -2139,6 +2257,11 @@ describe('countQuery()', () => {
   });
 
   it('aggregateQueryEqual on different queries', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query1 = query(collection, where('author', '==', 'authorA'));
       const query2 = query(collection, where('author', '==', 'authorB'));
@@ -2149,6 +2272,11 @@ describe('countQuery()', () => {
   });
 
   it('aggregateQuerySnapshotEqual on same queries', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query1 = query(collection, where('author', '==', 'authorA'));
       const query2 = query(collection, where('author', '==', 'authorA'));
@@ -2164,6 +2292,11 @@ describe('countQuery()', () => {
   });
 
   it('aggregateQuerySnapshotEqual on different queries', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query1 = query(collection, where('author', '==', 'authorA'));
       const query2 = query(collection, where('author', '==', 'authorB'));
@@ -2180,8 +2313,23 @@ describe('countQuery()', () => {
       await terminate(collection.firestore);
       const countQuery_ = countQuery(query(collection));
       expect(() => getAggregateFromServerDirect(countQuery_)).to.throw(
-        'The client has already been terminated'
+        'The client has already been terminated.'
       );
+    });
+  });
+
+  it('terminate Firestore while calling count query', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async collection => {
+      const countQuery_ = countQuery(query(collection));
+      const promise = getAggregateFromServerDirect(countQuery_);
+      await terminate(collection.firestore);
+      const snapshot = await promise;
+      expect(snapshot.getCount()).to.equal(3);
     });
   });
 });
