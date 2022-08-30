@@ -63,7 +63,7 @@ describe('platform_browser/mfa/phone', () => {
 
     it('should finalize the MFA enrollment', async () => {
       const mock = mockEndpoint(
-        Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,
+        Endpoint.FINALIZE_MFA_ENROLLMENT,
         serverResponse
       );
       const response = await assertion._process(auth, session);
@@ -80,7 +80,7 @@ describe('platform_browser/mfa/phone', () => {
     context('with display name', () => {
       it('should set the display name', async () => {
         const mock = mockEndpoint(
-          Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,
+          Endpoint.FINALIZE_MFA_ENROLLMENT,
           serverResponse
         );
         const response = await assertion._process(
@@ -109,10 +109,7 @@ describe('platform_browser/mfa/phone', () => {
     });
 
     it('should finalize the MFA sign in', async () => {
-      const mock = mockEndpoint(
-        Endpoint.FINALIZE_PHONE_MFA_SIGN_IN,
-        serverResponse
-      );
+      const mock = mockEndpoint(Endpoint.FINALIZE_MFA_SIGN_IN, serverResponse);
       const response = await assertion._process(auth, session);
       expect(response).to.eql(serverResponse);
       expect(mock.calls[0].request).to.eql({

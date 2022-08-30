@@ -71,7 +71,7 @@ export function startEnrollPhoneMfa(
   >(
     auth,
     HttpMethod.POST,
-    Endpoint.START_PHONE_MFA_ENROLLMENT,
+    Endpoint.START_MFA_ENROLLMENT,
     _addTidIfNecessary(auth, request)
   );
 }
@@ -96,7 +96,7 @@ export function finalizeEnrollPhoneMfa(
   >(
     auth,
     HttpMethod.POST,
-    Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,
+    Endpoint.FINALIZE_MFA_ENROLLMENT,
     _addTidIfNecessary(auth, request)
   );
 }

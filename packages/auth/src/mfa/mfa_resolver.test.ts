@@ -114,7 +114,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
       };
 
       beforeEach(() => {
-        mock = mockEndpoint(Endpoint.FINALIZE_PHONE_MFA_SIGN_IN, {
+        mock = mockEndpoint(Endpoint.FINALIZE_MFA_SIGN_IN, {
           idToken: finalIdToken,
           refreshToken: 'final-refresh-token'
         });
