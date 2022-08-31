@@ -19,8 +19,6 @@ const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
 const playwright = require('playwright');
 
-process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
-
 module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     browsers: getTestBrowsers(argv),

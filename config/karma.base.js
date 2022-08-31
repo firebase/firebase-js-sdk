@@ -19,6 +19,9 @@ const karma = require('karma');
 const path = require('path');
 const webpackTestConfig = require('./webpack.test');
 const { argv } = require('yargs');
+const playwright = require('playwright');
+
+process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
 
 const config = {
   // disable watcher
