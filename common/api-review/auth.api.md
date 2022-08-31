@@ -361,6 +361,7 @@ export class FacebookAuthProvider extends BaseOAuthProvider {
 // @public
 export const FactorId: {
     readonly PHONE: "phone";
+    readonly TOTP: "totp";
 };
 
 // @public
@@ -744,6 +745,10 @@ export function signInWithRedirect(auth: Auth, provider: AuthProvider, resolver?
 
 // @public
 export function signOut(auth: Auth): Promise<void>;
+
+// @public
+export interface TotpMultiFactorAssertion extends MultiFactorAssertion {
+}
 
 // @public
 export class TwitterAuthProvider extends BaseOAuthProvider {
