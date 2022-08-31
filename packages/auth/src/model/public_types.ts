@@ -545,7 +545,8 @@ export interface AuthProvider {
  */
 export const enum FactorId {
   /** Phone as second factor */
-  PHONE = 'phone'
+  PHONE = 'phone',
+  TOTP = 'totp'
 }
 
 /**
@@ -1229,3 +1230,12 @@ export interface Dependencies {
    */
   errorMap?: AuthErrorMap;
 }
+
+/**
+ * The class for asserting ownership of a totp second factor. Provided by
+ * {@link TotpMultiFactorGenerator.assertion}.
+ *
+ * @public
+ */
+
+export interface TotpMultiFactorAssertion extends MultiFactorAssertion {}
