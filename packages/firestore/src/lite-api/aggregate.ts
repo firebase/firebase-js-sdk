@@ -73,7 +73,7 @@ export function countQuery(query: Query<unknown>): AggregateQuery {
   return new AggregateQuery(query);
 }
 
-export function getAggregateFromServerDirect(
+export function getAggregate(
   query: AggregateQuery
 ): Promise<AggregateQuerySnapshot> {
   const firestore = cast(query.query.firestore, Firestore);

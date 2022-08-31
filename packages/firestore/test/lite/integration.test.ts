@@ -22,7 +22,7 @@ import chaiAsPromised from 'chai-as-promised';
 
 import {
   countQuery,
-  getAggregateFromServerDirect,
+  getAggregate,
   aggregateQueryEqual,
   aggregateQuerySnapshotEqual
 } from '../../src/lite-api/aggregate';
@@ -2050,7 +2050,7 @@ describe('countQuery()', () => {
     return withTestCollection(async coll => {
       const query_ = query(coll);
       const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(countQuery_.query).to.equal(query_);
       expect(snapshot.query).to.equal(countQuery_);
       expect(snapshot.query.query).to.equal(query_);
@@ -2060,7 +2060,7 @@ describe('countQuery()', () => {
   it('empty test collection count', () => {
     return withTestCollection(async coll => {
       const countQuery_ = countQuery(query(coll));
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(0);
     });
   });
@@ -2073,7 +2073,7 @@ describe('countQuery()', () => {
     ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const countQuery_ = countQuery(query(collection));
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(3);
     });
   });
@@ -2087,7 +2087,7 @@ describe('countQuery()', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, where('author', '==', 'authorA'));
       const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
     });
   });
@@ -2105,7 +2105,7 @@ describe('countQuery()', () => {
         limit(1)
       );
       const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(1);
     });
   });
@@ -2123,7 +2123,7 @@ describe('countQuery()', () => {
         limit(3)
       );
       const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
     });
   });
@@ -2138,7 +2138,7 @@ describe('countQuery()', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, orderBy('title'));
       const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(3);
     });
   });
@@ -2153,7 +2153,7 @@ describe('countQuery()', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, orderBy('id'), startAt(2));
       const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
     });
   });
@@ -2168,7 +2168,7 @@ describe('countQuery()', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, orderBy('id'), startAfter(2));
       const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(1);
     });
   });
@@ -2183,7 +2183,7 @@ describe('countQuery()', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, orderBy('id'), startAt(1), endAt(2));
       const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
     });
   });
@@ -2198,7 +2198,7 @@ describe('countQuery()', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query_ = query(collection, orderBy('id'), startAt(1), endBefore(2));
       const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(1);
     });
   });
@@ -2215,7 +2215,7 @@ describe('countQuery()', () => {
         where('author', '==', 'authorA')
       ).withConverter(postConverter);
       const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
     });
   });
@@ -2236,7 +2236,7 @@ describe('countQuery()', () => {
       }
       await batch.commit();
       const countQuery_ = countQuery(collectionGroup(db, collectionGroupId));
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
     });
   });
@@ -2283,9 +2283,9 @@ describe('countQuery()', () => {
       const countQuery1A = countQuery(query1);
       const countQuery1B = countQuery(query1);
       const countQuery2 = countQuery(query2);
-      const snapshot1A = await getAggregateFromServerDirect(countQuery1A);
-      const snapshot1B = await getAggregateFromServerDirect(countQuery1B);
-      const snapshot2 = await getAggregateFromServerDirect(countQuery2);
+      const snapshot1A = await getAggregate(countQuery1A);
+      const snapshot1B = await getAggregate(countQuery1B);
+      const snapshot2 = await getAggregate(countQuery2);
       expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.true;
       expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.true;
     });
@@ -2302,8 +2302,8 @@ describe('countQuery()', () => {
       const query2 = query(collection, where('author', '==', 'authorB'));
       const countQuery1 = countQuery(query1);
       const countQuery2 = countQuery(query2);
-      const snapshot1 = await getAggregateFromServerDirect(countQuery1);
-      const snapshot2 = await getAggregateFromServerDirect(countQuery2);
+      const snapshot1 = await getAggregate(countQuery1);
+      const snapshot2 = await getAggregate(countQuery2);
       expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
     });
   });
@@ -2312,7 +2312,7 @@ describe('countQuery()', () => {
     return withTestCollection(async collection => {
       await terminate(collection.firestore);
       const countQuery_ = countQuery(query(collection));
-      expect(() => getAggregateFromServerDirect(countQuery_)).to.throw(
+      expect(() => getAggregate(countQuery_)).to.throw(
         'The client has already been terminated.'
       );
     });
@@ -2326,7 +2326,7 @@ describe('countQuery()', () => {
     ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const countQuery_ = countQuery(query(collection));
-      const promise = getAggregateFromServerDirect(countQuery_);
+      const promise = getAggregate(countQuery_);
       await terminate(collection.firestore);
       const snapshot = await promise;
       expect(snapshot.getCount()).to.equal(3);

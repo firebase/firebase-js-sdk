@@ -246,12 +246,17 @@ export async function invokeRunAggregationQueryRpc(
     datastoreImpl.serializer,
     queryToTarget(aggregateQuery.query._query)
   );
+  
+  //while invoking streaming RPC, grpc_connection requires parent in the request
+  //while rest_connection excludes it
+  const parent = request.parent;
+  if (!datastoreImpl.connection.shouldResourcePathBeIncludedInRequest) {
+    delete request.parent;
+  }
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunAggregationQueryRequest,
     ProtoRunAggregationQueryResponse
-  >('RunAggregationQuery', request.parent!, {
-    structuredAggregationQuery: request.structuredAggregationQuery
-  });
+  >('RunAggregationQuery', parent!, request);
   return (
     response
       // Omit RunAggregationQueryResponse that only contain readTimes.

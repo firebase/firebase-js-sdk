@@ -17,12 +17,14 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
+import { AggregateQuery, AggregateQuerySnapshot } from '../api';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
+import { getAggregate } from '../lite-api/aggregate';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -499,6 +501,15 @@ export function firestoreClientTransaction<T>(
     ).run();
   });
   return deferred.promise;
+}
+
+export function firestoreClientRunAggregationQuery(
+  client: FirestoreClient,
+  query: AggregateQuery
+): Promise<AggregateQuerySnapshot> {
+  return client.asyncQueue.enqueue(async () => {
+    return await getAggregate(query);
+  });
 }
 
 async function readDocumentFromCache(
