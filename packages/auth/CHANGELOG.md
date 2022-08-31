@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.20.6
+
+### Patch Changes
+
+- [`bea604ea3`](https://github.com/firebase/firebase-js-sdk/commit/bea604ea33c529e755cc3fcdc0a2ea75d04b9f19) [#6544](https://github.com/firebase/firebase-js-sdk/pull/6544) - Fix proactive refresh logic in Auth when RTDB/Firestore/Storage are in use
+
 ## 0.20.5
 
 ### Patch Changes

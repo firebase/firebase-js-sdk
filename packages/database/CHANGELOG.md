@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.13.6
+
+### Patch Changes
+
+- [`f35533594`](https://github.com/firebase/firebase-js-sdk/commit/f355335942b874ba390bcbf3be6de44a3d33dce8) [#6560](https://github.com/firebase/firebase-js-sdk/pull/6560) - Included experimental support for Deno
+
 ## 0.13.5
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 3.4.15
+
+### Patch Changes
+
+- [`b993aeec4`](https://github.com/firebase/firebase-js-sdk/commit/b993aeec4a8f5188d1f53d07808da079f3ade846) [#6550](https://github.com/firebase/firebase-js-sdk/pull/6550) (fixes [#5871](https://github.com/firebase/firebase-js-sdk/issues/5871)) - Fix FAILED_PRECONDITION when writing to a deleted document in a transaction (#5871)
+
 ## 3.4.14
 
 ### Patch Changes
