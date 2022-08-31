@@ -66,8 +66,8 @@ describe('platform_browser/persistence/session_storage', () => {
       afterEach(() => sinon.restore());
 
       it('should emit false if sessionStorage setItem throws', async () => {
-      sinon.stub(Storage.prototype, 'setItem').throws(new Error('nope'));
-      expect(await persistence._isAvailable()).to.be.false;
+        sinon.stub(Storage.prototype, 'setItem').throws(new Error('nope'));
+        expect(await persistence._isAvailable()).to.be.false;
       });
 
       it('should emit false if sessionStorage removeItem throws', async () => {

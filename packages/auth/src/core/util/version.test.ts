@@ -42,7 +42,9 @@ describe('core/util/_getClientVersion', () => {
     context('worker', () => {
       it('should set the correct version', () => {
         expect(_getClientVersion(ClientPlatform.WORKER)).to.eq(
-          `${_getBrowserName(getUA())}-Worker/JsCore/${SDK_VERSION}/FirebaseCore-web`
+          `${_getBrowserName(
+            getUA()
+          )}-Worker/JsCore/${SDK_VERSION}/FirebaseCore-web`
         );
       });
     });
