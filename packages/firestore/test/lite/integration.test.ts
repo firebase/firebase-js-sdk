@@ -106,14 +106,71 @@ describe('Firestore', () => {
     expect(fs1).to.be.an.instanceOf(Firestore);
   });
 
-  it('returns same instance', () => {
+  it('returns same default instance from named app', () => {
     const app = initializeApp(
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-getFirestore'
     );
     const fs1 = getFirestore(app);
     const fs2 = getFirestore(app);
-    expect(fs1 === fs2).to.be.true;
+    const fs3 = getFirestore(app, '(default)');
+    expect(fs1).to.be.equal(fs2).and.equal(fs3);
+  });
+
+  it('returns different instance from named app', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore'
+    );
+    const fs1 = initializeFirestore(app, DEFAULT_SETTINGS, 'init1');
+    const fs2 = initializeFirestore(app, DEFAULT_SETTINGS, 'init2');
+    const fs3 = getFirestore(app);
+    const fs4 = getFirestore(app, 'name1');
+    const fs5 = getFirestore(app, 'name2');
+    expect(fs1).to.not.be.equal(fs2);
+    expect(fs1).to.not.be.equal(fs3);
+    expect(fs1).to.not.be.equal(fs4);
+    expect(fs1).to.not.be.equal(fs5);
+    expect(fs2).to.not.be.equal(fs3);
+    expect(fs2).to.not.be.equal(fs4);
+    expect(fs2).to.not.be.equal(fs5);
+    expect(fs3).to.not.be.equal(fs4);
+    expect(fs3).to.not.be.equal(fs5);
+    expect(fs4).to.not.be.equal(fs5);
+  });
+
+  it('returns same default instance from default app', () => {
+    const app = initializeApp({
+      apiKey: 'fake-api-key',
+      projectId: 'test-project'
+    });
+    const fs1 = initializeFirestore(app, DEFAULT_SETTINGS);
+    const fs2 = getFirestore();
+    const fs3 = getFirestore(app);
+    const fs4 = getFirestore('(default)');
+    const fs5 = getFirestore(app, '(default)');
+    expect(fs1).to.be.equal(fs2);
+    expect(fs1).to.be.equal(fs3);
+    expect(fs1).to.be.equal(fs4);
+    expect(fs1).to.be.equal(fs5);
+  });
+
+  it('returns different instance from different named app', () => {
+    initializeApp({ apiKey: 'fake-api-key', projectId: 'test-project' });
+    const app1 = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore-1'
+    );
+    const app2 = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore-2'
+    );
+    const fs1 = getFirestore();
+    const fs2 = getFirestore(app1);
+    const fs3 = getFirestore(app2);
+    expect(fs1).to.not.be.equal(fs2);
+    expect(fs1).to.not.be.equal(fs3);
+    expect(fs2).to.not.be.equal(fs3);
   });
 
   it('cannot call initializeFirestore() twice', () => {
@@ -514,6 +571,24 @@ describe('Transaction', () => {
 
   it('can read non-existing doc then write', () => {
     return withTestDoc(async doc => {
+      await runTransaction(doc.firestore, async transaction => {
+        const snap = await transaction.get(doc);
+        expect(snap.exists()).to.be.false;
+        transaction.set(doc, { counter: 1 });
+      });
+      const result = await getDoc(doc);
+      expect(result.get('counter')).to.equal(1);
+    });
+  });
+
+  // This test is identical to the test above, except that a non-existent
+  // document is replaced by a deleted document, to guard against regression of
+  // https://github.com/firebase/firebase-js-sdk/issues/5871, where transactions
+  // would incorrectly fail with FAILED_PRECONDITION when operations were
+  // performed on a deleted document (rather than a non-existent document).
+  it('can read deleted doc then write', () => {
+    return withTestDocAndInitialData({ counter: 1 }, async doc => {
+      await deleteDoc(doc);
       await runTransaction(doc.firestore, async transaction => {
         const snap = await transaction.get(doc);
         expect(snap.exists()).to.be.false;

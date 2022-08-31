@@ -120,7 +120,7 @@ export class Transaction {
     if (doc.isFoundDocument()) {
       docVersion = doc.version;
     } else if (doc.isNoDocument()) {
-      // For deleted docs, we must use baseVersion 0 when we overwrite them.
+      // Represent a deleted doc using SnapshotVersion.min().
       docVersion = SnapshotVersion.min();
     } else {
       throw fail('Document in a transaction was a ' + doc.constructor.name);
@@ -147,7 +147,11 @@ export class Transaction {
   private precondition(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key.toString());
     if (!this.writtenDocs.has(key.toString()) && version) {
-      return Precondition.updateTime(version);
+      if (version.isEqual(SnapshotVersion.min())) {
+        return Precondition.exists(false);
+      } else {
+        return Precondition.updateTime(version);
+      }
     } else {
       return Precondition.none();
     }

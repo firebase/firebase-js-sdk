@@ -581,9 +581,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   ): Promise<void> {
     if (this.currentUser && this.currentUser !== user) {
       this._currentUser._stopProactiveRefresh();
-      if (user && this.isProactiveRefreshEnabled) {
-        user._startProactiveRefresh();
-      }
+    }
+    if (user && this.isProactiveRefreshEnabled) {
+      user._startProactiveRefresh();
     }
 
     this.currentUser = user;
