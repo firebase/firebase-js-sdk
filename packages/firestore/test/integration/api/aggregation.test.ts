@@ -29,13 +29,13 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
     const testDocs = {
       a: { k: 'a', sort: 1 },
       b: { k: 'b', sort: 2 },
-      c: { k: 'c', sort: 2 },
+      c: { k: 'c', sort: 2 }
     };
     return withTestCollection(persistence, testDocs, async coll => {
       const query_ = query(coll);
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
-      expect(snapshot.getCount()).to.equal(3)
+      expect(snapshot.getCount()).to.equal(3);
     });
   });
 });
