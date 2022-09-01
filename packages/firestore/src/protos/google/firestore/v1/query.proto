@@ -309,7 +309,7 @@ message StructuredAggregationQuery {
       // Requires:
       //
       // * Must be greater than zero when present.
-      int64 up_to = 1;
+      google.protobuf.Int64Value up_to = 1;
     }
 
     // The type of aggregation to perform, required.
