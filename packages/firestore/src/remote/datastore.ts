@@ -247,10 +247,6 @@ export async function invokeRunAggregationQueryRpc(
     queryToTarget(aggregateQuery.query._query)
   );
 
-  /**
-   * Include the parent in the request for grpc_connection.
-   * Exclude the parent from request for rest_connection.
-   */
   const parent = request.parent;
   if (!datastoreImpl.connection.shouldResourcePathBeIncludedInRequest) {
     delete request.parent;
