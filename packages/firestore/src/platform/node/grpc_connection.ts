@@ -85,6 +85,10 @@ export class GrpcConnection implements Connection {
   // We cache stubs for the most-recently-used token.
   private cachedStub: GeneratedGrpcStub | null = null;
 
+  get shouldResourcePathBeIncludedInRequest(): boolean {
+    return true;
+  }
+
   constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.firestore = (protos as any)['google']['firestore']['v1'];

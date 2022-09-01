@@ -55,6 +55,10 @@ export abstract class RestConnection implements Connection {
   protected readonly baseUrl: string;
   private readonly databaseRoot: string;
 
+  get shouldResourcePathBeIncludedInRequest(): boolean {
+    return false;
+  }
+
   constructor(private readonly databaseInfo: DatabaseInfo) {
     this.databaseId = databaseInfo.databaseId;
     const proto = databaseInfo.ssl ? 'https' : 'http';

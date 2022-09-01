@@ -15,11 +15,24 @@
  * limitations under the License.
  */
 
+import { firestoreClientRunAggregationQuery } from '../core/firestore_client';
+import { AggregateQuery, AggregateQuerySnapshot } from '../lite-api/aggregate';
+import { cast } from '../util/input_validation';
+
+import { ensureFirestoreConfigured, Firestore } from './database';
+
 export {
   AggregateQuery,
   AggregateQuerySnapshot,
   aggregateQueryEqual,
   aggregateQuerySnapshotEqual,
-  countQuery,
-  getAggregateFromServerDirect
+  countQuery
 } from '../lite-api/aggregate';
+
+export function getAggregateFromServerDirect(
+  query: AggregateQuery
+): Promise<AggregateQuerySnapshot> {
+  const firestore = cast(query.query.firestore, Firestore);
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientRunAggregationQuery(client, query);
+}
