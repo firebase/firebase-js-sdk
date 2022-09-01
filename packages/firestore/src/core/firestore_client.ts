@@ -40,6 +40,7 @@ import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { Datastore } from '../remote/datastore';
 import {
+  canUseNetwork,
   RemoteStore,
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
@@ -507,9 +508,31 @@ export function firestoreClientRunAggregationQuery(
   client: FirestoreClient,
   query: AggregateQuery
 ): Promise<AggregateQuerySnapshot> {
-  return client.asyncQueue.enqueue(() => {
-    return getAggregate(query);
+  const deferred = new Deferred<AggregateQuerySnapshot>();
+  client.asyncQueue.enqueueAndForget(async () => {
+    const remoteStore = await getRemoteStore(client);
+    if (!canUseNetwork(remoteStore)) {
+      logDebug(
+        LOG_TAG,
+        'The network is disabled. The task returned by ' +
+          "'getAggregateFromServerDirect()' will not complete until the network is enabled."
+      );
+      deferred.reject(
+        new FirestoreError(
+          Code.UNAVAILABLE,
+          'Failed to get aggregate result because the client is offline.'
+        )
+      );
+    } else {
+      try {
+        const result = await getAggregate(query);
+        deferred.resolve(result);
+      } catch (e) {
+        deferred.reject(e as Error);
+      }
+    }
   });
+  return deferred.promise;
 }
 
 async function readDocumentFromCache(
