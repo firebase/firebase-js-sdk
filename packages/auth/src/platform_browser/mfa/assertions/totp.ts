@@ -15,6 +15,86 @@
  * limitations under the License.
  */
 
+import {
+  FactorId,
+  TotpMultiFactorAssertion
+} from '../../../model/public_types';
+import { AppName, AuthInternal as AuthInternal } from '../../../model/auth';
+import { MultiFactorAssertionImpl } from '../../../mfa/mfa_assertion';
+import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
+import {
+  finalizeEnrollTotpMfa,
+  StartTotpMfaEnrollmentResponse,
+  TotpVerificationInfo
+} from '../../../api/account_management/mfa';
+import { _assert } from '../../../core/util/assert';
+import { AuthErrorCode } from '../../../core/errors';
+import { getApp } from '@firebase/app';
+import { getAuth } from '../..';
+
+export class TotpMultiFactorAssertionImpl
+  extends MultiFactorAssertionImpl
+  implements TotpMultiFactorAssertion
+{
+  constructor(
+    readonly otp: string,
+    readonly enrollmentId?: string,
+    readonly secret?: TotpSecret
+  ) {
+    super(FactorId.TOTP);
+  }
+  static _fromSecret(
+    secret: TotpSecret,
+    otp: string
+  ): TotpMultiFactorAssertionImpl {
+    return new TotpMultiFactorAssertionImpl(
+      (otp = otp),
+      undefined,
+      (secret = secret)
+    );
+  }
+  static _fromEnrollmentId(
+    enrollmentId: string,
+    otp: string
+  ): TotpMultiFactorAssertionImpl {
+    return new TotpMultiFactorAssertionImpl(
+      (otp = otp),
+      (enrollmentId = enrollmentId)
+    );
+  }
+
+  /** @internal */
+  _finalizeEnroll(
+    auth: AuthInternal,
+    idToken: string,
+    displayName?: string | null
+  ): Promise<FinalizeMfaResponse> {
+    _assert(
+      typeof this.secret !== 'undefined',
+      auth,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
+    return finalizeEnrollTotpMfa(auth, {
+      idToken,
+      displayName,
+      totpVerificationInfo: this.secret.makeTotpVerificationInfo(this.otp)
+    });
+  }
+
+  /** @internal */
+  _finalizeSignIn(
+    _auth: AuthInternal,
+    _mfaPendingCredential: string
+  ): Promise<FinalizeMfaResponse> {
+    throw new Error('method not implemented');
+  }
+}
+/**
+ * Provider for generating a {@link TotpMultiFactorAssertion}.
+ *
+ * @public
+ */
+
 /**
  * Stores the shared secret key and other parameters to generate time-based OTPs.
  * Implements methods to retrieve the shared secret key, generate a QRCode URL.
@@ -28,23 +108,66 @@ export class TotpSecret {
    * @param codeLength - Length of the one-time passwords to be generated.
    * @param codeIntervalSeconds - The interval (in seconds) when the OTP codes should change.
    */
-  constructor(
+  private constructor(
     readonly secretKey: string,
     readonly hashingAlgorithm: string,
     readonly codeLength: number,
-    readonly codeIntervalSeconds: number
+    readonly codeIntervalSeconds: number,
+    // TODO(prameshj) - make this public after API review.
+    // This can be used by callers to show a countdown of when to enter OTP code by.
+    private readonly finalizeEnrollmentBy: string,
+    private readonly sessionInfo: string,
+    private readonly appName: AppName
   ) {}
+
+  static fromStartTotpMfaEnrollmentResponse(
+    response: StartTotpMfaEnrollmentResponse,
+    appName: AppName
+  ): TotpSecret {
+    return new TotpSecret(
+      response.totpSessionInfo.sharedSecretKey,
+      response.totpSessionInfo.hashingAlgorithm,
+      response.totpSessionInfo.verificationCodeLength,
+      response.totpSessionInfo.periodSec,
+      new Date(response.totpSessionInfo.finalizeEnrollmentTime).toUTCString(),
+      response.totpSessionInfo.sessionInfo,
+      appName
+    );
+  }
+
+  makeTotpVerificationInfo(otp: string): TotpVerificationInfo {
+    return { sessionInfo: this.sessionInfo, verificationCode: otp };
+  }
+
   /**
    * Returns a QRCode URL as described in
    * https://github.com/google/google-authenticator/wiki/Key-Uri-Format
    * This can be displayed to the user as a QRCode to be scanned into a TOTP App like Google Authenticator.
-   * If the optional parameters are unspecified, an accountName of "<firebaseAppName>:<userEmail> and issuer of <firebaseAppName> are used.
+   * If the optional parameters are unspecified, an accountName of <userEmail> and issuer of <firebaseAppName> are used.
    *
    * @param accountName the name of the account/app along with a user identifier.
    * @param issuer issuer of the TOTP(likely the app name).
    * @returns A QRCode URL string.
    */
-  generateQrCodeUrl(_accountName?: string, _issuer?: string): string {
-    throw new Error('Unimplemented');
+  generateQrCodeUrl(accountName?: string, issuer?: string): string {
+    let useDefaults = false;
+    if (_isEmptyString(accountName) || _isEmptyString(issuer)) {
+      useDefaults = true;
+    }
+    if (useDefaults) {
+      const app = getApp(this.appName);
+      const auth = getAuth(app);
+      if (_isEmptyString(accountName)) {
+        accountName = auth.currentUser?.email || 'unknownuser';
+      }
+      if (_isEmptyString(issuer)) {
+        issuer = app.name;
+      }
+    }
+    return `otpauth://totp/${issuer}:${accountName}?secret=${this.secretKey}&issuer=${issuer}&algorithm=${this.hashingAlgorithm}&digits=${this.codeLength}`;
   }
+}
+
+function _isEmptyString(input?: string): boolean {
+  return typeof input === 'undefined' || input?.length === 0;
 }

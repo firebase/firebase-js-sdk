@@ -14,12 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TotpSecret } from '../../platform_browser/mfa/assertions/totp';
+import {
+  TotpSecret,
+  TotpMultiFactorAssertionImpl
+} from '../../platform_browser/mfa/assertions/totp';
 import {
   TotpMultiFactorAssertion,
   MultiFactorSession,
   FactorId
 } from '../../model/public_types';
+import { startEnrollTotpMfa } from '../../api/account_management/mfa';
+import { MultiFactorSessionImpl } from '../mfa_session';
+import { AuthErrorCode } from '../../core/errors';
+import { _assert } from '../../core/util/assert';
 /**
  * Provider for generating a {@link TotpMultiFactorAssertion}.
  *
@@ -37,25 +44,28 @@ export class TotpMultiFactorGenerator {
    * {@link MultiFactorUser.enroll}.
    */
   static assertionForEnrollment(
-    _secret: TotpSecret,
-    _oneTimePassword: string
+    secret: TotpSecret,
+    oneTimePassword: string
   ): TotpMultiFactorAssertion {
-    throw new Error('Unimplemented');
+    return TotpMultiFactorAssertionImpl._fromSecret(secret, oneTimePassword);
   }
   /**
    * Provides a {@link TotpMultiFactorAssertion} to confirm ownership of the totp second factor.
    * This assertion is used to complete signIn with TOTP as the second factor.
    *
    * @param enrollmentId identifies the enrolled TOTP second factor.
-   * @param otp One-time password from TOTP App.
+   * @param oneTimePassword One-time password from TOTP App.
    * @returns A {@link TotpMultiFactorAssertion} which can be used with
    * {@link MultiFactorResolver.resolveSignIn}.
    */
   static assertionForSignIn(
-    _enrollmentId: string,
-    _otp: string
+    enrollmentId: string,
+    oneTimePassword: string
   ): TotpMultiFactorAssertion {
-    throw new Error('Unimplemented');
+    return TotpMultiFactorAssertionImpl._fromEnrollmentId(
+      enrollmentId,
+      oneTimePassword
+    );
   }
   /**
    * Returns a promise to {@link TOTPSecret} which contains the TOTP shared secret key and other parameters.
@@ -67,9 +77,21 @@ export class TotpMultiFactorGenerator {
    * @returns A promise to {@link TotpSecret}.
    */
   static async generateSecret(
-    _session: MultiFactorSession
+    session: MultiFactorSession
   ): Promise<TotpSecret> {
-    throw new Error('Unimplemented');
+    const mfaSession = session as MultiFactorSessionImpl;
+    _assert(
+      typeof mfaSession.auth !== 'undefined',
+      AuthErrorCode.INTERNAL_ERROR
+    );
+    const response = await startEnrollTotpMfa(mfaSession.auth!, {
+      idToken: mfaSession.credential,
+      totpEnrollmentInfo: {}
+    });
+    return TotpSecret.fromStartTotpMfaEnrollmentResponse(
+      response,
+      mfaSession.auth!.name
+    );
   }
   /**
    * The identifier of the TOTP second factor: `totp`.

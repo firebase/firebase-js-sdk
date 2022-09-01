@@ -660,6 +660,13 @@ export interface PhoneMultiFactorInfo extends MultiFactorInfo {
 }
 
 /**
+ * The subclass of the {@link MultiFactorInfo} interface for TOTP
+ * second factors. The `factorId` of this second factor is {@link FactorId}.TOTP.
+ * @public
+ */
+export interface TotpMultiFactorInfo extends MultiFactorInfo {}
+
+/**
  * The class used to facilitate recovery from {@link MultiFactorError} when a user needs to
  * provide a second factor to sign in.
  *
