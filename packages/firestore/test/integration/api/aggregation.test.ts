@@ -27,7 +27,7 @@ import {
 import { apiDescribe, withTestCollection } from '../util/helpers';
 
 apiDescribe('Aggregation query', (persistence: boolean) => {
-  it.only('can run count query getAggregateFromServerDirect', () => {
+  it('can run count query getAggregateFromServerDirect', () => {
     const testDocs = {
       a: { k: 'a', sort: 1 },
       b: { k: 'b', sort: 2 },
@@ -41,7 +41,7 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
     });
   });
 
-  it.only('getAggregateFromServerDirect fails if user is offline async', () => {
+  it('getAggregateFromServerDirect fails if user is offline async', () => {
     const testDocs = { a: { k: 'a', sort: 1 } };
     return withTestCollection(
       persistence,
@@ -59,7 +59,7 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
     );
   });
 
-  it.only('getAggregateFromServerDirect fails if firestore is terminated', () => {
+  it('getAggregateFromServerDirect fails if firestore is terminated', () => {
     const testDocs = { a: { k: 'a', sort: 1 } };
     return withTestCollection(
       persistence,
