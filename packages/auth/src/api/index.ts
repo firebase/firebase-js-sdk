@@ -60,10 +60,10 @@ export const enum Endpoint {
   SET_ACCOUNT_INFO = '/v1/accounts:update',
   GET_ACCOUNT_INFO = '/v1/accounts:lookup',
   GET_RECAPTCHA_PARAM = '/v1/recaptchaParams',
-  START_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:start',
-  FINALIZE_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:finalize',
-  START_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
-  FINALIZE_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
+  START_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:start',
+  FINALIZE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:finalize',
+  START_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
+  FINALIZE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
   GET_PROJECT_CONFIG = '/v1/projects'
 }

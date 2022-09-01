@@ -68,7 +68,7 @@ export function startSignInPhoneMfa(
   >(
     auth,
     HttpMethod.POST,
-    Endpoint.START_PHONE_MFA_SIGN_IN,
+    Endpoint.START_MFA_SIGN_IN,
     _addTidIfNecessary(auth, request)
   );
 }
@@ -91,7 +91,7 @@ export function finalizeSignInPhoneMfa(
   >(
     auth,
     HttpMethod.POST,
-    Endpoint.FINALIZE_PHONE_MFA_SIGN_IN,
+    Endpoint.FINALIZE_MFA_SIGN_IN,
     _addTidIfNecessary(auth, request)
   );
 }
