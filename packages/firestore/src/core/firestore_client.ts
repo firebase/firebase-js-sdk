@@ -507,7 +507,7 @@ export function firestoreClientRunAggregationQuery(
   client: FirestoreClient,
   query: AggregateQuery
 ): Promise<AggregateQuerySnapshot> {
-  return client.asyncQueue.enqueue(async () => {
+  return client.asyncQueue.enqueue(() => {
     return getAggregate(query);
   });
 }
