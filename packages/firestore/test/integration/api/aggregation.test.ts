@@ -58,20 +58,4 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
       }
     );
   });
-
-  it('getAggregateFromServerDirect fails if firestore is terminated', () => {
-    const testDocs = { a: { k: 'a', sort: 1 } };
-    return withTestCollection(
-      persistence,
-      testDocs,
-      async (coll, firestore) => {
-        await terminate(firestore);
-        const query_ = query(coll);
-        const countQuery_ = countQuery(query_);
-        expect(() => getAggregateFromServerDirect(countQuery_)).to.throw(
-          'The client has already been terminated.'
-        );
-      }
-    );
-  });
 });
