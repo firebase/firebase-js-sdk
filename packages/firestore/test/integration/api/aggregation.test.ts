@@ -40,7 +40,7 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
     });
   });
 
-  it.only('getAggregateFromServerDirect fails if user is offline async', () => {
+  it('getAggregateFromServerDirect fails if user is offline async', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA' }
     };
