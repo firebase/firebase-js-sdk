@@ -40,15 +40,16 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
     });
   });
 
-  it('getAggregateFromServerDirect fails if user is offline async', () => {
-    const testDocs = { a: { k: 'a', sort: 1 } };
+  it.only('getAggregateFromServerDirect fails if user is offline async', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA' }
+    };
     return withTestCollection(
       persistence,
       testDocs,
-      async (coll, firestore) => {
+      async (collection, firestore) => {
         await disableNetwork(firestore);
-        const query_ = query(coll);
-        const countQuery_ = countQuery(query_);
+        const countQuery_ = countQuery(collection);
         await expect(
           getAggregateFromServerDirect(countQuery_)
         ).to.be.eventually.rejectedWith(
