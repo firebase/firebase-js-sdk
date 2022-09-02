@@ -21,8 +21,7 @@ import {
   countQuery,
   disableNetwork,
   getAggregateFromServerDirect,
-  query,
-  terminate
+  query
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
 
