@@ -31,7 +31,8 @@ import {
   setDoc,
   PrivateSettings,
   SnapshotListenOptions,
-  newTestFirestore
+  newTestFirestore,
+  QueryDocumentSnapshot
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -280,3 +281,24 @@ export function withTestCollectionSettings(
     }
   );
 }
+
+export class Post {
+  constructor(
+    readonly title: string,
+    readonly author: string,
+    readonly ref: DocumentReference | null = null
+  ) {}
+  byline(): string {
+    return this.title + ', by ' + this.author;
+  }
+}
+
+export const postConverter = {
+  toFirestore(post: Post): DocumentData {
+    return { title: post.title, author: post.author };
+  },
+  fromFirestore(snapshot: QueryDocumentSnapshot): Post {
+    const data = snapshot.data();
+    return new Post(data.title, data.author, snapshot.ref);
+  }
+};

@@ -18,24 +18,125 @@
 import { expect } from 'chai';
 
 import {
+  collection,
+  collectionGroup,
   countQuery,
+  doc,
   getAggregateFromServerDirect,
-  query
+  query,
+  terminate,
+  where,
+  writeBatch
 } from '../util/firebase_export';
-import { apiDescribe, withTestCollection } from '../util/helpers';
+import {
+  apiDescribe,
+  postConverter,
+  withTestCollection,
+  withTestDb
+} from '../util/helpers';
 
 apiDescribe('Aggregation query', (persistence: boolean) => {
   it('can run count query getAggregateFromServerDirect', () => {
     const testDocs = {
-      a: { k: 'a', sort: 1 },
-      b: { k: 'b', sort: 2 },
-      c: { k: 'c', sort: 2 }
+      a: { author: 'authorA', title: 'titleA' },
+      b: { author: 'authorB', title: 'titleB' }
     };
-    return withTestCollection(persistence, testDocs, async coll => {
-      const query_ = query(coll);
+    return withTestCollection(persistence, testDocs, async collection => {
+      const countQuery_ = countQuery(collection);
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(2);
+    });
+  });
+
+  it('aggregateQuery.query equals to original query', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA' }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const query_ = query(collection, where('author', '==', 'authorA'));
+      const aggregateQuery_ = countQuery(query_);
+      expect(aggregateQuery_.query).to.be.equal(query_);
+    });
+  });
+
+  it('aggregateQuerySnapshot.query equals to aggregateQuery', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA' }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const query_ = query(collection, where('author', '==', 'authorA'));
+      const aggregateQuery_ = countQuery(query_);
+      const snapshot = await getAggregateFromServerDirect(aggregateQuery_);
+      expect(snapshot.query).to.be.equal(aggregateQuery_);
+    });
+  });
+
+  it('aggregate query supports withConverter on query', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA' },
+      b: { author: 'authorB', title: 'titleB' }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const query_ = query(
+        collection,
+        where('author', '==', 'authorA')
+      ).withConverter(postConverter);
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
-      expect(snapshot.getCount()).to.equal(3);
+      expect(snapshot.getCount()).to.equal(1);
     });
+  });
+
+  it('aggregate query supports collection groups', () => {
+    return withTestDb(persistence, async db => {
+      const collectionGroupId = doc(collection(db, 'aggregateQueryTest')).id;
+      const docPaths = [
+        `${collectionGroupId}/cg-doc1`,
+        `abc/123/${collectionGroupId}/cg-doc2`,
+        `zzz${collectionGroupId}/cg-doc3`,
+        `abc/123/zzz${collectionGroupId}/cg-doc4`,
+        `abc/123/zzz/${collectionGroupId}`
+      ];
+      const batch = writeBatch(db);
+      for (const docPath of docPaths) {
+        batch.set(doc(db, docPath), { x: 1 });
+      }
+      await batch.commit();
+      const countQuery_ = countQuery(collectionGroup(db, collectionGroupId));
+      const snapshot = await getAggregateFromServerDirect(countQuery_);
+      expect(snapshot.getCount()).to.equal(2);
+    });
+  });
+
+  it('getAggregateFromServerDirect fails if firestore is terminated', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA' }
+    };
+    return withTestCollection(
+      persistence,
+      testDocs,
+      async (collection, firestore) => {
+        await terminate(firestore);
+        const countQuery_ = countQuery(collection);
+        expect(() => getAggregateFromServerDirect(countQuery_)).to.throw(
+          'The client has already been terminated.'
+        );
+      }
+    );
+  });
+
+  it("terminate doesn't crash when there is flying aggregate query", () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA' }
+    };
+    return withTestCollection(
+      persistence,
+      testDocs,
+      async (collection, firestore) => {
+        const countQuery_ = countQuery(collection);
+        getAggregateFromServerDirect(countQuery_).then();
+        await terminate(firestore);
+      }
+    );
   });
 });

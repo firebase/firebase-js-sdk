@@ -2047,8 +2047,8 @@ describe('withConverter() support', () => {
 
 describe('countQuery()', () => {
   it('AggregateQuery and AggregateQuerySnapshot inherits the original query', () => {
-    return withTestCollection(async coll => {
-      const query_ = query(coll);
+    return withTestCollection(async collection => {
+      const query_ = query(collection);
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregate(countQuery_);
       expect(countQuery_.query).to.equal(query_);
@@ -2058,8 +2058,8 @@ describe('countQuery()', () => {
   });
 
   it('empty test collection count', () => {
-    return withTestCollection(async coll => {
-      const countQuery_ = countQuery(query(coll));
+    return withTestCollection(async collection => {
+      const countQuery_ = countQuery(collection);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(0);
     });
@@ -2072,7 +2072,7 @@ describe('countQuery()', () => {
       { author: 'authorB', title: 'titleC' }
     ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      const countQuery_ = countQuery(query(collection));
+      const countQuery_ = countQuery(collection);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(3);
     });
@@ -2311,7 +2311,7 @@ describe('countQuery()', () => {
   it('count query on a terminated Firestore', () => {
     return withTestCollection(async collection => {
       await terminate(collection.firestore);
-      const countQuery_ = countQuery(query(collection));
+      const countQuery_ = countQuery(collection);
       expect(() => getAggregate(countQuery_)).to.throw(
         'The client has already been terminated.'
       );
@@ -2325,7 +2325,7 @@ describe('countQuery()', () => {
       { author: 'authorB', title: 'titleC' }
     ];
     return withTestCollectionAndInitialData(testDocs, async collection => {
-      const countQuery_ = countQuery(query(collection));
+      const countQuery_ = countQuery(collection);
       const promise = getAggregate(countQuery_);
       await terminate(collection.firestore);
       const snapshot = await promise;
