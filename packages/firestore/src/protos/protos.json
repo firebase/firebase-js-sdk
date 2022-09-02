@@ -2427,7 +2427,7 @@
                         "Count": {
                           "fields": {
                             "upTo": {
-                              "type": "int32",
+                              "type": "google.protobuf.Int64Value",
                               "id": 1
                             }
                           }
