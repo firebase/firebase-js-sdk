@@ -71,7 +71,7 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
     });
   });
 
-  it('aggregate query supports withConverter on query', () => {
+  it('aggregate query supports withConverter', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA' },
       b: { author: 'authorB', title: 'titleB' }
@@ -108,7 +108,7 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
     });
   });
 
-  it('getAggregateFromServerDirect fails if firestore is terminated', () => {
+  it('aggregate query fails if firestore is terminated', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA' }
     };
