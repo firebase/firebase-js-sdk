@@ -578,9 +578,8 @@ export interface ThenableReferenceImpl
  * resulting list of items is chronologically sorted. The keys are also
  * designed to be unguessable (they contain 72 random bits of entropy).
  *
- * See {@link https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data | Append to a list of data}
- * 
- * See {@link https://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html | The 2^120 Ways to Ensure Unique Identifiers}
+ * See {@link https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data | Append to a list of data}.
+ * See {@link https://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html | The 2^120 Ways to Ensure Unique Identifiers}.
  *
  * @param parent - The parent location.
  * @param value - Optional value to be written at the generated location.
