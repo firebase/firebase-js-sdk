@@ -15,104 +15,129 @@
  * limitations under the License.
  */
 
-import { Value } from '../protos/firestore_proto_api';
+import { Query, queryEqual } from './reference';
+import { cast } from '../util/input_validation';
+import { Firestore } from './database';
+import { getDatastore } from './components';
+import { LiteUserDataWriter } from './reference_impl';
 import { invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { hardAssert } from '../util/assert';
-import { cast } from '../util/input_validation';
+import { Value } from '../protos/firestore_proto_api';
+import { deepEqual } from '@firebase/util';
 
-import { getDatastore } from './components';
-import { Firestore } from './database';
-import { Query, queryEqual } from './reference';
-import { LiteUserDataWriter } from './reference_impl';
+type DocumentFieldValue = any;
 
-/**
- * An `AggregateQuery` computes some aggregation statistics from the result set of
- * a base `Query`.
- */
-export class AggregateQuery {
-  readonly type = 'AggregateQuery';
-  /**
-   * The query on which you called `countQuery` in order to get this `AggregateQuery`.
-   */
-  readonly query: Query<unknown>;
-
-  /** @hideconstructor */
-  constructor(query: Query<unknown>) {
-    this.query = query;
-  }
+interface AggregateFieldBase<T> {
+  _datum?: T;
 }
 
-/**
- * An `AggregateQuerySnapshot` contains results of a `AggregateQuery`.
- */
-export class AggregateQuerySnapshot {
+export class CountAggregateField implements AggregateFieldBase<number> {
+  type = 'CountAggregateField';
+  _datum?: number = undefined;
+}
+
+class MinAggregateField
+  implements AggregateFieldBase<DocumentFieldValue | undefined>
+{
+  type = 'MinAggregateField';
+  _datum?: DocumentFieldValue = undefined;
+}
+
+class SumAggregateField implements AggregateFieldBase<number | undefined> {
+  type = 'SumAggregateField';
+  _datum?: number = undefined;
+}
+
+export type AggregateField =
+  | CountAggregateField
+  | MinAggregateField
+  | SumAggregateField;
+
+export function count(): CountAggregateField {
+  return new CountAggregateField();
+}
+
+export function aggregateFieldEqual(
+  left: AggregateField,
+  right: AggregateField
+): boolean {
+  return left.type === right.type && left._datum === right._datum;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// New aggregate query and snapshot functions.
+////////////////////////////////////////////////////////////////////////////////
+
+export type AggregateSpec = { [field: string]: AggregateField };
+
+export type AggregateSpecData<T extends AggregateSpec> = {
+  [Property in keyof T]-?: T[Property]['_datum'];
+};
+
+export class AggregateQuerySnapshot<T extends AggregateSpec> {
+  // type: "AggregateQuerySnapshot";
   readonly type = 'AggregateQuerySnapshot';
-  readonly query: AggregateQuery;
 
-  /** @hideconstructor */
-  constructor(query: AggregateQuery, private readonly _count: number) {
-    this.query = query;
-  }
+  // private constructor(private readonly _data: AggregateSpecData<T>) {
+  // }
+  constructor(
+    readonly query: Query<unknown>,
+    protected readonly _data: AggregateSpecData<T>
+  ) {}
 
-  /**
-   * @returns The result of a document count aggregation. Returns null if no count aggregation is
-   * available in the result.
-   */
-  getCount(): number | null {
-    return this._count;
+  data(): AggregateSpecData<T> {
+    return this._data;
   }
 }
 
-/**
- * Creates an `AggregateQuery` counting the number of documents matching this query.
- *
- * @returns An `AggregateQuery` object that can be used to count the number of documents in
- * the result set of this query.
- */
-export function countQuery(query: Query<unknown>): AggregateQuery {
-  return new AggregateQuery(query);
+export function getCountFromServer(
+  query: Query<unknown>
+): Promise<AggregateQuerySnapshot<AggregateSpec>> {
+  // ): Promise<AggregateQuerySnapshot<{ count: CountAggregateField }>> {
+  return getAggregateFromServer(query, { count: count() });
 }
 
-export function getAggregate(
-  query: AggregateQuery
-): Promise<AggregateQuerySnapshot> {
-  const firestore = cast(query.query.firestore, Firestore);
+export function getAggregateFromServer<T extends AggregateSpec>(
+  query: Query<unknown>,
+  aggregates: T
+): Promise<AggregateQuerySnapshot<AggregateSpec>> {
+  const firestore = cast(query.firestore, Firestore);
   const datastore = getDatastore(firestore);
   const userDataWriter = new LiteUserDataWriter(firestore);
 
-  return invokeRunAggregationQueryRpc(datastore, query).then(result => {
-    hardAssert(
-      result[0] !== undefined,
-      'Aggregation fields are missing from result.'
-    );
+  // console.log('aggregates', Object.keys(aggregates));
 
-    const counts = Object.entries(result[0])
-      .filter(([key, value]) => key === 'count_alias')
-      .map(([key, value]) => userDataWriter.convertValue(value as Value));
+  return invokeRunAggregationQueryRpc(datastore, query._query, aggregates).then(
+    result => {
+      hardAssert(
+        result[0] !== undefined,
+        'Aggregation fields are missing from result.'
+      );
 
-    const count = counts[0];
-    hardAssert(
-      typeof count === 'number',
-      'Count aggeragte field value is not a number: ' + count
-    );
+      const counts = Object.entries(result[0])
+        // .filter(([key, value]) => Object.keys(aggregates).includes(key))
+        .filter(([key, value]) => key === 'count_alias')
+        .map(([key, value]) => userDataWriter.convertValue(value as Value));
 
-    return Promise.resolve(new AggregateQuerySnapshot(query, count));
-  });
+      const countValue = counts[0];
+
+      hardAssert(
+        typeof countValue === 'number',
+        'Count aggeragte field value is not a number: ' + countValue
+      );
+
+      return Promise.resolve(
+        new AggregateQuerySnapshot(query, { count: countValue })
+      );
+    }
+  );
 }
 
-export function aggregateQueryEqual(
-  left: AggregateQuery,
-  right: AggregateQuery
-): boolean {
-  return queryEqual(left.query, right.query);
-}
-
-export function aggregateQuerySnapshotEqual(
-  left: AggregateQuerySnapshot,
-  right: AggregateQuerySnapshot
+export function aggregateSnapshotEqual<T extends AggregateSpec>(
+  left: AggregateQuerySnapshot<T>,
+  right: AggregateQuerySnapshot<T>
 ): boolean {
   return (
-    aggregateQueryEqual(left.query, right.query) &&
-    left.getCount() === right.getCount()
+    queryEqual(left.query, right.query) && deepEqual(left.data(), right.data())
   );
 }

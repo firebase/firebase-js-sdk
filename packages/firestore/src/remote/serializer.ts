@@ -35,6 +35,7 @@ import {
   Target
 } from '../core/target';
 import { TargetId } from '../core/types';
+import { AggregateSpec } from '../lite-api/aggregate';
 import { Timestamp } from '../lite-api/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutableDocument } from '../model/document';
@@ -855,9 +856,12 @@ export function toQueryTarget(
 
 export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
-  target: Target
+  target: Target,
+  aggregates: AggregateSpec
 ): ProtoRunAggregationQueryRequest {
   const queryTarget = toQueryTarget(serializer, target);
+
+  // console.log(getAggregationFields(aggregates));
 
   return {
     structuredAggregationQuery: {
@@ -871,6 +875,12 @@ export function toRunAggregationQueryRequest(
     },
     parent: queryTarget.parent
   };
+}
+
+export function getAggregationFields(aggregates: AggregateSpec) {
+  return Object.entries(aggregates).map(([key, value]) => {
+    console.log(key, value);
+  });
 }
 
 export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {

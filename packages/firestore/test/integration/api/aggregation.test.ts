@@ -17,12 +17,9 @@
 
 import { expect } from 'chai';
 
-import {
-  countQuery,
-  getAggregateFromServerDirect,
-  query
-} from '../util/firebase_export';
+import { query } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
+import { getCountFromServer } from '../../../src/api/aggregate';
 
 apiDescribe('Aggregation query', (persistence: boolean) => {
   it('can run count query getAggregateFromServerDirect', () => {
@@ -32,10 +29,8 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
       c: { k: 'c', sort: 2 }
     };
     return withTestCollection(persistence, testDocs, async coll => {
-      const query_ = query(coll);
-      const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
-      expect(snapshot.getCount()).to.equal(3);
+      const snapshot = await getCountFromServer(query(coll));
+      expect(snapshot.data().count).to.equal(3);
     });
   });
 });

@@ -18,7 +18,7 @@
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { Query, queryToTarget } from '../core/query';
-import { AggregateQuery } from '../lite-api/aggregate';
+import { AggregateSpec } from '../lite-api/aggregate';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -239,12 +239,14 @@ export async function invokeRunQueryRpc(
 
 export async function invokeRunAggregationQueryRpc(
   datastore: Datastore,
-  aggregateQuery: AggregateQuery
+  query: Query,
+  aggregates: AggregateSpec
 ): Promise<ProtoValue[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const request = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
-    queryToTarget(aggregateQuery.query._query)
+    queryToTarget(query),
+    aggregates
   );
 
   const parent = request.parent;

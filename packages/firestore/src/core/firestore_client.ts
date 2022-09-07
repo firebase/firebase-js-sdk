@@ -17,14 +17,18 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
-import { AggregateQuery, AggregateQuerySnapshot } from '../api';
+import { AggregateQuerySnapshot } from '../api';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { getAggregate } from '../lite-api/aggregate';
+import {
+  AggregateSpec,
+  getAggregateFromServer,
+  getCountFromServer
+} from '../lite-api/aggregate';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -40,6 +44,7 @@ import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { Datastore } from '../remote/datastore';
 import {
+  canUseNetwork,
   RemoteStore,
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
@@ -503,13 +508,36 @@ export function firestoreClientTransaction<T>(
   return deferred.promise;
 }
 
-export function firestoreClientRunAggregationQuery(
+export function firestoreClientRunAggregationQuery<T extends AggregateSpec>(
   client: FirestoreClient,
-  query: AggregateQuery
-): Promise<AggregateQuerySnapshot> {
-  return client.asyncQueue.enqueue(() => {
-    return getAggregate(query);
+  query: Query,
+  aggregates: T
+): Promise<AggregateQuerySnapshot<T>> {
+  const deferred = new Deferred<AggregateQuerySnapshot<T>>();
+  client.asyncQueue.enqueueAndForget(async () => {
+    const remoteStore = await getRemoteStore(client);
+    if (!canUseNetwork(remoteStore)) {
+      logDebug(
+        LOG_TAG,
+        'The network is disabled. The task returned by ' +
+          "'getAggregateFromServerDirect()' will not complete until the network is enabled."
+      );
+      deferred.reject(
+        new FirestoreError(
+          Code.UNAVAILABLE,
+          'Failed to get aggregate result because the client is offline.'
+        )
+      );
+    } else {
+      try {
+        const result = await getAggregateFromServer(query, aggregates);
+        deferred.resolve(result);
+      } catch (e) {
+        deferred.reject(e as Error);
+      }
+    }
   });
+  return deferred.promise;
 }
 
 async function readDocumentFromCache(
@@ -659,6 +687,7 @@ function executeQueryViaSnapshotListener(
       asyncQueue.enqueueAndForget(() =>
         eventManagerUnlisten(eventManager, listener)
       );
+      console.log('snapshot', snapshot);
 
       if (snapshot.fromCache && options.source === 'server') {
         result.reject(
