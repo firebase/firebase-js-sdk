@@ -538,7 +538,7 @@ export function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 // @public
 export interface ParsedToken {
-    [key: string]: unknown;
+    [key: string]: any;
     'auth_time'?: string;
     'exp'?: string;
     'firebase'?: {
