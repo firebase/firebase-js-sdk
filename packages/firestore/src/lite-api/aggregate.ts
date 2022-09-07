@@ -25,61 +25,34 @@ import { hardAssert } from '../util/assert';
 import { Value } from '../protos/firestore_proto_api';
 import { deepEqual } from '@firebase/util';
 
-type DocumentFieldValue = any;
+export type DocumentFieldValue = any;
 
-interface AggregateFieldBase<T> {
-  _datum?: T;
+export class AggregateField<T> {
+  type = 'AggregateField';
+  _datum?: T = undefined;
 }
 
-export class CountAggregateField implements AggregateFieldBase<number> {
-  type = 'CountAggregateField';
-  _datum?: number = undefined;
-}
-
-class MinAggregateField
-  implements AggregateFieldBase<DocumentFieldValue | undefined>
-{
-  type = 'MinAggregateField';
-  _datum?: DocumentFieldValue = undefined;
-}
-
-class SumAggregateField implements AggregateFieldBase<number | undefined> {
-  type = 'SumAggregateField';
-  _datum?: number = undefined;
-}
-
-export type AggregateField =
-  | CountAggregateField
-  | MinAggregateField
-  | SumAggregateField;
-
-export function count(): CountAggregateField {
-  return new CountAggregateField();
-}
-
-export function aggregateFieldEqual(
-  left: AggregateField,
-  right: AggregateField
-): boolean {
-  return left.type === right.type && left._datum === right._datum;
+export function count(): AggregateField<number> {
+  return new AggregateField<number>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // New aggregate query and snapshot functions.
 ////////////////////////////////////////////////////////////////////////////////
+export type AggregateFieldType =
+  | AggregateField<number>
+  | AggregateField<DocumentFieldValue | undefined>
+  | AggregateField<number | undefined>;
 
-export type AggregateSpec = { [field: string]: AggregateField };
+export type AggregateSpec = { [field: string]: AggregateFieldType };
 
 export type AggregateSpecData<T extends AggregateSpec> = {
   [Property in keyof T]-?: T[Property]['_datum'];
 };
 
 export class AggregateQuerySnapshot<T extends AggregateSpec> {
-  // type: "AggregateQuerySnapshot";
   readonly type = 'AggregateQuerySnapshot';
 
-  // private constructor(private readonly _data: AggregateSpecData<T>) {
-  // }
   constructor(
     readonly query: Query<unknown>,
     protected readonly _data: AggregateSpecData<T>
@@ -92,45 +65,33 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
 
 export function getCountFromServer(
   query: Query<unknown>
-): Promise<AggregateQuerySnapshot<AggregateSpec>> {
-  // ): Promise<AggregateQuerySnapshot<{ count: CountAggregateField }>> {
-  return getAggregateFromServer(query, { count: count() });
-}
-
-export function getAggregateFromServer<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregates: T
-): Promise<AggregateQuerySnapshot<AggregateSpec>> {
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const firestore = cast(query.firestore, Firestore);
   const datastore = getDatastore(firestore);
   const userDataWriter = new LiteUserDataWriter(firestore);
+  return invokeRunAggregationQueryRpc(datastore, query._query).then(result => {
+    hardAssert(
+      result[0] !== undefined,
+      'Aggregation fields are missing from result.'
+    );
 
-  // console.log('aggregates', Object.keys(aggregates));
+    const counts = Object.entries(result[0])
+      .filter(([key, value]) => key === 'count_alias')
+      .map(([key, value]) => userDataWriter.convertValue(value as Value));
 
-  return invokeRunAggregationQueryRpc(datastore, query._query, aggregates).then(
-    result => {
-      hardAssert(
-        result[0] !== undefined,
-        'Aggregation fields are missing from result.'
-      );
+    const countValue = counts[0];
 
-      const counts = Object.entries(result[0])
-        // .filter(([key, value]) => Object.keys(aggregates).includes(key))
-        .filter(([key, value]) => key === 'count_alias')
-        .map(([key, value]) => userDataWriter.convertValue(value as Value));
+    hardAssert(
+      typeof countValue === 'number',
+      'Count aggregate field value is not a number: ' + countValue
+    );
 
-      const countValue = counts[0];
-
-      hardAssert(
-        typeof countValue === 'number',
-        'Count aggeragte field value is not a number: ' + countValue
-      );
-
-      return Promise.resolve(
-        new AggregateQuerySnapshot(query, { count: countValue })
-      );
-    }
-  );
+    return Promise.resolve(
+      new AggregateQuerySnapshot<{ count: AggregateField<number> }>(query, {
+        count: countValue
+      })
+    );
+  });
 }
 
 export function aggregateSnapshotEqual<T extends AggregateSpec>(

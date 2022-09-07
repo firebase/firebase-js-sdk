@@ -31,7 +31,8 @@ import {
   setDoc,
   PrivateSettings,
   SnapshotListenOptions,
-  newTestFirestore
+  newTestFirestore,
+  QueryDocumentSnapshot
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -254,6 +255,13 @@ export function withTestCollection(
   return withTestCollectionSettings(persistence, DEFAULT_SETTINGS, docs, fn);
 }
 
+export function withEmptyTestCollection(
+  persistence: boolean,
+  fn: (collection: CollectionReference, db: Firestore) => Promise<void>
+): Promise<void> {
+  return withTestCollection(persistence, {}, fn);
+}
+
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
 export function withTestCollectionSettings(
@@ -280,3 +288,24 @@ export function withTestCollectionSettings(
     }
   );
 }
+
+export class Post {
+  constructor(
+    readonly title: string,
+    readonly author: string,
+    readonly ref: DocumentReference | null = null
+  ) {}
+  byline(): string {
+    return this.title + ', by ' + this.author;
+  }
+}
+
+export const postConverter = {
+  toFirestore(post: Post): DocumentData {
+    return { title: post.title, author: post.author };
+  },
+  fromFirestore(snapshot: QueryDocumentSnapshot): Post {
+    const data = snapshot.data();
+    return new Post(data.title, data.author, snapshot.ref);
+  }
+};

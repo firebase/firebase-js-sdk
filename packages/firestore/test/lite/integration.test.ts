@@ -21,10 +21,7 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import {
-  aggregateFieldEqual,
   aggregateSnapshotEqual,
-  count,
-  getAggregateFromServer,
   getCountFromServer
 } from '../../src/lite-api/aggregate';
 import { Bytes } from '../../src/lite-api/bytes';
@@ -2050,23 +2047,19 @@ describe('countQuery()', () => {
   it('AggregateQuerySnapshot inherits the original query', () => {
     return withTestCollection(async coll => {
       const query_ = query(coll);
-      const getCountSnapshot = await getCountFromServer(query_);
-      const getAggregateSnapshot = await getAggregateFromServer(query_, {
-        count: count()
-      });
-      expect(getCountSnapshot.query).to.equal(query_);
-      expect(getAggregateSnapshot.query).to.equal(query_);
+      const snapshot = await getCountFromServer(query_);
+      expect(snapshot.query).to.equal(query_);
     });
   });
 
-  it('empty test collection count', () => {
+  it('run count query on empty test collection', () => {
     return withTestCollection(async collection => {
       const snapshot = await getCountFromServer(query(collection));
       expect(snapshot.data().count).to.equal(0);
     });
   });
 
-  it('test collection count with 3 docs', () => {
+  it('run count query on test collection with 3 docs', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA' },
       { author: 'authorA', title: 'titleB' },
@@ -2078,19 +2071,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('test collection count with 3 docs', () => {
-    const testDocs = [
-      { author: 'authorA', title: 'titleA' },
-      { author: 'authorA', title: 'titleB' },
-      { author: 'authorB', title: 'titleC' }
-    ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const snapshot = await getCountFromServer(query(collection));
-      expect(snapshot.data().count).to.equal(3);
-    });
-  });
-
-  it('test collection count with filter', () => {
+  it('count query supports filter', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA' },
       { author: 'authorA', title: 'titleB' },
@@ -2103,7 +2084,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('test collection count with filter and a small limit size', () => {
+  it('count query supports filter and a small limit size', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA' },
       { author: 'authorA', title: 'titleB' },
@@ -2120,7 +2101,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('test collection count with filter and a large limit size', () => {
+  it('count query supports filter and a large limit size', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA' },
       { author: 'authorA', title: 'titleB' },
@@ -2137,7 +2118,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('count with order by', () => {
+  it('count query supports order by', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA' },
       { author: 'authorA', title: 'titleB' },
@@ -2151,7 +2132,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('count with order by and startAt', () => {
+  it('count query supports order by and startAt', () => {
     const testDocs = [
       { id: 3, author: 'authorA', title: 'titleA' },
       { id: 1, author: 'authorA', title: 'titleB' },
@@ -2165,7 +2146,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('count with order by and startAfter', () => {
+  it('count query supports order by and startAfter', () => {
     const testDocs = [
       { id: 3, author: 'authorA', title: 'titleA' },
       { id: 1, author: 'authorA', title: 'titleB' },
@@ -2179,7 +2160,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('count with order by and endAt', () => {
+  it('count query supports order by and endAt', () => {
     const testDocs = [
       { id: 3, author: 'authorA', title: 'titleA' },
       { id: 1, author: 'authorA', title: 'titleB' },
@@ -2193,7 +2174,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('count with order by and endBefore', () => {
+  it('count query supports order by and endBefore', () => {
     const testDocs = [
       { id: 3, author: 'authorA', title: 'titleA' },
       { id: 1, author: 'authorA', title: 'titleB' },
@@ -2207,7 +2188,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('test collection count with converter on query', () => {
+  it('count query supports converter', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA' },
       { author: 'authorA', title: 'titleB' },
@@ -2223,7 +2204,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('count query with collection groups', () => {
+  it('count query supports collection groups', () => {
     return withTestDb(async db => {
       const collectionGroupId = doc(collection(db, 'countTest')).id;
       const docPaths = [
@@ -2245,31 +2226,6 @@ describe('countQuery()', () => {
     });
   });
 
-  // it('aggregateFieldEqual on same fields', () => {
-  //   const testDocs = [
-  //     { author: 'authorA', title: 'titleA' },
-  //     { author: 'authorA', title: 'titleB' },
-  //     { author: 'authorB', title: 'titleC' }
-  //   ];
-  //   return withTestCollectionAndInitialData(testDocs, async collection => {
-  //     const query1 = query(collection, where('author', '==', 'authorA'));
-  //     const query2 = query(collection, where('author', '==', 'authorA'));
-  //
-  //   });
-  // });
-  //
-  // it('aggregateFieldEqual on different fields', () => {
-  //   const testDocs = [
-  //     { author: 'authorA', title: 'titleA' },
-  //     { author: 'authorA', title: 'titleB' },
-  //     { author: 'authorB', title: 'titleC' }
-  //   ];
-  //   return withTestCollectionAndInitialData(testDocs, async collection => {
-  //     const query1 = query(collection, where('author', '==', 'authorA'));
-  //     const query2 = query(collection, where('author', '==', 'authorB'));
-  //    });
-  // });
-
   it('aggregateSnapshotEqual on same queries', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA' },
@@ -2279,7 +2235,6 @@ describe('countQuery()', () => {
     return withTestCollectionAndInitialData(testDocs, async collection => {
       const query1 = query(collection, where('author', '==', 'authorA'));
       const query2 = query(collection, where('author', '==', 'authorA'));
-
       const snapshot1A = await getCountFromServer(query1);
       const snapshot1B = await getCountFromServer(query1);
       const snapshot2 = await getCountFromServer(query2);
@@ -2303,7 +2258,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('count query on a terminated Firestore', () => {
+  it('count query fails on a terminated Firestore', () => {
     return withTestCollection(async collection => {
       await terminate(collection.firestore);
       expect(() => getCountFromServer(query(collection))).to.throw(
@@ -2312,7 +2267,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('terminate Firestore while calling count query', () => {
+  it('terminate Firestore not effect count query in flight', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA' },
       { author: 'authorA', title: 'titleB' },

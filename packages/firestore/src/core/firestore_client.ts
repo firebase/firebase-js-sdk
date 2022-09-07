@@ -25,10 +25,11 @@ import {
 } from '../api/credentials';
 import { User } from '../auth/user';
 import {
+  AggregateField,
   AggregateSpec,
-  getAggregateFromServer,
   getCountFromServer
 } from '../lite-api/aggregate';
+import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -508,29 +509,25 @@ export function firestoreClientTransaction<T>(
   return deferred.promise;
 }
 
-export function firestoreClientRunAggregationQuery<T extends AggregateSpec>(
+export function firestoreClientRunCountQuery<T extends AggregateSpec>(
   client: FirestoreClient,
-  query: Query,
-  aggregates: T
-): Promise<AggregateQuerySnapshot<T>> {
-  const deferred = new Deferred<AggregateQuerySnapshot<T>>();
+  query: LiteQuery<unknown>
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const deferred = new Deferred<
+    AggregateQuerySnapshot<{ count: AggregateField<number> }>
+  >();
   client.asyncQueue.enqueueAndForget(async () => {
     const remoteStore = await getRemoteStore(client);
     if (!canUseNetwork(remoteStore)) {
-      logDebug(
-        LOG_TAG,
-        'The network is disabled. The task returned by ' +
-          "'getAggregateFromServerDirect()' will not complete until the network is enabled."
-      );
       deferred.reject(
         new FirestoreError(
           Code.UNAVAILABLE,
-          'Failed to get aggregate result because the client is offline.'
+          'Failed to get count result because the client is offline.'
         )
       );
     } else {
       try {
-        const result = await getAggregateFromServer(query, aggregates);
+        const result = await getCountFromServer(query);
         deferred.resolve(result);
       } catch (e) {
         deferred.reject(e as Error);

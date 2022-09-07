@@ -856,13 +856,9 @@ export function toQueryTarget(
 
 export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
-  target: Target,
-  aggregates: AggregateSpec
+  target: Target
 ): ProtoRunAggregationQueryRequest {
   const queryTarget = toQueryTarget(serializer, target);
-
-  // console.log(getAggregationFields(aggregates));
-
   return {
     structuredAggregationQuery: {
       aggregations: [
@@ -875,12 +871,6 @@ export function toRunAggregationQueryRequest(
     },
     parent: queryTarget.parent
   };
-}
-
-export function getAggregationFields(aggregates: AggregateSpec) {
-  return Object.entries(aggregates).map(([key, value]) => {
-    console.log(key, value);
-  });
 }
 
 export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {

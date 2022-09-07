@@ -239,14 +239,12 @@ export async function invokeRunQueryRpc(
 
 export async function invokeRunAggregationQueryRpc(
   datastore: Datastore,
-  query: Query,
-  aggregates: AggregateSpec
+  query: Query
 ): Promise<ProtoValue[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const request = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
-    queryToTarget(query),
-    aggregates
+    queryToTarget(query)
   );
 
   const parent = request.parent;
