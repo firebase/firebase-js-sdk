@@ -512,11 +512,6 @@ export function firestoreClientRunAggregationQuery(
   client.asyncQueue.enqueueAndForget(async () => {
     const remoteStore = await getRemoteStore(client);
     if (!canUseNetwork(remoteStore)) {
-      logDebug(
-        LOG_TAG,
-        'The network is disabled. The task returned by ' +
-          "'getAggregateFromServerDirect()' will not complete until the network is enabled."
-      );
       deferred.reject(
         new FirestoreError(
           Code.UNAVAILABLE,
