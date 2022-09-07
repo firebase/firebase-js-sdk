@@ -259,10 +259,9 @@ export function withEmptyTestCollection(
   persistence: boolean,
   fn: (collection: CollectionReference, db: Firestore) => Promise<void>
 ): Promise<void> {
-  return withTestDb(persistence, db => {
-    return withTestCollection(persistence, {}, fn);
-  });
+  return withTestCollection(persistence, {}, fn);
 }
+
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
 export function withTestCollectionSettings(
