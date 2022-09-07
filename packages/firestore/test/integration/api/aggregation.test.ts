@@ -31,6 +31,7 @@ import {
 import {
   apiDescribe,
   postConverter,
+  withEmptyTestCollection,
   withTestCollection,
   withTestDb
 } from '../util/helpers';
@@ -41,31 +42,24 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
       a: { author: 'authorA', title: 'titleA' },
       b: { author: 'authorB', title: 'titleB' }
     };
-    return withTestCollection(persistence, testDocs, async collection => {
-      const countQuery_ = countQuery(collection);
+    return withTestCollection(persistence, testDocs, async coll => {
+      const countQuery_ = countQuery(coll);
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
     });
   });
 
   it('aggregateQuery.query equals to original query', () => {
-    const testDocs = {
-      a: { author: 'authorA', title: 'titleA' }
-    };
-    return withTestCollection(persistence, testDocs, async collection => {
-      const query_ = query(collection, where('author', '==', 'authorA'));
+    return withEmptyTestCollection(persistence, async coll => {
+      const query_ = query(coll);
       const aggregateQuery_ = countQuery(query_);
       expect(aggregateQuery_.query).to.be.equal(query_);
     });
   });
 
   it('aggregateQuerySnapshot.query equals to aggregateQuery', () => {
-    const testDocs = {
-      a: { author: 'authorA', title: 'titleA' }
-    };
-    return withTestCollection(persistence, testDocs, async collection => {
-      const query_ = query(collection, where('author', '==', 'authorA'));
-      const aggregateQuery_ = countQuery(query_);
+    return withEmptyTestCollection(persistence, async coll => {
+      const aggregateQuery_ = countQuery(coll);
       const snapshot = await getAggregateFromServerDirect(aggregateQuery_);
       expect(snapshot.query).to.be.equal(aggregateQuery_);
     });
@@ -76,9 +70,9 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
       a: { author: 'authorA', title: 'titleA' },
       b: { author: 'authorB', title: 'titleB' }
     };
-    return withTestCollection(persistence, testDocs, async collection => {
+    return withTestCollection(persistence, testDocs, async coll => {
       const query_ = query(
-        collection,
+        coll,
         where('author', '==', 'authorA')
       ).withConverter(postConverter);
       const countQuery_ = countQuery(query_);
@@ -109,34 +103,20 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
   });
 
   it('aggregate query fails if firestore is terminated', () => {
-    const testDocs = {
-      a: { author: 'authorA', title: 'titleA' }
-    };
-    return withTestCollection(
-      persistence,
-      testDocs,
-      async (collection, firestore) => {
-        await terminate(firestore);
-        const countQuery_ = countQuery(collection);
-        expect(() => getAggregateFromServerDirect(countQuery_)).to.throw(
-          'The client has already been terminated.'
-        );
-      }
-    );
+    return withEmptyTestCollection(persistence, async (coll, firestore) => {
+      await terminate(firestore);
+      const countQuery_ = countQuery(coll);
+      expect(() => getAggregateFromServerDirect(countQuery_)).to.throw(
+        'The client has already been terminated.'
+      );
+    });
   });
 
-  it("terminate doesn't crash when there is flying aggregate query", () => {
-    const testDocs = {
-      a: { author: 'authorA', title: 'titleA' }
-    };
-    return withTestCollection(
-      persistence,
-      testDocs,
-      async (collection, firestore) => {
-        const countQuery_ = countQuery(collection);
-        getAggregateFromServerDirect(countQuery_).then();
-        await terminate(firestore);
-      }
-    );
+  it("terminate doesn't crash when there is aggregate query in flight", () => {
+    return withEmptyTestCollection(persistence, async (coll, firestore) => {
+      const countQuery_ = countQuery(coll);
+      void getAggregateFromServerDirect(countQuery_);
+      await terminate(firestore);
+    });
   });
 });

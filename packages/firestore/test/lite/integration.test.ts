@@ -2047,8 +2047,8 @@ describe('withConverter() support', () => {
 
 describe('countQuery()', () => {
   it('AggregateQuery and AggregateQuerySnapshot inherits the original query', () => {
-    return withTestCollection(async collection => {
-      const query_ = query(collection);
+    return withTestCollection(async coll => {
+      const query_ = query(coll);
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregate(countQuery_);
       expect(countQuery_.query).to.equal(query_);
@@ -2058,8 +2058,8 @@ describe('countQuery()', () => {
   });
 
   it('empty test collection count', () => {
-    return withTestCollection(async collection => {
-      const countQuery_ = countQuery(collection);
+    return withTestCollection(async coll => {
+      const countQuery_ = countQuery(coll);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(0);
     });
@@ -2071,8 +2071,8 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const countQuery_ = countQuery(collection);
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const countQuery_ = countQuery(coll);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(3);
     });
@@ -2084,8 +2084,8 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_ = query(collection, where('author', '==', 'authorA'));
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, where('author', '==', 'authorA'));
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
@@ -2098,12 +2098,8 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_ = query(
-        collection,
-        where('author', '==', 'authorA'),
-        limit(1)
-      );
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, where('author', '==', 'authorA'), limit(1));
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(1);
@@ -2116,12 +2112,8 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_ = query(
-        collection,
-        where('author', '==', 'authorA'),
-        limit(3)
-      );
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, where('author', '==', 'authorA'), limit(3));
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
@@ -2135,8 +2127,8 @@ describe('countQuery()', () => {
       { author: 'authorB', title: null },
       { author: 'authorB' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_ = query(collection, orderBy('title'));
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, orderBy('title'));
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(3);
@@ -2150,8 +2142,8 @@ describe('countQuery()', () => {
       { id: 2, author: 'authorB', title: 'titleC' },
       { id: null, author: 'authorB', title: 'titleD' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_ = query(collection, orderBy('id'), startAt(2));
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, orderBy('id'), startAt(2));
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
@@ -2165,8 +2157,8 @@ describe('countQuery()', () => {
       { id: 2, author: 'authorB', title: 'titleC' },
       { id: null, author: 'authorB', title: 'titleD' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_ = query(collection, orderBy('id'), startAfter(2));
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, orderBy('id'), startAfter(2));
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(1);
@@ -2180,8 +2172,8 @@ describe('countQuery()', () => {
       { id: 2, author: 'authorB', title: 'titleC' },
       { id: null, author: 'authorB', title: 'titleD' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_ = query(collection, orderBy('id'), startAt(1), endAt(2));
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, orderBy('id'), startAt(1), endAt(2));
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(2);
@@ -2195,8 +2187,8 @@ describe('countQuery()', () => {
       { id: 2, author: 'authorB', title: 'titleC' },
       { id: null, author: 'authorB', title: 'titleD' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query_ = query(collection, orderBy('id'), startAt(1), endBefore(2));
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, orderBy('id'), startAt(1), endBefore(2));
       const countQuery_ = countQuery(query_);
       const snapshot = await getAggregate(countQuery_);
       expect(snapshot.getCount()).to.equal(1);
@@ -2209,9 +2201,9 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
+    return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(
-        collection,
+        coll,
         where('author', '==', 'authorA')
       ).withConverter(postConverter);
       const countQuery_ = countQuery(query_);
@@ -2247,9 +2239,9 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query1 = query(collection, where('author', '==', 'authorA'));
-      const query2 = query(collection, where('author', '==', 'authorA'));
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const query2 = query(coll, where('author', '==', 'authorA'));
       const countQuery1 = countQuery(query1);
       const countQuery2 = countQuery(query2);
       expect(aggregateQueryEqual(countQuery1, countQuery2)).to.be.true;
@@ -2262,9 +2254,9 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query1 = query(collection, where('author', '==', 'authorA'));
-      const query2 = query(collection, where('author', '==', 'authorB'));
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const query2 = query(coll, where('author', '==', 'authorB'));
       const countQuery1 = countQuery(query1);
       const countQuery2 = countQuery(query2);
       expect(aggregateQueryEqual(countQuery1, countQuery2)).to.be.false;
@@ -2277,9 +2269,9 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query1 = query(collection, where('author', '==', 'authorA'));
-      const query2 = query(collection, where('author', '==', 'authorA'));
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const query2 = query(coll, where('author', '==', 'authorA'));
       const countQuery1A = countQuery(query1);
       const countQuery1B = countQuery(query1);
       const countQuery2 = countQuery(query2);
@@ -2297,9 +2289,9 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const query1 = query(collection, where('author', '==', 'authorA'));
-      const query2 = query(collection, where('author', '==', 'authorB'));
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const query2 = query(coll, where('author', '==', 'authorB'));
       const countQuery1 = countQuery(query1);
       const countQuery2 = countQuery(query2);
       const snapshot1 = await getAggregate(countQuery1);
@@ -2309,9 +2301,9 @@ describe('countQuery()', () => {
   });
 
   it('count query on a terminated Firestore', () => {
-    return withTestCollection(async collection => {
-      await terminate(collection.firestore);
-      const countQuery_ = countQuery(collection);
+    return withTestCollection(async coll => {
+      await terminate(coll.firestore);
+      const countQuery_ = countQuery(coll);
       expect(() => getAggregate(countQuery_)).to.throw(
         'The client has already been terminated.'
       );
@@ -2324,10 +2316,10 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async collection => {
-      const countQuery_ = countQuery(collection);
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const countQuery_ = countQuery(coll);
       const promise = getAggregate(countQuery_);
-      await terminate(collection.firestore);
+      await terminate(coll.firestore);
       const snapshot = await promise;
       expect(snapshot.getCount()).to.equal(3);
     });
