@@ -19,6 +19,7 @@ import { expect } from 'chai';
 
 import {
   countQuery,
+  disableNetwork,
   getAggregateFromServerDirect,
   query
 } from '../util/firebase_export';
@@ -37,5 +38,22 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
       const snapshot = await getAggregateFromServerDirect(countQuery_);
       expect(snapshot.getCount()).to.equal(3);
     });
+  });
+
+  it('getAggregateFromServerDirect fails if user is offline', () => {
+    const testDocs = {};
+    return withTestCollection(
+      persistence,
+      testDocs,
+      async (collection, firestore) => {
+        await disableNetwork(firestore);
+        const countQuery_ = countQuery(collection);
+        await expect(
+          getAggregateFromServerDirect(countQuery_)
+        ).to.be.eventually.rejectedWith(
+          'Failed to get aggregate result because the client is offline'
+        );
+      }
+    );
   });
 });
