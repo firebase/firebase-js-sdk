@@ -22,6 +22,7 @@ import {
   collectionGroup,
   countQuery,
   doc,
+  disableNetwork,
   getAggregateFromServerDirect,
   query,
   terminate,
@@ -118,5 +119,20 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
       void getAggregateFromServerDirect(countQuery_);
       await terminate(firestore);
     });
+  });
+
+  it('getAggregateFromServerDirect fails if user is offline', () => {
+    return withEmptyTestCollection(
+      persistence,
+      async (collection, firestore) => {
+        await disableNetwork(firestore);
+        const countQuery_ = countQuery(collection);
+        await expect(
+          getAggregateFromServerDirect(countQuery_)
+        ).to.be.eventually.rejectedWith(
+          'Failed to get aggregate result because the client is offline'
+        );
+      }
+    );
   });
 });
