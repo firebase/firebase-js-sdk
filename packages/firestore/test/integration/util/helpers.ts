@@ -260,7 +260,7 @@ export function withEmptyTestCollection(
   fn: (collection: CollectionReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDb(persistence, db => {
-    return withTestCollectionSettings(persistence, DEFAULT_SETTINGS, {}, fn);
+    return withTestCollection(persistence, {}, fn);
   });
 }
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
