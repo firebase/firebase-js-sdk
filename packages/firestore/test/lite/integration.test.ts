@@ -21,8 +21,11 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import {
+  AggregateField,
+  aggregateFieldEqual,
   aggregateSnapshotEqual,
-  getCountFromServer
+  count,
+  getCountFromServer,
 } from '../../src/lite-api/aggregate';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
@@ -2224,6 +2227,18 @@ describe('countQuery()', () => {
       );
       expect(snapshot.data().count).to.equal(2);
     });
+  });
+
+  it('aggregateFieldEqual on same aggregate fields', () => {
+    const AggregateField1 = count();
+    const AggregateField2 = count();
+    expect(aggregateFieldEqual(AggregateField1, AggregateField2)).to.be.true;
+  });
+
+  it('aggregateFieldEqual on different aggregate fields', () => {
+    const AggregateField1 = count();
+    const AggregateField2 = new AggregateField("test")
+    expect(aggregateFieldEqual(AggregateField1, AggregateField2)).to.be.false;
   });
 
   it('aggregateSnapshotEqual on same queries', () => {

@@ -90,7 +90,7 @@ export interface Connection {
    * request message must include the path. If false, then the request message must NOT
    * include the path.
    */
-  get shouldResourcePathBeIncludedInRequest(): boolean;
+  readonly shouldResourcePathBeIncludedInRequest: boolean;
 
   // TODO(mcg): subscribe to connection state changes.
 }

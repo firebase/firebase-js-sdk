@@ -25,7 +25,8 @@ import {
   query,
   terminate,
   where,
-  writeBatch
+  writeBatch,
+  getCountFromServer
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -34,7 +35,6 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import {getCountFromServer} from "../../../src/api/aggregate";
 
 apiDescribe('Count query', (persistence: boolean) => {
   it('can run count query getCountFromServer', () => {

@@ -17,18 +17,18 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
-import { AggregateQuerySnapshot } from '../api';
+import {
+  AggregateField,
+  AggregateSpec,
+  AggregateQuerySnapshot
+} from '../api/aggregate';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import {
-  AggregateField,
-  AggregateSpec,
-  getCountFromServer
-} from '../lite-api/aggregate';
+import { getCountFromServer } from '../lite-api/aggregate';
 import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
@@ -684,7 +684,6 @@ function executeQueryViaSnapshotListener(
       asyncQueue.enqueueAndForget(() =>
         eventManagerUnlisten(eventManager, listener)
       );
-      console.log('snapshot', snapshot);
 
       if (snapshot.fromCache && options.source === 'server') {
         result.reject(

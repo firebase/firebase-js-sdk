@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { Query, SnapshotMetadata, SnapshotOptions } from '../api';
+import { Query, SnapshotOptions } from '../api';
 import { firestoreClientRunCountQuery } from '../core/firestore_client';
 import {
   AggregateField,
@@ -27,14 +26,23 @@ import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 
+export {
+  AggregateField,
+  AggregateSpec,
+  AggregateSpecData,
+  AggregateQuerySnapshot,
+  aggregateSnapshotEqual,
+  aggregateFieldEqual
+} from '../lite-api/aggregate';
+
+/**
+ * A `AggregateQuerySnapshot` contains the result of running an aggregation query.
+ * The result data can be extracted with `.data()`.
+ */
 class AggregateQuerySnapshot<
   T extends AggregateSpec
 > extends AggregateQuerySnapshotLite<T> {
-  constructor(
-    query: Query<unknown>,
-    _data: AggregateSpecData<T>,
-    private readonly metadata: SnapshotMetadata
-  ) {
+  constructor(query: Query<unknown>, _data: AggregateSpecData<T>) {
     super(query, _data);
   }
   data(options: SnapshotOptions = {}): AggregateSpecData<T> {
@@ -42,45 +50,16 @@ class AggregateQuerySnapshot<
   }
 }
 
+/**
+ * Executes the query and returns the results as a `QuerySnapshot` from the
+ * server. Returns an error if the network is not available.
+ *
+ * @returns A `Promise` that will be resolved with the results of the query.
+ */
 export function getCountFromServer(
   query: Query<unknown>
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientRunCountQuery(client, query);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// NOT implemented functions
-////////////////////////////////////////////////////////////////////////////////
-function getCount(
-  query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
-  throw new Error('not implemented');
-}
-
-function getCountFromCache(
-  query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
-  throw new Error('not implemented');
-}
-function getAggregate<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregates: T
-): Promise<AggregateQuerySnapshot<T>> {
-  throw new Error('not implemented');
-}
-
-function getAggregateFromServer<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregates: T
-): Promise<AggregateQuerySnapshot<T>> {
-  throw new Error('not implemented');
-}
-
-function getAggregateFromCache<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregates: T
-): Promise<AggregateQuerySnapshot<T>> {
-  throw new Error('not implemented');
 }
