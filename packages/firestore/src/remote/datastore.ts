@@ -18,7 +18,6 @@
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { Query, queryToTarget } from '../core/query';
-import { AggregateSpec } from '../lite-api/aggregate';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';

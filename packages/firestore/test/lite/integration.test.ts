@@ -25,7 +25,7 @@ import {
   aggregateFieldEqual,
   aggregateSnapshotEqual,
   count,
-  getCountFromServer,
+  getCountFromServer
 } from '../../src/lite-api/aggregate';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
@@ -2237,7 +2237,7 @@ describe('countQuery()', () => {
 
   it('aggregateFieldEqual on different aggregate fields', () => {
     const AggregateField1 = count();
-    const AggregateField2 = new AggregateField("test")
+    const AggregateField2 = new AggregateField('test');
     expect(aggregateFieldEqual(AggregateField1, AggregateField2)).to.be.false;
   });
 
