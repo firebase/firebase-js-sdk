@@ -30,13 +30,13 @@ import { LiteUserDataWriter } from './reference_impl';
 /**
  * An `AggregateField`that captures input type T.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class AggregateField<T> {
   type = 'AggregateField';
 }
 
 /**
  * Creates and returns an aggregation field that counts the documents in the result set.
- * 
  * @returns An `AggregateField` object with number input type.
  */
 export function count(): AggregateField<number> {
@@ -54,7 +54,9 @@ type AggregateFieldType = ReturnType<typeof count>;
  * This is used as an argument to the "getter" functions, and the snapshot will
  * map the same names to the corresponding values.
  */
-export type AggregateSpec = { [field: string]: AggregateFieldType };
+export interface AggregateSpec {
+  [field: string]: AggregateFieldType;
+}
 
 /**
  * A type whose keys are taken from an `AggregateSpec` type, and whose values
