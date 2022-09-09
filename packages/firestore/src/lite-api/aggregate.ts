@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
+import { deepEqual } from '@firebase/util';
+
+import { Value } from '../protos/firestore_proto_api';
+import { invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { hardAssert } from '../util/assert';
 import { cast } from '../util/input_validation';
-import { invokeRunAggregationQueryRpc } from '../remote/datastore';
-import { Value } from '../protos/firestore_proto_api';
 
-import { DocumentFieldValue, Query, queryEqual } from './reference';
-import { Firestore } from './database';
 import { getDatastore } from './components';
+import { Firestore } from './database';
+import { DocumentFieldValue, Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
-
-import { deepEqual } from '@firebase/util';
-import { FieldPath } from './field_path';
 
 /**
  * An `AggregateField` computes some aggregation statistics from the result set of

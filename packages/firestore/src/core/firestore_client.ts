@@ -509,7 +509,7 @@ export function firestoreClientTransaction<T>(
   return deferred.promise;
 }
 
-export function firestoreClientRunCountQuery<T extends AggregateSpec>(
+export function firestoreClientRunCountQuery(
   client: FirestoreClient,
   query: LiteQuery<unknown>
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
