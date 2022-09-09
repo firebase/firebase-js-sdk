@@ -40,6 +40,7 @@ import { FieldValue } from './field_value';
 import { FirestoreDataConverter } from './snapshot';
 import { NestedUpdateFields, Primitive } from './types';
 
+/** Alias dynamic document field value types to any */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type DocumentFieldValue = any;
 

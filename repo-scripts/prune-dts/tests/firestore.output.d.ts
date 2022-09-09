@@ -342,7 +342,8 @@ export declare interface DocumentChange<T = DocumentData> {
  */
 export declare type DocumentChangeType = 'added' | 'removed' | 'modified';
 
-export type DocumentFieldValue = any;
+/** Alias dynamic document field value types to any */
+export declare type DocumentFieldValue = any;
 /**
  * Document data (for use with {@link setDoc}) consists of fields mapped to
  * values.

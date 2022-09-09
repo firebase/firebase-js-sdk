@@ -14,14 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Query, SnapshotOptions } from '../api';
+import { Query } from '../api';
 import { firestoreClientRunCountQuery } from '../core/firestore_client';
-import {
-  AggregateField,
-  AggregateQuerySnapshot as AggregateQuerySnapshotLite,
-  AggregateSpec,
-  AggregateSpecData
-} from '../lite-api/aggregate';
+import { AggregateField, AggregateQuerySnapshot } from '../lite-api/aggregate';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
@@ -31,29 +26,15 @@ export {
   AggregateSpec,
   AggregateSpecData,
   AggregateQuerySnapshot,
-  aggregateSnapshotEqual,
-  aggregateFieldEqual
+  aggregateSnapshotEqual
 } from '../lite-api/aggregate';
 
 /**
- * A `AggregateQuerySnapshot` contains the result of running an aggregation query.
- * The result data can be extracted with `.data()`.
- */
-class AggregateQuerySnapshot<
-  T extends AggregateSpec
-> extends AggregateQuerySnapshotLite<T> {
-  constructor(query: Query<unknown>, _data: AggregateSpecData<T>) {
-    super(query, _data);
-  }
-  data(options: SnapshotOptions = {}): AggregateSpecData<T> {
-    return super.data();
-  }
-}
-
-/**
- * Executes the query and returns the results as a `QuerySnapshot` from the
+ * Executes the query and returns the results as a `AggregateQuerySnapshot` from the
  * server. Returns an error if the network is not available.
  *
+ * @param query - The `Query` to execute.
+ * 
  * @returns A `Promise` that will be resolved with the results of the query.
  */
 export function getCountFromServer(

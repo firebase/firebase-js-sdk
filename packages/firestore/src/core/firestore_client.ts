@@ -17,18 +17,17 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
-import {
-  AggregateField,
-  AggregateSpec,
-  AggregateQuerySnapshot
-} from '../api/aggregate';
+import { AggregateField } from '../api/aggregate';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { getCountFromServer } from '../lite-api/aggregate';
+import {
+  getCount as getCountFromServer,
+  AggregateQuerySnapshot as LiteAggregateQuerySnapshot
+} from '../lite-api/aggregate';
 import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
@@ -512,9 +511,9 @@ export function firestoreClientTransaction<T>(
 export function firestoreClientRunCountQuery(
   client: FirestoreClient,
   query: LiteQuery<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+): Promise<LiteAggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const deferred = new Deferred<
-    AggregateQuerySnapshot<{ count: AggregateField<number> }>
+    LiteAggregateQuerySnapshot<{ count: AggregateField<number> }>
   >();
   client.asyncQueue.enqueueAndForget(async () => {
     const remoteStore = await getRemoteStore(client);

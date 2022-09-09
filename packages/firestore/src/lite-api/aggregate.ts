@@ -24,28 +24,30 @@ import { cast } from '../util/input_validation';
 
 import { getDatastore } from './components';
 import { Firestore } from './database';
-import { DocumentFieldValue, Query, queryEqual } from './reference';
+import { Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 
 /**
- * An `AggregateField` computes some aggregation statistics from the result set of
- * an aggregation query.
+ * An `AggregateField`that captures input type T.
  */
 export class AggregateField<T> {
   type = 'AggregateField';
-  _datum?: T;
+}
 
-  constructor(readonly subType: string) {}
+/**
+ * Creates and returns an aggregation field that counts the documents in the result set.
+ * 
+ * @returns An `AggregateField` object with number input type.
+ */
+export function count(): AggregateField<number> {
+  return new AggregateField<number>();
 }
 
 /**
  * The union of all `AggregateField` types that are returned from the factory
  * functions.
  */
-export type AggregateFieldType =
-  | AggregateField<number>
-  | AggregateField<DocumentFieldValue | undefined>
-  | AggregateField<number | undefined>;
+type AggregateFieldType = ReturnType<typeof count>;
 
 /**
  * A type whose values are all `AggregateField` objects.
@@ -60,29 +62,8 @@ export type AggregateSpec = { [field: string]: AggregateFieldType };
  * `AggregateField` from the input `AggregateSpec`.
  */
 export type AggregateSpecData<T extends AggregateSpec> = {
-  [Property in keyof T]-?: T[Property]['_datum'];
+  [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
 };
-
-/**
- * Creates and returns an aggregation field that counts the documents in the result set.
- * @returns An `AggregateField` object that includes number of documents.
- */
-export function count(): AggregateField<number> {
-  return new AggregateField<number>('count');
-}
-
-/**
- * Compares two `AggregateField` instances for equality.
- * The two `AggregateField` instances are considered "equal" if and only if
- * they were created by the same factory function (e.g. `count()`, `min()`, and
- * `sum()`) with "equal" arguments.
- */
-export function aggregateFieldEqual(
-  left: AggregateField<unknown>,
-  right: AggregateField<unknown>
-): boolean {
-  return typeof left === typeof right && left.subType === right.subType;
-}
 
 /**
  * An `AggregateQuerySnapshot` contains the results of running an aggregate query.
@@ -90,9 +71,10 @@ export function aggregateFieldEqual(
 export class AggregateQuerySnapshot<T extends AggregateSpec> {
   readonly type = 'AggregateQuerySnapshot';
 
+  /** @hideconstructor */
   constructor(
     readonly query: Query<unknown>,
-    protected readonly _data: AggregateSpecData<T>
+    private readonly _data: AggregateSpecData<T>
   ) {}
 
   /**
@@ -100,6 +82,8 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
    * will be the same as those of the `AggregateSpec` object specified to the
    * aggregation method, and the values will be the corresponding aggregation
    * result.
+   *
+   * @returns The aggregation statistics result of running a query.
    */
   data(): AggregateSpecData<T> {
     return this._data;
@@ -112,10 +96,11 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
  * whatever the server returns. If the server cannot be reached then the
  * returned promise will be rejected.
  *
- * This is a convenience shorthand for:
- * getAggregateFromServer(query, { count: count() }).
+ * @param query - The `Query` to execute.
+ *
+ * @returns An `AggregateQuerySnapshot` that contains the number of documents.
  */
-export function getCountFromServer(
+export function getCount(
   query: Query<unknown>
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const firestore = cast(query.firestore, Firestore);
@@ -150,6 +135,11 @@ export function getCountFromServer(
  * Compares two `AggregateQuerySnapshot` instances for equality.
  * Two `AggregateQuerySnapshot` instances are considered "equal" if they have
  * the same underlying query, the same metadata, and the same data.
+ *
+ * @param left - The `AggregateQuerySnapshot` to compare.
+ * @param right - The `AggregateQuerySnapshot` to compare.
+ *
+ * @returns true if the AggregateQuerySnapshos are equal.
  */
 export function aggregateSnapshotEqual<T extends AggregateSpec>(
   left: AggregateQuerySnapshot<T>,
