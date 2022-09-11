@@ -171,23 +171,41 @@ export class TotpMultiFactorAssertionImpl
  */
 export class TotpSecret {
   /**
-   * Constructor for TotpSecret.
-   * @param secretKey - Shared secret key/seed used for enrolling in TOTP MFA and generating otps.
-   * @param hashingAlgorithm - Hashing algorithm used.
-   * @param codeLength - Length of the one-time passwords to be generated.
-   * @param codeIntervalSeconds - The interval (in seconds) when the OTP codes should change.
+   * Shared secret key/seed used for enrolling in TOTP MFA and generating otps.
    */
+  readonly secretKey: string;
+  /**
+   * Hashing algorithm used.
+   */
+  readonly hashingAlgorithm: string;
+  /**
+   * Length of the one-time passwords to be generated.
+   */
+  readonly codeLength: number;
+  /**
+   * The interval (in seconds) when the OTP codes should change.
+   */
+  readonly codeIntervalSeconds: number;
+  // TODO(prameshj) - make this public after API review.
+  // This can be used by callers to show a countdown of when to enter OTP code by.
+  private readonly finalizeEnrollmentBy: string;
+
+  // The public members are declared outside the constructor so the docs can be generated.
   private constructor(
-    readonly secretKey: string,
-    readonly hashingAlgorithm: string,
-    readonly codeLength: number,
-    readonly codeIntervalSeconds: number,
-    // TODO(prameshj) - make this public after API review.
-    // This can be used by callers to show a countdown of when to enter OTP code by.
-    private readonly finalizeEnrollmentBy: string,
+    secretKey: string,
+    hashingAlgorithm: string,
+    codeLength: number,
+    codeIntervalSeconds: number,
+    finalizeEnrollmentBy: string,
     private readonly sessionInfo: string,
     private readonly auth: AuthInternal
-  ) {}
+  ) {
+    this.secretKey = secretKey;
+    this.hashingAlgorithm = hashingAlgorithm;
+    this.codeLength = codeLength;
+    this.codeIntervalSeconds = codeIntervalSeconds;
+    this.finalizeEnrollmentBy = finalizeEnrollmentBy;
+  }
 
   /** @internal */
   static _fromStartTotpMfaEnrollmentResponse(
