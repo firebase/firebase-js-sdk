@@ -34,7 +34,7 @@ export {
  * server. Returns an error if the network is not available.
  *
  * @param query - The `Query` to execute.
- * 
+ *
  * @returns A `Promise` that will be resolved with the results of the query.
  */
 export function getCountFromServer(

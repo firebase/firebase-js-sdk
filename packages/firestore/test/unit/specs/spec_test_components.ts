@@ -253,6 +253,8 @@ export class MockConnection implements Connection {
 
   constructor(private queue: AsyncQueue) {}
 
+  shouldResourcePathBeIncludedInRequest: boolean = false;
+
   /**
    * Tracks the currently active watch targets as detected by the mock watch
    * stream, as a mapping from target ID to query Target.
