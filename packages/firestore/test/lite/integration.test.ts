@@ -2071,7 +2071,6 @@ describe('countQuery()', () => {
   it('run count query fails on invalid collection reference', () => {
     return withTestDb(async db => {
       const queryForRejection = collection(db, '__badpath__');
-
       try {
         await getCount(queryForRejection);
       } catch (e) {
