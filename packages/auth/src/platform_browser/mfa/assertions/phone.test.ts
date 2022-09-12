@@ -58,7 +58,10 @@ describe('platform_browser/mfa/phone', () => {
 
   describe('enroll', () => {
     beforeEach(() => {
-      session = MultiFactorSessionImpl._fromIdtoken('enrollment-id-token');
+      session = MultiFactorSessionImpl._fromIdtoken(
+        'enrollment-id-token',
+        auth
+      );
     });
 
     it('should finalize the MFA enrollment', async () => {
@@ -75,6 +78,7 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
+      expect(session.auth).to.eql(auth);
     });
 
     context('with display name', () => {
@@ -97,6 +101,7 @@ describe('platform_browser/mfa/phone', () => {
             sessionInfo: 'verification-id'
           }
         });
+        expect(session.auth).to.eql(auth);
       });
     });
   });
@@ -119,6 +124,7 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
+      expect(session.auth).to.eql(undefined);
     });
   });
 });

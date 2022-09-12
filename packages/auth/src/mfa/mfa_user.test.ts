@@ -84,6 +84,12 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
       expect(mfaSession.type).to.eq(MultiFactorSessionType.ENROLL);
       expect(mfaSession.credential).to.eq('access-token');
     });
+    it('should contain a reference to auth', async () => {
+      const mfaSession = (await mfaUser.getSession()) as MultiFactorSessionImpl;
+      expect(mfaSession.type).to.eq(MultiFactorSessionType.ENROLL);
+      expect(mfaSession.credential).to.eq('access-token');
+      expect(mfaSession.auth).to.eq(auth);
+    });
   });
 
   describe('enroll', () => {
