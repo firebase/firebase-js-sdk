@@ -26,7 +26,7 @@ export {
   AggregateSpec,
   AggregateSpecData,
   AggregateQuerySnapshot,
-  aggregateSnapshotEqual
+  aggregateQuerySnapshotEqual
 } from '../lite-api/aggregate';
 
 /**

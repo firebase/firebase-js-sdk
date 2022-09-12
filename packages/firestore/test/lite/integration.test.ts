@@ -20,7 +20,7 @@ import { initializeApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { aggregateSnapshotEqual, getCount } from '../../src/lite-api/aggregate';
+import { aggregateQuerySnapshotEqual, getCount } from '../../src/lite-api/aggregate';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
   Firestore,
@@ -2240,8 +2240,8 @@ describe('countQuery()', () => {
       const snapshot1A = await getCount(query1);
       const snapshot1B = await getCount(query1);
       const snapshot2 = await getCount(query2);
-      expect(aggregateSnapshotEqual(snapshot1A, snapshot1B)).to.be.true;
-      expect(aggregateSnapshotEqual(snapshot1A, snapshot2)).to.be.true;
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.true;
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.true;
     });
   });
 
@@ -2257,7 +2257,7 @@ describe('countQuery()', () => {
       const query2 = query(coll, where('author', '==', 'authorB'));
       const snapshot1 = await getCount(query1);
       const snapshot2 = await getCount(query2);
-      expect(aggregateSnapshotEqual(snapshot1, snapshot2)).to.be.false;
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
     });
   });
 

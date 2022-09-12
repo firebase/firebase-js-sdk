@@ -143,7 +143,7 @@ export function getCount(
  *
  * @returns true if the AggregateQuerySnapshos are equal.
  */
-export function aggregateSnapshotEqual<T extends AggregateSpec>(
+export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(
   left: AggregateQuerySnapshot<T>,
   right: AggregateQuerySnapshot<T>
 ): boolean {
