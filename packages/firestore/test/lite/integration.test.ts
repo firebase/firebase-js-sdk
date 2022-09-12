@@ -2228,7 +2228,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('aggregateSnapshotEqual on same queries be truthy', () => {
+  it('aggregateQuerySnapshotEqual on same queries be truthy', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA' },
       { author: 'authorA', title: 'titleB' },
@@ -2245,7 +2245,7 @@ describe('countQuery()', () => {
     });
   });
 
-  it('aggregateSnapshotEqual on different queries be falsy', () => {
+  it('aggregateQuerySnapshotEqual on different queries be falsy', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA' },
       { author: 'authorA', title: 'titleB' },

@@ -20,7 +20,8 @@ export {
   AggregateSpec,
   AggregateSpecData,
   AggregateQuerySnapshot,
-  getCountFromServer
+  getCountFromServer,
+  aggregateQuerySnapshotEqual
 } from './api/aggregate';
 
 export { FieldPath, documentId } from './api/field_path';

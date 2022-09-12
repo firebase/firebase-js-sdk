@@ -17,17 +17,14 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
-import { AggregateField } from '../api/aggregate';
+import { AggregateField, AggregateQuerySnapshot } from '../api/aggregate';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import {
-  getCount,
-  AggregateQuerySnapshot
-} from '../lite-api/aggregate';
+import { getCount } from '../lite-api/aggregate';
 import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
