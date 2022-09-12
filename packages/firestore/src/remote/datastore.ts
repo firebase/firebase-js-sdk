@@ -250,11 +250,10 @@ export async function invokeRunAggregationQueryRpc(
   if (!datastoreImpl.connection.shouldResourcePathBeIncludedInRequest) {
     delete request.parent;
   }
-  const EXPECTED_RESPONSE_COUNT = 1;
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunAggregationQueryRequest,
     ProtoRunAggregationQueryResponse
-  >('RunAggregationQuery', parent!, request, EXPECTED_RESPONSE_COUNT);
+  >('RunAggregationQuery', parent!, request, /*expectedResponseCount=*/ 1);
   return (
     response
       // Omit RunAggregationQueryResponse that only contain readTimes.
