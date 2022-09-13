@@ -17,14 +17,15 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
-import { AggregateQuery, AggregateQuerySnapshot } from '../api';
+import { AggregateField, AggregateQuerySnapshot } from '../api/aggregate';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { getAggregate } from '../lite-api/aggregate';
+import { getCount } from '../lite-api/aggregate';
+import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -504,23 +505,25 @@ export function firestoreClientTransaction<T>(
   return deferred.promise;
 }
 
-export function firestoreClientRunAggregationQuery(
+export function firestoreClientRunCountQuery(
   client: FirestoreClient,
-  query: AggregateQuery
-): Promise<AggregateQuerySnapshot> {
-  const deferred = new Deferred<AggregateQuerySnapshot>();
+  query: LiteQuery<unknown>
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const deferred = new Deferred<
+    AggregateQuerySnapshot<{ count: AggregateField<number> }>
+  >();
   client.asyncQueue.enqueueAndForget(async () => {
     const remoteStore = await getRemoteStore(client);
     if (!canUseNetwork(remoteStore)) {
       deferred.reject(
         new FirestoreError(
           Code.UNAVAILABLE,
-          'Failed to get aggregate result because the client is offline.'
+          'Failed to get count result because the client is offline.'
         )
       );
     } else {
       try {
-        const result = await getAggregate(query);
+        const result = await getCount(query);
         deferred.resolve(result);
       } catch (e) {
         deferred.reject(e as Error);

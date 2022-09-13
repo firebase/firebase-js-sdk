@@ -14,25 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { firestoreClientRunAggregationQuery } from '../core/firestore_client';
-import { AggregateQuery, AggregateQuerySnapshot } from '../lite-api/aggregate';
+import { Query } from '../api';
+import { firestoreClientRunCountQuery } from '../core/firestore_client';
+import { AggregateField, AggregateQuerySnapshot } from '../lite-api/aggregate';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 
 export {
-  AggregateQuery,
+  AggregateField,
+  AggregateSpec,
+  AggregateSpecData,
   AggregateQuerySnapshot,
-  aggregateQueryEqual,
-  aggregateQuerySnapshotEqual,
-  countQuery
+  aggregateQuerySnapshotEqual
 } from '../lite-api/aggregate';
 
-export function getAggregateFromServerDirect(
-  query: AggregateQuery
-): Promise<AggregateQuerySnapshot> {
-  const firestore = cast(query.query.firestore, Firestore);
+/**
+ * Executes the query and returns the results as a `AggregateQuerySnapshot` from the
+ * server. Returns an error if the network is not available.
+ *
+ * @param query - The `Query` to execute.
+ *
+ * @returns A `Promise` that will be resolved with the results of the query.
+ */
+export function getCountFromServer(
+  query: Query<unknown>
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
-  return firestoreClientRunAggregationQuery(client, query);
+  return firestoreClientRunCountQuery(client, query);
 }

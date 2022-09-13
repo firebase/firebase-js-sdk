@@ -20,14 +20,13 @@ import { expect } from 'chai';
 import {
   collection,
   collectionGroup,
-  countQuery,
   doc,
   disableNetwork,
-  getAggregateFromServerDirect,
   query,
   terminate,
   where,
-  writeBatch
+  writeBatch,
+  getCountFromServer
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -37,36 +36,19 @@ import {
   withTestDb
 } from '../util/helpers';
 
-apiDescribe('Aggregation query', (persistence: boolean) => {
-  it('can run count query getAggregateFromServerDirect', () => {
+apiDescribe('Count query', (persistence: boolean) => {
+  it('can run count query getCountFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA' },
       b: { author: 'authorB', title: 'titleB' }
     };
     return withTestCollection(persistence, testDocs, async coll => {
-      const countQuery_ = countQuery(coll);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
-      expect(snapshot.getCount()).to.equal(2);
+      const snapshot = await getCountFromServer(coll);
+      expect(snapshot.data().count).to.equal(2);
     });
   });
 
-  it('aggregateQuery.query equals to original query', () => {
-    return withEmptyTestCollection(persistence, async coll => {
-      const query_ = query(coll);
-      const aggregateQuery_ = countQuery(query_);
-      expect(aggregateQuery_.query).to.be.equal(query_);
-    });
-  });
-
-  it('aggregateQuerySnapshot.query equals to aggregateQuery', () => {
-    return withEmptyTestCollection(persistence, async coll => {
-      const aggregateQuery_ = countQuery(coll);
-      const snapshot = await getAggregateFromServerDirect(aggregateQuery_);
-      expect(snapshot.query).to.be.equal(aggregateQuery_);
-    });
-  });
-
-  it('aggregate query supports withConverter', () => {
+  it('count query supports withConverter', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA' },
       b: { author: 'authorB', title: 'titleB' }
@@ -76,13 +58,12 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
         coll,
         where('author', '==', 'authorA')
       ).withConverter(postConverter);
-      const countQuery_ = countQuery(query_);
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
-      expect(snapshot.getCount()).to.equal(1);
+      const snapshot = await getCountFromServer(query_);
+      expect(snapshot.data().count).to.equal(1);
     });
   });
 
-  it('aggregate query supports collection groups', () => {
+  it('count query supports collection groups', () => {
     return withTestDb(persistence, async db => {
       const collectionGroupId = doc(collection(db, 'aggregateQueryTest')).id;
       const docPaths = [
@@ -97,42 +78,35 @@ apiDescribe('Aggregation query', (persistence: boolean) => {
         batch.set(doc(db, docPath), { x: 1 });
       }
       await batch.commit();
-      const countQuery_ = countQuery(collectionGroup(db, collectionGroupId));
-      const snapshot = await getAggregateFromServerDirect(countQuery_);
-      expect(snapshot.getCount()).to.equal(2);
+      const snapshot = await getCountFromServer(
+        collectionGroup(db, collectionGroupId)
+      );
+      expect(snapshot.data().count).to.equal(2);
     });
   });
 
-  it('aggregate query fails if firestore is terminated', () => {
+  it('getCountFromServer fails if firestore is terminated', () => {
     return withEmptyTestCollection(persistence, async (coll, firestore) => {
       await terminate(firestore);
-      const countQuery_ = countQuery(coll);
-      expect(() => getAggregateFromServerDirect(countQuery_)).to.throw(
+      expect(() => getCountFromServer(coll)).to.throw(
         'The client has already been terminated.'
       );
     });
   });
 
-  it("terminate doesn't crash when there is aggregate query in flight", () => {
+  it("terminate doesn't crash when there is count query in flight", () => {
     return withEmptyTestCollection(persistence, async (coll, firestore) => {
-      const countQuery_ = countQuery(coll);
-      void getAggregateFromServerDirect(countQuery_);
+      void getCountFromServer(coll);
       await terminate(firestore);
     });
   });
 
-  it('getAggregateFromServerDirect fails if user is offline', () => {
-    return withEmptyTestCollection(
-      persistence,
-      async (collection, firestore) => {
-        await disableNetwork(firestore);
-        const countQuery_ = countQuery(collection);
-        await expect(
-          getAggregateFromServerDirect(countQuery_)
-        ).to.be.eventually.rejectedWith(
-          'Failed to get aggregate result because the client is offline'
-        );
-      }
-    );
+  it('getCountFromServer fails if user is offline', () => {
+    return withEmptyTestCollection(persistence, async (coll, firestore) => {
+      await disableNetwork(firestore);
+      await expect(getCountFromServer(coll)).to.be.eventually.rejectedWith(
+        'Failed to get count result because the client is offline'
+      );
+    });
   });
 });

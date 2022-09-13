@@ -29,6 +29,16 @@ registerFirestore();
 
 export { FirestoreSettings as Settings } from '../src/lite-api/settings';
 
+
+export {
+  AggregateField,
+  AggregateSpec,
+  AggregateSpecData,
+  AggregateQuerySnapshot,
+  getCount,
+  aggregateQuerySnapshotEqual
+} from '../src/lite-api/aggregate';
+
 export {
   Firestore as Firestore,
   EmulatorMockTokenOptions,
