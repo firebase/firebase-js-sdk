@@ -17,7 +17,10 @@
 
 import { EmulatorMockTokenOptions } from '@firebase/util';
 
-export type DocumentData = { [field: string]: any };
+/** Alias dynamic document field value types to any */
+export type DocumentFieldValue = any;
+
+export type DocumentData = { [field: string]: DocumentFieldValue };
 
 export type UpdateData = { [fieldPath: string]: any };
 

@@ -341,12 +341,16 @@ export declare interface DocumentChange<T = DocumentData> {
  * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
  */
 export declare type DocumentChangeType = 'added' | 'removed' | 'modified';
+
+/** Alias dynamic document field value types to any */
+export declare type DocumentFieldValue = any;
+
 /**
  * Document data (for use with {@link setDoc}) consists of fields mapped to
  * values.
  */
 export declare interface DocumentData {
-  [field: string]: any;
+  [field: string]: DocumentFieldValue;
 }
 /**
  * Returns a special sentinel `FieldPath` to refer to the ID of a document.

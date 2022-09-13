@@ -907,12 +907,15 @@ declare type DocumentComparator = (
   doc2: Document_2
 ) => number;
 
+/** Alias dynamic document field value types to any */
+export declare type DocumentFieldValue = any;
+
 /**
  * Document data (for use with {@link setDoc}) consists of fields mapped to
  * values.
  */
 export declare interface DocumentData {
-  [field: string]: any;
+  [field: string]: DocumentFieldValue;
 }
 
 /**
