@@ -8225,7 +8225,6 @@ declare namespace firebase.storage {
 }
 
 declare namespace firebase.firestore {
-
   /** Alias dynamic document field value types to any */
   export type DocumentFieldValue = any;
 
