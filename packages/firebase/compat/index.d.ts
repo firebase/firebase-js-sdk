@@ -8227,15 +8227,11 @@ declare namespace firebase.storage {
 }
 
 declare namespace firebase.firestore {
-
-  /** Alias dynamic document field value types to any */
-  export type DocumentFieldValue = any;
-  
   /**
    * Document data (for use with `DocumentReference.set()`) consists of fields
    * mapped to values.
    */
-  export type DocumentData = { [field: string]: DocumentFieldValue };
+  export type DocumentData = { [field: string]: any };
 
   /**
    * Update data (for use with `DocumentReference.update()`) consists of field

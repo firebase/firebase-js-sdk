@@ -29,7 +29,6 @@ registerFirestore();
 
 export { FirestoreSettings as Settings } from '../src/lite-api/settings';
 
-
 export {
   AggregateField,
   AggregateSpec,

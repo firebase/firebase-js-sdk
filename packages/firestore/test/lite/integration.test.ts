@@ -20,7 +20,10 @@ import { initializeApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { aggregateQuerySnapshotEqual, getCount } from '../../src/lite-api/aggregate';
+import {
+  aggregateQuerySnapshotEqual,
+  getCount
+} from '../../src/lite-api/aggregate';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
   Firestore,
