@@ -64,6 +64,7 @@ export {
   collectionGroup,
   SetOptions,
   DocumentData,
+  DocumentFieldValue,
   UpdateData,
   WithFieldValue,
   PartialWithFieldValue,

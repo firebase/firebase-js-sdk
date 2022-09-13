@@ -25,6 +25,7 @@ export {
   queryEqual,
   SetOptions,
   DocumentData,
+  DocumentFieldValue,
   UpdateData,
   WithFieldValue,
   PartialWithFieldValue,

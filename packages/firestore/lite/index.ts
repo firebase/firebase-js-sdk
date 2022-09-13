@@ -40,6 +40,7 @@ export {
 
 export {
   DocumentData,
+  DocumentFieldValue,
   UpdateData,
   WithFieldValue,
   PartialWithFieldValue,
