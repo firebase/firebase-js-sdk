@@ -23,10 +23,12 @@ import { ensureFirestoreConfigured, Firestore } from './database';
 
 export {
   AggregateField,
+  AggregateFieldType,
+  AggregateQuerySnapshot,
+  aggregateQuerySnapshotEqual,
   AggregateSpec,
   AggregateSpecData,
-  AggregateQuerySnapshot,
-  aggregateQuerySnapshotEqual
+  count
 } from '../lite-api/aggregate';
 
 /**

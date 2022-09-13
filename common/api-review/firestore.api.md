@@ -18,27 +18,36 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 };
 
 // @public
-export class AggregateQuery {
-    readonly query: Query<unknown>;
+export class AggregateField<T> {
     // (undocumented)
-    readonly type = "AggregateQuery";
+    type: string;
 }
 
-// @public (undocumented)
-export function aggregateQueryEqual(left: AggregateQuery, right: AggregateQuery): boolean;
+// @public
+export type AggregateFieldType = ReturnType<typeof count>;
 
 // @public
-export class AggregateQuerySnapshot {
+export class AggregateQuerySnapshot<T extends AggregateSpec> {
+    data(): AggregateSpecData<T>;
     // (undocumented)
-    getCount(): number | null;
-    // (undocumented)
-    readonly query: AggregateQuery;
+    readonly query: Query<unknown>;
     // (undocumented)
     readonly type = "AggregateQuerySnapshot";
 }
 
-// @public (undocumented)
-export function aggregateQuerySnapshotEqual(left: AggregateQuerySnapshot, right: AggregateQuerySnapshot): boolean;
+// @public
+export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(left: AggregateQuerySnapshot<T>, right: AggregateQuerySnapshot<T>): boolean;
+
+// @public
+export interface AggregateSpec {
+    // (undocumented)
+    [field: string]: AggregateFieldType;
+}
+
+// @public
+export type AggregateSpecData<T extends AggregateSpec> = {
+    [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
+};
 
 // @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
@@ -93,7 +102,7 @@ export function connectFirestoreEmulator(firestore: Firestore, host: string, por
 }): void;
 
 // @public
-export function countQuery(query: Query<unknown>): AggregateQuery;
+export function count(): AggregateField<number>;
 
 // @public
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
@@ -235,8 +244,10 @@ export class GeoPoint {
     };
 }
 
-// @public (undocumented)
-export function getAggregateFromServerDirect(query: AggregateQuery): Promise<AggregateQuerySnapshot>;
+// @public
+export function getCountFromServer(query: Query<unknown>): Promise<AggregateQuerySnapshot<{
+    count: AggregateField<number>;
+}>>;
 
 // @public
 export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;

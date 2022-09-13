@@ -31,11 +31,13 @@ export { FirestoreSettings as Settings } from '../src/lite-api/settings';
 
 export {
   AggregateField,
+  AggregateFieldType,
   AggregateSpec,
   AggregateSpecData,
   AggregateQuerySnapshot,
   getCount,
-  aggregateQuerySnapshotEqual
+  aggregateQuerySnapshotEqual,
+  count
 } from '../src/lite-api/aggregate';
 
 export {

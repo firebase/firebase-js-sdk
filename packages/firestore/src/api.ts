@@ -17,11 +17,13 @@
 
 export {
   AggregateField,
+  AggregateFieldType,
+  AggregateQuerySnapshot,
   AggregateSpec,
   AggregateSpecData,
-  AggregateQuerySnapshot,
-  getCountFromServer,
-  aggregateQuerySnapshotEqual
+  aggregateQuerySnapshotEqual,
+  count,
+  getCountFromServer
 } from './api/aggregate';
 
 export { FieldPath, documentId } from './api/field_path';

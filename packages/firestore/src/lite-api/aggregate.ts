@@ -47,7 +47,7 @@ export function count(): AggregateField<number> {
  * The union of all `AggregateField` types that are returned from the factory
  * functions.
  */
-type AggregateFieldType = ReturnType<typeof count>;
+export type AggregateFieldType = ReturnType<typeof count>;
 
 /**
  * A type whose values are all `AggregateField` objects.
