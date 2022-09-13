@@ -341,7 +341,6 @@ export declare interface DocumentChange<T = DocumentData> {
  * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
  */
 export declare type DocumentChangeType = 'added' | 'removed' | 'modified';
-
 /**
  * Document data (for use with {@link setDoc}) consists of fields mapped to
  * values.

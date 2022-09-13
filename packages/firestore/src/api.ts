@@ -19,9 +19,9 @@ export {
   AggregateField,
   AggregateFieldType,
   AggregateQuerySnapshot,
+  aggregateQuerySnapshotEqual,
   AggregateSpec,
   AggregateSpecData,
-  aggregateQuerySnapshotEqual,
   count,
   getCountFromServer
 } from './api/aggregate';

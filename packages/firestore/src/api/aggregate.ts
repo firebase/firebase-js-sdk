@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Query } from '../api';
 import { firestoreClientRunCountQuery } from '../core/firestore_client';
 import { AggregateField, AggregateQuerySnapshot } from '../lite-api/aggregate';
