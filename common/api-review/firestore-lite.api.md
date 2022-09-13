@@ -80,8 +80,11 @@ export function doc(reference: DocumentReference<unknown>, path: string, ...path
 
 // @public
 export interface DocumentData {
-    [field: string]: any;
+    [field: string]: DocumentFieldValue;
 }
+
+// @public
+export type DocumentFieldValue = any;
 
 // @public
 export function documentId(): FieldPath;

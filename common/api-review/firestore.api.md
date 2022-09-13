@@ -100,8 +100,11 @@ export type DocumentChangeType = 'added' | 'removed' | 'modified';
 
 // @public
 export interface DocumentData {
-    [field: string]: any;
+    [field: string]: DocumentFieldValue;
 }
+
+// @public
+export type DocumentFieldValue = any;
 
 // @public
 export function documentId(): FieldPath;
