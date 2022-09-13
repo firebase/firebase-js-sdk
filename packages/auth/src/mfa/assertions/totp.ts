@@ -19,7 +19,7 @@ import {
   MultiFactorSession,
   FactorId
 } from '../../model/public_types';
-import { AppName, AuthInternal } from '../../model/auth';
+import { AuthInternal } from '../../model/auth';
 import {
   finalizeEnrollTotpMfa,
   startEnrollTotpMfa,
@@ -31,8 +31,6 @@ import { MultiFactorAssertionImpl } from '../../mfa/mfa_assertion';
 import { MultiFactorSessionImpl } from '../mfa_session';
 import { AuthErrorCode } from '../../core/errors';
 import { _assert } from '../../core/util/assert';
-import { getApp } from '@firebase/app';
-import { getAuth } from '../../platform_node';
 
 /**
  * Provider for generating a {@link TotpMultiFactorAssertion}.
@@ -93,13 +91,13 @@ export class TotpMultiFactorGenerator {
       typeof mfaSession.auth !== 'undefined',
       AuthErrorCode.INTERNAL_ERROR
     );
-    const response = await startEnrollTotpMfa(mfaSession.auth!, {
+    const response = await startEnrollTotpMfa(mfaSession.auth, {
       idToken: mfaSession.credential,
       totpEnrollmentInfo: {}
     });
     return TotpSecret.fromStartTotpMfaEnrollmentResponse(
       response,
-      mfaSession.auth!.name
+      mfaSession.auth
     );
   }
 
@@ -193,12 +191,12 @@ export class TotpSecret {
     // This can be used by callers to show a countdown of when to enter OTP code by.
     private readonly finalizeEnrollmentBy: string,
     private readonly sessionInfo: string,
-    private readonly appName: AppName
+    private readonly auth: AuthInternal
   ) {}
 
   static fromStartTotpMfaEnrollmentResponse(
     response: StartTotpMfaEnrollmentResponse,
-    appName: AppName
+    auth: AuthInternal
   ): TotpSecret {
     return new TotpSecret(
       response.totpSessionInfo.sharedSecretKey,
@@ -207,7 +205,7 @@ export class TotpSecret {
       response.totpSessionInfo.periodSec,
       new Date(response.totpSessionInfo.finalizeEnrollmentTime).toUTCString(),
       response.totpSessionInfo.sessionInfo,
-      appName
+      auth
     );
   }
 
@@ -231,13 +229,11 @@ export class TotpSecret {
       useDefaults = true;
     }
     if (useDefaults) {
-      const app = getApp(this.appName);
-      const auth = getAuth(app);
       if (_isEmptyString(accountName)) {
-        accountName = auth.currentUser?.email || 'unknownuser';
+        accountName = this.auth.currentUser?.email || 'unknownuser';
       }
       if (_isEmptyString(issuer)) {
-        issuer = app.name;
+        issuer = this.auth.name;
       }
     }
     return `otpauth://totp/${issuer}:${accountName}?secret=${this.secretKey}&issuer=${issuer}&algorithm=${this.hashingAlgorithm}&digits=${this.codeLength}`;

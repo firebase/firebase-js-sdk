@@ -30,12 +30,9 @@ import {
   TotpMultiFactorGenerator,
   TotpSecret
 } from './totp';
-import { Auth, FactorId } from '../../model/public_types';
+import { FactorId } from '../../model/public_types';
 import { AuthErrorCode } from '../../core/errors';
-import { FirebaseApp, initializeApp } from '@firebase/app';
 import { AppName } from '../../model/auth';
-import { getAuth } from '../../platform_node';
-import { initializeAuth } from '../../core';
 import { _castAuth } from '../../core/auth/auth_impl';
 
 use(chaiAsPromised);
@@ -58,7 +55,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
       auth = await testAuth();
       const secret = TotpSecret.fromStartTotpMfaEnrollmentResponse(
         startEnrollmentResponse,
-        auth.name
+        auth
       );
       const assertion = TotpMultiFactorGenerator.assertionForEnrollment(
         secret,
@@ -90,9 +87,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
           'enrollment-id-token',
           undefined
         );
-        await TotpMultiFactorGenerator.generateSecret(
-          session
-        );
+        await TotpMultiFactorGenerator.generateSecret(session);
       } catch (e) {
         expect(e.code).to.eql(`auth/${AuthErrorCode.INTERNAL_ERROR}`);
       }
@@ -156,7 +151,7 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
     auth = await testAuth();
     secret = TotpSecret.fromStartTotpMfaEnrollmentResponse(
       startEnrollmentResponse,
-      auth.name
+      auth
     );
     assertion = TotpMultiFactorAssertionImpl._fromSecret(secret, '123456');
   });
@@ -213,7 +208,7 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
   });
 });
 
-describe('core/mfa/assertions/totp/TotpSecret', () => {
+describe('core/mfa/assertions/totp/TotpSecret', async () => {
   const serverResponse: StartTotpMfaEnrollmentResponse = {
     totpSessionInfo: {
       sharedSecretKey: 'key123',
@@ -224,11 +219,13 @@ describe('core/mfa/assertions/totp/TotpSecret', () => {
       finalizeEnrollmentTime: 1662586196
     }
   };
+  // this is the name used by the fake app in testAuth().
   const fakeAppName: AppName = 'test-app';
   const fakeEmail: string = 'user@email';
+  const auth = await testAuth();
   const secret = TotpSecret.fromStartTotpMfaEnrollmentResponse(
     serverResponse,
-    fakeAppName
+    auth
   );
 
   describe('fromStartTotpMfaEnrollmentResponse', () => {
@@ -240,19 +237,7 @@ describe('core/mfa/assertions/totp/TotpSecret', () => {
     });
   });
   describe('generateQrCodeUrl', () => {
-    let app: FirebaseApp;
-    let auth: Auth;
-
     beforeEach(async () => {
-      app = initializeApp(
-        {
-          apiKey: 'fake-key',
-          appId: 'fake-app-id',
-          authDomain: 'fake-auth-domain'
-        },
-        fakeAppName
-      );
-      auth = initializeAuth(app);
       await auth.updateCurrentUser(
         testUser(_castAuth(auth), 'uid', fakeEmail, true)
       );
@@ -266,8 +251,6 @@ describe('core/mfa/assertions/totp/TotpSecret', () => {
     });
     it('only accountName provided', () => {
       const url = secret.generateQrCodeUrl('user@myawesomeapp', '');
-      const auth2 = getAuth(app);
-      console.log('Current user is ' + auth2);
       expect(url).to.eq(
         `otpauth://totp/${fakeAppName}:user@myawesomeapp?secret=key123&issuer=${fakeAppName}&algorithm=SHA1&digits=6`
       );
