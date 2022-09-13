@@ -1,5 +1,19 @@
 # @firebase/firestore
 
+## 3.4.15
+
+### Patch Changes
+
+- [`b993aeec4`](https://github.com/firebase/firebase-js-sdk/commit/b993aeec4a8f5188d1f53d07808da079f3ade846) [#6550](https://github.com/firebase/firebase-js-sdk/pull/6550) (fixes [#5871](https://github.com/firebase/firebase-js-sdk/issues/5871)) - Fix FAILED_PRECONDITION when writing to a deleted document in a transaction (#5871)
+
+## 3.4.14
+
+### Patch Changes
+
+- [`f5426a512`](https://github.com/firebase/firebase-js-sdk/commit/f5426a51275bb611a5d9a6df3200d0fe5095afa2) [#6403](https://github.com/firebase/firebase-js-sdk/pull/6403) - Add internal implementation of setIndexConfiguration
+
+* [`10765511f`](https://github.com/firebase/firebase-js-sdk/commit/10765511f7ba33293f7a15af1f98d69a261c019d) [#6496](https://github.com/firebase/firebase-js-sdk/pull/6496) - Expose client side indexing feature with `setIndexConfiguration`.
+
 ## 3.4.13
 
 ### Patch Changes

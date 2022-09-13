@@ -1,5 +1,34 @@
 # @firebase/database-compat
 
+## 0.2.6
+
+### Patch Changes
+
+- Updated dependencies [[`f35533594`](https://github.com/firebase/firebase-js-sdk/commit/f355335942b874ba390bcbf3be6de44a3d33dce8)]:
+  - @firebase/database@0.13.6
+
+## 0.2.5
+
+### Patch Changes
+
+- [`9f1e3c667`](https://github.com/firebase/firebase-js-sdk/commit/9f1e3c66747126c8e24894d73f7fa27480bec08d) [#6536](https://github.com/firebase/firebase-js-sdk/pull/6536) - Revert "Updated type of action parameter for DataSnapshot#forEach"
+
+* [`fcd4b8ac3`](https://github.com/firebase/firebase-js-sdk/commit/fcd4b8ac36636a60d83cd3370969ff9192f9e6ad) [#6508](https://github.com/firebase/firebase-js-sdk/pull/6508) - Fixed faulty transaction bug causing filtered index queries to override default queries.
+
+* Updated dependencies [[`9f1e3c667`](https://github.com/firebase/firebase-js-sdk/commit/9f1e3c66747126c8e24894d73f7fa27480bec08d), [`a5d9e1083`](https://github.com/firebase/firebase-js-sdk/commit/a5d9e10831c2877e9d15c8a33b15557e4251c4de), [`fcd4b8ac3`](https://github.com/firebase/firebase-js-sdk/commit/fcd4b8ac36636a60d83cd3370969ff9192f9e6ad)]:
+  - @firebase/database-types@0.9.13
+  - @firebase/database@0.13.5
+
+## 0.2.4
+
+### Patch Changes
+
+- [`65838089d`](https://github.com/firebase/firebase-js-sdk/commit/65838089da47965e5e39e58c76a81a74666b215e) [#6374](https://github.com/firebase/firebase-js-sdk/pull/6374) (fixes [#6368](https://github.com/firebase/firebase-js-sdk/issues/6368)) - Updated type of action parameter for DataSnapshot#forEach
+
+- Updated dependencies [[`65838089d`](https://github.com/firebase/firebase-js-sdk/commit/65838089da47965e5e39e58c76a81a74666b215e)]:
+  - @firebase/database@0.13.4
+  - @firebase/database-types@0.9.12
+
 ## 0.2.3
 
 ### Patch Changes

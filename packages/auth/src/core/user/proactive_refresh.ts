@@ -93,7 +93,10 @@ export class ProactiveRefresh {
       await this.user.getIdToken(true);
     } catch (e) {
       // Only retry on network errors
-      if ((e as FirebaseError)?.code === `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`) {
+      if (
+        (e as FirebaseError)?.code ===
+        `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`
+      ) {
         this.schedule(/* wasError */ true);
       }
 

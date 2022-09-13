@@ -287,10 +287,13 @@ describe('Integration test: headless IdP', () => {
     ]);
   });
 
-  generateMiddlewareTests(() => auth, () => {
-    return signInWithCredential(
-      auth,
-      GoogleAuthProvider.credential(oauthIdToken)
-    );
-  });
+  generateMiddlewareTests(
+    () => auth,
+    () => {
+      return signInWithCredential(
+        auth,
+        GoogleAuthProvider.credential(oauthIdToken)
+      );
+    }
+  );
 });

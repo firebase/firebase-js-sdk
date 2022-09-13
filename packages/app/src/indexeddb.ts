@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { DBSchema, openDB, IDBPDatabase } from 'idb';
 import { AppError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from './public-types';
 import { HeartbeatsInIndexedDB } from './types';
+import { logger } from './logger';
 
 const DB_NAME = 'firebase-heartbeat-database';
 const DB_VERSION = 1;
@@ -47,7 +49,7 @@ function getDbPromise(): Promise<IDBPDatabase<AppDB>> {
         }
       }
     }).catch(e => {
-      throw ERROR_FACTORY.create(AppError.STORAGE_OPEN, {
+      throw ERROR_FACTORY.create(AppError.IDB_OPEN, {
         originalErrorMessage: e.message
       });
     });
@@ -65,9 +67,14 @@ export async function readHeartbeatsFromIndexedDB(
       .objectStore(STORE_NAME)
       .get(computeKey(app)) as Promise<HeartbeatsInIndexedDB | undefined>;
   } catch (e) {
-    throw ERROR_FACTORY.create(AppError.STORAGE_GET, {
-      originalErrorMessage: (e as Error)?.message
-    });
+    if (e instanceof FirebaseError) {
+      logger.warn(e.message);
+    } else {
+      const idbGetError = ERROR_FACTORY.create(AppError.IDB_GET, {
+        originalErrorMessage: (e as Error)?.message
+      });
+      logger.warn(idbGetError.message);
+    }
   }
 }
 
@@ -82,9 +89,14 @@ export async function writeHeartbeatsToIndexedDB(
     await objectStore.put(heartbeatObject, computeKey(app));
     return tx.done;
   } catch (e) {
-    throw ERROR_FACTORY.create(AppError.STORAGE_WRITE, {
-      originalErrorMessage: (e as Error)?.message
-    });
+    if (e instanceof FirebaseError) {
+      logger.warn(e.message);
+    } else {
+      const idbGetError = ERROR_FACTORY.create(AppError.IDB_WRITE, {
+        originalErrorMessage: (e as Error)?.message
+      });
+      logger.warn(idbGetError.message);
+    }
   }
 }
 

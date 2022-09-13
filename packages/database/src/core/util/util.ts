@@ -618,10 +618,21 @@ export const setTimeoutNonBlocking = function (
   time: number
 ): number | object {
   const timeout: number | object = setTimeout(fn, time);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (typeof timeout === 'object' && (timeout as any)['unref']) {
+  // Note: at the time of this comment, unrefTimer is under the unstable set of APIs. Run with --unstable to enable the API.
+  if (
+    typeof timeout === 'number' &&
+    // @ts-ignore Is only defined in Deno environments.
+    typeof Deno !== 'undefined' &&
+    // @ts-ignore Deno and unrefTimer are only defined in Deno environments.
+    Deno['unrefTimer']
+  ) {
+    // @ts-ignore Deno and unrefTimer are only defined in Deno environments.
+    Deno.unrefTimer(timeout);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } else if (typeof timeout === 'object' && (timeout as any)['unref']) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (timeout as any)['unref']();
   }
+
   return timeout;
 };

@@ -15,16 +15,39 @@
  * limitations under the License.
  */
 
+import { FirebaseApp, initializeApp } from '@firebase/app';
 import { uuidv4 } from '@firebase/util';
+import { expect } from 'chai';
 
-import { Database, ref } from '../../src';
+import {
+  Database,
+  DatabaseReference,
+  getDatabase,
+  onValue,
+  ref,
+  set
+} from '../../src';
 import { ConnectionTarget } from '../../src/api/test_access';
+import { Path } from '../../src/core/util/Path';
+
+import { EventAccumulator } from './EventAccumulator';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');
 const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
 const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;
 const USE_EMULATOR = !!EMULATOR_PORT;
+
+let freshRepoId = 0;
+const activeFreshApps: FirebaseApp[] = [];
+export function getFreshRepo(path: Path) {
+  const app = initializeApp(
+    { databaseURL: DATABASE_URL },
+    'ISOLATED_REPO_' + freshRepoId++
+  );
+  activeFreshApps.push(app);
+  return ref(getDatabase(app), path.toString());
+}
 
 /*
  * When running against the emulator, the hostname will be "localhost" rather
@@ -83,5 +106,41 @@ export function waitFor(waitTimeInMS: number) {
 // Creates a unique reference using uuid
 export function getUniqueRef(db: Database) {
   const path = uuidv4();
-  return { ref: ref(db, path), path };
+  return ref(db, path);
+}
+
+// Get separate Reader and Writer Refs to prevent caching.
+export function getRWRefs(db: Database) {
+  const readerRef = getUniqueRef(db);
+  const writerRef = getFreshRepo(readerRef._path);
+  return { readerRef, writerRef };
+}
+
+// Validates that the ref was successfully written to.
+export async function writeAndValidate(
+  writerRef: DatabaseReference,
+  readerRef: DatabaseReference,
+  toWrite: unknown,
+  ec: EventAccumulator
+) {
+  await set(writerRef, toWrite);
+  onValue(readerRef, snapshot => {
+    ec.addEvent(snapshot);
+  });
+  const [snap] = await ec.promise;
+  expect(snap.val()).to.deep.eq(toWrite);
+}
+
+// Waits until callback function returns true
+export async function waitUntil(cb: () => boolean, maxRetries = 5) {
+  let count = 1;
+  return new Promise((resolve, reject) => {
+    if (cb()) {
+      resolve(true);
+    } else {
+      if (count++ === maxRetries) {
+        reject('waited too many times for conditional to be true');
+      }
+    }
+  });
 }

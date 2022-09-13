@@ -85,9 +85,9 @@ browserDescribe('Popup IdP tests', driver => {
     await widget.clickSignIn();
 
     await driver.selectMainWindow();
-    await expect(driver.call(
-      PopupFunction.POPUP_RESULT
-    )).to.be.rejectedWith('auth/login-blocked');
+    await expect(driver.call(PopupFunction.POPUP_RESULT)).to.be.rejectedWith(
+      'auth/login-blocked'
+    );
     const currentUser = await driver.getUserSnapshot();
     expect(currentUser).to.be.null;
   });

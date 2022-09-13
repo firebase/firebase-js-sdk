@@ -284,7 +284,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         .that.contains({ uid: user.uid });
     });
 
-    it('migrates user when switching from indexedDB to localStorage', async function() {
+    it('migrates user when switching from indexedDB to localStorage', async function () {
       // This test only works in the modular SDK: the compat package does not
       // make the distinction between indexedDB and local storage (both are just
       // 'local').
@@ -462,7 +462,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(await driver.getUserSnapshot()).to.contain({ uid: uid2 });
     });
 
-    it('middleware does not block tab sync', async function() {
+    it('middleware does not block tab sync', async function () {
       if (driver.isCompatLayer()) {
         // Compat layer is skipped because it doesn't support middleware
         console.warn('Skipping middleware tabs in compat test');
@@ -473,9 +473,9 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.call(MiddlewareFunction.ATTACH_BLOCKING_MIDDLEWARE);
 
       // Check that it blocks basic sign in
-      await expect(driver.call(
-        AnonFunction.SIGN_IN_ANONYMOUSLY
-      )).to.be.rejectedWith('auth/login-blocked');
+      await expect(
+        driver.call(AnonFunction.SIGN_IN_ANONYMOUSLY)
+      ).to.be.rejectedWith('auth/login-blocked');
       const userInPopup = await driver.getUserSnapshot();
       expect(userInPopup).to.be.null;
 

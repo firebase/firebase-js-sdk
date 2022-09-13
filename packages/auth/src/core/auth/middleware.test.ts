@@ -45,9 +45,15 @@ describe('Auth middleware', () => {
   it('calls middleware in order', async () => {
     const calls: number[] = [];
 
-    middlewareQueue.pushCallback(() => {calls.push(1);});
-    middlewareQueue.pushCallback(() => {calls.push(2);});
-    middlewareQueue.pushCallback(() => {calls.push(3);});
+    middlewareQueue.pushCallback(() => {
+      calls.push(1);
+    });
+    middlewareQueue.pushCallback(() => {
+      calls.push(2);
+    });
+    middlewareQueue.pushCallback(() => {
+      calls.push(3);
+    });
 
     await middlewareQueue.runMiddleware(user);
 
@@ -58,12 +64,16 @@ describe('Auth middleware', () => {
     middlewareQueue.pushCallback(() => {
       throw new Error('no');
     });
-    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith('auth/login-blocked');
+    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith(
+      'auth/login-blocked'
+    );
   });
 
   it('rejects on promise rejection', async () => {
     middlewareQueue.pushCallback(() => Promise.reject('no'));
-    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith('auth/login-blocked');
+    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith(
+      'auth/login-blocked'
+    );
   });
 
   it('awaits middleware completion before calling next', async () => {
@@ -93,7 +103,9 @@ describe('Auth middleware', () => {
     });
     middlewareQueue.pushCallback(spy);
 
-    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith('auth/login-blocked');
+    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith(
+      'auth/login-blocked'
+    );
     expect(spy).not.to.have.been.called;
   });
 
@@ -106,7 +118,9 @@ describe('Auth middleware', () => {
       throw new Error('no');
     }, secondOnAbort);
 
-    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith('auth/login-blocked');
+    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith(
+      'auth/login-blocked'
+    );
     expect(firstOnAbort).to.have.been.called;
     expect(secondOnAbort).not.to.have.been.called;
   });
@@ -114,14 +128,31 @@ describe('Auth middleware', () => {
   it('calls onAbort in reverse order', async () => {
     const calls: number[] = [];
 
-    middlewareQueue.pushCallback(() => {}, () => {calls.push(1);});
-    middlewareQueue.pushCallback(() => {}, () => {calls.push(2);});
-    middlewareQueue.pushCallback(() => {}, () => {calls.push(3);});
+    middlewareQueue.pushCallback(
+      () => {},
+      () => {
+        calls.push(1);
+      }
+    );
+    middlewareQueue.pushCallback(
+      () => {},
+      () => {
+        calls.push(2);
+      }
+    );
+    middlewareQueue.pushCallback(
+      () => {},
+      () => {
+        calls.push(3);
+      }
+    );
     middlewareQueue.pushCallback(() => {
       throw new Error('no');
     });
 
-    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith('auth/login-blocked');
+    await expect(middlewareQueue.runMiddleware(user)).to.be.rejectedWith(
+      'auth/login-blocked'
+    );
     expect(calls).to.eql([3, 2, 1]);
   });
 
