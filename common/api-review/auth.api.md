@@ -751,6 +751,10 @@ export interface TotpMultiFactorAssertion extends MultiFactorAssertion {
 }
 
 // @public
+export interface TotpMultiFactorInfo extends MultiFactorInfo {
+}
+
+// @public
 export class TwitterAuthProvider extends BaseOAuthProvider {
     constructor();
     static credential(token: string, secret: string): OAuthCredential;
