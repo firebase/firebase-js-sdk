@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AuthInternal } from '../model/auth';
 import { MultiFactorSession } from '../model/public_types';
 
 export const enum MultiFactorSessionType {
@@ -31,11 +32,19 @@ interface SerializedMultiFactorSession {
 export class MultiFactorSessionImpl implements MultiFactorSession {
   private constructor(
     readonly type: MultiFactorSessionType,
-    readonly credential: string
+    readonly credential: string,
+    readonly auth?: AuthInternal
   ) {}
 
-  static _fromIdtoken(idToken: string): MultiFactorSessionImpl {
-    return new MultiFactorSessionImpl(MultiFactorSessionType.ENROLL, idToken);
+  static _fromIdtoken(
+    idToken: string,
+    auth?: AuthInternal
+  ): MultiFactorSessionImpl {
+    return new MultiFactorSessionImpl(
+      MultiFactorSessionType.ENROLL,
+      idToken,
+      auth
+    );
   }
 
   static _fromMfaPendingCredential(

@@ -48,7 +48,7 @@ describe('api/authentication/startSignInPhoneMfa', () => {
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.START_PHONE_MFA_SIGN_IN, {
+    const mock = mockEndpoint(Endpoint.START_MFA_SIGN_IN, {
       phoneResponseInfo: {
         sessionInfo: 'session-info'
       }
@@ -68,7 +68,7 @@ describe('api/authentication/startSignInPhoneMfa', () => {
 
   it('should handle errors', async () => {
     const mock = mockEndpoint(
-      Endpoint.START_PHONE_MFA_SIGN_IN,
+      Endpoint.START_MFA_SIGN_IN,
       {
         error: {
           code: 400,
@@ -112,7 +112,7 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.FINALIZE_PHONE_MFA_SIGN_IN, {
+    const mock = mockEndpoint(Endpoint.FINALIZE_MFA_SIGN_IN, {
       idToken: 'id-token',
       refreshToken: 'refresh-token'
     });
@@ -132,7 +132,7 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
 
   it('should handle errors', async () => {
     const mock = mockEndpoint(
-      Endpoint.FINALIZE_PHONE_MFA_SIGN_IN,
+      Endpoint.FINALIZE_MFA_SIGN_IN,
       {
         error: {
           code: 400,

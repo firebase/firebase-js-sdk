@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { FirebaseApp } from '@firebase/app';
 import {
   CompleteFn,
@@ -104,7 +106,7 @@ export interface ParsedToken {
     'identities'?: Record<string, string>;
   };
   /** Map of any additional custom claims. */
-  [key: string]: string | object | undefined;
+  [key: string]: any;
 }
 
 /**
