@@ -103,19 +103,17 @@ export function withTestCollection(
 }
 
 export function skipTestUnlessUsingEmulator<
-  T extends (...params: any[]) => any
+  T extends (...params: Parameters<T>) => Promise<void>
 >(fn: T, ...params: Parameters<T>): Promise<void> {
   /**
-   * This is a wrapper function to execute test cases that can only run on emulator till
+   * This is a wrapper to execute test functions that can only run on emulator till
    * production test environment is ready.
    */
   if (!USE_EMULATOR) {
     return Promise.resolve();
   }
 
-  return fn(...params).catch((error: any) => {
-    throw error;
-  });
+  return fn(...params);
 }
 
 // Used for testing the FirestoreDataConverter.

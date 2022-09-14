@@ -16,7 +16,6 @@
  */
 
 import { isIndexedDBAvailable } from '@firebase/util';
-import { Code } from '../../../src/util/error';
 
 import {
   collection,
@@ -241,10 +240,10 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
 }
 
 export function skipTestUnlessUsingEmulator<
-  T extends (...params: any[]) => any
+  T extends (...params: Parameters<T>) => Promise<void>
 >(fn: T, ...params: Parameters<T>): Promise<void> {
   /**
-   * This is a wrapper function to execute test cases that can only run on emulator till
+   * This is a wrapper to execute test functions that can only run on emulator till
    * production test environment is ready.
    */
   if (!USE_EMULATOR) {
@@ -252,11 +251,7 @@ export function skipTestUnlessUsingEmulator<
   }
 
   return fn(...params).catch((error: FirestoreError) => {
-    if (error.name === 'FirebaseError') {
-      throw error;
-    } else {
-      throw new FirestoreError(Code.UNKNOWN, error.toString());
-    }
+    throw error;
   });
 }
 
