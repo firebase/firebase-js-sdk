@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+import { getCountFromServer } from '../../../src/api/aggregate';
 
 import {
   collection,
@@ -26,7 +27,6 @@ import {
   terminate,
   where,
   writeBatch,
-  getCountFromServer
 } from '../util/firebase_export';
 import {
   apiDescribe,

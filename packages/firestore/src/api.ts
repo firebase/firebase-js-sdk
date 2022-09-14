@@ -15,17 +15,6 @@
  * limitations under the License.
  */
 
-export {
-  AggregateField,
-  AggregateFieldType,
-  AggregateQuerySnapshot,
-  aggregateQuerySnapshotEqual,
-  AggregateSpec,
-  AggregateSpecData,
-  count,
-  getCountFromServer
-} from './api/aggregate';
-
 export { FieldPath, documentId } from './api/field_path';
 
 export {
