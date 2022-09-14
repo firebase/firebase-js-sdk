@@ -18,19 +18,19 @@ import {
   TotpMultiFactorAssertion,
   MultiFactorSession,
   FactorId
-} from '../../../model/public_types';
-import { AuthInternal } from '../../../model/auth';
+} from '../../model/public_types';
+import { AuthInternal } from '../../model/auth';
 import {
   finalizeEnrollTotpMfa,
   startEnrollTotpMfa,
   StartTotpMfaEnrollmentResponse,
   TotpVerificationInfo
-} from '../../../api/account_management/mfa';
-import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
-import { MultiFactorAssertionImpl } from '../../../mfa/mfa_assertion';
-import { MultiFactorSessionImpl } from '../../mfa_session';
-import { AuthErrorCode } from '../../../core/errors';
-import { _assert } from '../../../core/util/assert';
+} from '../../api/account_management/mfa';
+import { FinalizeMfaResponse } from '../../api/authentication/mfa';
+import { MultiFactorAssertionImpl } from '../../mfa/mfa_assertion';
+import { MultiFactorSessionImpl } from '../mfa_session';
+import { AuthErrorCode } from '../../core/errors';
+import { _assert } from '../../core/util/assert';
 
 /**
  * Provider for generating a {@link TotpMultiFactorAssertion}.
