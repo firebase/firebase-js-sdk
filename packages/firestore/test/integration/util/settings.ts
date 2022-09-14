@@ -28,9 +28,26 @@ declare const __karma__: any;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
+const environmentVariableNames: string[] = []
+for (const key in process.env) {
+  environmentVariableNames.push(key)
+}
+environmentVariableNames.sort()
+for (const environmentVariableName of environmentVariableNames) {
+  console.log(`zzyzx environmentVariableNames ${environmentVariableName}`);
+}
+
+console.log(`zzyzx process.pid: ${process.pid}`);
+console.log(`zzyzx process.argv0: ${process.argv0}`);
+console.log(`zzyzx process.argv: ${process.argv}`);
+
 const EMULATOR_PORT = process.env.FIRESTORE_EMULATOR_PORT;
+console.log(`zzyzx EMULATOR_PORT=${EMULATOR_PORT}`)
 const EMULATOR_PROJECT_ID = process.env.FIRESTORE_EMULATOR_PROJECT_ID;
+console.log(`zzyzx EMULATOR_PROJECT_ID=${EMULATOR_PROJECT_ID}`)
 export const USE_EMULATOR = !!EMULATOR_PORT;
+console.log(`zzyzx USE_EMULATOR=${USE_EMULATOR}`)
+
 
 const EMULATOR_FIRESTORE_SETTING = {
   host: `localhost:${EMULATOR_PORT}`,
@@ -50,9 +67,16 @@ console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 function getDefaultSettings(): PrivateSettings {
   const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
   if (karma && karma.config.firestoreSettings) {
+    console.log('zzyzx getDefaultSettings() CHECKPOINT A (return karma.config.firestoreSettings)');
     return karma.config.firestoreSettings;
   } else {
-    return USE_EMULATOR ? EMULATOR_FIRESTORE_SETTING : PROD_FIRESTORE_SETTING;
+    if (USE_EMULATOR) {
+      console.log('zzyzx getDefaultSettings() CHECKPOINT B1 USE_EMULATOR=true (return EMULATOR_FIRESTORE_SETTING)');
+      return EMULATOR_FIRESTORE_SETTING;
+    } else {
+      console.log('zzyzx getDefaultSettings() CHECKPOINT B2 USE_EMULATOR=false (return PROD_FIRESTORE_SETTING)');
+      return PROD_FIRESTORE_SETTING;
+    }
   }
 }
 
