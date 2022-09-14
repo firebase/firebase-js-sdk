@@ -73,17 +73,14 @@ function getTestBrowsers(argv) {
  * object that point to localhost instead of production.
  */
 function getFirestoreSettings(argv) {
-  if (argv.local) {
-    return {
-      host: 'localhost:8080',
-      ssl: false
-    };
-  } else {
-    return {
-      host: 'firestore.googleapis.com',
-      ssl: true
-    };
-  }
+  console.log(
+    'zzyzx getFirestoreSettings hardcodes its return value ' +
+      'to localhost:10000'
+  );
+  return {
+    host: 'localhost:10000',
+    ssl: false
+  };
 }
 
 module.exports.files = getTestFiles(argv);
