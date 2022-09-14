@@ -26,7 +26,7 @@ import {
   query,
   terminate,
   where,
-  writeBatch,
+  writeBatch
 } from '../util/firebase_export';
 import {
   apiDescribe,
