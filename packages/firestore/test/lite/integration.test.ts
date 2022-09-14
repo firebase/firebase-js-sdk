@@ -90,6 +90,7 @@ import {
   Post,
   postConverter,
   postConverterMerge,
+  skipTestUnlessUsingEmulator,
   withTestCollection,
   withTestCollectionAndInitialData,
   withTestDb,
@@ -2120,18 +2121,22 @@ describe('withConverter() support', () => {
 
 describe('countQuery()', () => {
   it('AggregateQuerySnapshot inherits the original query', () => {
-    return withTestCollection(async coll => {
-      const query_ = query(coll);
-      const snapshot = await getCount(query_);
-      expect(snapshot.query).to.equal(query_);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollection(async coll => {
+        const query_ = query(coll);
+        const snapshot = await getCount(query_);
+        expect(snapshot.query).to.equal(query_);
+      })
+    );
   });
 
   it('run count query on empty test collection', () => {
-    return withTestCollection(async coll => {
-      const snapshot = await getCount(coll);
-      expect(snapshot.data().count).to.equal(0);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollection(async coll => {
+        const snapshot = await getCount(coll);
+        expect(snapshot.data().count).to.equal(0);
+      })
+    );
   });
 
   it('run count query on test collection with 3 docs', () => {
@@ -2140,23 +2145,27 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const snapshot = await getCount(coll);
-      expect(snapshot.data().count).to.equal(3);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const snapshot = await getCount(coll);
+        expect(snapshot.data().count).to.equal(3);
+      })
+    );
   });
 
   it('run count query fails on invalid collection reference', () => {
-    return withTestDb(async db => {
-      const queryForRejection = collection(db, '__badpath__');
-      try {
-        await getCount(queryForRejection);
-      } catch (e) {
-        expect((e as Error)?.message).to.equal(
-          'Request failed with error: Bad Request'
-        );
-      }
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestDb(async db => {
+        const queryForRejection = collection(db, '__badpath__');
+        try {
+          await getCount(queryForRejection);
+        } catch (e) {
+          expect((e as Error)?.message).to.equal(
+            'Request failed with error: Bad Request'
+          );
+        }
+      })
+    );
   });
 
   it('count query supports filter', () => {
@@ -2165,11 +2174,13 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query_ = query(coll, where('author', '==', 'authorA'));
-      const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(2);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query_ = query(coll, where('author', '==', 'authorA'));
+        const snapshot = await getCount(query_);
+        expect(snapshot.data().count).to.equal(2);
+      })
+    );
   });
 
   it('count query supports filter and a small limit size', () => {
@@ -2178,11 +2189,13 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query_ = query(coll, where('author', '==', 'authorA'), limit(1));
-      const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(1);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query_ = query(coll, where('author', '==', 'authorA'), limit(1));
+        const snapshot = await getCount(query_);
+        expect(snapshot.data().count).to.equal(1);
+      })
+    );
   });
 
   it('count query supports filter and a large limit size', () => {
@@ -2191,11 +2204,13 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query_ = query(coll, where('author', '==', 'authorA'), limit(3));
-      const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(2);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query_ = query(coll, where('author', '==', 'authorA'), limit(3));
+        const snapshot = await getCount(query_);
+        expect(snapshot.data().count).to.equal(2);
+      })
+    );
   });
 
   it('count query supports order by', () => {
@@ -2205,11 +2220,13 @@ describe('countQuery()', () => {
       { author: 'authorB', title: null },
       { author: 'authorB' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query_ = query(coll, orderBy('title'));
-      const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(3);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query_ = query(coll, orderBy('title'));
+        const snapshot = await getCount(query_);
+        expect(snapshot.data().count).to.equal(3);
+      })
+    );
   });
 
   it('count query supports order by and startAt', () => {
@@ -2219,11 +2236,13 @@ describe('countQuery()', () => {
       { id: 2, author: 'authorB', title: 'titleC' },
       { id: null, author: 'authorB', title: 'titleD' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query_ = query(coll, orderBy('id'), startAt(2));
-      const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(2);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query_ = query(coll, orderBy('id'), startAt(2));
+        const snapshot = await getCount(query_);
+        expect(snapshot.data().count).to.equal(2);
+      })
+    );
   });
 
   it('count query supports order by and startAfter', () => {
@@ -2233,11 +2252,13 @@ describe('countQuery()', () => {
       { id: 2, author: 'authorB', title: 'titleC' },
       { id: null, author: 'authorB', title: 'titleD' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query_ = query(coll, orderBy('id'), startAfter(2));
-      const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(1);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query_ = query(coll, orderBy('id'), startAfter(2));
+        const snapshot = await getCount(query_);
+        expect(snapshot.data().count).to.equal(1);
+      })
+    );
   });
 
   it('count query supports order by and endAt', () => {
@@ -2247,11 +2268,13 @@ describe('countQuery()', () => {
       { id: 2, author: 'authorB', title: 'titleC' },
       { id: null, author: 'authorB', title: 'titleD' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query_ = query(coll, orderBy('id'), startAt(1), endAt(2));
-      const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(2);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query_ = query(coll, orderBy('id'), startAt(1), endAt(2));
+        const snapshot = await getCount(query_);
+        expect(snapshot.data().count).to.equal(2);
+      })
+    );
   });
 
   it('count query supports order by and endBefore', () => {
@@ -2261,11 +2284,13 @@ describe('countQuery()', () => {
       { id: 2, author: 'authorB', title: 'titleC' },
       { id: null, author: 'authorB', title: 'titleD' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query_ = query(coll, orderBy('id'), startAt(1), endBefore(2));
-      const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(1);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query_ = query(coll, orderBy('id'), startAt(1), endBefore(2));
+        const snapshot = await getCount(query_);
+        expect(snapshot.data().count).to.equal(1);
+      })
+    );
   });
 
   it('count query supports converter', () => {
@@ -2274,36 +2299,40 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query_ = query(
-        coll,
-        where('author', '==', 'authorA')
-      ).withConverter(postConverter);
-      const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(2);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query_ = query(
+          coll,
+          where('author', '==', 'authorA')
+        ).withConverter(postConverter);
+        const snapshot = await getCount(query_);
+        expect(snapshot.data().count).to.equal(2);
+      })
+    );
   });
 
   it('count query supports collection groups', () => {
-    return withTestDb(async db => {
-      const collectionGroupId = doc(collection(db, 'countTest')).id;
-      const docPaths = [
-        `${collectionGroupId}/cg-doc1`,
-        `abc/123/${collectionGroupId}/cg-doc2`,
-        `zzz${collectionGroupId}/cg-doc3`,
-        `abc/123/zzz${collectionGroupId}/cg-doc4`,
-        `abc/123/zzz/${collectionGroupId}`
-      ];
-      const batch = writeBatch(db);
-      for (const docPath of docPaths) {
-        batch.set(doc(db, docPath), { x: 1 });
-      }
-      await batch.commit();
-      const snapshot = await getCount(
-        query(collectionGroup(db, collectionGroupId))
-      );
-      expect(snapshot.data().count).to.equal(2);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestDb(async db => {
+        const collectionGroupId = doc(collection(db, 'countTest')).id;
+        const docPaths = [
+          `${collectionGroupId}/cg-doc1`,
+          `abc/123/${collectionGroupId}/cg-doc2`,
+          `zzz${collectionGroupId}/cg-doc3`,
+          `abc/123/zzz${collectionGroupId}/cg-doc4`,
+          `abc/123/zzz/${collectionGroupId}`
+        ];
+        const batch = writeBatch(db);
+        for (const docPath of docPaths) {
+          batch.set(doc(db, docPath), { x: 1 });
+        }
+        await batch.commit();
+        const snapshot = await getCount(
+          query(collectionGroup(db, collectionGroupId))
+        );
+        expect(snapshot.data().count).to.equal(2);
+      })
+    );
   });
 
   it('aggregateQuerySnapshotEqual on same queries be truthy', () => {
@@ -2312,15 +2341,17 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const query2 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1A = await getCount(query1);
-      const snapshot1B = await getCount(query1);
-      const snapshot2 = await getCount(query2);
-      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.true;
-      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.true;
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query1 = query(coll, where('author', '==', 'authorA'));
+        const query2 = query(coll, where('author', '==', 'authorA'));
+        const snapshot1A = await getCount(query1);
+        const snapshot1B = await getCount(query1);
+        const snapshot2 = await getCount(query2);
+        expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.true;
+        expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.true;
+      })
+    );
   });
 
   it('aggregateQuerySnapshotEqual on different queries be falsy', () => {
@@ -2330,22 +2361,26 @@ describe('countQuery()', () => {
       { author: 'authorB', title: 'titleC' },
       { author: 'authorB', title: 'titleD' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const query2 = query(coll, where('author', '==', 'authorB'));
-      const snapshot1 = await getCount(query1);
-      const snapshot2 = await getCount(query2);
-      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const query1 = query(coll, where('author', '==', 'authorA'));
+        const query2 = query(coll, where('author', '==', 'authorB'));
+        const snapshot1 = await getCount(query1);
+        const snapshot2 = await getCount(query2);
+        expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
+      })
+    );
   });
 
   it('count query fails on a terminated Firestore', () => {
-    return withTestCollection(async coll => {
-      await terminate(coll.firestore);
-      expect(() => getCount(coll)).to.throw(
-        'The client has already been terminated.'
-      );
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollection(async coll => {
+        await terminate(coll.firestore);
+        expect(() => getCount(coll)).to.throw(
+          'The client has already been terminated.'
+        );
+      })
+    );
   });
 
   it('terminate Firestore not effect count query in flight', () => {
@@ -2354,11 +2389,13 @@ describe('countQuery()', () => {
       { author: 'authorA', title: 'titleB' },
       { author: 'authorB', title: 'titleC' }
     ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const promise = getCount(coll);
-      await terminate(coll.firestore);
-      const snapshot = await promise;
-      expect(snapshot.data().count).to.equal(3);
-    });
+    return skipTestUnlessUsingEmulator(() =>
+      withTestCollectionAndInitialData(testDocs, async coll => {
+        const promise = getCount(coll);
+        await terminate(coll.firestore);
+        const snapshot = await promise;
+        expect(snapshot.data().count).to.equal(3);
+      })
+    );
   });
 });

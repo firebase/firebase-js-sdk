@@ -16,6 +16,7 @@
  */
 
 import { isIndexedDBAvailable } from '@firebase/util';
+import { Code } from '../../../src/util/error';
 
 import {
   collection,
@@ -33,7 +34,8 @@ import {
   SnapshotListenOptions,
   newTestFirestore,
   QueryDocumentSnapshot,
-  newTestApp
+  newTestApp,
+  FirestoreError
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -236,6 +238,26 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
       }
     }
   }
+}
+
+export function skipTestUnlessUsingEmulator<
+  T extends (...params: any[]) => any
+>(fn: T, ...params: Parameters<T>): Promise<void> {
+  /**
+   * This is a wrapper function to execute test cases that can only run on emulator till
+   * production test environment is ready.
+   */
+  if (!USE_EMULATOR) {
+    return Promise.resolve();
+  }
+
+  return fn(...params).catch((error: FirestoreError) => {
+    if (error.name === 'FirebaseError') {
+      throw error;
+    } else {
+      throw new FirestoreError(Code.UNKNOWN, error.toString());
+    }
+  });
 }
 
 export function withTestDoc(

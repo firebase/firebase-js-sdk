@@ -35,7 +35,8 @@ import { QueryDocumentSnapshot } from '../../src/lite-api/snapshot';
 import { AutoId } from '../../src/util/misc';
 import {
   DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  USE_EMULATOR
 } from '../integration/util/settings';
 
 let appCount = 0;
@@ -98,6 +99,22 @@ export function withTestCollection(
 ): Promise<void> {
   return withTestDb(db => {
     return fn(collection(db, AutoId.newId()));
+  });
+}
+
+export function skipTestUnlessUsingEmulator<
+  T extends (...params: any[]) => any
+>(fn: T, ...params: Parameters<T>): Promise<void> {
+  /**
+   * This is a wrapper function to execute test cases that can only run on emulator till
+   * production test environment is ready.
+   */
+  if (!USE_EMULATOR) {
+    return Promise.resolve();
+  }
+
+  return fn(...params).catch((error: any) => {
+    throw error;
   });
 }
 
