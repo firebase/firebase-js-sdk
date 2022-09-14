@@ -50,7 +50,11 @@ console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 function getDefaultSettings(): PrivateSettings {
   const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
   if (karma && karma.config.firestoreSettings) {
-    return karma.config.firestoreSettings;
+    console.log(
+      'zzyzx getDefaultSettings() (karma && karma.config.firestoreSettings) ' +
+        'is true; returning EMULATOR_FIRESTORE_SETTING'
+    );
+    return EMULATOR_FIRESTORE_SETTING;
   } else {
     return USE_EMULATOR ? EMULATOR_FIRESTORE_SETTING : PROD_FIRESTORE_SETTING;
   }
