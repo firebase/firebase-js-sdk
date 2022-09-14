@@ -18,19 +18,19 @@ import {
   TotpMultiFactorAssertion,
   MultiFactorSession,
   FactorId
-} from '../../model/public_types';
-import { AuthInternal } from '../../model/auth';
+} from '../../../model/public_types';
+import { AuthInternal } from '../../../model/auth';
 import {
   finalizeEnrollTotpMfa,
   startEnrollTotpMfa,
   StartTotpMfaEnrollmentResponse,
   TotpVerificationInfo
-} from '../../api/account_management/mfa';
-import { FinalizeMfaResponse } from '../../api/authentication/mfa';
-import { MultiFactorAssertionImpl } from '../../mfa/mfa_assertion';
-import { MultiFactorSessionImpl } from '../mfa_session';
-import { AuthErrorCode } from '../../core/errors';
-import { _assert } from '../../core/util/assert';
+} from '../../../api/account_management/mfa';
+import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
+import { MultiFactorAssertionImpl } from '../../../mfa/mfa_assertion';
+import { MultiFactorSessionImpl } from '../../mfa_session';
+import { AuthErrorCode } from '../../../core/errors';
+import { _assert } from '../../../core/util/assert';
 
 /**
  * Provider for generating a {@link TotpMultiFactorAssertion}.
@@ -95,7 +95,7 @@ export class TotpMultiFactorGenerator {
       idToken: mfaSession.credential,
       totpEnrollmentInfo: {}
     });
-    return TotpSecret.fromStartTotpMfaEnrollmentResponse(
+    return TotpSecret._fromStartTotpMfaEnrollmentResponse(
       response,
       mfaSession.auth
     );
@@ -119,25 +119,20 @@ export class TotpMultiFactorAssertionImpl
     super(FactorId.TOTP);
   }
 
+  /** @internal */
   static _fromSecret(
     secret: TotpSecret,
     otp: string
   ): TotpMultiFactorAssertionImpl {
-    return new TotpMultiFactorAssertionImpl(
-      (otp = otp),
-      undefined,
-      (secret = secret)
-    );
+    return new TotpMultiFactorAssertionImpl(otp, undefined, secret);
   }
 
+  /** @internal */
   static _fromEnrollmentId(
     enrollmentId: string,
     otp: string
   ): TotpMultiFactorAssertionImpl {
-    return new TotpMultiFactorAssertionImpl(
-      (otp = otp),
-      (enrollmentId = enrollmentId)
-    );
+    return new TotpMultiFactorAssertionImpl(otp, enrollmentId);
   }
 
   /** @internal */
@@ -154,7 +149,7 @@ export class TotpMultiFactorAssertionImpl
     return finalizeEnrollTotpMfa(auth, {
       idToken,
       displayName,
-      totpVerificationInfo: this.secret.makeTotpVerificationInfo(this.otp)
+      totpVerificationInfo: this.secret._makeTotpVerificationInfo(this.otp)
     });
   }
 
@@ -194,7 +189,8 @@ export class TotpSecret {
     private readonly auth: AuthInternal
   ) {}
 
-  static fromStartTotpMfaEnrollmentResponse(
+  /** @internal */
+  static _fromStartTotpMfaEnrollmentResponse(
     response: StartTotpMfaEnrollmentResponse,
     auth: AuthInternal
   ): TotpSecret {
@@ -209,7 +205,8 @@ export class TotpSecret {
     );
   }
 
-  makeTotpVerificationInfo(otp: string): TotpVerificationInfo {
+  /** @internal */
+  _makeTotpVerificationInfo(otp: string): TotpVerificationInfo {
     return { sessionInfo: this.sessionInfo, verificationCode: otp };
   }
 
@@ -240,6 +237,7 @@ export class TotpSecret {
   }
 }
 
+/** @internal */
 function _isEmptyString(input?: string): boolean {
   return typeof input === 'undefined' || input?.length === 0;
 }

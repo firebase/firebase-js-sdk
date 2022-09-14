@@ -18,22 +18,26 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
-import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api';
-import { MultiFactorSessionImpl } from '../../mfa/mfa_session';
-import { StartTotpMfaEnrollmentResponse } from '../../api/account_management/mfa';
-import { FinalizeMfaResponse } from '../../api/authentication/mfa';
+import { mockEndpoint } from '../../../../test/helpers/api/helper';
+import {
+  testAuth,
+  TestAuth,
+  testUser
+} from '../../../../test/helpers/mock_auth';
+import * as mockFetch from '../../../../test/helpers/mock_fetch';
+import { Endpoint } from '../../../api';
+import { MultiFactorSessionImpl } from '../../../mfa/mfa_session';
+import { StartTotpMfaEnrollmentResponse } from '../../../api/account_management/mfa';
+import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
 import {
   TotpMultiFactorAssertionImpl,
   TotpMultiFactorGenerator,
   TotpSecret
 } from './totp';
-import { FactorId } from '../../model/public_types';
-import { AuthErrorCode } from '../../core/errors';
-import { AppName } from '../../model/auth';
-import { _castAuth } from '../../core/auth/auth_impl';
+import { FactorId } from '../../../model/public_types';
+import { AuthErrorCode } from '../../../core/errors';
+import { AppName } from '../../../model/auth';
+import { _castAuth } from '../../../core/auth/auth_impl';
 
 use(chaiAsPromised);
 
@@ -53,7 +57,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
   describe('assertionForEnrollment', () => {
     it('should generate a valid TOTP assertion for enrollment', async () => {
       auth = await testAuth();
-      const secret = TotpSecret.fromStartTotpMfaEnrollmentResponse(
+      const secret = TotpSecret._fromStartTotpMfaEnrollmentResponse(
         startEnrollmentResponse,
         auth
       );
@@ -149,7 +153,7 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
   beforeEach(async () => {
     mockFetch.setUp();
     auth = await testAuth();
-    secret = TotpSecret.fromStartTotpMfaEnrollmentResponse(
+    secret = TotpSecret._fromStartTotpMfaEnrollmentResponse(
       startEnrollmentResponse,
       auth
     );
@@ -223,7 +227,7 @@ describe('core/mfa/assertions/totp/TotpSecret', async () => {
   const fakeAppName: AppName = 'test-app';
   const fakeEmail: string = 'user@email';
   const auth = await testAuth();
-  const secret = TotpSecret.fromStartTotpMfaEnrollmentResponse(
+  const secret = TotpSecret._fromStartTotpMfaEnrollmentResponse(
     serverResponse,
     auth
   );

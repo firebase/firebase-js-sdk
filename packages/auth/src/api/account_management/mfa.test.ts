@@ -91,7 +91,7 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
 
     await expect(startEnrollPhoneMfa(auth, request)).to.be.rejectedWith(
       FirebaseError,
-      "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
+      'auth/invalid-user-token'
     );
     expect(mock.calls[0].request).to.eql(request);
   });
@@ -155,7 +155,7 @@ describe('api/account_management/finalizeEnrollPhoneMfa', () => {
 
     await expect(finalizeEnrollPhoneMfa(auth, request)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The verification ID used to create the phone auth credential is invalid. (auth/invalid-verification-id).'
+      'auth/invalid-verification-id'
     );
     expect(mock.calls[0].request).to.eql(request);
   });
@@ -225,7 +225,7 @@ describe('api/account_management/startEnrollTotpMfa', () => {
 
     await expect(startEnrollTotpMfa(auth, request)).to.be.rejectedWith(
       FirebaseError,
-      "Firebase: This user's credential isn't valid for this project. This can happen if the user's token has been tampered with, or if the user isn't for the project associated with this API key. (auth/invalid-user-token)."
+      'auth/invalid-user-token'
     );
     expect(mock.calls[0].request).to.eql(request);
   });
