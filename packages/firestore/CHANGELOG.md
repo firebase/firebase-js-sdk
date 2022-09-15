@@ -1,5 +1,18 @@
 # @firebase/firestore
 
+## 3.5.0
+
+### Minor Changes
+
+- [`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db) [#6107](https://github.com/firebase/firebase-js-sdk/pull/6107) - Enable encodeInitMessageHeaders. This transitions the Firestore client from encoding HTTP Headers via the Query Param to the request's POST payload.
+
+  Requires Cloud Firestore Emulator v1.14.4 or newer.
+
+### Patch Changes
+
+- Updated dependencies [[`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db)]:
+  - @firebase/webchannel-wrapper@0.7.0
+
 ## 3.4.15
 
 ### Patch Changes
