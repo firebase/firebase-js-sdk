@@ -238,9 +238,9 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
     }
   }
 }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function skipTestUnlessUsingEmulator<
-  T extends (...params: Parameters<T>) => Promise<void>
+  T extends (...params: any[]) => Promise<void>
 >(fn: T, ...params: Parameters<T>): Promise<void> {
   /**
    * This is a wrapper to execute test functions that can only run on emulator till
