@@ -1,5 +1,12 @@
 # @firebase/firestore-compat
 
+## 0.1.25
+
+### Patch Changes
+
+- Updated dependencies [[`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db)]:
+  - @firebase/firestore@3.5.0
+
 ## 0.1.24
 
 ### Patch Changes

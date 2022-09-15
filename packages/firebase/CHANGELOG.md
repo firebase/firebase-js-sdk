@@ -1,5 +1,23 @@
 # firebase
 
+## 9.10.0
+
+### Minor Changes
+
+- [`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db) [#6107](https://github.com/firebase/firebase-js-sdk/pull/6107) - Enable encodeInitMessageHeaders. This transitions the Firestore client from encoding HTTP Headers via the Query Param to the request's POST payload.
+
+  Requires Cloud Firestore Emulator v1.14.4 or newer.
+
+### Patch Changes
+
+- Updated dependencies [[`e06d9069c`](https://github.com/firebase/firebase-js-sdk/commit/e06d9069ca07429df248d9134aebdea1118e9427), [`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db), [`666c8ec1f`](https://github.com/firebase/firebase-js-sdk/commit/666c8ec1ff5cb5b8947a142e26c0a2ecb18f8bb4)]:
+  - @firebase/app@0.7.33
+  - @firebase/auth@0.20.7
+  - @firebase/firestore@3.5.0
+  - @firebase/app-compat@0.1.34
+  - @firebase/auth-compat@0.2.20
+  - @firebase/firestore-compat@0.1.25
+
 ## 9.9.4
 
 ### Patch Changes
