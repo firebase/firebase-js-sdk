@@ -1,5 +1,12 @@
 # @firebase/app-compat
 
+## 0.1.34
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.7.33
+
 ## 0.1.33
 
 ### Patch Changes
