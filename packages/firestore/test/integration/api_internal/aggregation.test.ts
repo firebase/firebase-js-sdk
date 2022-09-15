@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+/** This file is emporarily staying in api_internal folder till aggregate queries are public. */
 import { expect } from 'chai';
 
 import { getCountFromServer } from '../../../src/api/aggregate';
