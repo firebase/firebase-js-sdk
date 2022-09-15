@@ -35,8 +35,7 @@ import { QueryDocumentSnapshot } from '../../src/lite-api/snapshot';
 import { AutoId } from '../../src/util/misc';
 import {
   DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS,
-  USE_EMULATOR
+  DEFAULT_SETTINGS
 } from '../integration/util/settings';
 
 let appCount = 0;
