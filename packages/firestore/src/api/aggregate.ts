@@ -22,16 +22,6 @@ import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 
-export {
-  AggregateField,
-  AggregateFieldType,
-  AggregateQuerySnapshot,
-  aggregateQuerySnapshotEqual,
-  AggregateSpec,
-  AggregateSpecData,
-  count
-} from '../lite-api/aggregate';
-
 /**
  * Executes the query and returns the results as a `AggregateQuerySnapshot` from the
  * server. Returns an error if the network is not available.

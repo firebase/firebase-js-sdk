@@ -238,22 +238,6 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
     }
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function skipTestUnlessUsingEmulator<
-  T extends (...params: any[]) => Promise<void>
->(fn: T, ...params: Parameters<T>): Promise<void> {
-  /**
-   * This is a wrapper to execute test functions that can only run on emulator till
-   * production test environment is ready.
-   */
-  if (!USE_EMULATOR) {
-    return Promise.resolve();
-  }
-
-  return fn(...params).catch((error: FirestoreError) => {
-    throw error;
-  });
-}
 
 export function withTestDoc(
   persistence: boolean,
@@ -341,24 +325,3 @@ export function withTestCollectionSettings(
     }
   );
 }
-
-export class Post {
-  constructor(
-    readonly title: string,
-    readonly author: string,
-    readonly ref: DocumentReference | null = null
-  ) {}
-  byline(): string {
-    return this.title + ', by ' + this.author;
-  }
-}
-
-export const postConverter = {
-  toFirestore(post: Post): DocumentData {
-    return { title: post.title, author: post.author };
-  },
-  fromFirestore(snapshot: QueryDocumentSnapshot): Post {
-    const data = snapshot.data();
-    return new Post(data.title, data.author, snapshot.ref);
-  }
-};

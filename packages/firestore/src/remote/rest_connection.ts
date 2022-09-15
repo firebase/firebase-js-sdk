@@ -56,6 +56,8 @@ export abstract class RestConnection implements Connection {
   private readonly databaseRoot: string;
 
   get shouldResourcePathBeIncludedInRequest(): boolean {
+    // Both `invokeRPC()` and `invokeStreamingRPC()` use their `path` arguments to determine
+    // where to run the query, and expect the `request` to NOT specify the "path".
     return false;
   }
 

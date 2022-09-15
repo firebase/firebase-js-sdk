@@ -86,6 +86,8 @@ export class GrpcConnection implements Connection {
   private cachedStub: GeneratedGrpcStub | null = null;
 
   get shouldResourcePathBeIncludedInRequest(): boolean {
+    // Both `invokeRPC()` and `invokeStreamingRPC()` ignore their `path` arguments, and expect
+    // the "path" to be part of the given `request`.
     return true;
   }
 

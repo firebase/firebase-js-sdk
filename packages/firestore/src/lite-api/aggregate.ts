@@ -136,12 +136,12 @@ export function getCount(
 /**
  * Compares two `AggregateQuerySnapshot` instances for equality.
  * Two `AggregateQuerySnapshot` instances are considered "equal" if they have
- * the same underlying query, the same metadata, and the same data.
+ * the same underlying query, and the same data.
  *
  * @param left - The `AggregateQuerySnapshot` to compare.
  * @param right - The `AggregateQuerySnapshot` to compare.
  *
- * @returns true if the AggregateQuerySnapshos are equal.
+ * @returns true if the AggregateQuerySnapshots are equal.
  */
 export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(
   left: AggregateQuerySnapshot<T>,
