@@ -32,9 +32,7 @@ import {
   PrivateSettings,
   SnapshotListenOptions,
   newTestFirestore,
-  QueryDocumentSnapshot,
-  newTestApp,
-  FirestoreError
+  newTestApp
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,

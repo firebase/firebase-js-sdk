@@ -91,7 +91,6 @@ import {
   Post,
   postConverter,
   postConverterMerge,
-  skipTestUnlessUsingEmulator,
   withTestCollection,
   withTestCollectionAndInitialData,
   withTestDb,
@@ -2120,6 +2119,7 @@ describe('withConverter() support', () => {
   });
 });
 
+// eslint-disable-next-line no-restricted-properties
 (USE_EMULATOR ? describe : describe.skip)('Count quries', () => {
   it('AggregateQuerySnapshot inherits the original query', () => {
     return withTestCollection(async coll => {
