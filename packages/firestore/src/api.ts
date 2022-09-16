@@ -109,6 +109,30 @@ export {
   executeWrite
 } from './api/reference_impl';
 
+export {
+  AggregateField,
+  AggregateListenOptions,
+  AggregateQuery,
+  AggregateQueryOptions,
+  AggregateQuerySnapshot,
+  CountAggregateFieldOptions,
+  aggregateQuery,
+  aggregateQueryEqual,
+  aggregateSnapshotEqual,
+  average,
+  count,
+  countQuery,
+  first,
+  getAggregate,
+  getAggregateFromCache,
+  getAggregateFromServer,
+  last,
+  max,
+  min,
+  onAggregateSnapshot,
+  sum,
+} from './api/aggregate';
+
 export { FieldValue } from './api/field_value';
 
 export {

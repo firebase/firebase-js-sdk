@@ -62,6 +62,34 @@ import {
   UpdateData
 } from '../../src/lite-api/reference';
 import {
+  AggregateField,
+  aggregateQuery,
+  AggregateQuery,
+  aggregateQueryEqual,
+  aggregateSnapshotEqual,
+  average,
+  count,
+  groupEndAt,
+  groupEndBefore,
+  first,
+  getAggregate,
+  getGroups,
+  groupByQuery,
+  groupByQueryEqual,
+  GroupByQuerySnapshot,
+  groupByQuerySnapshotEqual,
+  GroupSnapshot,
+  last,
+  groupLimit,
+  groupLimitToLast,
+  max,
+  min,
+  groupOrderBy,
+  groupStartAfter,
+  groupStartAt,
+  sum
+} from '../../src/lite-api/aggregate';
+import {
   addDoc,
   deleteDoc,
   getDoc,
@@ -75,6 +103,7 @@ import {
   QueryDocumentSnapshot
 } from '../../src/lite-api/snapshot';
 import { Timestamp } from '../../src/lite-api/timestamp';
+import { documentId } from '../../src/lite-api/field_path';
 import { runTransaction } from '../../src/lite-api/transaction';
 import { writeBatch } from '../../src/lite-api/write_batch';
 import {
@@ -93,8 +122,184 @@ import {
   withTestDoc,
   withTestDocAndInitialData
 } from './helpers';
+import {fail} from '../../src/util/assert';
 
 use(chaiAsPromised);
+
+
+class AggregateDemo {
+
+  constructor(readonly db: Firestore) {
+  }
+
+  async Demo1A_CountOfDocumentsInACollection() {
+    const query1 = collection(this.db, 'games', 'halo', 'players');
+    const snapshot = await getAggregate(aggregateQuery(query1, count()));
+    expect(snapshot.get(count())).to.equal(5000000);
+  }
+
+  async Demo1B_LimitNumberOfDocumentsScannedWithLimit() {
+    // Limit the work / documents scanned by restricting underlying query.
+    const collection1 = collection(this.db, 'games', 'halo', 'players');
+    const query1 = query(collection1, limit(1000));
+    const snapshot = await getAggregate(aggregateQuery(query1, count()));
+    expect(snapshot.get(count())).to.equal(1000);
+  }
+
+  async Demo1C_LimitNumberOfDocumentsScannedWithUpTo() {
+    // Limit the work / documents scanned by specifying upTo on the aggregation.
+    const query1 = collection(this.db, 'games', 'halo', 'players');
+    const snapshot = await getAggregate(aggregateQuery(query1, count({ upTo: 1000})));
+    expect(snapshot.get(count())).to.equal(1000);
+  }
+  
+  async Demo2_GroupBySupport() {
+    const collectionGroup1 = collectionGroup(this.db, 'players');
+    const query1 = query(collectionGroup1, where('state', '==', 'active'));
+    const snapshot = await getGroups(groupByQuery(query1, 'game', count()));
+    expect(snapshot.empty).to.be.false;
+    expect(snapshot.size).to.equal(3);
+    expect(snapshot.groups).to.have.length(3);
+    expect(snapshot.groups[0].get('game')).to.equal('cyber_punk');
+    expect(snapshot.groups[0].get(count())).to.equal(5);
+    expect(snapshot.groups[1].get('game')).to.equal('halo');
+    expect(snapshot.groups[1].get(count())).to.equal(55);
+    expect(snapshot.groups[2].get('game')).to.equal('mine_craft');
+    expect(snapshot.groups[2].get(count())).to.equal(5000000);
+  }
+
+  async Demo3_FieldRenamingAliasing() {
+    // Aliasing / renaming of aggregations is not exposed from the API surface.
+    // I've requested that the proto allow non-aggregate fields to also be
+    // aliased so that the implementation of the Firestore clients can rename
+    // both aggregate and non-aggregate fields to guarantee that there is NEVER
+    // a conflict.
+  }
+
+  async Demo4_LimitTheNumberOfDocumentsScanned() {
+    // This is a duplicate of Demo1B_LimitNumberOfDocumentsScannedWithLimit.
+  }
+
+  async Demo5_LimitAggregationBuckets() {
+    const collectionGroup1 = collectionGroup(this.db, 'players');
+    const snapshot = await getGroups(groupByQuery(collectionGroup1, 'game',
+      count(), groupLimit(1)));
+    expect(snapshot.size).to.equal(1);
+    expect(snapshot.groups[0].get('game')).to.equal('cyber_punk');
+    expect(snapshot.groups[0].get(count())).to.equal(5);
+  }
+
+  async Demo6_LimitWorkPerAggregationBucket() {
+    const query1 = collection(this.db, 'games', 'halo', 'players');
+    const snapshot = await getGroups(groupByQuery(query1, 'game', count({ upTo: 50})));
+    expect(snapshot.size).to.equal(3);
+    expect(snapshot.groups[0].get('game')).to.equal('cyber_punk');
+    expect(snapshot.groups[0].get(count())).to.equal(5);
+    expect(snapshot.groups[1].get('game')).to.equal('halo');
+    expect(snapshot.groups[1].get(count())).to.equal(50); // count is capped at 50
+    expect(snapshot.groups[2].get('game')).to.equal('mine_craft');
+    expect(snapshot.groups[2].get(count())).to.equal(50); // count is capped at 50
+  }
+
+  async Demo7_OffsetOnNonGroupByQuery() {
+    // The API does not provide a way to specify an offset for a non-group-by query.
+  }
+
+  async Demo8_PaginationOverAggregationBuckets() {
+    const collectionGroup1 = collectionGroup(this.db, 'players');
+    const query1 = query(collectionGroup1, where('state', '==', 'active'));
+    // orderBy('game') is implied by the group by
+    const snapshot = await getGroups(groupByQuery(query1, 'game', count(),
+      groupStartAfter('cyber_punk')));
+    expect(snapshot.size).to.equal(2);
+    expect(snapshot.groups[0].get('game')).to.equal('halo');
+    expect(snapshot.groups[0].get(count())).to.equal(55);
+    expect(snapshot.groups[1].get('game')).to.equal('mine_craft');
+    expect(snapshot.groups[1].get(count())).to.equal(5000000);
+  }
+
+  async Demo9A_ResumeTokens() {
+    const collectionGroup1 = collectionGroup(this.db, 'players');
+    const baseQuery = query(collectionGroup1, orderBy(documentId()), limit(1000));
+    let playerCount = 0;
+
+    let query1 = baseQuery;
+    while (true) {
+      const aggregateQuery1 = aggregateQuery(query1, count(), last(documentId()));
+      const snapshot = await getAggregate(aggregateQuery1);
+      const count1 = snapshot.get(count());
+      playerCount = playerCount + count1;
+
+      if (count1 < 1000) {
+        break;
+      }
+
+      const lastDocumentId = snapshot.get(last(documentId()));
+      query1 = query(baseQuery, startAfter(lastDocumentId));
+    }
+
+    console.log(`There are ${playerCount} players`)
+  }
+
+  async Demo9B_ResumeTokensWithGroupBy() {
+    const collectionGroup1 = collectionGroup(this.db, 'players');
+    const baseQuery = query(collectionGroup1, orderBy(documentId()), limit(1000));
+    const countByCountry: {[field: string]: number} = {};
+
+    let query1 = baseQuery;
+    while (true) {
+      const groupByQuery1 = groupByQuery(query1, 'country', count(), last(documentId()));
+      const snapshot = await getGroups(groupByQuery1);
+      let curTotalCount = 0;
+      let lastDocumentId: (string | null) = null;
+
+      for (const group of snapshot.groups) {
+        const curCountry = group.get('country');
+        const curCountryCount = group.get(count());
+
+        if (curCountry in countByCountry) {
+          countByCountry[curCountry] = countByCountry[curCountry] + curCountryCount;
+        } else {
+          countByCountry[curCountry] = curCountryCount;
+        }
+
+        curTotalCount = curTotalCount + curCountryCount;
+
+        lastDocumentId = group.get(documentId());
+        if (lastDocumentId === null) {
+          if (curTotalCount > 0) {
+            fail("lastDocumentId should only be null if no documents were scanned");
+          }
+        }
+      }
+
+      if (curTotalCount < 1000) {
+        break;
+      }
+
+      query1 = query(baseQuery, startAfter(lastDocumentId));
+    }
+
+    for (const country in countByCountry) {
+      console.log(`${country} has ${countByCountry[country]} players`)
+    }
+  }
+
+  async Demo10_Max() {
+    const collectionGroup1 = collectionGroup(this.db, 'matches');
+    const query1 = query(collectionGroup1, where('game', '==', 'halo'), orderBy('user'));
+    const snapshot = getGroups(groupByQuery(query1, 'user', max('timestamp')));
+  }
+
+}
+
+
+
+
+
+
+
+
 
 describe('Firestore', () => {
   it('can provide setting', () => {
@@ -910,6 +1115,408 @@ describe('FieldValue', () => {
       await updateDoc(docRef, 'val', deleteField());
       const snap = await getDoc(docRef);
       expect(snap.data()).to.deep.equal({});
+    });
+  });
+})
+
+describe('AggregateField', () => {
+  it('isEqual() returns true for equal instances', () => {
+    expect(count().isEqual(count())).to.be.true;
+    expect(count({'upTo': 42}).isEqual(count({'upTo': 42}))).to.be.true;
+    expect(min('field').isEqual(min('field'))).to.be.true;
+    expect(min('field').isEqual(min(new FieldPath('field')))).to.be.true;
+    expect(min(new FieldPath('field')).isEqual(min(new FieldPath('field')))).to.be.true;
+    expect(max('field').isEqual(max('field'))).to.be.true;
+    expect(max('field').isEqual(max(new FieldPath('field')))).to.be.true;
+    expect(max(new FieldPath('field')).isEqual(max(new FieldPath('field')))).to.be.true;
+    expect(sum('field').isEqual(sum('field'))).to.be.true;
+    expect(sum('field').isEqual(sum(new FieldPath('field')))).to.be.true;
+    expect(sum(new FieldPath('field')).isEqual(sum(new FieldPath('field')))).to.be.true;
+    expect(average('field').isEqual(average('field'))).to.be.true;
+    expect(average('field').isEqual(average(new FieldPath('field')))).to.be.true;
+    expect(average(new FieldPath('field')).isEqual(average(new FieldPath('field')))).to.be.true;
+    expect(first('field').isEqual(first('field'))).to.be.true;
+    expect(first('field').isEqual(first(new FieldPath('field')))).to.be.true;
+    expect(first(new FieldPath('field')).isEqual(first(new FieldPath('field')))).to.be.true;
+    expect(last('field').isEqual(last('field'))).to.be.true;
+    expect(last('field').isEqual(last(new FieldPath('field')))).to.be.true;
+    expect(last(new FieldPath('field')).isEqual(last(new FieldPath('field')))).to.be.true;
+  });
+
+  it('isEqual() returns false for unequal instances', () => {
+    const instances = [
+      count(), count({'upTo': 42}),
+      min('field1'), min(new FieldPath('field2')),
+      max('field1'), max(new FieldPath('field2')),
+      sum('field1'), sum(new FieldPath('field2')),
+      average('field1'), average(new FieldPath('field2')),
+      first('field1'), first(new FieldPath('field2')),
+      last('field1'), last(new FieldPath('field2')),
+    ];
+    for (let i = 0; i < instances.length; i++) {
+      for (let j = 0; j < instances.length; j++) {
+        if (i != j) {
+          expect(instances[i].isEqual(instances[j])).to.be.false;
+        }
+      }
+    }
+  });
+
+  it('instanceof checks out', () => {
+    expect(count()).to.be.an.instanceof(AggregateField);
+    expect(count({'upTo': 42})).to.be.an.instanceof(AggregateField);
+    expect(min('field')).to.be.an.instanceof(AggregateField);
+    expect(max('field')).to.be.an.instanceof(AggregateField);
+    expect(sum('field')).to.be.an.instanceof(AggregateField);
+    expect(average('field')).to.be.an.instanceof(AggregateField);
+    expect(first('field')).to.be.an.instanceof(AggregateField);
+    expect(last('field')).to.be.an.instanceof(AggregateField);
+  });
+
+});
+
+describe('AggregateQuery', () => {
+  it('query property is the correct instance', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery1 = aggregateQuery(collRef, count());
+      expect(aggregateQuery1.query).to.equal(collRef);
+    });
+  });
+
+  it('aggregateQueryEqual() returns true for equal instances', () => {
+    return withTestDb(async db => {
+      const collRef1 = collection(db, "coll");
+      const aggregateQuery1 = aggregateQuery(collRef1, count());
+      const collRef2 = collection(db, "coll");
+      const aggregateQuery2 = aggregateQuery(collRef2, count());
+      expect(aggregateQueryEqual(aggregateQuery1, aggregateQuery2)).to.be.true;
+    });
+  });
+
+  it('aggregateQueryEqual() returns false for unequal instances', () => {
+    return withTestDb(async db => {
+      const collRef1 = collection(db, "coll1");
+      const collRef2 = collection(db, "coll2");
+      const aggregateQuery1 = aggregateQuery(collRef1, count());
+      const aggregateQuery2 = aggregateQuery(collRef1, count({'upTo': 42}));
+      const aggregateQuery3 = aggregateQuery(collRef2, count());
+      expect(aggregateQueryEqual(aggregateQuery1, aggregateQuery2)).to.be.false;
+      expect(aggregateQueryEqual(aggregateQuery1, aggregateQuery3)).to.be.false;
+      expect(aggregateQueryEqual(aggregateQuery2, aggregateQuery3)).to.be.false;
+    });
+  });
+});
+
+describe('AggregateSnapshot', () => {
+  it('AggregateSnapshot.query', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery1 = aggregateQuery(collRef, count());
+      const snapshot = await getAggregate(aggregateQuery1);
+      expect(snapshot.query).to.equal(aggregateQuery1);
+    });
+  });
+
+  it('AggregateSnapshot.aggregations with length 1', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery1 = aggregateQuery(collRef, count());
+      const snapshot = await getAggregate(aggregateQuery1);
+      expect(snapshot.aggregations).to.deep.equal([count()]);
+    });
+  });
+
+  it('AggregateSnapshot.aggregations with length 2', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery1 = aggregateQuery(collRef, min('field1'), last('field2'));
+      const snapshot = await getAggregate(aggregateQuery1);
+      expect(snapshot.aggregations).to.deep.equal([min('field1'), last('field2')]);
+    });
+  });
+
+  it('AggregateSnapshot.get with field not in the query', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery1 = aggregateQuery(collRef, count());
+      const snapshot = await getAggregate(aggregateQuery1);
+      expect(snapshot.get(count({'upTo': 42}))).to.be.undefined;
+      expect(snapshot.get(min('field'))).to.be.undefined;
+      expect(snapshot.get(max('field'))).to.be.undefined;
+      expect(snapshot.get(sum('field'))).to.be.undefined;
+      expect(snapshot.get(average('field'))).to.be.undefined;
+      expect(snapshot.get(first('field'))).to.be.undefined;
+      expect(snapshot.get(last('field'))).to.be.undefined;
+    });
+  });
+
+  it('AggregateSnapshot.get with fields in the query', () => {
+    return withTestCollectionAndInitialData([{'age': 42}, {'age': 24}], async collRef => {
+      const aggregateQuery1 = aggregateQuery(collRef, count(), min('age'));
+      const snapshot = await getAggregate(aggregateQuery1);
+      expect(snapshot.get(count())).to.equal(2);
+      expect(snapshot.get(min('age'))).to.equal(24);
+    });
+  });
+
+  it('aggregateSnapshotEqual() returns true for equal instances', () => {
+    return withTestCollection(async collRef => {
+      const aggregateQuery1 = aggregateQuery(collRef, count());
+      const snapshot1 = await getAggregate(aggregateQuery1);
+      const snapshot2 = await getAggregate(aggregateQuery1);
+      expect(aggregateSnapshotEqual(snapshot1, snapshot2)).to.be.true;
+    });
+  });
+});
+
+describe('GroupByQuery', () => {
+  function verifyResults(
+    actual: GroupByQuerySnapshot,
+    ...expected: DocumentData[]
+  ): void {
+    expect(actual.empty).to.equal(expected.length === 0);
+    expect(actual.size).to.equal(expected.length);
+  }
+
+  it('query property is the correct instance', () => {
+    return withTestCollection(async collRef => {
+      const groupByQuery1 = groupByQuery(collRef, 'shape');
+      expect(groupByQuery1.query).to.equal(collRef);
+    });
+  });
+
+  it('groupByQueryEqual() returns true for equal instances', () => {
+    return withTestDb(async db => {
+      const collRef1 = collection(db, "coll");
+      const groupByQuery1 = groupByQuery(collRef1, 'color');
+      const collRef2 = collection(db, "coll");
+      const groupByQuery2 = groupByQuery(collRef2, 'color');
+      expect(groupByQueryEqual(groupByQuery1, groupByQuery2)).to.be.true;
+    });
+  });
+
+  it('groupByQueryEqual() returns false for unequal instances', () => {
+    return withTestDb(async db => {
+      const collRef1 = collection(db, "coll1");
+      const collRef2 = collection(db, "coll2");
+      const groupByQuery1 = groupByQuery(collRef1, 'field1');
+      const groupByQuery2 = groupByQuery(collRef2, 'field1');
+      const groupByQuery3 = groupByQuery(collRef1, 'field2');
+      const groupByQuery4 = groupByQuery(collRef1, 'field1', 'field2');
+      expect(groupByQueryEqual(groupByQuery1, groupByQuery2)).to.be.false;
+      expect(groupByQueryEqual(groupByQuery1, groupByQuery3)).to.be.false;
+      expect(groupByQueryEqual(groupByQuery1, groupByQuery4)).to.be.false;
+      expect(groupByQueryEqual(groupByQuery2, groupByQuery3)).to.be.false;
+      expect(groupByQueryEqual(groupByQuery2, groupByQuery4)).to.be.false;
+      expect(groupByQueryEqual(groupByQuery3, groupByQuery4)).to.be.false;
+    });
+  });
+
+  it('supports groupOrderBy (with default order)', () => {
+    return withTestCollectionAndInitialData(
+      [{ color: 'green' }, { color: 'red' }, { color: 'blue' }, { color: 'red' }],
+      async collRef => {
+        const groupByQuery1 = groupByQuery(collRef, 'color', count(), groupOrderBy('color'));
+        const result = await getGroups(groupByQuery1)
+        expect(result.empty).to.be.false;
+        expect(result.size).to.equal(3);
+        for (const group of result.groups) {
+          expect(group.fields).to.have.length(1);
+          expect(group.fields[0].isEqual(new FieldPath('color'))).to.be.true;
+          expect(group.aggregations).to.have.length(1);
+          expect(group.aggregations[0].isEqual(count())).to.be.true;
+        }
+        expect(result.groups[0].get('color')).to.equal('blue');
+        expect(result.groups[0].get(count())).to.equal(1);
+        expect(result.groups[1].get('color')).to.equal('green');
+        expect(result.groups[1].get(count())).to.equal(1);
+        expect(result.groups[2].get('color')).to.equal('red');
+        expect(result.groups[2].get(count())).to.equal(2);
+      }
+    );
+  });
+
+  it('supports groupOrderBy (with asc)', () => {
+    return withTestCollectionAndInitialData(
+      [{ color: 'green' }, { color: 'red' }, { color: 'blue' }, { color: 'red' }],
+      async collRef => {
+        const groupByQuery1 = groupByQuery(collRef, 'color', count(), groupOrderBy('color', 'asc'));
+        const result = await getGroups(groupByQuery1);
+        verifyResults(result);
+      }
+    );
+  });
+
+  it('supports groupOrderBy (with desc)', () => {
+    return withTestCollectionAndInitialData(
+      [{ color: 'green' }, { color: 'red' }, { color: 'blue' }, { color: 'red' }],
+      async collRef => {
+        const groupByQuery1 = groupByQuery(collRef, 'color', count(), groupOrderBy('color', 'desc'));
+        const result = await getGroups(groupByQuery1);
+        verifyResults(result);
+      }
+    );
+  });
+
+  it('supports groupLimit', () => {
+    return withTestCollectionAndInitialData(
+      [{ color: 'green' }, { color: 'red' }, { color: 'blue' }, { color: 'red' }],
+      async collRef => {
+        const groupByQuery1 = groupByQuery(collRef, 'color', count(), groupLimit(2));
+        const result = await getGroups(groupByQuery1);
+        verifyResults(result);
+      }
+    );
+  });
+
+  it('supports groupLimitToLast query', () => {
+    return withTestCollectionAndInitialData(
+      [{ color: 'green' }, { color: 'red' }, { color: 'blue' }, { color: 'red' }],
+      async collRef => {
+        const groupByQuery1 = groupByQuery(collRef, 'color', count(), groupLimitToLast(2));
+        const result = await getGroups(groupByQuery1);
+        verifyResults(result);
+      }
+    );
+  });
+
+  it('supports groupStartAt', () => {
+    return withTestCollectionAndInitialData(
+      [{ color: 'green' }, { color: 'red' }, { color: 'blue' }, { color: 'red' }],
+      async collRef => {
+        const groupByQuery1 = groupByQuery(collRef, 'color', count(), groupLimit(1));
+        const result1 = await getGroups(groupByQuery1);
+        verifyResults(result1);
+        const groupByQuery2 = groupByQuery(groupByQuery1, groupStartAt('blue'));
+        const result2 = await getGroups(groupByQuery2);
+        verifyResults(result2);
+        const groupByQuery3 = groupByQuery(groupByQuery2, groupStartAt(result2.groups[0]));
+        const result3 = await getGroups(groupByQuery3);
+        verifyResults(result3);
+      }
+    );
+  });
+
+  it('supports groupStartAfter', () => {
+    return withTestCollectionAndInitialData(
+      [{ color: 'green' }, { color: 'red' }, { color: 'blue' }, { color: 'red' }],
+      async collRef => {
+        const groupByQuery1 = groupByQuery(collRef, 'color', count(), groupLimit(1));
+        const result1 = await getGroups(groupByQuery1);
+        verifyResults(result1);
+        const groupByQuery2 = groupByQuery(groupByQuery1, groupStartAfter('blue'));
+        const result2 = await getGroups(groupByQuery2);
+        verifyResults(result2);
+        const groupByQuery3 = groupByQuery(groupByQuery2, groupStartAfter(result2.groups[0]));
+        const result3 = await getGroups(groupByQuery3);
+        verifyResults(result3);
+      }
+    );
+  });
+
+  it('supports groupEndAt', () => {
+    return withTestCollectionAndInitialData(
+      [{ color: 'green' }, { color: 'red' }, { color: 'blue' }, { color: 'red' }],
+      async collRef => {
+        const groupByQuery1 = groupByQuery(collRef, 'color', count(), groupLimit(1));
+        const result1 = await getGroups(groupByQuery1);
+        verifyResults(result1);
+        const groupByQuery2 = groupByQuery(groupByQuery1, groupEndAt('blue'));
+        const result2 = await getGroups(groupByQuery2);
+        verifyResults(result2);
+        const groupByQuery3 = groupByQuery(groupByQuery2, groupEndAt(result2.groups[0]));
+        const result3 = await getGroups(groupByQuery3);
+        verifyResults(result3);
+      }
+    );
+  });
+
+  it('supports groupEndBefore', () => {
+    return withTestCollectionAndInitialData(
+      [{ color: 'green' }, { color: 'red' }, { color: 'blue' }, { color: 'red' }],
+      async collRef => {
+        const groupByQuery1 = groupByQuery(collRef, 'color', count(), groupLimit(1));
+        const result1 = await getGroups(groupByQuery1);
+        verifyResults(result1);
+        const groupByQuery2 = groupByQuery(groupByQuery1, groupEndBefore('blue'));
+        const result2 = await getGroups(groupByQuery2);
+        verifyResults(result2);
+        const groupByQuery3 = groupByQuery(groupByQuery2, groupEndBefore(result2.groups[0]));
+        const result3 = await getGroups(groupByQuery3);
+        verifyResults(result3);
+      }
+    );
+  });
+});
+
+describe('GroupBySnapshot', () => {
+  it('GroupBySnapshot.query', () => {
+    return withTestCollection(async collRef => {
+      const groupByQuery1 = groupByQuery(collRef, 'field');
+      const snapshot = await getGroups(groupByQuery1);
+      expect(snapshot.query).to.equal(groupByQuery1);
+    });
+  });
+
+  it('GroupBySnapshot with no results', () => {
+    return withTestCollection(async collRef => {
+      const groupByQuery1 = groupByQuery(collRef, 'field');
+      const snapshot = await getGroups(groupByQuery1);
+      expect(snapshot.groups).to.have.length(0);
+      expect(snapshot.size).to.equal(0);
+      expect(snapshot.empty).to.be.true;
+    });
+  });
+
+  it('GroupBySnapshot with 1 group', () => {
+    const initialData = [
+      {'num': 1, 'color': 'red'},
+      {'num': 1, 'color': 'blue'},
+      {'num': 1, 'color': 'green'},
+    ];
+    return withTestCollectionAndInitialData(initialData, async collRef => {
+      const groupByQuery1 = groupByQuery(collRef, 'num');
+      const snapshot = await getGroups(groupByQuery1);
+      expect(snapshot.groups).to.have.length(1);
+      expect(snapshot.size).to.equal(1);
+      expect(snapshot.empty).to.be.false;
+    });
+  });
+
+  it('GroupBySnapshot with 3 groups', () => {
+    const initialData = [
+      {'num': 1, 'color': 'red'},
+      {'num': 1, 'color': 'red'},
+      {'num': 2, 'color': 'red'},
+      {'num': 2, 'color': 'red'},
+      {'num': 2, 'color': 'blue'},
+    ];
+    return withTestCollectionAndInitialData(initialData, async collRef => {
+      const groupByQuery1 = groupByQuery(collRef, 'num', 'color');
+      const snapshot = await getGroups(groupByQuery1);
+      expect(snapshot.groups).to.have.length(3);
+      expect(snapshot.size).to.equal(3);
+      expect(snapshot.empty).to.be.false;
+    });
+  });
+
+  it('GroupBySnapshot.forEach', () => {
+    const initialData = [
+      {'num': 1, 'color': 'red'},
+      {'num': 2, 'color': 'red'},
+    ];
+    return withTestCollectionAndInitialData(initialData, async collRef => {
+      const groupByQuery1 = groupByQuery(collRef, 'num', 'color');
+      const snapshot = await getGroups(groupByQuery1);
+      let groupsForForEach: Array<GroupSnapshot> = [];
+      snapshot.forEach((result => { groupsForForEach.push(result); }))
+      expect(groupsForForEach).to.have.length(2);
+      expect(groupsForForEach).to.deep.equal(snapshot.groups);
+    });
+  });
+
+  it('groupBySnapshotEqual() returns true for equal instances', () => {
+    return withTestCollection(async collRef => {
+      const groupByQuery1 = groupByQuery(collRef, 'field');
+      const snapshot1 = await getGroups(groupByQuery1);
+      const snapshot2 = await getGroups(groupByQuery1);
+      expect(groupByQuerySnapshotEqual(snapshot1, snapshot2)).to.be.true;
     });
   });
 });
