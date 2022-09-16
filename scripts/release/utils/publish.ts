@@ -46,10 +46,6 @@ export async function publishInCI(
   const tags = [];
   for (const pkg of updatedPkgs) {
     const path = await mapPkgNameToPkgPath(pkg);
-    if(pkg.startsWith('@') && !pkg.includes('firestore') && !pkg.endsWith('app') && !pkg.includes('auth')) {
-      console.log(`Skipping ${pkg}`);
-      continue;
-    }
 
     /**
      * Can't require here because we have a cached version of the required JSON
@@ -125,8 +121,7 @@ async function publishPackageInCI(
       '--tag',
       npmTag,
       '--registry',
-      'http://localhost:4873'
-      // 'https://wombat-dressing-room.appspot.com'
+      'https://wombat-dressing-room.appspot.com'
     ];
 
     if (dryRun) {
@@ -134,11 +129,11 @@ async function publishPackageInCI(
     }
 
     // Write proxy registry token for this package to .npmrc.
-    // await exec(
-    //   `echo "//wombat-dressing-room.appspot.com/:_authToken=${
-    //     process.env[getEnvTokenKey(pkg)]
-    //   }" >> ~/.npmrc`
-    // );
+    await exec(
+      `echo "//wombat-dressing-room.appspot.com/:_authToken=${
+        process.env[getEnvTokenKey(pkg)]
+      }" >> ~/.npmrc`
+    );
 
     return spawn('npm', args, { cwd: path });
   } catch (err) {
