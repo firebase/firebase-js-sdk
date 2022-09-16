@@ -77,6 +77,7 @@ import {
   OrderDirection as ProtoOrderDirection,
   Precondition as ProtoPrecondition,
   QueryTarget as ProtoQueryTarget,
+  RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   Status as ProtoStatus,
   Target as ProtoTarget,
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
@@ -850,6 +851,26 @@ export function toQueryTarget(
   }
 
   return result;
+}
+
+export function toRunAggregationQueryRequest(
+  serializer: JsonProtoSerializer,
+  target: Target
+): ProtoRunAggregationQueryRequest {
+  const queryTarget = toQueryTarget(serializer, target);
+
+  return {
+    structuredAggregationQuery: {
+      aggregations: [
+        {
+          count: {},
+          alias: 'count_alias'
+        }
+      ],
+      structuredQuery: queryTarget.structuredQuery
+    },
+    parent: queryTarget.parent
+  };
 }
 
 export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
