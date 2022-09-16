@@ -578,6 +578,10 @@ export function syncEngineApplyOnlineStateChange(
         !!syncEngineImpl.syncEngineListener.onWatchChange,
         'Active views but EventManager callbacks are not assigned'
       );
+      logWarn(
+        LOG_TAG,
+        `OnlineStateChange: ${JSON.stringify(newViewSnapshots)}`
+      );
       syncEngineImpl.syncEngineListener.onWatchChange(newViewSnapshots);
     }
 
@@ -1040,6 +1044,7 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   });
 
   await Promise.all(queriesProcessed);
+  logWarn(LOG_TAG, `Emits: ${JSON.stringify(newSnaps)}`);
   syncEngineImpl.syncEngineListener.onWatchChange!(newSnaps);
   await localStoreNotifyLocalViewChanges(
     syncEngineImpl.localStore,
@@ -1244,6 +1249,10 @@ export async function syncEngineApplyPrimaryState(
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   ensureWatchCallbacks(syncEngineImpl);
   syncEngineEnsureWriteCallbacks(syncEngineImpl);
+  logWarn(
+    LOG_TAG,
+    `syncEngineApplyPrimaryState(toBecomePrimary: ${isPrimary} isPrimary: ${syncEngineImpl._isPrimaryClient})`
+  );
   if (isPrimary === true && syncEngineImpl._isPrimaryClient !== true) {
     // Secondary tabs only maintain Views for their local listeners and the
     // Views internal state may not be 100% populated (in particular
@@ -1327,6 +1336,12 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
   targets: TargetId[],
   transitionToPrimary: boolean
 ): Promise<TargetData[]> {
+  logWarn(
+    LOG_TAG,
+    `synchronizeQueryViewsAndRaiseSnapshots(targets: ${JSON.stringify(
+      targets
+    )} toPrimary: ${transitionToPrimary})`
+  );
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const activeQueries: TargetData[] = [];
   const newViewSnapshots: ViewSnapshot[] = [];
@@ -1386,7 +1401,19 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
     activeQueries.push(targetData!);
   }
 
+  logWarn(
+    LOG_TAG,
+    `synchronizeQueryViewsAndRaiseSnapshots onWatchChanges(Snapshots: ${JSON.stringify(
+      newViewSnapshots
+    )})`
+  );
   syncEngineImpl.syncEngineListener.onWatchChange!(newViewSnapshots);
+  logWarn(
+    LOG_TAG,
+    `synchronizeQueryViewsAndRaiseSnapshots returns Targets: ${JSON.stringify(
+      activeQueries
+    )}`
+  );
   return activeQueries;
 }
 
@@ -1444,6 +1471,10 @@ export async function syncEngineApplyTargetState(
     switch (state) {
       case 'current':
       case 'not-current': {
+        logWarn(
+          LOG_TAG,
+          `Apply target state ${state}: ${queryCollectionGroup(query[0])}`
+        );
         const changes = await localStoreGetNewDocumentChanges(
           syncEngineImpl.localStore,
           queryCollectionGroup(query[0])
@@ -1453,6 +1484,10 @@ export async function syncEngineApplyTargetState(
             targetId,
             state === 'current'
           );
+        logWarn(
+          LOG_TAG,
+          `Apply target state ${state}: ${JSON.stringify(changes)}`
+        );
         await syncEngineEmitNewSnapsAndNotifyLocalStore(
           syncEngineImpl,
           changes,

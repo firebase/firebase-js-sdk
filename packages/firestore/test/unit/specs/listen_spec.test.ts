@@ -909,6 +909,37 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  /*
+  specTest(
+    'Secondary client raises latency compensated snapshot from primary mutation',
+    ['multi-client', 'exclusive'],
+    () => {
+      const query1 = query('collection');
+      const docA_1 = doc('collection/a', 1000, { key: '1' });
+      const docA_2 = doc('collection/a', 2000, { key: '2' });
+
+      return client(0)
+        .becomeVisible()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA_1)
+        .expectEvents(query1, { added: [docA_1]})
+        .userUnlistens(query1)
+        .client(1)
+        .becomeVisible()
+        .expectPrimaryState(false)
+        .userListens(query1)
+        .expectEvents(query1, { fromCache: true, added: [docA_1]})
+        .client(0)
+        .expectPrimaryState(true)
+        .expectListen(query1, {resumeToken: 'resume-token-1000'})
+        // .expectListen(query1, {resumeToken: 'resume-token-1000'})
+        .userSets('collection/a', {key: '2'})
+        .client(1)
+        .expectEvents(query1, { added: [docA_2]});
+    }
+  );
+   */
+
   specTest(
     'Mirror queries from same secondary client',
     ['multi-client'],

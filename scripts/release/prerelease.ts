@@ -93,7 +93,7 @@ export async function runPrerelease({
   /**
    * build packages
    */
-  // await buildPackages();
+  await buildPackages();
 
   /**
    * Publish to NPM

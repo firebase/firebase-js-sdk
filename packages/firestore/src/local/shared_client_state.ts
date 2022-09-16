@@ -28,7 +28,7 @@ import { TargetIdSet, targetIdSet } from '../model/collections';
 import { hardAssert, debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logError, logDebug } from '../util/log';
+import { logError, logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
@@ -756,7 +756,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     // `Window.addEventListener`.
     const storageEvent = event as StorageEvent;
     if (storageEvent.storageArea === this.storage) {
-      logDebug(LOG_TAG, 'EVENT', storageEvent.key, storageEvent.newValue);
+      logWarn(LOG_TAG, 'EVENT', storageEvent.key, storageEvent.newValue);
 
       if (storageEvent.key === this.localClientStorageKey) {
         logError(

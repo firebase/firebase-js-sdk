@@ -62,7 +62,7 @@ import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
 import { diffArrays } from '../util/array';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
@@ -1242,6 +1242,7 @@ export function localStoreGetNewDocumentChanges(
   collectionGroup: string
 ): Promise<DocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  logWarn(LOG_TAG, `get documents newer for ${collectionGroup}`);
 
   // Get the current maximum read time for the collection. This should always
   // exist, but to reduce the chance for regressions we default to
@@ -1252,17 +1253,19 @@ export function localStoreGetNewDocumentChanges(
     SnapshotVersion.min();
 
   return localStoreImpl.persistence
-    .runTransaction('Get new document changes', 'readonly', txn =>
-      localStoreImpl.remoteDocuments.getAllFromCollectionGroup(
+    .runTransaction('Get new document changes', 'readonly', txn => {
+      logWarn(LOG_TAG, `get documents newer than ${JSON.stringify(readTime)}`);
+      return localStoreImpl.localDocuments.getNextDocuments(
         txn,
         collectionGroup,
         newIndexOffsetSuccessorFromReadTime(readTime, INITIAL_LARGEST_BATCH_ID),
         /* limit= */ Number.MAX_SAFE_INTEGER
-      )
-    )
+      );
+    })
     .then(changedDocs => {
-      setMaxReadTime(localStoreImpl, collectionGroup, changedDocs);
-      return changedDocs;
+      setMaxReadTime(localStoreImpl, collectionGroup, changedDocs.changes);
+      logWarn(LOG_TAG, `GOT ${JSON.stringify(changedDocs)}`);
+      return changedDocs.changes;
     });
 }
 
@@ -1273,12 +1276,17 @@ function setMaxReadTime(
   collectionGroup: string,
   changedDocs: SortedMap<DocumentKey, Document>
 ): void {
-  let readTime = SnapshotVersion.min();
+  let readTime =
+    localStoreImpl.collectionGroupReadTime.get(collectionGroup) ||
+    SnapshotVersion.min();
   changedDocs.forEach((_, doc) => {
     if (doc.readTime.compareTo(readTime) > 0) {
       readTime = doc.readTime;
     }
   });
+  logWarn(
+    `set max readtime to ${JSON.stringify(readTime)} for ${collectionGroup}`
+  );
   localStoreImpl.collectionGroupReadTime.set(collectionGroup, readTime);
 }
 
