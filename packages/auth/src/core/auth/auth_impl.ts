@@ -61,6 +61,10 @@ import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 import { HttpHeader } from '../../api';
 import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import {
+  getRecaptchaConfig
+} from '../../api/authentication/recaptcha';
+import { RecaptchaClientType, RecaptchaVersion, RecaptchaActionName } from '../../api';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -350,16 +354,29 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     });
   }
 
-  setRecaptchaConfig(config: RecaptchaConfig): void {
-    if (this.tenantId == null) {
-      this._agentRecaptchaConfig = config;
-    } else {
-      this._tenantRecaptchaConfigs[this.tenantId] = config;
-    }
-    if (config.emailPasswordEnabled) {
-      const verifier = new RecaptchaEnterpriseVerifier(this);
-      void verifier.verify();
-    }
+  initializeRecaptchaConfig(): void {
+    getRecaptchaConfig(this, {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        }).then((response) => {
+          // TODO(chuanr): Confirm the response format when backend is ready
+          if (response.recaptchaConfig === undefined) {
+            reject(new Error("recaptchaConfig undefined"));
+          } else {
+            const config = response.recaptchaConfig;
+            if (this.tenantId == null) {
+              this._agentRecaptchaConfig = config;
+            } else {
+              this._tenantRecaptchaConfigs[this.tenantId] = config;
+            }
+            if (config.emailPasswordEnabled) {
+              const verifier = new RecaptchaEnterpriseVerifier(this);
+              void verifier.verify();
+            }
+          }
+        }).catch((error) => {
+          reject(error);
+        });
   }
 
   _getRecaptchaConfig(): RecaptchaConfig | null {

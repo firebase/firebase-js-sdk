@@ -70,7 +70,7 @@ import {
   getRedirectResult,
   browserPopupRedirectResolver,
   connectAuthEmulator,
-  setRecaptchaConfig
+  initializeRecaptchaConfig
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -444,7 +444,7 @@ function onSetTenantID(_event) {
 }
 
 function onSetRecaptchaEmailProviderEnabled() {
-  setRecaptchaConfig(auth, {emailPasswordEnabled: true});
+  initializeRecaptchaConfig(auth);
 }
 
 /**

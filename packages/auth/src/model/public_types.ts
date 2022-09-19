@@ -211,7 +211,7 @@ export interface Auth {
    * the actual enablement state on the server side.
    * 
    * For example, assume that reCAPTCHA verfication is enabled for Email provider via Cloud console
-   * or Admin SDKs. If the enablement is set to false via `setRecaptchaConfig(config)`, the auth
+   * or Admin SDKs. If the enablement is set to false via `initializeRecaptchaConfig()`, the auth
    * flow will be started without the reCAPTCHA verfication. This will result in a `reCAPTCHA token
    * missing` error while the SDK will automatically start the auth flow again with the reCAPTCHA
    * verfication flow. Developers can avoid such round trip by enabling the reCAPTCHA flow with this
@@ -219,12 +219,10 @@ export interface Auth {
    *
    * @example
    * ```javascript
-   * auth.setRecaptchaConfig(recaptchaConfig);
+   * auth.initializeRecaptchaConfig();
    * ```
-   *
-   * @param config - The {@link RecaptchaConfig} to use.
    */
-  setRecaptchaConfig(config: RecaptchaConfig): void;
+  initializeRecaptchaConfig(): void;
   /**
    * The {@link Auth} instance's language code.
    *
@@ -341,7 +339,7 @@ export interface Persistence {
 
 /** 
  * An interface representing the reCAPTCHA configuration that can be set with 
- * {@link Auth.setRecaptchaConfig}.
+ * {@link Auth.initializeRecaptchaConfig}.
  *
  * @public
  */

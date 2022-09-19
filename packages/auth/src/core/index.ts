@@ -74,7 +74,7 @@ export function setPersistence(
  * the reCAPTCHA configuration on the server side.
  * 
  * For example, suppose you enabled reCAPTCHA verification for the Email Address and Password provider using the Cloud console
- * or Admin SDKs. If you disable reCAPTCHA verification with `setRecaptchaConfig(config)`, the auth
+ * or Admin SDKs. If you disable reCAPTCHA verification with `initializeRecaptchaConfig()`, the auth
  * flow will start without reCAPTCHA verification. This will result in a "reCAPTCHA token
  * missing" error and the SDK will automatically restart the auth flow with the reCAPTCHA
  * verification flow. You can avoid such round trips by enabling the reCAPTCHA flow with this
@@ -82,16 +82,15 @@ export function setPersistence(
  *
  * @example
  * ```javascript
- * setRecaptchaConfig(auth, recaptchaConfig);
+ * initializeRecaptchaConfig(auth);
  * ```
  *
  * @param auth - The {@link Auth} instance.
- * @param config - The {@link RecaptchaConfig} to use.
  *
  * @public
  */
- export function setRecaptchaConfig(auth: Auth, config: RecaptchaConfig): void {
-  return getModularInstance(auth).setRecaptchaConfig(config);
+ export function initializeRecaptchaConfig(auth: Auth): void {
+  return getModularInstance(auth).initializeRecaptchaConfig();
 }
 
 /**
