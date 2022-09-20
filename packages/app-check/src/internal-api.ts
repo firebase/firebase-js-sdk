@@ -84,9 +84,9 @@ export async function getToken(
     }
   }
 
+  // If an invalid token was found in memory or indexedDB, clear token from
+  // memory and the local variable.
   if (token && !isValid(token)) {
-    // If an invalid token was found in memory or indexedDB, clear token from
-    // memory and the local variable.
     setState(app, { ...state, token: undefined });
     token = undefined;
   }
@@ -159,8 +159,11 @@ export async function getToken(
 
   let interopTokenResult: AppCheckTokenResult | undefined;
   if (!token || error) {
-    // if token is undefined, there must be an error.
-    // we return a dummy token along with the error
+    // If token is undefined, there must be an error.
+    // It's also possible a token exists, but there's also an error. (Such as
+    // if the token is almost expired, tries to refresh, and fails the
+    // exchange request.)
+    // In either case, return a dummy token along with the error.
     interopTokenResult = makeDummyTokenResult(error!);
   } else {
     interopTokenResult = {
@@ -297,7 +300,7 @@ function createTokenRefresher(appCheck: AppCheckService): Refresher {
         let nextRefreshTimeMillis =
           state.token.issuedAtTimeMillis +
           (state.token.expireTimeMillis - state.token.issuedAtTimeMillis) *
-          0.5 +
+            0.5 +
           5 * 60 * 1000;
         // Do not allow refresh time to be past (expireTime - 5 minutes)
         const latestAllowableRefresh =
