@@ -84,6 +84,13 @@ export async function getToken(
     }
   }
 
+  if (token && !isValid(token)) {
+    // If an invalid token was found in memory or indexedDB, clear token from
+    // memory and the local variable.
+    setState(app, { ...state, token: undefined });
+    token = undefined;
+  }
+
   // Return the cached token (from either memory or indexedDB) if it's valid
   if (!forceRefresh && token && isValid(token)) {
     return {
@@ -107,14 +114,14 @@ export async function getToken(
       state.exchangeTokenPromise = exchangeToken(
         getExchangeDebugTokenRequest(app, await getDebugToken()),
         appCheck.heartbeatServiceProvider
-      ).then(token => {
+      ).finally(() => {
+        // Clear promise when settled - either resolved or rejected.
         state.exchangeTokenPromise = undefined;
-        return token;
       });
       shouldCallListeners = true;
     }
     const tokenFromDebugExchange: AppCheckTokenInternal =
-      await state.exchangeTokenPromise;
+      await state.exchangeTokenPromise!;
     // Write debug token to indexedDB.
     await writeTokenToStorage(app, tokenFromDebugExchange);
     // Write debug token to state.
@@ -131,9 +138,9 @@ export async function getToken(
       // state.provider is populated in initializeAppCheck()
       // ensureActivated() at the top of this function checks that
       // initializeAppCheck() has been called.
-      state.exchangeTokenPromise = state.provider!.getToken().then(token => {
+      state.exchangeTokenPromise = state.provider!.getToken().finally(() => {
+        // Clear promise when settled - either resolved or rejected.
         state.exchangeTokenPromise = undefined;
-        return token;
       });
       shouldCallListeners = true;
     }
@@ -151,7 +158,7 @@ export async function getToken(
   }
 
   let interopTokenResult: AppCheckTokenResult | undefined;
-  if (!token) {
+  if (!token || error) {
     // if token is undefined, there must be an error.
     // we return a dummy token along with the error
     interopTokenResult = makeDummyTokenResult(error!);
@@ -290,7 +297,7 @@ function createTokenRefresher(appCheck: AppCheckService): Refresher {
         let nextRefreshTimeMillis =
           state.token.issuedAtTimeMillis +
           (state.token.expireTimeMillis - state.token.issuedAtTimeMillis) *
-            0.5 +
+          0.5 +
           5 * 60 * 1000;
         // Do not allow refresh time to be past (expireTime - 5 minutes)
         const latestAllowableRefresh =
