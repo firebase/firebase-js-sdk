@@ -18,7 +18,7 @@
 import { LimitType, queryWithLimit } from '../../../src/core/query';
 import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
+import {deletedDoc, doc, filter, orderBy, query, version} from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -909,36 +909,85 @@ describeSpec('Listens:', [], () => {
     }
   );
 
-  /*
+  specTest(
+    'Secondary client raises latency compensated snapshot from primary mutation',
+    ['multi-client'/*, 'exclusive'*/],
+    () => {
+      const query1 = query('collection');
+      const docA_1 = doc('collection/a', 1000, { key: '1' });
+      const docAMutated = doc('collection/a', 1000, { key: '2' }).setHasLocalMutations();
+      const docAAcked = doc('collection/a', 1000, { key: '2' });
+
+      return client(0)
+        .becomeVisible()
+        .expectPrimaryState(true)
+        .client(1)
+        .client(0)
+        .userListens(query1)
+        .expectListen(query1)
+        .watchAcksFull(query1, 1000, docA_1)
+        .expectEvents(query1, {added: [docA_1]})
+        // .userUnlistens(query1)
+        .client(1)
+        .userListens(query1)
+        .expectEvents(query1, {added: [docA_1]})
+        .client(0)
+        .expectListen(query1, {resumeToken: 'resume-token-1000'})
+        .watchAcksFull(query1, 1500, docA_1)
+        .userUnlistens(query1)
+        .client(1)
+        ;
+    });
+
+
   specTest(
     'Secondary client raises latency compensated snapshot from primary mutation',
     ['multi-client', 'exclusive'],
     () => {
       const query1 = query('collection');
       const docA_1 = doc('collection/a', 1000, { key: '1' });
-      const docA_2 = doc('collection/a', 2000, { key: '2' });
+      const docAMutated = doc('collection/a', 1000, { key: '2' }).setHasLocalMutations();
+      const docAAcked = doc('collection/a', 1000, { key: '2' });
 
       return client(0)
         .becomeVisible()
-        .userListens(query1)
-        .watchAcksFull(query1, 1000, docA_1)
-        .expectEvents(query1, { added: [docA_1]})
-        .userUnlistens(query1)
+        // .userListens(query1)
+        // .watchAcksFull(query1, 1000, docA_1)
+        // .expectEvents(query1, { added: [docA_1]})
+        // .userUnlistens(query1)
+        // .watchRemoves(query1)
         .client(1)
         .becomeVisible()
         .expectPrimaryState(false)
         .userListens(query1)
-        .expectEvents(query1, { fromCache: true, added: [docA_1]})
         .client(0)
         .expectPrimaryState(true)
-        .expectListen(query1, {resumeToken: 'resume-token-1000'})
-        // .expectListen(query1, {resumeToken: 'resume-token-1000'})
-        .userSets('collection/a', {key: '2'})
+        .expectListen(query1)
+        .watchAcksFull(query1, 1000, docA_1)
         .client(1)
-        .expectEvents(query1, { added: [docA_2]});
+        .expectEvents(query1, { added: [docA_1]})
+        .userUnlistens(query1)
+        .client(0)
+        .expectUnlisten(query1)
+        .client(1)
+        .userListens(query1)
+        .expectEvents(query1, { added: [docA_1], fromCache: true})
+        .client(0)
+        .expectListen(query1, {resumeToken: 'resume-token-1000'})
+        .watchAcksFull(query1, 1500, docA_1)
+        .client(0)
+        .userSets('collection/a', {key: '2'})
+
+        .client(1)
+        .expectEvents(query1, { modified: [docAMutated], hasPendingWrites: true, fromCache: true})
+
+        .client(0)
+        .watchAcksFull(query1, 2500, docAAcked)
+        .client(1)
+        .expectEvents(query1, { metadata: [docAAcked]})
+        ;
     }
   );
-   */
 
   specTest(
     'Mirror queries from same secondary client',
