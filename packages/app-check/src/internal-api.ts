@@ -338,7 +338,7 @@ function createTokenRefresher(appCheck: AppCheckService): Refresher {
         let nextRefreshTimeMillis =
           state.token.issuedAtTimeMillis +
           (state.token.expireTimeMillis - state.token.issuedAtTimeMillis) *
-          0.5 +
+            0.5 +
           5 * 60 * 1000;
         // Do not allow refresh time to be past (expireTime - 5 minutes)
         const latestAllowableRefresh =

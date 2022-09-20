@@ -373,7 +373,8 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
       setState(app, {
-        ...getState(app), token: {
+        ...getState(app),
+        token: {
           token: 'something',
           expireTimeMillis: Date.now() - 1000,
           issuedAtTimeMillis: 0
@@ -428,25 +429,17 @@ describe('internal api', () => {
       };
 
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
-      stub(client, 'exchangeToken').returns(
-        Promise.resolve(freshToken)
-      );
+      stub(client, 'exchangeToken').returns(Promise.resolve(freshToken));
 
       expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
         token: 'new-recaptcha-app-check-token'
       });
 
       // When it wiped the invalid token.
-      expect(storageWriteStub).has.been.calledWith(
-        app,
-        undefined
-      );
+      expect(storageWriteStub).has.been.calledWith(app, undefined);
 
       // When it wrote the new token fetched from the exchange endpoint.
-      expect(storageWriteStub).has.been.calledWith(
-        app,
-        freshToken
-      );
+      expect(storageWriteStub).has.been.calledWith(app, freshToken);
     });
 
     it('returns the actual token and an internalError if a token is valid but the request fails', async () => {
@@ -539,7 +532,7 @@ describe('internal api', () => {
 
   describe('addTokenListener', () => {
     it('adds token listeners', () => {
-      const listener = (): void => { };
+      const listener = (): void => {};
       setState(app, {
         ...getState(app),
         cachedTokenPromise: Promise.resolve(undefined)
@@ -555,7 +548,7 @@ describe('internal api', () => {
     });
 
     it('starts proactively refreshing token after adding the first listener', async () => {
-      const listener = (): void => { };
+      const listener = (): void => {};
       setState(app, {
         ...getState(app),
         isTokenAutoRefreshEnabled: true,
@@ -638,7 +631,8 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
       setState(app, {
-        ...getState(app), token: {
+        ...getState(app),
+        token: {
           token: `fake-cached-app-check-token`,
           // within refresh window
           expireTimeMillis: 10000,
@@ -663,8 +657,12 @@ describe('internal api', () => {
       );
       // Tick 10s, make sure nothing is called repeatedly in that time.
       await clock.tickAsync(10000);
-      expect(fakeListener).to.be.calledWith({ token: 'fake-cached-app-check-token' });
-      expect(fakeListener).to.be.calledWith({ token: 'new-recaptcha-app-check-token' });
+      expect(fakeListener).to.be.calledWith({
+        token: 'fake-cached-app-check-token'
+      });
+      expect(fakeListener).to.be.calledWith({
+        token: 'new-recaptcha-app-check-token'
+      });
       expect(fakeExchange).to.be.calledOnce;
       clock.restore();
     });
@@ -677,7 +675,8 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
       setState(app, {
-        ...getState(app), token: {
+        ...getState(app),
+        token: {
           token: `fake-cached-app-check-token`,
           // not expired but within refresh window
           expireTimeMillis: 10000,
@@ -698,7 +697,9 @@ describe('internal api', () => {
       );
       // Tick 10s, make sure nothing is called repeatedly in that time.
       await clock.tickAsync(10000);
-      expect(fakeListener).to.be.calledWith({ token: 'fake-cached-app-check-token' });
+      expect(fakeListener).to.be.calledWith({
+        token: 'fake-cached-app-check-token'
+      });
       // once on init and once invoked directly in this test
       expect(fakeListener).to.be.calledTwice;
       expect(fakeExchange).to.be.calledOnce;
@@ -713,7 +714,8 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
       setState(app, {
-        ...getState(app), token: {
+        ...getState(app),
+        token: {
           token: `fake-cached-app-check-token`,
           // not expired but within refresh window
           expireTimeMillis: 10000,
@@ -749,7 +751,8 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
       setState(app, {
-        ...getState(app), token: {
+        ...getState(app),
+        token: {
           token: `fake-cached-app-check-token`,
           // expired
           expireTimeMillis: 0,
@@ -788,7 +791,8 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
       setState(app, {
-        ...getState(app), token: {
+        ...getState(app),
+        token: {
           token: `fake-cached-app-check-token`,
           // expired
           expireTimeMillis: 0,
@@ -822,7 +826,7 @@ describe('internal api', () => {
 
   describe('removeTokenListener', () => {
     it('should remove token listeners', () => {
-      const listener = (): void => { };
+      const listener = (): void => {};
       setState(app, {
         ...getState(app),
         cachedTokenPromise: Promise.resolve(undefined)
@@ -839,7 +843,7 @@ describe('internal api', () => {
     });
 
     it('should stop proactively refreshing token after deleting the last listener', async () => {
-      const listener = (): void => { };
+      const listener = (): void => {};
       setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
       setState(app, {
         ...getState(app),
