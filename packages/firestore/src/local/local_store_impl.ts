@@ -1255,17 +1255,27 @@ export function localStoreGetNewDocumentChanges(
   return localStoreImpl.persistence
     .runTransaction('Get new document changes', 'readonly', txn => {
       logWarn(LOG_TAG, `get documents newer than ${JSON.stringify(readTime)}`);
-      return localStoreImpl.localDocuments.getNextDocuments(
+      return localStoreImpl.remoteDocuments.getAllFromCollectionGroup(
         txn,
         collectionGroup,
         newIndexOffsetSuccessorFromReadTime(readTime, INITIAL_LARGEST_BATCH_ID),
         /* limit= */ Number.MAX_SAFE_INTEGER
       );
+      // return localStoreImpl.localDocuments.getNextDocuments(
+      //   txn,
+      //   collectionGroup,
+      //   newIndexOffsetSuccessorFromReadTime(readTime, INITIAL_LARGEST_BATCH_ID),
+      //   /* limit= */ Number.MAX_SAFE_INTEGER
+      // );
     })
     .then(changedDocs => {
-      setMaxReadTime(localStoreImpl, collectionGroup, changedDocs.changes);
-      logWarn(LOG_TAG, `GOT ${JSON.stringify(changedDocs)}`);
-      return changedDocs.changes;
+      // setMaxReadTime(localStoreImpl, collectionGroup, changedDocs.changes);
+      setMaxReadTime(localStoreImpl, collectionGroup, changedDocs);
+      changedDocs.forEach((k, d) => {
+        logWarn(LOG_TAG, `GOT ${JSON.stringify(d.data)} at read time ${d.readTime}`);
+      });
+      return changedDocs;
+      // return changedDocs.changes;
     });
 }
 

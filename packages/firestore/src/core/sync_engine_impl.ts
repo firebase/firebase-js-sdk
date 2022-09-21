@@ -580,7 +580,7 @@ export function syncEngineApplyOnlineStateChange(
       );
       logWarn(
         LOG_TAG,
-        `OnlineStateChange: ${JSON.stringify(newViewSnapshots)}`
+        `Primary: ${syncEngineImpl.isPrimaryClient} OnlineStateChange: ${JSON.stringify(newViewSnapshots)}`
       );
       syncEngineImpl.syncEngineListener.onWatchChange(newViewSnapshots);
     }
@@ -1021,12 +1021,19 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
       !!syncEngineImpl.applyDocChanges,
       'ApplyDocChangesHandler not set'
     );
+    changes.forEach((k,d) => {
+      logWarn(LOG_TAG, `Primary: ${syncEngineImpl.isPrimaryClient} handles change ${d}`);
+    });
+    logWarn(LOG_TAG, `Primary: ${syncEngineImpl.isPrimaryClient} with changes ${JSON.stringify(changes)}`);
+    logWarn(LOG_TAG, `Primary: ${syncEngineImpl.isPrimaryClient} with remoteEvent ${JSON.stringify(remoteEvent)}`);
     queriesProcessed.push(
       syncEngineImpl
         .applyDocChanges(queryView, changes, remoteEvent)
         .then(viewSnapshot => {
+          logWarn(LOG_TAG, `Primary: ${syncEngineImpl.isPrimaryClient} with viewsnapshot ${JSON.stringify(viewSnapshot)}`);
           if (viewSnapshot) {
             if (syncEngineImpl.isPrimaryClient) {
+              logWarn(LOG_TAG, `Primary: Updating query state to ${viewSnapshot.fromCache ? 'not-current' : 'current'}`);
               syncEngineImpl.sharedClientState.updateQueryState(
                 queryView.targetId,
                 viewSnapshot.fromCache ? 'not-current' : 'current'
@@ -1044,7 +1051,6 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   });
 
   await Promise.all(queriesProcessed);
-  logWarn(LOG_TAG, `Emits: ${JSON.stringify(newSnaps)}`);
   syncEngineImpl.syncEngineListener.onWatchChange!(newSnaps);
   await localStoreNotifyLocalViewChanges(
     syncEngineImpl.localStore,
@@ -1207,6 +1213,8 @@ export async function syncEngineApplyBatchState(
     batchId
   );
 
+  logWarn(LOG_TAG, `Primary: ${syncEngineImpl.isPrimaryClient} applying batch with state ${batchState}, error ${error}`);
+
   if (documents === null) {
     // A throttled tab may not have seen the mutation before it was completed
     // and removed from the mutation queue, in which case we won't have cached
@@ -1237,6 +1245,9 @@ export async function syncEngineApplyBatchState(
     fail(`Unknown batchState: ${batchState}`);
   }
 
+  documents.forEach((k,d) => {
+    logWarn(LOG_TAG, `Primary: ${syncEngineImpl.isPrimaryClient} emitting ${d.data} at ${d.readTime}`);
+  });
   await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, documents);
 }
 
@@ -1336,12 +1347,6 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
   targets: TargetId[],
   transitionToPrimary: boolean
 ): Promise<TargetData[]> {
-  logWarn(
-    LOG_TAG,
-    `synchronizeQueryViewsAndRaiseSnapshots(targets: ${JSON.stringify(
-      targets
-    )} toPrimary: ${transitionToPrimary})`
-  );
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const activeQueries: TargetData[] = [];
   const newViewSnapshots: ViewSnapshot[] = [];
@@ -1401,19 +1406,7 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
     activeQueries.push(targetData!);
   }
 
-  logWarn(
-    LOG_TAG,
-    `synchronizeQueryViewsAndRaiseSnapshots onWatchChanges(Snapshots: ${JSON.stringify(
-      newViewSnapshots
-    )})`
-  );
   syncEngineImpl.syncEngineListener.onWatchChange!(newViewSnapshots);
-  logWarn(
-    LOG_TAG,
-    `synchronizeQueryViewsAndRaiseSnapshots returns Targets: ${JSON.stringify(
-      activeQueries
-    )}`
-  );
   return activeQueries;
 }
 
@@ -1473,7 +1466,7 @@ export async function syncEngineApplyTargetState(
       case 'not-current': {
         logWarn(
           LOG_TAG,
-          `Apply target state ${state}: ${queryCollectionGroup(query[0])}`
+          `Primary: ${syncEngineImpl.isPrimaryClient} Apply target state ${state}: ${queryCollectionGroup(query[0])}`
         );
         const changes = await localStoreGetNewDocumentChanges(
           syncEngineImpl.localStore,
@@ -1486,7 +1479,7 @@ export async function syncEngineApplyTargetState(
           );
         logWarn(
           LOG_TAG,
-          `Apply target state ${state}: ${JSON.stringify(changes)}`
+          `Primary: ${syncEngineImpl.isPrimaryClient} Apply target state ${state}: ${JSON.stringify(changes)}`
         );
         await syncEngineEmitNewSnapsAndNotifyLocalStore(
           syncEngineImpl,

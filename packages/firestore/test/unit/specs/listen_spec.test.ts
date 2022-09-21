@@ -909,85 +909,69 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  // Reproduces: https://github.com/firebase/firebase-js-sdk/issues/6511
   specTest(
     'Secondary client raises latency compensated snapshot from primary mutation',
-    ['multi-client'/*, 'exclusive'*/],
+    ['multi-client'],
     () => {
       const query1 = query('collection');
       const docA_1 = doc('collection/a', 1000, { key: '1' });
-      const docAMutated = doc('collection/a', 1000, { key: '2' }).setHasLocalMutations();
-      const docAAcked = doc('collection/a', 1000, { key: '2' });
+      const docAMutated = doc('collection/a', 1500, { key: '2' }).setHasLocalMutations();
 
       return client(0)
         .becomeVisible()
         .expectPrimaryState(true)
-        .client(1)
-        .client(0)
         .userListens(query1)
-        .expectListen(query1)
         .watchAcksFull(query1, 1000, docA_1)
         .expectEvents(query1, {added: [docA_1]})
-        // .userUnlistens(query1)
+        .userUnlistens(query1)
+        .watchRemoves(query1)
         .client(1)
         .userListens(query1)
-        .expectEvents(query1, {added: [docA_1]})
+        .expectEvents(query1, {added: [docA_1], fromCache: true})
         .client(0)
         .expectListen(query1, {resumeToken: 'resume-token-1000'})
         .watchAcksFull(query1, 1500, docA_1)
-        .userUnlistens(query1)
         .client(1)
-        ;
+        .expectEvents(query1, {})
+        .client(0)
+        .userSets('collection/a', {key: '2'})
+        .client(1)
+        // Without the fix for 6511, this would raise two snapshots, first one as expected and
+        // second one travels back in time and raise the old stale document.
+        .expectEvents(query1, { modified: [docAMutated], hasPendingWrites: true});
     });
 
-
   specTest(
-    'Secondary client raises latency compensated snapshot from primary mutation',
+    'Secondary client raises latency compensated snapshot from primary deletion',
     ['multi-client', 'exclusive'],
     () => {
       const query1 = query('collection');
       const docA_1 = doc('collection/a', 1000, { key: '1' });
-      const docAMutated = doc('collection/a', 1000, { key: '2' }).setHasLocalMutations();
-      const docAAcked = doc('collection/a', 1000, { key: '2' });
 
       return client(0)
         .becomeVisible()
-        // .userListens(query1)
-        // .watchAcksFull(query1, 1000, docA_1)
-        // .expectEvents(query1, { added: [docA_1]})
-        // .userUnlistens(query1)
-        // .watchRemoves(query1)
-        .client(1)
-        .becomeVisible()
-        .expectPrimaryState(false)
-        .userListens(query1)
-        .client(0)
         .expectPrimaryState(true)
-        .expectListen(query1)
+        .userListens(query1)
         .watchAcksFull(query1, 1000, docA_1)
-        .client(1)
-        .expectEvents(query1, { added: [docA_1]})
+        .expectEvents(query1, {added: [docA_1]})
         .userUnlistens(query1)
-        .client(0)
-        .expectUnlisten(query1)
+        .watchRemoves(query1)
         .client(1)
         .userListens(query1)
-        .expectEvents(query1, { added: [docA_1], fromCache: true})
+        .expectEvents(query1, {added: [docA_1], fromCache: true})
         .client(0)
         .expectListen(query1, {resumeToken: 'resume-token-1000'})
         .watchAcksFull(query1, 1500, docA_1)
-        .client(0)
-        .userSets('collection/a', {key: '2'})
-
         .client(1)
-        .expectEvents(query1, { modified: [docAMutated], hasPendingWrites: true, fromCache: true})
-
+        .expectEvents(query1, {})
         .client(0)
-        .watchAcksFull(query1, 2500, docAAcked)
+        .userDeletes('collection/a')
         .client(1)
-        .expectEvents(query1, { metadata: [docAAcked]})
-        ;
-    }
-  );
+        // Without the fix for 6511, this would raise two snapshots, first one as expected and
+        // second one travels back in time and raise the old stale document.
+        .expectEvents(query1, { removed: [docA_1]});
+    });
 
   specTest(
     'Mirror queries from same secondary client',
