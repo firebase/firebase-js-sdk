@@ -121,7 +121,8 @@ async function publishPackageInCI(
       '--tag',
       npmTag,
       '--registry',
-      'https://wombat-dressing-room.appspot.com'
+      'http://localhost:4873'
+      // 'https://wombat-dressing-room.appspot.com'
     ];
 
     if (dryRun) {
