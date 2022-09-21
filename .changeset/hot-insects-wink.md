@@ -2,4 +2,4 @@
 '@firebase/firestore': minor
 ---
 
-Release count query for internal use.
+Implement count query for internal use.

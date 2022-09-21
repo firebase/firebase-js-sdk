@@ -525,9 +525,10 @@ export function firestoreClientRunCountQuery(
             'Failed to get count result because the client is offline.'
           )
         );
+      } else {
+        const result = await getCount(query);
+        deferred.resolve(result);
       }
-      const result = await getCount(query);
-      deferred.resolve(result);
     } catch (e) {
       deferred.reject(e as Error);
     }
