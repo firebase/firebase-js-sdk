@@ -128,7 +128,7 @@ export async function getToken(
       shouldCallListeners = true;
     }
     const tokenFromDebugExchange: AppCheckTokenInternal =
-      await state.exchangeTokenPromise!;
+      await state.exchangeTokenPromise;
     // Write debug token to indexedDB.
     await writeTokenToStorage(app, tokenFromDebugExchange);
     // Write debug token to state.
@@ -171,7 +171,7 @@ export async function getToken(
     // If token is undefined, there must be an error.
     // Return a dummy token along with the error.
     interopTokenResult = makeDummyTokenResult(error!);
-  } else if (error && isValid(token)) {
+  } else if (error) {
     if (isValid(token)) {
       // It's also possible a valid token exists, but there's also an error.
       // (Such as if the token is almost expired, tries to refresh, and
