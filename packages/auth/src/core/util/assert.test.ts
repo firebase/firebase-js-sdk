@@ -161,9 +161,9 @@ describe('_assertInstanceOf', () => {
   });
 
   function makeClass(): Constructable {
-    class Test {};
+    class Test {}
     return Test;
-  };
+  }
 
   class WrongClass {}
 

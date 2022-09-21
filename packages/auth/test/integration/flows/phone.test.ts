@@ -294,7 +294,7 @@ describe('Integration test: phone auth', () => {
           )
         );
       } catch (e) {
-         error = e as FirebaseError;
+        error = e as FirebaseError;
       }
 
       expect(error!.customData!.phoneNumber).to.eq(PHONE_A.phoneNumber);
@@ -308,8 +308,15 @@ describe('Integration test: phone auth', () => {
     });
   });
 
-  generateMiddlewareTests(() => auth, async () => {
-    const cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
-    await cr.confirm(await code(cr, PHONE_A.code));
-  });
+  generateMiddlewareTests(
+    () => auth,
+    async () => {
+      const cr = await signInWithPhoneNumber(
+        auth,
+        PHONE_A.phoneNumber,
+        verifier
+      );
+      await cr.confirm(await code(cr, PHONE_A.code));
+    }
+  );
 });

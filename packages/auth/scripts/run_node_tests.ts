@@ -20,17 +20,19 @@ import { resolve } from 'path';
 import { spawn } from 'child-process-promise';
 import * as yargs from 'yargs';
 
-const argv = yargs.options({
-  local: {
-    type: 'boolean'
-  },
-  integration: {
-    type: 'boolean'
-  },
-  webdriver: {
-    type: 'boolean'
-  }
-}).parseSync();
+const argv = yargs
+  .options({
+    local: {
+      type: 'boolean'
+    },
+    integration: {
+      type: 'boolean'
+    },
+    webdriver: {
+      type: 'boolean'
+    }
+  })
+  .parseSync();
 
 const nyc = resolve(__dirname, '../../../node_modules/.bin/nyc');
 const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');

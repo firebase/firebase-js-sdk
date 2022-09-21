@@ -1,5 +1,19 @@
 # @firebase/auth
 
+## 0.20.7
+
+### Patch Changes
+
+- [`e06d9069c`](https://github.com/firebase/firebase-js-sdk/commit/e06d9069ca07429df248d9134aebdea1118e9427) [#6594](https://github.com/firebase/firebase-js-sdk/pull/6594) - Included a reference to AuthInternal in MultiFactorSessionImpl.
+
+* [`666c8ec1f`](https://github.com/firebase/firebase-js-sdk/commit/666c8ec1ff5cb5b8947a142e26c0a2ecb18f8bb4) [#6569](https://github.com/firebase/firebase-js-sdk/pull/6569) (fixes [#6553](https://github.com/firebase/firebase-js-sdk/issues/6553)) - Update custom claim type of `ParsedToken` to be `any`
+
+## 0.20.6
+
+### Patch Changes
+
+- [`bea604ea3`](https://github.com/firebase/firebase-js-sdk/commit/bea604ea33c529e755cc3fcdc0a2ea75d04b9f19) [#6544](https://github.com/firebase/firebase-js-sdk/pull/6544) - Fix proactive refresh logic in Auth when RTDB/Firestore/Storage are in use
+
 ## 0.20.5
 
 ### Patch Changes

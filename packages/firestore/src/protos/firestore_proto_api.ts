@@ -334,6 +334,32 @@ export declare namespace firestoreV1ApiClientInterfaces {
     readTime?: string;
     skippedResults?: number;
   }
+  interface RunAggregationQueryRequest {
+    parent?: string;
+    structuredAggregationQuery?: StructuredAggregationQuery;
+    transaction?: string;
+    newTransaction?: TransactionOptions;
+    readTime?: string;
+  }
+  interface RunAggregationQueryResponse {
+    result?: AggregationResult;
+    transaction?: string;
+    readTime?: string;
+  }
+  interface AggregationResult {
+    aggregateFields?: ApiClientObjectMap<Value>;
+  }
+  interface StructuredAggregationQuery {
+    structuredQuery?: StructuredQuery;
+    aggregations?: Aggregation[];
+  }
+  interface Aggregation {
+    count?: Count;
+    alias?: string;
+  }
+  interface Count {
+    upTo?: number;
+  }
   interface Status {
     code?: number;
     message?: string;
@@ -479,6 +505,10 @@ export declare type RunQueryRequest =
   firestoreV1ApiClientInterfaces.RunQueryRequest;
 export declare type RunQueryResponse =
   firestoreV1ApiClientInterfaces.RunQueryResponse;
+export declare type RunAggregationQueryRequest =
+  firestoreV1ApiClientInterfaces.RunAggregationQueryRequest;
+export declare type RunAggregationQueryResponse =
+  firestoreV1ApiClientInterfaces.RunAggregationQueryResponse;
 export declare type Status = firestoreV1ApiClientInterfaces.Status;
 export declare type StructuredQuery =
   firestoreV1ApiClientInterfaces.StructuredQuery;

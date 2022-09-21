@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { FactorId, MultiFactorInfo, PhoneMultiFactorInfo } from '../model/public_types';
+import {
+  FactorId,
+  MultiFactorInfo,
+  PhoneMultiFactorInfo
+} from '../model/public_types';
 import {
   PhoneMfaEnrollment,
   MfaEnrollment
@@ -46,7 +50,10 @@ export abstract class MultiFactorInfoImpl implements MultiFactorInfo {
   }
 }
 
-export class PhoneMultiFactorInfoImpl extends MultiFactorInfoImpl implements PhoneMultiFactorInfo {
+export class PhoneMultiFactorInfoImpl
+  extends MultiFactorInfoImpl
+  implements PhoneMultiFactorInfo
+{
   readonly phoneNumber: string;
 
   private constructor(response: PhoneMfaEnrollment) {

@@ -54,7 +54,10 @@ class BrowserLocalPersistence
     super(() => window.localStorage, PersistenceType.LOCAL);
   }
 
-  private readonly boundEventHandler = (event: StorageEvent, poll?: boolean): void => this.onStorageEvent(event, poll);
+  private readonly boundEventHandler = (
+    event: StorageEvent,
+    poll?: boolean
+  ): void => this.onStorageEvent(event, poll);
   private readonly listeners: Record<string, Set<StorageEventListener>> = {};
   private readonly localCache: Record<string, string | null> = {};
   // setTimeout return value is platform specific

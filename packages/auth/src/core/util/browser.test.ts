@@ -115,7 +115,7 @@ describe('core/util/browser', () => {
     it('should respond false for other mobile', () => {
       const userAgent =
         'Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Chrome/534.30';
-        expect(_isIOS(userAgent)).to.be.false;
+      expect(_isIOS(userAgent)).to.be.false;
     });
   });
 });

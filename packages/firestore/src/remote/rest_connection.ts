@@ -37,6 +37,7 @@ const RPC_NAME_URL_MAPPING: StringMap = {};
 RPC_NAME_URL_MAPPING['BatchGetDocuments'] = 'batchGet';
 RPC_NAME_URL_MAPPING['Commit'] = 'commit';
 RPC_NAME_URL_MAPPING['RunQuery'] = 'runQuery';
+RPC_NAME_URL_MAPPING['RunAggregationQuery'] = 'runAggregationQuery';
 
 const RPC_URL_VERSION = 'v1';
 
@@ -53,6 +54,12 @@ export abstract class RestConnection implements Connection {
   protected readonly databaseId: DatabaseId;
   protected readonly baseUrl: string;
   private readonly databaseRoot: string;
+
+  get shouldResourcePathBeIncludedInRequest(): boolean {
+    // Both `invokeRPC()` and `invokeStreamingRPC()` use their `path` arguments to determine
+    // where to run the query, and expect the `request` to NOT specify the "path".
+    return false;
+  }
 
   constructor(private readonly databaseInfo: DatabaseInfo) {
     this.databaseId = databaseInfo.databaseId;
