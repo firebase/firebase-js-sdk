@@ -222,7 +222,7 @@ export interface Auth {
    * auth.initializeRecaptchaConfig();
    * ```
    */
-  initializeRecaptchaConfig(): void;
+  initializeRecaptchaConfig(): Promise<void>;
   /**
    * The {@link Auth} instance's language code.
    *

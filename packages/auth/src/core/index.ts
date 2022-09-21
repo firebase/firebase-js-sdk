@@ -23,8 +23,7 @@ import {
   User,
   CompleteFn,
   ErrorFn,
-  Unsubscribe,
-  RecaptchaConfig
+  Unsubscribe
 } from '../model/public_types';
 
 export {
@@ -89,7 +88,7 @@ export function setPersistence(
  *
  * @public
  */
- export function initializeRecaptchaConfig(auth: Auth): void {
+ export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
   return getModularInstance(auth).initializeRecaptchaConfig();
 }
 

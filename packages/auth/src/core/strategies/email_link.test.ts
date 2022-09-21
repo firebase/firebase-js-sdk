@@ -160,12 +160,6 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
       sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key'
-      });
     });
 
     afterEach(() => {
@@ -173,7 +167,14 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     });
     
     it('calls send sign in link to email with recaptcha enabled', async () => {
-      auth.setRecaptchaConfig({emailPasswordEnabled: true});
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'site-key',
+        recaptchaConfig: { emailPasswordEnabled: true }
+      });
+      await auth.initializeRecaptchaConfig();
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -194,7 +195,14 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     });
 
     it('calls send sign in link to email with recaptcha disabled', async () => {
-      auth.setRecaptchaConfig({emailPasswordEnabled: false});
+     mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'site-key',
+        recaptchaConfig: { emailPasswordEnabled: false }
+      });
+      await auth.initializeRecaptchaConfig();
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -229,7 +237,14 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       });
 
       RecaptchaEnterpriseVerifier.agentSiteKey = 'wrong-site-key';
-      auth.setRecaptchaConfig({emailPasswordEnabled: true});
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'site-key',
+        recaptchaConfig: { emailPasswordEnabled: true }
+      });
+      await auth.initializeRecaptchaConfig();
 
       mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -245,9 +260,10 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
         clientType: RecaptchaClientType.WEB,
         version: RecaptchaVersion.ENTERPRISE,
-      }, {});
-
-      auth.setRecaptchaConfig({emailPasswordEnabled: true});
+      }, {
+        recaptchaConfig: { emailPasswordEnabled: true }
+      });
+      await auth.initializeRecaptchaConfig();
 
       await expect(sendSignInLinkToEmail(auth, email, {
         handleCodeInApp: true,
