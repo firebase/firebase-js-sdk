@@ -93,7 +93,7 @@ export interface IMarkdownDocumenterOptions {
   outputFolder: string;
   addFileNameSuffix: boolean;
   projectName: string;
-  shouldSortFunctions: boolean;
+  sortFunctions: string;
 }
 
 /**
@@ -109,7 +109,7 @@ export class MarkdownDocumenter {
   private readonly _pluginLoader: PluginLoader;
   private readonly _addFileNameSuffix: boolean;
   private readonly _projectName: string;
-  private readonly _shouldSortFunctions: boolean;
+  private readonly _sortFunctions: string;
 
   public constructor(options: IMarkdownDocumenterOptions) {
     this._apiModel = options.apiModel;
@@ -117,7 +117,7 @@ export class MarkdownDocumenter {
     this._outputFolder = options.outputFolder;
     this._addFileNameSuffix = options.addFileNameSuffix;
     this._projectName = options.projectName;
-    this._shouldSortFunctions = options.shouldSortFunctions;
+    this._sortFunctions = options.sortFunctions;
     this._tsdocConfiguration = CustomDocNodes.configuration;
     this._markdownEmitter = new CustomMarkdownEmitter(this._apiModel);
 
@@ -905,8 +905,13 @@ page_type: reference
           break;
 
         case ApiItemKind.Function:
-          if (this._shouldSortFunctions) {
-            const firstParam = (apiMember as ApiParameterListMixin).parameters[0] || { name : '' };
+          /**
+           * If this option is set, group functions by first param.
+           * Organize using a map where the key is the first param.
+           */
+          if (this._sortFunctions) {
+            const firstParam = (apiMember as ApiParameterListMixin)
+              .parameters[0] || { name: '' };
             if (!functionsRowGroup[firstParam.name]) {
               functionsRowGroup[firstParam.name] = [];
             }
@@ -941,17 +946,48 @@ page_type: reference
       }
     }
 
-    if (this._shouldSortFunctions) {
-      const sortedFunctionsFirstParamKeys = Object.keys(functionsRowGroup).sort((a, b) => {
-        if (a === 'app') {
-          return -1;
+    /**
+     * Sort the functions groups by first param. If priority params were
+     * provided to --sort-functions, will put them first in the order
+     * given.
+     */
+    if (this._sortFunctions) {
+      let priorityParams: string[] = [];
+      if (this._sortFunctions.includes(',')) {
+        priorityParams = this._sortFunctions.split(',');
+      } else {
+        priorityParams = [this._sortFunctions];
+      }
+      const sortedFunctionsFirstParamKeys = Object.keys(functionsRowGroup).sort(
+        (a, b) => {
+          if (!a || !b) {
+            console.log(`Missing one. a:${a}, b:${b}`)
+          }
+          if (priorityParams.includes(a) && priorityParams.includes(b)) {
+            return priorityParams.indexOf(a) - priorityParams.indexOf(b);
+          } else if (priorityParams.includes(a)) {
+            return -1;
+          } else if (priorityParams.includes(b)) {
+            return 1;
+          }
+          return a.localeCompare(b);
         }
-        return (a.localeCompare(b));
-      });
-  
+      );
+
       for (const paramKey of sortedFunctionsFirstParamKeys) {
-        if (finalFunctionsTable.rows.length > 0) {
-          finalFunctionsTable.createAndAddRow();
+        // Header for each group of functions grouped by first param.
+        // Doesn't make sense if there's only one group.
+        const headerText = paramKey ? `function(${paramKey}...)` : 'function()';
+        if (sortedFunctionsFirstParamKeys.length > 1) {
+          finalFunctionsTable.addRow(
+            new DocTableRow({ configuration }, [
+              new DocTableCell({ configuration }, [
+                new DocParagraph({ configuration }, [
+                  new DocPlainText({ configuration, text: headerText })
+                ])
+              ])
+            ])
+          );
         }
         for (const functionsRow of functionsRowGroup[paramKey]) {
           finalFunctionsTable.addRow(functionsRow);

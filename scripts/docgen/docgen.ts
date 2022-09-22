@@ -182,7 +182,8 @@ async function generateDocs(
       outputFolder,
       '--project',
       'js',
-      '--sort-functions'
+      '--sort-functions',
+      'app,appCheck,auth,analytics,database,firestore,functions,storage,installations,messaging,performance,remoteConfig'
     ],
     { stdio: 'inherit' }
   );
