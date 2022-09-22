@@ -361,17 +361,16 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
           // TODO(chuanr): Confirm the response format when backend is ready
           if (response.recaptchaConfig === undefined) {
             return Promise.reject(new Error("recaptchaConfig undefined"));
+          }
+          const config = response.recaptchaConfig;
+          if (this.tenantId) {
+            this._tenantRecaptchaConfigs[this.tenantId] = config;
           } else {
-            const config = response.recaptchaConfig;
-            if (this.tenantId == null) {
-              this._agentRecaptchaConfig = config;
-            } else {
-              this._tenantRecaptchaConfigs[this.tenantId] = config;
-            }
-            if (config.emailPasswordEnabled) {
-              const verifier = new RecaptchaEnterpriseVerifier(this);
-              void verifier.verify();
-            }
+            this._agentRecaptchaConfig = config;
+          }
+          if (config.emailPasswordEnabled) {
+            const verifier = new RecaptchaEnterpriseVerifier(this);
+            void verifier.verify();
           }
         }).catch((error) => {
           return Promise.reject(error);
