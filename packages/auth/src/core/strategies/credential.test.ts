@@ -19,11 +19,7 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { stub } from 'sinon';
 
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '../../model/enums';
+import { OperationType, ProviderId, SignInMethod } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';

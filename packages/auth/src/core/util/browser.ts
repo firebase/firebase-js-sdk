@@ -123,8 +123,10 @@ export function _isWebOS(ua = getUA()): boolean {
 }
 
 export function _isIOS(ua = getUA()): boolean {
-  return /iphone|ipad|ipod/i.test(ua) ||
-      (/macintosh/i.test(ua) && /mobile/i.test(ua));
+  return (
+    /iphone|ipad|ipod/i.test(ua) ||
+    (/macintosh/i.test(ua) && /mobile/i.test(ua))
+  );
 }
 
 export function _isIOS7Or8(ua = getUA()): boolean {

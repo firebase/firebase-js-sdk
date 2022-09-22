@@ -31,12 +31,14 @@ import {
   setDoc,
   PrivateSettings,
   SnapshotListenOptions,
-  newTestFirestore
+  newTestFirestore,
+  newTestApp
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  USE_EMULATOR
 } from './settings';
 
 /* eslint-disable no-restricted-globals */
@@ -182,7 +184,41 @@ export async function withTestDbsSettings(
   const dbs: Firestore[] = [];
 
   for (let i = 0; i < numDbs; i++) {
-    const db = newTestFirestore(projectId, /* name =*/ undefined, settings);
+    const db = newTestFirestore(newTestApp(projectId), settings);
+    if (persistence) {
+      await enableIndexedDbPersistence(db);
+    }
+    dbs.push(db);
+  }
+
+  try {
+    await fn(dbs);
+  } finally {
+    for (const db of dbs) {
+      await terminate(db);
+      if (persistence) {
+        await clearIndexedDbPersistence(db);
+      }
+    }
+  }
+}
+
+export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
+  persistence: boolean,
+  dbNames: string[],
+  fn: (db: Firestore[]) => Promise<void>
+): Promise<void> {
+  // Tests with named DBs can only run on emulator for now. This is because the
+  // emulator does not require DB to be created before use.
+  // TODO: Design ability to run named DB tests on backend. Maybe create DBs
+  // TODO: beforehand, or create DBs as part of test setup.
+  if (!USE_EMULATOR) {
+    return Promise.resolve();
+  }
+  const app = newTestApp(DEFAULT_PROJECT_ID);
+  const dbs: Firestore[] = [];
+  for (const dbName of dbNames) {
+    const db = newTestFirestore(app, DEFAULT_SETTINGS, dbName);
     if (persistence) {
       await enableIndexedDbPersistence(db);
     }
@@ -252,6 +288,13 @@ export function withTestCollection(
   fn: (collection: CollectionReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestCollectionSettings(persistence, DEFAULT_SETTINGS, docs, fn);
+}
+
+export function withEmptyTestCollection(
+  persistence: boolean,
+  fn: (collection: CollectionReference, db: Firestore) => Promise<void>
+): Promise<void> {
+  return withTestCollection(persistence, {}, fn);
 }
 
 // TODO(mikelehen): Once we wipe the database between tests, we can probably

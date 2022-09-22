@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "3.4.14",
+  "version": "3.5.0",
   "engines": {
     "node": ">=10.10.0"
   },
@@ -30,6 +30,7 @@
     "test:all:ci": "run-p test:browser test:lite:browser test:travis",
     "test:all": "run-p test:browser test:lite:browser test:travis test:minified",
     "test:browser": "karma start --single-run",
+    "test:browser:unit": "karma start --single-run --unit",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "node ./scripts/run-tests.js  --main=test/register.ts  --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:prod": "node ./scripts/run-tests.js --main=test/register.ts 'test/{,!(browser|lite)/**/}*.test.ts'",
@@ -82,7 +83,7 @@
     "@firebase/component": "0.5.17",
     "@firebase/logger": "0.3.3",
     "@firebase/util": "1.6.3",
-    "@firebase/webchannel-wrapper": "0.6.2",
+    "@firebase/webchannel-wrapper": "0.7.0",
     "@grpc/grpc-js": "^1.3.2",
     "@grpc/proto-loader": "^0.6.13",
     "node-fetch": "2.6.7",
@@ -92,9 +93,9 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.30",
-    "@firebase/app-compat": "0.1.31",
-    "@firebase/auth": "0.20.5",
+    "@firebase/app": "0.7.33",
+    "@firebase/app-compat": "0.1.34",
+    "@firebase/auth": "0.20.7",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",

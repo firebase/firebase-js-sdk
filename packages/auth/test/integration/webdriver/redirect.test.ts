@@ -95,7 +95,9 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     await driver.call(MiddlewareFunction.ATTACH_BLOCKING_MIDDLEWARE_ON_START);
 
     await driver.reinitOnRedirect();
-    await expect(driver.call(RedirectFunction.REDIRECT_RESULT)).to.be.rejectedWith('auth/login-blocked');
+    await expect(
+      driver.call(RedirectFunction.REDIRECT_RESULT)
+    ).to.be.rejectedWith('auth/login-blocked');
     expect(await driver.getUserSnapshot()).to.be.null;
   });
 

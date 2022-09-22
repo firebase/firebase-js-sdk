@@ -21,13 +21,16 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import {Auth, createUserWithEmailAndPassword, User} from '@firebase/auth';
+import { Auth, createUserWithEmailAndPassword, User } from '@firebase/auth';
 import { randomEmail } from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 use(sinonChai);
 
-export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Promise<unknown>): void {
+export function generateMiddlewareTests(
+  authGetter: () => Auth,
+  signIn: () => Promise<unknown>
+): void {
   context('middleware', () => {
     let auth: Auth;
     let unsubscribes: Array<() => void>;
@@ -48,7 +51,10 @@ export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Pr
      * automatically unsubscribe after every test (since some tests may
      * perform cleanup after that would be affected by the middleware)
      */
-    function beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): void {
+    function beforeAuthStateChanged(
+      callback: (user: User | null) => void | Promise<void>,
+      onAbort?: () => void
+    ): void {
       unsubscribes.push(auth.beforeAuthStateChanged(callback, onAbort));
     }
 
@@ -72,7 +78,11 @@ export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Pr
 
     it('keeps previously-logged in user if blocked', async () => {
       // Use a random email/password sign in for the base user
-      const {user: baseUser} = await createUserWithEmailAndPassword(auth, randomEmail(), 'password');
+      const { user: baseUser } = await createUserWithEmailAndPassword(
+        auth,
+        randomEmail(),
+        'password'
+      );
 
       beforeAuthStateChanged(() => {
         throw new Error('stop sign in');
@@ -102,7 +112,11 @@ export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Pr
 
     it('overrides previous user if allowed', async () => {
       // Use a random email/password sign in for the base user
-      const {user: baseUser} = await createUserWithEmailAndPassword(auth, randomEmail(), 'password');
+      const { user: baseUser } = await createUserWithEmailAndPassword(
+        auth,
+        randomEmail(),
+        'password'
+      );
 
       beforeAuthStateChanged(() => {
         // Pass
@@ -131,7 +145,11 @@ export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Pr
 
     it('keeps previously-logged in user if one rejects', async () => {
       // Use a random email/password sign in for the base user
-      const {user: baseUser} = await createUserWithEmailAndPassword(auth, randomEmail(), 'password');
+      const { user: baseUser } = await createUserWithEmailAndPassword(
+        auth,
+        randomEmail(),
+        'password'
+      );
 
       // Also check that the function is called multiple
       // times
@@ -151,7 +169,11 @@ export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Pr
 
     it('allows sign in with multiple callbacks all pass', async () => {
       // Use a random email/password sign in for the base user
-      const {user: baseUser} = await createUserWithEmailAndPassword(auth, randomEmail(), 'password');
+      const { user: baseUser } = await createUserWithEmailAndPassword(
+        auth,
+        randomEmail(),
+        'password'
+      );
 
       // Also check that the function is called multiple
       // times
@@ -184,7 +206,7 @@ export function generateMiddlewareTests(authGetter: () => Auth, signIn: () => Pr
     it('can prevent sign-out', async () => {
       await signIn();
       const user = auth.currentUser;
-      
+
       beforeAuthStateChanged(() => {
         throw new Error('block sign out');
       });

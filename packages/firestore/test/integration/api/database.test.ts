@@ -62,7 +62,8 @@ import {
   Timestamp,
   FieldPath,
   newTestFirestore,
-  SnapshotOptions
+  SnapshotOptions,
+  newTestApp
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -71,7 +72,8 @@ import {
   withTestDb,
   withTestDbs,
   withTestDoc,
-  withTestDocAndInitialData
+  withTestDocAndInitialData,
+  withNamedTestDbsOrSkipUnlessUsingEmulator
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -1106,8 +1108,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await deleteApp(app);
 
       const firestore2 = newTestFirestore(
-        options.projectId!,
-        name,
+        newTestApp(options.projectId!, name),
         DEFAULT_SETTINGS
       );
       await enableIndexedDbPersistence(firestore2);
@@ -1149,7 +1150,9 @@ apiDescribe('Database', (persistence: boolean) => {
 
         await deleteApp(app);
 
-        const firestore2 = newTestFirestore(options.projectId!, name);
+        const firestore2 = newTestFirestore(
+          newTestApp(options.projectId!, name)
+        );
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
         const docSnap2 = await getDocFromCache(docRef2);
@@ -1170,7 +1173,9 @@ apiDescribe('Database', (persistence: boolean) => {
 
         await deleteApp(app);
         await clearIndexedDbPersistence(firestore);
-        const firestore2 = newTestFirestore(options.projectId!, name);
+        const firestore2 = newTestFirestore(
+          newTestApp(options.projectId!, name)
+        );
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
         await expect(getDocFromCache(docRef2)).to.eventually.be.rejectedWith(
@@ -1191,7 +1196,9 @@ apiDescribe('Database', (persistence: boolean) => {
         const options = app.options;
 
         await deleteApp(app);
-        const firestore2 = newTestFirestore(options.projectId!, name);
+        const firestore2 = newTestFirestore(
+          newTestApp(options.projectId!, name)
+        );
         await clearIndexedDbPersistence(firestore2);
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
@@ -1698,6 +1705,49 @@ apiDescribe('Database', (persistence: boolean) => {
             expect(snapshot.exists()).to.be.ok;
             expect(snapshot.data()).to.deep.equal(data);
           });
+      }
+    );
+  });
+
+  it('can keep docs separate with multi-db when online', () => {
+    return withNamedTestDbsOrSkipUnlessUsingEmulator(
+      persistence,
+      ['db1', 'db2'],
+      async ([db1, db2]) => {
+        const data = { name: 'Rafi', email: 'abc@xyz.com' };
+
+        const ref1 = await doc(collection(db1, 'users'), 'doc1');
+        await setDoc(ref1, data);
+        const snapshot1 = await getDoc(ref1);
+        expect(snapshot1.exists()).to.be.ok;
+        expect(snapshot1.data()).to.be.deep.equals(data);
+
+        const ref2 = await doc(collection(db2, 'users'), 'doc1');
+        const snapshot2 = await getDocFromServer(ref2);
+        expect(snapshot2.exists()).to.not.be.ok;
+      }
+    );
+  });
+
+  it('can keep docs separate with multi-db when offline', () => {
+    return withNamedTestDbsOrSkipUnlessUsingEmulator(
+      persistence,
+      ['db1', 'db2'],
+      async ([db1, db2]) => {
+        await disableNetwork(db1);
+        await disableNetwork(db2);
+        const data = { name: 'Rafi', email: 'abc@xyz.com' };
+
+        const ref1 = await doc(collection(db1, 'users'));
+        void setDoc(ref1, data);
+        const snapshot = await getDocFromCache(ref1);
+        expect(snapshot.exists()).to.be.ok;
+        expect(snapshot.data()).to.be.deep.equals(data);
+
+        const ref2 = await doc(collection(db2, 'users'));
+        await expect(getDocFromCache(ref2)).to.eventually.rejectedWith(
+          'Failed to get document from cache.'
+        );
       }
     );
   });

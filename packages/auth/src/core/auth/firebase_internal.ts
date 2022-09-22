@@ -28,10 +28,8 @@ interface TokenListener {
 }
 
 export class AuthInterop implements FirebaseAuthInternal {
-  private readonly internalListeners: Map<
-    TokenListener,
-    Unsubscribe
-  > = new Map();
+  private readonly internalListeners: Map<TokenListener, Unsubscribe> =
+    new Map();
 
   constructor(private readonly auth: AuthInternal) {}
 

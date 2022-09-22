@@ -128,5 +128,8 @@ export interface PopupRedirectResolverInternal extends PopupRedirectResolver {
     resolver: PopupRedirectResolver,
     bypassAuthState: boolean
   ) => Promise<UserCredential | null>;
-  _overrideRedirectResult: (auth: AuthInternal, resultGetter: () => Promise<UserCredentialInternal|null>) => void;
+  _overrideRedirectResult: (
+    auth: AuthInternal,
+    resultGetter: () => Promise<UserCredentialInternal | null>
+  ) => void;
 }

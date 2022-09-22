@@ -23,6 +23,12 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
+import {
+  AggregateField,
+  AggregateQuerySnapshot,
+  getCount
+} from '../lite-api/aggregate';
+import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -38,6 +44,7 @@ import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { Datastore } from '../remote/datastore';
 import {
+  canUseNetwork,
   RemoteStore,
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
@@ -497,6 +504,34 @@ export function firestoreClientTransaction<T>(
       updateFunction,
       deferred
     ).run();
+  });
+  return deferred.promise;
+}
+
+export function firestoreClientRunCountQuery(
+  client: FirestoreClient,
+  query: LiteQuery<unknown>
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const deferred = new Deferred<
+    AggregateQuerySnapshot<{ count: AggregateField<number> }>
+  >();
+  client.asyncQueue.enqueueAndForget(async () => {
+    try {
+      const remoteStore = await getRemoteStore(client);
+      if (!canUseNetwork(remoteStore)) {
+        deferred.reject(
+          new FirestoreError(
+            Code.UNAVAILABLE,
+            'Failed to get count result because the client is offline.'
+          )
+        );
+      } else {
+        const result = await getCount(query);
+        deferred.resolve(result);
+      }
+    } catch (e) {
+      deferred.reject(e as Error);
+    }
   });
   return deferred.promise;
 }

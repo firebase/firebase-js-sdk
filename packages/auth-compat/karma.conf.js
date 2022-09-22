@@ -22,6 +22,7 @@ const files = ['src/**/*.test.ts'];
 
 module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
+    browsers: getTestBrowsers(argv),
     // files to load into karma
     files: getTestFiles(),
     preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
@@ -41,6 +42,14 @@ function getTestFiles() {
   } else {
     return ['src/**/*.test.ts'];
   }
+}
+
+function getTestBrowsers(argv) {
+  let browsers = ['ChromeHeadless'];
+  if (process.env?.BROWSERS && argv.unit) {
+    browsers = process.env?.BROWSERS?.split(',');
+  }
+  return browsers;
 }
 
 function getClientConfig() {
