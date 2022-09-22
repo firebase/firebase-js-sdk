@@ -69,8 +69,8 @@ export function setPersistence(
  * requests, which indicates whether the reCAPTCHA verification flow should be triggered for a
  * specific auth provider. If initializeRecaptchaConfig() is not invoked, the auth flow will start
  * without reCAPTCHA verification. But if reCAPTCHA verificaiton is required, the reCAPTCHA config
- * will be automatically pulled internally and the flows will restart. Thus calling this method
- * will reduce the latency of auth flows but not required.
+ * will be automatically pulled internally and the flows will restart. Thus, calling this optional
+ * method will reduce the latency of auth flows.
  * 
  * @example
  * ```javascript
