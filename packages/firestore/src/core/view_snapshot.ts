@@ -20,6 +20,7 @@ import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DocumentSet } from '../model/document_set';
 import { fail } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 
 import { Query, queryEquals } from './query';
@@ -146,7 +147,8 @@ export class ViewSnapshot {
     readonly mutatedKeys: DocumentKeySet,
     readonly fromCache: boolean,
     readonly syncStateChanged: boolean,
-    readonly excludesMetadataChanges: boolean
+    readonly excludesMetadataChanges: boolean,
+    readonly resumeToken: ByteString
   ) {}
 
   /** Returns a view snapshot as if all documents in the snapshot were added. */
@@ -154,7 +156,8 @@ export class ViewSnapshot {
     query: Query,
     documents: DocumentSet,
     mutatedKeys: DocumentKeySet,
-    fromCache: boolean
+    fromCache: boolean,
+    resumeToken: ByteString
   ): ViewSnapshot {
     const changes: DocumentViewChange[] = [];
     documents.forEach(doc => {
@@ -169,7 +172,8 @@ export class ViewSnapshot {
       mutatedKeys,
       fromCache,
       /* syncStateChanged= */ true,
-      /* excludesMetadataChanges= */ false
+      /* excludesMetadataChanges= */ false,
+      resumeToken
     );
   }
 
@@ -184,7 +188,8 @@ export class ViewSnapshot {
       !this.mutatedKeys.isEqual(other.mutatedKeys) ||
       !queryEquals(this.query, other.query) ||
       !this.docs.isEqual(other.docs) ||
-      !this.oldDocs.isEqual(other.oldDocs)
+      !this.oldDocs.isEqual(other.oldDocs) ||
+      this.resumeToken !== other.resumeToken
     ) {
       return false;
     }

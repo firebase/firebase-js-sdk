@@ -1288,6 +1288,23 @@ apiDescribe('Queries', (persistence: boolean) => {
       expect(toDataArray(snapshot)).to.deep.equal([{ map: { nested: 'foo' } }]);
     });
   });
+
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? it.only : it.skip)('empty query results are cached', () => {
+    // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
+    return withTestCollection(persistence, {}, async coll => {
+      const snapshot1 = await getDocs(coll); // Populate the cache
+      expect(snapshot1.metadata.fromCache).to.be.false;
+      expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check
+
+      // Add a snapshot listener whose first event should be raised from cache.
+      const storeEvent = new EventsAccumulator<QuerySnapshot>();
+      onSnapshot(coll, storeEvent.storeEvent);
+      const snapshot2 = await storeEvent.awaitEvent();
+      expect(snapshot2.metadata.fromCache).to.be.true;
+      expect(toDataArray(snapshot2)).to.deep.equal([]);
+    });
+  });
 });
 
 function verifyDocumentChange<T>(
