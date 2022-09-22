@@ -93,6 +93,7 @@ export interface IMarkdownDocumenterOptions {
   outputFolder: string;
   addFileNameSuffix: boolean;
   projectName: string;
+  shouldSortFunctions: boolean;
 }
 
 /**
@@ -108,6 +109,7 @@ export class MarkdownDocumenter {
   private readonly _pluginLoader: PluginLoader;
   private readonly _addFileNameSuffix: boolean;
   private readonly _projectName: string;
+  private readonly _shouldSortFunctions: boolean;
 
   public constructor(options: IMarkdownDocumenterOptions) {
     this._apiModel = options.apiModel;
@@ -115,6 +117,7 @@ export class MarkdownDocumenter {
     this._outputFolder = options.outputFolder;
     this._addFileNameSuffix = options.addFileNameSuffix;
     this._projectName = options.projectName;
+    this._shouldSortFunctions = options.shouldSortFunctions;
     this._tsdocConfiguration = CustomDocNodes.configuration;
     this._markdownEmitter = new CustomMarkdownEmitter(this._apiModel);
 
@@ -834,10 +837,12 @@ page_type: reference
       headerTitles: ['Enumeration', 'Description']
     });
 
-    const functionsTable: DocTable = new DocTable({
+    const finalFunctionsTable: DocTable = new DocTable({
       configuration,
       headerTitles: ['Function', 'Description']
     });
+
+    const functionsRowGroup: Record<string, DocTableRow[]> = {};
 
     const interfacesTable: DocTable = new DocTable({
       configuration,
@@ -859,7 +864,8 @@ page_type: reference
       headerTitles: ['Type Alias', 'Description']
     });
 
-    const functionsDefinitions: DocNode[] = [];
+    const functionsDefinitionsGroup: Record<string, DocNode[]> = {};
+    const finalFunctionsDefinitions: DocNode[] = [];
     const variablesDefinitions: DocNode[] = [];
     const typeAliasDefinitions: DocNode[] = [];
     const enumsDefinitions: DocNode[] = [];
@@ -899,10 +905,24 @@ page_type: reference
           break;
 
         case ApiItemKind.Function:
-          functionsTable.addRow(row);
-          functionsDefinitions.push(
-            ...this._createCompleteOutputForApiItem(apiMember)
-          );
+          if (this._shouldSortFunctions) {
+            const firstParam = (apiMember as ApiParameterListMixin).parameters[0] || { name : '' };
+            if (!functionsRowGroup[firstParam.name]) {
+              functionsRowGroup[firstParam.name] = [];
+            }
+            if (!functionsDefinitionsGroup[firstParam.name]) {
+              functionsDefinitionsGroup[firstParam.name] = [];
+            }
+            functionsRowGroup[firstParam.name].push(row);
+            functionsDefinitionsGroup[firstParam.name].push(
+              ...this._createCompleteOutputForApiItem(apiMember)
+            );
+          } else {
+            finalFunctionsTable.addRow(row);
+            finalFunctionsDefinitions.push(
+              ...this._createCompleteOutputForApiItem(apiMember)
+            );
+          }
           break;
 
         case ApiItemKind.TypeAlias:
@@ -921,9 +941,30 @@ page_type: reference
       }
     }
 
-    if (functionsTable.rows.length > 0) {
+    if (this._shouldSortFunctions) {
+      const sortedFunctionsFirstParamKeys = Object.keys(functionsRowGroup).sort((a, b) => {
+        if (a === 'app') {
+          return -1;
+        }
+        return (a.localeCompare(b));
+      });
+  
+      for (const paramKey of sortedFunctionsFirstParamKeys) {
+        if (finalFunctionsTable.rows.length > 0) {
+          finalFunctionsTable.createAndAddRow();
+        }
+        for (const functionsRow of functionsRowGroup[paramKey]) {
+          finalFunctionsTable.addRow(functionsRow);
+        }
+        for (const functionDefinition of functionsDefinitionsGroup[paramKey]) {
+          finalFunctionsDefinitions.push(functionDefinition);
+        }
+      }
+    }
+
+    if (finalFunctionsTable.rows.length > 0) {
       output.push(new DocHeading({ configuration, title: 'Functions' }));
-      output.push(functionsTable);
+      output.push(finalFunctionsTable);
     }
 
     if (classesTable.rows.length > 0) {
@@ -956,8 +997,8 @@ page_type: reference
       output.push(typeAliasesTable);
     }
 
-    if (functionsDefinitions.length > 0) {
-      output.push(...functionsDefinitions);
+    if (finalFunctionsDefinitions.length > 0) {
+      output.push(...finalFunctionsDefinitions);
     }
 
     if (variablesDefinitions.length > 0) {

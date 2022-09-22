@@ -181,7 +181,8 @@ async function generateDocs(
       '--output',
       outputFolder,
       '--project',
-      'js'
+      'js',
+      '--sort-functions'
     ],
     { stdio: 'inherit' }
   );
