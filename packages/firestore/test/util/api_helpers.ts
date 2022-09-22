@@ -43,6 +43,7 @@ import {
 import { DocumentKeySet } from '../../src/model/collections';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
+import { ByteString } from '../../src/util/byte_string';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
 
 import { doc, key, path as pathFrom } from './helpers';
@@ -144,6 +145,8 @@ export function querySnapshot(
     newDocuments = newDocuments.add(docToAdd);
     documentChanges.push({ type: ChangeType.Added, doc: docToAdd });
   });
+  const resumeToken = ByteString.EMPTY_BYTE_STRING;
+  
   const viewSnapshot: ViewSnapshot = new ViewSnapshot(
     query,
     newDocuments,
@@ -152,7 +155,8 @@ export function querySnapshot(
     mutatedKeys,
     fromCache,
     syncStateChanged,
-    false
+    false,
+    resumeToken
   );
   const db = firestore();
   return new QuerySnapshot(

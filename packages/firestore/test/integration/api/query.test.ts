@@ -1290,7 +1290,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it.only : it.skip)('empty query results are cached', () => {
+  (persistence ? it : it.skip)('empty query results are cached', () => {
     // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
     return withTestCollection(persistence, {}, async coll => {
       const snapshot1 = await getDocs(coll); // Populate the cache
