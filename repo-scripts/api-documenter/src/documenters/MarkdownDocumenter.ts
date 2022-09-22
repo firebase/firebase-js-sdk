@@ -961,7 +961,7 @@ page_type: reference
       const sortedFunctionsFirstParamKeys = Object.keys(functionsRowGroup).sort(
         (a, b) => {
           if (!a || !b) {
-            console.log(`Missing one. a:${a}, b:${b}`)
+            console.log(`Missing one. a:${a}, b:${b}`);
           }
           if (priorityParams.includes(a) && priorityParams.includes(b)) {
             return priorityParams.indexOf(a) - priorityParams.indexOf(b);
