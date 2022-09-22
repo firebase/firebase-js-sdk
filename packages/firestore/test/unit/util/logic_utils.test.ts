@@ -178,7 +178,7 @@ describe('LogicUtils', () => {
         applyDistribution(orFilter(A, B), orFilter(C, D)),
         expectedResult
       )
-    );
+    ).to.be.true;
   });
 
   it('implements field filter compute DNF', () => {

@@ -861,10 +861,10 @@ describe('Query', () => {
     nonMatching: MutableDocument[]
   ): void {
     for (const doc of matching) {
-      expect(queryMatches(query, doc)).true;
+      expect(queryMatches(query, doc)).to.be.true;
     }
     for (const doc of nonMatching) {
-      expect(queryMatches(query, doc)).false;
+      expect(queryMatches(query, doc)).to.be.false;
     }
   }
 
