@@ -227,7 +227,10 @@ describe('Integration test: custom auth', () => {
     });
   });
 
-  generateMiddlewareTests(() => auth, () => {
-    return signInWithCustomToken(auth, customToken);
-  });
+  generateMiddlewareTests(
+    () => auth,
+    () => {
+      return signInWithCustomToken(auth, customToken);
+    }
+  );
 });

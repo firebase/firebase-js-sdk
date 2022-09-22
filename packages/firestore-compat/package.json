@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore-compat",
-  "version": "0.1.23",
+  "version": "0.1.25",
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -44,13 +44,13 @@
   },
   "dependencies": {
     "@firebase/component": "0.5.17",
-    "@firebase/firestore": "3.4.14",
+    "@firebase/firestore": "3.5.0",
     "@firebase/util": "1.6.3",
     "@firebase/firestore-types": "2.5.0",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.31",
+    "@firebase/app-compat": "0.1.34",
     "@types/eslint": "7.29.0",
     "rollup": "2.72.1",
     "rollup-plugin-sourcemaps": "0.6.3",

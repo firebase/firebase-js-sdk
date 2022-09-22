@@ -241,7 +241,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
 
       await expect(
         generateBundleAndParse('{metadata: "no length prefix"}', bytesPerRead)
-      ).to.be.rejectedWith('Unexpected end of JSON input');
+      ).to.be.rejectedWith(/(Unexpected end of )(?=.*JSON\b).*/gi);
 
       await expect(
         generateBundleAndParse(

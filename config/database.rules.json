@@ -1,6 +1,9 @@
 {
   "rules": {
     ".read": true,
-    ".write": true
+    ".write": true,
+    "testing": {
+      ".indexOn": "testIndex"
+    }
   }
 }

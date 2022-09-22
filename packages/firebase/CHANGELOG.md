@@ -1,5 +1,49 @@
 # firebase
 
+## 9.10.0
+
+### Minor Changes
+
+- [`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db) [#6107](https://github.com/firebase/firebase-js-sdk/pull/6107) - Enable encodeInitMessageHeaders. This transitions the Firestore client from encoding HTTP Headers via the Query Param to the request's POST payload.
+
+  Requires Cloud Firestore Emulator v1.14.4 or newer.
+
+### Patch Changes
+
+- Updated dependencies [[`e06d9069c`](https://github.com/firebase/firebase-js-sdk/commit/e06d9069ca07429df248d9134aebdea1118e9427), [`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db), [`666c8ec1f`](https://github.com/firebase/firebase-js-sdk/commit/666c8ec1ff5cb5b8947a142e26c0a2ecb18f8bb4)]:
+  - @firebase/app@0.7.33
+  - @firebase/auth@0.20.7
+  - @firebase/firestore@3.5.0
+  - @firebase/app-compat@0.1.34
+  - @firebase/auth-compat@0.2.20
+  - @firebase/firestore-compat@0.1.25
+
+## 9.9.4
+
+### Patch Changes
+
+- Updated dependencies [[`f35533594`](https://github.com/firebase/firebase-js-sdk/commit/f355335942b874ba390bcbf3be6de44a3d33dce8), [`bea604ea3`](https://github.com/firebase/firebase-js-sdk/commit/bea604ea33c529e755cc3fcdc0a2ea75d04b9f19), [`b993aeec4`](https://github.com/firebase/firebase-js-sdk/commit/b993aeec4a8f5188d1f53d07808da079f3ade846)]:
+  - @firebase/app@0.7.32
+  - @firebase/database@0.13.6
+  - @firebase/auth@0.20.6
+  - @firebase/firestore@3.4.15
+  - @firebase/app-compat@0.1.33
+  - @firebase/database-compat@0.2.6
+  - @firebase/auth-compat@0.2.19
+  - @firebase/firestore-compat@0.1.24
+
+## 9.9.3
+
+### Patch Changes
+
+- [`dcfebe8dc`](https://github.com/firebase/firebase-js-sdk/commit/dcfebe8dc801bb4dad23c48d9a379510ac86011e) [#6543](https://github.com/firebase/firebase-js-sdk/pull/6543) (fixes [#6503](https://github.com/firebase/firebase-js-sdk/issues/6503)) - Removed all references to `@firebase/polyfill`.
+
+- Updated dependencies [[`9f1e3c667`](https://github.com/firebase/firebase-js-sdk/commit/9f1e3c66747126c8e24894d73f7fa27480bec08d), [`a5d9e1083`](https://github.com/firebase/firebase-js-sdk/commit/a5d9e10831c2877e9d15c8a33b15557e4251c4de), [`fcd4b8ac3`](https://github.com/firebase/firebase-js-sdk/commit/fcd4b8ac36636a60d83cd3370969ff9192f9e6ad)]:
+  - @firebase/app@0.7.31
+  - @firebase/database-compat@0.2.5
+  - @firebase/database@0.13.5
+  - @firebase/app-compat@0.1.32
+
 ## 9.9.2
 
 ### Patch Changes

@@ -80,7 +80,7 @@ export function readTokenFromIndexedDB(
 
 export function writeTokenToIndexedDB(
   app: FirebaseApp,
-  token: AppCheckTokenInternal
+  token?: AppCheckTokenInternal
 ): Promise<void> {
   return write(computeKey(app), token);
 }

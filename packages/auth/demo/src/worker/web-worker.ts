@@ -105,9 +105,8 @@ async function runWorkerTests(googleIdToken: string): Promise<void> {
   if (!userCredential.user || !userCredential.user.uid) {
     throw new Error('signInWithCredential unexpectedly failed!');
   }
-  const googleCredential = GoogleAuthProvider.credentialFromResult(
-    userCredential
-  );
+  const googleCredential =
+    GoogleAuthProvider.credentialFromResult(userCredential);
   if (!googleCredential) {
     throw new Error('signInWithCredential unexpectedly failed!');
   }

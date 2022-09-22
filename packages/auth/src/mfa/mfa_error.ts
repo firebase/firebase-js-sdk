@@ -48,7 +48,7 @@ export class MultiFactorError
       appName: auth.name,
       tenantId: auth.tenantId ?? undefined,
       _serverResponse: error.customData!._serverResponse as IdTokenMfaResponse,
-      operationType,
+      operationType
     };
   }
 

@@ -97,15 +97,12 @@ export function onIdTokenChanged(
  * @param onAbort - callback triggered if a later `beforeAuthStateChanged()`
  *   callback throws, allowing you to undo any side effects.
  */
- export function beforeAuthStateChanged(
+export function beforeAuthStateChanged(
   auth: Auth,
-  callback: (user: User|null) => void | Promise<void>,
-  onAbort?: () => void,
+  callback: (user: User | null) => void | Promise<void>,
+  onAbort?: () => void
 ): Unsubscribe {
-  return getModularInstance(auth).beforeAuthStateChanged(
-    callback,
-    onAbort
-  );
+  return getModularInstance(auth).beforeAuthStateChanged(callback, onAbort);
 }
 /**
  * Adds an observer for changes to the user's sign-in state.

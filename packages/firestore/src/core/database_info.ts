@@ -1,3 +1,7 @@
+import { FirebaseApp } from '@firebase/app';
+
+import { Code, FirestoreError } from '../util/error';
+
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -46,7 +50,7 @@ export class DatabaseInfo {
 }
 
 /** The default database name for a project. */
-const DEFAULT_DATABASE_NAME = '(default)';
+export const DEFAULT_DATABASE_NAME = '(default)';
 
 /**
  * Represents the database ID a Firestore client is associated with.
@@ -73,4 +77,18 @@ export class DatabaseId {
       other.database === this.database
     );
   }
+}
+
+export function databaseIdFromApp(
+  app: FirebaseApp,
+  database?: string
+): DatabaseId {
+  if (!Object.prototype.hasOwnProperty.apply(app.options, ['projectId'])) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      '"projectId" not provided in firebase.initializeApp.'
+    );
+  }
+
+  return new DatabaseId(app.options.projectId!, database);
 }
