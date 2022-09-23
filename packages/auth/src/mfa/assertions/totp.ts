@@ -26,7 +26,7 @@ import {
   StartTotpMfaEnrollmentResponse,
   TotpVerificationInfo
 } from '../../api/account_management/mfa';
-import { FinalizeMfaResponse } from '../../api/authentication/mfa';
+import { FinalizeMfaResponse, finalizeSignInTotpMfa } from '../../api/authentication/mfa';
 import { MultiFactorAssertionImpl } from '../../mfa/mfa_assertion';
 import { MultiFactorSessionImpl } from '../mfa_session';
 import { AuthErrorCode } from '../../core/errors';
@@ -155,10 +155,18 @@ export class TotpMultiFactorAssertionImpl
 
   /** @internal */
   _finalizeSignIn(
-    _auth: AuthInternal,
-    _mfaPendingCredential: string
+    auth: AuthInternal,
+    mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse> {
-    throw new Error('method not implemented');
+    _assert(
+      typeof this.secret !== 'undefined',
+      auth,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
+    return finalizeSignInTotpMfa(auth, {
+      mfaPendingCredential,
+      totpVerificationInfo: this.secret._makeTotpVerificationInfo(this.otp)
+    });
   }
 }
 
