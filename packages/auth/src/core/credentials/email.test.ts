@@ -108,7 +108,7 @@ describe('core/credentials/email', () => {
             recaptchaKey: 'site-key'
           });
 
-                mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
         clientType: RecaptchaClientType.WEB,
         version: RecaptchaVersion.ENTERPRISE,
       }, {
@@ -170,7 +170,7 @@ describe('core/credentials/email', () => {
           const recaptcha = new MockGreCAPTCHATopLevel();
           window.grecaptcha = recaptcha;
           const stub = sinon.stub(recaptcha.enterprise, 'execute');
-          
+
           // First verification should fail with 'wrong-site-key'
           stub.withArgs('wrong-site-key', {action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD}).rejects();
           // Second verifcation should succeed with site key refreshed
