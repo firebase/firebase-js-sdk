@@ -324,7 +324,7 @@ describeSpec('Listens:', [], () => {
     }
   );
 
-  specTest('Individual documents cannot revert', ['exclusive'], () => {
+  specTest('Individual documents cannot revert', [], () => {
     const allQuery = query('collection');
     const visibleQuery = query('collection', filter('visible', '==', true));
     const docAv1 = doc('collection/a', 1000, { visible: true, v: 'v1000' });
