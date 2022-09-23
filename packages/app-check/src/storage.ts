@@ -51,7 +51,7 @@ export async function readTokenFromStorage(
  */
 export function writeTokenToStorage(
   app: FirebaseApp,
-  token: AppCheckTokenInternal
+  token?: AppCheckTokenInternal
 ): Promise<void> {
   if (isIndexedDBAvailable()) {
     return writeTokenToIndexedDB(app, token).catch(e => {
