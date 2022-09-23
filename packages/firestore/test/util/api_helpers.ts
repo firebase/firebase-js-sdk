@@ -146,7 +146,6 @@ export function querySnapshot(
     documentChanges.push({ type: ChangeType.Added, doc: docToAdd });
   });
   const resumeToken = ByteString.EMPTY_BYTE_STRING;
-  
   const viewSnapshot: ViewSnapshot = new ViewSnapshot(
     query,
     newDocuments,

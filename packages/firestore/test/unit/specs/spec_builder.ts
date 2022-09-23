@@ -288,6 +288,7 @@ export class SpecBuilder {
         resume?.resumeToken,
         resume?.readTime
       );
+      console.log("?")
       this.currentStep = {
         userListen: { targetId, query: SpecBuilder.queryToSpec(query) },
         expectedState: { activeTargets: { ...this.activeTargets } }
@@ -821,10 +822,19 @@ export class SpecBuilder {
     version: TestSnapshotVersion,
     ...docs: Document[]
   ): this {
+    console.log(...docs)
     this.watchAcks(query);
+    console.log("1")
     this.watchSends({ affects: [query] }, ...docs);
+    console.log("1")
+
     this.watchCurrents(query, 'resume-token-' + version);
+    console.log("1")
+
     this.watchSnapshots(version);
+
+    console.log("version",version)
+
     return this;
   }
 
@@ -909,7 +919,7 @@ export class SpecBuilder {
       metadata: events.metadata && events.metadata.map(SpecBuilder.docToSpec),
       errorCode: mapRpcCodeFromCode(events.errorCode),
       fromCache: events.fromCache || false,
-      hasPendingWrites: events.hasPendingWrites || false
+      hasPendingWrites: events.hasPendingWrites || false,
     });
     return this;
   }
