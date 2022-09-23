@@ -16,10 +16,7 @@
  */
 
 import { deepEqual } from '@firebase/util';
-
-import { Value } from '../protos/firestore_proto_api';
-import { invokeRunAggregationQueryRpc } from '../remote/datastore';
-import { hardAssert } from '../util/assert';
+import { CountQueryRunner } from '../core/count_query_runner';
 import { cast } from '../util/input_validation';
 
 import { getDatastore } from './components';
@@ -108,29 +105,7 @@ export function getCount(
   const firestore = cast(query.firestore, Firestore);
   const datastore = getDatastore(firestore);
   const userDataWriter = new LiteUserDataWriter(firestore);
-  return invokeRunAggregationQueryRpc(datastore, query._query).then(result => {
-    hardAssert(
-      result[0] !== undefined,
-      'Aggregation fields are missing from result.'
-    );
-
-    const counts = Object.entries(result[0])
-      .filter(([key, value]) => key === 'count_alias')
-      .map(([key, value]) => userDataWriter.convertValue(value as Value));
-
-    const countValue = counts[0];
-
-    hardAssert(
-      typeof countValue === 'number',
-      'Count aggregate field value is not a number: ' + countValue
-    );
-
-    return Promise.resolve(
-      new AggregateQuerySnapshot<{ count: AggregateField<number> }>(query, {
-        count: countValue
-      })
-    );
-  });
+  return new CountQueryRunner(query, datastore, userDataWriter).run();
 }
 
 /**

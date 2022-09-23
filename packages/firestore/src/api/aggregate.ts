@@ -21,6 +21,7 @@ import { AggregateField, AggregateQuerySnapshot } from '../lite-api/aggregate';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { ExpUserDataWriter } from './reference_impl';
 
 export {
   AggregateField,
@@ -45,5 +46,6 @@ export function getCountFromServer(
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
-  return firestoreClientRunCountQuery(client, query);
+  const userDataWriter = new ExpUserDataWriter(firestore);
+  return firestoreClientRunCountQuery(client, query, userDataWriter);
 }
