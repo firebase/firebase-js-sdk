@@ -350,19 +350,20 @@ describeSpec('Listens:', [], () => {
         // us up to docAV2 since that's the last relevant change to the query
         // (the document falls out) and send us a snapshot that's ahead of
         // docAv3 (which is already in our cache).
-        .userListens(visibleQuery, { resumeToken: 'resume-token-4000' })
-        // .watchAcks(visibleQuery)
-        // .watchSends({ removed: [visibleQuery] }, docAv2)
-        // .watchCurrents(visibleQuery, 'resume-token-5000')
-        // .watchSnapshots(5000)
-        // .expectEvents(visibleQuery, { fromCache: false })
-        // .userUnlistens(visibleQuery)
-        // .watchRemoves(visibleQuery)
-        // // Listen to allQuery again and make sure we still get docAv3.
-        // .userListens(allQuery, { resumeToken: 'resume-token-4000' })
-        // .expectEvents(allQuery, { added: [docAv3], fromCache: true })
-        // .watchAcksFull(allQuery, 6000)
-        // .expectEvents(allQuery, { fromCache: false })
+        .userListens(visibleQuery, { resumeToken: 'resume-token-1000' })
+        .expectEvents(visibleQuery, { fromCache: true })
+        .watchAcks(visibleQuery)
+        .watchSends({ removed: [visibleQuery] }, docAv2)
+        .watchCurrents(visibleQuery, 'resume-token-5000')
+        .watchSnapshots(5000)
+        .expectEvents(visibleQuery, { fromCache: false })
+        .userUnlistens(visibleQuery)
+        .watchRemoves(visibleQuery)
+        // Listen to allQuery again and make sure we still get docAv3.
+        .userListens(allQuery, { resumeToken: 'resume-token-4000' })
+        .expectEvents(allQuery, { added: [docAv3], fromCache: true })
+        .watchAcksFull(allQuery, 6000)
+        .expectEvents(allQuery, { fromCache: false })
     );
   });
 
@@ -396,6 +397,7 @@ describeSpec('Listens:', [], () => {
         // (the document falls out) and send us a snapshot that's ahead of
         // docAv3 (which is already in our cache).
         .userListens(visibleQuery, { resumeToken: 'resume-token-1000' })
+        .expectEvents(visibleQuery, { fromCache: true })
         .watchAcks(visibleQuery)
         .watchSends({ removed: [visibleQuery] }, docAv2)
         .watchCurrents(visibleQuery, 'resume-token-5000')
@@ -405,6 +407,7 @@ describeSpec('Listens:', [], () => {
         .watchRemoves(visibleQuery)
         // Listen to allQuery again and make sure we still get no docs.
         .userListens(allQuery, { resumeToken: 'resume-token-4000' })
+        .expectEvents(allQuery, { fromCache: true })
         .watchAcksFull(allQuery, 6000)
         .expectEvents(allQuery, { fromCache: false })
     );
