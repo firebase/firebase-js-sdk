@@ -108,14 +108,14 @@ describe('core/credentials/email', () => {
             recaptchaKey: 'site-key'
           });
 
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key',
-        recaptchaConfig: { emailPasswordEnabled: true }
-      });
-      await auth.initializeRecaptchaConfig();
+          mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+            clientType: RecaptchaClientType.WEB,
+            version: RecaptchaVersion.ENTERPRISE,
+          }, {
+            recaptchaKey: 'site-key',
+            recaptchaConfig: { emailPasswordEnabled: true }
+          });
+          await auth.initializeRecaptchaConfig();
     
           const idTokenResponse = await credential._getIdTokenResponse(auth);
           expect(idTokenResponse.idToken).to.eq('id-token');
@@ -143,14 +143,14 @@ describe('core/credentials/email', () => {
             recaptchaKey: 'site-key'
           });
 
-                mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key',
-        recaptchaConfig: { emailPasswordEnabled: false }
-      });
-      await auth.initializeRecaptchaConfig();
+          mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+            clientType: RecaptchaClientType.WEB,
+            version: RecaptchaVersion.ENTERPRISE,
+          }, {
+            recaptchaKey: 'site-key',
+            recaptchaConfig: { emailPasswordEnabled: false }
+          });
+          await auth.initializeRecaptchaConfig();
     
           const idTokenResponse = await credential._getIdTokenResponse(auth);
           expect(idTokenResponse.idToken).to.eq('id-token');
