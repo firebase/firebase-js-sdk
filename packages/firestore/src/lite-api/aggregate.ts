@@ -18,7 +18,7 @@
 import { deepEqual } from '@firebase/util';
 
 import { Value } from '../protos/firestore_proto_api';
-import { invokeRunAggregationQueryRpc } from '../remote/datastore';
+import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { hardAssert } from '../util/assert';
 import { cast } from '../util/input_validation';
 
@@ -107,6 +107,14 @@ export function getCount(
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const firestore = cast(query.firestore, Firestore);
   const datastore = getDatastore(firestore);
+  return getCountWithDatastore(datastore, query);
+}
+
+export function getCountWithDatastore(
+  datastore: Datastore,
+  query: Query<unknown>
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const firestore = cast(query.firestore, Firestore);
   const userDataWriter = new LiteUserDataWriter(firestore);
   return invokeRunAggregationQueryRpc(datastore, query._query).then(result => {
     hardAssert(

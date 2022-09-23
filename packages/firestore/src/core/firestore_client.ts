@@ -26,7 +26,7 @@ import { User } from '../auth/user';
 import {
   AggregateField,
   AggregateQuerySnapshot,
-  getCount
+  getCountWithDatastore
 } from '../lite-api/aggregate';
 import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
@@ -526,7 +526,8 @@ export function firestoreClientRunCountQuery(
           )
         );
       } else {
-        const result = await getCount(query);
+        const datastore = await getDatastore(client);
+        const result = await getCountWithDatastore(datastore, query);
         deferred.resolve(result);
       }
     } catch (e) {
