@@ -4003,8 +4003,8 @@ declare namespace firebase.auth {
     /**
      * @example
      * ```javascript
-     * var cred = firebase.auth.FacebookAuthProvider.credential(
-     *     // `event` from the Facebook auth.authResponseChange callback.
+     * var cred = firebase.auth.GithubAuthProvider.credential(
+     *     // `event` from the GithubAuthProvider auth.authResponseChange callback.
      *     event.authResponse.accessToken
      * );
      * ```
