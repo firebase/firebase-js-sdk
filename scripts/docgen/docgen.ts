@@ -39,6 +39,24 @@ https://github.com/firebase/firebase-js-sdk
 const tmpDir = `${projectRoot}/temp`;
 const EXCLUDED_PACKAGES = ['app-compat', 'util', 'rules-unit-testing'];
 
+/**
+ * When ordering functions, will prioritize these first params at
+ * the top, in order.
+ */
+const PREFERRED_PARAMS = [
+  'app',
+  'analyticsInstance',
+  'appCheckInstance',
+  'db',
+  'firestore',
+  'functionsInstance',
+  'installations',
+  'messaging',
+  'performance',
+  'remoteConfig',
+  'storage'
+];
+
 yargs
   .command(
     '$0',
@@ -183,7 +201,7 @@ async function generateDocs(
       '--project',
       'js',
       '--sort-functions',
-      'app,appCheck,auth,analytics,database,firestore,functions,storage,installations,messaging,performance,remoteConfig'
+      PREFERRED_PARAMS.join(',')
     ],
     { stdio: 'inherit' }
   );
