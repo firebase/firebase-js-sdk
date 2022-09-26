@@ -159,13 +159,15 @@ export class TotpMultiFactorAssertionImpl
     mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse> {
     _assert(
-      typeof this.secret !== 'undefined',
+      typeof this.enrollmentId !== 'undefined'
+      && typeof this.otp !== 'undefined'
+      && typeof this.secret !== 'undefined',
       auth,
       AuthErrorCode.ARGUMENT_ERROR
     );
     return finalizeSignInTotpMfa(auth, {
       mfaPendingCredential,
-      totpVerificationInfo: this.secret._makeTotpVerificationInfo(this.otp)
+      verificationCode: this.secret._makeTotpVerificationInfo(this.otp).verificationCode,
     });
   }
 }
