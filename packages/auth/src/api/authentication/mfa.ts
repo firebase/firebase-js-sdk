@@ -51,10 +51,25 @@ export interface StartPhoneMfaSignInRequest {
   };
   tenantId?: string;
 }
+export interface StartTotpMfaSignInRequest {
+  mfaPendingCredential: string;
+  mfaEnrollmentId: string;
+  TotpSignInInfo: {
+    verificationCode: string;
+  };
+  tenantId?: string;
+}
+
 
 export interface StartPhoneMfaSignInResponse {
   phoneResponseInfo: {
     sessionInfo: string;
+  };
+}
+
+export interface StartTotpMfaSignInResponse {
+  TotpSignInInfo: {
+    verificationCode: string;
   };
 }
 
@@ -65,6 +80,21 @@ export function startSignInPhoneMfa(
   return _performApiRequest<
     StartPhoneMfaSignInRequest,
     StartPhoneMfaSignInResponse
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.START_MFA_SIGN_IN,
+    _addTidIfNecessary(auth, request)
+  );
+}
+
+export function startSignInTotpMfa(
+  auth: Auth,
+  request: StartTotpMfaSignInRequest
+): Promise<StartTotpMfaSignInResponse> {
+  return _performApiRequest<
+    StartTotpMfaSignInRequest,
+    StartTotpMfaSignInResponse
   >(
     auth,
     HttpMethod.POST,
