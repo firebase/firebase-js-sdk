@@ -909,6 +909,47 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  // Reproduces: https://github.com/firebase/firebase-js-sdk/issues/6511
+  specTest(
+    'Secondary client raises latency compensated snapshot from primary mutation',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: '1' });
+      const docAMutated = doc('collection/a', 1500, {
+        key: '2'
+      }).setHasLocalMutations();
+
+      return (
+        client(0)
+          .becomeVisible()
+          .expectPrimaryState(true)
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          .client(1)
+          .userListens(query1)
+          .expectEvents(query1, { added: [docA], fromCache: true })
+          .client(0)
+          .expectListen(query1, { resumeToken: 'resume-token-1000' })
+          .watchAcksFull(query1, 1500, docA)
+          .client(1)
+          .expectEvents(query1, {})
+          .client(0)
+          .userSets('collection/a', { key: '2' })
+          .client(1)
+          // Without the fix for 6511, this would raise two snapshots, first one as expected and
+          // second one travels back in time and raise the old stale document.
+          .expectEvents(query1, {
+            modified: [docAMutated],
+            hasPendingWrites: true
+          })
+      );
+    }
+  );
+
   specTest(
     'Mirror queries from same secondary client',
     ['multi-client'],
