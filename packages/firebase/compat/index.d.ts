@@ -4004,7 +4004,7 @@ declare namespace firebase.auth {
      * @example
      * ```javascript
      * var cred = firebase.auth.GithubAuthProvider.credential(
-     *     // `event` from the GithubAuthProvider auth.authResponseChange callback.
+     *     // `event` from the Github auth.authResponseChange callback.
      *     event.authResponse.accessToken
      * );
      * ```
