@@ -28,15 +28,17 @@ import { registerFirestore } from './register';
 registerFirestore();
 
 export {
+  aggregateQuerySnapshotEqual,
+  getCount
+} from '../src/lite-api/aggregate';
+export {
   AggregateField,
   AggregateFieldType,
   AggregateSpec,
   AggregateSpecData,
   AggregateQuerySnapshot,
-  aggregateQuerySnapshotEqual,
-  count,
-  getCount
-} from '../src/lite-api/aggregate';
+  count
+} from '../src/lite-api/aggregate_types';
 
 export { FirestoreSettings as Settings } from '../src/lite-api/settings';
 

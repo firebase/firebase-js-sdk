@@ -16,7 +16,7 @@
  */
 
 import { AbstractUserDataWriter, Query } from '../api';
-import { AggregateField, AggregateQuerySnapshot } from '../lite-api/aggregate';
+import { AggregateField, AggregateQuerySnapshot } from '../lite-api/aggregate_types';
 import { Value } from '../protos/firestore_proto_api';
 import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { hardAssert } from '../util/assert';
