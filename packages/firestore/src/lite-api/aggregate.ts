@@ -16,10 +16,15 @@
  */
 
 import { deepEqual } from '@firebase/util';
+
 import { CountQueryRunner } from '../core/count_query_runner';
 import { cast } from '../util/input_validation';
 
-import { AggregateField, AggregateQuerySnapshot, AggregateSpec } from './aggregate_types';
+import {
+  AggregateField,
+  AggregateQuerySnapshot,
+  AggregateSpec
+} from './aggregate_types';
 import { getDatastore } from './components';
 import { Firestore } from './database';
 import { Query, queryEqual } from './reference';

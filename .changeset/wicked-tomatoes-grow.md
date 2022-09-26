@@ -2,4 +2,4 @@
 '@firebase/firestore': minor
 ---
 
-Expose getCountFromServer() and Lite SDK getCount()to enable Firestore count-only aggregate queries
+Added `getCountFromServer()` (`getCount()` in the Lite SDK), which fetches the number of documents in the result set without actually downloading the documents.

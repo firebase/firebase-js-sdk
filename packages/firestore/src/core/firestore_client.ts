@@ -16,11 +16,12 @@
  */
 
 import { GetOptions } from '@firebase/firestore-types';
-import { AbstractUserDataWriter } from '../api';
+
 import {
+  AbstractUserDataWriter,
   AggregateField,
   AggregateQuerySnapshot
-} from '../api/aggregate';
+} from '../api';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,

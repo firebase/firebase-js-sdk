@@ -16,7 +16,10 @@
  */
 
 import { AbstractUserDataWriter, Query } from '../api';
-import { AggregateField, AggregateQuerySnapshot } from '../lite-api/aggregate_types';
+import {
+  AggregateField,
+  AggregateQuerySnapshot
+} from '../lite-api/aggregate_types';
 import { Value } from '../protos/firestore_proto_api';
 import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { hardAssert } from '../util/assert';
@@ -25,7 +28,7 @@ import { hardAssert } from '../util/assert';
  * CountQueryRunner encapsulates the logic needed to run the count aggregation
  * queries.
  */
-export class CountQueryRunner<T> {
+export class CountQueryRunner {
   constructor(
     private readonly query: Query<unknown>,
     private readonly datastore: Datastore,

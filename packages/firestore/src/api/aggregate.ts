@@ -17,23 +17,16 @@
 
 import { Query } from '../api';
 import { firestoreClientRunCountQuery } from '../core/firestore_client';
-import { AggregateField, AggregateQuerySnapshot } from '../lite-api/aggregate_types';
+import {
+  AggregateField,
+  AggregateQuerySnapshot
+} from '../lite-api/aggregate_types';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { ExpUserDataWriter } from './reference_impl';
 
-export {
-  aggregateQuerySnapshotEqual
-} from '../lite-api/aggregate';
-export {
-  AggregateField,
-  AggregateFieldType,
-  AggregateSpec,
-  AggregateSpecData,
-  AggregateQuerySnapshot,
-  count
-} from '../lite-api/aggregate_types';
+export { aggregateQuerySnapshotEqual } from '../lite-api/aggregate';
 
 /**
  * Executes the query and returns the results as a `AggregateQuerySnapshot` from the

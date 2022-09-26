@@ -31,6 +31,7 @@ export {
   aggregateQuerySnapshotEqual,
   getCount
 } from '../src/lite-api/aggregate';
+
 export {
   AggregateField,
   AggregateFieldType,
