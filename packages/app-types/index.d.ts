@@ -74,6 +74,10 @@ export interface FirebaseNamespace {
    * omitted)
    */
   initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
+  /**
+   * Create (and initialize) a FirebaseApp.
+   */
+  initializeApp(): FirebaseApp;
 
   app: {
     /**

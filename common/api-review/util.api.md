@@ -195,6 +195,23 @@ export class FirebaseError extends Error {
 // @public
 export type FirebaseSignInProvider = 'custom' | 'email' | 'password' | 'phone' | 'anonymous' | 'google.com' | 'facebook.com' | 'github.com' | 'twitter.com' | 'microsoft.com' | 'apple.com';
 
+// Warning: (ae-missing-release-tag) "getDefaultAppConfig" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const getDefaultAppConfig: () => Record<string, string> | undefined;
+
+// Warning: (ae-missing-release-tag) "getDefaultEmulatorHost" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const getDefaultEmulatorHost: (name: string) => string | undefined;
+
+// Warning: (ae-forgotten-export) The symbol "ExperimentalKey" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FirebaseDefaults" needs to be exported by the entry point index.d.ts
+// Warning: (ae-missing-release-tag) "getExperimentalSetting" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const getExperimentalSetting: <T extends ExperimentalKey>(name: T) => FirebaseDefaults[`_${T}`];
+
 // Warning: (ae-missing-release-tag) "getGlobal" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
