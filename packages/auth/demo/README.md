@@ -54,7 +54,7 @@ You can optionally clear the cache and rebuild using:
  
 ```bash
 cd auth/demo
-rm -rf node_modules
+rm -rf node_modules yarn.lock
 yarn build:deps
 ```
 
