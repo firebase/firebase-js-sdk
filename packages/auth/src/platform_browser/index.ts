@@ -43,17 +43,21 @@ const mintCookieFactory = (url: string) => async (user: User | null) => {
   const idTokenAge =
     idTokenResult &&
     (new Date().getTime() - Date.parse(idTokenResult.issuedAtTime)) / 1_000;
-  if (idTokenAge && idTokenAge > authIdTokenMaxAge) { return; }
+  if (idTokenAge && idTokenAge > authIdTokenMaxAge) {
+    return;
+  }
   // Specifically trip null => undefined when logged out, to delete any existing cookie
   const idToken = idTokenResult?.token;
-  if (lastPostedIdToken === idToken) { return; }
+  if (lastPostedIdToken === idToken) {
+    return;
+  }
   lastPostedIdToken = idToken;
   await fetch(url, {
     method: idToken ? 'POST' : 'DELETE',
     headers: idToken
       ? {
-        'Authorization': `Bearer ${idToken}`
-      }
+          'Authorization': `Bearer ${idToken}`
+        }
       : {}
   });
 };
