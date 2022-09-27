@@ -55,16 +55,6 @@ export function getCount(
 
 /**
  * Compares two `AggregateQuerySnapshot` instances for equality.
- * Two `AggregateQuerySnapshot` instances are considered "equal" if they have
- * the same underlying query, and the same data.
- *
- * @param left - The `AggregateQuerySnapshot` to compare.
- * @param right - The `AggregateQuerySnapshot` to compare.
- *
- * @returns true if the AggregateQuerySnapshots are equal. */
-
-/**
- * Compares two `AggregateQuerySnapshot` instances for equality.
  *
  * Two `AggregateQuerySnapshot` instances are considered "equal" if they have
  * underlying queries that compare equal, and the same data.
