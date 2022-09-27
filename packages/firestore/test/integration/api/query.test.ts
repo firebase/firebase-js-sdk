@@ -1291,7 +1291,7 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   // eslint-disable-next-line no-restricted-properties
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
-  (persistence ? describe.only : describe.skip)('Caching empty results ', () => {
+  (persistence ? describe : describe.skip)('Caching empty results ', () => {
     it('can cache empty query results', () => {
       return withTestCollection(persistence, {}, async coll => {
         const snapshot1 = await getDocs(coll); // Populate the cache
@@ -1321,39 +1321,58 @@ apiDescribe('Queries', (persistence: boolean) => {
 
         // Add a snapshot listener whose first event should be raised from cache.
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
-        onSnapshot(
-          coll,
-          { includeMetadataChanges: true },
-          storeEvent.storeEvent
-        );
+        onSnapshot(coll, storeEvent.storeEvent);
         const snapshot2 = await storeEvent.awaitEvent();
         expect(snapshot2.metadata.fromCache).to.be.true;
         expect(toDataArray(snapshot2)).to.deep.equal([]);
-
-        // why this if fromCahe:false ????
-        const snapshot3 = await storeEvent.awaitEvent();
-        expect(snapshot3.metadata.fromCache).to.be.false;
-        expect(toDataArray(snapshot3)).to.deep.equal([]);
       });
     });
 
-    it('can add new doc to cached empty query result', () => {
-      return withTestCollection(persistence, {}, async coll => {
-        await getDocs(coll); // Populate the cache
+    it('can raise snapshot from a cached collection which was emptied offline', () => {
+      const testDocs = {
+        a: { key: 'a' }
+      };
+      return withTestCollection(
+        persistence,
+        testDocs,
+        async (coll, firestore) => {
+          await getDocs(coll); // Populate the cache
+          const storeEvent = new EventsAccumulator<QuerySnapshot>();
+          onSnapshot(coll, storeEvent.storeEvent);
+          await storeEvent.awaitEvent();
 
-        const storeEvent = new EventsAccumulator<QuerySnapshot>();
-        onSnapshot(coll, storeEvent.storeEvent);
-        const snapshot1 = await storeEvent.awaitEvent();
-        expect(snapshot1.metadata.fromCache).to.be.true;
-        expect(toDataArray(snapshot1)).to.deep.equal([]);
+          await disableNetwork(firestore);
+          deleteDoc(doc(coll, 'a'));
+          await enableNetwork(firestore);
 
-        await addDoc(coll, { key: 'a' });
+          const snapshot = await storeEvent.awaitEvent();
+          expect(snapshot.metadata.fromCache).to.be.true;
+          expect(toDataArray(snapshot)).to.deep.equal([]);
+        }
+      );
+    });
 
-        const snapshot2 = await storeEvent.awaitEvent();
-        expect(snapshot2.metadata.fromCache).to.be.true;
-        expect(toDataArray(snapshot2)).to.deep.equal([{ key: 'a' }]);
-        expect(snapshot2.metadata.hasPendingWrites).to.equal(true);
-      });
+    it('can register a listener and empty cache offline, and raise snaoshot from it when came back online', () => {
+      const testDocs = {
+        a: { key: 'a' }
+      };
+      return withTestCollection(
+        persistence,
+        testDocs,
+        async (coll, firestore) => {
+          await getDocs(coll); // Populate the cache
+          await disableNetwork(firestore);
+          const storeEvent = new EventsAccumulator<QuerySnapshot>();
+          onSnapshot(coll, storeEvent.storeEvent);
+          await storeEvent.awaitEvent();
+          deleteDoc(doc(coll, 'a'));
+          await enableNetwork(firestore);
+
+          const snapshot = await storeEvent.awaitEvent();
+          expect(snapshot.metadata.fromCache).to.be.true;
+          expect(toDataArray(snapshot)).to.deep.equal([]);
+        }
+      );
     });
   });
 });
