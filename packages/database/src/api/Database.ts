@@ -27,7 +27,8 @@ import { Provider } from '@firebase/component';
 import {
   getModularInstance,
   createMockUserToken,
-  EmulatorMockTokenOptions
+  EmulatorMockTokenOptions,
+  getDefaultEmulatorHost
 } from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
@@ -53,7 +54,10 @@ import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
 import { ReferenceImpl } from './Reference_impl';
 
-export { EmulatorMockTokenOptions } from '@firebase/util';
+export {
+  EmulatorMockTokenOptions,
+  getDefaultEmulatorHost
+} from '@firebase/util';
 /**
  * This variable is also defined in the firebase Node.js Admin SDK. Before
  * modifying this definition, consult the definition in:
@@ -316,9 +320,15 @@ export function getDatabase(
   app: FirebaseApp = getApp(),
   url?: string
 ): Database {
-  return _getProvider(app, 'database').getImmediate({
+  const db = _getProvider(app, 'database').getImmediate({
     identifier: url
   }) as Database;
+  const databaseEmulatorHost = getDefaultEmulatorHost('database');
+  if (databaseEmulatorHost) {
+    const [host, port] = databaseEmulatorHost.split(':');
+    connectDatabaseEmulator(db, host, parseInt(port, 10));
+  }
+  return db;
 }
 
 /**

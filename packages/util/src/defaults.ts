@@ -1,0 +1,82 @@
+/**
+ * @license
+ * Copyright 2022 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { base64Decode } from './crypt';
+import { getGlobal } from './environment';
+
+type ExperimentalKey = 'authTokenSyncURL' | 'authIdTokenMaxAge';
+
+interface FirebaseDefaults {
+  config?: Record<string, string>;
+  emulatorHosts?: Record<string, string>;
+  _authTokenSyncURL?: string;
+  _authIdTokenMaxAge?: number;
+  [key: string]: unknown;
+}
+
+declare global {
+  // Need `var` for this to work.
+  // eslint-disable-next-line no-var
+  var __FIREBASE_DEFAULTS__: FirebaseDefaults | undefined;
+}
+
+const getDefaultsFromGlobal = (): FirebaseDefaults | undefined =>
+  getGlobal().__FIREBASE_DEFAULTS__;
+
+/**
+ * Attempt to read defaults from a JSON file whose path is in
+ * process.env.__FIREBASE_DEFAULTS_PATH__
+ */
+const getDefaultsFromEnvVariable = (): FirebaseDefaults | undefined => {
+  if (typeof process === 'undefined') {
+    return;
+  }
+  const jsonPath = process.env.__FIREBASE_DEFAULTS_PATH__;
+  if (jsonPath && typeof require !== 'undefined') {
+    try {
+      const json = require(jsonPath);
+      return json;
+    } catch(e) {
+      `Unable to read defaults from file: ${jsonPath}.`
+    }
+  }
+};
+
+const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
+  if (typeof document === 'undefined') {
+    return;
+  }
+  const match = document.cookie.match(/__FIREBASE_DEFAULTS__=([^;]+)/);
+  const decoded = match && base64Decode(match[1]);
+  return decoded && JSON.parse(decoded);
+};
+
+const getDefaults = (): FirebaseDefaults | undefined =>
+  getDefaultsFromGlobal() ||
+  getDefaultsFromEnvVariable() ||
+  getDefaultsFromCookie();
+
+export const getDefaultEmulatorHost = (name: string): string | undefined =>
+  getDefaults()?.emulatorHosts?.[name];
+
+export const getDefaultAppConfig = (): Record<string, string> | undefined =>
+  getDefaults()?.config;
+
+export const getExperimentalSetting = <T extends ExperimentalKey>(
+  name: T
+): FirebaseDefaults[`_${T}`] =>
+  getDefaults()?.[`_${name}`] as FirebaseDefaults[`_${T}`];
