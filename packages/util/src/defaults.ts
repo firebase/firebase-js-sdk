@@ -38,21 +38,36 @@ const getDefaultsFromGlobal = (): FirebaseDefaults | undefined =>
   getGlobal().__FIREBASE_DEFAULTS__;
 
 /**
- * Attempt to read defaults from a JSON file whose path is in
+ * Attempt to read defaults from a JSON string provided to
+ * process.env.__FIREBASE_DEFAULTS__ or a JSON file whose path is in
  * process.env.__FIREBASE_DEFAULTS_PATH__
  */
 const getDefaultsFromEnvVariable = (): FirebaseDefaults | undefined => {
   if (typeof process === 'undefined') {
     return;
   }
-  const jsonPath = process.env.__FIREBASE_DEFAULTS_PATH__;
-  if (jsonPath && typeof require !== 'undefined') {
+  const defaultsJsonString = process.env.__FIREBASE_DEFAULTS__;
+  const defaultsJsonPath = process.env.__FIREBASE_DEFAULTS_PATH__;
+  if (defaultsJsonString) {
+    if (defaultsJsonPath) {
+      console.warn(
+        `Values were provided for both __FIREBASE_DEFAULTS__ ` +
+          `and __FIREBASE_DEFAULTS_PATH__. __FIREBASE_DEFAULTS_PATH__ ` +
+          `will be ignored.`
+      );
+    }
+    return JSON.parse(defaultsJsonString);
+  }
+  if (defaultsJsonPath && typeof require !== 'undefined') {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const json = require(jsonPath);
+      const json = require(defaultsJsonPath);
       return json;
     } catch (e) {
-      console.warn(`Unable to read defaults from file: ${jsonPath}.`);
+      console.warn(
+        `Unable to read defaults from file provided to ` +
+          `__FIREBASE_DEFAULTS_PATH__: ${defaultsJsonPath}`
+      );
     }
   }
 };
