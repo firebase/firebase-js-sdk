@@ -228,9 +228,6 @@ export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 export function getDocsFromServer<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // @public
-export function getFirestore(): Firestore;
-
-// @public
 export function getFirestore(app: FirebaseApp): Firestore;
 
 // @public
