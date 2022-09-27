@@ -1289,8 +1289,8 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // eslint-disable-next-line no-restricted-properties
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? describe : describe.skip)('Caching empty results ', () => {
     it('can cache empty query results', () => {
       return withTestCollection(persistence, {}, async coll => {
@@ -1317,7 +1317,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         expect(snapshot1.metadata.fromCache).to.be.false;
         expect(toDataArray(snapshot1)).to.deep.equal([{ key: 'a' }]);
         //empty the collection
-        deleteDoc(doc(coll, 'a'));
+        void deleteDoc(doc(coll, 'a'));
 
         // Add a snapshot listener whose first event should be raised from cache.
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
@@ -1342,7 +1342,7 @@ apiDescribe('Queries', (persistence: boolean) => {
           await storeEvent.awaitEvent();
 
           await disableNetwork(firestore);
-          deleteDoc(doc(coll, 'a'));
+          void deleteDoc(doc(coll, 'a'));
           await enableNetwork(firestore);
 
           const snapshot = await storeEvent.awaitEvent();
@@ -1365,7 +1365,7 @@ apiDescribe('Queries', (persistence: boolean) => {
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
           onSnapshot(coll, storeEvent.storeEvent);
           await storeEvent.awaitEvent();
-          deleteDoc(doc(coll, 'a'));
+          void deleteDoc(doc(coll, 'a'));
           await enableNetwork(firestore);
 
           const snapshot = await storeEvent.awaitEvent();
