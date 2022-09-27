@@ -7,6 +7,7 @@
 '@firebase/firestore': patch
 '@firebase/functions': patch
 '@firebase/storage': patch
+'firebase': minor
 ---
 
 Add functionality to auto-initialize project config and emulator settings from global defaults provided by framework tooling.
