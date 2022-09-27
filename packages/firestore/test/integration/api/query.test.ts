@@ -1290,19 +1290,70 @@ apiDescribe('Queries', (persistence: boolean) => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)('empty query results are cached', () => {
-    // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
-    return withTestCollection(persistence, {}, async coll => {
-      const snapshot1 = await getDocs(coll); // Populate the cache
-      expect(snapshot1.metadata.fromCache).to.be.false;
-      expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check
+  // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
+  (persistence ? describe.only : describe.skip)('Caching empty results ', () => {
+    it('can cache empty query results', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const snapshot1 = await getDocs(coll); // Populate the cache
+        expect(snapshot1.metadata.fromCache).to.be.false;
+        expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check
 
-      // Add a snapshot listener whose first event should be raised from cache.
-      const storeEvent = new EventsAccumulator<QuerySnapshot>();
-      onSnapshot(coll, storeEvent.storeEvent);
-      const snapshot2 = await storeEvent.awaitEvent();
-      expect(snapshot2.metadata.fromCache).to.be.true;
-      expect(toDataArray(snapshot2)).to.deep.equal([]);
+        // Add a snapshot listener whose first event should be raised from cache.
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        onSnapshot(coll, storeEvent.storeEvent);
+        const snapshot2 = await storeEvent.awaitEvent();
+        expect(snapshot2.metadata.fromCache).to.be.true;
+        expect(toDataArray(snapshot2)).to.deep.equal([]);
+      });
+    });
+
+    it('can empty cached collection and raise snapshot from it', () => {
+      const testDocs = {
+        a: { key: 'a' }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        // Populate the cache
+        const snapshot1 = await getDocs(coll);
+        expect(snapshot1.metadata.fromCache).to.be.false;
+        expect(toDataArray(snapshot1)).to.deep.equal([{ key: 'a' }]);
+        //empty the collection
+        deleteDoc(doc(coll, 'a'));
+
+        // Add a snapshot listener whose first event should be raised from cache.
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        onSnapshot(
+          coll,
+          { includeMetadataChanges: true },
+          storeEvent.storeEvent
+        );
+        const snapshot2 = await storeEvent.awaitEvent();
+        expect(snapshot2.metadata.fromCache).to.be.true;
+        expect(toDataArray(snapshot2)).to.deep.equal([]);
+
+        // why this if fromCahe:false ????
+        const snapshot3 = await storeEvent.awaitEvent();
+        expect(snapshot3.metadata.fromCache).to.be.false;
+        expect(toDataArray(snapshot3)).to.deep.equal([]);
+      });
+    });
+
+    it('can add new doc to cached empty query result', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        await getDocs(coll); // Populate the cache
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        onSnapshot(coll, storeEvent.storeEvent);
+        const snapshot1 = await storeEvent.awaitEvent();
+        expect(snapshot1.metadata.fromCache).to.be.true;
+        expect(toDataArray(snapshot1)).to.deep.equal([]);
+
+        await addDoc(coll, { key: 'a' });
+
+        const snapshot2 = await storeEvent.awaitEvent();
+        expect(snapshot2.metadata.fromCache).to.be.true;
+        expect(toDataArray(snapshot2)).to.deep.equal([{ key: 'a' }]);
+        expect(snapshot2.metadata.hasPendingWrites).to.equal(true);
+      });
     });
   });
 });
