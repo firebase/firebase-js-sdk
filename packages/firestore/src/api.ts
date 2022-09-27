@@ -25,8 +25,7 @@ export {
   AggregateFieldType,
   AggregateSpec,
   AggregateSpecData,
-  AggregateQuerySnapshot,
-  count
+  AggregateQuerySnapshot
 } from './lite-api/aggregate_types';
 
 export { FieldPath, documentId } from './api/field_path';
