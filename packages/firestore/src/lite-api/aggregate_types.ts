@@ -18,64 +18,66 @@
 import { Query } from './reference';
 
 /**
- * An `AggregateField`that captures input type T.
+ * Represents an aggregation that can be performed by Firestore.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class AggregateField<T> {
+  /** A type string to uniquely identify instances of this class. */
   type = 'AggregateField';
 }
 
 /**
- * Creates and returns an aggregation field that counts the documents in the result set.
- * @returns An `AggregateField` object with number input type.
+ * The union of all `AggregateField` types that are supported by Firestore.
  */
-export function count(): AggregateField<number> {
-  return new AggregateField<number>();
-}
+export type AggregateFieldType = AggregateField<number>;
 
 /**
- * The union of all `AggregateField` types that are returned from the factory
- * functions.
- */
-export type AggregateFieldType = ReturnType<typeof count>;
-
-/**
- * A type whose values are all `AggregateField` objects.
- * This is used as an argument to the "getter" functions, and the snapshot will
- * map the same names to the corresponding values.
+ * A type whose property values are all `AggregateField` objects.
  */
 export interface AggregateSpec {
   [field: string]: AggregateFieldType;
 }
 
 /**
- * A type whose keys are taken from an `AggregateSpec` type, and whose values
- * are the result of the aggregation performed by the corresponding
- * `AggregateField` from the input `AggregateSpec`.
+ * A type whose keys are taken from an `AggregateSpec`, and whose values are the
+ * result of the aggregation performed by the corresponding `AggregateField`
+ * from the input `AggregateSpec`.
  */
 export type AggregateSpecData<T extends AggregateSpec> = {
   [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
 };
 
 /**
- * An `AggregateQuerySnapshot` contains the results of running an aggregate query.
+ * The results of executing an aggregation query.
  */
 export class AggregateQuerySnapshot<T extends AggregateSpec> {
+  /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateQuerySnapshot';
+
+  /**
+   * The underlying query over which the aggregations recorded in this
+   * `AggregateQuerySnapshot` were performed.
+   */
+  readonly query: Query<unknown>;
 
   /** @hideconstructor */
   constructor(
-    readonly query: Query<unknown>,
+    query: Query<unknown>,
     private readonly _data: AggregateSpecData<T>
-  ) {}
+  ) {
+    this.query = query;
+  }
 
   /**
-   * The results of the requested aggregations. The keys of the returned object
-   * will be the same as those of the `AggregateSpec` object specified to the
-   * aggregation method, and the values will be the corresponding aggregation
-   * result.
+   * Returns the results of the aggregations performed over the underlying
+   * query.
    *
-   * @returns The aggregation statistics result of running a query.
+   * The keys of the returned object will be the same as those of the
+   * `AggregateSpec` object specified to the aggregation method, and the values
+   * will be the corresponding aggregation result.
+   *
+   * @returns The results of the aggregations performed over the underlying
+   * query.
    */
   data(): AggregateSpecData<T> {
     return this._data;
