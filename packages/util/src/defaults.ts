@@ -48,10 +48,11 @@ const getDefaultsFromEnvVariable = (): FirebaseDefaults | undefined => {
   const jsonPath = process.env.__FIREBASE_DEFAULTS_PATH__;
   if (jsonPath && typeof require !== 'undefined') {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const json = require(jsonPath);
       return json;
     } catch (e) {
-      `Unable to read defaults from file: ${jsonPath}.`;
+      console.warn(`Unable to read defaults from file: ${jsonPath}.`);
     }
   }
 };
