@@ -17,7 +17,12 @@
 
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 
-import { initializeAuth, beforeAuthStateChanged, onIdTokenChanged, connectAuthEmulator } from '..';
+import {
+  initializeAuth,
+  beforeAuthStateChanged,
+  onIdTokenChanged,
+  connectAuthEmulator
+} from '..';
 import { registerAuth } from '../core/auth/register';
 import { ClientPlatform } from '../core/util/version';
 import { browserLocalPersistence } from './persistence/local_storage';
@@ -28,23 +33,28 @@ import { Auth, User } from '../model/public_types';
 import { getDefaultEmulatorHost, getExperimentalSetting } from '@firebase/util';
 
 const DEFAULT_ID_TOKEN_MAX_AGE = 5 * 60;
-const authIdTokenMaxAge = getExperimentalSetting('authIdTokenMaxAge') || DEFAULT_ID_TOKEN_MAX_AGE;
+const authIdTokenMaxAge =
+  getExperimentalSetting('authIdTokenMaxAge') || DEFAULT_ID_TOKEN_MAX_AGE;
 
-let lastPostedIdToken: string|undefined|null = null;
+let lastPostedIdToken: string | undefined | null = null;
 
-const mintCookieFactory = (url:string) => async (user: User|null) => {
-  const idTokenResult = user && await user.getIdTokenResult();
-  const idTokenAge = idTokenResult && (new Date().getTime() - Date.parse(idTokenResult.issuedAtTime)) / 1_000;
+const mintCookieFactory = (url: string) => async (user: User | null) => {
+  const idTokenResult = user && (await user.getIdTokenResult());
+  const idTokenAge =
+    idTokenResult &&
+    (new Date().getTime() - Date.parse(idTokenResult.issuedAtTime)) / 1_000;
   if (idTokenAge && idTokenAge > authIdTokenMaxAge) return;
   // Specifically trip null => undefined when logged out, to delete any existing cookie
   const idToken = idTokenResult?.token;
   if (lastPostedIdToken === idToken) return;
   lastPostedIdToken = idToken;
   await fetch(url, {
-      method: idToken ? 'POST' : 'DELETE',
-      headers: idToken ? {
-          'Authorization': `Bearer ${idToken}`,
-      } : {}
+    method: idToken ? 'POST' : 'DELETE',
+    headers: idToken
+      ? {
+          'Authorization': `Bearer ${idToken}`
+        }
+      : {}
   });
 };
 
@@ -76,7 +86,7 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   if (authTokenSyncUrl) {
     const mintCookie = mintCookieFactory(authTokenSyncUrl);
     beforeAuthStateChanged(auth, mintCookie, () => {
-        mintCookie(auth.currentUser)
+      mintCookie(auth.currentUser);
     });
     onIdTokenChanged(auth, user => mintCookie(user));
   }

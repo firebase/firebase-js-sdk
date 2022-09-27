@@ -164,9 +164,9 @@ export function initializeFirestore(
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'initializeFirestore() has already been called with ' +
-        'different options. To avoid this error, call initializeFirestore() with the ' +
-        'same options as when it was originally called, or call getFirestore() to return the' +
-        ' already initialized instance.'
+          'different options. To avoid this error, call initializeFirestore() with the ' +
+          'same options as when it was originally called, or call getFirestore() to return the' +
+          ' already initialized instance.'
       );
     }
   }
@@ -408,8 +408,8 @@ function setPersistenceProviders(
         }
         logWarn(
           'Error enabling offline persistence. Falling back to ' +
-          'persistence disabled: ' +
-          error
+            'persistence disabled: ' +
+            error
         );
         persistenceResult.reject(error);
       }
@@ -482,7 +482,7 @@ export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       'Persistence can only be cleared before a Firestore instance is ' +
-      'initialized or after it is terminated.'
+        'initialized or after it is terminated.'
     );
   }
 
@@ -638,8 +638,8 @@ function verifyNotInitialized(firestore: Firestore): void {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       'Firestore has already been started and persistence can no longer be ' +
-      'enabled. You can only enable persistence before calling any other ' +
-      'methods on a Firestore object.'
+        'enabled. You can only enable persistence before calling any other ' +
+        'methods on a Firestore object.'
     );
   }
 }

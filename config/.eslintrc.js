@@ -129,7 +129,11 @@ module.exports = {
       {
         // Check dependencies from both local package.json
         // and from root package.json.
-        'packageDir': [context.getFilename(), path.join(__dirname, '../'), './'],
+        'packageDir': [
+          context.getFilename(),
+          path.join(__dirname, '../'),
+          './'
+        ],
         'devDependencies': [
           '**/*.test.ts',
           '**/test/**/*.ts',

@@ -39,7 +39,8 @@ const ERRORS: ErrorMap<AppError> = {
   [AppError.DUPLICATE_APP]:
     "Firebase App named '{$appName}' already exists with different options or config",
   [AppError.APP_DELETED]: "Firebase App named '{$appName}' already deleted",
-  [AppError.NO_OPTIONS]: "Need to provide options, when not being deployed to hosting via source.",
+  [AppError.NO_OPTIONS]:
+    'Need to provide options, when not being deployed to hosting via source.',
   [AppError.INVALID_APP_ARGUMENT]:
     'firebase.{$appName}() takes either no argument or a ' +
     'Firebase App instance.',

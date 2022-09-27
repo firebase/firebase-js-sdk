@@ -50,8 +50,8 @@ const getDefaultsFromEnvVariable = (): FirebaseDefaults | undefined => {
     try {
       const json = require(jsonPath);
       return json;
-    } catch(e) {
-      `Unable to read defaults from file: ${jsonPath}.`
+    } catch (e) {
+      `Unable to read defaults from file: ${jsonPath}.`;
     }
   }
 };
