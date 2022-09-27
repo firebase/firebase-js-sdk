@@ -31,14 +31,18 @@ import { Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 
 /**
- * Counts the number of documents in the result set of the given query, ignoring
- * any locally-cached data and any locally-pending writes and simply surfacing
- * whatever the server returns. If the server cannot be reached then the
- * returned promise will be rejected.
+ * Calculates the number of documents in the result set of the given query,
+ * without actually downloading the documents.
  *
- * @param query - The `Query` to execute.
+ * Using this function to count the documents is efficient because only the
+ * final count, not the documents' data, is downloaded. This function can even
+ * count the documents if the result set would be prohibitively large to
+ * download entirely (e.g. thousands of documents).
  *
- * @returns An `AggregateQuerySnapshot` that contains the number of documents.
+ * @param query - The query whose result set size to calculate.
+ * @returns A Promise that will be resolved with the count; the count can be
+ * retrieved from `snapshot.data().count`, where `snapshot` is the
+ * `AggregateQuerySnapshot` to which the returned Promise resolves.
  */
 export function getCount(
   query: Query<unknown>
@@ -51,13 +55,15 @@ export function getCount(
 
 /**
  * Compares two `AggregateQuerySnapshot` instances for equality.
+ *
  * Two `AggregateQuerySnapshot` instances are considered "equal" if they have
- * the same underlying query, and the same data.
+ * underlying queries that compare equal, and the same data.
  *
- * @param left - The `AggregateQuerySnapshot` to compare.
- * @param right - The `AggregateQuerySnapshot` to compare.
+ * @param left - The first `AggregateQuerySnapshot` to compare.
+ * @param right - The second `AggregateQuerySnapshot` to compare.
  *
- * @returns true if the AggregateQuerySnapshots are equal.
+ * @returns `true` if the objects are "equal", as defined above, or `false`
+ * otherwise.
  */
 export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(
   left: AggregateQuerySnapshot<T>,

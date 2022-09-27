@@ -19,19 +19,16 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 
 // @public
 export class AggregateField<T> {
-    // (undocumented)
     type: string;
 }
 
 // @public
-export type AggregateFieldType = ReturnType<typeof count>;
+export type AggregateFieldType = AggregateField<number>;
 
 // @public
 export class AggregateQuerySnapshot<T extends AggregateSpec> {
     data(): AggregateSpecData<T>;
-    // (undocumented)
     readonly query: Query<unknown>;
-    // (undocumented)
     readonly type = "AggregateQuerySnapshot";
 }
 
@@ -100,9 +97,6 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 export function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
 }): void;
-
-// @public
-export function count(): AggregateField<number>;
 
 // @public
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
