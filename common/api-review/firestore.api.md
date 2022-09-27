@@ -234,6 +234,9 @@ export function getFirestore(): Firestore;
 export function getFirestore(app: FirebaseApp): Firestore;
 
 // @public
+export function getFirestore(): Firestore;
+
+// @public
 export function increment(n: number): FieldValue;
 
 // @public
