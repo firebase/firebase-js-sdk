@@ -111,7 +111,7 @@ export interface FinalizePhoneMfaSignInRequest {
 
 export interface FinalizeTotpMfaSignInRequest {
   mfaPendingCredential: string;
-  verificationCode: string
+  totpVerificationInfo: {verificationCode: string}
   tenantId?: string;
   mfaEnrollmentId?: string
 }

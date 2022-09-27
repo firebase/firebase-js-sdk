@@ -164,9 +164,10 @@ export class TotpMultiFactorAssertionImpl
       auth,
       AuthErrorCode.ARGUMENT_ERROR
     );
+    const totpVerificationInfo = {'verificationCode': this.otp};
     return finalizeSignInTotpMfa(auth, {
       mfaPendingCredential,
-      verificationCode: this.otp,
+      totpVerificationInfo: totpVerificationInfo,
       mfaEnrollmentId: this.enrollmentId
     });
   }
