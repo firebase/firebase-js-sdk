@@ -113,6 +113,7 @@ export interface FinalizeTotpMfaSignInRequest {
   mfaPendingCredential: string;
   verificationCode: string
   tenantId?: string;
+  mfaEnrollmentId?: string
 }
 
 export interface FinalizePhoneMfaSignInResponse extends FinalizeMfaResponse {}

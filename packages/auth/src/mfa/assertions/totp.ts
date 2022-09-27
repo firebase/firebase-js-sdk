@@ -156,7 +156,7 @@ export class TotpMultiFactorAssertionImpl
   /** @internal */
   _finalizeSignIn(
     auth: AuthInternal,
-    mfaPendingCredential: string
+    mfaPendingCredential: string,
   ): Promise<FinalizeMfaResponse> {
     _assert(
       typeof this.enrollmentId !== 'undefined'
@@ -167,6 +167,7 @@ export class TotpMultiFactorAssertionImpl
     return finalizeSignInTotpMfa(auth, {
       mfaPendingCredential,
       verificationCode: this.otp,
+      mfaEnrollmentId: this.enrollmentId
     });
   }
 }
