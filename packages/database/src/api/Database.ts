@@ -54,10 +54,7 @@ import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
 import { ReferenceImpl } from './Reference_impl';
 
-export {
-  EmulatorMockTokenOptions,
-  getDefaultEmulatorHost
-} from '@firebase/util';
+export { EmulatorMockTokenOptions } from '@firebase/util';
 /**
  * This variable is also defined in the firebase Node.js Admin SDK. Before
  * modifying this definition, consult the definition in:
