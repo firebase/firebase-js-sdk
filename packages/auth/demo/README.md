@@ -45,11 +45,20 @@ in the `config.js` file.
 
 Before deploying, you may need to build the auth package:
 ```bash
+cd auth/demo
 yarn
 yarn build:deps
 ```
 
 This can take some time, and you only need to do it if you've modified the auth package.
+
+You can optionally clear the cache and rebuild using:
+ 
+```bash
+cd auth/demo
+rm -rf node_modules yarn.lock
+yarn build:deps
+```
 
 To run the app locally, simply issue the following command in the `auth/demo` directory:
 
