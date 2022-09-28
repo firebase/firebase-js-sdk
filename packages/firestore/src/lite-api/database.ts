@@ -22,7 +22,11 @@ import {
   FirebaseApp,
   getApp
 } from '@firebase/app';
-import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
+import {
+  createMockUserToken,
+  EmulatorMockTokenOptions,
+  getDefaultEmulatorHost
+} from '@firebase/util';
 
 import {
   CredentialsProvider,
@@ -44,6 +48,8 @@ import {
   FirestoreSettings
 } from './settings';
 
+export { EmulatorMockTokenOptions } from '@firebase/util';
+
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'firestore/lite': Firestore;
@@ -53,7 +59,7 @@ declare module '@firebase/component' {
 /**
  * The Cloud Firestore service interface.
  *
- * Do not call this constructor directly. Instead, use {@link getFirestore}.
+ * Do not call this constructor directly. Instead, use {@link (getFirestore:1)}.
  */
 export class Firestore implements FirestoreService {
   /**
@@ -157,8 +163,8 @@ export class Firestore implements FirestoreService {
 /**
  * Initializes a new instance of Cloud Firestore with the provided settings.
  * Can only be called before any other functions, including
- * {@link getFirestore}. If the custom settings are empty, this function is
- * equivalent to calling {@link getFirestore}.
+ * {@link (getFirestore:1)}. If the custom settings are empty, this function is
+ * equivalent to calling {@link (getFirestore:1)}.
  *
  * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
@@ -172,8 +178,8 @@ export function initializeFirestore(
 /**
  * Initializes a new instance of Cloud Firestore with the provided settings.
  * Can only be called before any other functions, including
- * {@link getFirestore}. If the custom settings are empty, this function is
- * equivalent to calling {@link getFirestore}.
+ * {@link (getFirestore:1)}. If the custom settings are empty, this function is
+ * equivalent to calling {@link (getFirestore:1)}.
  *
  * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
@@ -260,12 +266,19 @@ export function getFirestore(
     typeof appOrDatabaseId === 'string'
       ? appOrDatabaseId
       : optionalDatabaseId || '(default)';
-  return _getProvider(app, 'firestore/lite').getImmediate({
+  const db = _getProvider(app, 'firestore/lite').getImmediate({
     identifier: databaseId
   }) as Firestore;
+  if (!db._initialized) {
+    const firestoreEmulatorHost = getDefaultEmulatorHost('firestore');
+    if (firestoreEmulatorHost) {
+      const [host, port] = firestoreEmulatorHost.split(':');
+      connectFirestoreEmulator(db, host, parseInt(port, 10));
+    }
+  }
+  return db;
 }
 
-export { EmulatorMockTokenOptions } from '@firebase/util';
 /**
  * Modify this instance to communicate with the Cloud Firestore emulator.
  *
@@ -341,7 +354,7 @@ export function connectFirestoreEmulator(
  * response from the server will not be resolved.
  *
  * To restart after termination, create a new instance of `Firestore` with
- * {@link getFirestore}.
+ * {@link (getFirestore:1)}.
  *
  * Note: Under normal circumstances, calling `terminate()` is not required. This
  * function is useful only when you want to force this instance to release all of

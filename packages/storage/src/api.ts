@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 
 import {
@@ -51,7 +50,11 @@ import {
   getBytesInternal
 } from './reference';
 import { STORAGE_TYPE } from './constants';
-import { EmulatorMockTokenOptions, getModularInstance } from '@firebase/util';
+import {
+  EmulatorMockTokenOptions,
+  getModularInstance,
+  getDefaultEmulatorHost
+} from '@firebase/util';
 import { StringFormat } from './implementation/string';
 
 export { EmulatorMockTokenOptions } from '@firebase/util';
@@ -331,6 +334,12 @@ export function getStorage(
   const storageInstance = storageProvider.getImmediate({
     identifier: bucketUrl
   });
+  const storageEmulatorHost = getDefaultEmulatorHost('storage');
+  if (storageEmulatorHost) {
+    const [host, port] = storageEmulatorHost.split(':');
+    // eslint-disable-next-line no-restricted-globals
+    connectStorageEmulator(storageInstance, host, parseInt(port, 10));
+  }
   return storageInstance;
 }
 

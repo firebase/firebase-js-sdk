@@ -19,6 +19,7 @@ export * from './src/assert';
 export * from './src/crypt';
 export * from './src/constants';
 export * from './src/deepCopy';
+export * from './src/defaults';
 export * from './src/deferred';
 export * from './src/emulator';
 export * from './src/environment';
