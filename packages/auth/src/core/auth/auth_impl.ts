@@ -59,7 +59,10 @@ import { _assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
-import { HttpHeader } from '../../api';
+import { HttpHeader , RecaptchaClientType, RecaptchaVersion } from '../../api';
+import {
+  getRecaptchaConfig
+} from '../../api/authentication/recaptcha';
 import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 interface AsyncAction {
@@ -350,11 +353,20 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     });
   }
 
-  setRecaptchaConfig(config: RecaptchaConfig): void {
-    if (this.tenantId == null) {
-      this._agentRecaptchaConfig = config;
-    } else {
+  async initializeRecaptchaConfig(): Promise<void> {
+    const response = await getRecaptchaConfig(this, {
+      clientType: RecaptchaClientType.WEB,
+      version: RecaptchaVersion.ENTERPRISE
+    });
+    // TODO(chuanr): Confirm the response format when backend is ready
+    if (response.recaptchaConfig === undefined) {
+      throw new Error("recaptchaConfig undefined");
+    }
+    const config = response.recaptchaConfig;
+    if (this.tenantId) {
       this._tenantRecaptchaConfigs[this.tenantId] = config;
+    } else {
+      this._agentRecaptchaConfig = config;
     }
     if (config.emailPasswordEnabled) {
       const verifier = new RecaptchaEnterpriseVerifier(this);

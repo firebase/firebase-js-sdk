@@ -70,7 +70,7 @@ import {
   getRedirectResult,
   browserPopupRedirectResolver,
   connectAuthEmulator,
-  setRecaptchaConfig
+  initializeRecaptchaConfig
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -443,8 +443,8 @@ function onSetTenantID(_event) {
   }
 }
 
-function onSetRecaptchaEmailProviderEnabled() {
-  setRecaptchaConfig(auth, {emailPasswordEnabled: true});
+function onInitializeRecaptchaConfig() {
+  initializeRecaptchaConfig(auth);
 }
 
 /**
@@ -1856,7 +1856,7 @@ function initApp() {
   $('.sign-in-with-custom-token').click(onSignInWithCustomToken);
   $('#sign-in-anonymously').click(onSignInAnonymously);
   $('.set-tenant-id').click(onSetTenantID);
-  $('#set-recaptcha-email-provider-enabled').click(onSetRecaptchaEmailProviderEnabled);
+  $('#initialize-recaptcha-config').click(onInitializeRecaptchaConfig);
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );

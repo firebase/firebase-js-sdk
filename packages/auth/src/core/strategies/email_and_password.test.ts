@@ -157,7 +157,14 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     });
     
     it('calls send password reset email with recaptcha enabled', async () => {
-      auth.setRecaptchaConfig({emailPasswordEnabled: true});
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'site-key',
+        recaptchaConfig: { emailPasswordEnabled: true }
+      });
+      await auth.initializeRecaptchaConfig();
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -174,7 +181,14 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     });
 
     it('calls send password reset with recaptcha disabled', async () => {
-      auth.setRecaptchaConfig({emailPasswordEnabled: false});
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'site-key',
+        recaptchaConfig: { emailPasswordEnabled: false }
+      });
+      await auth.initializeRecaptchaConfig();
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -472,7 +486,14 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     });
     
     it('calls create user with email password with recaptcha enabled', async () => {
-      auth.setRecaptchaConfig({emailPasswordEnabled: true});
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'site-key',
+        recaptchaConfig: { emailPasswordEnabled: true }
+      });
+      await auth.initializeRecaptchaConfig();
 
       const {
         _tokenResponse,
@@ -495,7 +516,14 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     });
 
     it('calls create user with email password with recaptcha disabled', async () => {
-      auth.setRecaptchaConfig({emailPasswordEnabled: false});
+      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE,
+      }, {
+        recaptchaKey: 'site-key',
+        recaptchaConfig: { emailPasswordEnabled: false }
+      });
+      await auth.initializeRecaptchaConfig();
 
       const {
         _tokenResponse,

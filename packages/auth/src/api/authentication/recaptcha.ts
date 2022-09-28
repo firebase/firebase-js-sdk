@@ -16,7 +16,7 @@
  */
 
 import { Endpoint, HttpMethod, RecaptchaClientType, RecaptchaVersion, _performApiRequest, _addTidIfNecessary } from '../index';
-import { Auth } from '../../model/public_types';
+import { Auth, RecaptchaConfig } from '../../model/public_types';
 
 interface GetRecaptchaParamResponse {
   recaptchaSiteKey?: string;
@@ -42,6 +42,7 @@ interface GetRecaptchaConfigRequest {
 
 interface GetRecaptchaConfigResponse {
   recaptchaKey?: string;
+  recaptchaConfig?: RecaptchaConfig
 }
 
 export async function getRecaptchaConfig(auth: Auth,
