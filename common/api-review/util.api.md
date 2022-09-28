@@ -173,10 +173,27 @@ export function errorPrefix(fnName: string, argName: string): string;
 // @public (undocumented)
 export type Executor<T> = (observer: Observer<T>) => void;
 
+// @public
+export type ExperimentalKey = 'authTokenSyncURL' | 'authIdTokenMaxAge';
+
 // Warning: (ae-missing-release-tag) "extractQuerystring" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
 export function extractQuerystring(url: string): string;
+
+// @public
+export interface FirebaseDefaults {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    _authIdTokenMaxAge?: number;
+    // (undocumented)
+    _authTokenSyncURL?: string;
+    // (undocumented)
+    config?: Record<string, string>;
+    // (undocumented)
+    emulatorHosts?: Record<string, string>;
+}
 
 // Warning: (ae-missing-release-tag) "FirebaseError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -201,9 +218,6 @@ export const getDefaultAppConfig: () => Record<string, string> | undefined;
 // @public
 export const getDefaultEmulatorHost: (productName: string) => string | undefined;
 
-// Warning: (ae-forgotten-export) The symbol "ExperimentalKey" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "FirebaseDefaults" needs to be exported by the entry point index.d.ts
-//
 // @public
 export const getExperimentalSetting: <T extends ExperimentalKey>(name: T) => FirebaseDefaults[`_${T}`];
 
