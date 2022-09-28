@@ -89,9 +89,7 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   const authTokenSyncUrl = getExperimentalSetting('authTokenSyncURL');
   if (authTokenSyncUrl) {
     const mintCookie = mintCookieFactory(authTokenSyncUrl);
-    beforeAuthStateChanged(auth, mintCookie, () => {
-      void mintCookie(auth.currentUser);
-    });
+    beforeAuthStateChanged(auth, mintCookie, () => mintCookie(auth.currentUser));
     onIdTokenChanged(auth, user => mintCookie(user));
   }
 
