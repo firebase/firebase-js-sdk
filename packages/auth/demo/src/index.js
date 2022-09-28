@@ -1155,16 +1155,15 @@ function onSelectMultiFactorHint(index) {
     // Clear all input.
     $('#multi-factor-sign-in-verification-id').val('');
     $('#multi-factor-sign-in-verification-code').val('');
-  } else if(multiFactorErrorResolver.hints[index].factorId === 'totp'){
+  } else if (multiFactorErrorResolver.hints[index].factorId === 'totp') {
     // Save selected second factor.
     selectedMultiFactorHint = multiFactorErrorResolver.hints[index];
-  
+
     // Show sign-in with totp second factor menu.
     $('#multi-factor-totp').removeClass('hidden');
     // Clear all input.
     $('#multi-factor-totp-sign-in-verification-code').val('');
-  } 
-  else {
+  } else {
     // 2nd factor not found or not supported by app.
     alertError('Selected 2nd factor is not supported!');
   }
@@ -1222,19 +1221,22 @@ function onFinalizeSignInWithPhoneMultiFactor(event) {
  * Completes sign-in with the 2nd factor totp assertion.
  * @param {!jQuery.Event} event The jQuery event object.
  */
-function onFinalizeSignInWithTotpMultiFactor(event){
+function onFinalizeSignInWithTotpMultiFactor(event) {
   event.preventDefault();
   // Make sure a second factor is selected.
-  const otp =  $('#multi-factor-totp-sign-in-verification-code').val();
+  const otp = $('#multi-factor-totp-sign-in-verification-code').val();
   if (!otp || !selectedMultiFactorHint || !multiFactorErrorResolver) {
     return;
   }
-  
-  const assertion = TotpMultiFactorGenerator.assertionForSignIn(selectedMultiFactorHint.uid, otp)
+
+  const assertion = TotpMultiFactorGenerator.assertionForSignIn(
+    selectedMultiFactorHint.uid,
+    otp
+  );
   multiFactorErrorResolver.resolveSignIn(assertion).then(userCredential => {
     onAuthUserCredentialSuccess(userCredential);
     $('#multiFactorModal').modal('hide');
-  }, onAuthError)
+  }, onAuthError);
 }
 
 /**
@@ -2015,12 +2017,10 @@ function initApp() {
     onFinalizeSignInWithPhoneMultiFactor
   );
 
-
-  // Completes multi-factor sign-in with supplied SMS code.
+  // Completes multi-factor sign-in with supplied OTP(One-Time Password).
   $('#sign-in-with-totp-multi-factor').click(
     onFinalizeSignInWithTotpMultiFactor
   );
-
 
   // Starts multi-factor enrollment with phone number.
   $('#enroll-mfa-verify-phone-number').click(onStartEnrollWithPhoneMultiFactor);

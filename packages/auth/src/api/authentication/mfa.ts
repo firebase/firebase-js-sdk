@@ -23,7 +23,7 @@ import {
 } from '../index';
 import { Auth } from '../../model/public_types';
 import { IdTokenResponse } from '../../model/id_token';
-import { MfaEnrollment, TotpVerificationInfo } from '../account_management/mfa';
+import { MfaEnrollment } from '../account_management/mfa';
 import { SignInWithIdpResponse } from './idp';
 import {
   SignInWithPhoneNumberRequest,
@@ -59,7 +59,6 @@ export interface StartTotpMfaSignInRequest {
   };
   tenantId?: string;
 }
-
 
 export interface StartPhoneMfaSignInResponse {
   phoneResponseInfo: {
@@ -111,15 +110,14 @@ export interface FinalizePhoneMfaSignInRequest {
 
 export interface FinalizeTotpMfaSignInRequest {
   mfaPendingCredential: string;
-  totpVerificationInfo: {verificationCode: string}
+  totpVerificationInfo: { verificationCode: string };
   tenantId?: string;
-  mfaEnrollmentId?: string
+  mfaEnrollmentId: string;
 }
 
 export interface FinalizePhoneMfaSignInResponse extends FinalizeMfaResponse {}
 
 export interface FinalizeTotpMfaSignInResponse extends FinalizeMfaResponse {}
-
 
 export function finalizeSignInPhoneMfa(
   auth: Auth,
@@ -150,7 +148,6 @@ export function finalizeSignInTotpMfa(
     _addTidIfNecessary(auth, request)
   );
 }
-
 
 /**
  * @internal

@@ -26,7 +26,10 @@ import {
   StartTotpMfaEnrollmentResponse,
   TotpVerificationInfo
 } from '../../api/account_management/mfa';
-import { FinalizeMfaResponse, finalizeSignInTotpMfa } from '../../api/authentication/mfa';
+import {
+  FinalizeMfaResponse,
+  finalizeSignInTotpMfa
+} from '../../api/authentication/mfa';
 import { MultiFactorAssertionImpl } from '../../mfa/mfa_assertion';
 import { MultiFactorSessionImpl } from '../mfa_session';
 import { AuthErrorCode } from '../../core/errors';
@@ -156,19 +159,19 @@ export class TotpMultiFactorAssertionImpl
   /** @internal */
   _finalizeSignIn(
     auth: AuthInternal,
-    mfaPendingCredential: string,
+    mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse> {
     _assert(
-      typeof this.enrollmentId !== 'undefined'
-      && typeof this.otp !== 'undefined',
+      typeof this.enrollmentId !== 'undefined' &&
+        typeof this.otp !== 'undefined',
       auth,
       AuthErrorCode.ARGUMENT_ERROR
     );
-    const totpVerificationInfo = {'verificationCode': this.otp};
+    const totpVerificationInfo = { verificationCode: this.otp };
     return finalizeSignInTotpMfa(auth, {
       mfaPendingCredential,
-      totpVerificationInfo: totpVerificationInfo,
-      mfaEnrollmentId: this.enrollmentId
+      mfaEnrollmentId: this.enrollmentId,
+      totpVerificationInfo
     });
   }
 }
