@@ -94,6 +94,9 @@ export function initializeApp(options: FirebaseOptions, name?: string): Firebase
 export function initializeApp(options: FirebaseOptions, config?: FirebaseAppSettings): FirebaseApp;
 
 // @public
+export function initializeApp(): FirebaseApp;
+
+// @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
 
 // @internal (undocumented)

@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   _getProvider,
   _removeServiceInstance,
   FirebaseApp,
   getApp
 } from '@firebase/app';
-import { deepEqual } from '@firebase/util';
+import { deepEqual, getDefaultEmulatorHost } from '@firebase/util';
 
 import { User } from '../auth/user';
 import {
@@ -43,7 +42,10 @@ import {
   setOnlineComponentProvider
 } from '../core/firestore_client';
 import { makeDatabaseInfo } from '../lite-api/components';
-import { Firestore as LiteFirestore } from '../lite-api/database';
+import {
+  Firestore as LiteFirestore,
+  connectFirestoreEmulator
+} from '../lite-api/database';
 import { Query } from '../lite-api/reference';
 import {
   indexedDbClearPersistence,
@@ -188,14 +190,6 @@ export function initializeFirestore(
 
 /**
  * Returns the existing default {@link Firestore} instance that is associated with the
- * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
- * instance with default settings.
- *
- * @returns The {@link Firestore} instance of the provided app.
- */
-export function getFirestore(): Firestore;
-/**
- * Returns the existing default {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
@@ -215,7 +209,15 @@ export function getFirestore(app: FirebaseApp): Firestore;
  */
 export function getFirestore(databaseId: string): Firestore;
 /**
- * Returns the existing {@link Firestore} instance that is associated with the
+ * Returns the existing default {@link Firestore} instance that is associated with the
+ * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @returns The {@link Firestore} instance of the provided app.
+ */
+export function getFirestore(): Firestore;
+/**
+ * Returns the existing default {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
@@ -236,9 +238,17 @@ export function getFirestore(
     typeof appOrDatabaseId === 'string'
       ? appOrDatabaseId
       : optionalDatabaseId || DEFAULT_DATABASE_NAME;
-  return _getProvider(app, 'firestore').getImmediate({
+  const db = _getProvider(app, 'firestore').getImmediate({
     identifier: databaseId
   }) as Firestore;
+  if (!db._initialized) {
+    const firestoreEmulatorHost = getDefaultEmulatorHost('firestore');
+    if (firestoreEmulatorHost) {
+      const [host, port] = firestoreEmulatorHost.split(':');
+      connectFirestoreEmulator(db, host, parseInt(port, 10));
+    }
+  }
+  return db;
 }
 
 /**

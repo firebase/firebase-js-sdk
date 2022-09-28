@@ -22,7 +22,11 @@ import {
   FirebaseApp,
   getApp
 } from '@firebase/app';
-import { createMockUserToken, EmulatorMockTokenOptions } from '@firebase/util';
+import {
+  createMockUserToken,
+  EmulatorMockTokenOptions,
+  getDefaultEmulatorHost
+} from '@firebase/util';
 
 import {
   CredentialsProvider,
@@ -43,6 +47,8 @@ import {
   PrivateSettings,
   FirestoreSettings
 } from './settings';
+
+export { EmulatorMockTokenOptions } from '@firebase/util';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -260,12 +266,19 @@ export function getFirestore(
     typeof appOrDatabaseId === 'string'
       ? appOrDatabaseId
       : optionalDatabaseId || '(default)';
-  return _getProvider(app, 'firestore/lite').getImmediate({
+  const db = _getProvider(app, 'firestore/lite').getImmediate({
     identifier: databaseId
   }) as Firestore;
+  if (!db._initialized) {
+    const firestoreEmulatorHost = getDefaultEmulatorHost('firestore');
+    if (firestoreEmulatorHost) {
+      const [host, port] = firestoreEmulatorHost.split(':');
+      connectFirestoreEmulator(db, host, parseInt(port, 10));
+    }
+  }
+  return db;
 }
 
-export { EmulatorMockTokenOptions } from '@firebase/util';
 /**
  * Modify this instance to communicate with the Cloud Firestore emulator.
  *
