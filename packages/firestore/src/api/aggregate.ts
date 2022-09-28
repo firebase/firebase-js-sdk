@@ -17,23 +17,43 @@
 
 import { Query } from '../api';
 import { firestoreClientRunCountQuery } from '../core/firestore_client';
-import { AggregateField, AggregateQuerySnapshot } from '../lite-api/aggregate';
+import {
+  AggregateField,
+  AggregateQuerySnapshot
+} from '../lite-api/aggregate_types';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { ExpUserDataWriter } from './reference_impl';
+
+export { aggregateQuerySnapshotEqual } from '../lite-api/aggregate';
 
 /**
- * Executes the query and returns the results as a `AggregateQuerySnapshot` from the
- * server. Returns an error if the network is not available.
+ * Calculates the number of documents in the result set of the given query,
+ * without actually downloading the documents.
  *
- * @param query - The `Query` to execute.
+ * Using this function to count the documents is efficient because only the
+ * final count, not the documents' data, is downloaded. This function can even
+ * count the documents if the result set would be prohibitively large to
+ * download entirely (e.g. thousands of documents).
  *
- * @returns A `Promise` that will be resolved with the results of the query.
+ * The result received from the server is presented, unaltered, without
+ * considering any local state. That is, documents in the local cache are not
+ * taken into consideration, neither are local modifications not yet
+ * synchronized with the server. Previously-downloaded results, if any, are not
+ * used: every request using this source necessarily involves a round trip to
+ * the server.
+ *
+ * @param query - The query whose result set size to calculate.
+ * @returns A Promise that will be resolved with the count; the count can be
+ * retrieved from `snapshot.data().count`, where `snapshot` is the
+ * `AggregateQuerySnapshot` to which the returned Promise resolves.
  */
 export function getCountFromServer(
   query: Query<unknown>
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
-  return firestoreClientRunCountQuery(client, query);
+  const userDataWriter = new ExpUserDataWriter(firestore);
+  return firestoreClientRunCountQuery(client, query, userDataWriter);
 }

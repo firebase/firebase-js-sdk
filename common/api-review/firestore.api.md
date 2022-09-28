@@ -18,6 +18,35 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 };
 
 // @public
+export class AggregateField<T> {
+    type: string;
+}
+
+// @public
+export type AggregateFieldType = AggregateField<number>;
+
+// @public
+export class AggregateQuerySnapshot<T extends AggregateSpec> {
+    data(): AggregateSpecData<T>;
+    readonly query: Query<unknown>;
+    readonly type = "AggregateQuerySnapshot";
+}
+
+// @public
+export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(left: AggregateQuerySnapshot<T>, right: AggregateQuerySnapshot<T>): boolean;
+
+// @public
+export interface AggregateSpec {
+    // (undocumented)
+    [field: string]: AggregateFieldType;
+}
+
+// @public
+export type AggregateSpecData<T extends AggregateSpec> = {
+    [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
+};
+
+// @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
 
 // @public
@@ -208,6 +237,11 @@ export class GeoPoint {
         longitude: number;
     };
 }
+
+// @public
+export function getCountFromServer(query: Query<unknown>): Promise<AggregateQuerySnapshot<{
+    count: AggregateField<number>;
+}>>;
 
 // @public
 export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;

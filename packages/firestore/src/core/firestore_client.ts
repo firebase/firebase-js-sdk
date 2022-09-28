@@ -17,17 +17,17 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
+import {
+  AbstractUserDataWriter,
+  AggregateField,
+  AggregateQuerySnapshot
+} from '../api';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import {
-  AggregateField,
-  AggregateQuerySnapshot,
-  getCount
-} from '../lite-api/aggregate';
 import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
@@ -68,6 +68,7 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from './component_provider';
+import { CountQueryRunner } from './count_query_runner';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import {
   addSnapshotsInSyncListener,
@@ -510,7 +511,8 @@ export function firestoreClientTransaction<T>(
 
 export function firestoreClientRunCountQuery(
   client: FirestoreClient,
-  query: LiteQuery<unknown>
+  query: LiteQuery<unknown>,
+  userDataWriter: AbstractUserDataWriter
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const deferred = new Deferred<
     AggregateQuerySnapshot<{ count: AggregateField<number> }>
@@ -526,7 +528,12 @@ export function firestoreClientRunCountQuery(
           )
         );
       } else {
-        const result = await getCount(query);
+        const datastore = await getDatastore(client);
+        const result = new CountQueryRunner(
+          query,
+          datastore,
+          userDataWriter
+        ).run();
         deferred.resolve(result);
       }
     } catch (e) {
