@@ -28,10 +28,10 @@ export type ExperimentalKey = 'authTokenSyncURL' | 'authIdTokenMaxAge';
  * An object that can be injected into the environment as __FIREBASE_DEFAULTS__,
  * either as a property of globalThis, a shell environment variable, or a
  * cookie.
- * 
+ *
  * This object can be used to automatically configure and initialize
  * a Firebase app as well as any emulators.
- * 
+ *
  * @public
  */
 export interface FirebaseDefaults {
@@ -111,8 +111,9 @@ const getDefaults = (): FirebaseDefaults | undefined =>
  * for the given product.
  * @public
  */
-export const getDefaultEmulatorHost = (productName: string): string | undefined =>
-  getDefaults()?.emulatorHosts?.[productName];
+export const getDefaultEmulatorHost = (
+  productName: string
+): string | undefined => getDefaults()?.emulatorHosts?.[productName];
 
 /**
  * Returns Firebase app config stored in the __FIREBASE_DEFAULTS__ object.
