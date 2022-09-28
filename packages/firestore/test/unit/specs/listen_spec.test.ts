@@ -943,34 +943,43 @@ describeSpec('Listens:', [], () => {
     });
 
   specTest(
-    'Secondary client raises latency compensated snapshot from primary deletion',
-    ['multi-client', 'exclusive'],
+    'Secondary client does no time-travel with multiple mutations',
+    ['multi-client'],
     () => {
       const query1 = query('collection');
-      const docA_1 = doc('collection/a', 1000, { key: '1' });
+      const docA1 = doc('collection/a', 1000, { key: '1' });
+      const docA2 = doc('collection/a', 1000, { key: '2' }).setHasLocalMutations();
+      const docA3 = doc('collection/a', 1000, { key: '3' }).setHasLocalMutations();
 
       return client(0)
         .becomeVisible()
         .expectPrimaryState(true)
         .userListens(query1)
-        .watchAcksFull(query1, 1000, docA_1)
-        .expectEvents(query1, {added: [docA_1]})
+        .watchAcksFull(query1, 1000, docA1)
+        .expectEvents(query1, {added: [docA1]})
         .userUnlistens(query1)
         .watchRemoves(query1)
         .client(1)
         .userListens(query1)
-        .expectEvents(query1, {added: [docA_1], fromCache: true})
+        .expectEvents(query1, {added: [docA1], fromCache: true})
         .client(0)
         .expectListen(query1, {resumeToken: 'resume-token-1000'})
-        .watchAcksFull(query1, 1500, docA_1)
+        .watchAcksFull(query1, 1500, docA1)
         .client(1)
         .expectEvents(query1, {})
         .client(0)
-        .userDeletes('collection/a')
+        .userSets('collection/a', {key: '2'})
         .client(1)
-        // Without the fix for 6511, this would raise two snapshots, first one as expected and
-        // second one travels back in time and raise the old stale document.
-        .expectEvents(query1, { removed: [docA_1]});
+        .expectEvents(query1, { modified: [docA2], hasPendingWrites: true})
+      .client(0)
+        .userSets('collection/a', {key: '3'})
+        .client(1)
+        .expectEvents(query1, { modified: [docA3], hasPendingWrites: true})
+        .client(0)
+        .writeAcks('collection/a', 2000)
+        .watchAcksFull(query1, 2000, docA2)
+        .client(1)
+        ;
     });
 
   specTest(

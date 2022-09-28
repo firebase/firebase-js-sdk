@@ -1031,20 +1031,22 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
         .applyDocChanges(queryView, changes, remoteEvent)
         .then(viewSnapshot => {
           logWarn(LOG_TAG, `Primary: ${syncEngineImpl.isPrimaryClient} with viewsnapshot ${JSON.stringify(viewSnapshot)}`);
-          if (viewSnapshot) {
+          if (viewSnapshot || remoteEvent) {
             if (syncEngineImpl.isPrimaryClient) {
-              logWarn(LOG_TAG, `Primary: Updating query state to ${viewSnapshot.fromCache ? 'not-current' : 'current'}`);
+              logWarn(LOG_TAG, `Primary: Updating query state to ${viewSnapshot?.fromCache ? 'not-current' : 'current'}`);
               syncEngineImpl.sharedClientState.updateQueryState(
                 queryView.targetId,
-                viewSnapshot.fromCache ? 'not-current' : 'current'
+                viewSnapshot?.fromCache ? 'not-current' : 'current'
               );
             }
-            newSnaps.push(viewSnapshot);
-            const docChanges = LocalViewChanges.fromSnapshot(
-              queryView.targetId,
-              viewSnapshot
-            );
-            docChangesInAllViews.push(docChanges);
+            if(!!viewSnapshot) {
+              newSnaps.push(viewSnapshot!);
+              const docChanges = LocalViewChanges.fromSnapshot(
+                queryView.targetId,
+                viewSnapshot!
+              );
+              docChangesInAllViews.push(docChanges);
+            }
           }
         })
     );
