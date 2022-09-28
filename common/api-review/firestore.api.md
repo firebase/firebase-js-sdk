@@ -236,6 +236,30 @@ export function getFirestore(app: FirebaseApp): Firestore;
 // @public
 export function increment(n: number): FieldValue;
 
+// @beta
+export interface Index {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly collectionGroup: string;
+    readonly fields?: IndexField[];
+}
+
+// @beta
+export interface IndexConfiguration {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly indexes?: Index[];
+}
+
+// @beta
+export interface IndexField {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly arrayConfig?: 'CONTAINS';
+    readonly fieldPath: string;
+    readonly order?: 'ASCENDING' | 'DESCENDING';
+}
+
 // @public
 export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings, databaseId?: string): Firestore;
 
@@ -398,6 +422,12 @@ export function setDoc<T>(reference: DocumentReference<T>, data: WithFieldValue<
 
 // @public
 export function setDoc<T>(reference: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): Promise<void>;
+
+// @beta
+export function setIndexConfiguration(firestore: Firestore, configuration: IndexConfiguration): Promise<void>;
+
+// @beta
+export function setIndexConfiguration(firestore: Firestore, json: string): Promise<void>;
 
 // @public
 export function setLogLevel(logLevel: LogLevel): void;

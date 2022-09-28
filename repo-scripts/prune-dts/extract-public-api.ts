@@ -77,7 +77,12 @@ function loadApiExtractorConfig(
     mainEntryPointFilePath: typescriptDtsPath,
     'dtsRollup': {
       'enabled': dtsRollupEnabled,
-      publicTrimmedFilePath: rollupDtsPath,
+      /**
+       * Include beta APIs in documentation and typings. api-extractor/documenter
+       * seems to work this way by default but this intermediate step
+       * seems to restrict it to public tagged APIs.
+       */
+      betaTrimmedFilePath: rollupDtsPath,
       untrimmedFilePath: untrimmedRollupDtsPath
     },
     'tsdocMetadata': {

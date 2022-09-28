@@ -88,7 +88,7 @@ export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
 /**
  * The Cloud Firestore service interface.
  *
- * Do not call this constructor directly. Instead, use {@link getFirestore}.
+ * Do not call this constructor directly. Instead, use {@link (getFirestore:1)}.
  */
 export class Firestore extends LiteFirestore {
   /**
@@ -130,8 +130,8 @@ export class Firestore extends LiteFirestore {
 /**
  * Initializes a new instance of {@link Firestore} with the provided settings.
  * Can only be called before any other function, including
- * {@link getFirestore}. If the custom settings are empty, this function is
- * equivalent to calling {@link getFirestore}.
+ * {@link (getFirestore:1)}. If the custom settings are empty, this function is
+ * equivalent to calling {@link (getFirestore:1)}.
  *
  * @param app - The {@link @firebase/app#FirebaseApp} with which the {@link Firestore} instance will
  * be associated.
@@ -280,7 +280,7 @@ export function configureFirestore(firestore: Firestore): void {
  * Attempts to enable persistent storage, if possible.
  *
  * Must be called before any other functions (other than
- * {@link initializeFirestore}, {@link getFirestore} or
+ * {@link initializeFirestore}, {@link (getFirestore:1)} or
  * {@link clearIndexedDbPersistence}.
  *
  * If this fails, `enableIndexedDbPersistence()` will reject the promise it
@@ -444,7 +444,7 @@ function canFallbackFromIndexedDbError(
  * Must be called while the {@link Firestore} instance is not started (after the app is
  * terminated or when the app is first initialized). On startup, this function
  * must be called before other functions (other than {@link
- * initializeFirestore} or {@link getFirestore})). If the {@link Firestore}
+ * initializeFirestore} or {@link (getFirestore:1)})). If the {@link Firestore}
  * instance is still running, the promise will be rejected with the error code
  * of `failed-precondition`.
  *
@@ -537,7 +537,7 @@ export function disableNetwork(firestore: Firestore): Promise<void> {
  * may be used. Any other function will throw a `FirestoreError`.
  *
  * To restart after termination, create a new instance of FirebaseFirestore with
- * {@link getFirestore}.
+ * {@link (getFirestore:1)}.
  *
  * Termination does not cancel any pending writes, and any promises that are
  * awaiting a response from the server will not be resolved. If you have
