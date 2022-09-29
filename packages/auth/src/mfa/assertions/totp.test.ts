@@ -24,7 +24,10 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { MultiFactorSessionImpl } from '../../mfa/mfa_session';
 import { StartTotpMfaEnrollmentResponse } from '../../api/account_management/mfa';
-import { FinalizeMfaResponse } from '../../api/authentication/mfa';
+import {
+  FinalizeMfaResponse,
+  StartTotpMfaSignInResponse
+} from '../../api/authentication/mfa';
 import {
   TotpMultiFactorAssertionImpl,
   TotpMultiFactorGenerator,
@@ -34,6 +37,8 @@ import { FactorId } from '../../model/public_types';
 import { AuthErrorCode } from '../../core/errors';
 import { AppName } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
+import { MultiFactorAssertionImpl } from '../mfa_assertion';
+import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);
 
@@ -205,6 +210,90 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
         expect(session.auth).to.eql(auth);
       });
     });
+  });
+});
+
+describe('Testing signin Flow', () => {
+  let auth: TestAuth;
+  let assertion: MultiFactorAssertionImpl;
+  let totpSignInResponse: StartTotpMfaSignInResponse;
+  let session: MultiFactorSessionImpl;
+  beforeEach(async () => {
+    mockFetch.setUp();
+    auth = await testAuth();
+    session = MultiFactorSessionImpl._fromMfaPendingCredential(
+      'mfa-pending-credential'
+    );
+  });
+  afterEach(mockFetch.tearDown);
+
+  it('should finalize mfa signin for totp', async () => {
+    totpSignInResponse = {
+      verificationCode: '123456',
+      idToken: 'final-id-token',
+      refreshToken: 'refresh-token'
+    } as any;
+    assertion = TotpMultiFactorGenerator.assertionForSignIn(
+      'enrollment-id',
+      '123456'
+    ) as any;
+
+    const mock = mockEndpoint(
+      Endpoint.FINALIZE_MFA_SIGN_IN,
+      totpSignInResponse
+    );
+
+    const response = await assertion._process(auth, session);
+
+    expect(response).to.eql(totpSignInResponse);
+
+    expect(mock.calls[0].request).to.eql({
+      mfaPendingCredential: 'mfa-pending-credential',
+      mfaEnrollmentId: 'enrollment-id',
+      totpVerificationInfo: {
+        verificationCode: '123456'
+      }
+    });
+  });
+
+  it('should throw Firebase Error if enrollment-id is undefined', async () => {
+    let _response: FinalizeMfaResponse;
+    totpSignInResponse = {
+      verificationCode: '123456',
+      idToken: 'final-id-token',
+      refreshToken: 'refresh-token'
+    } as any;
+    assertion = TotpMultiFactorGenerator.assertionForSignIn(
+      undefined as any,
+      '123456'
+    ) as any;
+
+    try {
+      _response = await assertion._process(auth, session);
+    } catch (e) {
+      expect(e).to.be.an.instanceOf(FirebaseError);
+      expect(e.message).to.eql('Firebase: Error (auth/argument-error).');
+    }
+  });
+
+  it('should throw Firebase Error if otp is undefined', async () => {
+    let _response: FinalizeMfaResponse;
+    totpSignInResponse = {
+      verificationCode: '123456',
+      idToken: 'final-id-token',
+      refreshToken: 'refresh-token'
+    } as any;
+    assertion = TotpMultiFactorGenerator.assertionForSignIn(
+      'enrollment-id',
+      undefined as any
+    ) as any;
+
+    try {
+      _response = await assertion._process(auth, session);
+    } catch (e) {
+      expect(e).to.be.an.instanceOf(FirebaseError);
+      expect(e.message).to.eql('Firebase: Error (auth/argument-error).');
+    }
   });
 });
 
