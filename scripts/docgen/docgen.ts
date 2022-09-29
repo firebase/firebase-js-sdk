@@ -89,7 +89,7 @@ async function generateToc() {
       '--input',
       'temp',
       '-p',
-      'docs/reference/js',
+      '/docs/reference/js',
       '-j'
     ],
     { stdio: 'inherit' }

@@ -21,13 +21,14 @@ import { _createError } from '../core/util/assert';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Auth } from '../model/public_types';
 
-import { initializeAuth, inMemoryPersistence } from '..';
+import { initializeAuth, inMemoryPersistence, connectAuthEmulator } from '..';
 import { registerAuth } from '../core/auth/register';
 import { ClientPlatform } from '../core/util/version';
 import { AuthImpl } from '../core/auth/auth_impl';
 
 import { FetchProvider } from '../core/util/fetch_provider';
 import * as fetchImpl from 'node-fetch';
+import { getDefaultEmulatorHost } from '@firebase/util';
 
 // Initialize the fetch polyfill, the types are slightly off so just cast and hope for the best
 FetchProvider.initialize(
@@ -46,7 +47,14 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
     return provider.getImmediate();
   }
 
-  return initializeAuth(app);
+  const auth = initializeAuth(app);
+
+  const authEmulatorHost = getDefaultEmulatorHost('auth');
+  if (authEmulatorHost) {
+    connectAuthEmulator(auth, `http://${authEmulatorHost}`);
+  }
+
+  return auth;
 }
 
 registerAuth(ClientPlatform.NODE);

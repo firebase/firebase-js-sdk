@@ -17,12 +17,18 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
+import {
+  AbstractUserDataWriter,
+  AggregateField,
+  AggregateQuerySnapshot
+} from '../api';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
+import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -38,6 +44,7 @@ import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { Datastore } from '../remote/datastore';
 import {
+  canUseNetwork,
   RemoteStore,
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
@@ -61,6 +68,7 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from './component_provider';
+import { CountQueryRunner } from './count_query_runner';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import {
   addSnapshotsInSyncListener,
@@ -497,6 +505,40 @@ export function firestoreClientTransaction<T>(
       updateFunction,
       deferred
     ).run();
+  });
+  return deferred.promise;
+}
+
+export function firestoreClientRunCountQuery(
+  client: FirestoreClient,
+  query: LiteQuery<unknown>,
+  userDataWriter: AbstractUserDataWriter
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const deferred = new Deferred<
+    AggregateQuerySnapshot<{ count: AggregateField<number> }>
+  >();
+  client.asyncQueue.enqueueAndForget(async () => {
+    try {
+      const remoteStore = await getRemoteStore(client);
+      if (!canUseNetwork(remoteStore)) {
+        deferred.reject(
+          new FirestoreError(
+            Code.UNAVAILABLE,
+            'Failed to get count result because the client is offline.'
+          )
+        );
+      } else {
+        const datastore = await getDatastore(client);
+        const result = new CountQueryRunner(
+          query,
+          datastore,
+          userDataWriter
+        ).run();
+        deferred.resolve(result);
+      }
+    } catch (e) {
+      deferred.reject(e as Error);
+    }
   });
   return deferred.promise;
 }

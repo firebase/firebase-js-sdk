@@ -1021,13 +1021,19 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
       syncEngineImpl
         .applyDocChanges(queryView, changes, remoteEvent)
         .then(viewSnapshot => {
-          if (viewSnapshot) {
+          // If there are changes, or we are handling a global snapshot, notify
+          // secondary clients to update query state.
+          if (viewSnapshot || remoteEvent) {
             if (syncEngineImpl.isPrimaryClient) {
               syncEngineImpl.sharedClientState.updateQueryState(
                 queryView.targetId,
-                viewSnapshot.fromCache ? 'not-current' : 'current'
+                viewSnapshot?.fromCache ? 'not-current' : 'current'
               );
             }
+          }
+
+          // Update views if there are actual changes.
+          if (!!viewSnapshot) {
             newSnaps.push(viewSnapshot);
             const docChanges = LocalViewChanges.fromSnapshot(
               queryView.targetId,

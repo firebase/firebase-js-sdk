@@ -84,6 +84,14 @@ export interface Connection {
     appCheckToken: Token | null
   ): Stream<Req, Resp>;
 
+  /**
+   * Returns whether or not the implementation requires that the "path" of the resource
+   * (a document or a collection) be present in the request message. If true, then the
+   * request message must include the path. If false, then the request message must NOT
+   * include the path.
+   */
+  readonly shouldResourcePathBeIncludedInRequest: boolean;
+
   // TODO(mcg): subscribe to connection state changes.
 }
 

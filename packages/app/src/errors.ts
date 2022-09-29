@@ -22,6 +22,7 @@ export const enum AppError {
   BAD_APP_NAME = 'bad-app-name',
   DUPLICATE_APP = 'duplicate-app',
   APP_DELETED = 'app-deleted',
+  NO_OPTIONS = 'no-options',
   INVALID_APP_ARGUMENT = 'invalid-app-argument',
   INVALID_LOG_ARGUMENT = 'invalid-log-argument',
   IDB_OPEN = 'idb-open',
@@ -38,6 +39,8 @@ const ERRORS: ErrorMap<AppError> = {
   [AppError.DUPLICATE_APP]:
     "Firebase App named '{$appName}' already exists with different options or config",
   [AppError.APP_DELETED]: "Firebase App named '{$appName}' already deleted",
+  [AppError.NO_OPTIONS]:
+    'Need to provide options, when not being deployed to hosting via source.',
   [AppError.INVALID_APP_ARGUMENT]:
     'firebase.{$appName}() takes either no argument or a ' +
     'Firebase App instance.',
