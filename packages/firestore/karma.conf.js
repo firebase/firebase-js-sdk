@@ -17,6 +17,7 @@
 
 const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
+const playwright = require('playwright');
 
 module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
