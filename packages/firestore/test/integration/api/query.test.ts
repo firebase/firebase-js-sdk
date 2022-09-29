@@ -1281,7 +1281,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     };
 
     return withTestCollection(persistence, testDocs, async coll => {
-      await getDocs(query(coll)); // Populate the cache
+      await getDocs(query(coll)); // Populate the cache.
       const snapshot = await getDocs(
         query(coll, where('map.nested', '==', 'foo'))
       );
@@ -1291,12 +1291,12 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? describe : describe.skip)('Caching empty results ', () => {
-    it('can cache empty query results', () => {
+  (persistence ? describe : describe.skip)('Caching empty results', () => {
+    it('can raises initial snapshot from cache, even if it is empty', () => {
       return withTestCollection(persistence, {}, async coll => {
-        const snapshot1 = await getDocs(coll); // Populate the cache
+        const snapshot1 = await getDocs(coll); // Populate the cache.
         expect(snapshot1.metadata.fromCache).to.be.false;
-        expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check
+        expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check.
 
         // Add a snapshot listener whose first event should be raised from cache.
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
@@ -1307,72 +1307,24 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
 
-    it('can empty cached collection and raise snapshot from it', () => {
+    it('can raises initial snapshot from cache, even if it has become empty', () => {
       const testDocs = {
         a: { key: 'a' }
       };
       return withTestCollection(persistence, testDocs, async coll => {
-        // Populate the cache
+        // Populate the cache.
         const snapshot1 = await getDocs(coll);
         expect(snapshot1.metadata.fromCache).to.be.false;
         expect(toDataArray(snapshot1)).to.deep.equal([{ key: 'a' }]);
-        //empty the collection
+        // Empty the collection.
         void deleteDoc(doc(coll, 'a'));
 
-        // Add a snapshot listener whose first event should be raised from cache.
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
         onSnapshot(coll, storeEvent.storeEvent);
         const snapshot2 = await storeEvent.awaitEvent();
         expect(snapshot2.metadata.fromCache).to.be.true;
         expect(toDataArray(snapshot2)).to.deep.equal([]);
       });
-    });
-
-    it('can raise snapshot from a cached collection which was emptied offline', () => {
-      const testDocs = {
-        a: { key: 'a' }
-      };
-      return withTestCollection(
-        persistence,
-        testDocs,
-        async (coll, firestore) => {
-          await getDocs(coll); // Populate the cache
-          const storeEvent = new EventsAccumulator<QuerySnapshot>();
-          onSnapshot(coll, storeEvent.storeEvent);
-          await storeEvent.awaitEvent();
-
-          await disableNetwork(firestore);
-          void deleteDoc(doc(coll, 'a'));
-          await enableNetwork(firestore);
-
-          const snapshot = await storeEvent.awaitEvent();
-          expect(snapshot.metadata.fromCache).to.be.true;
-          expect(toDataArray(snapshot)).to.deep.equal([]);
-        }
-      );
-    });
-
-    it('can register a listener and empty cache offline, and raise snaoshot from it when came back online', () => {
-      const testDocs = {
-        a: { key: 'a' }
-      };
-      return withTestCollection(
-        persistence,
-        testDocs,
-        async (coll, firestore) => {
-          await getDocs(coll); // Populate the cache
-          await disableNetwork(firestore);
-          const storeEvent = new EventsAccumulator<QuerySnapshot>();
-          onSnapshot(coll, storeEvent.storeEvent);
-          await storeEvent.awaitEvent();
-          void deleteDoc(doc(coll, 'a'));
-          await enableNetwork(firestore);
-
-          const snapshot = await storeEvent.awaitEvent();
-          expect(snapshot.metadata.fromCache).to.be.true;
-          expect(toDataArray(snapshot)).to.deep.equal([]);
-        }
-      );
     });
   });
 });

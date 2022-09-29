@@ -372,7 +372,7 @@ export class QueryListener {
       return false;
     }
 
-    // Raise data from cache if we have any documents or we are offline
+    // Raise data from cache if we have any documents or resume token,  or we are offline.
     return (
       !snap.docs.isEmpty() ||
       snap.resumeToken.approximateByteSize() > 0 ||

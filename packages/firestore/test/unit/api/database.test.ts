@@ -25,6 +25,8 @@ import {
 } from '../../../src';
 import { EmulatorAuthCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
+import { encodeBase64 } from '../../../src/platform/base64';
+import { ByteString } from '../../../src/util/byte_string';
 import {
   collectionReference,
   documentReference,
@@ -177,6 +179,48 @@ describe('QuerySnapshot', () => {
         querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, true)
       )
     ).to.be.false;
+  });
+
+  it('resume token should not effect querySnapshot equality', () => {
+    const resumeToken1 = ByteString.fromBase64String(
+      encodeBase64('ResumeToken1')
+    );
+    const resumeToken1Copy = ByteString.fromBase64String(
+      encodeBase64('ResumeToken1')
+    );
+    const resumeToken2 = ByteString.fromBase64String(
+      encodeBase64('ResumeToken2')
+    );
+
+    const snapshot1 = querySnapshot(
+      'foo',
+      {},
+      { a: { a: 1 } },
+      keys(),
+      false,
+      false,
+      resumeToken1
+    );
+    const snapshot1Copy = querySnapshot(
+      'foo',
+      {},
+      { a: { a: 1 } },
+      keys(),
+      false,
+      false,
+      resumeToken1Copy
+    );
+    const snapshot2 = querySnapshot(
+      'foo',
+      {},
+      { a: { a: 1 } },
+      keys(),
+      false,
+      false,
+      resumeToken2
+    );
+    expect(snapshotEqual(snapshot1, snapshot1Copy)).to.be.true;
+    expect(snapshotEqual(snapshot1, snapshot2)).to.be.true;
   });
 
   it('JSON.stringify() does not throw', () => {

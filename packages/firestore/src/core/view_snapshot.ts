@@ -188,8 +188,7 @@ export class ViewSnapshot {
       !this.mutatedKeys.isEqual(other.mutatedKeys) ||
       !queryEquals(this.query, other.query) ||
       !this.docs.isEqual(other.docs) ||
-      !this.oldDocs.isEqual(other.oldDocs) ||
-      this.resumeToken !== other.resumeToken
+      !this.oldDocs.isEqual(other.oldDocs)
     ) {
       return false;
     }
