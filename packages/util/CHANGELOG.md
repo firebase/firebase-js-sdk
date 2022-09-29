@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.7.0
+
+### Minor Changes
+
+- [`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4) [#6526](https://github.com/firebase/firebase-js-sdk/pull/6526) - Add functionality to auto-initialize project config and emulator settings from global defaults provided by framework tooling.
+
 ## 1.6.3
 
 ### Patch Changes
