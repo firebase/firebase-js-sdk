@@ -1698,4 +1698,53 @@ describeSpec('Listens:', [], () => {
       })
       .expectSnapshotsInSyncEvent(2);
   });
+
+  specTest('Empty initial snapshot is raised from cache', [], () => {
+    const query1 = query('collection');
+    return (
+      spec()
+        // Disable GC so the cache persists across listens.
+        .withGCEnabled(false)
+        // Populate the cache with the empty query results.
+        .userListens(query1)
+        .watchAcksFull(query1, 1000)
+        .expectEvents(query1, { fromCache: false })
+        .userUnlistens(query1)
+        .watchRemoves(query1)
+        // Listen to the query again and verify that the empty snapshot is
+        // raised from cache.
+        .userListens(query1, { resumeToken: 'resume-token-1000' })
+        .expectEvents(query1, { fromCache: true })
+        // Verify that another snapshot is raised once the query result comes
+        // back from Watch.
+        .watchAcksFull(query1, 2000)
+        .expectEvents(query1, { fromCache: false })
+    );
+  });
+
+  specTest(
+    'Empty-due-to-delete initial snapshot is raised from cache',
+    [],
+    () => {
+      const query1 = query('collection');
+      const doc1 = doc('collection/a', 1000, { v: 1 });
+      return (
+        spec()
+          // Disable GC so the cache persists across listens.
+          .withGCEnabled(false)
+          // Populate the cache with the empty query results.
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, doc1)
+          .expectEvents(query1, { added: [doc1] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // Delete the only document in the result set locally on the client.
+          .userDeletes('collection/a')
+          // Listen to the query again and verify that the empty snapshot is
+          // raised from cache, even though the write is not yet acknowledged.
+          .userListens(query1, { resumeToken: 'resume-token-1000' })
+          .expectEvents(query1, { fromCache: true })
+      );
+    }
+  );
 });
