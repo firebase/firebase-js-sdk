@@ -198,8 +198,10 @@ async function generateDocs(
     }
   }
 
-  await moveRulesUnitTestingDocs(outputFolder, command);
-  await removeExcludedDocs(outputFolder);
+  await Promise.all([
+    moveRulesUnitTestingDocs(outputFolder, command),
+    removeExcludedDocs(outputFolder),
+  ]);
 }
 
 async function removeExcludedDocs(mainDocsFolder: string) {
