@@ -2150,9 +2150,7 @@ describe('Count quries', () => {
   it('run count query fails on invalid collection reference', () => {
     return withTestDb(async db => {
       const queryForRejection = collection(db, '__badpath__');
-      await expect(getCount(queryForRejection)).to.eventually.be.rejectedWith(
-        'Request failed with error: Bad Request'
-      );
+      await expect(getCount(queryForRejection)).to.eventually.be.rejected;
     });
   });
 
