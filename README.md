@@ -113,6 +113,26 @@ database. When prompted to select the set of initial security rules, select
 any option (e.g. "Start in Production Mode") since these permission settings
 will be overwritten below.
 
+#### Storage Setup
+
+Visit the "Storage" section of the console and create a storage bucket. In 
+order to run the tests, you will need to update your bucket's CORS rules.
+
+1. Create a new file called `cors.json` with the contents:
+```json
+[
+    {
+        "origin": ["http://localhost:8089"],
+        "method": ["GET"],
+        "maxAgeSeconds": 3600
+    }
+]
+```
+2. Install `gsutil` from https://cloud.google.com/storage/docs/gsutil_install
+3. Run `gsutil cors set cors.json gs://<your-cloud-storage-bucket>`
+
+For more information, visit https://firebase.google.com/docs/storage/web/download-files#cors_configuration
+
 #### Authentication Support
 
 Visit the authentication config in your project and enable the `Anonymous`
