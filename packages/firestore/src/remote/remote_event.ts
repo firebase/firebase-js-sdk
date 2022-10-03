@@ -137,10 +137,10 @@ export class TargetChange {
   static createSynthesizedTargetChangeForCurrentChange(
     targetId: TargetId,
     current: boolean,
-    resumeToken?: ByteString
+    resumeToken: ByteString
   ): TargetChange {
     return new TargetChange(
-      resumeToken ?? ByteString.EMPTY_BYTE_STRING,
+      resumeToken,
       current,
       documentKeySet(),
       documentKeySet(),

@@ -1292,7 +1292,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
   // eslint-disable-next-line no-restricted-properties
   (persistence ? describe : describe.skip)('Caching empty results', () => {
-    it('can raises initial snapshot from cache, even if it is empty', () => {
+    it('can raise initial snapshot from cache, even if it is empty', () => {
       return withTestCollection(persistence, {}, async coll => {
         const snapshot1 = await getDocs(coll); // Populate the cache.
         expect(snapshot1.metadata.fromCache).to.be.false;
@@ -1307,7 +1307,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
 
-    it('can raises initial snapshot from cache, even if it has become empty', () => {
+    it('can raise initial snapshot from cache, even if it has become empty', () => {
       const testDocs = {
         a: { key: 'a' }
       };
