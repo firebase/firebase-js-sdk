@@ -181,6 +181,14 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
     if (this.canceled_) {
       backoffDone(false, new RequestEndStatus(false, null, true));
     } else {
+      /**
+       * start accepts a callback for an action to perform (`doTheRequest`),
+       * and then a callback for when the backoff has completed (`backoffDone`).
+       * The callback sent to start requires an argument to call (`backoffCallback`)
+       * when operation has completed, and based on this, the backoff continues, with
+       * another call to `doTheRequest` and the above loop continues until the timeout
+       * is hit, or a successful response occurs.
+       */
       this.backoffId_ = start(doTheRequest, backoffDone, this.timeout_);
     }
   }
