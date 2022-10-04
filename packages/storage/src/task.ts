@@ -99,7 +99,7 @@ export class UploadTask {
 
   private maxSleepTime = 10000;
 
-  isExponentialBackoffExpired() {
+  isExponentialBackoffExpired(): boolean {
     return this.sleepTime > this.maxSleepTime;
   }
 

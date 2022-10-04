@@ -46,7 +46,7 @@ export class StorageError extends FirebaseError {
     Object.setPrototypeOf(this, StorageError.prototype);
   }
 
-  get status() {
+  get status(): number {
     return this.status_;
   }
 
