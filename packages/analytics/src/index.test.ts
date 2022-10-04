@@ -349,7 +349,7 @@ describe('FirebaseAnalytics instance tests', () => {
       // Successfully resolves fake IDB open request.
       fakeRequest.onsuccess();
       await initializationPromisesMap[fakeAppParams.appId];
-      expect(findGtagScriptOnPage()).to.not.be.null;
+      expect(findGtagScriptOnPage('dataLayer')).to.not.be.null;
       expect(typeof window['gtag']).to.equal('function');
       expect(Array.isArray(window['dataLayer'])).to.be.true;
 

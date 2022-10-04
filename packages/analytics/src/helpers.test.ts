@@ -57,9 +57,10 @@ describe('Gtag wrapping functions', () => {
   });
 
   it('insertScriptIfNeeded inserts script tag', () => {
-    expect(findGtagScriptOnPage()).to.be.null;
-    insertScriptTag('customDataLayerName', fakeMeasurementId);
-    const scriptTag = findGtagScriptOnPage();
+    const customDataLayerName = 'customDataLayerName';
+    expect(findGtagScriptOnPage(customDataLayerName)).to.be.null;
+    insertScriptTag(customDataLayerName, fakeMeasurementId);
+    const scriptTag = findGtagScriptOnPage(customDataLayerName);
     expect(scriptTag).to.not.be.null;
     expect(scriptTag!.src).to.contain(`l=customDataLayerName`);
     expect(scriptTag!.src).to.contain(`id=${fakeMeasurementId}`);
