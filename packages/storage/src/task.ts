@@ -22,7 +22,8 @@ import { FbsBlob } from './implementation/blob';
 import {
   canceled,
   StorageErrorCode,
-  StorageError
+  StorageError,
+  retryLimitExceeded
 } from './implementation/error';
 import {
   InternalTaskState,
@@ -53,6 +54,7 @@ import {
 } from './implementation/requests';
 import { Reference } from './reference';
 import { newTextConnection } from './platform/connection';
+import { isRetryStatusCode_ } from './implementation/utils';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -92,6 +94,15 @@ export class UploadTask {
   private _reject?: (p1: StorageError) => void = undefined;
   private _promise: Promise<UploadTaskSnapshot>;
 
+  // TODO(mtewani): Update these to use predefined constants
+  private sleepTime = 0;
+
+  private maxSleepTime = 10000;
+
+  isExponentialBackoffExpired() {
+    return this.sleepTime > this.maxSleepTime;
+  }
+
   /**
    * @param ref - The firebaseStorage.Reference object this task came
    *     from, untyped to avoid cyclic dependencies.
@@ -111,6 +122,17 @@ export class UploadTask {
         this._needToFetchStatus = true;
         this.completeTransitions_();
       } else {
+        const backoffExpired = this.isExponentialBackoffExpired();
+        if (isRetryStatusCode_(error.status, [])) {
+          if (backoffExpired) {
+            error = retryLimitExceeded();
+          } else {
+            this.sleepTime = Math.max(this.sleepTime * 2, 1000);
+            this._needToFetchStatus = true;
+            this.completeTransitions_();
+            return;
+          }
+        }
         this._error = error;
         this._transition(InternalTaskState.ERROR);
       }
@@ -163,7 +185,9 @@ export class UploadTask {
             // Happens if we miss the metadata on upload completion.
             this._fetchMetadata();
           } else {
-            this._continueUpload();
+            setTimeout(() => {
+              this._continueUpload();
+            }, this.sleepTime);
           }
         }
       }
@@ -283,7 +307,8 @@ export class UploadTask {
         requestInfo,
         newTextConnection,
         authToken,
-        appCheckToken
+        appCheckToken,
+        false
       );
       this._request = uploadRequest;
       uploadRequest.getPromise().then((newStatus: ResumableUploadStatus) => {
@@ -344,7 +369,8 @@ export class UploadTask {
         requestInfo,
         newTextConnection,
         authToken,
-        appCheckToken
+        appCheckToken,
+        false
       );
       this._request = multipartRequest;
       multipartRequest.getPromise().then(metadata => {

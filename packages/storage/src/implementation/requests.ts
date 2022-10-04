@@ -104,7 +104,7 @@ export function sharedErrorHandler(
     xhr: Connection<ConnectionType>,
     err: StorageError
   ): StorageError {
-    let newErr;
+    let newErr: StorageError;
     if (xhr.getStatus() === 401) {
       if (
         // This exact message string is the only consistent part of the
@@ -126,6 +126,7 @@ export function sharedErrorHandler(
         }
       }
     }
+    newErr.status = xhr.getStatus();
     newErr.serverResponse = err.serverResponse;
     return newErr;
   }
@@ -534,8 +535,15 @@ export function continueResumableUpload(
   }
   const startByte = status_.current;
   const endByte = startByte + bytesToUpload;
-  const uploadCommand =
-    bytesToUpload === bytesLeft ? 'upload, finalize' : 'upload';
+  let uploadCommand = '';
+  if (bytesToUpload === 0) {
+    // TODO(mtewani): Maybe we should extract this out.
+    uploadCommand = 'finalize';
+  } else if (bytesLeft === bytesToUpload) {
+    uploadCommand = 'upload, finalize';
+  } else {
+    uploadCommand = 'upload';
+  }
   const headers = {
     'X-Goog-Upload-Command': uploadCommand,
     'X-Goog-Upload-Offset': `${status_.current}`
