@@ -4988,8 +4988,7 @@ declare class TargetChange {
    */
   static createSynthesizedTargetChangeForCurrentChange(
     targetId: TargetId,
-    current: boolean,
-    resumeToken: ByteString
+    current: boolean
   ): TargetChange;
 }
 

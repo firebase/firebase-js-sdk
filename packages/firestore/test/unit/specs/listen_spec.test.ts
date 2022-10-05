@@ -1759,14 +1759,9 @@ describeSpec('Listens:', [], () => {
           .userListens(query1)
           .watchAcksFull(query1, 1000)
           .expectEvents(query1, { fromCache: false })
-          // Query is shared in second client
-          .client(1)
-          .expectListen(query1)
-          .client(0)
           .userUnlistens(query1)
           .watchRemoves(query1)
           .client(1)
-          .expectUnlisten(query1)
           // Re-listen to the query in second client and verify that the empty
           // snapshot is raised from cache.
           .userListens(query1, { resumeToken: 'resume-token-1000' })
@@ -1810,7 +1805,6 @@ describeSpec('Listens:', [], () => {
           .writeAcks('collection/a', 2000)
           .watchAcksFull(query1, 2000, doc1Deleted)
           .client(1)
-          .expectListen(query1, { resumeToken: 'resume-token-2000' })
           .expectEvents(query1, { fromCache: false })
       );
     }
