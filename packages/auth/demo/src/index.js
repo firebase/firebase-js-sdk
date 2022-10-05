@@ -49,6 +49,8 @@ import {
   signInWithCredential,
   signInWithCustomToken,
   signInWithEmailAndPassword,
+  TotpMultiFactorGenerator,
+  TotpSecret,
   unlink,
   updateEmail,
   updatePassword,
@@ -97,6 +99,7 @@ let multiFactorErrorResolver = null;
 let selectedMultiFactorHint = null;
 let recaptchaSize = 'normal';
 let webWorker = null;
+let totpSecret = null;
 
 // The corresponding Font Awesome icons for each provider.
 const providersIcons = {
@@ -650,6 +653,50 @@ function onFinalizeEnrollWithPhoneMultiFactor() {
       refreshUserData();
       alertSuccess('Phone number enrolled!');
     }, onAuthError);
+}
+
+async function onStartEnrollWithTotpMultiFactor() {
+  console.log('Starting TOTP enrollment!');
+  if (!activeUser()) {
+    alertError('No active user found.');
+    return;
+  }
+  try {
+    multiFactorSession = await multiFactor(activeUser()).getSession();
+    totpSecret = await TotpMultiFactorGenerator.generateSecret(
+      multiFactorSession
+    );
+    const url = totpSecret.generateQrCodeUrl('test', 'testissuer');
+    console.log('TOTP URL is ' + url);
+    // Use the QRServer API documented at https://goqr.me/api/doc/
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${url}&amp;size=30x30`;
+    $('img.totp-qr-image').attr('src', qrCodeUrl).show();
+    $('p.totp-text').show();
+  } catch (e) {
+    onAuthError(e);
+  }
+}
+
+async function onFinalizeEnrollWithTotpMultiFactor() {
+  const verificationCode = $('#enroll-mfa-totp-verification-code').val();
+  if (!activeUser() || !totpSecret || !verificationCode) {
+    alertError(' Missing active user OR TOTP secret OR verification code.');
+    return;
+  }
+
+  const multiFactorAssertion = TotpMultiFactorGenerator.assertionForEnrollment(
+    totpSecret,
+    verificationCode
+  );
+  const displayName = $('#enroll-mfa-totp-display-name').val() || undefined;
+
+  try {
+    await multiFactor(activeUser()).enroll(multiFactorAssertion, displayName);
+    refreshUserData();
+    alertSuccess('TOTP MFA enrolled!');
+  } catch (e) {
+    onAuthError(e);
+  }
 }
 
 /**
@@ -1944,6 +1991,10 @@ function initApp() {
   $('#enroll-mfa-confirm-phone-verification').click(
     onFinalizeEnrollWithPhoneMultiFactor
   );
+  // Starts multi-factor enrollment with TOTP.
+  $('#enroll-mfa-totp-start').click(onStartEnrollWithTotpMultiFactor);
+  // Completes multi-factor enrollment with supplied OTP(One-Time Password).
+  $('#enroll-mfa-totp-finalize').click(onFinalizeEnrollWithTotpMultiFactor);
 }
 
 $(initApp);
