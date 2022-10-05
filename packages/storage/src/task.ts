@@ -54,7 +54,9 @@ import {
 } from './implementation/requests';
 import { Reference } from './reference';
 import { newTextConnection } from './platform/connection';
-import { isRetryStatusCode_ } from './implementation/utils';
+import { isRetryStatusCode } from './implementation/utils';
+import { CompleteFn } from '@firebase/util';
+import { DEFAULT_MIN_SLEEP_TIME } from './implementation/constants';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -94,10 +96,9 @@ export class UploadTask {
   private _reject?: (p1: StorageError) => void = undefined;
   private _promise: Promise<UploadTaskSnapshot>;
 
-  // TODO(mtewani): Update these to use predefined constants
-  private sleepTime = 0;
+  private sleepTime: number;
 
-  private maxSleepTime = 10000;
+  private maxSleepTime: number;
 
   isExponentialBackoffExpired(): boolean {
     return this.sleepTime > this.maxSleepTime;
@@ -123,11 +124,14 @@ export class UploadTask {
         this.completeTransitions_();
       } else {
         const backoffExpired = this.isExponentialBackoffExpired();
-        if (isRetryStatusCode_(error.status, [])) {
+        if (isRetryStatusCode(error.status, [])) {
           if (backoffExpired) {
             error = retryLimitExceeded();
           } else {
-            this.sleepTime = Math.max(this.sleepTime * 2, 1000);
+            this.sleepTime = Math.max(
+              this.sleepTime * 2,
+              DEFAULT_MIN_SLEEP_TIME
+            );
             this._needToFetchStatus = true;
             this.completeTransitions_();
             return;
@@ -146,6 +150,8 @@ export class UploadTask {
         this._transition(InternalTaskState.ERROR);
       }
     };
+    this.sleepTime = 0;
+    this.maxSleepTime = this._ref.storage.maxUploadRetryTime;
     this._promise = new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
@@ -185,6 +191,7 @@ export class UploadTask {
             // Happens if we miss the metadata on upload completion.
             this._fetchMetadata();
           } else {
+            console.log('sleeping for', this.sleepTime);
             setTimeout(() => {
               this._continueUpload();
             }, this.sleepTime);
@@ -308,7 +315,7 @@ export class UploadTask {
         newTextConnection,
         authToken,
         appCheckToken,
-        false
+        /*retry=*/ false // Upload requests should not be retried as each retry should be preceded by another query request. Which is handled in this file.
       );
       this._request = uploadRequest;
       uploadRequest.getPromise().then((newStatus: ResumableUploadStatus) => {
@@ -370,7 +377,7 @@ export class UploadTask {
         newTextConnection,
         authToken,
         appCheckToken,
-        false
+        /*retry=*/ false
       );
       this._request = multipartRequest;
       multipartRequest.getPromise().then(metadata => {
@@ -511,13 +518,13 @@ export class UploadTask {
    *     callbacks.
    */
   on(
-    type: TaskEvent,
+    type: TaskEvent, // Note: This isn't being used. Its type is also incorrect.
     nextOrObserver?:
       | StorageObserver<UploadTaskSnapshot>
       | null
       | ((snapshot: UploadTaskSnapshot) => unknown),
     error?: ((a: StorageError) => unknown) | null,
-    completed?: Unsubscribe | null
+    completed?: CompleteFn | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
     const observer = new Observer(
       (nextOrObserver as

@@ -537,7 +537,6 @@ export function continueResumableUpload(
   const endByte = startByte + bytesToUpload;
   let uploadCommand = '';
   if (bytesToUpload === 0) {
-    // TODO(mtewani): Maybe we should extract this out.
     uploadCommand = 'finalize';
   } else if (bytesLeft === bytesToUpload) {
     uploadCommand = 'upload, finalize';

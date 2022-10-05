@@ -353,3 +353,101 @@ export function fakeServerHandler(
   }
   return handler;
 }
+
+/**
+ * Simulate when upload, finalize returns a 503 each time, and then query returns a 200. Expect the result to be a timeout
+ */
+
+export function fake503ServerHandler(
+  fakeMetadata: Partial<Metadata> = defaultFakeMetadata
+): RequestHandler {
+  const stats: {
+    [num: number]: {
+      currentSize: number;
+      finalSize: number;
+    };
+  } = {};
+
+  let nextId: number = 0;
+
+  function statusHeaders(status: string, existing?: Headers): Headers {
+    if (existing) {
+      existing['X-Goog-Upload-Status'] = status;
+      return existing;
+    } else {
+      return { 'X-Goog-Upload-Status': status };
+    }
+  }
+
+  function handler(
+    url: string,
+    method: string,
+    content?: ArrayBufferView | Blob | string | null,
+    headers?: Headers
+  ): Response {
+    method = method || 'GET';
+    content = content || '';
+    headers = headers || {};
+
+    // const contentLength =
+    // (content as Blob).size || (content as string).length || 0;
+    if (headers['X-Goog-Upload-Protocol'] === 'resumable') {
+      const thisId = nextId;
+      nextId++;
+      stats[thisId] = {
+        currentSize: 0,
+        finalSize: +headers['X-Goog-Upload-Header-Content-Length']
+      };
+
+      return {
+        status: 200,
+        body: '',
+        headers: statusHeaders('active', {
+          'X-Goog-Upload-URL': 'http://example.com?' + thisId
+        })
+      };
+    }
+
+    const matches = url.match(/^http:\/\/example\.com\?([0-9]+)$/);
+    if (matches === null) {
+      return { status: 400, body: '', headers: {} };
+    }
+
+    const id = +matches[1];
+    if (!stats[id]) {
+      return { status: 400, body: 'Invalid upload id', headers: {} };
+    }
+
+    if (headers['X-Goog-Upload-Command'] === 'query') {
+      return {
+        status: 200,
+        body: '',
+        headers: statusHeaders('active', {
+          'X-Goog-Upload-Size-Received': stats[id].finalSize.toString()
+        })
+      };
+    }
+
+    const commands = (headers['X-Goog-Upload-Command'] as string)
+      .split(',')
+      .map(str => {
+        return str.trim();
+      });
+    const isFinalize = commands.indexOf('finalize') !== -1;
+
+    if (isFinalize) {
+      return {
+        status: 503,
+        body: JSON.stringify(fakeMetadata),
+        headers: statusHeaders('final')
+      };
+    } else {
+      return {
+        status: 200,
+        body: JSON.stringify(fakeMetadata),
+        headers: statusHeaders('active')
+      };
+    }
+  }
+  return handler;
+}

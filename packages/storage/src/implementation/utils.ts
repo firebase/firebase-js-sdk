@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-export function isRetryStatusCode_(
+/**
+ * Checks the status code to see if the action should be retried.
+ *
+ * @param status Current HTTP status code returned by server.
+ * @param additionalRetryCodes additional retry codes to check against
+ */
+export function isRetryStatusCode(
   status: number,
   additionalRetryCodes: number[]
 ): boolean {
@@ -29,7 +35,6 @@ export function isRetryStatusCode_(
     429
   ];
   const isExtraRetryCode = extraRetryCodes.indexOf(status) !== -1;
-  const isRequestSpecificRetryCode =
-    additionalRetryCodes.indexOf(status) !== -1;
-  return isFiveHundredCode || isExtraRetryCode || isRequestSpecificRetryCode;
+  const isAdditionalRetryCode = additionalRetryCodes.indexOf(status) !== -1;
+  return isFiveHundredCode || isExtraRetryCode || isAdditionalRetryCode;
 }

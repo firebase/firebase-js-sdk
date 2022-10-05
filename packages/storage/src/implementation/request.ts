@@ -26,7 +26,7 @@ import { ErrorHandler, RequestHandler, RequestInfo } from './requestinfo';
 import { isJustDef } from './type';
 import { makeQueryString } from './url';
 import { Connection, ErrorCode, Headers, ConnectionType } from './connection';
-import { isRetryStatusCode_ } from './utils';
+import { isRetryStatusCode } from './utils';
 
 export interface Request<T> {
   getPromise(): Promise<T>;
@@ -121,7 +121,7 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
           const status = connection.getStatus();
           if (
             (!hitServer ||
-              isRetryStatusCode_(status, this.additionalRetryCodes_)) &&
+              isRetryStatusCode(status, this.additionalRetryCodes_)) &&
             this.retry
           ) {
             const wasCanceled = connection.getErrorCode() === ErrorCode.ABORT;
@@ -181,14 +181,6 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
     if (this.canceled_) {
       backoffDone(false, new RequestEndStatus(false, null, true));
     } else {
-      /**
-       * start accepts a callback for an action to perform (`doTheRequest`),
-       * and then a callback for when the backoff has completed (`backoffDone`).
-       * The callback sent to start requires an argument to call (`backoffCallback`)
-       * when operation has completed, and based on this, the backoff continues, with
-       * another call to `doTheRequest` and the above loop continues until the timeout
-       * is hit, or a successful response occurs.
-       */
       this.backoffId_ = start(doTheRequest, backoffDone, this.timeout_);
     }
   }

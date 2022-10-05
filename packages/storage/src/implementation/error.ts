@@ -34,6 +34,7 @@ export class StorageError extends FirebaseError {
    * @param code - A StorageErrorCode string to be prefixed with 'storage/' and
    *  added to the end of the message.
    * @param message  - Error message.
+   * @param status_ - Corresponding HTTP Status Code
    */
   constructor(code: StorageErrorCode, message: string, private status_ = 0) {
     super(
