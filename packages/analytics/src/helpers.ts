@@ -320,13 +320,9 @@ export function wrapOrCreateGtag(
 /**
  * Returns first script tag in DOM matching our gtag url pattern.
  */
-// TODO: We'll have this take a datalayer name
-// We'll check if a script exists and if it has the same data layer name
 export function findGtagScriptOnPage(
   dataLayerName: string
 ): HTMLScriptElement | null {
-  console.log(findGtagScriptOnPage);
-  console.log(dataLayerName);
   const scriptTags = window.document.getElementsByTagName('script');
   for (const tag of Object.values(scriptTags)) {
     if (

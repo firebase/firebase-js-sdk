@@ -29,6 +29,7 @@ import {
 import { GtagCommand } from './constants';
 import { Deferred } from '@firebase/util';
 import { ConsentSettings } from './public-types';
+import { removeGtagScript } from '../testing/gtag-script-util';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeAppId = 'my-test-app-1234';
@@ -46,6 +47,11 @@ const fakeDynamicConfig: DynamicConfig = {
 const fakeDynamicConfigPromises = [Promise.resolve(fakeDynamicConfig)];
 
 describe('Gtag wrapping functions', () => {
+  afterEach(() => {
+    delete window['gtag'];
+    removeGtagScript();
+  });
+
   it('getOrCreateDataLayer is able to create a new data layer if none exists', () => {
     delete window['dataLayer'];
     expect(getOrCreateDataLayer('dataLayer')).to.deep.equal([]);
@@ -64,6 +70,15 @@ describe('Gtag wrapping functions', () => {
     expect(scriptTag).to.not.be.null;
     expect(scriptTag!.src).to.contain(`l=customDataLayerName`);
     expect(scriptTag!.src).to.contain(`id=${fakeMeasurementId}`);
+  });
+
+  // The test above essentially already touches this functionality but it is still valuable
+  it('findGtagScriptOnPage returns gtag instance with matching data layer name', () => {
+    const defaultDataLayerName = 'dataLayer';
+    insertScriptTag(defaultDataLayerName, fakeMeasurementId);
+    const scriptTag = findGtagScriptOnPage(defaultDataLayerName);
+    expect(scriptTag!.src).to.contain(`l=${defaultDataLayerName}`);
+    expect(findGtagScriptOnPage('NON_EXISTENT_DATA_LAYER_ID')).to.be.null;
   });
 
   describe('wrapOrCreateGtag() when user has not previously inserted a gtag script tag on this page', () => {
