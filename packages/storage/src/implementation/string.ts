@@ -92,6 +92,7 @@ export function dataFromString(
     // do nothing
   }
 
+  console.log('here');
   // assert(false);
   throw unknown();
 }

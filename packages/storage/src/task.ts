@@ -376,8 +376,7 @@ export class UploadTask {
         requestInfo,
         newTextConnection,
         authToken,
-        appCheckToken,
-        /*retry=*/ false
+        appCheckToken
       );
       this._request = multipartRequest;
       multipartRequest.getPromise().then(metadata => {

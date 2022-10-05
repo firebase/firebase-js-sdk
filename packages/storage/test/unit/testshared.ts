@@ -398,6 +398,7 @@ export function fake503ServerHandler(
         currentSize: 0,
         finalSize: +headers['X-Goog-Upload-Header-Content-Length']
       };
+      console.log('returning url');
 
       return {
         status: 200,
@@ -410,6 +411,7 @@ export function fake503ServerHandler(
 
     const matches = url.match(/^http:\/\/example\.com\?([0-9]+)$/);
     if (matches === null) {
+      console.log(url);
       return { status: 400, body: '', headers: {} };
     }
 
@@ -448,6 +450,37 @@ export function fake503ServerHandler(
         headers: statusHeaders('active')
       };
     }
+  }
+  return handler;
+}
+
+export function fakeOneShot503ServerHandler(
+  fakeMetadata: Partial<Metadata> = defaultFakeMetadata
+): RequestHandler {
+  function statusHeaders(status: string, existing?: Headers): Headers {
+    if (existing) {
+      existing['X-Goog-Upload-Status'] = status;
+      return existing;
+    } else {
+      return { 'X-Goog-Upload-Status': status };
+    }
+  }
+
+  function handler(
+    url: string,
+    method: string,
+    content?: ArrayBufferView | Blob | string | null,
+    headers?: Headers
+  ): Response {
+    method = method || 'GET';
+    content = content || '';
+    headers = headers || {};
+
+    return {
+      status: 503,
+      body: JSON.stringify(fakeMetadata),
+      headers: statusHeaders('final')
+    };
   }
   return handler;
 }

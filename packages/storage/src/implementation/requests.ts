@@ -52,6 +52,7 @@ import { FirebaseStorageImpl } from '../service';
  */
 export function handlerCheck(cndn: boolean): void {
   if (!cndn) {
+    console.log('HERE');
     throw unknown();
   }
 }
