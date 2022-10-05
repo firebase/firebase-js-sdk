@@ -697,9 +697,6 @@ describe('Firebase Storage > Requests', () => {
       bigBlob.slice(blobSize, blobSize)!.uploadData()
     );
   });
-  /**
-   * TODO(mtewani): Test exponential backoff
-   */
   it('continueResumableUpload handler', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
