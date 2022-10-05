@@ -751,8 +751,34 @@ export interface TotpMultiFactorAssertion extends MultiFactorAssertion {
 }
 
 // @public
+export class TotpMultiFactorGenerator {
+    static assertionForEnrollment(secret: TotpSecret, oneTimePassword: string): TotpMultiFactorAssertion;
+    static assertionForSignIn(enrollmentId: string, oneTimePassword: string): TotpMultiFactorAssertion;
+    // Warning: (ae-forgotten-export) The symbol "FactorId" needs to be exported by the entry point index.d.ts
+    static FACTOR_ID: FactorId_2;
+    static generateSecret(session: MultiFactorSession): Promise<TotpSecret>;
+}
+
+// @public
 export interface TotpMultiFactorInfo extends MultiFactorInfo {
 }
+
+// @public
+export class TotpSecret {
+    readonly codeIntervalSeconds: number;
+    readonly codeLength: number;
+    // Warning: (ae-forgotten-export) The symbol "StartTotpMfaEnrollmentResponse" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    static _fromStartTotpMfaEnrollmentResponse(response: StartTotpMfaEnrollmentResponse, auth: AuthInternal): TotpSecret;
+    generateQrCodeUrl(accountName?: string, issuer?: string): string;
+    readonly hashingAlgorithm: string;
+    // Warning: (ae-forgotten-export) The symbol "TotpVerificationInfo" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    _makeTotpVerificationInfo(otp: string): TotpVerificationInfo;
+    readonly secretKey: string;
+    }
 
 // @public
 export class TwitterAuthProvider extends BaseOAuthProvider {
