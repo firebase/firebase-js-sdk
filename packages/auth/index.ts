@@ -73,6 +73,10 @@ import { browserPopupRedirectResolver } from './src/platform_browser/popup_redir
 
 // MFA
 import { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
+import {
+  TotpMultiFactorGenerator,
+  TotpSecret
+} from './src/mfa/assertions/totp';
 
 // Initialization and registration of Auth
 import { getAuth } from './src/platform_browser';
@@ -96,5 +100,7 @@ export {
   RecaptchaVerifier,
   browserPopupRedirectResolver,
   PhoneMultiFactorGenerator,
+  TotpMultiFactorGenerator,
+  TotpSecret,
   getAuth
 };
