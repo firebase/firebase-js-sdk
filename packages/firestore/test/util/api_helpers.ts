@@ -43,7 +43,6 @@ import {
 import { DocumentKeySet } from '../../src/model/collections';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
-import { ByteString } from '../../src/util/byte_string';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
 
 import { doc, key, path as pathFrom } from './helpers';
@@ -132,7 +131,7 @@ export function querySnapshot(
   mutatedKeys: DocumentKeySet,
   fromCache: boolean,
   syncStateChanged: boolean,
-  resumeToken?: ByteString
+  hasCachedResults?: boolean
 ): QuerySnapshot {
   const query: InternalQuery = newQueryForPath(pathFrom(path));
   let oldDocuments: DocumentSet = new DocumentSet();
@@ -155,7 +154,7 @@ export function querySnapshot(
     fromCache,
     syncStateChanged,
     false,
-    resumeToken !== undefined && resumeToken.approximateByteSize() > 0
+    hasCachedResults ?? false
   );
   const db = firestore();
   return new QuerySnapshot(
