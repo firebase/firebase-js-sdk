@@ -56,7 +56,7 @@ import { Reference } from './reference';
 import { newTextConnection } from './platform/connection';
 import { isRetryStatusCode } from './implementation/utils';
 import { CompleteFn } from '@firebase/util';
-import { DEFAULT_MIN_SLEEP_TIME } from './implementation/constants';
+import { DEFAULT_MIN_SLEEP_TIME_MILLIS } from './implementation/constants';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -130,7 +130,7 @@ export class UploadTask {
           } else {
             this.sleepTime = Math.max(
               this.sleepTime * 2,
-              DEFAULT_MIN_SLEEP_TIME
+              DEFAULT_MIN_SLEEP_TIME_MILLIS
             );
             this._needToFetchStatus = true;
             this.completeTransitions_();
@@ -191,7 +191,7 @@ export class UploadTask {
             // Happens if we miss the metadata on upload completion.
             this._fetchMetadata();
           } else {
-            console.log('sleeping for', this.sleepTime);
+            // console.trace('sleeping for', this.sleepTime);
             setTimeout(() => {
               this._continueUpload();
             }, this.sleepTime);
@@ -336,7 +336,7 @@ export class UploadTask {
     const currentSize = RESUMABLE_UPLOAD_CHUNK_SIZE * this._chunkMultiplier;
 
     // Max chunk size is 32M.
-    if (currentSize < 32 * 1024 * 1024) {
+    if (currentSize * 2 < 32 * 1024 * 1024) {
       this._chunkMultiplier *= 2;
     }
   }

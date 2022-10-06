@@ -22,9 +22,11 @@ import { TaskEvent, TaskState } from '../../src/implementation/taskenums';
 import { Reference } from '../../src/reference';
 import { UploadTask } from '../../src/task';
 import {
-  fake503ServerHandler,
+  fake503ForFinalizeServerHandler,
   fakeOneShot503ServerHandler,
+  fake503ForUploadServerHandler,
   fakeServerHandler,
+  RequestHandler,
   storageServiceWithHandler
 } from './testshared';
 import { injectTestConnection } from '../../src/platform/connection';
@@ -316,8 +318,7 @@ describe('Firebase Storage > Upload Task', () => {
             }
             lastState = state;
           },
-          e => {
-            console.error(e);
+          () => {
             // TODO: These assertions should be moved down. Adding them here makes it unclear what the assertions are.
             events2.push('failure');
             fixedAssertEquals(events2.length, 2);
@@ -356,61 +357,12 @@ describe('Firebase Storage > Upload Task', () => {
     events: State[];
     progress: Progress[];
   }
-  function runOneShot500UploadTest(blob: FbsBlob): Promise<TotalState> {
-    const storageService = storageServiceWithHandler(
-      fakeOneShot503ServerHandler()
-    );
-    const task = new UploadTask(
-      new Reference(storageService, testLocation),
-      blob
-    );
 
-    const deferred = new Deferred<TotalState>();
-    let lastState: TaskState;
-
-    const events: State[] = [];
-    const progress: Progress[] = [];
-
-    task.on(
-      TaskEvent.STATE_CHANGED,
-      snapshot => {
-        const { state } = snapshot;
-        if (lastState !== TaskState.RUNNING && state === TaskState.RUNNING) {
-          events.push({ type: StateType.RESUME });
-        } else if (
-          lastState !== TaskState.PAUSED &&
-          state === TaskState.PAUSED
-        ) {
-          events.push({ type: StateType.PAUSE });
-        }
-        const p = {
-          bytesTransferred: snapshot.bytesTransferred,
-          totalBytes: snapshot.totalBytes
-        };
-        progress.push(p);
-
-        lastState = state;
-      },
-      function onError(e) {
-        events.push({ type: StateType.ERROR, data: e });
-        deferred.resolve({
-          events,
-          progress
-        });
-      },
-      function onComplete() {
-        events.push({ type: StateType.COMPLETE });
-        deferred.resolve({
-          events,
-          progress
-        });
-      }
-    );
-
-    return deferred.promise;
-  }
-  function run500UploadTest(blob: FbsBlob): Promise<TotalState> {
-    const storageService = storageServiceWithHandler(fake503ServerHandler());
+  function handleStateChange(
+    requestHandler: RequestHandler,
+    blob: FbsBlob
+  ): Promise<TotalState> {
+    const storageService = storageServiceWithHandler(requestHandler);
     const task = new UploadTask(
       new Reference(storageService, testLocation),
       blob
@@ -467,10 +419,13 @@ describe('Firebase Storage > Upload Task', () => {
   it('Calls callback sequences for big uploads correctly', () => {
     return runNormalUploadTest(bigBlob);
   });
-  it('tests if large requests that respond with 500 retry correctly', async () => {
+  it('properly times out if large blobs returns a 503 when finalizing', async () => {
     clock = useFakeTimers();
     // Kick off upload
-    const promise = run500UploadTest(bigBlob);
+    const promise = handleStateChange(
+      fake503ForFinalizeServerHandler(),
+      bigBlob
+    );
     // Run all timers
     await clock.runAllAsync();
     const { events, progress } = await promise;
@@ -502,17 +457,37 @@ describe('Firebase Storage > Upload Task', () => {
     });
     clock.restore();
   });
-  it('tests if small requests that respond with 500 retry correctly', async () => {
+  it('properly times out if large blobs returns a 503 when uploading', async () => {
     clock = useFakeTimers();
     // Kick off upload
-    const promise = runOneShot500UploadTest(smallBlob);
+    const promise = handleStateChange(fake503ForUploadServerHandler(), bigBlob);
     // Run all timers
     await clock.runAllAsync();
     const { events, progress } = await promise;
     expect(events.length).to.equal(2);
     expect(events[0]).to.deep.equal({ type: 'resume' });
     expect(events[1].type).to.deep.equal('error');
-    console.log(events[1].data!.stack);
+    const retryLimitError = retryLimitExceeded();
+    expect(events[1].data!.name).to.deep.equal(retryLimitError.name);
+    expect(events[1].data!.message).to.deep.equal(retryLimitError.message);
+    const blobSize = bigBlob.size();
+    expect(progress.length).to.equal(1);
+    expect(progress[0]).to.deep.equal({
+      bytesTransferred: 0,
+      totalBytes: blobSize
+    });
+    clock.restore();
+  });
+  it('tests if small requests that respond with 500 retry correctly', async () => {
+    clock = useFakeTimers();
+    // Kick off upload
+    const promise = handleStateChange(fakeOneShot503ServerHandler(), smallBlob);
+    // Run all timers
+    await clock.runAllAsync();
+    const { events, progress } = await promise;
+    expect(events.length).to.equal(2);
+    expect(events[0]).to.deep.equal({ type: 'resume' });
+    expect(events[1].type).to.deep.equal('error');
     const retryLimitError = retryLimitExceeded();
     expect(events[1].data!.name).to.deep.equal(retryLimitError.name);
     expect(events[1].data!.message).to.deep.equal(retryLimitError.message);
