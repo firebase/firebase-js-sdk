@@ -200,8 +200,12 @@ async function generateDocs(
 
   await moveRulesUnitTestingDocs(outputFolder, command);
   await removeExcludedDocs(outputFolder);
+  await removeExcludedPackageEntries(outputFolder);
 }
 
+/**
+ * Remove markdown files generated for excluded packages.
+ */
 async function removeExcludedDocs(mainDocsFolder: string) {
   console.log('Removing excluded docs from', EXCLUDED_PACKAGES.join(', '));
   for (const excludedPackage of EXCLUDED_PACKAGES) {
@@ -211,11 +215,32 @@ async function removeExcludedDocs(mainDocsFolder: string) {
         resolve(paths);
       })
     );
-    console.log('glob pattern', `${mainDocsFolder}/${excludedPackage}.*`);
     for (const excludedMdFile of excludedMdFiles) {
       fs.unlinkSync(excludedMdFile);
     }
   }
+}
+
+/**
+ * Remove lines from index.md that link to excluded packages.
+ */
+async function removeExcludedPackageEntries(mainDocsFolder: string) {
+  console.log(`Removing ${EXCLUDED_PACKAGES.join(', ')} from index page.`);
+  const indexText = fs.readFileSync(`${mainDocsFolder}/index.md`, 'utf-8');
+  const indexTextLines = indexText.split('\n');
+  const newIndexTextLines = indexTextLines.filter(line => {
+    for (const excludedPackage of EXCLUDED_PACKAGES) {
+      if (line.includes(`[@firebase/${excludedPackage}]`)) {
+        return false;
+      }
+    }
+    return true;
+  });
+  fs.writeFileSync(
+    `${mainDocsFolder}/index.md`,
+    newIndexTextLines.join('\n'),
+    'utf-8'
+  );
 }
 
 // Create a docs-rut folder and move rules-unit-testing docs into it.
