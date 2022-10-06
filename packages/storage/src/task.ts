@@ -191,7 +191,6 @@ export class UploadTask {
             // Happens if we miss the metadata on upload completion.
             this._fetchMetadata();
           } else {
-            // console.trace('sleeping for', this.sleepTime);
             setTimeout(() => {
               this._continueUpload();
             }, this.sleepTime);
