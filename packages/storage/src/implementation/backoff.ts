@@ -26,7 +26,7 @@ export { id };
 /**
  * Accepts a callback for an action to perform (`doRequest`),
  * and then a callback for when the backoff has completed (`backoffCompleteCb`).
- * The callback sent to start requires an argument to call (`onRequestComplete`)
+ * The callback sent to start requires an argument to call (`onRequestComplete`).
  * When `start` calls `doRequest`, it passes a callback for when the request has
  * completed, `onRequestComplete`. Based on this, the backoff continues, with
  * another call to `doRequest` and the above loop continues until the timeout
