@@ -1,5 +1,15 @@
 # @firebase/app-check
 
+## 0.5.13
+
+### Patch Changes
+
+- [`b3951c6e4`](https://github.com/firebase/firebase-js-sdk/commit/b3951c6e42559d8aa82711b71440f4adcdae3b56) [#6617](https://github.com/firebase/firebase-js-sdk/pull/6617) (fixes [#6373](https://github.com/firebase/firebase-js-sdk/issues/6373)) - Fix timer issues in App Check that caused the token to fail to refresh after the token expired, or caused rapid repeated requests attempting to do so.
+
+- Updated dependencies [[`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4)]:
+  - @firebase/util@1.7.0
+  - @firebase/component@0.5.18
+
 ## 0.5.12
 
 ### Patch Changes

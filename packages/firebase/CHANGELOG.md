@@ -1,5 +1,43 @@
 # firebase
 
+## 9.11.0
+
+### Minor Changes
+
+- [`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4) [#6526](https://github.com/firebase/firebase-js-sdk/pull/6526) - Add functionality to auto-initialize project config and emulator settings from global defaults provided by framework tooling.
+
+* [`ee871fc0b`](https://github.com/firebase/firebase-js-sdk/commit/ee871fc0b157e1a186c2895b4290d70c8d1b986f) [#6608](https://github.com/firebase/firebase-js-sdk/pull/6608) - Added `getCountFromServer()` (`getCount()` in the Lite SDK), which fetches the number of documents in the result set without actually downloading the documents.
+
+### Patch Changes
+
+- Updated dependencies [[`e35db6f95`](https://github.com/firebase/firebase-js-sdk/commit/e35db6f955f1b712ff67a991d8291352f28708e2), [`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4), [`c6ba6fc0f`](https://github.com/firebase/firebase-js-sdk/commit/c6ba6fc0f44178d56fe165f71a798663516a2904), [`b3951c6e4`](https://github.com/firebase/firebase-js-sdk/commit/b3951c6e42559d8aa82711b71440f4adcdae3b56), [`ee871fc0b`](https://github.com/firebase/firebase-js-sdk/commit/ee871fc0b157e1a186c2895b4290d70c8d1b986f)]:
+  - @firebase/firestore@3.6.0
+  - @firebase/app@0.8.0
+  - @firebase/app-types@0.8.0
+  - @firebase/util@1.7.0
+  - @firebase/auth@0.20.8
+  - @firebase/database@0.13.7
+  - @firebase/functions@0.8.5
+  - @firebase/storage@0.9.10
+  - @firebase/app-check@0.5.13
+  - @firebase/firestore-compat@0.1.26
+  - @firebase/analytics@0.8.1
+  - @firebase/app-compat@0.1.35
+  - @firebase/installations@0.5.13
+  - @firebase/messaging@0.9.17
+  - @firebase/performance@0.5.13
+  - @firebase/remote-config@0.3.12
+  - @firebase/analytics-compat@0.1.14
+  - @firebase/app-check-compat@0.2.13
+  - @firebase/auth-compat@0.2.21
+  - @firebase/database-compat@0.2.7
+  - @firebase/functions-compat@0.2.5
+  - @firebase/installations-compat@0.1.13
+  - @firebase/messaging-compat@0.1.17
+  - @firebase/performance-compat@0.1.13
+  - @firebase/remote-config-compat@0.1.13
+  - @firebase/storage-compat@0.1.18
+
 ## 9.10.0
 
 ### Minor Changes
