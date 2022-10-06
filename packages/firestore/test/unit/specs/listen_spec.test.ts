@@ -1764,7 +1764,7 @@ describeSpec('Listens:', [], () => {
           .client(1)
           // Re-listen to the query in second client and verify that the empty
           // snapshot is raised from cache.
-          .userListens(query1, { resumeToken: 'resume-token-1000' })
+          .userListens(query1)
           .expectEvents(query1, { fromCache: true })
           .client(0)
           .expectListen(query1, { resumeToken: 'resume-token-1000' })
