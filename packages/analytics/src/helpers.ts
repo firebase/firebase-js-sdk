@@ -318,7 +318,8 @@ export function wrapOrCreateGtag(
 }
 
 /**
- * Returns first script tag in DOM matching our gtag url pattern.
+ * Returns the script tag in the DOM matching both the gtag url pattern
+ * and the provided data layer name.
  */
 export function findGtagScriptOnPage(
   dataLayerName: string
