@@ -26,7 +26,7 @@ import {
 import { FirebaseApp } from '@firebase/app';
 import { GtagCommand } from './constants';
 import { findGtagScriptOnPage } from './helpers';
-import { removeGtagScript } from '../testing/gtag-script-util';
+import { removeGtagScripts } from '../testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
 import { AnalyticsError } from './errors';
 import { logEvent } from './api';
@@ -150,7 +150,7 @@ describe('FirebaseAnalytics instance tests', () => {
     after(() => {
       delete window['gtag'];
       delete window['dataLayer'];
-      removeGtagScript();
+      removeGtagScripts();
       fetchStub.restore();
       clock.restore();
       idbOpenStub.restore();
@@ -208,7 +208,7 @@ describe('FirebaseAnalytics instance tests', () => {
     afterEach(() => {
       delete window['gtag'];
       delete window['dataLayer'];
-      removeGtagScript();
+      removeGtagScripts();
       fetchStub.restore();
       clock.restore();
       warnStub.restore();
@@ -304,7 +304,7 @@ describe('FirebaseAnalytics instance tests', () => {
     after(() => {
       delete window[customGtagName];
       delete window[customDataLayerName];
-      removeGtagScript();
+      removeGtagScripts();
       fetchStub.restore();
       clock.restore();
       idbOpenStub.restore();
@@ -355,7 +355,7 @@ describe('FirebaseAnalytics instance tests', () => {
 
       delete window['gtag'];
       delete window['dataLayer'];
-      removeGtagScript();
+      removeGtagScripts();
       fetchStub.restore();
       idbOpenStub.restore();
     });

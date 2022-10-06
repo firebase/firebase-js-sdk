@@ -29,7 +29,7 @@ import {
 import { GtagCommand } from './constants';
 import { Deferred } from '@firebase/util';
 import { ConsentSettings } from './public-types';
-import { removeGtagScript } from '../testing/gtag-script-util';
+import { removeGtagScripts } from '../testing/gtag-script-util';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeAppId = 'my-test-app-1234';
@@ -48,8 +48,7 @@ const fakeDynamicConfigPromises = [Promise.resolve(fakeDynamicConfig)];
 
 describe('Gtag wrapping functions', () => {
   afterEach(() => {
-    delete window['gtag'];
-    removeGtagScript();
+    removeGtagScripts();
   });
 
   it('getOrCreateDataLayer is able to create a new data layer if none exists', () => {
