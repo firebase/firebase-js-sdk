@@ -516,7 +516,7 @@ export class UploadTask {
    *     callbacks.
    */
   on(
-    type: TaskEvent, // Note: This isn't being used. Its type is also incorrect.
+    type: TaskEvent,
     nextOrObserver?:
       | StorageObserver<UploadTaskSnapshot>
       | null
@@ -524,6 +524,7 @@ export class UploadTask {
     error?: ((a: StorageError) => unknown) | null,
     completed?: CompleteFn | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
+    // Note: `type` isn't being used. Its type is also incorrect. TaskEvent should not be a string.
     const observer = new Observer(
       (nextOrObserver as
         | StorageObserverInternal<UploadTaskSnapshot>
