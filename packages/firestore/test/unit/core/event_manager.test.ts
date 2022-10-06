@@ -225,7 +225,7 @@ describe('QueryListener', () => {
       fromCache: snap2.fromCache,
       syncStateChanged: true,
       mutatedKeys: keys(),
-      resumeToken: snap2.resumeToken
+      hasCachedResults: snap2.hasCachedResults
     };
     expect(otherEvents).to.deep.equal([expectedSnap2]);
   });
@@ -398,7 +398,7 @@ describe('QueryListener', () => {
         fromCache: snap2.fromCache,
         syncStateChanged: snap2.syncStateChanged,
         mutatedKeys: snap2.mutatedKeys,
-        resumeToken: snap2.resumeToken
+        hasCachedResults: snap2.hasCachedResults
       };
       expect(filteredEvents).to.deep.equal([snap1, expectedSnap2]);
     }
@@ -485,7 +485,7 @@ describe('QueryListener', () => {
       fromCache: false,
       syncStateChanged: true,
       mutatedKeys: keys(),
-      resumeToken: snap3.resumeToken
+      hasCachedResults: snap3.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
@@ -521,7 +521,7 @@ describe('QueryListener', () => {
       fromCache: true,
       syncStateChanged: true,
       mutatedKeys: keys(),
-      resumeToken: snap1.resumeToken
+      hasCachedResults: snap1.hasCachedResults
     };
     const expectedSnap2 = {
       query: query1,
@@ -531,7 +531,7 @@ describe('QueryListener', () => {
       fromCache: true,
       syncStateChanged: false,
       mutatedKeys: keys(),
-      resumeToken: snap2.resumeToken
+      hasCachedResults: snap2.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap1, expectedSnap2]);
   });
@@ -558,7 +558,7 @@ describe('QueryListener', () => {
       fromCache: true,
       syncStateChanged: true,
       mutatedKeys: keys(),
-      resumeToken: snap1.resumeToken
+      hasCachedResults: snap1.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
@@ -584,7 +584,7 @@ describe('QueryListener', () => {
       fromCache: true,
       syncStateChanged: true,
       mutatedKeys: keys(),
-      resumeToken: snap1.resumeToken
+      hasCachedResults: snap1.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap]);
   });

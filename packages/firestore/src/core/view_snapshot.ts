@@ -183,6 +183,7 @@ export class ViewSnapshot {
   isEqual(other: ViewSnapshot): boolean {
     if (
       this.fromCache !== other.fromCache ||
+      this.hasCachedResults !== other.hasCachedResults ||
       this.syncStateChanged !== other.syncStateChanged ||
       !this.mutatedKeys.isEqual(other.mutatedKeys) ||
       !queryEquals(this.query, other.query) ||
