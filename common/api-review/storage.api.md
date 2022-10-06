@@ -325,8 +325,7 @@ export class _UploadTask {
     _metadata: Metadata | null;
     // Warning: (ae-forgotten-export) The symbol "Unsubscribe" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Subscribe" needs to be exported by the entry point index.d.ts
-    on(type: _TaskEvent, // Note: This isn't being used. Its type is also incorrect.
-    nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: StorageError_2) => unknown) | null, completed?: CompleteFn | null): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot>;
+    on(type: _TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: StorageError_2) => unknown) | null, completed?: CompleteFn | null): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot>;
     pause(): boolean;
     resume(): boolean;
     get snapshot(): UploadTaskSnapshot;
