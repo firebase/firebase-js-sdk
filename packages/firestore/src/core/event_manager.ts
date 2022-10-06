@@ -308,7 +308,7 @@ export class QueryListener {
         snap.fromCache,
         snap.syncStateChanged,
         /* excludesMetadataChanges= */ true,
-        snap.resumeToken
+        snap.hasCachedResults
       );
     }
     let raisedEvent = false;
@@ -376,7 +376,7 @@ export class QueryListener {
     // or we are offline.
     return (
       !snap.docs.isEmpty() ||
-      snap.resumeToken.approximateByteSize() > 0 ||
+      snap.hasCachedResults ||
       onlineState === OnlineState.Offline
     );
   }
@@ -412,7 +412,7 @@ export class QueryListener {
       snap.docs,
       snap.mutatedKeys,
       snap.fromCache,
-      snap.resumeToken
+      snap.hasCachedResults
     );
     this.raisedInitialEvent = true;
     this.queryObserver.next(snap);

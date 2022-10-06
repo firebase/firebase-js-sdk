@@ -26,7 +26,6 @@ import { DocumentKey } from '../model/document_key';
 import { DocumentSet } from '../model/document_set';
 import { TargetChange } from '../remote/remote_event';
 import { debugAssert, fail } from '../util/assert';
-import { ByteString } from '../util/byte_string';
 
 import { LimitType, newQueryComparator, Query, queryMatches } from './query';
 import { OnlineState } from './types';
@@ -73,7 +72,7 @@ export interface ViewChange {
  */
 export class View {
   private syncState: SyncState | null = null;
-  private resumeToken: ByteString | null = null;
+  private hasCachedResults: boolean = false;
   /**
    * A flag whether the view is current with the backend. A view is considered
    * current after it has seen the current flag from the backend and did not
@@ -322,7 +321,8 @@ export class View {
         newSyncState === SyncState.Local,
         syncStateChanged,
         /* excludesMetadataChanges= */ false,
-        targetChange?.resumeToken ?? ByteString.EMPTY_BYTE_STRING
+        targetChange !== undefined &&
+          targetChange.resumeToken.approximateByteSize() > 0
       );
       return {
         snapshot: snap,
@@ -472,7 +472,7 @@ export class View {
       this.documentSet,
       this.mutatedKeys,
       this.syncState === SyncState.Local,
-      this.resumeToken ?? ByteString.EMPTY_BYTE_STRING
+      this.hasCachedResults
     );
   }
 }

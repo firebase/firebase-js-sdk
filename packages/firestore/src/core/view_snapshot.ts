@@ -20,7 +20,6 @@ import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DocumentSet } from '../model/document_set';
 import { fail } from '../util/assert';
-import { ByteString } from '../util/byte_string';
 import { SortedMap } from '../util/sorted_map';
 
 import { Query, queryEquals } from './query';
@@ -148,7 +147,7 @@ export class ViewSnapshot {
     readonly fromCache: boolean,
     readonly syncStateChanged: boolean,
     readonly excludesMetadataChanges: boolean,
-    readonly resumeToken: ByteString
+    readonly hasCachedResults: boolean
   ) {}
 
   /** Returns a view snapshot as if all documents in the snapshot were added. */
@@ -157,7 +156,7 @@ export class ViewSnapshot {
     documents: DocumentSet,
     mutatedKeys: DocumentKeySet,
     fromCache: boolean,
-    resumeToken: ByteString
+    hasCachedResults: boolean
   ): ViewSnapshot {
     const changes: DocumentViewChange[] = [];
     documents.forEach(doc => {
@@ -173,7 +172,7 @@ export class ViewSnapshot {
       fromCache,
       /* syncStateChanged= */ true,
       /* excludesMetadataChanges= */ false,
-      resumeToken
+      hasCachedResults
     );
   }
 

@@ -155,7 +155,7 @@ export function querySnapshot(
     fromCache,
     syncStateChanged,
     false,
-    resumeToken ?? ByteString.EMPTY_BYTE_STRING
+    resumeToken !== undefined && resumeToken.approximateByteSize() > 0
   );
   const db = firestore();
   return new QuerySnapshot(
