@@ -64,6 +64,7 @@ import {
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
+import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
@@ -327,7 +328,8 @@ export async function syncEngineListen(
       syncEngineImpl,
       query,
       targetId,
-      status === 'current'
+      status === 'current',
+      targetData.resumeToken
     );
   }
 
@@ -342,7 +344,8 @@ async function initializeViewAndComputeSnapshot(
   syncEngineImpl: SyncEngineImpl,
   query: Query,
   targetId: TargetId,
-  current: boolean
+  current: boolean,
+  resumeToken: ByteString
 ): Promise<ViewSnapshot> {
   // PORTING NOTE: On Web only, we inject the code that registers new Limbo
   // targets based on view changes. This allows us to only depend on Limbo
@@ -360,7 +363,8 @@ async function initializeViewAndComputeSnapshot(
   const synthesizedTargetChange =
     TargetChange.createSynthesizedTargetChangeForCurrentChange(
       targetId,
-      current && syncEngineImpl.onlineState !== OnlineState.Offline
+      current && syncEngineImpl.onlineState !== OnlineState.Offline,
+      resumeToken
     );
   const viewChange = view.applyChanges(
     viewDocChanges,
@@ -1385,7 +1389,8 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
         syncEngineImpl,
         synthesizeTargetToQuery(target!),
         targetId,
-        /*current=*/ false
+        /*current=*/ false,
+        targetData.resumeToken
       );
     }
 
@@ -1457,7 +1462,8 @@ export async function syncEngineApplyTargetState(
         const synthesizedRemoteEvent =
           RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
             targetId,
-            state === 'current'
+            state === 'current',
+            ByteString.EMPTY_BYTE_STRING
           );
         await syncEngineEmitNewSnapsAndNotifyLocalStore(
           syncEngineImpl,
@@ -1512,7 +1518,8 @@ export async function syncEngineApplyActiveTargetsChange(
       syncEngineImpl,
       synthesizeTargetToQuery(target),
       targetData.targetId,
-      /*current=*/ false
+      /*current=*/ false,
+      targetData.resumeToken
     );
     remoteStoreListen(syncEngineImpl.remoteStore, targetData);
   }
