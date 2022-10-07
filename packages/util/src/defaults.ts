@@ -57,32 +57,12 @@ const getDefaultsFromGlobal = (): FirebaseDefaults | undefined =>
  * process.env.__FIREBASE_DEFAULTS_PATH__
  */
 const getDefaultsFromEnvVariable = (): FirebaseDefaults | undefined => {
-  if (typeof process === 'undefined') {
+  if (typeof process === 'undefined' || typeof process.env === 'undefined') {
     return;
   }
   const defaultsJsonString = process.env.__FIREBASE_DEFAULTS__;
-  const defaultsJsonPath = process.env.__FIREBASE_DEFAULTS_PATH__;
   if (defaultsJsonString) {
-    if (defaultsJsonPath) {
-      console.warn(
-        `Values were provided for both __FIREBASE_DEFAULTS__ ` +
-          `and __FIREBASE_DEFAULTS_PATH__. __FIREBASE_DEFAULTS_PATH__ ` +
-          `will be ignored.`
-      );
-    }
     return JSON.parse(defaultsJsonString);
-  }
-  if (defaultsJsonPath && typeof require !== 'undefined') {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const json = require(defaultsJsonPath);
-      return json;
-    } catch (e) {
-      console.warn(
-        `Unable to read defaults from file provided to ` +
-          `__FIREBASE_DEFAULTS_PATH__: ${defaultsJsonPath}`
-      );
-    }
   }
 };
 
