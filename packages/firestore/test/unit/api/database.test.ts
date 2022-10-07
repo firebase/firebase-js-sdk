@@ -177,7 +177,7 @@ describe('QuerySnapshot', () => {
         querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, true)
       )
     ).to.be.false;
-    // hasCachedResults should effect querySnapshot equality
+    // hasCachedResults should affect querySnapshot equality
     expect(
       snapshotEqual(
         querySnapshot(

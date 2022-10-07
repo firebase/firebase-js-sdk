@@ -321,8 +321,9 @@ export class View {
         newSyncState === SyncState.Local,
         syncStateChanged,
         /* excludesMetadataChanges= */ false,
-        targetChange !== undefined &&
-          targetChange.resumeToken.approximateByteSize() > 0
+        targetChange
+          ? targetChange.resumeToken.approximateByteSize() > 0
+          : false
       );
       return {
         snapshot: snap,
