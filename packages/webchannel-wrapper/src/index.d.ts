@@ -74,6 +74,8 @@ export class XhrIo {
   getResponseJson(): WebChannelError | object;
 
   listenOnce(type: string, cb: (param: unknown) => void): void;
+
+  setWithCredentials(withCredentials: boolean): void;
 }
 
 export interface WebChannelOptions {

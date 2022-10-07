@@ -72,6 +72,7 @@ export class WebChannelConnection extends RestConnection {
   ): Promise<Resp> {
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
       const xhr = new XhrIo();
+      xhr.setWithCredentials(true);
       xhr.listenOnce(EventType.COMPLETE, () => {
         try {
           switch (xhr.getLastErrorCode()) {
