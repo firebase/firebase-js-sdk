@@ -94,6 +94,8 @@ export class UploadTask {
   private _metadataErrorHandler: (p1: StorageError) => void;
   private _resolve?: (p1: UploadTaskSnapshot) => void = undefined;
   private _reject?: (p1: StorageError) => void = undefined;
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ // This has to be an "any" type due to incompatibility between Node and browser timers.
+  private pendingTimeout: any = null;
   private _promise: Promise<UploadTaskSnapshot>;
 
   private sleepTime: number;
@@ -191,8 +193,16 @@ export class UploadTask {
             // Happens if we miss the metadata on upload completion.
             this._fetchMetadata();
           } else {
-            setTimeout(() => {
-              this._continueUpload();
+            this.pendingTimeout = setTimeout(() => {
+              this.pendingTimeout = null;
+              switch (this._state) {
+                case InternalTaskState.CANCELING:
+                  this._transition(InternalTaskState.CANCELED);
+                case InternalTaskState.PAUSING:
+                  this._transition(InternalTaskState.PAUSED);
+                default:
+                  this._continueUpload();
+              }
             }, this.sleepTime);
           }
         }
@@ -411,6 +421,10 @@ export class UploadTask {
         this._state = state;
         if (this._request !== undefined) {
           this._request.cancel();
+        } else if (this.pendingTimeout) {
+          clearTimeout(this.pendingTimeout);
+          this.pendingTimeout = null;
+          this.completeTransitions_();
         }
         break;
       case InternalTaskState.PAUSING:
@@ -419,6 +433,10 @@ export class UploadTask {
         this._state = state;
         if (this._request !== undefined) {
           this._request.cancel();
+        } else if (this.pendingTimeout) {
+          clearTimeout(this.pendingTimeout);
+          this.pendingTimeout = null;
+          this.completeTransitions_();
         }
         break;
       case InternalTaskState.RUNNING:
