@@ -501,12 +501,12 @@ describe('Firebase Storage > Upload Task', () => {
 
     let gotFirstEvent = false;
 
-    const stub = sinon.stub(window, 'setTimeout');
+    const stub = sinon.stub(global, 'setTimeout');
 
     // Function that notifies when we are in the middle of an exponential backoff
     const readyToCancel = new Promise<null>(resolve => {
-      // @ts-ignore The types for `stub.callsFake` is incompatible with types of `clock.setTimeout`
       stub.callsFake((fn, timeout) => {
+        // @ts-ignore The types for `stub.callsFake` is incompatible with types of `clock.setTimeout`
         const res = fakeSetTimeout(fn, timeout);
         if (timeout !== DEFAULT_MAX_UPLOAD_RETRY_TIME) {
           if (!gotFirstEvent || timeout === 0) {
