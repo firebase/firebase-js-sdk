@@ -460,7 +460,7 @@ export function fake503ForFinalizeServerHandler(
  */
 export function fake503ForUploadServerHandler(
   fakeMetadata: Partial<Metadata> = defaultFakeMetadata,
-  cb?: any
+  cb?: () => void
 ): RequestHandler {
   const stats: {
     [num: number]: {
