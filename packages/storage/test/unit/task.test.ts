@@ -35,6 +35,7 @@ import { canceled, retryLimitExceeded } from '../../src/implementation/error';
 import { SinonFakeTimers, useFakeTimers } from 'sinon';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
+import { DEFAULT_MAX_UPLOAD_RETRY_TIME } from '../../src/implementation/constants';
 
 use(sinonChai);
 
@@ -365,7 +366,7 @@ describe('Firebase Storage > Upload Task', () => {
   function handleStateChange(
     requestHandler: RequestHandler,
     blob: FbsBlob
-  ): { promise: Promise<TotalState>; task: UploadTask } {
+  ): { taskPromise: Promise<TotalState>; task: UploadTask } {
     const storageService = storageServiceWithHandler(requestHandler);
     const task = new UploadTask(
       new Reference(storageService, testLocation),
@@ -414,7 +415,7 @@ describe('Firebase Storage > Upload Task', () => {
       }
     );
 
-    return { promise: deferred.promise, task };
+    return { taskPromise: deferred.promise, task };
   }
 
   it('Calls callback sequences for small uploads correctly', () => {
@@ -426,13 +427,13 @@ describe('Firebase Storage > Upload Task', () => {
   it('properly times out if large blobs returns a 503 when finalizing', async () => {
     clock = useFakeTimers();
     // Kick off upload
-    const { promise } = handleStateChange(
+    const { taskPromise } = handleStateChange(
       fake503ForFinalizeServerHandler(),
       bigBlob
     );
     // Run all timers
     await clock.runAllAsync();
-    const { events, progress } = await promise;
+    const { events, progress } = await taskPromise;
     expect(events.length).to.equal(2);
     expect(events[0]).to.deep.equal({ type: 'resume' });
     expect(events[1].type).to.deep.equal('error');
@@ -464,13 +465,13 @@ describe('Firebase Storage > Upload Task', () => {
   it('properly times out if large blobs returns a 503 when uploading', async () => {
     clock = useFakeTimers();
     // Kick off upload
-    const { promise } = handleStateChange(
+    const { taskPromise } = handleStateChange(
       fake503ForUploadServerHandler(),
       bigBlob
     );
     // Run all timers
     await clock.runAllAsync();
-    const { events, progress } = await promise;
+    const { events, progress } = await taskPromise;
     expect(events.length).to.equal(2);
     expect(events[0]).to.deep.equal({ type: 'resume' });
     expect(events[1].type).to.deep.equal('error');
@@ -485,34 +486,42 @@ describe('Firebase Storage > Upload Task', () => {
     });
     clock.restore();
   });
-  function resumeCancelSetup(): any {
+
+  /**
+   * Starts upload, finds the first instance of an exponential backoff, and resolves `readyToCancel` when done.
+   * @returns readyToCancel, taskPromise and task
+   */
+  function resumeCancelSetup(): {
+    readyToCancel: Promise<null>;
+    taskPromise: Promise<TotalState>;
+    task: UploadTask;
+  } {
     clock = useFakeTimers();
     const fakeSetTimeout = clock.setTimeout;
+
     let gotFirstEvent = false;
 
-    const stub = sinon.stub(global, 'setTimeout');
+    const stub = sinon.stub(window, 'setTimeout');
 
-    const timers: { [key: number]: any } = {};
-    const readyToCancel = new Promise(resolve => {
+    // Function that notifies when we are in the middle of an exponential backoff
+    const readyToCancel = new Promise<null>(resolve => {
+      // @ts-ignore The types for `stub.callsFake` is incompatible with types of `clock.setTimeout`
       stub.callsFake((fn, timeout) => {
-        // @ts-ignore
         const res = fakeSetTimeout(fn, timeout);
-        //@ts-ignore
-        timers[res.id] = {
-          data: res,
-          timeout
-        };
-        if ((!gotFirstEvent || timeout === 0) && timeout !== 600000) {
-          clock.tick(timeout as number);
-        } else if (timeout !== 600000) {
-          resolve(null);
+        if (timeout !== DEFAULT_MAX_UPLOAD_RETRY_TIME) {
+          if (!gotFirstEvent || timeout === 0) {
+            clock.tick(timeout as number);
+          } else {
+            // If the timeout isn't 0 and it isn't the max upload retry time, it's most likely due to exponential backoff.
+            resolve(null);
+          }
         }
         return res;
       });
     });
     readyToCancel.then(
       () => stub.restore(),
-      () => {}
+      () => stub.restore()
     );
     return {
       ...handleStateChange(
@@ -524,12 +533,11 @@ describe('Firebase Storage > Upload Task', () => {
   }
   it('properly errors with a cancel StorageError if a pending timeout remains', async () => {
     // Kick off upload
-    const { readyToCancel, promise, task } = resumeCancelSetup();
+    const { readyToCancel, taskPromise: promise, task } = resumeCancelSetup();
 
     await readyToCancel;
     task.cancel();
 
-    // Run all timers
     const { events, progress } = await promise;
     expect(events.length).to.equal(2);
     expect(events[0]).to.deep.equal({ type: 'resume' });
@@ -548,7 +556,7 @@ describe('Firebase Storage > Upload Task', () => {
   });
   it('properly errors with a pause StorageError if a pending timeout remains', async () => {
     // Kick off upload
-    const { readyToCancel, promise, task } = resumeCancelSetup();
+    const { readyToCancel, taskPromise: promise, task } = resumeCancelSetup();
 
     await readyToCancel;
 
@@ -587,13 +595,13 @@ describe('Firebase Storage > Upload Task', () => {
   it('tests if small requests that respond with 500 retry correctly', async () => {
     clock = useFakeTimers();
     // Kick off upload
-    const { promise } = handleStateChange(
+    const { taskPromise } = handleStateChange(
       fakeOneShot503ServerHandler(),
       smallBlob
     );
     // Run all timers
     await clock.runAllAsync();
-    const { events, progress } = await promise;
+    const { events, progress } = await taskPromise;
     expect(events.length).to.equal(2);
     expect(events[0]).to.deep.equal({ type: 'resume' });
     expect(events[1].type).to.deep.equal('error');

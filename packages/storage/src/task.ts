@@ -94,8 +94,7 @@ export class UploadTask {
   private _metadataErrorHandler: (p1: StorageError) => void;
   private _resolve?: (p1: UploadTaskSnapshot) => void = undefined;
   private _reject?: (p1: StorageError) => void = undefined;
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ // This has to be an "any" type due to incompatibility between Node and browser timers.
-  private pendingTimeout: any = null;
+  private pendingTimeout: ReturnType<typeof setTimeout> | null = null;
   private _promise: Promise<UploadTaskSnapshot>;
 
   private sleepTime: number;
@@ -415,21 +414,10 @@ export class UploadTask {
     }
     switch (state) {
       case InternalTaskState.CANCELING:
+      case InternalTaskState.PAUSING:
         // TODO(andysoto):
         // assert(this.state_ === InternalTaskState.RUNNING ||
         //        this.state_ === InternalTaskState.PAUSING);
-        this._state = state;
-        if (this._request !== undefined) {
-          this._request.cancel();
-        } else if (this.pendingTimeout) {
-          clearTimeout(this.pendingTimeout);
-          this.pendingTimeout = null;
-          this.completeTransitions_();
-        }
-        break;
-      case InternalTaskState.PAUSING:
-        // TODO(andysoto):
-        // assert(this.state_ === InternalTaskState.RUNNING);
         this._state = state;
         if (this._request !== undefined) {
           this._request.cancel();
