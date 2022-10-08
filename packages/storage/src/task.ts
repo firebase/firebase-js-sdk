@@ -194,14 +194,7 @@ export class UploadTask {
           } else {
             this.pendingTimeout = setTimeout(() => {
               this.pendingTimeout = null;
-              switch (this._state) {
-                case InternalTaskState.CANCELING:
-                  this._transition(InternalTaskState.CANCELED);
-                case InternalTaskState.PAUSING:
-                  this._transition(InternalTaskState.PAUSED);
-                default:
-                  this._continueUpload();
-              }
+              this._continueUpload();
             }, this.sleepTime);
           }
         }
