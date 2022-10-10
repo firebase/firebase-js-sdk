@@ -28,7 +28,7 @@ import {
   getModularInstance,
   createMockUserToken,
   EmulatorMockTokenOptions,
-  getDefaultEmulatorHost
+  getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
@@ -320,10 +320,9 @@ export function getDatabase(
   const db = _getProvider(app, 'database').getImmediate({
     identifier: url
   }) as Database;
-  const databaseEmulatorHost = getDefaultEmulatorHost('database');
-  if (databaseEmulatorHost) {
-    const [host, port] = databaseEmulatorHost.split(':');
-    connectDatabaseEmulator(db, host, parseInt(port, 10));
+  const emulator = getDefaultEmulatorHostnameAndPort('database');
+  if (emulator) {
+    connectDatabaseEmulator(db, ...emulator);
   }
   return db;
 }

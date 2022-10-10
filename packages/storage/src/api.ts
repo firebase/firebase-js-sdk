@@ -53,7 +53,7 @@ import { STORAGE_TYPE } from './constants';
 import {
   EmulatorMockTokenOptions,
   getModularInstance,
-  getDefaultEmulatorHost
+  getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
 import { StringFormat } from './implementation/string';
 
@@ -334,11 +334,9 @@ export function getStorage(
   const storageInstance = storageProvider.getImmediate({
     identifier: bucketUrl
   });
-  const storageEmulatorHost = getDefaultEmulatorHost('storage');
-  if (storageEmulatorHost) {
-    const [host, port] = storageEmulatorHost.split(':');
-    // eslint-disable-next-line no-restricted-globals
-    connectStorageEmulator(storageInstance, host, parseInt(port, 10));
+  const emulator = getDefaultEmulatorHostnameAndPort('storage');
+  if (emulator) {
+    connectStorageEmulator(storageInstance, ...emulator);
   }
   return storageInstance;
 }

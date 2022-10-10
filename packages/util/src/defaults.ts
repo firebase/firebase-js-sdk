@@ -89,11 +89,39 @@ const getDefaults = (): FirebaseDefaults | undefined =>
 /**
  * Returns emulator host stored in the __FIREBASE_DEFAULTS__ object
  * for the given product.
+ * @returns a URL host formatted like `127.0.0.1:9999` or `[::1]:4000` if available
  * @public
  */
 export const getDefaultEmulatorHost = (
   productName: string
 ): string | undefined => getDefaults()?.emulatorHosts?.[productName];
+
+/**
+ * Returns emulator hostname and port stored in the __FIREBASE_DEFAULTS__ object
+ * for the given product.
+ * @returns a pair of hostname and port like `["::1", 4000]` if available
+ * @public
+ */
+export const getDefaultEmulatorHostnameAndPort = (
+  productName: string
+): [hostname: string, port: number] | undefined => {
+  const host = getDefaultEmulatorHost(productName);
+  if (!host) {
+    return undefined;
+  }
+  const separatorIndex = host.lastIndexOf(':'); // Finding the last since IPv6 addr also has colons.
+  if (separatorIndex <= 0 || separatorIndex + 1 === host.length) {
+    throw new Error(`Invalid host ${host} with no separate hostname and port!`);
+  }
+  // eslint-disable-next-line no-restricted-globals
+  const port = parseInt(host.substring(separatorIndex + 1), 10);
+  if (host[0] === '[') {
+    // Bracket-quoted `[ipv6addr]:port` => return "ipv6addr" (without brackets).
+    return [host.substring(1, separatorIndex - 1), port];
+  } else {
+    return [host.substring(0, separatorIndex), port];
+  }
+};
 
 /**
  * Returns Firebase app config stored in the __FIREBASE_DEFAULTS__ object.
