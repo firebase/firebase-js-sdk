@@ -1,5 +1,18 @@
 #Unreleased
 
+## 0.9.11
+
+### Patch Changes
+
+- [`4eb8145fb`](https://github.com/firebase/firebase-js-sdk/commit/4eb8145fb3b503884ea610e813be359127d1a705) [#6653](https://github.com/firebase/firebase-js-sdk/pull/6653) - Fixed bug where upload status wasn't being checked after an upload failure.
+  Implemented exponential backoff and max retry strategy.
+
+* [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561) [#6673](https://github.com/firebase/firebase-js-sdk/pull/6673) - Handle IPv6 addresses in emulator autoinit.
+
+* Updated dependencies [[`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561), [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18)]:
+  - @firebase/util@1.7.1
+  - @firebase/component@0.5.19
+
 ## 0.9.10
 
 ### Patch Changes

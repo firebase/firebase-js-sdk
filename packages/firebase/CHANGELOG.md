@@ -1,5 +1,42 @@
 # firebase
 
+## 9.12.0
+
+### Minor Changes
+
+- [`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed) [#6643](https://github.com/firebase/firebase-js-sdk/pull/6643) - Set withCredentials=true when making requests via non-streaming RPCs, like is done for streaming RPCs.
+
+### Patch Changes
+
+- [`0a112bd2a`](https://github.com/firebase/firebase-js-sdk/commit/0a112bd2aee2e709d6733b1a36876e6fae1e347f) [#6624](https://github.com/firebase/firebase-js-sdk/pull/6624) (fixes [#5873](https://github.com/firebase/firebase-js-sdk/issues/5873)) - Fix Firestore failing to raise initial snapshot from empty local cache result
+
+- Updated dependencies [[`0a112bd2a`](https://github.com/firebase/firebase-js-sdk/commit/0a112bd2aee2e709d6733b1a36876e6fae1e347f), [`5aa48d0ab`](https://github.com/firebase/firebase-js-sdk/commit/5aa48d0ab432002ccf49d65bf2ff637e82a2b402), [`4eb8145fb`](https://github.com/firebase/firebase-js-sdk/commit/4eb8145fb3b503884ea610e813be359127d1a705), [`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed), [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561), [`1fbc4c4b7`](https://github.com/firebase/firebase-js-sdk/commit/1fbc4c4b7f893ac1f973ccc29205771adec536ca), [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18)]:
+  - @firebase/firestore@3.7.0
+  - @firebase/database@0.13.8
+  - @firebase/storage@0.9.11
+  - @firebase/firestore-compat@0.2.0
+  - @firebase/functions@0.8.6
+  - @firebase/util@1.7.1
+  - @firebase/analytics@0.8.2
+  - @firebase/database-compat@0.2.8
+  - @firebase/storage-compat@0.1.19
+  - @firebase/functions-compat@0.2.6
+  - @firebase/analytics-compat@0.1.15
+  - @firebase/app@0.8.1
+  - @firebase/app-check@0.5.14
+  - @firebase/app-check-compat@0.2.14
+  - @firebase/app-compat@0.1.36
+  - @firebase/auth@0.20.9
+  - @firebase/auth-compat@0.2.22
+  - @firebase/installations@0.5.14
+  - @firebase/installations-compat@0.1.14
+  - @firebase/messaging@0.9.18
+  - @firebase/messaging-compat@0.1.18
+  - @firebase/performance@0.5.14
+  - @firebase/performance-compat@0.1.14
+  - @firebase/remote-config@0.3.13
+  - @firebase/remote-config-compat@0.1.14
+
 ## 9.11.0
 
 ### Minor Changes

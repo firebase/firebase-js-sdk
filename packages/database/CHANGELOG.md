@@ -1,5 +1,17 @@
 # Unreleased
 
+## 0.13.8
+
+### Patch Changes
+
+- [`5aa48d0ab`](https://github.com/firebase/firebase-js-sdk/commit/5aa48d0ab432002ccf49d65bf2ff637e82a2b402) [#6583](https://github.com/firebase/firebase-js-sdk/pull/6583) - Fixed `endBefore` and `push` documentation typos in RTDB
+
+* [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561) [#6673](https://github.com/firebase/firebase-js-sdk/pull/6673) - Handle IPv6 addresses in emulator autoinit.
+
+* Updated dependencies [[`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561), [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18)]:
+  - @firebase/util@1.7.1
+  - @firebase/component@0.5.19
+
 ## 0.13.7
 
 ### Patch Changes
