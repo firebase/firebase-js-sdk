@@ -321,7 +321,7 @@ export function getDatabase(
     identifier: url
   }) as Database;
   const emulator = getDefaultEmulatorHostnameAndPort('database');
-  if (emulator)
+  if (emulator) {
     connectDatabaseEmulator(db, ...emulator);
   }
   return db;
