@@ -177,7 +177,7 @@ export function setCurrentScreen(
  */
 export function setUserId(
   analyticsInstance: Analytics,
-  id: string,
+  id: string | null,
   options?: AnalyticsCallOptions
 ): void {
   analyticsInstance = getModularInstance(analyticsInstance);
