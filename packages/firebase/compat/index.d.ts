@@ -2613,8 +2613,7 @@ declare namespace firebase.auth {
      * Returns a UserCredential from the redirect-based sign-in flow.
      *
      * If sign-in succeeded, returns the signed in user. If sign-in was
-     * unsuccessful, fails with an error. If no redirect operation was called,
-     * returns a UserCredential with a null User.
+     * unsuccessful, fails with an error. If no redirect operation was called, returns `null`.
      *
      * <h4>Error Codes</h4>
      * <dl>

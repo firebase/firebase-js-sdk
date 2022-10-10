@@ -218,8 +218,7 @@ export async function _linkWithRedirect(
  *
  * @remarks
  * If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an
- * error. If no redirect operation was called, returns a {@link UserCredential}
- * with a null `user`.
+ * error. If no redirect operation was called, returns `null`.
  *
  * @example
  * ```javascript
