@@ -21,7 +21,7 @@ import {
   FirebaseApp,
   getApp
 } from '@firebase/app';
-import { deepEqual, getDefaultEmulatorHost } from '@firebase/util';
+import { deepEqual, getDefaultEmulatorHostnameAndPort } from '@firebase/util';
 
 import { User } from '../auth/user';
 import {
@@ -242,10 +242,9 @@ export function getFirestore(
     identifier: databaseId
   }) as Firestore;
   if (!db._initialized) {
-    const firestoreEmulatorHost = getDefaultEmulatorHost('firestore');
-    if (firestoreEmulatorHost) {
-      const [host, port] = firestoreEmulatorHost.split(':');
-      connectFirestoreEmulator(db, host, parseInt(port, 10));
+    const emulator = getDefaultEmulatorHostnameAndPort('firestore');
+    if (emulator) {
+      connectFirestoreEmulator(db, ...emulator);
     }
   }
   return db;

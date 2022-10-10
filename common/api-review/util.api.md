@@ -219,6 +219,9 @@ export const getDefaultAppConfig: () => Record<string, string> | undefined;
 export const getDefaultEmulatorHost: (productName: string) => string | undefined;
 
 // @public
+export const getDefaultEmulatorHostnameAndPort: (productName: string) => [hostname: string, port: number] | undefined;
+
+// @public
 export const getExperimentalSetting: <T extends ExperimentalKey>(name: T) => FirebaseDefaults[`_${T}`];
 
 // Warning: (ae-missing-release-tag) "getGlobal" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
