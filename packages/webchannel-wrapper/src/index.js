@@ -75,6 +75,8 @@ goog.net.XhrIo.prototype['getResponseJson'] =
 goog.net.XhrIo.prototype['getResponseText'] =
   goog.net.XhrIo.prototype.getResponseText;
 goog.net.XhrIo.prototype['send'] = goog.net.XhrIo.prototype.send;
+goog.net.XhrIo.prototype['setWithCredentials'] =
+  goog.net.XhrIo.prototype.setWithCredentials;
 
 module['exports']['createWebChannelTransport'] =
   goog.net.createWebChannelTransport;

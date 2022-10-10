@@ -22,7 +22,8 @@ import { FbsBlob } from './implementation/blob';
 import {
   canceled,
   StorageErrorCode,
-  StorageError
+  StorageError,
+  retryLimitExceeded
 } from './implementation/error';
 import {
   InternalTaskState,
@@ -53,6 +54,9 @@ import {
 } from './implementation/requests';
 import { Reference } from './reference';
 import { newTextConnection } from './platform/connection';
+import { isRetryStatusCode } from './implementation/utils';
+import { CompleteFn } from '@firebase/util';
+import { DEFAULT_MIN_SLEEP_TIME_MILLIS } from './implementation/constants';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -92,6 +96,14 @@ export class UploadTask {
   private _reject?: (p1: StorageError) => void = undefined;
   private _promise: Promise<UploadTaskSnapshot>;
 
+  private sleepTime: number;
+
+  private maxSleepTime: number;
+
+  isExponentialBackoffExpired(): boolean {
+    return this.sleepTime > this.maxSleepTime;
+  }
+
   /**
    * @param ref - The firebaseStorage.Reference object this task came
    *     from, untyped to avoid cyclic dependencies.
@@ -111,6 +123,20 @@ export class UploadTask {
         this._needToFetchStatus = true;
         this.completeTransitions_();
       } else {
+        const backoffExpired = this.isExponentialBackoffExpired();
+        if (isRetryStatusCode(error.status, [])) {
+          if (backoffExpired) {
+            error = retryLimitExceeded();
+          } else {
+            this.sleepTime = Math.max(
+              this.sleepTime * 2,
+              DEFAULT_MIN_SLEEP_TIME_MILLIS
+            );
+            this._needToFetchStatus = true;
+            this.completeTransitions_();
+            return;
+          }
+        }
         this._error = error;
         this._transition(InternalTaskState.ERROR);
       }
@@ -124,6 +150,8 @@ export class UploadTask {
         this._transition(InternalTaskState.ERROR);
       }
     };
+    this.sleepTime = 0;
+    this.maxSleepTime = this._ref.storage.maxUploadRetryTime;
     this._promise = new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
@@ -163,7 +191,9 @@ export class UploadTask {
             // Happens if we miss the metadata on upload completion.
             this._fetchMetadata();
           } else {
-            this._continueUpload();
+            setTimeout(() => {
+              this._continueUpload();
+            }, this.sleepTime);
           }
         }
       }
@@ -283,7 +313,8 @@ export class UploadTask {
         requestInfo,
         newTextConnection,
         authToken,
-        appCheckToken
+        appCheckToken,
+        /*retry=*/ false // Upload requests should not be retried as each retry should be preceded by another query request. Which is handled in this file.
       );
       this._request = uploadRequest;
       uploadRequest.getPromise().then((newStatus: ResumableUploadStatus) => {
@@ -304,7 +335,7 @@ export class UploadTask {
     const currentSize = RESUMABLE_UPLOAD_CHUNK_SIZE * this._chunkMultiplier;
 
     // Max chunk size is 32M.
-    if (currentSize < 32 * 1024 * 1024) {
+    if (currentSize * 2 < 32 * 1024 * 1024) {
       this._chunkMultiplier *= 2;
     }
   }
@@ -491,8 +522,9 @@ export class UploadTask {
       | null
       | ((snapshot: UploadTaskSnapshot) => unknown),
     error?: ((a: StorageError) => unknown) | null,
-    completed?: Unsubscribe | null
+    completed?: CompleteFn | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
+    // Note: `type` isn't being used. Its type is also incorrect. TaskEvent should not be a string.
     const observer = new Observer(
       (nextOrObserver as
         | StorageObserverInternal<UploadTaskSnapshot>
