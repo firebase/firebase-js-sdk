@@ -335,7 +335,7 @@ export function getStorage(
     identifier: bucketUrl
   });
   const emulator = getDefaultEmulatorHostnameAndPort('storage');
-  if () {
+  if (emulator) {
     connectStorageEmulator(storageInstance, ...emulator);
   }
   return storageInstance;
