@@ -28,7 +28,7 @@ describe('getDefaultEmulatorHost', () => {
 
   context('with no config', () => {
     it('returns undefined', () => {
-      expect(getDefaultEmulatorHost('firestore')).to.equal(undefined);
+      expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
     });
   });
 
@@ -43,7 +43,7 @@ describe('getDefaultEmulatorHost', () => {
     });
 
     it('returns undefined', () => {
-      expect(getDefaultEmulatorHost('firestore')).to.equal(undefined);
+      expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
     });
   });
 
@@ -83,9 +83,7 @@ describe('getDefaultEmulatorHostnameAndPort', () => {
 
   context('with no config', () => {
     it('returns undefined', () => {
-      expect(getDefaultEmulatorHostnameAndPort('firestore')).to.equal(
-        undefined
-      );
+      expect(getDefaultEmulatorHostnameAndPort('firestore')).to.be.undefined;
     });
   });
 
@@ -100,9 +98,7 @@ describe('getDefaultEmulatorHostnameAndPort', () => {
     });
 
     it('returns undefined', () => {
-      expect(getDefaultEmulatorHostnameAndPort('firestore')).to.equal(
-        undefined
-      );
+      expect(getDefaultEmulatorHostnameAndPort('firestore')).to.be.undefined;
     });
   });
 
@@ -116,7 +112,7 @@ describe('getDefaultEmulatorHostnameAndPort', () => {
     });
 
     it('returns hostname and port splitted', () => {
-      expect(getDefaultEmulatorHostnameAndPort('firestore')).to.equal([
+      expect(getDefaultEmulatorHostnameAndPort('firestore')).to.eql([
         '127.0.0.1',
         8080
       ]);
@@ -133,7 +129,7 @@ describe('getDefaultEmulatorHostnameAndPort', () => {
     });
 
     it('returns unquoted hostname and port splitted', () => {
-      expect(getDefaultEmulatorHostnameAndPort('firestore')).to.equal([
+      expect(getDefaultEmulatorHostnameAndPort('firestore')).to.eql([
         '::1',
         8080
       ]);
