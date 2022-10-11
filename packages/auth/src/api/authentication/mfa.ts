@@ -54,7 +54,7 @@ export interface StartPhoneMfaSignInRequest {
 export interface StartTotpMfaSignInRequest {
   mfaPendingCredential: string;
   mfaEnrollmentId: string;
-  TotpSignInInfo: {
+  totpSignInInfo: {
     verificationCode: string;
   };
   tenantId?: string;
@@ -67,7 +67,7 @@ export interface StartPhoneMfaSignInResponse {
 }
 
 export interface StartTotpMfaSignInResponse {
-  TotpSignInInfo: {
+  totpSignInInfo: {
     verificationCode: string;
   };
 }

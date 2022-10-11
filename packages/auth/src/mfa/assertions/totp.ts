@@ -162,8 +162,7 @@ export class TotpMultiFactorAssertionImpl
     mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse> {
     _assert(
-      typeof this.enrollmentId !== 'undefined' &&
-        typeof this.otp !== 'undefined',
+      this.enrollmentId !== undefined,
       auth,
       AuthErrorCode.ARGUMENT_ERROR
     );
