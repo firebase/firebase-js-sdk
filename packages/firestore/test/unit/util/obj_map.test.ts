@@ -44,31 +44,41 @@ describe('ObjectMap', () => {
     const k5 = new TestKey(-12354, -12354);
     expect(map.get(k1)).to.equal(undefined);
     expect(map.get(k2)).to.equal(undefined);
+    expect(map.size()).to.equal(0);
     map.set(k1, 'fob');
+    expect(map.size()).to.equal(1);
     expect(map.get(k1)).to.equal('fob');
     expect(map.get(k2)).to.equal(undefined);
     map.set(k1, 'foo');
+    expect(map.size()).to.equal(1);
     expect(map.get(k1)).to.equal('foo');
     expect(map.get(k2)).to.equal(undefined);
     map.set(k2, 'bar');
+    expect(map.size()).to.equal(2);
     expect(map.get(k1)).to.equal('foo');
     expect(map.get(k2)).to.equal('bar');
     expect(map.delete(k3)).to.equal(false);
+    expect(map.size()).to.equal(2);
     expect(map.get(k1)).to.equal('foo');
     expect(map.get(k2)).to.equal('bar');
     expect(map.delete(k1)).to.equal(true);
+    expect(map.size()).to.equal(1);
     expect(map.get(k1)).to.equal(undefined);
     expect(map.get(k2)).to.equal('bar');
     expect(map.delete(k2)).to.equal(true);
+    expect(map.size()).to.equal(0);
     expect(map.get(k1)).to.equal(undefined);
     expect(map.get(k2)).to.equal(undefined);
     map.set(k4, 'baz');
+    expect(map.size()).to.equal(1);
     expect(map.get(k4)).to.equal('baz');
     expect(map.get(k5)).to.equal('baz');
     map.set(k5, 'boo');
+    expect(map.size()).to.equal(1);
     expect(map.get(k4)).to.equal('boo');
     expect(map.get(k5)).to.equal('boo');
     expect(map.delete(k5)).to.equal(true);
+    expect(map.size()).to.equal(0);
     expect(map.get(k4)).to.equal(undefined);
     expect(map.get(k5)).to.equal(undefined);
   });
@@ -83,36 +93,43 @@ describe('ObjectMap', () => {
     const k2 = new TestKey(4, 5);
     const k3 = new TestKey(4, 6);
 
+    expect(map.size()).to.equal(0);
     expect(map.get(k1)).to.equal(undefined);
     expect(map.get(k2)).to.equal(undefined);
     expect(map.get(k3)).to.equal(undefined);
 
     map.set(k1, 'foo');
 
+    expect(map.size()).to.equal(1);
     expect(map.get(k1)).to.equal('foo');
     expect(map.get(k2)).to.equal(undefined);
     expect(map.get(k3)).to.equal(undefined);
 
     map.set(k1, 'bar');
 
+    expect(map.size()).to.equal(1);
     expect(map.get(k1)).to.equal('bar');
     expect(map.get(k2)).to.equal(undefined);
     expect(map.get(k3)).to.equal(undefined);
 
     map.set(k2, 'baz');
 
+    expect(map.size()).to.equal(2);
     expect(map.get(k1)).to.equal('bar');
     expect(map.get(k2)).to.equal('baz');
     expect(map.get(k3)).to.equal(undefined);
 
     expect(map.delete(k3)).to.equal(false);
+    expect(map.size()).to.equal(2);
     expect(map.delete(k2)).to.equal(true);
+    expect(map.size()).to.equal(1);
 
     expect(map.get(k1)).to.equal('bar');
     expect(map.get(k2)).to.equal(undefined);
     expect(map.get(k3)).to.equal(undefined);
 
     expect(map.delete(k1)).to.equal(true);
+    expect(map.size()).to.equal(0);
 
     expect(map.get(k1)).to.equal(undefined);
     expect(map.get(k2)).to.equal(undefined);

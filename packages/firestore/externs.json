@@ -26,6 +26,7 @@
     "packages/logger/dist/src/logger.d.ts",
     "packages/webchannel-wrapper/src/index.d.ts",
     "packages/util/dist/src/crypt.d.ts",
+    "packages/util/dist/src/defaults.d.ts",
     "packages/util/dist/src/emulator.d.ts",
     "packages/util/dist/src/environment.d.ts",
     "packages/util/dist/src/compat.d.ts",
@@ -34,6 +35,7 @@
     "packages/firestore/src/protos/firestore_proto_api.ts",
     "packages/firestore/src/util/error.ts",
     "packages/firestore/src/local/indexeddb_schema.ts",
+    "packages/firestore/src/local/indexeddb_schema_legacy.ts",
     "packages/firestore/src/local/shared_client_state_schema.ts"
   ]
 }

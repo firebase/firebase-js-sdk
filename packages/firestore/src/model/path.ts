@@ -112,6 +112,7 @@ abstract class BasePath<B extends BasePath<B>> {
   }
 
   lastSegment(): string {
+    debugAssert(!this.isEmpty(), "Can't call lastSegment() on empty path");
     return this.get(this.length - 1);
   }
 

@@ -69,10 +69,10 @@ export const reactNativeLocalPersistence: Persistence =
     removeItem(...args) {
       // Called inline to avoid deprecation warnings on startup.
       return ReactNative.AsyncStorage.removeItem(...args);
-    },
+    }
   });
 
-export {getReactNativePersistence};
+export { getReactNativePersistence };
 
 export function getAuth(app: FirebaseApp = getApp()): Auth {
   const provider = _getProvider(app, 'auth');

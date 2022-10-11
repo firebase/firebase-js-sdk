@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { uuidv4 } from './util';
 import { FirebaseApp } from '@firebase/app';
-import { isIndexedDBAvailable } from '@firebase/util';
+import { isIndexedDBAvailable, uuidv4 } from '@firebase/util';
 import {
   readDebugTokenFromIndexedDB,
   readTokenFromIndexedDB,
@@ -52,7 +51,7 @@ export async function readTokenFromStorage(
  */
 export function writeTokenToStorage(
   app: FirebaseApp,
-  token: AppCheckTokenInternal
+  token?: AppCheckTokenInternal
 ): Promise<void> {
   if (isIndexedDBAvailable()) {
     return writeTokenToIndexedDB(app, token).catch(e => {

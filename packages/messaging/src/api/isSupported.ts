@@ -28,13 +28,19 @@ import {
  * @public
  */
 export async function isWindowSupported(): Promise<boolean> {
+  try {
+    // This throws if open() is unsupported, so adding it to the conditional
+    // statement below can cause an uncaught error.
+    await validateIndexedDBOpenable();
+  } catch (e) {
+    return false;
+  }
   // firebase-js-sdk/issues/2393 reveals that idb#open in Safari iframe and Firefox private browsing
   // might be prohibited to run. In these contexts, an error would be thrown during the messaging
   // instantiating phase, informing the developers to import/call isSupported for special handling.
   return (
     typeof window !== 'undefined' &&
     isIndexedDBAvailable() &&
-    (await validateIndexedDBOpenable()) &&
     areCookiesEnabled() &&
     'serviceWorker' in navigator &&
     'PushManager' in window &&

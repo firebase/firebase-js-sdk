@@ -18,6 +18,35 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 };
 
 // @public
+export class AggregateField<T> {
+    type: string;
+}
+
+// @public
+export type AggregateFieldType = AggregateField<number>;
+
+// @public
+export class AggregateQuerySnapshot<T extends AggregateSpec> {
+    data(): AggregateSpecData<T>;
+    readonly query: Query<unknown>;
+    readonly type = "AggregateQuerySnapshot";
+}
+
+// @public
+export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(left: AggregateQuerySnapshot<T>, right: AggregateQuerySnapshot<T>): boolean;
+
+// @public
+export interface AggregateSpec {
+    // (undocumented)
+    [field: string]: AggregateFieldType;
+}
+
+// @public
+export type AggregateSpecData<T extends AggregateSpec> = {
+    [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
+};
+
+// @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
 
 // @public
@@ -170,13 +199,21 @@ export class GeoPoint {
 }
 
 // @public
+export function getCount(query: Query<unknown>): Promise<AggregateQuerySnapshot<{
+    count: AggregateField<number>;
+}>>;
+
+// @public
 export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
 // @public
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // @public
-export function getFirestore(app?: FirebaseApp): Firestore;
+export function getFirestore(): Firestore;
+
+// @public
+export function getFirestore(app: FirebaseApp): Firestore;
 
 // @public
 export function increment(n: number): FieldValue;
@@ -254,7 +291,7 @@ export class QuerySnapshot<T = DocumentData> {
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
 // @public
-export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
+export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
 
 // @public
 export function serverTimestamp(): FieldValue;
@@ -329,6 +366,11 @@ export class Transaction {
     set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): this;
     update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
+}
+
+// @public
+export interface TransactionOptions {
+    readonly maxAttempts?: number;
 }
 
 // @public

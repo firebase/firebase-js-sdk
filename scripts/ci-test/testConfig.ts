@@ -34,12 +34,14 @@ export const testConfig: {
   'core': {
     'ignorePackages': [
       '@firebase/firestore',
+      '@firebase/firestore-compat',
       'firebase-firestore-integration-test',
       'firebase-messaging-integration-test',
       'firebase-namespace-integration-test',
       'firebase-compat-typings-test',
       '@firebase/rules-unit-testing',
       '@firebase/auth',
+      '@firebase/auth-compat',
       'firebase'
     ]
   },
@@ -59,6 +61,6 @@ export const testConfig: {
     'alwaysIncludePackages': ['firebase-namespace-integration-test']
   },
   'auth': {
-    'onlyIncludePackages': ['@firebase/auth']
+    'onlyIncludePackages': ['@firebase/auth', '@firebase/auth-compat']
   }
 };

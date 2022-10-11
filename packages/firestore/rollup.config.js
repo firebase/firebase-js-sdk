@@ -40,7 +40,7 @@ const nodePlugins = function () {
         }
       },
       cacheDir: tmp.dirSync(),
-      abortOnError: false,
+      abortOnError: true,
       transformers: [util.removeAssertTransformer]
     }),
     json({ preferConst: true }),
@@ -60,7 +60,7 @@ const browserPlugins = function () {
         }
       },
       cacheDir: tmp.dirSync(),
-      abortOnError: false,
+      abortOnError: true,
       transformers: [util.removeAssertAndPrefixInternalTransformer]
     }),
     json({ preferConst: true }),

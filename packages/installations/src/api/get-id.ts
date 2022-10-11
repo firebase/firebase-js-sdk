@@ -30,7 +30,7 @@ import { Installations } from '../interfaces/public-types';
 export async function getId(installations: Installations): Promise<string> {
   const installationsImpl = installations as FirebaseInstallationsImpl;
   const { installationEntry, registrationPromise } = await getInstallationEntry(
-    installationsImpl.appConfig
+    installationsImpl
   );
 
   if (registrationPromise) {

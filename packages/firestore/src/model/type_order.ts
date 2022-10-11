@@ -24,7 +24,7 @@
  */
 export const enum TypeOrder {
   // This order is based on the backend's ordering, but modified to support
-  // server timestamps.
+  // server timestamps and `MAX_VALUE`.
   NullValue = 0,
   BooleanValue = 1,
   NumberValue = 2,
@@ -35,5 +35,6 @@ export const enum TypeOrder {
   RefValue = 7,
   GeoPointValue = 8,
   ArrayValue = 9,
-  ObjectValue = 10
+  ObjectValue = 10,
+  MaxValue = 9007199254740991 // Number.MAX_SAFE_INTEGER
 }

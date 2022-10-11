@@ -18,6 +18,7 @@
 import { FirebaseFunctions, HttpsCallable } from '@firebase/functions-types';
 import {
   httpsCallable as httpsCallableExp,
+  httpsCallableFromURL as httpsCallableFromURLExp,
   connectFunctionsEmulator as useFunctionsEmulatorExp,
   HttpsCallableOptions,
   Functions as FunctionsServiceExp
@@ -46,6 +47,12 @@ export class FunctionsService implements FirebaseFunctions, _FirebaseService {
   }
   httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
     return httpsCallableExp(this._delegate, name, options);
+  }
+  httpsCallableFromURL(
+    url: string,
+    options?: HttpsCallableOptions
+  ): HttpsCallable {
+    return httpsCallableFromURLExp(this._delegate, url, options);
   }
   /**
    * Deprecated in pre-modularized repo, does not exist in modularized

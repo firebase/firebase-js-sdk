@@ -175,7 +175,7 @@ const setupInstallationEntryMap: Map<
 describe('getToken', () => {
   let installations: FirebaseInstallationsImpl;
   let createInstallationRequestSpy: SinonStub<
-    [AppConfig, InProgressInstallationEntry],
+    [FirebaseInstallationsImpl, InProgressInstallationEntry],
     Promise<RegisteredInstallationEntry>
   >;
   let generateAuthTokenRequestSpy: SinonStub<

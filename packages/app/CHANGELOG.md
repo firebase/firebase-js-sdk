@@ -1,5 +1,154 @@
 # @firebase/app
 
+## 0.8.0
+
+### Minor Changes
+
+- [`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4) [#6526](https://github.com/firebase/firebase-js-sdk/pull/6526) - Add functionality to auto-initialize project config and emulator settings from global defaults provided by framework tooling.
+
+### Patch Changes
+
+- Updated dependencies [[`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4)]:
+  - @firebase/util@1.7.0
+  - @firebase/component@0.5.18
+
+## 0.7.33
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.32
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.31
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.30
+
+### Patch Changes
+
+- [`82a6add13`](https://github.com/firebase/firebase-js-sdk/commit/82a6add1354fe7e4ac1d444157ac027cdd41da6e) [#6480](https://github.com/firebase/firebase-js-sdk/pull/6480) - Prevent core app from throwing if IndexedDB heartbeat functions throw.
+
+## 0.7.29
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.28
+
+### Patch Changes
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf)]:
+  - @firebase/util@1.6.3
+  - @firebase/component@0.5.17
+
+## 0.7.27
+
+### Patch Changes
+
+- Updated dependencies [[`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0)]:
+  - @firebase/util@1.6.2
+  - @firebase/component@0.5.16
+
+## 0.7.26
+
+### Patch Changes
+
+- [`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5) [#6307](https://github.com/firebase/firebase-js-sdk/pull/6307) (fixes [#6300](https://github.com/firebase/firebase-js-sdk/issues/6300)) - fix: add type declarations to exports field
+
+- Updated dependencies [[`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5)]:
+  - @firebase/component@0.5.15
+  - @firebase/logger@0.3.3
+  - @firebase/util@1.6.1
+
+## 0.7.25
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.24
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.23
+
+### Patch Changes
+
+- [`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801) [#6154](https://github.com/firebase/firebase-js-sdk/pull/6154) - Replace stopgap firebase/util IndexedDB methods with `idb` library.
+
+- Updated dependencies [[`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801)]:
+  - @firebase/util@1.6.0
+  - @firebase/component@0.5.14
+
+## 0.7.22
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.21
+
+### Patch Changes
+
+- Updated dependencies [[`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59)]:
+  - @firebase/util@1.5.2
+  - @firebase/component@0.5.13
+
+## 0.7.20
+
+### Patch Changes
+
+- Updated dependencies [[`3198d58dc`](https://github.com/firebase/firebase-js-sdk/commit/3198d58dcedbf7583914dbcc76984f6f7df8d2ef)]:
+  - @firebase/util@1.5.1
+  - @firebase/component@0.5.12
+
+## 0.7.19
+
+### Patch Changes
+
+- [`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03) [#6061](https://github.com/firebase/firebase-js-sdk/pull/6061) - Remove idb dependency and replace with our own code.
+
+* [`927c1afc1`](https://github.com/firebase/firebase-js-sdk/commit/927c1afc103e4f9b8a75320d3946a4c840445a2a) [#6039](https://github.com/firebase/firebase-js-sdk/pull/6039) - Fix heartbeat controller to ensure not sending more than one a day.
+
+* Updated dependencies [[`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03)]:
+  - @firebase/util@1.5.0
+  - @firebase/component@0.5.11
+
+## 0.7.18
+
+### Patch Changes
+
+- [`1588990b7`](https://github.com/firebase/firebase-js-sdk/commit/1588990b7fb06b6fa545c0d478663e137ec0ea07) [#5723](https://github.com/firebase/firebase-js-sdk/pull/5723) - Add heartbeat controller for platform logging.
+
+## 0.7.17
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.16
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.7.15
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
 ## 0.7.14
 
 ### Patch Changes

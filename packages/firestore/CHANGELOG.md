@@ -1,5 +1,148 @@
 # @firebase/firestore
 
+## 3.6.0
+
+### Minor Changes
+
+- [`e35db6f95`](https://github.com/firebase/firebase-js-sdk/commit/e35db6f955f1b712ff67a991d8291352f28708e2) [#6597](https://github.com/firebase/firebase-js-sdk/pull/6597) - Implement count query for internal use.
+
+* [`ee871fc0b`](https://github.com/firebase/firebase-js-sdk/commit/ee871fc0b157e1a186c2895b4290d70c8d1b986f) [#6608](https://github.com/firebase/firebase-js-sdk/pull/6608) - Added `getCountFromServer()` (`getCount()` in the Lite SDK), which fetches the number of documents in the result set without actually downloading the documents.
+
+### Patch Changes
+
+- [`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4) [#6526](https://github.com/firebase/firebase-js-sdk/pull/6526) - Add functionality to auto-initialize project config and emulator settings from global defaults provided by framework tooling.
+
+* [`c6ba6fc0f`](https://github.com/firebase/firebase-js-sdk/commit/c6ba6fc0f44178d56fe165f71a798663516a2904) [#6619](https://github.com/firebase/firebase-js-sdk/pull/6619) - Fix a time travel issue across multiple tabs
+
+* Updated dependencies [[`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4)]:
+  - @firebase/util@1.7.0
+  - @firebase/component@0.5.18
+
+## 3.5.0
+
+### Minor Changes
+
+- [`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db) [#6107](https://github.com/firebase/firebase-js-sdk/pull/6107) - Enable encodeInitMessageHeaders. This transitions the Firestore client from encoding HTTP Headers via the Query Param to the request's POST payload.
+
+  Requires Cloud Firestore Emulator v1.14.4 or newer.
+
+### Patch Changes
+
+- Updated dependencies [[`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db)]:
+  - @firebase/webchannel-wrapper@0.7.0
+
+## 3.4.15
+
+### Patch Changes
+
+- [`b993aeec4`](https://github.com/firebase/firebase-js-sdk/commit/b993aeec4a8f5188d1f53d07808da079f3ade846) [#6550](https://github.com/firebase/firebase-js-sdk/pull/6550) (fixes [#5871](https://github.com/firebase/firebase-js-sdk/issues/5871)) - Fix FAILED_PRECONDITION when writing to a deleted document in a transaction (#5871)
+
+## 3.4.14
+
+### Patch Changes
+
+- [`f5426a512`](https://github.com/firebase/firebase-js-sdk/commit/f5426a51275bb611a5d9a6df3200d0fe5095afa2) [#6403](https://github.com/firebase/firebase-js-sdk/pull/6403) - Add internal implementation of setIndexConfiguration
+
+* [`10765511f`](https://github.com/firebase/firebase-js-sdk/commit/10765511f7ba33293f7a15af1f98d69a261c019d) [#6496](https://github.com/firebase/firebase-js-sdk/pull/6496) - Expose client side indexing feature with `setIndexConfiguration`.
+
+## 3.4.13
+
+### Patch Changes
+
+- [`1703bb31a`](https://github.com/firebase/firebase-js-sdk/commit/1703bb31afa806087167079641af79c9293ab423) [#6442](https://github.com/firebase/firebase-js-sdk/pull/6442) (fixes [#6438](https://github.com/firebase/firebase-js-sdk/issues/6438)) - Update `@grpc/proto-loader` and `firebase-admin` dependencies to address `protobufjs` security issue.
+
+## 3.4.12
+
+### Patch Changes
+
+- [`ad773fa45`](https://github.com/firebase/firebase-js-sdk/commit/ad773fa451b13f9d58b3f27f7ec6570117b0cc27) [#6418](https://github.com/firebase/firebase-js-sdk/pull/6418) (fixes [#6414](https://github.com/firebase/firebase-js-sdk/issues/6414)) - Fix Node ESM export paths for firestore/lite.
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf)]:
+  - @firebase/util@1.6.3
+  - @firebase/component@0.5.17
+
+## 3.4.11
+
+### Patch Changes
+
+- Updated dependencies [[`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0)]:
+  - @firebase/util@1.6.2
+  - @firebase/component@0.5.16
+
+## 3.4.10
+
+### Patch Changes
+
+- [`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5) [#6307](https://github.com/firebase/firebase-js-sdk/pull/6307) (fixes [#6300](https://github.com/firebase/firebase-js-sdk/issues/6300)) - fix: add type declarations to exports field
+
+* [`d4b52b612`](https://github.com/firebase/firebase-js-sdk/commit/d4b52b612cf73610c57a3c08a0415ab7b622a70a) [#6321](https://github.com/firebase/firebase-js-sdk/pull/6321) - Fix incorrect paths in package.json
+
+* Updated dependencies [[`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5)]:
+  - @firebase/component@0.5.15
+  - @firebase/logger@0.3.3
+  - @firebase/util@1.6.1
+  - @firebase/webchannel-wrapper@0.6.2
+
+## 3.4.9
+
+### Patch Changes
+
+- [`dfab18af6`](https://github.com/firebase/firebase-js-sdk/commit/dfab18af66beeed14b2524f926af5bda506856a6) [#6189](https://github.com/firebase/firebase-js-sdk/pull/6189) - Add `TransactionOptions` param to `runTransaction` method
+
+- Updated dependencies [[`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801)]:
+  - @firebase/util@1.6.0
+  - @firebase/component@0.5.14
+
+## 3.4.8
+
+### Patch Changes
+
+- [`05dc9d6a0`](https://github.com/firebase/firebase-js-sdk/commit/05dc9d6a0db3058611dd7a2dc34daa726f9ba20d) [#6128](https://github.com/firebase/firebase-js-sdk/pull/6128) (fixes [#6110](https://github.com/firebase/firebase-js-sdk/issues/6110)) - Fixes an issue during multi-document lookup that resulted in the IndexedDB error "The parameter is less than or equal to this cursor's".
+
+- Updated dependencies [[`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59)]:
+  - @firebase/util@1.5.2
+  - @firebase/component@0.5.13
+
+## 3.4.7
+
+### Patch Changes
+
+- [`69aa7b02d`](https://github.com/firebase/firebase-js-sdk/commit/69aa7b02df3b4d1f9832b7713951936b6bf32ca9) [#5988](https://github.com/firebase/firebase-js-sdk/pull/5988) - The format of some of the IndexedDB data changed. This increases the performance of document lookups after an initial migration. If you do not want to migrate data, you can call `clearIndexedDbPersistence()` before invoking `enableIndexedDbPersistence()`.
+
+- Updated dependencies [[`3198d58dc`](https://github.com/firebase/firebase-js-sdk/commit/3198d58dcedbf7583914dbcc76984f6f7df8d2ef)]:
+  - @firebase/util@1.5.1
+  - @firebase/component@0.5.12
+
+## 3.4.6
+
+### Patch Changes
+
+- Updated dependencies [[`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03)]:
+  - @firebase/util@1.5.0
+  - @firebase/component@0.5.11
+
+## 3.4.5
+
+### Patch Changes
+
+- [`bb8f37c3e`](https://github.com/firebase/firebase-js-sdk/commit/bb8f37c3e83e73876d14fa751cb04ae5e1367394) [#5993](https://github.com/firebase/firebase-js-sdk/pull/5993) - Fixed a bug that caused Firestore streams to get restarted with the same App Check token.
+
+* [`f5ac47fb1`](https://github.com/firebase/firebase-js-sdk/commit/f5ac47fb1a44f7b985fcae1d934e1ffb6ba41d67) [#5982](https://github.com/firebase/firebase-js-sdk/pull/5982) - On browsers that support IndexedDB V3, we now invoke `transaction.commit()` to speed up data processing.
+
+- [`c1b9cf120`](https://github.com/firebase/firebase-js-sdk/commit/c1b9cf1201807fc177a89c9613c06130524563e4) [#5985](https://github.com/firebase/firebase-js-sdk/pull/5985) - Some database operations now use `IndexedDB.getAll()` on browsers where support is availbe.
+
+* [`e9619685b`](https://github.com/firebase/firebase-js-sdk/commit/e9619685b9153f7d6f8767e09e2e1eacc337df76) [#5980](https://github.com/firebase/firebase-js-sdk/pull/5980) - Queries are now send to the backend before the SDK starts local processing, which reduces overall Query latency.
+
+## 3.4.4
+
+### Patch Changes
+
+- [`e28b0e413`](https://github.com/firebase/firebase-js-sdk/commit/e28b0e413decb115c846a7b5ed1e63dbf55c56ab) [#5902](https://github.com/firebase/firebase-js-sdk/pull/5902) (fixes [#5842](https://github.com/firebase/firebase-js-sdk/issues/5842)) - Fixed an AppCheck issue that caused Firestore listeners to stop working and
+  receive a "Permission Denied" error. This issue only occurred for AppCheck users
+  that set their expiration time to under an hour.
+
+* [`d612d6f6e`](https://github.com/firebase/firebase-js-sdk/commit/d612d6f6e4d3113d45427b7df68459c0a3e31a1f) [#5928](https://github.com/firebase/firebase-js-sdk/pull/5928) - Upgrade `node-fetch` dependency due to a security issue.
+
 ## 3.4.3
 
 ### Patch Changes

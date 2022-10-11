@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DB, openDb } from 'idb';
+import { DBSchema, IDBPDatabase, openDB } from 'idb';
 import { AppConfig } from '../interfaces/installation-impl';
 import { InstallationEntry } from '../interfaces/installation-entry';
 import { getKey } from '../util/get-key';
@@ -25,18 +25,27 @@ const DATABASE_NAME = 'firebase-installations-database';
 const DATABASE_VERSION = 1;
 const OBJECT_STORE_NAME = 'firebase-installations-store';
 
-let dbPromise: Promise<DB> | null = null;
-function getDbPromise(): Promise<DB> {
+interface InstallationsDB extends DBSchema {
+  'firebase-installations-store': {
+    key: string;
+    value: InstallationEntry | undefined;
+  };
+}
+
+let dbPromise: Promise<IDBPDatabase<InstallationsDB>> | null = null;
+function getDbPromise(): Promise<IDBPDatabase<InstallationsDB>> {
   if (!dbPromise) {
-    dbPromise = openDb(DATABASE_NAME, DATABASE_VERSION, upgradeDB => {
-      // We don't use 'break' in this switch statement, the fall-through
-      // behavior is what we want, because if there are multiple versions between
-      // the old version and the current version, we want ALL the migrations
-      // that correspond to those versions to run, not only the last one.
-      // eslint-disable-next-line default-case
-      switch (upgradeDB.oldVersion) {
-        case 0:
-          upgradeDB.createObjectStore(OBJECT_STORE_NAME);
+    dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
+      upgrade: (db, oldVersion) => {
+        // We don't use 'break' in this switch statement, the fall-through
+        // behavior is what we want, because if there are multiple versions between
+        // the old version and the current version, we want ALL the migrations
+        // that correspond to those versions to run, not only the last one.
+        // eslint-disable-next-line default-case
+        switch (oldVersion) {
+          case 0:
+            db.createObjectStore(OBJECT_STORE_NAME);
+        }
       }
     });
   }
@@ -52,7 +61,7 @@ export async function get(
   return db
     .transaction(OBJECT_STORE_NAME)
     .objectStore(OBJECT_STORE_NAME)
-    .get(key);
+    .get(key) as Promise<InstallationEntry>;
 }
 
 /** Assigns or overwrites the record for the given key with the given value. */
@@ -64,9 +73,9 @@ export async function set<ValueType extends InstallationEntry>(
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   const objectStore = tx.objectStore(OBJECT_STORE_NAME);
-  const oldValue = await objectStore.get(key);
+  const oldValue = (await objectStore.get(key)) as InstallationEntry;
   await objectStore.put(value, key);
-  await tx.complete;
+  await tx.done;
 
   if (!oldValue || oldValue.fid !== value.fid) {
     fidChanged(appConfig, value.fid);
@@ -81,7 +90,7 @@ export async function remove(appConfig: AppConfig): Promise<void> {
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).delete(key);
-  await tx.complete;
+  await tx.done;
 }
 
 /**
@@ -98,7 +107,9 @@ export async function update<ValueType extends InstallationEntry | undefined>(
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   const store = tx.objectStore(OBJECT_STORE_NAME);
-  const oldValue: InstallationEntry | undefined = await store.get(key);
+  const oldValue: InstallationEntry | undefined = (await store.get(
+    key
+  )) as InstallationEntry;
   const newValue = updateFn(oldValue);
 
   if (newValue === undefined) {
@@ -106,7 +117,7 @@ export async function update<ValueType extends InstallationEntry | undefined>(
   } else {
     await store.put(newValue, key);
   }
-  await tx.complete;
+  await tx.done;
 
   if (newValue && (!oldValue || oldValue.fid !== newValue.fid)) {
     fidChanged(appConfig, newValue.fid);
@@ -119,5 +130,5 @@ export async function clear(): Promise<void> {
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).clear();
-  await tx.complete;
+  await tx.done;
 }

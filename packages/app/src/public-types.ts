@@ -16,7 +16,11 @@
  */
 
 import { ComponentContainer } from '@firebase/component';
-import { PlatformLoggerService, VersionService } from './types';
+import {
+  PlatformLoggerService,
+  VersionService,
+  HeartbeatService
+} from './types';
 
 /**
  * A {@link @firebase/app#FirebaseApp} holds the initialization information for a collection of
@@ -103,7 +107,7 @@ export interface FirebaseOptions {
   storageBucket?: string;
   /**
    * Unique numerical value used to identify each sender that can send
-   * Firebse Cloud Messaging messages to client apps.
+   * Firebase Cloud Messaging messages to client apps.
    */
   messagingSenderId?: string;
   /**
@@ -162,6 +166,7 @@ declare module '@firebase/component' {
   interface NameServiceMapping {
     'app': FirebaseApp;
     'app-version': VersionService;
+    'heartbeat': HeartbeatService;
     'platform-logger': PlatformLoggerService;
   }
 }

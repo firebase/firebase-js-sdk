@@ -2613,8 +2613,7 @@ declare namespace firebase.auth {
      * Returns a UserCredential from the redirect-based sign-in flow.
      *
      * If sign-in succeeded, returns the signed in user. If sign-in was
-     * unsuccessful, fails with an error. If no redirect operation was called,
-     * returns a UserCredential with a null User.
+     * unsuccessful, fails with an error. If no redirect operation was called, returns `null`.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -4003,8 +4002,8 @@ declare namespace firebase.auth {
     /**
      * @example
      * ```javascript
-     * var cred = firebase.auth.FacebookAuthProvider.credential(
-     *     // `event` from the Facebook auth.authResponseChange callback.
+     * var cred = firebase.auth.GithubAuthProvider.credential(
+     *     // `event` from the Github auth.authResponseChange callback.
      *     event.authResponse.accessToken
      * );
      * ```
@@ -5215,6 +5214,9 @@ declare namespace firebase.analytics {
 
     /**
      * Use gtag 'config' command to set 'screen_name'.
+     *
+     * @deprecated Use {@link logEvent} with `eventName` as 'screen_view' and add relevant `eventParams`.
+     * See {@link https://firebase.google.com/docs/analytics/screenviews | Track Screenviews}.
      */
     setCurrentScreen(
       screenName: string,
@@ -6018,6 +6020,20 @@ declare namespace firebase.database {
      * ```
      */
     app: firebase.app.App;
+    /**
+     * Additional methods for debugging and special cases.
+     *
+     */
+    INTERNAL: {
+      /**
+       * Force the use of WebSockets instead of long polling.
+       */
+      forceWebSockets: () => void;
+      /**
+       * Force the use of long polling instead of WebSockets. This will be ignored if the WebSocket protocol is used in `databaseURL`.
+       */
+      forceLongPolling: () => void;
+    };
     /**
      * Modify this instance to communicate with the Realtime Database emulator.
      *
@@ -7082,7 +7098,7 @@ declare namespace firebase.database {
      *   complete.
      * @return Resolves when remove on server is complete.
      */
-    remove(onComplete?: (a: Error | null) => any): Promise<any>;
+    remove(onComplete?: (a: Error | null) => void): Promise<void>;
     /**
      * The root `Reference` of the Database.
      *
@@ -7160,7 +7176,7 @@ declare namespace firebase.database {
      *   complete.
      * @return Resolves when write to server is complete.
      */
-    set(value: any, onComplete?: (a: Error | null) => any): Promise<any>;
+    set(value: any, onComplete?: (a: Error | null) => void): Promise<void>;
     /**
      * Sets a priority for the data at this Database location.
      *
@@ -7172,8 +7188,8 @@ declare namespace firebase.database {
      */
     setPriority(
       priority: string | number | null,
-      onComplete: (a: Error | null) => any
-    ): Promise<any>;
+      onComplete: (a: Error | null) => void
+    ): Promise<void>;
     /**
      * Writes data the Database location. Like `set()` but also specifies the
      * priority for that data.
@@ -7187,8 +7203,8 @@ declare namespace firebase.database {
     setWithPriority(
       newVal: any,
       newPriority: string | number | null,
-      onComplete?: (a: Error | null) => any
-    ): Promise<any>;
+      onComplete?: (a: Error | null) => void
+    ): Promise<void>;
     /**
      * Atomically modifies the data at this location.
      *
@@ -7280,9 +7296,9 @@ declare namespace firebase.database {
         a: Error | null,
         b: boolean,
         c: firebase.database.DataSnapshot | null
-      ) => any,
+      ) => void,
       applyLocally?: boolean
-    ): Promise<any>;
+    ): Promise<TransactionResult>;
     /**
      * Writes multiple values to the Database at once.
      *
@@ -7329,7 +7345,21 @@ declare namespace firebase.database {
      *   complete.
      * @return Resolves when update on server is complete.
      */
-    update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
+    update(
+      values: Object,
+      onComplete?: (a: Error | null) => void
+    ): Promise<void>;
+  }
+
+  interface TransactionResult {
+    /**
+     * Whether the transaction was successfully committed.
+     */
+    committed: boolean;
+    /**
+     * The resulting data snapshot.
+     */
+    snapshot: DataSnapshot;
   }
 
   interface ThenableReference

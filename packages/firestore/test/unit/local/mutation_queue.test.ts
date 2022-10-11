@@ -71,7 +71,10 @@ function genericMutationQueueTests(): void {
   beforeEach(() => {
     mutationQueue = new TestMutationQueue(
       persistence,
-      persistence.getMutationQueue(new User('user'))
+      persistence.getMutationQueue(
+        new User('user'),
+        persistence.getIndexManager(new User('user'))
+      )
     );
   });
 

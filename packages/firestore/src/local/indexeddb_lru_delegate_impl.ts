@@ -16,6 +16,7 @@
  */
 
 import { ListenSequence } from '../core/listen_sequence';
+import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 
@@ -27,6 +28,7 @@ import {
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
 import { mutationQueuesContainKey } from './indexeddb_mutation_queue';
 import { DbTargetDocument } from './indexeddb_schema';
+import { DbTargetDocumentDocumentTargetsIndex } from './indexeddb_sentinels';
 import {
   documentTargetStore,
   IndexedDbTargetCache
@@ -153,7 +155,7 @@ export class IndexedDbLruDelegateImpl implements IndexedDbLruDelegate {
               // Our size accounting requires us to read all documents before
               // removing them.
               return changeBuffer.getEntry(txn, docKey).next(() => {
-                changeBuffer.removeEntry(docKey);
+                changeBuffer.removeEntry(docKey, SnapshotVersion.min());
                 return documentTargetStore(txn).delete(sentinelKey(docKey));
               });
             }
@@ -200,7 +202,7 @@ export class IndexedDbLruDelegateImpl implements IndexedDbLruDelegate {
     return store
       .iterate(
         {
-          index: DbTargetDocument.documentTargetsIndex
+          index: DbTargetDocumentDocumentTargetsIndex
         },
         ([targetId, docKey], { path, sequenceNumber }) => {
           if (targetId === 0) {
@@ -249,7 +251,7 @@ function sentinelRow(
   key: DocumentKey,
   sequenceNumber: ListenSequenceNumber
 ): DbTargetDocument {
-  return new DbTargetDocument(0, encodeResourcePath(key.path), sequenceNumber);
+  return { targetId: 0, path: encodeResourcePath(key.path), sequenceNumber };
 }
 
 function writeSentinelKey(

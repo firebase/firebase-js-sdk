@@ -113,6 +113,26 @@ database. When prompted to select the set of initial security rules, select
 any option (e.g. "Start in Production Mode") since these permission settings
 will be overwritten below.
 
+#### Storage Setup
+
+Visit the "Storage" section of the console and create a storage bucket. In 
+order to run the tests, you will need to update your bucket's CORS rules.
+
+1. Create a new file called `cors.json` with the contents:
+```json
+[
+    {
+        "origin": ["http://localhost:8089"],
+        "method": ["GET"],
+        "maxAgeSeconds": 3600
+    }
+]
+```
+2. Install `gsutil` from https://cloud.google.com/storage/docs/gsutil_install
+3. Run `gsutil cors set cors.json gs://<your-cloud-storage-bucket>`
+
+For more information, visit https://firebase.google.com/docs/storage/web/download-files#cors_configuration
+
 #### Authentication Support
 
 Visit the authentication config in your project and enable the `Anonymous`
@@ -126,7 +146,8 @@ command, as follows:
 
 
 ```bash
-# Select the Firebase project via the text-based UI.
+# Select the Firebase project via the text-based UI. This will run tools/config.js
+# and deploy from config/ to your Firebase project.
 $ yarn test:setup
 
 # Specify the Firebase project via the command-line arguments.
@@ -167,6 +188,20 @@ Each package in the `packages` directory, constitute a piece of our
 implementation. The SDK is built via a combination of all of these packages
 which are published under the [`firebase`
 scope](https://www.npmjs.com/search?q=scope%3Afirebase) on NPM.
+
+### Testing the SDK Locally
+
+Please be sure to build your repo before proceeding any further.
+In order to manually test your SDK changes locally, you must use [yarn link](https://classic.yarnpkg.com/en/docs/cli/link):
+
+```shell
+$ cd packages/firebase
+$ yarn link # initialize the linking to the other folder
+$ cd ../<my-test-app-dir> # cd into your personal project directory
+$ yarn link firebase # tell yarn to use the locally built firebase SDK instead
+```
+
+This will create a symlink and point your `<my-test-app-dir>` to the locally built version of the firebase SDK.
 
 ### Helper Scripts
 

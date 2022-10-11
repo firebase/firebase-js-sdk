@@ -39,13 +39,13 @@ import { parseRepoInfo } from '../core/util/libs/parser';
 import { nextPushId } from '../core/util/NextPushId';
 import {
   Path,
-  pathChild,
   pathEquals,
   pathGetBack,
   pathGetFront,
-  pathIsEmpty,
+  pathChild,
   pathParent,
-  pathToUrlEncodedString
+  pathToUrlEncodedString,
+  pathIsEmpty
 } from '../core/util/Path';
 import {
   fatal,
@@ -246,7 +246,6 @@ function validateLimit(params: QueryParams) {
     );
   }
 }
-
 /**
  * @internal
  */
@@ -463,6 +462,7 @@ export class DataSnapshot {
     return this._node.val();
   }
 }
+
 /**
  *
  * Returns a `Reference` representing the location in the Database
@@ -523,7 +523,6 @@ export function refFromURL(db: Database, url: string): DatabaseReference {
 
   return ref(db, parsedURL.path.toString());
 }
-
 /**
  * Gets a `Reference` for the location at the specified relative path.
  *
@@ -579,8 +578,8 @@ export interface ThenableReferenceImpl
  * resulting list of items is chronologically sorted. The keys are also
  * designed to be unguessable (they contain 72 random bits of entropy).
  *
- * See {@link https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data | Append to a list of data}
- * </br>See {@link ttps://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html | The 2^120 Ways to Ensure Unique Identifiers}
+ * See {@link https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data | Append to a list of data}.
+ * See {@link https://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html | The 2^120 Ways to Ensure Unique Identifiers}.
  *
  * @param parent - The parent location.
  * @param value - Optional value to be written at the generated location.
@@ -809,7 +808,9 @@ export function update(ref: DatabaseReference, values: object): Promise<void> {
  */
 export function get(query: Query): Promise<DataSnapshot> {
   query = getModularInstance(query) as QueryImpl;
-  return repoGetValue(query._repo, query).then(node => {
+  const callbackContext = new CallbackContext(() => {});
+  const container = new ValueEventRegistration(callbackContext);
+  return repoGetValue(query._repo, query, container).then(node => {
     return new DataSnapshot(
       node,
       new ReferenceImpl(query._repo, query._path),
@@ -817,7 +818,6 @@ export function get(query: Query): Promise<DataSnapshot> {
     );
   });
 }
-
 /**
  * Represents registration for 'value' events.
  */
@@ -1600,12 +1600,11 @@ export function onChildRemoved(
 export { EventType };
 
 /**
- * Detaches a callback previously attached with `on()`.
+ * Detaches a callback previously attached with the corresponding `on*()` (`onValue`, `onChildAdded`) listener.
+ * Note: This is not the recommended way to remove a listener. Instead, please use the returned callback function from
+ * the respective `on*` callbacks.
  *
- * Detach a callback previously attached with `on()`. Note that if `on()` was
- * called multiple times with the same eventType and callback, the callback
- * will be called multiple times for each event, and `off()` must be called
- * multiple times to remove the callback. Calling `off()` on a parent listener
+ * Detach a callback previously attached with `on*()`. Calling `off()` on a parent listener
  * will not automatically remove listeners registered on child nodes, `off()`
  * must also be called on any child listeners to remove the callback.
  *
@@ -1783,8 +1782,8 @@ class QueryEndBeforeConstraint extends QueryConstraint {
  *
  * The ending point is exclusive. If only a value is provided, children
  * with a value less than the specified value will be included in the query.
- * If a key is specified, then children must have a value lesss than or equal
- * to the specified value and a a key name less than the specified key.
+ * If a key is specified, then children must have a value less than or equal
+ * to the specified value and a key name less than the specified key.
  *
  * @param value - The value to end before. The argument type depends on which
  * `orderBy*()` function was used in this query. Specify a value that matches

@@ -18,6 +18,35 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 };
 
 // @public
+export class AggregateField<T> {
+    type: string;
+}
+
+// @public
+export type AggregateFieldType = AggregateField<number>;
+
+// @public
+export class AggregateQuerySnapshot<T extends AggregateSpec> {
+    data(): AggregateSpecData<T>;
+    readonly query: Query<unknown>;
+    readonly type = "AggregateQuerySnapshot";
+}
+
+// @public
+export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(left: AggregateQuerySnapshot<T>, right: AggregateQuerySnapshot<T>): boolean;
+
+// @public
+export interface AggregateSpec {
+    // (undocumented)
+    [field: string]: AggregateFieldType;
+}
+
+// @public
+export type AggregateSpecData<T extends AggregateSpec> = {
+    [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
+};
+
+// @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
 
 // @public
@@ -210,6 +239,11 @@ export class GeoPoint {
 }
 
 // @public
+export function getCountFromServer(query: Query<unknown>): Promise<AggregateQuerySnapshot<{
+    count: AggregateField<number>;
+}>>;
+
+// @public
 export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
 // @public
@@ -228,13 +262,40 @@ export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 export function getDocsFromServer<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // @public
-export function getFirestore(app?: FirebaseApp): Firestore;
+export function getFirestore(app: FirebaseApp): Firestore;
+
+// @public
+export function getFirestore(): Firestore;
 
 // @public
 export function increment(n: number): FieldValue;
 
+// @beta
+export interface Index {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly collectionGroup: string;
+    readonly fields?: IndexField[];
+}
+
+// @beta
+export interface IndexConfiguration {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly indexes?: Index[];
+}
+
+// @beta
+export interface IndexField {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly arrayConfig?: 'CONTAINS';
+    readonly fieldPath: string;
+    readonly order?: 'ASCENDING' | 'DESCENDING';
+}
+
 // @public
-export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings): Firestore;
+export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings, databaseId?: string): Firestore;
 
 // @public
 export function limit(limit: number): QueryConstraint;
@@ -385,7 +446,7 @@ export class QuerySnapshot<T = DocumentData> {
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
 // @public
-export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
+export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
 
 // @public
 export function serverTimestamp(): FieldValue;
@@ -395,6 +456,12 @@ export function setDoc<T>(reference: DocumentReference<T>, data: WithFieldValue<
 
 // @public
 export function setDoc<T>(reference: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): Promise<void>;
+
+// @beta
+export function setIndexConfiguration(firestore: Firestore, configuration: IndexConfiguration): Promise<void>;
+
+// @beta
+export function setIndexConfiguration(firestore: Firestore, json: string): Promise<void>;
 
 // @public
 export function setLogLevel(logLevel: LogLevel): void;
@@ -473,6 +540,11 @@ export class Transaction {
     set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): this;
     update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
+}
+
+// @public
+export interface TransactionOptions {
+    readonly maxAttempts?: number;
 }
 
 // @public

@@ -42,6 +42,7 @@ export interface UserParameters {
   isAnonymous?: boolean | null;
   emailVerified?: boolean | null;
   tenantId?: string | null;
+  providerData?: MutableUserInfo[] | null;
 
   createdAt?: string | null;
   lastLoginAt?: string | null;
@@ -89,6 +90,9 @@ export interface UserInternal extends User {
   toJSON(): PersistedBlob;
 }
 
+/**
+ * @internal
+ */
 export interface UserCredentialInternal
   extends UserCredential,
     TaggedWithTokenResponse {

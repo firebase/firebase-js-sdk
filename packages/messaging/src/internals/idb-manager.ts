@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DB, deleteDb, openDb } from 'idb';
+import { DBSchema, IDBPDatabase, deleteDB, openDB } from 'idb';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { TokenDetails } from '../interfaces/token-details';
@@ -26,17 +26,26 @@ export const DATABASE_NAME = 'firebase-messaging-database';
 const DATABASE_VERSION = 1;
 const OBJECT_STORE_NAME = 'firebase-messaging-store';
 
-let dbPromise: Promise<DB> | null = null;
-function getDbPromise(): Promise<DB> {
+interface MessagingDB extends DBSchema {
+  'firebase-messaging-store': {
+    key: string;
+    value: TokenDetails;
+  };
+}
+
+let dbPromise: Promise<IDBPDatabase<MessagingDB>> | null = null;
+function getDbPromise(): Promise<IDBPDatabase<MessagingDB>> {
   if (!dbPromise) {
-    dbPromise = openDb(DATABASE_NAME, DATABASE_VERSION, upgradeDb => {
-      // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
-      // because if there are multiple versions between the old version and the current version, we
-      // want ALL the migrations that correspond to those versions to run, not only the last one.
-      // eslint-disable-next-line default-case
-      switch (upgradeDb.oldVersion) {
-        case 0:
-          upgradeDb.createObjectStore(OBJECT_STORE_NAME);
+    dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
+      upgrade: (upgradeDb, oldVersion) => {
+        // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
+        // because if there are multiple versions between the old version and the current version, we
+        // want ALL the migrations that correspond to those versions to run, not only the last one.
+        // eslint-disable-next-line default-case
+        switch (oldVersion) {
+          case 0:
+            upgradeDb.createObjectStore(OBJECT_STORE_NAME);
+        }
       }
     });
   }
@@ -49,10 +58,10 @@ export async function dbGet(
 ): Promise<TokenDetails | undefined> {
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
-  const tokenDetails = await db
+  const tokenDetails = (await db
     .transaction(OBJECT_STORE_NAME)
     .objectStore(OBJECT_STORE_NAME)
-    .get(key);
+    .get(key)) as TokenDetails;
 
   if (tokenDetails) {
     return tokenDetails;
@@ -77,7 +86,7 @@ export async function dbSet(
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).put(tokenDetails, key);
-  await tx.complete;
+  await tx.done;
   return tokenDetails;
 }
 
@@ -89,14 +98,14 @@ export async function dbRemove(
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).delete(key);
-  await tx.complete;
+  await tx.done;
 }
 
 /** Deletes the DB. Useful for tests. */
 export async function dbDelete(): Promise<void> {
   if (dbPromise) {
     (await dbPromise).close();
-    await deleteDb(DATABASE_NAME);
+    await deleteDB(DATABASE_NAME);
     dbPromise = null;
   }
 }

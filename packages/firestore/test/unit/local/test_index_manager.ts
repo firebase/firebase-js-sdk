@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
-import { IndexManager } from '../../../src/local/index_manager';
+import { Target } from '../../../src/core/target';
+import { IndexManager, IndexType } from '../../../src/local/index_manager';
 import { Persistence } from '../../../src/local/persistence';
+import { DocumentMap } from '../../../src/model/collections';
+import { DocumentKey } from '../../../src/model/document_key';
+import { FieldIndex, IndexOffset } from '../../../src/model/field_index';
 import { ResourcePath } from '../../../src/model/path';
 
 /**
@@ -33,12 +37,7 @@ export class TestIndexManager {
     return this.persistence.runTransaction(
       'addToCollectionParentIndex',
       'readwrite',
-      txn => {
-        return this.indexManager.addToCollectionParentIndex(
-          txn,
-          collectionPath
-        );
-      }
+      txn => this.indexManager.addToCollectionParentIndex(txn, collectionPath)
     );
   }
 
@@ -46,9 +45,71 @@ export class TestIndexManager {
     return this.persistence.runTransaction(
       'getCollectionParents',
       'readonly',
-      txn => {
-        return this.indexManager.getCollectionParents(txn, collectionId);
-      }
+      txn => this.indexManager.getCollectionParents(txn, collectionId)
+    );
+  }
+
+  addFieldIndex(index: FieldIndex): Promise<void> {
+    return this.persistence.runTransaction('addFieldIndex', 'readwrite', txn =>
+      this.indexManager.addFieldIndex(txn, index)
+    );
+  }
+
+  deleteFieldIndex(index: FieldIndex): Promise<void> {
+    return this.persistence.runTransaction(
+      'deleteFieldIndex',
+      'readwrite',
+      txn => this.indexManager.deleteFieldIndex(txn, index)
+    );
+  }
+
+  getFieldIndexes(collectionGroup?: string): Promise<FieldIndex[]> {
+    return this.persistence.runTransaction('getFieldIndexes', 'readonly', txn =>
+      collectionGroup
+        ? this.indexManager.getFieldIndexes(txn, collectionGroup)
+        : this.indexManager.getFieldIndexes(txn)
+    );
+  }
+
+  getIndexType(target: Target): Promise<IndexType> {
+    return this.persistence.runTransaction('getIndexType', 'readonly', txn =>
+      this.indexManager.getIndexType(txn, target)
+    );
+  }
+
+  getDocumentsMatchingTarget(target: Target): Promise<DocumentKey[] | null> {
+    return this.persistence.runTransaction(
+      'getDocumentsMatchingTarget',
+      'readonly',
+      txn => this.indexManager.getDocumentsMatchingTarget(txn, target)
+    );
+  }
+
+  getNextCollectionGroupToUpdate(): Promise<string | null> {
+    return this.persistence.runTransaction(
+      'getNextCollectionGroupToUpdate',
+      'readonly',
+      txn => this.indexManager.getNextCollectionGroupToUpdate(txn)
+    );
+  }
+
+  updateCollectionGroup(
+    collectionGroup: string,
+    offset: IndexOffset
+  ): Promise<void> {
+    return this.persistence.runTransaction(
+      'updateCollectionGroup',
+      'readwrite-primary',
+      txn =>
+        this.indexManager.updateCollectionGroup(txn, collectionGroup, offset)
+    );
+  }
+
+  updateIndexEntries(documents: DocumentMap): Promise<void> {
+    return this.persistence.runTransaction(
+      'updateIndexEntries',
+      'readwrite-primary',
+      txn => this.indexManager.updateIndexEntries(txn, documents)
     );
   }
 }

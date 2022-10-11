@@ -29,7 +29,7 @@ import {
   Direction,
   FieldFilter,
   Filter,
-  isDocumentTarget,
+  targetIsDocumentTarget,
   Operator,
   OrderBy,
   Target
@@ -77,6 +77,7 @@ import {
   OrderDirection as ProtoOrderDirection,
   Precondition as ProtoPrecondition,
   QueryTarget as ProtoQueryTarget,
+  RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   Status as ProtoStatus,
   Target as ProtoTarget,
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
@@ -843,13 +844,33 @@ export function toQueryTarget(
   }
 
   if (target.startAt) {
-    result.structuredQuery!.startAt = toCursor(target.startAt);
+    result.structuredQuery!.startAt = toStartAtCursor(target.startAt);
   }
   if (target.endAt) {
-    result.structuredQuery!.endAt = toCursor(target.endAt);
+    result.structuredQuery!.endAt = toEndAtCursor(target.endAt);
   }
 
   return result;
+}
+
+export function toRunAggregationQueryRequest(
+  serializer: JsonProtoSerializer,
+  target: Target
+): ProtoRunAggregationQueryRequest {
+  const queryTarget = toQueryTarget(serializer, target);
+
+  return {
+    structuredAggregationQuery: {
+      aggregations: [
+        {
+          count: {},
+          alias: 'count_alias'
+        }
+      ],
+      structuredQuery: queryTarget.structuredQuery
+    },
+    parent: queryTarget.parent
+  };
 }
 
 export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
@@ -888,12 +909,12 @@ export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
 
   let startAt: Bound | null = null;
   if (query.startAt) {
-    startAt = fromCursor(query.startAt);
+    startAt = fromStartAtCursor(query.startAt);
   }
 
   let endAt: Bound | null = null;
   if (query.endAt) {
-    endAt = fromCursor(query.endAt);
+    endAt = fromEndAtCursor(query.endAt);
   }
 
   return newQuery(
@@ -949,7 +970,7 @@ export function toTarget(
   let result: ProtoTarget;
   const target = targetData.target;
 
-  if (isDocumentTarget(target)) {
+  if (targetIsDocumentTarget(target)) {
     result = { documents: toDocumentsTarget(serializer, target) };
   } else {
     result = { query: toQueryTarget(serializer, target) };
@@ -1016,17 +1037,30 @@ function fromOrder(orderBys: ProtoOrder[]): OrderBy[] {
   return orderBys.map(order => fromPropertyOrder(order));
 }
 
-function toCursor(cursor: Bound): ProtoCursor {
+function toStartAtCursor(cursor: Bound): ProtoCursor {
   return {
-    before: cursor.before,
+    before: cursor.inclusive,
     values: cursor.position
   };
 }
 
-function fromCursor(cursor: ProtoCursor): Bound {
-  const before = !!cursor.before;
+function toEndAtCursor(cursor: Bound): ProtoCursor {
+  return {
+    before: !cursor.inclusive,
+    values: cursor.position
+  };
+}
+
+function fromStartAtCursor(cursor: ProtoCursor): Bound {
+  const inclusive = !!cursor.before;
   const position = cursor.values || [];
-  return new Bound(position, before);
+  return new Bound(position, inclusive);
+}
+
+function fromEndAtCursor(cursor: ProtoCursor): Bound {
+  const inclusive = !cursor.before;
+  const position = cursor.values || [];
+  return new Bound(position, inclusive);
 }
 
 // visible for testing

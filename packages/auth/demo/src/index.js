@@ -83,7 +83,7 @@ import {
   logAtLevel_
 } from './logging';
 
-/** 
+/**
  * Constants that are used when connecting to the Auth Emulator.
  */
 const USE_AUTH_EMULATOR = false;
@@ -1671,7 +1671,6 @@ function initApp() {
   if (USE_AUTH_EMULATOR) {
     connectAuthEmulator(auth, AUTH_EMULATOR_URL);
   }
-  
 
   tempApp = initializeApp(
     {

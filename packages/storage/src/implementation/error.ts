@@ -34,8 +34,9 @@ export class StorageError extends FirebaseError {
    * @param code - A StorageErrorCode string to be prefixed with 'storage/' and
    *  added to the end of the message.
    * @param message  - Error message.
+   * @param status_ - Corresponding HTTP Status Code
    */
-  constructor(code: StorageErrorCode, message: string) {
+  constructor(code: StorageErrorCode, message: string, private status_ = 0) {
     super(
       prependCode(code),
       `Firebase Storage: ${message} (${prependCode(code)})`
@@ -44,6 +45,14 @@ export class StorageError extends FirebaseError {
     // Without this, `instanceof StorageError`, in tests for example,
     // returns false.
     Object.setPrototypeOf(this, StorageError.prototype);
+  }
+
+  get status(): number {
+    return this.status_;
+  }
+
+  set status(status: number) {
+    this.status_ = status;
   }
 
   /**

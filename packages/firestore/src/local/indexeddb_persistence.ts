@@ -28,8 +28,10 @@ import { logDebug, logError } from '../util/log';
 import { DocumentLike, WindowLike } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
 import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
+import { IndexedDbDocumentOverlayCache } from './indexeddb_document_overlay_cache';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import { IndexedDbLruDelegateImpl } from './indexeddb_lru_delegate_impl';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
@@ -38,14 +40,18 @@ import {
   newIndexedDbRemoteDocumentCache
 } from './indexeddb_remote_document_cache';
 import {
-  ALL_STORES,
   DbClientMetadata,
-  DbClientMetadataKey,
   DbPrimaryClient,
-  DbPrimaryClientKey,
   SCHEMA_VERSION
 } from './indexeddb_schema';
 import { SchemaConverter } from './indexeddb_schema_converter';
+import {
+  DbClientMetadataKey,
+  DbClientMetadataStore,
+  DbPrimaryClientKey,
+  DbPrimaryClientStore,
+  getObjectStores
+} from './indexeddb_sentinels';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { getStore, IndexedDbTransaction } from './indexeddb_transaction';
 import { LocalSerializer } from './local_serializer';
@@ -183,7 +189,6 @@ export class IndexedDbPersistence implements Persistence {
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
   private readonly targetCache: IndexedDbTargetCache;
-  private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly bundleCache: IndexedDbBundleCache;
   private readonly webStorage: Storage | null;
@@ -209,7 +214,8 @@ export class IndexedDbPersistence implements Persistence {
      * If set to true, forcefully obtains database access. Existing tabs will
      * no longer be able to access IndexedDB.
      */
-    private readonly forceOwningTab: boolean
+    private readonly forceOwningTab: boolean,
+    private readonly schemaVersion = SCHEMA_VERSION
   ) {
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(
@@ -223,18 +229,14 @@ export class IndexedDbPersistence implements Persistence {
     this.serializer = new LocalSerializer(serializer);
     this.simpleDb = new SimpleDb(
       this.dbName,
-      SCHEMA_VERSION,
+      this.schemaVersion,
       new SchemaConverter(this.serializer)
     );
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
       this.serializer
     );
-    this.indexManager = new IndexedDbIndexManager();
-    this.remoteDocumentCache = newIndexedDbRemoteDocumentCache(
-      this.serializer,
-      this.indexManager
-    );
+    this.remoteDocumentCache = newIndexedDbRemoteDocumentCache(this.serializer);
     this.bundleCache = new IndexedDbBundleCache();
     if (this.window && this.window.localStorage) {
       this.webStorage = this.window.localStorage;
@@ -366,14 +368,12 @@ export class IndexedDbPersistence implements Persistence {
       txn => {
         const metadataStore = clientMetadataStore(txn);
         return metadataStore
-          .put(
-            new DbClientMetadata(
-              this.clientId,
-              Date.now(),
-              this.networkEnabled,
-              this.inForeground
-            )
-          )
+          .put({
+            clientId: this.clientId,
+            updateTimeMs: Date.now(),
+            networkEnabled: this.networkEnabled,
+            inForeground: this.inForeground
+          })
           .next(() => {
             if (this.isPrimary) {
               return this.verifyPrimaryLease(txn).next(success => {
@@ -431,7 +431,7 @@ export class IndexedDbPersistence implements Persistence {
     txn: PersistenceTransaction
   ): PersistencePromise<boolean> {
     const store = primaryClientStore(txn);
-    return store.get(DbPrimaryClient.key).next(primaryClient => {
+    return store.get(DbPrimaryClientKey).next(primaryClient => {
       return PersistencePromise.resolve(this.isLocalClient(primaryClient));
     });
   }
@@ -461,7 +461,7 @@ export class IndexedDbPersistence implements Persistence {
         txn => {
           const metadataStore = getStore<DbClientMetadataKey, DbClientMetadata>(
             txn,
-            DbClientMetadata.store
+            DbClientMetadataStore
           );
 
           return metadataStore.loadAll().next(existingClients => {
@@ -540,7 +540,7 @@ export class IndexedDbPersistence implements Persistence {
     }
     const store = primaryClientStore(txn);
     return store
-      .get(DbPrimaryClient.key)
+      .get(DbPrimaryClientKey)
       .next(currentPrimary => {
         const currentLeaseIsValid =
           currentPrimary !== null &&
@@ -652,7 +652,7 @@ export class IndexedDbPersistence implements Persistence {
     await this.simpleDb.runTransaction(
       'shutdown',
       'readwrite',
-      [DbPrimaryClient.store, DbClientMetadata.store],
+      [DbPrimaryClientStore, DbClientMetadataStore],
       simpleDbTxn => {
         const persistenceTransaction = new IndexedDbTransaction(
           simpleDbTxn,
@@ -708,7 +708,10 @@ export class IndexedDbPersistence implements Persistence {
     return this._started;
   }
 
-  getMutationQueue(user: User): IndexedDbMutationQueue {
+  getMutationQueue(
+    user: User,
+    indexManager: IndexManager
+  ): IndexedDbMutationQueue {
     debugAssert(
       this.started,
       'Cannot initialize MutationQueue before persistence is started.'
@@ -716,7 +719,7 @@ export class IndexedDbPersistence implements Persistence {
     return IndexedDbMutationQueue.forUser(
       user,
       this.serializer,
-      this.indexManager,
+      indexManager,
       this.referenceDelegate
     );
   }
@@ -737,12 +740,23 @@ export class IndexedDbPersistence implements Persistence {
     return this.remoteDocumentCache;
   }
 
-  getIndexManager(): IndexManager {
+  getIndexManager(user: User): IndexManager {
     debugAssert(
       this.started,
       'Cannot initialize IndexManager before persistence is started.'
     );
-    return this.indexManager;
+    return new IndexedDbIndexManager(
+      user,
+      this.serializer.remoteSerializer.databaseId
+    );
+  }
+
+  getDocumentOverlayCache(user: User): DocumentOverlayCache {
+    debugAssert(
+      this.started,
+      'Cannot initialize IndexedDbDocumentOverlayCache before persistence is started.'
+    );
+    return IndexedDbDocumentOverlayCache.forUser(this.serializer, user);
   }
 
   getBundleCache(): BundleCache {
@@ -763,13 +777,14 @@ export class IndexedDbPersistence implements Persistence {
     logDebug(LOG_TAG, 'Starting transaction:', action);
 
     const simpleDbMode = mode === 'readonly' ? 'readonly' : 'readwrite';
+    const objectStores = getObjectStores(this.schemaVersion);
 
     let persistenceTransaction: PersistenceTransaction;
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
     return this.simpleDb
-      .runTransaction(action, simpleDbMode, ALL_STORES, simpleDbTxn => {
+      .runTransaction(action, simpleDbMode, objectStores, simpleDbTxn => {
         persistenceTransaction = new IndexedDbTransaction(
           simpleDbTxn,
           this.listenSequence
@@ -833,7 +848,7 @@ export class IndexedDbPersistence implements Persistence {
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const store = primaryClientStore(txn);
-    return store.get(DbPrimaryClient.key).next(currentPrimary => {
+    return store.get(DbPrimaryClientKey).next(currentPrimary => {
       const currentLeaseIsValid =
         currentPrimary !== null &&
         this.isWithinAge(
@@ -864,12 +879,12 @@ export class IndexedDbPersistence implements Persistence {
   private acquireOrExtendPrimaryLease(
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
-    const newPrimary = new DbPrimaryClient(
-      this.clientId,
-      this.allowTabSynchronization,
-      Date.now()
-    );
-    return primaryClientStore(txn).put(DbPrimaryClient.key, newPrimary);
+    const newPrimary: DbPrimaryClient = {
+      ownerId: this.clientId,
+      allowTabSynchronization: this.allowTabSynchronization,
+      leaseTimestampMs: Date.now()
+    };
+    return primaryClientStore(txn).put(DbPrimaryClientKey, newPrimary);
   }
 
   static isAvailable(): boolean {
@@ -881,10 +896,10 @@ export class IndexedDbPersistence implements Persistence {
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const store = primaryClientStore(txn);
-    return store.get(DbPrimaryClient.key).next(primaryClient => {
+    return store.get(DbPrimaryClientKey).next(primaryClient => {
       if (this.isLocalClient(primaryClient)) {
         logDebug(LOG_TAG, 'Releasing primary lease.');
-        return store.delete(DbPrimaryClient.key);
+        return store.delete(DbPrimaryClientKey);
       } else {
         return PersistencePromise.resolve();
       }
@@ -1062,7 +1077,7 @@ function primaryClientStore(
 ): SimpleDbStore<DbPrimaryClientKey, DbPrimaryClient> {
   return getStore<DbPrimaryClientKey, DbPrimaryClient>(
     txn,
-    DbPrimaryClient.store
+    DbPrimaryClientStore
   );
 }
 
@@ -1074,7 +1089,7 @@ function clientMetadataStore(
 ): SimpleDbStore<DbClientMetadataKey, DbClientMetadata> {
   return getStore<DbClientMetadataKey, DbClientMetadata>(
     txn,
-    DbClientMetadata.store
+    DbClientMetadataStore
   );
 }
 

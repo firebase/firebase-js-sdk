@@ -123,7 +123,7 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
 
     await rc._storageCache.setLastFetchStatus('success');
   } catch (e) {
-    const lastFetchStatus = hasErrorCode(e, ErrorCode.FETCH_THROTTLE)
+    const lastFetchStatus = hasErrorCode(e as Error, ErrorCode.FETCH_THROTTLE)
       ? 'throttle'
       : 'failure';
     await rc._storageCache.setLastFetchStatus(lastFetchStatus);

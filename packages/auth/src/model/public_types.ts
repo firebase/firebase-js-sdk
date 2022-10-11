@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { FirebaseApp } from '@firebase/app';
 import {
   CompleteFn,
@@ -101,9 +103,10 @@ export interface ParsedToken {
   'firebase'?: {
     'sign_in_provider'?: string;
     'sign_in_second_factor'?: string;
+    'identities'?: Record<string, string>;
   };
   /** Map of any additional custom claims. */
-  [key: string]: string | object | undefined;
+  [key: string]: any;
 }
 
 /**
@@ -270,13 +273,28 @@ export interface Auth {
    * To keep the old behavior, see {@link Auth.onIdTokenChanged}.
    *
    * @param nextOrObserver - callback triggered on change.
-   * @param error - callback triggered on error.
-   * @param completed - callback triggered when observer is removed.
+   * @param error - Deprecated. This callback is never triggered. Errors
+   * on signing in/out can be caught in promises returned from
+   * sign-in/sign-out functions.
+   * @param completed - Deprecated. This callback is never triggered.
    */
   onAuthStateChanged(
     nextOrObserver: NextOrObserver<User | null>,
     error?: ErrorFn,
     completed?: CompleteFn
+  ): Unsubscribe;
+  /**
+   * Adds a blocking callback that runs before an auth state change
+   * sets a new user.
+   *
+   * @param callback - callback triggered before new user value is set.
+   *   If this throws, it blocks the user from being set.
+   * @param onAbort - callback triggered if a later `beforeAuthStateChanged()`
+   *   callback throws, allowing you to undo any side effects.
+   */
+  beforeAuthStateChanged(
+    callback: (user: User | null) => void | Promise<void>,
+    onAbort?: () => void
   ): Unsubscribe;
   /**
    * Adds an observer for changes to the signed-in user's ID token.
@@ -285,8 +303,10 @@ export interface Auth {
    * This includes sign-in, sign-out, and token refresh events.
    *
    * @param nextOrObserver - callback triggered on change.
-   * @param error - callback triggered on error.
-   * @param completed - callback triggered when observer is removed.
+   * @param error - Deprecated. This callback is never triggered. Errors
+   * on signing in/out can be caught in promises returned from
+   * sign-in/sign-out functions.
+   * @param completed - Deprecated. This callback is never triggered.
    */
   onIdTokenChanged(
     nextOrObserver: NextOrObserver<User | null>,
@@ -639,14 +659,14 @@ export interface MultiFactorAssertion {
  *
  * @public
  */
- export interface MultiFactorError extends AuthError {
-   /** Details about the MultiFactorError. */
+export interface MultiFactorError extends AuthError {
+  /** Details about the MultiFactorError. */
   readonly customData: AuthError['customData'] & {
     /**
      * The type of operation (sign-in, linking, or re-authentication) that raised the error.
      */
     readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
-  }
+  };
 }
 
 /**
@@ -667,7 +687,8 @@ export interface MultiFactorInfo {
 
 /**
  * The subclass of the {@link MultiFactorInfo} interface for phone number
- * second factors. The factorId of this second factor is {@link FactorId.PHONE}.
+ * second factors. The `factorId` of this second factor is {@link FactorId}.PHONE.
+ * @public
  */
 export interface PhoneMultiFactorInfo extends MultiFactorInfo {
   /** The phone number associated with the current second factor. */
@@ -899,7 +920,7 @@ export interface PhoneMultiFactorEnrollInfoOptions {
   session: MultiFactorSession;
 }
 /**
- * Options used for signing-in with a second factor.
+ * Options used for signing in with a second factor.
  *
  * @public
  */

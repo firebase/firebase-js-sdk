@@ -52,6 +52,10 @@ export const enum ListenerType {
 export interface AppCheckTokenResult {
   readonly token: string;
   readonly error?: Error;
+  // Error that should not be propagated to 3P listeners, e.g. exchange
+  // request errors during proactive refresh period, while the token
+  // is still valid.
+  readonly internalError?: Error;
 }
 
 export interface AppCheckTokenInternal extends AppCheckToken {

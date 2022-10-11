@@ -13,10 +13,10 @@
 #  Used for approving minor changes, large-scale refactorings, and emergency situations.
 #  (secret team to avoid review requests)
 #
-#   - @Feiyang1
-#   - @hiranya911
+#   - @lahirumaramba
 #   - @hsubox76
 #   - @allspain
+#   - @dwyfrequency
 
 
 # ===========================================================
@@ -33,12 +33,12 @@
 
 
 # These owners will be the default owners for everything in the repo.
-*       @allspain @hsubox76 @firebase/jssdk-global-approvers
+*       @dwyfrequency @hsubox76 @firebase/jssdk-global-approvers
 
 # Database Code
-packages/database @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
-packages/database-compat @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
-packages/database-types @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
+packages/database @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
+packages/database-compat @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
+packages/database-types @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
@@ -48,16 +48,16 @@ packages/firestore-types  @firebase/firestore-js-team @firebase/jssdk-global-app
 integration/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 
 # Storage Code
-packages/storage  @schmidt-sebastian @firebase/jssdk-global-approvers
-packages/storage-compat  @schmidt-sebastian @firebase/jssdk-global-approvers
-packages/storage-types  @schmidt-sebastian @firebase/jssdk-global-approvers
+packages/storage @maneesht @tonyjhuang @firebase/jssdk-global-approvers
+packages/storage-compat @maneesht @tonyjhuang @firebase/jssdk-global-approvers
+packages/storage-types @maneesht @tonyjhuang @firebase/jssdk-global-approvers
 
 # Messaging Code
-packages/messaging  @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
-packages/messaging-compat  @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
-packages/messaging-types @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
-packages/messaging-interop-types @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
-integration/messaging @zwu52 @chliangGoogle @ciarand @firebase/jssdk-global-approvers
+packages/messaging  @zwu52 @firebase/jssdk-global-approvers
+packages/messaging-compat  @zwu52 @firebase/jssdk-global-approvers
+packages/messaging-types @zwu52 @firebase/jssdk-global-approvers
+packages/messaging-interop-types @zwu52 @firebase/jssdk-global-approvers
+integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
 # Auth Code
 packages/auth  @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers

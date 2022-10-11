@@ -71,7 +71,7 @@ export class SimpleDbTransaction {
         db.transaction(objectStoreNames, mode)
       );
     } catch (e) {
-      throw new IndexedDbTransactionError(action, e);
+      throw new IndexedDbTransactionError(action, e as Error);
     }
   }
 
@@ -118,6 +118,16 @@ export class SimpleDbTransaction {
       );
       this.aborted = true;
       this.transaction.abort();
+    }
+  }
+
+  maybeCommit(): void {
+    // If the browser supports V3 IndexedDB, we invoke commit() explicitly to
+    // speed up index DB processing if the event loop remains blocks.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const maybeV3IndexedDb = this.transaction as any;
+    if (!this.aborted && typeof maybeV3IndexedDb.commit === 'function') {
+      maybeV3IndexedDb.commit();
     }
   }
 
@@ -400,6 +410,10 @@ export class SimpleDb {
           objectStores
         );
         const transactionFnResult = transactionFn(transaction)
+          .next(result => {
+            transaction.maybeCommit();
+            return result;
+          })
           .catch(error => {
             // Abort the transaction if there was an error.
             transaction.abort(error);
@@ -420,7 +434,8 @@ export class SimpleDb {
         // caller.
         await transaction.completionPromise;
         return transactionFnResult;
-      } catch (error) {
+      } catch (e) {
+        const error = e as Error;
         // TODO(schmidt-sebastian): We could probably be smarter about this and
         // not retry exceptions that are likely unrecoverable (such as quota
         // exceeded errors).
@@ -638,19 +653,64 @@ export class SimpleDbStore<
     return wrapRequest<number>(request);
   }
 
+  /** Loads all elements from the object store. */
   loadAll(): PersistencePromise<ValueType[]>;
+  /** Loads all elements for the index range from the object store. */
   loadAll(range: IDBKeyRange): PersistencePromise<ValueType[]>;
+  /** Loads all elements ordered by the given index. */
+  loadAll(index: string): PersistencePromise<ValueType[]>;
+  /**
+   * Loads all elements from the object store that fall into the provided in the
+   * index range for the given index.
+   */
   loadAll(index: string, range: IDBKeyRange): PersistencePromise<ValueType[]>;
   loadAll(
     indexOrRange?: string | IDBKeyRange,
     range?: IDBKeyRange
   ): PersistencePromise<ValueType[]> {
-    const cursor = this.cursor(this.options(indexOrRange, range));
-    const results: ValueType[] = [];
-    return this.iterateCursor(cursor, (key, value) => {
-      results.push(value);
-    }).next(() => {
-      return results;
+    const iterateOptions = this.options(indexOrRange, range);
+    // Use `getAll()` if the browser supports IndexedDB v3, as it is roughly
+    // 20% faster. Unfortunately, getAll() does not support custom indices.
+    if (!iterateOptions.index && typeof this.store.getAll === 'function') {
+      const request = this.store.getAll(iterateOptions.range);
+      return new PersistencePromise((resolve, reject) => {
+        request.onerror = (event: Event) => {
+          reject((event.target as IDBRequest).error!);
+        };
+        request.onsuccess = (event: Event) => {
+          resolve((event.target as IDBRequest).result);
+        };
+      });
+    } else {
+      const cursor = this.cursor(iterateOptions);
+      const results: ValueType[] = [];
+      return this.iterateCursor(cursor, (key, value) => {
+        results.push(value);
+      }).next(() => {
+        return results;
+      });
+    }
+  }
+
+  /**
+   * Loads the first `count` elements from the provided index range. Loads all
+   * elements if no limit is provided.
+   */
+  loadFirst(
+    range: IDBKeyRange,
+    count: number | null
+  ): PersistencePromise<ValueType[]> {
+    const request = this.store.getAll(
+      range,
+      count === null ? undefined : count
+    );
+    return new PersistencePromise((resolve, reject) => {
+      request.onerror = (event: Event) => {
+        reject((event.target as IDBRequest).error!);
+      };
+      request.onsuccess = (event: Event) => {
+        resolve((event.target as IDBRequest).result);
+      };
     });
   }
 
@@ -788,9 +848,7 @@ export class SimpleDbStore<
           cursor.continue(controller.skipToKey);
         }
       };
-    }).next(() => {
-      return PersistencePromise.waitFor(results);
-    });
+    }).next(() => PersistencePromise.waitFor(results));
   }
 
   private options(

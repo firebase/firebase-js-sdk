@@ -17,6 +17,7 @@
 
 import { User } from '../auth/user';
 import { ListenSequence } from '../core/listen_sequence';
+import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -26,7 +27,9 @@ import { fail } from '../util/assert';
 import { logDebug } from '../util/log';
 import { ObjectMap } from '../util/obj_map';
 
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { encodeResourcePath } from './encoded_resource_path';
+import { IndexManager } from './index_manager';
 import { LocalSerializer } from './local_serializer';
 import {
   ActiveTargets,
@@ -36,6 +39,7 @@ import {
 } from './lru_garbage_collector';
 import { newLruGarbageCollector } from './lru_garbage_collector_impl';
 import { MemoryBundleCache } from './memory_bundle_cache';
+import { MemoryDocumentOverlayCache } from './memory_document_overlay_cache';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import {
@@ -68,6 +72,7 @@ export class MemoryPersistence implements Persistence {
    */
   private readonly indexManager: MemoryIndexManager;
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
+  private overlays: { [user: string]: MemoryDocumentOverlayCache } = {};
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
   private readonly targetCache: MemoryTargetCache;
   private readonly bundleCache: MemoryBundleCache;
@@ -94,10 +99,7 @@ export class MemoryPersistence implements Persistence {
     const sizer = (doc: Document): number =>
       this.referenceDelegate.documentSize(doc);
     this.indexManager = new MemoryIndexManager();
-    this.remoteDocumentCache = newMemoryRemoteDocumentCache(
-      this.indexManager,
-      sizer
-    );
+    this.remoteDocumentCache = newMemoryRemoteDocumentCache(sizer);
     this.serializer = new LocalSerializer(serializer);
     this.bundleCache = new MemoryBundleCache(this.serializer);
   }
@@ -124,17 +126,25 @@ export class MemoryPersistence implements Persistence {
     // No op.
   }
 
-  getIndexManager(): MemoryIndexManager {
+  getIndexManager(user: User): MemoryIndexManager {
+    // We do not currently support indices for memory persistence, so we can
+    // return the same shared instance of the memory index manager.
     return this.indexManager;
   }
 
-  getMutationQueue(user: User): MutationQueue {
+  getDocumentOverlayCache(user: User): DocumentOverlayCache {
+    let overlay = this.overlays[user.toKey()];
+    if (!overlay) {
+      overlay = new MemoryDocumentOverlayCache();
+      this.overlays[user.toKey()] = overlay;
+    }
+    return overlay;
+  }
+
+  getMutationQueue(user: User, indexManager: IndexManager): MutationQueue {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
-      queue = new MemoryMutationQueue(
-        this.indexManager,
-        this.referenceDelegate
-      );
+      queue = new MemoryMutationQueue(indexManager, this.referenceDelegate);
       this.mutationQueues[user.toKey()] = queue;
     }
     return queue;
@@ -284,7 +294,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
         const key = DocumentKey.fromPath(path);
         return this.isReferenced(txn, key).next(isReferenced => {
           if (!isReferenced) {
-            changeBuffer.removeEntry(key);
+            changeBuffer.removeEntry(key, SnapshotVersion.min());
           }
         });
       }
@@ -422,7 +432,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
       return this.isPinned(txn, key, upperBound).next(isPinned => {
         if (!isPinned) {
           count++;
-          changeBuffer.removeEntry(key);
+          changeBuffer.removeEntry(key, SnapshotVersion.min());
         }
       });
     });

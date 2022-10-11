@@ -17,6 +17,7 @@
 
 import * as sinon from 'sinon';
 import firebase from '@firebase/app-compat';
+import { Provider } from '@firebase/component';
 import '../..';
 
 import * as exp from '@firebase/auth/internal';
@@ -25,6 +26,13 @@ import {
   getEmulatorUrl
 } from '../../../auth/test/helpers/integration/settings';
 import { resetEmulator } from '../../../auth/test/helpers/integration/emulator_rest_helpers';
+
+// Heartbeat is fully tested in core auth impl
+export const FAKE_HEARTBEAT_CONTROLLER_PROVIDER = {
+  getImmediate(): undefined {
+    return undefined;
+  }
+} as unknown as Provider<'heartbeat'>;
 
 export function initializeTestInstance(): void {
   firebase.initializeApp(getAppConfig());

@@ -89,8 +89,8 @@ function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {
     return fetch(url, request);
   }
 
-  return (fetchImpl.default(
+  return fetchImpl.default(
     url,
     request as fetchImpl.RequestInit
-  ) as unknown) as ReturnType<typeof fetch>;
+  ) as unknown as ReturnType<typeof fetch>;
 }

@@ -178,8 +178,10 @@ export interface SharedClientState {
   /**
    * Notifies other clients when remote documents have changed due to loading
    * a bundle.
+   *
+   * @param collectionGroups The collection groups affected by this bundle.
    */
-  notifyBundleLoaded(): void;
+  notifyBundleLoaded(collectionGroups: Set<string>): void;
 }
 
 /**
@@ -721,8 +723,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.persistOnlineState(onlineState);
   }
 
-  notifyBundleLoaded(): void {
-    this.persistBundleLoadedState();
+  notifyBundleLoaded(collectionGroups: Set<string>): void {
+    this.persistBundleLoadedState(collectionGroups);
   }
 
   shutdown(): void {
@@ -833,7 +835,14 @@ export class WebStorageSharedClientState implements SharedClientState {
             this.sequenceNumberHandler!(sequenceNumber);
           }
         } else if (storageEvent.key === this.bundleLoadedKey) {
-          return this.syncEngine!.synchronizeWithChangedDocuments();
+          const collectionGroups = this.fromWebStoreBundleLoadedState(
+            storageEvent.newValue!
+          );
+          await Promise.all(
+            collectionGroups.map(cg =>
+              this.syncEngine!.synchronizeWithChangedDocuments(cg)
+            )
+          );
         }
       });
     }
@@ -899,8 +908,9 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.setItem(targetKey, targetMetadata.toWebStorageJSON());
   }
 
-  private persistBundleLoadedState(): void {
-    this.setItem(this.bundleLoadedKey, 'value-not-used');
+  private persistBundleLoadedState(collectionGroups: Set<string>): void {
+    const json = JSON.stringify(Array.from(collectionGroups));
+    this.setItem(this.bundleLoadedKey, json);
   }
 
   /**
@@ -966,6 +976,10 @@ export class WebStorageSharedClientState implements SharedClientState {
    */
   private fromWebStorageOnlineState(value: string): SharedOnlineState | null {
     return SharedOnlineState.fromWebStorageEntry(value);
+  }
+
+  private fromWebStoreBundleLoadedState(value: string): string[] {
+    return JSON.parse(value) as string[];
   }
 
   private async handleMutationBatchEvent(
@@ -1150,7 +1164,7 @@ export class MemorySharedClientState implements SharedClientState {
 
   writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
 
-  notifyBundleLoaded(): void {
+  notifyBundleLoaded(collectionGroups: Set<string>): void {
     // No op.
   }
 }

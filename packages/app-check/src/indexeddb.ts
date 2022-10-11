@@ -63,7 +63,7 @@ function getDBPromise(): Promise<IDBDatabase> {
     } catch (e) {
       reject(
         ERROR_FACTORY.create(AppCheckError.STORAGE_OPEN, {
-          originalErrorMessage: e.message
+          originalErrorMessage: (e as Error)?.message
         })
       );
     }
@@ -80,7 +80,7 @@ export function readTokenFromIndexedDB(
 
 export function writeTokenToIndexedDB(
   app: FirebaseApp,
-  token: AppCheckTokenInternal
+  token?: AppCheckTokenInternal
 ): Promise<void> {
   return write(computeKey(app), token);
 }

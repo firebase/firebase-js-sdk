@@ -34,7 +34,9 @@ import {
   queryToTarget,
   QueryImpl,
   queryEquals,
-  matchesAllDocuments
+  queryMatchesAllDocuments,
+  queryCollectionGroup,
+  newQueryForCollectionGroup
 } from '../../../src/core/query';
 import {
   Bound,
@@ -57,10 +59,10 @@ import {
 } from '../../util/helpers';
 
 describe('Bound', () => {
-  function makeBound(values: unknown[], before: boolean): Bound {
+  function makeBound(values: unknown[], inclusive: boolean): Bound {
     return new Bound(
       values.map(el => wrap(el)),
-      before
+      inclusive
     );
   }
 
@@ -88,6 +90,14 @@ describe('Bound', () => {
 
 describe('Query', () => {
   addEqualityMatcher({ equalsFn: queryEquals, forType: QueryImpl });
+
+  it('can get collection group', () => {
+    expect(queryCollectionGroup(query('foo'))).to.equal('foo');
+    expect(queryCollectionGroup(query('foo/bar'))).to.equal('foo');
+    expect(queryCollectionGroup(newQueryForCollectionGroup('foo'))).to.equal(
+      'foo'
+    );
+  });
 
   it('matches based on document key', () => {
     const queryKey = new ResourcePath(['rooms', 'eros', 'messages', '1']);
@@ -554,9 +564,9 @@ describe('Query', () => {
     const q7a = queryWithLimit(query('foo'), 10, LimitType.First);
     const q8a = queryWithLimit(query('foo'), 10, LimitType.Last);
 
-    const lip1a = bound([[DOCUMENT_KEY_NAME, 'coll/foo', 'asc']], true);
-    const lip1b = bound([[DOCUMENT_KEY_NAME, 'coll/foo', 'asc']], false);
-    const lip2 = bound([[DOCUMENT_KEY_NAME, 'coll/bar', 'asc']], true);
+    const lip1a = bound(['coll/foo'], false);
+    const lip1b = bound(['coll/foo'], true);
+    const lip2 = bound(['coll/bar'], false);
     // TODO(b/35851862): descending key ordering not supported yet
     // const lip3 = bound([[DOCUMENT_KEY_NAME, 'coll/bar', 'desc']]);
 
@@ -695,26 +705,14 @@ describe('Query', () => {
     assertCanonicalId(
       queryWithStartAt(
         query('collection', orderBy('a', 'asc'), orderBy('b', 'asc')),
-        bound(
-          [
-            ['a', 'foo', 'asc'],
-            ['b', [1, 2, 3], 'asc']
-          ],
-          true
-        )
+        bound(['foo', [1, 2, 3]], true)
       ),
       'collection|f:|ob:aasc,basc,__name__asc|lb:b:foo,[1,2,3]'
     );
     assertCanonicalId(
       queryWithEndAt(
         query('collection', orderBy('a', 'desc'), orderBy('b', 'desc')),
-        bound(
-          [
-            ['a', 'foo', 'desc'],
-            ['b', [1, 2, 3], 'desc']
-          ],
-          false
-        )
+        bound(['foo', [1, 2, 3]], true)
       ),
       'collection|f:|ob:adesc,bdesc,__name__desc|ub:a:foo,[1,2,3]'
     );
@@ -781,25 +779,25 @@ describe('Query', () => {
 
   it('matchesAllDocuments() considers filters, orders and bounds', () => {
     const baseQuery = newQueryForPath(ResourcePath.fromString('collection'));
-    expect(matchesAllDocuments(baseQuery)).to.be.true;
+    expect(queryMatchesAllDocuments(baseQuery)).to.be.true;
 
     let query1 = query('collection', orderBy('__name__'));
-    expect(matchesAllDocuments(query1)).to.be.true;
+    expect(queryMatchesAllDocuments(query1)).to.be.true;
 
     query1 = query('collection', orderBy('foo'));
-    expect(matchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).to.be.false;
 
     query1 = query('collection', filter('foo', '==', 'bar'));
-    expect(matchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).to.be.false;
 
     query1 = queryWithLimit(query('foo'), 1, LimitType.First);
-    expect(matchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).to.be.false;
 
     query1 = queryWithStartAt(baseQuery, bound([], true));
-    expect(matchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).to.be.false;
 
-    query1 = queryWithEndAt(baseQuery, bound([], true));
-    expect(matchesAllDocuments(query1)).to.be.false;
+    query1 = queryWithEndAt(baseQuery, bound([], false));
+    expect(queryMatchesAllDocuments(query1)).to.be.false;
   });
 
   function assertImplicitOrderBy(query: Query, ...orderBys: OrderBy[]): void {

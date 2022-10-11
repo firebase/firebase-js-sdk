@@ -24,9 +24,13 @@ import {
   FunctionsService,
   DEFAULT_REGION,
   connectFunctionsEmulator as _connectFunctionsEmulator,
-  httpsCallable as _httpsCallable
+  httpsCallable as _httpsCallable,
+  httpsCallableFromURL as _httpsCallableFromURL
 } from './service';
-import { getModularInstance } from '@firebase/util';
+import {
+  getModularInstance,
+  getDefaultEmulatorHostnameAndPort
+} from '@firebase/util';
 
 export * from './public-types';
 
@@ -50,6 +54,10 @@ export function getFunctions(
   const functionsInstance = functionsProvider.getImmediate({
     identifier: regionOrCustomDomain
   });
+  const emulator = getDefaultEmulatorHostnameAndPort('functions');
+  if (emulator) {
+    connectFunctionsEmulator(functionsInstance, ...emulator);
+  }
   return functionsInstance;
 }
 
@@ -87,6 +95,26 @@ export function httpsCallable<RequestData = unknown, ResponseData = unknown>(
   return _httpsCallable<RequestData, ResponseData>(
     getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
     name,
+    options
+  );
+}
+
+/**
+ * Returns a reference to the callable HTTPS trigger with the specified url.
+ * @param url - The url of the trigger.
+ * @public
+ */
+export function httpsCallableFromURL<
+  RequestData = unknown,
+  ResponseData = unknown
+>(
+  functionsInstance: Functions,
+  url: string,
+  options?: HttpsCallableOptions
+): HttpsCallable<RequestData, ResponseData> {
+  return _httpsCallableFromURL<RequestData, ResponseData>(
+    getModularInstance<FunctionsService>(functionsInstance as FunctionsService),
+    url,
     options
   );
 }

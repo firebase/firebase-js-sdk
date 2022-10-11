@@ -24,8 +24,11 @@ import { Mutation } from '../model/mutation';
 import {
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
+  RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
+  RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
   RunQueryRequest as ProtoRunQueryRequest,
-  RunQueryResponse as ProtoRunQueryResponse
+  RunQueryResponse as ProtoRunQueryResponse,
+  Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
@@ -45,7 +48,8 @@ import {
   JsonProtoSerializer,
   toMutation,
   toName,
-  toQueryTarget
+  toQueryTarget,
+  toRunAggregationQueryRequest
 } from './serializer';
 
 /**
@@ -120,7 +124,8 @@ class DatastoreImpl extends Datastore {
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
     path: string,
-    request: Req
+    request: Req,
+    expectedResponseCount?: number
   ): Promise<Resp[]> {
     this.verifyInitialized();
     return Promise.all([
@@ -133,7 +138,8 @@ class DatastoreImpl extends Datastore {
           path,
           request,
           authToken,
-          appCheckToken
+          appCheckToken,
+          expectedResponseCount
         );
       })
       .catch((error: FirestoreError) => {
@@ -194,7 +200,7 @@ export async function invokeBatchGetDocumentsRpc(
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoBatchGetDocumentsRequest,
     ProtoBatchGetDocumentsResponse
-  >('BatchGetDocuments', path, request);
+  >('BatchGetDocuments', path, request, keys.length);
 
   const docs = new Map<string, Document>();
   response.forEach(proto => {
@@ -227,6 +233,32 @@ export async function invokeRunQueryRpc(
       .map(proto =>
         fromDocument(datastoreImpl.serializer, proto.document!, undefined)
       )
+  );
+}
+
+export async function invokeRunAggregationQueryRpc(
+  datastore: Datastore,
+  query: Query
+): Promise<ProtoValue[]> {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  const request = toRunAggregationQueryRequest(
+    datastoreImpl.serializer,
+    queryToTarget(query)
+  );
+
+  const parent = request.parent;
+  if (!datastoreImpl.connection.shouldResourcePathBeIncludedInRequest) {
+    delete request.parent;
+  }
+  const response = await datastoreImpl.invokeStreamingRPC<
+    ProtoRunAggregationQueryRequest,
+    ProtoRunAggregationQueryResponse
+  >('RunAggregationQuery', parent!, request, /*expectedResponseCount=*/ 1);
+  return (
+    response
+      // Omit RunAggregationQueryResponse that only contain readTimes.
+      .filter(proto => !!proto.result)
+      .map(proto => proto.result!.aggregateFields!)
   );
 }
 

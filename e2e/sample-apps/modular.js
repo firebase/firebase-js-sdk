@@ -23,7 +23,11 @@ import {
   logEvent
 } from 'firebase/analytics';
 import { initializeAppCheck, CustomProvider } from 'firebase/app-check';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import {
+  getFunctions,
+  httpsCallable,
+  httpsCallableFromURL
+} from 'firebase/functions';
 import {
   getStorage,
   ref,
@@ -119,10 +123,27 @@ async function authLogout(app) {
 async function callFunctions(app) {
   console.log('[FUNCTIONS] start');
   const functions = getFunctions(app);
-  const callTest = httpsCallable(functions, 'callTest');
+  let callTest = httpsCallable(functions, 'callTest');
   try {
     const result = await callTest({ data: 'blah' });
-    console.log('[FUNCTIONS] result:', result.data);
+    console.log('[FUNCTIONS] result (by name):', result.data);
+  } catch (e) {
+    if (e.message.includes('Unauthenticated')) {
+      console.warn(
+        'Functions blocked by App Check. ' +
+          'Activate app check with a live sitekey to allow Functions calls'
+      );
+    } else {
+      throw e;
+    }
+  }
+  callTest = httpsCallableFromURL(
+    functions,
+    `https://us-central-${app.options.projectId}.cloudfunctions.net/callTest`
+  );
+  try {
+    const result = await callTest({ data: 'blah' });
+    console.log('[FUNCTIONS] result (by URL):', result.data);
   } catch (e) {
     if (e.message.includes('Unauthenticated')) {
       console.warn(

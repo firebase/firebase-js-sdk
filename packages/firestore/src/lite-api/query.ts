@@ -22,7 +22,6 @@ import {
   findFilterOperator,
   getFirstOrderByField,
   getInequalityFilterField,
-  hasLimitToLast,
   isCollectionGroupQuery,
   LimitType,
   Query as InternalQuery,
@@ -66,7 +65,10 @@ import {
 export function validateHasExplicitOrderByForLimitToLast(
   query: InternalQuery
 ): void {
-  if (hasLimitToLast(query) && query.explicitOrderBy.length === 0) {
+  if (
+    query.limitType === LimitType.Last &&
+    query.explicitOrderBy.length === 0
+  ) {
     throw new FirestoreError(
       Code.UNIMPLEMENTED,
       'limitToLast() queries require specifying at least one orderBy() clause'
@@ -282,7 +284,7 @@ class QueryStartAtConstraint extends QueryConstraint {
   constructor(
     readonly type: 'startAt' | 'startAfter',
     private readonly _docOrFields: Array<unknown | DocumentSnapshot<unknown>>,
-    private readonly _before: boolean
+    private readonly _inclusive: boolean
   ) {
     super();
   }
@@ -292,7 +294,7 @@ class QueryStartAtConstraint extends QueryConstraint {
       query,
       this.type,
       this._docOrFields,
-      this._before
+      this._inclusive
     );
     return new Query(
       query.firestore,
@@ -325,7 +327,11 @@ export function startAt(...fieldValues: unknown[]): QueryConstraint;
 export function startAt(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
-  return new QueryStartAtConstraint('startAt', docOrFields, /*before=*/ true);
+  return new QueryStartAtConstraint(
+    'startAt',
+    docOrFields,
+    /*inclusive=*/ true
+  );
 }
 
 /**
@@ -356,7 +362,7 @@ export function startAfter(
   return new QueryStartAtConstraint(
     'startAfter',
     docOrFields,
-    /*before=*/ false
+    /*inclusive=*/ false
   );
 }
 
@@ -364,7 +370,7 @@ class QueryEndAtConstraint extends QueryConstraint {
   constructor(
     readonly type: 'endBefore' | 'endAt',
     private readonly _docOrFields: Array<unknown | DocumentSnapshot<unknown>>,
-    private readonly _before: boolean
+    private readonly _inclusive: boolean
   ) {
     super();
   }
@@ -374,7 +380,7 @@ class QueryEndAtConstraint extends QueryConstraint {
       query,
       this.type,
       this._docOrFields,
-      this._before
+      this._inclusive
     );
     return new Query(
       query.firestore,
@@ -407,7 +413,11 @@ export function endBefore(...fieldValues: unknown[]): QueryConstraint;
 export function endBefore(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
-  return new QueryEndAtConstraint('endBefore', docOrFields, /*before=*/ true);
+  return new QueryEndAtConstraint(
+    'endBefore',
+    docOrFields,
+    /*inclusive=*/ false
+  );
 }
 
 /**
@@ -433,7 +443,7 @@ export function endAt(...fieldValues: unknown[]): QueryConstraint;
 export function endAt(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
-  return new QueryEndAtConstraint('endAt', docOrFields, /*before=*/ false);
+  return new QueryEndAtConstraint('endAt', docOrFields, /*inclusive=*/ true);
 }
 
 /** Helper function to create a bound from a document or fields */
@@ -441,7 +451,7 @@ function newQueryBoundFromDocOrFields<T>(
   query: Query,
   methodName: string,
   docOrFields: Array<unknown | DocumentSnapshot<T>>,
-  before: boolean
+  inclusive: boolean
 ): Bound {
   docOrFields[0] = getModularInstance(docOrFields[0]);
 
@@ -451,7 +461,7 @@ function newQueryBoundFromDocOrFields<T>(
       query.firestore._databaseId,
       methodName,
       docOrFields[0]._document,
-      before
+      inclusive
     );
   } else {
     const reader = newUserDataReader(query.firestore);
@@ -461,7 +471,7 @@ function newQueryBoundFromDocOrFields<T>(
       reader,
       methodName,
       docOrFields,
-      before
+      inclusive
     );
   }
 }
@@ -552,7 +562,7 @@ export function newQueryBoundFromDocument(
   databaseId: DatabaseId,
   methodName: string,
   doc: Document | null,
-  before: boolean
+  inclusive: boolean
 ): Bound {
   if (!doc) {
     throw new FirestoreError(
@@ -598,7 +608,7 @@ export function newQueryBoundFromDocument(
       }
     }
   }
-  return new Bound(components, before);
+  return new Bound(components, inclusive);
 }
 
 /**
@@ -610,7 +620,7 @@ export function newQueryBoundFromFields(
   dataReader: UserDataReader,
   methodName: string,
   values: unknown[],
-  before: boolean
+  inclusive: boolean
 ): Bound {
   // Use explicit order by's because it has to match the query the user made
   const orderBy = query.explicitOrderBy;
@@ -661,7 +671,7 @@ export function newQueryBoundFromFields(
     }
   }
 
-  return new Bound(components, before);
+  return new Bound(components, inclusive);
 }
 
 /**

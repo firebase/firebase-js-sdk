@@ -143,10 +143,7 @@ function emitEmulatorWarning(): void {
         ' production credentials.'
     );
   }
-  if (
-    typeof window !== 'undefined' &&
-    typeof document !== 'undefined'
-  ) {
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     if (document.readyState === 'loading') {
       window.addEventListener('DOMContentLoaded', attachBanner);
     } else {

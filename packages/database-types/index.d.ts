@@ -125,29 +125,34 @@ export interface Reference extends Query {
   onDisconnect(): OnDisconnect;
   parent: Reference | null;
   push(value?: any, onComplete?: (a: Error | null) => any): ThenableReference;
-  remove(onComplete?: (a: Error | null) => any): Promise<any>;
+  remove(onComplete?: (a: Error | null) => void): Promise<void>;
   root: Reference;
-  set(value: any, onComplete?: (a: Error | null) => any): Promise<any>;
+  set(value: any, onComplete?: (a: Error | null) => void): Promise<void>;
   setPriority(
     priority: string | number | null,
-    onComplete: (a: Error | null) => any
-  ): Promise<any>;
+    onComplete: (a: Error | null) => void
+  ): Promise<void>;
   setWithPriority(
     newVal: any,
     newPriority: string | number | null,
-    onComplete?: (a: Error | null) => any
-  ): Promise<any>;
+    onComplete?: (a: Error | null) => void
+  ): Promise<void>;
   transaction(
     transactionUpdate: (a: any) => any,
-    onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => any,
+    onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => void,
     applyLocally?: boolean
-  ): Promise<any>;
-  update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
+  ): Promise<TransactionResult>;
+  update(values: Object, onComplete?: (a: Error | null) => void): Promise<void>;
 }
 
 export interface ServerValue {
   TIMESTAMP: Object;
   increment(delta: number): Object;
+}
+
+export interface TransactionResult {
+  committed: boolean;
+  snapshot: DataSnapshot;
 }
 
 export interface ThenableReference

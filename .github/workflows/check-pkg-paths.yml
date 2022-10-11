@@ -1,0 +1,27 @@
+name: Test Package Paths
+
+on: pull_request
+
+jobs:
+  test:
+    name: Test Package Paths
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@master
+      with:
+        # This makes Actions fetch all Git history so run-changed script can diff properly.
+        fetch-depth: 0
+    - name: Set up Node (14)
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - name: Yarn install
+      run: yarn
+    - name: Yarn build
+      run: yarn build
+    - name: Swap in public typings
+      run: yarn release:prepare
+    - name: Check paths
+      run: yarn ts-node scripts/ci-test/check-paths.ts

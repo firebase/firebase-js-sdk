@@ -130,7 +130,11 @@ export function getMultiFactorResolver(
 ): MultiFactorResolver {
   const authModular = getModularInstance(auth);
   const errorInternal = error as MultiFactorErrorInternal;
-  _assert(error.customData.operationType, authModular, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(
+    error.customData.operationType,
+    authModular,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
   _assert(
     errorInternal.customData._serverResponse?.mfaPendingCredential,
     authModular,

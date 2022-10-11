@@ -17,13 +17,11 @@
     "protractor",
     "long",
     "rollup-plugin-copy-assets",
-    "idb",
     "whatwg-fetch",
     "typedoc",
     "@microsoft/tsdoc"
   ],
   "assignees": [
-    "@Feiyang1",
     "@hsubox76"
   ],
   "schedule": "before 3am on Friday"

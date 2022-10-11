@@ -29,7 +29,7 @@ import { FirebaseError } from '@firebase/util';
 function toFirebaseError(event: Event, errorCode: ErrorCode): FirebaseError {
   const originalError = (event.target as IDBRequest).error || undefined;
   return ERROR_FACTORY.create(errorCode, {
-    originalErrorMessage: originalError && originalError.message
+    originalErrorMessage: originalError && (originalError as Error)?.message
   });
 }
 
@@ -101,7 +101,7 @@ export function openDatabase(): Promise<IDBDatabase> {
     } catch (error) {
       reject(
         ERROR_FACTORY.create(ErrorCode.STORAGE_OPEN, {
-          originalErrorMessage: error
+          originalErrorMessage: (error as Error)?.message
         })
       );
     }
@@ -203,7 +203,7 @@ export class Storage {
       } catch (e) {
         reject(
           ERROR_FACTORY.create(ErrorCode.STORAGE_GET, {
-            originalErrorMessage: e && e.message
+            originalErrorMessage: (e as Error)?.message
           })
         );
       }
@@ -230,7 +230,7 @@ export class Storage {
       } catch (e) {
         reject(
           ERROR_FACTORY.create(ErrorCode.STORAGE_SET, {
-            originalErrorMessage: e && e.message
+            originalErrorMessage: (e as Error)?.message
           })
         );
       }
@@ -254,7 +254,7 @@ export class Storage {
       } catch (e) {
         reject(
           ERROR_FACTORY.create(ErrorCode.STORAGE_DELETE, {
-            originalErrorMessage: e && e.message
+            originalErrorMessage: (e as Error)?.message
           })
         );
       }

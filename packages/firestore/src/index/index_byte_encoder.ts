@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IndexKind } from '../model/field_index';
 import { ByteString } from '../util/byte_string';
 
 import { DirectionalIndexByteEncoder } from './directional_index_byte_encoder';
@@ -69,8 +70,8 @@ export class IndexByteEncoder {
     this.orderedCode.seed(encodedBytes);
   }
 
-  forKind(kind: 'asc' | 'desc'): DirectionalIndexByteEncoder {
-    return kind === 'asc' ? this.ascending : this.descending;
+  forKind(kind: IndexKind): DirectionalIndexByteEncoder {
+    return kind === IndexKind.ASCENDING ? this.ascending : this.descending;
   }
 
   encodedBytes(): Uint8Array {

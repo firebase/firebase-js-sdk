@@ -100,7 +100,7 @@ export const enum ServerError {
   MISSING_CLIENT_TYPE = 'missing-client-type',
   MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
   INVALID_REQ_TYPE = 'invalid-req-type',
-  INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
+  INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version'
 }
 
 /**
@@ -221,9 +221,10 @@ export const SERVER_ERROR_MAP: Partial<ServerErrorMap<ServerError>> = {
   [ServerError.MISSING_RECAPTCHA_TOKEN]: AuthErrorCode.INTERNAL_ERROR,
   [ServerError.INVALID_RECAPTCHA_TOKEN]: AuthErrorCode.INTERNAL_ERROR,
   [ServerError.INVALID_RECAPTCHA_ACTION]: AuthErrorCode.INTERNAL_ERROR,
-  [ServerError.INVALID_RECAPTCHA_ENFORCEMENT_STATE]: AuthErrorCode.INTERNAL_ERROR,
+  [ServerError.INVALID_RECAPTCHA_ENFORCEMENT_STATE]:
+    AuthErrorCode.INTERNAL_ERROR,
   [ServerError.MISSING_CLIENT_TYPE]: AuthErrorCode.INTERNAL_ERROR,
   [ServerError.MISSING_RECAPTCHA_VERSION]: AuthErrorCode.INTERNAL_ERROR,
   [ServerError.INVALID_REQ_TYPE]: AuthErrorCode.INTERNAL_ERROR,
-  [ServerError.INVALID_RECAPTCHA_VERSION]: AuthErrorCode.INTERNAL_ERROR,
+  [ServerError.INVALID_RECAPTCHA_VERSION]: AuthErrorCode.INTERNAL_ERROR
 };

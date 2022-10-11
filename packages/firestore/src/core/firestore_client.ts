@@ -17,12 +17,18 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
+import {
+  AbstractUserDataWriter,
+  AggregateField,
+  AggregateQuerySnapshot
+} from '../api';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
+import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -38,6 +44,7 @@ import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { Datastore } from '../remote/datastore';
 import {
+  canUseNetwork,
   RemoteStore,
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
@@ -61,6 +68,7 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from './component_provider';
+import { CountQueryRunner } from './count_query_runner';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import {
   addSnapshotsInSyncListener,
@@ -82,6 +90,7 @@ import {
   syncEngineWrite
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
+import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
@@ -99,6 +108,10 @@ export class FirestoreClient {
   private readonly clientId = AutoId.newId();
   private authCredentialListener: CredentialChangeListener<User> = () =>
     Promise.resolve();
+  private appCheckCredentialListener: (
+    appCheckToken: string,
+    user: User
+  ) => Promise<void> = () => Promise.resolve();
 
   offlineComponents?: OfflineComponentProvider;
   onlineComponents?: OnlineComponentProvider;
@@ -122,8 +135,10 @@ export class FirestoreClient {
       await this.authCredentialListener(user);
       this.user = user;
     });
-    // Register an empty credentials change listener to activate token refresh.
-    this.appCheckCredentials.start(asyncQueue, () => Promise.resolve());
+    this.appCheckCredentials.start(asyncQueue, newAppCheckToken => {
+      logDebug(LOG_TAG, 'Received new app check token=', newAppCheckToken);
+      return this.appCheckCredentialListener(newAppCheckToken, this.user);
+    });
   }
 
   async getConfiguration(): Promise<ComponentConfiguration> {
@@ -140,6 +155,12 @@ export class FirestoreClient {
 
   setCredentialChangeListener(listener: (user: User) => Promise<void>): void {
     this.authCredentialListener = listener;
+  }
+
+  setAppCheckTokenChangeListener(
+    listener: (appCheckToken: string, user: User) => Promise<void>
+  ): void {
+    this.appCheckCredentialListener = listener;
   }
 
   /**
@@ -175,7 +196,7 @@ export class FirestoreClient {
         deferred.resolve();
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(
-          e,
+          e as Error,
           `Failed to shutdown persistence`
         );
         deferred.reject(firestoreError);
@@ -232,6 +253,9 @@ export async function setOnlineComponentProvider(
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
   client.setCredentialChangeListener(user =>
+    remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
+  );
+  client.setAppCheckTokenChangeListener((_, user) =>
     remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
   client.onlineComponents = onlineComponentProvider;
@@ -468,7 +492,8 @@ export function firestoreClientAddSnapshotsInSyncListener(
  */
 export function firestoreClientTransaction<T>(
   client: FirestoreClient,
-  updateFunction: (transaction: Transaction) => Promise<T>
+  updateFunction: (transaction: Transaction) => Promise<T>,
+  options: TransactionOptions
 ): Promise<T> {
   const deferred = new Deferred<T>();
   client.asyncQueue.enqueueAndForget(async () => {
@@ -476,9 +501,44 @@ export function firestoreClientTransaction<T>(
     new TransactionRunner<T>(
       client.asyncQueue,
       datastore,
+      options,
       updateFunction,
       deferred
     ).run();
+  });
+  return deferred.promise;
+}
+
+export function firestoreClientRunCountQuery(
+  client: FirestoreClient,
+  query: LiteQuery<unknown>,
+  userDataWriter: AbstractUserDataWriter
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const deferred = new Deferred<
+    AggregateQuerySnapshot<{ count: AggregateField<number> }>
+  >();
+  client.asyncQueue.enqueueAndForget(async () => {
+    try {
+      const remoteStore = await getRemoteStore(client);
+      if (!canUseNetwork(remoteStore)) {
+        deferred.reject(
+          new FirestoreError(
+            Code.UNAVAILABLE,
+            'Failed to get count result because the client is offline.'
+          )
+        );
+      } else {
+        const datastore = await getDatastore(client);
+        const result = new CountQueryRunner(
+          query,
+          datastore,
+          userDataWriter
+        ).run();
+        deferred.resolve(result);
+      }
+    } catch (e) {
+      deferred.reject(e as Error);
+    }
   });
   return deferred.promise;
 }
@@ -507,7 +567,7 @@ async function readDocumentFromCache(
     }
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       `Failed to get document '${docKey} from cache`
     );
     result.reject(firestoreError);
@@ -605,7 +665,7 @@ async function executeQueryFromCache(
     result.resolve(viewChange.snapshot!);
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
-      e,
+      e as Error,
       `Failed to execute query '${query} against cache`
     );
     result.reject(firestoreError);

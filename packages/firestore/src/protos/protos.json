@@ -919,6 +919,15 @@
                 "ruby_package": "Google::Cloud::Firestore::V1"
               },
               "nested": {
+                "AggregationResult": {
+                  "fields": {
+                    "aggregateFields": {
+                      "keyType": "string",
+                      "type": "Value",
+                      "id": 2
+                    }
+                  }
+                },
                 "DocumentMask": {
                   "fields": {
                     "fieldPaths": {
@@ -1263,6 +1272,29 @@
                             "body": "*",
                             "additional_bindings": {
                               "post": "/v1/{parent=projects/*/databases/*/documents/*/**}:runQuery",
+                              "body": "*"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "RunAggregationQuery": {
+                      "requestType": "RunAggregationQueryRequest",
+                      "responseType": "RunAggregationQueryResponse",
+                      "responseStream": true,
+                      "options": {
+                        "(google.api.http).post": "/v1/{parent=projects/*/databases/*/documents}:runAggregationQuery",
+                        "(google.api.http).body": "*",
+                        "(google.api.http).additional_bindings.post": "/v1/{parent=projects/*/databases/*/documents/*/**}:runAggregationQuery",
+                        "(google.api.http).additional_bindings.body": "*"
+                      },
+                      "parsedOptions": [
+                        {
+                          "(google.api.http)": {
+                            "post": "/v1/{parent=projects/*/databases/*/documents}:runAggregationQuery",
+                            "body": "*",
+                            "additional_bindings": {
+                              "post": "/v1/{parent=projects/*/databases/*/documents/*/**}:runAggregationQuery",
                               "body": "*"
                             }
                           }
@@ -1757,6 +1789,63 @@
                     "skippedResults": {
                       "type": "int32",
                       "id": 4
+                    }
+                  }
+                },
+                "RunAggregationQueryRequest": {
+                  "oneofs": {
+                    "queryType": {
+                      "oneof": [
+                        "structuredAggregationQuery"
+                      ]
+                    },
+                    "consistencySelector": {
+                      "oneof": [
+                        "transaction",
+                        "newTransaction",
+                        "readTime"
+                      ]
+                    }
+                  },
+                  "fields": {
+                    "parent": {
+                      "type": "string",
+                      "id": 1,
+                      "options": {
+                        "(google.api.field_behavior)": "REQUIRED"
+                      }
+                    },
+                    "structuredAggregationQuery": {
+                      "type": "StructuredAggregationQuery",
+                      "id": 2
+                    },
+                    "transaction": {
+                      "type": "bytes",
+                      "id": 4
+                    },
+                    "newTransaction": {
+                      "type": "TransactionOptions",
+                      "id": 5
+                    },
+                    "readTime": {
+                      "type": "google.protobuf.Timestamp",
+                      "id": 6
+                    }
+                  }
+                },
+                "RunAggregationQueryResponse": {
+                  "fields": {
+                    "result": {
+                      "type": "AggregationResult",
+                      "id": 1
+                    },
+                    "transaction": {
+                      "type": "bytes",
+                      "id": 2
+                    },
+                    "readTime": {
+                      "type": "google.protobuf.Timestamp",
+                      "id": 3
                     }
                   }
                 },
@@ -2296,6 +2385,57 @@
                     }
                   }
                 },
+                "StructuredAggregationQuery": {
+                  "oneofs": {
+                    "queryType": {
+                      "oneof": [
+                        "structuredQuery"
+                      ]
+                    }
+                  },
+                  "fields": {
+                    "structuredQuery": {
+                      "type": "StructuredQuery",
+                      "id": 1
+                    },
+                    "aggregations": {
+                      "rule": "repeated",
+                      "type": "Aggregation",
+                      "id": 3
+                    }
+                  },
+                  "nested": {
+                    "Aggregation": {
+                      "oneofs": {
+                        "operator": {
+                          "oneof": [
+                            "count"
+                          ]
+                        }
+                      },
+                      "fields": {
+                        "count": {
+                          "type": "Count",
+                          "id": 1
+                        },
+                        "alias": {
+                          "type": "string",
+                          "id": 7
+                        }
+                      },
+                      "nested": {
+                        "Count": {
+                          "fields": {
+                            "upTo": {
+                              "type": "google.protobuf.Int64Value",
+                              "id": 1
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
                 "Cursor": {
                   "fields": {
                     "values": {
@@ -2587,6 +2727,40 @@
                   "type": "string",
                   "id": 2
                 }
+              }
+            },
+            "methodSignature": {
+              "rule": "repeated",
+              "type": "string",
+              "id": 1051,
+              "extend": "google.protobuf.MethodOptions"
+            },
+            "defaultHost": {
+              "type": "string",
+              "id": 1049,
+              "extend": "google.protobuf.ServiceOptions"
+            },
+            "oauthScopes": {
+              "type": "string",
+              "id": 1050,
+              "extend": "google.protobuf.ServiceOptions"
+            },
+            "fieldBehavior": {
+              "rule": "repeated",
+              "type": "google.api.FieldBehavior",
+              "id": 1052,
+              "extend": "google.protobuf.FieldOptions"
+            },
+            "FieldBehavior": {
+              "values": {
+                "FIELD_BEHAVIOR_UNSPECIFIED": 0,
+                "OPTIONAL": 1,
+                "REQUIRED": 2,
+                "OUTPUT_ONLY": 3,
+                "INPUT_ONLY": 4,
+                "IMMUTABLE": 5,
+                "UNORDERED_LIST": 6,
+                "NON_EMPTY_DEFAULT": 7
               }
             }
           }

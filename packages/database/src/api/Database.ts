@@ -27,7 +27,8 @@ import { Provider } from '@firebase/component';
 import {
   getModularInstance,
   createMockUserToken,
-  EmulatorMockTokenOptions
+  EmulatorMockTokenOptions,
+  getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
@@ -41,11 +42,15 @@ import { RepoInfo } from '../core/RepoInfo';
 import { parseRepoInfo } from '../core/util/libs/parser';
 import { newEmptyPath, pathIsEmpty } from '../core/util/Path';
 import {
+  warn,
   fatal,
   log,
   enableLogging as enableLoggingImpl
 } from '../core/util/util';
 import { validateUrl } from '../core/util/validation';
+import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
+import { TransportManager } from '../realtime/TransportManager';
+import { WebSocketConnection } from '../realtime/WebSocketConnection';
 
 import { ReferenceImpl } from './Reference_impl';
 
@@ -128,7 +133,7 @@ export function repoManagerDatabaseFromApp(
   let isEmulator: boolean;
 
   let dbEmulatorHost: string | undefined = undefined;
-  if (typeof process !== 'undefined') {
+  if (typeof process !== 'undefined' && process.env) {
     dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
   }
 
@@ -271,6 +276,31 @@ export class Database implements _FirebaseService {
   }
 }
 
+function checkTransportInit() {
+  if (TransportManager.IS_TRANSPORT_INITIALIZED) {
+    warn(
+      'Transport has already been initialized. Please call this function before calling ref or setting up a listener'
+    );
+  }
+}
+
+/**
+ * Force the use of websockets instead of longPolling.
+ */
+export function forceWebSockets() {
+  checkTransportInit();
+  BrowserPollConnection.forceDisallow();
+}
+
+/**
+ * Force the use of longPolling instead of websockets. This will be ignored if websocket protocol is used in databaseURL.
+ */
+export function forceLongPolling() {
+  checkTransportInit();
+  WebSocketConnection.forceDisallow();
+  BrowserPollConnection.forceAllow();
+}
+
 /**
  * Returns the instance of the Realtime Database SDK that is associated
  * with the provided {@link @firebase/app#FirebaseApp}. Initializes a new instance with
@@ -287,9 +317,14 @@ export function getDatabase(
   app: FirebaseApp = getApp(),
   url?: string
 ): Database {
-  return _getProvider(app, 'database').getImmediate({
+  const db = _getProvider(app, 'database').getImmediate({
     identifier: url
   }) as Database;
+  const emulator = getDefaultEmulatorHostnameAndPort('database');
+  if (emulator) {
+    connectDatabaseEmulator(db, ...emulator);
+  }
+  return db;
 }
 
 /**

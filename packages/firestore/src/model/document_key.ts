@@ -39,12 +39,38 @@ export class DocumentKey {
     return new DocumentKey(ResourcePath.fromString(name).popFirst(5));
   }
 
+  static empty(): DocumentKey {
+    return new DocumentKey(ResourcePath.emptyPath());
+  }
+
+  get collectionGroup(): string {
+    debugAssert(
+      !this.path.isEmpty(),
+      'Cannot get collection group for empty key'
+    );
+    return this.path.popLast().lastSegment();
+  }
+
   /** Returns true if the document is in the specified collectionId. */
   hasCollectionId(collectionId: string): boolean {
     return (
       this.path.length >= 2 &&
       this.path.get(this.path.length - 2) === collectionId
     );
+  }
+
+  /** Returns the collection group (i.e. the name of the parent collection) for this key. */
+  getCollectionGroup(): string {
+    debugAssert(
+      !this.path.isEmpty(),
+      'Cannot get collection group for empty key'
+    );
+    return this.path.get(this.path.length - 2);
+  }
+
+  /** Returns the fully qualified path to the parent collection. */
+  getCollectionPath(): ResourcePath {
+    return this.path.popLast();
   }
 
   isEqual(other: DocumentKey | null): boolean {

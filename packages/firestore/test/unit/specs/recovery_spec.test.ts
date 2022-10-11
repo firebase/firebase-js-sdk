@@ -489,6 +489,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .userUnlistens(query1)
           // No event since the document was removed
           .userListens(query1, { resumeToken: 'resume-token-1000' })
+          .expectEvents(query1, { fromCache: true })
       );
     }
   );

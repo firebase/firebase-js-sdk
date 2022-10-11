@@ -96,7 +96,7 @@ export async function onPush(
     const payload = externalizePayload(internalPayload);
 
     if (typeof messaging.onBackgroundMessageHandler === 'function') {
-      messaging.onBackgroundMessageHandler(payload);
+      await messaging.onBackgroundMessageHandler(payload);
     } else {
       messaging.onBackgroundMessageHandler.next(payload);
     }

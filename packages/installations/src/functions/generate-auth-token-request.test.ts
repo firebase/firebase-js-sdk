@@ -91,7 +91,8 @@ describe('generateAuthTokenRequest', () => {
       });
       const expectedBody = {
         installation: {
-          sdkVersion: PACKAGE_VERSION
+          sdkVersion: PACKAGE_VERSION,
+          appId: installations.appConfig.appId
         }
       };
       const expectedRequest: RequestInit = {

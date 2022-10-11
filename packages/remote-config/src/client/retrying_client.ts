@@ -124,7 +124,7 @@ export class RetryingClient implements RemoteConfigFetchClient {
 
       return response;
     } catch (e) {
-      if (!isRetriableError(e)) {
+      if (!isRetriableError(e as Error)) {
         throw e;
       }
 

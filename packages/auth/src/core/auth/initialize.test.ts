@@ -126,6 +126,7 @@ describe('core/auth/initialize', () => {
     ): Promise<UserCredential | null> {
       return null;
     }
+    async _overrideRedirectResult(): Promise<void> {}
   }
 
   const fakePopupRedirectResolver: PopupRedirectResolver =

@@ -258,8 +258,7 @@ export class DocumentSnapshot<
   }
 
   /**
-   * Property of the `DocumentSnapshot` that signals whether or not the data
-   * exists. True if the document exists.
+   * Returns whether or not the data exists. True if the document exists.
    */
   exists(): this is QueryDocumentSnapshot<T> {
     return super.exists();

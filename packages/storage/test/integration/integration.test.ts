@@ -103,7 +103,7 @@ describe('FirebaseStorage Exp', () => {
       await getBytes(reference);
       expect.fail();
     } catch (e) {
-      expect(e.message).to.satisfy((v: string) =>
+      expect((e as Error)?.message).to.satisfy((v: string) =>
         v.match(/Object 'public\/exp-bytes-missing' does not exist/)
       );
     }
@@ -130,7 +130,7 @@ describe('FirebaseStorage Exp', () => {
       await uploadString(reference, 'foo');
       expect.fail();
     } catch (e) {
-      expect(e.message).to.satisfy((v: string) =>
+      expect((e as Error)?.message).to.satisfy((v: string) =>
         v.match(
           /The operation 'uploadString' cannot be performed on a root reference/
         )

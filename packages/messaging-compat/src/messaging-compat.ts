@@ -65,6 +65,8 @@ export function isSupported(): boolean {
 
 /**
  * Checks to see if the required APIs exist.
+ * Unlike the modular version, it does not check if IndexedDB.open() is allowed
+ * in order to keep isSupported() synchronous and maintain v8 compatibility.
  */
 function isWindowSupported(): boolean {
   return (

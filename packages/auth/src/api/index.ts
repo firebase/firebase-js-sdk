@@ -18,7 +18,11 @@
 import { FirebaseError, querystring } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
-import { _createError, _errorWithCustomMessage, _fail } from '../core/util/assert';
+import {
+  _createError,
+  _errorWithCustomMessage,
+  _fail
+} from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
@@ -37,7 +41,8 @@ export const enum HttpHeader {
   CONTENT_TYPE = 'Content-Type',
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
   X_CLIENT_VERSION = 'X-Client-Version',
-  X_FIREBASE_GMPID = 'X-Firebase-gmpid'
+  X_FIREBASE_GMPID = 'X-Firebase-gmpid',
+  X_FIREBASE_CLIENT = 'X-Firebase-Client'
 }
 
 export const enum Endpoint {
@@ -55,10 +60,10 @@ export const enum Endpoint {
   SET_ACCOUNT_INFO = '/v1/accounts:update',
   GET_ACCOUNT_INFO = '/v1/accounts:lookup',
   GET_RECAPTCHA_PARAM = '/v1/recaptchaParams',
-  START_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:start',
-  FINALIZE_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:finalize',
-  START_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
-  FINALIZE_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
+  START_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:start',
+  FINALIZE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:finalize',
+  START_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
+  FINALIZE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
   GET_PROJECT_CONFIG = '/v1/projects',
   GET_RECAPTCHA_CONFIG = '/v2/recaptchaConfig',
@@ -175,12 +180,14 @@ export async function _performFetchWithErrorHandling<V>(
         );
       } else if (serverErrorCode === ServerError.EMAIL_EXISTS) {
         throw _makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
+      } else if (serverErrorCode === ServerError.USER_DISABLED) {
+        throw _makeTaggedError(auth, AuthErrorCode.USER_DISABLED, json);
       }
       const authError =
         errorMap[serverErrorCode as ServerError] ||
-        ((serverErrorCode
+        (serverErrorCode
           .toLowerCase()
-          .replace(/[_\s]+/g, '-') as unknown) as AuthErrorCode);
+          .replace(/[_\s]+/g, '-') as unknown as AuthErrorCode);
       if (serverErrorMessage) {
         throw _errorWithCustomMessage(auth, authError, serverErrorMessage);
       } else {
@@ -240,7 +247,9 @@ class NetworkTimeout<T> {
   private timer: any | null = null;
   readonly promise = new Promise<T>((_, reject) => {
     this.timer = setTimeout(() => {
-      return reject(_createError(this.auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
+      return reject(
+        _createError(this.auth, AuthErrorCode.NETWORK_REQUEST_FAILED)
+      );
     }, DEFAULT_API_TIMEOUT_MS.get());
   });
 

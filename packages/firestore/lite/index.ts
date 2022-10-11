@@ -27,6 +27,19 @@
 import { registerFirestore } from './register';
 registerFirestore();
 
+export {
+  aggregateQuerySnapshotEqual,
+  getCount
+} from '../src/lite-api/aggregate';
+
+export {
+  AggregateField,
+  AggregateFieldType,
+  AggregateSpec,
+  AggregateSpecData,
+  AggregateQuerySnapshot
+} from '../src/lite-api/aggregate_types';
+
 export { FirestoreSettings as Settings } from '../src/lite-api/settings';
 
 export {
@@ -110,6 +123,8 @@ export {
 } from '../src/lite-api/snapshot';
 
 export { WriteBatch, writeBatch } from '../src/lite-api/write_batch';
+
+export { TransactionOptions } from '../src/lite-api/transaction_options';
 
 export { Transaction, runTransaction } from '../src/lite-api/transaction';
 

@@ -18,11 +18,22 @@
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 
+import { IndexManager } from './index_manager';
+import { LocalDocumentsView } from './local_documents_view';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import { PRIMARY_LEASE_LOST_ERROR_MSG } from './persistence_transaction';
 
 export interface LocalStore {
   collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults>;
+
+  /** Manages the list of active field and collection indices. */
+  indexManager: IndexManager;
+
+  /**
+   * The "local" view of all documents (layering mutationQueue on top of
+   * remoteDocumentCache).
+   */
+  localDocuments: LocalDocumentsView;
 }
 
 /**

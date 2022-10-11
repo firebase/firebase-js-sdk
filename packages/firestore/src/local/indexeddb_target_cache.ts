@@ -30,14 +30,17 @@ import {
   encodeResourcePath
 } from './encoded_resource_path';
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
+import { DbTarget, DbTargetDocument, DbTargetGlobal } from './indexeddb_schema';
 import {
-  DbTarget,
-  DbTargetDocument,
+  DbTargetDocumentDocumentTargetsIndex,
   DbTargetDocumentKey,
-  DbTargetGlobal,
+  DbTargetDocumentStore,
   DbTargetGlobalKey,
-  DbTargetKey
-} from './indexeddb_schema';
+  DbTargetGlobalStore,
+  DbTargetKey,
+  DbTargetQueryTargetsIndexName,
+  DbTargetStore
+} from './indexeddb_sentinels';
 import { getStore } from './indexeddb_transaction';
 import { fromDbTarget, LocalSerializer, toDbTarget } from './local_serializer';
 import { ActiveTargets } from './lru_garbage_collector';
@@ -192,7 +195,7 @@ export class IndexedDbTargetCache implements TargetCache {
     transaction: PersistenceTransaction
   ): PersistencePromise<DbTargetGlobal> {
     return globalTargetStore(transaction)
-      .get(DbTargetGlobal.key)
+      .get(DbTargetGlobalKey)
       .next(metadata => {
         hardAssert(metadata !== null, 'Missing metadata row.');
         return metadata;
@@ -203,7 +206,7 @@ export class IndexedDbTargetCache implements TargetCache {
     transaction: PersistenceTransaction,
     metadata: DbTargetGlobal
   ): PersistencePromise<void> {
-    return globalTargetStore(transaction).put(DbTargetGlobal.key, metadata);
+    return globalTargetStore(transaction).put(DbTargetGlobalKey, metadata);
   }
 
   private saveTargetData(
@@ -260,7 +263,7 @@ export class IndexedDbTargetCache implements TargetCache {
     let result: TargetData | null = null;
     return targetsStore(transaction)
       .iterate(
-        { range, index: DbTarget.queryTargetsIndexName },
+        { range, index: DbTargetQueryTargetsIndexName },
         (key, value, control) => {
           const found = fromDbTarget(value);
           // After finding a potential match, check that the target is
@@ -285,7 +288,7 @@ export class IndexedDbTargetCache implements TargetCache {
     const store = documentTargetStore(txn);
     keys.forEach(key => {
       const path = encodeResourcePath(key.path);
-      promises.push(store.put(new DbTargetDocument(targetId, path)));
+      promises.push(store.put({ targetId, path }));
       promises.push(this.referenceDelegate.addReference(txn, targetId, key));
     });
     return PersistencePromise.waitFor(promises);
@@ -359,7 +362,7 @@ export class IndexedDbTargetCache implements TargetCache {
     return documentTargetStore(txn!)
       .iterate(
         {
-          index: DbTargetDocument.documentTargetsIndex,
+          index: DbTargetDocumentDocumentTargetsIndex,
           keysOnly: true,
           range
         },
@@ -406,7 +409,7 @@ export class IndexedDbTargetCache implements TargetCache {
 function targetsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetKey, DbTarget> {
-  return getStore<DbTargetKey, DbTarget>(txn, DbTarget.store);
+  return getStore<DbTargetKey, DbTarget>(txn, DbTargetStore);
 }
 
 /**
@@ -415,7 +418,7 @@ function targetsStore(
 function globalTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetGlobalKey, DbTargetGlobal> {
-  return getStore<DbTargetGlobalKey, DbTargetGlobal>(txn, DbTargetGlobal.store);
+  return getStore<DbTargetGlobalKey, DbTargetGlobal>(txn, DbTargetGlobalStore);
 }
 
 /**
@@ -426,6 +429,6 @@ export function documentTargetStore(
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
   return getStore<DbTargetDocumentKey, DbTargetDocument>(
     txn,
-    DbTargetDocument.store
+    DbTargetDocumentStore
   );
 }

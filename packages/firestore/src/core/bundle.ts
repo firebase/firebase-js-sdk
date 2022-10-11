@@ -43,11 +43,10 @@ export interface BundledDocument {
  */
 export type BundledDocuments = BundledDocument[];
 
-export class BundleLoadResult {
-  constructor(
-    readonly progress: LoadBundleTaskProgress,
-    readonly changedDocs: DocumentMap
-  ) {}
+export interface BundleLoadResult {
+  readonly progress: LoadBundleTaskProgress;
+  readonly changedCollectionGroups: Set<string>;
+  readonly changedDocs: DocumentMap;
 }
 
 /**

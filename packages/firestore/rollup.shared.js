@@ -333,7 +333,7 @@ exports.es2017PluginsCompat = function (
           }
         },
         cacheDir: tmp.dirSync(),
-        abortOnError: false,
+        abortOnError: true,
         transformers: [
           removeAssertAndPrefixInternalTransformer,
           pathTransformer
@@ -353,7 +353,7 @@ exports.es2017PluginsCompat = function (
           }
         },
         cacheDir: tmp.dirSync(),
-        abortOnError: false,
+        abortOnError: true,
         transformers: [removeAssertTransformer, pathTransformer]
       }),
       json({ preferConst: true })

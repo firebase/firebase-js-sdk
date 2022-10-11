@@ -41,12 +41,17 @@ import {
 } from './server_timestamps';
 import { TypeOrder } from './type_order';
 
+const MAX_VALUE_TYPE = '__max__';
 export const MAX_VALUE: Value = {
   mapValue: {
     fields: {
-      '__type__': { stringValue: '__max___' }
+      '__type__': { stringValue: MAX_VALUE_TYPE }
     }
   }
+};
+
+export const MIN_VALUE: Value = {
+  nullValue: 'NULL_VALUE'
 };
 
 /** Extracts the backend's type order for the provided value. */
@@ -72,6 +77,8 @@ export function typeOrder(value: Value): TypeOrder {
   } else if ('mapValue' in value) {
     if (isServerTimestamp(value)) {
       return TypeOrder.ServerTimestampValue;
+    } else if (isMaxValue(value)) {
+      return TypeOrder.MaxValue;
     }
     return TypeOrder.ObjectValue;
   } else {
@@ -118,6 +125,8 @@ export function valueEquals(left: Value, right: Value): boolean {
       );
     case TypeOrder.ObjectValue:
       return objectEquals(left, right);
+    case TypeOrder.MaxValue:
+      return true;
     default:
       return fail('Unexpected value type: ' + JSON.stringify(left));
   }
@@ -220,6 +229,7 @@ export function valueCompare(left: Value, right: Value): number {
 
   switch (leftType) {
     case TypeOrder.NullValue:
+    case TypeOrder.MaxValue:
       return 0;
     case TypeOrder.BooleanValue:
       return primitiveComparator(left.booleanValue!, right.booleanValue!);
@@ -340,6 +350,14 @@ function compareArrays(left: ArrayValue, right: ArrayValue): number {
 }
 
 function compareMaps(left: MapValue, right: MapValue): number {
+  if (left === MAX_VALUE.mapValue && right === MAX_VALUE.mapValue) {
+    return 0;
+  } else if (left === MAX_VALUE.mapValue) {
+    return 1;
+  } else if (right === MAX_VALUE.mapValue) {
+    return -1;
+  }
+
   const leftMap = left.fields || {};
   const leftKeys = Object.keys(leftMap);
   const rightMap = right.fields || {};
@@ -600,5 +618,98 @@ export function deepClone(source: Value): Value {
 
 /** Returns true if the Value represents the canonical {@link #MAX_VALUE} . */
 export function isMaxValue(value: Value): boolean {
-  return valueEquals(value, MAX_VALUE);
+  return (
+    (((value.mapValue || {}).fields || {})['__type__'] || {}).stringValue ===
+    MAX_VALUE_TYPE
+  );
+}
+
+/** Returns the lowest value for the given value type (inclusive). */
+export function valuesGetLowerBound(value: Value): Value {
+  if ('nullValue' in value) {
+    return MIN_VALUE;
+  } else if ('booleanValue' in value) {
+    return { booleanValue: false };
+  } else if ('integerValue' in value || 'doubleValue' in value) {
+    return { doubleValue: NaN };
+  } else if ('timestampValue' in value) {
+    return { timestampValue: { seconds: Number.MIN_SAFE_INTEGER } };
+  } else if ('stringValue' in value) {
+    return { stringValue: '' };
+  } else if ('bytesValue' in value) {
+    return { bytesValue: '' };
+  } else if ('referenceValue' in value) {
+    return refValue(DatabaseId.empty(), DocumentKey.empty());
+  } else if ('geoPointValue' in value) {
+    return { geoPointValue: { latitude: -90, longitude: -180 } };
+  } else if ('arrayValue' in value) {
+    return { arrayValue: {} };
+  } else if ('mapValue' in value) {
+    return { mapValue: {} };
+  } else {
+    return fail('Invalid value type: ' + JSON.stringify(value));
+  }
+}
+
+/** Returns the largest value for the given value type (exclusive). */
+export function valuesGetUpperBound(value: Value): Value {
+  if ('nullValue' in value) {
+    return { booleanValue: false };
+  } else if ('booleanValue' in value) {
+    return { doubleValue: NaN };
+  } else if ('integerValue' in value || 'doubleValue' in value) {
+    return { timestampValue: { seconds: Number.MIN_SAFE_INTEGER } };
+  } else if ('timestampValue' in value) {
+    return { stringValue: '' };
+  } else if ('stringValue' in value) {
+    return { bytesValue: '' };
+  } else if ('bytesValue' in value) {
+    return refValue(DatabaseId.empty(), DocumentKey.empty());
+  } else if ('referenceValue' in value) {
+    return { geoPointValue: { latitude: -90, longitude: -180 } };
+  } else if ('geoPointValue' in value) {
+    return { arrayValue: {} };
+  } else if ('arrayValue' in value) {
+    return { mapValue: {} };
+  } else if ('mapValue' in value) {
+    return MAX_VALUE;
+  } else {
+    return fail('Invalid value type: ' + JSON.stringify(value));
+  }
+}
+
+export function lowerBoundCompare(
+  left: { value: Value; inclusive: boolean },
+  right: { value: Value; inclusive: boolean }
+): number {
+  const cmp = valueCompare(left.value, right.value);
+  if (cmp !== 0) {
+    return cmp;
+  }
+
+  if (left.inclusive && !right.inclusive) {
+    return -1;
+  } else if (!left.inclusive && right.inclusive) {
+    return 1;
+  }
+
+  return 0;
+}
+
+export function upperBoundCompare(
+  left: { value: Value; inclusive: boolean },
+  right: { value: Value; inclusive: boolean }
+): number {
+  const cmp = valueCompare(left.value, right.value);
+  if (cmp !== 0) {
+    return cmp;
+  }
+
+  if (left.inclusive && !right.inclusive) {
+    return 1;
+  } else if (!left.inclusive && right.inclusive) {
+    return -1;
+  }
+
+  return 0;
 }

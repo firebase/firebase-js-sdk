@@ -30,7 +30,7 @@ import { AppCheckTokenInternal } from './types';
  * Response JSON returned from AppCheck server endpoint.
  */
 interface AppCheckResponse {
-  attestationToken: string;
+  token: string;
   // timeToLive
   ttl: string;
 }
@@ -42,17 +42,20 @@ interface AppCheckRequest {
 
 export async function exchangeToken(
   { url, body }: AppCheckRequest,
-  platformLoggerProvider: Provider<'platform-logger'>
+  heartbeatServiceProvider: Provider<'heartbeat'>
 ): Promise<AppCheckTokenInternal> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json'
   };
-  // If platform logger exists, add the platform info string to the header.
-  const platformLogger = platformLoggerProvider.getImmediate({
+  // If heartbeat service exists, add heartbeat header string to the header.
+  const heartbeatService = heartbeatServiceProvider.getImmediate({
     optional: true
   });
-  if (platformLogger) {
-    headers['X-Firebase-Client'] = platformLogger.getPlatformInfoString();
+  if (heartbeatService) {
+    const heartbeatsHeader = await heartbeatService.getHeartbeatsHeader();
+    if (heartbeatsHeader) {
+      headers['X-Firebase-Client'] = heartbeatsHeader;
+    }
   }
   const options: RequestInit = {
     method: 'POST',
@@ -64,7 +67,7 @@ export async function exchangeToken(
     response = await fetch(url, options);
   } catch (originalError) {
     throw ERROR_FACTORY.create(AppCheckError.FETCH_NETWORK_ERROR, {
-      originalErrorMessage: originalError.message
+      originalErrorMessage: (originalError as Error)?.message
     });
   }
 
@@ -80,7 +83,7 @@ export async function exchangeToken(
     responseBody = await response.json();
   } catch (originalError) {
     throw ERROR_FACTORY.create(AppCheckError.FETCH_PARSE_ERROR, {
-      originalErrorMessage: originalError.message
+      originalErrorMessage: (originalError as Error)?.message
     });
   }
 
@@ -98,7 +101,7 @@ export async function exchangeToken(
 
   const now = Date.now();
   return {
-    token: responseBody.attestationToken,
+    token: responseBody.token,
     expireTimeMillis: now + timeToLiveAsNumber,
     issuedAtTimeMillis: now
   };
@@ -113,7 +116,7 @@ export function getExchangeRecaptchaV3TokenRequest(
   return {
     url: `${BASE_ENDPOINT}/projects/${projectId}/apps/${appId}:${EXCHANGE_RECAPTCHA_TOKEN_METHOD}?key=${apiKey}`,
     body: {
-      'recaptcha_token': reCAPTCHAToken
+      'recaptcha_v3_token': reCAPTCHAToken
     }
   };
 }

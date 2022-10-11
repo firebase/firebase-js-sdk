@@ -197,7 +197,7 @@ export class SortedMapIterator<K, V> {
     while (!node.isEmpty()) {
       cmp = startKey ? comparator(node.key, startKey) : 1;
       // flip the comparison if we're going in reverse
-      if (isReverse) {
+      if (startKey && isReverse) {
         cmp *= -1;
       }
 

@@ -23,5 +23,6 @@
 import { registerFunctions } from './config';
 
 export * from './api';
+export * from './public-types';
 
 registerFunctions(fetch.bind(self));

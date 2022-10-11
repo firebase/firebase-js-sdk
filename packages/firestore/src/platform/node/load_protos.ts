@@ -17,8 +17,11 @@
 
 import { join, resolve, isAbsolute } from 'path';
 
-import { loadPackageDefinition, GrpcObject } from '@grpc/grpc-js';
-import { fromJSON } from '@grpc/proto-loader';
+// Note: We have to use a package import here to avoid build errors such as
+// https://github.com/firebase/firebase-js-sdk/issues/5983
+
+import * as grpc from '@grpc/grpc-js';
+import * as protoLoader from '@grpc/proto-loader';
 // only used in tests
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { IConversionOptions, Root } from 'protobufjs';
@@ -38,9 +41,9 @@ export const protoLoaderOptions: IConversionOptions = {
  *
  * @returns The GrpcObject representing our protos.
  */
-export function loadProtos(): GrpcObject {
-  const packageDefinition = fromJSON(protos, protoLoaderOptions);
-  return loadPackageDefinition(packageDefinition);
+export function loadProtos(): grpc.GrpcObject {
+  const packageDefinition = protoLoader.fromJSON(protos, protoLoaderOptions);
+  return grpc.loadPackageDefinition(packageDefinition);
 }
 
 /** Used by tests so we can directly create ProtobufJS proto message objects from JSON protos. */

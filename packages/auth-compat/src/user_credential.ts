@@ -33,7 +33,7 @@ function attachExtraErrorFields(auth: exp.Auth, e: FirebaseError): void {
   // actually match the underlying type
   const response = (e.customData as exp.TaggedWithTokenResponse | undefined)
     ?._tokenResponse as unknown as Record<string, string>;
-  if (e.code === 'auth/multi-factor-auth-required') {
+  if ((e as FirebaseError)?.code === 'auth/multi-factor-auth-required') {
     const mfaErr = e as compat.MultiFactorError;
     mfaErr.resolver = new MultiFactorResolver(
       auth,

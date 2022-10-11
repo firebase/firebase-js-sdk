@@ -20,8 +20,8 @@ import { TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 
 import { BundleCache } from './bundle_cache';
+import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
-import { LocalStore } from './local_store';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import {
@@ -177,7 +177,7 @@ export interface Persistence {
    * extent possible (e.g. in the case of uid switching from
    * sally=&gt;jack=&gt;sally, sally's mutation queue will be preserved).
    */
-  getMutationQueue(user: User): MutationQueue;
+  getMutationQueue(user: User, indexManager: IndexManager): MutationQueue;
 
   /**
    * Returns a TargetCache representing the persisted cache of targets.
@@ -214,7 +214,13 @@ export interface Persistence {
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getIndexManager(): IndexManager;
+  getIndexManager(user: User): IndexManager;
+
+  /**
+   * Returns a DocumentOverlayCache representing the documents that are mutated
+   * locally.
+   */
+  getDocumentOverlayCache(user: User): DocumentOverlayCache;
 
   /**
    * Performs an operation inside a persistence transaction. Any reads or writes
@@ -247,11 +253,10 @@ export interface Persistence {
 }
 
 /**
- * Interface implemented by the LRU scheduler to start(), stop() and restart
- * garbage collection.
+ * Interface to schedule periodic tasks within SDK.
  */
-export interface GarbageCollectionScheduler {
+export interface Scheduler {
   readonly started: boolean;
-  start(localStore: LocalStore): void;
+  start(): void;
   stop(): void;
 }

@@ -1,5 +1,25 @@
 # @firebase/rules-unit-testing
 
+## 2.0.4
+
+### Patch Changes
+
+- [`1703bb31a`](https://github.com/firebase/firebase-js-sdk/commit/1703bb31afa806087167079641af79c9293ab423) [#6442](https://github.com/firebase/firebase-js-sdk/pull/6442) (fixes [#6438](https://github.com/firebase/firebase-js-sdk/issues/6438)) - Update `@grpc/proto-loader` and `firebase-admin` dependencies to address `protobufjs` security issue.
+
+* [`1a15c7da7`](https://github.com/firebase/firebase-js-sdk/commit/1a15c7da7e27cb1571dc1bfa2f144d68fa6b8583) [#6454](https://github.com/firebase/firebase-js-sdk/pull/6454) - Update firebase-functions to a version compatible with firebase-admin.
+
+## 2.0.3
+
+### Patch Changes
+
+- [`b091b0228`](https://github.com/firebase/firebase-js-sdk/commit/b091b02288fa0d1439dfe945a33325a0495f568d) [#6360](https://github.com/firebase/firebase-js-sdk/pull/6360) (fixes [#6080](https://github.com/firebase/firebase-js-sdk/issues/6080)) - Add Node ESM build to rules-unit-testing.
+
+## 2.0.2
+
+### Patch Changes
+
+- [`d612d6f6e`](https://github.com/firebase/firebase-js-sdk/commit/d612d6f6e4d3113d45427b7df68459c0a3e31a1f) [#5928](https://github.com/firebase/firebase-js-sdk/pull/5928) - Upgrade `node-fetch` dependency due to a security issue.
+
 ## 2.0.1
 
 ### Patch Changes

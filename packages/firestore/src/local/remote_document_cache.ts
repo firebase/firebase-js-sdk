@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
-import { SnapshotVersion } from '../core/snapshot_version';
 import { DocumentKeySet, MutableDocumentMap } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { IndexOffset } from '../model/field_index';
+import { ResourcePath } from '../model/path';
 
+import { IndexManager } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
@@ -33,6 +34,9 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
  * documents that are known to not exist.
  */
 export interface RemoteDocumentCache {
+  /** Sets the index manager to use for managing the collectionGroup index. */
+  setIndexManager(indexManager: IndexManager): void;
+
   /**
    * Looks up an entry in the cache.
    *
@@ -58,22 +62,32 @@ export interface RemoteDocumentCache {
   ): PersistencePromise<MutableDocumentMap>;
 
   /**
-   * Executes a query against the cached Document entries.
+   * Returns the documents from the provided collection.
    *
-   * Implementations may return extra documents if convenient. The results
-   * should be re-filtered by the consumer before presenting them to the user.
-   *
-   * Cached NoDocument entries have no bearing on query results.
-   *
-   * @param query - The query to match documents against.
-   * @param sinceReadTime - If not set to SnapshotVersion.min(), return only
-   *     documents that have been read since this snapshot version (exclusive).
+   * @param collection - The collection to read.
+   * @param offset - The offset to start the scan at (exclusive).
    * @returns The set of matching documents.
    */
-  getDocumentsMatchingQuery(
+  getAllFromCollection(
     transaction: PersistenceTransaction,
-    query: Query,
-    sinceReadTime: SnapshotVersion
+    collection: ResourcePath,
+    offset: IndexOffset
+  ): PersistencePromise<MutableDocumentMap>;
+
+  /**
+   * Looks up the next `limit` documents for a collection group based on the
+   * provided offset. The ordering is based on the document's read time and key.
+   *
+   * @param collectionGroup - The collection group to scan.
+   * @param offset - The offset to start the scan at (exclusive).
+   * @param limit - The maximum number of results to return.
+   * @returns The set of matching documents.
+   */
+  getAllFromCollectionGroup(
+    transaction: PersistenceTransaction,
+    collectionGroup: string,
+    offset: IndexOffset,
+    limit: number
   ): PersistencePromise<MutableDocumentMap>;
 
   /**

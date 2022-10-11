@@ -1,5 +1,115 @@
 # Unreleased
 
+## 0.13.7
+
+### Patch Changes
+
+- [`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4) [#6526](https://github.com/firebase/firebase-js-sdk/pull/6526) - Add functionality to auto-initialize project config and emulator settings from global defaults provided by framework tooling.
+
+- Updated dependencies [[`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4)]:
+  - @firebase/util@1.7.0
+  - @firebase/component@0.5.18
+
+## 0.13.6
+
+### Patch Changes
+
+- [`f35533594`](https://github.com/firebase/firebase-js-sdk/commit/f355335942b874ba390bcbf3be6de44a3d33dce8) [#6560](https://github.com/firebase/firebase-js-sdk/pull/6560) - Included experimental support for Deno
+
+## 0.13.5
+
+### Patch Changes
+
+- [`9f1e3c667`](https://github.com/firebase/firebase-js-sdk/commit/9f1e3c66747126c8e24894d73f7fa27480bec08d) [#6536](https://github.com/firebase/firebase-js-sdk/pull/6536) - Revert "Updated type of action parameter for DataSnapshot#forEach"
+
+* [`a5d9e1083`](https://github.com/firebase/firebase-js-sdk/commit/a5d9e10831c2877e9d15c8a33b15557e4251c4de) [#6497](https://github.com/firebase/firebase-js-sdk/pull/6497) - Fix issue with how get results for filtered queries are added to cache.
+  Fix issue with events not getting propagated to listeners by get.
+
+- [`fcd4b8ac3`](https://github.com/firebase/firebase-js-sdk/commit/fcd4b8ac36636a60d83cd3370969ff9192f9e6ad) [#6508](https://github.com/firebase/firebase-js-sdk/pull/6508) - Fixed faulty transaction bug causing filtered index queries to override default queries.
+
+## 0.13.4
+
+### Patch Changes
+
+- [`65838089d`](https://github.com/firebase/firebase-js-sdk/commit/65838089da47965e5e39e58c76a81a74666b215e) [#6374](https://github.com/firebase/firebase-js-sdk/pull/6374) (fixes [#6368](https://github.com/firebase/firebase-js-sdk/issues/6368)) - Updated type of action parameter for DataSnapshot#forEach
+
+## 0.13.3
+
+### Patch Changes
+
+- [`c187446a2`](https://github.com/firebase/firebase-js-sdk/commit/c187446a202d881f55800be167cdb37b4d0e4a13) [#6410](https://github.com/firebase/firebase-js-sdk/pull/6410) - Removed uuid as a dependency for @firebase/database
+
+* [`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf) [#6340](https://github.com/firebase/firebase-js-sdk/pull/6340) (fixes [#6036](https://github.com/firebase/firebase-js-sdk/issues/6036)) - Forced `get()` to wait until db is online to resolve.
+
+- [`6a8be1337`](https://github.com/firebase/firebase-js-sdk/commit/6a8be1337f19a49db40e0c757f571f42b5b4d494) [#6399](https://github.com/firebase/firebase-js-sdk/pull/6399) - Fix setting of headers on Node.
+
+- Updated dependencies [[`b12af44a5`](https://github.com/firebase/firebase-js-sdk/commit/b12af44a5c7500e1192d6cc1a4afc4d77efadbaf)]:
+  - @firebase/util@1.6.3
+  - @firebase/component@0.5.17
+
+## 0.13.2
+
+### Patch Changes
+
+- [`578dc5836`](https://github.com/firebase/firebase-js-sdk/commit/578dc58365c6c71d8ad01dd8b9dbe829e76de068) [#6273](https://github.com/firebase/firebase-js-sdk/pull/6273) - Fixed issue where `get()` saved results incorrectly for non-default queries.
+
+* [`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0) [#6363](https://github.com/firebase/firebase-js-sdk/pull/6363) - Extract uuid function into @firebase/util
+
+* Updated dependencies [[`efe2000fc`](https://github.com/firebase/firebase-js-sdk/commit/efe2000fc499e2c85c4e5e0fef6741ff3bad2eb0)]:
+  - @firebase/util@1.6.2
+  - @firebase/component@0.5.16
+
+## 0.13.1
+
+### Patch Changes
+
+- [`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5) [#6307](https://github.com/firebase/firebase-js-sdk/pull/6307) (fixes [#6300](https://github.com/firebase/firebase-js-sdk/issues/6300)) - fix: add type declarations to exports field
+
+- Updated dependencies [[`2cd1cc76f`](https://github.com/firebase/firebase-js-sdk/commit/2cd1cc76f2a308135cd60f424fe09084a34b5cb5)]:
+  - @firebase/component@0.5.15
+  - @firebase/logger@0.3.3
+  - @firebase/util@1.6.1
+
+## 0.13.0
+
+### Minor Changes
+
+- [`9c6808fea`](https://github.com/firebase/firebase-js-sdk/commit/9c6808fea231d1ab6de6f6ab548c67b751a12a78) [#6171](https://github.com/firebase/firebase-js-sdk/pull/6171) - Add `forceWebSockets()` and `forceLongPolling()`
+
+### Patch Changes
+
+- [`874cdbbcc`](https://github.com/firebase/firebase-js-sdk/commit/874cdbbccbc2bf8f4ee18abe220e87dc52e6a8db) [#6232](https://github.com/firebase/firebase-js-sdk/pull/6232) - Added GMPID to websocket connection.
+
+- Updated dependencies [[`9c5c9c36d`](https://github.com/firebase/firebase-js-sdk/commit/9c5c9c36da80b98b73cfd60ef2e2965087e9f801)]:
+  - @firebase/util@1.6.0
+  - @firebase/component@0.5.14
+
+## 0.12.8
+
+### Patch Changes
+
+- [`7a4e65cef`](https://github.com/firebase/firebase-js-sdk/commit/7a4e65cef9468a20fb32dc112aa7113345bc76c5) [#6126](https://github.com/firebase/firebase-js-sdk/pull/6126) - Fix issue where if a websocket protocol was used in the databaseURL, `webSocketOnly` field was incorrectly set to undefined. (When using `wss` or `ws` protocols in the databaseURL, webSocketOnly will be true and longPolling will be disabled)
+
+- Updated dependencies [[`e9e5f6b3c`](https://github.com/firebase/firebase-js-sdk/commit/e9e5f6b3ca9d61323b22f87986d9959f5297ec59)]:
+  - @firebase/util@1.5.2
+  - @firebase/component@0.5.13
+
+## 0.12.7
+
+### Patch Changes
+
+- Updated dependencies [[`3198d58dc`](https://github.com/firebase/firebase-js-sdk/commit/3198d58dcedbf7583914dbcc76984f6f7df8d2ef)]:
+  - @firebase/util@1.5.1
+  - @firebase/component@0.5.12
+
+## 0.12.6
+
+### Patch Changes
+
+- Updated dependencies [[`2d672cead`](https://github.com/firebase/firebase-js-sdk/commit/2d672cead167187cb714cd89b638c0884ba58f03)]:
+  - @firebase/util@1.5.0
+  - @firebase/component@0.5.11
+
 ## 0.12.5
 
 ### Patch Changes
