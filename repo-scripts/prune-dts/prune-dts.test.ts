@@ -30,7 +30,7 @@ const testDataFilter = /(.*).input.d.ts/;
 const testCaseFilterRe = /.*/;
 
 async function runScript(inputFile: string): Promise<string> {
-  const outputFile = path.resolve('actual.d.ts');
+  const outputFile = path.resolve(tmpDir, 'output.d.ts');
   pruneDts(inputFile, outputFile);
   return outputFile;
 }
@@ -49,7 +49,11 @@ function getTestCases(): TestCase[] {
     throw new Error(`${testCasesDir} folder does not exist`);
   }
 
-  return ['firestore.input.d.ts'].map((fileName: string) => {
+  return fs
+  .readdirSync(testCasesDir)
+  .filter((fileName: string) => testDataFilter.test(fileName))
+  .filter((fileName: string) => testCaseFilterRe.test(fileName))
+  .map((fileName: string) => {
     const testCaseName = fileName.match(testDataFilter)![1];
 
     const inputFileName = `${testCaseName}.input.d.ts`;
@@ -88,9 +92,6 @@ describe('Prune DTS', () => {
         filepath: tmpFile,
         ...prettierConfig
       });
-
-      fs.writeFileSync('expected.d.ts', expectedDts);
-      fs.writeFileSync('actual.d.ts', actualDts);
 
       expect(actualDts).to.equal(expectedDts);
     });
