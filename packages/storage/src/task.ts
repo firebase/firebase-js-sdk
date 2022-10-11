@@ -94,7 +94,7 @@ export class UploadTask {
   private _metadataErrorHandler: (p1: StorageError) => void;
   private _resolve?: (p1: UploadTaskSnapshot) => void = undefined;
   private _reject?: (p1: StorageError) => void = undefined;
-  private pendingTimeout: ReturnType<typeof setTimeout> | null = null;
+  private pendingTimeout?: ReturnType<typeof setTimeout>;
   private _promise: Promise<UploadTaskSnapshot>;
 
   private sleepTime: number;
@@ -193,7 +193,7 @@ export class UploadTask {
             this._fetchMetadata();
           } else {
             this.pendingTimeout = setTimeout(() => {
-              this.pendingTimeout = null;
+              this.pendingTimeout = undefined;
               this._continueUpload();
             }, this.sleepTime);
           }
@@ -416,7 +416,7 @@ export class UploadTask {
           this._request.cancel();
         } else if (this.pendingTimeout) {
           clearTimeout(this.pendingTimeout);
-          this.pendingTimeout = null;
+          this.pendingTimeout = undefined;
           this.completeTransitions_();
         }
         break;
