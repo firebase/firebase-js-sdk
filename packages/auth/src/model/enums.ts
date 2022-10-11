@@ -22,6 +22,8 @@
 export const enum ProviderId {
   /** @internal */
   ANONYMOUS = 'anonymous',
+  /** Apple provider ID */
+  APPLE = 'apple.com',
   /** @internal */
   CUSTOM = 'custom',
   /** Facebook provider ID */
