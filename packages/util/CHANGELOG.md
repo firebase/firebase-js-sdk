@@ -1,5 +1,13 @@
 # @firebase/util
 
+## 1.7.1
+
+### Patch Changes
+
+- [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561) [#6673](https://github.com/firebase/firebase-js-sdk/pull/6673) - Handle IPv6 addresses in emulator autoinit.
+
+* [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18) [#6665](https://github.com/firebase/firebase-js-sdk/pull/6665) (fixes [#6660](https://github.com/firebase/firebase-js-sdk/issues/6660)) - Remove `__FIREBASE_DEFAULTS_PATH__` option for now, as the current implementation causes Webpack warnings. Also fix `process.env` check to work in environments where `process` exists but `process.env` does not.
+
 ## 1.7.0
 
 ### Minor Changes
