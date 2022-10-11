@@ -1,5 +1,16 @@
 # @firebase/analytics
 
+## 0.8.2
+
+### Patch Changes
+
+- [`1fbc4c4b7`](https://github.com/firebase/firebase-js-sdk/commit/1fbc4c4b7f893ac1f973ccc29205771adec536ca) [#6655](https://github.com/firebase/firebase-js-sdk/pull/6655) - Update to allow for multiple instance of gtag with different datalayer names
+
+- Updated dependencies [[`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561), [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18)]:
+  - @firebase/util@1.7.1
+  - @firebase/component@0.5.19
+  - @firebase/installations@0.5.14
+
 ## 0.8.1
 
 ### Patch Changes

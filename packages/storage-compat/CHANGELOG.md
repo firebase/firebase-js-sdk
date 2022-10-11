@@ -1,5 +1,14 @@
 # @firebase/storage-compat
 
+## 0.1.19
+
+### Patch Changes
+
+- Updated dependencies [[`4eb8145fb`](https://github.com/firebase/firebase-js-sdk/commit/4eb8145fb3b503884ea610e813be359127d1a705), [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561), [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18)]:
+  - @firebase/storage@0.9.11
+  - @firebase/util@1.7.1
+  - @firebase/component@0.5.19
+
 ## 0.1.18
 
 ### Patch Changes

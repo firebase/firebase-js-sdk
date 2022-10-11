@@ -1,5 +1,18 @@
 # @firebase/firestore-compat
 
+## 0.2.0
+
+### Minor Changes
+
+- [`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed) [#6643](https://github.com/firebase/firebase-js-sdk/pull/6643) - Set withCredentials=true when making requests via non-streaming RPCs, like is done for streaming RPCs.
+
+### Patch Changes
+
+- Updated dependencies [[`0a112bd2a`](https://github.com/firebase/firebase-js-sdk/commit/0a112bd2aee2e709d6733b1a36876e6fae1e347f), [`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed), [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561), [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18)]:
+  - @firebase/firestore@3.7.0
+  - @firebase/util@1.7.1
+  - @firebase/component@0.5.19
+
 ## 0.1.26
 
 ### Patch Changes

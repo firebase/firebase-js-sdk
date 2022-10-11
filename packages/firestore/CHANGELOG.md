@@ -1,5 +1,22 @@
 # @firebase/firestore
 
+## 3.7.0
+
+### Minor Changes
+
+- [`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed) [#6643](https://github.com/firebase/firebase-js-sdk/pull/6643) - Set withCredentials=true when making requests via non-streaming RPCs, like is done for streaming RPCs.
+
+### Patch Changes
+
+- [`0a112bd2a`](https://github.com/firebase/firebase-js-sdk/commit/0a112bd2aee2e709d6733b1a36876e6fae1e347f) [#6624](https://github.com/firebase/firebase-js-sdk/pull/6624) (fixes [#5873](https://github.com/firebase/firebase-js-sdk/issues/5873)) - Fix Firestore failing to raise initial snapshot from empty local cache result
+
+* [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561) [#6673](https://github.com/firebase/firebase-js-sdk/pull/6673) - Handle IPv6 addresses in emulator autoinit.
+
+* Updated dependencies [[`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed), [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561), [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18)]:
+  - @firebase/webchannel-wrapper@0.8.0
+  - @firebase/util@1.7.1
+  - @firebase/component@0.5.19
+
 ## 3.6.0
 
 ### Minor Changes
