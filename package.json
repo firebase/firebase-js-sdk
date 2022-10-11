@@ -109,7 +109,7 @@
     "firebase-functions": "3.22.0",
     "firebase-tools": "11.2.2",
     "glob": "7.2.3",
-    "http-server": "14.1.0",
+    "http-server": "14.1.1",
     "indexeddbshim": "8.0.0",
     "inquirer": "8.2.4",
     "istanbul-instrumenter-loader": "3.0.1",
