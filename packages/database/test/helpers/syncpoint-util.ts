@@ -96,8 +96,8 @@ function unsafeClone(obj) {
       new obj.constructor(obj.length)
     : {};
 
+  // eslint-disable-line guard-for-in
   for (const key in obj) {
-    // eslint-disable-line guard-for-in
     clone[key] = unsafeClone(obj[key]);
   }
   return clone;
@@ -406,8 +406,8 @@ export class SyncPointTestParser {
       if (!('tag' in params)) {
         throw new Error('Non-default queries must have a tag');
       }
+      // eslint-disable-line guard-for-in
       for (const paramName in params) {
-        // eslint-disable-line guard-for-in
         const paramValue = params[paramName];
         if (paramName === 'limitToFirst') {
           q = query(q, limitToFirst(paramValue));
