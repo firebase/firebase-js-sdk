@@ -340,10 +340,22 @@ function extractJSDocComment(
   });
 
   if (comments.length > 0) {
-    const jsDocTags = ts.getJSDocTags(symbol.declarations[overloadCount]);
+    const jsDocTags = ts.getJSDocTags(symbol.declarations![overloadCount]);
     const maybeNewline = jsDocTags?.length > 0 ? '\n' : '';
+    const joinedComments = comments
+      .map(comment => {
+        if (comment.kind === 'linkText') {
+          return comment.text.trim();
+        }
+        return comment.text;
+      })
+      .join('');
+    const formattedComments = joinedComments
+      .replace('*', '\n')
+      .replace(' \n', '\n')
+      .replace('\n ', '\n');
     return ts.factory.createJSDocComment(
-      comments[0].text + maybeNewline,
+      formattedComments + maybeNewline,
       jsDocTags
     );
   }
@@ -399,7 +411,7 @@ function extractExportedSymbol(
   // See if there is an exported symbol that extends this private symbol.
   // In this case, we can safely use the public symbol instead.
   for (const symbol of allExportedSymbols) {
-    for (const declaration of symbol.declarations) {
+    for (const declaration of symbol.declarations!) {
       if (
         ts.isClassDeclaration(declaration) ||
         ts.isInterfaceDeclaration(declaration)
@@ -426,7 +438,7 @@ function extractExportedSymbol(
   // symbol with a less restrictive type.
   const localSymbol = typeChecker.getSymbolAtLocation(typeName);
   if (localSymbol) {
-    for (const declaration of localSymbol!.declarations) {
+    for (const declaration of localSymbol!.declarations!) {
       if (
         ts.isClassDeclaration(declaration) ||
         ts.isInterfaceDeclaration(declaration)
