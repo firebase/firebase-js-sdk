@@ -50,18 +50,18 @@ function getTestCases(): TestCase[] {
   }
 
   return fs
-  .readdirSync(testCasesDir)
-  .filter((fileName: string) => testDataFilter.test(fileName))
-  .filter((fileName: string) => testCaseFilterRe.test(fileName))
-  .map((fileName: string) => {
-    const testCaseName = fileName.match(testDataFilter)![1];
+    .readdirSync(testCasesDir)
+    .filter((fileName: string) => testDataFilter.test(fileName))
+    .filter((fileName: string) => testCaseFilterRe.test(fileName))
+    .map((fileName: string) => {
+      const testCaseName = fileName.match(testDataFilter)![1];
 
-    const inputFileName = `${testCaseName}.input.d.ts`;
-    const outputFileName = `${testCaseName}.output.d.ts`;
+      const inputFileName = `${testCaseName}.input.d.ts`;
+      const outputFileName = `${testCaseName}.output.d.ts`;
 
-    const name = testCaseName.replace(/-/g, ' ');
-    return { name, inputFileName, outputFileName };
-  });
+      const name = testCaseName.replace(/-/g, ' ');
+      return { name, inputFileName, outputFileName };
+    });
 }
 
 describe('Prune DTS', () => {
