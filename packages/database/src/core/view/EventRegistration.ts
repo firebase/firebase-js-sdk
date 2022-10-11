@@ -55,7 +55,7 @@ export class CallbackContext {
     expDataSnapshot: DataSnapshot,
     previousChildName?: string | null
   ): void {
-    return this.snapshotCallback.call(null, expDataSnapshot, previousChildName);
+    this.snapshotCallback.call(null, expDataSnapshot, previousChildName);
   }
 
   onCancel(error: Error): void {

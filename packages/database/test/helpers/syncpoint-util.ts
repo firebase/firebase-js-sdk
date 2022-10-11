@@ -96,7 +96,7 @@ function unsafeClone(obj) {
       new obj.constructor(obj.length)
     : {};
 
-  // eslint-disable-line guard-for-in
+  // eslint-disable-next-line guard-for-in
   for (const key in obj) {
     clone[key] = unsafeClone(obj[key]);
   }
@@ -324,7 +324,9 @@ export class SyncPointTestParser {
           const actualEventData = currentActual[j];
           const eventFn =
             actualEventData.eventRegistration.getEventRunner(actualEventData);
-          const specStep = eventFn();
+          eventFn();
+          console.log(currentSpec);
+          const specStep = currentSpec;
           const actualPath = this.getTestPath(optBasePath, specStep.path);
           if (!pathEquals(currentPath, actualPath)) {
             throw new Error(
@@ -345,8 +347,8 @@ export class SyncPointTestParser {
         let actualEvent;
         for (let x = 0; x < actualSlice.length; ++x) {
           actualEvent = actualSlice[x];
-          const spec =
-            actualEvent.eventRegistration.getEventRunner(actualEvent)();
+          actualEvent.eventRegistration.getEventRunner(actualEvent)();
+          const spec = currentSpec;
           const listenId =
             this.getTestPath(optBasePath, spec.path).toString() +
             '|' +
@@ -406,7 +408,7 @@ export class SyncPointTestParser {
       if (!('tag' in params)) {
         throw new Error('Non-default queries must have a tag');
       }
-      // eslint-disable-line guard-for-in
+      // eslint-disable-next-line guard-for-in
       for (const paramName in params) {
         const paramValue = params[paramName];
         if (paramName === 'limitToFirst') {
@@ -435,7 +437,7 @@ export class SyncPointTestParser {
     const testListener = function (spec) {
       // Hack: have the callback return the spec for the listen that triggered it.
       return function myListener() {
-        return spec;
+        currentSpec = spec;
       };
     };
 
@@ -446,6 +448,7 @@ export class SyncPointTestParser {
         }
       }
     };
+    let currentSpec;
     console.log('Running ' + testSpec.name);
     let currentWriteId = 0;
     const registrations = {};
