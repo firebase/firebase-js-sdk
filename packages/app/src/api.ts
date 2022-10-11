@@ -121,6 +121,7 @@ export function initializeApp(
   rawConfig = {}
 ): FirebaseApp {
   let options = _options;
+  console.log(options);
 
   if (typeof rawConfig !== 'object') {
     const name = rawConfig;

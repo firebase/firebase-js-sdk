@@ -104,7 +104,6 @@ export interface ListenProvider {
  */
 let syncTreeNextQueryTag_ = 1;
 
-
 export function resetSyncTreeTag() {
   syncTreeNextQueryTag_ = 1;
 }
