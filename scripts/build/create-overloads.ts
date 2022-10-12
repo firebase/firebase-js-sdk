@@ -125,6 +125,7 @@ function keepPublicFunctionsTransformer(
   return (sourceFile: ts.SourceFile) => {
     const typeChecker = program.getTypeChecker();
     const overloads: ts.Statement[] = [];
+    const { factory } = context;
     function visit(node: ts.Node): ts.Node {
       if (ts.isFunctionDeclaration(node)) {
         // return early if the function doesn't have any parameter of the type we are looking for
@@ -137,7 +138,7 @@ function keepPublicFunctionsTransformer(
             return false;
           })
         ) {
-          return ts.createToken(ts.SyntaxKind.WhitespaceTrivia);
+          return factory.createEmptyStatement();
         }
 
         const newParameters = node.parameters.map(param => {
@@ -146,14 +147,14 @@ function keepPublicFunctionsTransformer(
               if (
                 param.type.typeName.getText(sourceFile) === replaceOption.match
               ) {
-                return ts.updateParameter(
+                return factory.updateParameterDeclaration(
                   param,
                   param.decorators,
                   param.modifiers,
                   param.dotDotDotToken,
                   param.name,
                   param.questionToken,
-                  ts.createTypeReferenceNode(
+                  factory.createTypeReferenceNode(
                     replaceOption.replacement,
                     param.type.typeArguments
                   ),
@@ -173,7 +174,7 @@ function keepPublicFunctionsTransformer(
         });
 
         overloads.push(
-          ts.updateFunctionDeclaration(
+          factory.updateFunctionDeclaration(
             node,
             node.decorators,
             [],
@@ -189,7 +190,7 @@ function keepPublicFunctionsTransformer(
 
       // remove all nodes other than the source file itself
       if (!ts.isSourceFile(node)) {
-        return ts.createToken(ts.SyntaxKind.WhitespaceTrivia);
+        return factory.createEmptyStatement();
       }
 
       return node;
@@ -214,43 +215,45 @@ function keepPublicFunctionsTransformer(
     }
 
     // hardcode adding `import { FirebaseApp as FirebaseAppCompat } from '@firebase/app-compat'`
-    const appCompatImport = ts.createImportDeclaration(
+    const appCompatImport = factory.createImportDeclaration(
       undefined,
       undefined,
-      ts.createImportClause(
+      factory.createImportClause(
+        false,
         undefined,
-        ts.createNamedImports([
-          ts.createImportSpecifier(
+        factory.createNamedImports([
+          factory.createImportSpecifier(
             false,
-            ts.createIdentifier('FirebaseApp'),
-            ts.createIdentifier('FirebaseAppCompat')
+            factory.createIdentifier('FirebaseApp'),
+            factory.createIdentifier('FirebaseAppCompat')
           )
         ])
       ),
-      ts.createLiteral('@firebase/app-compat')
+      factory.createStringLiteral('@firebase/app-compat')
     );
 
-    const importStatement = ts.createImportDeclaration(
+    const importStatement = factory.createImportDeclaration(
       undefined,
       undefined,
-      ts.createImportClause(
+      factory.createImportClause(
+        false,
         undefined,
-        ts.createNamedImports(
+        factory.createNamedImports(
           Array.from(typesToImport).map(typeName =>
-            ts.createImportSpecifier(true, undefined, ts.createIdentifier(typeName))
+            factory.createImportSpecifier(true, undefined, factory.createIdentifier(typeName))
           )
         )
       ),
-      ts.createLiteral(moduleNameToEnhance)
+      factory.createStringLiteral(moduleNameToEnhance)
     );
-    const moduleToEnhance = ts.createModuleDeclaration(
+    const moduleToEnhance = factory.createModuleDeclaration(
       undefined,
-      [ts.createModifier(ts.SyntaxKind.DeclareKeyword)],
-      ts.createStringLiteral(moduleNameToEnhance),
-      ts.createModuleBlock(overloads)
+      [factory.createModifier(ts.SyntaxKind.DeclareKeyword)],
+      factory.createStringLiteral(moduleNameToEnhance),
+      factory.createModuleBlock(overloads)
     );
 
-    return ts.updateSourceFileNode(transformed, [
+    return factory.updateSourceFile(transformed, [
       appCompatImport,
       importStatement,
       moduleToEnhance
