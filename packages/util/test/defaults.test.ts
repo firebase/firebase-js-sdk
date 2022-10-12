@@ -43,8 +43,9 @@ describe('getDefaultEmulatorHost', () => {
     after(() => {
       restore();
     });
-    it('returns undefined', () => {
+    it('returns undefined and does not throw', () => {
       expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+      expect(getDefaultEmulatorHost('firestore')).to.not.throw;
     });
   });
 
@@ -58,8 +59,9 @@ describe('getDefaultEmulatorHost', () => {
     after(() => {
       restore();
     });
-    it('returns undefined and calls console.info', () => {
+    it('returns undefined and does not throw', () => {
       expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+      expect(getDefaultEmulatorHost('firestore')).to.not.throw;
     });
   });
 
