@@ -20,6 +20,7 @@ import assert from 'assert';
 import { FirebaseApp, initializeApp } from '@firebase/app';
 import { expect } from 'chai';
 import * as chai from 'chai';
+import _ from 'lodash';
 import sinonChai from 'sinon-chai';
 
 import {
@@ -70,37 +71,6 @@ function objectMap(object, mapFn) {
     newObj[key] = mapFn(object[key]);
   });
   return newObj;
-}
-
-function unsafeClone(obj) {
-  if (!obj || typeof obj !== 'object') {
-    return obj;
-  }
-  if (typeof obj.clone === 'function') {
-    return obj.clone();
-  }
-  if (typeof Map !== 'undefined' && obj instanceof Map) {
-    return new Map(obj);
-  } else if (typeof Set !== 'undefined' && obj instanceof Set) {
-    return new Set(obj);
-  } else if (obj instanceof Date) {
-    return new Date(obj.getTime());
-  }
-  const clone = Array.isArray(obj)
-    ? []
-    : typeof ArrayBuffer === 'function' &&
-      typeof ArrayBuffer.isView === 'function' &&
-      ArrayBuffer.isView(obj) &&
-      !(obj instanceof DataView)
-    ? // @ts-ignore
-      new obj.constructor(obj.length)
-    : {};
-
-  // eslint-disable-next-line guard-for-in
-  for (const key in obj) {
-    clone[key] = unsafeClone(obj[key]);
-  }
-  return clone;
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -435,8 +405,8 @@ export class SyncPointTestParser {
     const registrations = {};
 
     for (let i = 0; i < testSpec.steps.length; ++i) {
-      // TODO: Create a separate object structure specifically for the steps.
-      const spec = unsafeClone(testSpec.steps[i]);
+      // TODO: Create a separate object structure specifically for the steps
+      const spec = _.cloneDeep(testSpec.steps[i]);
       if ('.comment' in spec) {
         console.log(' > ' + spec['.comment']);
       }
