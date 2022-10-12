@@ -30,7 +30,7 @@
     "@types/webpack": "5.28.0",
     "webpack-virtual-modules": "0.4.5",
     "child-process-promise": "2.2.1",
-    "memfs": "3.4.1",
+    "memfs": "3.4.7",
     "tmp": "0.2.1",
     "typescript": "4.2.2",
     "terser": "5.14.2",
