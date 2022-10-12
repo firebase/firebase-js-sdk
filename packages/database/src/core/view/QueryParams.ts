@@ -36,8 +36,10 @@ import { RangedFilter } from './filter/RangedFilter';
 const enum WIRE_PROTOCOL_CONSTANTS {
   INDEX_START_VALUE = 'sp',
   INDEX_START_NAME = 'sn',
+  INDEX_START_IS_INCLUSIVE = 'sin',
   INDEX_END_VALUE = 'ep',
   INDEX_END_NAME = 'en',
+  INDEX_END_IS_INCLUSIVE = 'ein',
   LIMIT = 'l',
   VIEW_FROM = 'vf',
   VIEW_FROM_LEFT = 'l',
@@ -53,8 +55,10 @@ const enum REST_QUERY_CONSTANTS {
   PRIORITY_INDEX = '$priority',
   VALUE_INDEX = '$value',
   KEY_INDEX = '$key',
+  START_AFTER = 'startAfter',
   START_AT = 'startAt',
   END_AT = 'endAt',
+  END_BEFORE = 'endBefore',
   LIMIT_TO_FIRST = 'limitToFirst',
   LIMIT_TO_LAST = 'limitToLast'
 }
@@ -374,18 +378,22 @@ export function queryParamsToRestQueryStringParameters(
   qs[REST_QUERY_CONSTANTS.ORDER_BY] = stringify(orderBy);
 
   if (queryParams.startSet_) {
-    qs[REST_QUERY_CONSTANTS.START_AT] = stringify(queryParams.indexStartValue_);
+    const startParam = queryParams.startAfterSet_
+      ? REST_QUERY_CONSTANTS.START_AFTER
+      : REST_QUERY_CONSTANTS.START_AT;
+    qs[startParam] = stringify(queryParams.indexStartValue_);
     if (queryParams.startNameSet_) {
-      qs[REST_QUERY_CONSTANTS.START_AT] +=
-        ',' + stringify(queryParams.indexStartName_);
+      qs[startParam] += ',' + stringify(queryParams.indexStartName_);
     }
   }
 
   if (queryParams.endSet_) {
-    qs[REST_QUERY_CONSTANTS.END_AT] = stringify(queryParams.indexEndValue_);
+    const endParam = queryParams.endBeforeSet_
+      ? REST_QUERY_CONSTANTS.END_BEFORE
+      : REST_QUERY_CONSTANTS.END_AT;
+    qs[endParam] = stringify(queryParams.indexEndValue_);
     if (queryParams.endNameSet_) {
-      qs[REST_QUERY_CONSTANTS.END_AT] +=
-        ',' + stringify(queryParams.indexEndName_);
+      qs[endParam] += ',' + stringify(queryParams.indexEndName_);
     }
   }
 
@@ -411,12 +419,16 @@ export function queryParamsGetQueryObject(
       obj[WIRE_PROTOCOL_CONSTANTS.INDEX_START_NAME] =
         queryParams.indexStartName_;
     }
+    obj[WIRE_PROTOCOL_CONSTANTS.INDEX_START_IS_INCLUSIVE] =
+      !queryParams.startAfterSet_;
   }
   if (queryParams.endSet_) {
     obj[WIRE_PROTOCOL_CONSTANTS.INDEX_END_VALUE] = queryParams.indexEndValue_;
     if (queryParams.endNameSet_) {
       obj[WIRE_PROTOCOL_CONSTANTS.INDEX_END_NAME] = queryParams.indexEndName_;
     }
+    obj[WIRE_PROTOCOL_CONSTANTS.INDEX_END_IS_INCLUSIVE] =
+      !queryParams.endBeforeSet_;
   }
   if (queryParams.limitSet_) {
     obj[WIRE_PROTOCOL_CONSTANTS.LIMIT] = queryParams.limit_;
