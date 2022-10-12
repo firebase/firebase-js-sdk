@@ -37,5 +37,5 @@ export function getFakeApp(): FirebaseApp {
 }
 
 export function getFakeModularMessaging(): Messaging {
-  return {};
+  return {} as Messaging;
 }
