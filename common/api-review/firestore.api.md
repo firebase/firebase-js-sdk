@@ -27,6 +27,7 @@ export type AggregateFieldType = AggregateField<number>;
 
 // @public
 export class AggregateQuerySnapshot<T extends AggregateSpec> {
+    ;
     data(): AggregateSpecData<T>;
     readonly query: Query<unknown>;
     readonly type = "AggregateQuerySnapshot";
@@ -54,6 +55,7 @@ export function arrayUnion(...elements: unknown[]): FieldValue;
 
 // @public
 export class Bytes {
+    ;
     static fromBase64String(base64: string): Bytes;
     static fromUint8Array(array: Uint8Array): Bytes;
     isEqual(other: Bytes): boolean;
@@ -85,6 +87,7 @@ export function collectionGroup(firestore: Firestore, collectionId: string): Que
 
 // @public
 export class CollectionReference<T = DocumentData> extends Query<T> {
+    ;
     get id(): string;
     get parent(): DocumentReference<DocumentData> | null;
     get path(): string;
@@ -137,9 +140,11 @@ export function documentId(): FieldPath;
 
 // @public
 export class DocumentReference<T = DocumentData> {
+    ;
     readonly converter: FirestoreDataConverter<T> | null;
     readonly firestore: Firestore;
     get id(): string;
+    ;
     get parent(): CollectionReference<T>;
     get path(): string;
     readonly type = "document";
@@ -149,11 +154,17 @@ export class DocumentReference<T = DocumentData> {
 
 // @public
 export class DocumentSnapshot<T = DocumentData> {
+    ;
+    ;
     protected constructor();
     data(options?: SnapshotOptions): T | undefined;
     exists(): this is QueryDocumentSnapshot<T>;
     get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
     get id(): string;
+    ;
+    ;
+    ;
+    ;
     readonly metadata: SnapshotMetadata;
     get ref(): DocumentReference<T>;
 }
@@ -183,19 +194,39 @@ export function endBefore(...fieldValues: unknown[]): QueryConstraint;
 
 // @public
 export class FieldPath {
+    ;
     constructor(...fieldNames: string[]);
     isEqual(other: FieldPath): boolean;
 }
 
 // @public
 export abstract class FieldValue {
+    ;
     abstract isEqual(other: FieldValue): boolean;
+    ;
 }
 
 // @public
 export class Firestore {
+    ;
+    ;
+    ;
     get app(): FirebaseApp;
+    ;
+    ;
+    ;
+    ;
+    ;
+    ;
+    ;
+    ;
     toJSON(): object;
+    ;
+    ;
+    ;
+    ;
+    ;
+    ;
     type: 'firestore-lite' | 'firestore';
 }
 
@@ -228,6 +259,8 @@ export interface FirestoreSettings {
 
 // @public
 export class GeoPoint {
+    ;
+    ;
     constructor(latitude: number, longitude: number);
     isEqual(other: GeoPoint): boolean;
     get latitude(): number;
@@ -236,6 +269,7 @@ export class GeoPoint {
         latitude: number;
         longitude: number;
     };
+    ;
 }
 
 // @public
@@ -308,9 +342,15 @@ export function loadBundle(firestore: Firestore, bundleData: ReadableStream<Uint
 
 // @public
 export class LoadBundleTask implements PromiseLike<LoadBundleTaskProgress> {
+    ;
+    ;
+    ;
     catch<R>(onRejected: (a: Error) => R | PromiseLike<R>): Promise<R | LoadBundleTaskProgress>;
     onProgress(next?: (progress: LoadBundleTaskProgress) => unknown, error?: (err: Error) => unknown, complete?: () => void): void;
     then<T, R>(onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>, onRejected?: (a: Error) => R | PromiseLike<R>): Promise<T | R>;
+    ;
+    ;
+    ;
 }
 
 // @public
@@ -404,6 +444,7 @@ export type Primitive = string | number | boolean | undefined | null;
 // @public
 export class Query<T = DocumentData> {
     protected constructor();
+    ;
     readonly converter: FirestoreDataConverter<T> | null;
     readonly firestore: Firestore;
     readonly type: 'query' | 'collection';
@@ -417,6 +458,7 @@ export function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]
 // @public
 export abstract class QueryConstraint {
     abstract readonly type: QueryConstraintType;
+    ;
 }
 
 // @public
@@ -433,7 +475,12 @@ export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
 
 // @public
 export class QuerySnapshot<T = DocumentData> {
+    ;
+    ;
+    ;
     docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
+    ;
+    ;
     get docs(): Array<QueryDocumentSnapshot<T>>;
     get empty(): boolean;
     forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
@@ -523,6 +570,7 @@ export class Timestamp {
     static now(): Timestamp;
     readonly seconds: number;
     toDate(): Date;
+    ;
     toJSON(): {
         seconds: number;
         nanoseconds: number;
@@ -534,7 +582,10 @@ export class Timestamp {
 
 // @public
 export class Transaction {
+    ;
     delete(documentRef: DocumentReference<unknown>): this;
+    ;
+    ;
     get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
     set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): this;
     set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): this;
@@ -582,12 +633,18 @@ export type WithFieldValue<T> = T | (T extends Primitive ? T : T extends {} ? {
 
 // @public
 export class WriteBatch {
+    ;
+    ;
+    ;
+    ;
+    ;
     commit(): Promise<void>;
     delete(documentRef: DocumentReference<unknown>): WriteBatch;
     set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): WriteBatch;
     set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): WriteBatch;
     update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
     update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
+    ;
 }
 
 // @public

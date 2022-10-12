@@ -17,8 +17,15 @@ export function connectDatabaseEmulator(db: Database, host: string, port: number
 
 // @public
 export class Database {
+    ;
     readonly app: FirebaseApp;
+    ;
+    ;
     readonly 'type' = "database";
+    ;
+    ;
+    ;
+    ;
 }
 
 // @public
@@ -30,6 +37,8 @@ export interface DatabaseReference extends Query {
 
 // @public
 export class DataSnapshot {
+    ;
+    ;
     child(path: string): DataSnapshot;
     exists(): boolean;
     exportVal(): any;
@@ -137,6 +146,8 @@ export function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) 
 
 // @public
 export class OnDisconnect {
+    ;
+    ;
     cancel(): Promise<void>;
     remove(): Promise<void>;
     set(value: unknown): Promise<void>;
@@ -177,6 +188,11 @@ export interface Query {
     readonly ref: DatabaseReference;
     toJSON(): string;
     toString(): string;
+    ;
+    ;
+    ;
+    ;
+    ;
 }
 
 // @public
@@ -185,6 +201,7 @@ export function query(query: Query, ...queryConstraints: QueryConstraint[]): Que
 // @public
 export abstract class QueryConstraint {
     abstract readonly type: QueryConstraintType;
+    ;
 }
 
 // @public
