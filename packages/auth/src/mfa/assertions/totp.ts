@@ -139,7 +139,7 @@ export class TotpMultiFactorAssertionImpl
   }
 
   /** @internal */
-  _finalizeEnroll(
+  async _finalizeEnroll(
     auth: AuthInternal,
     idToken: string,
     displayName?: string | null
@@ -157,7 +157,7 @@ export class TotpMultiFactorAssertionImpl
   }
 
   /** @internal */
-  _finalizeSignIn(
+  async _finalizeSignIn(
     auth: AuthInternal,
     mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse> {
