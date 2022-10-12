@@ -221,6 +221,7 @@ function keepPublicFunctionsTransformer(
         undefined,
         ts.createNamedImports([
           ts.createImportSpecifier(
+            false,
             ts.createIdentifier('FirebaseApp'),
             ts.createIdentifier('FirebaseAppCompat')
           )
@@ -236,7 +237,7 @@ function keepPublicFunctionsTransformer(
         undefined,
         ts.createNamedImports(
           Array.from(typesToImport).map(typeName =>
-            ts.createImportSpecifier(undefined, ts.createIdentifier(typeName))
+            ts.createImportSpecifier(true, undefined, ts.createIdentifier(typeName))
           )
         )
       ),
@@ -302,7 +303,7 @@ function findTypes(
       // include the type if it's not in the excludes list or a builtin type
       if (!typesToIgnore.includes(typeName)) {
         const symbol = typeCheck.getSymbolAtLocation(node.typeName);
-        const declaration = symbol?.declarations[0];
+        const declaration = symbol?.declarations?.[0];
 
         // ignore type parameters.
         if (!declaration || !ts.isTypeParameterDeclaration(declaration)) {
