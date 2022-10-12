@@ -38,7 +38,6 @@ import { AuthErrorCode } from '../../core/errors';
 import { AppName } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { MultiFactorAssertionImpl } from '../mfa_assertion';
-import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);
 
@@ -268,12 +267,9 @@ describe('Testing signin Flow', () => {
       '123456'
     ) as any;
 
-    try {
-      _response = await assertion._process(auth, session);
-    } catch (e) {
-      expect(e).to.be.an.instanceOf(FirebaseError);
-      expect(e.message).to.eql('Firebase: Error (auth/argument-error).');
-    }
+    await expect(assertion._process(auth, session)).to.be.rejectedWith(
+      'auth/argument-error'
+    );
   });
 
   it('should throw Firebase Error if otp is undefined', async () => {
@@ -288,12 +284,9 @@ describe('Testing signin Flow', () => {
       undefined as any
     ) as any;
 
-    try {
-      _response = await assertion._process(auth, session);
-    } catch (e) {
-      expect(e).to.be.an.instanceOf(FirebaseError);
-      expect(e.message).to.eql('Firebase: Error (auth/argument-error).');
-    }
+    await expect(assertion._process(auth, session)).to.be.rejectedWith(
+      'auth/argument-error'
+    );
   });
 });
 
