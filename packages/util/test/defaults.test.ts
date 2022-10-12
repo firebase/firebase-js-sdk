@@ -14,12 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import { match, restore, SinonStub, stub } from 'sinon';
+import sinonChai from 'sinon-chai';
 import {
   getDefaultEmulatorHost,
   getDefaultEmulatorHostnameAndPort
 } from '../src/defaults';
 import { getGlobal } from '../src/environment';
+
+use(sinonChai);
 
 describe('getDefaultEmulatorHost', () => {
   after(() => {
@@ -29,6 +33,49 @@ describe('getDefaultEmulatorHost', () => {
   context('with no config', () => {
     it('returns undefined', () => {
       expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+    });
+  });
+
+  context('with no config and process.env undefined', () => {
+    before(() => {
+      stub(process, 'env').value(undefined);
+    });
+    after(() => {
+      restore();
+    });
+    it('returns undefined', () => {
+      expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+    });
+  });
+
+  context('with no config and document.cookie throws', () => {
+    before(() => {
+      stub(document, 'cookie').get(() => new Error('aaaah'));
+    });
+    after(() => {
+      restore();
+    });
+    it('returns undefined and calls console.info', () => {
+      expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+    });
+  });
+
+  context('with no config and something unexpected throws', () => {
+    let consoleInfoStub: SinonStub;
+    before(() => {
+      process.env.__FIREBASE_DEFAULTS__ = '';
+      stub(process.env, '__FIREBASE_DEFAULTS__').get(() => {
+        throw new Error('aaaah');
+      });
+      consoleInfoStub = stub(console, 'info');
+    });
+    after(() => {
+      delete process.env.__FIREBASE_DEFAULTS__;
+      restore();
+    });
+    it('returns undefined and calls console.info with the error', () => {
+      expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+      expect(consoleInfoStub).to.be.calledWith(match('aaaah'));
     });
   });
 
