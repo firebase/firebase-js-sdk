@@ -1,5 +1,36 @@
 # firebase
 
+## 9.12.1
+
+### Patch Changes
+
+- Updated dependencies [[`5f55ed828`](https://github.com/firebase/firebase-js-sdk/commit/5f55ed828e7e7d3084590ff04d8c3e75fc718a51), [`807f06aa2`](https://github.com/firebase/firebase-js-sdk/commit/807f06aa26438a91aaea08fd38efb6c706bb8a5d), [`03d1fabcb`](https://github.com/firebase/firebase-js-sdk/commit/03d1fabcb652b3af61631d1e1100ed13efa6fc87)]:
+  - @firebase/storage@0.9.12
+  - @firebase/util@1.7.2
+  - @firebase/analytics@0.8.3
+  - @firebase/storage-compat@0.1.20
+  - @firebase/analytics-compat@0.1.16
+  - @firebase/app@0.8.2
+  - @firebase/app-check@0.5.15
+  - @firebase/app-check-compat@0.2.15
+  - @firebase/app-compat@0.1.37
+  - @firebase/auth@0.20.10
+  - @firebase/auth-compat@0.2.23
+  - @firebase/database@0.13.9
+  - @firebase/database-compat@0.2.9
+  - @firebase/firestore@3.7.1
+  - @firebase/firestore-compat@0.2.1
+  - @firebase/functions@0.8.7
+  - @firebase/functions-compat@0.2.7
+  - @firebase/installations@0.5.15
+  - @firebase/installations-compat@0.1.15
+  - @firebase/messaging@0.9.19
+  - @firebase/messaging-compat@0.1.19
+  - @firebase/performance@0.5.15
+  - @firebase/performance-compat@0.1.15
+  - @firebase/remote-config@0.3.14
+  - @firebase/remote-config-compat@0.1.15
+
 ## 9.12.0
 
 ### Minor Changes

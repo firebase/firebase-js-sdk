@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database",
-  "version": "0.13.8",
+  "version": "0.13.9",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -46,14 +46,14 @@
   "peerDependencies": {},
   "dependencies": {
     "@firebase/logger": "0.3.3",
-    "@firebase/util": "1.7.1",
-    "@firebase/component": "0.5.19",
+    "@firebase/util": "1.7.2",
+    "@firebase/component": "0.5.20",
     "@firebase/auth-interop-types": "0.1.6",
     "faye-websocket": "0.11.4",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.8.1",
+    "@firebase/app": "0.8.2",
     "rollup": "2.72.1",
     "rollup-plugin-typescript2": "0.31.2",
     "typescript": "4.2.2"

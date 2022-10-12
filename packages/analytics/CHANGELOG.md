@@ -1,5 +1,16 @@
 # @firebase/analytics
 
+## 0.8.3
+
+### Patch Changes
+
+- [`03d1fabcb`](https://github.com/firebase/firebase-js-sdk/commit/03d1fabcb652b3af61631d1e1100ed13efa6fc87) [#6671](https://github.com/firebase/firebase-js-sdk/pull/6671) - Correct `id` type in `setUserId`
+
+- Updated dependencies [[`807f06aa2`](https://github.com/firebase/firebase-js-sdk/commit/807f06aa26438a91aaea08fd38efb6c706bb8a5d)]:
+  - @firebase/util@1.7.2
+  - @firebase/component@0.5.20
+  - @firebase/installations@0.5.15
+
 ## 0.8.2
 
 ### Patch Changes

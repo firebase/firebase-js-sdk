@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.7.2
+
+### Patch Changes
+
+- [`807f06aa2`](https://github.com/firebase/firebase-js-sdk/commit/807f06aa26438a91aaea08fd38efb6c706bb8a5d) [#6686](https://github.com/firebase/firebase-js-sdk/pull/6686) (fixes [#6677](https://github.com/firebase/firebase-js-sdk/issues/6677)) - Catch errors when the SDK checks for `__FIREBASE_DEFAULTS__` and do not block other app functionality.
+
 ## 1.7.1
 
 ### Patch Changes
