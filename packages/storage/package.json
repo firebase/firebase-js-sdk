@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.9.11",
+  "version": "0.9.12",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -42,8 +42,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/util": "1.7.1",
-    "@firebase/component": "0.5.19",
+    "@firebase/util": "1.7.2",
+    "@firebase/component": "0.5.20",
     "node-fetch": "2.6.7",
     "tslib": "^2.1.0"
   },
@@ -51,8 +51,8 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.8.1",
-    "@firebase/auth": "0.20.9",
+    "@firebase/app": "0.8.2",
+    "@firebase/auth": "0.20.10",
     "rollup": "2.72.1",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations-compat",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "module": "dist/esm/index.esm2017.js",
@@ -45,7 +45,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.36",
+    "@firebase/app-compat": "0.1.37",
     "rollup": "2.72.1",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",
@@ -58,10 +58,10 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.5.14",
+    "@firebase/installations": "0.5.15",
     "@firebase/installations-types": "0.4.0",
-    "@firebase/util": "1.7.1",
-    "@firebase/component": "0.5.19",
+    "@firebase/util": "1.7.2",
+    "@firebase/component": "0.5.20",
     "tslib": "^2.1.0"
   }
 }
