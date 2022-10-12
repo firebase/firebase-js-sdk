@@ -240,7 +240,11 @@ function keepPublicFunctionsTransformer(
         undefined,
         factory.createNamedImports(
           Array.from(typesToImport).map(typeName =>
-            factory.createImportSpecifier(true, undefined, factory.createIdentifier(typeName))
+            factory.createImportSpecifier(
+              true,
+              undefined,
+              factory.createIdentifier(typeName)
+            )
           )
         )
       ),
