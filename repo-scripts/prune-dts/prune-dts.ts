@@ -192,6 +192,7 @@ function maybeHideConstructor(
 function prunePrivateImports<
   T extends ts.InterfaceDeclaration | ts.ClassDeclaration
 >(
+  factory: ts.NodeFactory,
   program: ts.Program,
   host: ts.CompilerHost,
   sourceFile: ts.SourceFile,
@@ -233,13 +234,13 @@ function prunePrivateImports<
 
     if (exportedTypes.length > 0) {
       prunedHeritageClauses.push(
-        ts.updateHeritageClause(heritageClause, exportedTypes)
+        factory.updateHeritageClause(heritageClause, exportedTypes)
       );
     }
   }
 
   if (ts.isClassDeclaration(node)) {
-    return ts.updateClassDeclaration(
+    return factory.updateClassDeclaration(
       node,
       node.decorators,
       node.modifiers,
@@ -252,7 +253,7 @@ function prunePrivateImports<
       ]
     ) as T;
   } else if (ts.isInterfaceDeclaration(node)) {
-    return ts.updateInterfaceDeclaration(
+    return factory.updateInterfaceDeclaration(
       node,
       node.decorators,
       node.modifiers,
@@ -465,6 +466,7 @@ function dropPrivateApiTransformer(
   context: ts.TransformationContext
 ): ts.Transformer<ts.SourceFile> {
   const typeChecker = program.getTypeChecker();
+  const { factory } = context;
 
   return (sourceFile: ts.SourceFile) => {
     function visit(node: ts.Node): ts.Node {
@@ -481,7 +483,7 @@ function dropPrivateApiTransformer(
         if (
           !node.modifiers?.find(m => m.kind === ts.SyntaxKind.ExportKeyword)
         ) {
-          return ts.createToken(ts.SyntaxKind.WhitespaceTrivia);
+          return factory.createEmptyStatement();
         }
       }
 
@@ -494,7 +496,7 @@ function dropPrivateApiTransformer(
       ) {
         // Remove any imports that reference internal APIs, while retaining
         // their public members.
-        return prunePrivateImports(program, host, sourceFile, node);
+        return prunePrivateImports(factory, program, host, sourceFile, node);
       } else if (
         ts.isPropertyDeclaration(node) ||
         ts.isMethodDeclaration(node) ||
@@ -503,7 +505,7 @@ function dropPrivateApiTransformer(
         // Remove any class and interface members that are prefixed with
         // underscores.
         if (hasPrivatePrefix(node.name as ts.Identifier)) {
-          return ts.createToken(ts.SyntaxKind.WhitespaceTrivia);
+          return factory.createEmptyStatement();
         }
       } else if (ts.isTypeReferenceNode(node)) {
         // For public types that refer internal types, find a public type that
@@ -514,9 +516,9 @@ function dropPrivateApiTransformer(
           node.typeName
         );
         return publicName
-          ? ts.updateTypeReferenceNode(
+          ? factory.updateTypeReferenceNode(
               node,
-              ts.createIdentifier(publicName.name),
+              factory.createIdentifier(publicName.name),
               node.typeArguments
             )
           : node;
