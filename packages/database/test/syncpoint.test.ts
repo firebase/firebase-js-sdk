@@ -18,6 +18,7 @@
 import { SyncPointTestParser } from './helpers/syncpoint-util';
 import syncPointSpecs from './helpers/syncPointSpec.json';
 
+// TODO: We should eventually split this up into separate tests
 describe('Syncpoint Tests', () => {
   const util = new SyncPointTestParser();
   for (let i = 0; i < syncPointSpecs.length; i++) {

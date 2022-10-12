@@ -25,7 +25,7 @@
 const config = {
   require: 'ts-node/register',
   timeout: 5000,
-  retries: 5, // TODO(mtewani): Reset this to 5. Find a way to run the tests without stepping over itself.
+  retries: 5,
   exit: true
 };
 

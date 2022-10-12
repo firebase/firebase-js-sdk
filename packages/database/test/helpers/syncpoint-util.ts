@@ -160,7 +160,6 @@ class TestEventRegistration implements EventRegistration {
 
   matches(otherEventRegistration: EventRegistration) {
     if (otherEventRegistration instanceof TestEventRegistration) {
-      // TODO(mtewas unknown as TestEventRegistration rit
       return (
         (this as unknown as TestEventRegistration) === otherEventRegistration
       );
@@ -170,22 +169,6 @@ class TestEventRegistration implements EventRegistration {
   hasAnyCallback(): boolean {
     return true;
   }
-}
-
-function patchFakeAuthFunctions(app: FirebaseApp) {
-  const token_ = null;
-
-  app['INTERNAL'] = app['INTERNAL'] || {};
-
-  app['INTERNAL']['getToken'] = function (forceRefresh) {
-    return Promise.resolve(token_);
-  };
-
-  app['INTERNAL']['addAuthTokenListener'] = function (listener) {};
-
-  app['INTERNAL']['removeAuthTokenListener'] = function (listener) {};
-
-  return app;
 }
 
 class SyncPointListenProvider implements ListenProvider {
@@ -237,7 +220,6 @@ export class SyncPointTestParser {
       { databaseURL: 'http://tests.fblocal.com:9000' },
       'SYNCPOINT'
     );
-    patchFakeAuthFunctions(this.app);
   }
 
   // Check the number of required arguments
@@ -325,7 +307,6 @@ export class SyncPointTestParser {
           const eventFn =
             actualEventData.eventRegistration.getEventRunner(actualEventData);
           eventFn();
-          console.log(currentSpec);
           const specStep = currentSpec;
           const actualPath = this.getTestPath(optBasePath, specStep.path);
           if (!pathEquals(currentPath, actualPath)) {
@@ -454,6 +435,7 @@ export class SyncPointTestParser {
     const registrations = {};
 
     for (let i = 0; i < testSpec.steps.length; ++i) {
+      // TODO: Create a separate object structure specifically for the steps.
       const spec = unsafeClone(testSpec.steps[i]);
       if ('.comment' in spec) {
         console.log(' > ' + spec['.comment']);
