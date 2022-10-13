@@ -979,9 +979,7 @@ page_type: reference
           finalFunctionsTable.addRow(
             new DocTableRow({ configuration }, [
               new DocTableCell({ configuration }, [
-                new DocParagraph({ configuration }, [
-                  new DocHeading({ configuration, title: headerText, level: 4 })
-                ])
+                new DocHeading({ configuration, title: headerText, level: 4 })
               ])
             ])
           );
