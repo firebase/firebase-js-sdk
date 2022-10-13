@@ -163,7 +163,7 @@ function maybeHideConstructor(
     return ts.createConstructor(
       node.decorators,
       [modifier],
-      /*parameters=*/ [],
+      /*parameters=*/[],
       /* body= */ undefined
     );
   } else {
@@ -340,8 +340,8 @@ function extractJSDocComment(
     }
   });
 
-  if (comments.length > 0) {
-    const jsDocTags = ts.getJSDocTags(symbol.declarations![overloadCount]);
+  if (comments.length > 0 && symbol.declarations) {
+    const jsDocTags = ts.getJSDocTags(symbol.declarations[overloadCount]);
     const maybeNewline = jsDocTags?.length > 0 ? '\n' : '';
     const joinedComments = comments
       .map(comment => {
@@ -412,19 +412,21 @@ function extractExportedSymbol(
   // See if there is an exported symbol that extends this private symbol.
   // In this case, we can safely use the public symbol instead.
   for (const symbol of allExportedSymbols) {
-    for (const declaration of symbol.declarations!) {
-      if (
-        ts.isClassDeclaration(declaration) ||
-        ts.isInterfaceDeclaration(declaration)
-      ) {
-        for (const heritageClause of declaration.heritageClauses || []) {
-          for (const type of heritageClause.types || []) {
-            if (ts.isIdentifier(type.expression)) {
-              const subclassName = type.expression.escapedText;
-              if (subclassName === localSymbolName) {
-                // TODO: We may need to change this to return a Union type if
-                // more than one public type corresponds to the private type.
-                return symbol;
+    if (symbol.declarations) {
+      for (const declaration of symbol.declarations) {
+        if (
+          ts.isClassDeclaration(declaration) ||
+          ts.isInterfaceDeclaration(declaration)
+        ) {
+          for (const heritageClause of declaration.heritageClauses || []) {
+            for (const type of heritageClause.types || []) {
+              if (ts.isIdentifier(type.expression)) {
+                const subclassName = type.expression.escapedText;
+                if (subclassName === localSymbolName) {
+                  // TODO: We may need to change this to return a Union type if
+                  // more than one public type corresponds to the private type.
+                  return symbol;
+                }
               }
             }
           }
@@ -438,8 +440,8 @@ function extractExportedSymbol(
   // symbol. Note that this is not always safe as we might replace the local
   // symbol with a less restrictive type.
   const localSymbol = typeChecker.getSymbolAtLocation(typeName);
-  if (localSymbol) {
-    for (const declaration of localSymbol!.declarations!) {
+  if (localSymbol?.declarations) {
+    for (const declaration of localSymbol.declarations) {
       if (
         ts.isClassDeclaration(declaration) ||
         ts.isInterfaceDeclaration(declaration)
@@ -517,10 +519,10 @@ function dropPrivateApiTransformer(
         );
         return publicName
           ? factory.updateTypeReferenceNode(
-              node,
-              factory.createIdentifier(publicName.name),
-              node.typeArguments
-            )
+            node,
+            factory.createIdentifier(publicName.name),
+            node.typeArguments
+          )
           : node;
       }
 
