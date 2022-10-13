@@ -975,12 +975,13 @@ page_type: reference
         // Header for each group of functions grouped by first param.
         // Doesn't make sense if there's only one group.
         const headerText = paramKey ? `function(${paramKey}...)` : 'function()';
+        const formattedHeaderText = `<strong>${headerText}</strong>`;
         if (sortedFunctionsFirstParamKeys.length > 1) {
           finalFunctionsTable.addRow(
             new DocTableRow({ configuration }, [
               new DocTableCell({ configuration }, [
                 new DocParagraph({ configuration }, [
-                  new DocPlainText({ configuration, text: headerText })
+                  new DocPlainText({ configuration, text: formattedHeaderText })
                 ])
               ])
             ])
