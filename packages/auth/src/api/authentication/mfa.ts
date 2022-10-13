@@ -51,10 +51,24 @@ export interface StartPhoneMfaSignInRequest {
   };
   tenantId?: string;
 }
+export interface StartTotpMfaSignInRequest {
+  mfaPendingCredential: string;
+  mfaEnrollmentId: string;
+  totpSignInInfo: {
+    verificationCode: string;
+  };
+  tenantId?: string;
+}
 
 export interface StartPhoneMfaSignInResponse {
   phoneResponseInfo: {
     sessionInfo: string;
+  };
+}
+
+export interface StartTotpMfaSignInResponse {
+  totpSignInInfo: {
+    verificationCode: string;
   };
 }
 
@@ -73,13 +87,37 @@ export function startSignInPhoneMfa(
   );
 }
 
+export function startSignInTotpMfa(
+  auth: Auth,
+  request: StartTotpMfaSignInRequest
+): Promise<StartTotpMfaSignInResponse> {
+  return _performApiRequest<
+    StartTotpMfaSignInRequest,
+    StartTotpMfaSignInResponse
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.START_MFA_SIGN_IN,
+    _addTidIfNecessary(auth, request)
+  );
+}
+
 export interface FinalizePhoneMfaSignInRequest {
   mfaPendingCredential: string;
   phoneVerificationInfo: SignInWithPhoneNumberRequest;
   tenantId?: string;
 }
 
+export interface FinalizeTotpMfaSignInRequest {
+  mfaPendingCredential: string;
+  totpVerificationInfo: { verificationCode: string };
+  tenantId?: string;
+  mfaEnrollmentId: string;
+}
+
 export interface FinalizePhoneMfaSignInResponse extends FinalizeMfaResponse {}
+
+export interface FinalizeTotpMfaSignInResponse extends FinalizeMfaResponse {}
 
 export function finalizeSignInPhoneMfa(
   auth: Auth,
@@ -88,6 +126,21 @@ export function finalizeSignInPhoneMfa(
   return _performApiRequest<
     FinalizePhoneMfaSignInRequest,
     FinalizePhoneMfaSignInResponse
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.FINALIZE_MFA_SIGN_IN,
+    _addTidIfNecessary(auth, request)
+  );
+}
+
+export function finalizeSignInTotpMfa(
+  auth: Auth,
+  request: FinalizeTotpMfaSignInRequest
+): Promise<FinalizeTotpMfaSignInResponse> {
+  return _performApiRequest<
+    FinalizeTotpMfaSignInRequest,
+    FinalizeTotpMfaSignInResponse
   >(
     auth,
     HttpMethod.POST,

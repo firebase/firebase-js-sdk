@@ -755,6 +755,17 @@
               </button>
               </div>
             </form>
+            <!-- For handling sign-in with TOTP 2nd factor. -->
+            <form class="form form-bordered no-submit hidden" id="multi-factor-totp">
+              <div class="form">
+                  <input type="text" id="multi-factor-totp-sign-in-verification-code"
+                         class="form-control" placeholder="Totp Verification code" />
+                  <button class="btn btn-block btn-primary"
+                          id="sign-in-with-totp-multi-factor">
+                    Complete sign In
+                  </button>
+              </div>
+            </form>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
