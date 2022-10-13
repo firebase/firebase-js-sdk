@@ -43,8 +43,6 @@
 '@firebase/storage': patch
 '@firebase/storage-compat': patch
 '@firebase/storage-types': patch
-'@firebase/template': patch
-'@firebase/template-types': patch
 '@firebase/util': patch
 '@firebase/webchannel-wrapper': patch
 ---
