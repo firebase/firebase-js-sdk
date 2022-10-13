@@ -163,7 +163,7 @@ function maybeHideConstructor(
     return ts.createConstructor(
       node.decorators,
       [modifier],
-      /*parameters=*/[],
+      /*parameters=*/ [],
       /* body= */ undefined
     );
   } else {
@@ -519,10 +519,10 @@ function dropPrivateApiTransformer(
         );
         return publicName
           ? factory.updateTypeReferenceNode(
-            node,
-            factory.createIdentifier(publicName.name),
-            node.typeArguments
-          )
+              node,
+              factory.createIdentifier(publicName.name),
+              node.typeArguments
+            )
           : node;
       }
 
