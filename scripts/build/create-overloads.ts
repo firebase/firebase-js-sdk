@@ -138,7 +138,7 @@ function keepPublicFunctionsTransformer(
             return false;
           })
         ) {
-          return factory.createEmptyStatement();
+          return factory.createNotEmittedStatement(node);
         }
 
         const newParameters = node.parameters.map(param => {
@@ -190,7 +190,7 @@ function keepPublicFunctionsTransformer(
 
       // remove all nodes other than the source file itself
       if (!ts.isSourceFile(node)) {
-        return factory.createEmptyStatement();
+        return factory.createNotEmittedStatement(node);
       }
 
       return node;

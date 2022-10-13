@@ -483,7 +483,7 @@ function dropPrivateApiTransformer(
         if (
           !node.modifiers?.find(m => m.kind === ts.SyntaxKind.ExportKeyword)
         ) {
-          return factory.createEmptyStatement();
+          return factory.createNotEmittedStatement(node);
         }
       }
 
@@ -505,7 +505,7 @@ function dropPrivateApiTransformer(
         // Remove any class and interface members that are prefixed with
         // underscores.
         if (hasPrivatePrefix(node.name as ts.Identifier)) {
-          return factory.createEmptyStatement();
+          return factory.createNotEmittedStatement(node);
         }
       } else if (ts.isTypeReferenceNode(node)) {
         // For public types that refer internal types, find a public type that
