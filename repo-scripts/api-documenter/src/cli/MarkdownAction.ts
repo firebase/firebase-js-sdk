@@ -42,8 +42,8 @@ export class MarkdownAction extends BaseAction {
       parameterLongName: '--sort-functions',
       argumentName: 'PRIORITY_PARAMS',
       description:
-        `Sorts functions tables and listings by first parameter.` +
-        ` Provide comma-separated strings for preferred params to be ` +
+        `Sorts functions tables and listings by first parameter. ` +
+        `Provide comma-separated strings for preferred params to be ` +
         `ordered first. Alphabetical otherwise.`
     });
   }
