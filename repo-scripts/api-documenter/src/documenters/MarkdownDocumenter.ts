@@ -980,9 +980,7 @@ page_type: reference
             new DocTableRow({ configuration }, [
               new DocTableCell({ configuration }, [
                 new DocParagraph({ configuration }, [
-                  new DocEmphasisSpan({ configuration, bold: true }, [
-                    new DocPlainText({ configuration, text: headerText })
-                  ])
+                  new DocHeading({ configuration, title: headerText, level: 4 })
                 ])
               ])
             ])
