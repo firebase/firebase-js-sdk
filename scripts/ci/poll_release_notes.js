@@ -56,8 +56,10 @@ async function pollReleaseNotes() {
       return;
     }
     if (matches.includes(`<a name="${version}">`) && !process.env.FORCE) {
-      console.warn(`${version} was found but is not the latest version. ` + 
-      `Set the force option to true to publish anyway.`);
+      console.warn(
+        `${version} was found but is not the latest version. ` +
+          `Set the force option to true to publish anyway.`
+      );
       process.exit(1);
     }
     console.log(`Didn't find ${version} on release notes page.`);
