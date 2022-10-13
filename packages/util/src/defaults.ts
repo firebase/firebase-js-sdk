@@ -70,7 +70,14 @@ const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
   if (typeof document === 'undefined') {
     return;
   }
-  const match = document.cookie.match(/__FIREBASE_DEFAULTS__=([^;]+)/);
+  let match;
+  try {
+    match = document.cookie.match(/__FIREBASE_DEFAULTS__=([^;]+)/);
+  } catch (e) {
+    // Some environments such as Angular Universal SSR have a
+    // `document` object but error on accessing `document.cookie`.
+    return;
+  }
   const decoded = match && base64Decode(match[1]);
   return decoded && JSON.parse(decoded);
 };
@@ -81,10 +88,24 @@ const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
  * (2) if such an object was provided on a shell environment variable
  * (3) if such an object exists in a cookie
  */
-const getDefaults = (): FirebaseDefaults | undefined =>
-  getDefaultsFromGlobal() ||
-  getDefaultsFromEnvVariable() ||
-  getDefaultsFromCookie();
+const getDefaults = (): FirebaseDefaults | undefined => {
+  try {
+    return (
+      getDefaultsFromGlobal() ||
+      getDefaultsFromEnvVariable() ||
+      getDefaultsFromCookie()
+    );
+  } catch (e) {
+    /**
+     * Catch-all for being unable to get __FIREBASE_DEFAULTS__ due
+     * to any environment case we have not accounted for. Log to
+     * info instead of swallowing so we can find these unknown cases
+     * and add paths for them if needed.
+     */
+    console.info(`Unable to get __FIREBASE_DEFAULTS__ due to: ${e}`);
+    return;
+  }
+};
 
 /**
  * Returns emulator host stored in the __FIREBASE_DEFAULTS__ object
