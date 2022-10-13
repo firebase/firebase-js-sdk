@@ -1068,6 +1068,7 @@ function handleMultiFactorSignIn(resolver) {
   );
   // Hide phone form (other second factor types could be supported).
   $('#multi-factor-phone').addClass('hidden');
+  $('#multi-factor-totp').addClass('hidden');
   // Show second factor recovery dialog.
   $('#multiFactorModal').modal();
 }
@@ -1134,6 +1135,7 @@ function onSelectMultiFactorHint(index) {
   // Hide all forms for handling each type of second factors.
   // Currently only phone is supported.
   $('#multi-factor-phone').addClass('hidden');
+  $('#multi-factor-totp').addClass('hidden');
   if (
     !multiFactorErrorResolver ||
     typeof multiFactorErrorResolver.hints[index] === 'undefined'
@@ -1153,6 +1155,14 @@ function onSelectMultiFactorHint(index) {
     // Clear all input.
     $('#multi-factor-sign-in-verification-id').val('');
     $('#multi-factor-sign-in-verification-code').val('');
+  } else if (multiFactorErrorResolver.hints[index].factorId === 'totp') {
+    // Save selected second factor.
+    selectedMultiFactorHint = multiFactorErrorResolver.hints[index];
+
+    // Show sign-in with totp second factor menu.
+    $('#multi-factor-totp').removeClass('hidden');
+    // Clear all input.
+    $('#multi-factor-totp-sign-in-verification-code').val('');
   } else {
     // 2nd factor not found or not supported by app.
     alertError('Selected 2nd factor is not supported!');
@@ -1201,6 +1211,28 @@ function onFinalizeSignInWithPhoneMultiFactor(event) {
   }
   const cred = PhoneAuthProvider.credential(verificationId, code);
   const assertion = PhoneMultiFactorGenerator.assertion(cred);
+  multiFactorErrorResolver.resolveSignIn(assertion).then(userCredential => {
+    onAuthUserCredentialSuccess(userCredential);
+    $('#multiFactorModal').modal('hide');
+  }, onAuthError);
+}
+
+/**
+ * Completes sign-in with the 2nd factor totp assertion.
+ * @param {!jQuery.Event} event The jQuery event object.
+ */
+function onFinalizeSignInWithTotpMultiFactor(event) {
+  event.preventDefault();
+  // Make sure a second factor is selected.
+  const otp = $('#multi-factor-totp-sign-in-verification-code').val();
+  if (!otp || !selectedMultiFactorHint || !multiFactorErrorResolver) {
+    return;
+  }
+
+  const assertion = TotpMultiFactorGenerator.assertionForSignIn(
+    selectedMultiFactorHint.uid,
+    otp
+  );
   multiFactorErrorResolver.resolveSignIn(assertion).then(userCredential => {
     onAuthUserCredentialSuccess(userCredential);
     $('#multiFactorModal').modal('hide');
@@ -1336,7 +1368,6 @@ function signInWithPopupRedirect(provider) {
       customParameters[key] = value;
     }
   });
-  console.log('customParameters: ', customParameters);
   // For older jscore versions that do not support this.
   if (provider.setCustomParameters) {
     // Set custom parameters on current provider.
@@ -1985,6 +2016,12 @@ function initApp() {
   $('#sign-in-with-phone-multi-factor').click(
     onFinalizeSignInWithPhoneMultiFactor
   );
+
+  // Completes multi-factor sign-in with supplied OTP(One-Time Password).
+  $('#sign-in-with-totp-multi-factor').click(
+    onFinalizeSignInWithTotpMultiFactor
+  );
+
   // Starts multi-factor enrollment with phone number.
   $('#enroll-mfa-verify-phone-number').click(onStartEnrollWithPhoneMultiFactor);
   // Completes multi-factor enrollment with supplied SMS code.
