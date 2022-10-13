@@ -1,0 +1,23 @@
+{
+  "name": "send-tweet",
+  "version": "1.0.0",
+  "description": "Send Tweets from GitHub Actions workflows.",
+  "main": "index.js",
+  "scripts": {
+    "pack": "ncc build"
+  },
+  "keywords": [
+    "Firebase",
+    "Release",
+    "Automation"
+  ],
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@actions/core": "^1.9.1",
+    "twitter": "^1.7.1"
+  },
+  "devDependencies": {
+    "@zeit/ncc": "^0.21.1"
+  }
+}
