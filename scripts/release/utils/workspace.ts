@@ -52,7 +52,9 @@ export function mapWorkspaceToPackages(
           });
         })
     )
-  ).then(paths => paths.reduce((arr: string[], val: string[]) => arr.concat(val), []));
+  ).then(paths =>
+    paths.reduce((arr: string[], val: string[]) => arr.concat(val), [])
+  );
 }
 
 function mapPackagestoPkgJson(packagePaths: string[]) {
