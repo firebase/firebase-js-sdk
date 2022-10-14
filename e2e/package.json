@@ -25,7 +25,7 @@
     "@types/mocha": "9.1.1",
     "babel-loader": "8.2.5",
     "chai": "4.3.6",
-    "karma": "6.3.19",
+    "karma": "6.4.1",
     "karma-chrome-launcher": "3.1.1",
     "karma-mocha": "2.0.1",
     "karma-spec-reporter": "0.0.34",
