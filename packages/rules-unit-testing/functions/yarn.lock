@@ -24,33 +24,33 @@
   resolved "https://registry.npmjs.org/@firebase/auth-interop-types/-/auth-interop-types-0.1.6.tgz#5ce13fc1c527ad36f1bb1322c4492680a6cf4964"
   integrity sha512-etIi92fW3CctsmR9e3sYM3Uqnoq861M0Id9mdOPF6PWIg38BXL5k4upCNBggGUpLIS0H1grMOvy/wn1xymwe2g==
 
-"@firebase/component@0.5.19":
-  version "0.5.19"
-  resolved "https://registry.npmjs.org/@firebase/component/-/component-0.5.19.tgz#8dc9ffe5ab9731642dd11f5951d30a374471d0bf"
-  integrity sha512-n/1HH2graiuMkHfhbGLuO+0msStydxEKmIMUT7bpBmxR4U9myzIwsG81XJImqgIWtbhd05HgUC+vpjZ+atUMbw==
+"@firebase/component@0.5.20":
+  version "0.5.20"
+  resolved "https://registry.npmjs.org/@firebase/component/-/component-0.5.20.tgz#52165b5f7d25c4ac9c679e4e48d6f7fa7bf722cf"
+  integrity sha512-wP51tQBlPFprfAWxWjzC/56hG4APhl43jFsgwuqCl3bhVbiKcr278QbrbGNmIXDeGKo4sGZLAnH9whl2apeCmA==
   dependencies:
-    "@firebase/util" "1.7.1"
+    "@firebase/util" "1.7.2"
     tslib "^2.1.0"
 
 "@firebase/database-compat@^0.2.0":
-  version "0.2.8"
-  resolved "https://registry.npmjs.org/@firebase/database-compat/-/database-compat-0.2.8.tgz#6005dd7abfd30cbc27157220989513b48859faf8"
-  integrity sha512-NuOMV3/Y7hcvQcD5GjdRiOGRfUOHTaoI/eF9OYaabSNYI4XwRWapC32sfOznEpkDZOxT7cXDDzsq8/SXtvQMdg==
+  version "0.2.9"
+  resolved "https://registry.npmjs.org/@firebase/database-compat/-/database-compat-0.2.9.tgz#a1b4ecf94e11eadfc21aa48121b3ba7ea18a57ae"
+  integrity sha512-zzyFM3+jW/qYtHojiQirHXGXYyElbqVngEEn/i2gXoSzcK0Y2AL5oHAqGYXLaaW0+t4Zwnssh3HnQJM8C1D0fw==
   dependencies:
-    "@firebase/component" "0.5.19"
-    "@firebase/database" "0.13.8"
-    "@firebase/database-types" "0.9.15"
+    "@firebase/component" "0.5.20"
+    "@firebase/database" "0.13.9"
+    "@firebase/database-types" "0.9.16"
     "@firebase/logger" "0.3.3"
-    "@firebase/util" "1.7.1"
+    "@firebase/util" "1.7.2"
     tslib "^2.1.0"
 
-"@firebase/database-types@0.9.15":
-  version "0.9.15"
-  resolved "https://registry.npmjs.org/@firebase/database-types/-/database-types-0.9.15.tgz#6cb7f25efe85122e67159be7692884d1d8f6cfce"
-  integrity sha512-VCFblWH/TPRoaU+H+DRk9PWsaYqQ26/BIHYq5D2Wj+vvY9DrG0CkiovTOWNQkWDGQqf6X+JgSafob8kBIeea5Q==
+"@firebase/database-types@0.9.16":
+  version "0.9.16"
+  resolved "https://registry.npmjs.org/@firebase/database-types/-/database-types-0.9.16.tgz#4f7f612c00346641a641ac689005857190e91ebc"
+  integrity sha512-dK/uFgHisrVijSoHf9RLJ7NwvlOul2rO/z9ufOSbGd8/TqFVASXz+19mynhDIoSEnyQtJC/NTyBzSPfjz0w61w==
   dependencies:
     "@firebase/app-types" "0.8.0"
-    "@firebase/util" "1.7.1"
+    "@firebase/util" "1.7.2"
 
 "@firebase/database-types@^0.9.7":
   version "0.9.8"
@@ -60,15 +60,15 @@
     "@firebase/app-types" "0.7.0"
     "@firebase/util" "1.6.0"
 
-"@firebase/database@0.13.8":
-  version "0.13.8"
-  resolved "https://registry.npmjs.org/@firebase/database/-/database-0.13.8.tgz#b7fee81d744480f7969b773889ca4af6467e5e33"
-  integrity sha512-XPrKglNEU3AVQ5sm33NDfBkUwtOtIug82RQDO6ykQIlDNr63MryyZg4qaejI4hp2BQ+OXtATB7lKiefZASso9w==
+"@firebase/database@0.13.9":
+  version "0.13.9"
+  resolved "https://registry.npmjs.org/@firebase/database/-/database-0.13.9.tgz#8cf8c77fb837ed1a6fa85565ac8c28864b0957fb"
+  integrity sha512-raQEBgQQybaEoMloJL8wWHQywGQ9mF2VbitvHydsbSNn+KL/xRDjXeQZPuuSbRjkYV6mR8jvQB7gpnzQQNE8Qg==
   dependencies:
     "@firebase/auth-interop-types" "0.1.6"
-    "@firebase/component" "0.5.19"
+    "@firebase/component" "0.5.20"
     "@firebase/logger" "0.3.3"
-    "@firebase/util" "1.7.1"
+    "@firebase/util" "1.7.2"
     faye-websocket "0.11.4"
     tslib "^2.1.0"
 
@@ -86,10 +86,10 @@
   dependencies:
     tslib "^2.1.0"
 
-"@firebase/util@1.7.1":
-  version "1.7.1"
-  resolved "https://registry.npmjs.org/@firebase/util/-/util-1.7.1.tgz#132fb2d0181cc0968d925fa88ac2d89f49aa54e8"
-  integrity sha512-9do4oXJfznJERFqtZgmKbMRB3W0btSPsEH/5yBYdDVI5OicISZoQPg8qqOgZX6po0tQTNxkNS5E3w4ZNF84k2Q==
+"@firebase/util@1.7.2":
+  version "1.7.2"
+  resolved "https://registry.npmjs.org/@firebase/util/-/util-1.7.2.tgz#dbdb259f141b5025a7faaaa38e2ea5df0be36ff5"
+  integrity sha512-P3aTihYEMoz2QQlcn0T7av7HLEK9gsTc1ZiN9VA8wnUtEJscUNemCmTmP3RRysqEb3Z+tVVoycztY8f6R36rRw==
   dependencies:
     tslib "^2.1.0"
 
