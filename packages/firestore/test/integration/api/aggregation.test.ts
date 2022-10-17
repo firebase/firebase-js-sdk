@@ -36,6 +36,7 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import { USE_EMULATOR } from '../util/settings';
 
 apiDescribe('Count quries', (persistence: boolean) => {
   it('can run count query getCountFromServer', () => {
@@ -115,6 +116,18 @@ apiDescribe('Count quries', (persistence: boolean) => {
       await disableNetwork(firestore);
       await expect(getCountFromServer(coll)).to.be.eventually.rejectedWith(
         'Failed to get count result because the client is offline'
+      );
+    });
+  });
+
+  // Only verify the error message for missing indexes when running against
+  // production, since the Firestore Emulator does not require index creation
+  // and will, therefore, never fail in this situation.
+  (USE_EMULATOR ? it.skip : it.only)('getCountFromServer error message is good if missing index', () => {
+    return withEmptyTestCollection(persistence, async coll => {
+      const query_ = query(coll, where('key1', '==', 42), where('key2', '<', 42));
+      await expect(getCountFromServer(query_)).to.be.eventually.rejectedWith(
+        /index.*https:\/\/console\.firebase\.google\.com/
       );
     });
   });
