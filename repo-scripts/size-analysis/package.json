@@ -37,7 +37,7 @@
     "yargs": "17.6.0",
     "@firebase/util": "1.7.2",
     "gzip-size": "6.0.0",
-    "glob": "7.2.0"
+    "glob": "7.2.3"
   },
   "license": "Apache-2.0",
   "devDependencies": {
