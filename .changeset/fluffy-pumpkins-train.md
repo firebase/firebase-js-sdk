@@ -19,7 +19,7 @@
 '@firebase/database': patch
 '@firebase/database-compat': patch
 '@firebase/database-types': patch
-'firebase': patch
+'firebase': minor
 '@firebase/firestore': patch
 '@firebase/firestore-compat': patch
 '@firebase/firestore-types': patch
