@@ -17,6 +17,7 @@
 import { assert } from 'chai';
 import { FbsBlob } from '../../src/implementation/blob';
 import { Location } from '../../src/implementation/location';
+import { Buffer, Blob as NodeBlob } from 'buffer';
 import {
   getMappings,
   fromResourceString
@@ -52,6 +53,7 @@ import {
 } from '../../src/implementation/constants';
 import { FirebaseApp } from '@firebase/app-types';
 import { decodeUint8Array } from '../../src/platform/base64';
+import { arrayBuffer } from 'stream/consumers';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
@@ -146,16 +148,22 @@ describe('Firebase Storage > Requests', () => {
   const metadataContentType = 'application/json; charset=utf-8';
 
   function readBlob(blob: Blob): Promise<string> {
-    const reader = new FileReader();
-    reader.readAsText(blob);
-    return new Promise((resolve, reject) => {
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
-      reader.onerror = () => {
-        reject(reader.error as Error);
-      };
-    });
+    if(!('FileReader' in global)) {
+      return blob.arrayBuffer().then(arrayBuffer => {
+        return Buffer.from(arrayBuffer).toString();
+      });
+    } else {
+      const reader = new FileReader();
+      reader.readAsText(blob);
+      return new Promise((resolve, reject) => {
+        reader.onload = () => {
+          resolve(reader.result as string);
+        };
+        reader.onerror = () => {
+          reject(reader.error as Error);
+        };
+      });
+    }
   }
 
   async function assertBodyEquals(

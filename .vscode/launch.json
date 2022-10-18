@@ -26,6 +26,26 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Storage Unit Tests (Node)",
+      "runtimeVersion": "18.11.0",
+      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
+      "cwd": "${workspaceRoot}/packages/storage",
+      "args": [
+        "test/{,!(browser)/**/}*.test.ts",
+        "--file", "src/index.node.ts",
+        "--config", "../../config/mocharc.node.js",
+      ],
+      "env": {
+        "TS_NODE_FILES":true,
+        "TS_NODE_CACHE": "NO",
+        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
+      },
+      "sourceMaps": true,
+      "protocol": "inspector"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Firestore Unit Tests (Node)",
       "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
