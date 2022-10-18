@@ -65,7 +65,15 @@
     "dist",
     "cordova/package.json",
     "internal/package.json",
-    "react-native/package.json"
+    "react-native/package.json",
+    "!dist/test",
+    "!dist/node/test",
+    "!dist/node-esm/test",
+    "!dist/esm2017/test",
+    "!dist/esm5/test",
+    "!dist/rn/test",
+    "!dist/cordova/test",
+    "!**/*.test.d.ts"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -106,7 +114,6 @@
     "@firebase/logger": "0.3.3",
     "@firebase/util": "1.7.2",
     "node-fetch": "2.6.7",
-    "selenium-webdriver": "4.1.2",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
@@ -118,6 +125,7 @@
     "rollup": "2.79.1",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.31.2",
+    "selenium-webdriver": "4.1.2",
     "typescript": "4.2.2"
   },
   "repository": {
