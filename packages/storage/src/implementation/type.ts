@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isNodeSdk } from '@firebase/util';
 import { invalidArgument } from './error';
 
 export function isJustDef<T>(p: T | null | undefined): p is T | null {
@@ -39,7 +40,9 @@ export function isNativeBlob(p: unknown): p is Blob {
 }
 
 export function isNativeBlobDefined(): boolean {
-  return typeof Blob !== 'undefined';
+  // Note: The `isNodeSdk()` check can be removed when `ts-node` adds native Blob support
+  // PR: https://github.com/node-fetch/node-fetch/pull/1664
+  return typeof Blob !== 'undefined' && !isNodeSdk();
 }
 
 export function validateNumber(
