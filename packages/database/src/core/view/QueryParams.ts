@@ -22,7 +22,6 @@ import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PathIndex } from '../snap/indexes/PathIndex';
 import { PRIORITY_INDEX, PriorityIndex } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
-import { predecessor, successor } from '../util/NextPushId';
 import { MAX_NAME, MIN_NAME } from '../util/util';
 
 import { IndexedFilter } from './filter/IndexedFilter';
@@ -195,10 +194,12 @@ export class QueryParams {
     copy.limitSet_ = this.limitSet_;
     copy.limit_ = this.limit_;
     copy.startSet_ = this.startSet_;
+    copy.startAfterSet_ = this.startAfterSet_;
     copy.indexStartValue_ = this.indexStartValue_;
     copy.startNameSet_ = this.startNameSet_;
     copy.indexStartName_ = this.indexStartName_;
     copy.endSet_ = this.endSet_;
+    copy.endBeforeSet_ = this.endBeforeSet_;
     copy.indexEndValue_ = this.indexEndValue_;
     copy.endNameSet_ = this.endNameSet_;
     copy.indexEndName_ = this.indexEndName_;
@@ -277,21 +278,7 @@ export function queryParamsStartAfter(
   indexValue: unknown,
   key?: string | null
 ): QueryParams {
-  let params: QueryParams;
-  if (queryParams.index_ === KEY_INDEX) {
-    if (typeof indexValue === 'string') {
-      indexValue = successor(indexValue as string);
-    }
-    params = queryParamsStartAt(queryParams, indexValue, key);
-  } else {
-    let childKey: string;
-    if (key == null) {
-      childKey = MAX_NAME;
-    } else {
-      childKey = successor(key);
-    }
-    params = queryParamsStartAt(queryParams, indexValue, childKey);
-  }
+  const params: QueryParams = queryParamsStartAt(queryParams, indexValue, key);
   params.startAfterSet_ = true;
   return params;
 }
@@ -322,21 +309,7 @@ export function queryParamsEndBefore(
   indexValue: unknown,
   key?: string | null
 ): QueryParams {
-  let childKey: string;
-  let params: QueryParams;
-  if (queryParams.index_ === KEY_INDEX) {
-    if (typeof indexValue === 'string') {
-      indexValue = predecessor(indexValue as string);
-    }
-    params = queryParamsEndAt(queryParams, indexValue, key);
-  } else {
-    if (key == null) {
-      childKey = MIN_NAME;
-    } else {
-      childKey = predecessor(key);
-    }
-    params = queryParamsEndAt(queryParams, indexValue, childKey);
-  }
+  const params: QueryParams = queryParamsEndAt(queryParams, indexValue, key);
   params.endBeforeSet_ = true;
   return params;
 }
