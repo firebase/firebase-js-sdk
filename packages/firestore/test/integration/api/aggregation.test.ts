@@ -123,12 +123,20 @@ apiDescribe('Count quries', (persistence: boolean) => {
   // Only verify the error message for missing indexes when running against
   // production, since the Firestore Emulator does not require index creation
   // and will, therefore, never fail in this situation.
-  (USE_EMULATOR ? it.skip : it.only)('getCountFromServer error message is good if missing index', () => {
-    return withEmptyTestCollection(persistence, async coll => {
-      const query_ = query(coll, where('key1', '==', 42), where('key2', '<', 42));
-      await expect(getCountFromServer(query_)).to.be.eventually.rejectedWith(
-        /index.*https:\/\/console\.firebase\.google\.com/
-      );
-    });
-  });
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'getCountFromServer error message is good if missing index',
+    () => {
+      return withEmptyTestCollection(persistence, async coll => {
+        const query_ = query(
+          coll,
+          where('key1', '==', 42),
+          where('key2', '<', 42)
+        );
+        await expect(getCountFromServer(query_)).to.be.eventually.rejectedWith(
+          /index.*https:\/\/console\.firebase\.google\.com/
+        );
+      });
+    }
+  );
 });
