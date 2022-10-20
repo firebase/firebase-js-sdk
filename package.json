@@ -92,7 +92,6 @@
     "api-documenter-me": "0.1.1",
     "api-extractor-me": "0.1.2",
     "babel-loader": "8.2.5",
-    "babel-plugin-transform-import-meta": "2.1.1",
     "chai": "4.3.6",
     "chai-as-promised": "7.1.1",
     "chalk": "4.1.2",
