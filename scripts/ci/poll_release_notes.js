@@ -52,7 +52,8 @@ async function pollReleaseNotes() {
   for (let i = 0; i < MAX_ATTEMPTS; i++) {
     siteContent = await getData();
     const matches = siteContent.match(/<a name="\d+\.\d+.\d+">/g);
-    if (matches[0] === version) {
+    if (matches[0] === `<a name="${version}">`) {
+      console.log(`Found ${version} in release notes.`);
       return;
     }
     if (matches.includes(`<a name="${version}">`) && !process.env.FORCE) {

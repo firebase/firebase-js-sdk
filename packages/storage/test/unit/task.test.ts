@@ -505,6 +505,7 @@ describe('Firebase Storage > Upload Task', () => {
 
     // Function that notifies when we are in the middle of an exponential backoff
     const readyToCancel = new Promise<null>(resolve => {
+      // @ts-ignore The types for `stub.callsFake` is incompatible with types of `clock.setTimeout`
       stub.callsFake((fn, timeout) => {
         // @ts-ignore The types for `stub.callsFake` is incompatible with types of `clock.setTimeout`
         const res = fakeSetTimeout(fn, timeout);

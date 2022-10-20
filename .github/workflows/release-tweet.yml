@@ -18,13 +18,19 @@ jobs:
     name: Send Release Tweet
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+      - name: Setup Node.js 14.x
+        uses: actions/setup-node@master
+        with:
+          node-version: 14.x
       - name: Poll release notes page on devsite
         run: node scripts/ci/poll_release_notes.js
         env:
           VERSION: ${{ github.event.inputs.version }}
           FORCE_PUBLISH: ${{ github.event.inputs.force }}
       - name: Post to Twitter
-        uses: firebase/firebase-admin-node/.github/actions/send-tweet
+        uses: firebase/firebase-admin-node/.github/actions/send-tweet@master
         with:
           status: >
             v${{github.event.inputs.version}} of @Firebase JavaScript client for Web / Node.js is available.

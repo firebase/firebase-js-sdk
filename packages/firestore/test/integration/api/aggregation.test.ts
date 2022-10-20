@@ -36,7 +36,6 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { USE_EMULATOR } from '../util/settings';
 
 apiDescribe('Count quries', (persistence: boolean) => {
   it('can run count query getCountFromServer', () => {
