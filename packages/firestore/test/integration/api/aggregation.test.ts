@@ -24,7 +24,6 @@ import {
   doc,
   DocumentData,
   getCountFromServer,
-  getDocsFromServer,
   query,
   QueryDocumentSnapshot,
   terminate,
