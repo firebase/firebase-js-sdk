@@ -69,11 +69,23 @@ export class FetchConnection extends RestConnection {
     }
 
     if (!response.ok) {
-      const responseBody = await response.json();
+      let errorMessage;
+      try {
+        // Try to get any error message text from server response.
+        //response.json returns an error object inside an array.
+        const [errorResponse] = (await response.json()) as [
+          {
+            error?: { message?: string };
+          }
+        ];
+        if (errorResponse.error?.message) {
+          errorMessage = errorResponse.error.message;
+        }
+      } catch (_ignored) {}
       throw new FirestoreError(
         mapCodeFromHttpStatus(response.status),
         //response body is an array with error object
-        'Request failed with error: ' + responseBody[0].error.message
+        'Request failed with error: ' + errorMessage ?? response.statusText
       );
     }
 
