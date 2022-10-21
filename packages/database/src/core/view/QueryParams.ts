@@ -73,10 +73,10 @@ export class QueryParams {
   limitSet_ = false;
   startSet_ = false;
   startNameSet_ = false;
-  startAfterSet_ = false;
+  startAfterSet_ = false; // can only be true if startSet_ is true
   endSet_ = false;
   endNameSet_ = false;
-  endBeforeSet_ = false;
+  endBeforeSet_ = false; // can only be true if endSet_ is true
   limit_ = 0;
   viewFrom_ = '';
   indexStartValue_: unknown | null = null;
@@ -87,14 +87,6 @@ export class QueryParams {
 
   hasStart(): boolean {
     return this.startSet_;
-  }
-
-  hasStartAfter(): boolean {
-    return this.startAfterSet_;
-  }
-
-  hasEndBefore(): boolean {
-    return this.endBeforeSet_;
   }
 
   /**
@@ -278,7 +270,12 @@ export function queryParamsStartAfter(
   indexValue: unknown,
   key?: string | null
 ): QueryParams {
-  const params: QueryParams = queryParamsStartAt(queryParams, indexValue, key);
+  let params: QueryParams;
+  if (queryParams.index_ === KEY_INDEX || !!key) {
+    params = queryParamsStartAt(queryParams, indexValue, key);
+  } else {
+    params = queryParamsStartAt(queryParams, indexValue, MAX_NAME);
+  }
   params.startAfterSet_ = true;
   return params;
 }
@@ -309,7 +306,12 @@ export function queryParamsEndBefore(
   indexValue: unknown,
   key?: string | null
 ): QueryParams {
-  const params: QueryParams = queryParamsEndAt(queryParams, indexValue, key);
+  let params: QueryParams;
+  if (queryParams.index_ === KEY_INDEX || !!key) {
+    params = queryParamsEndAt(queryParams, indexValue, key);
+  } else {
+    params = queryParamsEndAt(queryParams, indexValue, MIN_NAME);
+  }
   params.endBeforeSet_ = true;
   return params;
 }

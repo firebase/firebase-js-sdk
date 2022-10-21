@@ -391,13 +391,13 @@ describe('Query Tests', () => {
       '{"ein":true,"ep":"epri","sin":true,"sp":"spri"}'
     );
     expect(queryId(path.startAt('spri').endBefore('epri'))).to.equal(
-      '{"ein":false,"ep":"epri","sin":true,"sp":"spri"}'
+      '{"ein":false,"en":"[MIN_NAME]","ep":"epri","sin":true,"sp":"spri"}'
     );
     expect(queryId(path.startAfter('spri').endAt('epri'))).to.equal(
-      '{"ein":true,"ep":"epri","sin":false,"sp":"spri"}'
+      '{"ein":true,"ep":"epri","sin":false,"sn":"[MAX_NAME]","sp":"spri"}'
     );
     expect(queryId(path.startAfter('spri').endBefore('epri'))).to.equal(
-      '{"ein":false,"ep":"epri","sin":false,"sp":"spri"}'
+      '{"ein":false,"en":"[MIN_NAME]","ep":"epri","sin":false,"sn":"[MAX_NAME]","sp":"spri"}'
     );
 
     expect(
@@ -425,26 +425,26 @@ describe('Query Tests', () => {
       '{"l":100,"sin":true,"sp":"pri","vf":"l"}'
     );
     expect(queryId(path.startAfter('pri').limitToFirst(100))).to.equal(
-      '{"l":100,"sin":false,"sp":"pri","vf":"l"}'
+      '{"l":100,"sin":false,"sn":"[MAX_NAME]","sp":"pri","vf":"l"}'
     );
     expect(queryId(path.endAt('pri').limitToLast(100))).to.equal(
       '{"ein":true,"ep":"pri","l":100,"vf":"r"}'
     );
     expect(queryId(path.endBefore('pri').limitToLast(100))).to.equal(
-      '{"ein":false,"ep":"pri","l":100,"vf":"r"}'
+      '{"ein":false,"en":"[MIN_NAME]","ep":"pri","l":100,"vf":"r"}'
     );
 
     expect(queryId(path.startAt('bar').orderByChild('foo'))).to.equal(
       '{"i":"foo","sin":true,"sp":"bar"}'
     );
     expect(queryId(path.startAfter('bar').orderByChild('foo'))).to.equal(
-      '{"i":"foo","sin":false,"sp":"bar"}'
+      '{"i":"foo","sin":false,"sn":"[MAX_NAME]","sp":"bar"}'
     );
     expect(queryId(path.endAt('bar').orderByChild('foo'))).to.equal(
       '{"ein":true,"ep":"bar","i":"foo"}'
     );
     expect(queryId(path.endBefore('bar').orderByChild('foo'))).to.equal(
-      '{"ein":false,"ep":"bar","i":"foo"}'
+      '{"ein":false,"en":"[MIN_NAME]","ep":"bar","i":"foo"}'
     );
   });
 
