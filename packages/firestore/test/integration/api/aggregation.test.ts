@@ -24,6 +24,7 @@ import {
   doc,
   DocumentData,
   getCountFromServer,
+  getDocsFromServer,
   query,
   QueryDocumentSnapshot,
   terminate,
@@ -134,6 +135,22 @@ apiDescribe('Count quries', (persistence: boolean) => {
           where('key2', '<', 42)
         );
         await expect(getCountFromServer(query_)).to.be.eventually.rejectedWith(
+          /index.*https:\/\/console\.firebase\.google\.com/
+        );
+      });
+    }
+  );
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'getDocsFromServer error message is good if missing index',
+    () => {
+      return withEmptyTestCollection(persistence, async coll => {
+        const query_ = query(
+          coll,
+          where('key1', '==', 42),
+          where('key2', '<', 42)
+        );
+        await expect(getDocsFromServer(query_)).to.be.eventually.rejectedWith(
           /index.*https:\/\/console\.firebase\.google\.com/
         );
       });
