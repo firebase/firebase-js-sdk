@@ -4272,6 +4272,105 @@
     ]
   },
   {
+    "name": "Queries indexed by key with startAfter, endBefore, and limitToFirst work",
+    "steps":
+    [
+      {
+        "type": "listen",
+        "path": "",
+        "params": {
+          "tag": 1,
+          "orderByKey": true,
+          "startAfter": { "index": "a" },
+          "endBefore": { "index": "d" },
+          "limitToFirst": 1
+        },
+        "events": []
+      },
+      {
+        ".comment": "update from server sends all data",
+        "type": "serverUpdate",
+        "path": "",
+        "data": {
+          "a": { ".value": "a" },
+          "b": { ".value": "b" },
+          "c": { ".value": "c" },
+          "d": { ".value": "d" }
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "b",
+            "prevName": null,
+            "data": { ".value": "b" }
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "b": { ".value": "b" }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Queries indexed by key with startAfter, endBefore, and limitToLast work",
+    "steps":
+    [
+      {
+        "type": "listen",
+        "path": "",
+        "params": {
+          "tag": 1,
+          "orderByKey": true,
+          "startAfter": { "index": "a" },
+          "endBefore": { "index": "e" },
+          "limitToLast": 2
+        },
+        "events": []
+      },
+      {
+        ".comment": "update from server sends all data",
+        "type": "serverUpdate",
+        "path": "",
+        "data": {
+          "a": { ".value": "a" },
+          "b": { ".value": "b" },
+          "c": { ".value": "c" },
+          "d": { ".value": "d" },
+          "e": { ".value": "e" }
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "c",
+            "prevName": null,
+            "data": { ".value": "c" }
+          },
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "d",
+            "prevName": null,
+            "data": { ".value": "d" }
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "c": { ".value": "c" },
+              "d": { ".value": "d" }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "Update to single child that moves out of window",
     "steps":
     [
