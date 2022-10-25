@@ -40,7 +40,7 @@ export interface NotificationPayload {
   image?: string;
 
   /**
-   * The URL to use for the notification's icon. If you don't send this key in the request, 
+   * The URL to use for the notification's icon. If you don't send this key in the request,
    * FCM displays the launcher icon specified in your app manifest.
    */
   icon?: string;

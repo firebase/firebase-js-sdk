@@ -39,7 +39,12 @@ describe('externalizePayload', () => {
     };
 
     const payload: MessagePayload = {
-      notification: { title: 'title', body: 'body', image: 'image', icon: 'icon' },
+      notification: {
+        title: 'title',
+        body: 'body',
+        image: 'image',
+        icon: 'icon'
+      },
       from: 'from',
       collapseKey: 'collapse',
       messageId: 'mid',
