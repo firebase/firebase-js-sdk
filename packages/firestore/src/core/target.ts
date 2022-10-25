@@ -786,13 +786,17 @@ export class CompositeFilter extends Filter {
   }
 }
 
-// TODO(orquery) move compositeFilterWithAddedFilters to filter.ts in future refactor
+/**
+ * Returns a new composite filter that contains all filter from
+ * `compositeFilter` plus all the given filters in `otherFilters`.
+ * TODO(orquery) move compositeFilterWithAddedFilters to filter.ts in future refactor
+ */
 export function compositeFilterWithAddedFilters(
   compositeFilter: CompositeFilter,
   otherFilters: Filter[]
 ): CompositeFilter {
   const mergedFilters = compositeFilter.filters.concat(otherFilters);
-  return CompositeFilter.create(mergedFilters, CompositeOperator.AND);
+  return CompositeFilter.create(mergedFilters, compositeFilter.op);
 }
 
 export function compositeFilterIsConjunction(
