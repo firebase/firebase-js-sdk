@@ -1,5 +1,41 @@
 # firebase
 
+## 9.13.0
+
+### Minor Changes
+
+- [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5) [#6682](https://github.com/firebase/firebase-js-sdk/pull/6682) - Upgrade TypeScript to 4.7.4.
+
+### Patch Changes
+
+- Updated dependencies [[`de1c717c2`](https://github.com/firebase/firebase-js-sdk/commit/de1c717c2f69e9f21744135b74f92829927b200b), [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5), [`4b9da74db`](https://github.com/firebase/firebase-js-sdk/commit/4b9da74dbca7ebca3a870275364df7129ed016fe)]:
+  - @firebase/storage@0.9.13
+  - @firebase/analytics@0.8.4
+  - @firebase/analytics-compat@0.1.17
+  - @firebase/app@0.8.3
+  - @firebase/app-check@0.5.16
+  - @firebase/app-check-compat@0.2.16
+  - @firebase/app-compat@0.1.38
+  - @firebase/app-types@0.8.1
+  - @firebase/auth@0.20.11
+  - @firebase/auth-compat@0.2.24
+  - @firebase/database@0.13.10
+  - @firebase/database-compat@0.2.10
+  - @firebase/firestore@3.7.2
+  - @firebase/firestore-compat@0.2.2
+  - @firebase/functions@0.8.8
+  - @firebase/functions-compat@0.2.8
+  - @firebase/installations@0.5.16
+  - @firebase/installations-compat@0.1.16
+  - @firebase/messaging@0.10.0
+  - @firebase/messaging-compat@0.1.20
+  - @firebase/performance@0.5.16
+  - @firebase/performance-compat@0.1.16
+  - @firebase/remote-config@0.3.15
+  - @firebase/remote-config-compat@0.1.16
+  - @firebase/storage-compat@0.1.21
+  - @firebase/util@1.7.3
+
 ## 9.12.1
 
 ### Patch Changes
