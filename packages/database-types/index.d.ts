@@ -17,11 +17,12 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { EmulatorMockTokenOptions } from '@firebase/util';
+import { JSONValue } from '@firebase/database';
 
 export interface DataSnapshot {
   child(path: string): DataSnapshot;
   exists(): boolean;
-  exportVal(): any;
+  exportVal(): JSONValue;
   forEach(action: (a: DataSnapshot) => boolean | void): boolean;
   getPriority(): string | number | null;
   hasChild(path: string): boolean;
@@ -30,7 +31,7 @@ export interface DataSnapshot {
   numChildren(): number;
   ref: Reference;
   toJSON(): Object | null;
-  val(): any;
+  val(): JSONValue;
 }
 
 export interface Database {
