@@ -81,7 +81,7 @@ export {
 export { setSDKVersion as _setSDKVersion } from './core/version';
 export {
   ReferenceImpl as _ReferenceImpl,
-  QueryImpl as _QueryImpl,
+  QueryImpl as _QueryImpl
 } from './api/Reference_impl';
 export { repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp } from './api/Database';
 export {

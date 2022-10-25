@@ -19,7 +19,13 @@ import { Path } from '../util/Path';
 
 import { Index } from './indexes/Index';
 
-export type JSONValue = string | number | boolean | null | Array<JSONValue> | { [x: string]: JSONValue };
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<JSONValue>
+  | { [x: string]: JSONValue };
 
 /**
  * Node is an interface defining the common functionality for nodes in
