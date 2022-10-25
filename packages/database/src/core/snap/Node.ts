@@ -23,6 +23,7 @@ export type JSONValue =
   | string
   | number
   | boolean
+  | undefined
   | null
   | JSONValue[]
   | { [x: string]: JSONValue };

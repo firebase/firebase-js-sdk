@@ -93,7 +93,7 @@ export class TransactionResult {
  */
 export function runTransaction(
   ref: DatabaseReference,
-  transactionUpdate: (currentData: JSONValue) => JSONValue,
+  transactionUpdate: (currentData: JSONValue) => JSONValue | void,
   options?: TransactionOptions
 ): Promise<TransactionResult> {
   ref = getModularInstance(ref);

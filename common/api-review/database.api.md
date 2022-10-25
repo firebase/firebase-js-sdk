@@ -86,7 +86,7 @@ export function goOnline(db: Database): void;
 export function increment(delta: number): object;
 
 // @public (undocumented)
-export type JSONValue = string | number | boolean | null | JSONValue[] | {
+export type JSONValue = string | number | boolean | undefined | null | JSONValue[] | {
     [x: string]: JSONValue;
 };
 
@@ -205,7 +205,7 @@ export function refFromURL(db: Database, url: string): DatabaseReference;
 export function remove(ref: DatabaseReference): Promise<void>;
 
 // @public
-export function runTransaction(ref: DatabaseReference, transactionUpdate: (currentData: JSONValue) => JSONValue, options?: TransactionOptions): Promise<TransactionResult>;
+export function runTransaction(ref: DatabaseReference, transactionUpdate: (currentData: JSONValue) => JSONValue | void, options?: TransactionOptions): Promise<TransactionResult>;
 
 // @public
 export function serverTimestamp(): object;

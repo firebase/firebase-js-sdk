@@ -685,7 +685,7 @@ export class Reference extends Query implements Compat<ModularReference> {
   }
 
   transaction(
-    transactionUpdate: (currentData: JSONValue) => JSONValue,
+    transactionUpdate: (currentData: JSONValue) => void,
     onComplete?: (
       error: Error | null,
       committed: boolean,
