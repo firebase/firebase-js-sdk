@@ -139,7 +139,7 @@ export interface Reference extends Query {
     onComplete?: (a: Error | null) => void
   ): Promise<void>;
   transaction(
-    transactionUpdate: (a: any) => any,
+    transactionUpdate: (a: JSONValue) => JSONValue | void,
     onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => void,
     applyLocally?: boolean
   ): Promise<TransactionResult>;

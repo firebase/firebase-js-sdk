@@ -33,7 +33,7 @@ import { ReadonlyRestClient } from './ReadonlyRestClient';
 import { RepoInfo } from './RepoInfo';
 import { ServerActions } from './ServerActions';
 import { ChildrenNode } from './snap/ChildrenNode';
-import { Node } from './snap/Node';
+import { JSONValue, Node } from './snap/Node';
 import { nodeFromJSON } from './snap/nodeFromJSON';
 import { SnapshotHolder } from './SnapshotHolder';
 import {
@@ -930,7 +930,7 @@ export function repoCallOnCompleteCallback(
 export function repoStartTransaction(
   repo: Repo,
   path: Path,
-  transactionUpdate: (a: unknown) => unknown,
+  transactionUpdate: (a: JSONValue) => JSONValue | void,
   onComplete: ((error: Error, committed: boolean, node: Node) => void) | null,
   unwatcher: () => void,
   applyLocally: boolean
