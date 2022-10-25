@@ -32,7 +32,7 @@ import { KEY_INDEX } from '../core/snap/indexes/KeyIndex';
 import { PathIndex } from '../core/snap/indexes/PathIndex';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../core/snap/indexes/ValueIndex';
-import { Node } from '../core/snap/Node';
+import { JSONValue, Node } from '../core/snap/Node';
 import { syncPointSetReferenceConstructor } from '../core/SyncPoint';
 import { syncTreeSetReferenceConstructor } from '../core/SyncTree';
 import { parseRepoInfo } from '../core/util/libs/parser';
@@ -371,7 +371,7 @@ export class DataSnapshot {
    *   Array, string, number, boolean, or `null`).
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  exportVal(): any {
+  exportVal(): JSONValue {
     return this._node.val(true);
   }
 
@@ -442,7 +442,7 @@ export class DataSnapshot {
   /**
    * Returns a JSON-serializable representation of this object.
    */
-  toJSON(): object | null {
+  toJSON(): JSONValue {
     return this.exportVal();
   }
 

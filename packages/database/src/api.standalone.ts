@@ -69,6 +69,7 @@ export {
   update,
   child
 } from './api/Reference_impl';
+export { JSONValue } from './core/snap/Node';
 export { increment, serverTimestamp } from './api/ServerValue';
 export {
   runTransaction,
@@ -80,7 +81,7 @@ export {
 export { setSDKVersion as _setSDKVersion } from './core/version';
 export {
   ReferenceImpl as _ReferenceImpl,
-  QueryImpl as _QueryImpl
+  QueryImpl as _QueryImpl,
 } from './api/Reference_impl';
 export { repoManagerDatabaseFromApp as _repoManagerDatabaseFromApp } from './api/Database';
 export {

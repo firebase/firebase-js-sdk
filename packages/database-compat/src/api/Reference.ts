@@ -53,7 +53,8 @@ import {
   _validatePathString,
   _validateWritablePath,
   _UserCallback,
-  _QueryParams
+  _QueryParams,
+  JSONValue
 } from '@firebase/database';
 import {
   Compat,
@@ -87,7 +88,7 @@ export class DataSnapshot implements Compat<ModularDataSnapshot> {
    *
    * @returns JSON representation of the DataSnapshot contents, or null if empty.
    */
-  val(): unknown {
+  val(): JSONValue {
     validateArgCount('DataSnapshot.val', 0, 0, arguments.length);
     return this._delegate.val();
   }
@@ -684,7 +685,7 @@ export class Reference extends Query implements Compat<ModularReference> {
   }
 
   transaction(
-    transactionUpdate: (currentData: unknown) => unknown,
+    transactionUpdate: (currentData: JSONValue) => JSONValue,
     onComplete?: (
       error: Error | null,
       committed: boolean,
