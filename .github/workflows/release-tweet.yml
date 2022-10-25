@@ -1,0 +1,41 @@
+name: Send Release Tweet
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number'
+        type: string
+        required: true
+      force:
+        description: 'Force publish'
+        type: boolean
+        default: false
+        required: true
+
+jobs:
+  tweet:
+    name: Send Release Tweet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+      - name: Setup Node.js 14.x
+        uses: actions/setup-node@master
+        with:
+          node-version: 14.x
+      - name: Poll release notes page on devsite
+        run: node scripts/ci/poll_release_notes.js
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+          FORCE_PUBLISH: ${{ github.event.inputs.force }}
+      - name: Post to Twitter
+        uses: firebase/firebase-admin-node/.github/actions/send-tweet@master
+        with:
+          status: >
+            v${{github.event.inputs.version}} of @Firebase JavaScript client for Web / Node.js is available.
+            Release notes: https://firebase.google.com/support/release-notes/js#${{github.event.inputs.version}}
+          consumer-key: ${{ secrets.TWITTER_CONSUMER_KEY }}
+          consumer-secret: ${{ secrets.TWITTER_CONSUMER_SECRET }}
+          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
