@@ -2279,7 +2279,8 @@
                         "Operator": {
                           "values": {
                             "OPERATOR_UNSPECIFIED": 0,
-                            "AND": 1
+                            "AND": 1,
+                            "OR": 2
                           }
                         }
                       }

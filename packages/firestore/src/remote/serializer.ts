@@ -130,8 +130,7 @@ const OPERATORS = (() => {
 const COMPOSITE_OPERATORS = (() => {
   const ops: { [op: string]: ProtoCompositeFilterOp } = {};
   ops[CompositeOperator.AND] = 'AND';
-  // TODO(orquery) change 'OPERATOR_UNSPECIFIED' to 'OR' when the updated protos are published
-  ops[CompositeOperator.OR] = 'OPERATOR_UNSPECIFIED';
+  ops[CompositeOperator.OR] = 'OR';
   return ops;
 })();
 
@@ -1016,16 +1015,11 @@ function toFilters(filters: Filter[]): ProtoFilter | undefined {
 function fromFilters(filter: ProtoFilter): Filter[] {
   const result = fromFilter(filter);
 
-  // Instead of a singletonList containing AND(F1, F2, ...), we can return a list containing F1,
-  // F2, ...
-  // TODO(orquery): Once proper support for composite filters has been completed, we can remove
-  // this flattening from here.
   if (
     result instanceof CompositeFilter &&
     compositeFilterIsFlatConjunction(result)
   ) {
-    // Copy the readonly array into a mutable array
-    return Object.assign([], result.getFilters());
+    return result.getFilters();
   }
 
   return [result];
@@ -1142,13 +1136,10 @@ export function fromOperatorName(op: ProtoFieldFilterOp): Operator {
 export function fromCompositeOperatorName(
   op: ProtoCompositeFilterOp
 ): CompositeOperator {
-  // TODO(orquery) support OR
   switch (op) {
     case 'AND':
       return CompositeOperator.AND;
-    // TODO(orquery) update when OR operator is supported in ProtoCompositeFilterOp
-    //    OPERATOR_UNSPECIFIED should fail and OR should return OR
-    case 'OPERATOR_UNSPECIFIED':
+    case 'OR':
       return CompositeOperator.OR;
     default:
       return fail('Unknown operator');

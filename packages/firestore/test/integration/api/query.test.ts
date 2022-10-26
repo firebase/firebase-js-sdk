@@ -22,6 +22,7 @@ import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
+  and,
   Bytes,
   collection,
   collectionGroup,
@@ -36,10 +37,14 @@ import {
   endBefore,
   GeoPoint,
   getDocs,
+  getDocsFromCache,
+  getDocsFromServer,
   limit,
   limitToLast,
   onSnapshot,
+  or,
   orderBy,
+  Query,
   query,
   QuerySnapshot,
   setDoc,
@@ -54,6 +59,7 @@ import {
   apiDescribe,
   toChangesArray,
   toDataArray,
+  toIds,
   withTestCollection,
   withTestDb
 } from '../util/helpers';
@@ -1288,6 +1294,189 @@ apiDescribe('Queries', (persistence: boolean) => {
       expect(toDataArray(snapshot)).to.deep.equal([{ map: { nested: 'foo' } }]);
     });
   });
+
+  if (!persistence) {
+    return;
+  }
+
+  // TODO(orquery): Enable this test when prod supports OR queries.
+  // eslint-disable-next-line no-restricted-properties
+  it.skip('can use or queries', () => {
+    const testDocs = {
+      doc1: { a: 1, b: 0 },
+      doc2: { a: 2, b: 1 },
+      doc3: { a: 3, b: 2 },
+      doc4: { a: 1, b: 3 },
+      doc5: { a: 1, b: 1 }
+    };
+
+    return withTestCollection(persistence, testDocs, async coll => {
+      // Two equalities: a==1 || b==1.
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, or(where('a', '==', 1), where('b', '==', 1))),
+        'doc1',
+        'doc2',
+        'doc4',
+        'doc5'
+      );
+
+      // with one inequality: a>2 || b==1.
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, or(where('a', '>', 2), where('b', '==', 1))),
+        'doc5',
+        'doc2',
+        'doc3'
+      );
+
+      // (a==1 && b==0) || (a==3 && b==2)
+      await checkOnlineAndOfflineResultsMatch(
+        query(
+          coll,
+          or(
+            and(where('a', '==', 1), where('b', '==', 0)),
+            and(where('a', '==', 3), where('b', '==', 2))
+          )
+        ),
+        'doc1',
+        'doc3'
+      );
+
+      // a==1 && (b==0 || b==3).
+      await checkOnlineAndOfflineResultsMatch(
+        query(
+          coll,
+          and(where('a', '==', 1), or(where('b', '==', 0), where('b', '==', 3)))
+        ),
+        'doc1',
+        'doc4'
+      );
+
+      // (a==2 || b==2) && (a==3 || b==3)
+      await checkOnlineAndOfflineResultsMatch(
+        query(
+          coll,
+          and(
+            or(where('a', '==', 2), where('b', '==', 2)),
+            or(where('a', '==', 3), where('b', '==', 3))
+          )
+        ),
+        'doc3'
+      );
+
+      // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, or(where('a', '==', 1), where('b', '>', 0)), limit(2)),
+        'doc1',
+        'doc2'
+      );
+
+      // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
+      // Note: The public query API does not allow implicit ordering when limitToLast is used.
+      await checkOnlineAndOfflineResultsMatch(
+        query(
+          coll,
+          or(where('a', '==', 1), where('b', '>', 0)),
+          limitToLast(2),
+          orderBy('b')
+        ),
+        'doc3',
+        'doc4'
+      );
+
+      // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
+      await checkOnlineAndOfflineResultsMatch(
+        query(
+          coll,
+          or(where('a', '==', 2), where('b', '==', 1)),
+          limit(1),
+          orderBy('a')
+        ),
+        'doc5'
+      );
+
+      // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
+      await checkOnlineAndOfflineResultsMatch(
+        query(
+          coll,
+          or(where('a', '==', 2), where('b', '==', 1)),
+          limitToLast(1),
+          orderBy('a')
+        ),
+        'doc2'
+      );
+
+      // Test with limits without orderBy (the __name__ ordering is the tie breaker).
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, or(where('a', '==', 2), where('b', '==', 1)), limit(1)),
+        'doc2'
+      );
+    });
+  });
+
+  // TODO(orquery): Enable this test when prod supports OR queries.
+  // eslint-disable-next-line no-restricted-properties
+  it.skip('can use or queries with in and not-in', () => {
+    const testDocs = {
+      doc1: { a: 1, b: 0 },
+      doc2: { b: 1 },
+      doc3: { a: 3, b: 2 },
+      doc4: { a: 1, b: 3 },
+      doc5: { a: 1 },
+      doc6: { a: 2 }
+    };
+
+    return withTestCollection(persistence, testDocs, async coll => {
+      // a==2 || b in [2,3]
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, or(where('a', '==', 2), where('b', 'in', [2, 3]))),
+        'doc3',
+        'doc4',
+        'doc6'
+      );
+
+      // a==2 || b not-in [2,3]
+      // Has implicit orderBy b.
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, or(where('a', '==', 2), where('b', 'not-in', [2, 3]))),
+        'doc1',
+        'doc2'
+      );
+    });
+  });
+
+  // TODO(orquery): Enable this test when prod supports OR queries.
+  // eslint-disable-next-line no-restricted-properties
+  it.skip('can use or queries with array membership', () => {
+    const testDocs = {
+      doc1: { a: 1, b: [0] },
+      doc2: { b: [1] },
+      doc3: { a: 3, b: [2, 7] },
+      doc4: { a: 1, b: [3, 7] },
+      doc5: { a: 1 },
+      doc6: { a: 2 }
+    };
+
+    return withTestCollection(persistence, testDocs, async coll => {
+      // a==2 || b array-contains 7
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, or(where('a', '==', 2), where('b', 'array-contains', 7))),
+        'doc3',
+        'doc4',
+        'doc6'
+      );
+
+      // a==2 || b array-contains-any [0, 3]
+      await checkOnlineAndOfflineResultsMatch(
+        query(
+          coll,
+          or(where('a', '==', 2), where('b', 'array-contains-any', [0, 3]))
+        ),
+        'doc1',
+        'doc4',
+        'doc6'
+      );
+    });
+  });
 });
 
 function verifyDocumentChange<T>(
@@ -1301,4 +1490,26 @@ function verifyDocumentChange<T>(
   expect(change.type).to.equal(type);
   expect(change.oldIndex).to.equal(oldIndex);
   expect(change.newIndex).to.equal(newIndex);
+}
+
+/**
+ * Checks that running the query while online (against the backend/emulator) results in the same
+ * documents as running the query while offline. If `expectedDocs` is provided, it also checks
+ * that both online and offline query result is equal to the expected documents.
+ *
+ * @param query The query to check
+ * @param expectedDocs Ordered list of document keys that are expected to match the query
+ */
+async function checkOnlineAndOfflineResultsMatch(
+  query: Query,
+  ...expectedDocs: string[]
+): Promise<void> {
+  const docsFromServer = await getDocsFromServer(query);
+
+  if (expectedDocs.length !== 0) {
+    expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
+  }
+
+  const docsFromCache = await getDocsFromCache(query);
+  expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
 }

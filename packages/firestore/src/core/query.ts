@@ -468,7 +468,13 @@ function queryMatchesPathAndCollectionGroup(
  * in the results.
  */
 function queryMatchesOrderBy(query: Query, doc: Document): boolean {
-  for (const orderBy of query.explicitOrderBy) {
+  // We must use `queryOrderBy()` to get the list of all orderBys (both implicit and explicit).
+  // Note that for OR queries, orderBy applies to all disjunction terms and implicit orderBys must
+  // be taken into account. For example, the query "a > 1 || b==1" has an implicit "orderBy a" due
+  // to the inequality, and is evaluated as "a > 1 orderBy a || b==1 orderBy a".
+  // A document with content of {b:1} matches the filters, but does not match the orderBy because
+  // it's missing the field 'a'.
+  for (const orderBy of queryOrderBy(query)) {
     // order by key always matches
     if (!orderBy.field.isKeyField() && doc.data.field(orderBy.field) === null) {
       return false;

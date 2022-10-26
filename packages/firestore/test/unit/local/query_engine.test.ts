@@ -41,8 +41,8 @@ import { TargetCache } from '../../../src/local/target_cache';
 import {
   documentKeySet,
   DocumentMap,
-  newMutationMap,
-  documentMap
+  documentMap,
+  newMutationMap
 } from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -56,14 +56,16 @@ import {
 import { Mutation } from '../../../src/model/mutation';
 import { debugAssert } from '../../../src/util/assert';
 import {
+  andFilter,
   deleteMutation,
   doc,
+  fieldIndex,
   filter,
   key,
   orderBy,
-  query,
-  fieldIndex,
+  orFilter,
   patchMutation,
+  query,
   setMutation,
   version
 } from '../../util/helpers';
@@ -511,6 +513,266 @@ function genericQueryEngineTest(
     verifyResult(docs, [MATCHING_DOC_A]);
   });
 
+  it('can perform OR queries using full collection scan', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
+    const doc2 = doc('coll/2', 1, { 'a': 2, 'b': 1 });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
+    const doc5 = doc('coll/5', 1, { 'a': 1, 'b': 1 });
+
+    await addDocument(doc1, doc2, doc3, doc4, doc5);
+
+    // Two equalities: a==1 || b==1.
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 1), filter('b', '==', 1))
+    );
+    const result1 = await expectFullCollectionQuery(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result1, [doc1, doc2, doc4, doc5]);
+
+    // with one inequality: a>2 || b==1.
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '>', 2), filter('b', '==', 1))
+    );
+    const result2 = await expectFullCollectionQuery(() =>
+      runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result2, [doc2, doc3, doc5]);
+
+    // (a==1 && b==0) || (a==3 && b==2)
+    const query3 = query(
+      'coll',
+      orFilter(
+        andFilter(filter('a', '==', 1), filter('b', '==', 0)),
+        andFilter(filter('a', '==', 3), filter('b', '==', 2))
+      )
+    );
+    const result3 = await expectFullCollectionQuery(() =>
+      runQuery(query3, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result3, [doc1, doc3]);
+
+    // a==1 && (b==0 || b==3)
+    const query4 = query(
+      'coll',
+      andFilter(
+        filter('a', '==', 1),
+        orFilter(filter('b', '==', 0), filter('b', '==', 3))
+      )
+    );
+    const result4 = await expectFullCollectionQuery(() =>
+      runQuery(query4, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result4, [doc1, doc4]);
+
+    // (a==2 || b==2) && (a==3 || b==3)
+    const query5 = query(
+      'coll',
+      andFilter(
+        orFilter(filter('a', '==', 2), filter('b', '==', 2)),
+        orFilter(filter('a', '==', 3), filter('b', '==', 3))
+      )
+    );
+    const result5 = await expectFullCollectionQuery(() =>
+      runQuery(query5, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result5, [doc3]);
+
+    // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
+    const query6 = queryWithLimit(
+      query('coll', orFilter(filter('a', '==', 1), filter('b', '>', 0))),
+      2,
+      LimitType.First
+    );
+    const result6 = await expectFullCollectionQuery(() =>
+      runQuery(query6, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result6, [doc1, doc2]);
+
+    // Test with limits (implicit order by DESC): (a==1) || (b > 0) LIMIT_TO_LAST 2
+    const query7 = queryWithLimit(
+      query('coll', orFilter(filter('a', '==', 1), filter('b', '>', 0))),
+      2,
+      LimitType.Last
+    );
+    const result7 = await expectFullCollectionQuery(() =>
+      runQuery(query7, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result7, [doc3, doc4]);
+
+    // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
+    const query8 = queryWithAddedOrderBy(
+      queryWithLimit(
+        query('coll', orFilter(filter('a', '==', 2), filter('b', '==', 1))),
+        1,
+        LimitType.First
+      ),
+      orderBy('a', 'asc')
+    );
+    const result8 = await expectFullCollectionQuery(() =>
+      runQuery(query8, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result8, [doc5]);
+
+    // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
+    const query9 = queryWithAddedOrderBy(
+      queryWithLimit(
+        query('coll', orFilter(filter('a', '==', 2), filter('b', '==', 1))),
+        1,
+        LimitType.Last
+      ),
+      orderBy('a', 'desc')
+    );
+    const result9 = await expectFullCollectionQuery(() =>
+      runQuery(query9, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result9, [doc5]);
+
+    // Test with limits without orderBy (the __name__ ordering is the tie breaker).
+    const query10 = queryWithLimit(
+      query('coll', orFilter(filter('a', '==', 2), filter('b', '==', 1))),
+      1,
+      LimitType.First
+    );
+    const result10 = await expectFullCollectionQuery(() =>
+      runQuery(query10, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result10, [doc2]);
+  });
+
+  it('query does not include documents with missing fields', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
+    const doc2 = doc('coll/2', 1, { 'b': 1 });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    // Query: a==1 || b==1 order by a.
+    // doc2 should not be included because it's missing the field 'a', and we have "orderBy a".
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 1), filter('b', '==', 1)),
+      orderBy('a', 'asc')
+    );
+    const result1 = await expectFullCollectionQuery(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result1, [doc1, doc4, doc5]);
+
+    // Query: a==1 || b==1 order by b.
+    // doc5 should not be included because it's missing the field 'b', and we have "orderBy b".
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 1), filter('b', '==', 1)),
+      orderBy('b', 'asc')
+    );
+    const result2 = await expectFullCollectionQuery(() =>
+      runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result2, [doc1, doc2, doc4]);
+
+    // Query: a>2 || b==1.
+    // This query has an implicit 'order by a'.
+    // doc2 should not be included because it's missing the field 'a'.
+    const query3 = query(
+      'coll',
+      orFilter(filter('a', '>', 2), filter('b', '==', 1))
+    );
+    const result3 = await expectFullCollectionQuery(() =>
+      runQuery(query3, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result3, [doc3]);
+
+    // Query: a>1 || b==1 order by a order by b.
+    // doc6 should not be included because it's missing the field 'b'.
+    // doc2 should not be included because it's missing the field 'a'.
+    const query4 = query(
+      'coll',
+      orFilter(filter('a', '>', 1), filter('b', '==', 1)),
+      orderBy('a', 'asc'),
+      orderBy('b', 'asc')
+    );
+    const result4 = await expectFullCollectionQuery(() =>
+      runQuery(query4, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result4, [doc3]);
+
+    // Query: a==1 || b==1
+    // There's no explicit nor implicit orderBy. Documents with missing 'a' or missing 'b' should be
+    // allowed if the document matches at least one disjunction term.
+    const query5 = query(
+      'coll',
+      orFilter(filter('a', '==', 1), filter('b', '==', 1))
+    );
+    const result5 = await expectFullCollectionQuery(() =>
+      runQuery(query5, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result5, [doc1, doc2, doc4, doc5]);
+  });
+
+  it('or query with in and not-in', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
+    const doc2 = doc('coll/2', 1, { 'b': 1 });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'in', [2, 3]))
+    );
+    const result1 = await expectFullCollectionQuery(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result1, [doc3, doc4, doc6]);
+
+    // a==2 || (b != 2 && b != 3)
+    // Has implicit "orderBy b"
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'not-in', [2, 3]))
+    );
+    const result2 = await expectFullCollectionQuery(() =>
+      runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result2, [doc1, doc2]);
+  });
+
+  it('query with array membership', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': [0] });
+    const doc2 = doc('coll/2', 1, { 'b': [1] });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': [2, 7] });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': [3, 7] });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'array-contains', 7))
+    );
+    const result1 = await expectFullCollectionQuery(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result1, [doc3, doc4, doc6]);
+
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'array-contains-any', [0, 3]))
+    );
+    const result2 = await expectFullCollectionQuery(() =>
+      runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result2, [doc1, doc4, doc6]);
+  });
+
   if (!durable) {
     return;
   }
@@ -615,6 +877,104 @@ function genericQueryEngineTest(
     );
 
     verifyResult(results, [doc1, doc2, doc4]);
+  });
+
+  it('or query with in and not-in using index', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
+    const doc2 = doc('coll/2', 1, { 'b': 1 });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['b', IndexKind.DESCENDING]] })
+    );
+
+    await indexManager.updateIndexEntries(
+      documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
+    );
+    await indexManager.updateCollectionGroup(
+      'coll',
+      newIndexOffsetFromDocument(doc6)
+    );
+
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'in', [2, 3]))
+    );
+    const result1 = await expectOptimizedCollectionQuery(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+
+    verifyResult(result1, [doc3, doc4, doc6]);
+
+    // a==2 || (b != 2 && b != 3)
+    // Has implicit "orderBy b"
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'not-in', [2, 3]))
+    );
+    const result2 = await expectOptimizedCollectionQuery(() =>
+      runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result2, [doc1, doc2]);
+  });
+
+  it('query with array membership using index', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': [0] });
+    const doc2 = doc('coll/2', 1, { 'b': [1] });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': [2, 7] });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': [3, 7] });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['b', IndexKind.CONTAINS]] })
+    );
+
+    await indexManager.updateIndexEntries(
+      documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
+    );
+    await indexManager.updateCollectionGroup(
+      'coll',
+      newIndexOffsetFromDocument(doc6)
+    );
+
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'array-contains', 7))
+    );
+    const result1 = await expectOptimizedCollectionQuery(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result1, [doc3, doc4, doc6]);
+
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'array-contains-any', [0, 3]))
+    );
+    const result2 = await expectOptimizedCollectionQuery(() =>
+      runQuery(query2, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result2, [doc1, doc4, doc6]);
   });
 }
 

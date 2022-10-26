@@ -19,7 +19,6 @@ import {
   LimitType,
   newQueryComparator,
   Query,
-  queryContainsCompositeFilters,
   queryMatches,
   queryMatchesAllDocuments,
   queryToTarget,
@@ -134,10 +133,7 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap | null> {
-
-    if (
-      queryMatchesAllDocuments(query)
-    ) {
+    if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
       // key-based lookups. It is more efficient to scan all documents in a
       // collection, rather than to perform individual lookups.
@@ -226,10 +222,7 @@ export class QueryEngine {
     remoteKeys: DocumentKeySet,
     lastLimboFreeSnapshotVersion: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    if (
-      queryMatchesAllDocuments(query) ||
-      queryContainsCompositeFilters(query)
-    ) {
+    if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
       // key-based lookups. It is more efficient to scan all documents in a
       // collection, rather than to perform individual lookups.

@@ -135,8 +135,7 @@ const userDataWriter = new ExpUserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
 const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
 
-// TODO(orquery) update this to 'OR' when or is supported by the proto library
-const protoCompositeFilterOrOp: api.CompositeFilterOp = 'OPERATOR_UNSPECIFIED';
+const protoCompositeFilterOrOp: api.CompositeFilterOp = 'OR';
 
 /**
  * Runs the serializer test with an optional ProtobufJS verification step
@@ -1088,6 +1087,90 @@ export function serializerTest(
           }
         });
         expect(fromUnaryFilter(actual)).to.deep.equal(input);
+      });
+    });
+
+    describe('to/from CompositeFilter', () => {
+      addEqualityMatcher({ equalsFn: filterEquals, forType: Filter });
+
+      /* eslint-disable no-restricted-properties */
+      it('converts deep collections', () => {
+        const input = orFilter(
+          filter('prop', '<', 42),
+          andFilter(
+            filter('author', '==', 'ehsann'),
+            filter('tags', 'array-contains', 'pending'),
+            orFilter(filter('version', '==', 4), filter('version', '==', NaN))
+          )
+        );
+
+        // Encode
+        const actual = toCompositeFilter(input);
+
+        const propProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'prop' },
+            op: 'LESS_THAN',
+            value: { integerValue: '42' }
+          }
+        };
+
+        const authorProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'author' },
+            op: 'EQUAL',
+            value: { stringValue: 'ehsann' }
+          }
+        };
+
+        const tagsProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'tags' },
+            op: 'ARRAY_CONTAINS',
+            value: { stringValue: 'pending' }
+          }
+        };
+
+        const versionProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'version' },
+            op: 'EQUAL',
+            value: { integerValue: '4' }
+          }
+        };
+
+        const nanVersionProtoFilter = {
+          unaryFilter: {
+            field: { fieldPath: 'version' },
+            op: 'IS_NAN'
+          }
+        };
+
+        const innerOrProtoFilter = {
+          compositeFilter: {
+            op: protoCompositeFilterOrOp,
+            filters: [versionProtoFilter, nanVersionProtoFilter]
+          }
+        };
+
+        const innerAndProtoFilter = {
+          compositeFilter: {
+            op: 'AND',
+            filters: [authorProtoFilter, tagsProtoFilter, innerOrProtoFilter]
+          }
+        };
+
+        expect(actual).to.deep.equal({
+          compositeFilter: {
+            op: protoCompositeFilterOrOp,
+            filters: [propProtoFilter, innerAndProtoFilter]
+          }
+        });
+
+        // Decode
+        const roundtripped = fromCompositeFilter(actual);
+        expect(roundtripped).to.deep.equal(input);
+        expect(roundtripped).to.be.instanceof(CompositeFilter);
       });
     });
 

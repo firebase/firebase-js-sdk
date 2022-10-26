@@ -20,7 +20,11 @@ import { DatabaseId } from '../core/database_info';
 import {
   Bound,
   canonifyTarget,
+  CompositeFilter,
+  CompositeOperator,
   FieldFilter,
+  Filter,
+  newTarget,
   Operator,
   Target,
   targetEquals,
@@ -28,7 +32,8 @@ import {
   targetGetLowerBound,
   targetGetNotInValues,
   targetGetSegmentCount,
-  targetGetUpperBound
+  targetGetUpperBound,
+  targetHasLimit
 } from '../core/target';
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../index/index_byte_encoder';
@@ -53,6 +58,7 @@ import { isArray, refValue } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { logDebug } from '../util/log';
+import { getDnfTerms } from '../util/logic_utils';
 import { immediateSuccessor, primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { diffSortedSets, SortedSet } from '../util/sorted_set';
@@ -333,8 +339,28 @@ export class IndexedDbIndexManager implements IndexManager {
     if (subTargets) {
       return subTargets;
     }
-    // TODO(orquery): Implement DNF transform
-    subTargets = [target];
+
+    if (target.filters.length === 0) {
+      subTargets = [target];
+    } else {
+      // There is an implicit AND operation between all the filters stored in the target
+      const dnf: Filter[] = getDnfTerms(
+        CompositeFilter.create(target.filters, CompositeOperator.AND)
+      );
+
+      subTargets = dnf.map(term =>
+        newTarget(
+          target.path,
+          target.collectionGroup,
+          target.orderBy,
+          term.getFilters(),
+          target.limit,
+          target.startAt,
+          target.endAt
+        )
+      );
+    }
+
     this.targetToDnfSubTargets.set(target, subTargets);
     return subTargets;
   }
@@ -459,21 +485,32 @@ export class IndexedDbIndexManager implements IndexManager {
     target: Target
   ): PersistencePromise<IndexType> {
     let indexType = IndexType.FULL;
-    return PersistencePromise.forEach(
-      this.getSubTargets(target),
-      (target: Target) => {
-        return this.getFieldIndex(transaction, target).next(index => {
-          if (!index) {
-            indexType = IndexType.NONE;
-          } else if (
-            indexType !== IndexType.NONE &&
-            index.fields.length < targetGetSegmentCount(target)
-          ) {
-            indexType = IndexType.PARTIAL;
-          }
-        });
+    const subTargets = this.getSubTargets(target);
+    return PersistencePromise.forEach(subTargets, (target: Target) => {
+      return this.getFieldIndex(transaction, target).next(index => {
+        if (!index) {
+          indexType = IndexType.NONE;
+        } else if (
+          indexType !== IndexType.NONE &&
+          index.fields.length < targetGetSegmentCount(target)
+        ) {
+          indexType = IndexType.PARTIAL;
+        }
+      });
+    }).next(() => {
+      // OR queries have more than one sub-target (one sub-target per DNF term). We currently consider
+      // OR queries that have a `limit` to have a partial index. For such queries we perform sorting
+      // and apply the limit in memory as a post-processing step.
+      if (
+        targetHasLimit(target) &&
+        subTargets.length > 1 &&
+        indexType === IndexType.FULL
+      ) {
+        return IndexType.PARTIAL;
       }
-    ).next(() => indexType);
+
+      return indexType;
+    });
   }
 
   /**
@@ -533,18 +570,18 @@ export class IndexedDbIndexManager implements IndexManager {
   private encodeValues(
     fieldIndex: FieldIndex,
     target: Target,
-    bound: ProtoValue[] | null
+    values: ProtoValue[] | null
   ): Uint8Array[] {
-    if (bound === null) {
+    if (values === null) {
       return [];
     }
 
     let encoders: IndexByteEncoder[] = [];
     encoders.push(new IndexByteEncoder());
 
-    let boundIdx = 0;
+    let valueIdx = 0;
     for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
-      const value = bound[boundIdx++];
+      const value = values[valueIdx++];
       for (const encoder of encoders) {
         if (this.isInFilter(target, segment.fieldPath) && isArray(value)) {
           encoders = this.expandIndexValues(encoders, segment, value);

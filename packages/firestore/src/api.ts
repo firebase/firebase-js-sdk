@@ -72,6 +72,7 @@ export {
 } from './api/reference';
 
 export {
+  and,
   endAt,
   endBefore,
   startAt,
@@ -79,6 +80,7 @@ export {
   limit,
   limitToLast,
   where,
+  or,
   orderBy,
   query,
   QueryConstraint,

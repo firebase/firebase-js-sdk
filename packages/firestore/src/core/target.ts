@@ -500,26 +500,25 @@ export function targetGetSegmentCount(target: Target): number {
   let hasArraySegment = false;
 
   for (const filter of target.filters) {
-    // TODO(orquery): Use the flattened filters here
-    const fieldFilter = filter as FieldFilter;
+    for (const subFilter of filter.getFlattenedFilters()) {
+      // __name__ is not an explicit segment of any index, so we don't need to
+      // count it.
+      if (subFilter.field.isKeyField()) {
+        continue;
+      }
 
-    // __name__ is not an explicit segment of any index, so we don't need to
-    // count it.
-    if (fieldFilter.field.isKeyField()) {
-      continue;
-    }
-
-    // ARRAY_CONTAINS or ARRAY_CONTAINS_ANY filters must be counted separately.
-    // For instance, it is possible to have an index for "a ARRAY a ASC". Even
-    // though these are on the same field, they should be counted as two
-    // separate segments in an index.
-    if (
-      fieldFilter.op === Operator.ARRAY_CONTAINS ||
-      fieldFilter.op === Operator.ARRAY_CONTAINS_ANY
-    ) {
-      hasArraySegment = true;
-    } else {
-      fields = fields.add(fieldFilter.field);
+      // ARRAY_CONTAINS or ARRAY_CONTAINS_ANY filters must be counted separately.
+      // For instance, it is possible to have an index for "a ARRAY a ASC". Even
+      // though these are on the same field, they should be counted as two
+      // separate segments in an index.
+      if (
+        subFilter.op === Operator.ARRAY_CONTAINS ||
+        subFilter.op === Operator.ARRAY_CONTAINS_ANY
+      ) {
+        hasArraySegment = true;
+      } else {
+        fields = fields.add(subFilter.field);
+      }
     }
   }
 
@@ -534,12 +533,16 @@ export function targetGetSegmentCount(target: Target): number {
   return fields.size + (hasArraySegment ? 1 : 0);
 }
 
+export function targetHasLimit(target: Target): boolean {
+  return target.limit !== null;
+}
+
 export abstract class Filter {
   abstract matches(doc: Document): boolean;
 
   abstract getFlattenedFilters(): readonly FieldFilter[];
 
-  abstract getFilters(): readonly Filter[];
+  abstract getFilters(): Filter[];
 
   abstract getFirstInequalityField(): FieldPath | null;
 }
@@ -702,7 +705,7 @@ export class FieldFilter extends Filter {
     return [this];
   }
 
-  getFilters(): readonly Filter[] {
+  getFilters(): Filter[] {
     return [this];
   }
 
@@ -753,8 +756,9 @@ export class CompositeFilter extends Filter {
     return this.memoizedFlattenedFilters;
   }
 
-  getFilters(): readonly Filter[] {
-    return this.filters;
+  // Returns a mutable copy of `this.filters`
+  getFilters(): Filter[] {
+    return Object.assign([], this.filters);
   }
 
   getFirstInequalityField(): FieldPath | null {
@@ -782,10 +786,29 @@ export class CompositeFilter extends Filter {
   }
 }
 
+/**
+ * Returns a new composite filter that contains all filter from
+ * `compositeFilter` plus all the given filters in `otherFilters`.
+ * TODO(orquery) move compositeFilterWithAddedFilters to filter.ts in future refactor
+ */
+export function compositeFilterWithAddedFilters(
+  compositeFilter: CompositeFilter,
+  otherFilters: Filter[]
+): CompositeFilter {
+  const mergedFilters = compositeFilter.filters.concat(otherFilters);
+  return CompositeFilter.create(mergedFilters, compositeFilter.op);
+}
+
 export function compositeFilterIsConjunction(
   compositeFilter: CompositeFilter
 ): boolean {
   return compositeFilter.op === CompositeOperator.AND;
+}
+
+export function compositeFilterIsDisjunction(
+  compositeFilter: CompositeFilter
+): boolean {
+  return compositeFilter.op === CompositeOperator.OR;
 }
 
 /**
@@ -881,9 +904,28 @@ export function compositeFilterEquals(
 /** Returns a debug description for `filter`. */
 export function stringifyFilter(filter: Filter): string {
   debugAssert(
-    filter instanceof FieldFilter,
-    'stringifyFilter() only supports FieldFilters'
+    filter instanceof FieldFilter || filter instanceof CompositeFilter,
+    'stringifyFilter() only supports FieldFilters and CompositeFilters'
   );
+  if (filter instanceof FieldFilter) {
+    return stringifyFieldFilter(filter);
+  } else if (filter instanceof CompositeFilter) {
+    return stringifyCompositeFilter(filter);
+  } else {
+    return 'Filter';
+  }
+}
+
+export function stringifyCompositeFilter(filter: CompositeFilter): string {
+  return (
+    filter.op.toString() +
+    ` {` +
+    filter.getFilters().map(stringifyFilter).join(' ,') +
+    '}'
+  );
+}
+
+export function stringifyFieldFilter(filter: FieldFilter): string {
   return `${filter.field.canonicalString()} ${filter.op} ${canonicalId(
     filter.value
   )}`;
