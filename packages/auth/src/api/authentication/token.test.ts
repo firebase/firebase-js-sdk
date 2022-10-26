@@ -95,10 +95,12 @@ describe('requestStsToken', () => {
   });
 
   it('should include whatever headers come from auth impl', async () => {
-    sinon.stub(auth, '_getAdditionalHeaders').returns(Promise.resolve({
-      'look-at-me-im-a-header': 'header-value',
-      'anotherheader': 'header-value-2',
-    }));
+    sinon.stub(auth, '_getAdditionalHeaders').returns(
+      Promise.resolve({
+        'look-at-me-im-a-header': 'header-value',
+        'anotherheader': 'header-value-2'
+      })
+    );
 
     const mock = fetch.mock(endpoint, {
       'access_token': 'new-access-token',
@@ -106,8 +108,10 @@ describe('requestStsToken', () => {
       'refresh_token': 'new-refresh-token'
     });
     await requestStsToken(auth, 'old-refresh-token');
-    
-    expect(mock.calls[0].headers.get('look-at-me-im-a-header')).to.eq('header-value');
+
+    expect(mock.calls[0].headers.get('look-at-me-im-a-header')).to.eq(
+      'header-value'
+    );
     expect(mock.calls[0].headers.get('anotherheader')).to.eq('header-value-2');
   });
 

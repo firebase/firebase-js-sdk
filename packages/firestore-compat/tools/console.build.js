@@ -34,12 +34,17 @@ const EXPORTNAME = '__firestore_exports__';
 const OUTPUT_FOLDER = 'dist';
 const OUTPUT_FILE = 'standalone.js';
 
-const es5InputOptions = {
+const es6InputOptions = {
   input: 'src/index.console.ts',
   plugins: [
     nodeResolve(),
     typescriptPlugin({
       typescript,
+      tsconfigOverride: {
+        compilerOptions: {
+          target: 'es6'
+        }
+      },
       transformers: [rollupUtil.removeAssertTransformer]
     }),
     json({ preferConst: true }),
@@ -51,7 +56,7 @@ const es5InputOptions = {
   ]
 };
 
-const es5OutputOptions = {
+const es6OutputOptions = {
   file: `${OUTPUT_FOLDER}/${OUTPUT_FILE}`,
   name: EXPORTNAME,
   format: 'iife'
@@ -60,10 +65,10 @@ const es5OutputOptions = {
 const POSTFIX = `window['${EXPORTNAME}']=${EXPORTNAME};`;
 
 async function build() {
-  const es5Bundle = await rollup.rollup(es5InputOptions);
+  const es6Bundle = await rollup.rollup(es6InputOptions);
   const {
     output: [{ code }]
-  } = await es5Bundle.generate(es5OutputOptions);
+  } = await es6Bundle.generate(es6OutputOptions);
 
   const output = `${String(code)}${POSTFIX}`;
 
@@ -71,7 +76,7 @@ async function build() {
     fs.mkdirSync(OUTPUT_FOLDER);
   }
 
-  await fs_writeFile(es5OutputOptions.file, output, 'utf-8');
+  await fs_writeFile(es6OutputOptions.file, output, 'utf-8');
 }
 
 build();

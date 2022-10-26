@@ -1,5 +1,11 @@
 # @firebase/database-types
 
+## 0.9.13
+
+### Patch Changes
+
+- [`9f1e3c667`](https://github.com/firebase/firebase-js-sdk/commit/9f1e3c66747126c8e24894d73f7fa27480bec08d) [#6536](https://github.com/firebase/firebase-js-sdk/pull/6536) - Revert "Updated type of action parameter for DataSnapshot#forEach"
+
 ## 0.9.12
 
 ### Patch Changes

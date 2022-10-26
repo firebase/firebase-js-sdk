@@ -374,6 +374,18 @@ export function compositeFilterEquals(
   return false;
 }
 
+/**
+ * Returns a new composite filter that contains all filter from
+ * `compositeFilter` plus all the given filters in `otherFilters`.
+ */
+export function compositeFilterWithAddedFilters(
+  compositeFilter: CompositeFilter,
+  otherFilters: Filter[]
+): CompositeFilter {
+  const mergedFilters = compositeFilter.filters.concat(otherFilters);
+  return CompositeFilter.create(mergedFilters, compositeFilter.op);
+}
+
 /** Returns a debug description for `filter`. */
 export function stringifyFilter(filter: Filter): string {
   debugAssert(

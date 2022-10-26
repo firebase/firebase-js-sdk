@@ -40,7 +40,9 @@ import {
   queryCollectionGroup,
   newQueryForCollectionGroup
 } from '../../../src/core/query';
-import { canonifyTarget } from '../../../src/core/target';
+import {
+  canonifyTarget,
+} from '../../../src/core/target';
 import { MutableDocument } from '../../../src/model/document';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -858,10 +860,10 @@ describe('Query', () => {
     nonMatching: MutableDocument[]
   ): void {
     for (const doc of matching) {
-      expect(queryMatches(query, doc)).true;
+      expect(queryMatches(query, doc)).to.be.true;
     }
     for (const doc of nonMatching) {
-      expect(queryMatches(query, doc)).false;
+      expect(queryMatches(query, doc)).to.be.false;
     }
   }
 

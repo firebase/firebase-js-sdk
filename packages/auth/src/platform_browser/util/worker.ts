@@ -41,5 +41,5 @@ export function _getServiceWorkerController(): ServiceWorker | null {
 }
 
 export function _getWorkerGlobalScope(): ServiceWorker | null {
-  return _isWorker() ? ((self as unknown) as ServiceWorker) : null;
+  return _isWorker() ? (self as unknown as ServiceWorker) : null;
 }
