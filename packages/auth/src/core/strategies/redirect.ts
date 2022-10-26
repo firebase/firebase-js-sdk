@@ -122,8 +122,7 @@ export async function _getAndClearPendingRedirectStatus(
   if (!(await persistence._isAvailable())) {
     return false;
   }
-  const hasPendingRedirect =
-    (await persistence._get(key)) === 'true';
+  const hasPendingRedirect = (await persistence._get(key)) === 'true';
   await persistence._remove(key);
   return hasPendingRedirect;
 }
@@ -139,7 +138,10 @@ export function _clearRedirectOutcomes(): void {
   redirectOutcomeMap.clear();
 }
 
-export function _overrideRedirectResult(auth: AuthInternal, result: () => Promise<UserCredentialInternal | null>): void {
+export function _overrideRedirectResult(
+  auth: AuthInternal,
+  result: () => Promise<UserCredentialInternal | null>
+): void {
   redirectOutcomeMap.set(auth._key(), result);
 }
 

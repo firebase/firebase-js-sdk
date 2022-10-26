@@ -85,6 +85,14 @@ export {
   query,
   QueryConstraint,
   QueryConstraintType,
+  QueryCompositeFilterConstraint,
+  QueryFieldFilterConstraint,
+  QueryFilterConstraint,
+  QueryOrderByConstraint,
+  QueryLimitConstraint,
+  QueryNonFilterConstraint,
+  QueryStartAtConstraint,
+  QueryEndAtConstraint,
   OrderByDirection,
   WhereFilterOp
 } from './api/filter';

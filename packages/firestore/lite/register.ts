@@ -27,9 +27,9 @@ import {
   LiteAppCheckTokenProvider,
   LiteAuthCredentialsProvider
 } from '../src/api/credentials';
+import { databaseIdFromApp } from '../src/core/database_info';
 import { setSDKVersion } from '../src/core/version';
 import { Firestore } from '../src/lite-api/database';
-import { FirestoreSettings } from '../src/lite-api/settings';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -42,16 +42,17 @@ export function registerFirestore(): void {
   _registerComponent(
     new Component(
       'firestore/lite',
-      (container, { options: settings }: { options?: FirestoreSettings }) => {
+      (container, { instanceIdentifier: databaseId, options: settings }) => {
         const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
-          app,
           new LiteAuthCredentialsProvider(
             container.getProvider('auth-internal')
           ),
           new LiteAppCheckTokenProvider(
             container.getProvider('app-check-internal')
-          )
+          ),
+          databaseIdFromApp(app, databaseId),
+          app
         );
         if (settings) {
           firestoreInstance._setSettings(settings);
@@ -59,7 +60,7 @@ export function registerFirestore(): void {
         return firestoreInstance;
       },
       'PUBLIC' as ComponentType.PUBLIC
-    )
+    ).setMultipleInstances(true)
   );
   // RUNTIME_ENV and BUILD_TARGET are replaced by real values during the compilation
   registerVersion('firestore-lite', version, '__RUNTIME_ENV__');

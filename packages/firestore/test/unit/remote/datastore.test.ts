@@ -65,6 +65,8 @@ describe('Datastore', () => {
     ): Stream<Req, Resp> {
       throw new Error('MockConnection.openStream() must be replaced');
     }
+
+    shouldResourcePathBeIncludedInRequest: boolean = false;
   }
 
   class MockAuthCredentialsProvider extends EmptyAuthCredentialsProvider {

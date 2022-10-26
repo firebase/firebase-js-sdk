@@ -581,9 +581,9 @@ export class IndexedDbIndexManager implements IndexManager {
     let encoders: IndexByteEncoder[] = [];
     encoders.push(new IndexByteEncoder());
 
-    let boundIdx = 0;
+    let valueIdx = 0;
     for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
-      const value = values[boundIdx++];
+      const value = values[valueIdx++];
       for (const encoder of encoders) {
         if (this.isInFilter(target, segment.fieldPath) && isArray(value)) {
           encoders = this.expandIndexValues(encoders, segment, value);

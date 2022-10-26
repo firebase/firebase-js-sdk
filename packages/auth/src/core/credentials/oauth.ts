@@ -75,7 +75,7 @@ export class OAuthCredential extends AuthCredential {
    * @readonly
    */
   secret?: string;
-  
+
   private nonce?: string;
   private pendingToken: string | null = null;
 

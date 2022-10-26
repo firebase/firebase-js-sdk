@@ -67,9 +67,9 @@ describe('platform_browser/recaptcha/recaptcha_loader', () => {
       triggerNetworkTimeout = stubSingleTimeout(networkTimeoutId);
 
       sinon.stub(jsHelpers, '_loadJS').callsFake(() => {
-        return (new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           jsLoader = { resolve, reject };
-        }) as unknown) as Promise<Event>;
+        }) as unknown as Promise<Event>;
       });
 
       loader = new ReCaptchaLoaderImpl();

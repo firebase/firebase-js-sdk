@@ -30,12 +30,15 @@ export class AuthMiddlewareQueue {
   constructor(private readonly auth: AuthInternal) {}
 
   pushCallback(
-      callback: (user: User | null) => void | Promise<void>,
-      onAbort?: () => void): Unsubscribe {
+    callback: (user: User | null) => void | Promise<void>,
+    onAbort?: () => void
+  ): Unsubscribe {
     // The callback could be sync or async. Wrap it into a
     // function that is always async.
-    const wrappedCallback: MiddlewareEntry =
-      (user: User | null): Promise<void> => new Promise((resolve, reject) => {
+    const wrappedCallback: MiddlewareEntry = (
+      user: User | null
+    ): Promise<void> =>
+      new Promise((resolve, reject) => {
         try {
           const result = callback(user);
           // Either resolve with existing promise or wrap a non-promise
@@ -83,11 +86,14 @@ export class AuthMiddlewareQueue {
       for (const onAbort of onAbortStack) {
         try {
           onAbort();
-        } catch (_) { /* swallow error */}
+        } catch (_) {
+          /* swallow error */
+        }
       }
 
-      throw this.auth._errorFactory.create(
-        AuthErrorCode.LOGIN_BLOCKED, { originalMessage: (e as Error)?.message });
+      throw this.auth._errorFactory.create(AuthErrorCode.LOGIN_BLOCKED, {
+        originalMessage: (e as Error)?.message
+      });
     }
   }
 }

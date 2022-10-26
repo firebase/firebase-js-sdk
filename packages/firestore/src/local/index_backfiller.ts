@@ -35,10 +35,10 @@ import { isIndexedDbTransactionError } from './simple_db';
 const LOG_TAG = 'IndexBackiller';
 
 /** How long we wait to try running index backfill after SDK initialization. */
-const INITIAL_BACKFILL_DELAY_MS = 15;
+const INITIAL_BACKFILL_DELAY_MS = 15 * 1000;
 
 /** Minimum amount of time between backfill checks, after the first one. */
-const REGULAR_BACKFILL_DELAY_MS = 1;
+const REGULAR_BACKFILL_DELAY_MS = 60 * 1000;
 
 /** The maximum number of documents to process each time backfill() is called. */
 const MAX_DOCUMENTS_TO_PROCESS = 50;

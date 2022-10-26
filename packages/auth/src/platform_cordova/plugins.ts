@@ -50,5 +50,5 @@ export interface InAppBrowserRef {
 }
 
 export function _cordovaWindow(): CordovaWindow {
-  return (window as unknown) as CordovaWindow;
+  return window as unknown as CordovaWindow;
 }

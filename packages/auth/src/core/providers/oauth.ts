@@ -164,7 +164,7 @@ export class OAuthProvider extends BaseOAuthProvider {
    * or the ID token string.
    */
   credential(params: OAuthCredentialOptions): OAuthCredential {
-    return this._credential({...params, nonce: params.rawNonce});
+    return this._credential({ ...params, nonce: params.rawNonce });
   }
 
   /** An internal credential method that accepts more permissive options */
