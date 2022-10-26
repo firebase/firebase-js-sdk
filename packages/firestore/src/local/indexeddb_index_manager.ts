@@ -16,16 +16,18 @@
  */
 
 import { User } from '../auth/user';
+import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
 import {
-  Bound,
-  canonifyTarget,
   CompositeFilter,
   CompositeOperator,
   FieldFilter,
   Filter,
+  Operator
+} from '../core/filter';
+import {
+  canonifyTarget,
   newTarget,
-  Operator,
   Target,
   targetEquals,
   targetGetArrayValues,

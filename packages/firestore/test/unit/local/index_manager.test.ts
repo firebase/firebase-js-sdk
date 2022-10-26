@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
+import { FieldFilter } from '../../../src/core/filter';
 import {
   LimitType,
   newQueryForCollectionGroup,
@@ -29,7 +30,6 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../../../src/core/query';
-import { FieldFilter } from '../../../src/core/target';
 import { IndexType } from '../../../src/local/index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';

@@ -18,8 +18,17 @@
 import { expect } from 'chai';
 
 import { Bytes, DocumentReference, Timestamp } from '../../src';
+import { Bound } from '../../src/core/bound';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
+import {
+  FieldFilter,
+  CompositeFilter,
+  Filter,
+  Operator,
+  CompositeOperator
+} from '../../src/core/filter';
+import { Direction, OrderBy } from '../../src/core/order_by';
 import {
   newQueryForPath,
   Query,
@@ -28,16 +37,6 @@ import {
   queryWithAddedOrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
-import {
-  Bound,
-  Direction,
-  FieldFilter,
-  CompositeFilter,
-  Filter,
-  Operator,
-  OrderBy,
-  CompositeOperator
-} from '../../src/core/target';
 import { TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,

@@ -15,13 +15,9 @@
  * limitations under the License.
  */
 
-import {
-  Direction,
-  FieldFilter,
-  Operator,
-  OrderBy,
-  Target
-} from '../core/target';
+import { FieldFilter, Operator } from '../core/filter';
+import { Direction, OrderBy } from '../core/order_by';
+import { Target } from '../core/target';
 import { debugAssert, hardAssert } from '../util/assert';
 
 import {

@@ -18,6 +18,8 @@
 import { expect } from 'chai';
 
 import { Bytes, GeoPoint, Timestamp } from '../../../src';
+import { Bound, boundEquals } from '../../../src/core/bound';
+import { OrderBy } from '../../../src/core/order_by';
 import {
   canonifyQuery,
   LimitType,
@@ -38,12 +40,7 @@ import {
   queryCollectionGroup,
   newQueryForCollectionGroup
 } from '../../../src/core/query';
-import {
-  Bound,
-  boundEquals,
-  canonifyTarget,
-  OrderBy
-} from '../../../src/core/target';
+import { canonifyTarget } from '../../../src/core/target';
 import { MutableDocument } from '../../../src/model/document';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';

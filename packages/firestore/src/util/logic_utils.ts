@@ -25,7 +25,7 @@ import {
   CompositeOperator,
   FieldFilter,
   Filter
-} from '../core/target';
+} from '../core/filter';
 
 import { hardAssert } from './assert';
 

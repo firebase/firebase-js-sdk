@@ -15,7 +15,17 @@
  * limitations under the License.
  */
 
+import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
+import {
+  CompositeFilter,
+  compositeFilterIsFlatConjunction,
+  CompositeOperator,
+  FieldFilter,
+  Filter,
+  Operator
+} from '../core/filter';
+import { Direction, OrderBy } from '../core/order_by';
 import {
   LimitType,
   newQuery,
@@ -24,19 +34,7 @@ import {
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
-  targetIsDocumentTarget,
-  Operator,
-  CompositeOperator,
-  OrderBy,
-  Target,
-  CompositeFilter,
-  compositeFilterIsFlatConjunction
-} from '../core/target';
+import { targetIsDocumentTarget, Target } from '../core/target';
 import { TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
