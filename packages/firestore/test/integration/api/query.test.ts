@@ -651,6 +651,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
     'can catch error message for missing index with error handler',
     () => {

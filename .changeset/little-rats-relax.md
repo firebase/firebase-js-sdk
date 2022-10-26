@@ -3,4 +3,4 @@
 'firebase': patch
 ---
 
-Fix "missing index" error.
+Fix "missing index" error message to include the create composite index link.
