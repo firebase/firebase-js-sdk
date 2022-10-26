@@ -145,7 +145,6 @@ export abstract class QueryFilterConstraint extends QueryConstraint {
  * also contains this `QueryFieldFilterConstraint`.
  */
 export class QueryFieldFilterConstraint extends QueryFilterConstraint {
-
   /** The type of this query constraint */
   readonly type = 'where';
 
@@ -353,7 +352,6 @@ export function and(
  * the query result.
  */
 export class QueryOrderByConstraint extends QueryConstraint {
-
   /** The type of this query constraint */
   readonly type = 'orderBy';
 
