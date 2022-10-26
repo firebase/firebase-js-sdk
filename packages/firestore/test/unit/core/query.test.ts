@@ -40,9 +40,7 @@ import {
   queryCollectionGroup,
   newQueryForCollectionGroup
 } from '../../../src/core/query';
-import {
-  canonifyTarget,
-} from '../../../src/core/target';
+import { canonifyTarget } from '../../../src/core/target';
 import { MutableDocument } from '../../../src/model/document';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
