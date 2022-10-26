@@ -92,12 +92,12 @@ export type QueryConstraintType =
  * A `QueryConstraint` is used to narrow the set of documents returned by a
  * Firestore query. `QueryConstraint`s are created by invoking {@link where},
  * {@link orderBy}, {@link (startAt:1)}, {@link (startAfter:1)}, {@link
- * endBefore:1}, {@link (endAt:1)}, {@link limit} or {@link limitToLast} and
+ * (endBefore:1)}, {@link (endAt:1)}, {@link limit}, {@link limitToLast}, {@link or} or {@link and} and
  * can then be passed to {@link query} to create a new query instance that
  * also contains this `QueryConstraint`.
  */
 export abstract class QueryConstraint {
-  /** The type of this query constraints */
+  /** The type of this query constraint */
   abstract readonly type: QueryConstraintType;
 
   /**
@@ -126,15 +126,45 @@ export function query<T>(
   return query;
 }
 
-class QueryFilterConstraint extends QueryConstraint {
+/**
+ * A `QueryFilterConstraint` is used to narrow the set of documents returned by
+ * a Firestore query by filtering on one or more document fields.
+ * `QueryFilterConstraint`s are created by invoking {@link where}, {@link or} or
+ * {@link and} and can then be passed to {@link query} to create a new query
+ * instance that also contains this `QueryFilterConstraint`.
+ */
+export abstract class QueryFilterConstraint extends QueryConstraint {
+  abstract _parse<T>(query: Query<T>): Filter;
+}
+
+/**
+ * A `QueryFieldFilterConstraint` is used to narrow the set of documents
+ * returned by a Firestore query by filtering on one document field.
+ * `QueryFieldFilterConstraint`s are created by invoking {@link where}  and
+ * can then be passed to {@link query} to create a new query instance that
+ * also contains this `QueryFieldFilterConstraint`.
+ */
+export class QueryFieldFilterConstraint extends QueryFilterConstraint {
+  /** The type of this query constraint */
   readonly type = 'where';
 
-  constructor(
+  /**
+   * @internal
+   */
+  protected constructor(
     private readonly _field: InternalFieldPath,
     private _op: Operator,
     private _value: unknown
   ) {
     super();
+  }
+
+  static _create(
+    _field: InternalFieldPath,
+    _op: Operator,
+    _value: unknown
+  ): QueryFieldFilterConstraint {
+    return new QueryFieldFilterConstraint(_field, _op, _value);
   }
 
   _apply<T>(query: Query<T>): Query<T> {
@@ -180,32 +210,51 @@ export type WhereFilterOp =
   | 'not-in';
 
 /**
- * Creates a {@link QueryConstraint} that enforces that documents must contain the
- * specified field and that the value should satisfy the relation constraint
- * provided.
+ * Creates a {@link QueryFieldFilterConstraint} that enforces that documents
+ * must contain the specified field and that the value should satisfy the
+ * relation constraint provided.
  *
  * @param fieldPath - The path to compare
  * @param opStr - The operation string (e.g "&lt;", "&lt;=", "==", "&lt;",
  *   "&lt;=", "!=").
  * @param value - The value for comparison
- * @returns The created {@link QueryConstraint}.
+ * @returns The created {@link QueryFieldFilterConstraint}.
  */
 export function where(
   fieldPath: string | FieldPath,
   opStr: WhereFilterOp,
   value: unknown
-): QueryConstraint {
+): QueryFieldFilterConstraint {
   const op = opStr as Operator;
   const field = fieldPathFromArgument('where', fieldPath);
-  return new QueryFilterConstraint(field, op, value);
+  return QueryFieldFilterConstraint._create(field, op, value);
 }
 
-class QueryCompositeFilterConstraint extends QueryConstraint {
-  constructor(
+/**
+ * A `QueryCompositeFilterConstraint` is used to narrow the set of documents
+ * returned by a Firestore query by performing the logical OR or AND of multiple
+ * {@link QueryFieldFilterConstraint} or {@link QueryCompositeFilterConstraint}.
+ * `QueryCompositeFilterConstraint`s are created by invoking {@link or} or
+ * {@link and} and can then be passed to {@link query} to create a new query
+ * instance that also contains this `QueryCompositeFilterConstraint`.
+ */
+export class QueryCompositeFilterConstraint extends QueryFilterConstraint {
+  /**
+   * @internal
+   */
+  protected constructor(
+    /** The type of this query constraint */
     readonly type: 'or' | 'and',
     private readonly _queryConstraints: QueryFilterConstraint[]
   ) {
     super();
+  }
+
+  static _create(
+    type: 'or' | 'and',
+    _queryConstraints: QueryFilterConstraint[]
+  ): QueryCompositeFilterConstraint {
+    return new QueryCompositeFilterConstraint(type, _queryConstraints);
   }
 
   _parse<T>(query: Query<T>): Filter {
@@ -219,13 +268,14 @@ class QueryCompositeFilterConstraint extends QueryConstraint {
       return parsedFilters[0];
     }
 
-    return CompositeFilter.create(parsedFilters, this.getOperator());
+    return CompositeFilter.create(parsedFilters, this._getOperator());
   }
 
   _apply<T>(query: Query<T>): Query<T> {
     const parsedFilter = this._parse(query);
     if (parsedFilter.getFilters().length === 0) {
-      // Return the existing query if not adding any more filters (e.g. an empty composite filter).
+      // Return the existing query if not adding any more filters (e.g. an empty
+      // composite filter).
       return query;
     }
     validateNewFilter(query._query, parsedFilter);
@@ -237,63 +287,89 @@ class QueryCompositeFilterConstraint extends QueryConstraint {
     );
   }
 
-  getQueryConstraints(): QueryConstraint[] {
+  _getQueryConstraints(): readonly QueryConstraint[] {
     return this._queryConstraints;
   }
 
-  getOperator(): CompositeOperator {
+  _getOperator(): CompositeOperator {
     return this.type === 'and' ? CompositeOperator.AND : CompositeOperator.OR;
   }
 }
 
 /**
- * Creates a {@link QueryConstraint} that performs a logical OR
- * of all the provided `queryConstraints`
+ * Creates a {@link QueryCompositeFilterConstraint} that performs a logical OR
+ * of all the provided {@link QueryFilterConstraint}.
  *
- * @param queryConstraints - Optional. The {@link queryConstraints} for OR operation. These must be
- * created with calls to {@link where}, {@link or}, or {@link and}.
- * @returns The created {@link QueryConstraint}.
+ * @param queryConstraints - Optional. The {@link queryConstraints} for OR
+ * operation. These must be created with calls to {@link where}, {@link or}, or
+ * {@link and}.
+ * @returns The created {@link QueryCompositeFilterConstraint}.
  */
-export function or(...queryConstraints: QueryConstraint[]): QueryConstraint {
+export function or(
+  ...queryConstraints: QueryFilterConstraint[]
+): QueryCompositeFilterConstraint {
   // Only support QueryFilterConstraints
   queryConstraints.forEach(queryConstraint =>
     validateQueryFilterConstraint('or', queryConstraint)
   );
 
-  return new QueryCompositeFilterConstraint(
+  return QueryCompositeFilterConstraint._create(
     CompositeOperator.OR,
     queryConstraints as QueryFilterConstraint[]
   );
 }
 
 /**
- * Creates a {@link QueryConstraint} that performs a logical AND
- * of all the provided `queryConstraints`
+ * Creates a {@link QueryCompositeFilterConstraint} that performs a logical AND
+ * of all the provided {@link QueryFilterConstraint}.
  *
- * @param queryConstraints - Optional. The {@link queryConstraints} for AND operation. These must be
- * created with calls to {@link where}, {@link or}, or {@link and}.
- * @returns The created {@link QueryConstraint}.
+ * @param queryConstraints - Optional. The {@link queryConstraints} for AND
+ * operation. These must be created with calls to {@link where}, {@link or}, or
+ * {@link and}.
+ * @returns The created {@link QueryCompositeFilterConstraint}.
  */
-export function and(...queryConstraints: QueryConstraint[]): QueryConstraint {
+export function and(
+  ...queryConstraints: QueryFilterConstraint[]
+): QueryCompositeFilterConstraint {
   // Only support QueryFilterConstraints
   queryConstraints.forEach(queryConstraint =>
     validateQueryFilterConstraint('and', queryConstraint)
   );
 
-  return new QueryCompositeFilterConstraint(
+  return QueryCompositeFilterConstraint._create(
     CompositeOperator.AND,
     queryConstraints as QueryFilterConstraint[]
   );
 }
 
-class QueryOrderByConstraint extends QueryConstraint {
+/**
+ * A `QueryOrderByConstraint` is used to sort the set of documents returned by a
+ * Firestore query. `QueryOrderByConstraint`s are created by invoking
+ * {@link orderBy} and can then be passed to {@link query} to create a new query
+ * instance that also contains this `QueryOrderByConstraint`.
+ *
+ * Note: Documents that do not contain the orderBy field will not be present in
+ * the query result.
+ */
+export class QueryOrderByConstraint extends QueryConstraint {
+  /** The type of this query constraint */
   readonly type = 'orderBy';
 
-  constructor(
+  /**
+   * @internal
+   */
+  protected constructor(
     private readonly _field: InternalFieldPath,
     private _direction: Direction
   ) {
     super();
+  }
+
+  static _create(
+    _field: InternalFieldPath,
+    _direction: Direction
+  ): QueryOrderByConstraint {
+    return new QueryOrderByConstraint(_field, _direction);
   }
 
   _apply<T>(query: Query<T>): Query<T> {
@@ -313,30 +389,52 @@ class QueryOrderByConstraint extends QueryConstraint {
 export type OrderByDirection = 'desc' | 'asc';
 
 /**
- * Creates a {@link QueryConstraint} that sorts the query result by the
+ * Creates a {@link QueryOrderByConstraint} that sorts the query result by the
  * specified field, optionally in descending order instead of ascending.
+ *
+ * Note: Documents that do not contain the specified field will not be present
+ * in the query result.
  *
  * @param fieldPath - The field to sort by.
  * @param directionStr - Optional direction to sort by ('asc' or 'desc'). If
  * not specified, order will be ascending.
- * @returns The created {@link Query}.
+ * @returns The created {@link QueryOrderByConstraint}.
  */
 export function orderBy(
   fieldPath: string | FieldPath,
   directionStr: OrderByDirection = 'asc'
-): QueryConstraint {
+): QueryOrderByConstraint {
   const direction = directionStr as Direction;
   const path = fieldPathFromArgument('orderBy', fieldPath);
-  return new QueryOrderByConstraint(path, direction);
+  return QueryOrderByConstraint._create(path, direction);
 }
 
-class QueryLimitConstraint extends QueryConstraint {
-  constructor(
+/**
+ * A `QueryLimitConstraint` is used to limit the number of documents returned by
+ * a Firestore query.
+ * `QueryLimitConstraint`s are created by invoking {@link limit} or
+ * {@link limitToLast} and can then be passed to {@link query} to create a new
+ * query instance that also contains this `QueryLimitConstraint`.
+ */
+export class QueryLimitConstraint extends QueryConstraint {
+  /**
+   * @internal
+   */
+  protected constructor(
+    /** The type of this query constraint */
     readonly type: 'limit' | 'limitToLast',
     private readonly _limit: number,
     private readonly _limitType: LimitType
   ) {
     super();
+  }
+
+  static _create(
+    type: 'limit' | 'limitToLast',
+    _limit: number,
+    _limitType: LimitType
+  ): QueryLimitConstraint {
+    return new QueryLimitConstraint(type, _limit, _limitType);
   }
 
   _apply<T>(query: Query<T>): Query<T> {
@@ -349,37 +447,58 @@ class QueryLimitConstraint extends QueryConstraint {
 }
 
 /**
- * Creates a {@link QueryConstraint} that only returns the first matching documents.
+ * Creates a {@link QueryLimitConstraint} that only returns the first matching
+ * documents.
  *
  * @param limit - The maximum number of items to return.
- * @returns The created {@link Query}.
+ * @returns The created {@link QueryLimitConstraint}.
  */
-export function limit(limit: number): QueryConstraint {
+export function limit(limit: number): QueryLimitConstraint {
   validatePositiveNumber('limit', limit);
-  return new QueryLimitConstraint('limit', limit, LimitType.First);
+  return QueryLimitConstraint._create('limit', limit, LimitType.First);
 }
 
 /**
- * Creates a {@link QueryConstraint} that only returns the last matching documents.
+ * Creates a {@link QueryLimitConstraint} that only returns the last matching
+ * documents.
  *
  * You must specify at least one `orderBy` clause for `limitToLast` queries,
  * otherwise an exception will be thrown during execution.
  *
  * @param limit - The maximum number of items to return.
- * @returns The created {@link Query}.
+ * @returns The created {@link QueryLimitConstraint}.
  */
-export function limitToLast(limit: number): QueryConstraint {
+export function limitToLast(limit: number): QueryLimitConstraint {
   validatePositiveNumber('limitToLast', limit);
-  return new QueryLimitConstraint('limitToLast', limit, LimitType.Last);
+  return QueryLimitConstraint._create('limitToLast', limit, LimitType.Last);
 }
 
-class QueryStartAtConstraint extends QueryConstraint {
-  constructor(
+/**
+ * A `QueryStartAtConstraint` is used to exclude documents from the start of a
+ * result set returned by a Firestore query.
+ * `QueryStartAtConstraint`s are created by invoking {@link (startAt:1)} or
+ * {@link (startAfter:1)} and can then be passed to {@link query} to create a
+ * new query instance that also contains this `QueryStartAtConstraint`.
+ */
+export class QueryStartAtConstraint extends QueryConstraint {
+  /**
+   * @internal
+   */
+  protected constructor(
+    /** The type of this query constraint */
     readonly type: 'startAt' | 'startAfter',
     private readonly _docOrFields: Array<unknown | DocumentSnapshot<unknown>>,
     private readonly _inclusive: boolean
   ) {
     super();
+  }
+
+  static _create(
+    type: 'startAt' | 'startAfter',
+    _docOrFields: Array<unknown | DocumentSnapshot<unknown>>,
+    _inclusive: boolean
+  ): QueryStartAtConstraint {
+    return new QueryStartAtConstraint(type, _docOrFields, _inclusive);
   }
 
   _apply<T>(query: Query<T>): Query<T> {
@@ -398,29 +517,31 @@ class QueryStartAtConstraint extends QueryConstraint {
 }
 
 /**
- * Creates a {@link QueryConstraint} that modifies the result set to start at the
- * provided document (inclusive). The starting position is relative to the order
- * of the query. The document must contain all of the fields provided in the
- * `orderBy` of this query.
+ * Creates a {@link QueryStartAtConstraint} that modifies the result set to
+ * start at the provided document (inclusive). The starting position is relative
+ * to the order of the query. The document must contain all of the fields
+ * provided in the `orderBy` of this query.
  *
  * @param snapshot - The snapshot of the document to start at.
- * @returns A {@link QueryConstraint} to pass to `query()`.
+ * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
-export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function startAt(
+  snapshot: DocumentSnapshot<unknown>
+): QueryStartAtConstraint;
 /**
- * Creates a {@link QueryConstraint} that modifies the result set to start at the
- * provided fields relative to the order of the query. The order of the field
- * values must match the order of the order by clauses of the query.
+ * Creates a {@link QueryStartAtConstraint} that modifies the result set to
+ * start at the provided fields relative to the order of the query. The order of
+ * the field values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to start this query at, in order
  * of the query's order by.
- * @returns A {@link QueryConstraint} to pass to `query()`.
+ * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
-export function startAt(...fieldValues: unknown[]): QueryConstraint;
+export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
 export function startAt(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
-): QueryConstraint {
-  return new QueryStartAtConstraint(
+): QueryStartAtConstraint {
+  return QueryStartAtConstraint._create(
     'startAt',
     docOrFields,
     /*inclusive=*/ true
@@ -428,44 +549,63 @@ export function startAt(
 }
 
 /**
- * Creates a {@link QueryConstraint} that modifies the result set to start after the
- * provided document (exclusive). The starting position is relative to the order
- * of the query. The document must contain all of the fields provided in the
- * orderBy of the query.
+ * Creates a {@link QueryStartAtConstraint} that modifies the result set to
+ * start after the provided document (exclusive). The starting position is
+ * relative to the order of the query. The document must contain all of the
+ * fields provided in the orderBy of the query.
  *
  * @param snapshot - The snapshot of the document to start after.
- * @returns A {@link QueryConstraint} to pass to `query()`
+ * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
 export function startAfter(
   snapshot: DocumentSnapshot<unknown>
-): QueryConstraint;
+): QueryStartAtConstraint;
 /**
- * Creates a {@link QueryConstraint} that modifies the result set to start after the
- * provided fields relative to the order of the query. The order of the field
- * values must match the order of the order by clauses of the query.
+ * Creates a {@link QueryStartAtConstraint} that modifies the result set to
+ * start after the provided fields relative to the order of the query. The order
+ * of the field values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to start this query after, in order
  * of the query's order by.
- * @returns A {@link QueryConstraint} to pass to `query()`
+ * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
-export function startAfter(...fieldValues: unknown[]): QueryConstraint;
+export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
 export function startAfter(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
-): QueryConstraint {
-  return new QueryStartAtConstraint(
+): QueryStartAtConstraint {
+  return QueryStartAtConstraint._create(
     'startAfter',
     docOrFields,
     /*inclusive=*/ false
   );
 }
 
-class QueryEndAtConstraint extends QueryConstraint {
-  constructor(
+/**
+ * A `QueryEndAtConstraint` is used to exclude documents from the end of a
+ * result set returned by a Firestore query.
+ * `QueryEndAtConstraint`s are created by invoking {@link (endAt:1)} or
+ * {@link (endBefore:1)} and can then be passed to {@link query} to create a new
+ * query instance that also contains this `QueryEndAtConstraint`.
+ */
+export class QueryEndAtConstraint extends QueryConstraint {
+  /**
+   * @internal
+   */
+  protected constructor(
+    /** The type of this query constraint */
     readonly type: 'endBefore' | 'endAt',
     private readonly _docOrFields: Array<unknown | DocumentSnapshot<unknown>>,
     private readonly _inclusive: boolean
   ) {
     super();
+  }
+
+  static _create(
+    type: 'endBefore' | 'endAt',
+    _docOrFields: Array<unknown | DocumentSnapshot<unknown>>,
+    _inclusive: boolean
+  ): QueryEndAtConstraint {
+    return new QueryEndAtConstraint(type, _docOrFields, _inclusive);
   }
 
   _apply<T>(query: Query<T>): Query<T> {
@@ -484,29 +624,31 @@ class QueryEndAtConstraint extends QueryConstraint {
 }
 
 /**
- * Creates a {@link QueryConstraint} that modifies the result set to end before the
- * provided document (exclusive). The end position is relative to the order of
- * the query. The document must contain all of the fields provided in the
- * orderBy of the query.
+ * Creates a {@link QueryEndAtConstraint} that modifies the result set to end
+ * before the provided document (exclusive). The end position is relative to the
+ * order of the query. The document must contain all of the fields provided in
+ * the orderBy of the query.
  *
  * @param snapshot - The snapshot of the document to end before.
- * @returns A {@link QueryConstraint} to pass to `query()`
+ * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function endBefore(
+  snapshot: DocumentSnapshot<unknown>
+): QueryEndAtConstraint;
 /**
- * Creates a {@link QueryConstraint} that modifies the result set to end before the
- * provided fields relative to the order of the query. The order of the field
- * values must match the order of the order by clauses of the query.
+ * Creates a {@link QueryEndAtConstraint} that modifies the result set to end
+ * before the provided fields relative to the order of the query. The order of
+ * the field values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to end this query before, in order
  * of the query's order by.
- * @returns A {@link QueryConstraint} to pass to `query()`
+ * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export function endBefore(...fieldValues: unknown[]): QueryConstraint;
+export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 export function endBefore(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
-): QueryConstraint {
-  return new QueryEndAtConstraint(
+): QueryEndAtConstraint {
+  return QueryEndAtConstraint._create(
     'endBefore',
     docOrFields,
     /*inclusive=*/ false
@@ -514,29 +656,35 @@ export function endBefore(
 }
 
 /**
- * Creates a {@link QueryConstraint} that modifies the result set to end at the
- * provided document (inclusive). The end position is relative to the order of
- * the query. The document must contain all of the fields provided in the
+ * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
+ * the provided document (inclusive). The end position is relative to the order
+ * of the query. The document must contain all of the fields provided in the
  * orderBy of the query.
  *
  * @param snapshot - The snapshot of the document to end at.
- * @returns A {@link QueryConstraint} to pass to `query()`
+ * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function endAt(
+  snapshot: DocumentSnapshot<unknown>
+): QueryEndAtConstraint;
 /**
- * Creates a {@link QueryConstraint} that modifies the result set to end at the
- * provided fields relative to the order of the query. The order of the field
+ * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
+ * the provided fields relative to the order of the query. The order of the field
  * values must match the order of the order by clauses of the query.
  *
  * @param fieldValues - The field values to end this query at, in order
  * of the query's order by.
- * @returns A {@link QueryConstraint} to pass to `query()`
+ * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export function endAt(...fieldValues: unknown[]): QueryConstraint;
+export function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 export function endAt(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
-): QueryConstraint {
-  return new QueryEndAtConstraint('endAt', docOrFields, /*inclusive=*/ true);
+): QueryEndAtConstraint {
+  return QueryEndAtConstraint._create(
+    'endAt',
+    docOrFields,
+    /*inclusive=*/ true
+  );
 }
 
 /** Helper function to create a bound from a document or fields */

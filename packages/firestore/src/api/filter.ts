@@ -29,6 +29,13 @@ export {
   where,
   WhereFilterOp,
   query,
+  QueryCompositeFilterConstraint,
   QueryConstraint,
-  QueryConstraintType
+  QueryConstraintType,
+  QueryFilterConstraint,
+  QueryFieldFilterConstraint,
+  QueryOrderByConstraint,
+  QueryLimitConstraint,
+  QueryStartAtConstraint,
+  QueryEndAtConstraint
 } from '../lite-api/query';
