@@ -97,7 +97,7 @@ export type QueryConstraintType =
  * also contains this `QueryConstraint`.
  */
 export abstract class QueryConstraint {
-  /** The type of this query constraints */
+  /** The type of this query constraint */
   abstract readonly type: QueryConstraintType;
 
   /**
@@ -145,8 +145,13 @@ export abstract class QueryFilterConstraint extends QueryConstraint {
  * also contains this `QueryFieldFilterConstraint`.
  */
 export class QueryFieldFilterConstraint extends QueryFilterConstraint {
+
+  /** The type of this query constraint */
   readonly type = 'where';
 
+  /**
+   * @internal
+   */
   protected constructor(
     private readonly _field: InternalFieldPath,
     private _op: Operator,
@@ -235,7 +240,11 @@ export function where(
  * instance that also contains this `QueryCompositeFilterConstraint`.
  */
 export class QueryCompositeFilterConstraint extends QueryFilterConstraint {
+  /**
+   * @internal
+   */
   protected constructor(
+    /** The type of this query constraint */
     readonly type: 'or' | 'and',
     private readonly _queryConstraints: QueryFilterConstraint[]
   ) {
@@ -344,8 +353,13 @@ export function and(
  * the query result.
  */
 export class QueryOrderByConstraint extends QueryConstraint {
+
+  /** The type of this query constraint */
   readonly type = 'orderBy';
 
+  /**
+   * @internal
+   */
   protected constructor(
     private readonly _field: InternalFieldPath,
     private _direction: Direction
@@ -405,7 +419,11 @@ export function orderBy(
  * query instance that also contains this `QueryLimitConstraint`.
  */
 export class QueryLimitConstraint extends QueryConstraint {
+  /**
+   * @internal
+   */
   protected constructor(
+    /** The type of this query constraint */
     readonly type: 'limit' | 'limitToLast',
     private readonly _limit: number,
     private readonly _limitType: LimitType
@@ -465,7 +483,11 @@ export function limitToLast(limit: number): QueryLimitConstraint {
  * new query instance that also contains this `QueryStartAtConstraint`.
  */
 export class QueryStartAtConstraint extends QueryConstraint {
+  /**
+   * @internal
+   */
   protected constructor(
+    /** The type of this query constraint */
     readonly type: 'startAt' | 'startAfter',
     private readonly _docOrFields: Array<unknown | DocumentSnapshot<unknown>>,
     private readonly _inclusive: boolean
@@ -568,7 +590,11 @@ export function startAfter(
  * query instance that also contains this `QueryEndAtConstraint`.
  */
 export class QueryEndAtConstraint extends QueryConstraint {
+  /**
+   * @internal
+   */
   protected constructor(
+    /** The type of this query constraint */
     readonly type: 'endBefore' | 'endAt',
     private readonly _docOrFields: Array<unknown | DocumentSnapshot<unknown>>,
     private readonly _inclusive: boolean
