@@ -128,9 +128,9 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     await page.waitForCodeInputToBePresent();
 
     // Get the number from the emulator REST endpoint
-    const code = Object.values(
-      await getPhoneVerificationCodes()
-    ).find(session => session.phoneNumber.includes(phoneNumber))!.code;
+    const code = Object.values(await getPhoneVerificationCodes()).find(
+      session => session.phoneNumber.includes(phoneNumber)
+    )!.code;
     await page.enterPhoneCode(code);
     await page.clickSubmit();
 

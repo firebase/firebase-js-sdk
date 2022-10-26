@@ -51,7 +51,7 @@ describe('core/auth/firebase_internal', () => {
     });
 
     it('errors if Auth is not initialized', () => {
-      delete ((auth as unknown) as Record<string, unknown>)[
+      delete (auth as unknown as Record<string, unknown>)[
         '_initializationPromise'
       ];
       expect(() => authInternal.getUid()).to.throw(
@@ -78,7 +78,7 @@ describe('core/auth/firebase_internal', () => {
     });
 
     it('errors if Auth is not initialized', async () => {
-      delete ((auth as unknown) as Record<string, unknown>)[
+      delete (auth as unknown as Record<string, unknown>)[
         '_initializationPromise'
       ];
       await expect(authInternal.getToken()).to.be.rejectedWith(
@@ -141,7 +141,7 @@ describe('core/auth/firebase_internal', () => {
       });
 
       it('errors if Auth is not initialized', () => {
-        delete ((auth as unknown) as Record<string, unknown>)[
+        delete (auth as unknown as Record<string, unknown>)[
           '_initializationPromise'
         ];
         expect(() => authInternal.addAuthTokenListener(() => {})).to.throw(
@@ -204,7 +204,7 @@ describe('core/auth/firebase_internal', () => {
       });
 
       it('errors if Auth is not initialized', () => {
-        delete ((auth as unknown) as Record<string, unknown>)[
+        delete (auth as unknown as Record<string, unknown>)[
           '_initializationPromise'
         ];
         expect(() => authInternal.removeAuthTokenListener(() => {})).to.throw(

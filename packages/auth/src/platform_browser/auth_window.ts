@@ -42,7 +42,7 @@ export type AuthWindow = {
  * we need to make sure not to mess with window unless we have to
  */
 export function _window(): AuthWindow {
-  return (window as unknown) as AuthWindow;
+  return window as unknown as AuthWindow;
 }
 
 export function _setWindowLocation(url: string): void {

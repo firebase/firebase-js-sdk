@@ -42,7 +42,10 @@ import {
 } from './events';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
 import { _getRedirectResult } from '../../platform_browser/strategies/redirect';
-import { _clearRedirectOutcomes, _overrideRedirectResult } from '../../core/strategies/redirect';
+import {
+  _clearRedirectOutcomes,
+  _overrideRedirectResult
+} from '../../core/strategies/redirect';
 import { _cordovaWindow } from '../plugins';
 
 /**

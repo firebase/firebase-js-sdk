@@ -46,7 +46,8 @@ interface PendingPromise {
  * events
  */
 export abstract class AbstractPopupRedirectOperation
-  implements AuthEventConsumer {
+  implements AuthEventConsumer
+{
   private pendingPromise: PendingPromise | null = null;
   private eventManager: EventManager | null = null;
   readonly filter: AuthEventType[];

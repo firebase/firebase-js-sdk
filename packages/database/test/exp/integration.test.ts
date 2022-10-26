@@ -24,11 +24,14 @@ import {
   child,
   get,
   limitToFirst,
+  onChildAdded,
   onValue,
+  orderByChild,
   query,
   refFromURL,
   set,
   startAt,
+  update,
   orderByKey
 } from '../../src/api/Reference_impl';
 import {
@@ -115,6 +118,54 @@ describe('Database@exp Tests', () => {
     expect(snap1).to.equal('a');
     expect(snap2).to.equal('b');
     unsubscribe();
+  });
+
+  it('can properly handle unknown deep merges', async () => {
+    // Note: This test requires `testIndex` to be added as an index.
+    // Please run `yarn test:setup` to ensure that this gets added.
+    const database = getDatabase(defaultApp);
+    const root = ref(database, 'testing');
+    await set(root, {});
+
+    const q = query(root, orderByChild('testIndex'), limitToFirst(2));
+
+    const i1 = child(root, 'i1');
+    await set(root, {
+      i1: {
+        testIndex: 3,
+        timestamp: Date.now(),
+        action: 'test'
+      },
+      i2: {
+        testIndex: 1,
+        timestamp: Date.now(),
+        action: 'test'
+      },
+      i3: {
+        testIndex: 2,
+        timestamp: Date.now(),
+        action: 'test'
+      }
+    });
+    const ec = EventAccumulatorFactory.waitsForExactCount(2);
+    const onChildAddedCb = onChildAdded(q, snap => {
+      ec.addEvent(snap);
+    });
+    const onValueCb = onValue(i1, () => {
+      //no-op
+    });
+    await update(i1, {
+      timestamp: `${Date.now()}|1`
+    });
+    const results = await ec.promise;
+    results.forEach(result => {
+      const value = result.val();
+      expect(value).to.haveOwnProperty('timestamp');
+      expect(value).to.haveOwnProperty('action');
+      expect(value).to.haveOwnProperty('testIndex');
+    });
+    onChildAddedCb();
+    onValueCb();
   });
 
   // Tests to make sure onValue's data does not get mutated after calling get

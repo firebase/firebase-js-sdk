@@ -4003,8 +4003,8 @@ declare namespace firebase.auth {
     /**
      * @example
      * ```javascript
-     * var cred = firebase.auth.FacebookAuthProvider.credential(
-     *     // `event` from the Facebook auth.authResponseChange callback.
+     * var cred = firebase.auth.GithubAuthProvider.credential(
+     *     // `event` from the GithubAuthProvider auth.authResponseChange callback.
      *     event.authResponse.accessToken
      * );
      * ```
@@ -5819,9 +5819,7 @@ declare namespace firebase.database {
      *   returning true.
      */
     forEach(
-      action: (
-        a: firebase.database.DataSnapshot & { key: string }
-      ) => boolean | void
+      action: (a: firebase.database.DataSnapshot) => boolean | void
     ): boolean;
     /**
      * Gets the priority value of the data in this `DataSnapshot`.

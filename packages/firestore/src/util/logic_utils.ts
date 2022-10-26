@@ -21,6 +21,7 @@ import {
   compositeFilterIsDisjunction,
   compositeFilterIsFlat,
   compositeFilterIsFlatConjunction,
+  compositeFilterWithAddedFilters,
   CompositeOperator,
   FieldFilter,
   Filter
@@ -219,10 +220,7 @@ function applyDistributionCompositeFilters(
 
   // Case 1 is a merge.
   if (compositeFilterIsConjunction(lhs) && compositeFilterIsConjunction(rhs)) {
-    return CompositeFilter.create(
-      lhs.filters.concat(rhs.filters),
-      CompositeOperator.AND
-    );
+    return compositeFilterWithAddedFilters(lhs, rhs.getFilters());
   }
 
   // Case 2,3,4 all have at least one side (lhs or rhs) that is a disjunction. In all three cases
@@ -245,9 +243,9 @@ function applyDistributionFieldAndCompositeFilters(
   // A & (B | C) --> (A & B) | (A & C)
   if (compositeFilterIsConjunction(compositeFilter)) {
     // Case 1
-    return CompositeFilter.create(
-      compositeFilter.filters.concat(fieldFilter.getFilters()),
-      CompositeOperator.AND
+    return compositeFilterWithAddedFilters(
+      compositeFilter,
+      fieldFilter.getFilters()
     );
   } else {
     // Case 2

@@ -52,7 +52,7 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.START_PHONE_MFA_ENROLLMENT, {
+    const mock = mockEndpoint(Endpoint.START_MFA_ENROLLMENT, {
       phoneSessionInfo: {
         sessionInfo: 'session-info'
       }
@@ -72,7 +72,7 @@ describe('api/account_management/startEnrollPhoneMfa', () => {
 
   it('should handle errors', async () => {
     const mock = mockEndpoint(
-      Endpoint.START_PHONE_MFA_ENROLLMENT,
+      Endpoint.START_MFA_ENROLLMENT,
       {
         error: {
           code: 400,
@@ -116,7 +116,7 @@ describe('api/account_management/finalizeEnrollPhoneMfa', () => {
   afterEach(mockFetch.tearDown);
 
   it('should POST to the correct endpoint', async () => {
-    const mock = mockEndpoint(Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT, {
+    const mock = mockEndpoint(Endpoint.FINALIZE_MFA_ENROLLMENT, {
       idToken: 'id-token',
       refreshToken: 'refresh-token'
     });
@@ -136,7 +136,7 @@ describe('api/account_management/finalizeEnrollPhoneMfa', () => {
 
   it('should handle errors', async () => {
     const mock = mockEndpoint(
-      Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,
+      Endpoint.FINALIZE_MFA_ENROLLMENT,
       {
         error: {
           code: 400,

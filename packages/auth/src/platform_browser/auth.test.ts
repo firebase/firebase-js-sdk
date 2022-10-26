@@ -28,7 +28,11 @@ import {
 } from '../model/public_types';
 import { OperationType } from '../model/enums';
 
-import { FAKE_HEARTBEAT_CONTROLLER_PROVIDER, testAuth, testUser } from '../../test/helpers/mock_auth';
+import {
+  FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+  testAuth,
+  testUser
+} from '../../test/helpers/mock_auth';
 import { AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
 import { _initializeAuthInstance } from '../core/auth/initialize';
 import { AuthErrorCode } from '../core/errors';
@@ -66,14 +70,18 @@ describe('core/auth/auth_impl', () => {
 
   beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    const authImpl = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
-      apiKey: FAKE_APP.options.apiKey!,
-      apiHost: DefaultConfig.API_HOST,
-      apiScheme: DefaultConfig.API_SCHEME,
-      tokenApiHost: DefaultConfig.TOKEN_API_HOST,
-      clientPlatform: ClientPlatform.BROWSER,
-      sdkClientVersion: 'v'
-    });
+    const authImpl = new AuthImpl(
+      FAKE_APP,
+      FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+      {
+        apiKey: FAKE_APP.options.apiKey!,
+        apiHost: DefaultConfig.API_HOST,
+        apiScheme: DefaultConfig.API_SCHEME,
+        tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+        clientPlatform: ClientPlatform.BROWSER,
+        sdkClientVersion: 'v'
+      }
+    );
 
     _initializeAuthInstance(authImpl, { persistence: inMemoryPersistence });
     auth = authImpl;
@@ -131,7 +139,7 @@ describe('core/auth/initializeAuth', () => {
       persistence: Persistence | Persistence[],
       popupRedirectResolver?: PopupRedirectResolver,
       authDomain = FAKE_APP.options.authDomain,
-      blockMiddleware = false,
+      blockMiddleware = false
     ): Promise<Auth> {
       const auth = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
         apiKey: FAKE_APP.options.apiKey!,
@@ -230,7 +238,8 @@ describe('core/auth/initializeAuth', () => {
       );
       sinon.stub(resolverInternal, '_shouldInitProactively').value(true);
       sinon.stub(resolverInternal, '_initialize').rejects(new Error());
-      await expect(initAndWait(inMemoryPersistence, popupRedirectResolver)).not.to.be.rejected;
+      await expect(initAndWait(inMemoryPersistence, popupRedirectResolver)).not
+        .to.be.rejected;
     });
 
     it('reloads non-redirect users', async () => {
@@ -343,7 +352,7 @@ describe('core/auth/initializeAuth', () => {
       stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
       let authStateChangeCalls = 0;
 
-      const auth = await initAndWait(inMemoryPersistence) as AuthInternal;
+      const auth = (await initAndWait(inMemoryPersistence)) as AuthInternal;
       auth.onAuthStateChanged(() => {
         authStateChangeCalls++;
       });
@@ -366,15 +375,19 @@ describe('core/auth/initializeAuth', () => {
 
         // Manually initialize auth to make sure no error is thrown,
         // since the _initializeAuthInstance function floats
-        const auth = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
-          apiKey: FAKE_APP.options.apiKey!,
-          apiHost: DefaultConfig.API_HOST,
-          apiScheme: DefaultConfig.API_SCHEME,
-          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
-          authDomain: FAKE_APP.options.authDomain,
-          clientPlatform: ClientPlatform.BROWSER,
-          sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
-        });
+        const auth = new AuthImpl(
+          FAKE_APP,
+          FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+          {
+            apiKey: FAKE_APP.options.apiKey!,
+            apiHost: DefaultConfig.API_HOST,
+            apiScheme: DefaultConfig.API_SCHEME,
+            tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+            authDomain: FAKE_APP.options.authDomain,
+            clientPlatform: ClientPlatform.BROWSER,
+            sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
+          }
+        );
         await expect(
           auth._initializeWithPersistence(
             [_getInstance(inMemoryPersistence)],
@@ -422,7 +435,12 @@ describe('core/auth/initializeAuth', () => {
         );
         const oldUser = testUser(oldAuth, 'old-uid');
         stub._get.returns(Promise.resolve(oldUser.toJSON()));
-        const overrideSpy = sinon.spy(_getInstance<PopupRedirectResolverInternal>(browserPopupRedirectResolver), '_overrideRedirectResult');
+        const overrideSpy = sinon.spy(
+          _getInstance<PopupRedirectResolverInternal>(
+            browserPopupRedirectResolver
+          ),
+          '_overrideRedirectResult'
+        );
         const auth = await initAndWait(
           [inMemoryPersistence],
           browserPopupRedirectResolver,
@@ -441,7 +459,12 @@ describe('core/auth/initializeAuth', () => {
         );
         const oldUser = testUser(oldAuth, 'old-uid');
         stub._get.returns(Promise.resolve(oldUser.toJSON()));
-        const overrideSpy = sinon.spy(_getInstance<PopupRedirectResolverInternal>(browserPopupRedirectResolver), '_overrideRedirectResult');
+        const overrideSpy = sinon.spy(
+          _getInstance<PopupRedirectResolverInternal>(
+            browserPopupRedirectResolver
+          ),
+          '_overrideRedirectResult'
+        );
 
         let user: UserInternal | null = null;
         completeRedirectFnStub.callsFake((auth: AuthInternal) => {

@@ -110,7 +110,10 @@ export function _parseToken(token: string): ParsedToken | null {
     }
     return JSON.parse(decoded);
   } catch (e) {
-    _logError('Caught error parsing JWT payload as JSON', (e as Error)?.toString());
+    _logError(
+      'Caught error parsing JWT payload as JSON',
+      (e as Error)?.toString()
+    );
     return null;
   }
 }
