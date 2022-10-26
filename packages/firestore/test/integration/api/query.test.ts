@@ -54,9 +54,11 @@ import {
   apiDescribe,
   toChangesArray,
   toDataArray,
+  withEmptyTestCollection,
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import { USE_EMULATOR } from '../util/settings';
 
 apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();
@@ -649,35 +651,36 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  it('can catch error message for missing index with error handler', () => {
-    const testDocs = {
-      '1': { sort: 1, filter: true, key: '1' },
-      '2': { sort: 2, filter: true, key: '2' }
-    };
-    return withTestCollection(persistence, testDocs, async coll => {
-      const query_ = query(
-        coll,
-        where('sort', '<=', '2'),
-        where('filter', '==', true)
-      );
-      const deferred = new Deferred<void>();
+  (USE_EMULATOR ? it.skip : it)(
+    'can catch error message for missing index with error handler',
+    () => {
+      return withEmptyTestCollection(persistence, async coll => {
+        const query_ = query(
+          coll,
+          where('sort', '<=', '2'),
+          where('filter', '==', true)
+        );
+        const deferred = new Deferred<void>();
 
-      const unsubscribe = onSnapshot(
-        query_,
-        () => {},
-        err => {
-          expect(err.code).to.equal('failed-precondition');
-          expect(err.message).to.exist;
-          expect(err.message).to.match(
-            /index.*https:\/\/console\.firebase\.google\.com/
-          );
-          deferred.resolve();
-        }
-      );
-      await deferred.promise;
-      unsubscribe();
-    });
-  });
+        const unsubscribe = onSnapshot(
+          query_,
+          () => {
+            deferred.reject();
+          },
+          err => {
+            expect(err.code).to.equal('failed-precondition');
+            expect(err.message).to.exist;
+            expect(err.message).to.match(
+              /index.*https:\/\/console\.firebase\.google\.com/
+            );
+            deferred.resolve();
+          }
+        );
+        await deferred.promise;
+        unsubscribe();
+      });
+    }
+  );
 
   it('can explicitly sort by document ID', () => {
     const testDocs = {

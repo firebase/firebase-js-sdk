@@ -2385,7 +2385,6 @@ describe('Count quries', () => {
   // Only verify the error message for missing indexes when running against
   // production, since the Firestore Emulator does not require index creation
   // and will, therefore, never fail in this situation.
-  // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
     'getCount error message is good if missing index',
     () => {
