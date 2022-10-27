@@ -636,11 +636,11 @@ apiDescribe('Database transactions', (persistence: boolean) => {
 
       await runTransaction(db, async transaction => {
         ++retryCounter;
-        const snap1 = await transaction.get(docRef);
+        const snap = await transaction.get(docRef);
 
         if (retryCounter === 1) {
-          expect(snap1.exists()).to.be.false;
-          // On the first attemp, create a doc before transaction.set(), so that
+          expect(snap.exists()).to.be.false;
+          // On the first attempt, create a doc before transaction.set(), so that
           // the transaction fails with "already-exists" error, and retries.
           await setDoc(docRef, { count: 1 });
         }
@@ -648,8 +648,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         transaction.set(docRef, { count: 2 });
       });
       expect(retryCounter).to.equal(2);
-      const result = await getDoc(docRef);
-      expect(result.get('count')).to.equal(2);
+      const snap = await getDoc(docRef);
+      expect(snap.get('count')).to.equal(2);
     });
   });
 
