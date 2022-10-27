@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-check-types",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "@firebase/app-check Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",

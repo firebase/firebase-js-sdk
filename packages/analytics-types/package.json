@@ -1,6 +1,6 @@
 {
   "name": "@firebase/analytics-types",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "@firebase/analytics Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",

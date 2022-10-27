@@ -1,5 +1,18 @@
 # @firebase/database-compat
 
+## 0.2.10
+
+### Patch Changes
+
+- [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5) [#6682](https://github.com/firebase/firebase-js-sdk/pull/6682) - Upgrade TypeScript to 4.7.4.
+
+- Updated dependencies [[`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5)]:
+  - @firebase/component@0.5.21
+  - @firebase/database@0.13.10
+  - @firebase/database-types@0.9.17
+  - @firebase/logger@0.3.4
+  - @firebase/util@1.7.3
+
 ## 0.2.9
 
 ### Patch Changes
