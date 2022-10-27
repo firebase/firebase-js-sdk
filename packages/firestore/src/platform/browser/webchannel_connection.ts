@@ -97,8 +97,11 @@ export class WebChannelConnection extends RestConnection {
                 xhr.getResponseText()
               );
               if (status > 0) {
-                const responseError = (xhr.getResponseJson() as WebChannelError)
-                  .error;
+                let response = xhr.getResponseJson();
+                if (Array.isArray(response)) {
+                  response = response[0];
+                }
+                const responseError = (response as WebChannelError)?.error;
                 if (
                   !!responseError &&
                   !!responseError.status &&
