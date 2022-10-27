@@ -1347,7 +1347,7 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // explicit OR: a == 1 || b == 1 with limit 2
       await checkOnlineAndOfflineResultsMatch(
-        query(coll, or(where('a', '==', 1), where('b', '==', 3)), limit(2)),
+        query(coll, or(where('a', '==', 1), where('b', '==', 1)), limit(2)),
         'doc1',
         'doc2'
       );
