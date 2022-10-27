@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance-types",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "@firebase/performance Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",

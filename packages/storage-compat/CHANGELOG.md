@@ -1,5 +1,17 @@
 # @firebase/storage-compat
 
+## 0.1.21
+
+### Patch Changes
+
+- [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5) [#6682](https://github.com/firebase/firebase-js-sdk/pull/6682) - Upgrade TypeScript to 4.7.4.
+
+- Updated dependencies [[`de1c717c2`](https://github.com/firebase/firebase-js-sdk/commit/de1c717c2f69e9f21744135b74f92829927b200b), [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5)]:
+  - @firebase/storage@0.9.13
+  - @firebase/component@0.5.21
+  - @firebase/storage-types@0.6.1
+  - @firebase/util@1.7.3
+
 ## 0.1.20
 
 ### Patch Changes

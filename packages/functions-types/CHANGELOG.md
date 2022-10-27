@@ -1,5 +1,11 @@
 # @firebase/functions-types
 
+## 0.5.1
+
+### Patch Changes
+
+- [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5) [#6682](https://github.com/firebase/firebase-js-sdk/pull/6682) - Upgrade TypeScript to 4.7.4.
+
 ## 0.5.0
 
 ### Minor Changes
