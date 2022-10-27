@@ -629,6 +629,30 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
+  it('retries when document already exists', () => {
+    return withTestDb(persistence, async db => {
+      let retryCounter = 0;
+      const docRef = doc(collection(db, 'nonexistent'));
+
+      await runTransaction(db, async transaction => {
+        ++retryCounter;
+        const snap1 = await transaction.get(docRef);
+
+        if (retryCounter === 1) {
+          expect(snap1.exists()).to.be.false;
+          // On the first attemp, create a doc before transaction.set(), so that
+          // the transaction fails with "already-exists" error, and retries.
+          await setDoc(docRef, { count: 1 });
+        }
+
+        transaction.set(docRef, { count: 2 });
+      });
+      expect(retryCounter).to.equal(2);
+      const result = await getDoc(docRef);
+      expect(result.get('count')).to.equal(2);
+    });
+  });
+
   it('are successful with no transaction operations', () => {
     return withTestDb(persistence, db => runTransaction(db, async () => {}));
   });
