@@ -251,7 +251,7 @@ export abstract class QueryConstraint {
 }
 
 // @public
-export type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore' | 'and' | 'or';
+export type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
 
 // @public
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {

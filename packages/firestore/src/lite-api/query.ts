@@ -84,9 +84,7 @@ export type QueryConstraintType =
   | 'startAt'
   | 'startAfter'
   | 'endAt'
-  | 'endBefore'
-  | 'and'
-  | 'or';
+  | 'endBefore';
 
 /**
  * An `AppliableConstraint` is an abstraction of a constraint that can be applied
@@ -324,7 +322,7 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
     );
   }
 
-  _getQueryConstraints(): readonly QueryConstraint[] {
+  _getQueryConstraints(): readonly AppliableConstraint[] {
     return this._queryConstraints;
   }
 
@@ -1203,7 +1201,7 @@ function validateOrderByAndInequalityMatch(
 
 export function validateQueryFilterConstraint(
   functionName: string,
-  queryConstraint: QueryConstraint
+  queryConstraint: AppliableConstraint
 ): void {
   if (
     !(queryConstraint instanceof QueryFieldFilterConstraint) &&
@@ -1211,7 +1209,7 @@ export function validateQueryFilterConstraint(
   ) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires QueryContraints created with a call to 'where(...)'.`
+      `Function ${functionName}() requires AppliableContraints created with a call to 'where(...)', 'or(...)', or 'and(...)'.`
     );
   }
 }
