@@ -24,15 +24,49 @@ import {
   compositeFilterWithAddedFilters,
   CompositeOperator,
   FieldFilter,
-  Filter
+  Filter,
+  InFilter,
+  Operator
 } from '../core/filter';
 
-import { hardAssert } from './assert';
+import {hardAssert} from './assert';
 
 /**
  * Provides utility functions that help with boolean logic transformations needed for handling
  * complex filters used in queries.
  */
+
+/**
+ * The `in` filter is only a syntactic sugar over a disjunction of equalities. For instance: `a in
+ * [1,2,3]` is in fact `a==1 || a==2 || a==3`. This method expands any `in` filter in the given
+ * input into a disjunction of equality filters and returns the expanded filter.
+ */
+export function computeInExpansion(filter: Filter): Filter {
+  hardAssert(
+    filter instanceof FieldFilter || filter instanceof CompositeFilter,
+    'Only field filters and composite filters are accepted.'
+  );
+
+  if (filter instanceof FieldFilter) {
+    if (filter instanceof InFilter) {
+
+      const expandedFilters = filter.value.arrayValue?.values?.map(value =>
+        FieldFilter.create(filter.field, Operator.EQUAL, value)
+      ) || [];
+
+      return CompositeFilter.create(expandedFilters, CompositeOperator.OR);
+    } else {
+      // We have reached other kinds of field filters.
+      return filter;
+    }
+  }
+
+  // We have a composite filter.
+  const expandedFilters = filter.filters.map(subfilter =>
+    computeInExpansion(subfilter)
+  );
+  return CompositeFilter.create(expandedFilters, filter.op);
+}
 
 /**
  * Given a composite filter, returns the list of terms in its disjunctive normal form.
@@ -50,7 +84,7 @@ export function getDnfTerms(filter: CompositeFilter): Filter[] {
     return [];
   }
 
-  const result: Filter = computeDistributedNormalForm(filter);
+  const result: Filter = computeDistributedNormalForm(computeInExpansion(filter));
 
   hardAssert(
     isDisjunctiveNormalForm(result),
