@@ -30,7 +30,9 @@ export interface AppCheckState {
   provider?: AppCheckProvider;
   token?: AppCheckTokenInternal;
   cachedTokenPromise?: Promise<AppCheckTokenInternal | undefined>;
-  exchangeTokenPromise?: Promise<AppCheckTokenInternal>;
+  exchangeTokenFetcher: {
+    promise?: Promise<AppCheckTokenInternal>;
+  };
   tokenRefresher?: Refresher;
   reCAPTCHAState?: ReCAPTCHAState;
   isTokenAutoRefreshEnabled?: boolean;
@@ -50,7 +52,8 @@ export interface DebugState {
 const APP_CHECK_STATES = new Map<FirebaseApp, AppCheckState>();
 export const DEFAULT_STATE: AppCheckState = {
   activated: false,
-  tokenObservers: []
+  tokenObservers: [],
+  exchangeTokenFetcher: {}
 };
 
 const DEBUG_STATE: DebugState = {

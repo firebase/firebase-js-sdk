@@ -368,6 +368,103 @@ describe('internal api', () => {
       });
     });
 
+    it('no dangling exchangeToken promise internal', async () => {
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+
+      setState(app, {
+        ...getState(app),
+        token: fakeRecaptchaAppCheckToken,
+        cachedTokenPromise: undefined
+      });
+
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stub(client, 'exchangeToken').returns(
+        Promise.resolve({
+          token: 'new-recaptcha-app-check-token',
+          expireTimeMillis: Date.now() + 60000,
+          issuedAtTimeMillis: 0
+        })
+      );
+
+      const getTokenPromise = getToken(appCheck as AppCheckService, true);
+
+      expect(getState(app).exchangeTokenFetcher.promise).to.be.instanceOf(
+        Promise
+      );
+
+      const state = {
+        ...getState(app)
+      };
+
+      await getTokenPromise;
+
+      setState(app, state);
+
+      expect(getState(app).exchangeTokenFetcher.promise).to.be.equal(undefined);
+    });
+
+    it('no dangling exchangeToken promise', async () => {
+      const clock = useFakeTimers();
+
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+
+      const soonExpiredToken = {
+        token: `recaptcha-app-check-token-old`,
+        expireTimeMillis: Date.now() + 1000,
+        issuedAtTimeMillis: 0
+      };
+
+      setState(app, {
+        ...getState(app),
+        token: soonExpiredToken,
+        cachedTokenPromise: undefined
+      });
+
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      let count = 0;
+      stub(client, 'exchangeToken').callsFake(
+        () =>
+          new Promise(res =>
+            setTimeout(
+              () =>
+                res({
+                  token: `recaptcha-app-check-token-new-${count++}`,
+                  expireTimeMillis: Date.now() + 60000,
+                  issuedAtTimeMillis: 0
+                }),
+              3000
+            )
+          )
+      );
+
+      // start fetch token
+      void getToken(appCheck as AppCheckService, true);
+
+      clock.tick(2000);
+
+      // save expired `token-old` with copied state and wait fetch token
+      void getToken(appCheck as AppCheckService);
+
+      // wait fetch token with copied state
+      void getToken(appCheck as AppCheckService);
+
+      // stored copied state with `token-new-0`
+      await clock.runAllAsync();
+
+      // fetch token with copied state
+      const newToken = getToken(appCheck as AppCheckService, true);
+
+      await clock.runAllAsync();
+
+      expect(await newToken).to.deep.equal({
+        token: 'recaptcha-app-check-token-new-1'
+      });
+    });
+
     it('ignores in-memory token if it is invalid and continues to exchange request', async () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)

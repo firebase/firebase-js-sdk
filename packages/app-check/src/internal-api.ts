@@ -117,18 +117,18 @@ export async function getToken(
    */
   if (isDebugMode()) {
     // Avoid making another call to the exchange endpoint if one is in flight.
-    if (!state.exchangeTokenPromise) {
-      state.exchangeTokenPromise = exchangeToken(
+    if (!state.exchangeTokenFetcher.promise) {
+      state.exchangeTokenFetcher.promise = exchangeToken(
         getExchangeDebugTokenRequest(app, await getDebugToken()),
         appCheck.heartbeatServiceProvider
       ).finally(() => {
         // Clear promise when settled - either resolved or rejected.
-        state.exchangeTokenPromise = undefined;
+        state.exchangeTokenFetcher.promise = undefined;
       });
       shouldCallListeners = true;
     }
-    const tokenFromDebugExchange: AppCheckTokenInternal =
-      await state.exchangeTokenPromise;
+    const tokenFromDebugExchange: AppCheckTokenInternal = await state
+      .exchangeTokenFetcher.promise;
     // Write debug token to indexedDB.
     await writeTokenToStorage(app, tokenFromDebugExchange);
     // Write debug token to state.
@@ -143,17 +143,19 @@ export async function getToken(
    */
   try {
     // Avoid making another call to the exchange endpoint if one is in flight.
-    if (!state.exchangeTokenPromise) {
+    if (!state.exchangeTokenFetcher.promise) {
       // state.provider is populated in initializeAppCheck()
       // ensureActivated() at the top of this function checks that
       // initializeAppCheck() has been called.
-      state.exchangeTokenPromise = state.provider!.getToken().finally(() => {
-        // Clear promise when settled - either resolved or rejected.
-        state.exchangeTokenPromise = undefined;
-      });
+      state.exchangeTokenFetcher.promise = state
+        .provider!.getToken()
+        .finally(() => {
+          // Clear promise when settled - either resolved or rejected.
+          state.exchangeTokenFetcher.promise = undefined;
+        });
       shouldCallListeners = true;
     }
-    token = await state.exchangeTokenPromise;
+    token = await state.exchangeTokenFetcher.promise;
   } catch (e) {
     if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
       // Warn if throttled, but do not treat it as an error.
