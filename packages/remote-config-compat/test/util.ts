@@ -44,6 +44,7 @@ export function getFakeModularRemoteConfig(): RemoteConfig {
     settings: {
       fetchTimeoutMillis: 0,
       minimumFetchIntervalMillis: 0
-    }
+    },
+    app: getFakeApp()
   };
 }

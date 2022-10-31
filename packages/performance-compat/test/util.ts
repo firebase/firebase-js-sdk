@@ -32,13 +32,14 @@ export function getFakeApp(): FirebaseApp {
     },
     automaticDataCollectionEnabled: true,
     delete: async () => {}
-  };
+  } as FirebaseApp;
 }
 
 export function getFakeModularPerformance(): FirebasePerformance {
   return {
     instrumentationEnabled: true,
-    dataCollectionEnabled: true
+    dataCollectionEnabled: true,
+    app: getFakeApp()
   };
 }
 

@@ -183,7 +183,7 @@ export class Trace implements PerformanceTrace {
    * @param counter Name of the custom metric
    * @param numAsInteger Set custom metric to this value
    */
-  putMetric(counter: string, numAsInteger: number): void {
+  putMetric(counter: string, numAsInteger?: number): void {
     if (isValidMetricName(counter, this.name)) {
       this.counters[counter] = convertMetricValueToInteger(numAsInteger ?? 0);
     } else {
