@@ -71,8 +71,7 @@ export function setStateProperty<T extends keyof AppCheckState>(
   property: T,
   value: AppCheckState[T]
 ): void {
-  console.log('setStateProperty', property);
-  const newState = getState(app);
+  const newState = {...getState(app)};
   newState[property] = value;
   setState(app, newState);
 }
