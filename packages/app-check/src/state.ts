@@ -66,6 +66,17 @@ export function setState(app: FirebaseApp, state: AppCheckState): void {
   APP_CHECK_STATES.set(app, state);
 }
 
+export function setStateProperty<T extends keyof AppCheckState>(
+  app: FirebaseApp,
+  property: T,
+  value: AppCheckState[T]
+): void {
+  console.log('setStateProperty', property);
+  const newState = getState(app);
+  newState[property] = value;
+  setState(app, newState);
+}
+
 // for testing only
 export function clearState(): void {
   APP_CHECK_STATES.clear();

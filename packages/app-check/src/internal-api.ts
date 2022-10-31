@@ -23,7 +23,7 @@ import {
   ListenerType
 } from './types';
 import { AppCheckTokenListener } from './public-types';
-import { getState, setState } from './state';
+import { getState, setStateProperty } from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
 import { ensureActivated } from './util';
@@ -78,7 +78,7 @@ export async function getToken(
    * memory and unset the local variable `token`.
    */
   if (token && !isValid(token)) {
-    setState(app, { ...state, token: undefined });
+    setStateProperty(app, 'token', undefined);
     token = undefined;
   }
 
@@ -118,21 +118,23 @@ export async function getToken(
   if (isDebugMode()) {
     // Avoid making another call to the exchange endpoint if one is in flight.
     if (!state.exchangeTokenPromise) {
-      state.exchangeTokenPromise = exchangeToken(
+      const newExchangeTokenPromise = exchangeToken(
         getExchangeDebugTokenRequest(app, await getDebugToken()),
         appCheck.heartbeatServiceProvider
       ).finally(() => {
         // Clear promise when settled - either resolved or rejected.
-        state.exchangeTokenPromise = undefined;
+        setStateProperty(app, 'exchangeTokenPromise', undefined);
       });
+      setStateProperty(app, 'exchangeTokenPromise', newExchangeTokenPromise);
       shouldCallListeners = true;
     }
     const tokenFromDebugExchange: AppCheckTokenInternal =
-      await state.exchangeTokenPromise;
+    // This was checked for above and assigned via setStateProperty()
+      await state.exchangeTokenPromise!;
     // Write debug token to indexedDB.
     await writeTokenToStorage(app, tokenFromDebugExchange);
     // Write debug token to state.
-    setState(app, { ...state, token: tokenFromDebugExchange });
+    setStateProperty(app, 'token', tokenFromDebugExchange);
     return { token: tokenFromDebugExchange.token };
   }
 
@@ -147,13 +149,14 @@ export async function getToken(
       // state.provider is populated in initializeAppCheck()
       // ensureActivated() at the top of this function checks that
       // initializeAppCheck() has been called.
-      state.exchangeTokenPromise = state.provider!.getToken().finally(() => {
+      const newExchangeTokenPromise = state.provider!.getToken().finally(() => {
         // Clear promise when settled - either resolved or rejected.
-        state.exchangeTokenPromise = undefined;
+        setStateProperty(app, 'exchangeTokenPromise', undefined);
       });
+      setStateProperty(app, 'exchangeTokenPromise', newExchangeTokenPromise);
       shouldCallListeners = true;
     }
-    token = await state.exchangeTokenPromise;
+    token = await getState(app).exchangeTokenPromise;
   } catch (e) {
     if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
       // Warn if throttled, but do not treat it as an error.
@@ -195,7 +198,7 @@ export async function getToken(
     };
     // write the new token to the memory state as well as the persistent storage.
     // Only do it if we got a valid new token
-    setState(app, { ...state, token });
+    setStateProperty(app, 'token', token);
     await writeTokenToStorage(app, token);
   }
 
@@ -218,10 +221,7 @@ export function addTokenListener(
     error: onError,
     type
   };
-  setState(app, {
-    ...state,
-    tokenObservers: [...state.tokenObservers, tokenObserver]
-  });
+  setStateProperty(app, 'tokenObservers', [...state.tokenObservers, tokenObserver]);
 
   // Invoke the listener async immediately if there is a valid token
   // in memory.
@@ -268,10 +268,7 @@ export function removeTokenListener(
     state.tokenRefresher.stop();
   }
 
-  setState(app, {
-    ...state,
-    tokenObservers: newObservers
-  });
+  setStateProperty(app, 'tokenObservers', newObservers);
 }
 
 /**
@@ -285,7 +282,7 @@ function initTokenRefresher(appCheck: AppCheckService): void {
   let refresher: Refresher | undefined = state.tokenRefresher;
   if (!refresher) {
     refresher = createTokenRefresher(appCheck);
-    setState(app, { ...state, tokenRefresher: refresher });
+    setStateProperty(app, 'tokenRefresher', refresher);
   }
   if (!refresher.isRunning() && state.isTokenAutoRefreshEnabled) {
     refresher.start();
