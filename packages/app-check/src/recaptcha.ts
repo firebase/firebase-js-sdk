@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
-import { getState, setState } from './state';
+import { getState, setStateProperty } from './state';
 import { Deferred } from '@firebase/util';
 import { getRecaptcha, ensureActivated } from './util';
 
@@ -28,10 +28,9 @@ export function initializeV3(
   app: FirebaseApp,
   siteKey: string
 ): Promise<GreCAPTCHA> {
-  const state = getState(app);
   const initialized = new Deferred<GreCAPTCHA>();
 
-  setState(app, { ...state, reCAPTCHAState: { initialized } });
+  setStateProperty(app, 'reCAPTCHAState', { initialized });
   const divId = makeDiv(app);
 
   const grecaptcha = getRecaptcha(false);
@@ -54,10 +53,9 @@ export function initializeEnterprise(
   app: FirebaseApp,
   siteKey: string
 ): Promise<GreCAPTCHA> {
-  const state = getState(app);
   const initialized = new Deferred<GreCAPTCHA>();
 
-  setState(app, { ...state, reCAPTCHAState: { initialized } });
+  setStateProperty(app, 'reCAPTCHAState', { initialized });
   const divId = makeDiv(app);
 
   const grecaptcha = getRecaptcha(true);
@@ -148,12 +146,9 @@ function renderInvisibleWidget(
 
   const state = getState(app);
 
-  setState(app, {
-    ...state,
-    reCAPTCHAState: {
-      ...state.reCAPTCHAState!, // state.reCAPTCHAState is set in the initialize()
-      widgetId
-    }
+  setStateProperty(app, 'reCAPTCHAState', {
+    ...state.reCAPTCHAState!, // state.reCAPTCHAState is set in the initialize()
+    widgetId
   });
 }
 

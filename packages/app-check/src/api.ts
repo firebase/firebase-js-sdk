@@ -23,7 +23,7 @@ import {
   PartialObserver
 } from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { getState, setState, AppCheckState, getDebugState } from './state';
+import { getState, setState, AppCheckState, getDebugState, setStateProperty } from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
 import { AppCheckService } from './factory';
@@ -134,7 +134,7 @@ function _activate(
   newState.provider = provider; // Read cached token from storage if it exists and store it in memory.
   newState.cachedTokenPromise = readTokenFromStorage(app).then(cachedToken => {
     if (cachedToken && isValid(cachedToken)) {
-      setState(app, { ...getState(app), token: cachedToken });
+      setStateProperty(app, 'token', cachedToken);
       // notify all listeners with the cached token
       notifyTokenListeners(app, { token: cachedToken.token });
     }
@@ -178,7 +178,7 @@ export function setTokenAutoRefreshEnabled(
       state.tokenRefresher.stop();
     }
   }
-  setState(app, { ...state, isTokenAutoRefreshEnabled });
+  setStateProperty(app, 'isTokenAutoRefreshEnabled', isTokenAutoRefreshEnabled);
 }
 /**
  * Get the current App Check token. Attaches to the most recent
