@@ -23,7 +23,13 @@ import {
   PartialObserver
 } from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { getState, setState, AppCheckState, getDebugState, setStateProperty } from './state';
+import {
+  getState,
+  setState,
+  AppCheckState,
+  getDebugState,
+  setStateProperty
+} from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
 import { AppCheckService } from './factory';

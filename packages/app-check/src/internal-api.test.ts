@@ -390,9 +390,7 @@ describe('internal api', () => {
 
       const getTokenPromise = getToken(appCheck as AppCheckService, true);
 
-      expect(getState(app).exchangeTokenPromise).to.be.instanceOf(
-        Promise
-      );
+      expect(getState(app).exchangeTokenPromise).to.be.instanceOf(Promise);
 
       await getTokenPromise;
 
@@ -625,7 +623,7 @@ describe('internal api', () => {
     afterEach(async () => {
       clearState();
     });
-  
+
     it('adds token listeners', async () => {
       const clock = useFakeTimers();
       const listener = (): void => {};

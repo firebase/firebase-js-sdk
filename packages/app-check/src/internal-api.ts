@@ -129,7 +129,7 @@ export async function getToken(
       shouldCallListeners = true;
     }
     const tokenFromDebugExchange: AppCheckTokenInternal =
-    // This was checked for above and assigned via setStateProperty()
+      // This was checked for above and assigned via setStateProperty()
       await state.exchangeTokenPromise!;
     // Write debug token to indexedDB.
     await writeTokenToStorage(app, tokenFromDebugExchange);
@@ -221,7 +221,10 @@ export function addTokenListener(
     error: onError,
     type
   };
-  setStateProperty(app, 'tokenObservers', [...state.tokenObservers, tokenObserver]);
+  setStateProperty(app, 'tokenObservers', [
+    ...state.tokenObservers,
+    tokenObserver
+  ]);
 
   // Invoke the listener async immediately if there is a valid token
   // in memory.
