@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { unknown, invalidFormat } from './error';
+import { unknown, invalidFormat, StorageError } from './error';
 import { decodeBase64 } from '../platform/base64';
 
 /**
@@ -184,6 +184,10 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
   try {
     bytes = decodeBase64(value);
   } catch (e) {
+    if(e instanceof StorageError) {
+      throw e;
+    }
+    console.log(e);
     throw invalidFormat(format, 'Invalid character found');
   }
   const array = new Uint8Array(bytes.length);
