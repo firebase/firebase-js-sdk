@@ -58,22 +58,23 @@ const DEBUG_STATE: DebugState = {
   enabled: false
 };
 
-export function getState(app: FirebaseApp): AppCheckState {
-  return APP_CHECK_STATES.get(app) || DEFAULT_STATE;
+/**
+ * Gets a reference to the state object.
+ */
+export function getStateReference(app: FirebaseApp): AppCheckState {
+  return APP_CHECK_STATES.get(app) || { ...DEFAULT_STATE };
 }
 
-export function setState(app: FirebaseApp, state: AppCheckState): void {
-  APP_CHECK_STATES.set(app, state);
-}
-
-export function setStateProperty<T extends keyof AppCheckState>(
+/**
+ * Set once on initialization. The map should hold the same reference to the
+ * same object until this entry is deleted.
+ */
+export function setInitialState(
   app: FirebaseApp,
-  property: T,
-  value: AppCheckState[T]
-): void {
-  const newState = { ...getState(app) };
-  newState[property] = value;
-  setState(app, newState);
+  state: AppCheckState
+): AppCheckState {
+  APP_CHECK_STATES.set(app, state);
+  return APP_CHECK_STATES.get(app) as AppCheckState;
 }
 
 // for testing only
