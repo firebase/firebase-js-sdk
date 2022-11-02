@@ -184,7 +184,7 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
   try {
     bytes = decodeBase64(value);
   } catch (e) {
-    if(e instanceof StorageError) {
+    if (e instanceof StorageError) {
       throw e;
     }
     console.log(e);
