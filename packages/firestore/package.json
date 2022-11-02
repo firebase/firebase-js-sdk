@@ -54,7 +54,7 @@
       },
       "react-native": "./dist/index.rn.js",
       "esm5": "./dist/index.esm5.js",
-      "default": "./dist/index.esm2017.js"
+      "default": "./dist/index.esm2017.mjs"
     },
     "./lite": {
       "types": "./dist/lite/index.d.ts",
@@ -62,17 +62,17 @@
         "require": "./dist/lite/index.node.cjs.js",
         "import": "./dist/lite/index.node.mjs"
       },
-      "react-native": "./dist/lite/index.rn.esm2017.js",
+      "react-native": "./dist/lite/index.rn.esm2017.mjs",
       "esm5": "./dist/lite/index.browser.esm5.js",
-      "default": "./dist/lite/index.browser.esm2017.js"
+      "default": "./dist/lite/index.browser.esm2017.mjs"
     },
     "./package.json": "./package.json"
   },
   "main": "dist/index.node.cjs.js",
   "main-esm": "dist/index.node.mjs",
   "react-native": "dist/index.rn.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
+  "browser": "dist/index.esm2017.mjs",
+  "module": "dist/index.esm2017.mjs",
   "esm5": "dist/index.esm5.js",
   "license": "Apache-2.0",
   "files": [

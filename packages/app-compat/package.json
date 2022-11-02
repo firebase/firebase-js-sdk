@@ -4,8 +4,8 @@
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/esm/index.esm2017.js",
-  "module": "dist/esm/index.esm2017.js",
+  "browser": "dist/esm/index.esm2017.mjs",
+  "module": "dist/esm/index.esm2017.mjs",
   "esm5": "dist/esm/index.esm5.js",
   "lite": "dist/index.lite.js",
   "liteesm5": "dist/index.lite.esm5.js",
@@ -16,7 +16,7 @@
       "esm5": "./dist/esm/index.esm5.js",
       "lite": "./dist/index.lite.js",
       "liteesm5": "./dist/index.lite.esm5.js",
-      "default": "./dist/esm/index.esm2017.js"
+      "default": "./dist/esm/index.esm2017.mjs"
     },
     "./package.json": "./package.json"
   },

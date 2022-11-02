@@ -3,6 +3,6 @@
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "../dist/index.sw.cjs",
-  "module": "../dist/index.sw.esm2017.js",
+  "module": "../dist/index.sw.esm2017.mjs",
   "typings": "../dist/src/index.sw.d.ts"
 }
