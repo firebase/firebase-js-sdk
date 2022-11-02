@@ -280,12 +280,17 @@ export declare namespace firestoreV1ApiClientInterfaces {
     removeTarget?: number;
     labels?: ApiClientObjectMap<string>;
   }
+  interface AggregationChange {
+    result?: AggregationResult;
+    targetId?: number;
+  }
   interface ListenResponse {
     targetChange?: TargetChange;
     documentChange?: DocumentChange;
     documentDelete?: DocumentDelete;
     documentRemove?: DocumentRemove;
     filter?: ExistenceFilter;
+    aggregationChange?: AggregationChange;
   }
   interface MapValue {
     fields?: ApiClientObjectMap<Value>;
@@ -311,6 +316,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface QueryTarget {
     parent?: string;
     structuredQuery?: StructuredQuery;
+    structuredAggregationQuery?: StructuredAggregationQuery;
   }
   interface ReadOnly {
     readTime?: string;

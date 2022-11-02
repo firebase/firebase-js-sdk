@@ -4,11 +4,10 @@
       "nested": {
         "protobuf": {
           "options": {
-            "csharp_namespace": "Google.Protobuf.WellKnownTypes",
-            "go_package": "github.com/golang/protobuf/ptypes/wrappers",
+            "go_package": "github.com/golang/protobuf/protoc-gen-go/descriptor;descriptor",
             "java_package": "com.google.protobuf",
-            "java_outer_classname": "WrappersProto",
-            "java_multiple_files": true,
+            "java_outer_classname": "DescriptorProtos",
+            "csharp_namespace": "Google.Protobuf.Reflection",
             "objc_class_prefix": "GPB",
             "cc_enable_arenas": true,
             "optimize_for": "SPEED"
@@ -893,7 +892,7 @@
             },
             "Any": {
               "fields": {
-                "typeUrl": {
+                "type_url": {
                   "type": "string",
                   "id": 1
                 },
@@ -1978,6 +1977,18 @@
                     }
                   }
                 },
+                "AggregationChange": {
+                  "fields": {
+                    "result": {
+                      "type": "AggregationResult",
+                      "id": 1
+                    },
+                    "targetId": {
+                      "type": "int32",
+                      "id": 2
+                    }
+                  }
+                },
                 "ListenResponse": {
                   "oneofs": {
                     "responseType": {
@@ -1986,7 +1997,8 @@
                         "documentChange",
                         "documentDelete",
                         "documentRemove",
-                        "filter"
+                        "filter",
+                        "aggregationChange"
                       ]
                     }
                   },
@@ -2010,6 +2022,10 @@
                     "filter": {
                       "type": "ExistenceFilter",
                       "id": 5
+                    },
+                    "aggregationChange": {
+                      "type": "AggregationChange",
+                      "id": 7
                     }
                   }
                 },
@@ -2068,7 +2084,8 @@
                       "oneofs": {
                         "queryType": {
                           "oneof": [
-                            "structuredQuery"
+                            "structuredQuery",
+                            "structuredAggregationQuery"
                           ]
                         }
                       },
@@ -2080,6 +2097,10 @@
                         "structuredQuery": {
                           "type": "StructuredQuery",
                           "id": 2
+                        },
+                        "structuredAggregationQuery": {
+                          "type": "StructuredAggregationQuery",
+                          "id": 3
                         }
                       }
                     }
