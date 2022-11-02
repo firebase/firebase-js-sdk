@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { unknown, invalidFormat, StorageError } from './error';
+import { unknown, invalidFormat } from './error';
 import { decodeBase64 } from '../platform/base64';
 
 /**
@@ -184,7 +184,7 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
   try {
     bytes = decodeBase64(value);
   } catch (e) {
-    if (e instanceof StorageError) {
+    if ((e as Error).message.includes('polyfill')) {
       throw e;
     }
     console.log(e);
