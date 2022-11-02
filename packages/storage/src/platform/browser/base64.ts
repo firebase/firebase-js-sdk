@@ -19,7 +19,7 @@ import { missingPolyFill } from '../../implementation/error';
 
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {
-  if ((typeof atob === 'undefined')) {
+  if (typeof atob === 'undefined') {
     throw missingPolyFill('base-64');
   }
   return atob(encoded);
