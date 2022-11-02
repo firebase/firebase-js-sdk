@@ -55,7 +55,6 @@ packages/storage-types @maneesht @tonyjhuang @firebase/jssdk-global-approvers
 # Messaging Code
 packages/messaging  @zwu52 @firebase/jssdk-global-approvers
 packages/messaging-compat  @zwu52 @firebase/jssdk-global-approvers
-packages/messaging-types @zwu52 @firebase/jssdk-global-approvers
 packages/messaging-interop-types @zwu52 @firebase/jssdk-global-approvers
 integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
