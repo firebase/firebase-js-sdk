@@ -20,7 +20,7 @@ import { missingPolyFill } from '../../src/implementation/error';
 import { dataFromString, StringFormat } from '../../src/implementation/string';
 import { assertThrows } from '../unit/testshared';
 
-describe.only('String browser tests', () => {
+describe('String browser tests', () => {
   it('should reject if atob is undefined', () => {
     const originalAToB = global.atob;
     // @ts-ignore
