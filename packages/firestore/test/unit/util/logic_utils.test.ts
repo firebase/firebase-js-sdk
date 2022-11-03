@@ -17,11 +17,17 @@
 
 import { expect } from 'chai';
 
-import { FieldFilter, Filter, filterEquals } from '../../../src/core/filter';
+import {
+  CompositeFilter,
+  FieldFilter,
+  Filter,
+  filterEquals
+} from '../../../src/core/filter';
 import {
   applyAssociation,
   applyDistribution,
   computeDistributedNormalForm,
+  computeInExpansion,
   getDnfTerms
 } from '../../../src/util/logic_utils';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -110,6 +116,106 @@ describe('LogicUtils', () => {
       .be.true;
     expect(filterEquals(applyDistribution(orFilter(B, C, D), A), expected)).to
       .be.true;
+  });
+
+  it('implements in expansion for field filters', () => {
+    const input1: FieldFilter = filter('a', 'in', [1, 2, 3]);
+    const input2: FieldFilter = filter('a', '<', 1);
+    const input3: FieldFilter = filter('a', '<=', 1);
+    const input4: FieldFilter = filter('a', '==', 1);
+    const input5: FieldFilter = filter('a', '!=', 1);
+    const input6: FieldFilter = filter('a', '>', 1);
+    const input7: FieldFilter = filter('a', '>=', 1);
+    const input8: FieldFilter = filter('a', 'array-contains', 1);
+    const input9: FieldFilter = filter('a', 'array-contains-any', [1, 2]);
+    const input10: FieldFilter = filter('a', 'not-in', [1, 2]);
+
+    expect(computeInExpansion(input1)).to.deep.equal(
+      orFilter(filter('a', '==', 1), filter('a', '==', 2), filter('a', '==', 3))
+    );
+
+    // Other operators should remain the same
+    expect(computeInExpansion(input2)).to.deep.equal(input2);
+    expect(computeInExpansion(input3)).to.deep.equal(input3);
+    expect(computeInExpansion(input4)).to.deep.equal(input4);
+    expect(computeInExpansion(input5)).to.deep.equal(input5);
+    expect(computeInExpansion(input6)).to.deep.equal(input6);
+    expect(computeInExpansion(input7)).to.deep.equal(input7);
+    expect(computeInExpansion(input8)).to.deep.equal(input8);
+    expect(computeInExpansion(input9)).to.deep.equal(input9);
+    expect(computeInExpansion(input10)).to.deep.equal(input10);
+  });
+
+  it('implements in expansion for composite filters', () => {
+    const cf1: CompositeFilter = andFilter(
+      filter('a', '==', 1),
+      filter('b', 'in', [2, 3, 4])
+    );
+
+    expect(computeInExpansion(cf1)).to.deep.equal(
+      andFilter(
+        filter('a', '==', 1),
+        orFilter(
+          filter('b', '==', 2),
+          filter('b', '==', 3),
+          filter('b', '==', 4)
+        )
+      )
+    );
+
+    const cf2: CompositeFilter = orFilter(
+      filter('a', '==', 1),
+      filter('b', 'in', [2, 3, 4])
+    );
+
+    expect(computeInExpansion(cf2)).to.deep.equal(
+      orFilter(
+        filter('a', '==', 1),
+        orFilter(
+          filter('b', '==', 2),
+          filter('b', '==', 3),
+          filter('b', '==', 4)
+        )
+      )
+    );
+
+    const cf3: CompositeFilter = andFilter(
+      filter('a', '==', 1),
+      orFilter(filter('b', '==', 2), filter('c', 'in', [2, 3, 4]))
+    );
+
+    expect(computeInExpansion(cf3)).to.deep.equal(
+      andFilter(
+        filter('a', '==', 1),
+        orFilter(
+          filter('b', '==', 2),
+          orFilter(
+            filter('c', '==', 2),
+            filter('c', '==', 3),
+            filter('c', '==', 4)
+          )
+        )
+      )
+    );
+
+    const cf4: CompositeFilter = orFilter(
+      filter('a', '==', 1),
+      andFilter(filter('b', '==', 2), filter('c', 'in', [2, 3, 4]))
+    );
+
+    expect(computeInExpansion(cf4)).to.deep.equal(
+      orFilter(
+        filter('a', '==', 1),
+        andFilter(
+          filter('b', '==', 2),
+          orFilter(
+            filter('c', '==', 2),
+            filter('c', '==', 3),
+            filter('c', '==', 4)
+          )
+        )
+      )
+    );
   });
 
   it('implements field filter distribution over or filter', () => {
