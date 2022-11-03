@@ -981,28 +981,39 @@ export class IndexedDbIndexManager implements IndexManager {
 
     const ranges: IDBKeyRange[] = [];
     for (let i = 0; i < bounds.length; i += 2) {
-      ranges.push(
-        IDBKeyRange.bound(
-          [
-            bounds[i].indexId,
-            this.uid,
-            bounds[i].arrayValue,
-            bounds[i].directionalValue,
-            EMPTY_VALUE,
-            []
-          ] as DbIndexEntryKey,
-          [
-            bounds[i + 1].indexId,
-            this.uid,
-            bounds[i + 1].arrayValue,
-            bounds[i + 1].directionalValue,
-            EMPTY_VALUE,
-            []
-          ] as DbIndexEntryKey
-        )
-      );
+      // If we encounter two bounds that will create an unmatchable key range,
+      // then we return an empty set of key ranges.
+      if (this.isRangeMatchable(bounds[i], bounds[i + 1])) {
+        return [];
+      }
+
+      const lowerBound = [
+        bounds[i].indexId,
+        this.uid,
+        bounds[i].arrayValue,
+        bounds[i].directionalValue,
+        EMPTY_VALUE,
+        []
+      ] as DbIndexEntryKey;
+
+      const upperBound = [
+        bounds[i + 1].indexId,
+        this.uid,
+        bounds[i + 1].arrayValue,
+        bounds[i + 1].directionalValue,
+        EMPTY_VALUE,
+        []
+      ] as DbIndexEntryKey;
+
+      ranges.push(IDBKeyRange.bound(lowerBound, upperBound));
     }
     return ranges;
+  }
+
+  isRangeMatchable(lowerBound: IndexEntry, upperBound: IndexEntry): boolean {
+    // If lower bound is greater than the upper bound, then the key
+    // range can never be matched.
+    return indexEntryComparator(lowerBound, upperBound) > 0;
   }
 
   getMinOffsetFromCollectionGroup(

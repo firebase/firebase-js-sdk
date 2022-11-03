@@ -47,7 +47,6 @@ import {
   Query,
   query,
   QuerySnapshot,
-  QueryConstraint,
   setDoc,
   startAfter,
   startAt,

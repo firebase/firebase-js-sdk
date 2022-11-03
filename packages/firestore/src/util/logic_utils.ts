@@ -29,7 +29,7 @@ import {
   Operator
 } from '../core/filter';
 
-import {hardAssert} from './assert';
+import { hardAssert } from './assert';
 
 /**
  * Provides utility functions that help with boolean logic transformations needed for handling
@@ -49,10 +49,10 @@ export function computeInExpansion(filter: Filter): Filter {
 
   if (filter instanceof FieldFilter) {
     if (filter instanceof InFilter) {
-
-      const expandedFilters = filter.value.arrayValue?.values?.map(value =>
-        FieldFilter.create(filter.field, Operator.EQUAL, value)
-      ) || [];
+      const expandedFilters =
+        filter.value.arrayValue?.values?.map(value =>
+          FieldFilter.create(filter.field, Operator.EQUAL, value)
+        ) || [];
 
       return CompositeFilter.create(expandedFilters, CompositeOperator.OR);
     } else {
@@ -84,7 +84,9 @@ export function getDnfTerms(filter: CompositeFilter): Filter[] {
     return [];
   }
 
-  const result: Filter = computeDistributedNormalForm(computeInExpansion(filter));
+  const result: Filter = computeDistributedNormalForm(
+    computeInExpansion(filter)
+  );
 
   hardAssert(
     isDisjunctiveNormalForm(result),

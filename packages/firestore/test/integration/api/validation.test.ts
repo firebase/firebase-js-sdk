@@ -1327,11 +1327,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
         query(
           coll,
           and(
-          or(
-            and(where('a', '==', 'b'), where('c', '>', 'd')),
-            and(where('e', '==', 'f'), where('g', '==', 'h'))
-          ),
-          where('r', '>', 's'))
+            or(
+              and(where('a', '==', 'b'), where('c', '>', 'd')),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            where('r', '>', 's')
+          )
         )
       ).to.throw(
         "Invalid query. All where filters with an inequality (<, <=, !=, not-in, >, or >=) must be on the same field. But you have inequality filters on 'c' and 'r'"
@@ -1369,11 +1370,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
         query(
           coll,
           and(
-          or(
-            and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
-            and(where('e', '==', 'f'), where('g', '==', 'h'))
-          ),
-          where('i', 'not-in', ['j', 'k'])
+            or(
+              and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            where('i', 'not-in', ['j', 'k'])
           )
         )
       ).to.throw(
@@ -1385,14 +1386,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
         query(
           coll,
           and(
-          or(
-            and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
-            and(where('e', '==', 'f'), where('g', '==', 'h'))
-          ),
-          or(
-            and(where('i', '==', 'j'), where('l', 'not-in', ['m', 'n'])),
-            and(where('o', '==', 'p'), where('q', '==', 'r'))
-          )
+            or(
+              and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            or(
+              and(where('i', '==', 'j'), where('l', 'not-in', ['m', 'n'])),
+              and(where('o', '==', 'p'), where('q', '==', 'r'))
+            )
           )
         )
       ).to.throw(
