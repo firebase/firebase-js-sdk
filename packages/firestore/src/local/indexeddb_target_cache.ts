@@ -22,9 +22,7 @@ import { ListenSequenceNumber, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import {
-  AggregationResult as ProtoAggregationResult
-} from '../protos/firestore_proto_api';
+import { AggregationResult as ProtoAggregationResult } from '../protos/firestore_proto_api';
 import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 

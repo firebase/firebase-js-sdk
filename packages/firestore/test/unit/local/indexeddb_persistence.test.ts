@@ -1233,7 +1233,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('can upgrade from version 15 to 16', async () => {
     await withDb(15, async () => {});
     await withDb(16, async (db, version, objectStores) => {
-      expect(version).to.have.equal(14);
+      expect(version).to.have.equal(16);
       expect(objectStores).to.have.members(V16_STORES);
     });
   });
