@@ -187,7 +187,6 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
     if ((e as Error).message.includes('polyfill')) {
       throw e;
     }
-    console.log(e);
     throw invalidFormat(format, 'Invalid character found');
   }
   const array = new Uint8Array(bytes.length);
