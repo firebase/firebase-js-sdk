@@ -20,7 +20,9 @@ import { Target } from '../core/target';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
+import { AggregationResult as ProtoAggregationResult } from '../protos/firestore_proto_api';
 
+import { EncodedResourcePath } from './encoded_resource_path';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { TargetData } from './target_data';
@@ -190,4 +192,20 @@ export interface TargetCache {
     transaction: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean>;
+
+  getTargetAggregation(
+    transaction: PersistenceTransaction,
+    targetId: TargetId
+  ): PersistencePromise<{
+    result: ProtoAggregationResult;
+    readTime: SnapshotVersion;
+    localAggregateMatches: EncodedResourcePath[];
+  }>;
+  saveTargetAggregation(
+    transaction: PersistenceTransaction,
+    targetId: TargetId,
+    result: ProtoAggregationResult,
+    readTime: SnapshotVersion,
+    localAggregateMatches: EncodedResourcePath[]
+  ): PersistencePromise<void>;
 }

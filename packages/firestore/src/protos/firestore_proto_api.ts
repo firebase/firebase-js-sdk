@@ -444,6 +444,8 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
 }
 export declare type ArrayValue = firestoreV1ApiClientInterfaces.ArrayValue;
+export declare type AggregationResult =
+  firestoreV1ApiClientInterfaces.AggregationResult;
 export declare type BatchGetDocumentsRequest =
   firestoreV1ApiClientInterfaces.BatchGetDocumentsRequest;
 export declare type BatchGetDocumentsResponse =

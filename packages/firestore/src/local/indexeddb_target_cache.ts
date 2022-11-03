@@ -22,16 +22,27 @@ import { ListenSequenceNumber, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
+import {
+  AggregationResult as ProtoAggregationResult
+} from '../protos/firestore_proto_api';
 import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 
 import {
   decodeResourcePath,
+  EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
-import { DbTarget, DbTargetDocument, DbTargetGlobal } from './indexeddb_schema';
 import {
+  DbTarget,
+  DbTargetDocument,
+  DbTargetGlobal,
+  DbTargetAggregation
+} from './indexeddb_schema';
+import {
+  DbTargetAggregationKey,
+  DbTargetAggregationStore,
   DbTargetDocumentDocumentTargetsIndex,
   DbTargetDocumentKey,
   DbTargetDocumentStore,
@@ -379,6 +390,48 @@ export class IndexedDbTargetCache implements TargetCache {
       .next(() => count > 0);
   }
 
+  getTargetAggregation(
+    transaction: PersistenceTransaction,
+    targetId: TargetId
+  ): PersistencePromise<{
+    result: ProtoAggregationResult;
+    readTime: SnapshotVersion;
+    localAggregateMatches: EncodedResourcePath[];
+  }> {
+    return targetAggregationStore(transaction)
+      .get([targetId])
+      .next(result => {
+        return {
+          result: result!.result,
+          readTime: SnapshotVersion.fromTimestamp(
+            new Timestamp(
+              result!.readTime.seconds,
+              result!.readTime.nanoseconds
+            )
+          ),
+          localAggregateMatches: result!.localAggregateMatches
+        };
+      });
+  }
+
+  saveTargetAggregation(
+    transaction: PersistenceTransaction,
+    targetId: TargetId,
+    result: ProtoAggregationResult,
+    readTime: SnapshotVersion,
+    localAggregateMatches: EncodedResourcePath[]
+  ): PersistencePromise<void> {
+    return targetAggregationStore(transaction).put([targetId], {
+      targetId,
+      readTime: {
+        seconds: readTime.toTimestamp().seconds,
+        nanoseconds: readTime.toTimestamp().nanoseconds
+      },
+      localAggregateMatches,
+      result
+    });
+  }
+
   /**
    * Looks up a TargetData entry by target ID.
    *
@@ -430,5 +483,14 @@ export function documentTargetStore(
   return getStore<DbTargetDocumentKey, DbTargetDocument>(
     txn,
     DbTargetDocumentStore
+  );
+}
+
+export function targetAggregationStore(
+  txn: PersistenceTransaction
+): SimpleDbStore<DbTargetAggregationKey, DbTargetAggregation> {
+  return getStore<DbTargetAggregationKey, DbTargetAggregation>(
+    txn,
+    DbTargetAggregationStore
   );
 }

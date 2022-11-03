@@ -371,6 +371,12 @@ export const DbDocumentOverlayCollectionGroupOverlayIndexPath = [
   'largestBatchId'
 ];
 
+export const DbTargetAggregationStore = 'targetAggregation';
+
+export type DbTargetAggregationKey = [TargetId];
+
+export const DbTargetAggregationKeyPath = ['targetId'];
+
 // Visible for testing
 export const V1_STORES = [
   DbMutationQueueStore,
@@ -414,6 +420,8 @@ export const V15_STORES = [
   DbIndexStateStore,
   DbIndexEntryStore
 ];
+
+export const V16_STORES = [...V15_STORES, DbTargetAggregationStore];
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is

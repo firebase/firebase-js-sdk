@@ -100,6 +100,8 @@ import {
   DbRemoteDocumentKey,
   DbRemoteDocumentKeyPath,
   DbRemoteDocumentStore,
+  DbTargetAggregationKeyPath,
+  DbTargetAggregationStore,
   DbTargetDocumentDocumentTargetsIndex,
   DbTargetDocumentDocumentTargetsKeyPath,
   DbTargetDocumentKey,
@@ -254,6 +256,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 15 && toVersion >= 15) {
       p = p.next(() => createFieldIndex(db));
+    }
+
+    if (fromVersion < 16 && toVersion >= 16) {
+      p = p.next(() => createTargetAggregationStore(db));
     }
 
     return p;
@@ -733,6 +739,12 @@ function createDocumentOverlayStore(db: IDBDatabase): void {
     DbDocumentOverlayCollectionGroupOverlayIndexPath,
     { unique: false }
   );
+}
+
+function createTargetAggregationStore(db: IDBDatabase): void {
+  db.createObjectStore(DbTargetAggregationStore, {
+    keyPath: DbTargetAggregationKeyPath
+  });
 }
 
 function extractKey(remoteDoc: DbRemoteDocumentLegacy): DocumentKey {
