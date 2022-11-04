@@ -965,14 +965,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         query(
           collection(db, 'test'),
-          where('foo', 'in', [1, 2]),
-          where('foo', 'in', [2, 3])
-        )
-      ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
           where('foo', 'not-in', [1, 2]),
           where('foo', 'not-in', [2, 3])
         )
@@ -989,28 +981,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
       ).to.throw(
         "Invalid query. You cannot use more than one 'array-contains-any'" +
           ' filter.'
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'array-contains-any', [2, 3]),
-          where('foo', 'in', [2, 3])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'in' filters with " +
-          "'array-contains-any' filters."
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'in', [2, 3]),
-          where('foo', 'array-contains-any', [2, 3])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with " +
-          "'in' filters."
       );
 
       expect(() =>
@@ -1053,19 +1023,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
         )
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with 'in' filters."
-      );
-
-      // This is redundant with the above tests, but makes sure our validation
-      // doesn't get confused.
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'in', [2, 3]),
-          where('foo', 'array-contains', 1),
-          where('foo', 'array-contains-any', [2])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with 'in' filters."
       );
 
       expect(() =>
@@ -1135,15 +1092,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
         ).to.throw(
           "Invalid query. You cannot use more than one 'array-contains' filter."
         );
-
-        expect(() =>
-          query(
-            collection(db, 'test'),
-            where('foo', 'array-contains', 1),
-            where('foo', 'in', [2, 3]),
-            where('foo', 'in', [2, 3])
-          )
-        ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
       }
     );
 
