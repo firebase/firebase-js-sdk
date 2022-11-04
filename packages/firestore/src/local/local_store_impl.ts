@@ -26,6 +26,7 @@ import {
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
+import { AggregateQuery } from '../lite-api/reference';
 import { Timestamp } from '../lite-api/timestamp';
 import {
   convertOverlayedDocumentMapToDocumentMap,
@@ -1114,6 +1115,24 @@ export function localStoreExecuteQuery(
           return { documents, remoteKeys };
         });
     }
+  );
+}
+
+export interface AggregateQueryResult {
+  documentResult: QueryResult;
+  matchesWithoutMutation: DocumentKeySet;
+}
+
+export function localStoreExecuteAggregateQuery(
+  localStore: LocalStore,
+  query: AggregateQuery
+): Promise<AggregateQueryResult> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
+  return localStoreImpl.persistence.runTransaction(
+    'Execute aggregate query',
+    'readonly',
+    txn => {}
   );
 }
 

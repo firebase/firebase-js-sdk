@@ -17,11 +17,17 @@
 
 import { LoadBundleTask } from '../api/bundle';
 import { User } from '../auth/user';
+import {
+  AggregateField,
+  AggregateQuerySnapshot
+} from '../lite-api/aggregate_types';
+import { AggregateQuery } from '../lite-api/reference';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
   localStoreAcknowledgeBatch,
   localStoreAllocateTarget,
   localStoreApplyRemoteEventToLocalCache,
+  localStoreExecuteAggregateQuery,
   localStoreExecuteQuery,
   localStoreGetActiveClients,
   localStoreGetCachedTarget,
@@ -443,6 +449,19 @@ export async function syncEngineUnlisten(
       /*keepPersistedTargetData=*/ true
     );
   }
+}
+
+export async function syncEngineListenAggregate(
+  syncEngine: SyncEngine,
+  query: AggregateQuery
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  await localStoreExecuteAggregateQuery(syncEngineImpl.localStore, query);
+  // TODO: Build the snapshot
+  return new AggregateQuerySnapshot<{ count: AggregateField<number> }>(
+    query._baseQuery,
+    { count: 100 }
+  );
 }
 
 /**

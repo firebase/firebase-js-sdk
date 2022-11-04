@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
+import {
+  AggregateField,
+  AggregateQuerySnapshot
+} from '../lite-api/aggregate_types';
+import { AggregateQuery } from '../lite-api/reference';
 import { debugAssert, debugCast } from '../util/assert';
+import { AsyncObserver } from '../util/async_observer';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
 import { EventHandler } from '../util/misc';
@@ -54,6 +60,10 @@ export interface Observer<T> {
 export interface EventManager {
   onListen?: (query: Query) => Promise<ViewSnapshot>;
   onUnlisten?: (query: Query) => Promise<void>;
+
+  onListenAggregate?: (
+    query: AggregateQuery
+  ) => Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>>;
 }
 
 export function newEventManager(): EventManager {
@@ -74,6 +84,10 @@ export class EventManagerImpl implements EventManager {
   onListen?: (query: Query) => Promise<ViewSnapshot>;
   /** Callback invoked once all listeners to a Query are removed. */
   onUnlisten?: (query: Query) => Promise<void>;
+
+  onListenAggregate?: (
+    query: AggregateQuery
+  ) => Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>>;
 }
 
 export async function eventManagerListen(
@@ -122,6 +136,33 @@ export async function eventManagerListen(
     if (raisedEvent) {
       raiseSnapshotsInSyncEvent(eventManagerImpl);
     }
+  }
+}
+
+export async function eventManagerListenAggregate(
+  eventManager: EventManager,
+  query: AggregateQuery,
+  observer: AsyncObserver<
+    AggregateQuerySnapshot<{ count: AggregateField<number> }>
+  >
+): Promise<void> {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+  debugAssert(
+    !!eventManagerImpl.onListenAggregate,
+    'onListenAggregate not set'
+  );
+  try {
+    const countSnap = await eventManagerImpl.onListenAggregate(query);
+    observer.next(countSnap);
+  } catch (e) {
+    const firestoreError = wrapInUserErrorIfRecoverable(
+      e as Error,
+      `Initialization of aggregate query '${JSON.stringify(
+        query._baseQuery
+      )}' failed`
+    );
+    observer.error(firestoreError);
+    return;
   }
 }
 

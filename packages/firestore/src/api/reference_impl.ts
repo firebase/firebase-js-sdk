@@ -31,14 +31,20 @@ import {
   firestoreClientGetDocumentsViaSnapshotListener,
   firestoreClientGetDocumentViaSnapshotListener,
   firestoreClientListen,
+  firestoreClientListenAggregate,
   firestoreClientWrite
 } from '../core/firestore_client';
 import { newQueryForPath, Query as InternalQuery } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
+import {
+  AggregateField,
+  AggregateQuerySnapshot
+} from '../lite-api/aggregate_types';
 import { Bytes } from '../lite-api/bytes';
 import { FieldPath } from '../lite-api/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
 import {
+  AggregateQuery,
   CollectionReference,
   doc,
   DocumentReference,
@@ -696,6 +702,24 @@ export function onSnapshot<T>(
     internalOptions,
     observer
   );
+}
+
+export function onAggregateSnapshot(
+  query: AggregateQuery,
+  onNext: (
+    snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>
+  ) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe {
+  const ref = getModularInstance(query);
+  const client = ensureFirestoreConfigured(
+    cast(ref._baseQuery.firestore, Firestore)
+  );
+  return firestoreClientListenAggregate(client, query, {
+    next: onNext,
+    error: onError
+  });
 }
 
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore

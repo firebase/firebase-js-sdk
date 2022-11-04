@@ -21,9 +21,12 @@ import {
   newQueryForCollectionGroup,
   newQueryForPath,
   Query as InternalQuery,
-  queryEquals
+  queryEquals,
+  QueryImpl
 } from '../core/query';
+import { FieldFilter } from '../core/target';
 import { DocumentKey } from '../model/document_key';
+import { FieldMask } from '../model/field_mask';
 import { ResourcePath } from '../model/path';
 import { Code, FirestoreError } from '../util/error';
 import {
@@ -237,6 +240,26 @@ export class Query<T = DocumentData> {
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
   withConverter<U>(converter: FirestoreDataConverter<U> | null): Query<U> {
     return new Query<U>(this.firestore, converter, this._query);
+  }
+}
+
+// TODO: Make this more generic
+export class AggregateQuery {
+  constructor(readonly _baseQuery: Query) {}
+
+  getHoldingMask(): FieldMask {
+    return FieldMask.empty();
+  }
+
+  getProcessingMask(): FieldMask {
+    let result = FieldMask.empty();
+    for (const f of (this._baseQuery._query as QueryImpl).filters) {
+      result = result.unionWith([(f as FieldFilter).field]);
+    }
+    result = result.unionWith(
+      this._baseQuery._query.explicitOrderBy.map(o => o.field)
+    );
+    return result;
   }
 }
 
