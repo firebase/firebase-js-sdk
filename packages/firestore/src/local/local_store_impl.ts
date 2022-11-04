@@ -45,6 +45,7 @@ import {
   INITIAL_LARGEST_BATCH_ID,
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
 import {
   mutationExtractBaseValue,
   Mutation,
@@ -1074,7 +1075,8 @@ export async function localStoreReleaseTarget(
 export function localStoreExecuteQuery(
   localStore: LocalStore,
   query: Query,
-  usePreviousResults: boolean
+  usePreviousResults: boolean,
+  aggregateRequest: { processingMask: FieldMask } | undefined = undefined
 ): Promise<QueryResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   let lastLimboFreeSnapshotVersion = SnapshotVersion.min();
@@ -1103,7 +1105,8 @@ export function localStoreExecuteQuery(
             usePreviousResults
               ? lastLimboFreeSnapshotVersion
               : SnapshotVersion.min(),
-            usePreviousResults ? remoteKeys : documentKeySet()
+            usePreviousResults ? remoteKeys : documentKeySet(),
+            aggregateRequest
           )
         )
         .next(documents => {

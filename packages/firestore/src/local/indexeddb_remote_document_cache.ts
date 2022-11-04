@@ -25,6 +25,7 @@ import {
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { IndexOffset } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
 import { ResourcePath } from '../model/path';
 import { debugAssert, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
@@ -176,7 +177,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
 
   getEntries(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: DocumentKeySet,
+    projectionMask: FieldMask | undefined = undefined
   ): PersistencePromise<MutableDocumentMap> {
     let results = mutableDocumentMap();
     return this.forEachDbEntry(

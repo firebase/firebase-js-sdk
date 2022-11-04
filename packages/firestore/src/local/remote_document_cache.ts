@@ -19,6 +19,7 @@ import { DocumentKeySet, MutableDocumentMap } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { IndexOffset } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
 import { ResourcePath } from '../model/path';
 
 import { IndexManager } from './index_manager';
@@ -58,7 +59,8 @@ export interface RemoteDocumentCache {
    */
   getEntries(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: DocumentKeySet,
+    projectionMask: FieldMask | undefined
   ): PersistencePromise<MutableDocumentMap>;
 
   /**

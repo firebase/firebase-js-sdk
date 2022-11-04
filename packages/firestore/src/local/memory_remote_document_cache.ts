@@ -28,6 +28,7 @@ import {
   indexOffsetComparator,
   newIndexOffsetFromDocument
 } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
 import { ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
@@ -144,7 +145,8 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
 
   getEntries(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: DocumentKeySet,
+    projectionMask: FieldMask | undefined
   ): PersistencePromise<MutableDocumentMap> {
     let results = mutableDocumentMap();
     documentKeys.forEach(documentKey => {
@@ -270,6 +272,6 @@ class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<MutableDocumentMap> {
-    return this.documentCache.getEntries(transaction, documentKeys);
+    return this.documentCache.getEntries(transaction, documentKeys, undefined);
   }
 }

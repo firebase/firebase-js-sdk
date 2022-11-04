@@ -115,10 +115,11 @@ export class LocalDocumentsView {
    */
   getDocuments(
     transaction: PersistenceTransaction,
-    keys: DocumentKeySet
+    keys: DocumentKeySet,
+    projectionMask: FieldMask | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     return this.remoteDocumentCache
-      .getEntries(transaction, keys)
+      .getEntries(transaction, keys, projectionMask)
       .next(docs =>
         this.getLocalViewOfDocuments(transaction, docs, documentKeySet()).next(
           () => docs as DocumentMap
@@ -356,7 +357,8 @@ export class LocalDocumentsView {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    projectionMask: FieldMask
   ): PersistencePromise<DocumentMap> {
     if (isDocumentQuery(query)) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);

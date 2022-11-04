@@ -37,6 +37,7 @@ import {
   INITIAL_LARGEST_BATCH_ID,
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
 import { debugAssert } from '../util/assert';
 import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { Iterable } from '../util/misc';
@@ -105,11 +106,12 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     query: Query,
     lastLimboFreeSnapshotVersion: SnapshotVersion,
-    remoteKeys: DocumentKeySet
+    remoteKeys: DocumentKeySet,
+    aggregateRequest: { processingMask: FieldMask } | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     debugAssert(this.initialized, 'initialize() not called');
 
-    return this.performQueryUsingIndex(transaction, query)
+    return this.performQueryUsingIndex(transaction, query, aggregateRequest)
       .next(result =>
         result
           ? result
@@ -117,11 +119,14 @@ export class QueryEngine {
               transaction,
               query,
               remoteKeys,
-              lastLimboFreeSnapshotVersion
+              lastLimboFreeSnapshotVersion,
+              aggregateRequest
             )
       )
       .next(result =>
-        result ? result : this.executeFullCollectionScan(transaction, query)
+        result
+          ? result
+          : this.executeFullCollectionScan(transaction, query, aggregateRequest)
       );
   }
 
@@ -131,7 +136,8 @@ export class QueryEngine {
    */
   private performQueryUsingIndex(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    aggregateRequest: { processingMask: FieldMask } | undefined = undefined
   ): PersistencePromise<DocumentMap | null> {
     if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
@@ -170,7 +176,11 @@ export class QueryEngine {
             );
             const sortedKeys = documentKeySet(...keys);
             return this.localDocumentsView
-              .getDocuments(transaction, sortedKeys)
+              .getDocuments(
+                transaction,
+                sortedKeys,
+                aggregateRequest?.processingMask
+              )
               .next(indexedDocuments => {
                 return this.indexManager
                   .getMinOffset(transaction, target)
@@ -220,7 +230,8 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     query: Query,
     remoteKeys: DocumentKeySet,
-    lastLimboFreeSnapshotVersion: SnapshotVersion
+    lastLimboFreeSnapshotVersion: SnapshotVersion,
+    aggregateRequest: { processingMask: FieldMask } | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
@@ -235,43 +246,45 @@ export class QueryEngine {
       return this.executeFullCollectionScan(transaction, query);
     }
 
-    return this.localDocumentsView!.getDocuments(transaction, remoteKeys).next(
-      documents => {
-        const previousResults = this.applyQuery(query, documents);
+    return this.localDocumentsView!.getDocuments(
+      transaction,
+      remoteKeys,
+      aggregateRequest?.processingMask
+    ).next(documents => {
+      const previousResults = this.applyQuery(query, documents);
 
-        if (
-          this.needsRefill(
-            query,
-            previousResults,
-            remoteKeys,
-            lastLimboFreeSnapshotVersion
-          )
-        ) {
-          return this.executeFullCollectionScan(transaction, query);
-        }
-
-        if (getLogLevel() <= LogLevel.DEBUG) {
-          logDebug(
-            'QueryEngine',
-            'Re-using previous result from %s to execute query: %s',
-            lastLimboFreeSnapshotVersion.toString(),
-            stringifyQuery(query)
-          );
-        }
-
-        // Retrieve all results for documents that were updated since the last
-        // limbo-document free remote snapshot.
-        return this.appendRemainingResults(
-          transaction,
-          previousResults,
+      if (
+        this.needsRefill(
           query,
-          newIndexOffsetSuccessorFromReadTime(
-            lastLimboFreeSnapshotVersion,
-            INITIAL_LARGEST_BATCH_ID
-          )
+          previousResults,
+          remoteKeys,
+          lastLimboFreeSnapshotVersion
+        )
+      ) {
+        return this.executeFullCollectionScan(transaction, query);
+      }
+
+      if (getLogLevel() <= LogLevel.DEBUG) {
+        logDebug(
+          'QueryEngine',
+          'Re-using previous result from %s to execute query: %s',
+          lastLimboFreeSnapshotVersion.toString(),
+          stringifyQuery(query)
         );
       }
-    );
+
+      // Retrieve all results for documents that were updated since the last
+      // limbo-document free remote snapshot.
+      return this.appendRemainingResults(
+        transaction,
+        previousResults,
+        query,
+        newIndexOffsetSuccessorFromReadTime(
+          lastLimboFreeSnapshotVersion,
+          INITIAL_LARGEST_BATCH_ID
+        )
+      );
+    });
   }
 
   /** Applies the query filter and sorting to the provided documents.  */
@@ -343,7 +356,8 @@ export class QueryEngine {
 
   private executeFullCollectionScan(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    aggregateRequest: { processingMask: FieldMask } | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
       logDebug(
@@ -356,7 +370,8 @@ export class QueryEngine {
     return this.localDocumentsView!.getDocumentsMatchingQuery(
       transaction,
       query,
-      IndexOffset.min()
+      IndexOffset.min(),
+      aggregateRequest?.processingMask
     );
   }
 
@@ -368,11 +383,17 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     indexedResults: Iterable<Document>,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    aggregateRequest: { processingMask: FieldMask } | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     // Retrieve all results for documents that were updated since the offset.
     return this.localDocumentsView
-      .getDocumentsMatchingQuery(transaction, query, offset)
+      .getDocumentsMatchingQuery(
+        transaction,
+        query,
+        offset,
+        aggregateRequest?.processingMask
+      )
       .next(remainingResults => {
         // Merge with existing results
         indexedResults.forEach(d => {
