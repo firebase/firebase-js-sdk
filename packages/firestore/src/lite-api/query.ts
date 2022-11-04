@@ -1067,20 +1067,14 @@ function conflictingOps(op: Operator): Operator[] {
     case Operator.NOT_EQUAL:
       return [Operator.NOT_EQUAL, Operator.NOT_IN];
     case Operator.ARRAY_CONTAINS:
+    case Operator.ARRAY_CONTAINS_ANY:
       return [
         Operator.ARRAY_CONTAINS,
         Operator.ARRAY_CONTAINS_ANY,
         Operator.NOT_IN
       ];
     case Operator.IN:
-      return [Operator.ARRAY_CONTAINS_ANY, Operator.IN, Operator.NOT_IN];
-    case Operator.ARRAY_CONTAINS_ANY:
-      return [
-        Operator.ARRAY_CONTAINS,
-        Operator.ARRAY_CONTAINS_ANY,
-        Operator.IN,
-        Operator.NOT_IN
-      ];
+      return [Operator.NOT_IN];
     case Operator.NOT_IN:
       return [
         Operator.ARRAY_CONTAINS,
