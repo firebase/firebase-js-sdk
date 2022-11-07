@@ -73,7 +73,8 @@ export interface RemoteDocumentCache {
   getAllFromCollection(
     transaction: PersistenceTransaction,
     collection: ResourcePath,
-    offset: IndexOffset
+    offset: IndexOffset,
+    mask: FieldMask | undefined
   ): PersistencePromise<MutableDocumentMap>;
 
   /**

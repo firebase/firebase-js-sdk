@@ -336,7 +336,7 @@ export function localStoreWriteLocally(
       let remoteDocs = mutableDocumentMap();
       let docsWithoutRemoteVersion = documentKeySet();
       return localStoreImpl.remoteDocuments
-        .getEntries(txn, keys)
+        .getEntries(txn, keys, undefined)
         .next(docs => {
           remoteDocs = docs;
           remoteDocs.forEach((key, doc) => {

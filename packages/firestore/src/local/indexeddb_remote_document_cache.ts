@@ -185,7 +185,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       transaction,
       documentKeys,
       (key, dbRemoteDoc) => {
-        const doc = this.maybeDecodeDocument(key, dbRemoteDoc);
+        const doc = this.maybeDecodeDocument(key, dbRemoteDoc, projectionMask);
         results = results.insert(key, doc);
       }
     ).next(() => results);
@@ -278,7 +278,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   getAllFromCollection(
     transaction: PersistenceTransaction,
     collection: ResourcePath,
-    offset: IndexOffset
+    offset: IndexOffset,
+    mask: FieldMask | undefined
   ): PersistencePromise<MutableDocumentMap> {
     const startKey = [
       collection.popLast().toArray(),
@@ -294,26 +295,25 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
       ''
     ];
-
+    
+    let results = mutableDocumentMap();
     return remoteDocumentsStore(transaction)
-      .loadAll(IDBKeyRange.bound(startKey, endKey, true))
-      .next(dbRemoteDocs => {
-        let results = mutableDocumentMap();
-        for (const dbRemoteDoc of dbRemoteDocs) {
+      .iterate({range: IDBKeyRange.bound(startKey, endKey, true)}, 
+        (_, value) => {
           const document = this.maybeDecodeDocument(
             DocumentKey.fromSegments(
-              dbRemoteDoc.prefixPath.concat(
-                dbRemoteDoc.collectionGroup,
-                dbRemoteDoc.documentId
+              value.prefixPath.concat(
+                value.collectionGroup,
+                value.documentId
               )
             ),
-            dbRemoteDoc
+            value,
+            mask
           );
           results = results.insert(document.key, document);
-        }
-        return results;
-      });
-  }
+        })
+    .next(() => results);
+      }
 
   getAllFromCollectionGroup(
     transaction: PersistenceTransaction,
@@ -388,7 +388,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
    */
   private maybeDecodeDocument(
     documentKey: DocumentKey,
-    dbRemoteDoc: DbRemoteDocument | null
+    dbRemoteDoc: DbRemoteDocument | null,
+    mask: FieldMask | undefined = undefined
   ): MutableDocument {
     if (dbRemoteDoc) {
       const doc = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
@@ -397,6 +398,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       const isSentinelRemoval =
         doc.isNoDocument() && doc.version.isEqual(SnapshotVersion.min());
       if (!isSentinelRemoval) {
+        doc.withMaskApplied(mask);
         return doc;
       }
     }

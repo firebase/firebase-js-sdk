@@ -102,7 +102,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
       'Observed query execution mode did not match expectation'
     );
 
-    return super.getDocumentsMatchingQuery(transaction, query, offset);
+    return super.getDocumentsMatchingQuery(transaction, query, offset, undefined);
   }
 }
 

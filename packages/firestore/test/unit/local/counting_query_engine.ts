@@ -123,7 +123,7 @@ export class CountingQueryEngine extends QueryEngine {
       },
       getAllFromCollection: (transaction, collection, sinceReadTime) => {
         return subject
-          .getAllFromCollection(transaction, collection, sinceReadTime)
+          .getAllFromCollection(transaction, collection, sinceReadTime, undefined)
           .next(result => {
             this.documentsReadByCollection += result.size;
             return result;
@@ -148,7 +148,7 @@ export class CountingQueryEngine extends QueryEngine {
           });
       },
       getEntries: (transaction, documentKeys) => {
-        return subject.getEntries(transaction, documentKeys).next(result => {
+        return subject.getEntries(transaction, documentKeys, undefined).next(result => {
           result.forEach((key, doc) => {
             if (doc.isValidDocument()) {
               this.documentsReadByKey++;

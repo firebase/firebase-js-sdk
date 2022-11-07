@@ -343,7 +343,7 @@ export class LocalDocumentsView {
     documentKeys: DocumentKeySet
   ): PersistencePromise<DocumentKeyMap<FieldMask | null>> {
     return this.remoteDocumentCache
-      .getEntries(transaction, documentKeys)
+      .getEntries(transaction, documentKeys, undefined)
       .next(docs => this.recalculateAndSaveOverlays(transaction, docs));
   }
 
@@ -358,21 +358,27 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    projectionMask: FieldMask
+    projectionMask: FieldMask | undefined
   ): PersistencePromise<DocumentMap> {
     if (isDocumentQuery(query)) {
-      return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
+      return this.getDocumentsMatchingDocumentQuery(
+        transaction,
+        query.path,
+        projectionMask
+      );
     } else if (isCollectionGroupQuery(query)) {
       return this.getDocumentsMatchingCollectionGroupQuery(
         transaction,
         query,
-        offset
+        offset,
+        projectionMask
       );
     } else {
       return this.getDocumentsMatchingCollectionQuery(
         transaction,
         query,
-        offset
+        offset,
+        projectionMask
       );
     }
   }
@@ -454,14 +460,18 @@ export class LocalDocumentsView {
 
   private getDocumentsMatchingDocumentQuery(
     transaction: PersistenceTransaction,
-    docPath: ResourcePath
+    docPath: ResourcePath,
+    mask: FieldMask | undefined
   ): PersistencePromise<DocumentMap> {
     // Just do a simple document lookup.
     return this.getDocument(transaction, new DocumentKey(docPath)).next(
       document => {
         let result = documentMap();
         if (document.isFoundDocument()) {
-          result = result.insert(document.key, document);
+          result = result.insert(
+            document.key,
+            (document as MutableDocument).withMaskApplied(mask)
+          );
         }
         return result;
       }
@@ -471,7 +481,8 @@ export class LocalDocumentsView {
   private getDocumentsMatchingCollectionGroupQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    mask: FieldMask | undefined
   ): PersistencePromise<DocumentMap> {
     debugAssert(
       query.path.isEmpty(),
@@ -492,7 +503,8 @@ export class LocalDocumentsView {
           return this.getDocumentsMatchingCollectionQuery(
             transaction,
             collectionQuery,
-            offset
+            offset,
+            mask
           ).next(r => {
             r.forEach((key, doc) => {
               results = results.insert(key, doc);
@@ -505,12 +517,13 @@ export class LocalDocumentsView {
   private getDocumentsMatchingCollectionQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    mask: FieldMask | undefined
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let remoteDocuments: MutableDocumentMap;
     return this.remoteDocumentCache
-      .getAllFromCollection(transaction, query.path, offset)
+      .getAllFromCollection(transaction, query.path, offset, mask)
       .next(queryResults => {
         remoteDocuments = queryResults;
         return this.documentOverlayCache.getOverlaysForCollection(
