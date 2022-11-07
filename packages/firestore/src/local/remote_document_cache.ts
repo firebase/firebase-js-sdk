@@ -25,6 +25,7 @@ import { ResourcePath } from '../model/path';
 import { IndexManager } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { AggregateContext } from './query_engine';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
 /**
@@ -74,7 +75,7 @@ export interface RemoteDocumentCache {
     transaction: PersistenceTransaction,
     collection: ResourcePath,
     offset: IndexOffset,
-    mask: FieldMask | undefined
+    context: AggregateContext | undefined
   ): PersistencePromise<MutableDocumentMap>;
 
   /**

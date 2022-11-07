@@ -32,6 +32,7 @@ import {
   DocumentMap
 } from '../model/collections';
 import { Document } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import {
   IndexOffset,
   INITIAL_LARGEST_BATCH_ID,
@@ -47,6 +48,12 @@ import { IndexManager, IndexType } from './index_manager';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+
+export interface AggregateContext {
+  query: Query;
+  processingMask: FieldMask;
+  remoteMatches: DocumentKey[];
+}
 
 /**
  * The Firestore query engine.
@@ -107,11 +114,11 @@ export class QueryEngine {
     query: Query,
     lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet,
-    aggregateRequest: { processingMask: FieldMask } | undefined = undefined
-  ): PersistencePromise<DocumentMap> {
+    context: AggregateContext | undefined = undefined
+  ): PersistencePromise<DocumentMap /*TODO(COUNT), remoteMatches*/> {
     debugAssert(this.initialized, 'initialize() not called');
 
-    return this.performQueryUsingIndex(transaction, query, aggregateRequest)
+    return this.performQueryUsingIndex(transaction, query, context)
       .next(result =>
         result
           ? result
@@ -120,13 +127,13 @@ export class QueryEngine {
               query,
               remoteKeys,
               lastLimboFreeSnapshotVersion,
-              aggregateRequest
+              context
             )
       )
       .next(result =>
         result
           ? result
-          : this.executeFullCollectionScan(transaction, query, aggregateRequest)
+          : this.executeFullCollectionScan(transaction, query, context)
       );
   }
 
@@ -137,7 +144,7 @@ export class QueryEngine {
   private performQueryUsingIndex(
     transaction: PersistenceTransaction,
     query: Query,
-    aggregateRequest: { processingMask: FieldMask } | undefined = undefined
+    context: AggregateContext | undefined = undefined
   ): PersistencePromise<DocumentMap | null> {
     if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
@@ -176,11 +183,7 @@ export class QueryEngine {
             );
             const sortedKeys = documentKeySet(...keys);
             return this.localDocumentsView
-              .getDocuments(
-                transaction,
-                sortedKeys,
-                aggregateRequest?.processingMask
-              )
+              .getDocuments(transaction, sortedKeys, context)
               .next(indexedDocuments => {
                 return this.indexManager
                   .getMinOffset(transaction, target)
@@ -231,7 +234,7 @@ export class QueryEngine {
     query: Query,
     remoteKeys: DocumentKeySet,
     lastLimboFreeSnapshotVersion: SnapshotVersion,
-    aggregateRequest: { processingMask: FieldMask } | undefined = undefined
+    context: AggregateContext | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
@@ -249,7 +252,7 @@ export class QueryEngine {
     return this.localDocumentsView!.getDocuments(
       transaction,
       remoteKeys,
-      aggregateRequest?.processingMask
+      context
     ).next(documents => {
       const previousResults = this.applyQuery(query, documents);
 
@@ -357,7 +360,7 @@ export class QueryEngine {
   private executeFullCollectionScan(
     transaction: PersistenceTransaction,
     query: Query,
-    aggregateRequest: { processingMask: FieldMask } | undefined = undefined
+    context: AggregateContext | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
       logDebug(
@@ -371,7 +374,7 @@ export class QueryEngine {
       transaction,
       query,
       IndexOffset.min(),
-      aggregateRequest?.processingMask
+      context
     );
   }
 
@@ -384,16 +387,12 @@ export class QueryEngine {
     indexedResults: Iterable<Document>,
     query: Query,
     offset: IndexOffset,
-    aggregateRequest: { processingMask: FieldMask } | undefined = undefined
+    context: AggregateContext | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     // Retrieve all results for documents that were updated since the offset.
+
     return this.localDocumentsView
-      .getDocumentsMatchingQuery(
-        transaction,
-        query,
-        offset,
-        aggregateRequest?.processingMask
-      )
+      .getDocumentsMatchingQuery(transaction, query, offset, context)
       .next(remainingResults => {
         // Merge with existing results
         indexedResults.forEach(d => {

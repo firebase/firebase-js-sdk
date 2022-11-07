@@ -45,7 +45,6 @@ import {
   INITIAL_LARGEST_BATCH_ID,
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
-import { FieldMask } from '../model/field_mask';
 import {
   mutationExtractBaseValue,
   Mutation,
@@ -85,7 +84,7 @@ import { MutationQueue } from './mutation_queue';
 import { Persistence } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { QueryEngine } from './query_engine';
+import { AggregateContext, QueryEngine } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
@@ -1076,7 +1075,7 @@ export function localStoreExecuteQuery(
   localStore: LocalStore,
   query: Query,
   usePreviousResults: boolean,
-  aggregateRequest: { processingMask: FieldMask } | undefined = undefined
+  context: AggregateContext | undefined = undefined
 ): Promise<QueryResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   let lastLimboFreeSnapshotVersion = SnapshotVersion.min();
@@ -1106,7 +1105,7 @@ export function localStoreExecuteQuery(
               ? lastLimboFreeSnapshotVersion
               : SnapshotVersion.min(),
             usePreviousResults ? remoteKeys : documentKeySet(),
-            aggregateRequest
+            context
           )
         )
         .next(documents => {
@@ -1126,17 +1125,25 @@ export interface AggregateQueryResult {
   matchesWithoutMutation: DocumentKeySet;
 }
 
-export function localStoreExecuteAggregateQuery(
+export async function localStoreExecuteAggregateQuery(
   localStore: LocalStore,
   query: AggregateQuery
 ): Promise<AggregateQueryResult> {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-
-  return localStoreImpl.persistence.runTransaction(
-    'Execute aggregate query',
-    'readonly',
-    txn => {}
+  const context: AggregateContext = {
+    query: query._baseQuery._query,
+    processingMask: query.getProcessingMask(),
+    remoteMatches: []
+  };
+  const result = await localStoreExecuteQuery(
+    localStore,
+    query._baseQuery._query,
+    false,
+    context
   );
+  return {
+    documentResult: result,
+    matchesWithoutMutation: documentKeySet(...context.remoteMatches)
+  };
 }
 
 function applyWriteToRemoteDocuments(

@@ -36,6 +36,7 @@ import { SortedMap } from '../util/sorted_map';
 import { IndexManager } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { AggregateContext } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
@@ -164,7 +165,8 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
   getAllFromCollection(
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context: AggregateContext | undefined
   ): PersistencePromise<MutableDocumentMap> {
     let results = mutableDocumentMap();
 

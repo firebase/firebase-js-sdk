@@ -54,6 +54,7 @@ import {
 } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { AggregateContext } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDbStore } from './simple_db';
@@ -279,7 +280,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     transaction: PersistenceTransaction,
     collection: ResourcePath,
     offset: IndexOffset,
-    mask: FieldMask | undefined
+    context: AggregateContext | undefined
   ): PersistencePromise<MutableDocumentMap> {
     const startKey = [
       collection.popLast().toArray(),
@@ -295,25 +296,24 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
       ''
     ];
-    
+
     let results = mutableDocumentMap();
     return remoteDocumentsStore(transaction)
-      .iterate({range: IDBKeyRange.bound(startKey, endKey, true)}, 
+      .iterate(
+        { range: IDBKeyRange.bound(startKey, endKey, true) },
         (_, value) => {
           const document = this.maybeDecodeDocument(
             DocumentKey.fromSegments(
-              value.prefixPath.concat(
-                value.collectionGroup,
-                value.documentId
-              )
+              value.prefixPath.concat(value.collectionGroup, value.documentId)
             ),
             value,
-            mask
+            context?.processingMask
           );
           results = results.insert(document.key, document);
-        })
-    .next(() => results);
-      }
+        }
+      )
+      .next(() => results);
+  }
 
   getAllFromCollectionGroup(
     transaction: PersistenceTransaction,
