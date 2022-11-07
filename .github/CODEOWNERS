@@ -32,6 +32,18 @@
 # - @dconeybe
 
 
+# ===========================================================
+#  @firebase/fcm-oncaller
+# ===========================================================
+#  Used for approving fcm changes.
+#  (secret team to avoid review requests)
+#
+# - @zwu52
+# - @cavalos0086
+# - @aashishpatil-g
+# - @eldhosembabu
+# - @leojayGoogle
+
 # These owners will be the default owners for everything in the repo.
 *       @dwyfrequency @hsubox76 @firebase/jssdk-global-approvers
 
@@ -53,10 +65,10 @@ packages/storage-compat @maneesht @tonyjhuang @firebase/jssdk-global-approvers
 packages/storage-types @maneesht @tonyjhuang @firebase/jssdk-global-approvers
 
 # Messaging Code
-packages/messaging  @zwu52 @firebase/jssdk-global-approvers
-packages/messaging-compat  @zwu52 @firebase/jssdk-global-approvers
-packages/messaging-interop-types @zwu52 @firebase/jssdk-global-approvers
-integration/messaging @zwu52 @firebase/jssdk-global-approvers
+packages/messaging  @firebase/fcm-oncaller @firebase/jssdk-global-approvers
+packages/messaging-compat  @firebase/fcm-oncaller @firebase/jssdk-global-approvers
+packages/messaging-interop-types @firebase/fcm-oncaller @firebase/jssdk-global-approvers
+integration/messaging @firebase/fcm-oncaller @firebase/jssdk-global-approvers
 
 # Auth Code
 packages/auth  @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers
