@@ -109,6 +109,12 @@ export abstract class AppliableConstraint {
 export abstract class QueryConstraint extends AppliableConstraint {
   /** The type of this query constraint */
   abstract readonly type: QueryConstraintType;
+
+  /**
+   * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
+   * {@link AppliableConstraint} applied.
+   */
+  abstract _apply<T>(query: Query<T>): Query<T>;
 }
 
 /**
