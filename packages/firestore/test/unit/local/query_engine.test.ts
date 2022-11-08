@@ -924,7 +924,7 @@ function genericQueryEngineTest(
     );
     verifyResult(result2, []);
 
-    // a IN [] || a NOT-IN [0,2] should union them (similar to: a NOT-IN [0,2]).
+    // a IN [] || a NOT-IN [0,1,2] should union them (similar to: a NOT-IN [0,1,2]).
     const query3 = query(
       'coll',
       orFilter(filter('a', 'in', []), filter('a', 'not-in', [0, 1, 2]))
