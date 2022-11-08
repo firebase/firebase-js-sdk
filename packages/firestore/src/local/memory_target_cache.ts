@@ -31,7 +31,7 @@ import { Persistence } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { ReferenceSet } from './reference_set';
-import { TargetCache } from './target_cache';
+import { TargetAggregationResult, TargetCache } from './target_cache';
 import { TargetData } from './target_data';
 
 export class MemoryTargetCache implements TargetCache {
@@ -241,11 +241,7 @@ export class MemoryTargetCache implements TargetCache {
   getTargetAggregation(
     transaction: PersistenceTransaction,
     targetId: TargetId
-  ): PersistencePromise<{
-    result: ProtoAggregationResult;
-    readTime: SnapshotVersion;
-    localAggregateMatches: EncodedResourcePath[];
-  }> {
+  ): PersistencePromise<TargetAggregationResult | undefined> {
     debugAssert(false, 'Not implemented');
   }
 

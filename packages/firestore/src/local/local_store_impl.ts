@@ -52,6 +52,7 @@ import {
   Precondition
 } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
+import { normalizeNumber } from '../model/normalize';
 import { extractFieldMask } from '../model/object_value';
 import { ResourcePath } from '../model/path';
 import {
@@ -67,6 +68,7 @@ import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
@@ -1063,6 +1065,43 @@ export async function localStoreReleaseTarget(
   localStoreImpl.targetIdByTarget.delete(targetData!.target);
 }
 
+function executeQueryImpl(
+  localStoreImpl: LocalStoreImpl,
+  txn: PersistenceTransaction,
+  query: Query,
+  lastLimboFreeSnapshotVersion: SnapshotVersion,
+  remoteKeys: SortedSet<DocumentKey>,
+  usePreviousResults: boolean,
+  context: AggregateContext | undefined
+): PersistencePromise<QueryResult> {
+  return localStoreGetTargetData(localStoreImpl, txn, queryToTarget(query))
+    .next(targetData => {
+      if (targetData) {
+        lastLimboFreeSnapshotVersion = targetData.lastLimboFreeSnapshotVersion;
+        return localStoreImpl.targetCache
+          .getMatchingKeysForTargetId(txn, targetData.targetId)
+          .next(result => {
+            remoteKeys = result;
+          });
+      }
+    })
+    .next(() =>
+      localStoreImpl.queryEngine.getDocumentsMatchingQuery(
+        txn,
+        query,
+        usePreviousResults
+          ? lastLimboFreeSnapshotVersion
+          : SnapshotVersion.min(),
+        usePreviousResults ? remoteKeys : documentKeySet(),
+        context
+      )
+    )
+    .next(documents => {
+      setMaxReadTime(localStoreImpl, queryCollectionGroup(query), documents);
+      return { documents, remoteKeys };
+    });
+}
+
 /**
  * Runs the specified query against the local store and returns the results,
  * potentially taking advantage of query data from previous executions (such
@@ -1078,44 +1117,22 @@ export function localStoreExecuteQuery(
   context: AggregateContext | undefined = undefined
 ): Promise<QueryResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  let lastLimboFreeSnapshotVersion = SnapshotVersion.min();
-  let remoteKeys = documentKeySet();
+  const lastLimboFreeSnapshotVersion = SnapshotVersion.min();
+  const remoteKeys = documentKeySet();
 
   return localStoreImpl.persistence.runTransaction(
     'Execute query',
     'readonly',
     txn => {
-      return localStoreGetTargetData(localStoreImpl, txn, queryToTarget(query))
-        .next(targetData => {
-          if (targetData) {
-            lastLimboFreeSnapshotVersion =
-              targetData.lastLimboFreeSnapshotVersion;
-            return localStoreImpl.targetCache
-              .getMatchingKeysForTargetId(txn, targetData.targetId)
-              .next(result => {
-                remoteKeys = result;
-              });
-          }
-        })
-        .next(() =>
-          localStoreImpl.queryEngine.getDocumentsMatchingQuery(
-            txn,
-            query,
-            usePreviousResults
-              ? lastLimboFreeSnapshotVersion
-              : SnapshotVersion.min(),
-            usePreviousResults ? remoteKeys : documentKeySet(),
-            context
-          )
-        )
-        .next(documents => {
-          setMaxReadTime(
-            localStoreImpl,
-            queryCollectionGroup(query),
-            documents
-          );
-          return { documents, remoteKeys };
-        });
+      return executeQueryImpl(
+        localStoreImpl,
+        txn,
+        query,
+        lastLimboFreeSnapshotVersion,
+        remoteKeys,
+        usePreviousResults,
+        context
+      );
     }
   );
 }
@@ -1123,6 +1140,8 @@ export function localStoreExecuteQuery(
 export interface AggregateQueryResult {
   documentResult: QueryResult;
   matchesWithoutMutation: DocumentKeySet;
+  cachedCount: number;
+  cachedCountReadTime: SnapshotVersion;
 }
 
 export async function localStoreExecuteAggregateQuery(
@@ -1134,16 +1153,50 @@ export async function localStoreExecuteAggregateQuery(
     processingMask: query.getProcessingMask(),
     remoteMatches: []
   };
-  const result = await localStoreExecuteQuery(
-    localStore,
-    query._baseQuery._query,
-    false,
-    context
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const lastLimboFreeSnapshotVersion = SnapshotVersion.min();
+  const remoteKeys = documentKeySet();
+
+  return localStoreImpl.persistence.runTransaction(
+    'Execute aggregate query',
+    'readonly',
+    txn => {
+      return executeQueryImpl(
+        localStoreImpl,
+        txn,
+        query._baseQuery._query,
+        lastLimboFreeSnapshotVersion,
+        remoteKeys,
+        false,
+        context
+      ).next(result => {
+        return localStoreImpl.targetCache
+          .getTargetAggregation(txn, 8)
+          .next(aggr => {
+            if (!aggr) {
+              return {
+                documentResult: result,
+                matchesWithoutMutation: documentKeySet(
+                  ...context.remoteMatches
+                ),
+                cachedCount: 0,
+                cachedCountReadTime: SnapshotVersion.min()
+              };
+            }
+            return {
+              documentResult: result,
+              matchesWithoutMutation: documentKeySet(...context.remoteMatches),
+              cachedCount: normalizeNumber(
+                aggr.result.aggregateFields![0].integerValue
+              ),
+              cachedCountReadTime: SnapshotVersion.fromTimestamp(
+                aggr.readTime.toTimestamp()
+              )
+            };
+          });
+      });
+    }
   );
-  return {
-    documentResult: result,
-    matchesWithoutMutation: documentKeySet(...context.remoteMatches)
-  };
 }
 
 function applyWriteToRemoteDocuments(

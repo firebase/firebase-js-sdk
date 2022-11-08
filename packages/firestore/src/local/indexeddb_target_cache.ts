@@ -56,7 +56,7 @@ import { ActiveTargets } from './lru_garbage_collector';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { SimpleDbStore } from './simple_db';
-import { TargetCache } from './target_cache';
+import { TargetAggregationResult, TargetCache } from './target_cache';
 import { TargetData } from './target_data';
 
 export class IndexedDbTargetCache implements TargetCache {
@@ -391,14 +391,13 @@ export class IndexedDbTargetCache implements TargetCache {
   getTargetAggregation(
     transaction: PersistenceTransaction,
     targetId: TargetId
-  ): PersistencePromise<{
-    result: ProtoAggregationResult;
-    readTime: SnapshotVersion;
-    localAggregateMatches: EncodedResourcePath[];
-  }> {
+  ): PersistencePromise<TargetAggregationResult | undefined> {
     return targetAggregationStore(transaction)
       .get([targetId])
       .next(result => {
+        if (!result) {
+          return undefined;
+        }
         return {
           result: result!.result,
           readTime: SnapshotVersion.fromTimestamp(
