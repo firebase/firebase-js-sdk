@@ -373,10 +373,6 @@ export class QueryCompositeFilterConstraint {
 // @public
 export abstract class QueryConstraint {
     abstract readonly type: QueryConstraintType;
-    /**
-     * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
-     * {@link AppliableConstraint} applied.
-     */
 }
 
 // @public
