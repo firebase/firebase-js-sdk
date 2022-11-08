@@ -101,7 +101,7 @@ export abstract class AppliableConstraint {
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
  * Firestore query. `QueryConstraint`s are created by invoking {@link where},
- * {@link orderBy}, {@link startAt:}, {@link startAfter}, {@link
+ * {@link orderBy}, {@link startAt}, {@link startAfter}, {@link
  * endBefore}, {@link endAt}, {@link limit}, {@link limitToLast} and
  * can then be passed to {@link query} to create a new query instance that
  * also contains this `QueryConstraint`.
@@ -338,10 +338,9 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
 }
 
 /**
- * `QueryNonFilterConstraint` is a helper union type that represents all
- * QueryConstraints which do not inherit from QueryFieldFilterConstraint. These
- * are used to narrow or order the set of documents returned by a Firestore
- * query, but they do not explicitly filter on a document field.
+ * `QueryNonFilterConstraint` is a helper union type that represents
+ * QueryConstraints which are used to narrow or order the set of documents,
+ * but that do not explicitly filter on a document field.
  * `QueryNonFilterConstraint`s are created by invoking {@link orderBy},
  * {@link startAt}, {@link startAfter}, {@link endBefore}, {@link endAt},
  * {@link limit} or {@link limitToLast} and can then be passed to {@link query}
