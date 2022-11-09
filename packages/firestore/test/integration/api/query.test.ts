@@ -1582,6 +1582,18 @@ apiDescribe('Queries', (persistence: boolean) => {
         'doc3'
       );
 
+      // Two IN operations on the same field.
+      // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
+      await checkOnlineAndOfflineResultsMatch(
+        query(
+          coll,
+          and(where('a', 'in', [1, 2, 3]), where('a', 'in', [0, 1, 4]))
+        ),
+        'doc1',
+        'doc4',
+        'doc5'
+      );
+
       // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an
       // empty set.
       await checkOnlineAndOfflineResultsMatch(
