@@ -1549,7 +1549,7 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   // TODO(orquery): Enable this test when prod supports OR queries.
   // eslint-disable-next-line no-restricted-properties
-  it.skip('supports multiple in ops', () => {
+  it('supports multiple in ops', () => {
     const testDocs = {
       doc1: { a: 1, b: 0 },
       doc2: { b: 1 },
@@ -1663,9 +1663,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         'doc4',
         'doc6'
       );
-    });
 
-    return withTestCollection(persistence, testDocs, async coll => {
       await checkOnlineAndOfflineResultsMatch(
         query(
           coll,
@@ -1676,15 +1674,12 @@ apiDescribe('Queries', (persistence: boolean) => {
         ),
         'doc3'
       );
-    });
 
-    return withTestCollection(persistence, testDocs, async coll => {
       await checkOnlineAndOfflineResultsMatch(
         query(
           coll,
           or(
-            where('a', 'in', [2, 3]),
-            where('c', '==', 10),
+            and(where('a', 'in', [2, 3]), where('c', '==', 10)),
             where('b', 'array-contains-any', [0, 7])
           )
         ),
@@ -1692,15 +1687,13 @@ apiDescribe('Queries', (persistence: boolean) => {
         'doc3',
         'doc4'
       );
-    });
 
-    return withTestCollection(persistence, testDocs, async coll => {
       await checkOnlineAndOfflineResultsMatch(
         query(
           coll,
           and(
             where('a', 'in', [2, 3]),
-            or(where('b', 'array-contains-any', [0, 7]), where('c', '==', 10))
+            or(where('b', 'array-contains-any', [0, 7]), where('c', '==', 20))
           )
         ),
         'doc3',
@@ -1731,9 +1724,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         'doc4',
         'doc6'
       );
-    });
 
-    return withTestCollection(persistence, testDocs, async coll => {
       await checkOnlineAndOfflineResultsMatch(
         query(
           coll,
@@ -1741,24 +1732,20 @@ apiDescribe('Queries', (persistence: boolean) => {
         ),
         'doc3'
       );
-    });
 
-    return withTestCollection(persistence, testDocs, async coll => {
       await checkOnlineAndOfflineResultsMatch(
         query(
           coll,
           or(
             where('a', 'in', [2, 3]),
-            and(where('b', 'array-contains', 3), where('b', '==', 1))
+            and(where('b', 'array-contains', 3), where('a', '==', 1))
           )
         ),
         'doc3',
         'doc4',
         'doc6'
       );
-    });
 
-    return withTestCollection(persistence, testDocs, async coll => {
       await checkOnlineAndOfflineResultsMatch(
         query(
           coll,
@@ -1790,6 +1777,12 @@ apiDescribe('Queries', (persistence: boolean) => {
         'doc1',
         'doc4',
         'doc5'
+      );
+
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, where('a', 'in', [2, 3]), orderBy('a')),
+        'doc6',
+        'doc3'
       );
     });
   });
