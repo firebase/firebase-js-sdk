@@ -264,7 +264,7 @@ export function noDownloadURL(): StorageError {
 export function missingPolyFill(polyFill: string): StorageError {
   return new StorageError(
     StorageErrorCode.UNSUPPORTED_ENVIRONMENT,
-    `${polyFill} is missing. Please install the right polyfills. Visit https://firebase.google.com/docs/web/environments-js-sdk#polyfills for more information.`
+    `${polyFill} is missing. Make sure to install the required polyfills. See https://firebase.google.com/docs/web/environments-js-sdk#polyfills for more information.`
   );
 }
 
