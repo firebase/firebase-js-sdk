@@ -23,7 +23,7 @@ import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
-import { QueryEngine } from '../../../src/local/query_engine';
+import { AggregateContext, QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import {
   DocumentKeySet,
@@ -91,13 +91,15 @@ export class CountingQueryEngine extends QueryEngine {
     transaction: PersistenceTransaction,
     query: Query,
     lastLimboFreeSnapshotVersion: SnapshotVersion,
-    remoteKeys: DocumentKeySet
+    remoteKeys: DocumentKeySet,
+    context: AggregateContext
   ): PersistencePromise<DocumentMap> {
     return super.getDocumentsMatchingQuery(
       transaction,
       query,
       lastLimboFreeSnapshotVersion,
-      remoteKeys
+      remoteKeys,
+      context
     );
   }
 

@@ -114,7 +114,7 @@ export class QueryEngine {
     query: Query,
     lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet,
-    context: AggregateContext | undefined = undefined
+    context: AggregateContext | undefined
   ): PersistencePromise<DocumentMap /*TODO(COUNT), remoteMatches*/> {
     debugAssert(this.initialized, 'initialize() not called');
 
@@ -240,13 +240,13 @@ export class QueryEngine {
       // Queries that match all documents don't benefit from using
       // key-based lookups. It is more efficient to scan all documents in a
       // collection, rather than to perform individual lookups.
-      return this.executeFullCollectionScan(transaction, query);
+      return this.executeFullCollectionScan(transaction, query, context);
     }
 
     // Queries that have never seen a snapshot without limbo free documents
     // should also be run as a full collection scan.
     if (lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.min())) {
-      return this.executeFullCollectionScan(transaction, query);
+      return this.executeFullCollectionScan(transaction, query, context);
     }
 
     return this.localDocumentsView!.getDocuments(
@@ -264,7 +264,7 @@ export class QueryEngine {
           lastLimboFreeSnapshotVersion
         )
       ) {
-        return this.executeFullCollectionScan(transaction, query);
+        return this.executeFullCollectionScan(transaction, query, context);
       }
 
       if (getLogLevel() <= LogLevel.DEBUG) {

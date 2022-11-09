@@ -22,11 +22,10 @@ import {
   Query,
   queryCollectionGroup,
   queryToTarget
-} from '../core/query';
+, AggregateQuery } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
-import { AggregateQuery } from '../lite-api/reference';
 import { Timestamp } from '../lite-api/timestamp';
 import {
   convertOverlayedDocumentMapToDocumentMap,
@@ -1148,11 +1147,6 @@ export async function localStoreExecuteAggregateQuery(
   localStore: LocalStore,
   query: AggregateQuery
 ): Promise<AggregateQueryResult> {
-  const context: AggregateContext = {
-    query: query._baseQuery._query,
-    processingMask: query.getProcessingMask(),
-    remoteMatches: []
-  };
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const lastLimboFreeSnapshotVersion = SnapshotVersion.min();
   const remoteKeys = documentKeySet();
@@ -1161,10 +1155,15 @@ export async function localStoreExecuteAggregateQuery(
     'Execute aggregate query',
     'readonly',
     txn => {
+      const context: AggregateContext = {
+        query: query._baseQuery,
+        processingMask: query.getProcessingMask(),
+        remoteMatches: []
+      };
       return executeQueryImpl(
         localStoreImpl,
         txn,
-        query._baseQuery._query,
+        query._baseQuery,
         lastLimboFreeSnapshotVersion,
         remoteKeys,
         false,

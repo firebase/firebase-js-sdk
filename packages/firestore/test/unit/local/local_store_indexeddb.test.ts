@@ -21,25 +21,29 @@ import { serverTimestamp, Timestamp } from '../../../src';
 import { User } from '../../../src/auth/user';
 import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 import {
+  AggregateQuery,
   LimitType,
   Query,
   queryToTarget,
   queryWithLimit
 } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target } from '../../../src/core/target';
 import { TargetId } from '../../../src/core/types';
 import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { LocalStore } from '../../../src/local/local_store';
 import {
+  AggregateQueryResult,
   localStoreAllocateTarget,
   localStoreApplyRemoteEventToLocalCache,
   localStoreConfigureFieldIndexes,
+  localStoreExecuteAggregateQuery,
   localStoreExecuteQuery,
   localStoreWriteLocally,
   newLocalStore
 } from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
-import { DocumentMap } from '../../../src/model/collections';
+import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
   FieldIndex,
@@ -96,6 +100,13 @@ class AsyncLocalStoreTester {
     this.prepareNextStep();
     const result = await localStoreExecuteQuery(this.localStore, query, true);
     this.lastChanges = result.documents;
+  }
+
+  async executeAggregateQuery(
+    query: AggregateQuery
+  ): Promise<AggregateQueryResult> {
+    this.prepareNextStep();
+    return localStoreExecuteAggregateQuery(this.localStore, query);
   }
 
   async allocateQuery(query: Query): Promise<TargetId> {
@@ -443,5 +454,33 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.executeQuery(queryTime);
     test.assertOverlaysRead(1, 0);
     test.assertQueryReturned('coll/a');
+  });
+
+  it.only('Can run aggregate query', async () => {
+    // Setup
+    const queryMatches = query('coll', filter('matches', '==', true));
+    const targetId = await test.allocateQuery(queryMatches);
+
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(
+        [
+          doc('coll/a', 10, { matches: true }),
+          doc('coll/b', 10, { matches: true }),
+          doc('coll/c', 10, { matches: true })
+        ],
+        [targetId]
+      )
+    );
+
+    const result = await test.executeAggregateQuery(
+      new AggregateQuery(queryMatches)
+    );
+    expect(result.cachedCountReadTime.isEqual(SnapshotVersion.min())).to.be
+      .true;
+    expect(result.cachedCount).to.equal(0);
+    // expect(result.documentResult).to.equal({});
+    expect(result.matchesWithoutMutation).to.equal(
+      documentKeySet(key('coll/a'), key('coll/b'), key('coll/c'))
+    );
   });
 });

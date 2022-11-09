@@ -125,7 +125,7 @@ export class LocalDocumentsView {
         if (!!context) {
           docs.forEach((k, doc) => {
             if (queryMatches(context.query, doc)) {
-              context.remoteMatches.concat(k);
+              context.remoteMatches = context.remoteMatches.concat(k);
             }
           });
         }
@@ -542,7 +542,7 @@ export class LocalDocumentsView {
         if (!!context) {
           remoteDocuments.forEach((k, doc) => {
             if (queryMatches(context.query, doc)) {
-              context.remoteMatches.concat(k);
+              context.remoteMatches = context.remoteMatches.concat(k);
             }
           });
         }

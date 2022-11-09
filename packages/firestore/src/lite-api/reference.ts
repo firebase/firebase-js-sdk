@@ -241,6 +241,10 @@ export class Query<T = DocumentData> {
   withConverter<U>(converter: FirestoreDataConverter<U> | null): Query<U> {
     return new Query<U>(this.firestore, converter, this._query);
   }
+
+  countQuery(): AggregateQuery {
+    return new AggregateQuery(this);
+  }
 }
 
 // TODO: Make this more generic

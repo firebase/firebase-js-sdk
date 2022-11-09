@@ -17,6 +17,7 @@
 
 import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { FieldMask } from '../model/field_mask';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, debugCast, fail } from '../util/assert';
 
@@ -56,6 +57,25 @@ export interface Query {
   readonly limitType: LimitType;
   readonly startAt: Bound | null;
   readonly endAt: Bound | null;
+}
+
+export class AggregateQuery {
+  constructor(readonly _baseQuery: Query) {}
+
+  getHoldingMask(): FieldMask {
+    return FieldMask.empty();
+  }
+
+  getProcessingMask(): FieldMask {
+    let result = FieldMask.empty();
+    for (const f of (this._baseQuery as QueryImpl).filters) {
+      result = result.unionWith([(f as FieldFilter).field]);
+    }
+    result = result.unionWith(
+      this._baseQuery.explicitOrderBy.map(o => o.field)
+    );
+    return result;
+  }
 }
 
 /**
