@@ -395,7 +395,8 @@ export function toDocument(
   return {
     name: toName(serializer, document.key),
     fields: document.data.value.mapValue.fields,
-    updateTime: toTimestamp(serializer, document.version.toTimestamp())
+    updateTime: toTimestamp(serializer, document.version.toTimestamp()),
+    createTime: toTimestamp(serializer, document.createTime.toTimestamp())
   };
 }
 
@@ -406,8 +407,16 @@ export function fromDocument(
 ): MutableDocument {
   const key = fromName(serializer, document.name!);
   const version = fromVersion(document.updateTime!);
+  const createTime = document.createTime
+    ? fromVersion(document.createTime)
+    : SnapshotVersion.min();
   const data = new ObjectValue({ mapValue: { fields: document.fields } });
-  const result = MutableDocument.newFoundDocument(key, version, data);
+  const result = MutableDocument.newFoundDocument(
+    key,
+    version,
+    createTime,
+    data
+  );
   if (hasCommittedMutations) {
     result.setHasCommittedMutations();
   }
@@ -426,8 +435,11 @@ function fromFound(
   assertPresent(doc.found.updateTime, 'doc.found.updateTime');
   const key = fromName(serializer, doc.found.name);
   const version = fromVersion(doc.found.updateTime);
+  const createTime = doc.found.createTime
+    ? fromVersion(doc.found.createTime)
+    : SnapshotVersion.min();
   const data = new ObjectValue({ mapValue: { fields: doc.found.fields } });
-  return MutableDocument.newFoundDocument(key, version, data);
+  return MutableDocument.newFoundDocument(key, version, createTime, data);
 }
 
 function fromMissing(
@@ -493,10 +505,18 @@ export function fromWatchChange(
     );
     const key = fromName(serializer, entityChange.document.name);
     const version = fromVersion(entityChange.document.updateTime);
+    const createTime = entityChange.document.createTime
+      ? fromVersion(entityChange.document.createTime)
+      : SnapshotVersion.min();
     const data = new ObjectValue({
       mapValue: { fields: entityChange.document.fields }
     });
-    const doc = MutableDocument.newFoundDocument(key, version, data);
+    const doc = MutableDocument.newFoundDocument(
+      key,
+      version,
+      createTime,
+      data
+    );
     const updatedTargetIds = entityChange.targetIds || [];
     const removedTargetIds = entityChange.removedTargetIds || [];
     watchChange = new DocumentWatchChange(

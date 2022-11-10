@@ -1958,6 +1958,33 @@ function genericLocalStoreTests(
       .finish();
   });
 
+  it('handles document creation time', () => {
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query('col'))
+        .toReturnTargetId(2)
+        .after(docAddedRemoteEvent(doc('col/doc1', 12, { foo: 'bar' }, 5), [2]))
+        .toReturnChanged(doc('col/doc1', 12, { foo: 'bar' }, 5))
+        .toContain(doc('col/doc1', 12, { foo: 'bar' }, 5))
+        .after(setMutation('col/doc1', { foo: 'newBar' }))
+        .toReturnChanged(
+          doc('col/doc1', 12, { foo: 'newBar' }, 5).setHasLocalMutations()
+        )
+        .toContain(
+          doc('col/doc1', 12, { foo: 'newBar' }, 5).setHasLocalMutations()
+        )
+        .afterAcknowledgingMutation({ documentVersion: 13 })
+        // We haven't seen the remote event yet
+        .toReturnChanged(
+          doc('col/doc1', 13, { foo: 'newBar' }, 5).setHasCommittedMutations()
+        )
+        .toContain(
+          doc('col/doc1', 13, { foo: 'newBar' }, 5).setHasCommittedMutations()
+        )
+        .finish()
+    );
+  });
+
   it('uses target mapping to execute queries', () => {
     if (gcIsEager) {
       return;
