@@ -54,6 +54,9 @@ export interface Observer<T> {
 export interface EventManager {
   onListen?: (query: Query) => Promise<ViewSnapshot>;
   onUnlisten?: (query: Query) => Promise<void>;
+  readOperationHook?: (query: Query) => void;
+  listenHook?: (query: Query) => void;
+  unlistenHook?: (query: Query) => void;
 }
 
 export function newEventManager(): EventManager {
@@ -74,6 +77,13 @@ export class EventManagerImpl implements EventManager {
   onListen?: (query: Query) => Promise<ViewSnapshot>;
   /** Callback invoked once all listeners to a Query are removed. */
   onUnlisten?: (query: Query) => Promise<void>;
+
+  /**
+   * Set of hooks meant to be used for performance profiling in client apps
+   */
+  readOperationHook?: (query: Query) => void;
+  listenHook?: (query: Query) => void;
+  unlistenHook?: (query: Query) => void;
 }
 
 export async function eventManagerListen(
@@ -95,6 +105,10 @@ export async function eventManagerListen(
   if (firstListen) {
     try {
       queryInfo.viewSnap = await eventManagerImpl.onListen(query);
+      // If there's a hook for listen event, call it
+      if (eventManagerImpl.listenHook) {
+        eventManagerImpl.listenHook(query);
+      }
     } catch (e) {
       const firestoreError = wrapInUserErrorIfRecoverable(
         e as Error,
@@ -145,6 +159,10 @@ export async function eventManagerUnlisten(
   }
 
   if (lastListen) {
+    // If there's a hook for listen event, call it
+    if (eventManagerImpl.unlistenHook) {
+      eventManagerImpl.unlistenHook(query);
+    }
     eventManagerImpl.queries.delete(query);
     return eventManagerImpl.onUnlisten(query);
   }
@@ -162,6 +180,9 @@ export function eventManagerOnWatchChange(
     const queryInfo = eventManagerImpl.queries.get(query);
     if (queryInfo) {
       for (const listener of queryInfo.listeners) {
+        if (eventManager.readOperationHook) {
+          eventManager.readOperationHook(listener.query);
+        }
         if (listener.onViewSnapshot(viewSnap)) {
           raisedEvent = true;
         }
