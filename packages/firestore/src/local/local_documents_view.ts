@@ -369,7 +369,7 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context: AggregateContext | undefined = undefined
+    context: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     if (isDocumentQuery(query)) {
       return this.getDocumentsMatchingDocumentQuery(
@@ -531,7 +531,7 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context: AggregateContext | undefined = undefined
+    context: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let remoteDocuments: MutableDocumentMap;

@@ -123,14 +123,14 @@ export class CountingQueryEngine extends QueryEngine {
       setIndexManager: (indexManager: IndexManager) => {
         subject.setIndexManager(indexManager);
       },
-      getAllFromCollection: (transaction, collection, sinceReadTime) => {
+      getAllFromCollection: (
+        transaction,
+        collection,
+        sinceReadTime,
+        context
+      ) => {
         return subject
-          .getAllFromCollection(
-            transaction,
-            collection,
-            sinceReadTime,
-            undefined
-          )
+          .getAllFromCollection(transaction, collection, sinceReadTime, context)
           .next(result => {
             this.documentsReadByCollection += result.size;
             return result;
