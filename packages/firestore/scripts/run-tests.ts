@@ -67,6 +67,12 @@ if (argv.persistence) {
   args.push('--require', 'test/util/node_persistence.ts');
 }
 
+if (argv.pg) {
+  process.env.USE_PG_PERSISTENCE = 'YES';
+  args.push('--require', 'test/util/node_pg_persistence.ts');
+}
+
+
 args = args.concat(argv._ as string[]);
 
 const childProcess = spawn(nyc, args, {

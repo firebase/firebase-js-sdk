@@ -35,6 +35,7 @@
     "test:node": "node ./scripts/run-tests.js  --main=test/register.ts  --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:prod": "node ./scripts/run-tests.js --main=test/register.ts 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:persistence": "node ./scripts/run-tests.js  --main=test/register.ts --persistence --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
+    "test:node:pg": "node ./scripts/run-tests.js  --main=test/register.ts --pg --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:persistence:prod": "node ./scripts/run-tests.js --main=test/register.ts --persistence 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
