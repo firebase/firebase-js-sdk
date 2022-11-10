@@ -21,8 +21,9 @@ import {
   newQueryForPath,
   Query,
   queryCollectionGroup,
-  queryToTarget
-, AggregateQuery } from '../core/query';
+  queryToTarget,
+  AggregateQuery
+} from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';

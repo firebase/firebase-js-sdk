@@ -43,7 +43,12 @@ import {
   newLocalStore
 } from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
-import { documentKeySet, DocumentMap } from '../../../src/model/collections';
+import {
+  DocumentKeySet,
+  documentKeySet,
+  documentMap,
+  DocumentMap
+} from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
   FieldIndex,
@@ -63,6 +68,7 @@ import {
   filter,
   key,
   orderBy,
+  patchMutation,
   query,
   setMutation,
   version
@@ -456,31 +462,153 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a');
   });
 
-  it.only('Can run aggregate query', async () => {
-    // Setup
-    const queryMatches = query('coll', filter('matches', '==', true));
+  //// BEGIN HACK /////
+  // helper function because I'm stupid
+  function toShortDocumentKeySet(set: DocumentKeySet): DocumentKeySet {
+    let result = documentKeySet();
+    set.forEach(
+      elem => (result = result.add(key('coll/' + elem.path.lastSegment())))
+    );
+    return result;
+  }
+  function toShortDocumentKeyMap(map: DocumentMap): DocumentMap {
+    let result = documentMap();
+    map.forEach((k, v) => {
+      const keyStr = 'coll/' + k.path.lastSegment();
+      result = result.insert(key(keyStr), doc(keyStr, 10, v.data));
+    });
+    return result;
+  }
+  //// END HACK ////
+
+  it('Can run aggregate query without filters', async () => {
+    const queryMatches = query('coll');
     const targetId = await test.allocateQuery(queryMatches);
+    const docA = doc('coll/a', 10, { matches: true });
+    const docB = doc('coll/b', 10, { matches: true });
+    const docC = doc('coll/c', 10, { matches: true });
 
     await test.applyRemoteEvent(
-      docAddedRemoteEvent(
-        [
-          doc('coll/a', 10, { matches: true }),
-          doc('coll/b', 10, { matches: true }),
-          doc('coll/c', 10, { matches: true })
-        ],
-        [targetId]
-      )
+      docAddedRemoteEvent([docA, docB, docC], [targetId])
     );
 
     const result = await test.executeAggregateQuery(
       new AggregateQuery(queryMatches)
     );
+
+    expect(result.cachedCount).to.equal(0);
     expect(result.cachedCountReadTime.isEqual(SnapshotVersion.min())).to.be
       .true;
+
+    expect(
+      toShortDocumentKeyMap(result.documentResult.documents)
+    ).to.deep.equal(documentMap(docA, docB, docC));
+
+    expect(result.documentResult.remoteKeys).to.deep.equal(
+      documentKeySet(docA.key, docB.key, docC.key)
+    );
+
+    expect(toShortDocumentKeySet(result.matchesWithoutMutation)).to.deep.equal(
+      documentKeySet(docA.key, docB.key, docC.key)
+    );
+  });
+
+  it('Can run aggregate query with filters', async () => {
+    const queryMatches = query('coll', filter('matches', '==', true));
+    const targetId = await test.allocateQuery(queryMatches);
+    const docA = doc('coll/a', 10, { matches: true });
+    const docB = doc('coll/b', 10, { matches: false });
+    const docC = doc('coll/c', 10, { matches: true });
+    await test.applyRemoteEvent(docAddedRemoteEvent([docA, docC], [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent([docB]));
+
+    const result = await test.executeAggregateQuery(
+      new AggregateQuery(queryMatches)
+    );
+
     expect(result.cachedCount).to.equal(0);
-    // expect(result.documentResult).to.equal({});
-    expect(result.matchesWithoutMutation).to.equal(
-      documentKeySet(key('coll/a'), key('coll/b'), key('coll/c'))
+    expect(result.cachedCountReadTime.isEqual(SnapshotVersion.min())).to.be
+      .true;
+
+    expect(
+      toShortDocumentKeyMap(result.documentResult.documents)
+    ).to.deep.equal(documentMap(docA, docC));
+
+    expect(result.documentResult.remoteKeys).to.deep.equal(
+      documentKeySet(docA.key, docC.key)
+    );
+
+    expect(toShortDocumentKeySet(result.matchesWithoutMutation)).to.deep.equal(
+      documentKeySet(docA.key, docC.key)
+    );
+  });
+
+  it('Can run aggregate query when remote matches and local does not', async () => {
+    const queryMatches = query('coll', filter('matches', '==', true));
+    const targetId = await test.allocateQuery(queryMatches);
+    const docA = doc('coll/a', 10, { matches: true });
+    const docB = doc('coll/b', 10, { matches: false });
+    const docC = doc('coll/c', 10, { matches: true });
+    await test.applyRemoteEvent(docAddedRemoteEvent([docA, docC], [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent([docB]));
+    await test.writeMutations(setMutation('coll/a', { foo: 'bar' }));
+
+    const result = await test.executeAggregateQuery(
+      new AggregateQuery(queryMatches)
+    );
+
+    expect(result.cachedCount).to.equal(0);
+    expect(result.cachedCountReadTime.isEqual(SnapshotVersion.min())).to.be
+      .true;
+
+    // After applying local mutations, only docC should match.
+    expect(
+      toShortDocumentKeyMap(result.documentResult.documents)
+    ).to.deep.equal(documentMap(docC));
+
+    // The remoteKeys comes from the last time we received the results of this target.
+    expect(result.documentResult.remoteKeys).to.deep.equal(
+      documentKeySet(docA.key, docC.key)
+    );
+
+    // The remote documents do not have the local mutation and should match both docA and docC.
+    expect(toShortDocumentKeySet(result.matchesWithoutMutation)).to.deep.equal(
+      documentKeySet(docA.key, docC.key)
+    );
+  });
+
+  it.only('Can run aggregate query when local matches and remote does not', async () => {
+    const queryMatches = query('coll', filter('matches', '==', true));
+    const targetId = await test.allocateQuery(queryMatches);
+    const docA = doc('coll/a', 10, { matches: false });
+    const docB = doc('coll/b', 10, { matches: false });
+    const docC = doc('coll/c', 10, { matches: true });
+    await test.applyRemoteEvent(docAddedRemoteEvent([docC], [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent([docA, docB]));
+    await test.writeMutations(patchMutation('coll/b', { matches: true }));
+
+    const result = await test.executeAggregateQuery(
+      new AggregateQuery(queryMatches)
+    );
+
+    expect(result.cachedCount).to.equal(0);
+
+    expect(result.cachedCountReadTime.isEqual(SnapshotVersion.min())).to.be
+      .true;
+
+    // After applying local mutations, docB and docC should match.
+    expect(
+      toShortDocumentKeyMap(result.documentResult.documents)
+    ).to.deep.equal(documentMap(docB, docC)); // FAILS
+
+    // The remoteKeys comes from the last time we received the results of this target.
+    expect(result.documentResult.remoteKeys).to.deep.equal(
+      documentKeySet(docC.key)
+    );
+
+    // The remote documents do not have the local mutation and should only match docC.
+    expect(toShortDocumentKeySet(result.matchesWithoutMutation)).to.deep.equal(
+      documentKeySet(docC.key)
     );
   });
 });
