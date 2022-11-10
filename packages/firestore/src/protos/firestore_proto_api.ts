@@ -224,6 +224,16 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface ExistenceFilter {
     targetId?: number;
     count?: number;
+    unchangedNames: BloomFilter;
+  }
+  interface BloomFilter {
+    bits?: BitSequence;
+    hasCount?: number;
+  }
+
+  interface BitSequence {
+    bitmap?: string;
+    padding?: number;
   }
   interface FieldFilter {
     field?: FieldReference;
@@ -382,6 +392,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     readTime?: Timestamp;
     targetId?: number;
     once?: boolean;
+    expectedCount?: number | { value: number };
   }
   interface TargetChange {
     targetChangeType?: TargetChangeTargetChangeType;
