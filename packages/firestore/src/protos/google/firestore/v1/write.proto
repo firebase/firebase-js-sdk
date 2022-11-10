@@ -264,8 +264,8 @@ message ExistenceFilter {
   int32 count = 2;
 
   // A bloom filter that contains the UTF-8 byte encodings of the resource names
-  // of the documents that match [target_id][], in the form
-  // `projects/{project_id}/databases/{database_id}/documents/{document_path}`
+  // of the documents that match [target_id][google.firestore.v1.ExistenceFilter.target_id], in the
+  // form `projects/{project_id}/databases/{database_id}/documents/{document_path}`
   // that have NOT changed since the query results indicated by the resume token
   // or timestamp given in `Target.resume_type`.
   //

@@ -224,13 +224,12 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface ExistenceFilter {
     targetId?: number;
     count?: number;
-    unchangedNames: BloomFilter;
+    unchangedNames?: BloomFilter;
   }
   interface BloomFilter {
     bits?: BitSequence;
-    hasCount?: number;
+    hashCount?: number;
   }
-
   interface BitSequence {
     bitmap?: string;
     padding?: number;
