@@ -18,13 +18,40 @@
 import * as fs from 'fs';
 import * as os from 'os';
 
-// @ts-ignore: There are no types for indexeddbshim.
-import registerIndexedDBShim from 'indexeddbshim';
-
 import { FakeWindow, SharedFakeWebStorage } from './test_platform';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalAny = global as any;
+
+class PgOpenDBRequest extends IDBOpenDBRequest {
+
+}
+
+class PgFactory extends IDBFactory {
+  open(name:string, version?:number): IDBOpenDBRequest {
+    return new PgOpenDBRequest();
+  }
+  
+  deleteDatabase(name: string): IDBOpenDBRequest {
+    return new PgOpenDBRequest();
+  }
+}
+
+class PgDatabase extends IDBDatabase {}
+class PgTransaction extends IDBTransaction {}
+type PgTransactionMode = IDBTransactionMode;
+type PgRequest = IDBRequest;
+type PgValidKey = IDBValidKey;
+type PgVersionChangeEvent = IDBVersionChangeEvent;
+type PgCursor = IDBCursor;
+type PgCursorWithValue = IDBCursorWithValue;
+type PgObjectStore = IDBObjectStore;
+type PgCursorDirection = IDBCursorDirection;
+type PgKeyRange = IDBKeyRange;
+
+function registerIndexedDBPGShim(conn: string) {
+  globalAny.indexDB = new PgFactory();
+}
 
 if (process.env.USE_PG_PERSISTENCE === 'YES') {
   registerIndexedDBPGShim('');
