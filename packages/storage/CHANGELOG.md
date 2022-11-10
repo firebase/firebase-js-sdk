@@ -1,5 +1,11 @@
 #Unreleased
 
+## 0.9.14
+
+### Patch Changes
+
+- [`8876b783f`](https://github.com/firebase/firebase-js-sdk/commit/8876b783f27ba8ba0ad0305db4812432efa17461) [#6746](https://github.com/firebase/firebase-js-sdk/pull/6746) - Fixed issue where if btoa wasn't supported in the environment, then the user would get a generic message.
+
 ## 0.9.13
 
 ### Patch Changes
