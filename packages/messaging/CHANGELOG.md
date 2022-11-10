@@ -1,5 +1,11 @@
 # @firebase/messaging
 
+## 0.11.0
+
+### Minor Changes
+
+- [`9e9ee7ba3`](https://github.com/firebase/firebase-js-sdk/commit/9e9ee7ba3383237e0b92ad8183dd0f12640f4f3a) [#6728](https://github.com/firebase/firebase-js-sdk/pull/6728) - Expose 'icon' field from the Firebase Messaging SDK as part of the 'notification' payload
+
 ## 0.10.0
 
 ### Minor Changes

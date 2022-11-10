@@ -1,5 +1,11 @@
 # @firebase/performance
 
+## 0.5.17
+
+### Patch Changes
+
+- [`3f1354f1f`](https://github.com/firebase/firebase-js-sdk/commit/3f1354f1f120f1fe4bcc11122a6e0b12fe3c6ac4) [#6723](https://github.com/firebase/firebase-js-sdk/pull/6723) - Expand check in `getServiceWorkerStatus` to account for a `navigator` that has a key of `serviceWorker` with a falsy value
+
 ## 0.5.16
 
 ### Patch Changes
