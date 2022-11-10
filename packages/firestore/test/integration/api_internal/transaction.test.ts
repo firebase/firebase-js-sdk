@@ -155,7 +155,7 @@ apiDescribe(
             await transaction.set(docRef, { count: 16 });
           });
           expect.fail('transaction should fail');
-        } catch (err) {
+        } catch (err: any) {
           expect(err).to.exist;
           expect(err.code).to.equal('aborted');
         }
@@ -194,7 +194,7 @@ apiDescribe(
             options
           );
           expect.fail('transaction should fail');
-        } catch (err) {
+        } catch (err: any) {
           expect(err).to.exist;
           expect(err.code).to.equal('aborted');
         }
