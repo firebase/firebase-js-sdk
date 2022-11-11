@@ -579,7 +579,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     );
   });
 
-  it('Can run aggregate query when local matches and remote does not', async () => {
+  it.only('Can run aggregate query when local matches and remote does not', async () => {
     const queryMatches = query('coll', filter('matches', '==', true));
     const targetId = await test.allocateQuery(queryMatches);
 
@@ -587,8 +587,8 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     const mismatchId = await test.allocateQuery(queryMismatches);
 
     const docA = doc('coll/a', 10, { matches: false, foo: 'bar' });
-    const docB = doc('coll/b', 10, { matches: false, foo: 'bar' });
-    const docC = doc('coll/c', 10, { matches: true, foo: 'bar' });
+    const docB = doc('coll/b', 10, { matches: false, foo: 'bar' }, 5);
+    const docC = doc('coll/c', 10, { matches: true, foo: 'bar' }, 7);
     await test.applyRemoteEvent(docAddedRemoteEvent([docC], [targetId]));
     await test.applyRemoteEvent(
       docAddedRemoteEvent([docA, docB], [mismatchId])
@@ -614,12 +614,13 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     // expect(docBEntry.value.data.field(field('foo'))).to.be.null;
 
     // TODO(COUNT): Add createTime to documents.
-    // expect(docBEntry.value.createTime).to.equal(SnapshotVersion.min());
+    expect(docBEntry.value.createTime.isEqual(version(5))).to.be.true;
 
     const docCEntry = iterator.getNext();
     expect(docCEntry.value.data.field(field('matches'))?.booleanValue).to.be
       .true;
     expect(docCEntry.value.data.field(field('foo'))).to.be.null;
+    expect(docCEntry.value.createTime.isEqual(version(7))).to.be.true;
 
     // The remoteKeys comes from the last time we received the results of this target.
     expect(result.documentResult.remoteKeys).to.deep.equal(
