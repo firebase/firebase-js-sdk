@@ -23,7 +23,12 @@ import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node
 import { _generateEventId } from '../../../src/core/util/event_id';
 import { getAppConfig, getEmulatorUrl } from './settings';
 import { resetEmulator } from './emulator_rest_helpers';
+import { StartTotpMfaEnrollmentResponse } from '../../../src/api/account_management/mfa';
 
+//import * as otpauth from "https://deno.land/x/otpauth@v9.0.1/dist/otpauth.esm.js";
+//// <reference path="helpers.d.ts"/>
+const totp = require('totp-generator');
+//import * as totp from 'otpauth';
 interface IntegrationTestAuth extends Auth {
   cleanUp(): Promise<void>;
 }
@@ -92,4 +97,19 @@ function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
       originalConsoleInfo(...args);
     }
   });
+}
+
+export async function mockTotp(sharedSecretKey: string, periodSec: number, verificationCodeLength: number){
+  console.log("**** starting to mock totp");
+
+  let digits = 9;
+  let period = 30;
+  let secret = "private";
+  const headers = new Headers();
+  
+  let token = totp(sharedSecretKey, { period: periodSec, digits: verificationCodeLength });
+  console.log("***"+token);
+  
+return token 
+ 
 }
