@@ -1326,11 +1326,13 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         query(
           coll,
-          or(
-            and(where('a', '==', 'b'), where('c', '>', 'd')),
-            and(where('e', '==', 'f'), where('g', '==', 'h'))
-          ),
-          where('r', '>', 's')
+          and(
+            or(
+              and(where('a', '==', 'b'), where('c', '>', 'd')),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            where('r', '>', 's')
+          )
         )
       ).to.throw(
         "Invalid query. All where filters with an inequality (<, <=, !=, not-in, >, or >=) must be on the same field. But you have inequality filters on 'c' and 'r'"
@@ -1367,11 +1369,13 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         query(
           coll,
-          or(
-            and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
-            and(where('e', '==', 'f'), where('g', '==', 'h'))
-          ),
-          where('i', 'not-in', ['j', 'k'])
+          and(
+            or(
+              and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            where('i', 'not-in', ['j', 'k'])
+          )
         )
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with 'in' filters."
@@ -1381,13 +1385,15 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         query(
           coll,
-          or(
-            and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
-            and(where('e', '==', 'f'), where('g', '==', 'h'))
-          ),
-          or(
-            and(where('i', '==', 'j'), where('l', 'not-in', ['m', 'n'])),
-            and(where('o', '==', 'p'), where('q', '==', 'r'))
+          and(
+            or(
+              and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            or(
+              and(where('i', '==', 'j'), where('l', 'not-in', ['m', 'n'])),
+              and(where('o', '==', 'p'), where('q', '==', 'r'))
+            )
           )
         )
       ).to.throw(

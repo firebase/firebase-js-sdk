@@ -37,5 +37,6 @@ export {
   QueryOrderByConstraint,
   QueryLimitConstraint,
   QueryStartAtConstraint,
-  QueryEndAtConstraint
+  QueryEndAtConstraint,
+  QueryNonFilterConstraint
 } from '../lite-api/query';

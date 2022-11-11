@@ -360,10 +360,13 @@ export class Query<T = DocumentData> {
 }
 
 // @public
+export function query<T>(query: Query<T>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<T>;
+
+// @public
 export function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
 
 // @public
-export class QueryCompositeFilterConstraint extends QueryFilterConstraint {
+export class QueryCompositeFilterConstraint {
     readonly type: 'or' | 'and';
 }
 
@@ -373,7 +376,7 @@ export abstract class QueryConstraint {
 }
 
 // @public
-export type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore' | 'and' | 'or';
+export type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
 
 // @public
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {
@@ -390,18 +393,20 @@ export class QueryEndAtConstraint extends QueryConstraint {
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
 
 // @public
-export class QueryFieldFilterConstraint extends QueryFilterConstraint {
+export class QueryFieldFilterConstraint extends QueryConstraint {
     readonly type = "where";
 }
 
 // @public
-export abstract class QueryFilterConstraint extends QueryConstraint {
-}
+export type QueryFilterConstraint = QueryFieldFilterConstraint | QueryCompositeFilterConstraint;
 
 // @public
 export class QueryLimitConstraint extends QueryConstraint {
     readonly type: 'limit' | 'limitToLast';
 }
+
+// @public
+export type QueryNonFilterConstraint = QueryOrderByConstraint | QueryLimitConstraint | QueryStartAtConstraint | QueryEndAtConstraint;
 
 // @public
 export class QueryOrderByConstraint extends QueryConstraint {

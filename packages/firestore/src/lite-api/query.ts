@@ -84,34 +84,65 @@ export type QueryConstraintType =
   | 'startAt'
   | 'startAfter'
   | 'endAt'
-  | 'endBefore'
-  | 'and'
-  | 'or';
+  | 'endBefore';
 
 /**
- * A `QueryConstraint` is used to narrow the set of documents returned by a
- * Firestore query. `QueryConstraint`s are created by invoking {@link where},
- * {@link orderBy}, {@link (startAt:1)}, {@link (startAfter:1)}, {@link
- * (endBefore:1)}, {@link (endAt:1)}, {@link limit}, {@link limitToLast}, {@link or} or {@link and} and
- * can then be passed to {@link query} to create a new query instance that
- * also contains this `QueryConstraint`.
+ * An `AppliableConstraint` is an abstraction of a constraint that can be applied
+ * to a Firestore query.
  */
-export abstract class QueryConstraint {
-  /** The type of this query constraint */
-  abstract readonly type: QueryConstraintType;
-
+export abstract class AppliableConstraint {
   /**
    * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
-   * {@link QueryConstraint} applied.
+   * {@link AppliableConstraint} applied.
    */
   abstract _apply<T>(query: Query<T>): Query<T>;
 }
 
 /**
- * Creates a new immutable instance of {@link Query} that is extended to also include
- * additional query constraints.
+ * A `QueryConstraint` is used to narrow the set of documents returned by a
+ * Firestore query. `QueryConstraint`s are created by invoking {@link where},
+ * {@link orderBy}, {@link startAt}, {@link startAfter}, {@link
+ * endBefore}, {@link endAt}, {@link limit}, {@link limitToLast} and
+ * can then be passed to {@link query} to create a new query instance that
+ * also contains this `QueryConstraint`.
+ */
+export abstract class QueryConstraint extends AppliableConstraint {
+  /** The type of this query constraint */
+  abstract readonly type: QueryConstraintType;
+
+  /**
+   * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
+   * {@link AppliableConstraint} applied.
+   */
+  abstract _apply<T>(query: Query<T>): Query<T>;
+}
+
+/**
+ * Creates a new immutable instance of {@link Query} that is extended to also
+ * include additional query constraints.
  *
- * @param query - The {@link Query} instance to use as a base for the new constraints.
+ * @param query - The {@link Query} instance to use as a base for the new
+ * constraints.
+ * @param compositeFilter - The {@link QueryCompositeFilterConstraint} to
+ * apply. Create {@link QueryCompositeFilterConstraint} using {@link and} or
+ * {@link or}.
+ * @param queryConstraints - Additional {@link QueryNonFilterConstraint}s to
+ * apply (e.g. {@link orderBy}, {@link limit}).
+ * @throws if any of the provided query constraints cannot be combined with the
+ * existing or new constraints.
+ */
+export function query<T>(
+  query: Query<T>,
+  compositeFilter: QueryCompositeFilterConstraint,
+  ...queryConstraints: QueryNonFilterConstraint[]
+): Query<T>;
+
+/**
+ * Creates a new immutable instance of {@link Query} that is extended to also
+ * include additional query constraints.
+ *
+ * @param query - The {@link Query} instance to use as a base for the new
+ * constraints.
  * @param queryConstraints - The list of {@link QueryConstraint}s to apply.
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
@@ -119,7 +150,28 @@ export abstract class QueryConstraint {
 export function query<T>(
   query: Query<T>,
   ...queryConstraints: QueryConstraint[]
+): Query<T>;
+
+export function query<T>(
+  query: Query<T>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filterOrQueryConstraints: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ...nonFilters: any
 ): Query<T> {
+  let queryConstraints: AppliableConstraint[] = [];
+  if (filterOrQueryConstraints instanceof AppliableConstraint) {
+    queryConstraints.push(filterOrQueryConstraints);
+  } else if (Array.isArray(filterOrQueryConstraints)) {
+    queryConstraints.concat(filterOrQueryConstraints as AppliableConstraint[]);
+  }
+
+  if (nonFilters !== undefined) {
+    queryConstraints = queryConstraints.concat(
+      nonFilters as QueryNonFilterConstraint[]
+    );
+  }
+
   for (const constraint of queryConstraints) {
     query = constraint._apply(query);
   }
@@ -127,24 +179,13 @@ export function query<T>(
 }
 
 /**
- * A `QueryFilterConstraint` is used to narrow the set of documents returned by
+ * A `QueryFieldFilterConstraint` is used to narrow the set of documents returned by
  * a Firestore query by filtering on one or more document fields.
- * `QueryFilterConstraint`s are created by invoking {@link where}, {@link or} or
- * {@link and} and can then be passed to {@link query} to create a new query
- * instance that also contains this `QueryFilterConstraint`.
+ * `QueryFieldFilterConstraint`s are created by invoking {@link where} and can then
+ * be passed to {@link query} to create a new query instance that also contains
+ * this `QueryFieldFilterConstraint`.
  */
-export abstract class QueryFilterConstraint extends QueryConstraint {
-  abstract _parse<T>(query: Query<T>): Filter;
-}
-
-/**
- * A `QueryFieldFilterConstraint` is used to narrow the set of documents
- * returned by a Firestore query by filtering on one document field.
- * `QueryFieldFilterConstraint`s are created by invoking {@link where}  and
- * can then be passed to {@link query} to create a new query instance that
- * also contains this `QueryFieldFilterConstraint`.
- */
-export class QueryFieldFilterConstraint extends QueryFilterConstraint {
+export class QueryFieldFilterConstraint extends QueryConstraint {
   /** The type of this query constraint */
   readonly type = 'where';
 
@@ -233,12 +274,12 @@ export function where(
 /**
  * A `QueryCompositeFilterConstraint` is used to narrow the set of documents
  * returned by a Firestore query by performing the logical OR or AND of multiple
- * {@link QueryFieldFilterConstraint} or {@link QueryCompositeFilterConstraint}.
+ * {@link QueryFieldFilterConstraint}s or {@link QueryCompositeFilterConstraint}s.
  * `QueryCompositeFilterConstraint`s are created by invoking {@link or} or
  * {@link and} and can then be passed to {@link query} to create a new query
- * instance that also contains this `QueryCompositeFilterConstraint`.
+ * instance that also contains the `QueryCompositeFilterConstraint`.
  */
-export class QueryCompositeFilterConstraint extends QueryFilterConstraint {
+export class QueryCompositeFilterConstraint extends AppliableConstraint {
   /**
    * @internal
    */
@@ -287,7 +328,7 @@ export class QueryCompositeFilterConstraint extends QueryFilterConstraint {
     );
   }
 
-  _getQueryConstraints(): readonly QueryConstraint[] {
+  _getQueryConstraints(): readonly AppliableConstraint[] {
     return this._queryConstraints;
   }
 
@@ -297,12 +338,38 @@ export class QueryCompositeFilterConstraint extends QueryFilterConstraint {
 }
 
 /**
+ * `QueryNonFilterConstraint` is a helper union type that represents
+ * QueryConstraints which are used to narrow or order the set of documents,
+ * but that do not explicitly filter on a document field.
+ * `QueryNonFilterConstraint`s are created by invoking {@link orderBy},
+ * {@link startAt}, {@link startAfter}, {@link endBefore}, {@link endAt},
+ * {@link limit} or {@link limitToLast} and can then be passed to {@link query}
+ * to create a new query instance that also contains the `QueryConstraint`.
+ */
+export type QueryNonFilterConstraint =
+  | QueryOrderByConstraint
+  | QueryLimitConstraint
+  | QueryStartAtConstraint
+  | QueryEndAtConstraint;
+
+/**
+ * `QueryFilterConstraint` is a helper union type that represents
+ * {@link QueryFieldFilterConstraint} and {@link QueryCompositeFilterConstraint}.
+ * `QueryFilterConstraint`s are created by invoking {@link or} or {@link and}
+ * and can then be passed to {@link query} to create a new query instance that
+ * also contains the `QueryConstraint`.
+ */
+export type QueryFilterConstraint =
+  | QueryFieldFilterConstraint
+  | QueryCompositeFilterConstraint;
+
+/**
  * Creates a {@link QueryCompositeFilterConstraint} that performs a logical OR
- * of all the provided {@link QueryFilterConstraint}.
+ * of all the provided {@link QueryFilterConstraint}s.
  *
- * @param queryConstraints - Optional. The {@link queryConstraints} for OR
- * operation. These must be created with calls to {@link where}, {@link or}, or
- * {@link and}.
+ * @param queryConstraints - Optional. The {@link QueryFilterConstraint}s
+ * for OR operation. These must be created with calls to {@link where},
+ * {@link or}, or {@link and}.
  * @returns The created {@link QueryCompositeFilterConstraint}.
  */
 export function or(
@@ -321,11 +388,11 @@ export function or(
 
 /**
  * Creates a {@link QueryCompositeFilterConstraint} that performs a logical AND
- * of all the provided {@link QueryFilterConstraint}.
+ * of all the provided {@link QueryFilterConstraint}s.
  *
- * @param queryConstraints - Optional. The {@link queryConstraints} for AND
- * operation. These must be created with calls to {@link where}, {@link or}, or
- * {@link and}.
+ * @param queryConstraints - Optional. The {@link QueryFilterConstraint}s
+ * for AND operation. These must be created with calls to {@link where},
+ * {@link or}, or {@link and}.
  * @returns The created {@link QueryCompositeFilterConstraint}.
  */
 export function and(
@@ -1139,15 +1206,15 @@ function validateOrderByAndInequalityMatch(
 
 export function validateQueryFilterConstraint(
   functionName: string,
-  queryConstraint: QueryConstraint
+  queryConstraint: AppliableConstraint
 ): void {
   if (
-    !(queryConstraint instanceof QueryFilterConstraint) &&
+    !(queryConstraint instanceof QueryFieldFilterConstraint) &&
     !(queryConstraint instanceof QueryCompositeFilterConstraint)
   ) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires QueryContraints created with a call to 'where(...)'.`
+      `Function ${functionName}() requires AppliableContraints created with a call to 'where(...)', 'or(...)', or 'and(...)'.`
     );
   }
 }

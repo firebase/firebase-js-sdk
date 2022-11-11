@@ -1301,6 +1301,75 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   // TODO(orquery): Enable this test when prod supports OR queries.
   // eslint-disable-next-line no-restricted-properties
+  it.skip('can use query overloads', () => {
+    const testDocs = {
+      doc1: { a: 1, b: 0 },
+      doc2: { a: 2, b: 1 },
+      doc3: { a: 3, b: 2 },
+      doc4: { a: 1, b: 3 },
+      doc5: { a: 1, b: 1 }
+    };
+
+    return withTestCollection(persistence, testDocs, async coll => {
+      // a == 1
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, where('a', '==', 1)),
+        'doc1',
+        'doc4',
+        'doc5'
+      );
+
+      // Implicit AND: a == 1 && b == 3
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, where('a', '==', 1), where('b', '==', 3)),
+        'doc4'
+      );
+
+      // explicit AND: a == 1 && b == 3
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, and(where('a', '==', 1), where('b', '==', 3))),
+        'doc4'
+      );
+
+      // a == 1, limit 2
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, where('a', '==', 1), limit(2)),
+        'doc1',
+        'doc4'
+      );
+
+      // a == 1, limit 2, b - desc
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, where('a', '==', 1), limit(2), orderBy('b', 'desc')),
+        'doc4',
+        'doc5'
+      );
+
+      // explicit OR: a == 1 || b == 1 with limit 2
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, or(where('a', '==', 1), where('b', '==', 1)), limit(2)),
+        'doc1',
+        'doc2'
+      );
+
+      // only limit 2
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, limit(2)),
+        'doc1',
+        'doc2'
+      );
+
+      // limit 2 and order by b desc
+      await checkOnlineAndOfflineResultsMatch(
+        query(coll, limit(2), orderBy('b', 'desc')),
+        'doc4',
+        'doc3'
+      );
+    });
+  });
+
+  // TODO(orquery): Enable this test when prod supports OR queries.
+  // eslint-disable-next-line no-restricted-properties
   it.skip('can use or queries', () => {
     const testDocs = {
       doc1: { a: 1, b: 0 },
