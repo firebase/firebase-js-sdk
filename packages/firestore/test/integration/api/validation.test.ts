@@ -961,7 +961,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       );
     });
 
-    validationIt.only(
+    validationIt(
       persistence,
       'with multiple disjunctive filters fail',
       db => {
