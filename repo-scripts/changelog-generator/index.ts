@@ -50,11 +50,11 @@ const changelogFunctions: ChangelogFunctions = {
       .filter(_ => _)
       .join(', ')}]:`;
 
-    const updatedDepenenciesList = dependenciesUpdated.map(
+    const updatedDependenciesList = dependenciesUpdated.map(
       dependency => `  - ${dependency.name}@${dependency.newVersion}`
     );
 
-    return [changesetLink, ...updatedDepenenciesList].join('\n');
+    return [changesetLink, ...updatedDependenciesList].join('\n');
   },
   getReleaseLine: async (changeset, type, options) => {
     if (!options || !options.repo) {

@@ -22,7 +22,7 @@ import chalk from 'chalk';
 import simpleGit from 'simple-git';
 import fs from 'mz/fs';
 
-const root = resolve(__dirname, '..');
+const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 
 const baseRef = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';

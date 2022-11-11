@@ -33,7 +33,12 @@ import {
   GreCAPTCHATopLevel
 } from './recaptcha';
 import * as utils from './util';
-import { getState } from './state';
+import {
+  clearState,
+  DEFAULT_STATE,
+  getStateReference,
+  setInitialState
+} from './state';
 import { Deferred } from '@firebase/util';
 import { initializeAppCheck } from './api';
 import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
@@ -43,9 +48,11 @@ describe('recaptcha', () => {
 
   beforeEach(() => {
     app = getFullApp();
+    setInitialState(app, { ...DEFAULT_STATE });
   });
 
   afterEach(() => {
+    clearState();
     removegreCAPTCHAScriptsOnPage();
     return deleteApp(app);
   });
@@ -53,11 +60,11 @@ describe('recaptcha', () => {
   describe('initialize() - V3', () => {
     it('sets reCAPTCHAState', async () => {
       self.grecaptcha = getFakeGreCAPTCHA() as GreCAPTCHATopLevel;
-      expect(getState(app).reCAPTCHAState).to.equal(undefined);
+      expect(getStateReference(app).reCAPTCHAState).to.equal(undefined);
       await initializeV3(app, FAKE_SITE_KEY);
-      expect(getState(app).reCAPTCHAState?.initialized).to.be.instanceof(
-        Deferred
-      );
+      expect(
+        getStateReference(app).reCAPTCHAState?.initialized
+      ).to.be.instanceof(Deferred);
     });
 
     it('loads reCAPTCHA script if it was not loaded already', async () => {
@@ -89,18 +96,20 @@ describe('recaptcha', () => {
         size: 'invisible'
       });
 
-      expect(getState(app).reCAPTCHAState?.widgetId).to.equal('fake_widget_1');
+      expect(getStateReference(app).reCAPTCHAState?.widgetId).to.equal(
+        'fake_widget_1'
+      );
     });
   });
 
   describe('initialize() - Enterprise', () => {
     it('sets reCAPTCHAState', async () => {
       self.grecaptcha = getFakeGreCAPTCHA() as GreCAPTCHATopLevel;
-      expect(getState(app).reCAPTCHAState).to.equal(undefined);
+      expect(getStateReference(app).reCAPTCHAState).to.equal(undefined);
       await initializeEnterprise(app, FAKE_SITE_KEY);
-      expect(getState(app).reCAPTCHAState?.initialized).to.be.instanceof(
-        Deferred
-      );
+      expect(
+        getStateReference(app).reCAPTCHAState?.initialized
+      ).to.be.instanceof(Deferred);
     });
 
     it('loads reCAPTCHA script if it was not loaded already', async () => {
@@ -135,7 +144,9 @@ describe('recaptcha', () => {
         size: 'invisible'
       });
 
-      expect(getState(app).reCAPTCHAState?.widgetId).to.equal('fake_widget_1');
+      expect(getStateReference(app).reCAPTCHAState?.widgetId).to.equal(
+        'fake_widget_1'
+      );
     });
   });
 

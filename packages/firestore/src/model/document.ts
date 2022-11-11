@@ -102,6 +102,13 @@ export interface Document {
    */
   readonly readTime: SnapshotVersion;
 
+  /**
+   * The timestamp at which the document was created. This value increases
+   * monotonically when a document is deleted then recreated. It can also be
+   * compared to `createTime` of other documents and the `readTime` of a query.
+   */
+  readonly createTime: SnapshotVersion;
+
   /** The underlying data of this document or an empty value if no data exists. */
   readonly data: ObjectValue;
 
@@ -164,6 +171,7 @@ export class MutableDocument implements Document {
     private documentType: DocumentType,
     public version: SnapshotVersion,
     public readTime: SnapshotVersion,
+    public createTime: SnapshotVersion,
     public data: ObjectValue,
     private documentState: DocumentState
   ) {}
@@ -176,8 +184,9 @@ export class MutableDocument implements Document {
     return new MutableDocument(
       documentKey,
       DocumentType.INVALID,
-      SnapshotVersion.min(),
-      SnapshotVersion.min(),
+      /* version */ SnapshotVersion.min(),
+      /* readTime */ SnapshotVersion.min(),
+      /* createTime */ SnapshotVersion.min(),
       ObjectValue.empty(),
       DocumentState.SYNCED
     );
@@ -190,13 +199,15 @@ export class MutableDocument implements Document {
   static newFoundDocument(
     documentKey: DocumentKey,
     version: SnapshotVersion,
+    createTime: SnapshotVersion,
     value: ObjectValue
   ): MutableDocument {
     return new MutableDocument(
       documentKey,
       DocumentType.FOUND_DOCUMENT,
-      version,
-      SnapshotVersion.min(),
+      /* version */ version,
+      /* readTime */ SnapshotVersion.min(),
+      /* createTime */ createTime,
       value,
       DocumentState.SYNCED
     );
@@ -210,8 +221,9 @@ export class MutableDocument implements Document {
     return new MutableDocument(
       documentKey,
       DocumentType.NO_DOCUMENT,
-      version,
-      SnapshotVersion.min(),
+      /* version */ version,
+      /* readTime */ SnapshotVersion.min(),
+      /* createTime */ SnapshotVersion.min(),
       ObjectValue.empty(),
       DocumentState.SYNCED
     );
@@ -229,8 +241,9 @@ export class MutableDocument implements Document {
     return new MutableDocument(
       documentKey,
       DocumentType.UNKNOWN_DOCUMENT,
-      version,
-      SnapshotVersion.min(),
+      /* version */ version,
+      /* readTime */ SnapshotVersion.min(),
+      /* createTime */ SnapshotVersion.min(),
       ObjectValue.empty(),
       DocumentState.HAS_COMMITTED_MUTATIONS
     );
@@ -244,6 +257,13 @@ export class MutableDocument implements Document {
     version: SnapshotVersion,
     value: ObjectValue
   ): MutableDocument {
+    if (
+      SnapshotVersion.min().isEqual(this.createTime) &&
+      (this.documentType === DocumentType.NO_DOCUMENT ||
+        this.documentType === DocumentType.INVALID)
+    ) {
+      this.createTime = version;
+    }
     this.version = version;
     this.documentType = DocumentType.FOUND_DOCUMENT;
     this.data = value;
@@ -342,6 +362,7 @@ export class MutableDocument implements Document {
     return (
       other instanceof MutableDocument &&
       this.key.isEqual(other.key) &&
+      this.createTime.isEqual(other.createTime) &&
       this.version.isEqual(other.version) &&
       this.documentType === other.documentType &&
       this.documentState === other.documentState &&
@@ -355,6 +376,7 @@ export class MutableDocument implements Document {
       this.documentType,
       this.version,
       this.readTime,
+      this.createTime,
       this.data.clone(),
       this.documentState
     );
@@ -365,6 +387,7 @@ export class MutableDocument implements Document {
       `Document(${this.key}, ${this.version}, ${JSON.stringify(
         this.data.value
       )}, ` +
+      `{createTime: ${this.createTime}}), ` +
       `{documentType: ${this.documentType}}), ` +
       `{documentState: ${this.documentState}})`
     );
