@@ -256,6 +256,13 @@ export class MutableDocument implements Document {
     version: SnapshotVersion,
     value: ObjectValue
   ): MutableDocument {
+    if (
+      SnapshotVersion.min().isEqual(this.createTime) &&
+      (this.documentType === DocumentType.NO_DOCUMENT ||
+        this.documentType === DocumentType.INVALID)
+    ) {
+      this.createTime = version;
+    }
     this.version = version;
     this.documentType = DocumentType.FOUND_DOCUMENT;
     this.data = value;
@@ -340,6 +347,7 @@ export class MutableDocument implements Document {
     return (
       other instanceof MutableDocument &&
       this.key.isEqual(other.key) &&
+      this.createTime.isEqual(other.createTime) &&
       this.version.isEqual(other.version) &&
       this.documentType === other.documentType &&
       this.documentState === other.documentState &&
@@ -364,6 +372,7 @@ export class MutableDocument implements Document {
       `Document(${this.key}, ${this.version}, ${JSON.stringify(
         this.data.value
       )}, ` +
+      `{createTime: ${this.createTime}}), ` +
       `{documentType: ${this.documentType}}), ` +
       `{documentState: ${this.documentState}})`
     );
