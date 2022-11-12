@@ -1408,8 +1408,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         'InvalidQuery. When using composite filters, you cannot use ' +
           'more than one filter at the top level. Consider nesting the multiple ' +
           'filters within an `and(...)` statement. For example: ' +
-          'change `where(query, where(...), or(...))` to ' +
-          '`where(query, and(where(...), or(...)))`.'
+          'change `query(query, where(...), or(...))` to ' +
+          '`query(query, and(where(...), or(...)))`.'
       );
 
       // Once top level composite filter and one top level field filter
@@ -1420,8 +1420,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         'InvalidQuery. When using composite filters, you cannot use ' +
           'more than one filter at the top level. Consider nesting the multiple ' +
           'filters within an `and(...)` statement. For example: ' +
-          'change `where(query, where(...), or(...))` to ' +
-          '`where(query, and(where(...), or(...)))`.'
+          'change `query(query, where(...), or(...))` to ' +
+          '`query(query, and(where(...), or(...)))`.'
       );
     });
 
