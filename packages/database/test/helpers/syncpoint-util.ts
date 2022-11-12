@@ -295,18 +295,16 @@ export class SyncPointTestParser {
 
         // foreach in actual, stack up to enforce ordering, find in expected
         const actualMap = {};
-        let actualEvent;
         for (let x = 0; x < actualSlice.length; ++x) {
-          actualEvent = actualSlice[x];
-          actualEvent.eventRegistration.getEventRunner(actualEvent)();
+          let actualEvent = actualSlice[x];
           const spec = currentSpec;
-          const listenId =
+          let listenId =
             this.getTestPath(optBasePath, spec.path).toString() +
             '|' +
             spec.ref._queryIdentifier;
           if (listenId in actualMap) {
             // stack this event up, and make sure it obeys ordering constraints
-            const eventStack = actualMap[listenId];
+            let eventStack = actualMap[listenId];
             assertEventsOrdered(
               eventStack[eventStack.length - 1].eventType,
               actualEvent.eventType
@@ -316,39 +314,39 @@ export class SyncPointTestParser {
             // this is the first event for this listen, just initialize it
             actualMap[listenId] = [actualEvent];
           }
-        }
-        // Ordering has been enforced, make sure we can find this in the expected events
-        const found = removeIf(expectedSlice, expectedEvent => {
-          checkValidProperties(expectedEvent, [
-            'type',
-            'path',
-            'name',
-            'prevName',
-            'data'
-          ]);
-          if (expectedEvent.type === actualEvent.eventType) {
-            if (expectedEvent.type !== 'value') {
-              if (expectedEvent.name !== actualEvent.snapshot.key) {
-                return false;
+          // Ordering has been enforced, make sure we can find this in the expected events
+          let found = removeIf(expectedSlice, expectedEvent => {
+            checkValidProperties(expectedEvent, [
+              'type',
+              'path',
+              'name',
+              'prevName',
+              'data'
+            ]);
+            if (expectedEvent.type === actualEvent.eventType) {
+              if (expectedEvent.type !== 'value') {
+                if (expectedEvent.name !== actualEvent.snapshot.key) {
+                  return false;
+                }
+                if (
+                  expectedEvent.type !== 'child_removed' &&
+                  expectedEvent.prevName !== actualEvent.prevName
+                ) {
+                  return false;
+                }
               }
-              if (
-                expectedEvent.type !== 'child_removed' &&
-                expectedEvent.prevName !== actualEvent.prevName
-              ) {
-                return false;
-              }
+              // make sure the snapshots match
+              let snapHash = actualEvent.snapshot._node.hash();
+              let expectedHash = nodeFromJSON(expectedEvent.data).hash();
+              return snapHash === expectedHash;
+            } else {
+              return false;
             }
-            // make sure the snapshots match
-            const snapHash = actualEvent.snapshot._node.hash();
-            const expectedHash = nodeFromJSON(expectedEvent.data).hash();
-            return snapHash === expectedHash;
-          } else {
-            return false;
+          });
+          if (!found) {
+            console.log(actualEvent);
+            throw new Error('Could not find matching expected event');
           }
-        });
-        if (!found) {
-          // console.log(actualEvent);
-          throw new Error('Could not find matching expected event');
         }
         currentExpected = currentExpected.slice(i);
         currentActual = currentActual.slice(i);
@@ -484,6 +482,8 @@ export class SyncPointTestParser {
         } else {
           events = syncTreeApplyServerOverwrite(this.syncTree_, path, update);
         }
+        console.log('spec events', spec.events);
+        console.log('events', events);
         eventSetMatch(spec.events, events);
       } else if (spec.type === 'serverMerge') {
         checkValidProperties(spec, ['type', 'path', 'data', 'tag', 'events']);
