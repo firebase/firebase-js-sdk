@@ -1399,7 +1399,68 @@ apiDescribe('Validation:', (persistence: boolean) => {
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
+
+      // Multiple top level composite filters
+      expect(() =>
+        // @ts-ignore
+        query(coll, and(where('a', '==', 'b')), or(where('b', '==', 'a')))
+      ).to.throw(
+        'InvalidQuery. When using composite filters, you cannot use ' +
+          'more than one filter at the top level. Consider nesting the multiple ' +
+          'filters within an `and(...)` statement. For example: ' +
+          'change `where(query, where(...), or(...))` to ' +
+          '`where(query, and(where(...), or(...)))`.'
+      );
+
+      // Once top level composite filter and one top level field filter
+      expect(() =>
+        // @ts-ignore
+        query(coll, or(where('a', '==', 'b')), where('b', '==', 'a'))
+      ).to.throw(
+        'InvalidQuery. When using composite filters, you cannot use ' +
+          'more than one filter at the top level. Consider nesting the multiple ' +
+          'filters within an `and(...)` statement. For example: ' +
+          'change `where(query, where(...), or(...))` to ' +
+          '`where(query, and(where(...), or(...)))`.'
+      );
     });
+
+    validationIt(
+      persistence,
+      'passing non-filters to composite operators fails',
+      db => {
+        const compositeOperators = [
+          { name: 'or', func: or },
+          { name: 'and', func: and }
+        ];
+        const nonFilterOps = [
+          limit(1),
+          limitToLast(2),
+          startAt(1),
+          startAfter(1),
+          endAt(1),
+          endBefore(1),
+          orderBy('a')
+        ];
+
+        for (const compositeOp of compositeOperators) {
+          for (const nonFilterOp of nonFilterOps) {
+            const coll = collection(db, 'test');
+            expect(() =>
+              query(
+                coll,
+                compositeOp.func(
+                  // @ts-ignore
+                  nonFilterOp
+                )
+              )
+            ).to.throw(
+              `Function ${compositeOp.name}() requires AppliableConstraints created with a call to 'where(...)', 'or(...)', or 'and(...)'.`
+            );
+          }
+        }
+      }
+    );
   });
 });
 

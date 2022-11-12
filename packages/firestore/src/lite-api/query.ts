@@ -168,9 +168,11 @@ export function query<T>(
 
   if (nonFilters !== undefined) {
     queryConstraints = queryConstraints.concat(
-      nonFilters as QueryNonFilterConstraint[]
+      nonFilters as AppliableConstraint[]
     );
   }
+
+  validateQueryConstraintArray(queryConstraints);
 
   for (const constraint of queryConstraints) {
     query = constraint._apply(query);
@@ -1214,7 +1216,32 @@ export function validateQueryFilterConstraint(
   ) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires AppliableContraints created with a call to 'where(...)', 'or(...)', or 'and(...)'.`
+      `Function ${functionName}() requires AppliableConstraints created with a call to 'where(...)', 'or(...)', or 'and(...)'.`
+    );
+  }
+}
+
+function validateQueryConstraintArray(
+  queryConstraint: AppliableConstraint[]
+): void {
+  const compositeFilterCount = queryConstraint.filter(
+    filter => filter instanceof QueryCompositeFilterConstraint
+  ).length;
+  const fieldFilterCount = queryConstraint.filter(
+    filter => filter instanceof QueryFieldFilterConstraint
+  ).length;
+
+  if (
+    compositeFilterCount > 1 ||
+    (compositeFilterCount > 0 && fieldFilterCount > 0)
+  ) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'InvalidQuery. When using composite filters, you cannot use ' +
+        'more than one filter at the top level. Consider nesting the multiple ' +
+        'filters within an `and(...)` statement. For example: ' +
+        'change `where(query, where(...), or(...))` to ' +
+        '`where(query, and(where(...), or(...)))`.'
     );
   }
 }
