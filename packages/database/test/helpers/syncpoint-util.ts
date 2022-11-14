@@ -229,22 +229,7 @@ export class SyncPointTestParser {
       }
     };
 
-    const EVENT_ORDERING = [
-      'child_removed',
-      'child_added',
-      'child_moved',
-      'child_changed',
-      'value'
-    ];
-    const assertEventsOrdered = function (e1, e2) {
-      const idx1 = EVENT_ORDERING.indexOf(e1);
-      const idx2 = EVENT_ORDERING.indexOf(e2);
-      if (idx1 > idx2) {
-        throw new Error('Received ' + e2 + ' after ' + e1);
-      }
-    };
-
-    const eventSetMatch = (expected, actual) => {
+    const eventSetMatch = (expected: any, actual: DataEvent[]) => {
       // don't worry about order for now
       if (expected.length !== actual.length) {
         throw new Error('Mismatched lengths');
@@ -294,28 +279,10 @@ export class SyncPointTestParser {
         const actualSlice = currentActual.slice(0, i);
 
         // foreach in actual, stack up to enforce ordering, find in expected
-        const actualMap = {};
         for (let x = 0; x < actualSlice.length; ++x) {
-          let actualEvent = actualSlice[x];
-          const spec = currentSpec;
-          let listenId =
-            this.getTestPath(optBasePath, spec.path).toString() +
-            '|' +
-            spec.ref._queryIdentifier;
-          if (listenId in actualMap) {
-            // stack this event up, and make sure it obeys ordering constraints
-            let eventStack = actualMap[listenId];
-            assertEventsOrdered(
-              eventStack[eventStack.length - 1].eventType,
-              actualEvent.eventType
-            );
-            eventStack.push(actualEvent);
-          } else {
-            // this is the first event for this listen, just initialize it
-            actualMap[listenId] = [actualEvent];
-          }
+          const actualEvent = actualSlice[x];
           // Ordering has been enforced, make sure we can find this in the expected events
-          let found = removeIf(expectedSlice, expectedEvent => {
+          const found = removeIf(expectedSlice, expectedEvent => {
             checkValidProperties(expectedEvent, [
               'type',
               'path',
@@ -336,15 +303,14 @@ export class SyncPointTestParser {
                 }
               }
               // make sure the snapshots match
-              let snapHash = actualEvent.snapshot._node.hash();
-              let expectedHash = nodeFromJSON(expectedEvent.data).hash();
+              const snapHash = actualEvent.snapshot._node.hash();
+              const expectedHash = nodeFromJSON(expectedEvent.data).hash();
               return snapHash === expectedHash;
             } else {
               return false;
             }
           });
           if (!found) {
-            console.log(actualEvent);
             throw new Error('Could not find matching expected event');
           }
         }
@@ -482,8 +448,6 @@ export class SyncPointTestParser {
         } else {
           events = syncTreeApplyServerOverwrite(this.syncTree_, path, update);
         }
-        console.log('spec events', spec.events);
-        console.log('events', events);
         eventSetMatch(spec.events, events);
       } else if (spec.type === 'serverMerge') {
         checkValidProperties(spec, ['type', 'path', 'data', 'tag', 'events']);
