@@ -4272,6 +4272,58 @@
     ]
   },
   {
+    "name": "Queries with startAfter, endBefore, and orderByChild work",
+    "steps":
+    [
+      {
+        "type": "listen",
+        "path": "",
+        "params": {
+          "tag": 1,
+          "orderBy": "foo/index",
+          "startAfter": { "index": 1, "name": "foo" },
+          "endBefore": { "index": 10, "name": "foo" }
+        },
+        "events": []
+      },
+      {
+        ".comment": "update from server sends all data",
+        "type": "serverUpdate",
+        "path": "",
+        "data": {
+          "a": { "foo": { "index": 0, "value": "a" } },
+          "b": { "foo": { "index": 2, "value": "b" } },
+          "c": { "foo": { "index": 9, "value": "c" } },
+          "d": { "foo": { "index": 11, "value": "d" } }
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "b",
+            "prevName": null,
+            "data": { "foo": { "index": 2, "value": "b" } }
+          },
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "c",
+            "prevName": "b",
+            "data": { "foo": { "index": 9, "value": "c" } }
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "b": { "foo": { "index": 2, "value": "b" } },
+              "c": { "foo": { "index": 9, "value": "c" } }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "Queries indexed by key with startAfter, endBefore, and limitToFirst work",
     "steps":
     [
