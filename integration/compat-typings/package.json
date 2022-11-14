@@ -10,6 +10,6 @@
     "firebase": "*"
   },
   "devDependencies": {
-    "typescript": "4.2.2"
+    "typescript": "4.7.4"
   }
 }
