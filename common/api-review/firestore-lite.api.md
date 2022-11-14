@@ -18,9 +18,6 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 };
 
 // @public
-export function and(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
-
-// @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
 
 // @public
@@ -204,9 +201,6 @@ export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToInter
 }[keyof T & string]>;
 
 // @public
-export function or(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
-
-// @public
 export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryOrderByConstraint;
 
 // @public
@@ -231,15 +225,7 @@ export class Query<T = DocumentData> {
 }
 
 // @public
-export function query<T>(query: Query<T>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<T>;
-
-// @public
 export function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
-
-// @public
-export class QueryCompositeFilterConstraint {
-    readonly type: 'or' | 'and';
-}
 
 // @public
 export abstract class QueryConstraint {
@@ -267,9 +253,6 @@ export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
 export class QueryFieldFilterConstraint extends QueryConstraint {
     readonly type = "where";
 }
-
-// @public
-export type QueryFilterConstraint = QueryFieldFilterConstraint | QueryCompositeFilterConstraint;
 
 // @public
 export class QueryLimitConstraint extends QueryConstraint {

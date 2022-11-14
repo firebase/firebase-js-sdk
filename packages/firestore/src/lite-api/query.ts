@@ -130,6 +130,7 @@ export abstract class QueryConstraint extends AppliableConstraint {
  * apply (e.g. {@link orderBy}, {@link limit}).
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
+ * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function query<T>(
   query: Query<T>,
@@ -280,6 +281,7 @@ export function where(
  * `QueryCompositeFilterConstraint`s are created by invoking {@link or} or
  * {@link and} and can then be passed to {@link query} to create a new query
  * instance that also contains the `QueryCompositeFilterConstraint`.
+ * @internal TODO remove this internal tag with OR Query support in the server
  */
 export class QueryCompositeFilterConstraint extends AppliableConstraint {
   /**
@@ -360,6 +362,7 @@ export type QueryNonFilterConstraint =
  * `QueryFilterConstraint`s are created by invoking {@link or} or {@link and}
  * and can then be passed to {@link query} to create a new query instance that
  * also contains the `QueryConstraint`.
+ * @internal TODO remove this internal tag with OR Query support in the server
  */
 export type QueryFilterConstraint =
   | QueryFieldFilterConstraint
@@ -373,6 +376,7 @@ export type QueryFilterConstraint =
  * for OR operation. These must be created with calls to {@link where},
  * {@link or}, or {@link and}.
  * @returns The created {@link QueryCompositeFilterConstraint}.
+ * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function or(
   ...queryConstraints: QueryFilterConstraint[]
@@ -396,6 +400,7 @@ export function or(
  * for AND operation. These must be created with calls to {@link where},
  * {@link or}, or {@link and}.
  * @returns The created {@link QueryCompositeFilterConstraint}.
+ * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function and(
   ...queryConstraints: QueryFilterConstraint[]
