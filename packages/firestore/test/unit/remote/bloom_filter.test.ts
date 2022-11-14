@@ -14,20 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- import { expect } from 'chai';
+import { expect } from 'chai';
 
- import { BloomFilter, isBigEndian, md5HashStringToHex,
-   } from '../../../src/remote/bloom_filter';
+import {
+  isBigEndian,
+  md5HashStringToHex
+} from '../../../src/remote/bloom_filter';
 
- describe('BloomFilter', () => {
-    it.only('md5Hash', () => {
-      expect(isBigEndian()).to.be.false;
-      expect(md5HashStringToHex("hi")).to.equal('49f68a5c8493ec2c0bf489821c21fc3b');
-    
-    });
-
-
-
+describe('BloomFilter', () => {
+  it.only('md5Hash', () => {
+    expect(isBigEndian()).to.be.false;
+    expect(md5HashStringToHex('hi')).to.equal(
+      '49f68a5c8493ec2c0bf489821c21fc3b'
+    );
   });
-
-
+});

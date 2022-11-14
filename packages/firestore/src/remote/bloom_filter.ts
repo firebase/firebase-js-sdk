@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- import MD5 from 'md5.js'
+// @ts-ignore
+import MD5 from 'md5.js';
 
 interface BitSequence {
   bitmap: string;
@@ -22,7 +23,7 @@ interface BitSequence {
 }
 
 export class BloomFilter {
-  private readonly bitmap: String;
+  private readonly bitmap: string;
   private readonly bitSize: number;
 
   constructor(readonly bits: BitSequence, private readonly hashCount: number) {
@@ -30,16 +31,14 @@ export class BloomFilter {
     this.bitSize = this.bitmap.length * 8 - bits.padding;
   }
 
-  public mightContain(document: string): Boolean {
+  mightContain(document: string): boolean {
     //hash the string using md5
     const hash64 = md5HashStringToHex(document);
     let hash1 = hash64.slice(0, 16);
     let hash2 = hash64.slice(16);
-    console.log(isBigEndian());
-
 
     for (let i = 0; i <= this.hashCount; i++) {
-      let combinedHash = parseInt(hash1) + i * parseInt(hash2);
+      let combinedHash = parseInt(hash1, 10) + i * parseInt(hash2, 10);
       // Flip all the bits if it's negative (guaranteed positive number)
       if (combinedHash < 0) {
         combinedHash = ~combinedHash;
@@ -58,8 +57,8 @@ export function md5HashStringToHex(document: string): string {
 }
 
 export function isBigEndian(): boolean {
-  let uInt32 = new Uint32Array([0x12345678]);
-  let uInt8 = new Uint8Array(uInt32.buffer);
+  const uInt32 = new Uint32Array([0x12345678]);
+  const uInt8 = new Uint8Array(uInt32.buffer);
 
   if (uInt8[0] === 0x78) {
     return false;
