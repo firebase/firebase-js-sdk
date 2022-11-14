@@ -393,7 +393,7 @@ export class IndexedDbTargetCache implements TargetCache {
     targetId: TargetId
   ): PersistencePromise<TargetAggregationResult | undefined> {
     return targetAggregationStore(transaction)
-      .get([targetId])
+      .get(targetId)
       .next(result => {
         if (!result) {
           return undefined;
@@ -418,7 +418,7 @@ export class IndexedDbTargetCache implements TargetCache {
     readTime: SnapshotVersion,
     localAggregateMatches: EncodedResourcePath[]
   ): PersistencePromise<void> {
-    return targetAggregationStore(transaction).put([targetId], {
+    return targetAggregationStore(transaction).put({
       targetId,
       readTime: {
         seconds: readTime.toTimestamp().seconds,

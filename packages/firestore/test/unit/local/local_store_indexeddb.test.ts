@@ -39,6 +39,7 @@ import {
   localStoreConfigureFieldIndexes,
   localStoreExecuteAggregateQuery,
   localStoreExecuteQuery,
+  localStoreWriteCount,
   localStoreWriteLocally,
   newLocalStore
 } from '../../../src/local/local_store_impl';
@@ -110,10 +111,11 @@ class AsyncLocalStoreTester {
   }
 
   async executeAggregateQuery(
+    targetId: TargetId,
     query: AggregateQuery
   ): Promise<AggregateQueryResult> {
     this.prepareNextStep();
-    return localStoreExecuteAggregateQuery(this.localStore, query);
+    return localStoreExecuteAggregateQuery(this.localStore, targetId, query);
   }
 
   async allocateQuery(query: Query): Promise<TargetId> {
@@ -132,6 +134,11 @@ class AsyncLocalStoreTester {
       this.localStore,
       remoteEvent
     );
+  }
+
+  async writeCount(targetId: number, count: number, readTime: SnapshotVersion) {
+    this.prepareNextStep();
+    await localStoreWriteCount(this.localStore, targetId, count, readTime);
   }
 
   async writeMutations(...mutations: Mutation[]): Promise<void> {
@@ -482,7 +489,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   }
   //// END HACK ////
 
-  it('Can run aggregate query without filters', async () => {
+  it.only('Can run aggregate query without filters', async () => {
     const queryMatches = query('coll');
     const targetId = await test.allocateQuery(queryMatches);
     const docA = doc('coll/a', 10, { matches: true });
@@ -494,6 +501,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     );
 
     const result = await test.executeAggregateQuery(
+      targetId,
       new AggregateQuery(queryMatches)
     );
 
@@ -515,7 +523,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     );
   });
 
-  it('Can run aggregate query with filters', async () => {
+  it.only('Can run aggregate query with filters', async () => {
     const queryMatches = query('coll', filter('matches', '==', true));
     const targetId = await test.allocateQuery(queryMatches);
     const docA = doc('coll/a', 10, { matches: true });
@@ -525,6 +533,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.applyRemoteEvent(docAddedRemoteEvent([docB]));
 
     const result = await test.executeAggregateQuery(
+      targetId,
       new AggregateQuery(queryMatches)
     );
 
@@ -545,7 +554,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     );
   });
 
-  it('Can run aggregate query when remote matches and local does not', async () => {
+  it.only('Can run aggregate query when remote matches and local does not', async () => {
     const queryMatches = query('coll', filter('matches', '==', true));
     const targetId = await test.allocateQuery(queryMatches);
     const docA = doc('coll/a', 10, { matches: true });
@@ -556,6 +565,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.writeMutations(setMutation('coll/a', { foo: 'bar' }));
 
     const result = await test.executeAggregateQuery(
+      targetId,
       new AggregateQuery(queryMatches)
     );
 
@@ -579,6 +589,25 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     );
   });
 
+  it.only('Can run aggregate query with cached count', async () => {
+    const queryMatches = query('coll', filter('matches', '==', true));
+    const targetId = await test.allocateQuery(queryMatches);
+    const docA = doc('coll/a', 10, { matches: true });
+    const docB = doc('coll/b', 10, { matches: false });
+    const docC = doc('coll/c', 10, { matches: true });
+    await test.applyRemoteEvent(docAddedRemoteEvent([docA, docC], [targetId]));
+
+    await test.writeCount(targetId, 2022, version(3));
+
+    const result = await test.executeAggregateQuery(
+      targetId,
+      new AggregateQuery(queryMatches)
+    );
+
+    expect(result.cachedCount).to.equal(2022);
+    expect(result.cachedCountReadTime.isEqual(version(3))).to.be.true;
+  });
+
   it.only('Can run aggregate query when local matches and remote does not', async () => {
     const queryMatches = query('coll', filter('matches', '==', true));
     const targetId = await test.allocateQuery(queryMatches);
@@ -597,6 +626,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.writeMutations(patchMutation('coll/b', { matches: true }));
 
     const result = await test.executeAggregateQuery(
+      targetId,
       new AggregateQuery(queryMatches)
     );
 

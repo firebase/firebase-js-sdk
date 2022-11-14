@@ -373,9 +373,9 @@ export const DbDocumentOverlayCollectionGroupOverlayIndexPath = [
 
 export const DbTargetAggregationStore = 'targetAggregation';
 
-export type DbTargetAggregationKey = [TargetId];
+export type DbTargetAggregationKey = TargetId;
 
-export const DbTargetAggregationKeyPath = ['targetId'];
+export const DbTargetAggregationKeyPath = 'targetId';
 
 // Visible for testing
 export const V1_STORES = [

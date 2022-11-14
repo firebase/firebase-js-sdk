@@ -231,7 +231,8 @@ function genericQueryEngineTest(
               txn,
               query,
               lastLimboFreeSnapshot,
-              remoteKeys
+              remoteKeys,
+              undefined
             )
             .next(docs => {
               const view = new View(query, remoteKeys);

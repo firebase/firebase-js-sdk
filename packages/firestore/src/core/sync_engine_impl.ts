@@ -93,6 +93,7 @@ import {
 } from './event_manager';
 import { ListenSequence } from './listen_sequence';
 import {
+  AggregateQuery as InternalAggregateQuery,
   canonifyQuery,
   LimitType,
   newQuery,
@@ -456,7 +457,16 @@ export async function syncEngineListenAggregate(
   query: AggregateQuery
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  await localStoreExecuteAggregateQuery(syncEngineImpl.localStore, query);
+  const internalQuery = new InternalAggregateQuery(query._baseQuery._query);
+  const targetData = await localStoreAllocateTarget(
+    syncEngineImpl.localStore,
+    queryToTarget(internalQuery._baseQuery)
+  );
+  await localStoreExecuteAggregateQuery(
+    syncEngineImpl.localStore,
+    targetData.targetId,
+    internalQuery
+  );
   // TODO: Build the snapshot
   return new AggregateQuerySnapshot<{ count: AggregateField<number> }>(
     query._baseQuery,

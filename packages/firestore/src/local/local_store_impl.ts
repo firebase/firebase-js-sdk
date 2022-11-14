@@ -314,6 +314,29 @@ export async function localStoreHandleUserChange(
   return result;
 }
 
+export function localStoreWriteCount(
+  localStore: LocalStore,
+  targetId: number,
+  count: number,
+  readTime: SnapshotVersion
+): Promise<void> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
+  return localStoreImpl.persistence.runTransaction(
+    'Write count',
+    'readwrite',
+    txn => {
+      return localStoreImpl.targetCache.saveTargetAggregation(
+        txn,
+        targetId,
+        { aggregateFields: { count: { integerValue: count } } },
+        readTime,
+        []
+      );
+    }
+  );
+}
+
 /* Accepts locally generated Mutations and commit them to storage. */
 export function localStoreWriteLocally(
   localStore: LocalStore,
@@ -1146,6 +1169,7 @@ export interface AggregateQueryResult {
 
 export async function localStoreExecuteAggregateQuery(
   localStore: LocalStore,
+  targetId: TargetId,
   query: AggregateQuery
 ): Promise<AggregateQueryResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
@@ -1171,7 +1195,7 @@ export async function localStoreExecuteAggregateQuery(
         context
       ).next(result => {
         return localStoreImpl.targetCache
-          .getTargetAggregation(txn, 8)
+          .getTargetAggregation(txn, targetId)
           .next(aggr => {
             if (!aggr) {
               return {
@@ -1187,7 +1211,7 @@ export async function localStoreExecuteAggregateQuery(
               documentResult: result,
               matchesWithoutMutation: documentKeySet(...context.remoteMatches),
               cachedCount: normalizeNumber(
-                aggr.result.aggregateFields![0].integerValue
+                aggr.result.aggregateFields!['count'].integerValue
               ),
               cachedCountReadTime: SnapshotVersion.fromTimestamp(
                 aggr.readTime.toTimestamp()
