@@ -231,7 +231,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     hashCount?: number;
   }
   interface BitSequence {
-    bitmap?: string;
+    bitmap?: string | Uint8Array;
     padding?: number;
   }
   interface FieldFilter {
@@ -391,7 +391,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     readTime?: Timestamp;
     targetId?: number;
     once?: boolean;
-    expectedCount?: number | { value: number };
+    expectedCount?: number;
   }
   interface TargetChange {
     targetChangeType?: TargetChangeTargetChangeType;
