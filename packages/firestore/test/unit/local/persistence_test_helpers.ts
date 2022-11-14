@@ -116,7 +116,9 @@ export async function testIndexedDbPersistence(
     /** forceOwningTab= */ false,
     options.schemaVersion
   );
+  console.log(`Before start`);
   await persistence.start();
+  console.log(`after start`);
   return persistence;
 }
 

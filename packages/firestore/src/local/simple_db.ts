@@ -19,7 +19,7 @@ import { getUA, isIndexedDBAvailable } from '@firebase/util';
 
 import { debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
+import { logDebug, logError, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 
 import { PersistencePromise } from './persistence_promise';
@@ -163,7 +163,9 @@ export class SimpleDb {
   /** Deletes the specified database. */
   static delete(name: string): Promise<void> {
     logDebug(LOG_TAG, 'Removing database:', name);
-    return wrapRequest<void>(window.indexedDB.deleteDatabase(name)).toPromise();
+    console.log(LOG_TAG, 'Window:', window);
+    return Promise.resolve();
+    // return wrapRequest<void>(window.indexedDB.deleteDatabase(name)).toPromise();
   }
 
   /** Returns true if IndexedDB is available in the current environment. */
@@ -303,8 +305,8 @@ export class SimpleDb {
         // differently. They expect setVersion, as described here:
         // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
         const request = indexedDB.open(this.name, this.version);
-
         request.onsuccess = (event: Event) => {
+          console.log('DB opened');
           const db = (event.target as IDBOpenDBRequest).result;
           resolve(db);
         };
@@ -321,6 +323,7 @@ export class SimpleDb {
 
         request.onerror = (event: Event) => {
           const error: DOMException = (event.target as IDBOpenDBRequest).error!;
+          console.log(`Open failed with ${error}`);
           if (error.name === 'VersionError') {
             reject(
               new FirestoreError(
@@ -895,6 +898,7 @@ export class SimpleDbStore<
 function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
   return new PersistencePromise<R>((resolve, reject) => {
     request.onsuccess = (event: Event) => {
+      console.log(`onsuccess called`);
       const result = (event.target as IDBRequest).result;
       resolve(result);
     };

@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { serverTimestamp, Timestamp } from '../../../src';
+import { serverTimestamp, setLogLevel, Timestamp } from '../../../src';
 import { User } from '../../../src/auth/user';
 import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 import {
@@ -179,9 +179,11 @@ class AsyncLocalStoreTester {
   }
 }
 
-describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
+describe.only('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   let persistence: Persistence;
   let test: AsyncLocalStoreTester;
+
+  setLogLevel('debug');
 
   beforeEach(async () => {
     const queryEngine = new CountingQueryEngine();

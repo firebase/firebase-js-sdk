@@ -68,6 +68,7 @@ if (argv.persistence) {
 }
 
 if (argv.pg) {
+  console.log(`Running with PG persistence.`);
   process.env.USE_PG_PERSISTENCE = 'YES';
   args.push('--require', 'test/util/node_pg_persistence.ts');
 }

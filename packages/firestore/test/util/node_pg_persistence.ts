@@ -15,29 +15,58 @@
  * limitations under the License.
  */
 
-import * as fs from 'fs';
-import * as os from 'os';
+import { Client } from 'pg';
 
 import { FakeWindow, SharedFakeWebStorage } from './test_platform';
+import { logDebug } from '../../src/util/log';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalAny = global as any;
 
-class PgOpenDBRequest extends IDBOpenDBRequest {
+// class PgOpenDBRequest extends IDBOpenDBRequest {}
+type PgOpenDBRequest = {};
 
+class PgFactory {
+  open(name: string, version?: number): PgOpenDBRequest {
+    const request: any = {};
+
+    // Open PG connection here!
+    const pgClient = new Client({ database: `db-${name}-ver-${version}` });
+    pgClient
+      .connect()
+      .then(() => {
+        logDebug('PG', `PG open ok`);
+        request.result = new PgDatabase();
+        if (request.onsuccess) {
+          request.onsuccess({ target: request } as any);
+        }
+      })
+      .catch(e => {
+        logDebug('PG', `PG open failed with ${e}`);
+        request.error = new DOMException(`PG IDB failed with ${e}`, `PG IDB`);
+        if (request.onerror) {
+          request.onerror({ target: request } as any);
+        }
+      });
+
+    return request;
+  }
+
+  deleteDatabase(name: string): PgOpenDBRequest {
+    const request: any = {};
+    request.result = {};
+
+    if (request.onsuccess) {
+      request.onsuccess({ target: request } as any);
+    }
+
+    return request;
+  }
 }
 
-class PgFactory extends IDBFactory {
-  open(name:string, version?:number): IDBOpenDBRequest {
-    return new PgOpenDBRequest();
-  }
-  
-  deleteDatabase(name: string): IDBOpenDBRequest {
-    return new PgOpenDBRequest();
-  }
-}
+class PgDatabase {}
 
-class PgDatabase extends IDBDatabase {}
+/*
 class PgTransaction extends IDBTransaction {}
 type PgTransactionMode = IDBTransactionMode;
 type PgRequest = IDBRequest;
@@ -48,9 +77,10 @@ type PgCursorWithValue = IDBCursorWithValue;
 type PgObjectStore = IDBObjectStore;
 type PgCursorDirection = IDBCursorDirection;
 type PgKeyRange = IDBKeyRange;
+ */
 
 function registerIndexedDBPGShim(conn: string) {
-  globalAny.indexDB = new PgFactory();
+  globalAny.indexedDB = new PgFactory();
 }
 
 if (process.env.USE_PG_PERSISTENCE === 'YES') {

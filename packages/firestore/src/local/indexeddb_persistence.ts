@@ -267,6 +267,7 @@ export class IndexedDbPersistence implements Persistence {
     // do.
     return this.updateClientMetadataAndTryBecomePrimary()
       .then(() => {
+        console.log(`Updated client metadata`);
         if (!this.isPrimary && !this.allowTabSynchronization) {
           // Fail `start()` if `synchronizeTabs` is disabled and we cannot
           // obtain the primary lease.
@@ -280,6 +281,7 @@ export class IndexedDbPersistence implements Persistence {
 
         this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
+        console.log(`trying to run transaction`);
         return this.runTransaction(
           'getHighestListenSequenceNumber',
           'readonly',
@@ -287,6 +289,7 @@ export class IndexedDbPersistence implements Persistence {
         );
       })
       .then(highestListenSequenceNumber => {
+        console.log(`Transaction run`);
         this.listenSequence = new ListenSequence(
           highestListenSequenceNumber,
           this.sequenceNumberSyncer

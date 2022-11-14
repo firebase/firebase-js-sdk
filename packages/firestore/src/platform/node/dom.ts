@@ -17,7 +17,10 @@
 
 /** The Platform's 'window' implementation or null if not available. */
 export function getWindow(): Window | null {
-  if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+  if (
+    process.env.USE_MOCK_PERSISTENCE === 'YES' ||
+    process.env.USE_PG_PERSISTENCE === 'YES'
+  ) {
     // eslint-disable-next-line no-restricted-globals
     return window;
   }
