@@ -228,6 +228,20 @@ export class SyncPointTestParser {
         }
       }
     };
+    const EVENT_ORDERING = [
+      'child_removed',
+      'child_added',
+      'child_moved',
+      'child_changed',
+      'value'
+    ];
+    const assertEventsOrdered = function (e1, e2) {
+      const idx1 = EVENT_ORDERING.indexOf(e1);
+      const idx2 = EVENT_ORDERING.indexOf(e2);
+      if (idx1 > idx2) {
+        throw new Error('Received ' + e2 + ' after ' + e1);
+      }
+    };
 
     const eventSetMatch = (expected: any, actual: DataEvent[]) => {
       // don't worry about order for now
@@ -277,10 +291,28 @@ export class SyncPointTestParser {
         // Step 3: slice each array
         const expectedSlice = currentExpected.slice(0, i);
         const actualSlice = currentActual.slice(0, i);
-
+        const actualMap = {};
         // foreach in actual, stack up to enforce ordering, find in expected
         for (let x = 0; x < actualSlice.length; ++x) {
           const actualEvent = actualSlice[x];
+          actualEvent.eventRegistration.getEventRunner(actualEvent)();
+          const spec = currentSpec;
+          const listenId =
+            this.getTestPath(optBasePath, spec.path).toString() +
+            '|' +
+            spec.ref._queryIdentifier;
+          if (listenId in actualMap) {
+            // stack this event up, and make sure it obeys ordering constraints
+            const eventStack = actualMap[listenId];
+            assertEventsOrdered(
+              eventStack[eventStack.length - 1].eventType,
+              actualEvent.eventType
+            );
+            eventStack.push(actualEvent);
+          } else {
+            // this is the first event for this listen, just initialize it
+            actualMap[listenId] = [actualEvent];
+          }
           // Ordering has been enforced, make sure we can find this in the expected events
           const found = removeIf(expectedSlice, expectedEvent => {
             checkValidProperties(expectedEvent, [
