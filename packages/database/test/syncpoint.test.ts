@@ -23,8 +23,6 @@ describe('Syncpoint Tests', () => {
   const util = new SyncPointTestParser();
   for (let i = 0; i < syncPointSpecs.length; i++) {
     const spec = syncPointSpecs[i];
-    // if(spec.name === 'Update (via set) the child of a co-located default listener and query') {
     util.defineTest(spec);
-    // }
   }
 });
