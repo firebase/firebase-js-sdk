@@ -383,7 +383,7 @@ describe('api/_performApiRequest', () => {
         );
         assert.fail('Call should have failed');
       } catch (e) {
-        expect(e.code).to.eq(`auth/${AuthErrorCode.NEED_CONFIRMATION}`);
+        expect((e as FirebaseError).code).to.eq(`auth/${AuthErrorCode.NEED_CONFIRMATION}`);
         expect((e as FirebaseError).customData!._tokenResponse).to.eql({
           needConfirmation: true,
           idToken: 'id-token'
@@ -413,7 +413,7 @@ describe('api/_performApiRequest', () => {
         );
         assert.fail('Call should have failed');
       } catch (e) {
-        expect(e.code).to.eq(`auth/${AuthErrorCode.CREDENTIAL_ALREADY_IN_USE}`);
+        expect((e as FirebaseError).code).to.eq(`auth/${AuthErrorCode.CREDENTIAL_ALREADY_IN_USE}`);
         expect((e as FirebaseError).customData!._tokenResponse).to.eql(
           response
         );
@@ -444,7 +444,7 @@ describe('api/_performApiRequest', () => {
         );
         assert.fail('Call should have failed');
       } catch (e) {
-        expect(e.code).to.eq(`auth/${AuthErrorCode.EMAIL_EXISTS}`);
+        expect((e as FirebaseError).code).to.eq(`auth/${AuthErrorCode.EMAIL_EXISTS}`);
         expect((e as FirebaseError).customData!.email).to.eq('email@test.com');
         expect((e as FirebaseError).customData!.phoneNumber).to.eq(
           '+1555-this-is-a-number'

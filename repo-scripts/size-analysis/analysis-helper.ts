@@ -263,7 +263,7 @@ export function extractExports(filePath: string): MemberList {
   for (const expt of exports) {
     // get the source declaration where we can determine the type of the export. e.g. class vs function
     let sourceSymbol = expt;
-    if (sourceSymbol.declarations[0].kind === ts.SyntaxKind.ExportSpecifier) {
+    if (sourceSymbol.declarations?.[0].kind === ts.SyntaxKind.ExportSpecifier) {
       sourceSymbol = checker.getAliasedSymbol(expt);
     }
 
