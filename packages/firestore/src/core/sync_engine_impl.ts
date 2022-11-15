@@ -462,15 +462,38 @@ export async function syncEngineListenAggregate(
     syncEngineImpl.localStore,
     queryToTarget(internalQuery._baseQuery)
   );
-  await localStoreExecuteAggregateQuery(
+
+  const result = await localStoreExecuteAggregateQuery(
     syncEngineImpl.localStore,
     targetData.targetId,
     internalQuery
   );
-  // TODO: Build the snapshot
+
+  let delta = 0;
+  let plusZeros = documentKeySet();
+  result.documentResult.documents.forEach((k, doc) => {
+    // Special case: if count cache contains nothing (cachedCountReadTime will be 0
+    // Special case: if document createTime is zero (old sdk versions don't store the createTime)
+    if (
+      doc.createTime.isEqual(SnapshotVersion.min()) &&
+      result.cachedCountReadTime.isEqual(SnapshotVersion.min())
+    ) {
+      delta += 1;
+    } else if (doc.createTime.compareTo(result.cachedCountReadTime) > 0) {
+      // Case 1
+      delta += 1;
+    } else if (!result.matchesWithoutMutation.has(k)) {
+      delta += 1;
+    } else {
+      plusZeros = plusZeros.add(k);
+    }
+  });
+
+  // TODO(COUNT): Apply +0 deltas for case #5.
+  // const case5Delta = min(plusZeros.size() - result.localAggregateMatches.size(), 0);
   return new AggregateQuerySnapshot<{ count: AggregateField<number> }>(
     query._baseQuery,
-    { count: 100 }
+    { count: result.cachedCount + delta /* + case5Delta*/ }
   );
 }
 
