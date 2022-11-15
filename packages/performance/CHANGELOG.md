@@ -1,5 +1,32 @@
 # @firebase/performance
 
+## 0.5.17
+
+### Patch Changes
+
+- [`3f1354f1f`](https://github.com/firebase/firebase-js-sdk/commit/3f1354f1f120f1fe4bcc11122a6e0b12fe3c6ac4) [#6723](https://github.com/firebase/firebase-js-sdk/pull/6723) - Expand check in `getServiceWorkerStatus` to account for a `navigator` that has a key of `serviceWorker` with a falsy value
+
+## 0.5.16
+
+### Patch Changes
+
+- [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5) [#6682](https://github.com/firebase/firebase-js-sdk/pull/6682) - Upgrade TypeScript to 4.7.4.
+
+- Updated dependencies [[`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5)]:
+  - @firebase/component@0.5.21
+  - @firebase/installations@0.5.16
+  - @firebase/logger@0.3.4
+  - @firebase/util@1.7.3
+
+## 0.5.15
+
+### Patch Changes
+
+- Updated dependencies [[`807f06aa2`](https://github.com/firebase/firebase-js-sdk/commit/807f06aa26438a91aaea08fd38efb6c706bb8a5d)]:
+  - @firebase/util@1.7.2
+  - @firebase/component@0.5.20
+  - @firebase/installations@0.5.15
+
 ## 0.5.14
 
 ### Patch Changes

@@ -1,5 +1,33 @@
 #Unreleased
 
+## 0.9.14
+
+### Patch Changes
+
+- [`8876b783f`](https://github.com/firebase/firebase-js-sdk/commit/8876b783f27ba8ba0ad0305db4812432efa17461) [#6746](https://github.com/firebase/firebase-js-sdk/pull/6746) - Fixed issue where if btoa wasn't supported in the environment, then the user would get a generic message.
+
+## 0.9.13
+
+### Patch Changes
+
+- [`de1c717c2`](https://github.com/firebase/firebase-js-sdk/commit/de1c717c2f69e9f21744135b74f92829927b200b) [#6705](https://github.com/firebase/firebase-js-sdk/pull/6705) - Fixed issue where clients using Node.js v18 would use the native `Blob` object which is incompatible with `node-fetch`
+
+- [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5) [#6682](https://github.com/firebase/firebase-js-sdk/pull/6682) - Upgrade TypeScript to 4.7.4.
+
+- Updated dependencies [[`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5)]:
+  - @firebase/component@0.5.21
+  - @firebase/util@1.7.3
+
+## 0.9.12
+
+### Patch Changes
+
+- [`5f55ed828`](https://github.com/firebase/firebase-js-sdk/commit/5f55ed828e7e7d3084590ff04d8c3e75fc718a51) [#6667](https://github.com/firebase/firebase-js-sdk/pull/6667) - Cleared retry timeouts when uploads are paused/canceled
+
+- Updated dependencies [[`807f06aa2`](https://github.com/firebase/firebase-js-sdk/commit/807f06aa26438a91aaea08fd38efb6c706bb8a5d)]:
+  - @firebase/util@1.7.2
+  - @firebase/component@0.5.20
+
 ## 0.9.11
 
 ### Patch Changes

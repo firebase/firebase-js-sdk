@@ -32,12 +32,20 @@ import '../../test/setup';
 
 describe('Firebase Performance > attribute_utils', () => {
   describe('#getServiceWorkerStatus', () => {
+    it('returns unsupported when service workers is in navigator but has a falsy value', () => {
+      stub(Api, 'getInstance').returns({
+        navigator: { serviceWorker: undefined }
+      } as unknown as Api);
+
+      expect(getServiceWorkerStatus()).to.be.eql(1 /** UNSUPPORTED */);
+    });
+
     it('returns unsupported when service workers unsupported', () => {
       stub(Api, 'getInstance').returns({
         navigator: {}
       } as unknown as Api);
 
-      expect(getServiceWorkerStatus()).to.be.eql(1);
+      expect(getServiceWorkerStatus()).to.be.eql(1 /** UNSUPPORTED */);
     });
 
     it('returns controlled when service workers controlled', () => {
@@ -49,7 +57,7 @@ describe('Firebase Performance > attribute_utils', () => {
         }
       } as unknown as Api);
 
-      expect(getServiceWorkerStatus()).to.be.eql(2);
+      expect(getServiceWorkerStatus()).to.be.eql(2 /** CONTROLLED */);
     });
 
     it('returns uncontrolled when service workers uncontrolled', () => {
@@ -59,7 +67,7 @@ describe('Firebase Performance > attribute_utils', () => {
         }
       } as unknown as Api);
 
-      expect(getServiceWorkerStatus()).to.be.eql(3);
+      expect(getServiceWorkerStatus()).to.be.eql(3 /** UNCONTROLLED */);
     });
   });
 

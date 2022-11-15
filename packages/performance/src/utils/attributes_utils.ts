@@ -59,7 +59,7 @@ const MAX_ATTRIBUTE_VALUE_LENGTH = 100;
 
 export function getServiceWorkerStatus(): ServiceWorkerStatus {
   const navigator = Api.getInstance().navigator;
-  if ('serviceWorker' in navigator) {
+  if (navigator?.serviceWorker) {
     if (navigator.serviceWorker.controller) {
       return ServiceWorkerStatus.CONTROLLED;
     } else {

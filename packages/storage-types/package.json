@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage-types",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "@firebase/storage Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
