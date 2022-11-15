@@ -237,7 +237,10 @@ describe('SwController', () => {
       if (!(Notification as unknown as NotificationExperimental).maxActions) {
         return;
       }
-      stub((Notification as unknown as NotificationExperimental), 'maxActions').value(1);
+      stub(
+        Notification as unknown as NotificationExperimental,
+        'maxActions'
+      ).value(1);
 
       const warnStub = stub(console, 'warn');
 
