@@ -125,18 +125,15 @@ export class LimitedFilter implements NodeFilter {
         let count = 0;
         while (iterator.hasNext() && count < this.limit_) {
           const next = iterator.getNext();
-          const inRange =
-            this.withinDirectionalStart(next) &&
-            this.withinDirectionalEnd(next);
-          if (inRange) {
-            filtered = filtered.updateImmediateChild(next.name, next.node);
-            count++;
-          } else if (!this.withinDirectionalStart(next)) {
+          if (!this.withinDirectionalStart(next)) {
             // if we have not reached the start, skip to the next element
             continue;
-          } else {
+          } else if (!this.withinDirectionalEnd(next)) {
             // if we have reached the end, stop adding elements
             break;
+          } else {
+            filtered = filtered.updateImmediateChild(next.name, next.node);
+            count++;
           }
         }
       } else {
@@ -300,7 +297,7 @@ export class LimitedFilter implements NodeFilter {
     this.reverse_ ? this.withinStartPost(node) : this.withinEndPost(node);
 
   private withinStartPost = (node: NamedNode) => {
-    const compareRes = this.index_.getCompare()(
+    const compareRes = this.index_.compare(
       this.rangedFilter_.getStartPost(),
       node
     );
@@ -308,7 +305,7 @@ export class LimitedFilter implements NodeFilter {
   };
 
   private withinEndPost = (node: NamedNode) => {
-    const compareRes = this.index_.getCompare()(
+    const compareRes = this.index_.compare(
       node,
       this.rangedFilter_.getEndPost()
     );

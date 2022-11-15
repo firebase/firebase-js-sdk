@@ -4216,7 +4216,7 @@
             "path": "",
             "type": "child_added",
             "name": "c",
-            "prevName": null,
+            "prevName": "b",
             "data": { "index": 9, "value": "c" }
           },
           {
@@ -4407,7 +4407,7 @@
             "path": "",
             "type": "child_added",
             "name": "d",
-            "prevName": null,
+            "prevName": "c",
             "data": { ".value": "d" }
           },
           {
