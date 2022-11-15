@@ -22,10 +22,12 @@ import {
 } from '../../../src/remote/bloom_filter';
 
 describe('BloomFilter', () => {
-  it.only('md5Hash', () => {
+  it('should create a hex-encoded MD5 hash of a string', () => {
     expect(isBigEndian()).to.be.false;
-    expect(md5HashStringToHex('hi')).to.equal(
-      '49f68a5c8493ec2c0bf489821c21fc3b'
-    );
+    expect(
+      md5HashStringToHex(
+        'projects/my-cool-project/databases/(default)/documents/MyCoolColl/MyCoolDoc'
+      )
+    ).to.equal('165f8eafe08aa55d22dac2fceda88335');
   });
 });

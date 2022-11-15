@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import MD5 from 'md5.js';
+import md5 from 'crypto-js/md5';
 
 interface BitSequence {
   bitmap: string;
@@ -34,8 +33,8 @@ export class BloomFilter {
   mightContain(document: string): boolean {
     //hash the string using md5
     const hash64 = md5HashStringToHex(document);
-    let hash1 = hash64.slice(0, 16);
-    let hash2 = hash64.slice(16);
+    const hash1 = hash64.slice(0, 16);
+    const hash2 = hash64.slice(16);
 
     for (let i = 0; i <= this.hashCount; i++) {
       let combinedHash = parseInt(hash1, 10) + i * parseInt(hash2, 10);
@@ -53,7 +52,7 @@ export class BloomFilter {
 
 //temp function for md5 hash
 export function md5HashStringToHex(document: string): string {
-  return new MD5().update(document).digest('hex');
+  return md5(document).toString();
 }
 
 export function isBigEndian(): boolean {
