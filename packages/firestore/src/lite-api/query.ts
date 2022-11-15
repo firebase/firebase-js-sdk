@@ -155,9 +155,11 @@ export function query<T>(
 
 export function query<T>(
   query: Query<T>,
-  filterOrQueryConstraint: QueryCompositeFilterConstraint | QueryConstraint | undefined,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ...nonFilters: (QueryConstraint | QueryNonFilterConstraint)[]
+  filterOrQueryConstraint:
+    | QueryCompositeFilterConstraint
+    | QueryConstraint
+    | undefined,
+  ...nonFilters: Array<QueryConstraint | QueryNonFilterConstraint>
 ): Query<T> {
   let queryConstraints: AppliableConstraint[] = [];
 
