@@ -155,23 +155,17 @@ export function query<T>(
 
 export function query<T>(
   query: Query<T>,
+  filterOrQueryConstraint: QueryCompositeFilterConstraint | QueryConstraint | undefined,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  filterOrQueryConstraints: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ...nonFilters: any
+  ...nonFilters: (QueryConstraint | QueryNonFilterConstraint)[]
 ): Query<T> {
   let queryConstraints: AppliableConstraint[] = [];
-  if (filterOrQueryConstraints instanceof AppliableConstraint) {
-    queryConstraints.push(filterOrQueryConstraints);
-  } else if (Array.isArray(filterOrQueryConstraints)) {
-    queryConstraints.concat(filterOrQueryConstraints as AppliableConstraint[]);
+
+  if (filterOrQueryConstraint instanceof AppliableConstraint) {
+    queryConstraints.push(filterOrQueryConstraint);
   }
 
-  if (nonFilters !== undefined) {
-    queryConstraints = queryConstraints.concat(
-      nonFilters as AppliableConstraint[]
-    );
-  }
+  queryConstraints = queryConstraints.concat(nonFilters);
 
   validateQueryConstraintArray(queryConstraints);
 
