@@ -207,7 +207,7 @@ describe.only('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await persistenceHelpers.clearTestPersistence();
   });
 
-  it('Adds Indexes', async () => {
+  it.only('Adds Indexes', async () => {
     const indexA = fieldIndex('coll', {
       id: 1,
       fields: [['a', IndexKind.ASCENDING]]

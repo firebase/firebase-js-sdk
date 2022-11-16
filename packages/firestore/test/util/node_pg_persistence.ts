@@ -255,15 +255,6 @@ class PgObjectStore {
   }
 }
 
-// class PgTransaction extends IDBTransaction {}
-/*
-type PgTransactionMode = IDBTransactionMode;
-type PgVersionChangeEvent = IDBVersionChangeEvent;
-type PgCursor = IDBCursor;
-type PgCursorWithValue = IDBCursorWithValue;
-type PgCursorDirection = IDBCursorDirection;
- */
-
 function registerIndexedDBPGShim(conn: string) {
   globalAny.indexedDB = new PgFactory();
 }
