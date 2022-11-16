@@ -155,19 +155,18 @@ export function query<T>(
 
 export function query<T>(
   query: Query<T>,
-  filterOrQueryConstraint:
-    | QueryCompositeFilterConstraint
-    | QueryConstraint
-    | undefined,
-  ...nonFilters: Array<QueryConstraint | QueryNonFilterConstraint>
+  queryConstraint?: QueryCompositeFilterConstraint | QueryConstraint,
+  ...additionalQueryConstraints: Array<
+    QueryConstraint | QueryNonFilterConstraint
+  >
 ): Query<T> {
   let queryConstraints: AppliableConstraint[] = [];
 
-  if (filterOrQueryConstraint instanceof AppliableConstraint) {
-    queryConstraints.push(filterOrQueryConstraint);
+  if (queryConstraint instanceof AppliableConstraint) {
+    queryConstraints.push(queryConstraint);
   }
 
-  queryConstraints = queryConstraints.concat(nonFilters);
+  queryConstraints = queryConstraints.concat(additionalQueryConstraints);
 
   validateQueryConstraintArray(queryConstraints);
 
