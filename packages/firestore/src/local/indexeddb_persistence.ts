@@ -24,7 +24,7 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
+import { logDebug, logError, logWarn } from '../util/log';
 import { DocumentLike, WindowLike } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
@@ -265,6 +265,7 @@ export class IndexedDbPersistence implements Persistence {
     // NOTE: This is expected to fail sometimes (in the case of another tab
     // already having the persistence lock), so it's the first thing we should
     // do.
+    logDebug(LOG_TAG, 'Starting persistence.');
     return this.updateClientMetadataAndTryBecomePrimary()
       .then(() => {
         console.log(`Updated client metadata`);
@@ -299,6 +300,7 @@ export class IndexedDbPersistence implements Persistence {
         this._started = true;
       })
       .catch(reason => {
+        logWarn(LOG_TAG, `Start() failed with ${reason}`);
         this.simpleDb && this.simpleDb.close();
         return Promise.reject(reason);
       });

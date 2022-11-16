@@ -377,6 +377,7 @@ export class SimpleDb {
     if (this.versionchangelistener) {
       this.db.onversionchange = event => this.versionchangelistener!(event);
     }
+    logDebug(LOG_TAG, `DB created as ${this.db}`);
     return this.db;
   }
 
