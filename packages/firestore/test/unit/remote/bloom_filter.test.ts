@@ -17,17 +17,55 @@
 import { expect } from 'chai';
 
 import {
-  isBigEndian,
+  BloomFilter,
+  changeEndianess,
   md5HashStringToHex
 } from '../../../src/remote/bloom_filter';
 
 describe('BloomFilter', () => {
   it('should create a hex-encoded MD5 hash of a string', () => {
-    expect(isBigEndian()).to.be.false;
-    expect(
-      md5HashStringToHex(
-        'projects/my-cool-project/databases/(default)/documents/MyCoolColl/MyCoolDoc'
-      )
-    ).to.equal('165f8eafe08aa55d22dac2fceda88335');
+    expect(md5HashStringToHex('abc')).to.equal(
+      '900150983cd24fb0d6963f7d28e17f72'
+    );
+  });
+
+  it('should change endianess of a hexadecimal string', () => {
+    expect(changeEndianess('0xb04fd23c98500190')).to.equal(
+      '0x900150983cd24fb0'
+    );
+  });
+
+  // Mock bancend response based on two strings "abc" and "def".
+  // bits {
+  //   bitmap: "\227\231\354t\007"
+  //   padding: 3
+  // }
+  // hash_count: 13
+
+  it('should be able to calculate the bitsize correctly', () => {
+    const bloomFilter_ = new BloomFilter(
+      { bitmap: '\x97\x99ìt\x07', padding: 3 },
+      13
+    );
+    expect(bloomFilter_.getBitSize()).to.equal(37);
+  });
+
+  it('mightContain should return true for existing document', () => {
+    const bloomFilter_ = new BloomFilter(
+      { bitmap: '\x97\x99ìt\x07', padding: 3 },
+      13
+    );
+    expect(bloomFilter_.mightContain('abc')).to.be.true;
+    expect(bloomFilter_.mightContain('def')).to.be.true;
+  });
+
+  it('mightContain should return true for non existing document', () => {
+    const bloomFilter_ = new BloomFilter(
+      { bitmap: '\x97\x99ìt\x07', padding: 3 },
+      13
+    );
+    expect(bloomFilter_.mightContain('ab')).to.be.false;
+    expect(bloomFilter_.mightContain('bc')).to.be.false;
+    expect(bloomFilter_.mightContain('xyz')).to.be.false;
   });
 });
