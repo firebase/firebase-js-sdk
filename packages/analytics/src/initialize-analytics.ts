@@ -119,8 +119,9 @@ export async function _initializeAnalytics(
     fidPromise
   ]);
 
-  // Detect if user has already put the gtag <script> tag on this page.
-  if (!findGtagScriptOnPage()) {
+  // Detect if user has already put the gtag <script> tag on this page with the passed in
+  // data layer name.
+  if (!findGtagScriptOnPage(dataLayerName)) {
     insertScriptTag(dataLayerName, dynamicConfig.measurementId);
   }
 

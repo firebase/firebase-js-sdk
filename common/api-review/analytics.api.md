@@ -421,7 +421,7 @@ export interface SettingsOptions {
 }
 
 // @public
-export function setUserId(analyticsInstance: Analytics, id: string, options?: AnalyticsCallOptions): void;
+export function setUserId(analyticsInstance: Analytics, id: string | null, options?: AnalyticsCallOptions): void;
 
 // @public
 export function setUserProperties(analyticsInstance: Analytics, properties: CustomParams, options?: AnalyticsCallOptions): void;

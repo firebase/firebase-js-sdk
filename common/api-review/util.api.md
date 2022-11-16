@@ -173,10 +173,27 @@ export function errorPrefix(fnName: string, argName: string): string;
 // @public (undocumented)
 export type Executor<T> = (observer: Observer<T>) => void;
 
+// @public
+export type ExperimentalKey = 'authTokenSyncURL' | 'authIdTokenMaxAge';
+
 // Warning: (ae-missing-release-tag) "extractQuerystring" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
 export function extractQuerystring(url: string): string;
+
+// @public
+export interface FirebaseDefaults {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    _authIdTokenMaxAge?: number;
+    // (undocumented)
+    _authTokenSyncURL?: string;
+    // (undocumented)
+    config?: Record<string, string>;
+    // (undocumented)
+    emulatorHosts?: Record<string, string>;
+}
 
 // Warning: (ae-missing-release-tag) "FirebaseError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -194,6 +211,18 @@ export class FirebaseError extends Error {
 //
 // @public
 export type FirebaseSignInProvider = 'custom' | 'email' | 'password' | 'phone' | 'anonymous' | 'google.com' | 'facebook.com' | 'github.com' | 'twitter.com' | 'microsoft.com' | 'apple.com';
+
+// @public
+export const getDefaultAppConfig: () => Record<string, string> | undefined;
+
+// @public
+export const getDefaultEmulatorHost: (productName: string) => string | undefined;
+
+// @public
+export const getDefaultEmulatorHostnameAndPort: (productName: string) => [hostname: string, port: number] | undefined;
+
+// @public
+export const getExperimentalSetting: <T extends ExperimentalKey>(name: T) => FirebaseDefaults[`_${T}`];
 
 // Warning: (ae-missing-release-tag) "getGlobal" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

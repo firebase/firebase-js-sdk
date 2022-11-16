@@ -60,22 +60,24 @@ import {
   toChangesArray,
   toDataArray,
   toIds,
+  withEmptyTestCollection,
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import { USE_EMULATOR } from '../util/settings';
 
 apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();
 
   it('can issue limit queries', () => {
     const testDocs = {
-      a: { k: 'a' },
-      b: { k: 'b' },
-      c: { k: 'c' }
+      a: {k: 'a'},
+      b: {k: 'b'},
+      c: {k: 'c'}
     };
     return withTestCollection(persistence, testDocs, collection => {
       return getDocs(query(collection, limit(2))).then(docs => {
-        expect(toDataArray(docs)).to.deep.equal([{ k: 'a' }, { k: 'b' }]);
+        expect(toDataArray(docs)).to.deep.equal([{k: 'a'}, {k: 'b'}]);
       });
     });
   });
@@ -92,17 +94,17 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can issue limit queries using descending sort order', () => {
     const testDocs = {
-      a: { k: 'a', sort: 0 },
-      b: { k: 'b', sort: 1 },
-      c: { k: 'c', sort: 1 },
-      d: { k: 'd', sort: 2 }
+      a: {k: 'a', sort: 0},
+      b: {k: 'b', sort: 1},
+      c: {k: 'c', sort: 1},
+      d: {k: 'd', sort: 2}
     };
     return withTestCollection(persistence, testDocs, collection => {
       return getDocs(query(collection, orderBy('sort', 'desc'), limit(2))).then(
         docs => {
           expect(toDataArray(docs)).to.deep.equal([
-            { k: 'd', sort: 2 },
-            { k: 'c', sort: 1 }
+            {k: 'd', sort: 2},
+            {k: 'c', sort: 1}
           ]);
         }
       );
@@ -111,18 +113,18 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can issue limitToLast queries using descending sort order', () => {
     const testDocs = {
-      a: { k: 'a', sort: 0 },
-      b: { k: 'b', sort: 1 },
-      c: { k: 'c', sort: 1 },
-      d: { k: 'd', sort: 2 }
+      a: {k: 'a', sort: 0},
+      b: {k: 'b', sort: 1},
+      c: {k: 'c', sort: 1},
+      d: {k: 'd', sort: 2}
     };
     return withTestCollection(persistence, testDocs, collection => {
       return getDocs(
         query(collection, orderBy('sort', 'desc'), limitToLast(2))
       ).then(docs => {
         expect(toDataArray(docs)).to.deep.equal([
-          { k: 'b', sort: 1 },
-          { k: 'a', sort: 0 }
+          {k: 'b', sort: 1},
+          {k: 'a', sort: 0}
         ]);
       });
     });
@@ -130,10 +132,10 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can listen to limitToLast queries', () => {
     const testDocs = {
-      a: { k: 'a', sort: 0 },
-      b: { k: 'b', sort: 1 },
-      c: { k: 'c', sort: 1 },
-      d: { k: 'd', sort: 2 }
+      a: {k: 'a', sort: 0},
+      b: {k: 'b', sort: 1},
+      c: {k: 'c', sort: 1},
+      d: {k: 'd', sort: 2}
     };
     return withTestCollection(persistence, testDocs, async collection => {
       const storeEvent = new EventsAccumulator<QuerySnapshot>();
@@ -144,15 +146,15 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       let snapshot = await storeEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'b', sort: 1 },
-        { k: 'a', sort: 0 }
+        {k: 'b', sort: 1},
+        {k: 'a', sort: 0}
       ]);
 
-      await addDoc(collection, { k: 'e', sort: -1 });
+      await addDoc(collection, {k: 'e', sort: -1});
       snapshot = await storeEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'e', sort: -1 }
+        {k: 'a', sort: 0},
+        {k: 'e', sort: -1}
       ]);
     });
   });
@@ -165,10 +167,10 @@ apiDescribe('Queries', (persistence: boolean) => {
   // limit() query, even if both queries appear separate to the user.
   it('can listen/unlisten/relisten to mirror queries', () => {
     const testDocs = {
-      a: { k: 'a', sort: 0 },
-      b: { k: 'b', sort: 1 },
-      c: { k: 'c', sort: 1 },
-      d: { k: 'd', sort: 2 }
+      a: {k: 'a', sort: 0},
+      b: {k: 'b', sort: 1},
+      c: {k: 'c', sort: 1},
+      d: {k: 'd', sort: 2}
     };
     return withTestCollection(persistence, testDocs, async collection => {
       // Setup `limit` query
@@ -188,13 +190,13 @@ apiDescribe('Queries', (persistence: boolean) => {
       // Verify both queries get expected results.
       let snapshot = await storeLimitEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'b', sort: 1 }
+        {k: 'a', sort: 0},
+        {k: 'b', sort: 1}
       ]);
       snapshot = await storeLimitToLastEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'b', sort: 1 },
-        { k: 'a', sort: 0 }
+        {k: 'b', sort: 1},
+        {k: 'a', sort: 0}
       ]);
 
       // Unlisten then relisten limit query.
@@ -207,28 +209,28 @@ apiDescribe('Queries', (persistence: boolean) => {
       // Verify `limit` query still works.
       snapshot = await storeLimitEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'b', sort: 1 }
+        {k: 'a', sort: 0},
+        {k: 'b', sort: 1}
       ]);
 
       // Add a document that would change the result set.
-      await addDoc(collection, { k: 'e', sort: -1 });
+      await addDoc(collection, {k: 'e', sort: -1});
 
       // Verify both queries get expected results.
       snapshot = await storeLimitEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'e', sort: -1 },
-        { k: 'a', sort: 0 }
+        {k: 'e', sort: -1},
+        {k: 'a', sort: 0}
       ]);
       snapshot = await storeLimitToLastEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'e', sort: -1 }
+        {k: 'a', sort: 0},
+        {k: 'e', sort: -1}
       ]);
 
       // Unlisten to limitToLast, update a doc, then relisten limitToLast.
       limitToLastUnlisten();
-      await updateDoc(doc(collection, 'a'), { k: 'a', sort: -2 });
+      await updateDoc(doc(collection, 'a'), {k: 'a', sort: -2});
       onSnapshot(
         query(collection, orderBy('sort', 'desc'), limitToLast(2)),
         storeLimitToLastEvent.storeEvent
@@ -237,64 +239,64 @@ apiDescribe('Queries', (persistence: boolean) => {
       // Verify both queries get expected results.
       snapshot = await storeLimitEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: -2 },
-        { k: 'e', sort: -1 }
+        {k: 'a', sort: -2},
+        {k: 'e', sort: -1}
       ]);
       snapshot = await storeLimitToLastEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'e', sort: -1 },
-        { k: 'a', sort: -2 }
+        {k: 'e', sort: -1},
+        {k: 'a', sort: -2}
       ]);
     });
   });
 
   it('can issue limitToLast queries with cursors', () => {
     const testDocs = {
-      a: { k: 'a', sort: 0 },
-      b: { k: 'b', sort: 1 },
-      c: { k: 'c', sort: 1 },
-      d: { k: 'd', sort: 2 }
+      a: {k: 'a', sort: 0},
+      b: {k: 'b', sort: 1},
+      c: {k: 'c', sort: 1},
+      d: {k: 'd', sort: 2}
     };
     return withTestCollection(persistence, testDocs, async collection => {
       let docs = await getDocs(
         query(collection, orderBy('sort'), endBefore(2), limitToLast(3))
       );
       expect(toDataArray(docs)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'b', sort: 1 },
-        { k: 'c', sort: 1 }
+        {k: 'a', sort: 0},
+        {k: 'b', sort: 1},
+        {k: 'c', sort: 1}
       ]);
 
       docs = await getDocs(
         query(collection, orderBy('sort'), endAt(1), limitToLast(3))
       );
       expect(toDataArray(docs)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'b', sort: 1 },
-        { k: 'c', sort: 1 }
+        {k: 'a', sort: 0},
+        {k: 'b', sort: 1},
+        {k: 'c', sort: 1}
       ]);
 
       docs = await getDocs(
         query(collection, orderBy('sort'), startAt(2), limitToLast(3))
       );
-      expect(toDataArray(docs)).to.deep.equal([{ k: 'd', sort: 2 }]);
+      expect(toDataArray(docs)).to.deep.equal([{k: 'd', sort: 2}]);
 
       docs = await getDocs(
         query(collection, orderBy('sort'), startAfter(0), limitToLast(3))
       );
       expect(toDataArray(docs)).to.deep.equal([
-        { k: 'b', sort: 1 },
-        { k: 'c', sort: 1 },
-        { k: 'd', sort: 2 }
+        {k: 'b', sort: 1},
+        {k: 'c', sort: 1},
+        {k: 'd', sort: 2}
       ]);
 
       docs = await getDocs(
         query(collection, orderBy('sort'), startAfter(-1), limitToLast(3))
       );
       expect(toDataArray(docs)).to.deep.equal([
-        { k: 'b', sort: 1 },
-        { k: 'c', sort: 1 },
-        { k: 'd', sort: 2 }
+        {k: 'b', sort: 1},
+        {k: 'c', sort: 1},
+        {k: 'd', sort: 2}
       ]);
     });
   });
@@ -340,39 +342,39 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can use unary filters', () => {
     const testDocs = {
-      a: { null: null, nan: NaN },
-      b: { null: null, nan: 0 },
-      c: { null: false, nan: NaN }
+      a: {null: null, nan: NaN},
+      b: {null: null, nan: 0},
+      c: {null: false, nan: NaN}
     };
     return withTestCollection(persistence, testDocs, coll => {
       return getDocs(
         query(coll, where('null', '==', null), where('nan', '==', NaN))
       ).then(docs => {
-        expect(toDataArray(docs)).to.deep.equal([{ null: null, nan: NaN }]);
+        expect(toDataArray(docs)).to.deep.equal([{null: null, nan: NaN}]);
       });
     });
   });
 
   it('can filter on infinity', () => {
     const testDocs = {
-      a: { inf: Infinity },
-      b: { inf: -Infinity }
+      a: {inf: Infinity},
+      b: {inf: -Infinity}
     };
     return withTestCollection(persistence, testDocs, coll => {
       return getDocs(query(coll, where('inf', '==', Infinity))).then(docs => {
-        expect(toDataArray(docs)).to.deep.equal([{ inf: Infinity }]);
+        expect(toDataArray(docs)).to.deep.equal([{inf: Infinity}]);
       });
     });
   });
 
   it('will not get metadata only updates', () => {
-    const testDocs = { a: { v: 'a' }, b: { v: 'b' } };
+    const testDocs = {a: {v: 'a'}, b: {v: 'b'}};
     return withTestCollection(persistence, testDocs, coll => {
       const storeEvent = new EventsAccumulator<QuerySnapshot>();
       let unlisten: (() => void) | null = null;
       return Promise.all([
-        setDoc(doc(coll, 'a'), { v: 'a' }),
-        setDoc(doc(coll, 'b'), { v: 'b' })
+        setDoc(doc(coll, 'a'), {v: 'a'}),
+        setDoc(doc(coll, 'b'), {v: 'b'})
       ])
         .then(() => {
           unlisten = onSnapshot(coll, storeEvent.storeEvent);
@@ -380,16 +382,16 @@ apiDescribe('Queries', (persistence: boolean) => {
         })
         .then(querySnap => {
           expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a' },
-            { v: 'b' }
+            {v: 'a'},
+            {v: 'b'}
           ]);
-          return setDoc(doc(coll, 'a'), { v: 'a1' });
+          return setDoc(doc(coll, 'a'), {v: 'a1'});
         })
         .then(() => storeEvent.awaitEvent())
         .then(querySnap => {
           expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b' }
+            {v: 'a1'},
+            {v: 'b'}
           ]);
           return storeEvent.assertNoAdditionalEvents();
         })
@@ -399,9 +401,9 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('maintains correct DocumentChange indices', async () => {
     const testDocs = {
-      'a': { order: 1 },
-      'b': { order: 2 },
-      'c': { 'order': 3 }
+      'a': {order: 1},
+      'b': {order: 2},
+      'c': {'order': 3}
     };
     await withTestCollection(persistence, testDocs, async coll => {
       const accumulator = new EventsAccumulator<QuerySnapshot>();
@@ -418,7 +420,7 @@ apiDescribe('Queries', (persistence: boolean) => {
           verifyDocumentChange(changes[1], 'b', -1, 1, 'added');
           verifyDocumentChange(changes[2], 'c', -1, 2, 'added');
         })
-        .then(() => setDoc(doc(coll, 'b'), { order: 4 }))
+        .then(() => setDoc(doc(coll, 'b'), {order: 4}))
         .then(() => accumulator.awaitEvent())
         .then(querySnapshot => {
           const changes = querySnapshot.docChanges();
@@ -438,14 +440,14 @@ apiDescribe('Queries', (persistence: boolean) => {
   });
 
   it('can listen for the same query with different options', () => {
-    const testDocs = { a: { v: 'a' }, b: { v: 'b' } };
+    const testDocs = {a: {v: 'a'}, b: {v: 'b'}};
     return withTestCollection(persistence, testDocs, coll => {
       const storeEvent = new EventsAccumulator<QuerySnapshot>();
       const storeEventFull = new EventsAccumulator<QuerySnapshot>();
       const unlisten1 = onSnapshot(coll, storeEvent.storeEvent);
       const unlisten2 = onSnapshot(
         coll,
-        { includeMetadataChanges: true },
+        {includeMetadataChanges: true},
         storeEventFull.storeEvent
       );
 
@@ -453,22 +455,22 @@ apiDescribe('Queries', (persistence: boolean) => {
         .awaitEvent()
         .then(querySnap => {
           expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a' },
-            { v: 'b' }
+            {v: 'a'},
+            {v: 'b'}
           ]);
           return storeEventFull.awaitEvent();
         })
         .then(async querySnap => {
           expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a' },
-            { v: 'b' }
+            {v: 'a'},
+            {v: 'b'}
           ]);
           if (querySnap.metadata.fromCache) {
             // We might receive an additional event if the first query snapshot
             // was served from cache.
             await storeEventFull.awaitEvent();
           }
-          return setDoc(doc(coll, 'a'), { v: 'a1' });
+          return setDoc(doc(coll, 'a'), {v: 'a1'});
         })
         .then(() => {
           return storeEventFull.awaitEvents(2);
@@ -477,12 +479,12 @@ apiDescribe('Queries', (persistence: boolean) => {
           // Expect two events for the write, once from latency compensation
           // and once from the acknowledgment from the server.
           expect(toDataArray(events[0])).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b' }
+            {v: 'a1'},
+            {v: 'b'}
           ]);
           expect(toDataArray(events[1])).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b' }
+            {v: 'a1'},
+            {v: 'b'}
           ]);
           const localResult = events[0].docs;
           expect(localResult[0].metadata.hasPendingWrites).to.equal(true);
@@ -494,14 +496,14 @@ apiDescribe('Queries', (persistence: boolean) => {
         .then(querySnap => {
           // Expect only one event for the write.
           expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b' }
+            {v: 'a1'},
+            {v: 'b'}
           ]);
           return storeEvent.assertNoAdditionalEvents();
         })
         .then(() => {
           storeEvent.allowAdditionalEvents();
-          return setDoc(doc(coll, 'b'), { v: 'b1' });
+          return setDoc(doc(coll, 'b'), {v: 'b1'});
         })
         .then(() => {
           return storeEvent.awaitEvent();
@@ -509,20 +511,20 @@ apiDescribe('Queries', (persistence: boolean) => {
         .then(querySnap => {
           // Expect only one event from the second write
           expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b1' }
+            {v: 'a1'},
+            {v: 'b1'}
           ]);
           return storeEventFull.awaitEvents(2);
         })
         .then(events => {
           // Expect 2 events from the second write.
           expect(toDataArray(events[0])).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b1' }
+            {v: 'a1'},
+            {v: 'b1'}
           ]);
           expect(toDataArray(events[1])).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b1' }
+            {v: 'a1'},
+            {v: 'b1'}
           ]);
           const localResults = events[0].docs;
           expect(localResults[1].metadata.hasPendingWrites).to.equal(true);
@@ -549,9 +551,9 @@ apiDescribe('Queries', (persistence: boolean) => {
     date3.setMilliseconds(2);
 
     const testDocs = {
-      '1': { id: '1', date: date1 },
-      '2': { id: '2', date: date2 },
-      '3': { id: '3', date: date3 }
+      '1': {id: '1', date: date1},
+      '2': {id: '2', date: date2},
+      '3': {id: '3', date: date3}
     };
     return withTestCollection(persistence, testDocs, coll => {
       // Make sure to issue the queries in parallel
@@ -563,11 +565,11 @@ apiDescribe('Queries', (persistence: boolean) => {
         const docs2 = results[1];
 
         expect(toDataArray(docs1)).to.deep.equal([
-          { id: '2', date: Timestamp.fromDate(date2) },
-          { id: '3', date: Timestamp.fromDate(date3) }
+          {id: '2', date: Timestamp.fromDate(date2)},
+          {id: '3', date: Timestamp.fromDate(date3)}
         ]);
         expect(toDataArray(docs2)).to.deep.equal([
-          { id: '3', date: Timestamp.fromDate(date3) }
+          {id: '3', date: Timestamp.fromDate(date3)}
         ]);
       });
     });
@@ -575,10 +577,10 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can listen for QueryMetadata changes', () => {
     const testDocs = {
-      '1': { sort: 1, filter: true, key: '1' },
-      '2': { sort: 2, filter: true, key: '2' },
-      '3': { sort: 2, filter: true, key: '3' },
-      '4': { sort: 3, filter: false, key: '4' }
+      '1': {sort: 1, filter: true, key: '1'},
+      '2': {sort: 2, filter: true, key: '2'},
+      '3': {sort: 2, filter: true, key: '3'},
+      '4': {sort: 3, filter: false, key: '4'}
     };
     return withTestCollection(persistence, testDocs, coll => {
       const query1 = query(coll, where('key', '<', '4'));
@@ -618,16 +620,16 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can listen for metadata changes', () => {
     const initialDoc = {
-      foo: { a: 'b', v: 1 }
+      foo: {a: 'b', v: 1}
     };
     const modifiedDoc = {
-      foo: { a: 'b', v: 2 }
+      foo: {a: 'b', v: 2}
     };
     return withTestCollection(persistence, initialDoc, async coll => {
       const accum = new EventsAccumulator<QuerySnapshot>();
       const unlisten = onSnapshot(
         coll,
-        { includeMetadataChanges: true },
+        {includeMetadataChanges: true},
         accum.storeEvent
       );
 
@@ -647,7 +649,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         expect(toDataArray(results2)).to.deep.equal([modifiedDoc['foo']]);
         expect(toChangesArray(results2)).to.deep.equal([]);
         expect(
-          toChangesArray(results2, { includeMetadataChanges: true })
+          toChangesArray(results2, {includeMetadataChanges: true})
         ).to.deep.equal([modifiedDoc['foo']]);
       });
 
@@ -655,11 +657,43 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'can catch error message for missing index with error handler',
+    () => {
+      return withEmptyTestCollection(persistence, async coll => {
+        const query_ = query(
+          coll,
+          where('sort', '<=', '2'),
+          where('filter', '==', true)
+        );
+        const deferred = new Deferred<void>();
+
+        const unsubscribe = onSnapshot(
+          query_,
+          () => {
+            deferred.reject();
+          },
+          err => {
+            expect(err.code).to.equal('failed-precondition');
+            expect(err.message).to.exist;
+            expect(err.message).to.match(
+              /index.*https:\/\/console\.firebase\.google\.com/
+            );
+            deferred.resolve();
+          }
+        );
+        await deferred.promise;
+        unsubscribe();
+      });
+    }
+  );
+
   it('can explicitly sort by document ID', () => {
     const testDocs = {
-      a: { key: 'a' },
-      b: { key: 'b' },
-      c: { key: 'c' }
+      a: {key: 'a'},
+      b: {key: 'b'},
+      c: {key: 'c'}
     };
     return withTestCollection(persistence, testDocs, coll => {
       // Ideally this would be descending to validate it's different than
@@ -676,10 +710,10 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can query by document ID', () => {
     const testDocs = {
-      aa: { key: 'aa' },
-      ab: { key: 'ab' },
-      ba: { key: 'ba' },
-      bb: { key: 'bb' }
+      aa: {key: 'aa'},
+      ab: {key: 'ab'},
+      ba: {key: 'ba'},
+      bb: {key: 'bb'}
     };
     return withTestCollection(persistence, testDocs, coll => {
       return getDocs(query(coll, where(documentId(), '==', 'ab')))
@@ -704,10 +738,10 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can query by document ID using refs', () => {
     const testDocs = {
-      aa: { key: 'aa' },
-      ab: { key: 'ab' },
-      ba: { key: 'ba' },
-      bb: { key: 'bb' }
+      aa: {key: 'aa'},
+      ab: {key: 'ab'},
+      ba: {key: 'ba'},
+      bb: {key: 'bb'}
     };
     return withTestCollection(persistence, testDocs, coll => {
       return getDocs(query(coll, where(documentId(), '==', doc(coll, 'ab'))))
@@ -736,7 +770,7 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       const unregister = onSnapshot(
         coll,
-        { includeMetadataChanges: true },
+        {includeMetadataChanges: true},
         snapshot => {
           if (!snapshot.empty && !snapshot.metadata.fromCache) {
             deferred.resolve();
@@ -744,7 +778,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         }
       );
       void disableNetwork(db).then(() => {
-        void setDoc(doc(coll), { a: 1 });
+        void setDoc(doc(coll), {a: 1});
         void enableNetwork(db);
       });
 
@@ -753,11 +787,11 @@ apiDescribe('Queries', (persistence: boolean) => {
   });
 
   it('trigger with isFromCache=true when offline', () => {
-    return withTestCollection(persistence, { a: { foo: 1 } }, (coll, db) => {
+    return withTestCollection(persistence, {a: {foo: 1}}, (coll, db) => {
       const accum = new EventsAccumulator<QuerySnapshot>();
       const unregister = onSnapshot(
         coll,
-        { includeMetadataChanges: true },
+        {includeMetadataChanges: true},
         accum.storeEvent
       );
 
@@ -766,7 +800,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .then(querySnap => {
           // initial event
           expect(querySnap.docs.map(doc => doc.data())).to.deep.equal([
-            { foo: 1 }
+            {foo: 1}
           ]);
           expect(querySnap.metadata.fromCache).to.be.false;
         })
@@ -790,21 +824,21 @@ apiDescribe('Queries', (persistence: boolean) => {
     // These documents are ordered by value in "zip" since the '!=' filter is
     // an inequality, which results in documents being sorted by value.
     const testDocs = {
-      a: { zip: Number.NaN },
-      b: { zip: 91102 },
-      c: { zip: 98101 },
-      d: { zip: '98101' },
-      e: { zip: [98101] },
-      f: { zip: [98101, 98102] },
-      g: { zip: ['98101', { zip: 98101 }] },
-      h: { zip: { code: 500 } },
-      i: { code: 500 },
-      j: { zip: null }
+      a: {zip: Number.NaN},
+      b: {zip: 91102},
+      c: {zip: 98101},
+      d: {zip: '98101'},
+      e: {zip: [98101]},
+      f: {zip: [98101, 98102]},
+      g: {zip: ['98101', {zip: 98101}]},
+      h: {zip: {code: 500}},
+      i: {code: 500},
+      j: {zip: null}
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let expected: { [name: string]: any } = { ...testDocs };
+      let expected: { [name: string]: any } = {...testDocs};
       delete expected.c;
       delete expected.i;
       delete expected.j;
@@ -813,9 +847,9 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // With objects.
       const snapshot2 = await getDocs(
-        query(coll, where('zip', '!=', { code: 500 }))
+        query(coll, where('zip', '!=', {code: 500}))
       );
-      expected = { ...testDocs };
+      expected = {...testDocs};
       delete expected.h;
       delete expected.i;
       delete expected.j;
@@ -823,7 +857,7 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // With null.
       const snapshot3 = await getDocs(query(coll, where('zip', '!=', null)));
-      expected = { ...testDocs };
+      expected = {...testDocs};
       delete expected.i;
       delete expected.j;
       expect(toDataArray(snapshot3)).to.deep.equal(Object.values(expected));
@@ -832,7 +866,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot4 = await getDocs(
         query(coll, where('zip', '!=', Number.NaN))
       );
-      expected = { ...testDocs };
+      expected = {...testDocs};
       delete expected.a;
       delete expected.i;
       delete expected.j;
@@ -842,10 +876,10 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can use != filters by document ID', async () => {
     const testDocs = {
-      aa: { key: 'aa' },
-      ab: { key: 'ab' },
-      ba: { key: 'ba' },
-      bb: { key: 'bb' }
+      aa: {key: 'aa'},
+      ab: {key: 'ab'},
+      ba: {key: 'ba'},
+      bb: {key: 'bb'}
     };
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getDocs(
@@ -853,21 +887,21 @@ apiDescribe('Queries', (persistence: boolean) => {
       );
 
       expect(toDataArray(snapshot)).to.deep.equal([
-        { key: 'ab' },
-        { key: 'ba' },
-        { key: 'bb' }
+        {key: 'ab'},
+        {key: 'ba'},
+        {key: 'bb'}
       ]);
     });
   });
 
   it('can use array-contains filters', async () => {
     const testDocs = {
-      a: { array: [42] },
-      b: { array: ['a', 42, 'c'] },
-      c: { array: [41.999, '42', { a: [42] }] },
-      d: { array: [42], array2: ['bingo'] },
-      e: { array: [null] },
-      f: { array: [Number.NaN] }
+      a: {array: [42]},
+      b: {array: ['a', 42, 'c']},
+      c: {array: [41.999, '42', {a: [42]}]},
+      d: {array: [42], array2: ['bingo']},
+      e: {array: [null]},
+      f: {array: [Number.NaN]}
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -876,9 +910,9 @@ apiDescribe('Queries', (persistence: boolean) => {
         query(coll, where('array', 'array-contains', 42))
       );
       expect(toDataArray(snapshot)).to.deep.equal([
-        { array: [42] },
-        { array: ['a', 42, 'c'] },
-        { array: [42], array2: ['bingo'] }
+        {array: [42]},
+        {array: ['a', 42, 'c']},
+        {array: [42], array2: ['bingo']}
       ]);
 
       // NOTE: The backend doesn't currently support null, NaN, objects, or
@@ -899,15 +933,15 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can use IN filters', async () => {
     const testDocs = {
-      a: { zip: 98101 },
-      b: { zip: 91102 },
-      c: { zip: 98103 },
-      d: { zip: [98101] },
-      e: { zip: ['98101', { zip: 98101 }] },
-      f: { zip: { code: 500 } },
-      g: { zip: [98101, 98102] },
-      h: { zip: null },
-      i: { zip: Number.NaN }
+      a: {zip: 98101},
+      b: {zip: 91102},
+      c: {zip: 98103},
+      d: {zip: [98101]},
+      e: {zip: ['98101', {zip: 98101}]},
+      f: {zip: {code: 500}},
+      g: {zip: [98101, 98102]},
+      h: {zip: null},
+      i: {zip: Number.NaN}
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -915,16 +949,16 @@ apiDescribe('Queries', (persistence: boolean) => {
         query(coll, where('zip', 'in', [98101, 98103, [98101, 98102]]))
       );
       expect(toDataArray(snapshot)).to.deep.equal([
-        { zip: 98101 },
-        { zip: 98103 },
-        { zip: [98101, 98102] }
+        {zip: 98101},
+        {zip: 98103},
+        {zip: [98101, 98102]}
       ]);
 
       // With objects.
       const snapshot2 = await getDocs(
-        query(coll, where('zip', 'in', [{ code: 500 }]))
+        query(coll, where('zip', 'in', [{code: 500}]))
       );
-      expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
+      expect(toDataArray(snapshot2)).to.deep.equal([{zip: {code: 500}}]);
 
       // With null.
       const snapshot3 = await getDocs(query(coll, where('zip', 'in', [null])));
@@ -934,7 +968,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot4 = await getDocs(
         query(coll, where('zip', 'in', [98101, null]))
       );
-      expect(toDataArray(snapshot4)).to.deep.equal([{ zip: 98101 }]);
+      expect(toDataArray(snapshot4)).to.deep.equal([{zip: 98101}]);
 
       // With NaN.
       const snapshot5 = await getDocs(
@@ -946,16 +980,16 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot6 = await getDocs(
         query(coll, where('zip', 'in', [98101, Number.NaN]))
       );
-      expect(toDataArray(snapshot6)).to.deep.equal([{ zip: 98101 }]);
+      expect(toDataArray(snapshot6)).to.deep.equal([{zip: 98101}]);
     });
   });
 
   it('can use IN filters by document ID', async () => {
     const testDocs = {
-      aa: { key: 'aa' },
-      ab: { key: 'ab' },
-      ba: { key: 'ba' },
-      bb: { key: 'bb' }
+      aa: {key: 'aa'},
+      ab: {key: 'ab'},
+      ba: {key: 'ba'},
+      bb: {key: 'bb'}
     };
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getDocs(
@@ -963,8 +997,8 @@ apiDescribe('Queries', (persistence: boolean) => {
       );
 
       expect(toDataArray(snapshot)).to.deep.equal([
-        { key: 'aa' },
-        { key: 'ab' }
+        {key: 'aa'},
+        {key: 'ab'}
       ]);
     });
   });
@@ -973,21 +1007,21 @@ apiDescribe('Queries', (persistence: boolean) => {
     // These documents are ordered by value in "zip" since the 'not-in' filter is
     // an inequality, which results in documents being sorted by value.
     const testDocs = {
-      a: { zip: Number.NaN },
-      b: { zip: 91102 },
-      c: { zip: 98101 },
-      d: { zip: 98103 },
-      e: { zip: [98101] },
-      f: { zip: [98101, 98102] },
-      g: { zip: ['98101', { zip: 98101 }] },
-      h: { zip: { code: 500 } },
-      i: { code: 500 },
-      j: { zip: null }
+      a: {zip: Number.NaN},
+      b: {zip: 91102},
+      c: {zip: 98101},
+      d: {zip: 98103},
+      e: {zip: [98101]},
+      f: {zip: [98101, 98102]},
+      g: {zip: ['98101', {zip: 98101}]},
+      h: {zip: {code: 500}},
+      i: {code: 500},
+      j: {zip: null}
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let expected: { [name: string]: any } = { ...testDocs };
+      let expected: { [name: string]: any } = {...testDocs};
       delete expected.c;
       delete expected.d;
       delete expected.f;
@@ -1000,9 +1034,9 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // With objects.
       const snapshot2 = await getDocs(
-        query(coll, where('zip', 'not-in', [{ code: 500 }]))
+        query(coll, where('zip', 'not-in', [{code: 500}]))
       );
-      expected = { ...testDocs };
+      expected = {...testDocs};
       delete expected.h;
       delete expected.i;
       delete expected.j;
@@ -1018,7 +1052,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot4 = await getDocs(
         query(coll, where('zip', 'not-in', [Number.NaN]))
       );
-      expected = { ...testDocs };
+      expected = {...testDocs};
       delete expected.a;
       delete expected.i;
       delete expected.j;
@@ -1028,7 +1062,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot5 = await getDocs(
         query(coll, where('zip', 'not-in', [Number.NaN, 98101]))
       );
-      expected = { ...testDocs };
+      expected = {...testDocs};
       delete expected.a;
       delete expected.c;
       delete expected.i;
@@ -1039,10 +1073,10 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   it('can use NOT_IN filters by document ID', async () => {
     const testDocs = {
-      aa: { key: 'aa' },
-      ab: { key: 'ab' },
-      ba: { key: 'ba' },
-      bb: { key: 'bb' }
+      aa: {key: 'aa'},
+      ab: {key: 'ab'},
+      ba: {key: 'ba'},
+      bb: {key: 'bb'}
     };
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getDocs(
@@ -1050,23 +1084,23 @@ apiDescribe('Queries', (persistence: boolean) => {
       );
 
       expect(toDataArray(snapshot)).to.deep.equal([
-        { key: 'ba' },
-        { key: 'bb' }
+        {key: 'ba'},
+        {key: 'bb'}
       ]);
     });
   });
 
   it('can use array-contains-any filters', async () => {
     const testDocs = {
-      a: { array: [42] },
-      b: { array: ['a', 42, 'c'] },
-      c: { array: [41.999, '42', { a: [42] }] },
-      d: { array: [42], array2: ['bingo'] },
-      e: { array: [43] },
-      f: { array: [{ a: 42 }] },
-      g: { array: 42 },
-      h: { array: [null] },
-      i: { array: [Number.NaN] }
+      a: {array: [42]},
+      b: {array: ['a', 42, 'c']},
+      c: {array: [41.999, '42', {a: [42]}]},
+      d: {array: [42], array2: ['bingo']},
+      e: {array: [43]},
+      f: {array: [{a: 42}]},
+      g: {array: 42},
+      h: {array: [null]},
+      i: {array: [Number.NaN]}
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -1074,17 +1108,17 @@ apiDescribe('Queries', (persistence: boolean) => {
         query(coll, where('array', 'array-contains-any', [42, 43]))
       );
       expect(toDataArray(snapshot)).to.deep.equal([
-        { array: [42] },
-        { array: ['a', 42, 'c'] },
-        { array: [42], array2: ['bingo'] },
-        { array: [43] }
+        {array: [42]},
+        {array: ['a', 42, 'c']},
+        {array: [42], array2: ['bingo']},
+        {array: [43]}
       ]);
 
       // With objects.
       const snapshot2 = await getDocs(
-        query(coll, where('array', 'array-contains-any', [{ a: 42 }]))
+        query(coll, where('array', 'array-contains-any', [{a: 42}]))
       );
-      expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
+      expect(toDataArray(snapshot2)).to.deep.equal([{array: [{a: 42}]}]);
 
       // With null.
       const snapshot3 = await getDocs(
@@ -1096,7 +1130,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot4 = await getDocs(
         query(coll, where('array', 'array-contains-any', [43, null]))
       );
-      expect(toDataArray(snapshot4)).to.deep.equal([{ array: [43] }]);
+      expect(toDataArray(snapshot4)).to.deep.equal([{array: [43]}]);
 
       // With NaN.
       const snapshot5 = await getDocs(
@@ -1108,7 +1142,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot6 = await getDocs(
         query(coll, where('array', 'array-contains-any', [43, Number.NaN]))
       );
-      expect(toDataArray(snapshot6)).to.deep.equal([{ array: [43] }]);
+      expect(toDataArray(snapshot6)).to.deep.equal([{array: [43]}]);
     });
   });
 
@@ -1133,7 +1167,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       ];
       const batch = writeBatch(db);
       for (const docPath of docPaths) {
-        batch.set(doc(db, docPath), { x: 1 });
+        batch.set(doc(db, docPath), {x: 1});
       }
       await batch.commit();
 
@@ -1165,7 +1199,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       ];
       const batch = writeBatch(db);
       for (const docPath of docPaths) {
-        batch.set(doc(db, docPath), { x: 1 });
+        batch.set(doc(db, docPath), {x: 1});
       }
       await batch.commit();
 
@@ -1212,7 +1246,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       ];
       const batch = writeBatch(db);
       for (const docPath of docPaths) {
-        batch.set(doc(db, docPath), { x: 1 });
+        batch.set(doc(db, docPath), {x: 1});
       }
       await batch.commit();
 
@@ -1254,7 +1288,7 @@ apiDescribe('Queries', (persistence: boolean) => {
           Timestamp.now()
         ]
       };
-      await addDoc(ref, { data });
+      await addDoc(ref, {data});
 
       // In https://github.com/firebase/firebase-js-sdk/issues/1524, a
       // customer was not able to unlisten from a query that contained a
@@ -1281,17 +1315,17 @@ apiDescribe('Queries', (persistence: boolean) => {
     // Reproduces https://github.com/firebase/firebase-js-sdk/issues/2204
     const testDocs = {
       a: {},
-      b: { map: {} },
-      c: { map: { nested: {} } },
-      d: { map: { nested: 'foo' } }
+      b: {map: {}},
+      c: {map: {nested: {}}},
+      d: {map: {nested: 'foo'}}
     };
 
     return withTestCollection(persistence, testDocs, async coll => {
-      await getDocs(query(coll)); // Populate the cache
+      await getDocs(query(coll)); // Populate the cache.
       const snapshot = await getDocs(
         query(coll, where('map.nested', '==', 'foo'))
       );
-      expect(toDataArray(snapshot)).to.deep.equal([{ map: { nested: 'foo' } }]);
+      expect(toDataArray(snapshot)).to.deep.equal([{map: {nested: 'foo'}}]);
     });
   });
 
@@ -1303,11 +1337,11 @@ apiDescribe('Queries', (persistence: boolean) => {
   // eslint-disable-next-line no-restricted-properties
   it.skip('can use query overloads', () => {
     const testDocs = {
-      doc1: { a: 1, b: 0 },
-      doc2: { a: 2, b: 1 },
-      doc3: { a: 3, b: 2 },
-      doc4: { a: 1, b: 3 },
-      doc5: { a: 1, b: 1 }
+      doc1: {a: 1, b: 0},
+      doc2: {a: 2, b: 1},
+      doc3: {a: 3, b: 2},
+      doc4: {a: 1, b: 3},
+      doc5: {a: 1, b: 1}
     };
 
     return withTestCollection(persistence, testDocs, async coll => {
@@ -1372,11 +1406,11 @@ apiDescribe('Queries', (persistence: boolean) => {
   // eslint-disable-next-line no-restricted-properties
   it.skip('can use or queries', () => {
     const testDocs = {
-      doc1: { a: 1, b: 0 },
-      doc2: { a: 2, b: 1 },
-      doc3: { a: 3, b: 2 },
-      doc4: { a: 1, b: 3 },
-      doc5: { a: 1, b: 1 }
+      doc1: {a: 1, b: 0},
+      doc2: {a: 2, b: 1},
+      doc3: {a: 3, b: 2},
+      doc4: {a: 1, b: 3},
+      doc5: {a: 1, b: 1}
     };
 
     return withTestCollection(persistence, testDocs, async coll => {
@@ -1486,12 +1520,12 @@ apiDescribe('Queries', (persistence: boolean) => {
   // eslint-disable-next-line no-restricted-properties
   it.skip('can use or queries with in and not-in', () => {
     const testDocs = {
-      doc1: { a: 1, b: 0 },
-      doc2: { b: 1 },
-      doc3: { a: 3, b: 2 },
-      doc4: { a: 1, b: 3 },
-      doc5: { a: 1 },
-      doc6: { a: 2 }
+      doc1: {a: 1, b: 0},
+      doc2: {b: 1},
+      doc3: {a: 3, b: 2},
+      doc4: {a: 1, b: 3},
+      doc5: {a: 1},
+      doc6: {a: 2}
     };
 
     return withTestCollection(persistence, testDocs, async coll => {
@@ -1517,12 +1551,12 @@ apiDescribe('Queries', (persistence: boolean) => {
   // eslint-disable-next-line no-restricted-properties
   it.skip('can use or queries with array membership', () => {
     const testDocs = {
-      doc1: { a: 1, b: [0] },
-      doc2: { b: [1] },
-      doc3: { a: 3, b: [2, 7] },
-      doc4: { a: 1, b: [3, 7] },
-      doc5: { a: 1 },
-      doc6: { a: 2 }
+      doc1: {a: 1, b: [0]},
+      doc2: {b: [1]},
+      doc3: {a: 3, b: [2, 7]},
+      doc4: {a: 1, b: [3, 7]},
+      doc5: {a: 1},
+      doc6: {a: 2}
     };
 
     return withTestCollection(persistence, testDocs, async coll => {
@@ -1544,6 +1578,45 @@ apiDescribe('Queries', (persistence: boolean) => {
         'doc4',
         'doc6'
       );
+    });
+  });
+
+  // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? describe : describe.skip)('Caching empty results', () => {
+    it('can raise initial snapshot from cache, even if it is empty', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const snapshot1 = await getDocs(coll); // Populate the cache.
+        expect(snapshot1.metadata.fromCache).to.be.false;
+        expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check.
+
+        // Add a snapshot listener whose first event should be raised from cache.
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        onSnapshot(coll, storeEvent.storeEvent);
+        const snapshot2 = await storeEvent.awaitEvent();
+        expect(snapshot2.metadata.fromCache).to.be.true;
+        expect(toDataArray(snapshot2)).to.deep.equal([]);
+      });
+    });
+
+    it('can raise initial snapshot from cache, even if it has become empty', () => {
+      const testDocs = {
+        a: { key: 'a' }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        // Populate the cache.
+        const snapshot1 = await getDocs(coll);
+        expect(snapshot1.metadata.fromCache).to.be.false;
+        expect(toDataArray(snapshot1)).to.deep.equal([{ key: 'a' }]);
+        // Empty the collection.
+        void deleteDoc(doc(coll, 'a'));
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        onSnapshot(coll, storeEvent.storeEvent);
+        const snapshot2 = await storeEvent.awaitEvent();
+        expect(snapshot2.metadata.fromCache).to.be.true;
+        expect(toDataArray(snapshot2)).to.deep.equal([]);
+      });
     });
   });
 });

@@ -120,6 +120,7 @@ export class TransactionRunner<T> {
       return (
         code === 'aborted' ||
         code === 'failed-precondition' ||
+        code === 'already-exists' ||
         !isPermanentError(code)
       );
     }

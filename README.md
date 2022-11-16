@@ -11,7 +11,6 @@ applications using Firebase services. This SDK is distributed via:
 
 - [CDN](https://firebase.google.com/docs/web/setup/#add-sdks-initialize)
 - [npm package](https://www.npmjs.com/package/firebase)
-- [Bower package](https://github.com/firebase/firebase-bower)
 
 To get started using Firebase, see
 [Add Firebase to your JavaScript Project](https://firebase.google.com/docs/web/setup).
@@ -112,6 +111,26 @@ Visit the "Realtime Database" section of the console and create a realtime
 database. When prompted to select the set of initial security rules, select
 any option (e.g. "Start in Production Mode") since these permission settings
 will be overwritten below.
+
+#### Storage Setup
+
+Visit the "Storage" section of the console and create a storage bucket. In 
+order to run the tests, you will need to update your bucket's CORS rules.
+
+1. Create a new file called `cors.json` with the contents:
+```json
+[
+    {
+        "origin": ["http://localhost:8089"],
+        "method": ["GET"],
+        "maxAgeSeconds": 3600
+    }
+]
+```
+2. Install `gsutil` from https://cloud.google.com/storage/docs/gsutil_install
+3. Run `gsutil cors set cors.json gs://<your-cloud-storage-bucket>`
+
+For more information, visit https://firebase.google.com/docs/storage/web/download-files#cors_configuration
 
 #### Authentication Support
 
