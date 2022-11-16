@@ -130,6 +130,7 @@ export abstract class QueryConstraint extends AppliableConstraint {
  * apply (e.g. {@link orderBy}, {@link limit}).
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
+ * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function query<T>(
   query: Query<T>,
@@ -154,23 +155,20 @@ export function query<T>(
 
 export function query<T>(
   query: Query<T>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  filterOrQueryConstraints: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ...nonFilters: any
+  queryConstraint: QueryCompositeFilterConstraint | QueryConstraint | undefined,
+  ...additionalQueryConstraints: Array<
+    QueryConstraint | QueryNonFilterConstraint
+  >
 ): Query<T> {
   let queryConstraints: AppliableConstraint[] = [];
-  if (filterOrQueryConstraints instanceof AppliableConstraint) {
-    queryConstraints.push(filterOrQueryConstraints);
-  } else if (Array.isArray(filterOrQueryConstraints)) {
-    queryConstraints.concat(filterOrQueryConstraints as AppliableConstraint[]);
+
+  if (queryConstraint instanceof AppliableConstraint) {
+    queryConstraints.push(queryConstraint);
   }
 
-  if (nonFilters !== undefined) {
-    queryConstraints = queryConstraints.concat(
-      nonFilters as QueryNonFilterConstraint[]
-    );
-  }
+  queryConstraints = queryConstraints.concat(additionalQueryConstraints);
+
+  validateQueryConstraintArray(queryConstraints);
 
   for (const constraint of queryConstraints) {
     query = constraint._apply(query);
@@ -278,6 +276,7 @@ export function where(
  * `QueryCompositeFilterConstraint`s are created by invoking {@link or} or
  * {@link and} and can then be passed to {@link query} to create a new query
  * instance that also contains the `QueryCompositeFilterConstraint`.
+ * @internal TODO remove this internal tag with OR Query support in the server
  */
 export class QueryCompositeFilterConstraint extends AppliableConstraint {
   /**
@@ -358,6 +357,7 @@ export type QueryNonFilterConstraint =
  * `QueryFilterConstraint`s are created by invoking {@link or} or {@link and}
  * and can then be passed to {@link query} to create a new query instance that
  * also contains the `QueryConstraint`.
+ * @internal TODO remove this internal tag with OR Query support in the server
  */
 export type QueryFilterConstraint =
   | QueryFieldFilterConstraint
@@ -371,6 +371,7 @@ export type QueryFilterConstraint =
  * for OR operation. These must be created with calls to {@link where},
  * {@link or}, or {@link and}.
  * @returns The created {@link QueryCompositeFilterConstraint}.
+ * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function or(
   ...queryConstraints: QueryFilterConstraint[]
@@ -394,6 +395,7 @@ export function or(
  * for AND operation. These must be created with calls to {@link where},
  * {@link or}, or {@link and}.
  * @returns The created {@link QueryCompositeFilterConstraint}.
+ * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function and(
   ...queryConstraints: QueryFilterConstraint[]
@@ -1214,7 +1216,32 @@ export function validateQueryFilterConstraint(
   ) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires AppliableContraints created with a call to 'where(...)', 'or(...)', or 'and(...)'.`
+      `Function ${functionName}() requires AppliableConstraints created with a call to 'where(...)', 'or(...)', or 'and(...)'.`
+    );
+  }
+}
+
+function validateQueryConstraintArray(
+  queryConstraint: AppliableConstraint[]
+): void {
+  const compositeFilterCount = queryConstraint.filter(
+    filter => filter instanceof QueryCompositeFilterConstraint
+  ).length;
+  const fieldFilterCount = queryConstraint.filter(
+    filter => filter instanceof QueryFieldFilterConstraint
+  ).length;
+
+  if (
+    compositeFilterCount > 1 ||
+    (compositeFilterCount > 0 && fieldFilterCount > 0)
+  ) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'InvalidQuery. When using composite filters, you cannot use ' +
+        'more than one filter at the top level. Consider nesting the multiple ' +
+        'filters within an `and(...)` statement. For example: ' +
+        'change `query(query, where(...), or(...))` to ' +
+        '`query(query, and(where(...), or(...)))`.'
     );
   }
 }
