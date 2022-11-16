@@ -58,11 +58,11 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
    * The underlying query over which the aggregations recorded in this
    * `AggregateQuerySnapshot` were performed.
    */
-  readonly query: Query<unknown>;
+  readonly query: Query<unknown> | undefined;
 
   /** @hideconstructor */
   constructor(
-    query: Query<unknown>,
+    query: Query<unknown> | undefined,
     private readonly _data: AggregateSpecData<T>
   ) {
     this.query = query;

@@ -25,7 +25,7 @@ import {
   MultiTabOfflineComponentProvider
 } from '../../../src/core/component_provider';
 import { Observer } from '../../../src/core/event_manager';
-import { Query } from '../../../src/core/query';
+import { AggregateQuery, Query } from '../../../src/core/query';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
   indexedDbStoragePrefix,
@@ -66,6 +66,7 @@ import { WindowLike } from '../../../src/util/types';
 import { FakeDocument } from '../../util/test_platform';
 
 import { PersistenceAction } from './spec_test_runner';
+import { AggregateQuerySnapshot } from '../../../src';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject
@@ -446,6 +447,23 @@ export class EventAggregator implements Observer<ViewSnapshot> {
   }
 }
 
+export class AggregateEventAggregator
+  implements Observer<AggregateQuerySnapshot<any>>
+{
+  constructor(private pushEvent: (e: AggregateQueryEvent) => void) {}
+
+  next(view: AggregateQuerySnapshot<any>): void {
+    this.pushEvent({
+      view
+    });
+  }
+
+  error(error: Error): void {
+    expect(error.name).to.equal('FirebaseError');
+    this.pushEvent({ error: error as FirestoreError });
+  }
+}
+
 /**
  * FIFO queue that tracks all outstanding mutations for a single test run.
  * As these mutations are shared among the set of active clients, any client can
@@ -477,5 +495,10 @@ export class SharedWriteTracker {
 export interface QueryEvent {
   query: Query;
   view?: ViewSnapshot;
+  error?: FirestoreError;
+}
+
+export interface AggregateQueryEvent {
+  view?: AggregateQuerySnapshot<any>;
   error?: FirestoreError;
 }

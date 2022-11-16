@@ -37,9 +37,11 @@ import {
   Observer,
   QueryListener,
   removeSnapshotsInSyncListener,
-  addSnapshotsInSyncListener
+  addSnapshotsInSyncListener,
+  eventManagerListenAggregate
 } from '../../../src/core/event_manager';
 import {
+  AggregateQuery,
   canonifyQuery,
   LimitType,
   newQueryForCollectionGroup,
@@ -59,7 +61,8 @@ import {
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
-  syncEngineWrite
+  syncEngineWrite,
+  syncEngineListenAggregate
 } from '../../../src/core/sync_engine_impl';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -77,7 +80,10 @@ import {
   DbPrimaryClientStore
 } from '../../../src/local/indexeddb_sentinels';
 import { LocalStore } from '../../../src/local/local_store';
-import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
+import {
+  localStoreConfigureFieldIndexes,
+  localStoreWriteCount
+} from '../../../src/local/local_store_impl';
 import {
   ClientId,
   SharedClientState
@@ -164,6 +170,8 @@ import {
 import { MULTI_CLIENT_TAG } from './describe_spec';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
 import {
+  AggregateEventAggregator,
+  AggregateQueryEvent,
   EventAggregator,
   MockConnection,
   MockIndexedDbPersistence,
@@ -223,6 +231,7 @@ abstract class TestRunner {
   private syncEngine!: SyncEngine;
 
   private eventList: QueryEvent[] = [];
+  private aggregateEventList: AggregateQueryEvent[] = [];
   private acknowledgedDocs: string[];
   private rejectedDocs: string[];
   private waitForPendingWritesEvents = 0;
@@ -333,6 +342,10 @@ abstract class TestRunner {
     this.eventManager = onlineComponentProvider.eventManager;
 
     this.eventManager.onListen = syncEngineListen.bind(null, this.syncEngine);
+    this.eventManager.onListenAggregate = syncEngineListenAggregate.bind(
+      null,
+      this.syncEngine
+    );
     this.eventManager.onUnlisten = syncEngineUnlisten.bind(
       null,
       this.syncEngine
@@ -374,6 +387,7 @@ abstract class TestRunner {
     await this.doStep(step);
     await this.queue.drain();
     this.validateExpectedSnapshotEvents(step.expectedSnapshotEvents!);
+    this.validateExpectedCountSnapshotEvents(step.expectedCountSnapshotEvents!);
     await this.validateExpectedState(step.expectedState!);
     this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents);
     this.validateWaitForPendingWritesEvents(
@@ -391,6 +405,10 @@ abstract class TestRunner {
       return this.doUnlisten(step.userUnlisten!);
     } else if ('userSet' in step) {
       return this.doSet(step.userSet!);
+    } else if ('setCount' in step) {
+      return this.doSetCount(step.setCount!);
+    } else if ('userListenCount' in step) {
+      return this.doUserListenCount(step.userListenCount!);
     } else if ('userPatch' in step) {
       return this.doPatch(step.userPatch!);
     } else if ('userDelete' in step) {
@@ -510,6 +528,22 @@ abstract class TestRunner {
     await this.queue.enqueue(() =>
       eventManagerUnlisten(this.eventManager, eventEmitter!)
     );
+  }
+
+  private doSetCount(setSpec: SpecSetCount): Promise<void> {
+    return localStoreWriteCount(
+      this.localStore,
+      setSpec[0],
+      setSpec[1],
+      version(setSpec[2])
+    );
+  }
+
+  private doUserListenCount(spec: SpecUserListenCount): Promise<void> {
+    const aggregator = new AggregateEventAggregator(e => {
+      this.pushAggregateEvent(e);
+    });
+    return eventManagerListenAggregate(this.eventManager, spec, aggregator);
   }
 
   private doSet(setSpec: SpecUserSet): Promise<void> {
@@ -880,6 +914,30 @@ abstract class TestRunner {
     this.persistence.injectFailures = [];
   }
 
+  private validateExpectedCountSnapshotEvents(
+    expectedEvents: CountSnapshotEvent[]
+  ): void {
+    if (expectedEvents) {
+      expect(this.aggregateEventList.length).to.equal(
+        expectedEvents.length,
+        'Number of expected and actual events mismatch'
+      );
+
+      for (let i = 0; i < expectedEvents.length; i++) {
+        const actual = this.aggregateEventList[i];
+        const expected = expectedEvents[i];
+        expect({ count: actual.view?.data()['count'] }).to.deep.equal(expected);
+      }
+
+      this.aggregateEventList = [];
+    } else {
+      expect(this.aggregateEventList.length).to.equal(
+        0,
+        'Unexpected events: ' + JSON.stringify(this.aggregateEventList)
+      );
+    }
+  }
+
   private validateExpectedSnapshotEvents(
     expectedEvents: SnapshotEvent[]
   ): void {
@@ -1189,6 +1247,10 @@ abstract class TestRunner {
     this.eventList.push(e);
   }
 
+  private pushAggregateEvent(e: AggregateQueryEvent): void {
+    this.aggregateEventList.push(e);
+  }
+
   private parseChange(
     type: ChangeType,
     change: SpecDocument
@@ -1379,6 +1441,8 @@ export interface SpecStep {
   userListen?: SpecUserListen;
   /** Unlisten from a query (must be listened to) */
   userUnlisten?: SpecUserUnlisten;
+  setCount?: SpecSetCount;
+  userListenCount?: SpecUserListenCount;
   /** Perform a user initiated set */
   userSet?: SpecUserSet;
   /** Perform a user initiated patch */
@@ -1462,6 +1526,7 @@ export interface SpecStep {
    * If not provided, the test will fail if the step causes events to be raised.
    */
   expectedSnapshotEvents?: SnapshotEvent[];
+  expectedCountSnapshotEvents?: CountSnapshotEvent[];
 
   /**
    * Optional dictionary of expected states.
@@ -1489,6 +1554,8 @@ export interface SpecUserListen {
 /** [<target-id>, <query-path>] */
 export type SpecUserUnlisten = [TargetId, string | SpecQuery];
 
+export type SpecSetCount = [number, number, number];
+export type SpecUserListenCount = AggregateQuery;
 /** [<key>, <value>] */
 export type SpecUserSet = [string, JsonObject<unknown>];
 
@@ -1628,6 +1695,7 @@ export interface SpecDocument {
 
 export interface SnapshotEvent {
   query: SpecQuery;
+  count?: number;
   errorCode?: number;
   fromCache?: boolean;
   hasPendingWrites?: boolean;
@@ -1635,6 +1703,11 @@ export interface SnapshotEvent {
   removed?: SpecDocument[];
   modified?: SpecDocument[];
   metadata?: SpecDocument[];
+}
+
+export interface CountSnapshotEvent {
+  count?: number;
+  fromCache?: boolean;
 }
 
 export interface StateExpectation {

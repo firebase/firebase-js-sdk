@@ -18,6 +18,7 @@
 import { IndexConfiguration } from '../../../src/api/index_configuration';
 import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import {
+  AggregateQuery,
   LimitType,
   newQueryForPath,
   Query,
@@ -332,6 +333,22 @@ export class SpecBuilder {
     this.currentStep = {
       userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
       expectedState: { activeTargets: { ...this.activeTargets } }
+    };
+    return this;
+  }
+
+  setCountValue(targetId: number, count: number, ver: number): this {
+    this.nextStep();
+    this.currentStep = {
+      setCount: [targetId, count, ver]
+    };
+    return this;
+  }
+
+  userListensCount(countQuery: AggregateQuery): this {
+    this.nextStep();
+    this.currentStep = {
+      userListenCount: countQuery
     };
     return this;
   }
@@ -910,6 +927,24 @@ export class SpecBuilder {
       errorCode: mapRpcCodeFromCode(events.errorCode),
       fromCache: events.fromCache || false,
       hasPendingWrites: events.hasPendingWrites || false
+    });
+    return this;
+  }
+
+  expectCountEvents(
+    query: AggregateQuery,
+    events: {
+      fromCache?: boolean;
+      count?: number;
+    }
+  ): this {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    if (!currentStep.expectedCountSnapshotEvents) {
+      currentStep.expectedCountSnapshotEvents = [];
+    }
+    currentStep.expectedCountSnapshotEvents.push({
+      count: events.count
     });
     return this;
   }

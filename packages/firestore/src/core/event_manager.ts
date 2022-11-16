@@ -19,7 +19,6 @@ import {
   AggregateField,
   AggregateQuerySnapshot
 } from '../lite-api/aggregate_types';
-import { AggregateQuery } from '../lite-api/reference';
 import { debugAssert, debugCast } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
@@ -27,7 +26,13 @@ import { FirestoreError } from '../util/error';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 
-import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
+import {
+  AggregateQuery,
+  canonifyQuery,
+  Query,
+  queryEquals,
+  stringifyQuery
+} from './query';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 
@@ -142,9 +147,7 @@ export async function eventManagerListen(
 export async function eventManagerListenAggregate(
   eventManager: EventManager,
   query: AggregateQuery,
-  observer: AsyncObserver<
-    AggregateQuerySnapshot<{ count: AggregateField<number> }>
-  >
+  observer: Observer<AggregateQuerySnapshot<{ count: AggregateField<number> }>>
 ): Promise<void> {
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
   debugAssert(

@@ -21,7 +21,6 @@ import {
   AggregateField,
   AggregateQuerySnapshot
 } from '../lite-api/aggregate_types';
-import { AggregateQuery } from '../lite-api/reference';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
   localStoreAcknowledgeBatch,
@@ -123,6 +122,7 @@ import {
   ViewChange
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { AggregateQuery } from '../lite-api/reference';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -454,19 +454,18 @@ export async function syncEngineUnlisten(
 
 export async function syncEngineListenAggregate(
   syncEngine: SyncEngine,
-  query: AggregateQuery
+  query: InternalAggregateQuery
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  const internalQuery = new InternalAggregateQuery(query._baseQuery._query);
   const targetData = await localStoreAllocateTarget(
     syncEngineImpl.localStore,
-    queryToTarget(internalQuery._baseQuery)
+    queryToTarget(query._baseQuery)
   );
 
   const result = await localStoreExecuteAggregateQuery(
     syncEngineImpl.localStore,
     targetData.targetId,
-    internalQuery
+    query
   );
 
   let delta = 0;
@@ -492,7 +491,7 @@ export async function syncEngineListenAggregate(
   // TODO(COUNT): Apply +0 deltas for case #5.
   // const case5Delta = min(plusZeros.size() - result.localAggregateMatches.size(), 0);
   return new AggregateQuerySnapshot<{ count: AggregateField<number> }>(
-    query._baseQuery,
+    undefined,
     { count: result.cachedCount + delta /* + case5Delta*/ }
   );
 }

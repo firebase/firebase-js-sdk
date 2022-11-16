@@ -16,12 +16,14 @@
  */
 
 import {
+  AggregateQuery,
   newQueryForCollectionGroup,
   newQueryForPath,
+  Query,
   queryWithAddedFilter
 } from '../../../src/core/query';
 import { Document } from '../../../src/model/document';
-import { doc, filter, query } from '../../util/helpers';
+import { doc, filter, path, query, version } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec, SpecBuilder } from './spec_builder';
@@ -38,6 +40,37 @@ function specWithCachedDocs(...docs: Document[]): SpecBuilder {
   }
   return builder;
 }
+
+function countFromQuery(base: Query): AggregateQuery {
+  return new AggregateQuery(base);
+}
+
+describeSpec('Count Queries:', ['exclusive'], () => {
+  specTest('Raise expected count', [], () => {
+    const query = newQueryForPath(path('coll'));
+    const queryWithFilter = queryWithAddedFilter(query, filter('val', '>=', 2));
+    const docs = [
+      doc('coll/1', 1000, { val: 1 }),
+      doc('coll/2', 1000, { val: 2 }),
+      doc('coll/3', 1000, { val: 3 }),
+      doc('coll/4', 1000, { val: 4 }),
+      doc('coll/5', 1000, { val: 5 })
+    ];
+    return specWithCachedDocs(...docs)
+      .setCountValue(/*for query*/ 12, 10_000, 1000)
+      .setCountValue(/*for queryWithFilter*/ 14, 9998, 1000)
+      .userListensCount(countFromQuery(query))
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_000,
+        fromCache: true
+      })
+      .userListensCount(countFromQuery(queryWithFilter))
+      .expectCountEvents(countFromQuery(queryWithFilter), {
+        count: 9998,
+        fromCache: true
+      });
+  });
+});
 
 describeSpec('Queries:', [], () => {
   specTest('Collection Group query', [], () => {
