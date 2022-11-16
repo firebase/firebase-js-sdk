@@ -155,7 +155,7 @@ export function query<T>(
 
 export function query<T>(
   query: Query<T>,
-  queryConstraint?: QueryCompositeFilterConstraint | QueryConstraint,
+  queryConstraint: QueryCompositeFilterConstraint | QueryConstraint | undefined,
   ...additionalQueryConstraints: Array<
     QueryConstraint | QueryNonFilterConstraint
   >
