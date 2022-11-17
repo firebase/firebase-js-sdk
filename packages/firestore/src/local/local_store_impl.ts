@@ -170,6 +170,9 @@ class LocalStoreImpl implements LocalStore {
    * of `applyRemoteEvent()` idempotent.
    */
   targetDataByTarget = new SortedMap<TargetId, TargetData>(primitiveComparator);
+  aggregateQueryByTarget = new SortedMap<TargetId, AggregateQuery>(
+    primitiveComparator
+  );
 
   /** Maps a target to its targetID. */
   // TODO(wuandy): Evaluate if TargetId can be part of Target.
@@ -957,7 +960,8 @@ export function localStoreReadDocument(
  */
 export function localStoreAllocateTarget(
   localStore: LocalStore,
-  target: Target
+  target: Target,
+  aggregateQuery: AggregateQuery | undefined = undefined
 ): Promise<TargetData> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence
@@ -1005,6 +1009,13 @@ export function localStoreAllocateTarget(
             targetData.targetId,
             targetData
           );
+        if (aggregateQuery) {
+          localStoreImpl.aggregateQueryByTarget =
+            localStoreImpl.aggregateQueryByTarget.insert(
+              targetData.targetId,
+              aggregateQuery
+            );
+        }
         localStoreImpl.targetIdByTarget.set(target, targetData.targetId);
       }
       return targetData;

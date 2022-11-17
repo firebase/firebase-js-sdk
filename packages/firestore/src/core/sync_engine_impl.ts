@@ -23,6 +23,7 @@ import {
 } from '../lite-api/aggregate_types';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
+  AggregateQueryResult,
   localStoreAcknowledgeBatch,
   localStoreAllocateTarget,
   localStoreApplyRemoteEventToLocalCache,
@@ -101,7 +102,9 @@ import {
   queryEquals,
   queryCollectionGroup,
   queryToTarget,
-  stringifyQuery
+  stringifyQuery,
+  canonifyAggregateQuery,
+  aggregateQueryEquals
 } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { SyncEngine } from './sync_engine';
@@ -215,6 +218,12 @@ class SyncEngineImpl implements SyncEngine {
     q => canonifyQuery(q),
     queryEquals
   );
+
+  // TODO(COUNT): We should create a AggregateQueryView rather than using AggregateQueryResult.
+  aggregateResultByQuery = new ObjectMap<
+    InternalAggregateQuery,
+    AggregateQueryResult
+  >(q => canonifyAggregateQuery(q), aggregateQueryEquals);
   queriesByTarget = new Map<TargetId, Query[]>();
   /**
    * The keys of documents that are in limbo for which we haven't yet started a
@@ -459,7 +468,8 @@ export async function syncEngineListenAggregate(
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const targetData = await localStoreAllocateTarget(
     syncEngineImpl.localStore,
-    queryToTarget(query._baseQuery)
+    queryToTarget(query._baseQuery),
+    query
   );
 
   const result = await localStoreExecuteAggregateQuery(
@@ -467,6 +477,8 @@ export async function syncEngineListenAggregate(
     targetData.targetId,
     query
   );
+
+  syncEngineImpl.aggregateResultByQuery.set(query, result);
 
   let delta = 0;
   let plusZeros = documentKeySet();

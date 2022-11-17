@@ -459,6 +459,21 @@ export function canonifyQuery(query: Query): string {
   return `${canonifyTarget(queryToTarget(query))}|lt:${query.limitType}`;
 }
 
+export function aggregateQueryEquals(
+  left: AggregateQuery,
+  right: AggregateQuery
+): boolean {
+  // TODO: This should be updated to include the type of aggregation as well as
+  //  the relevant masks.
+  return queryEquals(left._baseQuery, right._baseQuery);
+}
+
+export function canonifyAggregateQuery(query: AggregateQuery): string {
+  // TODO: This should be updated to include the type of aggregation as well as
+  //  the relevant masks.
+  return `countOn:${canonifyQuery(query._baseQuery)}`;
+}
+
 export function stringifyQuery(query: Query): string {
   return `Query(target=${stringifyTarget(queryToTarget(query))}; limitType=${
     query.limitType
