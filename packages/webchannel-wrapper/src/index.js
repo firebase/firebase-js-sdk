@@ -78,6 +78,16 @@ goog.net.XhrIo.prototype['send'] = goog.net.XhrIo.prototype.send;
 goog.net.XhrIo.prototype['setWithCredentials'] =
   goog.net.XhrIo.prototype.setWithCredentials;
 
+goog.require('goog.math.Integer');
+goog.math.Integer.prototype['add'] = goog.math.Integer.prototype.add;
+goog.math.Integer.prototype['multiply'] = goog.math.Integer.prototype.multiply;
+goog.math.Integer.prototype['modulo'] = goog.math.Integer.prototype.modulo;
+goog.math.Integer.prototype['compare'] = goog.math.Integer.prototype.compare;
+goog.math.Integer.prototype['toNumber'] = goog.math.Integer.prototype.toNumber;
+goog.math.Integer.prototype['toString'] = goog.math.Integer.prototype.toString;
+goog.math.Integer.prototype['fromNumber'] = goog.math.Integer.prototype.fromNumber;
+goog.math.Integer.prototype['fromString'] = goog.math.Integer.prototype.fromString;
+
 module['exports']['createWebChannelTransport'] =
   goog.net.createWebChannelTransport;
 module['exports']['getStatEventTarget'] =
@@ -89,3 +99,4 @@ module['exports']['Stat'] = goog.labs.net.webChannel.requestStats.Stat;
 module['exports']['FetchXmlHttpFactory'] = goog.net.FetchXmlHttpFactory;
 module['exports']['WebChannel'] = goog.net.WebChannel;
 module['exports']['XhrIo'] = goog.net.XhrIo;
+module['exports']['Integer'] = goog.math.Integer;
