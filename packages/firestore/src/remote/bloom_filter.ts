@@ -34,12 +34,13 @@ export class BloomFilter {
 
   mightContain(document: string): boolean {
     // Hash the string using md5
-    const md5Hash = md5HashString(document);
-    const hash64: Uint8Array = md5HashToBytes(md5Hash.words);
+    const md5HashResult = md5HashString(document);
+    const encodedBytes: Uint8Array = md5HashToBytes(md5HashResult.words);
     // Interpret the hashed value as two 64-bit chunks as unsigned integers, encoded using 2’s
     // complement using little endian.
-    const hash1 = Buffer.from(hash64).readBigUInt64LE(0);
-    const hash2 = Buffer.from(hash64).readBigUInt64LE(8);
+    const dataView = new DataView(encodedBytes.buffer);
+    const hash1 = dataView.getBigUint64(0, /* littleEndian= */ true);
+    const hash2 = dataView.getBigUint64(8, /* littleEndian= */ true);
 
     for (let i = 0; i < this.hashCount; i++) {
       // Calculate hashed value h(i) = h1 + (i * h2), wrap if hash value overflow
