@@ -16,6 +16,7 @@
  */
 
 import { deepEqual } from '@firebase/util';
+import { default as JSBI } from 'jsbi';
 
 import { CountQueryRunner } from '../core/count_query_runner';
 import { cast } from '../util/input_validation';
@@ -69,7 +70,12 @@ export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(
   left: AggregateQuerySnapshot<T>,
   right: AggregateQuerySnapshot<T>
 ): boolean {
+  const num1 = JSBI.BigInt(Object.keys(left).length);
+  const num2 = JSBI.BigInt(Object.keys(right).length);
+  const shiftedNum1 = JSBI.leftShift(num1, JSBI.BigInt(64));
   return (
-    queryEqual(left.query, right.query) && deepEqual(left.data(), right.data())
+    JSBI.EQ(shiftedNum1, num2) &&
+    queryEqual(left.query, right.query) &&
+    deepEqual(left.data(), right.data())
   );
 }
