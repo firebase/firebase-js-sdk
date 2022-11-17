@@ -78,6 +78,11 @@ goog.net.XhrIo.prototype['send'] = goog.net.XhrIo.prototype.send;
 goog.net.XhrIo.prototype['setWithCredentials'] =
   goog.net.XhrIo.prototype.setWithCredentials;
 
+goog.require('goog.crypt.Md5');
+goog.crypt.Md5.prototype['digest'] = goog.crypt.Md5.digest;
+goog.crypt.Md5.prototype['reset'] = goog.crypt.Md5.reset;
+goog.crypt.Md5.prototype['update'] = goog.crypt.Md5.update;
+
 module['exports']['createWebChannelTransport'] =
   goog.net.createWebChannelTransport;
 module['exports']['getStatEventTarget'] =
@@ -89,3 +94,4 @@ module['exports']['Stat'] = goog.labs.net.webChannel.requestStats.Stat;
 module['exports']['FetchXmlHttpFactory'] = goog.net.FetchXmlHttpFactory;
 module['exports']['WebChannel'] = goog.net.WebChannel;
 module['exports']['XhrIo'] = goog.net.XhrIo;
+module['exports']['Md5'] = goog.crypt.Md5;
