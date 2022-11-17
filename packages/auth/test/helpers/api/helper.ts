@@ -30,3 +30,4 @@ export function mockEndpoint(
 ): Route {
   return mock(endpointUrl(endpoint), response, status);
 }
+

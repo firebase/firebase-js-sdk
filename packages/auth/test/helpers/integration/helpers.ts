@@ -22,8 +22,8 @@ import { Auth, User } from '../../../src/model/public_types';
 import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
 import { getAppConfig, getEmulatorUrl } from './settings';
-import { resetEmulator } from './emulator_rest_helpers';
-import { StartTotpMfaEnrollmentResponse } from '../../../src/api/account_management/mfa';
+import { getOobCodes, OobCodeSession, resetEmulator } from './emulator_rest_helpers';
+import * as config from '../../../../../config/project.json';
 
 //import * as otpauth from "https://deno.land/x/otpauth@v9.0.1/dist/otpauth.esm.js";
 //// <reference path="helpers.d.ts"/>
@@ -62,6 +62,8 @@ export function getTestInstance(requireEmulator = false): Auth {
 
   auth.cleanUp = async () => {
     // If we're in an emulated environment, the emulator will clean up for us
+
+    console.log('Auth cleanup should not be called');
     if (emulatorUrl) {
       await resetEmulator();
     } else {
@@ -81,9 +83,13 @@ export function getTestInstance(requireEmulator = false): Auth {
   return auth;
 }
 
-export async function cleanUpTestInstance(auth: Auth): Promise<void> {
+export async function cleanUpTestInstance(auth: Auth, tests? : string): Promise<void> {
   await auth.signOut();
-  await (auth as IntegrationTestAuth).cleanUp();
+
+  if(typeof tests === 'undefined') {
+    await (auth as IntegrationTestAuth).cleanUp();
+  }
+  
 }
 
 function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
@@ -99,17 +105,28 @@ function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
   });
 }
 
-export async function mockTotp(sharedSecretKey: string, periodSec: number, verificationCodeLength: number){
-  console.log("**** starting to mock totp");
+export async function code(toEmail: string): Promise<OobCodeSession> {
+  const codes = await getOobCodes();
+  console.log('codes: ', codes);
 
-  let digits = 9;
-  let period = 30;
-  let secret = "private";
-  const headers = new Headers();
+  return codes.reverse().find(({ email }) => email === toEmail)!;
+}
+
+
+export function getTotpCode(sharedSecretKey: string, periodSec: number, verificationCodeLength: number, hashingAlgorithm: string){
   
-  let token = totp(sharedSecretKey, { period: periodSec, digits: verificationCodeLength });
-  console.log("***"+token);
+  let token = totp(sharedSecretKey, { period: periodSec, digits: verificationCodeLength, algorithm: 'SHA-1'});
+  
   
 return token 
  
 }
+
+export function delay(dt:number){
+
+  console.log('Delay called');
+ 
+  return  new Promise(resolve => setTimeout(resolve, dt));
+}
+
+export const email = 'testemail@test.com';
