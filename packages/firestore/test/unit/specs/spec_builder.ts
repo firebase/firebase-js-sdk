@@ -1099,6 +1099,7 @@ export class SpecBuilder {
         value: userDataWriter.convertValue(
           doc.data.value
         ) as JsonObject<unknown>,
+        createTime: doc.createTime.toMicroseconds(),
         options: {
           hasLocalMutations: doc.hasLocalMutations,
           hasCommittedMutations: doc.hasCommittedMutations
