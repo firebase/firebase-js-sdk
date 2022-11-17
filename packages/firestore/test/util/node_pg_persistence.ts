@@ -18,7 +18,7 @@
 import { Client } from 'pg';
 
 import { FakeWindow, SharedFakeWebStorage } from './test_platform';
-import { logDebug } from '../../src/util/log';
+import { logDebug, logWarn } from '../../src/util/log';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalAny = global as any;
@@ -65,16 +65,55 @@ class PgFactory {
   }
 }
 
+type PgObjectStoreParameters = {
+  autoIncrement?: boolean;
+  keyPath?: string | string[] | null;
+};
+
 class PgDatabase {
   constructor(public pgClient: Client) {}
 
   close() {}
 
-  // createObjectStore(name: string, options?: IDBObjectStoreParameters): IDBObjectStore {
-  //   return {} as IDBObjectStore;
-  // }
+  createObjectStore(
+    name: string,
+    options?: PgObjectStoreParameters
+  ): PgObjectStore {
+    let primaryKey: string | undefined;
+    let primaryKeyMultiple: string | undefined;
+    if (options?.autoIncrement) {
+      primaryKey = `${options.keyPath} serial PRIMARY KEY,`;
+    } else if (typeof options?.keyPath === 'string') {
+      primaryKey = `${options.keyPath} PRIMARY KEY,`;
+    } else if (!!options?.keyPath) {
+      primaryKeyMultiple = `PRIMARY KEY (${options.keyPath.join(',')})`;
+    }
 
-  deleteObjectStore(name: string) {}
+    if (!!primaryKeyMultiple) {
+      primaryKeyMultiple = `, ${primaryKeyMultiple}`;
+    }
+
+    const sql = `CREATE TABLE IF NOT EXISTS ${name} (${
+      primaryKey || ''
+    }, value text ${primaryKeyMultiple || ''}) ;`;
+    logDebug('PG', `executing ${sql}`);
+    this.pgClient
+      .query(sql)
+      .then(result => {})
+      .catch(err => {
+        logWarn('PG', `Create object store failed with ${err}`);
+      });
+    return new PgObjectStore(options);
+  }
+
+  deleteObjectStore(name: string) {
+    this.pgClient
+      .query(`DROP TABLE ${name} IF EXISTS`)
+      .then(result => {})
+      .catch(err => {
+        logWarn('PG', `Create object store failed with ${err}`);
+      });
+  }
 
   transaction(storeNames: string | string[], mode?: string): PgTransaction {
     return new PgTransaction(this, mode);
@@ -89,7 +128,7 @@ class PgTransaction {
   abort() {}
 
   objectStore(name: string): PgObjectStore {
-    return new PgObjectStore();
+
   }
 }
 
@@ -184,6 +223,8 @@ class PgCursorWithValue extends PgCursor {
 }
 
 class PgObjectStore {
+  constructor(options: PgObjectStoreParameters | undefined) {}
+
   add(value: any, key?: PgValidKey): PgRequest<PgValidKey> {
     return new PgRequest<PgValidKey>();
   }
@@ -211,6 +252,7 @@ class PgObjectStore {
   deleteIndex(name: string) {}
 
   get(query: PgValidKey | PgKeyRange): PgRequest<any> {
+    // TODO: Implement this
     return new PgRequest();
   }
 
