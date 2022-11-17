@@ -84,7 +84,7 @@
     "@firebase/logger": "0.3.4",
     "@firebase/util": "1.7.3",
     "@firebase/webchannel-wrapper": "0.8.1",
-    "@grpc/grpc-js": "~1.4.0",
+    "@grpc/grpc-js": "~1.7.0",
     "@grpc/proto-loader": "^0.6.13",
     "node-fetch": "2.6.7",
     "tslib": "^2.1.0"
