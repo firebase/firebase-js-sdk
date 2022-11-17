@@ -17,18 +17,15 @@
 // @ts-ignore
 import md5 from 'crypto-js/md5';
 
-interface BitSequence {
-  bitmap: string;
-  padding: number;
-}
-
 export class BloomFilter {
-  private readonly bitmap: string;
   private readonly bitSize: number;
 
-  constructor(bits: BitSequence, private readonly hashCount: number) {
-    this.bitmap = bits.bitmap;
-    this.bitSize = this.bitmap.length * 8 - bits.padding;
+  constructor(
+    private readonly bitmap: Uint8Array,
+    padding: number,
+    private readonly hashCount: number
+  ) {
+    this.bitSize = this.bitmap.length * 8 - padding;
   }
 
   getBitSize(): number {
@@ -37,25 +34,21 @@ export class BloomFilter {
 
   mightContain(document: string): boolean {
     // Hash the string using md5
-    const hash64: string = md5HashStringToHex(document);
-    // Interpret those two 64-bit chunks as unsigned integers, encoded using 2’s
+    const md5Hash = md5HashString(document);
+    const hash64: Uint8Array = md5HashToBytes(md5Hash.words);
+    // Interpret the hashed value as two 64-bit chunks as unsigned integers, encoded using 2’s
     // complement using little endian.
-    let hash1 = '0x' + hash64.slice(0, 16);
-    let hash2 = '0x' + hash64.slice(16);
-    if (isLittleEndian()) {
-      hash1 = changeEndianess(hash1);
-      hash2 = changeEndianess(hash2);
-    }
+    const hash1 = Buffer.from(hash64).readBigUInt64LE(0);
+    const hash2 = Buffer.from(hash64).readBigUInt64LE(8);
 
     for (let i = 0; i < this.hashCount; i++) {
       // Calculate hashed value h(i) = h1 + (i * h2), wrap if hash value overflow
-      let combinedHash = BigInt(hash1) + BigInt(i) * BigInt(hash2);
+      let combinedHash = hash1 + BigInt(i) * hash2;
       combinedHash = BigInt.asUintN(64, combinedHash);
 
       // To retrieve bit n, calculate: (bitmap[n / 8] & (0x01 << (n % 8))).
       const module = Number(combinedHash % BigInt(this.bitSize));
-      const byte = this.bitmap.charCodeAt(Math.floor(module / 8));
-      console.log(byte & (0x01 << module % 8));
+      const byte = this.bitmap[Math.floor(module / 8)];
 
       if (!(byte & (0x01 << module % 8))) {
         return false;
@@ -65,29 +58,22 @@ export class BloomFilter {
   }
 }
 
-export function md5HashStringToHex(document: string): string {
-  return md5(document).toString();
+//replace with google library later
+export function md5HashString(document: string): {
+  words: number[];
+  sigBytes: number;
+} {
+  return md5(document);
 }
 
-// Recommended code from mdn web docs:
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView#endianness
-export function isLittleEndian(): boolean {
-  const buffer = new ArrayBuffer(2);
-  new DataView(buffer).setInt16(0, 256, true /* littleEndian */);
-  return new Int16Array(buffer)[0] === 256;
-}
-
-// Reverse a string representation of hexadecimal by bytes
-export function changeEndianess(value: string): string {
-  if (value.length % 2) {
-    value = '0' + value;
+// Crypt0-js.md5 does not have digest function to convert the result to a byte array, so doing it
+// manually.
+// This can be removed if we end up using goog libray, as their md5.digest() will return byte array
+export function md5HashToBytes(words: number[]): Uint8Array {
+  const hexChars = new Uint8Array(16);
+  for (let i = 0; i < 16; i++) {
+    const bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+    hexChars[i] = bite;
   }
-  if (value.startsWith('0x')) {
-    value = value.slice(2);
-  }
-  let result = '';
-  for (let i = value.length - 2; i >= 0; i = i - 2) {
-    result += value.substring(i, i + 2);
-  }
-  return '0x' + result;
+  return hexChars;
 }
