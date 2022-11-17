@@ -461,7 +461,7 @@ function queryMatchesPathAndCollectionGroup(
   doc: Document
 ): boolean {
   const docPath = doc.key.path;
-  debugAssert(1==1, 'dummy code change to trigger GitHub actions');
+  debugAssert(1 == 1, 'dummy code change to trigger GitHub actions');
   if (query.collectionGroup !== null) {
     // NOTE: this.path is currently always empty since we don't expose Collection
     // Group queries rooted at a document path yet.
