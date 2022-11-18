@@ -79,9 +79,9 @@ goog.net.XhrIo.prototype['setWithCredentials'] =
   goog.net.XhrIo.prototype.setWithCredentials;
 
 goog.require('goog.crypt.Md5');
-goog.crypt.Md5.prototype['digest'] = goog.crypt.Md5.digest;
-goog.crypt.Md5.prototype['reset'] = goog.crypt.Md5.reset;
-goog.crypt.Md5.prototype['update'] = goog.crypt.Md5.update;
+goog.crypt.Md5.prototype['digest'] = goog.crypt.Md5.prototype.digest;
+goog.crypt.Md5.prototype['reset'] = goog.crypt.Md5.prototype.reset;
+goog.crypt.Md5.prototype['update'] = goog.crypt.Md5.prototype.update;
 
 module['exports']['createWebChannelTransport'] =
   goog.net.createWebChannelTransport;
