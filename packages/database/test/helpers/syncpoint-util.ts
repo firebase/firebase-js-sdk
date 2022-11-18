@@ -31,9 +31,11 @@ import {
   ref,
   limitToFirst,
   limitToLast,
+  startAfter,
   startAt,
   equalTo,
   endAt,
+  endBefore,
   orderByChild,
   orderByKey,
   orderByPriority
@@ -228,7 +230,6 @@ export class SyncPointTestParser {
         }
       }
     };
-
     const EVENT_ORDERING = [
       'child_removed',
       'child_added',
@@ -244,7 +245,7 @@ export class SyncPointTestParser {
       }
     };
 
-    const eventSetMatch = (expected, actual) => {
+    const eventSetMatch = (expected: any, actual: DataEvent[]) => {
       // don't worry about order for now
       if (expected.length !== actual.length) {
         throw new Error('Mismatched lengths');
@@ -292,12 +293,10 @@ export class SyncPointTestParser {
         // Step 3: slice each array
         const expectedSlice = currentExpected.slice(0, i);
         const actualSlice = currentActual.slice(0, i);
-
-        // foreach in actual, stack up to enforce ordering, find in expected
         const actualMap = {};
-        let actualEvent;
+        // foreach in actual, stack up to enforce ordering, find in expected
         for (let x = 0; x < actualSlice.length; ++x) {
-          actualEvent = actualSlice[x];
+          const actualEvent = actualSlice[x];
           actualEvent.eventRegistration.getEventRunner(actualEvent)();
           const spec = currentSpec;
           const listenId =
@@ -316,39 +315,38 @@ export class SyncPointTestParser {
             // this is the first event for this listen, just initialize it
             actualMap[listenId] = [actualEvent];
           }
-        }
-        // Ordering has been enforced, make sure we can find this in the expected events
-        const found = removeIf(expectedSlice, expectedEvent => {
-          checkValidProperties(expectedEvent, [
-            'type',
-            'path',
-            'name',
-            'prevName',
-            'data'
-          ]);
-          if (expectedEvent.type === actualEvent.eventType) {
-            if (expectedEvent.type !== 'value') {
-              if (expectedEvent.name !== actualEvent.snapshot.key) {
-                return false;
+          // Ordering has been enforced, make sure we can find this in the expected events
+          const found = removeIf(expectedSlice, expectedEvent => {
+            checkValidProperties(expectedEvent, [
+              'type',
+              'path',
+              'name',
+              'prevName',
+              'data'
+            ]);
+            if (expectedEvent.type === actualEvent.eventType) {
+              if (expectedEvent.type !== 'value') {
+                if (expectedEvent.name !== actualEvent.snapshot.key) {
+                  return false;
+                }
+                if (
+                  expectedEvent.type !== 'child_removed' &&
+                  expectedEvent.prevName !== actualEvent.prevName
+                ) {
+                  return false;
+                }
               }
-              if (
-                expectedEvent.type !== 'child_removed' &&
-                expectedEvent.prevName !== actualEvent.prevName
-              ) {
-                return false;
-              }
+              // make sure the snapshots match
+              const snapHash = actualEvent.snapshot._node.hash();
+              const expectedHash = nodeFromJSON(expectedEvent.data).hash();
+              return snapHash === expectedHash;
+            } else {
+              return false;
             }
-            // make sure the snapshots match
-            const snapHash = actualEvent.snapshot._node.hash();
-            const expectedHash = nodeFromJSON(expectedEvent.data).hash();
-            return snapHash === expectedHash;
-          } else {
-            return false;
+          });
+          if (!found) {
+            throw new Error('Could not find matching expected event');
           }
-        });
-        if (!found) {
-          // console.log(actualEvent);
-          throw new Error('Could not find matching expected event');
         }
         currentExpected = currentExpected.slice(i);
         currentActual = currentActual.slice(i);
@@ -366,10 +364,14 @@ export class SyncPointTestParser {
           q = query(q, limitToFirst(paramValue));
         } else if (paramName === 'limitToLast') {
           q = query(q, limitToLast(paramValue));
+        } else if (paramName === 'startAfter') {
+          q = query(q, startAfter(paramValue.index, paramValue.name));
         } else if (paramName === 'startAt') {
           q = query(q, startAt(paramValue.index, paramValue.name));
         } else if (paramName === 'endAt') {
           q = query(q, endAt(paramValue.index, paramValue.name));
+        } else if (paramName === 'endBefore') {
+          q = query(q, endBefore(paramValue.index, paramValue.name));
         } else if (paramName === 'equalTo') {
           q = query(q, equalTo(paramValue.index, paramValue.name));
         } else if (paramName === 'orderBy') {
