@@ -19,9 +19,8 @@
 // These tests are mostly to ensure that the exported classes correctly map to
 // underlying functionality from google-closure-library.
 
-import { expect } from 'chai';
-
 import { Md5 } from '@firebase/webchannel-wrapper';
+import { expect } from 'chai';
 
 describe('Md5', () => {
   // The precomputed MD5 digests of the 3-character strings "abc" and "def".
