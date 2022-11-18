@@ -66,10 +66,12 @@ export function getTestInstance(requireEmulator = false): Auth {
     } else {
       // Clear out any new users that were created in the course of the test
       for (const user of createdUsers) {
-        try {
-          await user.delete();
-        } catch {
-          // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+        if (!user.email?.includes('donotdelete')) {
+          try {
+            await user.delete();
+          } catch {
+            // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+          }
         }
       }
     }
@@ -127,4 +129,5 @@ export function delay(dt: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, dt));
 }
 
-export const email = 'testemail@test.com';
+export const email = 'totpuser-donotdelete@test.com';
+export const incorrectTotpCode = '1000000';

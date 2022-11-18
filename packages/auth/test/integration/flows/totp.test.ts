@@ -30,7 +30,8 @@ import {
   getTestInstance,
   getTotpCode,
   delay,
-  email
+  email,
+  incorrectTotpCode
 } from '../../helpers/integration/helpers';
 
 import {
@@ -59,7 +60,6 @@ describe(' Integration tests: Mfa TOTP', () => {
     const mfaUser = multiFactor(cr.user);
     const session = await mfaUser.getSession();
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
-    const incorrectTotpCode = '1000000';
     const multiFactorAssertion =
       TotpMultiFactorGenerator.assertionForEnrollment(
         totpSecret,
@@ -108,7 +108,7 @@ describe(' Integration tests: Mfa TOTP', () => {
 
       resolver = getMultiFactorResolver(auth, error as any);
       expect(resolver.hints).to.have.length(1);
-      const incorrectTotpCode = '1000000';
+
       const assertion = TotpMultiFactorGenerator.assertionForSignIn(
         resolver.hints[0].uid,
         incorrectTotpCode
@@ -152,5 +152,5 @@ describe(' Integration tests: Mfa TOTP', () => {
 
       await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
     }
-  }).timeout(31000);
+  }).timeout(32000);
 });
