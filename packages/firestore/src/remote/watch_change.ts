@@ -44,7 +44,16 @@ import { RemoteEvent, TargetChange } from './remote_event';
 export type WatchChange =
   | DocumentWatchChange
   | WatchTargetChange
+  | WatchAggregateChange
   | ExistenceFilterChange;
+
+export class WatchAggregateChange {
+  constructor(
+    // TODO(COUNT): This should be a map in the future.
+    public count: number,
+    public targetId: number
+  ) {}
+}
 
 /**
  * Represents a changed document and a list of target ids to which this change
@@ -270,6 +279,8 @@ export class WatchChangeAggregator {
   /** A mapping of document keys to their set of target IDs. */
   private pendingDocumentTargetMapping = documentTargetMap();
 
+  private pendingAggregateChanges: WatchAggregateChange[] = [];
+
   /**
    * A list of targets with existence filter mismatches. These targets are
    * known to be inconsistent and their listens needs to be re-established by
@@ -296,6 +307,10 @@ export class WatchChangeAggregator {
     for (const targetId of docChange.removedTargetIds) {
       this.removeDocumentFromTarget(targetId, docChange.key, docChange.newDoc);
     }
+  }
+
+  handleAggregateChange(change: WatchAggregateChange): void {
+    this.pendingAggregateChanges.push(change);
   }
 
   /** Processes and adds the WatchTargetChange to the current set of changes. */
@@ -496,12 +511,14 @@ export class WatchChangeAggregator {
       targetChanges,
       this.pendingTargetResets,
       this.pendingDocumentUpdates,
-      resolvedLimboDocuments
+      resolvedLimboDocuments,
+      this.pendingAggregateChanges
     );
 
     this.pendingDocumentUpdates = mutableDocumentMap();
     this.pendingDocumentTargetMapping = documentTargetMap();
     this.pendingTargetResets = new SortedSet<TargetId>(primitiveComparator);
+    this.pendingAggregateChanges = [];
 
     return remoteEvent;
   }

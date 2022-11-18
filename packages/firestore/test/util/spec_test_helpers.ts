@@ -26,12 +26,15 @@ import {
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  WatchAggregateChange,
   WatchChange,
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../src/remote/watch_change';
 import { fail } from '../../src/util/assert';
 import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
+import { firestoreV1ApiClientInterfaces } from '../../src/protos/firestore_proto_api';
+import ListenResponse = firestoreV1ApiClientInterfaces.ListenResponse;
 
 const serializer = new JsonProtoSerializer(
   TEST_DATABASE_ID,
@@ -100,6 +103,17 @@ export function encodeWatchChange(
     };
   }
   return fail('Unrecognized watch change: ' + JSON.stringify(watchChange));
+}
+
+export function encodeWatchAggregateChange(
+  change: WatchAggregateChange
+): ListenResponse {
+  return {
+    aggregationChange: {
+      targetId: change.targetId,
+      result: { aggregateFields: { count: { integerValue: change.count } } }
+    }
+  };
 }
 
 function encodeTargetChangeTargetChangeType(

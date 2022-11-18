@@ -703,7 +703,8 @@ export async function syncEngineRejectListen(
       /* targetChanges= */ new Map<TargetId, TargetChange>(),
       /* targetMismatches= */ new SortedSet<TargetId>(primitiveComparator),
       documentUpdates,
-      resolvedLimboDocuments
+      resolvedLimboDocuments,
+      []
     );
 
     await syncEngineApplyRemoteEvent(syncEngineImpl, event);

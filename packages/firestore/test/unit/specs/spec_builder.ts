@@ -724,6 +724,14 @@ export class SpecBuilder {
     return this;
   }
 
+  watchAcksCount(query: AggregateQuery, targetId: number): this {
+    this.nextStep();
+    this.currentStep = {
+      watchAckCount: [query, targetId]
+    };
+    return this;
+  }
+
   // Technically any target change can contain a resume token, but a CURRENT
   // target change is where it makes the most sense in our tests currently.
   // Eventually we want to make the model more generic so we can add resume
@@ -733,6 +741,14 @@ export class SpecBuilder {
     this.nextStep();
     this.currentStep = {
       watchCurrent: [[this.getTargetId(query)], resumeToken]
+    };
+    return this;
+  }
+
+  watchCurrentsCount(targetId: TargetId, resumeToken: string): this {
+    this.nextStep();
+    this.currentStep = {
+      watchCurrent: [[targetId], resumeToken]
     };
     return this;
   }
@@ -748,6 +764,14 @@ export class SpecBuilder {
         activeTargets: { ...this.activeTargets }
       };
     }
+    return this;
+  }
+
+  watchSendsCount(targetId: TargetId, count: number) {
+    this.nextStep();
+    this.currentStep = {
+      watchEntity: { targets: [targetId], count }
+    };
     return this;
   }
 

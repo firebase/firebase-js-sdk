@@ -118,6 +118,7 @@ import {
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  WatchAggregateChange,
   WatchChange,
   WatchTargetChange,
   WatchTargetChangeState
@@ -152,7 +153,10 @@ import {
   validateFirestoreError,
   version
 } from '../../util/helpers';
-import { encodeWatchChange } from '../../util/spec_test_helpers';
+import {
+  encodeWatchAggregateChange,
+  encodeWatchChange
+} from '../../util/spec_test_helpers';
 import {
   FakeDocument,
   SharedFakeWebStorage,
@@ -182,6 +186,8 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
+import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
+import ListenResponse = firestoreV1ApiClientInterfaces.ListenResponse;
 
 use(chaiExclude);
 
@@ -423,6 +429,8 @@ abstract class TestRunner {
       return this.doSetIndexConfiguration(step.setIndexConfiguration!);
     } else if ('watchAck' in step) {
       return this.doWatchAck(step.watchAck!);
+    } else if ('watchAckCount' in step) {
+      return this.doWatchAckCount(step.watchAckCount!);
     } else if ('watchCurrent' in step) {
       return this.doWatchCurrent(step.watchCurrent!);
     } else if ('watchRemove' in step) {
@@ -631,6 +639,13 @@ abstract class TestRunner {
     return this.doWatchEvent(change);
   }
 
+  private doWatchAckCount(ackedTargets: SpecWatchAckCount): Promise<void> {
+    const change = new WatchTargetChange(WatchTargetChangeState.Added, [
+      ackedTargets[1]
+    ]);
+    return this.doWatchEvent(change);
+  }
+
   private doWatchCurrent(currentTargets: SpecWatchCurrent): Promise<void> {
     const targets = currentTargets[0];
     const resumeToken = byteStringFromString(currentTargets[1]);
@@ -722,6 +737,10 @@ abstract class TestRunner {
         null
       );
       return this.doWatchEvent(change);
+    } else if (watchEntity.count) {
+      return this.doWatchCountEvent(
+        new WatchAggregateChange(watchEntity.targets![0], watchEntity.count)
+      );
     } else {
       return fail('Either doc or docs must be set');
     }
@@ -760,6 +779,15 @@ abstract class TestRunner {
 
   private async doWatchEvent(watchChange: WatchChange): Promise<void> {
     const protoJSON = encodeWatchChange(watchChange);
+    this.connection.watchStream!.callOnMessage(protoJSON);
+
+    // Put a no-op in the queue so that we know when any outstanding RemoteStore
+    // writes on the network are complete.
+    return this.queue.enqueue(async () => {});
+  }
+
+  private async doWatchCountEvent(change: WatchAggregateChange): Promise<void> {
+    const protoJSON = encodeWatchAggregateChange(change);
     this.connection.watchStream!.callOnMessage(protoJSON);
 
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
@@ -1464,6 +1492,7 @@ export interface SpecStep {
 
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;
+  watchAckCount?: SpecWatchAckCount;
   /** Marks the query results as current */
   watchCurrent?: SpecWatchCurrent;
   /** Reset the results of a query */
@@ -1573,6 +1602,7 @@ export type SpecUserDelete = string;
 
 /** [<target-id>, ...] */
 export type SpecWatchAck = TargetId[];
+export type SpecWatchAckCount = [AggregateQuery, TargetId];
 
 /** [[<target-id>, ...], <resume-token>] */
 export type SpecWatchCurrent = [TargetId[], string];
@@ -1629,12 +1659,13 @@ export interface SpecWriteFailure {
 }
 
 export interface SpecWatchEntity {
-  // exactly one of key, doc or docs is set
+  // exactly one of key, doc or docs or count is set
   key?: string;
   /** [<key>, <version>, <value>] */
   doc?: SpecDocument;
   /** [<key>, <version>, <value>][] */
   docs?: SpecDocument[];
+  count?: number;
   /** [<target-id>, ...] */
   targets?: TargetId[];
   /** [<target-id>, ...] */

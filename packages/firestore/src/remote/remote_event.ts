@@ -26,6 +26,7 @@ import {
 } from '../model/collections';
 import { ByteString } from '../util/byte_string';
 import { SortedSet } from '../util/sorted_set';
+import { WatchAggregateChange } from './watch_change';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -55,7 +56,9 @@ export class RemoteEvent {
     /**
      * A set of which document updates are due only to limbo resolution targets.
      */
-    readonly resolvedLimboDocuments: DocumentKeySet
+    readonly resolvedLimboDocuments: DocumentKeySet,
+
+    readonly aggregateChanges: WatchAggregateChange[]
   ) {}
 
   /**
@@ -84,7 +87,8 @@ export class RemoteEvent {
       targetChanges,
       targetIdSet(),
       mutableDocumentMap(),
-      documentKeySet()
+      documentKeySet(),
+      []
     );
   }
 }
