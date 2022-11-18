@@ -136,3 +136,10 @@ export function getStatEventTarget(): EventTarget;
 export class FetchXmlHttpFactory {
   constructor(options: {});
 }
+
+// See https://google.github.io/closure-library/api/goog.crypt.Md5.html
+export class Md5 {
+  reset(): void;
+  digest(): Array<number>;
+  update(bytes: Array<number> | Uint8Array | string, opt_length?: number): void;
+}
