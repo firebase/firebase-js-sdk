@@ -52,7 +52,7 @@ describe(' Integration tests: Mfa TOTP', () => {
   });
 
   afterEach(async () => {
-    await cleanUpTestInstance(auth, 'totp');
+    await cleanUpTestInstance(auth);
   });
 
   it('should not enroll if incorrect totp supplied', async () => {

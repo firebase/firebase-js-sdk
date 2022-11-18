@@ -22,11 +22,7 @@ import { Auth, User } from '../../../src/model/public_types';
 import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
 import { getAppConfig, getEmulatorUrl } from './settings';
-import {
-  getOobCodes,
-  OobCodeSession,
-  resetEmulator
-} from './emulator_rest_helpers';
+import { resetEmulator } from './emulator_rest_helpers';
 import totp from 'totp-generator';
 interface IntegrationTestAuth extends Auth {
   cleanUp(): Promise<void>;
@@ -82,15 +78,9 @@ export function getTestInstance(requireEmulator = false): Auth {
   return auth;
 }
 
-export async function cleanUpTestInstance(
-  auth: Auth,
-  tests?: string
-): Promise<void> {
+export async function cleanUpTestInstance(auth: Auth): Promise<void> {
   await auth.signOut();
-
-  if (typeof tests === 'undefined') {
-    await (auth as IntegrationTestAuth).cleanUp();
-  }
+  await (auth as IntegrationTestAuth).cleanUp();
 }
 
 function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
@@ -104,11 +94,6 @@ function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
       originalConsoleInfo(...args);
     }
   });
-}
-
-export async function code(toEmail: string): Promise<OobCodeSession> {
-  const codes = await getOobCodes();
-  return codes.reverse().find(({ email }) => email === toEmail)!;
 }
 
 export function getTotpCode(
