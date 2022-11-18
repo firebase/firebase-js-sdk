@@ -16,43 +16,113 @@
  */
 import { expect } from 'chai';
 
-import { BloomFilter, md5HashString } from '../../../src/remote/bloom_filter';
+import { BloomFilter } from '../../../src/remote/bloom_filter';
+
+import testData  from './bloom_filter_test_data.json';
 
 describe('BloomFilter', () => {
-  it('should create a hex-encoded MD5 hash of a string', () => {
-    expect(md5HashString('abc').toString()).to.equal(
-      '900150983cd24fb0d6963f7d28e17f72'
+  it('can initiate an empty BloomFilter', () => {
+    const bloomFilter = new BloomFilter(
+      /* bitmap */ new Uint8Array(0),
+      /* padding */ 0,
+      /* hashCount */ 0
     );
+    expect(bloomFilter.getBitSize()).to.equal(0);
   });
 
-  // Mocking banckend response based on two strings "abc" and "def", for now.
-  // bits {
-  //   bitmap: "\227\231\354t\007"
-  //   padding: 3
-  // }
-  // hash_count: 13
-
-  // Mocking the bitmap processed from octal string to Uint8Array
-  const processedBitmap = new Uint8Array(5);
-  for (let i = 0; i < 5; i++) {
-    processedBitmap[i] = '\x97\x99ìt\x07'.charCodeAt(i);
-  }
-
-  it('should be able to calculate the bitsize correctly', () => {
-    const bloomFilter_ = new BloomFilter(processedBitmap, 3, 13);
-    expect(bloomFilter_.getBitSize()).to.equal(37);
+  it('can initiate a non empty BloomFilter', () => {
+    const bloomFilter = new BloomFilter(
+      /* bitmap */ new Uint8Array([151, 153, 236, 116, 7]),
+      /* padding */ 3,
+      /* hashCount */ 13
+    );
+    expect(bloomFilter.getBitSize()).to.equal(37);
   });
 
-  it('mightContain should return true for existing document', () => {
-    const bloomFilter_ = new BloomFilter(processedBitmap, 3, 13);
-    expect(bloomFilter_.mightContain('abc')).to.be.true;
-    expect(bloomFilter_.mightContain('def')).to.be.true;
+  it('should throw error if padding is negative', () => {
+    try {
+      new BloomFilter(new Uint8Array(0), -1, 0);
+      expect.fail();
+    } catch (error) {
+      expect(
+        (error as Error)?.message.includes(
+          'INTERNAL ASSERTION FAILED: Padding is negative.'
+        )
+      ).to.be.true;
+    }
   });
 
-  it('mightContain should return true for non existing document', () => {
-    const bloomFilter_ = new BloomFilter(processedBitmap, 3, 13);
-    expect(bloomFilter_.mightContain('ab')).to.be.false;
-    expect(bloomFilter_.mightContain('bc')).to.be.false;
-    expect(bloomFilter_.mightContain('xyz')).to.be.false;
+  it('should throw error if bitmap size is negative', () => {
+    try {
+      new BloomFilter(new Uint8Array(0), 1, 0);
+      expect.fail();
+    } catch (error) {
+      expect(
+        (error as Error)?.message.includes(
+          'INTERNAL ASSERTION FAILED: Bitmap size is negative.'
+        )
+      ).to.be.true;
+    }
+  });
+
+  it('should throw error if hash count is negative', () => {
+    try {
+      new BloomFilter(new Uint8Array(0), 0, -1);
+      expect.fail();
+    } catch (error) {
+      expect(
+        (error as Error)?.message.includes(
+          'INTERNAL ASSERTION FAILED: Hash count is negative.'
+        )
+      ).to.be.true;
+    }
+  });
+
+  it('mightContain in empty bloom filter should always return false', () => {
+    const bloomFilter = new BloomFilter(new Uint8Array(0), 0, 0);
+    expect(bloomFilter.mightContain('abc')).to.be.false;
+    expect(bloomFilter.mightContain('def')).to.be.false;
+  });
+
+  it('mightContain should always return false for empty string', () => {
+    const emptyBloomFilter = new BloomFilter(new Uint8Array(0), 0, 0);
+    const nonEmptyBloomFilter = new BloomFilter(
+      new Uint8Array([151, 153, 236, 116, 7]),
+      3,
+      13
+    );
+    expect(emptyBloomFilter.mightContain('')).to.be.false;
+    expect(nonEmptyBloomFilter.mightContain('')).to.be.false;
+  });
+
+  describe('BloomFilter membership test', () => {
+    const prefix = 'projects/project-1/databases/database-1/documents/coll/doc';
+
+    interface TestDataType {
+      //
+      bits: {
+        bitmap: number[];
+        padding: number;
+      };
+      hashCount: number;
+      insertionCount: number;
+      membershipTestResult: string;
+    }
+
+    it('mightContain result should match backend result', () => {
+      testData.forEach((data: TestDataType) => {
+        const { bits, hashCount, insertionCount, membershipTestResult } = data;
+        const bloomFilter = new BloomFilter(
+          new Uint8Array(bits.bitmap),
+          bits.padding,
+          hashCount
+        );
+        for (let i = 0; i < insertionCount; i++) {
+          const isMember = membershipTestResult[i] === '1' ? true : false;
+          const mightContain = bloomFilter.mightContain(prefix + i);
+          expect(mightContain).to.equal(isMember);
+        }
+      });
+    });
   });
 });

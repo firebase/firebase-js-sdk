@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import md5 from 'crypto-js/md5';
+import { Md5 } from '@firebase/webchannel-wrapper';
+
+import { debugAssert } from '../util/assert';
 
 export class BloomFilter {
   private readonly bitSize: number;
@@ -25,7 +26,10 @@ export class BloomFilter {
     padding: number,
     private readonly hashCount: number
   ) {
+    debugAssert(padding >= 0, 'Padding is negative.');
     this.bitSize = this.bitmap.length * 8 - padding;
+    debugAssert(this.bitSize >= 0, 'Bitmap size is negative.');
+    debugAssert(this.hashCount >= 0, 'Hash count is negative.');
   }
 
   getBitSize(): number {
@@ -33,9 +37,16 @@ export class BloomFilter {
   }
 
   mightContain(document: string): boolean {
+    // Empty bitmap should always return false on membership check
+    if (this.bitSize === 0) { return false; }
+    // If document path is an empty string, return false
+    if (!document) { return false; }
+
     // Hash the string using md5
-    const md5HashResult = md5HashString(document);
-    const encodedBytes: Uint8Array = md5HashToBytes(md5HashResult.words);
+    const md5 = new Md5();
+    md5.update(document);
+    const encodedBytes: Uint8Array = new Uint8Array(md5.digest());
+
     // Interpret the hashed value as two 64-bit chunks as unsigned integers, encoded using 2’s
     // complement using little endian.
     const dataView = new DataView(encodedBytes.buffer);
@@ -57,24 +68,4 @@ export class BloomFilter {
     }
     return true;
   }
-}
-
-//replace with google library later
-export function md5HashString(document: string): {
-  words: number[];
-  sigBytes: number;
-} {
-  return md5(document);
-}
-
-// Crypt0-js.md5 does not have digest function to convert the result to a byte array, so doing it
-// manually.
-// This can be removed if we end up using goog libray, as their md5.digest() will return byte array
-export function md5HashToBytes(words: number[]): Uint8Array {
-  const hexChars = new Uint8Array(16);
-  for (let i = 0; i < 16; i++) {
-    const bite = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-    hexChars[i] = bite;
-  }
-  return hexChars;
 }
