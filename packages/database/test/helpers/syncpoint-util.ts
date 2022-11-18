@@ -31,9 +31,11 @@ import {
   ref,
   limitToFirst,
   limitToLast,
+  startAfter,
   startAt,
   equalTo,
   endAt,
+  endBefore,
   orderByChild,
   orderByKey,
   orderByPriority
@@ -362,10 +364,14 @@ export class SyncPointTestParser {
           q = query(q, limitToFirst(paramValue));
         } else if (paramName === 'limitToLast') {
           q = query(q, limitToLast(paramValue));
+        } else if (paramName === 'startAfter') {
+          q = query(q, startAfter(paramValue.index, paramValue.name));
         } else if (paramName === 'startAt') {
           q = query(q, startAt(paramValue.index, paramValue.name));
         } else if (paramName === 'endAt') {
           q = query(q, endAt(paramValue.index, paramValue.name));
+        } else if (paramName === 'endBefore') {
+          q = query(q, endBefore(paramValue.index, paramValue.name));
         } else if (paramName === 'equalTo') {
           q = query(q, equalTo(paramValue.index, paramValue.name));
         } else if (paramName === 'orderBy') {
