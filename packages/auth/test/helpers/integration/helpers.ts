@@ -22,13 +22,12 @@ import { Auth, User } from '../../../src/model/public_types';
 import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
 import { getAppConfig, getEmulatorUrl } from './settings';
-import { getOobCodes, OobCodeSession, resetEmulator } from './emulator_rest_helpers';
-import * as config from '../../../../../config/project.json';
-
-//import * as otpauth from "https://deno.land/x/otpauth@v9.0.1/dist/otpauth.esm.js";
-//// <reference path="helpers.d.ts"/>
-const totp = require('totp-generator');
-//import * as totp from 'otpauth';
+import {
+  getOobCodes,
+  OobCodeSession,
+  resetEmulator
+} from './emulator_rest_helpers';
+import totp from 'totp-generator';
 interface IntegrationTestAuth extends Auth {
   cleanUp(): Promise<void>;
 }
@@ -62,8 +61,6 @@ export function getTestInstance(requireEmulator = false): Auth {
 
   auth.cleanUp = async () => {
     // If we're in an emulated environment, the emulator will clean up for us
-
-    console.log('Auth cleanup should not be called');
     if (emulatorUrl) {
       await resetEmulator();
     } else {
@@ -83,13 +80,15 @@ export function getTestInstance(requireEmulator = false): Auth {
   return auth;
 }
 
-export async function cleanUpTestInstance(auth: Auth, tests? : string): Promise<void> {
+export async function cleanUpTestInstance(
+  auth: Auth,
+  tests?: string
+): Promise<void> {
   await auth.signOut();
 
-  if(typeof tests === 'undefined') {
+  if (typeof tests === 'undefined') {
     await (auth as IntegrationTestAuth).cleanUp();
   }
-  
 }
 
 function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
@@ -107,26 +106,25 @@ function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
 
 export async function code(toEmail: string): Promise<OobCodeSession> {
   const codes = await getOobCodes();
-  console.log('codes: ', codes);
-
   return codes.reverse().find(({ email }) => email === toEmail)!;
 }
 
+export function getTotpCode(
+  sharedSecretKey: string,
+  periodSec: number,
+  verificationCodeLength: number
+): string {
+  const token = totp(sharedSecretKey, {
+    period: periodSec,
+    digits: verificationCodeLength,
+    algorithm: 'SHA-1'
+  });
 
-export function getTotpCode(sharedSecretKey: string, periodSec: number, verificationCodeLength: number, hashingAlgorithm: string){
-  
-  let token = totp(sharedSecretKey, { period: periodSec, digits: verificationCodeLength, algorithm: 'SHA-1'});
-  
-  
-return token 
- 
+  return token;
 }
 
-export function delay(dt:number){
-
-  console.log('Delay called');
- 
-  return  new Promise(resolve => setTimeout(resolve, dt));
+export function delay(dt: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, dt));
 }
 
 export const email = 'testemail@test.com';
