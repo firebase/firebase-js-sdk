@@ -38,9 +38,13 @@ export class BloomFilter {
 
   mightContain(document: string): boolean {
     // Empty bitmap should always return false on membership check
-    if (this.bitSize === 0) { return false; }
-    // If document path is an empty string, return false
-    if (!document) { return false; }
+    if (this.bitSize === 0) {
+      return false;
+    }
+    // If document name is an empty string, return false
+    if (!document) {
+      return false;
+    }
 
     // Hash the string using md5
     const md5 = new Md5();

@@ -18,7 +18,7 @@ import { expect } from 'chai';
 
 import { BloomFilter } from '../../../src/remote/bloom_filter';
 
-import testData  from './bloom_filter_test_data.json';
+import testData from './bloom_filter_test_data.json';
 
 describe('BloomFilter', () => {
   it('can initiate an empty BloomFilter', () => {
@@ -99,25 +99,28 @@ describe('BloomFilter', () => {
     const prefix = 'projects/project-1/databases/database-1/documents/coll/doc';
 
     interface TestDataType {
-      //
+      // Bloom filter result created by backend based on documents: prefix+(0 ~i)
       bits: {
         bitmap: number[];
         padding: number;
       };
       hashCount: number;
-      insertionCount: number;
+      // Check membership of documents  prefix+(0 ~2i)
+      membershipCheckCount: number;
+      // Membership result on docs from 0~i are always postive, i~2i might have false positive
       membershipTestResult: string;
     }
 
     it('mightContain result should match backend result', () => {
       testData.forEach((data: TestDataType) => {
-        const { bits, hashCount, insertionCount, membershipTestResult } = data;
+        const { bits, hashCount, membershipCheckCount, membershipTestResult } =
+          data;
         const bloomFilter = new BloomFilter(
-          new Uint8Array(bits.bitmap),
+          Uint8Array.from(bits.bitmap),
           bits.padding,
           hashCount
         );
-        for (let i = 0; i < insertionCount; i++) {
+        for (let i = 0; i < membershipCheckCount; i++) {
           const isMember = membershipTestResult[i] === '1' ? true : false;
           const mightContain = bloomFilter.mightContain(prefix + i);
           expect(mightContain).to.equal(isMember);
