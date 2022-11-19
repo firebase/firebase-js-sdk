@@ -29,7 +29,6 @@ import {
   cleanUpTestInstance,
   getTestInstance,
   getTotpCode,
-  delay,
   email,
   incorrectTotpCode
 } from '../../helpers/integration/helpers';
@@ -46,6 +45,7 @@ describe(' Integration tests: Mfa TOTP', () => {
   let auth: Auth;
   let totpSecret: TotpSecret;
   let displayName: string;
+  let totpTimestamp: Date;
   beforeEach(async () => {
     auth = getTestInstance();
     displayName = 'totp-integration-test';
@@ -80,10 +80,13 @@ describe(' Integration tests: Mfa TOTP', () => {
 
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
 
+    totpTimestamp = new Date();
+
     const totpVerificationCode = getTotpCode(
       totpSecret.secretKey,
       totpSecret.codeIntervalSeconds,
-      totpSecret.codeLength
+      totpSecret.codeLength,
+      totpTimestamp
     );
 
     const multiFactorAssertion =
@@ -122,11 +125,6 @@ describe(' Integration tests: Mfa TOTP', () => {
 
   it('should allow sign-in with for correct totp and unenroll successfully', async () => {
     let resolver;
-
-    await delay(30 * 1000);
-    //TODO(bhparijat) generate the otp code for the next time window by passing the appropriate
-    //timestamp to avoid the 30s delay. The delay is needed because the otp code used for enrollment
-    //cannot be reused for signing in.
     try {
       await signInWithEmailAndPassword(auth, email, 'password');
 
@@ -138,11 +136,15 @@ describe(' Integration tests: Mfa TOTP', () => {
       resolver = getMultiFactorResolver(auth, error as any);
       expect(resolver.hints).to.have.length(1);
 
+      totpTimestamp.setSeconds(totpTimestamp.getSeconds() + 30);
+
       const totpVerificationCode = getTotpCode(
         totpSecret.secretKey,
         totpSecret.codeIntervalSeconds,
-        totpSecret.codeLength
+        totpSecret.codeLength,
+        totpTimestamp
       );
+
       const assertion = TotpMultiFactorGenerator.assertionForSignIn(
         resolver.hints[0].uid,
         totpVerificationCode
@@ -153,5 +155,5 @@ describe(' Integration tests: Mfa TOTP', () => {
 
       await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
     }
-  }).timeout(32000);
+  });
 });
