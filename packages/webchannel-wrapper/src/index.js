@@ -85,8 +85,8 @@ goog.math.Integer.prototype['modulo'] = goog.math.Integer.prototype.modulo;
 goog.math.Integer.prototype['compare'] = goog.math.Integer.prototype.compare;
 goog.math.Integer.prototype['toNumber'] = goog.math.Integer.prototype.toNumber;
 goog.math.Integer.prototype['toString'] = goog.math.Integer.prototype.toString;
-goog.math.Integer.prototype['fromNumber'] = goog.math.Integer.prototype.fromNumber;
-goog.math.Integer.prototype['fromString'] = goog.math.Integer.prototype.fromString;
+goog.math.Integer['fromNumber'] = goog.math.Integer.fromNumber;
+goog.math.Integer['fromString'] = goog.math.Integer.fromString;
 
 module['exports']['createWebChannelTransport'] =
   goog.net.createWebChannelTransport;
