@@ -31,6 +31,7 @@ describe.only('Integer', () => {
     expect(instance2).is.instanceof(Integer);
     expect(instance1).is.not.equal(instance2);
   });
+
   it('constructor should construct 1 and -1, 2 and -2', () => {
     const positiveOne = new Integer([1], 0);
     expect(positiveOne.toNumber()).equals(1);
@@ -40,5 +41,15 @@ describe.only('Integer', () => {
     expect(positiveTwo.toNumber()).equals(2);
     const negativeTwo = new Integer([-2], -1);
     expect(negativeTwo.toNumber()).equals(-2);
+  });
+
+  it('constructor should construct big values', () => {
+    expect(new Integer([0xff], 0).toNumber()).equals(255);
+    expect(new Integer([-0xff], -1).toNumber()).equals(-255);
+    expect(new Integer([0xffff], 0).toNumber()).equals(65535);
+    expect(new Integer([-0xffff], -1).toNumber()).equals(-65535);
+    expect(new Integer([0xffffff], 0).toNumber()).equals(16777215);
+    expect(new Integer([0xffffffff], 0).toNumber()).equals(4294967295);
+    expect(new Integer([0, 1], 0).toNumber()).equals(4294967296);
   });
 });
