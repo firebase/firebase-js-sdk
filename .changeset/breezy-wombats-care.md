@@ -1,5 +1,4 @@
 ---
-'@firebase/database': minor
 '@firebase/firestore': minor
 '@firebase/firestore-compat': minor
 'firebase': minor
