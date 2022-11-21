@@ -190,7 +190,7 @@ scope](https://www.npmjs.com/search?q=scope%3Afirebase) on NPM.
 
 ### Testing the SDK Locally
 
-Please be sure to build your SDK changes and install your dependencies before proceeding any further.
+Please be sure your product's package has been built before proceeding any further. (If you haven't built this repo before, make sure to run `yarn build` at the root)
 In order to manually test your SDK changes locally, you must use [yarn link](https://classic.yarnpkg.com/en/docs/cli/link):
 
 ```shell
