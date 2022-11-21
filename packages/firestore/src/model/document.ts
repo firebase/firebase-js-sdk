@@ -256,11 +256,13 @@ export class MutableDocument implements Document {
     version: SnapshotVersion,
     value: ObjectValue
   ): MutableDocument {
-    if (
-      SnapshotVersion.min().isEqual(this.createTime) &&
-      (this.documentType === DocumentType.NO_DOCUMENT ||
-        this.documentType === DocumentType.INVALID)
-    ) {
+    // TODO(COUNT): Add comment about why we're updating createTime here.
+    if (this.createTime.isEqual(SnapshotVersion.min())&&
+        (this.documentType === DocumentType.NO_DOCUMENT || this.documentType === DocumentType.INVALID)) {
+     this.createTime = version;
+    }
+    if (!this.createTime) {
+      throw("this will never get executed");
       this.createTime = version;
     }
     this.version = version;
@@ -312,6 +314,11 @@ export class MutableDocument implements Document {
 
   setReadTime(readTime: SnapshotVersion): MutableDocument {
     this.readTime = readTime;
+    return this;
+  }
+
+  setCreateTime(createTime: SnapshotVersion): MutableDocument {
+    this.createTime = createTime;
     return this;
   }
 

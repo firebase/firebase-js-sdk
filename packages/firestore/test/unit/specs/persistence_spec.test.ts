@@ -75,7 +75,7 @@ describeSpec('Persistence:', [], () => {
 
   specTest("Remote documents from watch are not GC'd", [], () => {
     const query1 = query('collection');
-    const doc1 = doc('collection/key', 1000, { foo: 'bar' });
+    const doc1 = doc('collection/key', 1000, { foo: 'bar' }, 1000);
     return (
       spec()
         .withGCEnabled(false)
@@ -103,7 +103,7 @@ describeSpec('Persistence:', [], () => {
           added: [
             doc('collection/key', 1000, {
               foo: 'bar'
-            }).setHasCommittedMutations()
+            }, 1000).setHasCommittedMutations()
           ],
           fromCache: true
         })

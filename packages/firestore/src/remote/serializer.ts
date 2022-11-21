@@ -407,6 +407,9 @@ export function fromDocument(
 ): MutableDocument {
   const key = fromName(serializer, document.name!);
   const version = fromVersion(document.updateTime!);
+  // If we read a document from persistence that is missing createTime, it's due
+  // to older SDK versions not storing this information. In such cases, we'll
+  // set the createTime to zero. This can be removed in the long term.
   const createTime = document.createTime
     ? fromVersion(document.createTime)
     : SnapshotVersion.min();

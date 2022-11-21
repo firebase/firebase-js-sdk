@@ -557,8 +557,10 @@ export class LocalDocumentsView {
     key: DocumentKey,
     overlay: Overlay | null
   ): PersistencePromise<MutableDocument> {
-    return overlay === null || overlay.mutation.type === MutationType.Patch
-      ? this.remoteDocumentCache.getEntry(transaction, key)
-      : PersistencePromise.resolve(MutableDocument.newInvalidDocument(key));
+    return this.remoteDocumentCache.getEntry(transaction, key);
+    // TODO(COUNT): ROI of this is pretty low and it could be quite confusing.
+    // return overlay === null || overlay.mutation.type === MutationType.Patch
+    //   ? this.remoteDocumentCache.getEntry(transaction, key)
+    //   : PersistencePromise.resolve(MutableDocument.newInvalidDocument(key));
   }
 }

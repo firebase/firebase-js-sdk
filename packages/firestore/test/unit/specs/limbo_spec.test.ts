@@ -22,7 +22,7 @@ import {
 } from '../../../src/core/query';
 import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
+import {deletedDoc, doc, filter, orderBy, query, version} from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -502,13 +502,13 @@ describeSpec('Limbo Documents:', [], () => {
     const originalQuery = query('collection');
     const filteredQuery = query('collection', filter('matches', '==', true));
 
-    const docA = doc('collection/a', 1000, { matches: true });
+    const docA = doc('collection/a', 1000, { matches: true }, 1000);
     const docADirty = doc('collection/a', 1000, {
       matches: true
-    }).setHasCommittedMutations();
+    }, 1000).setHasCommittedMutations();
     const docBDirty = doc('collection/b', 1001, {
       matches: true
-    }).setHasCommittedMutations();
+    }, 1001).setHasCommittedMutations();
 
     return (
       spec()

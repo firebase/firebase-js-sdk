@@ -137,8 +137,8 @@ describe('Mutation', () => {
       );
     }
 
-    expect(docForOverlay).to.deep.equal(
-      docForMutations,
+    expect(docForOverlay.setCreateTime(docForOverlay.version)).to.deep.equal(
+      docForMutations.setCreateTime(docForMutations.version),
       getDescription(doc, mutations, overlay)
     );
   }
@@ -674,8 +674,10 @@ describe('Mutation', () => {
     ).setHasCommittedMutations();
 
     assertVersionTransitions(set, docV3, mutationResult, docV7Committed);
-    assertVersionTransitions(set, deletedV3, mutationResult, docV7Committed);
-    assertVersionTransitions(set, invalidV3, mutationResult, docV7Committed);
+    // For the following two cases, the mutation flips a deleted/unknown document to a known document, and in such
+    // situations, we assume a createTime at the given version.
+    assertVersionTransitions(set, deletedV3, mutationResult, docV7Committed.mutableCopy().setCreateTime(version(7)));
+    assertVersionTransitions(set, invalidV3, mutationResult, docV7Committed.mutableCopy().setCreateTime(version(7)));
 
     assertVersionTransitions(patch, docV3, mutationResult, docV7Committed);
     assertVersionTransitions(patch, deletedV3, mutationResult, docV7Unknown);
@@ -977,7 +979,7 @@ describe('Mutation', () => {
 
   it('overlay by combinations and permutations', () => {
     const docs: MutableDocument[] = [
-      doc('collection/key', 1, { 'foo': 'foo-value', 'bar': 1 }),
+      doc('collection/key', 1, { 'foo': 'foo-value', 'bar': 1 }, 1),
       deletedDoc('collection/key', 1),
       unknownDoc('collection/key', 1)
     ];
