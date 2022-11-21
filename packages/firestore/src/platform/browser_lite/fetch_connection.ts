@@ -61,7 +61,8 @@ export class FetchConnection extends RestConnection {
         headers,
         body: requestJson
       });
-    } catch (err) {
+    } catch (e) {
+      const err = e as { status: number | undefined; statusText: string };
       throw new FirestoreError(
         mapCodeFromHttpStatus(err.status),
         'Request failed with error: ' + err.statusText
