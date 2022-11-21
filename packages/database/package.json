@@ -45,6 +45,7 @@
   "license": "Apache-2.0",
   "peerDependencies": {},
   "dependencies": {
+    "@firebase/app-types": "0.x",
     "@firebase/logger": "0.3.4",
     "@firebase/util": "1.7.3",
     "@firebase/component": "0.5.21",
