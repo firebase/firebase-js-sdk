@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Md5 } from '@firebase/webchannel-wrapper';
+import { Md5, Integer } from '@firebase/webchannel-wrapper';
 
 import { debugAssert } from '../util/assert';
 
@@ -26,10 +26,10 @@ export class BloomFilter {
     padding: number,
     private readonly hashCount: number
   ) {
-    debugAssert(padding >= 0, 'Padding is negative or undefined.');
+    debugAssert(padding >= 0, 'Padding is negative.');
     this.bitSize = this.bitmap.length * 8 - padding;
     debugAssert(this.bitSize >= 0, 'Bitmap size is negative.');
-    debugAssert(this.hashCount >= 0, 'Hash count is negative or undefined.');
+    debugAssert(this.hashCount >= 0, 'Hash count is negative.');
   }
 
   getBitSize(): number {
@@ -54,16 +54,22 @@ export class BloomFilter {
     // Interpret the hashed value as two 64-bit chunks as unsigned integers, encoded using 2’s
     // complement using little endian.
     const dataView = new DataView(encodedBytes.buffer);
-    const hash1 = dataView.getBigUint64(0, /* littleEndian= */ true);
-    const hash2 = dataView.getBigUint64(8, /* littleEndian= */ true);
+    const firstUint32 = dataView.getUint32(0, /* littleEndian= */ true);
+    const secondUint32 = dataView.getUint32(4, /* littleEndian= */ true);
+    const thirdUint32 = dataView.getUint32(8, /* littleEndian= */ true);
+    const fourthUint32 = dataView.getUint32(12, /* littleEndian= */ true);
+    const hash1 = new Integer([firstUint32, secondUint32], 0);
+    const hash2 = new Integer([thirdUint32, fourthUint32], 0);
 
     for (let i = 0; i < this.hashCount; i++) {
       // Calculate hashed value h(i) = h1 + (i * h2), wrap if hash value overflow
-      let combinedHash = hash1 + BigInt(i) * hash2;
-      combinedHash = BigInt.asUintN(64, combinedHash);
+      let combinedHash = hash1.add(hash2.multiply(Integer.fromNumber(i)));
+      combinedHash = combinedHash.modulo(Integer.fromNumber(Math.pow(2, 64)));
 
       // To retrieve bit n, calculate: (bitmap[n / 8] & (0x01 << (n % 8))).
-      const module = Number(combinedHash % BigInt(this.bitSize));
+      const module = Number(
+        combinedHash.modulo(Integer.fromNumber(this.bitSize))
+      );
       const byte = this.bitmap[Math.floor(module / 8)];
 
       if (!(byte & (0x01 << module % 8))) {

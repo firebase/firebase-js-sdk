@@ -14,12 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { readFileSync, readdirSync } from 'fs';
-import { parse, resolve } from 'path';
-
 import { expect } from 'chai';
 
 import { BloomFilter } from '../../../src/remote/bloom_filter';
+
+import {
+  testDataCount1Rate0001,
+  testDataCount1Rate01,
+  testDataCount1Rate1,
+  testDataCount50000Rate0001,
+  testDataCount50000Rate01,
+  testDataCount50000Rate1,
+  testDataCount5000Rate0001,
+  testDataCount5000Rate01,
+  testDataCount5000Rate1,
+  testDataCount500Rate0001,
+  testDataCount500Rate01,
+  testDataCount500Rate1,
+  testResultCount1Rate0001,
+  testResultCount1Rate01,
+  testResultCount1Rate1,
+  testResultCount50000Rate0001,
+  testResultCount50000Rate01,
+  testResultCount50000Rate1,
+  testResultCount5000Rate0001,
+  testResultCount5000Rate01,
+  testResultCount5000Rate1,
+  testResultCount500Rate0001,
+  testResultCount500Rate01,
+  testResultCount500Rate1
+} from './bloom_filter_golden_test_data';
 
 describe('BloomFilter', () => {
   it('can initiate an empty BloomFilter', () => {
@@ -113,48 +137,228 @@ describe('BloomFilter', () => {
   describe('BloomFilter membership test', () => {
     const documentPrefix =
       'projects/project-1/databases/database-1/documents/coll/doc';
-    const testDataFolder = 'test/unit/remote/bloom_filter_golden_test_data';
 
     interface TestDataType {
       bits: {
-        bitmap: string;
-        padding: number;
+        bitmap?: string;
+        padding?: number;
       };
-      hashCount: number;
+      hashCount?: number;
     }
 
-    function convertBase64ToUint8Array(base64: string = ''): Uint8Array {
+    interface TestResultType {
+      membershipTestResults: string;
+    }
+
+    function convertBase64ToUint8Array(base64: string): Uint8Array {
       return Uint8Array.from(atob(base64), item => item.charCodeAt(0));
     }
 
-    it('mightContain result should match backend result', () => {
-      readdirSync(testDataFolder).forEach(filename => {
-        const ext = parse(filename).ext;
+    it('mightContain result for 1 document with 1 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount1Rate1 as TestDataType;
+      const { membershipTestResults } = testResultCount1Rate1 as TestResultType;
 
-        if (ext === '.json') {
-          const testDataPath = resolve(testDataFolder, filename);
-          const testResultPath = testDataPath.replace(
-            'bloom_filter_proto.json',
-            'membership_test_result.txt'
-          );
-          const testData: TestDataType = JSON.parse(
-            readFileSync(testDataPath, 'utf8')
-          );
-          const testResult: string = readFileSync(testResultPath, 'utf8');
-          const { bits = { bitmap: '', padding: 0 }, hashCount = 0 } = testData;
-          const bloomFilter = new BloomFilter(
-            convertBase64ToUint8Array(bits.bitmap),
-            bits.padding || 0,
-            hashCount || 0
-          );
-          for (let i = 0; i < testResult.length; i++) {
-            const backendMembershipResult =
-              testResult[i] === '1' ? true : false;
-            const mightContain = bloomFilter.mightContain(documentPrefix + i);
-            expect(mightContain).to.equal(backendMembershipResult);
-          }
-        }
-      });
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
     });
+    it('mightContain result for 1 document with 0.01 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount1Rate01 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount1Rate01 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+    });
+    it('mightContain result for 1 document with 0.0001 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount1Rate0001 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount1Rate0001 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+    });
+    it('mightContain result for 500 documents with 1 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount500Rate1 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount500Rate1 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+    });
+    it('mightContain result for 500 documents with 0.01 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount500Rate01 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount500Rate01 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+    });
+    it('mightContain result for 500 document with 0.0001 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount500Rate0001 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount500Rate0001 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+    });
+    it('mightContain result for 5000 documents with 1 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount5000Rate1 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount5000Rate1 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+    });
+    it('mightContain result for 5000 documenta with 0.01 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount5000Rate01 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount5000Rate01 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+    });
+    it('mightContain result for 5000 documenta with 0.0001 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount5000Rate0001 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount5000Rate0001 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+    });
+    it('mightContain result for 50000 documents with 1 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount50000Rate1 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount50000Rate1 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+    });
+    it('mightContain result for 50000 documents with 0.01 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount50000Rate01 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount50000Rate01 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+      //Extend default timeout(2000)
+    }).timeout(3000);
+
+    it('mightContain result for 50000 documents with 0.0001 false positive rate should match backend result', () => {
+      const { bits, hashCount } = testDataCount50000Rate0001 as TestDataType;
+      const { membershipTestResults } =
+        testResultCount50000Rate0001 as TestResultType;
+
+      const bloomFilter = new BloomFilter(
+        convertBase64ToUint8Array(bits.bitmap || ''),
+        bits.padding || 0,
+        hashCount || 0
+      );
+      for (let i = 0; i < membershipTestResults.length; i++) {
+        const backendMembershipResult =
+          membershipTestResults[i] === '1' ? true : false;
+        const mightContain = bloomFilter.mightContain(documentPrefix + i);
+        expect(mightContain).to.equal(backendMembershipResult);
+      }
+      //Extend default timeout(2000)
+    }).timeout(4000);
   });
 });
