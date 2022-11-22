@@ -22,8 +22,7 @@
 import { Integer } from '@firebase/webchannel-wrapper';
 import { expect } from 'chai';
 
-// TODO: REMOVE ONLY()
-describe.only('Integer', () => {
+describe('Integer', () => {
   it('constructor should create distinct instances', () => {
     const instance1 = new Integer([1], 0);
     const instance2 = new Integer([1], 0);
@@ -126,4 +125,38 @@ describe.only('Integer', () => {
       }
     }
   });
+
+  it('toNumber() should return the correct number', () => {
+    const one = Integer.fromNumber(1);
+    const two = Integer.fromNumber(2);
+    expect(Integer.fromNumber(0).toNumber()).equals(0);
+    expect(Integer.fromNumber(1).toNumber()).equals(1);
+    expect(Integer.fromNumber(-1).toNumber()).equals(-1);
+    expect(Integer.fromNumber(Number.MAX_SAFE_INTEGER).toNumber()).equals(Number.MAX_SAFE_INTEGER);
+    expect(Integer.fromNumber(Number.MIN_SAFE_INTEGER).toNumber()).equals(Number.MIN_SAFE_INTEGER);
+    expect(Integer.fromNumber(Number.MAX_SAFE_INTEGER).add(one).toNumber()).equals(Number.MAX_SAFE_INTEGER + 1);
+    expect(Integer.fromNumber(Number.MAX_SAFE_INTEGER).add(two).toNumber()).equals(Number.MAX_SAFE_INTEGER + 1);
+  });
+
+  it('toString() should return the correct number', () => {
+    const one = Integer.fromNumber(1);
+    const two = Integer.fromNumber(2);
+    expect(Integer.fromNumber(0).toString()).equals("0");
+    expect(Integer.fromNumber(1).toString()).equals("1");
+    expect(Integer.fromNumber(-1).toString()).equals("-1");
+    expect(Integer.fromNumber(Number.MAX_SAFE_INTEGER).toString()).equals("9007199254740991");
+    expect(Integer.fromNumber(Number.MIN_SAFE_INTEGER).toString()).equals("-9007199254740991");
+    expect(Integer.fromNumber(Number.MAX_SAFE_INTEGER).add(one).toString()).equals("9007199254740992");
+    expect(Integer.fromNumber(Number.MAX_SAFE_INTEGER).add(two).toString()).equals("9007199254740993");
+    expect(Integer.fromString("304704862073361391914321619654827369776").toString()).equals("304704862073361391914321619654827369776");
+  });
+
+  it('fromNumber() create a new Integer with the given value', () => {
+    // The tests for toString() and toNumber() cover this method.
+  });
+
+  it('fromString() create a new Integer with the given value', () => {
+    // The tests for toString() and toNumber() cover this method.
+  });
+
 });
