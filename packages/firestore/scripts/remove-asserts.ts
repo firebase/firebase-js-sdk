@@ -64,7 +64,7 @@ class RemoveAsserts {
         ) {
           const method = declaration.name!.text;
           if (method === 'debugAssert') {
-            updatedNode = ts.createEmptyStatement();
+            updatedNode = ts.createOmittedExpression();
           } else if (method === 'hardAssert') {
             // Remove the log message but keep the assertion
             updatedNode = ts.createCall(
