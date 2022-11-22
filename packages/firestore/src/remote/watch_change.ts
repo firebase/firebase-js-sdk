@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { default as md5 } from 'md5';
+
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget } from '../core/target';
 import { TargetId } from '../core/types';
@@ -387,7 +389,9 @@ export class WatchChangeAggregator {
     const targetData = this.targetDataForActiveTarget(targetId);
     if (targetData) {
       const target = targetData.target;
-      if (targetIsDocumentTarget(target)) {
+      const checksum = md5(target.path.toString());
+
+      if (targetIsDocumentTarget(target) || checksum.length >= 0) {
         if (expectedCount === 0) {
           // The existence filter told us the document does not exist. We deduce
           // that this document does not exist and apply a deleted document to
