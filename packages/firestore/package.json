@@ -30,6 +30,8 @@
     "test:all:ci": "run-p test:browser test:lite:browser test:travis",
     "test:all": "run-p test:browser test:lite:browser test:travis test:minified",
     "test:browser": "karma start --single-run",
+    "test:browser:emulator:debug": "karma start --browsers=Chrome --local",
+    "test:browser:emulator": "karma start --single-run --local",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "node ./scripts/run-tests.js  --main=test/register.ts  --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
