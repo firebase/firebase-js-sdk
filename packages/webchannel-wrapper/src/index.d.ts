@@ -138,6 +138,8 @@ export class FetchXmlHttpFactory {
 }
 
 // See https://google.github.io/closure-library/api/goog.math.Integer.html
+// Unit test are written in
+// packages/firestore/test/unit/core/webchannel_wrapper.test.ts
 export class Integer {
   constructor(bits: Array<number>, sign: number);
   add(other: Integer): Integer;
