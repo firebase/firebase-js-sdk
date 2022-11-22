@@ -1319,8 +1319,8 @@ describe('IndexedDb: canActAsPrimary', () => {
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
-  const visible: VisibilityState = 'visible';
-  const hidden: VisibilityState = 'hidden';
+  const visible: DocumentVisibilityState = 'visible';
+  const hidden: DocumentVisibilityState = 'hidden';
   const networkEnabled = true;
   const networkDisabled = false;
   const primary = true;
@@ -1328,9 +1328,9 @@ describe('IndexedDb: canActAsPrimary', () => {
 
   type ExpectedPrimaryStateTestCase = [
     boolean,
-    VisibilityState,
+    DocumentVisibilityState,
     boolean,
-    VisibilityState,
+    DocumentVisibilityState,
     boolean
   ];
 

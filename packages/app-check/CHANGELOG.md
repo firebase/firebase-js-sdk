@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.5.17
+
+### Patch Changes
+
+- [`457fc2eeb`](https://github.com/firebase/firebase-js-sdk/commit/457fc2eeb6922fd4eaa5e305cd10ee05e86293be) [#6740](https://github.com/firebase/firebase-js-sdk/pull/6740) (fixes [#6734](https://github.com/firebase/firebase-js-sdk/issues/6734)) - Clear App Check exchange promise correctly after request succeeds.
+
 ## 0.5.16
 
 ### Patch Changes

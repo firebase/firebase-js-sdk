@@ -116,7 +116,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         const snapshot = await this.docRef.get();
         expect(snapshot.exists).to.equal(true);
         expect(snapshot.data()).to.deep.equal(expected);
-      } catch (err) {
+      } catch (e) {
+        const err = e as firestore.FirestoreError;
         expect.fail(
           'Expected the sequence (' +
             this.listStages(this.stages) +
@@ -133,7 +134,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         await this.runTransaction();
         const snapshot = await this.docRef.get();
         expect(snapshot.exists).to.equal(false);
-      } catch (err) {
+      } catch (e) {
+        const err = e as firestore.FirestoreError;
         expect.fail(
           'Expected the sequence (' +
             this.listStages(this.stages) +
@@ -150,8 +152,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         await this.prepareDoc();
         await this.runTransaction();
         succeeded = true;
-      } catch (err) {
-        expect((err as firestore.FirestoreError).code).to.equal(expected);
+      } catch (e) {
+        const err = e as firestore.FirestoreError;
+        expect(err.code).to.equal(expected);
       }
       if (succeeded) {
         expect.fail(

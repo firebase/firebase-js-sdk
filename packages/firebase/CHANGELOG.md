@@ -1,5 +1,31 @@
 # firebase
 
+## 9.14.0
+
+### Minor Changes
+
+- [`0c0c58f47`](https://github.com/firebase/firebase-js-sdk/commit/0c0c58f474024a628ac0b43aacb086af8f2e794c) [#6773](https://github.com/firebase/firebase-js-sdk/pull/6773) - Add missing package that should have been included in https://github.com/firebase/firebase-js-sdk/pull/6728
+
+### Patch Changes
+
+- [`bf7cc8f69`](https://github.com/firebase/firebase-js-sdk/commit/bf7cc8f691f7a17730b071d3d9c27bd28a6e3980) [#6712](https://github.com/firebase/firebase-js-sdk/pull/6712) (fixes [#6613](https://github.com/firebase/firebase-js-sdk/issues/6613)) - Fix "missing index" error message to include the link to create the composite index.
+
+- [`e2a90bf67`](https://github.com/firebase/firebase-js-sdk/commit/e2a90bf678eb6fa505f8b2f627e03cff622607b5) [#6729](https://github.com/firebase/firebase-js-sdk/pull/6729) - Fix transaction.set() failure without retry on "already-exists" error.
+
+- Updated dependencies [[`3f1354f1f`](https://github.com/firebase/firebase-js-sdk/commit/3f1354f1f120f1fe4bcc11122a6e0b12fe3c6ac4), [`bf7cc8f69`](https://github.com/firebase/firebase-js-sdk/commit/bf7cc8f691f7a17730b071d3d9c27bd28a6e3980), [`8876b783f`](https://github.com/firebase/firebase-js-sdk/commit/8876b783f27ba8ba0ad0305db4812432efa17461), [`9e9ee7ba3`](https://github.com/firebase/firebase-js-sdk/commit/9e9ee7ba3383237e0b92ad8183dd0f12640f4f3a), [`457fc2eeb`](https://github.com/firebase/firebase-js-sdk/commit/457fc2eeb6922fd4eaa5e305cd10ee05e86293be), [`e2a90bf67`](https://github.com/firebase/firebase-js-sdk/commit/e2a90bf678eb6fa505f8b2f627e03cff622607b5)]:
+  - @firebase/app@0.8.4
+  - @firebase/performance@0.5.17
+  - @firebase/firestore@3.7.3
+  - @firebase/storage@0.9.14
+  - @firebase/messaging@0.11.0
+  - @firebase/app-check@0.5.17
+  - @firebase/app-compat@0.1.39
+  - @firebase/performance-compat@0.1.17
+  - @firebase/firestore-compat@0.2.3
+  - @firebase/storage-compat@0.1.22
+  - @firebase/messaging-compat@0.1.21
+  - @firebase/app-check-compat@0.2.17
+
 ## 9.13.0
 
 ### Minor Changes
