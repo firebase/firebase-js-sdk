@@ -130,10 +130,9 @@ class AsyncLocalStoreTester {
 
   async applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.prepareNextStep();
-    this.lastChanges = await localStoreApplyRemoteEventToLocalCache(
-      this.localStore,
-      remoteEvent
-    );
+    this.lastChanges = (
+      await localStoreApplyRemoteEventToLocalCache(this.localStore, remoteEvent)
+    ).changedDocs;
   }
 
   async writeCount(targetId: number, count: number, readTime: SnapshotVersion) {

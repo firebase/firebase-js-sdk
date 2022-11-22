@@ -186,8 +186,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
-import ListenResponse = firestoreV1ApiClientInterfaces.ListenResponse;
 
 use(chaiExclude);
 

@@ -22,7 +22,8 @@ import {
   Query,
   queryCollectionGroup,
   queryToTarget,
-  AggregateQuery
+  AggregateQuery,
+  queryMatches
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
@@ -32,6 +33,7 @@ import {
   convertOverlayedDocumentMapToDocumentMap,
   documentKeySet,
   DocumentKeySet,
+  documentMap,
   DocumentMap,
   mutableDocumentMap,
   MutableDocumentMap,
@@ -580,6 +582,34 @@ export function localStoreGetLastRemoteSnapshotVersion(
   );
 }
 
+export interface RemoteEventResult {
+  changedDocs: DocumentMap;
+  remoteMatches?: Map<TargetId, DocumentKey[]>;
+  localAggregateMatches?: Map<TargetId, DocumentKey[]>;
+  // TODO(COUNT): Should be an aggregate field instead of a number
+  changedAggregates?: Map<TargetId, number>;
+}
+
+function matchAggregateQueries(
+  localStore: LocalStore,
+  docs: DocumentMap
+): Map<TargetId, DocumentKey[]> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  let result: Map<TargetId, DocumentKey[]> = new Map();
+  docs.forEach((k, d) => {
+    localStoreImpl.aggregateQueryByTarget.forEach((targetId, aggregate) => {
+      if (queryMatches(aggregate._baseQuery, d)) {
+        if (result.has(targetId)) {
+          result.get(targetId)?.push(k);
+        } else {
+          result.set(targetId, [k]);
+        }
+      }
+    });
+  });
+  return result;
+}
+
 /**
  * Updates the "ground-state" (remote) documents. We assume that the remote
  * event reflects any write batches that have been acknowledged or rejected
@@ -591,7 +621,7 @@ export function localStoreGetLastRemoteSnapshotVersion(
 export function localStoreApplyRemoteEventToLocalCache(
   localStore: LocalStore,
   remoteEvent: RemoteEvent
-): Promise<DocumentMap> {
+): Promise<RemoteEventResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const remoteVersion = remoteEvent.snapshotVersion;
   let newTargetDataByTargetMap = localStoreImpl.targetDataByTarget;
@@ -708,20 +738,43 @@ export function localStoreApplyRemoteEventToLocalCache(
         promises.push(updateRemoteVersion);
       }
 
+      let remoteEventResult: RemoteEventResult = { changedDocs: documentMap() };
       return PersistencePromise.waitFor(promises)
         .next(() => documentBuffer.apply(txn))
-        .next(() =>
-          localStoreImpl.localDocuments.getLocalViewOfDocuments(
+        .next(() => {
+          remoteEventResult.remoteMatches = matchAggregateQueries(
+            localStore,
+            changedDocs
+          );
+        })
+        .next(() => {
+          return localStoreImpl.localDocuments.getLocalViewOfDocuments(
             txn,
             changedDocs,
             existenceChangedKeys
-          )
-        )
-        .next(() => changedDocs);
+          );
+        })
+        .next(localViewOfChangedDocs => {
+          remoteEventResult.changedDocs = localViewOfChangedDocs;
+
+          remoteEventResult.localAggregateMatches = matchAggregateQueries(
+            localStore,
+            localViewOfChangedDocs
+          );
+
+          const changedAggregates: Map<TargetId, number> = new Map();
+          for (const change of remoteEvent.aggregateChanges) {
+            changedAggregates.set(change.targetId, change.count);
+          }
+
+          remoteEventResult.changedAggregates = changedAggregates;
+          return remoteEventResult;
+        });
     })
-    .then(changedDocs => {
+    .then(result => {
+      // TODO(COUNT): Track aggregate targetdata changes as well.
       localStoreImpl.targetDataByTarget = newTargetDataByTargetMap;
-      return changedDocs;
+      return result;
     });
 }
 

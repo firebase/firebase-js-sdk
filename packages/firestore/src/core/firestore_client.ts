@@ -400,7 +400,7 @@ export function firestoreClientListenAggregate(
 
   client.asyncQueue.enqueueAndForget(async () => {
     const eventManager = await getEventManager(client);
-    return eventManagerListenAggregate(eventManager, query, wrappedObserver);
+    // return eventManagerListenAggregate(eventManager, query, wrappedObserver);
   });
   return () => {
     debugAssert(false, 'Unlisten not implemented');

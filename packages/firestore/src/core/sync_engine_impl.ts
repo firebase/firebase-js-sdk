@@ -41,7 +41,8 @@ import {
   localStoreReleaseTarget,
   localStoreRemoveCachedMutationBatchMetadata,
   localStoreSaveBundle,
-  localStoreWriteLocally
+  localStoreWriteLocally,
+  RemoteEventResult
 } from '../local/local_store_impl';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
@@ -220,10 +221,7 @@ class SyncEngineImpl implements SyncEngine {
   );
 
   // TODO(COUNT): We should create a AggregateQueryView rather than using AggregateQueryResult.
-  aggregateResultByQuery = new ObjectMap<
-    InternalAggregateQuery,
-    AggregateQueryResult
-  >(q => canonifyAggregateQuery(q), aggregateQueryEquals);
+  aggregateResultByQuery = new Map<TargetId, AggregateQueryResult>();
   queriesByTarget = new Map<TargetId, Query[]>();
   /**
    * The keys of documents that are in limbo for which we haven't yet started a
@@ -478,8 +476,19 @@ export async function syncEngineListenAggregate(
     query
   );
 
-  syncEngineImpl.aggregateResultByQuery.set(query, result);
+  syncEngineImpl.aggregateResultByQuery.set(targetData.targetId, result);
 
+  return calculateAggregateSnapshot(result).snapshot;
+}
+
+interface AggregateSnapshotAndDiscountedKeys {
+  snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>;
+  discountedKeys: DocumentKeySet;
+}
+
+function calculateAggregateSnapshot(
+  result: AggregateQueryResult
+): AggregateSnapshotAndDiscountedKeys {
   let delta = 0;
   let plusZeros = documentKeySet();
   result.documentResult.documents.forEach((k, doc) => {
@@ -501,11 +510,14 @@ export async function syncEngineListenAggregate(
   });
 
   // TODO(COUNT): Apply +0 deltas for case #5.
-  // const case5Delta = min(plusZeros.size() - result.localAggregateMatches.size(), 0);
-  return new AggregateQuerySnapshot<{ count: AggregateField<number> }>(
-    undefined,
-    { count: result.cachedCount + delta /* + case5Delta*/ }
-  );
+  // const case5Delta = min(plusZeros.size() - result.existingPlusZeros.size(), 0);
+  return {
+    snapshot: new AggregateQuerySnapshot<{ count: AggregateField<number> }>(
+      undefined,
+      { count: result.cachedCount + delta /* + case5Delta*/ }
+    ),
+    discountedKeys: plusZeros
+  };
 }
 
 /**
@@ -532,10 +544,9 @@ export async function syncEngineWrite(
     );
     syncEngineImpl.sharedClientState.addPendingMutation(result.batchId);
     addMutationCallback(syncEngineImpl, result.batchId, userCallback);
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(
-      syncEngineImpl,
-      result.changes
-    );
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+      changedDocs: result.changes
+    });
     await fillWritePipeline(syncEngineImpl.remoteStore);
   } catch (e) {
     // If we can't persist the mutation, we reject the user callback and
@@ -753,7 +764,9 @@ export async function syncEngineApplySuccessfulWrite(
       batchId,
       'acknowledged'
     );
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+      changedDocs: changes
+    });
   } catch (error) {
     await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
@@ -784,7 +797,9 @@ export async function syncEngineRejectFailedWrite(
       'rejected',
       error
     );
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+      changedDocs: changes
+    });
   } catch (error) {
     await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
@@ -1065,9 +1080,58 @@ export function syncEngineGetEnqueuedLimboDocumentResolutions(
   return syncEngineImpl.enqueuedLimboResolutions;
 }
 
+function updateAggregateQueryResult(
+  existingResult: AggregateQueryResult,
+  targetId: TargetId,
+  changes: RemoteEventResult,
+  globalSnapshot?: SnapshotVersion
+) {
+  if (changes.changedAggregates && changes.changedAggregates.get(targetId)) {
+    existingResult.cachedCount = changes.changedAggregates.get(targetId)!;
+    existingResult.cachedCountReadTime = globalSnapshot!;
+  }
+
+  const remoteMatchesSet = documentKeySet(
+    ...(changes.remoteMatches?.get(targetId) || [])
+  );
+  changes.changedDocs.forEach((k, doc) => {
+    if (
+      existingResult.matchesWithoutMutation.has(k) &&
+      !remoteMatchesSet.has(k)
+    ) {
+      existingResult.matchesWithoutMutation =
+        existingResult.matchesWithoutMutation.delete(k);
+    } else if (remoteMatchesSet.has(k)) {
+      existingResult.matchesWithoutMutation =
+        existingResult.matchesWithoutMutation.add(k);
+    }
+  });
+
+  const localAggregateMatches = documentKeySet(
+    ...(changes.localAggregateMatches?.get(targetId) || [])
+  );
+  changes.changedDocs.forEach((k, doc) => {
+    if (
+      existingResult.documentResult.remoteKeys.has(k) &&
+      !localAggregateMatches.has(k)
+    ) {
+      (existingResult.documentResult.remoteKeys as any) =
+        existingResult.documentResult.remoteKeys.delete(k);
+      (existingResult.documentResult.documents as any) =
+        existingResult.documentResult.documents.remove(k);
+    } else if (localAggregateMatches.has(k)) {
+      (existingResult.documentResult.remoteKeys as any) =
+        existingResult.documentResult.remoteKeys.add(k);
+      // TODO(COUNT): doc should have holding mask applied here.
+      (existingResult.documentResult.documents as any) =
+        existingResult.documentResult.documents.insert(k, doc);
+    }
+  });
+}
+
 export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   syncEngine: SyncEngine,
-  changes: DocumentMap,
+  changes: RemoteEventResult,
   remoteEvent?: RemoteEvent
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
@@ -1080,6 +1144,17 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
     return;
   }
 
+  syncEngineImpl.aggregateResultByQuery.forEach((result, targetId) => {
+    updateAggregateQueryResult(
+      result,
+      targetId,
+      changes,
+      remoteEvent?.snapshotVersion
+    );
+
+    const snapshot = calculateAggregateSnapshot(result);
+  });
+
   syncEngineImpl.queryViewsByQuery.forEach((_, queryView) => {
     debugAssert(
       !!syncEngineImpl.applyDocChanges,
@@ -1087,7 +1162,7 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
     );
     queriesProcessed.push(
       syncEngineImpl
-        .applyDocChanges(queryView, changes, remoteEvent)
+        .applyDocChanges(queryView, changes.changedDocs, remoteEvent)
         .then(viewSnapshot => {
           // If there are changes, or we are handling a global snapshot, notify
           // secondary clients to update query state.
@@ -1183,10 +1258,9 @@ export async function syncEngineHandleCredentialChange(
       result.removedBatchIds,
       result.addedBatchIds
     );
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(
-      syncEngineImpl,
-      result.affectedDocuments
-    );
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+      changedDocs: result.affectedDocuments
+    });
   }
 }
 
@@ -1258,7 +1332,9 @@ export async function syncEngineSynchronizeWithChangedDocuments(
     syncEngineImpl.localStore,
     collectionGroup
   ).then(changes =>
-    syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
+    syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+      changedDocs: changes
+    })
   );
 }
 
@@ -1306,7 +1382,9 @@ export async function syncEngineApplyBatchState(
     fail(`Unknown batchState: ${batchState}`);
   }
 
-  await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, documents);
+  await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
+    changedDocs: documents
+  });
 }
 
 /** Applies a query target change from a different tab. */
@@ -1531,7 +1609,7 @@ export async function syncEngineApplyTargetState(
           );
         await syncEngineEmitNewSnapsAndNotifyLocalStore(
           syncEngineImpl,
-          changes,
+          { changedDocs: changes },
           synthesizedRemoteEvent
         );
         break;
@@ -1698,7 +1776,7 @@ async function loadBundleImpl(
     const result = await loader.complete();
     await syncEngineEmitNewSnapsAndNotifyLocalStore(
       syncEngine,
-      result.changedDocs,
+      { changedDocs: result.changedDocs },
       /* remoteEvent */ undefined
     );
 
