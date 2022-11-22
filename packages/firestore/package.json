@@ -99,6 +99,7 @@
     "@firebase/auth": "0.20.11",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",
+    "@types/crypto-js": "4.1.1",
     "@types/eslint": "7.29.0",
     "@types/json-stable-stringify": "1.0.34",
     "chai-exclude": "2.1.0",
