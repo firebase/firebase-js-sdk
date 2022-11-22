@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { md5 } from 'crypto-js/md5';
+import { default as MD5 } from 'crypto-js/md5';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget } from '../core/target';
@@ -389,8 +389,10 @@ export class WatchChangeAggregator {
     const targetData = this.targetDataForActiveTarget(targetId);
     if (targetData) {
       const target = targetData.target;
+      const md5 = MD5(targetData.snapshotVersion.toString());
+
       if (targetIsDocumentTarget(target)) {
-        if (expectedCount === 0) {
+        if (expectedCount === 0 && md5.words[0] != 0) {
           // The existence filter told us the document does not exist. We deduce
           // that this document does not exist and apply a deleted document to
           // our updates. Without applying this deleted document there might be
