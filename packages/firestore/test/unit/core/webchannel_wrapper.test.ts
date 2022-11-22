@@ -187,7 +187,7 @@ describe('Integer', () => {
       for (let i2 = 0; i2 < numbers.length; i2++) {
         const num1 = numbers[i1];
         const num2 = numbers[i2];
-        const expected = i1 == i2 ? 0 : i1 < i2 ? -1 : 1;
+        const expected = i1 === i2 ? 0 : i1 < i2 ? -1 : 1;
         expect(num1.compare(num2)).equals(expected);
       }
     }
