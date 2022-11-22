@@ -115,4 +115,5 @@ export function delay(dt: number): Promise<void> {
 }
 
 export const email = 'totpuser-donotdelete@test.com';
+//1000000 is always incorrect since it has 7 digits and we expect 6.
 export const incorrectTotpCode = '1000000';

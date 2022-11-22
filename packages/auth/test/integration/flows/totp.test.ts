@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,8 +124,9 @@ describe(' Integration tests: Mfa TOTP', () => {
     let resolver;
 
     await delay(30 * 1000);
-    // Added a delay so that getTotpCode() actually generates a new totp code
-
+    //TODO(bhparijat) generate the otp code for the next time window by passing the appropriate
+    //timestamp to avoid the 30s delay. The delay is needed because the otp code used for enrollment
+    //cannot be reused for signing in.
     try {
       await signInWithEmailAndPassword(auth, email, 'password');
 
