@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { md5 } from 'crypto-js/md5';
+
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget } from '../core/target';
 import { TargetId } from '../core/types';
