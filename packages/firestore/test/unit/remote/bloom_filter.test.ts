@@ -21,23 +21,8 @@ import { expect } from 'chai';
 
 import { BloomFilter } from '../../../src/remote/bloom_filter';
 
-var fs = require('fs');
-require.extensions['.txt'] = function (module, filename) {
-  module.exports = fs.readFileSync(filename, 'utf8');
-};
-
-const data: { bits: { bitmap: string, padding: number }, hashCount: number } = require('./bloom_filter_golden_test_data/Validation_BloomFilterTest_MD5_1_01_bloom_filter_proto.json');
-const res: string = require('./bloom_filter_golden_test_data/Validation_BloomFilterTest_MD5_1_01_membership_test_result.txt');
-
-describe('zzyzx BloomFilter', () => {
-  it('zzyzx can initiate an empty BloomFilter', () => {
-    console.log('zzyzx CHECKPOINT 1');
-    console.log(`data.bits.bitmap=${data.bits.bitmap}`);
-    console.log(`data.bits.padding=${data.bits.padding}`);
-    console.log(`data.hashCount=${data.hashCount}`);
-    console.log(`res=${res}`);
-    console.log('zzyzx CHECKPOINT 2');
-
+describe('BloomFilter', () => {
+  it('can initiate an empty BloomFilter', () => {
     const bloomFilter = new BloomFilter(
       /* bitmap */ new Uint8Array(0),
       /* padding */ 0,
