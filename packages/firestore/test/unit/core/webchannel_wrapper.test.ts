@@ -149,6 +149,12 @@ describe('Integer', () => {
     expect(Integer.fromNumber(Number.MAX_SAFE_INTEGER).add(one).toString()).equals("9007199254740992");
     expect(Integer.fromNumber(Number.MAX_SAFE_INTEGER).add(two).toString()).equals("9007199254740993");
     expect(Integer.fromString("304704862073361391914321619654827369776").toString()).equals("304704862073361391914321619654827369776");
+
+    expect(Integer.fromNumber(0).toString(2)).equals("0");
+    expect(Integer.fromNumber(43981).toString(2)).equals("1010101111001101");
+    expect(Integer.fromNumber(43981).toString(8)).equals("125715");
+    expect(Integer.fromNumber(43981).toString(10)).equals("43981");
+    expect(Integer.fromNumber(43981).toString(16)).equals("abcd");
   });
 
   it('fromNumber() create a new Integer with the given value', () => {
@@ -156,7 +162,17 @@ describe('Integer', () => {
   });
 
   it('fromString() create a new Integer with the given value', () => {
-    // The tests for toString() and toNumber() cover this method.
+    expect(Integer.fromString("0").toNumber()).equals(0);
+    expect(Integer.fromString("1").toNumber()).equals(1);
+    expect(Integer.fromString("-1").toNumber()).equals(-1);
+    expect(Integer.fromString("42").toNumber()).equals(42);
+    expect(Integer.fromString("9007199254740991").toNumber()).equals(Number.MAX_SAFE_INTEGER);
+    expect(Integer.fromString("-9007199254740991").toNumber()).equals(Number.MIN_SAFE_INTEGER);
+    expect(Integer.fromString("304704862073361391914321619654827369776").toString()).equals("304704862073361391914321619654827369776");
+
+    expect(Integer.fromString("abcd", 16).toNumber()).equals(43981);
+    expect(Integer.fromString("125715", 8).toNumber()).equals(43981);
+    expect(Integer.fromString("1010101111001101", 2).toNumber()).equals(43981);
   });
 
 });
