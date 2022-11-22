@@ -127,7 +127,7 @@ describeSpec('Writes:', [], () => {
       const query1 = query('collection');
       const modifiedDoc = doc('collection/doc', 1000, {
         v: 1
-      }, 1000).setHasCommittedMutations();
+      }).setHasCommittedMutations();
       return spec()
         .withGCEnabled(false)
         .userSets('collection/doc', { v: 1 })
@@ -932,7 +932,7 @@ describeSpec('Writes:', [], () => {
     const docV1 = doc('collection/doc', 0, { v: 1 }).setHasLocalMutations();
     const docV1Committed = doc('collection/doc', 2000, {
       v: 1
-    }, 2000).setHasCommittedMutations();
+    }).setHasCommittedMutations();
     const docV1Acknowledged = doc('collection/doc', 2000, { v: 1 });
     return (
       client(0)
@@ -1314,10 +1314,10 @@ describeSpec('Writes:', [], () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, {
         k: 'a'
-      }, 1000).setHasCommittedMutations();
+      }).setHasCommittedMutations();
       const docB = doc('collection/b', 2000, {
         k: 'b'
-      }, 2000).setHasCommittedMutations();
+      }).setHasCommittedMutations();
 
       return client(0)
         .expectPrimaryState(true)

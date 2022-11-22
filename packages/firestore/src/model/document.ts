@@ -256,13 +256,16 @@ export class MutableDocument implements Document {
     version: SnapshotVersion,
     value: ObjectValue
   ): MutableDocument {
-    // TODO(COUNT): Add comment about why we're updating createTime here.
-    if (this.createTime.isEqual(SnapshotVersion.min())&&
-        (this.documentType === DocumentType.NO_DOCUMENT || this.documentType === DocumentType.INVALID)) {
-     this.createTime = version;
-    }
-    if (!this.createTime) {
-      throw("this will never get executed");
+    // If a document is switching state from being an invalid or deleted
+    // document to a valid (FOUND_DOCUMENT) document, either due to receiving an
+    // update from Watch or due to applying a local set mutation on top
+    // of a deleted document, our best guess about its createTime would be the
+    // version at which the document transitioned to a FOUND_DOCUMENT.
+    if (
+      this.createTime.isEqual(SnapshotVersion.min()) &&
+      (this.documentType === DocumentType.NO_DOCUMENT ||
+        this.documentType === DocumentType.INVALID)
+    ) {
       this.createTime = version;
     }
     this.version = version;
@@ -317,11 +320,6 @@ export class MutableDocument implements Document {
     return this;
   }
 
-  setCreateTime(createTime: SnapshotVersion): MutableDocument {
-    this.createTime = createTime;
-    return this;
-  }
-
   get hasLocalMutations(): boolean {
     return this.documentState === DocumentState.HAS_LOCAL_MUTATIONS;
   }
@@ -354,7 +352,6 @@ export class MutableDocument implements Document {
     return (
       other instanceof MutableDocument &&
       this.key.isEqual(other.key) &&
-      this.createTime.isEqual(other.createTime) &&
       this.version.isEqual(other.version) &&
       this.documentType === other.documentType &&
       this.documentState === other.documentState &&

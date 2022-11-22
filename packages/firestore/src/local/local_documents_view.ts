@@ -46,7 +46,6 @@ import { FieldMask } from '../model/field_mask';
 import {
   calculateOverlayMutation,
   mutationApplyToLocalView,
-  MutationType,
   PatchMutation
 } from '../model/mutation';
 import { Overlay } from '../model/overlay';

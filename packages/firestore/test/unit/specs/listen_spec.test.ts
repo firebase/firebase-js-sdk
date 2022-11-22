@@ -959,11 +959,11 @@ describeSpec('Listens:', [], () => {
     ['multi-client'],
     () => {
       const query1 = query('collection');
-      const docA = doc('collection/a', 1000, { key: '1' }, 1000);
+      const docA = doc('collection/a', 1000, { key: '1' });
       const docADeleted = deletedDoc('collection/a', 2000);
       const docARecreated = doc('collection/a', 2000, {
         key: '2'
-      }, 2000).setHasLocalMutations();
+      }).setHasLocalMutations();
 
       return (
         client(0)

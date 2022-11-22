@@ -1194,7 +1194,12 @@ abstract class TestRunner {
     type: ChangeType,
     change: SpecDocument
   ): DocumentViewChange {
-    const document = doc(change.key, change.version, change.value || {}, change.createTime);
+    const document = doc(
+      change.key,
+      change.version,
+      change.value || {},
+      change.createTime
+    );
     if (change.options?.hasCommittedMutations) {
       document.setHasCommittedMutations();
     } else if (change.options?.hasLocalMutations) {

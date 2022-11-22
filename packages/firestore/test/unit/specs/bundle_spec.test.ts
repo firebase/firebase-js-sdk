@@ -102,7 +102,7 @@ describeSpec('Bundles:', ['no-ios'], () => {
     return (
       spec()
         .userListens(query1)
-        .watchAcksFull(query1, 2000, docA)
+        .watchAcksFull(query1, 1000, docA)
         .expectEvents(query1, { added: [docA] })
         // TODO(b/160876443): This currently raises snapshots with
         // `fromCache=false` if users already listen to some queries and bundles

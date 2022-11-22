@@ -517,14 +517,6 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
           size: getResult.size,
           readTime: getResult.document.readTime
         });
-
-        // This is because older SDK versions did not store createTime.
-        // This can be removed in the long term.
-        if (!getResult.document.createTime) {
-          throw('this will never get executed');
-          //getResult.document.createTime = SnapshotVersion.min();
-        }
-
         return getResult.document;
       });
   }
@@ -546,15 +538,6 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
             size,
             readTime: documents.get(documentKey)!.readTime
           });
-        });
-
-        // This is because older SDK versions did not store createTime.
-        // This can be removed in the long term.
-        documents.forEach((key, doc) => {
-          if(!doc.createTime) {
-            throw('this will never get executed');
-            //doc.createTime = SnapshotVersion.min();
-          }
         });
         return documents;
       });
