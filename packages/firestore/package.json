@@ -86,6 +86,7 @@
     "@firebase/webchannel-wrapper": "0.8.1",
     "@grpc/grpc-js": "~1.7.0",
     "@grpc/proto-loader": "^0.6.13",
+    "md5": "2.3.0",
     "node-fetch": "2.6.7",
     "tslib": "^2.1.0"
   },
@@ -100,6 +101,7 @@
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",
     "@types/json-stable-stringify": "1.0.34",
+    "@types/md5": "2.3.2",
     "chai-exclude": "2.1.0",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.11.3",
