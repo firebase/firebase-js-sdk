@@ -26,10 +26,10 @@ export class BloomFilter {
     padding: number,
     private readonly hashCount: number
   ) {
-    debugAssert(padding >= 0, 'Padding is negative.');
+    debugAssert(padding >= 0, 'Padding is negative or undefined.');
     this.bitSize = this.bitmap.length * 8 - padding;
     debugAssert(this.bitSize >= 0, 'Bitmap size is negative.');
-    debugAssert(this.hashCount >= 0, 'Hash count is negative.');
+    debugAssert(this.hashCount >= 0, 'Hash count is negative or undefined.');
   }
 
   getBitSize(): number {
