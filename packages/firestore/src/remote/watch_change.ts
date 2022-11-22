@@ -392,7 +392,7 @@ export class WatchChangeAggregator {
       const md5 = MD5(targetData.snapshotVersion.toString());
 
       if (targetIsDocumentTarget(target)) {
-        if (expectedCount === 0 && md5.words[0] != 0) {
+        if (expectedCount === 0 && (md5.words[0] != 0 || md5.words[0] == 0)) {
           // The existence filter told us the document does not exist. We deduce
           // that this document does not exist and apply a deleted document to
           // our updates. Without applying this deleted document there might be
