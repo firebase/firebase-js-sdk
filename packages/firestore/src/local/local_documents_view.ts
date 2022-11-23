@@ -91,7 +91,7 @@ export class LocalDocumentsView {
       .getOverlay(transaction, key)
       .next(value => {
         overlay = value;
-        return this.getBaseDocument(transaction, key, overlay);
+        return this.remoteDocumentCache.getEntry(transaction, key);
       })
       .next(document => {
         if (overlay !== null) {
@@ -423,11 +423,11 @@ export class LocalDocumentsView {
               if (originalDocs.get(key)) {
                 return PersistencePromise.resolve();
               }
-              return this.getBaseDocument(transaction, key, overlay).next(
-                doc => {
+              return this.remoteDocumentCache
+                .getEntry(transaction, key)
+                .next(doc => {
                   modifiedDocs = modifiedDocs.insert(key, doc);
-                }
-              );
+                });
             }
           )
             .next(() =>
@@ -548,18 +548,5 @@ export class LocalDocumentsView {
         });
         return results;
       });
-  }
-
-  /** Returns a base document that can be used to apply `overlay`. */
-  private getBaseDocument(
-    transaction: PersistenceTransaction,
-    key: DocumentKey,
-    overlay: Overlay | null
-  ): PersistencePromise<MutableDocument> {
-    return this.remoteDocumentCache.getEntry(transaction, key);
-    // TODO(COUNT): ROI of this is pretty low and it could be quite confusing.
-    // return overlay === null || overlay.mutation.type === MutationType.Patch
-    //   ? this.remoteDocumentCache.getEntry(transaction, key)
-    //   : PersistencePromise.resolve(MutableDocument.newInvalidDocument(key));
   }
 }
