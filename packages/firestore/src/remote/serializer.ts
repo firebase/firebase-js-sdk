@@ -96,6 +96,7 @@ import { mapCodeFromRpcCode } from './rpc_error';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  WatchAggregateChange,
   WatchChange,
   WatchTargetChange,
   WatchTargetChangeState
@@ -552,6 +553,12 @@ export function fromWatchChange(
     const existenceFilter = new ExistenceFilter(count);
     const targetId = filter.targetId;
     watchChange = new ExistenceFilterChange(targetId, existenceFilter);
+  } else if ('aggregationChange' in change) {
+    watchChange = new WatchAggregateChange(
+      change.aggregationChange?.result?.aggregateFields!['count']!
+        .integerValue as number,
+      change.aggregationChange?.targetId!
+    );
   } else {
     return fail('Unknown change type ' + JSON.stringify(change));
   }

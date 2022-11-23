@@ -1225,6 +1225,7 @@ export function localStoreExecuteQuery(
 }
 
 export interface AggregateQueryResult {
+  aggregateQuery: AggregateQuery;
   documentResult: QueryResult;
   matchesWithoutMutation: DocumentKeySet;
   cachedCount: number;
@@ -1263,6 +1264,7 @@ export async function localStoreExecuteAggregateQuery(
           .next(aggr => {
             if (!aggr) {
               return {
+                aggregateQuery: query,
                 documentResult: result,
                 matchesWithoutMutation: documentKeySet(
                   ...context.remoteMatches
@@ -1272,6 +1274,7 @@ export async function localStoreExecuteAggregateQuery(
               };
             }
             return {
+              aggregateQuery: query,
               documentResult: result,
               matchesWithoutMutation: documentKeySet(...context.remoteMatches),
               cachedCount: normalizeNumber(

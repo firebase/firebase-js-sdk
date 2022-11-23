@@ -89,6 +89,7 @@ import {
 import {
   EventManager,
   eventManagerOnOnlineStateChange,
+  eventManagerOnWatchAggregateChange,
   eventManagerOnWatchChange,
   eventManagerOnWatchError
 } from './event_manager';
@@ -125,7 +126,7 @@ import {
   View,
   ViewChange
 } from './view';
-import { ViewSnapshot } from './view_snapshot';
+import { AggregateViewSnapshot, ViewSnapshot } from './view_snapshot';
 import { AggregateQuery } from '../lite-api/reference';
 
 const LOG_TAG = 'SyncEngine';
@@ -185,6 +186,7 @@ type ApplyDocChangesHandler = (
 interface SyncEngineListener {
   /** Handles new view snapshots. */
   onWatchChange?(snapshots: ViewSnapshot[]): void;
+  onWatchAggregateChange?(snapshots: AggregateViewSnapshot[]): void;
 
   /** Handles the failure of a query. */
   onWatchError?(query: Query, error: FirestoreError): void;
@@ -481,7 +483,7 @@ export async function syncEngineListenAggregate(
   return calculateAggregateSnapshot(result).snapshot;
 }
 
-interface AggregateSnapshotAndDiscountedKeys {
+export interface AggregateSnapshotAndDiscountedKeys {
   snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>;
   discountedKeys: DocumentKeySet;
 }
@@ -1139,11 +1141,15 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   const docChangesInAllViews: LocalViewChanges[] = [];
   const queriesProcessed: Array<Promise<void>> = [];
 
-  if (syncEngineImpl.queryViewsByQuery.isEmpty()) {
+  if (
+    syncEngineImpl.queryViewsByQuery.isEmpty() &&
+    syncEngineImpl.aggregateResultByQuery.size === 0
+  ) {
     // Return early since `onWatchChange()` might not have been assigned yet.
     return;
   }
 
+  const aggregateViews: AggregateViewSnapshot[] = [];
   syncEngineImpl.aggregateResultByQuery.forEach((result, targetId) => {
     updateAggregateQueryResult(
       result,
@@ -1152,8 +1158,14 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
       remoteEvent?.snapshotVersion
     );
 
-    const snapshot = calculateAggregateSnapshot(result);
+    aggregateViews.push({
+      snapshot: calculateAggregateSnapshot(result),
+      // TODO(COUNT): This needs to sync up with the logic for document queries.
+      fromCache: false,
+      query: result.aggregateQuery
+    });
   });
+  syncEngineImpl.syncEngineListener.onWatchAggregateChange!(aggregateViews);
 
   syncEngineImpl.queryViewsByQuery.forEach((_, queryView) => {
     debugAssert(
@@ -1697,6 +1709,8 @@ function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
     syncEngineRejectListen.bind(null, syncEngineImpl);
   syncEngineImpl.syncEngineListener.onWatchChange =
     eventManagerOnWatchChange.bind(null, syncEngineImpl.eventManager);
+  syncEngineImpl.syncEngineListener.onWatchAggregateChange =
+    eventManagerOnWatchAggregateChange.bind(null, syncEngineImpl.eventManager);
   syncEngineImpl.syncEngineListener.onWatchError =
     eventManagerOnWatchError.bind(null, syncEngineImpl.eventManager);
   return syncEngineImpl;

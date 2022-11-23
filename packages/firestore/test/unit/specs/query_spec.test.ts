@@ -46,7 +46,7 @@ function countFromQuery(base: Query): AggregateQuery {
   return new AggregateQuery(base);
 }
 
-describeSpec('Count Queries:', ['exclusive', 'durable-persistence'], () => {
+describeSpec('Count Queries:', ['durable-persistence'], () => {
   specTest('Raise expected count', [], () => {
     const query = newQueryForPath(path('coll'));
     const queryWithFilter = queryWithAddedFilter(query, filter('val', '>=', 2));
@@ -311,7 +311,7 @@ describeSpec('Count Queries:', ['exclusive', 'durable-persistence'], () => {
       });
   });
 
-  specTest('Raise expected count with remote event', [], () => {
+  specTest('Raise expected count with remote event', ['exclusive'], () => {
     const query = newQueryForPath(path('coll'));
     const docs = [
       doc('coll/1', 1000, { val: 1 }, 800),

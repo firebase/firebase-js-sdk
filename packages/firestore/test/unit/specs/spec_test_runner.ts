@@ -737,7 +737,7 @@ abstract class TestRunner {
       return this.doWatchEvent(change);
     } else if (watchEntity.count) {
       return this.doWatchCountEvent(
-        new WatchAggregateChange(watchEntity.targets![0], watchEntity.count)
+        new WatchAggregateChange(watchEntity.count, watchEntity.targets![0])
       );
     } else {
       return fail('Either doc or docs must be set');

@@ -22,7 +22,12 @@ import { DocumentSet } from '../model/document_set';
 import { fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
-import { Query, queryEquals } from './query';
+import { AggregateQuery, Query, queryEquals } from './query';
+import {
+  AggregateField,
+  AggregateQuerySnapshot
+} from '../lite-api/aggregate_types';
+import { AggregateSnapshotAndDiscountedKeys } from './sync_engine_impl';
 
 export const enum ChangeType {
   Added,
@@ -135,6 +140,12 @@ export class DocumentChangeSet {
     );
     return changes;
   }
+}
+
+export interface AggregateViewSnapshot {
+  query: AggregateQuery;
+  snapshot: AggregateSnapshotAndDiscountedKeys;
+  fromCache: boolean;
 }
 
 export class ViewSnapshot {

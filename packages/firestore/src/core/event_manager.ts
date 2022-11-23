@@ -28,13 +28,20 @@ import { ObjectMap } from '../util/obj_map';
 
 import {
   AggregateQuery,
+  aggregateQueryEquals,
+  canonifyAggregateQuery,
   canonifyQuery,
   Query,
   queryEquals,
   stringifyQuery
 } from './query';
 import { OnlineState } from './types';
-import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
+import {
+  AggregateViewSnapshot,
+  ChangeType,
+  DocumentViewChange,
+  ViewSnapshot
+} from './view_snapshot';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -80,6 +87,11 @@ export class EventManagerImpl implements EventManager {
     q => canonifyQuery(q),
     queryEquals
   );
+
+  aggregateQueries = new ObjectMap<
+    AggregateQuery,
+    Observer<AggregateQuerySnapshot<{ count: AggregateField<number> }>>
+  >(q => canonifyAggregateQuery(q), aggregateQueryEquals);
 
   onlineState = OnlineState.Unknown;
 
@@ -154,6 +166,9 @@ export async function eventManagerListenAggregate(
     !!eventManagerImpl.onListenAggregate,
     'onListenAggregate not set'
   );
+
+  eventManagerImpl.aggregateQueries.set(query, observer);
+
   try {
     const countSnap = await eventManagerImpl.onListenAggregate(query);
     observer.next(countSnap);
@@ -191,6 +206,19 @@ export async function eventManagerUnlisten(
   if (lastListen) {
     eventManagerImpl.queries.delete(query);
     return eventManagerImpl.onUnlisten(query);
+  }
+}
+
+export function eventManagerOnWatchAggregateChange(
+  eventManager: EventManager,
+  snapshots: AggregateViewSnapshot[]
+): void {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+
+  for (const snapshot of snapshots) {
+    const observer = eventManagerImpl.aggregateQueries.get(snapshot.query);
+    // TODO(COUNT): Dude...
+    observer?.next(snapshot.snapshot.snapshot);
   }
 }
 
