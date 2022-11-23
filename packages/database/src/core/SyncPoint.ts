@@ -106,7 +106,13 @@ export function syncPointApplyOperation(
 
     for (const view of syncPoint.views.values()) {
       events = events.concat(
-        viewApplyOperation(view, operation, writesCache, optCompleteServerCache, filter)
+        viewApplyOperation(
+          view,
+          operation,
+          writesCache,
+          optCompleteServerCache,
+          filter
+        )
       );
     }
 

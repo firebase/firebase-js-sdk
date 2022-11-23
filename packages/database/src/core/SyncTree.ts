@@ -26,7 +26,7 @@ import {
   newOperationSourceServer,
   newOperationSourceServerTaggedQuery,
   newOperationSourceUser,
-  Operation,
+  Operation
 } from './operation/Operation';
 import { Overwrite } from './operation/Overwrite';
 import { ChildrenNode } from './snap/ChildrenNode';
@@ -795,8 +795,13 @@ function syncTreeCreateListenerForView_(
     onComplete: (status: string, b?: unknown): Event[] => {
       if (status === 'ok') {
         if (tag) {
-          // @ts-ignore
-          return syncTreeApplyTaggedListenComplete(syncTree, query._path, tag, b.filter);
+          return syncTreeApplyTaggedListenComplete(
+            syncTree,
+            query._path,
+            tag,
+            // @ts-ignore
+            b.filter
+          );
         } else {
           return syncTreeApplyListenComplete(syncTree, query._path);
         }
@@ -876,7 +881,13 @@ function syncTreeApplyTaggedOperation_(
     syncTree.pendingWriteTree_,
     queryPath
   );
-  return syncPointApplyOperation(syncPoint, operation, writesCache, null, filter);
+  return syncPointApplyOperation(
+    syncPoint,
+    operation,
+    writesCache,
+    null,
+    filter
+  );
 }
 
 /**

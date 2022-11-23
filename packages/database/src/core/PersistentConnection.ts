@@ -308,7 +308,8 @@ export class PersistentConnection extends ServerActions {
 
         if (listenSpec.onComplete) {
           // @ts-ignore
-          payload.filter = !warned && !listenSpec.query._queryParams.loadsAllData();
+          payload.filter =
+            !warned && !listenSpec.query._queryParams.loadsAllData();
           listenSpec.onComplete(status, payload);
         }
       }
