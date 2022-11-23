@@ -578,22 +578,22 @@ function compareDocsWithCreateTime(
   );
 }
 
-// describe('LocalStore w/ Memory Persistence', () => {
-//   async function initialize(): Promise<LocalStoreComponents> {
-//     const queryEngine = new CountingQueryEngine();
-//     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
-//     const localStore = newLocalStore(
-//       persistence,
-//       queryEngine,
-//       User.UNAUTHENTICATED,
-//       JSON_SERIALIZER
-//     );
-//     return { queryEngine, persistence, localStore };
-//   }
-//
-//   addEqualityMatcher();
-//   genericLocalStoreTests(initialize, /* gcIsEager= */ true);
-// });
+describe('LocalStore w/ Memory Persistence', () => {
+  async function initialize(): Promise<LocalStoreComponents> {
+    const queryEngine = new CountingQueryEngine();
+    const persistence = await persistenceHelpers.testMemoryEagerPersistence();
+    const localStore = newLocalStore(
+      persistence,
+      queryEngine,
+      User.UNAUTHENTICATED,
+      JSON_SERIALIZER
+    );
+    return { queryEngine, persistence, localStore };
+  }
+
+  addEqualityMatcher();
+  genericLocalStoreTests(initialize, /* gcIsEager= */ true);
+});
 
 describe('LocalStore w/ IndexedDB Persistence', () => {
   if (!IndexedDbPersistence.isAvailable()) {
