@@ -17,6 +17,7 @@
 import { expect } from 'chai';
 
 import { BloomFilter } from '../../../src/remote/bloom_filter';
+import { ByteString } from '../../../src/util/byte_string';
 
 import {
   testDataCount1Rate0001,
@@ -150,8 +151,8 @@ describe('BloomFilter', () => {
       membershipTestResults: string;
     }
 
-    function convertBase64ToUint8Array(base64: string): Uint8Array {
-      return Uint8Array.from(atob(base64), item => item.charCodeAt(0));
+    function decodeBase64ToUint8Array(encoded: string): Uint8Array {
+      return ByteString.fromBase64String(encoded).toUint8Array();
     }
 
     it('mightContain result for 1 document with 1 false positive rate should match backend result', () => {
@@ -159,7 +160,7 @@ describe('BloomFilter', () => {
       const { membershipTestResults } = testResultCount1Rate1 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -176,7 +177,7 @@ describe('BloomFilter', () => {
         testResultCount1Rate01 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -193,7 +194,7 @@ describe('BloomFilter', () => {
         testResultCount1Rate0001 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -210,7 +211,7 @@ describe('BloomFilter', () => {
         testResultCount500Rate1 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -227,7 +228,7 @@ describe('BloomFilter', () => {
         testResultCount500Rate01 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -244,7 +245,7 @@ describe('BloomFilter', () => {
         testResultCount500Rate0001 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -261,7 +262,7 @@ describe('BloomFilter', () => {
         testResultCount5000Rate1 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -278,7 +279,7 @@ describe('BloomFilter', () => {
         testResultCount5000Rate01 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -295,7 +296,7 @@ describe('BloomFilter', () => {
         testResultCount5000Rate0001 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -312,7 +313,7 @@ describe('BloomFilter', () => {
         testResultCount50000Rate1 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -329,7 +330,7 @@ describe('BloomFilter', () => {
         testResultCount50000Rate01 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -340,7 +341,7 @@ describe('BloomFilter', () => {
         expect(mightContain).to.equal(backendMembershipResult);
       }
       //Extend default timeout(2000)
-    }).timeout(3000);
+    }).timeout(5000);
 
     it('mightContain result for 50000 documents with 0.0001 false positive rate should match backend result', () => {
       const { bits, hashCount } = testDataCount50000Rate0001 as TestDataType;
@@ -348,7 +349,7 @@ describe('BloomFilter', () => {
         testResultCount50000Rate0001 as TestResultType;
 
       const bloomFilter = new BloomFilter(
-        convertBase64ToUint8Array(bits.bitmap || ''),
+        decodeBase64ToUint8Array(bits.bitmap || ''),
         bits.padding || 0,
         hashCount || 0
       );
@@ -359,6 +360,6 @@ describe('BloomFilter', () => {
         expect(mightContain).to.equal(backendMembershipResult);
       }
       //Extend default timeout(2000)
-    }).timeout(4000);
+    }).timeout(5000);
   });
 });
