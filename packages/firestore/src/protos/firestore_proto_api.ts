@@ -30,7 +30,7 @@ export declare type Timestamp =
   | string
   | { seconds?: string | number; nanos?: number };
 
-export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND';
+export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND' | 'OR';
 export interface ICompositeFilterOpEnum {
   OPERATOR_UNSPECIFIED: CompositeFilterOp;
   AND: CompositeFilterOp;

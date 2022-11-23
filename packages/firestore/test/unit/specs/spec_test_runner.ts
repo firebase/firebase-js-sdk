@@ -1571,7 +1571,7 @@ export interface SpecWatchEntity {
 // PORTING NOTE: Only used by web multi-tab tests.
 export interface SpecClientState {
   /** The visibility state of the browser tab running the client. */
-  visibility?: VisibilityState;
+  visibility?: DocumentVisibilityState;
   /** Whether this tab should try to forcefully become primary. */
   primary?: true;
 }
