@@ -26,10 +26,17 @@ export class BloomFilter {
     padding: number,
     private readonly hashCount: number
   ) {
-    debugAssert(padding >= 0, 'Padding is negative.');
     this.bitSize = this.bitmap.length * 8 - padding;
-    debugAssert(this.bitSize >= 0, 'Bitmap size is negative.');
-    debugAssert(this.hashCount >= 0, 'Hash count is negative.');
+    if (this.bitSize === 0) {
+      debugAssert(
+        this.hashCount === 0,
+        'An empty bitmap should correspond to 0 hashCount.'
+      );
+    } else {
+      debugAssert(padding >= 0, 'Padding is negative.');
+      debugAssert(this.bitSize >= 0, 'Bitmap size is negative.');
+      debugAssert(this.hashCount >= 0, 'Hash count is negative.');
+    }
   }
 
   getBitSize(): number {
@@ -39,10 +46,6 @@ export class BloomFilter {
   mightContain(document: string): boolean {
     // Empty bitmap should always return false on membership check
     if (this.bitSize === 0) {
-      return false;
-    }
-    // If document name is an empty string, return false
-    if (!document) {
       return false;
     }
 
