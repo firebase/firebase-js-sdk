@@ -347,6 +347,7 @@ export class SpecBuilder {
 
   userListensCount(countQuery: AggregateQuery): this {
     this.nextStep();
+    this.queryIdGenerator.next(queryToTarget(countQuery._baseQuery));
     this.currentStep = {
       userListenCount: countQuery
     };

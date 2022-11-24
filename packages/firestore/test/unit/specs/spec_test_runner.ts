@@ -1176,6 +1176,7 @@ abstract class TestRunner {
 
     const actualTargets = { ...this.connection.activeTargets };
     this.expectedActiveTargets.forEach((expected, targetId) => {
+      console.log(`checking active target ${targetId}`);
       expect(actualTargets[targetId]).to.not.equal(
         undefined,
         'Expected active target not found: ' + JSON.stringify(expected)

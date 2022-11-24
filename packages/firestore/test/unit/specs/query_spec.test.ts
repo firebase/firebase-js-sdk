@@ -20,10 +20,11 @@ import {
   newQueryForCollectionGroup,
   newQueryForPath,
   Query,
-  queryWithAddedFilter
+  queryWithAddedFilter,
+  queryWithAddedOrderBy
 } from '../../../src/core/query';
 import { Document } from '../../../src/model/document';
-import { doc, filter, path, query, version } from '../../util/helpers';
+import { doc, filter, key, path, query, version } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec, SpecBuilder } from './spec_builder';
@@ -46,7 +47,7 @@ function countFromQuery(base: Query): AggregateQuery {
   return new AggregateQuery(base);
 }
 
-describeSpec('Count Queries:', ['durable-persistence'], () => {
+describeSpec('Count Queries:', ['exclusive', 'durable-persistence'], () => {
   specTest('Raise expected count', [], () => {
     const query = newQueryForPath(path('coll'));
     const queryWithFilter = queryWithAddedFilter(query, filter('val', '>=', 2));
@@ -311,7 +312,7 @@ describeSpec('Count Queries:', ['durable-persistence'], () => {
       });
   });
 
-  specTest('Raise expected count with remote event', ['exclusive'], () => {
+  specTest('Raise expected count with remote event', [], () => {
     const query = newQueryForPath(path('coll'));
     const docs = [
       doc('coll/1', 1000, { val: 1 }, 800),
@@ -335,6 +336,168 @@ describeSpec('Count Queries:', ['durable-persistence'], () => {
         count: 80
       });
   });
+
+  specTest(
+    'Raise expected count with remote event and matching base documents',
+    [],
+    () => {
+      const query = queryWithAddedFilter(
+        newQueryForPath(path('coll')),
+        filter('val', '>=', 2)
+      );
+      const docs = [
+        doc('coll/1', 1000, { val: 1 }, 800),
+        doc('coll/2', 1000, { val: 2 }, 800),
+        doc('coll/3', 1000, { val: 3 }, 800),
+        doc('coll/4', 1000, { val: 4 }, 800),
+        doc('coll/5', 1000, { val: 5 }, 800)
+      ];
+      return specWithCachedDocs(...docs)
+        .setCountValue(/*for query*/ 12, 10_000, 2001)
+        .userListensCount(countFromQuery(query))
+        .expectCountEvents(countFromQuery(query), {
+          count: 10_000,
+          fromCache: true
+        })
+        .userPatches('coll/3', { val: 30 })
+        .expectCountEvents(countFromQuery(query), {
+          count: 10_000,
+          fromCache: true
+        })
+        .watchAcksCount(countFromQuery(query), 12)
+        .watchSendsCount(12, 80)
+        .watchCurrentsCount(12, 'resume-token')
+        .watchSnapshots(10_000)
+        .expectCountEvents(countFromQuery(query), {
+          count: 80
+        });
+    }
+  );
+
+  specTest(
+    'Raise expected count with remote event and mis-matching base documents',
+    [],
+    () => {
+      const query = queryWithAddedFilter(
+        newQueryForPath(path('coll')),
+        filter('val', '>=', 2)
+      );
+      const docs = [
+        doc('coll/1', 1000, { val: 1 }, 800),
+        doc('coll/2', 1000, { val: 2 }, 800),
+        doc('coll/3', 1000, { val: 3 }, 800),
+        doc('coll/4', 1000, { val: 4 }, 800),
+        doc('coll/5', 1000, { val: 5 }, 800)
+      ];
+      return specWithCachedDocs(...docs)
+        .userPatches('coll/1', { val: 100 })
+        .setCountValue(/*for query*/ 12, 10_000, 2001)
+        .userListensCount(countFromQuery(query))
+        .expectCountEvents(countFromQuery(query), {
+          count: 10_001,
+          fromCache: true
+        })
+        .watchAcksCount(countFromQuery(query), 12)
+        .watchSendsCount(12, 80)
+        .watchCurrentsCount(12, 'resume-token')
+        .watchSnapshots(10_000)
+        .expectCountEvents(countFromQuery(query), {
+          count: 81
+        });
+    }
+  );
+
+  specTest(
+    'Raise expected count with remote event and mis-matching local documents',
+    [],
+    () => {
+      const query = queryWithAddedFilter(
+        newQueryForPath(path('coll')),
+        filter('val', '>=', 2)
+      );
+      const docs = [
+        doc('coll/1', 1000, { val: 1 }, 800),
+        doc('coll/2', 1000, { val: 2 }, 800),
+        doc('coll/3', 1000, { val: 3 }, 800),
+        doc('coll/4', 1000, { val: 4 }, 800),
+        doc('coll/5', 1000, { val: 5 }, 800)
+      ];
+      return (
+        specWithCachedDocs(...docs)
+          .setCountValue(/*for query*/ 12, 10_000, 2001)
+          .userListensCount(countFromQuery(query))
+          .expectCountEvents(countFromQuery(query), {
+            count: 10_000,
+            fromCache: true
+          })
+          .userPatches('coll/3', { val: 0 })
+          // TODO: We cannot handle local mutations yet, this currently fails.
+          .expectCountEvents(countFromQuery(query), {
+            count: 9_999,
+            fromCache: true
+          })
+          .watchAcksCount(countFromQuery(query), 12)
+          .watchSendsCount(12, 80)
+          .watchCurrentsCount(12, 'resume-token')
+          .watchSnapshots(10_000)
+          .expectCountEvents(countFromQuery(query), {
+            count: 79
+          })
+      );
+    }
+  );
+
+  specTest(
+    'Raise expected count with remote event and document changes',
+    [],
+    () => {
+      const query = queryWithAddedFilter(
+        newQueryForPath(path('coll')),
+        filter('val', '>=', 2)
+      );
+
+      const collQuery = queryWithAddedFilter(
+        newQueryForPath(path('coll')),
+        filter('val', '<', 5)
+      );
+      const docs = [
+        doc('coll/1', 1000, { val: 1 }, 800),
+        doc('coll/2', 1000, { val: 2 }, 800),
+        doc('coll/3', 1000, { val: 3 }, 800),
+        doc('coll/4', 1000, { val: 4 }, 800),
+        doc('coll/5', 1000, { val: 5 }, 800)
+      ];
+      const doc6 = doc('coll/6', 4000, { val: 3 }, 3000);
+      return specWithCachedDocs(...docs)
+        .setCountValue(/*for query*/ 12, 10_000, 2001)
+        .userListensCount(countFromQuery(query))
+        .expectCountEvents(countFromQuery(query), {
+          count: 10_000,
+          fromCache: true
+        })
+        .userListens(collQuery)
+        .expectEvents(collQuery, { added: docs.slice(0, 4), fromCache: true })
+        .watchAcksFull(collQuery, 5000, doc6)
+        .expectEvents(collQuery, { added: [doc6], fromCache: true })
+        .expectCountEvents(countFromQuery(query), {
+          count: 10_001,
+          fromCache: true
+        })
+        .expectLimboDocs(
+          key('coll/1'),
+          key('coll/2'),
+          key('coll/3'),
+          key('coll/4')
+        )
+        .watchAcksCount(countFromQuery(query), 12)
+        .watchSendsCount(12, 80)
+        .watchCurrentsCount(12, 'resume-token')
+        .watchSnapshots(10_000)
+        .expectCountEvents(countFromQuery(query), {
+          count: 80
+        });
+    }
+  );
 });
 
 describeSpec('Queries:', [], () => {

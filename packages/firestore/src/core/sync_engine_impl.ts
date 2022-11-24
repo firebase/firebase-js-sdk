@@ -1093,21 +1093,27 @@ function updateAggregateQueryResult(
     existingResult.cachedCountReadTime = globalSnapshot!;
   }
 
-  const remoteMatchesSet = documentKeySet(
-    ...(changes.remoteMatches?.get(targetId) || [])
-  );
-  changes.changedDocs.forEach((k, doc) => {
-    if (
-      existingResult.matchesWithoutMutation.has(k) &&
-      !remoteMatchesSet.has(k)
-    ) {
-      existingResult.matchesWithoutMutation =
-        existingResult.matchesWithoutMutation.delete(k);
-    } else if (remoteMatchesSet.has(k)) {
-      existingResult.matchesWithoutMutation =
-        existingResult.matchesWithoutMutation.add(k);
-    }
-  });
+  let remoteMatchesSet: DocumentKeySet | undefined = undefined;
+  if (!!changes.remoteMatches) {
+    remoteMatchesSet = documentKeySet(
+      ...(changes.remoteMatches.get(targetId) || [])
+    );
+  }
+
+  if (!!remoteMatchesSet) {
+    changes.changedDocs.forEach((k, doc) => {
+      if (
+        existingResult.matchesWithoutMutation.has(k) &&
+        !remoteMatchesSet!.has(k)
+      ) {
+        existingResult.matchesWithoutMutation =
+          existingResult.matchesWithoutMutation.delete(k);
+      } else if (remoteMatchesSet!.has(k)) {
+        existingResult.matchesWithoutMutation =
+          existingResult.matchesWithoutMutation.add(k);
+      }
+    });
+  }
 
   const localAggregateMatches = documentKeySet(
     ...(changes.localAggregateMatches?.get(targetId) || [])
@@ -1165,6 +1171,7 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
       query: result.aggregateQuery
     });
   });
+  // TODO(COUNT): Save the discounted keys!
   syncEngineImpl.syncEngineListener.onWatchAggregateChange!(aggregateViews);
 
   syncEngineImpl.queryViewsByQuery.forEach((_, queryView) => {
