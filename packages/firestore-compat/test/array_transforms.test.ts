@@ -189,8 +189,7 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
         let errCaught = false;
         try {
           await docRef.get({ source: 'cache' });
-        } catch (e) {
-          const err = e as firestore.FirestoreError;
+        } catch (err) {
           expect(err.code).to.equal('unavailable');
           errCaught = true;
         }
