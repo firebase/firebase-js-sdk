@@ -29,13 +29,13 @@ export class BloomFilter {
     this.bitSize = this.bitmap.length * 8 - padding;
     if (this.bitSize === 0) {
       debugAssert(
-        this.hashCount === 0,
-        'An empty bitmap should correspond to 0 hashCount.'
+        this.hashCount === 0 && padding === 0,
+        'A valid empty bloom filter should have all 3 fields empty.'
       );
     } else {
       debugAssert(padding >= 0, 'Padding is negative.');
-      debugAssert(this.bitSize >= 0, 'Bitmap size is negative.');
-      debugAssert(this.hashCount >= 0, 'Hash count is negative.');
+      debugAssert(this.bitSize > 0, 'Bitmap size is negative.');
+      debugAssert(this.hashCount > 0, 'Hash count is 0 or negative');
     }
   }
 

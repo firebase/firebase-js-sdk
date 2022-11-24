@@ -47,12 +47,12 @@ import {
 } from './bloom_filter_golden_test_data';
 
 describe('BloomFilter', () => {
-  it('can initiate an empty BloomFilter', () => {
+  it('can initiate an empty bloom filter', () => {
     const bloomFilter = new BloomFilter(new Uint8Array(0), 0, 0);
     expect(bloomFilter.getBitSize()).to.equal(0);
   });
 
-  it('can initiate a non empty BloomFilter', () => {
+  it('can initiate a non empty bloom filter', () => {
     const bloomFilter = new BloomFilter(
       new Uint8Array([151, 153, 236, 116, 7]),
       3,
@@ -61,14 +61,24 @@ describe('BloomFilter', () => {
     expect(bloomFilter.getBitSize()).to.equal(37);
   });
 
-  it('should throw error if empty BloomFilter has hash count', () => {
+  it('should throw error if empty bloom filter inputs are invalid', () => {
     try {
       new BloomFilter(new Uint8Array(0), 0, 1);
       expect.fail();
     } catch (error) {
       expect(
         (error as Error)?.message.includes(
-          'INTERNAL ASSERTION FAILED: An empty bitmap should correspond to 0 hashCount.'
+          'INTERNAL ASSERTION FAILED: A valid empty bloom filter should have all 3 fields empty.'
+        )
+      ).to.be.true;
+    }
+    try {
+      new BloomFilter(new Uint8Array(1), 8, 0);
+      expect.fail();
+    } catch (error) {
+      expect(
+        (error as Error)?.message.includes(
+          'INTERNAL ASSERTION FAILED: A valid empty bloom filter should have all 3 fields empty.'
         )
       ).to.be.true;
     }
@@ -78,7 +88,7 @@ describe('BloomFilter', () => {
     } catch (error) {
       expect(
         (error as Error)?.message.includes(
-          'INTERNAL ASSERTION FAILED: An empty bitmap should correspond to 0 hashCount.'
+          'INTERNAL ASSERTION FAILED: A valid empty bloom filter should have all 3 fields empty.'
         )
       ).to.be.true;
     }
@@ -117,7 +127,20 @@ describe('BloomFilter', () => {
     } catch (error) {
       expect(
         (error as Error)?.message.includes(
-          'INTERNAL ASSERTION FAILED: Hash count is negative.'
+          'INTERNAL ASSERTION FAILED: Hash count is 0 or negative'
+        )
+      ).to.be.true;
+    }
+  });
+
+  it('should throw error if hash count is 0 for non empty bloom filter', () => {
+    try {
+      new BloomFilter(new Uint8Array(1), 1, 0);
+      expect.fail();
+    } catch (error) {
+      expect(
+        (error as Error)?.message.includes(
+          'INTERNAL ASSERTION FAILED: Hash count is 0 or negative'
         )
       ).to.be.true;
     }
