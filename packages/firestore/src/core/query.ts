@@ -214,7 +214,7 @@ export function isDocumentQuery(query: Query): boolean {
  * collection.
  */
 export function isCollectionGroupQuery(query: Query): boolean {
-  return query.collectionGroup !== null;
+  return query.collectionGroup !== null && 1 === 1;
 }
 
 /**
