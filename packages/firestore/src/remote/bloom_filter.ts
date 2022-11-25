@@ -16,43 +16,44 @@
  */
 import { Md5, Integer } from '@firebase/webchannel-wrapper';
 
+import { newTextEncoder } from '../platform/serializer';
 import { debugAssert } from '../util/assert';
 
 export class BloomFilter {
-  private readonly bitSize: number;
+  readonly size: number;
 
   constructor(
     private readonly bitmap: Uint8Array,
     padding: number,
     private readonly hashCount: number
   ) {
-    this.bitSize = this.bitmap.length * 8 - padding;
-    if (this.bitSize === 0) {
+    if (this.bitmap.length === 0) {
       debugAssert(
-        this.hashCount === 0 && padding === 0,
-        'A valid empty bloom filter should have all 3 fields empty.'
+        padding === 0,
+        'A valid empty bloom filter should have 0 padding.'
       );
-    } else {
-      debugAssert(padding >= 0, 'Padding is negative.');
-      debugAssert(this.bitSize > 0, 'Bitmap size is negative.');
-      debugAssert(this.hashCount > 0, 'Hash count is 0 or negative');
     }
+    this.size = this.bitmap.length * 8 - padding;
+    debugAssert(padding >= 0, 'Padding is negative.');
+    debugAssert(this.size >= 0, 'Bitmap size is negative.');
+    // Only empty bloom filter can have 0 hash count
+    debugAssert(
+      this.bitmap.length === 0 || this.hashCount > 0,
+      'Hash count is 0 or negative'
+    );
   }
 
-  getBitSize(): number {
-    return this.bitSize;
-  }
-
-  mightContain(document: string): boolean {
+  mightContain(value: string): boolean {
     // Empty bitmap should always return false on membership check
-    if (this.bitSize === 0) {
+    if (this.size === 0) {
       return false;
     }
 
     // Hash the string using md5
     const md5 = new Md5();
-    md5.update(document);
-    const encodedBytes: Uint8Array = new Uint8Array(md5.digest());
+    const encodedValue = newTextEncoder().encode(value);
+    md5.update(encodedValue);
+    const encodedBytes = new Uint8Array(md5.digest());
 
     // Interpret the hashed value as two 64-bit chunks as unsigned integers, encoded using 2’s
     // complement using little endian.
@@ -64,21 +65,27 @@ export class BloomFilter {
     const hash1 = new Integer([firstUint32, secondUint32], 0);
     const hash2 = new Integer([thirdUint32, fourthUint32], 0);
 
+    const sizeInInteger = Integer.fromNumber(this.size);
+    const max64BitInteger = Integer.fromNumber(Math.pow(2, 64));
+
     for (let i = 0; i < this.hashCount; i++) {
       // Calculate hashed value h(i) = h1 + (i * h2), wrap if hash value overflow
       let combinedHash = hash1.add(hash2.multiply(Integer.fromNumber(i)));
-      combinedHash = combinedHash.modulo(Integer.fromNumber(Math.pow(2, 64)));
-
+      if (combinedHash.compare(max64BitInteger) === 1) {
+        combinedHash = new Integer(
+          [combinedHash.getBits(0), combinedHash.getBits(1)],
+          0
+        );
+      }
       // To retrieve bit n, calculate: (bitmap[n / 8] & (0x01 << (n % 8))).
-      const module = Number(
-        combinedHash.modulo(Integer.fromNumber(this.bitSize))
-      );
-      const byte = this.bitmap[Math.floor(module / 8)];
+      const modulo = Number(combinedHash.modulo(sizeInInteger));
+      const byte = this.bitmap[Math.floor(modulo / 8)];
 
-      if (!(byte & (0x01 << module % 8))) {
+      if (!(byte & (0x01 << modulo % 8))) {
         return false;
       }
     }
+
     return true;
   }
 }

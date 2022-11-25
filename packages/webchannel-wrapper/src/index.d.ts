@@ -155,6 +155,7 @@ export class Integer {
   compare(other: Integer): number;
   toNumber(): number;
   toString(opt_radix?: number): string;
+  getBits(index: number): number;
   static fromNumber(value: number): Integer;
   static fromString(str: string, opt_radix?: number): Integer;
 }

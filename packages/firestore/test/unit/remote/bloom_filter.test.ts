@@ -49,7 +49,25 @@ import {
 describe('BloomFilter', () => {
   it('can initiate an empty bloom filter', () => {
     const bloomFilter = new BloomFilter(new Uint8Array(0), 0, 0);
-    expect(bloomFilter.getBitSize()).to.equal(0);
+    expect(bloomFilter.size).to.equal(0);
+  });
+
+  it('empty bloom filter can have positive hash count', () => {
+    const bloomFilter = new BloomFilter(new Uint8Array(0), 0, 1);
+    expect(bloomFilter.size).to.equal(0);
+  });
+
+  it('should throw error if empty bloom filter inputs are invalid', () => {
+    try {
+      new BloomFilter(new Uint8Array(0), 1, 0);
+      expect.fail();
+    } catch (error) {
+      expect(
+        (error as Error)?.message.includes(
+          'INTERNAL ASSERTION FAILED: A valid empty bloom filter should have 0 padding.'
+        )
+      ).to.be.true;
+    }
   });
 
   it('can initiate a non empty bloom filter', () => {
@@ -58,40 +76,7 @@ describe('BloomFilter', () => {
       3,
       13
     );
-    expect(bloomFilter.getBitSize()).to.equal(37);
-  });
-
-  it('should throw error if empty bloom filter inputs are invalid', () => {
-    try {
-      new BloomFilter(new Uint8Array(0), 0, 1);
-      expect.fail();
-    } catch (error) {
-      expect(
-        (error as Error)?.message.includes(
-          'INTERNAL ASSERTION FAILED: A valid empty bloom filter should have all 3 fields empty.'
-        )
-      ).to.be.true;
-    }
-    try {
-      new BloomFilter(new Uint8Array(1), 8, 0);
-      expect.fail();
-    } catch (error) {
-      expect(
-        (error as Error)?.message.includes(
-          'INTERNAL ASSERTION FAILED: A valid empty bloom filter should have all 3 fields empty.'
-        )
-      ).to.be.true;
-    }
-    try {
-      new BloomFilter(new Uint8Array(1), 8, 1);
-      expect.fail();
-    } catch (error) {
-      expect(
-        (error as Error)?.message.includes(
-          'INTERNAL ASSERTION FAILED: A valid empty bloom filter should have all 3 fields empty.'
-        )
-      ).to.be.true;
-    }
+    expect(bloomFilter.size).to.equal(37);
   });
 
   it('should throw error if padding is negative', () => {
@@ -109,7 +94,7 @@ describe('BloomFilter', () => {
 
   it('should throw error if bitmap size is negative', () => {
     try {
-      new BloomFilter(new Uint8Array(0), 1, 1);
+      new BloomFilter(new Uint8Array(1), 9, 1);
       expect.fail();
     } catch (error) {
       expect(

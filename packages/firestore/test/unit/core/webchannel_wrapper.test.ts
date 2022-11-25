@@ -22,6 +22,8 @@
 import { Md5, Integer } from '@firebase/webchannel-wrapper';
 import { expect } from 'chai';
 
+import { newTextEncoder } from '../../../src/platform/serializer';
+
 describe('Md5', () => {
   // The precomputed MD5 digests of the 3-character strings "abc" and "def".
   const DIGEST_OF_ABC = Object.freeze([
@@ -29,6 +31,12 @@ describe('Md5', () => {
   ]);
   const DIGEST_OF_DEF = Object.freeze([
     78, 217, 64, 118, 48, 235, 16, 0, 192, 246, 182, 56, 66, 222, 250, 125
+  ]);
+  const DIGEST_OF_SPECIAL_CHARACTERS = Object.freeze([
+    52, 39, 159, 0, 195, 250, 18, 219, 221, 173, 54, 243, 4, 85, 117, 46
+  ]);
+  const DIGEST_OF_SPECIAL_CHARACTERS_ENCODED = Object.freeze([
+    214, 128, 77, 255, 85, 207, 186, 121, 150, 50, 152, 9, 85, 67, 52, 135
   ]);
 
   it('constructor should create distinct instances', () => {
@@ -43,6 +51,19 @@ describe('Md5', () => {
     const md5 = new Md5();
     md5.update('abc');
     expect(md5.digest()).to.deep.equal(DIGEST_OF_ABC);
+  });
+
+  it('update() should accept a string of non-standard characters', () => {
+    const md5 = new Md5();
+    md5.update('ÀÒ∑');
+    expect(md5.digest()).to.deep.equal(DIGEST_OF_SPECIAL_CHARACTERS);
+  });
+
+  it('update() should accept a string of UTF-8 encoded non-standard characters ', () => {
+    const md5 = new Md5();
+    const encodedValue = newTextEncoder().encode('ÀÒ∑');
+    md5.update(encodedValue);
+    expect(md5.digest()).to.deep.equal(DIGEST_OF_SPECIAL_CHARACTERS_ENCODED);
   });
 
   it('update() should accept an array of number', () => {
