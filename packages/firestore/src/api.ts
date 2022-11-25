@@ -85,6 +85,7 @@ export {
 } from './api/reference';
 
 export {
+  and,
   endAt,
   endBefore,
   startAt,
@@ -92,10 +93,19 @@ export {
   limit,
   limitToLast,
   where,
+  or,
   orderBy,
   query,
   QueryConstraint,
   QueryConstraintType,
+  QueryCompositeFilterConstraint,
+  QueryFilterConstraint,
+  QueryFieldFilterConstraint,
+  QueryOrderByConstraint,
+  QueryLimitConstraint,
+  QueryNonFilterConstraint,
+  QueryStartAtConstraint,
+  QueryEndAtConstraint,
   OrderByDirection,
   WhereFilterOp
 } from './api/filter';

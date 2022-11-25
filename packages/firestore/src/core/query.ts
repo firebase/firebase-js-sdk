@@ -22,18 +22,17 @@ import { debugAssert, debugCast, fail } from '../util/assert';
 
 import {
   Bound,
+  boundSortsAfterDocument,
+  boundSortsBeforeDocument
+} from './bound';
+import { CompositeFilter, Filter } from './filter';
+import { Direction, OrderBy } from './order_by';
+import {
   canonifyTarget,
-  Direction,
-  FieldFilter,
-  Filter,
   newTarget,
-  Operator,
-  OrderBy,
-  boundSortsBeforeDocument,
   stringifyTarget,
   Target,
-  targetEquals,
-  boundSortsAfterDocument
+  targetEquals
 } from './target';
 
 export const enum LimitType {
@@ -166,6 +165,13 @@ export function queryMatchesAllDocuments(query: Query): boolean {
   );
 }
 
+export function queryContainsCompositeFilters(query: Query): boolean {
+  return (
+    query.filters.find(filter => filter instanceof CompositeFilter) !==
+    undefined
+  );
+}
+
 export function getFirstOrderByField(query: Query): FieldPath | null {
   return query.explicitOrderBy.length > 0
     ? query.explicitOrderBy[0].field
@@ -174,34 +180,12 @@ export function getFirstOrderByField(query: Query): FieldPath | null {
 
 export function getInequalityFilterField(query: Query): FieldPath | null {
   for (const filter of query.filters) {
-    debugAssert(
-      filter instanceof FieldFilter,
-      'Only FieldFilters are supported'
-    );
-    if (filter.isInequality()) {
-      return filter.field;
+    const result = filter.getFirstInequalityField();
+    if (result !== null) {
+      return result;
     }
   }
-  return null;
-}
 
-/**
- * Checks if any of the provided Operators are included in the query and
- * returns the first one that is, or null if none are.
- */
-export function findFilterOperator(
-  query: Query,
-  operators: Operator[]
-): Operator | null {
-  for (const filter of query.filters) {
-    debugAssert(
-      filter instanceof FieldFilter,
-      'Only FieldFilters are supported'
-    );
-    if (operators.indexOf(filter.op) >= 0) {
-      return filter.op;
-    }
-  }
   return null;
 }
 
@@ -337,11 +321,13 @@ export function queryToTarget(query: Query): Target {
 }
 
 export function queryWithAddedFilter(query: Query, filter: Filter): Query {
+  const newInequalityField = filter.getFirstInequalityField();
+  const queryInequalityField = getInequalityFilterField(query);
+
   debugAssert(
-    getInequalityFilterField(query) == null ||
-      !(filter instanceof FieldFilter) ||
-      !filter.isInequality() ||
-      filter.field.isEqual(getInequalityFilterField(query)!),
+    queryInequalityField == null ||
+      newInequalityField == null ||
+      newInequalityField.isEqual(queryInequalityField),
     'Query must only have one inequality field.'
   );
 
@@ -482,7 +468,13 @@ function queryMatchesPathAndCollectionGroup(
  * in the results.
  */
 function queryMatchesOrderBy(query: Query, doc: Document): boolean {
-  for (const orderBy of query.explicitOrderBy) {
+  // We must use `queryOrderBy()` to get the list of all orderBys (both implicit and explicit).
+  // Note that for OR queries, orderBy applies to all disjunction terms and implicit orderBys must
+  // be taken into account. For example, the query "a > 1 || b==1" has an implicit "orderBy a" due
+  // to the inequality, and is evaluated as "a > 1 orderBy a || b==1 orderBy a".
+  // A document with content of {b:1} matches the filters, but does not match the orderBy because
+  // it's missing the field 'a'.
+  for (const orderBy of queryOrderBy(query)) {
     // order by key always matches
     if (!orderBy.field.isKeyField() && doc.data.field(orderBy.field) === null) {
       return false;
