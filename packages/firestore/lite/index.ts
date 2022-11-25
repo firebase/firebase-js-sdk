@@ -68,29 +68,19 @@ export {
 } from '../src/lite-api/reference';
 
 export {
-  and,
   endAt,
   endBefore,
   startAt,
   startAfter,
   limit,
   limitToLast,
-  where,
-  or,
   orderBy,
+  OrderByDirection,
+  where,
+  WhereFilterOp,
   query,
   QueryConstraint,
-  QueryConstraintType,
-  QueryCompositeFilterConstraint,
-  QueryFilterConstraint,
-  QueryFieldFilterConstraint,
-  QueryOrderByConstraint,
-  QueryLimitConstraint,
-  QueryNonFilterConstraint,
-  QueryStartAtConstraint,
-  QueryEndAtConstraint,
-  OrderByDirection,
-  WhereFilterOp
+  QueryConstraintType
 } from '../src/lite-api/query';
 
 export {

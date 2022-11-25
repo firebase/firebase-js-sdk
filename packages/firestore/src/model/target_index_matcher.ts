@@ -15,10 +15,14 @@
  * limitations under the License.
  */
 
-import { FieldFilter, Operator } from '../core/filter';
-import { Direction, OrderBy } from '../core/order_by';
-import { Target } from '../core/target';
-import { debugAssert, hardAssert } from '../util/assert';
+import {
+  Direction,
+  FieldFilter,
+  Operator,
+  OrderBy,
+  Target
+} from '../core/target';
+import { debugAssert } from '../util/assert';
 
 import {
   FieldIndex,
@@ -103,7 +107,7 @@ export class TargetIndexMatcher {
    *   omitted.
    */
   servedByIndex(index: FieldIndex): boolean {
-    hardAssert(
+    debugAssert(
       index.collectionGroup === this.collectionId,
       'Collection IDs do not match'
     );

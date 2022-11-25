@@ -39,17 +39,11 @@ export class RangedFilter implements NodeFilter {
 
   private endPost_: NamedNode;
 
-  private startIsInclusive_: boolean;
-
-  private endIsInclusive_: boolean;
-
   constructor(params: QueryParams) {
     this.indexedFilter_ = new IndexedFilter(params.getIndex());
     this.index_ = params.getIndex();
     this.startPost_ = RangedFilter.getStartPost_(params);
     this.endPost_ = RangedFilter.getEndPost_(params);
-    this.startIsInclusive_ = !params.startAfterSet_;
-    this.endIsInclusive_ = !params.endBeforeSet_;
   }
 
   getStartPost(): NamedNode {
@@ -61,13 +55,10 @@ export class RangedFilter implements NodeFilter {
   }
 
   matches(node: NamedNode): boolean {
-    const isWithinStart = this.startIsInclusive_
-      ? this.index_.compare(this.getStartPost(), node) <= 0
-      : this.index_.compare(this.getStartPost(), node) < 0;
-    const isWithinEnd = this.endIsInclusive_
-      ? this.index_.compare(node, this.getEndPost()) <= 0
-      : this.index_.compare(node, this.getEndPost()) < 0;
-    return isWithinStart && isWithinEnd;
+    return (
+      this.index_.compare(this.getStartPost(), node) <= 0 &&
+      this.index_.compare(node, this.getEndPost()) <= 0
+    );
   }
   updateChild(
     snap: Node,

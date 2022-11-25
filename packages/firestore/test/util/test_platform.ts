@@ -93,10 +93,10 @@ export function testWindow(
  * `Document` fake that implements the `visibilitychange` API used by Firestore.
  */
 export class FakeDocument implements DocumentLike {
-  private _visibilityState: DocumentVisibilityState = 'hidden';
+  private _visibilityState: VisibilityState = 'hidden';
   private visibilityListener: EventListener | null = null;
 
-  get visibilityState(): DocumentVisibilityState {
+  get visibilityState(): VisibilityState {
     return this._visibilityState;
   }
 
@@ -114,7 +114,7 @@ export class FakeDocument implements DocumentLike {
     }
   }
 
-  raiseVisibilityEvent(visibility: DocumentVisibilityState): void {
+  raiseVisibilityEvent(visibility: VisibilityState): void {
     this._visibilityState = visibility;
     if (this.visibilityListener) {
       this.visibilityListener(new Event('visibilitychange'));

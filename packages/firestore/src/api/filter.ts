@@ -16,27 +16,17 @@
  */
 
 export {
-  and,
   endAt,
   endBefore,
   startAfter,
   startAt,
   limitToLast,
   limit,
-  or,
   orderBy,
   OrderByDirection,
   where,
   WhereFilterOp,
   query,
-  QueryCompositeFilterConstraint,
   QueryConstraint,
-  QueryConstraintType,
-  QueryFilterConstraint,
-  QueryFieldFilterConstraint,
-  QueryOrderByConstraint,
-  QueryLimitConstraint,
-  QueryStartAtConstraint,
-  QueryEndAtConstraint,
-  QueryNonFilterConstraint
+  QueryConstraintType
 } from '../lite-api/query';

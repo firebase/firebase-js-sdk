@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 
-import { FirestoreError } from '../../../src';
 import { DEFAULT_TRANSACTION_OPTIONS } from '../../../src/core/transaction_options';
 import { TimerId } from '../../../src/util/async_queue';
 import { Deferred } from '../../util/promise';
@@ -156,8 +155,7 @@ apiDescribe(
             await transaction.set(docRef, { count: 16 });
           });
           expect.fail('transaction should fail');
-        } catch (e) {
-          const err = e as FirestoreError;
+        } catch (err) {
           expect(err).to.exist;
           expect(err.code).to.equal('aborted');
         }
@@ -196,8 +194,7 @@ apiDescribe(
             options
           );
           expect.fail('transaction should fail');
-        } catch (e) {
-          const err = e as FirestoreError;
+        } catch (err) {
           expect(err).to.exist;
           expect(err.code).to.equal('aborted');
         }
