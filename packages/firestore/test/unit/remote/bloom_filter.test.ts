@@ -181,68 +181,66 @@ describe('BloomFilter', () => {
     }
 
     it('mightContain result for 1 document with 1 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount1Rate1 as TestDataType;
-      const testResult = TEST_DATA.testResultCount1Rate1 as TestResultType;
+      const testData = TEST_DATA.testDataCount1Rate1;
+      const testResult = TEST_DATA.testResultCount1Rate1;
       testBloomFilterAgainstExpectedResult(testData, testResult);
     });
     it('mightContain result for 1 document with 0.01 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount1Rate01 as TestDataType;
-      const testResult = TEST_DATA.testResultCount1Rate01 as TestResultType;
+      const testData = TEST_DATA.testDataCount1Rate01;
+      const testResult = TEST_DATA.testResultCount1Rate01;
 
       testBloomFilterAgainstExpectedResult(testData, testResult);
     });
     it('mightContain result for 1 document with 0.0001 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount1Rate0001 as TestDataType;
-      const testResult = TEST_DATA.testResultCount1Rate0001 as TestResultType;
+      const testData = TEST_DATA.testDataCount1Rate0001;
+      const testResult = TEST_DATA.testResultCount1Rate0001;
       testBloomFilterAgainstExpectedResult(testData, testResult);
     });
     it('mightContain result for 500 documents with 1 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount500Rate1 as TestDataType;
-      const testResult = TEST_DATA.testResultCount500Rate1 as TestResultType;
+      const testData = TEST_DATA.testDataCount500Rate1;
+      const testResult = TEST_DATA.testResultCount500Rate1;
       testBloomFilterAgainstExpectedResult(testData, testResult);
     });
     it('mightContain result for 500 documents with 0.01 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount500Rate01 as TestDataType;
-      const testResult = TEST_DATA.testResultCount500Rate01 as TestResultType;
+      const testData = TEST_DATA.testDataCount500Rate01;
+      const testResult = TEST_DATA.testResultCount500Rate01;
       testBloomFilterAgainstExpectedResult(testData, testResult);
     });
     it('mightContain result for 500 document with 0.0001 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount500Rate0001 as TestDataType;
-      const testResult = TEST_DATA.testResultCount500Rate0001 as TestResultType;
+      const testData = TEST_DATA.testDataCount500Rate0001;
+      const testResult = TEST_DATA.testResultCount500Rate0001;
       testBloomFilterAgainstExpectedResult(testData, testResult);
     });
     it('mightContain result for 5000 documents with 1 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount5000Rate1 as TestDataType;
-      const testResult = TEST_DATA.testResultCount5000Rate1 as TestResultType;
+      const testData = TEST_DATA.testDataCount5000Rate1;
+      const testResult = TEST_DATA.testResultCount5000Rate1;
       testBloomFilterAgainstExpectedResult(testData, testResult);
     });
     it('mightContain result for 5000 documenta with 0.01 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount5000Rate01 as TestDataType;
-      const testResult = TEST_DATA.testResultCount5000Rate01 as TestResultType;
+      const testData = TEST_DATA.testDataCount5000Rate01;
+      const testResult = TEST_DATA.testResultCount5000Rate01;
       testBloomFilterAgainstExpectedResult(testData, testResult);
     });
     it('mightContain result for 5000 documenta with 0.0001 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount5000Rate0001 as TestDataType;
-      const testResult =
-        TEST_DATA.testResultCount5000Rate0001 as TestResultType;
+      const testData = TEST_DATA.testDataCount5000Rate0001;
+      const testResult = TEST_DATA.testResultCount5000Rate0001;
       testBloomFilterAgainstExpectedResult(testData, testResult);
     });
     it('mightContain result for 50000 documents with 1 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount50000Rate1 as TestDataType;
-      const testResult = TEST_DATA.testResultCount50000Rate1 as TestResultType;
+      const testData = TEST_DATA.testDataCount50000Rate1;
+      const testResult = TEST_DATA.testResultCount50000Rate1;
       testBloomFilterAgainstExpectedResult(testData, testResult);
     });
     it('mightContain result for 50000 documents with 0.01 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount50000Rate01 as TestDataType;
-      const testResult = TEST_DATA.testResultCount50000Rate01 as TestResultType;
+      const testData = TEST_DATA.testDataCount50000Rate01;
+      const testResult = TEST_DATA.testResultCount50000Rate01;
       testBloomFilterAgainstExpectedResult(testData, testResult);
       //Extend default timeout(2000)
     }).timeout(10_000);
 
     it('mightContain result for 50000 documents with 0.0001 false positive rate', () => {
-      const testData = TEST_DATA.testDataCount50000Rate0001 as TestDataType;
-      const testResult =
-        TEST_DATA.testResultCount50000Rate0001 as TestResultType;
+      const testData = TEST_DATA.testDataCount50000Rate0001;
+      const testResult = TEST_DATA.testResultCount50000Rate0001;
       testBloomFilterAgainstExpectedResult(testData, testResult);
       //Extend default timeout(2000)
     }).timeout(10_000);
