@@ -34,16 +34,13 @@ jobs:
 
   test-firefox:
     name: Test Firestore on Firefox If Changed
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: install Firefox stable
-        # run: |
-        #   sudo apt-get update
-        #   sudo apt-get install firefox
         run: |
           sudo apt-get update
-          apt-cache show firefox | grep Version
+          sudo apt-get install firefox
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
