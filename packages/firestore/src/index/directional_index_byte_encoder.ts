@@ -17,8 +17,6 @@
 
 import { ByteString } from '../util/byte_string';
 
-// Trigger Firestore CI tests
-
 /** An index value encoder.  */
 export interface DirectionalIndexByteEncoder {
   // Note: This code is copied from the backend. Code that is not used by
