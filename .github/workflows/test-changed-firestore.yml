@@ -40,7 +40,7 @@ jobs:
       - name: install Firefox stable
         run: |
           sudo apt-get update
-          sudo apt-get install firefox
+          sudo apt-get install firefox=106.0.5
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
@@ -61,4 +61,4 @@ jobs:
       - name: Run tests if firestore or its dependencies has changed
         run: xvfb-run yarn test:changed firestore
         env:
-          BROWSERS: 'FirefoxHeadless'
+          BROWSERS: 'Firefox'
