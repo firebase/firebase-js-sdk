@@ -154,6 +154,8 @@ describe(' Integration tests: Mfa TOTP', () => {
       const mfaUser = multiFactor(userCredential.user);
 
       await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
+      await expect(signInWithEmailAndPassword(auth, email, 'password')).to.be
+        .fulfilled;
     }
   });
 });
