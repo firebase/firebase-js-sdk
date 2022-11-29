@@ -111,6 +111,8 @@ const RESUME_TOKEN_MAX_AGE_MICROS = 5 * 60 * 1e6;
 export interface LocalWriteResult {
   batchId: BatchId;
   changes: DocumentMap;
+  remoteAggregateMatches: Map<TargetId, DocumentKey[]> | undefined;
+  localAggregateMatches: Map<TargetId, DocumentKey[]> | undefined;
 }
 
 /** The result of a user-change operation in the local store. */
@@ -354,6 +356,8 @@ export function localStoreWriteLocally(
   let overlayedDocuments: OverlayedDocumentMap;
   let mutationBatch: MutationBatch;
 
+  let remoteAggregateMatches: Map<TargetId, DocumentKey[]> = new Map();
+  let localAggregateMatches: Map<TargetId, DocumentKey[]> = new Map();
   return localStoreImpl.persistence
     .runTransaction('Locally write mutations', 'readwrite', txn => {
       // Figure out which keys do not have a remote version in the cache, this
@@ -364,6 +368,7 @@ export function localStoreWriteLocally(
       //  to 0.
       let remoteDocs = mutableDocumentMap();
       let docsWithoutRemoteVersion = documentKeySet();
+
       return localStoreImpl.remoteDocuments
         .getEntries(txn, keys, undefined)
         .next(docs => {
@@ -373,6 +378,10 @@ export function localStoreWriteLocally(
               docsWithoutRemoteVersion = docsWithoutRemoteVersion.add(key);
             }
           });
+          remoteAggregateMatches = matchAggregateQueries(
+            localStoreImpl,
+            remoteDocs
+          );
         })
         .next(() => {
           // Load and apply all existing mutations. This lets us compute the
@@ -433,10 +442,21 @@ export function localStoreWriteLocally(
           );
         });
     })
-    .then(() => ({
-      batchId: mutationBatch.batchId,
-      changes: convertOverlayedDocumentMapToDocumentMap(overlayedDocuments)
-    }));
+    .then(() => {
+      // TODO(COUNT): Run local docs against active aggregates
+      const changedDocs =
+        convertOverlayedDocumentMapToDocumentMap(overlayedDocuments);
+      localAggregateMatches = matchAggregateQueries(
+        localStoreImpl,
+        changedDocs
+      );
+      return {
+        batchId: mutationBatch.batchId,
+        changes: changedDocs,
+        remoteAggregateMatches,
+        localAggregateMatches
+      };
+    });
 }
 
 /**

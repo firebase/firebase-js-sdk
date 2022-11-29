@@ -464,7 +464,7 @@ export async function syncEngineUnlisten(
 export async function syncEngineListenAggregate(
   syncEngine: SyncEngine,
   query: InternalAggregateQuery
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+): Promise<AggregateSnapshotAndDiscountedKeys> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const targetData = await localStoreAllocateTarget(
     syncEngineImpl.localStore,
@@ -480,7 +480,7 @@ export async function syncEngineListenAggregate(
 
   syncEngineImpl.aggregateResultByQuery.set(targetData.targetId, result);
 
-  return calculateAggregateSnapshot(result).snapshot;
+  return calculateAggregateSnapshot(result);
 }
 
 export interface AggregateSnapshotAndDiscountedKeys {
@@ -511,12 +511,10 @@ function calculateAggregateSnapshot(
     }
   });
 
-  // TODO(COUNT): Apply +0 deltas for case #5.
-  // const case5Delta = min(plusZeros.size() - result.existingPlusZeros.size(), 0);
   return {
     snapshot: new AggregateQuerySnapshot<{ count: AggregateField<number> }>(
       undefined,
-      { count: result.cachedCount + delta /* + case5Delta*/ }
+      { count: result.cachedCount + delta }
     ),
     discountedKeys: plusZeros
   };
@@ -547,7 +545,9 @@ export async function syncEngineWrite(
     syncEngineImpl.sharedClientState.addPendingMutation(result.batchId);
     addMutationCallback(syncEngineImpl, result.batchId, userCallback);
     await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
-      changedDocs: result.changes
+      changedDocs: result.changes,
+      localAggregateMatches: result.localAggregateMatches,
+      remoteMatches: result.remoteAggregateMatches
     });
     await fillWritePipeline(syncEngineImpl.remoteStore);
   } catch (e) {
@@ -1120,7 +1120,7 @@ function updateAggregateQueryResult(
   );
   changes.changedDocs.forEach((k, doc) => {
     if (
-      existingResult.documentResult.remoteKeys.has(k) &&
+      existingResult.documentResult.documents.get(k) &&
       !localAggregateMatches.has(k)
     ) {
       (existingResult.documentResult.remoteKeys as any) =

@@ -422,28 +422,25 @@ describeSpec('Count Queries:', ['exclusive', 'durable-persistence'], () => {
         doc('coll/4', 1000, { val: 4 }, 800),
         doc('coll/5', 1000, { val: 5 }, 800)
       ];
-      return (
-        specWithCachedDocs(...docs)
-          .setCountValue(/*for query*/ 12, 10_000, 2001)
-          .userListensCount(countFromQuery(query))
-          .expectCountEvents(countFromQuery(query), {
-            count: 10_000,
-            fromCache: true
-          })
-          .userPatches('coll/3', { val: 0 })
-          // TODO: We cannot handle local mutations yet, this currently fails.
-          .expectCountEvents(countFromQuery(query), {
-            count: 9_999,
-            fromCache: true
-          })
-          .watchAcksCount(countFromQuery(query), 12)
-          .watchSendsCount(12, 80)
-          .watchCurrentsCount(12, 'resume-token')
-          .watchSnapshots(10_000)
-          .expectCountEvents(countFromQuery(query), {
-            count: 79
-          })
-      );
+      return specWithCachedDocs(...docs)
+        .setCountValue(/*for query*/ 12, 10_000, 2001)
+        .userListensCount(countFromQuery(query))
+        .expectCountEvents(countFromQuery(query), {
+          count: 10_000,
+          fromCache: true
+        })
+        .userPatches('coll/3', { val: 0 })
+        .expectCountEvents(countFromQuery(query), {
+          count: 9_999,
+          fromCache: true
+        })
+        .watchAcksCount(countFromQuery(query), 12)
+        .watchSendsCount(12, 80)
+        .watchCurrentsCount(12, 'resume-token')
+        .watchSnapshots(10_000)
+        .expectCountEvents(countFromQuery(query), {
+          count: 79
+        });
     }
   );
 

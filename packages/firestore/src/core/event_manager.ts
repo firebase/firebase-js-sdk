@@ -42,6 +42,7 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from './view_snapshot';
+import { AggregateSnapshotAndDiscountedKeys } from './sync_engine_impl';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -75,11 +76,16 @@ export interface EventManager {
 
   onListenAggregate?: (
     query: AggregateQuery
-  ) => Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>>;
+  ) => Promise<AggregateSnapshotAndDiscountedKeys>;
 }
 
 export function newEventManager(): EventManager {
   return new EventManagerImpl();
+}
+
+interface AggregateView {
+  view: AggregateViewSnapshot;
+  observer: Observer<AggregateQuerySnapshot<{ count: AggregateField<number> }>>;
 }
 
 export class EventManagerImpl implements EventManager {
@@ -88,10 +94,10 @@ export class EventManagerImpl implements EventManager {
     queryEquals
   );
 
-  aggregateQueries = new ObjectMap<
-    AggregateQuery,
-    Observer<AggregateQuerySnapshot<{ count: AggregateField<number> }>>
-  >(q => canonifyAggregateQuery(q), aggregateQueryEquals);
+  aggregateQueries = new ObjectMap<AggregateQuery, AggregateView>(
+    q => canonifyAggregateQuery(q),
+    aggregateQueryEquals
+  );
 
   onlineState = OnlineState.Unknown;
 
@@ -104,7 +110,7 @@ export class EventManagerImpl implements EventManager {
 
   onListenAggregate?: (
     query: AggregateQuery
-  ) => Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>>;
+  ) => Promise<AggregateSnapshotAndDiscountedKeys>;
 }
 
 export async function eventManagerListen(
@@ -167,11 +173,18 @@ export async function eventManagerListenAggregate(
     'onListenAggregate not set'
   );
 
-  eventManagerImpl.aggregateQueries.set(query, observer);
-
   try {
     const countSnap = await eventManagerImpl.onListenAggregate(query);
-    observer.next(countSnap);
+    eventManagerImpl.aggregateQueries.set(query, {
+      observer,
+      view: {
+        snapshot: countSnap,
+        query: query,
+        fromCache: true,
+        initialDiscountedKeys: countSnap.discountedKeys.toArray()
+      }
+    });
+    observer.next(countSnap.snapshot);
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
       e as Error,
@@ -216,9 +229,21 @@ export function eventManagerOnWatchAggregateChange(
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
 
   for (const snapshot of snapshots) {
-    const observer = eventManagerImpl.aggregateQueries.get(snapshot.query);
+    const existingView = eventManagerImpl.aggregateQueries.get(snapshot.query);
+    const observer = existingView!.observer;
+    const newSnap = snapshot.snapshot;
+    const case5Delta = Math.min(
+      newSnap.discountedKeys.size -
+        existingView!.view.initialDiscountedKeys.length,
+      0
+    );
+    existingView!.view.snapshot = newSnap;
+    existingView!.view.snapshot.snapshot = new AggregateQuerySnapshot<{
+      count: AggregateField<number>;
+    }>(undefined, { count: case5Delta + newSnap.snapshot.data()['count'] });
+
     // TODO(COUNT): Dude...
-    observer?.next(snapshot.snapshot.snapshot);
+    observer?.next(existingView!.view.snapshot.snapshot);
   }
 }
 
