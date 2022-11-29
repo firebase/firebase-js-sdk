@@ -138,6 +138,8 @@ export class FetchXmlHttpFactory {
 }
 
 // See https://google.github.io/closure-library/api/goog.crypt.Md5.html
+// Unit test are written in
+// packages/firestore/test/unit/core/webchannel_wrapper.test.ts
 export class Md5 {
   reset(): void;
   digest(): Array<number>;

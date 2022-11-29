@@ -348,4 +348,17 @@ describe('Integer', () => {
     expect(Integer.fromString('125715', 8).toNumber()).equals(43981);
     expect(Integer.fromString('1010101111001101', 2).toNumber()).equals(43981);
   });
+
+  it('getBits() create a new Integer with the given value', () => {
+    expect(new Integer([1, 2], 0).getBits(0)).equals(1);
+    expect(new Integer([1, 2], 0).getBits(1)).equals(2);
+    expect(new Integer([-1, -2], -1).getBits(0)).equals(-1);
+    expect(new Integer([-1, -2], -1).getBits(1)).equals(-2);
+    expect(new Integer([0xff, 0xffff], 0).getBits(0)).equals(
+      Integer.fromNumber(0xff).toNumber()
+    );
+    expect(new Integer([0xff, 0xffff], 0).getBits(1)).equals(
+      Integer.fromNumber(0xffff).toNumber()
+    );
+  });
 });

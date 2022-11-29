@@ -37,16 +37,31 @@ describe('BloomFilter', () => {
   });
 
   it('can instantiate a non empty bloom filter', () => {
-    const bloomFilter = new BloomFilter(new Uint8Array([255, 255, 124]), 3, 13);
-    expect(bloomFilter.size).to.equal(21);
+    const bloomFilter0 = new BloomFilter(new Uint8Array(1), 0, 1);
+    const bloomFilter1 = new BloomFilter(new Uint8Array(1), 1, 1);
+    const bloomFilter2 = new BloomFilter(new Uint8Array(1), 2, 1);
+    const bloomFilter3 = new BloomFilter(new Uint8Array(1), 3, 1);
+    const bloomFilter4 = new BloomFilter(new Uint8Array(1), 4, 1);
+    const bloomFilter5 = new BloomFilter(new Uint8Array(1), 5, 1);
+    const bloomFilter6 = new BloomFilter(new Uint8Array(1), 6, 1);
+    const bloomFilter7 = new BloomFilter(new Uint8Array(1), 7, 1);
+
+    expect(bloomFilter0.size).to.equal(8);
+    expect(bloomFilter1.size).to.equal(7);
+    expect(bloomFilter2.size).to.equal(6);
+    expect(bloomFilter3.size).to.equal(5);
+    expect(bloomFilter4.size).to.equal(4);
+    expect(bloomFilter5.size).to.equal(3);
+    expect(bloomFilter6.size).to.equal(2);
+    expect(bloomFilter7.size).to.equal(1);
   });
 
   it('should throw error if padding is invalid', () => {
     expect(() => new BloomFilter(new Uint8Array(1), -1, 1)).to.throw(
       'Invalid padding: -1'
     );
-    expect(() => new BloomFilter(new Uint8Array(1), 9, 1)).to.throw(
-      'Invalid padding: 9'
+    expect(() => new BloomFilter(new Uint8Array(1), 8, 1)).to.throw(
+      'Invalid padding: 8'
     );
   });
 
@@ -102,7 +117,7 @@ describe('BloomFilter', () => {
     const documentPrefix =
       'projects/project-1/databases/database-1/documents/coll/doc';
 
-    interface TestDataType {
+    interface GoldenTestInput {
       bits: {
         bitmap: string;
         padding: number;
@@ -110,17 +125,13 @@ describe('BloomFilter', () => {
       hashCount: number;
     }
 
-    interface TestResultType {
+    interface GoldenTestExpectedResult {
       membershipTestResults: string;
     }
 
-    function decodeBase64ToUint8Array(encoded: string): Uint8Array {
-      return ByteString.fromBase64String(encoded).toUint8Array();
-    }
-
     function testBloomFilterAgainstExpectedResult(
-      bloomFilterInputs: TestDataType,
-      expectedResult: TestResultType
+      bloomFilterInputs: GoldenTestInput,
+      expectedResult: GoldenTestExpectedResult
     ): void {
       const {
         bits: { bitmap, padding },
@@ -128,14 +139,10 @@ describe('BloomFilter', () => {
       } = bloomFilterInputs;
       const { membershipTestResults } = expectedResult;
 
-      const bloomFilter = new BloomFilter(
-        decodeBase64ToUint8Array(bitmap),
-        padding,
-        hashCount
-      );
+      const byteArray = ByteString.fromBase64String(bitmap).toUint8Array();
+      const bloomFilter = new BloomFilter(byteArray, padding, hashCount);
       for (let i = 0; i < membershipTestResults.length; i++) {
-        const expectedMembershipResult =
-          membershipTestResults[i] === '1' ? true : false;
+        const expectedMembershipResult = membershipTestResults[i] === '1';
         const mightContain = bloomFilter.mightContain(documentPrefix + i);
         expect(mightContain).to.equal(expectedMembershipResult);
       }
