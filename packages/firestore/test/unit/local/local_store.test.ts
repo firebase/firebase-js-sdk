@@ -2054,6 +2054,35 @@ function genericLocalStoreTests(
       .finish();
   });
 
+  it('updates createTime upon receiving a remote event with a new createTime', () => {
+    if (gcIsEager) {
+      return;
+    }
+
+    return expectLocalStore()
+      .after(setMutation('col/doc1', { foo: 'newBar' }))
+      .afterAcknowledgingMutation({ documentVersion: 13 })
+      .afterExecutingQuery(query('col'))
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
+      )
+      .toContain(
+        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations(),
+        compareDocsWithCreateTime
+      )
+      .after(docAddedRemoteEvent(doc('col/doc1', 14, { foo: 'baz' }, 5), [2]))
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc('col/doc1', 14, { foo: 'baz' }, 5)
+      )
+      .toContain(
+        doc('col/doc1', 14, { foo: 'baz' }, 5),
+        compareDocsWithCreateTime
+      )
+      .finish();
+  });
+
   it('saves updateTime as createTime when recreating a deleted doc', async () => {
     if (gcIsEager) {
       return;
