@@ -85,7 +85,7 @@ export class BloomFilter {
   private isBitSet(index: number): boolean {
     // To retrieve bit n, calculate: (bitmap[n / 8] & (0x01 << (n % 8))).
     const byte = this.bitmap[Math.floor(index / 8)];
-    return (byte & (0x01 << (index % 8))) !== 0;
+    return (byte & (0x01 << index % 8)) !== 0;
   }
 
   mightContain(value: string): boolean {
