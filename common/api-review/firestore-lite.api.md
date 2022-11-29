@@ -140,16 +140,16 @@ export class DocumentSnapshot<T = DocumentData> {
 export { EmulatorMockTokenOptions }
 
 // @public
-export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function endAt(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
 
 // @public
-export function endAt(...fieldValues: unknown[]): QueryConstraint;
+export function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 // @public
-export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
 
 // @public
-export function endBefore(...fieldValues: unknown[]): QueryConstraint;
+export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 // @public
 export class FieldPath {
@@ -222,10 +222,10 @@ export function increment(n: number): FieldValue;
 export function initializeFirestore(app: FirebaseApp, settings: Settings): Firestore;
 
 // @public
-export function limit(limit: number): QueryConstraint;
+export function limit(limit: number): QueryLimitConstraint;
 
 // @public
-export function limitToLast(limit: number): QueryConstraint;
+export function limitToLast(limit: number): QueryLimitConstraint;
 
 export { LogLevel }
 
@@ -235,7 +235,7 @@ export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToInter
 }[keyof T & string]>;
 
 // @public
-export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryConstraint;
+export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryOrderByConstraint;
 
 // @public
 export type OrderByDirection = 'desc' | 'asc';
@@ -276,7 +276,30 @@ export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T>
 }
 
 // @public
+export class QueryEndAtConstraint extends QueryConstraint {
+    readonly type: 'endBefore' | 'endAt';
+}
+
+// @public
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+
+// @public
+export class QueryFieldFilterConstraint extends QueryConstraint {
+    readonly type = "where";
+}
+
+// @public
+export class QueryLimitConstraint extends QueryConstraint {
+    readonly type: 'limit' | 'limitToLast';
+}
+
+// @public
+export type QueryNonFilterConstraint = QueryOrderByConstraint | QueryLimitConstraint | QueryStartAtConstraint | QueryEndAtConstraint;
+
+// @public
+export class QueryOrderByConstraint extends QueryConstraint {
+    readonly type = "orderBy";
+}
 
 // @public
 export class QuerySnapshot<T = DocumentData> {
@@ -285,6 +308,11 @@ export class QuerySnapshot<T = DocumentData> {
     forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
     readonly query: Query<T>;
     get size(): number;
+}
+
+// @public
+export class QueryStartAtConstraint extends QueryConstraint {
+    readonly type: 'startAt' | 'startAfter';
 }
 
 // @public
@@ -323,16 +351,16 @@ export interface Settings {
 export function snapshotEqual<T>(left: DocumentSnapshot<T> | QuerySnapshot<T>, right: DocumentSnapshot<T> | QuerySnapshot<T>): boolean;
 
 // @public
-export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
 
 // @public
-export function startAfter(...fieldValues: unknown[]): QueryConstraint;
+export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
 
 // @public
-export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function startAt(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
 
 // @public
-export function startAt(...fieldValues: unknown[]): QueryConstraint;
+export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
 
 // @public
 export function terminate(firestore: Firestore): Promise<void>;
@@ -388,7 +416,7 @@ export function updateDoc<T>(reference: DocumentReference<T>, data: UpdateData<T
 export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
 // @public
-export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryConstraint;
+export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryFieldFilterConstraint;
 
 // @public
 export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';

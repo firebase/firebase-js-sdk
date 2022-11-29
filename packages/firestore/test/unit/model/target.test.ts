@@ -17,13 +17,13 @@
 
 import { expect } from 'chai';
 
+import { Bound } from '../../../src/core/bound';
 import {
   queryToTarget,
   queryWithEndAt,
   queryWithStartAt
 } from '../../../src/core/query';
 import {
-  Bound,
   targetGetUpperBound,
   targetGetLowerBound,
   targetGetArrayValues
