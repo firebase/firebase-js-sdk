@@ -199,7 +199,7 @@ $ yarn link # initialize the linking to the other folder
 $ cd ../packages/<my-product> # Example: $ cd packages/database
 $ yarn link # link your product to make it available elsewhere
 $ cd <my-test-app-dir> # cd into your personal project directory
-$ yarn link firebase firebase/<my-product> # tell yarn to use the locally built firebase SDK instead
+$ yarn link firebase @firebase/<my-product> # tell yarn to use the locally built firebase SDK instead
 ```
 
 This will create a symlink and point your `<my-test-app-dir>` to the locally built version of the firebase SDK.
