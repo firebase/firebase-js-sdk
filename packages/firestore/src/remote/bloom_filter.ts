@@ -20,32 +20,36 @@ import { newTextEncoder } from '../platform/serializer';
 import { debugAssert } from '../util/assert';
 
 const MAX_64_BIT_UNSIGNED_INTEGER = Integer.fromNumber(Math.pow(2, 64));
+
 export class BloomFilter {
-  private readonly size: Integer;
+  readonly size: number;
+  private readonly sizeInInteger: Integer;
 
   constructor(
     private readonly bitmap: Uint8Array,
     padding: number,
     private readonly hashCount: number
   ) {
-    const numBits = bitmap.length * 8 - padding;
-    this.size = Integer.fromNumber(numBits);
-
     debugAssert(padding >= 0 && padding < 8, `Invalid padding: ${padding}`);
-    // Empty bloom filter should have 0 padding and 0 hash count.
-    if (bitmap.length === 0) {
-      debugAssert(
-        padding === 0 && hashCount === 0,
-        'A valid empty bloom filter will have all three fields be empty.'
-      );
+    if (bitmap.length > 0) {
+      debugAssert(this.hashCount > 0, `Invalid hash count: ${hashCount}`);
     } else {
       // Only empty bloom filter can have 0 hash count.
-      debugAssert(this.hashCount > 0, `Invalid hash count: ${hashCount}`);
+      debugAssert(this.hashCount >= 0, `Invalid hash count: ${hashCount}`);
+
+      // Empty bloom filter should have 0 padding.
+      debugAssert(
+        padding === 0,
+        `Invalid padding when bitmap length is 0: ${padding}`
+      );
     }
+
+    this.size = bitmap.length * 8 - padding;
+    this.sizeInInteger = Integer.fromNumber(this.size);
   }
 
-  // Hash the document path using md5 hashing algorithm.
-  private getMd5HashValue(value: string): Uint8Array {
+  // Hash a string using md5 hashing algorithm.
+  private static getMd5HashValue(value: string): Uint8Array {
     const md5 = new Md5();
     const encodedValue = newTextEncoder().encode(value);
     md5.update(encodedValue);
@@ -54,7 +58,7 @@ export class BloomFilter {
 
   // Interpret the 16 bytes array as two 64-bit unsigned integers, encoded using 2’s
   // complement using little endian.
-  private get64BitUint(Bytes: Uint8Array): Integer[] {
+  private static get64BitUints(Bytes: Uint8Array): [Integer, Integer] {
     const dataView = new DataView(Bytes.buffer);
     const chunk1 = dataView.getUint32(0, /* littleEndian= */ true);
     const chunk2 = dataView.getUint32(4, /* littleEndian= */ true);
@@ -74,34 +78,30 @@ export class BloomFilter {
     if (hashValue.compare(MAX_64_BIT_UNSIGNED_INTEGER) === 1) {
       hashValue = new Integer([hashValue.getBits(0), hashValue.getBits(1)], 0);
     }
-    return hashValue.modulo(this.size).toNumber();
+    return hashValue.modulo(this.sizeInInteger).toNumber();
   }
 
   // Return whether the bit on the given index in the bitmap is set to 1.
   private isBitSet(index: number): boolean {
     // To retrieve bit n, calculate: (bitmap[n / 8] & (0x01 << (n % 8))).
     const byte = this.bitmap[Math.floor(index / 8)];
-    return (byte & (0x01 << index % 8)) !== 0;
+    return (byte & (0x01 << (index % 8))) !== 0;
   }
 
   mightContain(value: string): boolean {
-    // Empty bitmap should always return false on membership check.
-    if (this.size.toNumber() === 0) {
+    // Empty bitmap and empty value should always return false on membership check.
+    if (this.size === 0 || value === '') {
       return false;
     }
-    const encodedBytes = this.getMd5HashValue(value);
-    const [hash1, hash2] = this.get64BitUint(encodedBytes);
+
+    const md5HashedValue = BloomFilter.getMd5HashValue(value);
+    const [hash1, hash2] = BloomFilter.get64BitUints(md5HashedValue);
     for (let i = 0; i < this.hashCount; i++) {
       const index = this.getBitIndex(hash1, hash2, i);
       if (!this.isBitSet(index)) {
         return false;
       }
     }
-
     return true;
-  }
-
-  getSize(): number {
-    return this.size.toNumber();
   }
 }
