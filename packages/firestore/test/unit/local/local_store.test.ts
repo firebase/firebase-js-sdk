@@ -2054,7 +2054,7 @@ function genericLocalStoreTests(
       .finish();
   });
 
-  it('updates createTime upon receiving a remote event with a new createTime', () => {
+  it('handles createTime for Set -> Ack -> RemoteEvent', () => {
     if (gcIsEager) {
       return;
     }
@@ -2078,6 +2078,27 @@ function genericLocalStoreTests(
       )
       .toContain(
         doc('col/doc1', 14, { foo: 'baz' }, 5),
+        compareDocsWithCreateTime
+      )
+      .finish();
+  });
+
+  it('handles createTime for Set -> RemoteEvent -> Ack', () => {
+    if (gcIsEager) {
+      return;
+    }
+
+    return expectLocalStore()
+      .after(setMutation('col/doc1', { foo: 'newBar' }))
+      .after(docAddedRemoteEvent(doc('col/doc1', 13, { foo: 'baz' }, 5), [2]))
+      .afterAcknowledgingMutation({ documentVersion: 14 })
+      .afterExecutingQuery(query('col'))
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc('col/doc1', 14, { foo: 'newBar' }, 5).setHasCommittedMutations()
+      )
+      .toContain(
+        doc('col/doc1', 14, { foo: 'newBar' }, 5).setHasCommittedMutations(),
         compareDocsWithCreateTime
       )
       .finish();
