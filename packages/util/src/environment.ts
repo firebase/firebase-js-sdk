@@ -140,7 +140,12 @@ export function isSafari(): boolean {
  * @return true if indexedDB is supported by current browser/service worker context
  */
 export function isIndexedDBAvailable(): boolean {
-  return typeof indexedDB === 'object';
+  try {
+    return typeof indexedDB === 'object';
+  }
+  catch (e) {
+      return false;
+  }
 }
 
 /**
