@@ -693,13 +693,12 @@ abstract class TestRunner {
   }
 
   private doWatchFilter(watchFilter: SpecWatchFilter): Promise<void> {
-    const targetIds: TargetId[] = watchFilter[0];
+    const { targetIds, keys, bloomFilter } = watchFilter;
     debugAssert(
       targetIds.length === 1,
       'ExistenceFilters currently support exactly one target only.'
     );
-    const keys = watchFilter.slice(1);
-    const filter = new ExistenceFilter(keys.length);
+    const filter = new ExistenceFilter(keys.length, bloomFilter);
     const change = new ExistenceFilterChange(targetIds[0], filter);
     return this.doWatchEvent(change);
   }
@@ -1577,14 +1576,12 @@ export interface SpecClientState {
 }
 
 /**
- * [[<target-id>, ...], <key>, ...]
- * Note that the last parameter is really of type ...string (spread operator)
  * The filter is based of a list of keys to match in the existence filter
  */
-export interface SpecWatchFilter
-  extends Array<TargetId[] | string | undefined> {
-  '0': TargetId[];
-  '1': string | undefined;
+export interface SpecWatchFilter {
+  targetIds: TargetId[];
+  keys: string[];
+  bloomFilter?: api.BloomFilter;
 }
 
 export type SpecLimitType = 'LimitToFirst' | 'LimitToLast';
