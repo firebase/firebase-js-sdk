@@ -52,7 +52,8 @@ import {
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
   newLocalStore,
-  RemoteEventResult
+  RemoteEventResult,
+  MutationAckResult
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -258,8 +259,8 @@ class LocalStoreTester {
 
         return localStoreAcknowledgeBatch(this.localStore, write);
       })
-      .then((changes: DocumentMap) => {
-        this.lastChanges = changes;
+      .then((result: MutationAckResult) => {
+        this.lastChanges = result.changedDocs;
       });
     return this;
   }

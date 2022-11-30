@@ -476,7 +476,7 @@ export function localStoreWriteLocally(
 export function localStoreAcknowledgeBatch(
   localStore: LocalStore,
   batchResult: MutationBatchResult
-): Promise<DocumentMap> {
+): Promise<MutationAckResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
     'Acknowledge batch',
@@ -507,7 +507,31 @@ export function localStoreAcknowledgeBatch(
             getKeysWithTransformResults(batchResult)
           )
         )
-        .next(() => localStoreImpl.localDocuments.getDocuments(txn, affected));
+        .next(() => {
+          let remoteAggregateMatches: Map<TargetId, DocumentKey[]> | undefined =
+            undefined;
+          localStoreImpl.remoteDocuments
+            .getEntries(txn, affected, undefined)
+            .next(newRemotes => {
+              remoteAggregateMatches = matchAggregateQueries(
+                localStoreImpl,
+                newRemotes
+              );
+            });
+          return localStoreImpl.localDocuments
+            .getDocuments(txn, affected)
+            .next(changedDocs => {
+              const localAggregateMatches = matchAggregateQueries(
+                localStoreImpl,
+                changedDocs
+              );
+              return {
+                localAggregateMatches,
+                remoteAggregateMatches,
+                changedDocs
+              };
+            });
+        });
     }
   );
 }
@@ -602,6 +626,12 @@ export function localStoreGetLastRemoteSnapshotVersion(
   );
 }
 
+export interface MutationAckResult {
+  changedDocs: DocumentMap;
+  remoteMatches?: Map<TargetId, DocumentKey[]>;
+  localAggregateMatches?: Map<TargetId, DocumentKey[]>;
+}
+
 export interface RemoteEventResult {
   changedDocs: DocumentMap;
   remoteMatches?: Map<TargetId, DocumentKey[]>;
@@ -610,6 +640,8 @@ export interface RemoteEventResult {
   changedAggregates?: Map<TargetId, number>;
 }
 
+// TODO(COUNT): this should eventually get pused down into local documents view,
+// as part of AggregateContext handling.
 function matchAggregateQueries(
   localStore: LocalStore,
   docs: DocumentMap

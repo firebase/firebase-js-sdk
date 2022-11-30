@@ -50,6 +50,7 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 
 export interface AggregateContext {
+  // TODO(COUNT): This should be able to handle multiple queries.
   query: Query;
   processingMask: FieldMask;
   remoteMatches: DocumentKey[];

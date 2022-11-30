@@ -461,10 +461,14 @@ export class LocalDocumentsView {
                 documentKeySet()
               )
             )
-            .next(localDocs => ({
-              batchId: largestBatchId,
-              changes: convertOverlayedDocumentMapToDocumentMap(localDocs)
-            }));
+            .next(localDocs => {
+              return {
+                batchId: largestBatchId,
+                changes: convertOverlayedDocumentMapToDocumentMap(localDocs),
+                remoteAggregateMatches: undefined,
+                localAggregateMatches: undefined
+              } as LocalWriteResult;
+            });
         });
       });
   }

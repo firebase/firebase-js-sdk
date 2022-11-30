@@ -750,7 +750,7 @@ export async function syncEngineApplySuccessfulWrite(
   const batchId = mutationBatchResult.batch.batchId;
 
   try {
-    const changes = await localStoreAcknowledgeBatch(
+    const result = await localStoreAcknowledgeBatch(
       syncEngineImpl.localStore,
       mutationBatchResult
     );
@@ -766,9 +766,7 @@ export async function syncEngineApplySuccessfulWrite(
       batchId,
       'acknowledged'
     );
-    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, {
-      changedDocs: changes
-    });
+    await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, result);
   } catch (error) {
     await ignoreIfPrimaryLeaseLoss(error as FirestoreError);
   }
@@ -1168,7 +1166,8 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
       snapshot: calculateAggregateSnapshot(result),
       // TODO(COUNT): This needs to sync up with the logic for document queries.
       fromCache: false,
-      query: result.aggregateQuery
+      query: result.aggregateQuery,
+      initialDiscountedKeys: undefined
     });
   });
   // TODO(COUNT): Save the discounted keys!

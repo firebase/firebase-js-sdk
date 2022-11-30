@@ -495,6 +495,183 @@ describeSpec('Count Queries:', ['exclusive', 'durable-persistence'], () => {
         });
     }
   );
+
+  specTest('With local muation case 2/3/4', [], () => {
+    const query = queryWithAddedFilter(
+      newQueryForPath(path('coll')),
+      filter('val', '>', 2)
+    );
+    const docs = [
+      doc('coll/1', 450, { val: 1 }, 400),
+      doc('coll/2', 450, { val: 2 }, 400),
+      doc('coll/3', 450, { val: 3 }, 400),
+      doc('coll/4', 550, { val: 4 }, 400),
+      doc('coll/5', 1000, { val: 5 }, 400)
+    ];
+    return specWithCachedDocs(...docs)
+      .setCountValue(/*for query*/ 12, 10_000, 500)
+      .userListensCount(countFromQuery(query))
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_000,
+        fromCache: true
+      })
+      .userPatches('coll/2', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .userPatches('coll/3', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .userPatches('coll/4', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .userPatches('coll/5', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .watchAcksCount(countFromQuery(query), 12)
+      .watchSendsCount(12, 80)
+      .watchCurrentsCount(12, 'resume-token')
+      .watchSnapshots(10_000)
+      .expectCountEvents(countFromQuery(query), {
+        count: 81
+      });
+  });
+
+  specTest('With local mutation case 1', [], () => {
+    const query = queryWithAddedFilter(
+      newQueryForPath(path('coll')),
+      filter('val', '>', 2)
+    );
+    const docs = [
+      doc('coll/1', 1000, { val: 1 }, 800),
+      doc('coll/2', 1000, { val: 2 }, 800),
+      doc('coll/3', 1000, { val: 3 }, 800),
+      doc('coll/4', 1000, { val: 4 }, 800),
+      doc('coll/5', 1000, { val: 5 }, 800)
+    ];
+    return specWithCachedDocs(...docs)
+      .setCountValue(/*for query*/ 12, 10_000, 200)
+      .userListensCount(countFromQuery(query))
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_003,
+        fromCache: true
+      })
+      .userPatches('coll/2', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_004,
+        fromCache: true
+      })
+      .userPatches('coll/3', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_004,
+        fromCache: true
+      })
+      .watchAcksCount(countFromQuery(query), 12)
+      .watchSendsCount(12, 80)
+      .watchCurrentsCount(12, 'resume-token')
+      .watchSnapshots(10_000)
+      .expectCountEvents(countFromQuery(query), {
+        count: 81
+      });
+  });
+
+  specTest('With local mutation case 1 and mutation ack', [], () => {
+    const query = queryWithAddedFilter(
+      newQueryForPath(path('coll')),
+      filter('val', '>', 2)
+    );
+    const docs = [
+      doc('coll/1', 1000, { val: 1 }, 800),
+      doc('coll/2', 1000, { val: 2 }, 800),
+      doc('coll/3', 1000, { val: 3 }, 800),
+      doc('coll/4', 1000, { val: 4 }, 800),
+      doc('coll/5', 1000, { val: 5 }, 800)
+    ];
+    return specWithCachedDocs(...docs)
+      .setCountValue(/*for query*/ 12, 10_000, 200)
+      .userListensCount(countFromQuery(query))
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_003,
+        fromCache: true
+      })
+      .userPatches('coll/2', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_004,
+        fromCache: true
+      })
+      .writeAcks('coll/2', 1200)
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_004
+      });
+  });
+
+  specTest('With local mutation case 2/3/4 with mutation ack', [], () => {
+    const query = queryWithAddedFilter(
+      newQueryForPath(path('coll')),
+      filter('val', '>', 2)
+    );
+    const docs = [
+      doc('coll/1', 450, { val: 1 }, 400),
+      doc('coll/2', 450, { val: 2 }, 400),
+      doc('coll/3', 450, { val: 3 }, 400),
+      doc('coll/4', 550, { val: 4 }, 400),
+      doc('coll/5', 1000, { val: 5 }, 400)
+    ];
+    return specWithCachedDocs(...docs)
+      .setCountValue(/*for query*/ 12, 10_000, 500)
+      .userListensCount(countFromQuery(query))
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_000,
+        fromCache: true
+      })
+      .userPatches('coll/2', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .userPatches('coll/3', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .userPatches('coll/4', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .userPatches('coll/5', { val: 10 })
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .writeAcks('coll/2', 1100)
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .writeAcks('coll/3', 1100)
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .writeAcks('coll/4', 1200)
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      })
+      .writeAcks('coll/5', 1300)
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_001,
+        fromCache: true
+      });
+  });
 });
 
 describeSpec('Queries:', [], () => {

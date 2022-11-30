@@ -146,7 +146,7 @@ export interface AggregateViewSnapshot {
   query: AggregateQuery;
   snapshot: AggregateSnapshotAndDiscountedKeys;
   fromCache: boolean;
-  initialDiscountedKeys: DocumentKey[];
+  initialDiscountedKeys: DocumentKey[] | undefined;
 }
 
 export class ViewSnapshot {

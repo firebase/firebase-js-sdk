@@ -20,7 +20,6 @@ import {
   AggregateQuerySnapshot
 } from '../lite-api/aggregate_types';
 import { debugAssert, debugCast } from '../util/assert';
-import { AsyncObserver } from '../util/async_observer';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
 import { EventHandler } from '../util/misc';
@@ -234,7 +233,7 @@ export function eventManagerOnWatchAggregateChange(
     const newSnap = snapshot.snapshot;
     const case5Delta = Math.min(
       newSnap.discountedKeys.size -
-        existingView!.view.initialDiscountedKeys.length,
+        existingView!.view.initialDiscountedKeys!.length,
       0
     );
     existingView!.view.snapshot = newSnap;
