@@ -120,7 +120,7 @@ function createRollupTask({
     };
 
     const outputOptions = {
-      file: `dist/index${outputExtension ? '.' : ''}${outputExtension}.js`,
+      file: `dist/index${outputExtension ? '.' : ''}${outputExtension}.${outputExtension ? 'm' : ''}js`,
       format,
       sourcemap: true,
       // Prevents warning when compiling CJS that there are named and default exports together.

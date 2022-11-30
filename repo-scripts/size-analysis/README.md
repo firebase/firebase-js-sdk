@@ -79,7 +79,7 @@ try {
 try {
   const name: string = "adhoc";
   const dtsFile: string = '.../index.d.ts';
-  const bundleFile: string = '.../index.esm2017.js';
+  const bundleFile: string = '.../index.esm2017.mjs';
   const report: Report = await generateReport(name, dtsFile, bundleFile);
   console.log(report);
 

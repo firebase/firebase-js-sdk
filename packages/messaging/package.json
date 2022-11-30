@@ -4,24 +4,24 @@
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/esm/index.esm2017.js",
-  "module": "dist/esm/index.esm2017.js",
-  "sw": "dist/index.sw.esm2017.js",
+  "browser": "dist/esm/index.esm2017.mjs",
+  "module": "dist/esm/index.esm2017.mjs",
+  "sw": "dist/index.sw.esm2017.mjs",
   "sw-main": "dist/index.sw.cjs",
-  "esm5": "dist/esm/index.esm.js",
+  "esm5": "dist/esm/index.esm.mjs",
   "exports": {
     ".": {
       "types": "./dist/index-public.d.ts",
       "node": "./dist/index.cjs.js",
-      "browser": "./dist/esm/index.esm2017.js",
-      "module": "./dist/esm/index.esm2017.js",
-      "esm5": "./dist/esm/index.esm.js",
+      "browser": "./dist/esm/index.esm2017.mjs",
+      "module": "./dist/esm/index.esm2017.mjs",
+      "esm5": "./dist/esm/index.esm.mjs",
       "default": "./dist/index.cjs.js"
     },
     "./sw": {
       "types": "./dist/sw/index-public.d.ts",
       "node": "./dist/index.sw.cjs",
-      "default": "./dist/index.sw.esm2017.js"
+      "default": "./dist/index.sw.esm2017.mjs"
     },
     "./package.json": "./package.json"
   },

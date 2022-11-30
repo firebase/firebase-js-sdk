@@ -4,19 +4,19 @@
   "description": "FirebaseAuth compatibility package that uses API style compatible with Firebase@8 and prior versions",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.esm2017.js",
-  "module": "dist/index.esm2017.js",
-  "esm5": "dist/index.esm.js",
+  "browser": "dist/index.esm2017.mjs",
+  "module": "dist/index.esm2017.mjs",
+  "esm5": "dist/index.esm.mjs",
   "exports": {
     ".": {
       "types": "./dist/auth-compat/index.d.ts",
       "node": {
         "types": "./dist/auth-compat/index.node.d.ts",
-        "import": "./dist/esm/index.node.esm.js",
+        "import": "./dist/esm/index.node.esm.mjs",
         "require": "./dist/index.node.cjs.js"
       },
-      "esm5": "./dist/index.esm.js",
-      "default": "./dist/index.esm2017.js"
+      "esm5": "./dist/index.esm.mjs",
+      "default": "./dist/index.esm2017.mjs"
     },
     "./package.json": "./package.json"
   },

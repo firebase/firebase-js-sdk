@@ -58,7 +58,7 @@ module.exports = function (config) {
           directories: ['./node_modules'],
           alias: {
             '@firebase/messaging/sw':
-              'node_modules/@firebase/messaging/dist/index.sw.esm2017.js',
+              'node_modules/@firebase/messaging/dist/index.sw.esm2017.mjs',
             'idb': 'node_modules/idb/build/index.js'
           }
         },
