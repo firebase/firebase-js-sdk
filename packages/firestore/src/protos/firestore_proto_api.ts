@@ -456,8 +456,7 @@ export declare type BeginTransactionRequest =
   firestoreV1ApiClientInterfaces.BeginTransactionRequest;
 export declare type BeginTransactionResponse =
   firestoreV1ApiClientInterfaces.BeginTransactionResponse;
-  export declare type BloomFilter =
-  firestoreV1ApiClientInterfaces.BloomFilter;
+export declare type BloomFilter = firestoreV1ApiClientInterfaces.BloomFilter;
 export declare type CollectionSelector =
   firestoreV1ApiClientInterfaces.CollectionSelector;
 export declare type CommitRequest =
