@@ -429,7 +429,8 @@ export function existenceFilterEvent(
   targetId: number,
   syncedKeys: DocumentKeySet,
   remoteCount: number,
-  snapshotVersion: number
+  snapshotVersion: number,
+  bloomFilter?: api.BloomFilter
 ): RemoteEvent {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => syncedKeys,
@@ -437,7 +438,10 @@ export function existenceFilterEvent(
       targetData(targetId, TargetPurpose.Listen, 'foo')
   });
   aggregator.handleExistenceFilter(
-    new ExistenceFilterChange(targetId, new ExistenceFilter(remoteCount))
+    new ExistenceFilterChange(
+      targetId,
+      new ExistenceFilter(remoteCount, bloomFilter)
+    )
   );
   return aggregator.createRemoteEvent(version(snapshotVersion));
 }

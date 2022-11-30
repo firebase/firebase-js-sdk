@@ -33,6 +33,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { FieldIndex } from '../../../src/model/field_index';
 import { JsonObject } from '../../../src/model/object_value';
 import { ResourcePath } from '../../../src/model/path';
+import { BloomFilter as ProtoBloomFilter} from '../../../src/protos/firestore_proto_api';
 import {
   isPermanentWriteError,
   mapCodeFromRpcCode,
@@ -769,7 +770,11 @@ export class SpecBuilder {
     return this;
   }
 
-  watchFilters(queries: Query[], ...docs: DocumentKey[]): this {
+  watchFilters(
+    queries: Query[],
+    docs: DocumentKey[] = [],
+    bloomFilter?: ProtoBloomFilter
+  ): this {
     this.nextStep();
     const targetIds = queries.map(query => {
       return this.getTargetId(query);
@@ -777,10 +782,7 @@ export class SpecBuilder {
     const keys = docs.map(key => {
       return key.path.canonicalString();
     });
-    const filter: SpecWatchFilter = [targetIds] as SpecWatchFilter;
-    for (const key of keys) {
-      filter.push(key);
-    }
+    const filter = { targetIds, keys, bloomFilter } as SpecWatchFilter;
     this.currentStep = {
       watchFilter: filter
     };
