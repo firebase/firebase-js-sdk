@@ -62,35 +62,100 @@ describe(' Integration tests: Mfa TOTP', () => {
     }
   });
 
-  it('should not enroll if incorrect totp supplied', async () => {
-    if (!emulatorUrl) {
-      const cr = await signInWithEmailAndPassword(auth, email, 'password');
-      const mfaUser = multiFactor(cr.user);
-      const session = await mfaUser.getSession();
-      totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
-      const multiFactorAssertion =
-        TotpMultiFactorGenerator.assertionForEnrollment(
-          totpSecret,
-          incorrectTotpCode
-        );
+  it('should not enroll if incorrect totp supplied', async function () {
+    if (emulatorUrl) {
+      this.skip();
+    }
+    const cr = await signInWithEmailAndPassword(auth, email, 'password');
+    const mfaUser = multiFactor(cr.user);
+    const session = await mfaUser.getSession();
+    totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
+    const multiFactorAssertion =
+      TotpMultiFactorGenerator.assertionForEnrollment(
+        totpSecret,
+        incorrectTotpCode
+      );
 
-      await expect(
-        mfaUser.enroll(multiFactorAssertion, displayName)
-      ).to.be.rejectedWith('auth/invalid-verification-code');
+    await expect(
+      mfaUser.enroll(multiFactorAssertion, displayName)
+    ).to.be.rejectedWith('auth/invalid-verification-code');
+  });
+
+  it('should enroll using correct otp', async function () {
+    if (emulatorUrl) {
+      this.skip();
+    }
+    const cr = await signInWithEmailAndPassword(auth, email, 'password');
+
+    const mfaUser = multiFactor(cr.user);
+
+    const session = await mfaUser.getSession();
+
+    totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
+
+    totpTimestamp = new Date();
+
+    const totpVerificationCode = getTotpCode(
+      totpSecret.secretKey,
+      totpSecret.codeIntervalSeconds,
+      totpSecret.codeLength,
+      totpTimestamp
+    );
+
+    const multiFactorAssertion =
+      TotpMultiFactorGenerator.assertionForEnrollment(
+        totpSecret,
+        totpVerificationCode
+      );
+    await expect(mfaUser.enroll(multiFactorAssertion, displayName)).to.be
+      .fulfilled;
+  });
+
+  it('should not allow sign-in with incorrect totp', async function () {
+    let resolver: any;
+
+    if (emulatorUrl) {
+      this.skip();
+    }
+    try {
+      await signInWithEmailAndPassword(auth, email, 'password');
+
+      throw new Error('Signin should not have been successful');
+    } catch (error) {
+      expect(error).to.be.an.instanceOf(FirebaseError);
+      expect((error as any).code).to.eql('auth/multi-factor-auth-required');
+
+      resolver = getMultiFactorResolver(auth, error as any);
+      expect(resolver.hints).to.have.length(1);
+
+      const assertion = TotpMultiFactorGenerator.assertionForSignIn(
+        resolver.hints[0].uid,
+        incorrectTotpCode
+      );
+
+      await expect(resolver.resolveSignIn(assertion)).to.be.rejectedWith(
+        'auth/invalid-verification-code'
+      );
     }
   });
 
-  it('should enroll using correct otp', async () => {
-    if (!emulatorUrl) {
-      const cr = await signInWithEmailAndPassword(auth, email, 'password');
+  it('should allow sign-in with for correct totp and unenroll successfully', async function () {
+    let resolver: any;
+    if (emulatorUrl) {
+      this.skip();
+    }
+    try {
+      await signInWithEmailAndPassword(auth, email, 'password');
 
-      const mfaUser = multiFactor(cr.user);
+      throw new Error('Signin should not have been successful');
+    } catch (error) {
+      expect(error).to.be.an.instanceOf(FirebaseError);
+      expect((error as any).code).to.eql('auth/multi-factor-auth-required');
 
-      const session = await mfaUser.getSession();
+      resolver = getMultiFactorResolver(auth, error as any);
+      expect(resolver.hints).to.have.length(1);
 
-      totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
-
-      totpTimestamp = new Date();
+      totpTimestamp.setSeconds(totpTimestamp.getSeconds() + 30);
 
       const totpVerificationCode = getTotpCode(
         totpSecret.secretKey,
@@ -99,78 +164,17 @@ describe(' Integration tests: Mfa TOTP', () => {
         totpTimestamp
       );
 
-      const multiFactorAssertion =
-        TotpMultiFactorGenerator.assertionForEnrollment(
-          totpSecret,
-          totpVerificationCode
-        );
-      await expect(mfaUser.enroll(multiFactorAssertion, displayName)).to.be
+      const assertion = TotpMultiFactorGenerator.assertionForSignIn(
+        resolver.hints[0].uid,
+        totpVerificationCode
+      );
+      const userCredential = await resolver.resolveSignIn(assertion);
+
+      const mfaUser = multiFactor(userCredential.user);
+
+      await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
+      await expect(signInWithEmailAndPassword(auth, email, 'password')).to.be
         .fulfilled;
-    }
-  });
-
-  it('should not allow sign-in with incorrect totp', async () => {
-    let resolver;
-
-    if (!emulatorUrl) {
-      try {
-        await signInWithEmailAndPassword(auth, email, 'password');
-
-        throw new Error('Signin should not have been successful');
-      } catch (error) {
-        expect(error).to.be.an.instanceOf(FirebaseError);
-        expect((error as any).code).to.eql('auth/multi-factor-auth-required');
-
-        resolver = getMultiFactorResolver(auth, error as any);
-        expect(resolver.hints).to.have.length(1);
-
-        const assertion = TotpMultiFactorGenerator.assertionForSignIn(
-          resolver.hints[0].uid,
-          incorrectTotpCode
-        );
-
-        await expect(resolver.resolveSignIn(assertion)).to.be.rejectedWith(
-          'auth/invalid-verification-code'
-        );
-      }
-    }
-  });
-
-  it('should allow sign-in with for correct totp and unenroll successfully', async () => {
-    let resolver;
-    if (!emulatorUrl) {
-      try {
-        await signInWithEmailAndPassword(auth, email, 'password');
-
-        throw new Error('Signin should not have been successful');
-      } catch (error) {
-        expect(error).to.be.an.instanceOf(FirebaseError);
-        expect((error as any).code).to.eql('auth/multi-factor-auth-required');
-
-        resolver = getMultiFactorResolver(auth, error as any);
-        expect(resolver.hints).to.have.length(1);
-
-        totpTimestamp.setSeconds(totpTimestamp.getSeconds() + 30);
-
-        const totpVerificationCode = getTotpCode(
-          totpSecret.secretKey,
-          totpSecret.codeIntervalSeconds,
-          totpSecret.codeLength,
-          totpTimestamp
-        );
-
-        const assertion = TotpMultiFactorGenerator.assertionForSignIn(
-          resolver.hints[0].uid,
-          totpVerificationCode
-        );
-        const userCredential = await resolver.resolveSignIn(assertion);
-
-        const mfaUser = multiFactor(userCredential.user);
-
-        await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
-        await expect(signInWithEmailAndPassword(auth, email, 'password')).to.be
-          .fulfilled;
-      }
     }
   });
 });
