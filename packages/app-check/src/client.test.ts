@@ -31,7 +31,10 @@ import { BASE_ENDPOINT } from './constants';
 
 describe('client', () => {
   let app: FirebaseApp;
-  let fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
+  let fetchStub: SinonStub<
+    [RequestInfo | URL, RequestInit?],
+    Promise<Response>
+  >;
   beforeEach(() => {
     app = getFakeApp();
     fetchStub = stub(window, 'fetch').returns(

@@ -93,7 +93,7 @@ describe('platform_browser/popup_redirect', () => {
   });
 
   context('#_openPopup', () => {
-    let popupUrl: string | undefined;
+    let popupUrl: string | URL | undefined;
     let provider: OAuthProvider;
     const event = AuthEventType.LINK_VIA_POPUP;
 

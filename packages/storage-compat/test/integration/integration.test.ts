@@ -70,7 +70,7 @@ describe('FirebaseStorage Compat', () => {
         ref.putString('foo');
         expect.fail();
       } catch (e) {
-        expect(e.message).to.satisfy((v: string) =>
+        expect((e as Error).message).to.satisfy((v: string) =>
           v.match(
             /The operation 'putString' cannot be performed on a root reference/
           )
@@ -93,7 +93,7 @@ describe('FirebaseStorage Compat', () => {
         await ref.getDownloadURL();
         expect.fail();
       } catch (e) {
-        expect(e.message).to.satisfy((v: string) =>
+        expect((e as Error).message).to.satisfy((v: string) =>
           v.match(/Object 'public\/delete' does not exist/)
         );
       }
