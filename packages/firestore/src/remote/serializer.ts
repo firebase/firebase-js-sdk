@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { resumeTokenForSnapshot } from '../../test/util/helpers';
 import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
 import {

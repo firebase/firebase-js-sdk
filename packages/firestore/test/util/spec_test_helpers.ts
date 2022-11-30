@@ -46,7 +46,7 @@ export function encodeWatchChange(
       filter: {
         targetId: watchChange.targetId,
         count: watchChange.existenceFilter.count,
-        unchangedNames:watchChange.existenceFilter.unchangedNames
+        unchangedNames: watchChange.existenceFilter.unchangedNames
       }
     };
   }

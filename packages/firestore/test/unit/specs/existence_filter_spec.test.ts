@@ -23,7 +23,7 @@ import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
 
-describeSpec('Existence Filters:', ['exclusive'], () => {
+describeSpec('Existence Filters:', [], () => {
   specTest('Existence filter match', [], () => {
     const query1 = query('collection');
     const doc1 = doc('collection/1', 1000, { v: 1 });
@@ -35,18 +35,20 @@ describeSpec('Existence Filters:', ['exclusive'], () => {
       .watchSnapshots(2000);
   });
 
-  // TODO:(mila) update the tests when bloom filter is 
-  specTest('Existence filter with bloom filter match', ['exclusive'], () => {
+  // This test is only to make sure watchFilters can accept bloom filter.
+  // TODO:(mila) update the tests when bloom filter logic is implemented.
+  specTest('Existence filter with bloom filter match', [], () => {
     const query1 = query('collection');
     const doc1 = doc('collection/1', 1000, { v: 1 });
     return spec()
       .userListens(query1)
       .watchAcksFull(query1, 1000, doc1)
       .expectEvents(query1, { added: [doc1] })
-      .watchFilters([query1], [doc1.key],{bits:{bitmap:"a",padding:1}, hashCount:1})
-      .watchSnapshots(2000)
-      .watchFilters([query1])
-      .watchSnapshots(3000);
+      .watchFilters([query1], [doc1.key], {
+        bits: { bitmap: 'a', padding: 1 },
+        hashCount: 1
+      })
+      .watchSnapshots(2000);
   });
 
   specTest('Existence filter match after pending update', [], () => {
@@ -126,8 +128,9 @@ describeSpec('Existence Filters:', ['exclusive'], () => {
     );
   });
 
-  // todo
-  specTest('Existence filter mismatch triggers bloom filter', ['exclusive'], () => {
+  // This test is only to make sure watchFilters can accept bloom filter.
+  // TODO:(mila) update the tests when bloom filter logic is implemented.
+  specTest('Existence filter mismatch triggers bloom filter', [], () => {
     const query1 = query('collection');
     const doc1 = doc('collection/1', 1000, { v: 1 });
     const doc2 = doc('collection/2', 1000, { v: 2 });
@@ -136,7 +139,10 @@ describeSpec('Existence Filters:', ['exclusive'], () => {
         .userListens(query1)
         .watchAcksFull(query1, 1000, doc1, doc2)
         .expectEvents(query1, { added: [doc1, doc2] })
-        .watchFilters([query1], [doc1.key],{bits:{bitmap:"a",padding:1},hashCount:3}) // in the next sync doc2 was deleted
+        .watchFilters([query1], [doc1.key], {
+          bits: { bitmap: 'a', padding: 1 },
+          hashCount: 3
+        }) // in the next sync doc2 was deleted
         .watchSnapshots(2000)
         // query is now marked as "inconsistent" because of filter mismatch
         .expectEvents(query1, { fromCache: true })
