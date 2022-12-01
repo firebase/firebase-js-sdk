@@ -254,4 +254,12 @@ export class MemoryTargetCache implements TargetCache {
   ): PersistencePromise<void> {
     debugAssert(false, 'Not implemented');
   }
+
+  updateDiscountedKeys(
+    transaction: PersistenceTransaction,
+    targetId: TargetId,
+    localAggregateMatches: DocumentKey[]
+  ): PersistencePromise<void> {
+    debugAssert(false, 'Not implemented');
+  }
 }

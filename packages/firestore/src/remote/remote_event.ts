@@ -26,6 +26,7 @@ import {
 } from '../model/collections';
 import { ByteString } from '../util/byte_string';
 import { SortedSet } from '../util/sorted_set';
+
 import { WatchAggregateChange } from './watch_change';
 
 /**

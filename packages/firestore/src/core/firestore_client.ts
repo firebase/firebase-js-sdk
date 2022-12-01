@@ -74,7 +74,6 @@ import {
   addSnapshotsInSyncListener,
   EventManager,
   eventManagerListen,
-  eventManagerListenAggregate,
   eventManagerUnlisten,
   ListenOptions,
   Observer,
@@ -89,7 +88,8 @@ import {
   syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite,
-  syncEngineListenAggregate
+  syncEngineListenAggregate,
+  syncEngineUnlistenAggregate
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
 import { TransactionOptions } from './transaction_options';
@@ -322,6 +322,10 @@ export async function getEventManager(
     onlineComponentProvider.syncEngine
   );
   eventManager.onListenAggregate = syncEngineListenAggregate.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  eventManager.onUnlistenAggregate = syncEngineUnlistenAggregate.bind(
     null,
     onlineComponentProvider.syncEngine
   );

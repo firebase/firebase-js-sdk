@@ -22,6 +22,7 @@ import {
 import { debugAssert, debugCast } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
+import { logDebug } from '../util/log';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 
@@ -34,14 +35,14 @@ import {
   queryEquals,
   stringifyQuery
 } from './query';
-import { OnlineState } from './types';
+import { AggregateSnapshotAndDiscountedKeys } from './sync_engine_impl';
+import { OnlineState, TargetId } from './types';
 import {
   AggregateViewSnapshot,
   ChangeType,
   DocumentViewChange,
   ViewSnapshot
 } from './view_snapshot';
-import { AggregateSnapshotAndDiscountedKeys } from './sync_engine_impl';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -76,6 +77,7 @@ export interface EventManager {
   onListenAggregate?: (
     query: AggregateQuery
   ) => Promise<AggregateSnapshotAndDiscountedKeys>;
+  onUnlistenAggregate?: (targetId: TargetId) => Promise<void>;
 }
 
 export function newEventManager(): EventManager {
@@ -110,6 +112,7 @@ export class EventManagerImpl implements EventManager {
   onListenAggregate?: (
     query: AggregateQuery
   ) => Promise<AggregateSnapshotAndDiscountedKeys>;
+  onUnlistenAggregate?: (targetId: TargetId) => Promise<void>;
 }
 
 export async function eventManagerListen(
@@ -161,6 +164,17 @@ export async function eventManagerListen(
   }
 }
 
+export function eventManagerUnlistenAggregate(
+  eventManager: EventManager,
+  targetId: TargetId,
+  query: AggregateQuery
+): void {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+  eventManagerImpl.aggregateQueries.delete(query);
+
+  eventManagerImpl.onUnlistenAggregate!(targetId);
+}
+
 export async function eventManagerListenAggregate(
   eventManager: EventManager,
   query: AggregateQuery,
@@ -174,16 +188,32 @@ export async function eventManagerListenAggregate(
 
   try {
     const countSnap = await eventManagerImpl.onListenAggregate(query);
-    eventManagerImpl.aggregateQueries.set(query, {
+    const view: AggregateView = {
       observer,
       view: {
         snapshot: countSnap,
-        query: query,
+        query,
         fromCache: true,
-        initialDiscountedKeys: countSnap.discountedKeys.toArray()
+        initialDiscountedKeys: countSnap.cachedDiscountedKeys.toArray()
       }
-    });
-    observer.next(countSnap.snapshot);
+    };
+
+    const case5Delta = Math.min(
+      countSnap.discountedKeys.size - view.view.initialDiscountedKeys!.length,
+      0
+    );
+    logDebug(
+      'COUNT',
+      `case5 delta is min(${countSnap.discountedKeys.size} - ${
+        view.view.initialDiscountedKeys!.length
+      }) = ${case5Delta}`
+    );
+    view.view.snapshot.snapshot = new AggregateQuerySnapshot<{
+      count: AggregateField<number>;
+    }>(undefined, { count: case5Delta + countSnap.snapshot.data()['count'] });
+
+    eventManagerImpl.aggregateQueries.set(query, view);
+    observer.next(view.view.snapshot.snapshot);
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
       e as Error,
@@ -231,11 +261,23 @@ export function eventManagerOnWatchAggregateChange(
     const existingView = eventManagerImpl.aggregateQueries.get(snapshot.query);
     const observer = existingView!.observer;
     const newSnap = snapshot.snapshot;
+
+    if (!!snapshot.initialDiscountedKeys) {
+      existingView!.view.initialDiscountedKeys = snapshot.initialDiscountedKeys;
+    }
+
     const case5Delta = Math.min(
       newSnap.discountedKeys.size -
         existingView!.view.initialDiscountedKeys!.length,
       0
     );
+    logDebug(
+      'COUNT',
+      `case5 delta is min(${newSnap.discountedKeys.size} - ${
+        existingView!.view.initialDiscountedKeys!.length
+      }) = ${case5Delta}`
+    );
+
     existingView!.view.snapshot = newSnap;
     existingView!.view.snapshot.snapshot = new AggregateQuerySnapshot<{
       count: AggregateField<number>;

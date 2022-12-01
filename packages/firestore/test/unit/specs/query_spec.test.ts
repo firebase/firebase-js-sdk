@@ -15,16 +15,17 @@
  * limitations under the License.
  */
 
+import { LogLevel, setLogLevel } from '@firebase/logger';
+
 import {
   AggregateQuery,
   newQueryForCollectionGroup,
   newQueryForPath,
   Query,
-  queryWithAddedFilter,
-  queryWithAddedOrderBy
+  queryWithAddedFilter
 } from '../../../src/core/query';
 import { Document } from '../../../src/model/document';
-import { doc, filter, key, path, query, version } from '../../util/helpers';
+import { doc, filter, key, path, query } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec, SpecBuilder } from './spec_builder';
@@ -411,6 +412,7 @@ describeSpec('Count Queries:', ['exclusive', 'durable-persistence'], () => {
     'Raise expected count with remote event and mis-matching local documents',
     [],
     () => {
+      setLogLevel(LogLevel.DEBUG);
       const query = queryWithAddedFilter(
         newQueryForPath(path('coll')),
         filter('val', '>=', 2)
@@ -439,7 +441,7 @@ describeSpec('Count Queries:', ['exclusive', 'durable-persistence'], () => {
         .watchCurrentsCount(12, 'resume-token')
         .watchSnapshots(10_000)
         .expectCountEvents(countFromQuery(query), {
-          count: 79
+          count: 80
         });
     }
   );
@@ -670,6 +672,53 @@ describeSpec('Count Queries:', ['exclusive', 'durable-persistence'], () => {
       .expectCountEvents(countFromQuery(query), {
         count: 10_001,
         fromCache: true
+      });
+  });
+
+  specTest('Case 5 with query goes inactive', [], () => {
+    setLogLevel(LogLevel.DEBUG);
+    const query = queryWithAddedFilter(
+      newQueryForPath(path('coll')),
+      filter('val', '>', 2)
+    );
+    const docs = [
+      doc('coll/1', 450, { val: 1 }, 400),
+      doc('coll/2', 450, { val: 2 }, 400),
+      doc('coll/3', 450, { val: 3 }, 400),
+      doc('coll/4', 550, { val: 4 }, 400),
+      doc('coll/5', 1000, { val: 5 }, 400)
+    ];
+    return specWithCachedDocs(...docs)
+      .setCountValue(/*for query*/ 12, 10_000, 500)
+      .userListensCount(countFromQuery(query))
+      .expectCountEvents(countFromQuery(query), {
+        count: 10_000,
+        fromCache: true
+      })
+      .watchAcksCount(countFromQuery(query), 12)
+      .watchSendsCount(12, 80)
+      .watchCurrentsCount(12, 'resume-token')
+      .watchSnapshots(10_000)
+      .expectCountEvents(countFromQuery(query), {
+        count: 80
+      })
+      .userUnlistensCount(12, countFromQuery(query))
+      .userPatches('coll/3', { val: 0 })
+      .userListensCount(countFromQuery(query))
+      .expectCountEvents(countFromQuery(query), {
+        count: 79,
+        fromCache: true
+      })
+      .watchAcksCount(countFromQuery(query), 12)
+      .watchSendsCount(12, 78)
+      .watchCurrentsCount(12, 'resume-token-1')
+      .watchSnapshots(11_000)
+      .expectCountEvents(countFromQuery(query), {
+        count: 78
+      })
+      .writeAcks('coll/3', 10_000)
+      .expectCountEvents(countFromQuery(query), {
+        count: 78
       });
   });
 });

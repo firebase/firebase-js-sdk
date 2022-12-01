@@ -38,7 +38,8 @@ import {
   QueryListener,
   removeSnapshotsInSyncListener,
   addSnapshotsInSyncListener,
-  eventManagerListenAggregate
+  eventManagerListenAggregate,
+  eventManagerUnlistenAggregate
 } from '../../../src/core/event_manager';
 import {
   AggregateQuery,
@@ -62,7 +63,8 @@ import {
   syncEngineLoadBundle,
   syncEngineUnlisten,
   syncEngineWrite,
-  syncEngineListenAggregate
+  syncEngineListenAggregate,
+  syncEngineUnlistenAggregate
 } from '../../../src/core/sync_engine_impl';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -354,6 +356,10 @@ abstract class TestRunner {
       null,
       this.syncEngine
     );
+    this.eventManager.onUnlistenAggregate = syncEngineUnlistenAggregate.bind(
+      null,
+      this.syncEngine
+    );
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -413,6 +419,8 @@ abstract class TestRunner {
       return this.doSetCount(step.setCount!);
     } else if ('userListenCount' in step) {
       return this.doUserListenCount(step.userListenCount!);
+    } else if ('userUnlistenCount' in step) {
+      return this.doUserUnlistenCount(step.userUnlistenCount!);
     } else if ('userPatch' in step) {
       return this.doPatch(step.userPatch!);
     } else if ('userDelete' in step) {
@@ -550,6 +558,10 @@ abstract class TestRunner {
       this.pushAggregateEvent(e);
     });
     return eventManagerListenAggregate(this.eventManager, spec, aggregator);
+  }
+
+  private async doUserUnlistenCount(spec: SpecUserUnlistenCount) {
+    return eventManagerUnlistenAggregate(this.eventManager, spec[0], spec[1]);
   }
 
   private doSet(setSpec: SpecUserSet): Promise<void> {
@@ -1476,6 +1488,7 @@ export interface SpecStep {
   userUnlisten?: SpecUserUnlisten;
   setCount?: SpecSetCount;
   userListenCount?: SpecUserListenCount;
+  userUnlistenCount?: SpecUserUnlistenCount;
   /** Perform a user initiated set */
   userSet?: SpecUserSet;
   /** Perform a user initiated patch */
@@ -1590,6 +1603,7 @@ export type SpecUserUnlisten = [TargetId, string | SpecQuery];
 
 export type SpecSetCount = [number, number, number];
 export type SpecUserListenCount = AggregateQuery;
+export type SpecUserUnlistenCount = [TargetId, AggregateQuery];
 /** [<key>, <value>] */
 export type SpecUserSet = [string, JsonObject<unknown>];
 

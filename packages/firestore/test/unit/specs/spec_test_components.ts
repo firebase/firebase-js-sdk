@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { AggregateQuerySnapshot } from '../../../src';
 import { Token } from '../../../src/api/credentials';
 import {
   ComponentConfiguration,
@@ -25,7 +26,7 @@ import {
   MultiTabOfflineComponentProvider
 } from '../../../src/core/component_provider';
 import { Observer } from '../../../src/core/event_manager';
-import { AggregateQuery, Query } from '../../../src/core/query';
+import { Query } from '../../../src/core/query';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
   indexedDbStoragePrefix,
@@ -66,7 +67,6 @@ import { WindowLike } from '../../../src/util/types';
 import { FakeDocument } from '../../util/test_platform';
 
 import { PersistenceAction } from './spec_test_runner';
-import { AggregateQuerySnapshot } from '../../../src';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject

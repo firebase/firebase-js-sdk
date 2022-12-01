@@ -23,10 +23,6 @@ import { fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
 import { AggregateQuery, Query, queryEquals } from './query';
-import {
-  AggregateField,
-  AggregateQuerySnapshot
-} from '../lite-api/aggregate_types';
 import { AggregateSnapshotAndDiscountedKeys } from './sync_engine_impl';
 
 export const enum ChangeType {

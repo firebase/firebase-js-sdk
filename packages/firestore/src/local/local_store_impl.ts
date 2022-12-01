@@ -75,6 +75,7 @@ import { BATCHID_UNKNOWN } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
 import { DocumentOverlayCache } from './document_overlay_cache';
+import { decodeResourcePath } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
@@ -338,7 +339,7 @@ export function localStoreWriteCount(
         targetId,
         { aggregateFields: { count: { integerValue: count } } },
         readTime,
-        []
+        undefined
       );
     }
   );
@@ -647,7 +648,7 @@ function matchAggregateQueries(
   docs: DocumentMap
 ): Map<TargetId, DocumentKey[]> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  let result: Map<TargetId, DocumentKey[]> = new Map();
+  const result: Map<TargetId, DocumentKey[]> = new Map();
   docs.forEach((k, d) => {
     localStoreImpl.aggregateQueryByTarget.forEach((targetId, aggregate) => {
       if (queryMatches(aggregate._baseQuery, d)) {
@@ -790,7 +791,9 @@ export function localStoreApplyRemoteEventToLocalCache(
         promises.push(updateRemoteVersion);
       }
 
-      let remoteEventResult: RemoteEventResult = { changedDocs: documentMap() };
+      const remoteEventResult: RemoteEventResult = {
+        changedDocs: documentMap()
+      };
       return PersistencePromise.waitFor(promises)
         .next(() => documentBuffer.apply(txn))
         .next(() => {
@@ -817,6 +820,13 @@ export function localStoreApplyRemoteEventToLocalCache(
           const changedAggregates: Map<TargetId, number> = new Map();
           for (const change of remoteEvent.aggregateChanges) {
             changedAggregates.set(change.targetId, change.count);
+            localStoreImpl.targetCache.saveTargetAggregation(
+              txn,
+              change.targetId,
+              { aggregateFields: { count: { integerValue: change.count } } },
+              remoteEvent.snapshotVersion,
+              undefined
+            );
           }
 
           remoteEventResult.changedAggregates = changedAggregates;
@@ -828,6 +838,26 @@ export function localStoreApplyRemoteEventToLocalCache(
       localStoreImpl.targetDataByTarget = newTargetDataByTargetMap;
       return result;
     });
+}
+
+export function localStoreUpdateDiscountedKeys(
+  localStore: LocalStore,
+  targetId: TargetId,
+  discountedKeys: DocumentKey[]
+): Promise<void> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
+  return localStoreImpl.persistence.runTransaction(
+    'Update Discounted Keys',
+    'readwrite-primary',
+    txn => {
+      return localStoreImpl.targetCache.updateDiscountedKeys(
+        txn,
+        targetId,
+        discountedKeys
+      );
+    }
+  );
 }
 
 /**
@@ -1280,6 +1310,7 @@ export interface AggregateQueryResult {
   aggregateQuery: AggregateQuery;
   documentResult: QueryResult;
   matchesWithoutMutation: DocumentKeySet;
+  discountedKeys?: DocumentKey[];
   cachedCount: number;
   cachedCountReadTime: SnapshotVersion;
 }
@@ -1321,6 +1352,7 @@ export async function localStoreExecuteAggregateQuery(
                 matchesWithoutMutation: documentKeySet(
                   ...context.remoteMatches
                 ),
+                discountedKeys: undefined,
                 cachedCount: 0,
                 cachedCountReadTime: SnapshotVersion.min()
               };
@@ -1331,6 +1363,9 @@ export async function localStoreExecuteAggregateQuery(
               matchesWithoutMutation: documentKeySet(...context.remoteMatches),
               cachedCount: normalizeNumber(
                 aggr.result.aggregateFields!['count'].integerValue
+              ),
+              discountedKeys: aggr.localAggregateMatches?.map(
+                s => new DocumentKey(decodeResourcePath(s))
               ),
               cachedCountReadTime: SnapshotVersion.fromTimestamp(
                 aggr.readTime.toTimestamp()
