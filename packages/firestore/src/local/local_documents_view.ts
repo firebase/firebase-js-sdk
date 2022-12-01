@@ -46,6 +46,7 @@ import { FieldMask } from '../model/field_mask';
 import {
   calculateOverlayMutation,
   mutationApplyToLocalView,
+  MutationType,
   PatchMutation
 } from '../model/mutation';
 import { Overlay } from '../model/overlay';
@@ -91,7 +92,7 @@ export class LocalDocumentsView {
       .getOverlay(transaction, key)
       .next(value => {
         overlay = value;
-        return this.remoteDocumentCache.getEntry(transaction, key);
+        return this.getBaseDocument(transaction, key, overlay);
       })
       .next(document => {
         if (overlay !== null) {
@@ -423,11 +424,11 @@ export class LocalDocumentsView {
               if (originalDocs.get(key)) {
                 return PersistencePromise.resolve();
               }
-              return this.remoteDocumentCache
-                .getEntry(transaction, key)
-                .next(doc => {
+              return this.getBaseDocument(transaction, key, overlay).next(
+                doc => {
                   modifiedDocs = modifiedDocs.insert(key, doc);
-                });
+                }
+              );
             }
           )
             .next(() =>
@@ -548,5 +549,16 @@ export class LocalDocumentsView {
         });
         return results;
       });
+  }
+
+  /** Returns a base document that can be used to apply `overlay`. */
+  private getBaseDocument(
+    transaction: PersistenceTransaction,
+    key: DocumentKey,
+    overlay: Overlay | null
+  ): PersistencePromise<MutableDocument> {
+    return overlay === null || overlay.mutation.type === MutationType.Patch
+      ? this.remoteDocumentCache.getEntry(transaction, key)
+      : PersistencePromise.resolve(MutableDocument.newInvalidDocument(key));
   }
 }

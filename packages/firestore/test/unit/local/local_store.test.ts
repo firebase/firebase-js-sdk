@@ -2016,8 +2016,11 @@ function genericLocalStoreTests(
           compareDocsWithCreateTime,
           doc('col/doc1', 12, { foo: 'newBar' }, 5).setHasLocalMutations()
         )
+        // The createTime here is zero because of an optimization that avoids
+        // reading documents from persistence if a set mutation is going to be
+        // applied to it.
         .toContain(
-          doc('col/doc1', 12, { foo: 'newBar' }, 5).setHasLocalMutations(),
+          doc('col/doc1', 12, { foo: 'newBar' }, 0).setHasLocalMutations(),
           compareDocsWithCreateTime
         )
         .afterAcknowledgingMutation({ documentVersion: 13 })
@@ -2121,8 +2124,11 @@ function genericLocalStoreTests(
           compareDocsWithCreateTime,
           doc('col/doc1', 12, { foo: 'newBar' }, 12).setHasLocalMutations()
         )
+        // The createTime here is zero because of an optimization that avoids
+        // reading documents from persistence if a set mutation is going to be
+        // applied to it.
         .toContain(
-          doc('col/doc1', 12, { foo: 'newBar' }, 12).setHasLocalMutations(),
+          doc('col/doc1', 12, { foo: 'newBar' }, 0).setHasLocalMutations(),
           compareDocsWithCreateTime
         )
         .afterAcknowledgingMutation({ documentVersion: 13 })
@@ -2144,104 +2150,126 @@ function genericLocalStoreTests(
       return;
     }
 
-    return expectLocalStore()
-      .after(setMutation('col/doc1', { foo: 'newBar' }))
-      .afterAcknowledgingMutation({ documentVersion: 13 })
-      .afterExecutingQuery(query('col'))
-      .toReturnChangedWithDocComparator(
-        compareDocsWithCreateTime,
-        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
-      )
-      .toContain(
-        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations(),
-        compareDocsWithCreateTime
-      )
-      .afterMutations([patchMutation('col/doc1', { 'likes': 1 })])
-      .toReturnChangedWithDocComparator(
-        compareDocsWithCreateTime,
-        doc(
-          'col/doc1',
-          13,
-          { foo: 'newBar', likes: 1 },
-          13
-        ).setHasLocalMutations()
-      )
-      .toContain(
-        doc(
-          'col/doc1',
-          13,
-          { foo: 'newBar', likes: 1 },
-          13
-        ).setHasLocalMutations(),
-        compareDocsWithCreateTime
-      )
-      .afterAcknowledgingMutation({ documentVersion: 14 })
-      .toReturnChangedWithDocComparator(
-        compareDocsWithCreateTime,
-        doc(
-          'col/doc1',
-          14,
-          { foo: 'newBar', likes: 1 },
-          13
-        ).setHasCommittedMutations()
-      )
-      .toContain(
-        doc(
-          'col/doc1',
-          14,
-          { foo: 'newBar', likes: 1 },
-          13
-        ).setHasCommittedMutations(),
-        compareDocsWithCreateTime
-      )
-      .finish();
+    return (
+      expectLocalStore()
+        .after(setMutation('col/doc1', { foo: 'newBar' }))
+        .afterAcknowledgingMutation({ documentVersion: 13 })
+        .afterExecutingQuery(query('col'))
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
+        )
+        .toContain(
+          doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations(),
+          compareDocsWithCreateTime
+        )
+        .afterMutations([patchMutation('col/doc1', { 'likes': 1 })])
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc(
+            'col/doc1',
+            13,
+            { foo: 'newBar', likes: 1 },
+            13
+          ).setHasLocalMutations()
+        )
+        // The createTime here is set to zero due to a bug that incorrectly
+        // computes a "set mutation" overlay for a patch (see: b/258821762).
+        // *and* that there is an optimization that avoids reading documents from
+        // persistence if a set mutation is going to be applied to it.
+        .toContain(
+          doc(
+            'col/doc1',
+            13,
+            { foo: 'newBar', likes: 1 },
+            0
+          ).setHasLocalMutations(),
+          compareDocsWithCreateTime
+        )
+        .afterAcknowledgingMutation({ documentVersion: 14 })
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc(
+            'col/doc1',
+            14,
+            { foo: 'newBar', likes: 1 },
+            13
+          ).setHasCommittedMutations()
+        )
+        .toContain(
+          doc(
+            'col/doc1',
+            14,
+            { foo: 'newBar', likes: 1 },
+            13
+          ).setHasCommittedMutations(),
+          compareDocsWithCreateTime
+        )
+        .finish()
+    );
   });
 
   it('document createTime is preserved through Doc Added -> Patch -> Ack', () => {
     if (gcIsEager) {
       return;
     }
-    return expectLocalStore()
-      .afterAllocatingQuery(query('col'))
-      .toReturnTargetId(2)
-      .after(docAddedRemoteEvent(doc('col/doc1', 12, { foo: 'bar' }, 5), [2]))
-      .toReturnChangedWithDocComparator(
-        compareDocsWithCreateTime,
-        doc('col/doc1', 12, { foo: 'bar' }, 5)
-      )
-      .toContain(
-        doc('col/doc1', 12, { foo: 'bar' }, 5),
-        compareDocsWithCreateTime
-      )
-      .afterMutations([patchMutation('col/doc1', { 'likes': 1 })])
-      .toReturnChangedWithDocComparator(
-        compareDocsWithCreateTime,
-        doc('col/doc1', 13, { foo: 'bar', likes: 1 }, 5).setHasLocalMutations()
-      )
-      .toContain(
-        doc('col/doc1', 13, { foo: 'bar', likes: 1 }, 5).setHasLocalMutations(),
-        compareDocsWithCreateTime
-      )
-      .afterAcknowledgingMutation({ documentVersion: 14 })
-      .toReturnChangedWithDocComparator(
-        compareDocsWithCreateTime,
-        doc(
-          'col/doc1',
-          14,
-          { foo: 'bar', likes: 1 },
-          5
-        ).setHasCommittedMutations()
-      )
-      .toContain(
-        doc(
-          'col/doc1',
-          14,
-          { foo: 'bar', likes: 1 },
-          5
-        ).setHasCommittedMutations(),
-        compareDocsWithCreateTime
-      )
-      .finish();
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query('col'))
+        .toReturnTargetId(2)
+        .after(docAddedRemoteEvent(doc('col/doc1', 12, { foo: 'bar' }, 5), [2]))
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc('col/doc1', 12, { foo: 'bar' }, 5)
+        )
+        .toContain(
+          doc('col/doc1', 12, { foo: 'bar' }, 5),
+          compareDocsWithCreateTime
+        )
+        .afterMutations([patchMutation('col/doc1', { 'likes': 1 })])
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc(
+            'col/doc1',
+            13,
+            { foo: 'bar', likes: 1 },
+            5
+          ).setHasLocalMutations()
+        )
+        // The createTime here is set to zero due to a bug that incorrectly
+        // computes a "set mutation" overlay for a patch (see: b/258821762).
+        // *and* that there is an optimization that avoids reading documents from
+        // persistence if a set mutation is going to be applied to it.
+        .toContain(
+          doc(
+            'col/doc1',
+            13,
+            { foo: 'bar', likes: 1 },
+            0
+          ).setHasLocalMutations(),
+          compareDocsWithCreateTime
+        )
+        .afterAcknowledgingMutation({ documentVersion: 14 })
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc(
+            'col/doc1',
+            14,
+            { foo: 'bar', likes: 1 },
+            5
+          ).setHasCommittedMutations()
+        )
+        .toContain(
+          doc(
+            'col/doc1',
+            14,
+            { foo: 'bar', likes: 1 },
+            5
+          ).setHasCommittedMutations(),
+          compareDocsWithCreateTime
+        )
+        .finish()
+    );
   });
 
   it('uses target mapping to execute queries', () => {
