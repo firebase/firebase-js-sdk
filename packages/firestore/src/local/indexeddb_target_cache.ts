@@ -406,8 +406,8 @@ export class IndexedDbTargetCache implements TargetCache {
               result!.readTime.nanoseconds
             )
           ),
-          localAggregateMatches: result!.localAggregateMatches
-        };
+          localAggregateMatches: result?.localAggregateMatches || undefined
+        } as TargetAggregationResult;
       });
   }
 
@@ -416,7 +416,7 @@ export class IndexedDbTargetCache implements TargetCache {
     targetId: TargetId,
     result: ProtoAggregationResult,
     readTime: SnapshotVersion,
-    localAggregateMatches: EncodedResourcePath[]
+    localAggregateMatches?: EncodedResourcePath[]
   ): PersistencePromise<void> {
     return targetAggregationStore(transaction).put({
       targetId,
@@ -427,6 +427,26 @@ export class IndexedDbTargetCache implements TargetCache {
       localAggregateMatches,
       result
     });
+  }
+
+  updateDiscountedKeys(
+    transaction: PersistenceTransaction,
+    targetId: TargetId,
+    localAggregateMatches: DocumentKey[]
+  ): PersistencePromise<void> {
+    return targetAggregationStore(transaction)
+      .get(targetId)
+      .next(result => {
+        hardAssert(result !== null, 'Expect aggregate result to exist');
+        return targetAggregationStore(transaction).put({
+          targetId,
+          readTime: result.readTime,
+          localAggregateMatches: localAggregateMatches.map(key =>
+            encodeResourcePath(key.path)
+          ),
+          result: result.result
+        });
+      });
   }
 
   /**

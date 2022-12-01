@@ -542,5 +542,5 @@ export interface DbTargetAggregation {
   targetId: TargetId;
   result: ProtoAggregationResult;
   readTime: DbTimestamp;
-  localAggregateMatches: EncodedResourcePath[];
+  localAggregateMatches?: EncodedResourcePath[];
 }

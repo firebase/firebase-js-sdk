@@ -41,6 +41,7 @@ import {
   localStoreReleaseTarget,
   localStoreRemoveCachedMutationBatchMetadata,
   localStoreSaveBundle,
+  localStoreUpdateDiscountedKeys,
   localStoreWriteLocally,
   RemoteEventResult
 } from '../local/local_store_impl';
@@ -104,9 +105,7 @@ import {
   queryEquals,
   queryCollectionGroup,
   queryToTarget,
-  stringifyQuery,
-  canonifyAggregateQuery,
-  aggregateQueryEquals
+  stringifyQuery
 } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { SyncEngine } from './sync_engine';
@@ -127,7 +126,6 @@ import {
   ViewChange
 } from './view';
 import { AggregateViewSnapshot, ViewSnapshot } from './view_snapshot';
-import { AggregateQuery } from '../lite-api/reference';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -461,6 +459,17 @@ export async function syncEngineUnlisten(
   }
 }
 
+export async function syncEngineUnlistenAggregate(
+  syncEngine: SyncEngine,
+  targetId: TargetId
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+
+  await localStoreReleaseTarget(syncEngineImpl.localStore, targetId, true);
+
+  syncEngineImpl.aggregateResultByQuery.delete(targetId);
+}
+
 export async function syncEngineListenAggregate(
   syncEngine: SyncEngine,
   query: InternalAggregateQuery
@@ -478,6 +487,8 @@ export async function syncEngineListenAggregate(
     query
   );
 
+  logDebug('COUNT', `Got aggregate result ${result.discountedKeys}`);
+
   syncEngineImpl.aggregateResultByQuery.set(targetData.targetId, result);
 
   return calculateAggregateSnapshot(result);
@@ -486,6 +497,7 @@ export async function syncEngineListenAggregate(
 export interface AggregateSnapshotAndDiscountedKeys {
   snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>;
   discountedKeys: DocumentKeySet;
+  cachedDiscountedKeys: DocumentKeySet;
 }
 
 function calculateAggregateSnapshot(
@@ -511,12 +523,21 @@ function calculateAggregateSnapshot(
     }
   });
 
+  logDebug(
+    'COUNT',
+    `plusZeros is ${plusZeros.size}, result.discountedKeys is ${result.discountedKeys?.length}`
+  );
+  let cachedDiscountedKeys = plusZeros;
+  if (!!result.discountedKeys) {
+    cachedDiscountedKeys = documentKeySet(...result.discountedKeys);
+  }
   return {
     snapshot: new AggregateQuerySnapshot<{ count: AggregateField<number> }>(
       undefined,
       { count: result.cachedCount + delta }
     ),
-    discountedKeys: plusZeros
+    discountedKeys: plusZeros,
+    cachedDiscountedKeys
   };
 }
 
@@ -1085,10 +1106,12 @@ function updateAggregateQueryResult(
   targetId: TargetId,
   changes: RemoteEventResult,
   globalSnapshot?: SnapshotVersion
-) {
+): boolean {
+  let aggregateUpdated = false;
   if (changes.changedAggregates && changes.changedAggregates.get(targetId)) {
     existingResult.cachedCount = changes.changedAggregates.get(targetId)!;
     existingResult.cachedCountReadTime = globalSnapshot!;
+    aggregateUpdated = true;
   }
 
   let remoteMatchesSet: DocumentKeySet | undefined = undefined;
@@ -1133,6 +1156,8 @@ function updateAggregateQueryResult(
         existingResult.documentResult.documents.insert(k, doc);
     }
   });
+
+  return aggregateUpdated;
 }
 
 export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
@@ -1155,22 +1180,46 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
 
   const aggregateViews: AggregateViewSnapshot[] = [];
   syncEngineImpl.aggregateResultByQuery.forEach((result, targetId) => {
-    updateAggregateQueryResult(
+    const aggregateUpdated = updateAggregateQueryResult(
       result,
       targetId,
       changes,
       remoteEvent?.snapshotVersion
     );
 
+    const snapAndDiscountedKeys = calculateAggregateSnapshot(result);
+    let initialDiscountedKeys = result.discountedKeys;
+
+    if (aggregateUpdated) {
+      initialDiscountedKeys = snapAndDiscountedKeys.discountedKeys.toArray();
+      if (!!initialDiscountedKeys) {
+        initialDiscountedKeys = [...initialDiscountedKeys];
+      }
+
+      // Save discountedKeys if this is a remote event update.
+      // TODO(COUNT): Consider batching this.
+      localStoreUpdateDiscountedKeys(
+        syncEngineImpl.localStore,
+        targetId,
+        initialDiscountedKeys
+      );
+
+      result.discountedKeys = initialDiscountedKeys;
+    }
+
+    logDebug(
+      'DISCOUNT',
+      `Set aggregateview.initialDiscountedKeys to ${initialDiscountedKeys}`
+    );
     aggregateViews.push({
-      snapshot: calculateAggregateSnapshot(result),
+      snapshot: snapAndDiscountedKeys,
       // TODO(COUNT): This needs to sync up with the logic for document queries.
       fromCache: false,
       query: result.aggregateQuery,
-      initialDiscountedKeys: undefined
+      initialDiscountedKeys
     });
   });
-  // TODO(COUNT): Save the discounted keys!
+
   syncEngineImpl.syncEngineListener.onWatchAggregateChange!(aggregateViews);
 
   syncEngineImpl.queryViewsByQuery.forEach((_, queryView) => {

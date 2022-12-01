@@ -354,6 +354,14 @@ export class SpecBuilder {
     return this;
   }
 
+  userUnlistensCount(targetId: TargetId, query: AggregateQuery): this {
+    this.nextStep();
+    this.currentStep = {
+      userUnlistenCount: [targetId, query]
+    };
+    return this;
+  }
+
   userSets(key: string, value: JsonObject<unknown>): this {
     this.nextStep();
     this.currentStep = {

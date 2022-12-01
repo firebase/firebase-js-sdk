@@ -30,7 +30,7 @@ import { TargetData } from './target_data';
 export interface TargetAggregationResult {
   result: ProtoAggregationResult;
   readTime: SnapshotVersion;
-  localAggregateMatches: EncodedResourcePath[];
+  localAggregateMatches?: EncodedResourcePath[];
 }
 /**
  * Represents cached targets received from the remote backend.
@@ -207,6 +207,11 @@ export interface TargetCache {
     targetId: TargetId,
     result: ProtoAggregationResult,
     readTime: SnapshotVersion,
-    localAggregateMatches: EncodedResourcePath[]
+    localAggregateMatches?: EncodedResourcePath[]
+  ): PersistencePromise<void>;
+  updateDiscountedKeys(
+    transaction: PersistenceTransaction,
+    targetId: TargetId,
+    localAggregateMatches: DocumentKey[]
   ): PersistencePromise<void>;
 }
