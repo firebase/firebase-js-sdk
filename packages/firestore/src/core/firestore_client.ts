@@ -28,7 +28,7 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { Query as LiteQuery } from '../lite-api/reference';
+import { AggregateQuery, Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -87,7 +87,9 @@ import {
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
-  syncEngineWrite
+  syncEngineWrite,
+  syncEngineListenAggregate,
+  syncEngineUnlistenAggregate
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
 import { TransactionOptions } from './transaction_options';
@@ -319,6 +321,14 @@ export async function getEventManager(
     null,
     onlineComponentProvider.syncEngine
   );
+  eventManager.onListenAggregate = syncEngineListenAggregate.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  eventManager.onUnlistenAggregate = syncEngineUnlistenAggregate.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
   return eventManager;
 }
 
@@ -380,6 +390,24 @@ export function firestoreClientListen(
       const eventManager = await getEventManager(client);
       return eventManagerUnlisten(eventManager, listener);
     });
+  };
+}
+
+export function firestoreClientListenAggregate(
+  client: FirestoreClient,
+  query: AggregateQuery,
+  observer: Partial<
+    Observer<AggregateQuerySnapshot<{ count: AggregateField<number> }>>
+  >
+): () => void {
+  const wrappedObserver = new AsyncObserver(observer);
+
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
+    // return eventManagerListenAggregate(eventManager, query, wrappedObserver);
+  });
+  return () => {
+    debugAssert(false, 'Unlisten not implemented');
   };
 }
 

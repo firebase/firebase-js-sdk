@@ -26,6 +26,7 @@ import {
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  WatchAggregateChange,
   WatchChange,
   WatchTargetChange,
   WatchTargetChangeState
@@ -57,7 +58,8 @@ export function encodeWatchChange(
           document: {
             name: toName(serializer, doc.key),
             fields: doc?.data.value.mapValue.fields,
-            updateTime: toVersion(serializer, doc.version)
+            updateTime: toVersion(serializer, doc.version),
+            createTime: toVersion(serializer, doc.createTime || doc.version)
           },
           targetIds: watchChange.updatedTargetIds,
           removedTargetIds: watchChange.removedTargetIds
@@ -99,6 +101,17 @@ export function encodeWatchChange(
     };
   }
   return fail('Unrecognized watch change: ' + JSON.stringify(watchChange));
+}
+
+export function encodeWatchAggregateChange(
+  change: WatchAggregateChange
+): api.ListenResponse {
+  return {
+    aggregationChange: {
+      targetId: change.targetId,
+      result: { aggregateFields: { count: { integerValue: change.count } } }
+    }
+  };
 }
 
 function encodeTargetChangeTargetChangeType(

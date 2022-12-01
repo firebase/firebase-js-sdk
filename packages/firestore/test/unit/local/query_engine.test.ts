@@ -35,7 +35,7 @@ import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
-import { QueryEngine } from '../../../src/local/query_engine';
+import { AggregateContext, QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
 import {
@@ -94,7 +94,8 @@ class TestLocalDocumentsView extends LocalDocumentsView {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     const skipsDocumentsBeforeSnapshot =
       indexOffsetComparator(IndexOffset.min(), offset) !== 0;
@@ -104,7 +105,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
       'Observed query execution mode did not match expectation'
     );
 
-    return super.getDocumentsMatchingQuery(transaction, query, offset);
+    return super.getDocumentsMatchingQuery(transaction, query, offset, context);
   }
 }
 
@@ -241,7 +242,8 @@ function genericQueryEngineTest(
               txn,
               query,
               lastLimboFreeSnapshot,
-              remoteKeys
+              remoteKeys,
+              undefined
             )
             .next(docs => {
               const view = new View(query, remoteKeys);

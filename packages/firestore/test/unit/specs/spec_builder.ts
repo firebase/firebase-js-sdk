@@ -19,6 +19,7 @@ import { IndexConfiguration } from '../../../src/api/index_configuration';
 import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import { FieldFilter, Filter } from '../../../src/core/filter';
 import {
+  AggregateQuery,
   LimitType,
   newQueryForPath,
   Query,
@@ -327,6 +328,31 @@ export class SpecBuilder {
     this.currentStep = {
       userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
       expectedState: { activeTargets: { ...this.activeTargets } }
+    };
+    return this;
+  }
+
+  setCountValue(targetId: number, count: number, ver: number): this {
+    this.nextStep();
+    this.currentStep = {
+      setCount: [targetId, count, ver]
+    };
+    return this;
+  }
+
+  userListensCount(countQuery: AggregateQuery): this {
+    this.nextStep();
+    this.queryIdGenerator.next(queryToTarget(countQuery._baseQuery));
+    this.currentStep = {
+      userListenCount: countQuery
+    };
+    return this;
+  }
+
+  userUnlistensCount(targetId: TargetId, query: AggregateQuery): this {
+    this.nextStep();
+    this.currentStep = {
+      userUnlistenCount: [targetId, query]
     };
     return this;
   }
@@ -702,6 +728,14 @@ export class SpecBuilder {
     return this;
   }
 
+  watchAcksCount(query: AggregateQuery, targetId: number): this {
+    this.nextStep();
+    this.currentStep = {
+      watchAckCount: [query, targetId]
+    };
+    return this;
+  }
+
   // Technically any target change can contain a resume token, but a CURRENT
   // target change is where it makes the most sense in our tests currently.
   // Eventually we want to make the model more generic so we can add resume
@@ -711,6 +745,14 @@ export class SpecBuilder {
     this.nextStep();
     this.currentStep = {
       watchCurrent: [[this.getTargetId(query)], resumeToken]
+    };
+    return this;
+  }
+
+  watchCurrentsCount(targetId: TargetId, resumeToken: string): this {
+    this.nextStep();
+    this.currentStep = {
+      watchCurrent: [[targetId], resumeToken]
     };
     return this;
   }
@@ -726,6 +768,14 @@ export class SpecBuilder {
         activeTargets: { ...this.activeTargets }
       };
     }
+    return this;
+  }
+
+  watchSendsCount(targetId: TargetId, count: number) {
+    this.nextStep();
+    this.currentStep = {
+      watchEntity: { targets: [targetId], count }
+    };
     return this;
   }
 
@@ -909,6 +959,24 @@ export class SpecBuilder {
     return this;
   }
 
+  expectCountEvents(
+    query: AggregateQuery,
+    events: {
+      fromCache?: boolean;
+      count?: number;
+    }
+  ): this {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    if (!currentStep.expectedCountSnapshotEvents) {
+      currentStep.expectedCountSnapshotEvents = [];
+    }
+    currentStep.expectedCountSnapshotEvents.push({
+      count: events.count
+    });
+    return this;
+  }
+
   /** Registers a query that is active in another tab. */
   expectListen(
     query: Query,
@@ -1059,6 +1127,7 @@ export class SpecBuilder {
         value: userDataWriter.convertValue(
           doc.data.value
         ) as JsonObject<unknown>,
+        createTime: doc.createTime.toMicroseconds(),
         options: {
           hasLocalMutations: doc.hasLocalMutations,
           hasCommittedMutations: doc.hasCommittedMutations

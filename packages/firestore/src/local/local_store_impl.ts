@@ -21,7 +21,9 @@ import {
   newQueryForPath,
   Query,
   queryCollectionGroup,
-  queryToTarget
+  queryToTarget,
+  AggregateQuery,
+  queryMatches
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
@@ -31,6 +33,7 @@ import {
   convertOverlayedDocumentMapToDocumentMap,
   documentKeySet,
   DocumentKeySet,
+  documentMap,
   DocumentMap,
   mutableDocumentMap,
   MutableDocumentMap,
@@ -51,6 +54,7 @@ import {
   Precondition
 } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
+import { normalizeNumber } from '../model/normalize';
 import { extractFieldMask } from '../model/object_value';
 import { ResourcePath } from '../model/path';
 import {
@@ -66,10 +70,12 @@ import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
 import { DocumentOverlayCache } from './document_overlay_cache';
+import { decodeResourcePath } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
@@ -83,7 +89,7 @@ import { MutationQueue } from './mutation_queue';
 import { Persistence } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { QueryEngine } from './query_engine';
+import { AggregateContext, QueryEngine } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
@@ -106,6 +112,8 @@ const RESUME_TOKEN_MAX_AGE_MICROS = 5 * 60 * 1e6;
 export interface LocalWriteResult {
   batchId: BatchId;
   changes: DocumentMap;
+  remoteAggregateMatches: Map<TargetId, DocumentKey[]> | undefined;
+  localAggregateMatches: Map<TargetId, DocumentKey[]> | undefined;
 }
 
 /** The result of a user-change operation in the local store. */
@@ -167,6 +175,9 @@ class LocalStoreImpl implements LocalStore {
    * of `applyRemoteEvent()` idempotent.
    */
   targetDataByTarget = new SortedMap<TargetId, TargetData>(primitiveComparator);
+  aggregateQueryByTarget = new SortedMap<TargetId, AggregateQuery>(
+    primitiveComparator
+  );
 
   /** Maps a target to its targetID. */
   // TODO(wuandy): Evaluate if TargetId can be part of Target.
@@ -311,6 +322,29 @@ export async function localStoreHandleUserChange(
   return result;
 }
 
+export function localStoreWriteCount(
+  localStore: LocalStore,
+  targetId: number,
+  count: number,
+  readTime: SnapshotVersion
+): Promise<void> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
+  return localStoreImpl.persistence.runTransaction(
+    'Write count',
+    'readwrite',
+    txn => {
+      return localStoreImpl.targetCache.saveTargetAggregation(
+        txn,
+        targetId,
+        { aggregateFields: { count: { integerValue: count } } },
+        readTime,
+        undefined
+      );
+    }
+  );
+}
+
 /* Accepts locally generated Mutations and commit them to storage. */
 export function localStoreWriteLocally(
   localStore: LocalStore,
@@ -323,6 +357,8 @@ export function localStoreWriteLocally(
   let overlayedDocuments: OverlayedDocumentMap;
   let mutationBatch: MutationBatch;
 
+  let remoteAggregateMatches: Map<TargetId, DocumentKey[]> = new Map();
+  let localAggregateMatches: Map<TargetId, DocumentKey[]> = new Map();
   return localStoreImpl.persistence
     .runTransaction('Locally write mutations', 'readwrite', txn => {
       // Figure out which keys do not have a remote version in the cache, this
@@ -333,8 +369,9 @@ export function localStoreWriteLocally(
       //  to 0.
       let remoteDocs = mutableDocumentMap();
       let docsWithoutRemoteVersion = documentKeySet();
+
       return localStoreImpl.remoteDocuments
-        .getEntries(txn, keys)
+        .getEntries(txn, keys, undefined)
         .next(docs => {
           remoteDocs = docs;
           remoteDocs.forEach((key, doc) => {
@@ -342,6 +379,10 @@ export function localStoreWriteLocally(
               docsWithoutRemoteVersion = docsWithoutRemoteVersion.add(key);
             }
           });
+          remoteAggregateMatches = matchAggregateQueries(
+            localStoreImpl,
+            remoteDocs
+          );
         })
         .next(() => {
           // Load and apply all existing mutations. This lets us compute the
@@ -402,10 +443,21 @@ export function localStoreWriteLocally(
           );
         });
     })
-    .then(() => ({
-      batchId: mutationBatch.batchId,
-      changes: convertOverlayedDocumentMapToDocumentMap(overlayedDocuments)
-    }));
+    .then(() => {
+      // TODO(COUNT): Run local docs against active aggregates
+      const changedDocs =
+        convertOverlayedDocumentMapToDocumentMap(overlayedDocuments);
+      localAggregateMatches = matchAggregateQueries(
+        localStoreImpl,
+        changedDocs
+      );
+      return {
+        batchId: mutationBatch.batchId,
+        changes: changedDocs,
+        remoteAggregateMatches,
+        localAggregateMatches
+      };
+    });
 }
 
 /**
@@ -425,7 +477,7 @@ export function localStoreWriteLocally(
 export function localStoreAcknowledgeBatch(
   localStore: LocalStore,
   batchResult: MutationBatchResult
-): Promise<DocumentMap> {
+): Promise<MutationAckResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
     'Acknowledge batch',
@@ -456,7 +508,31 @@ export function localStoreAcknowledgeBatch(
             getKeysWithTransformResults(batchResult)
           )
         )
-        .next(() => localStoreImpl.localDocuments.getDocuments(txn, affected));
+        .next(() => {
+          let remoteAggregateMatches: Map<TargetId, DocumentKey[]> | undefined =
+            undefined;
+          localStoreImpl.remoteDocuments
+            .getEntries(txn, affected, undefined)
+            .next(newRemotes => {
+              remoteAggregateMatches = matchAggregateQueries(
+                localStoreImpl,
+                newRemotes
+              );
+            });
+          return localStoreImpl.localDocuments
+            .getDocuments(txn, affected)
+            .next(changedDocs => {
+              const localAggregateMatches = matchAggregateQueries(
+                localStoreImpl,
+                changedDocs
+              );
+              return {
+                localAggregateMatches,
+                remoteAggregateMatches,
+                changedDocs
+              };
+            });
+        });
     }
   );
 }
@@ -551,6 +627,42 @@ export function localStoreGetLastRemoteSnapshotVersion(
   );
 }
 
+export interface MutationAckResult {
+  changedDocs: DocumentMap;
+  remoteMatches?: Map<TargetId, DocumentKey[]>;
+  localAggregateMatches?: Map<TargetId, DocumentKey[]>;
+}
+
+export interface RemoteEventResult {
+  changedDocs: DocumentMap;
+  remoteMatches?: Map<TargetId, DocumentKey[]>;
+  localAggregateMatches?: Map<TargetId, DocumentKey[]>;
+  // TODO(COUNT): Should be an aggregate field instead of a number
+  changedAggregates?: Map<TargetId, number>;
+}
+
+// TODO(COUNT): this should eventually get pused down into local documents view,
+// as part of AggregateContext handling.
+function matchAggregateQueries(
+  localStore: LocalStore,
+  docs: DocumentMap
+): Map<TargetId, DocumentKey[]> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const result: Map<TargetId, DocumentKey[]> = new Map();
+  docs.forEach((k, d) => {
+    localStoreImpl.aggregateQueryByTarget.forEach((targetId, aggregate) => {
+      if (queryMatches(aggregate._baseQuery, d)) {
+        if (result.has(targetId)) {
+          result.get(targetId)?.push(k);
+        } else {
+          result.set(targetId, [k]);
+        }
+      }
+    });
+  });
+  return result;
+}
+
 /**
  * Updates the "ground-state" (remote) documents. We assume that the remote
  * event reflects any write batches that have been acknowledged or rejected
@@ -562,7 +674,7 @@ export function localStoreGetLastRemoteSnapshotVersion(
 export function localStoreApplyRemoteEventToLocalCache(
   localStore: LocalStore,
   remoteEvent: RemoteEvent
-): Promise<DocumentMap> {
+): Promise<RemoteEventResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const remoteVersion = remoteEvent.snapshotVersion;
   let newTargetDataByTargetMap = localStoreImpl.targetDataByTarget;
@@ -679,21 +791,73 @@ export function localStoreApplyRemoteEventToLocalCache(
         promises.push(updateRemoteVersion);
       }
 
+      const remoteEventResult: RemoteEventResult = {
+        changedDocs: documentMap()
+      };
       return PersistencePromise.waitFor(promises)
         .next(() => documentBuffer.apply(txn))
-        .next(() =>
-          localStoreImpl.localDocuments.getLocalViewOfDocuments(
+        .next(() => {
+          remoteEventResult.remoteMatches = matchAggregateQueries(
+            localStore,
+            changedDocs
+          );
+        })
+        .next(() => {
+          return localStoreImpl.localDocuments.getLocalViewOfDocuments(
             txn,
             changedDocs,
             existenceChangedKeys
-          )
-        )
-        .next(() => changedDocs);
+          );
+        })
+        .next(localViewOfChangedDocs => {
+          remoteEventResult.changedDocs = localViewOfChangedDocs;
+
+          remoteEventResult.localAggregateMatches = matchAggregateQueries(
+            localStore,
+            localViewOfChangedDocs
+          );
+
+          const changedAggregates: Map<TargetId, number> = new Map();
+          for (const change of remoteEvent.aggregateChanges) {
+            changedAggregates.set(change.targetId, change.count);
+            localStoreImpl.targetCache.saveTargetAggregation(
+              txn,
+              change.targetId,
+              { aggregateFields: { count: { integerValue: change.count } } },
+              remoteEvent.snapshotVersion,
+              undefined
+            );
+          }
+
+          remoteEventResult.changedAggregates = changedAggregates;
+          return remoteEventResult;
+        });
     })
-    .then(changedDocs => {
+    .then(result => {
+      // TODO(COUNT): Track aggregate targetdata changes as well.
       localStoreImpl.targetDataByTarget = newTargetDataByTargetMap;
-      return changedDocs;
+      return result;
     });
+}
+
+export function localStoreUpdateDiscountedKeys(
+  localStore: LocalStore,
+  targetId: TargetId,
+  discountedKeys: DocumentKey[]
+): Promise<void> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
+  return localStoreImpl.persistence.runTransaction(
+    'Update Discounted Keys',
+    'readwrite-primary',
+    txn => {
+      return localStoreImpl.targetCache.updateDiscountedKeys(
+        txn,
+        targetId,
+        discountedKeys
+      );
+    }
+  );
 }
 
 /**
@@ -931,7 +1095,8 @@ export function localStoreReadDocument(
  */
 export function localStoreAllocateTarget(
   localStore: LocalStore,
-  target: Target
+  target: Target,
+  aggregateQuery: AggregateQuery | undefined = undefined
 ): Promise<TargetData> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence
@@ -979,6 +1144,13 @@ export function localStoreAllocateTarget(
             targetData.targetId,
             targetData
           );
+        if (aggregateQuery) {
+          localStoreImpl.aggregateQueryByTarget =
+            localStoreImpl.aggregateQueryByTarget.insert(
+              targetData.targetId,
+              aggregateQuery
+            );
+        }
         localStoreImpl.targetIdByTarget.set(target, targetData.targetId);
       }
       return targetData;
@@ -1062,6 +1234,43 @@ export async function localStoreReleaseTarget(
   localStoreImpl.targetIdByTarget.delete(targetData!.target);
 }
 
+function executeQueryImpl(
+  localStoreImpl: LocalStoreImpl,
+  txn: PersistenceTransaction,
+  query: Query,
+  lastLimboFreeSnapshotVersion: SnapshotVersion,
+  remoteKeys: SortedSet<DocumentKey>,
+  usePreviousResults: boolean,
+  context: AggregateContext | undefined
+): PersistencePromise<QueryResult> {
+  return localStoreGetTargetData(localStoreImpl, txn, queryToTarget(query))
+    .next(targetData => {
+      if (targetData) {
+        lastLimboFreeSnapshotVersion = targetData.lastLimboFreeSnapshotVersion;
+        return localStoreImpl.targetCache
+          .getMatchingKeysForTargetId(txn, targetData.targetId)
+          .next(result => {
+            remoteKeys = result;
+          });
+      }
+    })
+    .next(() =>
+      localStoreImpl.queryEngine.getDocumentsMatchingQuery(
+        txn,
+        query,
+        usePreviousResults
+          ? lastLimboFreeSnapshotVersion
+          : SnapshotVersion.min(),
+        usePreviousResults ? remoteKeys : documentKeySet(),
+        context
+      )
+    )
+    .next(documents => {
+      setMaxReadTime(localStoreImpl, queryCollectionGroup(query), documents);
+      return { documents, remoteKeys };
+    });
+}
+
 /**
  * Runs the specified query against the local store and returns the results,
  * potentially taking advantage of query data from previous executions (such
@@ -1073,46 +1282,97 @@ export async function localStoreReleaseTarget(
 export function localStoreExecuteQuery(
   localStore: LocalStore,
   query: Query,
-  usePreviousResults: boolean
+  usePreviousResults: boolean,
+  context: AggregateContext | undefined = undefined
 ): Promise<QueryResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  let lastLimboFreeSnapshotVersion = SnapshotVersion.min();
-  let remoteKeys = documentKeySet();
+  const lastLimboFreeSnapshotVersion = SnapshotVersion.min();
+  const remoteKeys = documentKeySet();
 
   return localStoreImpl.persistence.runTransaction(
     'Execute query',
     'readonly',
     txn => {
-      return localStoreGetTargetData(localStoreImpl, txn, queryToTarget(query))
-        .next(targetData => {
-          if (targetData) {
-            lastLimboFreeSnapshotVersion =
-              targetData.lastLimboFreeSnapshotVersion;
-            return localStoreImpl.targetCache
-              .getMatchingKeysForTargetId(txn, targetData.targetId)
-              .next(result => {
-                remoteKeys = result;
-              });
-          }
-        })
-        .next(() =>
-          localStoreImpl.queryEngine.getDocumentsMatchingQuery(
-            txn,
-            query,
-            usePreviousResults
-              ? lastLimboFreeSnapshotVersion
-              : SnapshotVersion.min(),
-            usePreviousResults ? remoteKeys : documentKeySet()
-          )
-        )
-        .next(documents => {
-          setMaxReadTime(
-            localStoreImpl,
-            queryCollectionGroup(query),
-            documents
-          );
-          return { documents, remoteKeys };
-        });
+      return executeQueryImpl(
+        localStoreImpl,
+        txn,
+        query,
+        lastLimboFreeSnapshotVersion,
+        remoteKeys,
+        usePreviousResults,
+        context
+      );
+    }
+  );
+}
+
+export interface AggregateQueryResult {
+  aggregateQuery: AggregateQuery;
+  documentResult: QueryResult;
+  matchesWithoutMutation: DocumentKeySet;
+  discountedKeys?: DocumentKey[];
+  cachedCount: number;
+  cachedCountReadTime: SnapshotVersion;
+}
+
+export async function localStoreExecuteAggregateQuery(
+  localStore: LocalStore,
+  targetId: TargetId,
+  query: AggregateQuery
+): Promise<AggregateQueryResult> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const lastLimboFreeSnapshotVersion = SnapshotVersion.min();
+  const remoteKeys = documentKeySet();
+
+  return localStoreImpl.persistence.runTransaction(
+    'Execute aggregate query',
+    'readonly',
+    txn => {
+      const context: AggregateContext = {
+        query: query._baseQuery,
+        processingMask: query.getProcessingMask(),
+        remoteMatches: []
+      };
+      return executeQueryImpl(
+        localStoreImpl,
+        txn,
+        query._baseQuery,
+        lastLimboFreeSnapshotVersion,
+        remoteKeys,
+        false,
+        context
+      ).next(result => {
+        return localStoreImpl.targetCache
+          .getTargetAggregation(txn, targetId)
+          .next(aggr => {
+            if (!aggr) {
+              return {
+                aggregateQuery: query,
+                documentResult: result,
+                matchesWithoutMutation: documentKeySet(
+                  ...context.remoteMatches
+                ),
+                discountedKeys: undefined,
+                cachedCount: 0,
+                cachedCountReadTime: SnapshotVersion.min()
+              };
+            }
+            return {
+              aggregateQuery: query,
+              documentResult: result,
+              matchesWithoutMutation: documentKeySet(...context.remoteMatches),
+              cachedCount: normalizeNumber(
+                aggr.result.aggregateFields!['count'].integerValue
+              ),
+              discountedKeys: aggr.localAggregateMatches?.map(
+                s => new DocumentKey(decodeResourcePath(s))
+              ),
+              cachedCountReadTime: SnapshotVersion.fromTimestamp(
+                aggr.readTime.toTimestamp()
+              )
+            };
+          });
+      });
     }
   );
 }

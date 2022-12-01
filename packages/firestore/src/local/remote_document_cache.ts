@@ -19,11 +19,13 @@ import { DocumentKeySet, MutableDocumentMap } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { IndexOffset } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
 import { ResourcePath } from '../model/path';
 
 import { IndexManager } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { AggregateContext } from './query_engine';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
 /**
@@ -58,7 +60,8 @@ export interface RemoteDocumentCache {
    */
   getEntries(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: DocumentKeySet,
+    projectionMask: FieldMask | undefined
   ): PersistencePromise<MutableDocumentMap>;
 
   /**
@@ -71,7 +74,8 @@ export interface RemoteDocumentCache {
   getAllFromCollection(
     transaction: PersistenceTransaction,
     collection: ResourcePath,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context: AggregateContext | undefined
   ): PersistencePromise<MutableDocumentMap>;
 
   /**

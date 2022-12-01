@@ -50,6 +50,7 @@ import { isPermanentWriteError } from './rpc_error';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  WatchAggregateChange,
   WatchChange,
   WatchChangeAggregator,
   WatchTargetChange,
@@ -460,6 +461,8 @@ async function onWatchStreamChange(
     remoteStoreImpl.watchChangeAggregator!.handleDocumentChange(watchChange);
   } else if (watchChange instanceof ExistenceFilterChange) {
     remoteStoreImpl.watchChangeAggregator!.handleExistenceFilter(watchChange);
+  } else if (watchChange instanceof WatchAggregateChange) {
+    remoteStoreImpl.watchChangeAggregator!.handleAggregateChange(watchChange);
   } else {
     debugAssert(
       watchChange instanceof WatchTargetChange,

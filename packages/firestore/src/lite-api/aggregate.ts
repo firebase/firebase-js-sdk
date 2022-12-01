@@ -70,6 +70,7 @@ export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(
   right: AggregateQuerySnapshot<T>
 ): boolean {
   return (
-    queryEqual(left.query, right.query) && deepEqual(left.data(), right.data())
+    queryEqual(left.query!, right.query!) &&
+    deepEqual(left.data(), right.data())
   );
 }

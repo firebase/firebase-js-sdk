@@ -51,7 +51,9 @@ import {
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
-  newLocalStore
+  newLocalStore,
+  RemoteEventResult,
+  MutationAckResult
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -189,8 +191,8 @@ class LocalStoreTester {
       .then(() =>
         localStoreApplyRemoteEventToLocalCache(this.localStore, remoteEvent)
       )
-      .then((result: DocumentMap) => {
-        this.lastChanges = result;
+      .then((result: RemoteEventResult) => {
+        this.lastChanges = result.changedDocs;
       });
     return this;
   }
@@ -257,8 +259,8 @@ class LocalStoreTester {
 
         return localStoreAcknowledgeBatch(this.localStore, write);
       })
-      .then((changes: DocumentMap) => {
-        this.lastChanges = changes;
+      .then((result: MutationAckResult) => {
+        this.lastChanges = result.changedDocs;
       });
     return this;
   }
@@ -616,10 +618,10 @@ function genericLocalStoreTests(
       .toContain(doc('foo/bar', 0, { foo: 'bar' }).setHasLocalMutations())
       .afterAcknowledgingMutation({ documentVersion: 1 })
       .toReturnChanged(
-        doc('foo/bar', 1, { foo: 'bar' }).setHasCommittedMutations()
+        doc('foo/bar', 1, { foo: 'bar' }, 1).setHasCommittedMutations()
       )
       .toNotContainIfEager(
-        doc('foo/bar', 1, { foo: 'bar' }).setHasCommittedMutations()
+        doc('foo/bar', 1, { foo: 'bar' }, 1).setHasCommittedMutations()
       )
       .finish();
   });
@@ -1954,6 +1956,85 @@ function genericLocalStoreTests(
       )
       .toContain(
         doc('foo/bar', 1, { 'likes': 1, 'stars': 2 }).setHasLocalMutations()
+      )
+      .finish();
+  });
+
+  it('handles document creation time', () => {
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query('col'))
+        .toReturnTargetId(2)
+        .after(docAddedRemoteEvent(doc('col/doc1', 12, { foo: 'bar' }, 5), [2]))
+        .toReturnChanged(doc('col/doc1', 12, { foo: 'bar' }, 5))
+        .toContain(doc('col/doc1', 12, { foo: 'bar' }, 5))
+        .after(setMutation('col/doc1', { foo: 'newBar' }))
+        .toReturnChanged(
+          doc('col/doc1', 12, { foo: 'newBar' }, 5).setHasLocalMutations()
+        )
+        .toContain(
+          doc('col/doc1', 12, { foo: 'newBar' }, 5).setHasLocalMutations()
+        )
+        .afterAcknowledgingMutation({ documentVersion: 13 })
+        // We haven't seen the remote event yet
+        .toReturnChanged(
+          doc('col/doc1', 13, { foo: 'newBar' }, 5).setHasCommittedMutations()
+        )
+        .toContain(
+          doc('col/doc1', 13, { foo: 'newBar' }, 5).setHasCommittedMutations()
+        )
+        .finish()
+    );
+  });
+
+  it('saves updateTime as createTime when creating new doc', () => {
+    if (gcIsEager) {
+      return;
+    }
+
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query('col'))
+        .toReturnTargetId(2)
+        .after(docAddedRemoteEvent(deletedDoc('col/doc1', 12), [2]))
+        .toReturnChanged(deletedDoc('col/doc1', 12))
+        .toContain(deletedDoc('col/doc1', 12))
+        .after(setMutation('col/doc1', { foo: 'newBar' }))
+        .toReturnChanged(
+          doc('col/doc1', 12, { foo: 'newBar' }, 12).setHasLocalMutations()
+        )
+        // TODO(COUNT): Below has createTime=0 due to an optimization that uses invalid doc as base doc for
+        // set mutations. This is OK because it has no impact on aggregation's heuristic logic. But it feels
+        // "wrong" to have createTime 0 here. We should revisit this.
+        .toContain(
+          doc('col/doc1', 12, { foo: 'newBar' }, 0).setHasLocalMutations()
+        )
+        .afterAcknowledgingMutation({ documentVersion: 13 })
+        // We haven't seen the remote event yet
+        .toReturnChanged(
+          doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
+        )
+        .toContain(
+          doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
+        )
+        .finish()
+    );
+  });
+
+  it('saves updateTime as createTime when creating new doc', () => {
+    if (gcIsEager) {
+      return;
+    }
+
+    return expectLocalStore()
+      .after(setMutation('col/doc1', { foo: 'newBar' }))
+      .afterAcknowledgingMutation({ documentVersion: 13 })
+      .afterExecutingQuery(query('col'))
+      .toReturnChanged(
+        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
+      )
+      .toContain(
+        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
       )
       .finish();
   });

@@ -772,6 +772,13 @@ message ListenRequest {
   map<string, string> labels = 4;
 }
 
+message AggregationChange {
+  AggregationResult result = 1;
+
+  // A set of target IDs of targets that match this document.
+  int32 target_id = 2;
+}
+
 // The response for [Firestore.Listen][google.firestore.v1.Firestore.Listen].
 message ListenResponse {
   // The supported responses.
@@ -795,6 +802,8 @@ message ListenResponse {
     // Returned when documents may have been removed from the given target, but
     // the exact documents are unknown.
     ExistenceFilter filter = 5;
+
+    AggregationChange aggregation_change = 7;
   }
 }
 
@@ -823,6 +832,9 @@ message Target {
     oneof query_type {
       // A structured query.
       StructuredQuery structured_query = 2;
+
+      // A structured aggregation query.
+      StructuredAggregationQuery structured_aggregation_query = 3;
     }
   }
 

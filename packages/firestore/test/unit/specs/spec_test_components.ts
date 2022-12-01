@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { AggregateQuerySnapshot } from '../../../src';
 import { Token } from '../../../src/api/credentials';
 import {
   ComponentConfiguration,
@@ -446,6 +447,23 @@ export class EventAggregator implements Observer<ViewSnapshot> {
   }
 }
 
+export class AggregateEventAggregator
+  implements Observer<AggregateQuerySnapshot<any>>
+{
+  constructor(private pushEvent: (e: AggregateQueryEvent) => void) {}
+
+  next(view: AggregateQuerySnapshot<any>): void {
+    this.pushEvent({
+      view
+    });
+  }
+
+  error(error: Error): void {
+    expect(error.name).to.equal('FirebaseError');
+    this.pushEvent({ error: error as FirestoreError });
+  }
+}
+
 /**
  * FIFO queue that tracks all outstanding mutations for a single test run.
  * As these mutations are shared among the set of active clients, any client can
@@ -477,5 +495,10 @@ export class SharedWriteTracker {
 export interface QueryEvent {
   query: Query;
   view?: ViewSnapshot;
+  error?: FirestoreError;
+}
+
+export interface AggregateQueryEvent {
+  view?: AggregateQuerySnapshot<any>;
   error?: FirestoreError;
 }

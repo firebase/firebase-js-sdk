@@ -21,15 +21,17 @@ import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
+import { AggregationResult as ProtoAggregationResult } from '../protos/firestore_proto_api';
 import { debugAssert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
 
+import { EncodedResourcePath } from './encoded_resource_path';
 import { ActiveTargets } from './lru_garbage_collector';
 import { Persistence } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { ReferenceSet } from './reference_set';
-import { TargetCache } from './target_cache';
+import { TargetAggregationResult, TargetCache } from './target_cache';
 import { TargetData } from './target_data';
 
 export class MemoryTargetCache implements TargetCache {
@@ -234,5 +236,30 @@ export class MemoryTargetCache implements TargetCache {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.references.containsKey(key));
+  }
+
+  getTargetAggregation(
+    transaction: PersistenceTransaction,
+    targetId: TargetId
+  ): PersistencePromise<TargetAggregationResult | undefined> {
+    debugAssert(false, 'Not implemented');
+  }
+
+  saveTargetAggregation(
+    transaction: PersistenceTransaction,
+    targetId: TargetId,
+    result: ProtoAggregationResult,
+    readTime: SnapshotVersion,
+    localAggregateMatches: EncodedResourcePath[]
+  ): PersistencePromise<void> {
+    debugAssert(false, 'Not implemented');
+  }
+
+  updateDiscountedKeys(
+    transaction: PersistenceTransaction,
+    targetId: TargetId,
+    localAggregateMatches: DocumentKey[]
+  ): PersistencePromise<void> {
+    debugAssert(false, 'Not implemented');
   }
 }

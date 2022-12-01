@@ -61,6 +61,7 @@ import { MutationQueue } from './mutation_queue';
 import { OverlayedDocument } from './overlayed_document';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { AggregateContext } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 
 /**
@@ -115,15 +116,25 @@ export class LocalDocumentsView {
    */
   getDocuments(
     transaction: PersistenceTransaction,
-    keys: DocumentKeySet
+    keys: DocumentKeySet,
+    context: AggregateContext | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     return this.remoteDocumentCache
-      .getEntries(transaction, keys)
-      .next(docs =>
-        this.getLocalViewOfDocuments(transaction, docs, documentKeySet()).next(
-          () => docs as DocumentMap
-        )
-      );
+      .getEntries(transaction, keys, context?.processingMask)
+      .next(docs => {
+        if (!!context) {
+          docs.forEach((k, doc) => {
+            if (queryMatches(context.query, doc)) {
+              context.remoteMatches = context.remoteMatches.concat(k);
+            }
+          });
+        }
+        return this.getLocalViewOfDocuments(
+          transaction,
+          docs,
+          documentKeySet()
+        ).next(() => docs as DocumentMap);
+      });
   }
 
   /**
@@ -142,6 +153,7 @@ export class LocalDocumentsView {
     existenceStateChanged: DocumentKeySet = documentKeySet()
   ): PersistencePromise<DocumentMap> {
     const overlays = newOverlayMap();
+    // TODO(COUNT): Add mask
     return this.populateOverlays(transaction, overlays, docs).next(() => {
       return this.computeViews(
         transaction,
@@ -342,7 +354,7 @@ export class LocalDocumentsView {
     documentKeys: DocumentKeySet
   ): PersistencePromise<DocumentKeyMap<FieldMask | null>> {
     return this.remoteDocumentCache
-      .getEntries(transaction, documentKeys)
+      .getEntries(transaction, documentKeys, undefined)
       .next(docs => this.recalculateAndSaveOverlays(transaction, docs));
   }
 
@@ -356,21 +368,28 @@ export class LocalDocumentsView {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     if (isDocumentQuery(query)) {
-      return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
+      return this.getDocumentsMatchingDocumentQuery(
+        transaction,
+        query.path,
+        context
+      );
     } else if (isCollectionGroupQuery(query)) {
       return this.getDocumentsMatchingCollectionGroupQuery(
         transaction,
         query,
-        offset
+        offset,
+        context
       );
     } else {
       return this.getDocumentsMatchingCollectionQuery(
         transaction,
         query,
-        offset
+        offset,
+        context
       );
     }
   }
@@ -442,24 +461,34 @@ export class LocalDocumentsView {
                 documentKeySet()
               )
             )
-            .next(localDocs => ({
-              batchId: largestBatchId,
-              changes: convertOverlayedDocumentMapToDocumentMap(localDocs)
-            }));
+            .next(localDocs => {
+              return {
+                batchId: largestBatchId,
+                changes: convertOverlayedDocumentMapToDocumentMap(localDocs),
+                remoteAggregateMatches: undefined,
+                localAggregateMatches: undefined
+              } as LocalWriteResult;
+            });
         });
       });
   }
 
   private getDocumentsMatchingDocumentQuery(
     transaction: PersistenceTransaction,
-    docPath: ResourcePath
+    docPath: ResourcePath,
+    context: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     // Just do a simple document lookup.
     return this.getDocument(transaction, new DocumentKey(docPath)).next(
       document => {
         let result = documentMap();
         if (document.isFoundDocument()) {
-          result = result.insert(document.key, document);
+          result = result.insert(
+            document.key,
+            (document as MutableDocument).withMaskApplied(
+              context?.processingMask
+            )
+          );
         }
         return result;
       }
@@ -469,7 +498,8 @@ export class LocalDocumentsView {
   private getDocumentsMatchingCollectionGroupQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     debugAssert(
       query.path.isEmpty(),
@@ -490,7 +520,8 @@ export class LocalDocumentsView {
           return this.getDocumentsMatchingCollectionQuery(
             transaction,
             collectionQuery,
-            offset
+            offset,
+            context
           ).next(r => {
             r.forEach((key, doc) => {
               results = results.insert(key, doc);
@@ -503,18 +534,28 @@ export class LocalDocumentsView {
   private getDocumentsMatchingCollectionQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let remoteDocuments: MutableDocumentMap;
     return this.remoteDocumentCache
-      .getAllFromCollection(transaction, query.path, offset)
+      .getAllFromCollection(transaction, query.path, offset, context)
       .next(queryResults => {
         remoteDocuments = queryResults;
+        if (!!context) {
+          remoteDocuments.forEach((k, doc) => {
+            if (queryMatches(context.query, doc)) {
+              context.remoteMatches = context.remoteMatches.concat(k);
+            }
+          });
+        }
+
         return this.documentOverlayCache.getOverlaysForCollection(
           transaction,
           query.path,
           offset.largestBatchId
+          // TODO(COUNT): add mask
         );
       })
       .next(overlays => {
