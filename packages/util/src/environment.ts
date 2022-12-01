@@ -142,9 +142,8 @@ export function isSafari(): boolean {
 export function isIndexedDBAvailable(): boolean {
   try {
     return typeof indexedDB === 'object';
-  }
-  catch (e) {
-      return false;
+  } catch (e) {
+    return false;
   }
 }
 
