@@ -116,6 +116,18 @@ describe('FirebaseAnalytics methods', () => {
     });
   });
 
+  it('setUserId() with null (user) id calls gtag correctly (instance)', async () => {
+    await setUserId(gtagStub, fakeInitializationPromise, null);
+    expect(gtagStub).to.have.been.calledWith(
+      GtagCommand.CONFIG,
+      fakeMeasurementId,
+      {
+        'user_id': null,
+        update: true
+      }
+    );
+  });
+
   it('setUserId() calls gtag correctly (instance)', async () => {
     await setUserId(gtagStub, fakeInitializationPromise, 'user123');
     expect(gtagStub).to.have.been.calledWith(
@@ -134,6 +146,15 @@ describe('FirebaseAnalytics methods', () => {
     });
     expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
       'user_id': 'user123'
+    });
+  });
+
+  it('setUserId() with null (user) id calls gtag correctly (global)', async () => {
+    await setUserId(gtagStub, fakeInitializationPromise, null, {
+      global: true
+    });
+    expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
+      'user_id': null
     });
   });
 

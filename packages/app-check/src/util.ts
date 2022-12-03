@@ -16,7 +16,7 @@
  */
 
 import { GreCAPTCHA } from './recaptcha';
-import { getState } from './state';
+import { getStateReference } from './state';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { FirebaseApp } from '@firebase/app';
 
@@ -30,7 +30,7 @@ export function getRecaptcha(
 }
 
 export function ensureActivated(app: FirebaseApp): void {
-  if (!getState(app).activated) {
+  if (!getStateReference(app).activated) {
     throw ERROR_FACTORY.create(AppCheckError.USE_BEFORE_ACTIVATION, {
       appName: app.name
     });

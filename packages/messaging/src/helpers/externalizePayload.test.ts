@@ -27,6 +27,7 @@ describe('externalizePayload', () => {
         title: 'title',
         body: 'body',
         image: 'image',
+        icon: 'icon',
         // eslint-disable-next-line camelcase
         click_action: 'https://www.self_orgin.com'
       },
@@ -38,7 +39,12 @@ describe('externalizePayload', () => {
     };
 
     const payload: MessagePayload = {
-      notification: { title: 'title', body: 'body', image: 'image' },
+      notification: {
+        title: 'title',
+        body: 'body',
+        image: 'image',
+        icon: 'icon'
+      },
       from: 'from',
       collapseKey: 'collapse',
       messageId: 'mid',
@@ -77,7 +83,8 @@ describe('externalizePayload', () => {
       notification: {
         title: 'title',
         body: 'body',
-        image: 'image'
+        image: 'image',
+        icon: 'icon'
       },
       data: {
         foo: 'foo',
@@ -100,7 +107,8 @@ describe('externalizePayload', () => {
       notification: {
         title: 'title',
         body: 'body',
-        image: 'image'
+        image: 'image',
+        icon: 'icon'
       },
       data: {
         foo: 'foo',

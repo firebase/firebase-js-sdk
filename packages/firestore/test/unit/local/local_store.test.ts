@@ -398,7 +398,10 @@ class LocalStoreTester {
     return this;
   }
 
-  toReturnChanged(...docs: Document[]): LocalStoreTester {
+  toReturnChangedInternal(
+    docs: Document[],
+    isEqual?: (lhs: Document | null, rhs: Document | null) => boolean
+  ): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       debugAssert(
         this.lastChanges !== null,
@@ -407,11 +410,27 @@ class LocalStoreTester {
       expect(this.lastChanges.size).to.equal(docs.length, 'number of changes');
       for (const doc of docs) {
         const returned = this.lastChanges.get(doc.key);
-        expectEqual(doc, returned, `Expected '${returned}' to equal '${doc}'.`);
+        const message = `Expected '${returned}' to equal '${doc}'.`;
+        if (isEqual) {
+          expect(isEqual(doc, returned)).to.equal(true, message);
+        } else {
+          expectEqual(doc, returned, message);
+        }
       }
       this.lastChanges = null;
     });
     return this;
+  }
+
+  toReturnChanged(...docs: Document[]): LocalStoreTester {
+    return this.toReturnChangedInternal(docs);
+  }
+
+  toReturnChangedWithDocComparator(
+    isEqual: (lhs: Document | null, rhs: Document | null) => boolean,
+    ...docs: Document[]
+  ): LocalStoreTester {
+    return this.toReturnChangedInternal(docs, isEqual);
   }
 
   toReturnRemoved(...keyStrings: string[]): LocalStoreTester {
@@ -433,16 +452,20 @@ class LocalStoreTester {
     return this;
   }
 
-  toContain(doc: Document): LocalStoreTester {
+  toContain(
+    doc: Document,
+    isEqual?: (lhs: Document, rhs: Document) => boolean
+  ): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       return localStoreReadDocument(this.localStore, doc.key).then(result => {
-        expectEqual(
-          result,
-          doc,
-          `Expected ${
-            result ? result.toString() : null
-          } to match ${doc.toString()}.`
-        );
+        const message = `Expected ${
+          result ? result.toString() : null
+        } to match ${doc.toString()}.`;
+        if (isEqual) {
+          expect(isEqual(result, doc)).to.equal(true, message);
+        } else {
+          expectEqual(result, doc, message);
+        }
       });
     });
     return this;
@@ -537,6 +560,22 @@ class LocalStoreTester {
   finish(): Promise<void> {
     return this.promiseChain;
   }
+}
+
+// The `isEqual` method for the Document class does not compare createTime and
+// readTime. For some tests, we'd like to verify that a certain createTime has
+// been calculated for documents. In such cases we can use this comparator.
+function compareDocsWithCreateTime(
+  lhs: Document | null,
+  rhs: Document | null
+): boolean {
+  return (
+    (lhs === null && rhs === null) ||
+    (lhs !== null &&
+      rhs !== null &&
+      lhs.isEqual(rhs) &&
+      lhs.createTime.isEqual(rhs.createTime))
+  );
 }
 
 describe('LocalStore w/ Memory Persistence', () => {
@@ -1954,6 +1993,253 @@ function genericLocalStoreTests(
       )
       .toContain(
         doc('foo/bar', 1, { 'likes': 1, 'stars': 2 }).setHasLocalMutations()
+      )
+      .finish();
+  });
+
+  it('handles document creation time', () => {
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query('col'))
+        .toReturnTargetId(2)
+        .after(docAddedRemoteEvent(doc('col/doc1', 12, { foo: 'bar' }, 5), [2]))
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc('col/doc1', 12, { foo: 'bar' }, 5)
+        )
+        .toContain(
+          doc('col/doc1', 12, { foo: 'bar' }, 5),
+          compareDocsWithCreateTime
+        )
+        .after(setMutation('col/doc1', { foo: 'newBar' }))
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc('col/doc1', 12, { foo: 'newBar' }, 5).setHasLocalMutations()
+        )
+        .toContain(
+          doc('col/doc1', 12, { foo: 'newBar' }, 5).setHasLocalMutations(),
+          compareDocsWithCreateTime
+        )
+        .afterAcknowledgingMutation({ documentVersion: 13 })
+        // We haven't seen the remote event yet
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc('col/doc1', 13, { foo: 'newBar' }, 5).setHasCommittedMutations()
+        )
+        .toContain(
+          doc('col/doc1', 13, { foo: 'newBar' }, 5).setHasCommittedMutations(),
+          compareDocsWithCreateTime
+        )
+        .finish()
+    );
+  });
+
+  it('saves updateTime as createTime when receives ack for creating a new doc', () => {
+    if (gcIsEager) {
+      return;
+    }
+
+    return expectLocalStore()
+      .after(setMutation('col/doc1', { foo: 'newBar' }))
+      .afterAcknowledgingMutation({ documentVersion: 13 })
+      .afterExecutingQuery(query('col'))
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
+      )
+      .toContain(
+        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations(),
+        compareDocsWithCreateTime
+      )
+      .finish();
+  });
+
+  it('handles createTime for Set -> Ack -> RemoteEvent', () => {
+    if (gcIsEager) {
+      return;
+    }
+
+    return expectLocalStore()
+      .after(setMutation('col/doc1', { foo: 'newBar' }))
+      .afterAcknowledgingMutation({ documentVersion: 13 })
+      .afterExecutingQuery(query('col'))
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
+      )
+      .toContain(
+        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations(),
+        compareDocsWithCreateTime
+      )
+      .after(docAddedRemoteEvent(doc('col/doc1', 14, { foo: 'baz' }, 5), [2]))
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc('col/doc1', 14, { foo: 'baz' }, 5)
+      )
+      .toContain(
+        doc('col/doc1', 14, { foo: 'baz' }, 5),
+        compareDocsWithCreateTime
+      )
+      .finish();
+  });
+
+  it('handles createTime for Set -> RemoteEvent -> Ack', () => {
+    if (gcIsEager) {
+      return;
+    }
+
+    return expectLocalStore()
+      .after(setMutation('col/doc1', { foo: 'newBar' }))
+      .after(docAddedRemoteEvent(doc('col/doc1', 13, { foo: 'baz' }, 5), [2]))
+      .afterAcknowledgingMutation({ documentVersion: 14 })
+      .afterExecutingQuery(query('col'))
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc('col/doc1', 14, { foo: 'newBar' }, 5).setHasCommittedMutations()
+      )
+      .toContain(
+        doc('col/doc1', 14, { foo: 'newBar' }, 5).setHasCommittedMutations(),
+        compareDocsWithCreateTime
+      )
+      .finish();
+  });
+
+  it('saves updateTime as createTime when recreating a deleted doc', async () => {
+    if (gcIsEager) {
+      return;
+    }
+
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query('col'))
+        .toReturnTargetId(2)
+        .after(docAddedRemoteEvent(deletedDoc('col/doc1', 12), [2]))
+        .toReturnChanged(deletedDoc('col/doc1', 12))
+        .toContain(deletedDoc('col/doc1', 12))
+        .after(setMutation('col/doc1', { foo: 'newBar' }))
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc('col/doc1', 12, { foo: 'newBar' }, 12).setHasLocalMutations()
+        )
+        .toContain(
+          doc('col/doc1', 12, { foo: 'newBar' }, 12).setHasLocalMutations(),
+          compareDocsWithCreateTime
+        )
+        .afterAcknowledgingMutation({ documentVersion: 13 })
+        // We haven't seen the remote event yet
+        .toReturnChangedWithDocComparator(
+          compareDocsWithCreateTime,
+          doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
+        )
+        .toContain(
+          doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations(),
+          compareDocsWithCreateTime
+        )
+        .finish()
+    );
+  });
+
+  it('document createTime is preserved through Set -> Ack -> Patch -> Ack', () => {
+    if (gcIsEager) {
+      return;
+    }
+
+    return expectLocalStore()
+      .after(setMutation('col/doc1', { foo: 'newBar' }))
+      .afterAcknowledgingMutation({ documentVersion: 13 })
+      .afterExecutingQuery(query('col'))
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations()
+      )
+      .toContain(
+        doc('col/doc1', 13, { foo: 'newBar' }, 13).setHasCommittedMutations(),
+        compareDocsWithCreateTime
+      )
+      .afterMutations([patchMutation('col/doc1', { 'likes': 1 })])
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc(
+          'col/doc1',
+          13,
+          { foo: 'newBar', likes: 1 },
+          13
+        ).setHasLocalMutations()
+      )
+      .toContain(
+        doc(
+          'col/doc1',
+          13,
+          { foo: 'newBar', likes: 1 },
+          13
+        ).setHasLocalMutations(),
+        compareDocsWithCreateTime
+      )
+      .afterAcknowledgingMutation({ documentVersion: 14 })
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc(
+          'col/doc1',
+          14,
+          { foo: 'newBar', likes: 1 },
+          13
+        ).setHasCommittedMutations()
+      )
+      .toContain(
+        doc(
+          'col/doc1',
+          14,
+          { foo: 'newBar', likes: 1 },
+          13
+        ).setHasCommittedMutations(),
+        compareDocsWithCreateTime
+      )
+      .finish();
+  });
+
+  it('document createTime is preserved through Doc Added -> Patch -> Ack', () => {
+    if (gcIsEager) {
+      return;
+    }
+    return expectLocalStore()
+      .afterAllocatingQuery(query('col'))
+      .toReturnTargetId(2)
+      .after(docAddedRemoteEvent(doc('col/doc1', 12, { foo: 'bar' }, 5), [2]))
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc('col/doc1', 12, { foo: 'bar' }, 5)
+      )
+      .toContain(
+        doc('col/doc1', 12, { foo: 'bar' }, 5),
+        compareDocsWithCreateTime
+      )
+      .afterMutations([patchMutation('col/doc1', { 'likes': 1 })])
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc('col/doc1', 13, { foo: 'bar', likes: 1 }, 5).setHasLocalMutations()
+      )
+      .toContain(
+        doc('col/doc1', 13, { foo: 'bar', likes: 1 }, 5).setHasLocalMutations(),
+        compareDocsWithCreateTime
+      )
+      .afterAcknowledgingMutation({ documentVersion: 14 })
+      .toReturnChangedWithDocComparator(
+        compareDocsWithCreateTime,
+        doc(
+          'col/doc1',
+          14,
+          { foo: 'bar', likes: 1 },
+          5
+        ).setHasCommittedMutations()
+      )
+      .toContain(
+        doc(
+          'col/doc1',
+          14,
+          { foo: 'bar', likes: 1 },
+          5
+        ).setHasCommittedMutations(),
+        compareDocsWithCreateTime
       )
       .finish();
   });

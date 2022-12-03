@@ -34,8 +34,9 @@ export class StorageError extends FirebaseError {
    * @param code - A StorageErrorCode string to be prefixed with 'storage/' and
    *  added to the end of the message.
    * @param message  - Error message.
+   * @param status_ - Corresponding HTTP Status Code
    */
-  constructor(code: StorageErrorCode, message: string) {
+  constructor(code: StorageErrorCode, message: string, private status_ = 0) {
     super(
       prependCode(code),
       `Firebase Storage: ${message} (${prependCode(code)})`
@@ -44,6 +45,14 @@ export class StorageError extends FirebaseError {
     // Without this, `instanceof StorageError`, in tests for example,
     // returns false.
     Object.setPrototypeOf(this, StorageError.prototype);
+  }
+
+  get status(): number {
+    return this.status_;
+  }
+
+  set status(status: number) {
+    this.status_ = status;
   }
 
   /**
@@ -249,6 +258,13 @@ export function noDownloadURL(): StorageError {
   return new StorageError(
     StorageErrorCode.NO_DOWNLOAD_URL,
     'The given file does not have any download URLs.'
+  );
+}
+
+export function missingPolyFill(polyFill: string): StorageError {
+  return new StorageError(
+    StorageErrorCode.UNSUPPORTED_ENVIRONMENT,
+    `${polyFill} is missing. Make sure to install the required polyfills. See https://firebase.google.com/docs/web/environments-js-sdk#polyfills for more information.`
   );
 }
 

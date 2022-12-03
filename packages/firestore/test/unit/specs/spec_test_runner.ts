@@ -663,7 +663,8 @@ abstract class TestRunner {
         ? doc(
             watchEntity.doc.key,
             watchEntity.doc.version,
-            watchEntity.doc.value
+            watchEntity.doc.value,
+            watchEntity.doc.createTime
           )
         : deletedDoc(watchEntity.doc.key, watchEntity.doc.version);
       if (watchEntity.doc.options?.hasCommittedMutations) {
@@ -1193,7 +1194,12 @@ abstract class TestRunner {
     type: ChangeType,
     change: SpecDocument
   ): DocumentViewChange {
-    const document = doc(change.key, change.version, change.value || {});
+    const document = doc(
+      change.key,
+      change.version,
+      change.value || {},
+      change.createTime
+    );
     if (change.options?.hasCommittedMutations) {
       document.setHasCommittedMutations();
     } else if (change.options?.hasLocalMutations) {
@@ -1571,7 +1577,7 @@ export interface SpecWatchEntity {
 // PORTING NOTE: Only used by web multi-tab tests.
 export interface SpecClientState {
   /** The visibility state of the browser tab running the client. */
-  visibility?: VisibilityState;
+  visibility?: DocumentVisibilityState;
   /** Whether this tab should try to forcefully become primary. */
   primary?: true;
 }
@@ -1622,6 +1628,7 @@ export interface SpecQuery {
 export interface SpecDocument {
   key: string;
   version: TestSnapshotVersion;
+  createTime: TestSnapshotVersion;
   value: JsonObject<unknown> | null;
   options?: DocumentOptions;
 }

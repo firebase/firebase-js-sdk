@@ -25,7 +25,7 @@ import {
 import {
   createMockUserToken,
   EmulatorMockTokenOptions,
-  getDefaultEmulatorHost
+  getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
 
 import {
@@ -270,10 +270,9 @@ export function getFirestore(
     identifier: databaseId
   }) as Firestore;
   if (!db._initialized) {
-    const firestoreEmulatorHost = getDefaultEmulatorHost('firestore');
-    if (firestoreEmulatorHost) {
-      const [host, port] = firestoreEmulatorHost.split(':');
-      connectFirestoreEmulator(db, host, parseInt(port, 10));
+    const emulator = getDefaultEmulatorHostnameAndPort('firestore');
+    if (emulator) {
+      connectFirestoreEmulator(db, ...emulator);
     }
   }
   return db;

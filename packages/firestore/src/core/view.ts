@@ -72,6 +72,7 @@ export interface ViewChange {
  */
 export class View {
   private syncState: SyncState | null = null;
+  private hasCachedResults: boolean = false;
   /**
    * A flag whether the view is current with the backend. A view is considered
    * current after it has seen the current flag from the backend and did not
@@ -319,7 +320,10 @@ export class View {
         docChanges.mutatedKeys,
         newSyncState === SyncState.Local,
         syncStateChanged,
-        /* excludesMetadataChanges= */ false
+        /* excludesMetadataChanges= */ false,
+        targetChange
+          ? targetChange.resumeToken.approximateByteSize() > 0
+          : false
       );
       return {
         snapshot: snap,
@@ -468,7 +472,8 @@ export class View {
       this.query,
       this.documentSet,
       this.mutatedKeys,
-      this.syncState === SyncState.Local
+      this.syncState === SyncState.Local,
+      this.hasCachedResults
     );
   }
 }

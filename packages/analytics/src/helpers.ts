@@ -318,12 +318,19 @@ export function wrapOrCreateGtag(
 }
 
 /**
- * Returns first script tag in DOM matching our gtag url pattern.
+ * Returns the script tag in the DOM matching both the gtag url pattern
+ * and the provided data layer name.
  */
-export function findGtagScriptOnPage(): HTMLScriptElement | null {
+export function findGtagScriptOnPage(
+  dataLayerName: string
+): HTMLScriptElement | null {
   const scriptTags = window.document.getElementsByTagName('script');
   for (const tag of Object.values(scriptTags)) {
-    if (tag.src && tag.src.includes(GTAG_URL)) {
+    if (
+      tag.src &&
+      tag.src.includes(GTAG_URL) &&
+      tag.src.includes(dataLayerName)
+    ) {
       return tag;
     }
   }

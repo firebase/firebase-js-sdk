@@ -177,6 +177,51 @@ describe('QuerySnapshot', () => {
         querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, true)
       )
     ).to.be.false;
+    // hasCachedResults should affect querySnapshot equality
+    expect(
+      snapshotEqual(
+        querySnapshot(
+          'foo',
+          {},
+          { a: { a: 1 } },
+          keys('foo/a'),
+          false,
+          false,
+          true
+        ),
+        querySnapshot(
+          'foo',
+          {},
+          { a: { a: 1 } },
+          keys('foo/a'),
+          false,
+          false,
+          true
+        )
+      )
+    ).to.be.true;
+    expect(
+      snapshotEqual(
+        querySnapshot(
+          'foo',
+          {},
+          { a: { a: 1 } },
+          keys('foo/a'),
+          false,
+          false,
+          true
+        ),
+        querySnapshot(
+          'foo',
+          {},
+          { a: { a: 1 } },
+          keys('foo/a'),
+          false,
+          false,
+          false
+        )
+      )
+    ).to.be.false;
   });
 
   it('JSON.stringify() does not throw', () => {
