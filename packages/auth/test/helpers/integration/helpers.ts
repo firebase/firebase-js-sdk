@@ -99,21 +99,18 @@ function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
 export function getTotpCode(
   sharedSecretKey: string,
   periodSec: number,
-  verificationCodeLength: number
+  verificationCodeLength: number,
+  timestamp: Date
 ): string {
   const token = totp(sharedSecretKey, {
     period: periodSec,
     digits: verificationCodeLength,
-    algorithm: 'SHA-1'
+    algorithm: 'SHA-1',
+    timestamp
   });
 
   return token;
 }
-
-export function delay(dt: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, dt));
-}
-
 export const email = 'totpuser-donotdelete@test.com';
 //1000000 is always incorrect since it has 7 digits and we expect 6.
 export const incorrectTotpCode = '1000000';
