@@ -29,7 +29,6 @@ import {
   cleanUpTestInstance,
   getTestInstance,
   getTotpCode,
-  delay,
   email,
   incorrectTotpCode
 } from '../../helpers/integration/helpers';
@@ -38,6 +37,7 @@ import {
   TotpMultiFactorGenerator,
   TotpSecret
 } from '../../../src/mfa/assertions/totp';
+import { getEmulatorUrl } from '../../helpers/integration/settings';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -46,16 +46,26 @@ describe(' Integration tests: Mfa TOTP', () => {
   let auth: Auth;
   let totpSecret: TotpSecret;
   let displayName: string;
+  let totpTimestamp: Date;
+  let emulatorUrl: string | null;
   beforeEach(async () => {
-    auth = getTestInstance();
-    displayName = 'totp-integration-test';
+    emulatorUrl = getEmulatorUrl();
+    if (!emulatorUrl) {
+      auth = getTestInstance();
+      displayName = 'totp-integration-test';
+    }
   });
 
   afterEach(async () => {
-    await cleanUpTestInstance(auth);
+    if (!emulatorUrl) {
+      await cleanUpTestInstance(auth);
+    }
   });
 
-  it('should not enroll if incorrect totp supplied', async () => {
+  it('should not enroll if incorrect totp supplied', async function () {
+    if (emulatorUrl) {
+      this.skip();
+    }
     const cr = await signInWithEmailAndPassword(auth, email, 'password');
     const mfaUser = multiFactor(cr.user);
     const session = await mfaUser.getSession();
@@ -71,7 +81,10 @@ describe(' Integration tests: Mfa TOTP', () => {
     ).to.be.rejectedWith('auth/invalid-verification-code');
   });
 
-  it('should enroll using correct otp', async () => {
+  it('should enroll using correct otp', async function () {
+    if (emulatorUrl) {
+      this.skip();
+    }
     const cr = await signInWithEmailAndPassword(auth, email, 'password');
 
     const mfaUser = multiFactor(cr.user);
@@ -80,10 +93,13 @@ describe(' Integration tests: Mfa TOTP', () => {
 
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
 
+    totpTimestamp = new Date();
+
     const totpVerificationCode = getTotpCode(
       totpSecret.secretKey,
       totpSecret.codeIntervalSeconds,
-      totpSecret.codeLength
+      totpSecret.codeLength,
+      totpTimestamp
     );
 
     const multiFactorAssertion =
@@ -95,9 +111,12 @@ describe(' Integration tests: Mfa TOTP', () => {
       .fulfilled;
   });
 
-  it('should not allow sign-in with incorrect totp', async () => {
-    let resolver;
+  it('should not allow sign-in with incorrect totp', async function () {
+    let resolver: any;
 
+    if (emulatorUrl) {
+      this.skip();
+    }
     try {
       await signInWithEmailAndPassword(auth, email, 'password');
 
@@ -120,13 +139,11 @@ describe(' Integration tests: Mfa TOTP', () => {
     }
   });
 
-  it('should allow sign-in with for correct totp and unenroll successfully', async () => {
-    let resolver;
-
-    await delay(30 * 1000);
-    //TODO(bhparijat) generate the otp code for the next time window by passing the appropriate
-    //timestamp to avoid the 30s delay. The delay is needed because the otp code used for enrollment
-    //cannot be reused for signing in.
+  it('should allow sign-in with for correct totp and unenroll successfully', async function () {
+    let resolver: any;
+    if (emulatorUrl) {
+      this.skip();
+    }
     try {
       await signInWithEmailAndPassword(auth, email, 'password');
 
@@ -138,11 +155,15 @@ describe(' Integration tests: Mfa TOTP', () => {
       resolver = getMultiFactorResolver(auth, error as any);
       expect(resolver.hints).to.have.length(1);
 
+      totpTimestamp.setSeconds(totpTimestamp.getSeconds() + 30);
+
       const totpVerificationCode = getTotpCode(
         totpSecret.secretKey,
         totpSecret.codeIntervalSeconds,
-        totpSecret.codeLength
+        totpSecret.codeLength,
+        totpTimestamp
       );
+
       const assertion = TotpMultiFactorGenerator.assertionForSignIn(
         resolver.hints[0].uid,
         totpVerificationCode
@@ -152,6 +173,8 @@ describe(' Integration tests: Mfa TOTP', () => {
       const mfaUser = multiFactor(userCredential.user);
 
       await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
+      await expect(signInWithEmailAndPassword(auth, email, 'password')).to.be
+        .fulfilled;
     }
-  }).timeout(32000);
+  });
 });
