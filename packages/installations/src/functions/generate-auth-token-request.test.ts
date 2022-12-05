@@ -40,7 +40,7 @@ const FID = 'evil-has-no-boundaries';
 
 describe('generateAuthTokenRequest', () => {
   let installations: FirebaseInstallationsImpl;
-  let fetchSpy: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
+  let fetchSpy: SinonStub<[RequestInfo | URL, RequestInit?], Promise<Response>>;
   let registeredInstallationEntry: RegisteredInstallationEntry;
   let response: GenerateAuthTokenResponse;
 

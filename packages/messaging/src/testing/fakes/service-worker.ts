@@ -80,7 +80,7 @@ class FakeWindowClient implements WindowClient {
   readonly id: string;
   readonly type = 'window';
   focused = false;
-  visibilityState: VisibilityState = 'hidden';
+  visibilityState: DocumentVisibilityState = 'hidden';
   url = 'https://example.org';
 
   constructor() {
@@ -112,7 +112,6 @@ export class FakeServiceWorkerRegistration
 
   // Unused in FCM Web SDK, no need to mock these.
   navigationPreload = null as unknown as NavigationPreloadManager;
-  sync = null as unknown as SyncManager;
   updateViaCache = null as unknown as ServiceWorkerUpdateViaCache;
 
   async getNotifications() {

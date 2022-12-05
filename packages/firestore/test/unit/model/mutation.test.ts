@@ -1012,7 +1012,7 @@ describe('Mutation', () => {
 
     // There are (0! + 7*1! + 21*2! + 35*3! + 35*4! + 21*5! + 7*6! + 7!) * 3 = 41100 cases.
     expect(testCases).to.equal(41100);
-  });
+  }).timeout(10000);
 
   it('overlay by combinations and permutations for array transforms', () => {
     const docs: MutableDocument[] = [

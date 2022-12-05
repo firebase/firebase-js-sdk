@@ -663,7 +663,8 @@ abstract class TestRunner {
         ? doc(
             watchEntity.doc.key,
             watchEntity.doc.version,
-            watchEntity.doc.value
+            watchEntity.doc.value,
+            watchEntity.doc.createTime
           )
         : deletedDoc(watchEntity.doc.key, watchEntity.doc.version);
       if (watchEntity.doc.options?.hasCommittedMutations) {
@@ -1192,7 +1193,12 @@ abstract class TestRunner {
     type: ChangeType,
     change: SpecDocument
   ): DocumentViewChange {
-    const document = doc(change.key, change.version, change.value || {});
+    const document = doc(
+      change.key,
+      change.version,
+      change.value || {},
+      change.createTime
+    );
     if (change.options?.hasCommittedMutations) {
       document.setHasCommittedMutations();
     } else if (change.options?.hasLocalMutations) {
@@ -1619,6 +1625,7 @@ export interface SpecQuery {
 export interface SpecDocument {
   key: string;
   version: TestSnapshotVersion;
+  createTime: TestSnapshotVersion;
   value: JsonObject<unknown> | null;
   options?: DocumentOptions;
 }

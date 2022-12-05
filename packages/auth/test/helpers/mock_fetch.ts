@@ -34,7 +34,10 @@ let fetchImpl: typeof fetch | null;
 const routes = new Map<string, Route>();
 
 // Using a constant rather than a function to enforce the type matches fetch()
-const fakeFetch: typeof fetch = (input: RequestInfo, request?: RequestInit) => {
+const fakeFetch: typeof fetch = (
+  input: RequestInfo | URL,
+  request?: RequestInit
+) => {
   if (typeof input !== 'string') {
     throw new Error('URL passed to fetch was not a string');
   }

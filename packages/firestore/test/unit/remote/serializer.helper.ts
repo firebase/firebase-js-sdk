@@ -804,11 +804,12 @@ export function serializerTest(
     });
 
     it('toDocument() / fromDocument', () => {
-      const d = doc('foo/bar', 42, { a: 5, b: 'b' });
+      const d = doc('foo/bar', 42, { a: 5, b: 'b' }, /* createTime */ 12);
       const proto = {
         name: toName(s, d.key),
         fields: d.data.value.mapValue.fields,
-        updateTime: toVersion(s, d.version)
+        updateTime: toVersion(s, d.version),
+        createTime: toVersion(s, d.createTime)
       };
       const serialized = toDocument(s, d);
       expect(serialized).to.deep.equal(proto);
