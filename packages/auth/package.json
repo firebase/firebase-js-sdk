@@ -117,14 +117,10 @@
     "rollup": "2.79.1",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.31.2",
-<<<<<<< HEAD
     "selenium-webdriver": "4.5.0",
     "typescript": "4.7.4",
-    "@types/express": "4.17.14"
-=======
-    "typescript": "4.2.2",
+    "@types/express": "4.17.14",
     "totp-generator": "0.0.14"
->>>>>>> 0a20bcf41 ( integration tests for totp (#6784))
   },
   "repository": {
     "directory": "packages/auth",
