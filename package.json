@@ -153,8 +153,5 @@
     "watch": "1.0.2",
     "webpack": "4.46.0",
     "yargs": "17.6.0"
-  },
-  "dependencies": {
-    "sqlite3": "^5.1.2"
   }
 }

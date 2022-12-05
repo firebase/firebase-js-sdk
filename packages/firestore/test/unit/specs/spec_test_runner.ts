@@ -1120,7 +1120,6 @@ abstract class TestRunner {
           version(expected.readTime!)
         );
       }
-
       const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);

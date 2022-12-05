@@ -350,6 +350,7 @@ export async function syncEngineListen(
 
   return viewSnapshot;
 }
+
 /**
  * Registers a view for a previously unknown query and computes its initial
  * snapshot.
@@ -879,6 +880,7 @@ function removeAndCleanupTarget(
       syncEngineImpl.syncEngineListener.onWatchError!(query, error);
     }
   }
+  
   syncEngineImpl.queriesByTarget.delete(targetId);
 
   if (syncEngineImpl.isPrimaryClient) {
