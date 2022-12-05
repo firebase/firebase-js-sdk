@@ -316,14 +316,22 @@ export async function syncEngineListen(
       syncEngineImpl.localStore,
       queryToTarget(query)
     );
-    if (syncEngineImpl.isPrimaryClient) {
-      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-    }
 
     const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
       targetData.targetId
     );
     targetId = targetData.targetId;
+
+    // If there is a resume token presented, do local processing first to get
+    // expectedCount for ListenRequest. If not, send listen request to backend
+    // before local processing to reduces Query latency.
+    if (
+      syncEngineImpl.isPrimaryClient &&
+      targetData.resumeToken.approximateByteSize() === 0
+    ) {
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
+    }
+
     viewSnapshot = await initializeViewAndComputeSnapshot(
       syncEngineImpl,
       query,
@@ -331,11 +339,17 @@ export async function syncEngineListen(
       status === 'current',
       targetData.resumeToken
     );
+
+    if (
+      syncEngineImpl.isPrimaryClient &&
+      targetData.resumeToken.approximateByteSize() > 0
+    ) {
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
+    }
   }
 
   return viewSnapshot;
 }
-
 /**
  * Registers a view for a previously unknown query and computes its initial
  * snapshot.
@@ -865,7 +879,6 @@ function removeAndCleanupTarget(
       syncEngineImpl.syncEngineListener.onWatchError!(query, error);
     }
   }
-
   syncEngineImpl.queriesByTarget.delete(targetId);
 
   if (syncEngineImpl.isPrimaryClient) {

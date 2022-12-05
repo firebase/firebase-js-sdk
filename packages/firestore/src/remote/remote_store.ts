@@ -334,7 +334,13 @@ function sendWatchRequest(
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
     targetData.targetId
   );
-  ensureWatchStream(remoteStoreImpl).watch(targetData);
+
+  const expectedCount = remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(
+    targetData.targetId
+  ).size;
+  const newTargetData = targetData.withExpectedCount(expectedCount);
+
+  ensureWatchStream(remoteStoreImpl).watch(newTargetData);
 }
 
 /**

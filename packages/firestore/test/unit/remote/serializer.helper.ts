@@ -1777,7 +1777,8 @@ export function serializerTest(
             }
           },
           resumeToken: new Uint8Array([1, 2, 3]),
-          targetId: 1
+          targetId: 1,
+          expectedCount: 0
         };
         expect(result).to.deep.equal(expected);
       });

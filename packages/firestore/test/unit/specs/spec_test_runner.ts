@@ -374,7 +374,7 @@ abstract class TestRunner {
     await this.doStep(step);
     await this.queue.drain();
     this.validateExpectedSnapshotEvents(step.expectedSnapshotEvents!);
-    await this.validateExpectedState(step.expectedState!);
+    await this.validateExpectedState(step.expectedState!, step);
     this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents);
     this.validateWaitForPendingWritesEvents(
       step.expectedWaitForPendingWritesEvents
@@ -910,7 +910,8 @@ abstract class TestRunner {
   }
 
   private async validateExpectedState(
-    expectedState: StateExpectation
+    expectedState: StateExpectation,
+    step: SpecStep
   ): Promise<void> {
     if (expectedState) {
       if ('numOutstandingWrites' in expectedState) {
@@ -1000,7 +1001,7 @@ abstract class TestRunner {
       this.validateEnqueuedLimboDocs();
       // Always validate that the expected active targets match the actual
       // active targets
-      await this.validateActiveTargets();
+      await this.validateActiveTargets(step);
     }
   }
 
@@ -1071,7 +1072,7 @@ abstract class TestRunner {
     );
   }
 
-  private async validateActiveTargets(): Promise<void> {
+  private async validateActiveTargets(step: SpecStep): Promise<void> {
     if (!this.isPrimaryClient || !this.networkEnabled) {
       expect(this.connection.activeTargets).to.be.empty;
       return;
@@ -1106,9 +1107,12 @@ abstract class TestRunner {
         ARBITRARY_SEQUENCE_NUMBER
       );
       if (expected.resumeToken && expected.resumeToken !== '') {
+        const expectedCount =
+          this.remoteStore.remoteSyncer.getRemoteKeysForTarget!(targetId).size;
         targetData = targetData.withResumeToken(
           byteStringFromString(expected.resumeToken),
-          SnapshotVersion.min()
+          SnapshotVersion.min(),
+          expectedCount
         );
       } else {
         targetData = targetData.withResumeToken(
@@ -1116,6 +1120,7 @@ abstract class TestRunner {
           version(expected.readTime!)
         );
       }
+
       const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
@@ -1127,6 +1132,14 @@ abstract class TestRunner {
            expectedTarget.resumeToken
          )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
       );
+      // Check the expectedCount in Target only when we register the listen request,
+      // as the number of remote documents will be influenced by the local mutations
+      // and fails this check.
+      if ('userListen' in step) {
+        expect(actualTarget.expectedCount).to.equal(
+          expectedTarget.expectedCount
+        );
+      }
       delete actualTargets[targetId];
     });
     expect(objectSize(actualTargets)).to.equal(
