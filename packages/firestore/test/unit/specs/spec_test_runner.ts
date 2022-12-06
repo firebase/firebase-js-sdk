@@ -1134,7 +1134,7 @@ abstract class TestRunner {
       );
       // Check the expectedCount in Target only when we register the listen request,
       // as the number of remote documents will be influenced by the local mutations
-      // and fails this check.
+      // and expectedCount calculated here might be different from that in Target.
       if ('userListen' in step) {
         expect(actualTarget.expectedCount).to.equal(
           expectedTarget.expectedCount

@@ -880,7 +880,7 @@ function removeAndCleanupTarget(
       syncEngineImpl.syncEngineListener.onWatchError!(query, error);
     }
   }
-  
+
   syncEngineImpl.queriesByTarget.delete(targetId);
 
   if (syncEngineImpl.isPrimaryClient) {
