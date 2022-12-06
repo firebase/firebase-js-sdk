@@ -44,12 +44,14 @@ const enum EffectiveConnectionType {
  *
  * ref: https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation
  */
-interface NetworkInformation {
+interface NetworkInformationWithEffectiveType extends NetworkInformation {
+  // `effectiveType` is an experimental property and not included in
+  // TypeScript's typings for the native NetworkInformation interface
   readonly effectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
 }
 
 interface NavigatorWithConnection extends Navigator {
-  readonly connection: NetworkInformation;
+  readonly connection: NetworkInformationWithEffectiveType;
 }
 
 const RESERVED_ATTRIBUTE_PREFIXES = ['firebase_', 'google_', 'ga_'];

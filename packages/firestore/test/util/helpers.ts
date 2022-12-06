@@ -156,11 +156,13 @@ export function ref(key: string, offset?: number): DocumentReference {
 export function doc(
   keyStr: string,
   ver: TestSnapshotVersion,
-  jsonOrObjectValue: JsonObject<unknown> | ObjectValue
+  jsonOrObjectValue: JsonObject<unknown> | ObjectValue,
+  createTime?: TestSnapshotVersion
 ): MutableDocument {
   return MutableDocument.newFoundDocument(
     key(keyStr),
     version(ver),
+    createTime ? version(createTime) : SnapshotVersion.min(),
     jsonOrObjectValue instanceof ObjectValue
       ? jsonOrObjectValue
       : wrapObject(jsonOrObjectValue)

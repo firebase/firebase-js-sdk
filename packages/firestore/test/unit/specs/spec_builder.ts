@@ -1058,6 +1058,7 @@ export class SpecBuilder {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
+        createTime: doc.createTime.toMicroseconds(),
         value: userDataWriter.convertValue(
           doc.data.value
         ) as JsonObject<unknown>,
@@ -1070,6 +1071,7 @@ export class SpecBuilder {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
+        createTime: doc.createTime.toMicroseconds(),
         value: null
       };
     }

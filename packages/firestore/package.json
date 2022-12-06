@@ -103,7 +103,7 @@
     "@types/eslint": "7.29.0",
     "@types/json-stable-stringify": "1.0.34",
     "chai-exclude": "2.1.0",
-    "json-stable-stringify": "1.0.1",
+    "json-stable-stringify": "1.0.2",
     "protobufjs": "6.11.3",
     "rollup": "2.79.1",
     "rollup-plugin-copy": "3.4.0",

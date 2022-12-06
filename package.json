@@ -69,7 +69,7 @@
     "@babel/register": "7.18.9",
     "@changesets/changelog-github": "0.4.7",
     "@changesets/cli": "2.25.0",
-    "@types/chai": "4.3.3",
+    "@types/chai": "4.3.4",
     "@types/chai-as-promised": "7.1.5",
     "@types/child-process-promise": "2.2.2",
     "@types/clone": "2.1.1",
@@ -86,9 +86,9 @@
     "@types/sinon-chai": "3.2.8",
     "@types/tmp": "0.2.3",
     "@types/yargs": "17.0.13",
-    "@typescript-eslint/eslint-plugin": "4.33.0",
-    "@typescript-eslint/eslint-plugin-tslint": "4.33.0",
-    "@typescript-eslint/parser": "4.33.0",
+    "@typescript-eslint/eslint-plugin": "5.43.0",
+    "@typescript-eslint/eslint-plugin-tslint": "5.43.0",
+    "@typescript-eslint/parser": "5.43.0",
     "api-documenter-me": "0.1.1",
     "api-extractor-me": "0.1.2",
     "babel-loader": "8.2.5",
@@ -103,7 +103,7 @@
     "eslint": "7.32.0",
     "eslint-plugin-import": "2.26.0",
     "eslint-plugin-unused-imports": "2.0.0",
-    "express": "4.18.1",
+    "express": "4.18.2",
     "find-free-port": "2.0.0",
     "firebase-tools": "11.2.2",
     "glob": "7.2.3",
@@ -152,6 +152,6 @@
     "typescript": "4.7.4",
     "watch": "1.0.2",
     "webpack": "4.46.0",
-    "yargs": "17.6.0"
+    "yargs": "17.6.2"
   }
 }
