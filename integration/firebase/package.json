@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "firebase": "9.14.0",
-    "@types/chai": "4.3.3",
+    "@types/chai": "4.3.4",
     "@types/mocha": "9.1.1",
     "chai": "4.3.6",
     "karma": "6.4.1",
@@ -20,6 +20,6 @@
     "karma-typescript": "5.5.3",
     "mocha": "9.2.2",
     "npm-run-all": "4.1.5",
-    "typescript": "4.2.2"
+    "typescript": "4.7.4"
   }
 }

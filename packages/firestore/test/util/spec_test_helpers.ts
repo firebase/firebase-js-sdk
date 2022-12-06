@@ -57,7 +57,8 @@ export function encodeWatchChange(
           document: {
             name: toName(serializer, doc.key),
             fields: doc?.data.value.mapValue.fields,
-            updateTime: toVersion(serializer, doc.version)
+            updateTime: toVersion(serializer, doc.version),
+            createTime: toVersion(serializer, doc?.createTime)
           },
           targetIds: watchChange.updatedTargetIds,
           removedTargetIds: watchChange.removedTargetIds

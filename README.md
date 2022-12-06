@@ -190,14 +190,16 @@ scope](https://www.npmjs.com/search?q=scope%3Afirebase) on NPM.
 
 ### Testing the SDK Locally
 
-Please be sure to build your repo before proceeding any further.
+Please be sure your product's package has been built before proceeding any further. (If you haven't built this repo before, make sure to run `yarn build` at the root)
 In order to manually test your SDK changes locally, you must use [yarn link](https://classic.yarnpkg.com/en/docs/cli/link):
 
 ```shell
 $ cd packages/firebase
 $ yarn link # initialize the linking to the other folder
-$ cd ../<my-test-app-dir> # cd into your personal project directory
-$ yarn link firebase # tell yarn to use the locally built firebase SDK instead
+$ cd ../packages/<my-product> # Example: $ cd packages/database
+$ yarn link # link your product to make it available elsewhere
+$ cd <my-test-app-dir> # cd into your personal project directory
+$ yarn link firebase @firebase/<my-product> # tell yarn to use the locally built firebase SDK instead
 ```
 
 This will create a symlink and point your `<my-test-app-dir>` to the locally built version of the firebase SDK.
