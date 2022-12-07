@@ -93,7 +93,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
         );
         await TotpMultiFactorGenerator.generateSecret(session);
       } catch (e) {
-        expect(e.code).to.eql(`auth/${AuthErrorCode.INTERNAL_ERROR}`);
+        expect((e as any).code).to.eql(`auth/${AuthErrorCode.INTERNAL_ERROR}`);
       }
     });
     it('generateSecret should generate a valid secret by starting enrollment', async () => {
