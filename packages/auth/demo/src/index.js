@@ -321,7 +321,14 @@ function onUseDeviceLanguage() {
   $('#language-code').val(auth.languageCode);
   alertSuccess('Using device language "' + auth.languageCode + '".');
 }
-
+/**
+ * Set tenant id for the firebase project.
+ */
+function onSetTenantIdClick(_event) {
+  const tenantId = $('#set-tenant').val();
+  auth.tenantId = tenantId === '' ? null : tenantId;
+  alertSuccess('Tenant Id : ' + auth.tenantId);
+}
 /**
  * Changes the Auth state persistence to the specified one.
  */
@@ -2093,6 +2100,8 @@ function initApp() {
   $('#enroll-mfa-totp-start').click(onStartEnrollWithTotpMultiFactor);
   // Completes multi-factor enrollment with supplied OTP(One-Time Password).
   $('#enroll-mfa-totp-finalize').click(onFinalizeEnrollWithTotpMultiFactor);
+  // Sets tenant for the current auth instance
+  $('#set-tenant-btn').click(onSetTenantIdClick);
 }
 
 $(initApp);
