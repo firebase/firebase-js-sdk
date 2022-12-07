@@ -23,6 +23,7 @@ import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node
 import { _generateEventId } from '../../../src/core/util/event_id';
 import { getAppConfig, getEmulatorUrl } from './settings';
 import { resetEmulator } from './emulator_rest_helpers';
+// @ts-ignore - ignore types since this is only used in tests.
 import totp from 'totp-generator';
 interface IntegrationTestAuth extends Auth {
   cleanUp(): Promise<void>;
