@@ -533,7 +533,7 @@ describe('RemoteConfig', () => {
     it('can not be called if a fetch has already happened', () => {
       const emulatorUrl = 'http://localhost:9200';
 
-      // init storage as if it had never fetched
+      // init storage as if it had already fetched
       storageCache.getLastFetchStatus = sinon.stub().returns('success');
 
       const expectedError = ERROR_FACTORY.create(ErrorCode.ALREADY_FETCHED);
