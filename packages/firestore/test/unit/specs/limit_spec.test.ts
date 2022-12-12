@@ -343,7 +343,10 @@ describeSpec('Limits:', [], () => {
           .watchSends({ affects: [limitQuery] }, secondDocument)
           .watchFilters([limitQuery], [secondDocument.key])
           .watchSnapshots(1004)
-          .expectActiveTargets({ query: limitQuery, resumeToken: '' })
+          .expectActiveTargets({
+            query: limitQuery,
+            resume: { resumeToken: '' }
+          })
           .watchRemoves(limitQuery)
           .watchAcksFull(limitQuery, 1005, secondDocument)
           // The snapshot after the existence filter mismatch triggers limbo

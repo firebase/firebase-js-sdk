@@ -116,7 +116,7 @@ describeSpec('Existence Filters:', [], () => {
         .watchSnapshots(2000)
         // query is now marked as "inconsistent" because of filter mismatch
         .expectEvents(query1, { fromCache: true })
-        .expectActiveTargets({ query: query1, resumeToken: '' })
+        .expectActiveTargets({ query: query1, resume: { resumeToken: '' } })
         .watchRemoves(query1) // Acks removal of query
         .watchAcksFull(query1, 2000, doc1)
         .expectLimboDocs(doc2.key) // doc2 is now in limbo
@@ -146,7 +146,7 @@ describeSpec('Existence Filters:', [], () => {
         .watchSnapshots(2000)
         // query is now marked as "inconsistent" because of filter mismatch
         .expectEvents(query1, { fromCache: true })
-        .expectActiveTargets({ query: query1, resumeToken: '' })
+        .expectActiveTargets({ query: query1, resume: { resumeToken: '' } })
         .watchRemoves(query1) // Acks removal of query
         .watchAcksFull(query1, 2000, doc1)
         .expectLimboDocs(doc2.key) // doc2 is now in limbo
@@ -173,14 +173,14 @@ describeSpec('Existence Filters:', [], () => {
         .watchStreamCloses(Code.UNAVAILABLE)
         .expectActiveTargets({
           query: query1,
-          resumeToken: 'existence-filter-resume-token'
+          resume: { resumeToken: 'existence-filter-resume-token' }
         })
         .watchAcks(query1)
         .watchFilters([query1], [doc1.key]) // in the next sync doc2 was deleted
         .watchSnapshots(2000)
         // query is now marked as "inconsistent" because of filter mismatch
         .expectEvents(query1, { fromCache: true })
-        .expectActiveTargets({ query: query1, resumeToken: '' })
+        .expectActiveTargets({ query: query1, resume: { resumeToken: '' } })
         .watchRemoves(query1) // Acks removal of query
         .watchAcksFull(query1, 2000, doc1)
         .expectLimboDocs(doc2.key) // doc2 is now in limbo
@@ -211,7 +211,7 @@ describeSpec('Existence Filters:', [], () => {
         // The query result includes doc3, but is marked as "inconsistent"
         // due to the filter mismatch
         .expectEvents(query1, { added: [doc3], fromCache: true })
-        .expectActiveTargets({ query: query1, resumeToken: '' })
+        .expectActiveTargets({ query: query1, resume: { resumeToken: '' } })
         .watchRemoves(query1) // Acks removal of query
         .watchAcksFull(query1, 3000, doc1, doc2, doc3)
         .expectEvents(query1, { added: [doc2] })
@@ -243,7 +243,7 @@ describeSpec('Existence Filters:', [], () => {
         .watchSnapshots(2000)
         // query is now marked as "inconsistent" because of filter mismatch
         .expectEvents(query1, { fromCache: true })
-        .expectActiveTargets({ query: query1, resumeToken: '' })
+        .expectActiveTargets({ query: query1, resume: { resumeToken: '' } })
         .watchRemoves(query1) // Acks removal of query
         .watchAcksFull(query1, 2000, doc1)
         .expectLimboDocs(doc2.key) // doc2 is now in limbo

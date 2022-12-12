@@ -356,7 +356,7 @@ describeSpec('Bundles:', ['no-ios'], () => {
           // Read named query from loaded bundle by secondary.
           .client(0)
           .expectListen(query1, { readTime: 400 })
-          .expectActiveTargets({ query: query1, readTime: 400 })
+          .expectActiveTargets({ query: query1, resume: { readTime: 400 } })
           .userListens(query2, { readTime: 560 })
           .expectEvents(query2, {
             added: [doc('collection/a', 550, { value: 'c' })],

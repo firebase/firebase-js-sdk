@@ -166,7 +166,10 @@ describeSpec('Persistence:', [], () => {
         .expectEvents(query1, { added: [anonDoc], hasPendingWrites: true })
         .changeUser('user1')
         // A user change will re-send the query with the current resume token
-        .expectActiveTargets({ query: query1, resumeToken: 'resume-token-500' })
+        .expectActiveTargets({
+          query: query1,
+          resume: { resumeToken: 'resume-token-500' }
+        })
         .expectEvents(query1, { removed: [anonDoc] })
         .userSets('users/user1', { uid: 'user1' })
         .expectEvents(query1, { added: [user1Doc], hasPendingWrites: true })

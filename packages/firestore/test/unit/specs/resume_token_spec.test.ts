@@ -35,7 +35,7 @@ describeSpec('Resume tokens:', [], () => {
       .watchStreamCloses(Code.UNAVAILABLE)
       .expectActiveTargets({
         query: query1,
-        resumeToken: 'custom-query-resume-token'
+        resume: { resumeToken: 'custom-query-resume-token' }
       });
   });
 

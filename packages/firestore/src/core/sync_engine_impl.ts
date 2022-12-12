@@ -322,16 +322,6 @@ export async function syncEngineListen(
     );
     targetId = targetData.targetId;
 
-    // If there is a resume token presented, do local processing first to get
-    // expectedCount for ListenRequest. If not, send listen request to backend
-    // before local processing to reduces Query latency.
-    if (
-      syncEngineImpl.isPrimaryClient &&
-      targetData.resumeToken.approximateByteSize() === 0
-    ) {
-      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-    }
-
     viewSnapshot = await initializeViewAndComputeSnapshot(
       syncEngineImpl,
       query,
@@ -340,10 +330,7 @@ export async function syncEngineListen(
       targetData.resumeToken
     );
 
-    if (
-      syncEngineImpl.isPrimaryClient &&
-      targetData.resumeToken.approximateByteSize() > 0
-    ) {
+    if (syncEngineImpl.isPrimaryClient) {
       remoteStoreListen(syncEngineImpl.remoteStore, targetData);
     }
   }

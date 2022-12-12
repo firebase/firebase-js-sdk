@@ -889,7 +889,7 @@ describeSpec('Limbo Documents:', [], () => {
           // The view now contains the docAs and the docBs (6 documents), but
           // the existence filter indicated only 3 should match. This causes
           // the client to re-listen without a resume token.
-          .expectActiveTargets({ query: query1, resumeToken: '' })
+          .expectActiveTargets({ query: query1, resume: { resumeToken: '' } })
           // When the existence filter mismatch was detected, the client removed
           // then re-added the target. Watch needs to acknowledge the removal.
           .watchRemoves(query1)
