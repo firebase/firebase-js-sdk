@@ -89,8 +89,8 @@ export class TargetData {
   }
 
   /**
-   * Creates a new target data instance with an updated resume token and
-   * snapshot version.
+   * Creates a new target data instance with an updated resume token,
+   * snapshot version, and expectedCount if presented.
    */
   withResumeToken(
     resumeToken: ByteString,
@@ -109,6 +109,9 @@ export class TargetData {
     );
   }
 
+  /**
+   * Creates a new target data instance with an updated expected count.
+   */
   withExpectedCount(expectedCount: number): TargetData {
     return new TargetData(
       this.target,

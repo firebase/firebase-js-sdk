@@ -335,12 +335,18 @@ function sendWatchRequest(
     targetData.targetId
   );
 
-  const expectedCount = remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(
-    targetData.targetId
-  ).size;
-  const newTargetData = targetData.withExpectedCount(expectedCount);
-
-  ensureWatchStream(remoteStoreImpl).watch(newTargetData);
+  // If there is a resume token or read time in target data, get number of
+  // local documents for this target, and add it to expectedCount.
+  if (
+    targetData.resumeToken.approximateByteSize() > 0 ||
+    targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
+  ) {
+    const expectedCount = remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(
+      targetData.targetId
+    ).size;
+    targetData = targetData.withExpectedCount(expectedCount);
+  }
+  ensureWatchStream(remoteStoreImpl).watch(targetData);
 }
 
 /**

@@ -1809,4 +1809,42 @@ describeSpec('Listens:', [], () => {
       );
     }
   );
+
+  specTest(
+    'Query with resume target can pass in expectedCount to target',
+    ['exclusive'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      return (
+        spec()
+          .withGCEnabled(false)
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // There is 1 remote document from previous listen
+          .userListens(query1, { resumeToken: 'resume-token-1000' }, 1)
+          .expectEvents(query1, { added: [docA], fromCache: true })
+      );
+    }
+  );
+
+  specTest('ExpectedCount in Target should include local mutations', ['exclusive'], () => {
+    const query1 = query('collection');
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 1000, { key: 'b' });
+    return (
+      spec()
+        .withGCEnabled(false)
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA, docB)
+        .expectEvents(query1, { added: [docA, docB] })
+        .userUnlistens(query1)
+        .userDeletes('collection/a')
+        .userListens(query1, { resumeToken: 'resume-token-1000' }, 2)
+        .expectEvents(query1, {  added: [docB],  fromCache: true })
+    );
+  });
 });

@@ -321,7 +321,6 @@ export async function syncEngineListen(
       targetData.targetId
     );
     targetId = targetData.targetId;
-
     viewSnapshot = await initializeViewAndComputeSnapshot(
       syncEngineImpl,
       query,
