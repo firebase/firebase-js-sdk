@@ -1811,7 +1811,7 @@ describeSpec('Listens:', [], () => {
   );
 
   specTest(
-    'Query with resume target can pass in expectedCount to target',
+    'Query with resume target can pass in expectedCount to listen request',
     [],
     () => {
       const query1 = query('collection');
@@ -1826,13 +1826,12 @@ describeSpec('Listens:', [], () => {
           .expectEvents(query1, {})
           .userUnlistens(query1)
           .watchRemoves(query1)
-          // There is 1 remote document from previous listen.
+          // There is 0 remote document from previous listen.
           .userListens(query1, { resumeToken: 'resume-token-1000' }, 0)
           .expectEvents(query1, { fromCache: true })
           .watchAcksFull(query1, 2000, docA, docB)
           .expectEvents(query1, { added: [docA, docB] })
           .userUnlistens(query1)
-          // There are 2 remote documents from previous listen.
           .userListens(query1, { resumeToken: 'resume-token-2000' }, 2)
           .expectEvents(query1, { added: [docA, docB], fromCache: true })
       );
@@ -1840,7 +1839,33 @@ describeSpec('Listens:', [], () => {
   );
 
   specTest(
-    'ExpectedCount in Target should work after coming back online',
+    'ExpectedCount should equal to the number of documents that last matched the query at the resume token',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docBLocal = doc('collection/b', 1000, {
+        key: 'b'
+      }).setHasLocalMutations();
+
+      return spec()
+        .withGCEnabled(false)
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA] })
+        .userUnlistens(query1)
+        .userSets('collection/b', { key: 'b' })
+        .userListens(query1, { resumeToken: 'resume-token-1000' }, 1)
+        .expectEvents(query1, {
+          added: [docA, docBLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        });
+    }
+  );
+
+  specTest(
+    'ExpectedCount in listen request should work after coming back online',
     [],
     () => {
       const query1 = query('collection');
@@ -1865,26 +1890,4 @@ describeSpec('Listens:', [], () => {
         .restoreListen(query1, 'resume-token-1000', 1);
     }
   );
-
-  specTest('ExpectedCount in Target should work on re-listen', [], () => {
-    const query1 = query('collection');
-    const docA = doc('collection/a', 1000, { key: 'a' });
-    const docBLocal = doc('collection/b', 1000, {
-      key: 'b'
-    }).setHasLocalMutations();
-
-    return spec()
-      .withGCEnabled(false)
-      .userListens(query1)
-      .watchAcksFull(query1, 1000, docA)
-      .expectEvents(query1, { added: [docA] })
-      .userUnlistens(query1)
-      .userSets('collection/b', { key: 'b' })
-      .userListens(query1, { resumeToken: 'resume-token-1000' }, 1)
-      .expectEvents(query1, {
-        added: [docA, docBLocal],
-        fromCache: true,
-        hasPendingWrites: true
-      });
-  });
 });

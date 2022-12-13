@@ -335,8 +335,6 @@ function sendWatchRequest(
     targetData.targetId
   );
 
-  // If there is a resume token or read time in target data, get number of
-  // local documents for this target, and add it to expectedCount.
   if (
     targetData.resumeToken.approximateByteSize() > 0 ||
     targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
@@ -346,6 +344,7 @@ function sendWatchRequest(
     ).size;
     targetData = targetData.withExpectedCount(expectedCount);
   }
+
   ensureWatchStream(remoteStoreImpl).watch(targetData);
 }
 
