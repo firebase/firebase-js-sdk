@@ -320,7 +320,7 @@ export function getDatabase(
   const db = _getProvider(app, 'database').getImmediate({
     identifier: url
   }) as Database;
-  if(!db._instanceStarted) {
+  if (!db._instanceStarted) {
     const emulator = getDefaultEmulatorHostnameAndPort('database');
     if (emulator) {
       connectDatabaseEmulator(db, ...emulator);

@@ -77,12 +77,12 @@ describe('Database@exp Tests', () => {
     const db = getDatabase(defaultApp);
     expect(db).to.be.ok;
   });
-  it.only('doesn\'t try to connect to emulator after database has already started', async () => {
+  it("doesn't try to connect to emulator after database has already started", async () => {
     const db = getDatabase(defaultApp);
     const r = ref(db, '.info/connected');
     const deferred = new Deferred();
-    onValue(r, (snapshot) => {
-      if(snapshot.val()) {
+    onValue(r, snapshot => {
+      if (snapshot.val()) {
         deferred.resolve();
       }
     });
@@ -90,7 +90,7 @@ describe('Database@exp Tests', () => {
     process.env.__FIREBASE_DEFAULTS__ = JSON.stringify({
       emulatorHosts: {
         database: 'localhost:9000'
-      },
+      }
     });
     expect(() => getDatabase(defaultApp)).to.not.throw();
   });
