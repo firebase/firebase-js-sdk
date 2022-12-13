@@ -1816,33 +1816,75 @@ describeSpec('Listens:', [], () => {
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 1000, { key: 'b' });
+
       return (
         spec()
           .withGCEnabled(false)
           .userListens(query1)
-          .watchAcksFull(query1, 1000, docA)
-          .expectEvents(query1, { added: [docA] })
+          .watchAcksFull(query1, 1000)
+          .expectEvents(query1, {})
           .userUnlistens(query1)
           .watchRemoves(query1)
           // There is 1 remote document from previous listen.
-          .userListens(query1, { resumeToken: 'resume-token-1000' }, 1)
-          .expectEvents(query1, { added: [docA], fromCache: true })
+          .userListens(query1, { resumeToken: 'resume-token-1000' }, 0)
+          .expectEvents(query1, { fromCache: true })
+          .watchAcksFull(query1, 2000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          .userUnlistens(query1)
+          // There are 2 remote documents from previous listen.
+          .userListens(query1, { resumeToken: 'resume-token-2000' }, 2)
+          .expectEvents(query1, { added: [docA, docB], fromCache: true })
       );
     }
   );
 
-  specTest('ExpectedCount in Target should include local mutations', [], () => {
+  specTest(
+    'ExpectedCount in Target should work after coming back online',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docBLocal = doc('collection/b', 1000, {
+        key: 'b'
+      }).setHasLocalMutations();
+
+      return spec()
+        .withGCEnabled(false)
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA] })
+        .userSets('collection/b', { key: 'b' })
+        .expectEvents(query1, {
+          hasPendingWrites: true,
+          added: [docBLocal]
+        })
+        .disableNetwork()
+        .expectEvents(query1, { hasPendingWrites: true, fromCache: true })
+        .enableNetwork()
+        .restoreListen(query1, 'resume-token-1000', 1);
+    }
+  );
+
+  specTest('ExpectedCount in Target should work on re-listen', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { key: 'a' });
-    const docB = doc('collection/b', 1000, { key: 'b' });
+    const docBLocal = doc('collection/b', 1000, {
+      key: 'b'
+    }).setHasLocalMutations();
+
     return spec()
       .withGCEnabled(false)
       .userListens(query1)
-      .watchAcksFull(query1, 1000, docA, docB)
-      .expectEvents(query1, { added: [docA, docB] })
+      .watchAcksFull(query1, 1000, docA)
+      .expectEvents(query1, { added: [docA] })
       .userUnlistens(query1)
-      .userDeletes('collection/a')
-      .userListens(query1, { resumeToken: 'resume-token-1000' }, 2)
-      .expectEvents(query1, { added: [docB], fromCache: true });
+      .userSets('collection/b', { key: 'b' })
+      .userListens(query1, { resumeToken: 'resume-token-1000' }, 1)
+      .expectEvents(query1, {
+        added: [docA, docBLocal],
+        fromCache: true,
+        hasPendingWrites: true
+      });
   });
 });

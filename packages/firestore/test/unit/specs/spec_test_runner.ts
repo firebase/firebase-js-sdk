@@ -1130,7 +1130,7 @@ abstract class TestRunner {
            expectedTarget.resumeToken
          )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
       );
-      if (expected.expectedCount) {
+      if (expected.expectedCount !== undefined) {
         expect(actualTarget.expectedCount).to.equal(
           expectedTarget.expectedCount
         );

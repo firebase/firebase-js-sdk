@@ -1131,7 +1131,7 @@ export class SpecBuilder {
         queries: [SpecBuilder.queryToSpec(query)],
         resumeToken: resume?.resumeToken || '',
         readTime: resume?.readTime,
-        expectedCount: expectedCount || 0
+        expectedCount
       };
     }
   }
