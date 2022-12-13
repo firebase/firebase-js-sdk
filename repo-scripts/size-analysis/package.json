@@ -28,21 +28,21 @@
     "@rollup/plugin-virtual": "2.1.0",
     "webpack": "4.46.0",
     "@types/webpack": "5.28.0",
-    "webpack-virtual-modules": "0.4.5",
+    "webpack-virtual-modules": "0.4.6",
     "child-process-promise": "2.2.1",
     "memfs": "3.4.7",
     "tmp": "0.2.1",
     "typescript": "4.7.4",
     "terser": "5.15.1",
     "yargs": "17.6.2",
-    "@firebase/util": "1.7.3",
+    "@firebase/util": "1.8.0",
     "gzip-size": "6.0.0",
     "glob": "7.2.3"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/logger": "0.3.4",
-    "@firebase/app": "0.8.4"
+    "@firebase/logger": "0.4.0",
+    "@firebase/app": "0.9.0"
   },
   "repository": {
     "directory": "repo-scripts/size-analysis",
