@@ -93,6 +93,7 @@ describe('Database@exp Tests', () => {
       }
     });
     expect(() => getDatabase(defaultApp)).to.not.throw();
+    delete process.env.__FIREBASE_DEFAULTS__;
   });
 
   it('Can get database with custom URL', () => {
