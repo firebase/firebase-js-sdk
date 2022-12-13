@@ -97,6 +97,7 @@ let multiFactorErrorResolver = null;
 let selectedMultiFactorHint = null;
 let recaptchaSize = 'normal';
 let webWorker = null;
+var grecaptcha;
 
 // The corresponding Font Awesome icons for each provider.
 const providersIcons = {
@@ -473,6 +474,12 @@ function makeApplicationVerifier(submitButtonId) {
  * Clears the ApplicationVerifier.
  */
 function clearApplicationVerifier() {
+    console.log("grecaptcha is of type - " + typeof grecaptcha);
+  if (typeof grecaptcha  !== 'undefined') {
+    console.log("Grecaptcha exists, type - " + typeof grecaptcha);
+    grecaptcha.reset();
+    console.log("Called recaptcha reset");
+  }
   if (applicationVerifier) {
     applicationVerifier.clear();
     applicationVerifier = null;
