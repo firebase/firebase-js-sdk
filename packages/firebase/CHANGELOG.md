@@ -1,5 +1,49 @@
 # firebase
 
+## 9.15.0
+
+### Minor Changes
+
+- [`ab3f16cba`](https://github.com/firebase/firebase-js-sdk/commit/ab3f16cbabc420fab0a322a21c9e28d3cbed4f24) [#6796](https://github.com/firebase/firebase-js-sdk/pull/6796) - Upgrade TypeScript to 4.7.4 (was 4.2.2)
+
+- [`fde5adf63`](https://github.com/firebase/firebase-js-sdk/commit/fde5adf638dae4714ff7f25c75e475344907e05e) [#6694](https://github.com/firebase/firebase-js-sdk/pull/6694) - Functions in the Firestore package that return QueryConstraints (for example: `where(...)`, `limit(...)`, and `orderBy(...)`)
+  now return a more specific type, which extends QueryConstraint. Refactoring and code that supports future features is also
+  included in this release.
+
+- [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be) [#6799](https://github.com/firebase/firebase-js-sdk/pull/6799) - Update TypeScript version to 4.7.4.
+
+### Patch Changes
+
+- [`7e237cd47`](https://github.com/firebase/firebase-js-sdk/commit/7e237cd47d7ab923eec62e648e857a1e36d60520) [#6826](https://github.com/firebase/firebase-js-sdk/pull/6826) - Modify entry point ESM bundles to conform to Node ESM specs.
+
+- Updated dependencies [[`ab3f16cba`](https://github.com/firebase/firebase-js-sdk/commit/ab3f16cbabc420fab0a322a21c9e28d3cbed4f24), [`37dd6f6f4`](https://github.com/firebase/firebase-js-sdk/commit/37dd6f6f471d9912db3800b9b377080752af8c10), [`fde5adf63`](https://github.com/firebase/firebase-js-sdk/commit/fde5adf638dae4714ff7f25c75e475344907e05e), [`e650f6498`](https://github.com/firebase/firebase-js-sdk/commit/e650f649854f3c39737fe4bade43f9eedc3e611f), [`c20633ed3`](https://github.com/firebase/firebase-js-sdk/commit/c20633ed35056cbadc9d65d9ceddf4e28d1ea666), [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be)]:
+  - @firebase/firestore@3.8.0
+  - @firebase/firestore-compat@0.3.0
+  - @firebase/database@0.14.0
+  - @firebase/database-compat@0.3.0
+  - @firebase/auth@0.21.0
+  - @firebase/util@1.8.0
+  - @firebase/analytics@0.9.0
+  - @firebase/analytics-compat@0.2.0
+  - @firebase/app@0.9.0
+  - @firebase/app-check@0.6.0
+  - @firebase/app-check-compat@0.3.0
+  - @firebase/app-compat@0.2.0
+  - @firebase/app-types@0.9.0
+  - @firebase/auth-compat@0.3.0
+  - @firebase/functions@0.9.0
+  - @firebase/functions-compat@0.3.0
+  - @firebase/installations@0.6.0
+  - @firebase/installations-compat@0.2.0
+  - @firebase/messaging@0.12.0
+  - @firebase/messaging-compat@0.2.0
+  - @firebase/performance@0.6.0
+  - @firebase/performance-compat@0.2.0
+  - @firebase/remote-config@0.4.0
+  - @firebase/remote-config-compat@0.2.0
+  - @firebase/storage@0.10.0
+  - @firebase/storage-compat@0.2.0
+
 ## 9.14.0
 
 ### Minor Changes

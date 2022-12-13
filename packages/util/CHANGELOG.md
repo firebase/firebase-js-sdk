@@ -1,5 +1,15 @@
 # @firebase/util
 
+## 1.8.0
+
+### Minor Changes
+
+- [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be) [#6799](https://github.com/firebase/firebase-js-sdk/pull/6799) - Update TypeScript version to 4.7.4.
+
+### Patch Changes
+
+- [`c20633ed3`](https://github.com/firebase/firebase-js-sdk/commit/c20633ed35056cbadc9d65d9ceddf4e28d1ea666) [#6841](https://github.com/firebase/firebase-js-sdk/pull/6841) - Fix for third party window content that cannot access IndexedDB if the browser is set to never accept third party cookies on Firefox.
+
 ## 1.7.3
 
 ### Patch Changes
