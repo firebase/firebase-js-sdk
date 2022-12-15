@@ -524,7 +524,7 @@ describe('Database@exp Tests', () => {
     expect(latestValue).to.equal(2);
     unsubscribe();
   });
-  it.only('doesn\'t override a tagged query with no data at the location', async () => {
+  it('doesn\'t override a tagged query with no data at the location', async () => {
     const database = getDatabase(defaultApp);
     const testingRef = ref(database, 'testing');
     await set(testingRef, {
