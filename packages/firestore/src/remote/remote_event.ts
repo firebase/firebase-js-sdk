@@ -67,14 +67,16 @@ export class RemoteEvent {
   // PORTING NOTE: Multi-tab only
   static createSynthesizedRemoteEventForCurrentChange(
     targetId: TargetId,
-    current: boolean
+    current: boolean,
+    resumeToken: ByteString
   ): RemoteEvent {
     const targetChanges = new Map<TargetId, TargetChange>();
     targetChanges.set(
       targetId,
       TargetChange.createSynthesizedTargetChangeForCurrentChange(
         targetId,
-        current
+        current,
+        resumeToken
       )
     );
     return new RemoteEvent(
@@ -134,10 +136,11 @@ export class TargetChange {
    */
   static createSynthesizedTargetChangeForCurrentChange(
     targetId: TargetId,
-    current: boolean
+    current: boolean,
+    resumeToken: ByteString
   ): TargetChange {
     return new TargetChange(
-      ByteString.EMPTY_BYTE_STRING,
+      resumeToken,
       current,
       documentKeySet(),
       documentKeySet(),

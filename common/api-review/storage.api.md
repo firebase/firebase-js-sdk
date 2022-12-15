@@ -83,7 +83,7 @@ export class _FirebaseStorageImpl implements FirebaseStorage {
     // Warning: (ae-forgotten-export) The symbol "Request" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    _makeRequest<I extends ConnectionType, O>(requestInfo: RequestInfo_2<I, O>, requestFactory: () => Connection<I>, authToken: string | null, appCheckToken: string | null): Request_2<O>;
+    _makeRequest<I extends ConnectionType, O>(requestInfo: RequestInfo_2<I, O>, requestFactory: () => Connection<I>, authToken: string | null, appCheckToken: string | null, retry?: boolean): Request_2<O>;
     // (undocumented)
     makeRequestWithTokens<I extends ConnectionType, O>(requestInfo: RequestInfo_2<I, O>, requestFactory: () => Connection<I>): Promise<O>;
     _makeStorageReference(loc: _Location): _Reference;
@@ -319,11 +319,13 @@ export class _UploadTask {
     _blob: _FbsBlob;
     cancel(): boolean;
     catch<T>(onRejected: (p1: StorageError_2) => T | Promise<T>): Promise<T>;
+    // (undocumented)
+    isExponentialBackoffExpired(): boolean;
     // Warning: (ae-forgotten-export) The symbol "Metadata" needs to be exported by the entry point index.d.ts
     _metadata: Metadata | null;
     // Warning: (ae-forgotten-export) The symbol "Unsubscribe" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Subscribe" needs to be exported by the entry point index.d.ts
-    on(type: _TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: StorageError_2) => unknown) | null, completed?: Unsubscribe_2 | null): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot>;
+    on(type: _TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: StorageError_2) => unknown) | null, completed?: CompleteFn | null): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot>;
     pause(): boolean;
     resume(): boolean;
     get snapshot(): UploadTaskSnapshot;

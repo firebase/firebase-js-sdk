@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   _getProvider,
   _removeServiceInstance,
   FirebaseApp,
   getApp
 } from '@firebase/app';
-import { deepEqual } from '@firebase/util';
+import { deepEqual, getDefaultEmulatorHostnameAndPort } from '@firebase/util';
 
 import { User } from '../auth/user';
 import {
@@ -31,7 +30,7 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from '../core/component_provider';
-import { DatabaseId } from '../core/database_info';
+import { DatabaseId, DEFAULT_DATABASE_NAME } from '../core/database_info';
 import {
   FirestoreClient,
   firestoreClientDisableNetwork,
@@ -43,7 +42,10 @@ import {
   setOnlineComponentProvider
 } from '../core/firestore_client';
 import { makeDatabaseInfo } from '../lite-api/components';
-import { Firestore as LiteFirestore } from '../lite-api/database';
+import {
+  Firestore as LiteFirestore,
+  connectFirestoreEmulator
+} from '../lite-api/database';
 import { Query } from '../lite-api/reference';
 import {
   indexedDbClearPersistence,
@@ -56,6 +58,7 @@ import { AsyncQueue } from '../util/async_queue';
 import { newAsyncQueue } from '../util/async_queue_impl';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
+import { logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
@@ -87,7 +90,7 @@ export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
 /**
  * The Cloud Firestore service interface.
  *
- * Do not call this constructor directly. Instead, use {@link getFirestore}.
+ * Do not call this constructor directly. Instead, use {@link (getFirestore:1)}.
  */
 export class Firestore extends LiteFirestore {
   /**
@@ -102,17 +105,18 @@ export class Firestore extends LiteFirestore {
 
   /** @hideconstructor */
   constructor(
-    databaseIdOrApp: DatabaseId | FirebaseApp,
     authCredentialsProvider: CredentialsProvider<User>,
-    appCheckCredentialsProvider: CredentialsProvider<string>
+    appCheckCredentialsProvider: CredentialsProvider<string>,
+    databaseId: DatabaseId,
+    app?: FirebaseApp
   ) {
     super(
-      databaseIdOrApp,
       authCredentialsProvider,
-      appCheckCredentialsProvider
+      appCheckCredentialsProvider,
+      databaseId,
+      app
     );
-    this._persistenceKey =
-      'name' in databaseIdOrApp ? databaseIdOrApp.name : '[DEFAULT]';
+    this._persistenceKey = app?.name || '[DEFAULT]';
   }
 
   _terminate(): Promise<void> {
@@ -128,23 +132,32 @@ export class Firestore extends LiteFirestore {
 /**
  * Initializes a new instance of {@link Firestore} with the provided settings.
  * Can only be called before any other function, including
- * {@link getFirestore}. If the custom settings are empty, this function is
- * equivalent to calling {@link getFirestore}.
+ * {@link (getFirestore:1)}. If the custom settings are empty, this function is
+ * equivalent to calling {@link (getFirestore:1)}.
  *
  * @param app - The {@link @firebase/app#FirebaseApp} with which the {@link Firestore} instance will
  * be associated.
  * @param settings - A settings object to configure the {@link Firestore} instance.
+ * @param databaseId - The name of database.
  * @returns A newly initialized {@link Firestore} instance.
  */
 export function initializeFirestore(
   app: FirebaseApp,
-  settings: FirestoreSettings
+  settings: FirestoreSettings,
+  databaseId?: string
 ): Firestore {
+  if (!databaseId) {
+    databaseId = DEFAULT_DATABASE_NAME;
+  }
   const provider = _getProvider(app, 'firestore');
 
-  if (provider.isInitialized()) {
-    const existingInstance = provider.getImmediate();
-    const initialSettings = provider.getOptions() as FirestoreSettings;
+  if (provider.isInitialized(databaseId)) {
+    const existingInstance = provider.getImmediate({
+      identifier: databaseId
+    });
+    const initialSettings = provider.getOptions(
+      databaseId
+    ) as FirestoreSettings;
     if (deepEqual(initialSettings, settings)) {
       return existingInstance;
     } else {
@@ -169,11 +182,14 @@ export function initializeFirestore(
     );
   }
 
-  return provider.initialize({ options: settings });
+  return provider.initialize({
+    options: settings,
+    instanceIdentifier: databaseId
+  });
 }
 
 /**
- * Returns the existing {@link Firestore} instance that is associated with the
+ * Returns the existing default {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
@@ -181,8 +197,57 @@ export function initializeFirestore(
  * instance is associated with.
  * @returns The {@link Firestore} instance of the provided app.
  */
-export function getFirestore(app: FirebaseApp = getApp()): Firestore {
-  return _getProvider(app, 'firestore').getImmediate() as Firestore;
+export function getFirestore(app: FirebaseApp): Firestore;
+/**
+ * Returns the existing {@link Firestore} instance that is associated with the
+ * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param databaseId - The name of database.
+ * @returns The {@link Firestore} instance of the provided app.
+ * @internal
+ */
+export function getFirestore(databaseId: string): Firestore;
+/**
+ * Returns the existing default {@link Firestore} instance that is associated with the
+ * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @returns The {@link Firestore} instance of the provided app.
+ */
+export function getFirestore(): Firestore;
+/**
+ * Returns the existing default {@link Firestore} instance that is associated with the
+ * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
+ * instance is associated with.
+ * @param databaseId - The name of database.
+ * @returns The {@link Firestore} instance of the provided app.
+ * @internal
+ */
+export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
+export function getFirestore(
+  appOrDatabaseId?: FirebaseApp | string,
+  optionalDatabaseId?: string
+): Firestore {
+  const app: FirebaseApp =
+    typeof appOrDatabaseId === 'object' ? appOrDatabaseId : getApp();
+  const databaseId =
+    typeof appOrDatabaseId === 'string'
+      ? appOrDatabaseId
+      : optionalDatabaseId || DEFAULT_DATABASE_NAME;
+  const db = _getProvider(app, 'firestore').getImmediate({
+    identifier: databaseId
+  }) as Firestore;
+  if (!db._initialized) {
+    const emulator = getDefaultEmulatorHostnameAndPort('firestore');
+    if (emulator) {
+      connectFirestoreEmulator(db, ...emulator);
+    }
+  }
+  return db;
 }
 
 /**
@@ -224,7 +289,7 @@ export function configureFirestore(firestore: Firestore): void {
  * Attempts to enable persistent storage, if possible.
  *
  * Must be called before any other functions (other than
- * {@link initializeFirestore}, {@link getFirestore} or
+ * {@link initializeFirestore}, {@link (getFirestore:1)} or
  * {@link clearIndexedDbPersistence}.
  *
  * If this fails, `enableIndexedDbPersistence()` will reject the promise it
@@ -332,7 +397,7 @@ function setPersistenceProviders(
         if (!canFallbackFromIndexedDbError(error)) {
           throw error;
         }
-        console.warn(
+        logWarn(
           'Error enabling offline persistence. Falling back to ' +
             'persistence disabled: ' +
             error
@@ -388,7 +453,7 @@ function canFallbackFromIndexedDbError(
  * Must be called while the {@link Firestore} instance is not started (after the app is
  * terminated or when the app is first initialized). On startup, this function
  * must be called before other functions (other than {@link
- * initializeFirestore} or {@link getFirestore})). If the {@link Firestore}
+ * initializeFirestore} or {@link (getFirestore:1)})). If the {@link Firestore}
  * instance is still running, the promise will be rejected with the error code
  * of `failed-precondition`.
  *
@@ -481,7 +546,7 @@ export function disableNetwork(firestore: Firestore): Promise<void> {
  * may be used. Any other function will throw a `FirestoreError`.
  *
  * To restart after termination, create a new instance of FirebaseFirestore with
- * {@link getFirestore}.
+ * {@link (getFirestore:1)}.
  *
  * Termination does not cancel any pending writes, and any promises that are
  * awaiting a response from the server will not be resolved. If you have
@@ -497,7 +562,11 @@ export function disableNetwork(firestore: Firestore): Promise<void> {
  * terminated.
  */
 export function terminate(firestore: Firestore): Promise<void> {
-  _removeServiceInstance(firestore.app, 'firestore');
+  _removeServiceInstance(
+    firestore.app,
+    'firestore',
+    firestore._databaseId.database
+  );
   return firestore._delete();
 }
 

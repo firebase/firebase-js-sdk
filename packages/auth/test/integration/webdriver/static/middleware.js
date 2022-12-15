@@ -29,5 +29,5 @@ export async function attachBlockingMiddlewareOnStart() {
   window.startAuth = async () => {
     oldStartAuth();
     await attachBlockingMiddleware();
-  }
+  };
 }

@@ -49,7 +49,10 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
-  where
+  where,
+  or,
+  and,
+  newTestApp
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -156,19 +159,19 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'enforces minimum cache size', () => {
       expect(() =>
-        newTestFirestore('test-project', undefined, { cacheSizeBytes: 1 })
+        newTestFirestore(newTestApp('test-project'), { cacheSizeBytes: 1 })
       ).to.throw('cacheSizeBytes must be at least 1048576');
     });
 
     validationIt(persistence, 'garbage collection can be disabled', () => {
       // Verify that this doesn't throw.
-      newTestFirestore('test-project', undefined, {
+      newTestFirestore(newTestApp('test-project'), {
         cacheSizeBytes: /* CACHE_SIZE_UNLIMITED= */ -1
       });
     });
 
     validationIt(persistence, 'useEmulator can set host and port', () => {
-      const db = newTestFirestore('test-project');
+      const db = newTestFirestore(newTestApp('test-project'));
       // Verify that this doesn't throw.
       connectFirestoreEmulator(db, 'localhost', 9000);
     });
@@ -191,7 +194,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       persistence,
       'useEmulator can set mockUserToken object',
       () => {
-        const db = newTestFirestore('test-project');
+        const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
         connectFirestoreEmulator(db, 'localhost', 9000, {
           mockUserToken: { sub: 'foo' }
@@ -203,7 +206,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       persistence,
       'useEmulator can set mockUserToken string',
       () => {
-        const db = newTestFirestore('test-project');
+        const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
         connectFirestoreEmulator(db, 'localhost', 9000, {
           mockUserToken: 'my-mock-user-token'
@@ -1316,6 +1319,148 @@ apiDescribe('Validation:', (persistence: boolean) => {
         'Function startAt() called with invalid data. Unsupported field value: undefined'
       );
     });
+
+    validationIt(persistence, 'invalid query filters fail', db => {
+      // Multiple inequalities, one of which is inside a nested composite filter.
+      const coll = collection(db, 'test');
+      expect(() =>
+        query(
+          coll,
+          and(
+            or(
+              and(where('a', '==', 'b'), where('c', '>', 'd')),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            where('r', '>', 's')
+          )
+        )
+      ).to.throw(
+        "Invalid query. All where filters with an inequality (<, <=, !=, not-in, >, or >=) must be on the same field. But you have inequality filters on 'c' and 'r'"
+      );
+
+      // OrderBy and inequality on different fields. Inequality inside a nested composite filter.
+      expect(() =>
+        query(
+          coll,
+          or(
+            and(where('a', '==', 'b'), where('c', '>', 'd')),
+            and(where('e', '==', 'f'), where('g', '==', 'h'))
+          ),
+          orderBy('r')
+        )
+      ).to.throw(
+        "Invalid query. You have a where filter with an inequality (<, <=, !=, not-in, >, or >=) on field 'c' and so you must also use 'c' as your first argument to orderBy(), but your first orderBy() is on field 'r' instead."
+      );
+
+      // Conflicting operations within a composite filter.
+      expect(() =>
+        query(
+          coll,
+          or(
+            and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
+            and(where('e', '==', 'f'), where('c', 'not-in', ['f', 'g']))
+          )
+        )
+      ).to.throw(
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
+      );
+
+      // Conflicting operations between a field filter and a composite filter.
+      expect(() =>
+        query(
+          coll,
+          and(
+            or(
+              and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            where('i', 'not-in', ['j', 'k'])
+          )
+        )
+      ).to.throw(
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
+      );
+
+      // Conflicting operations between two composite filters.
+      expect(() =>
+        query(
+          coll,
+          and(
+            or(
+              and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            or(
+              and(where('i', '==', 'j'), where('l', 'not-in', ['m', 'n'])),
+              and(where('o', '==', 'p'), where('q', '==', 'r'))
+            )
+          )
+        )
+      ).to.throw(
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
+      );
+
+      // Multiple top level composite filters
+      expect(() =>
+        // @ts-ignore
+        query(coll, and(where('a', '==', 'b')), or(where('b', '==', 'a')))
+      ).to.throw(
+        'InvalidQuery. When using composite filters, you cannot use ' +
+          'more than one filter at the top level. Consider nesting the multiple ' +
+          'filters within an `and(...)` statement. For example: ' +
+          'change `query(query, where(...), or(...))` to ' +
+          '`query(query, and(where(...), or(...)))`.'
+      );
+
+      // Once top level composite filter and one top level field filter
+      expect(() =>
+        // @ts-ignore
+        query(coll, or(where('a', '==', 'b')), where('b', '==', 'a'))
+      ).to.throw(
+        'InvalidQuery. When using composite filters, you cannot use ' +
+          'more than one filter at the top level. Consider nesting the multiple ' +
+          'filters within an `and(...)` statement. For example: ' +
+          'change `query(query, where(...), or(...))` to ' +
+          '`query(query, and(where(...), or(...)))`.'
+      );
+    });
+
+    validationIt(
+      persistence,
+      'passing non-filters to composite operators fails',
+      db => {
+        const compositeOperators = [
+          { name: 'or', func: or },
+          { name: 'and', func: and }
+        ];
+        const nonFilterOps = [
+          limit(1),
+          limitToLast(2),
+          startAt(1),
+          startAfter(1),
+          endAt(1),
+          endBefore(1),
+          orderBy('a')
+        ];
+
+        for (const compositeOp of compositeOperators) {
+          for (const nonFilterOp of nonFilterOps) {
+            const coll = collection(db, 'test');
+            expect(() =>
+              query(
+                coll,
+                compositeOp.func(
+                  // @ts-ignore
+                  nonFilterOp
+                )
+              )
+            ).to.throw(
+              `Function ${compositeOp.name}() requires AppliableConstraints created with a call to 'where(...)', 'or(...)', or 'and(...)'.`
+            );
+          }
+        }
+      }
+    );
   });
 });
 

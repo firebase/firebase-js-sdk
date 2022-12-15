@@ -1,0 +1,32 @@
+name: Deploy Project Config
+
+on: pull_request
+
+# Detects if any project config files (rules or functions) have changed,
+# and deploys them to the test project used for CI if so.
+# Run this in its own workflow instead of as a step before each test
+# workflow to avoid too many deploys, possibly causing race conditions.
+# Since the build step of each test workflow takes a long time, this
+# this should finish before the tests begin running.
+
+jobs:
+  test:
+    name: Deploy Firebase Project Rules and Functions
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@master
+      with:
+        # This makes Actions fetch all Git history so run-changed script can diff properly.
+        fetch-depth: 0
+    - name: Set up Node (14)
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - name: Yarn install
+      run: yarn
+    - name: Deploy project config if needed
+      run: yarn ts-node scripts/ci-test/deploy-if-needed.ts
+      env:
+        FIREBASE_CLI_TOKEN: ${{secrets.FIREBASE_CLI_TOKEN}}

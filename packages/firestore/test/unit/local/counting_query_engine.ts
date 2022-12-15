@@ -24,8 +24,15 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import { QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MutationType } from '../../../src/model/mutation';
+import {
+  DocumentKeySet,
+  DocumentMap,
+  OverlayMap
+} from '../../../src/model/collections';
+import { DocumentKey } from '../../../src/model/document_key';
+import { Overlay } from '../../../src/model/overlay';
+import { ResourcePath } from '../../../src/model/path';
 
 /**
  * A test-only query engine that forwards all API calls and exposes the number
@@ -129,13 +136,17 @@ export class CountingQueryEngine extends QueryEngine {
       },
       getEntries: (transaction, documentKeys) => {
         return subject.getEntries(transaction, documentKeys).next(result => {
-          this.documentsReadByKey += result.size;
+          result.forEach((key, doc) => {
+            if (doc.isValidDocument()) {
+              this.documentsReadByKey++;
+            }
+          });
           return result;
         });
       },
       getEntry: (transaction, documentKey) => {
         return subject.getEntry(transaction, documentKey).next(result => {
-          this.documentsReadByKey += result ? 1 : 0;
+          this.documentsReadByKey += result?.isValidDocument() ? 1 : 0;
           return result;
         });
       },

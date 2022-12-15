@@ -46,7 +46,8 @@ interface PendingPromise {
  * events
  */
 export abstract class AbstractPopupRedirectOperation
-  implements AuthEventConsumer {
+  implements AuthEventConsumer
+{
   private pendingPromise: PendingPromise | null = null;
   private eventManager: EventManager | null = null;
   readonly filter: AuthEventType[];
@@ -75,7 +76,7 @@ export abstract class AbstractPopupRedirectOperation
           await this.onExecution();
           this.eventManager.registerConsumer(this);
         } catch (e) {
-          this.reject(e);
+          this.reject(e as Error);
         }
       }
     );
@@ -101,7 +102,7 @@ export abstract class AbstractPopupRedirectOperation
     try {
       this.resolve(await this.getIdpTask(type)(params));
     } catch (e) {
-      this.reject(e);
+      this.reject(e as Error);
     }
   }
 

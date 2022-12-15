@@ -16,7 +16,7 @@
  */
 import { GTAG_URL } from '../src/constants';
 
-export function removeGtagScript(): void {
+export function removeGtagScripts(): void {
   const scriptTags = window.document.getElementsByTagName('script');
   for (const tag of Object.values(scriptTags)) {
     if (tag.src) {

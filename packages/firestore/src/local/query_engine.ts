@@ -43,7 +43,6 @@ import { Iterable } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
 import { IndexManager, IndexType } from './index_manager';
-import { INDEXING_ENABLED } from './indexeddb_schema';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -134,10 +133,6 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap | null> {
-    if (!INDEXING_ENABLED) {
-      return PersistencePromise.resolve<DocumentMap | null>(null);
-    }
-
     if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
       // key-based lookups. It is more efficient to scan all documents in a

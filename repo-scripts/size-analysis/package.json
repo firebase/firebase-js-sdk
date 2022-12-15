@@ -19,7 +19,7 @@
     "build": "rollup -c"
   },
   "dependencies": {
-    "rollup": "2.72.1",
+    "rollup": "2.79.1",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "13.3.0",
@@ -28,21 +28,21 @@
     "@rollup/plugin-virtual": "2.1.0",
     "webpack": "4.46.0",
     "@types/webpack": "5.28.0",
-    "webpack-virtual-modules": "0.4.3",
+    "webpack-virtual-modules": "0.4.6",
     "child-process-promise": "2.2.1",
-    "memfs": "3.4.1",
+    "memfs": "3.4.7",
     "tmp": "0.2.1",
-    "typescript": "4.2.2",
-    "terser": "5.13.1",
-    "yargs": "17.4.1",
-    "@firebase/util": "1.6.3",
+    "typescript": "4.7.4",
+    "terser": "5.15.1",
+    "yargs": "17.6.2",
+    "@firebase/util": "1.8.0",
     "gzip-size": "6.0.0",
-    "glob": "7.2.0"
+    "glob": "7.2.3"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/logger": "0.3.3",
-    "@firebase/app": "0.7.28"
+    "@firebase/logger": "0.4.0",
+    "@firebase/app": "0.9.0"
   },
   "repository": {
     "directory": "repo-scripts/size-analysis",

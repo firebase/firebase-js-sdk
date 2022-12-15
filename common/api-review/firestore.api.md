@@ -18,6 +18,35 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 };
 
 // @public
+export class AggregateField<T> {
+    type: string;
+}
+
+// @public
+export type AggregateFieldType = AggregateField<number>;
+
+// @public
+export class AggregateQuerySnapshot<T extends AggregateSpec> {
+    data(): AggregateSpecData<T>;
+    readonly query: Query<unknown>;
+    readonly type = "AggregateQuerySnapshot";
+}
+
+// @public
+export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(left: AggregateQuerySnapshot<T>, right: AggregateQuerySnapshot<T>): boolean;
+
+// @public
+export interface AggregateSpec {
+    // (undocumented)
+    [field: string]: AggregateFieldType;
+}
+
+// @public
+export type AggregateSpecData<T extends AggregateSpec> = {
+    [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
+};
+
+// @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
 
 // @public
@@ -141,16 +170,16 @@ export function enableMultiTabIndexedDbPersistence(firestore: Firestore): Promis
 export function enableNetwork(firestore: Firestore): Promise<void>;
 
 // @public
-export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function endAt(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
 
 // @public
-export function endAt(...fieldValues: unknown[]): QueryConstraint;
+export function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 // @public
-export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
 
 // @public
-export function endBefore(...fieldValues: unknown[]): QueryConstraint;
+export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 // @public
 export class FieldPath {
@@ -210,6 +239,11 @@ export class GeoPoint {
 }
 
 // @public
+export function getCountFromServer(query: Query<unknown>): Promise<AggregateQuerySnapshot<{
+    count: AggregateField<number>;
+}>>;
+
+// @public
 export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
 // @public
@@ -228,19 +262,46 @@ export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 export function getDocsFromServer<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 // @public
-export function getFirestore(app?: FirebaseApp): Firestore;
+export function getFirestore(app: FirebaseApp): Firestore;
+
+// @public
+export function getFirestore(): Firestore;
 
 // @public
 export function increment(n: number): FieldValue;
 
-// @public
-export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings): Firestore;
+// @beta
+export interface Index {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly collectionGroup: string;
+    readonly fields?: IndexField[];
+}
+
+// @beta
+export interface IndexConfiguration {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly indexes?: Index[];
+}
+
+// @beta
+export interface IndexField {
+    // (undocumented)
+    [key: string]: unknown;
+    readonly arrayConfig?: 'CONTAINS';
+    readonly fieldPath: string;
+    readonly order?: 'ASCENDING' | 'DESCENDING';
+}
 
 // @public
-export function limit(limit: number): QueryConstraint;
+export function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings, databaseId?: string): Firestore;
 
 // @public
-export function limitToLast(limit: number): QueryConstraint;
+export function limit(limit: number): QueryLimitConstraint;
+
+// @public
+export function limitToLast(limit: number): QueryLimitConstraint;
 
 // @public
 export function loadBundle(firestore: Firestore, bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string): LoadBundleTask;
@@ -322,7 +383,7 @@ export function onSnapshotsInSync(firestore: Firestore, observer: {
 export function onSnapshotsInSync(firestore: Firestore, onSync: () => void): Unsubscribe;
 
 // @public
-export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryConstraint;
+export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryOrderByConstraint;
 
 // @public
 export type OrderByDirection = 'desc' | 'asc';
@@ -368,7 +429,30 @@ export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T>
 }
 
 // @public
+export class QueryEndAtConstraint extends QueryConstraint {
+    readonly type: 'endBefore' | 'endAt';
+}
+
+// @public
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+
+// @public
+export class QueryFieldFilterConstraint extends QueryConstraint {
+    readonly type = "where";
+}
+
+// @public
+export class QueryLimitConstraint extends QueryConstraint {
+    readonly type: 'limit' | 'limitToLast';
+}
+
+// @public
+export type QueryNonFilterConstraint = QueryOrderByConstraint | QueryLimitConstraint | QueryStartAtConstraint | QueryEndAtConstraint;
+
+// @public
+export class QueryOrderByConstraint extends QueryConstraint {
+    readonly type = "orderBy";
+}
 
 // @public
 export class QuerySnapshot<T = DocumentData> {
@@ -379,6 +463,11 @@ export class QuerySnapshot<T = DocumentData> {
     readonly metadata: SnapshotMetadata;
     readonly query: Query<T>;
     get size(): number;
+}
+
+// @public
+export class QueryStartAtConstraint extends QueryConstraint {
+    readonly type: 'startAt' | 'startAfter';
 }
 
 // @public
@@ -395,6 +484,12 @@ export function setDoc<T>(reference: DocumentReference<T>, data: WithFieldValue<
 
 // @public
 export function setDoc<T>(reference: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): Promise<void>;
+
+// @beta
+export function setIndexConfiguration(firestore: Firestore, configuration: IndexConfiguration): Promise<void>;
+
+// @beta
+export function setIndexConfiguration(firestore: Firestore, json: string): Promise<void>;
 
 // @public
 export function setLogLevel(logLevel: LogLevel): void;
@@ -427,16 +522,16 @@ export interface SnapshotOptions {
 }
 
 // @public
-export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
 
 // @public
-export function startAfter(...fieldValues: unknown[]): QueryConstraint;
+export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
 
 // @public
-export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function startAt(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
 
 // @public
-export function startAt(...fieldValues: unknown[]): QueryConstraint;
+export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
 
 // @public
 export type TaskState = 'Error' | 'Running' | 'Success';
@@ -503,7 +598,7 @@ export function updateDoc(reference: DocumentReference<unknown>, field: string |
 export function waitForPendingWrites(firestore: Firestore): Promise<void>;
 
 // @public
-export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryConstraint;
+export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryFieldFilterConstraint;
 
 // @public
 export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';

@@ -15,6 +15,19 @@
  * limitations under the License.
  */
 
+export {
+  aggregateQuerySnapshotEqual,
+  getCountFromServer
+} from './api/aggregate';
+
+export {
+  AggregateField,
+  AggregateFieldType,
+  AggregateSpec,
+  AggregateSpecData,
+  AggregateQuerySnapshot
+} from './lite-api/aggregate_types';
+
 export { FieldPath, documentId } from './api/field_path';
 
 export {
@@ -72,6 +85,7 @@ export {
 } from './api/reference';
 
 export {
+  and,
   endAt,
   endBefore,
   startAt,
@@ -79,10 +93,19 @@ export {
   limit,
   limitToLast,
   where,
+  or,
   orderBy,
   query,
   QueryConstraint,
   QueryConstraintType,
+  QueryCompositeFilterConstraint,
+  QueryFilterConstraint,
+  QueryFieldFilterConstraint,
+  QueryOrderByConstraint,
+  QueryLimitConstraint,
+  QueryNonFilterConstraint,
+  QueryStartAtConstraint,
+  QueryEndAtConstraint,
   OrderByDirection,
   WhereFilterOp
 } from './api/filter';
@@ -143,6 +166,13 @@ export {
   UnionToIntersection
 } from '../src/lite-api/types';
 
+export {
+  setIndexConfiguration,
+  Index,
+  IndexConfiguration,
+  IndexField
+} from './api/index_configuration';
+
 /**
  * Internal exports
  */
@@ -160,4 +190,3 @@ export type { ByteString as _ByteString } from './util/byte_string';
 export { logWarn as _logWarn } from './util/log';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
-export { setIndexConfiguration as _setIndexConfiguration } from './api/index_configuration';

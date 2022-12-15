@@ -21,8 +21,10 @@
 import { ApiDocumenterCommandLine } from './ApiDocumenterCommandLine';
 import { BaseAction } from './BaseAction';
 import { MarkdownDocumenter } from '../documenters/MarkdownDocumenter';
+import { CommandLineStringParameter } from '@rushstack/ts-command-line';
 
 export class MarkdownAction extends BaseAction {
+  private _sortFunctions!: CommandLineStringParameter;
   public constructor(parser: ApiDocumenterCommandLine) {
     super({
       actionName: 'markdown',
@@ -33,15 +35,36 @@ export class MarkdownAction extends BaseAction {
     });
   }
 
+  protected onDefineParameters(): void {
+    super.onDefineParameters();
+
+    this._sortFunctions = this.defineStringParameter({
+      parameterLongName: '--sort-functions',
+      argumentName: 'PRIORITY_PARAMS',
+      description:
+        `Sorts functions tables and listings by first parameter. ` +
+        `Provide comma-separated strings for preferred params to be ` +
+        `ordered first. Alphabetical otherwise.`
+    });
+  }
+
   protected async onExecute(): Promise<void> {
     // override
-    const { apiModel, outputFolder, addFileNameSuffix } = this.buildApiModel();
+    const { apiModel, outputFolder, addFileNameSuffix, projectName } =
+      this.buildApiModel();
+    const sortFunctions: string = this._sortFunctions.value || '';
+
+    if (!projectName) {
+      throw new Error('No project name provided. Use --project.');
+    }
 
     const markdownDocumenter: MarkdownDocumenter = new MarkdownDocumenter({
       apiModel,
       documenterConfig: undefined,
       outputFolder,
-      addFileNameSuffix
+      addFileNameSuffix,
+      projectName,
+      sortFunctions
     });
     markdownDocumenter.generateFiles();
   }

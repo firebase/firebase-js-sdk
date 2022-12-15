@@ -15,19 +15,16 @@
  * limitations under the License.
  */
 
-
 import { expect } from 'chai';
-import {
-  PersistenceType
-} from '../../core/persistence';
+import { PersistenceType } from '../../core/persistence';
 import { BrowserPersistenceClass } from './browser';
 
 // Most tests for this class exist in the tests for the subclasses.
 
 class TestPersistence extends BrowserPersistenceClass {
   constructor(storageRetriever: () => Storage) {
-      super(storageRetriever, PersistenceType.NONE);
-    }
+    super(storageRetriever, PersistenceType.NONE);
+  }
 }
 
 describe('platform_browser/persistence/browser', () => {

@@ -20,10 +20,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install google-chrome-stable
     - uses: actions/checkout@v2
-    - name: Set up Node (14)
+    - name: Set up Node (16)
       uses: actions/setup-node@v2
       with:
-        node-version: 14.x
+        node-version: 16.x
     - name: Bump Node memory limit
       run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
@@ -38,6 +38,8 @@ jobs:
       run: |
         xvfb-run yarn test:ci
         node scripts/print_test_logs.js
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
     - name: Generate coverage file
       run: yarn ci:coverage
     - name: Run coverage

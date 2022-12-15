@@ -323,7 +323,7 @@ describe('platform_browser/strategies/phone', () => {
       });
 
       it('works with an enrollment flow', async () => {
-        const endpoint = mockEndpoint(Endpoint.START_PHONE_MFA_ENROLLMENT, {
+        const endpoint = mockEndpoint(Endpoint.START_MFA_ENROLLMENT, {
           phoneSessionInfo: {
             sessionInfo: 'session-info'
           }
@@ -345,7 +345,7 @@ describe('platform_browser/strategies/phone', () => {
       });
 
       it('works when completing the sign in flow', async () => {
-        const endpoint = mockEndpoint(Endpoint.START_PHONE_MFA_SIGN_IN, {
+        const endpoint = mockEndpoint(Endpoint.START_MFA_SIGN_IN, {
           phoneResponseInfo: {
             sessionInfo: 'session-info'
           }

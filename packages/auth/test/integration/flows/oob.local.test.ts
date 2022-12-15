@@ -269,13 +269,12 @@ describe('Integration test: oob codes', () => {
       ).to.be.rejectedWith(FirebaseError, 'auth/invalid-email');
     });
 
-    generateMiddlewareTests(() => auth, () => {
-      return signInWithEmailLink(
-        auth,
-        email,
-        oobSession.oobLink
-      );
-    });
+    generateMiddlewareTests(
+      () => auth,
+      () => {
+        return signInWithEmailLink(auth, email, oobSession.oobLink);
+      }
+    );
   });
 
   it('can be used to verify email', async () => {

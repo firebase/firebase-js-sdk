@@ -39,13 +39,18 @@ import * as client from './client';
 import * as storage from './storage';
 import * as util from './util';
 import { logger } from './logger';
-import { getState, clearState, setState, getDebugState } from './state';
+import {
+  getStateReference,
+  clearState,
+  setInitialState,
+  getDebugState
+} from './state';
 import { AppCheckTokenListener } from './public-types';
-import { Deferred, FirebaseError } from '@firebase/util';
+import { Deferred } from '@firebase/util';
 import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
 import { ListenerType } from './types';
-import { AppCheckError } from './errors';
+import { AppCheckError, ERROR_FACTORY } from './errors';
 
 const fakeRecaptchaToken = 'fake-recaptcha-token';
 const fakeRecaptchaAppCheckToken = {
@@ -304,11 +309,11 @@ describe('internal api', () => {
 
       const clientStub = stub(client, 'exchangeToken');
 
-      expect(getState(app).token).to.equal(undefined);
+      expect(getStateReference(app).token).to.equal(undefined);
       expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
         token: fakeCachedAppCheckToken.token
       });
-      expect(getState(app).token).to.equal(fakeCachedAppCheckToken);
+      expect(getStateReference(app).token).to.equal(fakeCachedAppCheckToken);
       expect(clientStub).has.not.been.called;
 
       clock.restore();
@@ -337,7 +342,10 @@ describe('internal api', () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-      setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: fakeRecaptchaAppCheckToken
+      });
 
       const clientStub = stub(client, 'exchangeToken');
       expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
@@ -352,7 +360,10 @@ describe('internal api', () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-      setState(app, { ...getState(app), token: fakeRecaptchaAppCheckToken });
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: fakeRecaptchaAppCheckToken
+      });
 
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').returns(
@@ -366,6 +377,191 @@ describe('internal api', () => {
       expect(await getToken(appCheck as AppCheckService, true)).to.deep.equal({
         token: 'new-recaptcha-app-check-token'
       });
+    });
+
+    it('no dangling exchangeToken promise internal', async () => {
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: fakeRecaptchaAppCheckToken,
+        cachedTokenPromise: undefined
+      });
+
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stub(client, 'exchangeToken').returns(
+        Promise.resolve({
+          token: 'new-recaptcha-app-check-token',
+          expireTimeMillis: Date.now() + 60000,
+          issuedAtTimeMillis: 0
+        })
+      );
+
+      const getTokenPromise = getToken(appCheck as AppCheckService, true);
+
+      expect(getStateReference(app).exchangeTokenPromise).to.be.instanceOf(
+        Promise
+      );
+
+      await getTokenPromise;
+
+      expect(getStateReference(app).exchangeTokenPromise).to.be.equal(
+        undefined
+      );
+    });
+
+    it('no dangling exchangeToken promise', async () => {
+      const clock = useFakeTimers();
+
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+
+      const soonExpiredToken = {
+        token: `recaptcha-app-check-token-old`,
+        expireTimeMillis: Date.now() + 1000,
+        issuedAtTimeMillis: 0
+      };
+
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: soonExpiredToken,
+        cachedTokenPromise: undefined
+      });
+
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      let count = 0;
+      stub(client, 'exchangeToken').callsFake(
+        () =>
+          new Promise(res =>
+            setTimeout(
+              () =>
+                res({
+                  token: `recaptcha-app-check-token-new-${count++}`,
+                  expireTimeMillis: Date.now() + 60000,
+                  issuedAtTimeMillis: 0
+                }),
+              3000
+            )
+          )
+      );
+
+      // start fetch token
+      void getToken(appCheck as AppCheckService, true);
+
+      clock.tick(2000);
+
+      // save expired `token-old` with copied state and wait fetch token
+      void getToken(appCheck as AppCheckService);
+
+      // wait fetch token with copied state
+      void getToken(appCheck as AppCheckService);
+
+      // stored copied state with `token-new-0`
+      await clock.runAllAsync();
+
+      // fetch token with copied state
+      const newToken = getToken(appCheck as AppCheckService, true);
+
+      await clock.runAllAsync();
+
+      expect(await newToken).to.deep.equal({
+        token: 'recaptcha-app-check-token-new-1'
+      });
+    });
+
+    it('ignores in-memory token if it is invalid and continues to exchange request', async () => {
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: {
+          token: 'something',
+          expireTimeMillis: Date.now() - 1000,
+          issuedAtTimeMillis: 0
+        }
+      });
+
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stub(client, 'exchangeToken').returns(
+        Promise.resolve({
+          token: 'new-recaptcha-app-check-token',
+          expireTimeMillis: Date.now() + 60000,
+          issuedAtTimeMillis: 0
+        })
+      );
+
+      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+        token: 'new-recaptcha-app-check-token'
+      });
+    });
+
+    it('returns the valid token in storage without making a network request', async () => {
+      const clock = useFakeTimers();
+
+      storageReadStub.resolves(fakeCachedAppCheckToken);
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+
+      const clientStub = stub(client, 'exchangeToken');
+      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+        token: fakeCachedAppCheckToken.token
+      });
+      expect(clientStub).to.not.have.been.called;
+
+      clock.restore();
+    });
+
+    it('deletes cached token if it is invalid and continues to exchange request', async () => {
+      storageReadStub.resolves({
+        token: 'something',
+        expireTimeMillis: Date.now() - 1000,
+        issuedAtTimeMillis: 0
+      });
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+
+      const freshToken = {
+        token: 'new-recaptcha-app-check-token',
+        expireTimeMillis: Date.now() + 60000,
+        issuedAtTimeMillis: 0
+      };
+
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stub(client, 'exchangeToken').returns(Promise.resolve(freshToken));
+
+      expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
+        token: 'new-recaptcha-app-check-token'
+      });
+
+      // When it wiped the invalid token.
+      expect(storageWriteStub).has.been.calledWith(app, undefined);
+
+      // When it wrote the new token fetched from the exchange endpoint.
+      expect(storageWriteStub).has.been.calledWith(app, freshToken);
+    });
+
+    it('returns the actual token and an internalError if a token is valid but the request fails', async () => {
+      stub(logger, 'error');
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: fakeRecaptchaAppCheckToken
+      });
+
+      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stub(client, 'exchangeToken').returns(Promise.reject(new Error('blah')));
+
+      const tokenResult = await getToken(appCheck as AppCheckService, true);
+      expect(tokenResult.internalError?.message).to.equal('blah');
+      expect(tokenResult.token).to.equal('fake-recaptcha-app-check-token');
     });
 
     it('exchanges debug token if in debug mode and there is no cached token', async () => {
@@ -396,11 +592,9 @@ describe('internal api', () => {
       const warnStub = stub(logger, 'warn');
       stub(client, 'exchangeToken').returns(
         Promise.reject(
-          new FirebaseError(
-            AppCheckError.FETCH_STATUS_ERROR,
-            'test error msg',
-            { httpStatus: 503 }
-          )
+          ERROR_FACTORY.create(AppCheckError.FETCH_STATUS_ERROR, {
+            httpStatus: 503
+          })
         )
       );
 
@@ -424,11 +618,9 @@ describe('internal api', () => {
       const warnStub = stub(logger, 'warn');
       stub(client, 'exchangeToken').returns(
         Promise.reject(
-          new FirebaseError(
-            AppCheckError.FETCH_STATUS_ERROR,
-            'test error msg',
-            { httpStatus: 403 }
-          )
+          ERROR_FACTORY.create(AppCheckError.FETCH_STATUS_ERROR, {
+            httpStatus: 403
+          })
         )
       );
 
@@ -446,10 +638,15 @@ describe('internal api', () => {
   });
 
   describe('addTokenListener', () => {
-    it('adds token listeners', () => {
+    afterEach(async () => {
+      clearState();
+    });
+
+    it('adds token listeners', async () => {
+      const clock = useFakeTimers();
       const listener = (): void => {};
-      setState(app, {
-        ...getState(app),
+      setInitialState(app, {
+        ...getStateReference(app),
         cachedTokenPromise: Promise.resolve(undefined)
       });
 
@@ -459,18 +656,20 @@ describe('internal api', () => {
         listener
       );
 
-      expect(getState(app).tokenObservers[0].next).to.equal(listener);
+      expect(getStateReference(app).tokenObservers[0].next).to.equal(listener);
+      // resolve initTokenRefresher dangling promise
+      await clock.tickAsync(1000);
     });
 
     it('starts proactively refreshing token after adding the first listener', async () => {
       const listener = (): void => {};
-      setState(app, {
-        ...getState(app),
+      setInitialState(app, {
+        ...getStateReference(app),
         isTokenAutoRefreshEnabled: true,
         cachedTokenPromise: Promise.resolve(undefined)
       });
-      expect(getState(app).tokenObservers.length).to.equal(0);
-      expect(getState(app).tokenRefresher).to.equal(undefined);
+      expect(getStateReference(app).tokenObservers.length).to.equal(0);
+      expect(getStateReference(app).tokenRefresher).to.equal(undefined);
 
       addTokenListener(
         { app } as AppCheckService,
@@ -478,13 +677,14 @@ describe('internal api', () => {
         listener
       );
 
-      expect(getState(app).tokenRefresher?.isRunning()).to.be.undefined;
+      expect(getStateReference(app).tokenRefresher?.isRunning()).to.be
+        .undefined;
 
       // addTokenListener() waits for the result of cachedTokenPromise
       // before starting the refresher
-      await getState(app).cachedTokenPromise;
+      await getStateReference(app).cachedTokenPromise;
 
-      expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
+      expect(getStateReference(app).tokenRefresher?.isRunning()).to.be.true;
     });
 
     it('notifies the listener with the valid token in memory immediately', async () => {
@@ -492,8 +692,8 @@ describe('internal api', () => {
 
       const listener = stub();
 
-      setState(app, {
-        ...getState(app),
+      setInitialState(app, {
+        ...getStateReference(app),
         cachedTokenPromise: Promise.resolve(undefined),
         token: {
           token: `fake-memory-app-check-token`,
@@ -538,13 +738,212 @@ describe('internal api', () => {
         fakeListener
       );
     });
+
+    it('does not make rapid requests within proactive refresh window', async () => {
+      const clock = useFakeTimers();
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: {
+          token: `fake-cached-app-check-token`,
+          // within refresh window
+          expireTimeMillis: 10000,
+          issuedAtTimeMillis: 0
+        }
+      });
+
+      const fakeListener: AppCheckTokenListener = stub();
+
+      const fakeExchange = stub(client, 'exchangeToken').returns(
+        Promise.resolve({
+          token: 'new-recaptcha-app-check-token',
+          expireTimeMillis: 10 * 60 * 1000,
+          issuedAtTimeMillis: 0
+        })
+      );
+
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType.INTERNAL,
+        fakeListener
+      );
+      // Tick 10s, make sure nothing is called repeatedly in that time.
+      await clock.tickAsync(10000);
+      expect(fakeListener).to.be.calledWith({
+        token: 'fake-cached-app-check-token'
+      });
+      expect(fakeListener).to.be.calledWith({
+        token: 'new-recaptcha-app-check-token'
+      });
+      expect(fakeExchange).to.be.calledOnce;
+      clock.restore();
+    });
+
+    it('proactive refresh window test - exchange request fails - wait 10s', async () => {
+      stub(logger, 'error');
+      const clock = useFakeTimers();
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: {
+          token: `fake-cached-app-check-token`,
+          // not expired but within refresh window
+          expireTimeMillis: 10000,
+          issuedAtTimeMillis: 0
+        }
+      });
+
+      const fakeListener: AppCheckTokenListener = stub();
+
+      const fakeExchange = stub(client, 'exchangeToken').returns(
+        Promise.reject(new Error('fetch failed or something'))
+      );
+
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType.EXTERNAL,
+        fakeListener
+      );
+      // Tick 10s, make sure nothing is called repeatedly in that time.
+      await clock.tickAsync(10000);
+      expect(fakeListener).to.be.calledWith({
+        token: 'fake-cached-app-check-token'
+      });
+      // once on init and once invoked directly in this test
+      expect(fakeListener).to.be.calledTwice;
+      expect(fakeExchange).to.be.calledOnce;
+      clock.restore();
+    });
+
+    it('proactive refresh window test - exchange request fails - wait 40s', async () => {
+      stub(logger, 'error');
+      const clock = useFakeTimers();
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: {
+          token: `fake-cached-app-check-token`,
+          // not expired but within refresh window
+          expireTimeMillis: 10000,
+          issuedAtTimeMillis: 0
+        }
+      });
+
+      const fakeListener: AppCheckTokenListener = stub();
+
+      const fakeExchange = stub(client, 'exchangeToken').returns(
+        Promise.reject(new Error('fetch failed or something'))
+      );
+
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType.EXTERNAL,
+        fakeListener
+      );
+      // Tick 40s, expect one initial exchange request and one retry.
+      // (First backoff is 30s).
+      await clock.tickAsync(40000);
+      expect(fakeListener).to.be.calledTwice;
+      expect(fakeExchange).to.be.calledTwice;
+      clock.restore();
+    });
+
+    it('expired token - exchange request fails - wait 10s', async () => {
+      stub(logger, 'error');
+      const clock = useFakeTimers();
+      clock.tick(1);
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: {
+          token: `fake-cached-app-check-token`,
+          // expired
+          expireTimeMillis: 0,
+          issuedAtTimeMillis: 0
+        }
+      });
+
+      const fakeListener = stub();
+      const errorHandler = stub();
+      const fakeNetworkError = new Error('fetch failed or something');
+
+      const fakeExchange = stub(client, 'exchangeToken').returns(
+        Promise.reject(fakeNetworkError)
+      );
+
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType.EXTERNAL,
+        fakeListener,
+        errorHandler
+      );
+      // Tick 10s, make sure nothing is called repeatedly in that time.
+      await clock.tickAsync(10000);
+      expect(fakeListener).not.to.be.called;
+      expect(fakeExchange).to.be.calledOnce;
+      expect(errorHandler).to.be.calledWith(fakeNetworkError);
+      clock.restore();
+    });
+
+    it('expired token - exchange request fails - wait 40s', async () => {
+      stub(logger, 'error');
+      const clock = useFakeTimers();
+      clock.tick(1);
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+      setInitialState(app, {
+        ...getStateReference(app),
+        token: {
+          token: `fake-cached-app-check-token`,
+          // expired
+          expireTimeMillis: 0,
+          issuedAtTimeMillis: 0
+        }
+      });
+
+      const fakeListener = stub();
+      const errorHandler = stub();
+      const fakeNetworkError = new Error('fetch failed or something');
+
+      const fakeExchange = stub(client, 'exchangeToken').returns(
+        Promise.reject(fakeNetworkError)
+      );
+
+      addTokenListener(
+        appCheck as AppCheckService,
+        ListenerType.EXTERNAL,
+        fakeListener,
+        errorHandler
+      );
+      // Tick 40s, expect one initial exchange request and one retry.
+      // (First backoff is 30s).
+      await clock.tickAsync(40000);
+      expect(fakeListener).not.to.be.called;
+      expect(fakeExchange).to.be.calledTwice;
+      expect(errorHandler).to.be.calledTwice;
+      clock.restore();
+    });
   });
 
   describe('removeTokenListener', () => {
     it('should remove token listeners', () => {
       const listener = (): void => {};
-      setState(app, {
-        ...getState(app),
+      setInitialState(app, {
+        ...getStateReference(app),
         cachedTokenPromise: Promise.resolve(undefined)
       });
       addTokenListener(
@@ -552,17 +951,20 @@ describe('internal api', () => {
         ListenerType.INTERNAL,
         listener
       );
-      expect(getState(app).tokenObservers.length).to.equal(1);
+      expect(getStateReference(app).tokenObservers.length).to.equal(1);
 
       removeTokenListener(app, listener);
-      expect(getState(app).tokenObservers.length).to.equal(0);
+      expect(getStateReference(app).tokenObservers.length).to.equal(0);
     });
 
     it('should stop proactively refreshing token after deleting the last listener', async () => {
       const listener = (): void => {};
-      setState(app, { ...getState(app), isTokenAutoRefreshEnabled: true });
-      setState(app, {
-        ...getState(app),
+      setInitialState(app, {
+        ...getStateReference(app),
+        isTokenAutoRefreshEnabled: true
+      });
+      setInitialState(app, {
+        ...getStateReference(app),
         cachedTokenPromise: Promise.resolve(undefined)
       });
 
@@ -574,14 +976,14 @@ describe('internal api', () => {
 
       // addTokenListener() waits for the result of cachedTokenPromise
       // before starting the refresher
-      await getState(app).cachedTokenPromise;
+      await getStateReference(app).cachedTokenPromise;
 
-      expect(getState(app).tokenObservers.length).to.equal(1);
-      expect(getState(app).tokenRefresher?.isRunning()).to.be.true;
+      expect(getStateReference(app).tokenObservers.length).to.equal(1);
+      expect(getStateReference(app).tokenRefresher?.isRunning()).to.be.true;
 
       removeTokenListener(app, listener);
-      expect(getState(app).tokenObservers.length).to.equal(0);
-      expect(getState(app).tokenRefresher?.isRunning()).to.be.false;
+      expect(getStateReference(app).tokenObservers.length).to.equal(0);
+      expect(getStateReference(app).tokenRefresher?.isRunning()).to.be.false;
     });
   });
 });

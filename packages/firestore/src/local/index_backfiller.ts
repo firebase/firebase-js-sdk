@@ -25,7 +25,6 @@ import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { logDebug } from '../util/log';
 
-import { INDEXING_ENABLED } from './indexeddb_schema';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
 import { LocalWriteResult } from './local_store_impl';
 import { Persistence, Scheduler } from './persistence';
@@ -36,10 +35,10 @@ import { isIndexedDbTransactionError } from './simple_db';
 const LOG_TAG = 'IndexBackiller';
 
 /** How long we wait to try running index backfill after SDK initialization. */
-const INITIAL_BACKFILL_DELAY_MS = 15;
+const INITIAL_BACKFILL_DELAY_MS = 15 * 1000;
 
 /** Minimum amount of time between backfill checks, after the first one. */
-const REGULAR_BACKFILL_DELAY_MS = 1;
+const REGULAR_BACKFILL_DELAY_MS = 60 * 1000;
 
 /** The maximum number of documents to process each time backfill() is called. */
 const MAX_DOCUMENTS_TO_PROCESS = 50;
@@ -60,9 +59,7 @@ export class IndexBackfillerScheduler implements Scheduler {
       this.task === null,
       'Cannot start an already started IndexBackfillerScheduler'
     );
-    if (INDEXING_ENABLED) {
-      this.schedule(INITIAL_BACKFILL_DELAY_MS);
-    }
+    this.schedule(INITIAL_BACKFILL_DELAY_MS);
   }
 
   stop(): void {

@@ -24,6 +24,8 @@ import {
   stringify
 } from '@firebase/util';
 
+import { ValueEventRegistration } from '../api/Reference_impl';
+
 import { AppCheckTokenProvider } from './AppCheckTokenProvider';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { PersistentConnection } from './PersistentConnection';
@@ -61,7 +63,7 @@ import {
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
   syncTreeRemoveEventRegistration,
-  syncTreeRegisterQuery
+  syncTreeTagForQuery
 } from './SyncTree';
 import { Indexable } from './util/misc';
 import {
@@ -452,14 +454,18 @@ function repoGetNextWriteId(repo: Repo): number {
  * belonging to active listeners. If they are found, such values
  * are considered to be the most up-to-date.
  *
- * If the client is not connected, this method will try to
- * establish a connection and request the value for `query`. If
- * the client is not able to retrieve the query result, it reports
- * an error.
+ * If the client is not connected, this method will wait until the
+ *  repo has established a connection and then request the value for `query`.
+ * If the client is not able to retrieve the query result for another reason,
+ * it reports an error.
  *
  * @param query - The query to surface a value for.
  */
-export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
+export function repoGetValue(
+  repo: Repo,
+  query: QueryContext,
+  eventRegistration: ValueEventRegistration
+): Promise<Node> {
   // Only active queries are cached. There is no persisted cache.
   const cached = syncTreeGetServerValue(repo.serverSyncTree_, query);
   if (cached != null) {
@@ -470,32 +476,57 @@ export function repoGetValue(repo: Repo, query: QueryContext): Promise<Node> {
       const node = nodeFromJSON(payload).withIndex(
         query._queryParams.getIndex()
       );
-      // if this is a filtered query, then overwrite at path
+      /**
+       * Below we simulate the actions of an `onlyOnce` `onValue()` event where:
+       * Add an event registration,
+       * Update data at the path,
+       * Raise any events,
+       * Cleanup the SyncTree
+       */
+      syncTreeAddEventRegistration(
+        repo.serverSyncTree_,
+        query,
+        eventRegistration,
+        true
+      );
+      let events: Event[];
       if (query._queryParams.loadsAllData()) {
-        syncTreeApplyServerOverwrite(repo.serverSyncTree_, query._path, node);
+        events = syncTreeApplyServerOverwrite(
+          repo.serverSyncTree_,
+          query._path,
+          node
+        );
       } else {
-        // Simulate `syncTreeAddEventRegistration` without events/listener setup.
-        // We do this (along with the syncTreeRemoveEventRegistration` below) so that
-        // `repoGetValue` results have the same cache effects as initial listener(s)
-        // updates.
-        const tag = syncTreeRegisterQuery(repo.serverSyncTree_, query);
-        syncTreeApplyTaggedQueryOverwrite(
+        const tag = syncTreeTagForQuery(repo.serverSyncTree_, query);
+        events = syncTreeApplyTaggedQueryOverwrite(
           repo.serverSyncTree_,
           query._path,
           node,
           tag
         );
-        // Call `syncTreeRemoveEventRegistration` with a null event registration, since there is none.
-        // Note: The below code essentially unregisters the query and cleans up any views/syncpoints temporarily created above.
       }
-      const cancels = syncTreeRemoveEventRegistration(
+      /*
+       * We need to raise events in the scenario where `get()` is called at a parent path, and
+       * while the `get()` is pending, `onValue` is called at a child location. While get() is waiting
+       * for the data, `onValue` will register a new event. Then, get() will come back, and update the syncTree
+       * and its corresponding serverCache, including the child location where `onValue` is called. Then,
+       * `onValue` will receive the event from the server, but look at the syncTree and see that the data received
+       * from the server is already at the SyncPoint, and so the `onValue` callback will never get fired.
+       * Calling `eventQueueRaiseEventsForChangedPath()` is the correct way to propagate the events and
+       * ensure the corresponding child events will get fired.
+       */
+      eventQueueRaiseEventsForChangedPath(
+        repo.eventQueue_,
+        query._path,
+        events
+      );
+      syncTreeRemoveEventRegistration(
         repo.serverSyncTree_,
         query,
-        null
+        eventRegistration,
+        null,
+        true
       );
-      if (cancels.length > 0) {
-        repoLog(repo, 'unexpected cancel events in repoGetValue');
-      }
       return node;
     },
     err => {

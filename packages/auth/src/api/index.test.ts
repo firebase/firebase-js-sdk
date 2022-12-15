@@ -95,18 +95,26 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should include whatever headers the auth impl attaches', async () => {
-      sinon.stub(auth, '_getAdditionalHeaders').returns(Promise.resolve({
-        'look-at-me-im-a-header': 'header-value',
-        'anotherheader': 'header-value-2',
-      }));
+      sinon.stub(auth, '_getAdditionalHeaders').returns(
+        Promise.resolve({
+          'look-at-me-im-a-header': 'header-value',
+          'anotherheader': 'header-value-2'
+        })
+      );
 
       const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
-      await _performApiRequest<
-        typeof request,
-        typeof serverResponse
-      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-      expect(mock.calls[0].headers.get('look-at-me-im-a-header')).to.eq('header-value');
-      expect(mock.calls[0].headers.get('anotherheader')).to.eq('header-value-2');
+      await _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      expect(mock.calls[0].headers.get('look-at-me-im-a-header')).to.eq(
+        'header-value'
+      );
+      expect(mock.calls[0].headers.get('anotherheader')).to.eq(
+        'header-value-2'
+      );
     });
 
     it('should set the framework in clientVersion if logged', async () => {
@@ -235,8 +243,7 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise)
-        .to.be.rejectedWith(FirebaseError, 'Text text text');
+      await expect(promise).to.be.rejectedWith(FirebaseError, 'Text text text');
     });
 
     it('should handle unknown server errors', async () => {
@@ -316,7 +323,10 @@ describe('api/_performApiRequest', () => {
         request
       );
       clock.tick(DEFAULT_API_TIMEOUT_MS.get() + 1);
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/network-request-failed');
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/network-request-failed'
+      );
       clock.restore();
     });
 
@@ -373,7 +383,9 @@ describe('api/_performApiRequest', () => {
         );
         assert.fail('Call should have failed');
       } catch (e) {
-        expect(e.code).to.eq(`auth/${AuthErrorCode.NEED_CONFIRMATION}`);
+        expect((e as FirebaseError).code).to.eq(
+          `auth/${AuthErrorCode.NEED_CONFIRMATION}`
+        );
         expect((e as FirebaseError).customData!._tokenResponse).to.eql({
           needConfirmation: true,
           idToken: 'id-token'
@@ -403,7 +415,9 @@ describe('api/_performApiRequest', () => {
         );
         assert.fail('Call should have failed');
       } catch (e) {
-        expect(e.code).to.eq(`auth/${AuthErrorCode.CREDENTIAL_ALREADY_IN_USE}`);
+        expect((e as FirebaseError).code).to.eq(
+          `auth/${AuthErrorCode.CREDENTIAL_ALREADY_IN_USE}`
+        );
         expect((e as FirebaseError).customData!._tokenResponse).to.eql(
           response
         );
@@ -434,7 +448,9 @@ describe('api/_performApiRequest', () => {
         );
         assert.fail('Call should have failed');
       } catch (e) {
-        expect(e.code).to.eq(`auth/${AuthErrorCode.EMAIL_EXISTS}`);
+        expect((e as FirebaseError).code).to.eq(
+          `auth/${AuthErrorCode.EMAIL_EXISTS}`
+        );
         expect((e as FirebaseError).customData!.email).to.eq('email@test.com');
         expect((e as FirebaseError).customData!.phoneNumber).to.eq(
           '+1555-this-is-a-number'
@@ -499,9 +515,7 @@ describe('api/_performApiRequest', () => {
 
     it('does not attach the tenant ID at all if not specified', () => {
       auth.tenantId = null;
-      expect(
-        _addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' })
-      )
+      expect(_addTidIfNecessary<Record<string, string>>(auth, { foo: 'bar' }))
         .to.eql({
           foo: 'bar'
         })

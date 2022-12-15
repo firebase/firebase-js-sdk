@@ -23,6 +23,7 @@ import {
   QueryDocumentSnapshot,
   Transaction,
   collection,
+  deleteDoc,
   doc,
   DocumentReference,
   DocumentSnapshot,
@@ -87,6 +88,16 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     await transaction.get(docRef);
   }
 
+  enum FromDocumentType {
+    // The operation will be performed on a document that exists.
+    EXISTING = 'existing',
+    // The operation will be performed on a document that has never existed.
+    NON_EXISTENT = 'non_existent',
+    // The operation will be performed on a document that existed, but was
+    // deleted.
+    DELETED = 'deleted'
+  }
+
   /**
    * Used for testing that all possible combinations of executing transactions
    * result in the desired document value or error.
@@ -101,16 +112,21 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     constructor(readonly db: Firestore) {}
 
     private docRef!: DocumentReference;
-    private fromExistingDoc: boolean = false;
+    private fromDocumentType: FromDocumentType = FromDocumentType.NON_EXISTENT;
     private stages: TransactionStage[] = [];
 
     withExistingDoc(): this {
-      this.fromExistingDoc = true;
+      this.fromDocumentType = FromDocumentType.EXISTING;
       return this;
     }
 
     withNonexistentDoc(): this {
-      this.fromExistingDoc = false;
+      this.fromDocumentType = FromDocumentType.NON_EXISTENT;
+      return this;
+    }
+
+    withDeletedDoc(): this {
+      this.fromDocumentType = FromDocumentType.DELETED;
       return this;
     }
 
@@ -176,8 +192,19 @@ apiDescribe('Database transactions', (persistence: boolean) => {
 
     private async prepareDoc(): Promise<void> {
       this.docRef = doc(collection(this.db, 'tester-docref'));
-      if (this.fromExistingDoc) {
-        await setDoc(this.docRef, { foo: 'bar0' });
+      switch (this.fromDocumentType) {
+        case FromDocumentType.EXISTING:
+          await setDoc(this.docRef, { foo: 'bar0' });
+          break;
+        case FromDocumentType.NON_EXISTENT:
+          // Nothing to do; document does not exist.
+          break;
+        case FromDocumentType.DELETED:
+          await setDoc(this.docRef, { foo: 'bar0' });
+          await deleteDoc(this.docRef);
+          break;
+        default:
+          throw new Error(`invalid fromDocumentType: ${this.fromDocumentType}`);
       }
     }
 
@@ -286,6 +313,47 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .withNonexistentDoc()
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
+    });
+  });
+
+  // This test is identical to the test above, except that withNonexistentDoc()
+  // is replaced by withDeletedDoc(), to guard against regression of
+  // https://github.com/firebase/firebase-js-sdk/issues/5871, where transactions
+  // would incorrectly fail with FAILED_PRECONDITION when operations were
+  // performed on a deleted document (rather than a non-existent document).
+  it('runs transactions after getting a deleted document', async () => {
+    return withTestDb(persistence, async db => {
+      const tt = new TransactionTester(db);
+
+      await tt.withDeletedDoc().run(get, delete1, delete1).expectNoDoc();
+      await tt
+        .withDeletedDoc()
+        .run(get, delete1, update2)
+        .expectError('invalid-argument');
+      await tt
+        .withDeletedDoc()
+        .run(get, delete1, set2)
+        .expectDoc({ foo: 'bar2' });
+
+      await tt
+        .withDeletedDoc()
+        .run(get, update1, delete1)
+        .expectError('invalid-argument');
+      await tt
+        .withDeletedDoc()
+        .run(get, update1, update2)
+        .expectError('invalid-argument');
+      await tt
+        .withDeletedDoc()
+        .run(get, update1, set1)
+        .expectError('invalid-argument');
+
+      await tt.withDeletedDoc().run(get, set1, delete1).expectNoDoc();
+      await tt
+        .withDeletedDoc()
+        .run(get, set1, update2)
+        .expectDoc({ foo: 'bar2' });
+      await tt.withDeletedDoc().run(get, set1, set2).expectDoc({ foo: 'bar2' });
     });
   });
 
@@ -558,6 +626,30 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           expect(err.code).to.equal('invalid-argument');
           expect(counter).to.equal(1);
         });
+    });
+  });
+
+  it('retries when document already exists', () => {
+    return withTestDb(persistence, async db => {
+      let retryCounter = 0;
+      const docRef = doc(collection(db, 'nonexistent'));
+
+      await runTransaction(db, async transaction => {
+        ++retryCounter;
+        const snap = await transaction.get(docRef);
+
+        if (retryCounter === 1) {
+          expect(snap.exists()).to.be.false;
+          // On the first attempt, create a doc before transaction.set(), so that
+          // the transaction fails with "already-exists" error, and retries.
+          await setDoc(docRef, { count: 1 });
+        }
+
+        transaction.set(docRef, { count: 2 });
+      });
+      expect(retryCounter).to.equal(2);
+      const snap = await getDoc(docRef);
+      expect(snap.get('count')).to.equal(2);
     });
   });
 

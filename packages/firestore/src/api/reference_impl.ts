@@ -196,7 +196,8 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
 
 /**
  * Executes the query and returns the results as a `QuerySnapshot` from cache.
- * Returns an error if the document is not currently cached.
+ * Returns an empty result set if no documents matching the query are currently
+ * cached.
  *
  * @returns A `Promise` that will be resolved with the results of the query.
  */

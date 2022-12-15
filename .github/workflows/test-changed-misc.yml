@@ -13,10 +13,10 @@ jobs:
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
-    - name: Set up Node (14)
+    - name: Set up Node (16)
       uses: actions/setup-node@v2
       with:
-        node-version: 14.x
+        node-version: 16.x
     - name: install Chrome stable
       run: |
         sudo apt-get update
@@ -31,3 +31,5 @@ jobs:
       run: yarn build:changed misc
     - name: Run tests
       run: yarn test:changed misc
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}

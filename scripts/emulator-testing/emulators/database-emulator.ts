@@ -19,29 +19,34 @@ import * as request from 'request';
 
 import { Emulator } from './emulator';
 
+import rulesJSON from '../../../config/database.rules.json';
+
+const DATABASE_EMULATOR_VERSION = '4.11.0';
+
 export class DatabaseEmulator extends Emulator {
   namespace: string;
 
   constructor(port = 8088, namespace = 'test-emulator') {
     super(
-      'firebase-database-emulator-v4.4.1.jar',
+      `firebase-database-emulator-v${DATABASE_EMULATOR_VERSION}.jar`,
       // Use locked version of emulator for test to be deterministic.
       // The latest version can be found from database emulator doc:
       // https://firebase.google.com/docs/database/security/test-rules-emulator
-      'https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v4.6.0.jar',
+      `https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v${DATABASE_EMULATOR_VERSION}.jar`,
       port
     );
     this.namespace = namespace;
   }
 
   setPublicRules(): Promise<number> {
-    console.log('Setting rule {".read": true, ".write": true} to emulator ...');
+    const jsonRules = JSON.stringify(rulesJSON);
+    console.log(`Setting rule ${jsonRules} to emulator ...`);
     return new Promise<number>((resolve, reject) => {
       request.put(
         {
           uri: `http://localhost:${this.port}/.settings/rules.json?ns=${this.namespace}`,
           headers: { Authorization: 'Bearer owner' },
-          body: '{ "rules": { ".read": true, ".write": true } }'
+          body: jsonRules
         },
         (error, response, body) => {
           if (error) reject(error);

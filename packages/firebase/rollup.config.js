@@ -23,7 +23,9 @@ import { resolve } from 'path';
 import resolveModule from '@rollup/plugin-node-resolve';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
+import { terser } from 'rollup-plugin-terser';
 import typescript from 'typescript';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
 const external = Object.keys(pkg.dependencies || {});
 const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
@@ -46,7 +48,21 @@ const typescriptPluginCDN = rollupTypescriptPlugin({
  */
 const appBuilds = [
   /**
-   * App Browser Builds
+   * App ESM Build
+   * Uses "type:module" in package.json to signal this is ESM.
+   * Allows the extension to remain '.js' as some tools do not recognize
+   * '.mjs'.
+   */
+  {
+    input: 'app/index.ts',
+    output: [
+      { file: resolve('app', appPkg.browser), format: 'es', sourcemap: true }
+    ],
+    plugins: [...plugins, typescriptPlugin, emitModulePackageFile()],
+    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  /**
+   * App CJS/MJS builds
    */
   {
     input: 'app/index.ts',
@@ -56,8 +72,7 @@ const appBuilds = [
         file: resolve('app', appPkg.main.replace('.cjs.js', '.mjs')),
         format: 'es',
         sourcemap: true
-      },
-      { file: resolve('app', appPkg.browser), format: 'es', sourcemap: true }
+      }
     ],
     plugins: [...plugins, typescriptPlugin],
     external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -70,6 +85,28 @@ const componentBuilds = pkg.components
   .map(component => {
     const pkg = require(`./${component}/package.json`);
     return [
+      /**
+       * Component ESM Build
+       * Uses "type:module" in package.json to signal this is ESM.
+       * Allows the extension to remain '.js' as some tools do not recognize
+       * '.mjs'.
+       */
+      {
+        input: `${component}/index.ts`,
+        output: [
+          {
+            file: resolve(component, pkg.browser),
+            format: 'es',
+            sourcemap: true
+          }
+        ],
+        plugins: [...plugins, typescriptPlugin, emitModulePackageFile()],
+        external: id =>
+          external.some(dep => id === dep || id.startsWith(`${dep}/`))
+      },
+      /**
+       * Component CJS/MJS builds
+       */
       {
         input: `${component}/index.ts`,
         output: [
@@ -80,11 +117,6 @@ const componentBuilds = pkg.components
           },
           {
             file: resolve(component, pkg.main.replace('.cjs.js', '.mjs')),
-            format: 'es',
-            sourcemap: true
-          },
-          {
-            file: resolve(component, pkg.browser),
             format: 'es',
             sourcemap: true
           }
@@ -124,7 +156,13 @@ const cdnBuilds = [
           sourcemap: true,
           format: 'es'
         },
-        plugins: [...plugins, typescriptPluginCDN],
+        plugins: [
+          ...plugins,
+          typescriptPluginCDN,
+          terser({
+            format: { comments: false }
+          })
+        ],
         external: ['@firebase/app']
       };
     })

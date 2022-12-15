@@ -22,6 +22,7 @@ import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
+  and,
   Bytes,
   collection,
   collectionGroup,
@@ -36,10 +37,14 @@ import {
   endBefore,
   GeoPoint,
   getDocs,
+  getDocsFromCache,
+  getDocsFromServer,
   limit,
   limitToLast,
   onSnapshot,
+  or,
   orderBy,
+  Query,
   query,
   QuerySnapshot,
   setDoc,
@@ -54,9 +59,12 @@ import {
   apiDescribe,
   toChangesArray,
   toDataArray,
+  toIds,
+  withEmptyTestCollection,
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import { USE_EMULATOR } from '../util/settings';
 
 apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();
@@ -648,6 +656,38 @@ apiDescribe('Queries', (persistence: boolean) => {
       unlisten();
     });
   });
+
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'can catch error message for missing index with error handler',
+    () => {
+      return withEmptyTestCollection(persistence, async coll => {
+        const query_ = query(
+          coll,
+          where('sort', '<=', '2'),
+          where('filter', '==', true)
+        );
+        const deferred = new Deferred<void>();
+
+        const unsubscribe = onSnapshot(
+          query_,
+          () => {
+            deferred.reject();
+          },
+          err => {
+            expect(err.code).to.equal('failed-precondition');
+            expect(err.message).to.exist;
+            expect(err.message).to.match(
+              /index.*https:\/\/console\.firebase\.google\.com/
+            );
+            deferred.resolve();
+          }
+        );
+        await deferred.promise;
+        unsubscribe();
+      });
+    }
+  );
 
   it('can explicitly sort by document ID', () => {
     const testDocs = {
@@ -1281,11 +1321,297 @@ apiDescribe('Queries', (persistence: boolean) => {
     };
 
     return withTestCollection(persistence, testDocs, async coll => {
-      await getDocs(query(coll)); // Populate the cache
+      await getDocs(query(coll)); // Populate the cache.
       const snapshot = await getDocs(
         query(coll, where('map.nested', '==', 'foo'))
       );
       expect(toDataArray(snapshot)).to.deep.equal([{ map: { nested: 'foo' } }]);
+    });
+  });
+
+  // TODO(orquery): Enable these tests when prod supports OR queries.
+  // eslint-disable-next-line no-restricted-properties
+  (false && persistence ? describe : describe.skip)('OR Queries', () => {
+    it('can use query overloads', () => {
+      const testDocs = {
+        doc1: { a: 1, b: 0 },
+        doc2: { a: 2, b: 1 },
+        doc3: { a: 3, b: 2 },
+        doc4: { a: 1, b: 3 },
+        doc5: { a: 1, b: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async coll => {
+        // a == 1
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, where('a', '==', 1)),
+          'doc1',
+          'doc4',
+          'doc5'
+        );
+
+        // Implicit AND: a == 1 && b == 3
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, where('a', '==', 1), where('b', '==', 3)),
+          'doc4'
+        );
+
+        // explicit AND: a == 1 && b == 3
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, and(where('a', '==', 1), where('b', '==', 3))),
+          'doc4'
+        );
+
+        // a == 1, limit 2
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, where('a', '==', 1), limit(2)),
+          'doc1',
+          'doc4'
+        );
+
+        // a == 1, limit 2, b - desc
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, where('a', '==', 1), limit(2), orderBy('b', 'desc')),
+          'doc4',
+          'doc5'
+        );
+
+        // explicit OR: a == 1 || b == 1 with limit 2
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '==', 1), where('b', '==', 1)), limit(2)),
+          'doc1',
+          'doc2'
+        );
+
+        // only limit 2
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, limit(2)),
+          'doc1',
+          'doc2'
+        );
+
+        // limit 2 and order by b desc
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, limit(2), orderBy('b', 'desc')),
+          'doc4',
+          'doc3'
+        );
+      });
+    });
+
+    it('can use or queries', () => {
+      const testDocs = {
+        doc1: { a: 1, b: 0 },
+        doc2: { a: 2, b: 1 },
+        doc3: { a: 3, b: 2 },
+        doc4: { a: 1, b: 3 },
+        doc5: { a: 1, b: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async coll => {
+        // Two equalities: a==1 || b==1.
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '==', 1), where('b', '==', 1))),
+          'doc1',
+          'doc2',
+          'doc4',
+          'doc5'
+        );
+
+        // with one inequality: a>2 || b==1.
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '>', 2), where('b', '==', 1))),
+          'doc5',
+          'doc2',
+          'doc3'
+        );
+
+        // (a==1 && b==0) || (a==3 && b==2)
+        await checkOnlineAndOfflineResultsMatch(
+          query(
+            coll,
+            or(
+              and(where('a', '==', 1), where('b', '==', 0)),
+              and(where('a', '==', 3), where('b', '==', 2))
+            )
+          ),
+          'doc1',
+          'doc3'
+        );
+
+        // a==1 && (b==0 || b==3).
+        await checkOnlineAndOfflineResultsMatch(
+          query(
+            coll,
+            and(
+              where('a', '==', 1),
+              or(where('b', '==', 0), where('b', '==', 3))
+            )
+          ),
+          'doc1',
+          'doc4'
+        );
+
+        // (a==2 || b==2) && (a==3 || b==3)
+        await checkOnlineAndOfflineResultsMatch(
+          query(
+            coll,
+            and(
+              or(where('a', '==', 2), where('b', '==', 2)),
+              or(where('a', '==', 3), where('b', '==', 3))
+            )
+          ),
+          'doc3'
+        );
+
+        // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '==', 1), where('b', '>', 0)), limit(2)),
+          'doc1',
+          'doc2'
+        );
+
+        // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
+        // Note: The public query API does not allow implicit ordering when limitToLast is used.
+        await checkOnlineAndOfflineResultsMatch(
+          query(
+            coll,
+            or(where('a', '==', 1), where('b', '>', 0)),
+            limitToLast(2),
+            orderBy('b')
+          ),
+          'doc3',
+          'doc4'
+        );
+
+        // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
+        await checkOnlineAndOfflineResultsMatch(
+          query(
+            coll,
+            or(where('a', '==', 2), where('b', '==', 1)),
+            limit(1),
+            orderBy('a')
+          ),
+          'doc5'
+        );
+
+        // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
+        await checkOnlineAndOfflineResultsMatch(
+          query(
+            coll,
+            or(where('a', '==', 2), where('b', '==', 1)),
+            limitToLast(1),
+            orderBy('a')
+          ),
+          'doc2'
+        );
+
+        // Test with limits without orderBy (the __name__ ordering is the tie breaker).
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '==', 2), where('b', '==', 1)), limit(1)),
+          'doc2'
+        );
+      });
+    });
+
+    it('can use or queries with in and not-in', () => {
+      const testDocs = {
+        doc1: { a: 1, b: 0 },
+        doc2: { b: 1 },
+        doc3: { a: 3, b: 2 },
+        doc4: { a: 1, b: 3 },
+        doc5: { a: 1 },
+        doc6: { a: 2 }
+      };
+
+      return withTestCollection(persistence, testDocs, async coll => {
+        // a==2 || b in [2,3]
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '==', 2), where('b', 'in', [2, 3]))),
+          'doc3',
+          'doc4',
+          'doc6'
+        );
+
+        // a==2 || b not-in [2,3]
+        // Has implicit orderBy b.
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '==', 2), where('b', 'not-in', [2, 3]))),
+          'doc1',
+          'doc2'
+        );
+      });
+    });
+
+    it('can use or queries with array membership', () => {
+      const testDocs = {
+        doc1: { a: 1, b: [0] },
+        doc2: { b: [1] },
+        doc3: { a: 3, b: [2, 7] },
+        doc4: { a: 1, b: [3, 7] },
+        doc5: { a: 1 },
+        doc6: { a: 2 }
+      };
+
+      return withTestCollection(persistence, testDocs, async coll => {
+        // a==2 || b array-contains 7
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '==', 2), where('b', 'array-contains', 7))),
+          'doc3',
+          'doc4',
+          'doc6'
+        );
+
+        // a==2 || b array-contains-any [0, 3]
+        await checkOnlineAndOfflineResultsMatch(
+          query(
+            coll,
+            or(where('a', '==', 2), where('b', 'array-contains-any', [0, 3]))
+          ),
+          'doc1',
+          'doc4',
+          'doc6'
+        );
+      });
+    });
+  });
+
+  // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? describe : describe.skip)('Caching empty results', () => {
+    it('can raise initial snapshot from cache, even if it is empty', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const snapshot1 = await getDocs(coll); // Populate the cache.
+        expect(snapshot1.metadata.fromCache).to.be.false;
+        expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check.
+
+        // Add a snapshot listener whose first event should be raised from cache.
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        onSnapshot(coll, storeEvent.storeEvent);
+        const snapshot2 = await storeEvent.awaitEvent();
+        expect(snapshot2.metadata.fromCache).to.be.true;
+        expect(toDataArray(snapshot2)).to.deep.equal([]);
+      });
+    });
+
+    it('can raise initial snapshot from cache, even if it has become empty', () => {
+      const testDocs = {
+        a: { key: 'a' }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        // Populate the cache.
+        const snapshot1 = await getDocs(coll);
+        expect(snapshot1.metadata.fromCache).to.be.false;
+        expect(toDataArray(snapshot1)).to.deep.equal([{ key: 'a' }]);
+        // Empty the collection.
+        void deleteDoc(doc(coll, 'a'));
+
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        onSnapshot(coll, storeEvent.storeEvent);
+        const snapshot2 = await storeEvent.awaitEvent();
+        expect(snapshot2.metadata.fromCache).to.be.true;
+        expect(toDataArray(snapshot2)).to.deep.equal([]);
+      });
     });
   });
 });
@@ -1301,4 +1627,26 @@ function verifyDocumentChange<T>(
   expect(change.type).to.equal(type);
   expect(change.oldIndex).to.equal(oldIndex);
   expect(change.newIndex).to.equal(newIndex);
+}
+
+/**
+ * Checks that running the query while online (against the backend/emulator) results in the same
+ * documents as running the query while offline. If `expectedDocs` is provided, it also checks
+ * that both online and offline query result is equal to the expected documents.
+ *
+ * @param query The query to check
+ * @param expectedDocs Ordered list of document keys that are expected to match the query
+ */
+async function checkOnlineAndOfflineResultsMatch(
+  query: Query,
+  ...expectedDocs: string[]
+): Promise<void> {
+  const docsFromServer = await getDocsFromServer(query);
+
+  if (expectedDocs.length !== 0) {
+    expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
+  }
+
+  const docsFromCache = await getDocsFromCache(query);
+  expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
 }

@@ -351,6 +351,7 @@ describeSpec('Listens:', [], () => {
         // (the document falls out) and send us a snapshot that's ahead of
         // docAv3 (which is already in our cache).
         .userListens(visibleQuery, { resumeToken: 'resume-token-1000' })
+        .expectEvents(visibleQuery, { fromCache: true })
         .watchAcks(visibleQuery)
         .watchSends({ removed: [visibleQuery] }, docAv2)
         .watchCurrents(visibleQuery, 'resume-token-5000')
@@ -396,6 +397,7 @@ describeSpec('Listens:', [], () => {
         // (the document falls out) and send us a snapshot that's ahead of
         // docAv3 (which is already in our cache).
         .userListens(visibleQuery, { resumeToken: 'resume-token-1000' })
+        .expectEvents(visibleQuery, { fromCache: true })
         .watchAcks(visibleQuery)
         .watchSends({ removed: [visibleQuery] }, docAv2)
         .watchCurrents(visibleQuery, 'resume-token-5000')
@@ -405,6 +407,7 @@ describeSpec('Listens:', [], () => {
         .watchRemoves(visibleQuery)
         // Listen to allQuery again and make sure we still get no docs.
         .userListens(allQuery, { resumeToken: 'resume-token-4000' })
+        .expectEvents(allQuery, { fromCache: true })
         .watchAcksFull(allQuery, 6000)
         .expectEvents(allQuery, { fromCache: false })
     );
@@ -906,6 +909,101 @@ describeSpec('Listens:', [], () => {
         .watchAcksFull(query1, 1000)
         .client(1)
         .expectEvents(query1, {});
+    }
+  );
+
+  // Reproduces: https://github.com/firebase/firebase-js-sdk/issues/6511
+  specTest(
+    'Secondary client raises latency compensated snapshot from primary mutation',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: '1' });
+      const docAMutated = doc('collection/a', 1500, {
+        key: '2'
+      }).setHasLocalMutations();
+
+      return (
+        client(0)
+          .becomeVisible()
+          .expectPrimaryState(true)
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          .client(1)
+          .userListens(query1)
+          .expectEvents(query1, { added: [docA], fromCache: true })
+          .client(0)
+          .expectListen(query1, { resumeToken: 'resume-token-1000' })
+          .watchAcksFull(query1, 1500, docA)
+          .client(1)
+          .expectEvents(query1, {})
+          .client(0)
+          .userSets('collection/a', { key: '2' })
+          .client(1)
+          // Without the fix for 6511, this would raise two snapshots, first one as expected and
+          // second one travels back in time and raise the old stale document.
+          .expectEvents(query1, {
+            modified: [docAMutated],
+            hasPendingWrites: true
+          })
+      );
+    }
+  );
+
+  // Reproduces b/249494921.
+  specTest(
+    'Secondary client advances query state with global snapshot from primary',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: '1' });
+      const docADeleted = deletedDoc('collection/a', 2000);
+      const docARecreated = doc('collection/a', 2000, {
+        key: '2'
+      }).setHasLocalMutations();
+
+      return (
+        client(0)
+          .becomeVisible()
+          .expectPrimaryState(true)
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          .client(1)
+          .userListens(query1)
+          .expectEvents(query1, { added: [docA], fromCache: true })
+          .client(0)
+          .expectListen(query1, { resumeToken: 'resume-token-1000' })
+          .watchAcksFull(query1, 1500, docA)
+          .client(1)
+          .expectEvents(query1, {})
+          .client(0)
+          .userDeletes('collection/a')
+          .client(1)
+          .expectEvents(query1, {
+            removed: [docA]
+          })
+          .client(0)
+          .writeAcks('collection/a', 2000)
+          .watchAcksFull(query1, 2000, docADeleted)
+          .client(1) // expects no event
+          .client(0)
+          .userSets('collection/a', { key: '2' })
+          .client(1)
+          // Without the fix for b/249494921, two snapshots will be raised: a first
+          // one as show below, and a second one with `docADeleted` because
+          // `client(1)` failed to advance its cursor in remote document cache, and
+          // read a stale document.
+          .expectEvents(query1, {
+            added: [docARecreated],
+            hasPendingWrites: true
+          })
+      );
     }
   );
 
@@ -1600,4 +1698,115 @@ describeSpec('Listens:', [], () => {
       })
       .expectSnapshotsInSyncEvent(2);
   });
+
+  specTest('Empty initial snapshot is raised from cache', [], () => {
+    const query1 = query('collection');
+    return (
+      spec()
+        // Disable GC so the cache persists across listens.
+        .withGCEnabled(false)
+        // Populate the cache with the empty query results.
+        .userListens(query1)
+        .watchAcksFull(query1, 1000)
+        .expectEvents(query1, { fromCache: false })
+        .userUnlistens(query1)
+        .watchRemoves(query1)
+        // Listen to the query again and verify that the empty snapshot is
+        // raised from cache.
+        .userListens(query1, { resumeToken: 'resume-token-1000' })
+        .expectEvents(query1, { fromCache: true })
+        // Verify that another snapshot is raised once the query result comes
+        // back from Watch.
+        .watchAcksFull(query1, 2000)
+        .expectEvents(query1, { fromCache: false })
+    );
+  });
+
+  specTest(
+    'Empty-due-to-delete initial snapshot is raised from cache',
+    [],
+    () => {
+      const query1 = query('collection');
+      const doc1 = doc('collection/a', 1000, { v: 1 });
+      return (
+        spec()
+          // Disable GC so the cache persists across listens.
+          .withGCEnabled(false)
+          // Populate the cache with the empty query results.
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, doc1)
+          .expectEvents(query1, { added: [doc1] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // Delete the only document in the result set locally on the client.
+          .userDeletes('collection/a')
+          // Listen to the query again and verify that the empty snapshot is
+          // raised from cache, even though the write is not yet acknowledged.
+          .userListens(query1, { resumeToken: 'resume-token-1000' })
+          .expectEvents(query1, { fromCache: true })
+      );
+    }
+  );
+
+  specTest(
+    'Empty initial snapshot is raised from cache in multiple tabs',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      return (
+        client(0, /* withGcEnabled= */ false)
+          // Populate the cache with the empty query results.
+          .userListens(query1)
+          .watchAcksFull(query1, 1000)
+          .expectEvents(query1, { fromCache: false })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          .client(1)
+          // Re-listen to the query in second client and verify that the empty
+          // snapshot is raised from cache.
+          .userListens(query1)
+          .expectEvents(query1, { fromCache: true })
+          .client(0)
+          .expectListen(query1, { resumeToken: 'resume-token-1000' })
+          // Verify that another snapshot is raised once the query result comes
+          // back from Watch.
+          .watchAcksFull(query1, 2000)
+          .client(1)
+          .expectEvents(query1, { fromCache: false })
+      );
+    }
+  );
+  specTest(
+    'Empty-due-to-delete initial snapshot is raised from cache in multiple tabs',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const doc1 = doc('collection/a', 1000, { v: 1 });
+      const doc1Deleted = deletedDoc('collection/a', 2000);
+
+      return (
+        client(0, /* withGcEnabled= */ false)
+          // Populate the cache with the empty query results.
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, doc1)
+          .expectEvents(query1, { added: [doc1] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // Delete the only document in the result set locally on the client.
+          .userDeletes('collection/a')
+          // Re-listen to the query in second client and verify that the empty
+          // snapshot is raised from cache with local mutation.
+          .client(1)
+          .userListens(query1)
+          .expectEvents(query1, { fromCache: true })
+          // Should get events once stream is caught up.
+          .client(0)
+          .expectListen(query1, { resumeToken: 'resume-token-1000' })
+          .writeAcks('collection/a', 2000)
+          .watchAcksFull(query1, 2000, doc1Deleted)
+          .client(1)
+          .expectEvents(query1, { fromCache: false })
+      );
+    }
+  );
 });

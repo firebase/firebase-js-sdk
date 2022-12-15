@@ -20,6 +20,10 @@ import { initializeApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import {
+  aggregateQuerySnapshotEqual,
+  getCount
+} from '../../src/lite-api/aggregate';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
   Firestore,
@@ -79,7 +83,8 @@ import { runTransaction } from '../../src/lite-api/transaction';
 import { writeBatch } from '../../src/lite-api/write_batch';
 import {
   DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  USE_EMULATOR
 } from '../integration/util/settings';
 
 import {
@@ -106,14 +111,71 @@ describe('Firestore', () => {
     expect(fs1).to.be.an.instanceOf(Firestore);
   });
 
-  it('returns same instance', () => {
+  it('returns same default instance from named app', () => {
     const app = initializeApp(
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-getFirestore'
     );
     const fs1 = getFirestore(app);
     const fs2 = getFirestore(app);
-    expect(fs1 === fs2).to.be.true;
+    const fs3 = getFirestore(app, '(default)');
+    expect(fs1).to.be.equal(fs2).and.equal(fs3);
+  });
+
+  it('returns different instance from named app', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore'
+    );
+    const fs1 = initializeFirestore(app, DEFAULT_SETTINGS, 'init1');
+    const fs2 = initializeFirestore(app, DEFAULT_SETTINGS, 'init2');
+    const fs3 = getFirestore(app);
+    const fs4 = getFirestore(app, 'name1');
+    const fs5 = getFirestore(app, 'name2');
+    expect(fs1).to.not.be.equal(fs2);
+    expect(fs1).to.not.be.equal(fs3);
+    expect(fs1).to.not.be.equal(fs4);
+    expect(fs1).to.not.be.equal(fs5);
+    expect(fs2).to.not.be.equal(fs3);
+    expect(fs2).to.not.be.equal(fs4);
+    expect(fs2).to.not.be.equal(fs5);
+    expect(fs3).to.not.be.equal(fs4);
+    expect(fs3).to.not.be.equal(fs5);
+    expect(fs4).to.not.be.equal(fs5);
+  });
+
+  it('returns same default instance from default app', () => {
+    const app = initializeApp({
+      apiKey: 'fake-api-key',
+      projectId: 'test-project'
+    });
+    const fs1 = initializeFirestore(app, DEFAULT_SETTINGS);
+    const fs2 = getFirestore();
+    const fs3 = getFirestore(app);
+    const fs4 = getFirestore('(default)');
+    const fs5 = getFirestore(app, '(default)');
+    expect(fs1).to.be.equal(fs2);
+    expect(fs1).to.be.equal(fs3);
+    expect(fs1).to.be.equal(fs4);
+    expect(fs1).to.be.equal(fs5);
+  });
+
+  it('returns different instance from different named app', () => {
+    initializeApp({ apiKey: 'fake-api-key', projectId: 'test-project' });
+    const app1 = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore-1'
+    );
+    const app2 = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-app-getFirestore-2'
+    );
+    const fs1 = getFirestore();
+    const fs2 = getFirestore(app1);
+    const fs3 = getFirestore(app2);
+    expect(fs1).to.not.be.equal(fs2);
+    expect(fs1).to.not.be.equal(fs3);
+    expect(fs2).to.not.be.equal(fs3);
   });
 
   it('cannot call initializeFirestore() twice', () => {
@@ -514,6 +576,24 @@ describe('Transaction', () => {
 
   it('can read non-existing doc then write', () => {
     return withTestDoc(async doc => {
+      await runTransaction(doc.firestore, async transaction => {
+        const snap = await transaction.get(doc);
+        expect(snap.exists()).to.be.false;
+        transaction.set(doc, { counter: 1 });
+      });
+      const result = await getDoc(doc);
+      expect(result.get('counter')).to.equal(1);
+    });
+  });
+
+  // This test is identical to the test above, except that a non-existent
+  // document is replaced by a deleted document, to guard against regression of
+  // https://github.com/firebase/firebase-js-sdk/issues/5871, where transactions
+  // would incorrectly fail with FAILED_PRECONDITION when operations were
+  // performed on a deleted document (rather than a non-existent document).
+  it('can read deleted doc then write', () => {
+    return withTestDocAndInitialData({ counter: 1 }, async doc => {
+      await deleteDoc(doc);
       await runTransaction(doc.firestore, async transaction => {
         const snap = await transaction.get(doc);
         expect(snap.exists()).to.be.false;
@@ -2037,4 +2117,288 @@ describe('withConverter() support', () => {
       });
     });
   });
+});
+
+// eslint-disable-next-line no-restricted-properties
+describe('Count quries', () => {
+  it('AggregateQuerySnapshot inherits the original query', () => {
+    return withTestCollection(async coll => {
+      const query_ = query(coll);
+      const snapshot = await getCount(query_);
+      expect(snapshot.query).to.equal(query_);
+    });
+  });
+
+  it('run count query on empty collection', () => {
+    return withTestCollection(async coll => {
+      const snapshot = await getCount(coll);
+      expect(snapshot.data().count).to.equal(0);
+    });
+  });
+
+  it('run count query on collection with 3 docs', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const snapshot = await getCount(coll);
+      expect(snapshot.data().count).to.equal(3);
+    });
+  });
+
+  it('run count query fails on invalid collection reference', () => {
+    return withTestDb(async db => {
+      const queryForRejection = collection(db, '__badpath__');
+      await expect(getCount(queryForRejection)).to.eventually.be.rejected;
+    });
+  });
+
+  it('count query supports filter', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, where('author', '==', 'authorA'));
+      const snapshot = await getCount(query_);
+      expect(snapshot.data().count).to.equal(2);
+    });
+  });
+
+  it('count query supports filter and a small limit size', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, where('author', '==', 'authorA'), limit(1));
+      const snapshot = await getCount(query_);
+      expect(snapshot.data().count).to.equal(1);
+    });
+  });
+
+  it('count query supports filter and a large limit size', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, where('author', '==', 'authorA'), limit(3));
+      const snapshot = await getCount(query_);
+      expect(snapshot.data().count).to.equal(2);
+    });
+  });
+
+  it('count query supports order by', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: null },
+      { author: 'authorB' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, orderBy('title'));
+      const snapshot = await getCount(query_);
+      expect(snapshot.data().count).to.equal(3);
+    });
+  });
+
+  it('count query supports order by and startAt', () => {
+    const testDocs = [
+      { id: 3, author: 'authorA', title: 'titleA' },
+      { id: 1, author: 'authorA', title: 'titleB' },
+      { id: 2, author: 'authorB', title: 'titleC' },
+      { id: null, author: 'authorB', title: 'titleD' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, orderBy('id'), startAt(2));
+      const snapshot = await getCount(query_);
+      expect(snapshot.data().count).to.equal(2);
+    });
+  });
+
+  it('count query supports order by and startAfter', () => {
+    const testDocs = [
+      { id: 3, author: 'authorA', title: 'titleA' },
+      { id: 1, author: 'authorA', title: 'titleB' },
+      { id: 2, author: 'authorB', title: 'titleC' },
+      { id: null, author: 'authorB', title: 'titleD' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, orderBy('id'), startAfter(2));
+      const snapshot = await getCount(query_);
+      expect(snapshot.data().count).to.equal(1);
+    });
+  });
+
+  it('count query supports order by and endAt', () => {
+    const testDocs = [
+      { id: 3, author: 'authorA', title: 'titleA' },
+      { id: 1, author: 'authorA', title: 'titleB' },
+      { id: 2, author: 'authorB', title: 'titleC' },
+      { id: null, author: 'authorB', title: 'titleD' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, orderBy('id'), startAt(1), endAt(2));
+      const snapshot = await getCount(query_);
+      expect(snapshot.data().count).to.equal(2);
+    });
+  });
+
+  it('count query supports order by and endBefore', () => {
+    const testDocs = [
+      { id: 3, author: 'authorA', title: 'titleA' },
+      { id: 1, author: 'authorA', title: 'titleB' },
+      { id: 2, author: 'authorB', title: 'titleC' },
+      { id: null, author: 'authorB', title: 'titleD' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(coll, orderBy('id'), startAt(1), endBefore(2));
+      const snapshot = await getCount(query_);
+      expect(snapshot.data().count).to.equal(1);
+    });
+  });
+
+  it("count query doesn't use converter", () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
+    const throwingConverter = {
+      toFirestore(obj: never): DocumentData {
+        throw new Error('should never be called');
+      },
+      fromFirestore(snapshot: QueryDocumentSnapshot): never {
+        throw new Error('should never be called');
+      }
+    };
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query_ = query(
+        coll,
+        where('author', '==', 'authorA')
+      ).withConverter(throwingConverter);
+      const snapshot = await getCount(query_);
+      expect(snapshot.data().count).to.equal(2);
+    });
+  });
+
+  it('count query supports collection groups', () => {
+    return withTestDb(async db => {
+      const collectionGroupId = doc(collection(db, 'countTest')).id;
+      const docPaths = [
+        `${collectionGroupId}/cg-doc1`,
+        `abc/123/${collectionGroupId}/cg-doc2`,
+        `zzz${collectionGroupId}/cg-doc3`,
+        `abc/123/zzz${collectionGroupId}/cg-doc4`,
+        `abc/123/zzz/${collectionGroupId}`
+      ];
+      const batch = writeBatch(db);
+      for (const docPath of docPaths) {
+        batch.set(doc(db, docPath), { x: 1 });
+      }
+      await batch.commit();
+      const snapshot = await getCount(collectionGroup(db, collectionGroupId));
+      expect(snapshot.data().count).to.equal(2);
+    });
+  });
+
+  it('aggregateQuerySnapshotEqual on same queries be truthy', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const query2 = query(coll, where('author', '==', 'authorA'));
+      const snapshot1A = await getCount(query1);
+      const snapshot1B = await getCount(query1);
+      const snapshot2 = await getCount(query2);
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.true;
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.true;
+    });
+  });
+
+  it('aggregateQuerySnapshotEqual on same queries with different documents size be falsy', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const snapshot1A = await getCount(query1);
+      await addDoc(coll, { author: 'authorA', title: 'titleD' });
+      const query2 = query(coll, where('author', '==', 'authorA'));
+      const snapshot1B = await getCount(query1);
+      const snapshot2 = await getCount(query2);
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.false;
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.false;
+    });
+  });
+
+  it('aggregateQuerySnapshotEqual on different queries be falsy', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' },
+      { author: 'authorB', title: 'titleD' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const query2 = query(coll, where('author', '==', 'authorB'));
+      const snapshot1 = await getCount(query1);
+      const snapshot2 = await getCount(query2);
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
+    });
+  });
+
+  it('count query fails on a terminated Firestore', () => {
+    return withTestCollection(async coll => {
+      await terminate(coll.firestore);
+      expect(() => getCount(coll)).to.throw(
+        'The client has already been terminated.'
+      );
+    });
+  });
+
+  it('terminate Firestore not effect count query in flight', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const promise = getCount(coll);
+      await terminate(coll.firestore);
+      const snapshot = await promise;
+      expect(snapshot.data().count).to.equal(3);
+    });
+  });
+
+  // Only verify the error message for missing indexes when running against
+  // production, since the Firestore Emulator does not require index creation
+  // and will, therefore, never fail in this situation.
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'getCount error message is good if missing index',
+    () => {
+      return withTestCollection(async coll => {
+        const query_ = query(
+          coll,
+          where('key1', '==', 42),
+          where('key2', '<', 42)
+        );
+        await expect(getCount(query_)).to.be.eventually.rejectedWith(
+          /index.*https:\/\/console\.firebase\.google\.com/
+        );
+      });
+    }
+  );
 });

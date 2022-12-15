@@ -45,7 +45,7 @@ import {
   DbTarget,
   DbTargetDocument,
   DbTargetGlobal,
-  INDEXING_SCHEMA_VERSION
+  SCHEMA_VERSION
 } from './indexeddb_schema';
 import {
   DbRemoteDocument as DbRemoteDocumentLegacy,
@@ -146,7 +146,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     debugAssert(
       fromVersion < toVersion &&
         fromVersion >= 0 &&
-        toVersion <= INDEXING_SCHEMA_VERSION,
+        toVersion <= SCHEMA_VERSION,
       `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
     );
 

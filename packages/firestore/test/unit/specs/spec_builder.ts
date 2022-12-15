@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
+import { IndexConfiguration } from '../../../src/api/index_configuration';
 import { ExpUserDataWriter } from '../../../src/api/reference_impl';
+import { FieldFilter, Filter } from '../../../src/core/filter';
 import {
   LimitType,
   newQueryForPath,
@@ -23,17 +25,12 @@ import {
   queryEquals,
   queryToTarget
 } from '../../../src/core/query';
-import {
-  canonifyTarget,
-  FieldFilter,
-  Filter,
-  Target,
-  targetEquals
-} from '../../../src/core/target';
+import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { FieldIndex } from '../../../src/model/field_index';
 import { JsonObject } from '../../../src/model/object_value';
 import { ResourcePath } from '../../../src/model/path';
 import {
@@ -386,6 +383,16 @@ export class SpecBuilder {
     return this;
   }
 
+  setIndexConfiguration(
+    jsonOrConfiguration: string | IndexConfiguration
+  ): this {
+    this.nextStep();
+    this.currentStep = {
+      setIndexConfiguration: jsonOrConfiguration
+    };
+    return this;
+  }
+
   // PORTING NOTE: Only used by web multi-tab tests.
   becomeHidden(): this {
     this.nextStep();
@@ -505,6 +512,15 @@ export class SpecBuilder {
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.isShutdown = true;
+    return this;
+  }
+
+  /** Expects indexes to exist (in any order) */
+  expectIndexes(indexes: FieldIndex[]): this {
+    this.assertStep('Indexes expectation requires previous step');
+    const currentStep = this.currentStep!;
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.indexes = indexes;
     return this;
   }
 
@@ -1040,6 +1056,7 @@ export class SpecBuilder {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
+        createTime: doc.createTime.toMicroseconds(),
         value: userDataWriter.convertValue(
           doc.data.value
         ) as JsonObject<unknown>,
@@ -1052,6 +1069,7 @@ export class SpecBuilder {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
+        createTime: doc.createTime.toMicroseconds(),
         value: null
       };
     }
