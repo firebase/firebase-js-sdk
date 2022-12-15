@@ -24,10 +24,7 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import { QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import {
-  DocumentKeySet,
-  DocumentMap
-} from '../../../src/model/collections';
+import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MutationType } from '../../../src/model/mutation';
 
 /**
@@ -157,8 +154,8 @@ export class CountingQueryEngine extends QueryEngine {
     return {
       getOverlay: (transaction, key) => {
         return subject.getOverlay(transaction, key).next(result => {
+          this.overlaysReadByKey += 1;
           if (!!result) {
-            this.overlaysReadByKey += 1;
             this.overlayTypes[key.toString()] = result.mutation.type;
           }
           return result;
@@ -167,7 +164,7 @@ export class CountingQueryEngine extends QueryEngine {
 
       getOverlays: (transaction, keys) => {
         return subject.getOverlays(transaction, keys).next(result => {
-          this.overlaysReadByKey += result.size();
+          this.overlaysReadByKey += keys.length;
           result.forEach((key, overlay) => {
             this.overlayTypes[key.toString()] = overlay.mutation.type;
           });
