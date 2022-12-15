@@ -524,7 +524,7 @@ describe('Database@exp Tests', () => {
     expect(latestValue).to.equal(2);
     unsubscribe();
   });
-  it('doesn\'t override a tagged query with no data at the location', async () => {
+  it("doesn't override a tagged query with no data at the location", async () => {
     const database = getDatabase(defaultApp);
     const testingRef = ref(database, 'testing');
     await set(testingRef, {
@@ -541,14 +541,14 @@ describe('Database@exp Tests', () => {
         }
       }
     });
+    // Start: Step 1 - Set up listeners for tagged, empty query and tagged non-empty query at the same path
     const queryA = query(testingRef, orderByChild('testIndex'), equalTo(true));
     const queryB = query(testingRef, limitToFirst(100));
-    // TODO: Check count
     const waitForInitialEvents = EventAccumulatorFactory.waitsForExactCount(2);
-    onValue(queryA, (snapshot) => {
+    onValue(queryA, snapshot => {
       waitForInitialEvents.addEvent(snapshot);
     });
-    onValue(queryB, (snapshot) => {
+    onValue(queryB, snapshot => {
       waitForInitialEvents.addEvent(snapshot);
     });
     await waitForInitialEvents.promise;
@@ -567,34 +567,40 @@ describe('Database@exp Tests', () => {
         }
       }
     });
-    waitForInitialEvents.reset();
+    // End: Step 1
+    waitForInitialEvents.reset(); // We don't care about future events at that location
+    // Start: Step 2: Create a new listener at a subpath
     const waitForSecondWave = EventAccumulatorFactory.waitsForExactCount(1);
     const folderARef = child(testingRef, 'folderA/itemB');
-    let folderARefListenerUnsub = onValue(folderARef, (snapshot) => {
+    let folderARefListenerUnsub = onValue(folderARef, snapshot => {
       waitForSecondWave.addEvent(snapshot);
     });
     await waitForSecondWave.promise;
     expect(waitForSecondWave.eventData[0].val()).to.deep.eq({
-          color: 'blue',
-          name: 'ocean'
-      });
+      color: 'blue',
+      name: 'ocean'
+    });
     waitForSecondWave.reset();
-    await update(folderARef,  { name: 'sky'});
+    // End: Step 2
+    // Start: Step 3: Partial update at location, causing incorrect serverCache write to happen at queryA
+    await update(folderARef, { name: 'sky' });
     await waitForSecondWave.promise;
     expect(waitForSecondWave.eventData[0].val()).to.deep.eq({
-          color: 'blue',
-          name: 'sky'
-        }
-      );
-      waitForSecondWave.reset();
-      folderARefListenerUnsub();
-      folderARefListenerUnsub = onValue(folderARef, snapshot => {
-        waitForSecondWave.addEvent(snapshot);
-      });
+      color: 'blue',
+      name: 'sky'
+    });
+    waitForSecondWave.reset();
+    // End: Step 3
+    // Start: Step 4: Remove view, and when adding back the view, make sure that the path has the full data
+    folderARefListenerUnsub();
+    folderARefListenerUnsub = onValue(folderARef, snapshot => {
+      waitForSecondWave.addEvent(snapshot);
+    });
     await waitForSecondWave.promise;
-expect(waitForSecondWave.eventData[0].val()).to.deep.eq({
-    color: 'blue',
-    name: 'sky'
-});
+    expect(waitForSecondWave.eventData[0].val()).to.deep.eq({
+      color: 'blue',
+      name: 'sky'
+    });
+    // End: Step 4
   });
 });
