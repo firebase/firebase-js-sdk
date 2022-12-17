@@ -35,8 +35,8 @@ import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-import { BloomFilter } from './bloom_filter';
 
+import { BloomFilter } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
 
@@ -451,7 +451,9 @@ export class WatchChangeAggregator {
     const normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
     const bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
 
-    if (bloomFilter.size === 0) return false;
+    if (bloomFilter.size === 0) {
+      return false;
+    }
 
     const removedDocumentCount = this.filterRemovedDocuments(
       bloomFilter,
