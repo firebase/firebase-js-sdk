@@ -915,6 +915,81 @@ describeSpec('Limbo Documents:', [], () => {
     }
   );
 
+  /**
+   * BloomFilter:
+   * {
+   *   bits: {
+   *   bitmap: 'AQ=='
+   *   padding: 6
+   *   },
+   *   hashCount: 1
+   *  }
+   * When testing migthContain(), 'collection/a','collection/c' will return true,
+   * while mightContain('collection/b') will return false.
+   */
+  specTest(
+    'Limbo resolution throttling with bloom filter application',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 1000, { key: 'b' });
+      const docC = doc('collection/c', 1000, { key: 'c' });
+
+      const docBQuery = newQueryForPath(docB.key.path);
+
+      // Verify that limbo resolution throttling works correctly with bloom filter
+      // application on existence filter mismatches.
+      return (
+        spec()
+          .withMaxConcurrentLimboResolutions(2)
+          .userListens(query1)
+          .watchAcks(query1)
+          .watchSends({ affects: [query1] }, docA, docB)
+          .watchCurrents(query1, 'resume-token-1000')
+          .watchSnapshots(1000)
+          .expectEvents(query1, { added: [docA, docB] })
+          // Simulate that the client loses network connection.
+          .disableNetwork()
+          // Limbo document causes query to be "inconsistent"
+          .expectEvents(query1, { fromCache: true })
+          .enableNetwork()
+          .restoreListen(query1, 'resume-token-1000')
+          .watchAcks(query1)
+          // While this client was disconnected, another client deleted docB, and
+          // added docC. If Watch has to re-run the underlying query when this
+          // client re-listens, Watch won't be able to tell that docB were deleted
+          // and will only send us existing documents that changed since the resume
+          // token. This will cause it to just send the docC with an existence filter
+          // expectedCount of 2.
+          .watchSends({ affects: [query1] }, docC)
+          .watchFilters([query1], [docA.key, docC.key], {
+            bits: { bitmap: 'AQ==', padding: 6 },
+            hashCount: 1
+          })
+          .watchSnapshots(1001)
+          .expectEvents(query1, {
+            added: [docC],
+            fromCache: true
+          })
+          // The view now contains the docA, docB and docC (3 documents), but
+          // the existence filter indicated only 2 should match. There is an existence
+          // filter mismatch. Bloom filter checks membership of the docs, and filters
+          // out docB, while docA and docC returns true. Number of existing docs matches
+          // the expected count, so skip the re-run of the query.
+          .watchCurrents(query1, 'resume-token-1002')
+          .watchSnapshots(1002)
+          // The docB is in limbo; the client begins limbo resolution.
+          .expectLimboDocs(docB.key)
+          .watchAcks(docBQuery)
+          .watchCurrents(docBQuery, 'resume-token-1003')
+          .watchSnapshots(1003)
+          .expectEvents(query1, { removed: [docB] })
+          .expectLimboDocs()
+      );
+    }
+  );
+
   specTest(
     'A limbo resolution for a document should not be started if one is already active',
     [],

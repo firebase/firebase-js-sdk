@@ -27,6 +27,7 @@ import {
 } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { normalizeByteString } from '../model/normalize';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
@@ -34,6 +35,7 @@ import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
+import { BloomFilter } from './bloom_filter';
 
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
@@ -409,14 +411,78 @@ export class WatchChangeAggregator {
         }
       } else {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
+        // Existence filter mismatch. Remove documents to limbo, and raise a
+        // snapshot with `isFromCache:true`.
         if (currentSize !== expectedCount) {
-          // Existence filter mismatch: We reset the mapping and raise a new
-          // snapshot with `isFromCache:true`.
-          this.resetTarget(targetId);
-          this.pendingTargetResets = this.pendingTargetResets.add(targetId);
+          // Apply bloom filter to identify and move removed documents to limbo.
+          const bloomFilterApplied = this.applyBloomFilter(
+            watchChange.existenceFilter,
+            targetId,
+            currentSize
+          );
+          if (!bloomFilterApplied) {
+            // If bloom filter application fails, we reset the mapping and trigger
+            // re-run of the query.
+            this.resetTarget(targetId);
+            this.pendingTargetResets = this.pendingTargetResets.add(targetId);
+          }
         }
       }
     }
+  }
+
+  /** Returns wheather a bloom filter removed the deleted documents successfully. */
+  private applyBloomFilter(
+    existenceFilter: ExistenceFilter,
+    targetId: number,
+    currentCount: number
+  ): boolean {
+    const unchangedNames = existenceFilter.unchangedNames;
+    const expectedCount = existenceFilter.count;
+
+    if (!unchangedNames || !unchangedNames.bits) {
+      return false;
+    }
+
+    const {
+      bits: { bitmap = '', padding = 0 },
+      hashCount = 0
+    } = unchangedNames;
+    const normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
+    const bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
+
+    if (bloomFilter.size === 0) return false;
+
+    const removedDocumentCount = this.filterRemovedDocuments(
+      bloomFilter,
+      targetId
+    );
+
+    if (currentCount - removedDocumentCount === expectedCount) {
+      return true;
+    }
+    // Bloom filter might falsly remove existing documents,leaving existingDocumentsCount
+    // smaller than expectedCount.
+    return false;
+  }
+
+  /**
+   * Filter out removed documents based on bloom filter membership result and return number
+   *  of documents removed.
+   */
+  private filterRemovedDocuments(
+    bloomFilter: BloomFilter,
+    targetId: number
+  ): number {
+    const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
+    let removalCount = 0;
+    existingKeys.forEach(key => {
+      if (!bloomFilter.mightContain(key.toString())) {
+        this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
+        removalCount++;
+      }
+    });
+    return removalCount;
   }
 
   /**
