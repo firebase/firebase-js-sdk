@@ -16,7 +16,7 @@
  */
 import { Md5, Integer } from '@firebase/webchannel-wrapper';
 
-import { newTextEncoder } from '../platform/serializer';
+import { newTextEncoder } from '../platform/text_reader';
 import { debugAssert } from '../util/assert';
 
 const MAX_64_BIT_UNSIGNED_INTEGER = new Integer([0xffffffff, 0xffffffff], 0);
