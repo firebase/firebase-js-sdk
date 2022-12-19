@@ -25,7 +25,7 @@ import {
   FieldFilter,
   Operator
 } from '../../../src/core/filter';
-import { queryToTarget  } from '../../../src/core/query';
+import { queryToTarget } from '../../../src/core/query';
 import { canonifyTarget } from '../../../src/core/target';
 import { andFilter, filter, orFilter, query } from '../../util/helpers';
 
