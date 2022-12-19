@@ -16,6 +16,7 @@
  */
 
 import { CONSTANTS } from './constants';
+import { getDefaults } from './defaults';
 
 /**
  * Returns navigator.userAgent string or '' if it's not defined.
@@ -49,13 +50,19 @@ export function isMobileCordova(): boolean {
   );
 }
 
+// TODO(jackdwyer): update this to use getDefaults() check if there is the force
+// environment field. If there, return true or false depending on results
+// else proceed with previous implementation of function.
 /**
  * Detect Node.js.
  *
- * @return true if Node.js environment is detected.
+ * @return true if Node.js environment is detected or specified.
  */
 // Node detection logic from: https://github.com/iliakan/detect-node/
 export function isNode(): boolean {
+  if (getDefaults()?.forceEnvironment === 'node') {
+    return true;
+  }
   try {
     return (
       Object.prototype.toString.call(global.process) === '[object process]'

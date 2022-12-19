@@ -39,6 +39,7 @@ export interface FirebaseDefaults {
   emulatorHosts?: Record<string, string>;
   _authTokenSyncURL?: string;
   _authIdTokenMaxAge?: number;
+  forceEnvironment?: 'browser' | 'node';
   [key: string]: unknown;
 }
 
@@ -88,7 +89,7 @@ const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
  * (2) if such an object was provided on a shell environment variable
  * (3) if such an object exists in a cookie
  */
-const getDefaults = (): FirebaseDefaults | undefined => {
+export const getDefaults = (): FirebaseDefaults | undefined => {
   try {
     return (
       getDefaultsFromGlobal() ||
