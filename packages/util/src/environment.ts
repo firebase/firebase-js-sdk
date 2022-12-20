@@ -57,7 +57,6 @@ export function isMobileCordova(): boolean {
  */
 // Node detection logic from: https://github.com/iliakan/detect-node/
 export function isNode(): boolean {
-  console.log({ getDefualts: getDefaults() });
   const forceEnvironment = getDefaults()?.forceEnvironment;
   if (forceEnvironment === 'node') {
     return true;

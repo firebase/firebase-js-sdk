@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { isNode } from '../src/environment';
-import { SinonStub, stub } from 'sinon';
+import { SinonStub, stub, restore } from 'sinon';
 import * as defaults from '../src/defaults';
 
 const firebaseDefaults: defaults.FirebaseDefaults = {
@@ -27,10 +27,14 @@ const firebaseDefaults: defaults.FirebaseDefaults = {
 };
 
 describe('isNode()', () => {
-  const getDefaultsFromGlobalStub: SinonStub = stub(defaults, 'getDefaults');
+  let getDefaultsFromGlobalStub: SinonStub;
+
+  beforeEach(async () => {
+    getDefaultsFromGlobalStub = stub(defaults, 'getDefaults');
+  });
 
   afterEach(async () => {
-    getDefaultsFromGlobalStub.reset();
+    restore();
   });
 
   it('returns true if forceEnvironment lists `node`', () => {
