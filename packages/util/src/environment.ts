@@ -50,9 +50,6 @@ export function isMobileCordova(): boolean {
   );
 }
 
-// TODO(jackdwyer): update this to use getDefaults() check if there is the force
-// environment field. If there, return true or false depending on results
-// else proceed with previous implementation of function.
 /**
  * Detect Node.js.
  *
@@ -60,9 +57,14 @@ export function isMobileCordova(): boolean {
  */
 // Node detection logic from: https://github.com/iliakan/detect-node/
 export function isNode(): boolean {
-  if (getDefaults()?.forceEnvironment === 'node') {
+  console.log({ getDefualts: getDefaults() });
+  const forceEnvironment = getDefaults()?.forceEnvironment;
+  if (forceEnvironment === 'node') {
     return true;
+  } else if (forceEnvironment === 'browser') {
+    return false;
   }
+
   try {
     return (
       Object.prototype.toString.call(global.process) === '[object process]'
