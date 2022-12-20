@@ -193,6 +193,8 @@ export interface FirebaseDefaults {
     config?: Record<string, string>;
     // (undocumented)
     emulatorHosts?: Record<string, string>;
+    // (undocumented)
+    forceEnvironment?: 'browser' | 'node';
 }
 
 // Warning: (ae-missing-release-tag) "FirebaseError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -220,6 +222,11 @@ export const getDefaultEmulatorHost: (productName: string) => string | undefined
 
 // @public
 export const getDefaultEmulatorHostnameAndPort: (productName: string) => [hostname: string, port: number] | undefined;
+
+// Warning: (ae-missing-release-tag) "getDefaults" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export const getDefaults: () => FirebaseDefaults | undefined;
 
 // @public
 export const getExperimentalSetting: <T extends ExperimentalKey>(name: T) => FirebaseDefaults[`_${T}`];
