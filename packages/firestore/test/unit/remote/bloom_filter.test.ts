@@ -16,8 +16,8 @@
  */
 import { expect } from 'chai';
 
+import { normalizeByteString } from '../../../src/model/normalize';
 import { BloomFilter } from '../../../src/remote/bloom_filter';
-import { ByteString } from '../../../src/util/byte_string';
 
 import * as TEST_DATA from './bloom_filter_golden_test_data';
 
@@ -139,7 +139,7 @@ describe('BloomFilter', () => {
       } = bloomFilterInputs;
       const { membershipTestResults } = expectedResult;
 
-      const byteArray = ByteString.fromBase64String(bitmap).toUint8Array();
+      const byteArray = normalizeByteString(bitmap).toUint8Array();
       const bloomFilter = new BloomFilter(byteArray, padding, hashCount);
       for (let i = 0; i < membershipTestResults.length; i++) {
         const expectedMembershipResult = membershipTestResults[i] === '1';

@@ -252,8 +252,8 @@ describeSpec('Existence Filters:', [], () => {
    *   },
    *   hashCount: 1
    *  }
-   * When testing migthContain(), 'collection/a','collection/c' will return true,
-   * while mightContain('collection/b') will return false.
+   * When testing migthContain(), 'collection/a','collection/b-deleted','collection/c' will
+   * return true, while mightContain('collection/b') will return false.
    */
 
   specTest(
@@ -268,6 +268,7 @@ describeSpec('Existence Filters:', [], () => {
           .userListens(query1)
           .watchAcksFull(query1, 1000, docA, docB)
           .expectEvents(query1, { added: [docA, docB] })
+          // DocB is deleted in the next sync.
           .watchFilters([query1], [docA.key], {
             bits: { bitmap: 'AQ==', padding: 6 },
             hashCount: 1
@@ -292,29 +293,30 @@ describeSpec('Existence Filters:', [], () => {
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { v: 1 });
-      const docC = doc('collection/c', 1000, { v: 2 });
+      const docB = doc('collection/b-deleted', 1000, { v: 2 });
 
       return (
         spec()
           .userListens(query1)
-          .watchAcksFull(query1, 1000, docA, docC)
-          .expectEvents(query1, { added: [docA, docC] })
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          // DocB is deleted in the next sync.
           .watchFilters([query1], [docA.key], {
             bits: { bitmap: 'AQ==', padding: 6 },
             hashCount: 1
           })
           .watchSnapshots(2000)
-          // BloomFilter yields false positive results, cannot identify docC
+          // BloomFilter yields false positive results, cannot identify docB
           // is deleted. Re-run query is triggered.
           .expectEvents(query1, { fromCache: true })
           .expectActiveTargets({ query: query1, resumeToken: '' })
           .watchRemoves(query1) // Acks removal of query
           .watchAcksFull(query1, 2000, docA)
-          .expectLimboDocs(docC.key) // docC is now in limbo
-          .ackLimbo(2000, deletedDoc('collection/c', 2000))
-          .expectLimboDocs() // docC is no longer in limbo
+          .expectLimboDocs(docB.key) // docB is now in limbo
+          .ackLimbo(2000, deletedDoc('collection/b-deleted', 2000))
+          .expectLimboDocs() // docB is no longer in limbo
           .expectEvents(query1, {
-            removed: [docC]
+            removed: [docB]
           })
       );
     }

@@ -431,7 +431,7 @@ export class WatchChangeAggregator {
     }
   }
 
-  /** Returns wheather a bloom filter removed the deleted documents successfully. */
+  /** Returns wheather a bloom filter removed the deleted documents successfully.*/
   private applyBloomFilter(
     existenceFilter: ExistenceFilter,
     targetId: number,
@@ -463,14 +463,13 @@ export class WatchChangeAggregator {
     if (currentCount - removedDocumentCount === expectedCount) {
       return true;
     }
-    // Bloom filter might falsly remove existing documents,leaving existingDocumentsCount
-    // smaller than expectedCount.
+
     return false;
   }
 
   /**
    * Filter out removed documents based on bloom filter membership result and return number
-   *  of documents removed.
+   * of documents removed.
    */
   private filterRemovedDocuments(
     bloomFilter: BloomFilter,
@@ -479,7 +478,7 @@ export class WatchChangeAggregator {
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     let removalCount = 0;
     existingKeys.forEach(key => {
-      if (!bloomFilter.mightContain(key.toString())) {
+      if (!bloomFilter.mightContain(key.path.toFullPath())) {
         this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
         removalCount++;
       }
