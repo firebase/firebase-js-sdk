@@ -40,8 +40,8 @@ import {
 import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
- * Converter used by `withConverter()` to transform user objects of type `T`
- * into Firestore data.
+ * Converter used by `withConverter()` to transform user objects of type
+ * `ModelT` into Firestore data, `SerializedModelT`.
  *
  * Using the converter allows you to specify generic type arguments when
  * storing and retrieving objects from Firestore.
@@ -78,33 +78,35 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * }
  * ```
  */
-export interface FirestoreDataConverter<T> {
+export interface FirestoreDataConverter<ModelT, SerializedModelT extends DocumentData> {
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
-   * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `ModelT` into a plain Javascript object (suitable for writing directly to
+   * the Firestore database) of type `SerializedModelT`. Used with
+   * {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
    * and {@link @firebase/firestore/lite#(Transaction.set:1)}.
    *
-   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
-   * {@link (deleteField:1)} to be used as property values.
+   * The `WithFieldValue<ModelT>` type extends `ModelT` to also allow
+   * FieldValues such as {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+  toFirestore(modelObject: WithFieldValue<ModelT>): SerializedModelT;
 
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
-   * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `ModelT` into a plain Javascript object (suitable for writing directly to
+   * the Firestore database) of type `SerializedModelT`. Used with
+   * {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
    * and {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true` or `mergeFields`.
    *
-   * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
+   * The `PartialWithFieldValue<ModelT>` type extends `Partial<ModelT>` to allow
    * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
    * It also supports nested `Partial` by allowing nested fields to be
    * omitted.
    */
   toFirestore(
-    modelObject: PartialWithFieldValue<T>,
+    modelObject: PartialWithFieldValue<ModelT>,
     options: SetOptions
-  ): DocumentData;
+  ): SerializedModelT;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of
@@ -113,7 +115,7 @@ export interface FirestoreDataConverter<T> {
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and
    * metadata.
    */
-  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
+  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>): ModelT;
 }
 
 /**
@@ -125,7 +127,7 @@ export interface FirestoreDataConverter<T> {
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<T = DocumentData> {
+export class DocumentSnapshot<ModelT, SerializedModelT extends DocumentData> {
   // Note: This class is stripped down version of the DocumentSnapshot in
   // the legacy SDK. The changes are:
   // - No support for SnapshotMetadata.
@@ -137,7 +139,7 @@ export class DocumentSnapshot<T = DocumentData> {
     public _userDataWriter: AbstractUserDataWriter,
     public _key: DocumentKey,
     public _document: Document | null,
-    public _converter: UntypedFirestoreDataConverter<T> | null
+    public _converter: UntypedFirestoreDataConverter<ModelT, SerializedModelT> | null
   ) {}
 
   /** Property of the `DocumentSnapshot` that provides the document's ID. */
@@ -148,8 +150,8 @@ export class DocumentSnapshot<T = DocumentData> {
   /**
    * The `DocumentReference` for the document included in the `DocumentSnapshot`.
    */
-  get ref(): DocumentReference<T> {
-    return new DocumentReference<T>(
+  get ref(): DocumentReference<ModelT, SerializedModelT> {
+    return new DocumentReference<ModelT, SerializedModelT>(
       this._firestore,
       this._converter,
       this._key
@@ -161,7 +163,7 @@ export class DocumentSnapshot<T = DocumentData> {
    *
    * @returns true if the document exists.
    */
-  exists(): this is QueryDocumentSnapshot<T> {
+  exists(): this is QueryDocumentSnapshot<ModelT, SerializedModelT> {
     return this._document !== null;
   }
 
@@ -172,7 +174,7 @@ export class DocumentSnapshot<T = DocumentData> {
    * @returns An `Object` containing all fields in the document or `undefined`
    * if the document doesn't exist.
    */
-  data(): T | undefined {
+  data(): ModelT | undefined {
     if (!this._document) {
       return undefined;
     } else if (this._converter) {
@@ -187,7 +189,7 @@ export class DocumentSnapshot<T = DocumentData> {
       );
       return this._converter.fromFirestore(snapshot);
     } else {
-      return this._userDataWriter.convertValue(this._document.data.value) as T;
+      return this._userDataWriter.convertValue(this._document.data.value) as ModelT;
     }
   }
 
@@ -226,17 +228,15 @@ export class DocumentSnapshot<T = DocumentData> {
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<ModelT, SerializedModelT extends DocumentData> extends DocumentSnapshot<ModelT, SerializedModelT> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
    * @override
    * @returns An `Object` containing all fields in the document.
    */
-  data(): T {
-    return super.data() as T;
+  data(): ModelT {
+    return super.data() as ModelT;
   }
 }
 
@@ -247,23 +247,23 @@ export class QueryDocumentSnapshot<
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot<T = DocumentData> {
+export class QuerySnapshot<ModelT, SerializedModelT extends DocumentData> {
   /**
    * The query on which you called {@link getDocs} in order to get this
    * `QuerySnapshot`.
    */
-  readonly query: Query<T>;
+  readonly query: Query<ModelT, SerializedModelT>;
 
   /** @hideconstructor */
   constructor(
-    _query: Query<T>,
-    readonly _docs: Array<QueryDocumentSnapshot<T>>
+    _query: Query<ModelT, SerializedModelT>,
+    readonly _docs: Array<QueryDocumentSnapshot<ModelT, SerializedModelT>>
   ) {
     this.query = _query;
   }
 
   /** An array of all the documents in the `QuerySnapshot`. */
-  get docs(): Array<QueryDocumentSnapshot<T>> {
+  get docs(): Array<QueryDocumentSnapshot<ModelT, SerializedModelT>> {
     return [...this._docs];
   }
 
@@ -285,7 +285,7 @@ export class QuerySnapshot<T = DocumentData> {
    * @param thisArg - The `this` binding for the callback.
    */
   forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
+    callback: (result: QueryDocumentSnapshot<ModelT, SerializedModelT>) => void,
     thisArg?: unknown
   ): void {
     this._docs.forEach(callback, thisArg);
@@ -299,9 +299,9 @@ export class QuerySnapshot<T = DocumentData> {
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export function snapshotEqual<T>(
-  left: DocumentSnapshot<T> | QuerySnapshot<T>,
-  right: DocumentSnapshot<T> | QuerySnapshot<T>
+export function snapshotEqual<ModelT, SerializedModelT extends DocumentData>(
+  left: DocumentSnapshot<ModelT, SerializedModelT> | QuerySnapshot<ModelT, SerializedModelT>,
+  right: DocumentSnapshot<ModelT, SerializedModelT> | QuerySnapshot<ModelT, SerializedModelT>
 ): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);

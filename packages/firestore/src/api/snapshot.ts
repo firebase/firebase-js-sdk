@@ -83,46 +83,48 @@ import { SnapshotListenOptions } from './reference_impl';
  * }
  * ```
  */
-export interface FirestoreDataConverter<T>
-  extends LiteFirestoreDataConverter<T> {
+export interface FirestoreDataConverter<ModelT, SerializedModelT extends DocumentData>
+  extends LiteFirestoreDataConverter<ModelT, SerializedModelT> {
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). To use `set()` with `merge` and `mergeFields`,
-   * `toFirestore()` must be defined with `PartialWithFieldValue<T>`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `ModelT` into a plain JavaScript object (suitable for writing directly to
+   * the Firestore database) of type `SerializedModelT`. To use `set()` with
+   * `merge` and `mergeFields`, `toFirestore()` must be defined with
+   * `PartialWithFieldValue<ModelT>`.
    *
-   * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
-   * {@link (deleteField:1)} to be used as property values.
+   * The `WithFieldValue<ModelT>` type extends `ModelT` to also allow
+   * FieldValues such as {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+  toFirestore(modelObject: WithFieldValue<ModelT>): SerializedModelT;
 
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). Used with {@link (setDoc:1)}, {@link (WriteBatch.set:1)}
-   * and {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `ModelT` into a plain JavaScript object (suitable for writing directly to
+   * the Firestore database) of type `SerializedModelT`. Used with
+   * {@link (setDoc:1)}, {@link (WriteBatch.set:1)} and
+   * {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
    *
-   * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
+   * The `PartialWithFieldValue<ModelT>` type extends `Partial<ModelT>` to allow
    * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
    * It also supports nested `Partial` by allowing nested fields to be
    * omitted.
    */
   toFirestore(
-    modelObject: PartialWithFieldValue<T>,
+    modelObject: PartialWithFieldValue<ModelT>,
     options: SetOptions
-  ): DocumentData;
+  ): SerializedModelT;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of
-   * type T. You can access your data by calling: `snapshot.data(options)`.
+   * type ModelT. You can access your data by calling: `snapshot.data(options)`.
    *
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and metadata.
    * @param options - The `SnapshotOptions` from the initial call to `data()`.
    */
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData>,
+    snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>,
     options?: SnapshotOptions
-  ): T;
+  ): ModelT;
 }
 
 /**
@@ -200,12 +202,12 @@ export type DocumentChangeType = 'added' | 'removed' | 'modified';
  * A `DocumentChange` represents a change to the documents matching a query.
  * It contains the document affected and the type of change that occurred.
  */
-export interface DocumentChange<T = DocumentData> {
+export interface DocumentChange<ModelT, SerializedModelT extends DocumentData> {
   /** The type of change ('added', 'modified', or 'removed'). */
   readonly type: DocumentChangeType;
 
   /** The document affected by this change. */
-  readonly doc: QueryDocumentSnapshot<T>;
+  readonly doc: QueryDocumentSnapshot<ModelT, SerializedModelT>;
 
   /**
    * The index of the changed document in the result set immediately prior to
@@ -232,9 +234,7 @@ export interface DocumentChange<T = DocumentData> {
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<
-  T = DocumentData
-> extends LiteDocumentSnapshot<T> {
+export class DocumentSnapshot<ModelT, SerializedModelT extends DocumentData> extends LiteDocumentSnapshot<ModelT, SerializedModelT> {
   private readonly _firestoreImpl: Firestore;
 
   /**
@@ -250,7 +250,7 @@ export class DocumentSnapshot<
     key: DocumentKey,
     document: Document | null,
     metadata: SnapshotMetadata,
-    converter: UntypedFirestoreDataConverter<T> | null
+    converter: UntypedFirestoreDataConverter<ModelT, SerializedModelT> | null
   ) {
     super(_firestore, userDataWriter, key, document, converter);
     this._firestoreImpl = _firestore;
@@ -260,7 +260,7 @@ export class DocumentSnapshot<
   /**
    * Returns whether or not the data exists. True if the document exists.
    */
-  exists(): this is QueryDocumentSnapshot<T> {
+  exists(): this is QueryDocumentSnapshot<ModelT, SerializedModelT> {
     return super.exists();
   }
 
@@ -278,7 +278,7 @@ export class DocumentSnapshot<
    * @returns An `Object` containing all fields in the document or `undefined` if
    * the document doesn't exist.
    */
-  data(options: SnapshotOptions = {}): T | undefined {
+  data(options: SnapshotOptions = {}): ModelT | undefined {
     if (!this._document) {
       return undefined;
     } else if (this._converter) {
@@ -297,7 +297,7 @@ export class DocumentSnapshot<
       return this._userDataWriter.convertValue(
         this._document.data.value,
         options.serverTimestamps
-      ) as T;
+      ) as ModelT;
     }
   }
 
@@ -346,9 +346,7 @@ export class DocumentSnapshot<
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<ModelT, SerializedModelT extends DocumentData> extends DocumentSnapshot<ModelT, SerializedModelT> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
@@ -362,8 +360,8 @@ export class QueryDocumentSnapshot<
    * have not yet been set to their final value).
    * @returns An `Object` containing all fields in the document.
    */
-  data(options: SnapshotOptions = {}): T {
-    return super.data(options) as T;
+  data(options: SnapshotOptions = {}): ModelT {
+    return super.data(options)!;
   }
 }
 
@@ -374,7 +372,7 @@ export class QueryDocumentSnapshot<
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot<T = DocumentData> {
+export class QuerySnapshot<ModelT, SerializedModelT extends DocumentData> {
   /**
    * Metadata about this snapshot, concerning its source and if it has local
    * modifications.
@@ -385,16 +383,16 @@ export class QuerySnapshot<T = DocumentData> {
    * The query on which you called `get` or `onSnapshot` in order to get this
    * `QuerySnapshot`.
    */
-  readonly query: Query<T>;
+  readonly query: Query<ModelT, SerializedModelT>;
 
-  private _cachedChanges?: Array<DocumentChange<T>>;
+  private _cachedChanges?: Array<DocumentChange<ModelT, SerializedModelT>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
   /** @hideconstructor */
   constructor(
     readonly _firestore: Firestore,
     readonly _userDataWriter: AbstractUserDataWriter,
-    query: Query<T>,
+    query: Query<ModelT, SerializedModelT>,
     readonly _snapshot: ViewSnapshot
   ) {
     this.metadata = new SnapshotMetadata(
@@ -405,8 +403,8 @@ export class QuerySnapshot<T = DocumentData> {
   }
 
   /** An array of all the documents in the `QuerySnapshot`. */
-  get docs(): Array<QueryDocumentSnapshot<T>> {
-    const result: Array<QueryDocumentSnapshot<T>> = [];
+  get docs(): Array<QueryDocumentSnapshot<ModelT, SerializedModelT>> {
+    const result: Array<QueryDocumentSnapshot<ModelT, SerializedModelT>> = [];
     this.forEach(doc => result.push(doc));
     return result;
   }
@@ -429,13 +427,13 @@ export class QuerySnapshot<T = DocumentData> {
    * @param thisArg - The `this` binding for the callback.
    */
   forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
+    callback: (result: QueryDocumentSnapshot<ModelT, SerializedModelT>) => void,
     thisArg?: unknown
   ): void {
     this._snapshot.docs.forEach(doc => {
       callback.call(
         thisArg,
-        new QueryDocumentSnapshot<T>(
+        new QueryDocumentSnapshot<ModelT, SerializedModelT>(
           this._firestore,
           this._userDataWriter,
           doc.key,
@@ -459,7 +457,7 @@ export class QuerySnapshot<T = DocumentData> {
    * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
    * snapshot events.
    */
-  docChanges(options: SnapshotListenOptions = {}): Array<DocumentChange<T>> {
+  docChanges(options: SnapshotListenOptions = {}): Array<DocumentChange<ModelT, SerializedModelT>> {
     const includeMetadataChanges = !!options.includeMetadataChanges;
 
     if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
@@ -483,10 +481,7 @@ export class QuerySnapshot<T = DocumentData> {
 }
 
 /** Calculates the array of `DocumentChange`s for a given `ViewSnapshot`. */
-export function changesFromSnapshot<T>(
-  querySnapshot: QuerySnapshot<T>,
-  includeMetadataChanges: boolean
-): Array<DocumentChange<T>> {
+export function changesFromSnapshot<ModelT, SerializedModelT extends DocumentData>(querySnapshot: QuerySnapshot<ModelT, SerializedModelT>, includeMetadataChanges: boolean): Array<DocumentChange<ModelT, SerializedModelT>> {
   if (querySnapshot._snapshot.oldDocs.isEmpty()) {
     // Special case the first snapshot because index calculation is easy and
     // fast
@@ -505,7 +500,7 @@ export function changesFromSnapshot<T>(
           ) < 0,
         'Got added events in wrong order'
       );
-      const doc = new QueryDocumentSnapshot<T>(
+      const doc = new QueryDocumentSnapshot<ModelT, SerializedModelT>(
         querySnapshot._firestore,
         querySnapshot._userDataWriter,
         change.doc.key,
@@ -533,7 +528,7 @@ export function changesFromSnapshot<T>(
         change => includeMetadataChanges || change.type !== ChangeType.Metadata
       )
       .map(change => {
-        const doc = new QueryDocumentSnapshot<T>(
+        const doc = new QueryDocumentSnapshot<ModelT, SerializedModelT>(
           querySnapshot._firestore,
           querySnapshot._userDataWriter,
           change.doc.key,
@@ -588,10 +583,7 @@ export function resultChangeType(type: ChangeType): DocumentChangeType {
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export function snapshotEqual<T>(
-  left: DocumentSnapshot<T> | QuerySnapshot<T>,
-  right: DocumentSnapshot<T> | QuerySnapshot<T>
-): boolean {
+export function snapshotEqual<ModelT, SerializedModelT extends DocumentData>(left: DocumentSnapshot<ModelT, SerializedModelT> | QuerySnapshot<ModelT, SerializedModelT>, right: DocumentSnapshot<ModelT, SerializedModelT> | QuerySnapshot<ModelT, SerializedModelT>): boolean {
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (
       left._firestore === right._firestore &&

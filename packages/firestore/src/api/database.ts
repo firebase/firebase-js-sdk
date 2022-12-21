@@ -46,7 +46,7 @@ import {
   Firestore as LiteFirestore,
   connectFirestoreEmulator
 } from '../lite-api/database';
-import { Query } from '../lite-api/reference';
+import {DocumentData, Query} from '../lite-api/reference';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
@@ -612,15 +612,14 @@ export function loadBundle(
 export function namedQuery(
   firestore: Firestore,
   name: string
-): Promise<Query | null> {
+): Promise<Query<DocumentData, DocumentData> | null> {
   firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   return firestoreClientGetNamedQuery(client, name).then(namedQuery => {
     if (!namedQuery) {
       return null;
     }
-
-    return new Query(firestore, null, namedQuery.query);
+    return new Query<DocumentData, DocumentData>(firestore, null, namedQuery.query);
   });
 }
 
