@@ -107,7 +107,7 @@ describeSpec('Remote store:', [], () => {
           // Change user (will shut down existing streams and start new ones).
           .changeUser('abc')
           // Our query should be sent to the new stream.
-          .expectActiveTargets({ query: query1, resume: { resumeToken: '' } })
+          .expectActiveTargets({ query: query1, resumeToken: '' })
 
           // Close the (newly-created) stream as if it too failed (should trigger
           // retry with backoff, potentially reproducing the crash in b/74749605).

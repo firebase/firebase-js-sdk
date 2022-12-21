@@ -345,7 +345,7 @@ describeSpec('Limits:', [], () => {
           .watchSnapshots(1004)
           .expectActiveTargets({
             query: limitQuery,
-            resume: { resumeToken: '' }
+            resumeToken: ''
           })
           .watchRemoves(limitQuery)
           .watchAcksFull(limitQuery, 1005, secondDocument)

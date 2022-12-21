@@ -523,7 +523,7 @@ describeSpec('Writes:', [], () => {
         .enableNetwork()
         .expectActiveTargets({
           query: query1,
-          resume: { resumeToken: 'resume-token-500' }
+          resumeToken: 'resume-token-500'
         })
 
         // acked write should /not/ have been resent, so count should still be 3

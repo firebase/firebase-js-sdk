@@ -421,7 +421,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         // Client is back online
         .expectActiveTargets({
           query: query1,
-          resume: { resumeToken: 'resume-token-1000' }
+          resumeToken: 'resume-token-1000'
         })
         .expectUserCallbacks({ acknowledged: ['collection/a'] })
         .watchAcksFull(query1, 1001, doc1)
@@ -549,7 +549,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         .runTimer(TimerId.AsyncQueueRetry)
         .expectActiveTargets({
           query: query1,
-          resume: { resumeToken: 'resume-token-1000' }
+          resumeToken: 'resume-token-1000'
         })
         .watchAcksFull(query1, 2000, doc2)
         .expectEvents(query1, {
@@ -639,7 +639,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
         .expectActiveTargets(
           {
             query: filteredQuery,
-            resume: { resumeToken: 'resume-token-2000' }
+            resumeToken: 'resume-token-2000'
           },
           { query: limboQuery }
         )
@@ -681,7 +681,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .recoverDatabase()
       .runTimer(TimerId.AsyncQueueRetry)
       .expectActiveTargets(
-        { query: filteredQuery, resume: { resumeToken: 'resume-token-2000' } },
+        { query: filteredQuery, resumeToken: 'resume-token-2000' },
         { query: limboQuery }
       )
       .watchAcksFull(filteredQuery, 3000)

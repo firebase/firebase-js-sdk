@@ -168,7 +168,7 @@ describeSpec('Persistence:', [], () => {
         // A user change will re-send the query with the current resume token
         .expectActiveTargets({
           query: query1,
-          resume: { resumeToken: 'resume-token-500' }
+          resumeToken: 'resume-token-500'
         })
         .expectEvents(query1, { removed: [anonDoc] })
         .userSets('users/user1', { uid: 'user1' })

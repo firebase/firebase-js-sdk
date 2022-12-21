@@ -1109,14 +1109,16 @@ abstract class TestRunner {
       if (expected.resumeToken && expected.resumeToken !== '') {
         targetData = targetData.withResumeToken(
           byteStringFromString(expected.resumeToken),
-          SnapshotVersion.min(),
-          expected.expectedCount
+          SnapshotVersion.min()
         );
       } else {
         targetData = targetData.withResumeToken(
           ByteString.EMPTY_BYTE_STRING,
           version(expected.readTime!)
         );
+      }
+      if (expected.expectedCount) {
+        targetData = targetData.withExpectedCount(expected.expectedCount);
       }
 
       const expectedTarget = toTarget(this.serializer, targetData);

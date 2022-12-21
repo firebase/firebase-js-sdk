@@ -67,8 +67,8 @@ export class TargetData {
      * time from which the server should resume sending results.
      */
     readonly resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING,
-
-    /** The number of documents that last matched the query at the resume token or
+    /**
+     * The number of documents that last matched the query at the resume token or
      * read time.
      */
     readonly expectedCount: number = 0
@@ -89,13 +89,12 @@ export class TargetData {
   }
 
   /**
-   * Creates a new target data instance with an updated resume token,
-   * snapshot version, and expectedCount if presented.
+   * Creates a new target data instance with an updated resume token and
+   * snapshot version.
    */
   withResumeToken(
     resumeToken: ByteString,
-    snapshotVersion: SnapshotVersion,
-    expectedCount?: number
+    snapshotVersion: SnapshotVersion
   ): TargetData {
     return new TargetData(
       this.target,
@@ -105,7 +104,7 @@ export class TargetData {
       snapshotVersion,
       this.lastLimboFreeSnapshotVersion,
       resumeToken,
-      expectedCount || this.expectedCount
+      this.expectedCount
     );
   }
 

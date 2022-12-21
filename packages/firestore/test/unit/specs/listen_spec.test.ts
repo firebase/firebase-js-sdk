@@ -1827,12 +1827,18 @@ describeSpec('Listens:', [], () => {
           .userUnlistens(query1)
           .watchRemoves(query1)
           // There is 0 remote document from previous listen.
-          .userListens(query1, { resumeToken: 'resume-token-1000' }, 0)
+          .userListens(query1, {
+            resumeToken: 'resume-token-1000',
+            expectedCount: 0
+          })
           .expectEvents(query1, { fromCache: true })
           .watchAcksFull(query1, 2000, docA, docB)
           .expectEvents(query1, { added: [docA, docB] })
           .userUnlistens(query1)
-          .userListens(query1, { resumeToken: 'resume-token-2000' }, 2)
+          .userListens(query1, {
+            resumeToken: 'resume-token-2000',
+            expectedCount: 2
+          })
           .expectEvents(query1, { added: [docA, docB], fromCache: true })
       );
     }
@@ -1855,7 +1861,10 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query1, { added: [docA] })
         .userUnlistens(query1)
         .userSets('collection/b', { key: 'b' })
-        .userListens(query1, { resumeToken: 'resume-token-1000' }, 1)
+        .userListens(query1, {
+          resumeToken: 'resume-token-1000',
+          expectedCount: 1
+        })
         .expectEvents(query1, {
           added: [docA, docBLocal],
           fromCache: true,
