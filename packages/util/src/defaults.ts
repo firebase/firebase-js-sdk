@@ -53,8 +53,11 @@ const getDefaultsFromGlobal = (): FirebaseDefaults | undefined =>
 
 /**
  * Attempt to read defaults from a JSON string provided to
- * process.env.__FIREBASE_DEFAULTS__ or a JSON file whose path is in
- * process.env.__FIREBASE_DEFAULTS_PATH__
+ * process(.)env(.)__FIREBASE_DEFAULTS__ or a JSON file whose path is in
+ * process(.)env(.)__FIREBASE_DEFAULTS_PATH__
+ * The dots are in parens because certain compilers (Vite?) cannot
+ * handle seeing that variable in comments.
+ * See https://github.com/firebase/firebase-js-sdk/issues/6838
  */
 const getDefaultsFromEnvVariable = (): FirebaseDefaults | undefined => {
   if (typeof process === 'undefined' || typeof process.env === 'undefined') {
