@@ -1117,7 +1117,7 @@ abstract class TestRunner {
           version(expected.readTime!)
         );
       }
-      if (expected.expectedCount) {
+      if (expected.expectedCount !== undefined) {
         targetData = targetData.withExpectedCount(expected.expectedCount);
       }
 
