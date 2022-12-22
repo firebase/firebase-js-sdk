@@ -22,6 +22,7 @@ import {
   DEFAULT_TRANSACTION_OPTIONS,
   validateTransactionOptions
 } from '../core/transaction_options';
+import { DocumentData } from './reference';
 import { DocumentReference } from '../lite-api/reference';
 import { Transaction as LiteTransaction } from '../lite-api/transaction';
 import { validateReference } from '../lite-api/write_batch';
@@ -57,8 +58,8 @@ export class Transaction extends LiteTransaction {
    * @param documentRef - A reference to the document to be read.
    * @returns A `DocumentSnapshot` with the read data.
    */
-  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
-    const ref = validateReference<T>(documentRef, this._firestore);
+  get<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
+    const ref = validateReference(documentRef, this._firestore);
     const userDataWriter = new ExpUserDataWriter(this._firestore);
     return super
       .get(documentRef)

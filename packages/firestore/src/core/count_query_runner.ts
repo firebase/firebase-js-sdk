@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AbstractUserDataWriter, Query } from '../api';
+import {AbstractUserDataWriter, DocumentData, Query} from '../api';
 import {
   AggregateField,
   AggregateQuerySnapshot
@@ -28,14 +28,14 @@ import { hardAssert } from '../util/assert';
  * CountQueryRunner encapsulates the logic needed to run the count aggregation
  * queries.
  */
-export class CountQueryRunner {
+export class CountQueryRunner<ModelT, SerializedModelT extends DocumentData> {
   constructor(
-    private readonly query: Query<unknown>,
+    private readonly query: Query<ModelT, SerializedModelT>,
     private readonly datastore: Datastore,
     private readonly userDataWriter: AbstractUserDataWriter
   ) {}
 
-  run(): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  run(): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }, ModelT, SerializedModelT>> {
     return invokeRunAggregationQueryRpc(this.datastore, this.query._query).then(
       result => {
         hardAssert(
@@ -57,7 +57,7 @@ export class CountQueryRunner {
         );
 
         return Promise.resolve(
-          new AggregateQuerySnapshot<{ count: AggregateField<number> }>(
+          new AggregateQuerySnapshot<{ count: AggregateField<number> }, ModelT, SerializedModelT>(
             this.query,
             {
               count: countValue

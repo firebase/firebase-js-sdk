@@ -26,6 +26,7 @@ import { getDatastore } from './components';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import {
+  DocumentData,
   DocumentReference,
   PartialWithFieldValue,
   SetOptions,
@@ -73,9 +74,9 @@ export class WriteBatch {
    * @param data - An object of the fields and values for the document.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: WithFieldValue<T>
+  set<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
+    data: WithFieldValue<ModelT>
   ): WriteBatch;
   /**
    * Writes to the document referred to by the provided {@link
@@ -89,14 +90,14 @@ export class WriteBatch {
    * @throws Error - If the provided input is not a valid Firestore document.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: PartialWithFieldValue<T>,
+  set<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
+    data: PartialWithFieldValue<ModelT>,
     options: SetOptions
   ): WriteBatch;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: WithFieldValue<T> | PartialWithFieldValue<T>,
+  set<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
+    data: WithFieldValue<ModelT> | PartialWithFieldValue<ModelT>,
     options?: SetOptions
   ): WriteBatch {
     this._verifyNotCommitted();
@@ -131,7 +132,7 @@ export class WriteBatch {
    * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
+  update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: UpdateData<SerializedModelT>): WriteBatch;
   /**
    * Updates fields in the document referred to by this {@link
    * DocumentReference}. The update will fail if applied to a document that does
@@ -147,15 +148,15 @@ export class WriteBatch {
    * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  update(
-    documentRef: DocumentReference<unknown>,
+  update<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
     field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
-  update<T>(
-    documentRef: DocumentReference<T>,
-    fieldOrUpdateData: string | FieldPath | UpdateData<T>,
+  update<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
+    fieldOrUpdateData: string | FieldPath | UpdateData<SerializedModelT>,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
@@ -200,7 +201,7 @@ export class WriteBatch {
    * @param documentRef - A reference to the document to be deleted.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  delete(documentRef: DocumentReference<unknown>): WriteBatch {
+  delete<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): WriteBatch {
     this._verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
     this._mutations = this._mutations.concat(
@@ -242,10 +243,7 @@ export class WriteBatch {
   }
 }
 
-export function validateReference<T>(
-  documentRef: DocumentReference<T> | Compat<DocumentReference<T>>,
-  firestore: Firestore
-): DocumentReference<T> {
+export function validateReference<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT> | Compat<DocumentReference<ModelT, SerializedModelT>>, firestore: Firestore): DocumentReference<ModelT, SerializedModelT> {
   documentRef = getModularInstance(documentRef);
 
   if (documentRef.firestore !== firestore) {
@@ -254,7 +252,7 @@ export function validateReference<T>(
       'Provided document reference is from a different Firestore instance.'
     );
   } else {
-    return documentRef as DocumentReference<T>;
+    return documentRef as DocumentReference<ModelT, SerializedModelT>;
   }
 }
 

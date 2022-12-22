@@ -477,7 +477,7 @@ export function doc<OriginalModelT, OriginalSerializedModelT extends DocumentDat
   if (parent instanceof Firestore) {
     const absolutePath = ResourcePath.fromString(path, ...pathSegments);
     validateDocumentPath(absolutePath);
-    return new DocumentReference(
+    return new DocumentReference<SerializedModelT, SerializedModelT>(
       parent,
       /* converter= */ null,
       new DocumentKey(absolutePath)
@@ -501,7 +501,7 @@ export function doc<OriginalModelT, OriginalSerializedModelT extends DocumentDat
     if (parent instanceof CollectionReference) {
       return new DocumentReference(parent.firestore, parent.converter, key);
     } else {
-      return new DocumentReference(parent.firestore, null, key);
+      return new DocumentReference<SerializedModelT, SerializedModelT>(parent.firestore, null, key);
     }
   }
 }

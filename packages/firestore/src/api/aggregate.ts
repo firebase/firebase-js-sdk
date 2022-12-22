@@ -24,6 +24,7 @@ import {
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { DocumentData } from './reference';
 import { ExpUserDataWriter } from './reference_impl';
 
 export { aggregateQuerySnapshotEqual } from '../lite-api/aggregate';
@@ -49,9 +50,7 @@ export { aggregateQuerySnapshotEqual } from '../lite-api/aggregate';
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
  */
-export function getCountFromServer(
-  query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+export function getCountFromServer<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }, ModelT, SerializedModelT>> {
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);

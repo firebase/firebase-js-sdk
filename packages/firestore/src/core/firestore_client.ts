@@ -20,7 +20,7 @@ import { GetOptions } from '@firebase/firestore-types';
 import {
   AbstractUserDataWriter,
   AggregateField,
-  AggregateQuerySnapshot
+  AggregateQuerySnapshot, DocumentData
 } from '../api';
 import { LoadBundleTask } from '../api/bundle';
 import {
@@ -509,14 +509,8 @@ export function firestoreClientTransaction<T>(
   return deferred.promise;
 }
 
-export function firestoreClientRunCountQuery(
-  client: FirestoreClient,
-  query: LiteQuery<unknown>,
-  userDataWriter: AbstractUserDataWriter
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
-  const deferred = new Deferred<
-    AggregateQuerySnapshot<{ count: AggregateField<number> }>
-  >();
+export function firestoreClientRunCountQuery<ModelT, SerializedModelT extends DocumentData>(client: FirestoreClient, query: LiteQuery<ModelT, SerializedModelT>, userDataWriter: AbstractUserDataWriter): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }, ModelT, SerializedModelT>> {
+  const deferred = new Deferred<AggregateQuerySnapshot<{ count: AggregateField<number> }, ModelT, SerializedModelT>>();
   client.asyncQueue.enqueueAndForget(async () => {
     try {
       const remoteStore = await getRemoteStore(client);

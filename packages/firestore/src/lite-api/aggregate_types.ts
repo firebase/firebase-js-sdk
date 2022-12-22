@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from './reference';
+import { DocumentData, Query } from './reference';
 
 /**
  * Represents an aggregation that can be performed by Firestore.
@@ -50,7 +50,7 @@ export type AggregateSpecData<T extends AggregateSpec> = {
 /**
  * The results of executing an aggregation query.
  */
-export class AggregateQuerySnapshot<T extends AggregateSpec> {
+export class AggregateQuerySnapshot<AggregateSpecT extends AggregateSpec, ModelT, SerializedModelT extends DocumentData> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateQuerySnapshot';
 
@@ -58,12 +58,12 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
    * The underlying query over which the aggregations recorded in this
    * `AggregateQuerySnapshot` were performed.
    */
-  readonly query: Query<unknown>;
+  readonly query: Query<ModelT, SerializedModelT>;
 
   /** @hideconstructor */
   constructor(
-    query: Query<unknown>,
-    private readonly _data: AggregateSpecData<T>
+    query: Query<ModelT, SerializedModelT>,
+    private readonly _data: AggregateSpecData<AggregateSpecT>
   ) {
     this.query = query;
   }
@@ -79,7 +79,7 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
    * @returns The results of the aggregations performed over the underlying
    * query.
    */
-  data(): AggregateSpecData<T> {
+  data(): AggregateSpecData<AggregateSpecT> {
     return this._data;
   }
 }

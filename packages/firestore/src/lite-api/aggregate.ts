@@ -27,7 +27,7 @@ import {
 } from './aggregate_types';
 import { getDatastore } from './components';
 import { Firestore } from './database';
-import { Query, queryEqual } from './reference';
+import {DocumentData, Query, queryEqual} from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 
 /**
@@ -44,9 +44,7 @@ import { LiteUserDataWriter } from './reference_impl';
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
  */
-export function getCount(
-  query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+export function getCount<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }, ModelT, SerializedModelT>> {
   const firestore = cast(query.firestore, Firestore);
   const datastore = getDatastore(firestore);
   const userDataWriter = new LiteUserDataWriter(firestore);
@@ -65,10 +63,7 @@ export function getCount(
  * @returns `true` if the objects are "equal", as defined above, or `false`
  * otherwise.
  */
-export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(
-  left: AggregateQuerySnapshot<T>,
-  right: AggregateQuerySnapshot<T>
-): boolean {
+export function aggregateQuerySnapshotEqual<AggregateSpecT extends AggregateSpec, ModelT, SerializedModelT extends DocumentData>(left: AggregateQuerySnapshot<AggregateSpecT, ModelT, SerializedModelT>, right: AggregateQuerySnapshot<AggregateSpecT, ModelT, SerializedModelT>): boolean {
   return (
     queryEqual(left.query, right.query) && deepEqual(left.data(), right.data())
   );
