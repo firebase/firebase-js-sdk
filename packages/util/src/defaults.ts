@@ -16,7 +16,7 @@
  */
 
 import { base64Decode } from './crypt';
-import { getGlobal } from './environment';
+import { getGlobal } from './global';
 
 /**
  * Keys for experimental properties on the `FirebaseDefaults` object.
@@ -39,6 +39,11 @@ export interface FirebaseDefaults {
   emulatorHosts?: Record<string, string>;
   _authTokenSyncURL?: string;
   _authIdTokenMaxAge?: number;
+  /**
+   * Override Firebase's runtime environment detection and
+   * force the SDK to act as if it were in the specified environment.
+   */
+  forceEnvironment?: 'browser' | 'node';
   [key: string]: unknown;
 }
 
@@ -90,8 +95,9 @@ const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
  * (1) if such an object exists as a property of `globalThis`
  * (2) if such an object was provided on a shell environment variable
  * (3) if such an object exists in a cookie
+ * @public
  */
-const getDefaults = (): FirebaseDefaults | undefined => {
+export const getDefaults = (): FirebaseDefaults | undefined => {
   try {
     return (
       getDefaultsFromGlobal() ||
