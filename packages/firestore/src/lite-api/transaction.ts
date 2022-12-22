@@ -87,7 +87,9 @@ export class Transaction {
    * @param documentRef - A reference to the document to be read.
    * @returns A `DocumentSnapshot` with the read data.
    */
-  get<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
+  get<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>
+  ): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
     const ref = validateReference(documentRef, this._firestore);
     const userDataWriter = new LiteUserDataWriter(this._firestore);
     return this._transaction.lookup([ref._key]).then(docs => {
@@ -128,7 +130,10 @@ export class Transaction {
    * @throws Error - If the provided input is not a valid Firestore document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: WithFieldValue<ModelT>): this;
+  set<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
+    data: WithFieldValue<ModelT>
+  ): this;
   /**
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
@@ -181,7 +186,10 @@ export class Transaction {
    * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: UpdateData<SerializedModelT>): this;
+  update<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
+    data: UpdateData<SerializedModelT>
+  ): this;
   /**
    * Updates fields in the document referred to by the provided {@link
    * DocumentReference}. The update will fail if applied to a document that does
@@ -247,7 +255,9 @@ export class Transaction {
    * @param documentRef - A reference to the document to be deleted.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  delete<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): this {
+  delete<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>
+  ): this {
     const ref = validateReference(documentRef, this._firestore);
     this._transaction.delete(ref._key);
     return this;

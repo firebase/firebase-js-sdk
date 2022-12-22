@@ -50,7 +50,18 @@ export { aggregateQuerySnapshotEqual } from '../lite-api/aggregate';
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
  */
-export function getCountFromServer<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }, ModelT, SerializedModelT>> {
+export function getCountFromServer<
+  ModelT,
+  SerializedModelT extends DocumentData
+>(
+  query: Query<ModelT, SerializedModelT>
+): Promise<
+  AggregateQuerySnapshot<
+    { count: AggregateField<number> },
+    ModelT,
+    SerializedModelT
+  >
+> {
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);

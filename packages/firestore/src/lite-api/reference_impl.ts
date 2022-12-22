@@ -72,7 +72,14 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * their `set()` or fails due to invalid data originating from a `toFirestore()`
  * call.
  */
-export function applyFirestoreDataConverter<ModelT, SerializedModelT extends DocumentData>(converter: UntypedFirestoreDataConverter<ModelT, SerializedModelT> | null, value: WithFieldValue<ModelT> | PartialWithFieldValue<ModelT>, options?: PublicSetOptions): PublicDocumentData {
+export function applyFirestoreDataConverter<
+  ModelT,
+  SerializedModelT extends DocumentData
+>(
+  converter: UntypedFirestoreDataConverter<ModelT, SerializedModelT> | null,
+  value: WithFieldValue<ModelT> | PartialWithFieldValue<ModelT>,
+  options?: PublicSetOptions
+): PublicDocumentData {
   let convertedValue;
   if (converter) {
     if (options && (options.merge || options.mergeFields)) {
@@ -98,7 +105,9 @@ export class LiteUserDataWriter extends AbstractUserDataWriter {
     return new Bytes(bytes);
   }
 
-  protected convertReference(name: string): DocumentReference<DocumentData, DocumentData> {
+  protected convertReference(
+    name: string
+  ): DocumentReference<DocumentData, DocumentData> {
     const key = this.convertDocumentKey(name, this.firestore._databaseId);
     return new DocumentReference(this.firestore, /* converter= */ null, key);
   }
@@ -120,7 +129,10 @@ export class LiteUserDataWriter extends AbstractUserDataWriter {
 export function getDoc<ModelT, SerializedModelT extends DocumentData>(
   reference: DocumentReference<ModelT, SerializedModelT>
 ): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
-  reference = cast<DocumentReference<ModelT, SerializedModelT>>(reference, DocumentReference);
+  reference = cast<DocumentReference<ModelT, SerializedModelT>>(
+    reference,
+    DocumentReference
+  );
   const datastore = getDatastore(reference.firestore);
   const userDataWriter = new LiteUserDataWriter(reference.firestore);
 
@@ -151,7 +163,9 @@ export function getDoc<ModelT, SerializedModelT extends DocumentData>(
  * @param query - The `Query` to execute.
  * @returns A Promise that will be resolved with the results of the query.
  */
-export function getDocs<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Promise<QuerySnapshot<ModelT, SerializedModelT>> {
+export function getDocs<ModelT, SerializedModelT extends DocumentData>(
+  query: Query<ModelT, SerializedModelT>
+): Promise<QuerySnapshot<ModelT, SerializedModelT>> {
   query = cast<Query<ModelT, SerializedModelT>>(query, Query);
   validateHasExplicitOrderByForLimitToLast(query._query);
 
@@ -226,7 +240,10 @@ export function setDoc<ModelT, SerializedModelT extends DocumentData>(
   data: PartialWithFieldValue<ModelT>,
   options?: SetOptions
 ): Promise<void> {
-  reference = cast<DocumentReference<ModelT, SerializedModelT>>(reference, DocumentReference);
+  reference = cast<DocumentReference<ModelT, SerializedModelT>>(
+    reference,
+    DocumentReference
+  );
   const convertedValue = applyFirestoreDataConverter(
     reference.converter,
     data,
@@ -303,7 +320,10 @@ export function updateDoc<ModelT, SerializedModelT extends DocumentData>(
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  reference = cast<DocumentReference<ModelT, SerializedModelT>>(reference, DocumentReference);
+  reference = cast<DocumentReference<ModelT, SerializedModelT>>(
+    reference,
+    DocumentReference
+  );
   const dataReader = newUserDataReader(reference.firestore);
 
   // For Compat types, we have to "extract" the underlying types before
@@ -353,7 +373,10 @@ export function updateDoc<ModelT, SerializedModelT extends DocumentData>(
 export function deleteDoc<ModelT, SerializedModelT extends DocumentData>(
   reference: DocumentReference<ModelT, SerializedModelT>
 ): Promise<void> {
-  reference = cast<DocumentReference<ModelT, SerializedModelT>>(reference, DocumentReference);
+  reference = cast<DocumentReference<ModelT, SerializedModelT>>(
+    reference,
+    DocumentReference
+  );
   const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(datastore, [
     new DeleteMutation(reference._key, Precondition.none())
@@ -379,7 +402,10 @@ export function addDoc<ModelT, SerializedModelT extends DocumentData>(
   reference: CollectionReference<ModelT, SerializedModelT>,
   data: WithFieldValue<ModelT>
 ): Promise<DocumentReference<ModelT, SerializedModelT>> {
-  reference = cast<CollectionReference<ModelT, SerializedModelT>>(reference, CollectionReference);
+  reference = cast<CollectionReference<ModelT, SerializedModelT>>(
+    reference,
+    CollectionReference
+  );
   const docRef = doc(reference);
 
   const convertedValue = applyFirestoreDataConverter(

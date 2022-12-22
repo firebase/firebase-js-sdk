@@ -83,8 +83,10 @@ import { SnapshotListenOptions } from './reference_impl';
  * }
  * ```
  */
-export interface FirestoreDataConverter<ModelT, SerializedModelT extends DocumentData>
-  extends LiteFirestoreDataConverter<ModelT, SerializedModelT> {
+export interface FirestoreDataConverter<
+  ModelT,
+  SerializedModelT extends DocumentData
+> extends LiteFirestoreDataConverter<ModelT, SerializedModelT> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type
    * `ModelT` into a plain JavaScript object (suitable for writing directly to
@@ -234,7 +236,10 @@ export interface DocumentChange<ModelT, SerializedModelT extends DocumentData> {
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<ModelT, SerializedModelT extends DocumentData> extends LiteDocumentSnapshot<ModelT, SerializedModelT> {
+export class DocumentSnapshot<
+  ModelT,
+  SerializedModelT extends DocumentData
+> extends LiteDocumentSnapshot<ModelT, SerializedModelT> {
   private readonly _firestoreImpl: Firestore;
 
   /**
@@ -346,7 +351,10 @@ export class DocumentSnapshot<ModelT, SerializedModelT extends DocumentData> ext
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<ModelT, SerializedModelT extends DocumentData> extends DocumentSnapshot<ModelT, SerializedModelT> {
+export class QueryDocumentSnapshot<
+  ModelT,
+  SerializedModelT extends DocumentData
+> extends DocumentSnapshot<ModelT, SerializedModelT> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
@@ -457,7 +465,9 @@ export class QuerySnapshot<ModelT, SerializedModelT extends DocumentData> {
    * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
    * snapshot events.
    */
-  docChanges(options: SnapshotListenOptions = {}): Array<DocumentChange<ModelT, SerializedModelT>> {
+  docChanges(
+    options: SnapshotListenOptions = {}
+  ): Array<DocumentChange<ModelT, SerializedModelT>> {
     const includeMetadataChanges = !!options.includeMetadataChanges;
 
     if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
@@ -481,7 +491,13 @@ export class QuerySnapshot<ModelT, SerializedModelT extends DocumentData> {
 }
 
 /** Calculates the array of `DocumentChange`s for a given `ViewSnapshot`. */
-export function changesFromSnapshot<ModelT, SerializedModelT extends DocumentData>(querySnapshot: QuerySnapshot<ModelT, SerializedModelT>, includeMetadataChanges: boolean): Array<DocumentChange<ModelT, SerializedModelT>> {
+export function changesFromSnapshot<
+  ModelT,
+  SerializedModelT extends DocumentData
+>(
+  querySnapshot: QuerySnapshot<ModelT, SerializedModelT>,
+  includeMetadataChanges: boolean
+): Array<DocumentChange<ModelT, SerializedModelT>> {
   if (querySnapshot._snapshot.oldDocs.isEmpty()) {
     // Special case the first snapshot because index calculation is easy and
     // fast
@@ -583,7 +599,14 @@ export function resultChangeType(type: ChangeType): DocumentChangeType {
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export function snapshotEqual<ModelT, SerializedModelT extends DocumentData>(left: DocumentSnapshot<ModelT, SerializedModelT> | QuerySnapshot<ModelT, SerializedModelT>, right: DocumentSnapshot<ModelT, SerializedModelT> | QuerySnapshot<ModelT, SerializedModelT>): boolean {
+export function snapshotEqual<ModelT, SerializedModelT extends DocumentData>(
+  left:
+    | DocumentSnapshot<ModelT, SerializedModelT>
+    | QuerySnapshot<ModelT, SerializedModelT>,
+  right:
+    | DocumentSnapshot<ModelT, SerializedModelT>
+    | QuerySnapshot<ModelT, SerializedModelT>
+): boolean {
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (
       left._firestore === right._firestore &&

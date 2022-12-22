@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {AbstractUserDataWriter, DocumentData, Query} from '../api';
+import { AbstractUserDataWriter, DocumentData, Query } from '../api';
 import {
   AggregateField,
   AggregateQuerySnapshot
@@ -35,7 +35,13 @@ export class CountQueryRunner<ModelT, SerializedModelT extends DocumentData> {
     private readonly userDataWriter: AbstractUserDataWriter
   ) {}
 
-  run(): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }, ModelT, SerializedModelT>> {
+  run(): Promise<
+    AggregateQuerySnapshot<
+      { count: AggregateField<number> },
+      ModelT,
+      SerializedModelT
+    >
+  > {
     return invokeRunAggregationQueryRpc(this.datastore, this.query._query).then(
       result => {
         hardAssert(
@@ -57,12 +63,13 @@ export class CountQueryRunner<ModelT, SerializedModelT extends DocumentData> {
         );
 
         return Promise.resolve(
-          new AggregateQuerySnapshot<{ count: AggregateField<number> }, ModelT, SerializedModelT>(
-            this.query,
-            {
-              count: countValue
-            }
-          )
+          new AggregateQuerySnapshot<
+            { count: AggregateField<number> },
+            ModelT,
+            SerializedModelT
+          >(this.query, {
+            count: countValue
+          })
         );
       }
     );

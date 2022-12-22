@@ -175,7 +175,9 @@ export class DocumentReference<ModelT, SerializedModelT extends DocumentData> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `DocumentReference<U>` that uses the provided converter.
    */
-  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(converter: FirestoreDataConverter<NewModelT, NewSerializedModelT>): DocumentReference<NewModelT, NewSerializedModelT>;
+  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(
+    converter: FirestoreDataConverter<NewModelT, NewSerializedModelT>
+  ): DocumentReference<NewModelT, NewSerializedModelT>;
   /**
    * Removes the current converter.
    *
@@ -183,8 +185,14 @@ export class DocumentReference<ModelT, SerializedModelT extends DocumentData> {
    * @returns A `DocumentReference<DocumentData>` that does not use a converter.
    */
   withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
-  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(converter: FirestoreDataConverter<NewModelT, NewSerializedModelT> | null): DocumentReference<NewModelT, NewSerializedModelT> {
-    return new DocumentReference<NewModelT, NewSerializedModelT>(this.firestore, converter, this._key);
+  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(
+    converter: FirestoreDataConverter<NewModelT, NewSerializedModelT> | null
+  ): DocumentReference<NewModelT, NewSerializedModelT> {
+    return new DocumentReference<NewModelT, NewSerializedModelT>(
+      this.firestore,
+      converter,
+      this._key
+    );
   }
 }
 
@@ -232,9 +240,17 @@ export class Query<ModelT, SerializedModelT extends DocumentData> {
    * @param converter - Converts objects to and from Firestore.
    * @returns A `Query<U>` that uses the provided converter.
    */
-  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(converter: FirestoreDataConverter<NewModelT, NewSerializedModelT>): Query<NewModelT, NewSerializedModelT>;
-  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(converter: FirestoreDataConverter<NewModelT, NewSerializedModelT> | null): Query<NewModelT, NewSerializedModelT> {
-    return new Query<NewModelT, NewSerializedModelT>(this.firestore, converter, this._query);
+  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(
+    converter: FirestoreDataConverter<NewModelT, NewSerializedModelT>
+  ): Query<NewModelT, NewSerializedModelT>;
+  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(
+    converter: FirestoreDataConverter<NewModelT, NewSerializedModelT> | null
+  ): Query<NewModelT, NewSerializedModelT> {
+    return new Query<NewModelT, NewSerializedModelT>(
+      this.firestore,
+      converter,
+      this._query
+    );
   }
 }
 
@@ -242,7 +258,10 @@ export class Query<ModelT, SerializedModelT extends DocumentData> {
  * A `CollectionReference` object can be used for adding documents, getting
  * document references, and querying for documents (using {@link query}).
  */
-export class CollectionReference<ModelT, SerializedModelT extends DocumentData> extends Query<ModelT, SerializedModelT> {
+export class CollectionReference<
+  ModelT,
+  SerializedModelT extends DocumentData
+> extends Query<ModelT, SerializedModelT> {
   /** The type of this Firestore reference. */
   readonly type = 'collection';
 
@@ -294,7 +313,9 @@ export class CollectionReference<ModelT, SerializedModelT extends DocumentData> 
    * @param converter - Converts objects to and from Firestore.
    * @returns A `CollectionReference<U>` that uses the provided converter.
    */
-  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(converter: FirestoreDataConverter<NewModelT, NewSerializedModelT>): CollectionReference<NewModelT, NewSerializedModelT>;
+  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(
+    converter: FirestoreDataConverter<NewModelT, NewSerializedModelT>
+  ): CollectionReference<NewModelT, NewSerializedModelT>;
   /**
    * Removes the current converter.
    *
@@ -302,9 +323,17 @@ export class CollectionReference<ModelT, SerializedModelT extends DocumentData> 
    * @returns A `CollectionReference<DocumentData>` that does not use a
    * converter.
    */
-  withConverter(converter: null): CollectionReference<DocumentData, DocumentData>;
-  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(converter: FirestoreDataConverter<NewModelT, NewSerializedModelT> | null): CollectionReference<NewModelT, NewSerializedModelT> {
-    return new CollectionReference<NewModelT, NewSerializedModelT>(this.firestore, converter, this._path);
+  withConverter(
+    converter: null
+  ): CollectionReference<DocumentData, DocumentData>;
+  withConverter<NewModelT, NewSerializedModelT extends DocumentData>(
+    converter: FirestoreDataConverter<NewModelT, NewSerializedModelT> | null
+  ): CollectionReference<NewModelT, NewSerializedModelT> {
+    return new CollectionReference<NewModelT, NewSerializedModelT>(
+      this.firestore,
+      converter,
+      this._path
+    );
   }
 }
 
@@ -320,7 +349,13 @@ export class CollectionReference<ModelT, SerializedModelT extends DocumentData> 
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export function collection<SerializedModelT extends DocumentData = DocumentData>(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<SerializedModelT, SerializedModelT>;
+export function collection<
+  SerializedModelT extends DocumentData = DocumentData
+>(
+  firestore: Firestore,
+  path: string,
+  ...pathSegments: string[]
+): CollectionReference<SerializedModelT, SerializedModelT>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
@@ -333,7 +368,15 @@ export function collection<SerializedModelT extends DocumentData = DocumentData>
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export function collection<OriginalModelT, OriginalSerializedModelT extends DocumentData, SerializedModelT extends DocumentData = DocumentData>(reference: CollectionReference<OriginalModelT, OriginalSerializedModelT>, path: string, ...pathSegments: string[]): CollectionReference<SerializedModelT, SerializedModelT>;
+export function collection<
+  OriginalModelT,
+  OriginalSerializedModelT extends DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
+>(
+  reference: CollectionReference<OriginalModelT, OriginalSerializedModelT>,
+  path: string,
+  ...pathSegments: string[]
+): CollectionReference<SerializedModelT, SerializedModelT>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
@@ -346,8 +389,27 @@ export function collection<OriginalModelT, OriginalSerializedModelT extends Docu
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export function collection<OriginalModelT, OriginalSerializedModelT extends DocumentData, SerializedModelT extends DocumentData = DocumentData>(reference: DocumentReference<OriginalModelT, OriginalSerializedModelT>, path: string, ...pathSegments: string[]): CollectionReference<SerializedModelT, SerializedModelT>;
-export function collection<OriginalModelT, OriginalSerializedModelT extends DocumentData, SerializedModelT extends DocumentData = DocumentData>(parent: Firestore | DocumentReference<OriginalModelT, OriginalSerializedModelT> | CollectionReference<OriginalModelT, OriginalSerializedModelT>, path: string, ...pathSegments: string[]): CollectionReference<SerializedModelT, SerializedModelT> {
+export function collection<
+  OriginalModelT,
+  OriginalSerializedModelT extends DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
+>(
+  reference: DocumentReference<OriginalModelT, OriginalSerializedModelT>,
+  path: string,
+  ...pathSegments: string[]
+): CollectionReference<SerializedModelT, SerializedModelT>;
+export function collection<
+  OriginalModelT,
+  OriginalSerializedModelT extends DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
+>(
+  parent:
+    | Firestore
+    | DocumentReference<OriginalModelT, OriginalSerializedModelT>
+    | CollectionReference<OriginalModelT, OriginalSerializedModelT>,
+  path: string,
+  ...pathSegments: string[]
+): CollectionReference<SerializedModelT, SerializedModelT> {
   parent = getModularInstance(parent);
 
   validateNonEmptyArgument('collection', 'path', path);
@@ -463,8 +525,29 @@ export function doc<ModelT, SerializedModelT extends DocumentData>(
  * a document.
  * @returns The `DocumentReference` instance.
  */
-export function doc<OriginalModelT, OriginalSerializedModelT extends DocumentData, SerializedModelT extends DocumentData>(reference: DocumentReference<OriginalModelT, OriginalSerializedModelT>, path: string, ...pathSegments: string[]): DocumentReference<SerializedModelT, SerializedModelT>;
-export function doc<OriginalModelT, OriginalSerializedModelT extends DocumentData, SerializedModelT extends DocumentData>(parent: Firestore | CollectionReference<OriginalModelT, OriginalSerializedModelT> | DocumentReference<OriginalModelT, OriginalSerializedModelT>, path?: string, ...pathSegments: string[]): DocumentReference<SerializedModelT, SerializedModelT> | DocumentReference<OriginalModelT, OriginalSerializedModelT>{
+export function doc<
+  OriginalModelT,
+  OriginalSerializedModelT extends DocumentData,
+  SerializedModelT extends DocumentData
+>(
+  reference: DocumentReference<OriginalModelT, OriginalSerializedModelT>,
+  path: string,
+  ...pathSegments: string[]
+): DocumentReference<SerializedModelT, SerializedModelT>;
+export function doc<
+  OriginalModelT,
+  OriginalSerializedModelT extends DocumentData,
+  SerializedModelT extends DocumentData
+>(
+  parent:
+    | Firestore
+    | CollectionReference<OriginalModelT, OriginalSerializedModelT>
+    | DocumentReference<OriginalModelT, OriginalSerializedModelT>,
+  path?: string,
+  ...pathSegments: string[]
+):
+  | DocumentReference<SerializedModelT, SerializedModelT>
+  | DocumentReference<OriginalModelT, OriginalSerializedModelT> {
   parent = getModularInstance(parent);
 
   // We allow omission of 'pathString' but explicitly prohibit passing in both
@@ -501,7 +584,11 @@ export function doc<OriginalModelT, OriginalSerializedModelT extends DocumentDat
     if (parent instanceof CollectionReference) {
       return new DocumentReference(parent.firestore, parent.converter, key);
     } else {
-      return new DocumentReference<SerializedModelT, SerializedModelT>(parent.firestore, null, key);
+      return new DocumentReference<SerializedModelT, SerializedModelT>(
+        parent.firestore,
+        null,
+        key
+      );
     }
   }
 }
@@ -514,7 +601,14 @@ export function doc<OriginalModelT, OriginalSerializedModelT extends DocumentDat
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
-export function refEqual<ModelT, SerializedModelT extends DocumentData>(left: DocumentReference<ModelT, SerializedModelT> | CollectionReference<ModelT, SerializedModelT>, right: DocumentReference<ModelT, SerializedModelT> | CollectionReference<ModelT, SerializedModelT>): boolean {
+export function refEqual<ModelT, SerializedModelT extends DocumentData>(
+  left:
+    | DocumentReference<ModelT, SerializedModelT>
+    | CollectionReference<ModelT, SerializedModelT>,
+  right:
+    | DocumentReference<ModelT, SerializedModelT>
+    | CollectionReference<ModelT, SerializedModelT>
+): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);
 
@@ -541,7 +635,10 @@ export function refEqual<ModelT, SerializedModelT extends DocumentData>(left: Do
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
-export function queryEqual<ModelT, SerializedModelT extends DocumentData>(left: Query<ModelT, SerializedModelT>, right: Query<ModelT, SerializedModelT>): boolean {
+export function queryEqual<ModelT, SerializedModelT extends DocumentData>(
+  left: Query<ModelT, SerializedModelT>,
+  right: Query<ModelT, SerializedModelT>
+): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);
 

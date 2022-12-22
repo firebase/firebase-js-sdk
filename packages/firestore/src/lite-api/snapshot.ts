@@ -78,7 +78,10 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * }
  * ```
  */
-export interface FirestoreDataConverter<ModelT, SerializedModelT extends DocumentData> {
+export interface FirestoreDataConverter<
+  ModelT,
+  SerializedModelT extends DocumentData
+> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type
    * `ModelT` into a plain Javascript object (suitable for writing directly to
@@ -115,7 +118,9 @@ export interface FirestoreDataConverter<ModelT, SerializedModelT extends Documen
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and
    * metadata.
    */
-  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>): ModelT;
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>
+  ): ModelT;
 }
 
 /**
@@ -139,7 +144,10 @@ export class DocumentSnapshot<ModelT, SerializedModelT extends DocumentData> {
     public _userDataWriter: AbstractUserDataWriter,
     public _key: DocumentKey,
     public _document: Document | null,
-    public _converter: UntypedFirestoreDataConverter<ModelT, SerializedModelT> | null
+    public _converter: UntypedFirestoreDataConverter<
+      ModelT,
+      SerializedModelT
+    > | null
   ) {}
 
   /** Property of the `DocumentSnapshot` that provides the document's ID. */
@@ -189,7 +197,9 @@ export class DocumentSnapshot<ModelT, SerializedModelT extends DocumentData> {
       );
       return this._converter.fromFirestore(snapshot);
     } else {
-      return this._userDataWriter.convertValue(this._document.data.value) as ModelT;
+      return this._userDataWriter.convertValue(
+        this._document.data.value
+      ) as ModelT;
     }
   }
 
@@ -228,7 +238,10 @@ export class DocumentSnapshot<ModelT, SerializedModelT extends DocumentData> {
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<ModelT, SerializedModelT extends DocumentData> extends DocumentSnapshot<ModelT, SerializedModelT> {
+export class QueryDocumentSnapshot<
+  ModelT,
+  SerializedModelT extends DocumentData
+> extends DocumentSnapshot<ModelT, SerializedModelT> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
@@ -300,8 +313,12 @@ export class QuerySnapshot<ModelT, SerializedModelT extends DocumentData> {
  * @returns true if the snapshots are equal.
  */
 export function snapshotEqual<ModelT, SerializedModelT extends DocumentData>(
-  left: DocumentSnapshot<ModelT, SerializedModelT> | QuerySnapshot<ModelT, SerializedModelT>,
-  right: DocumentSnapshot<ModelT, SerializedModelT> | QuerySnapshot<ModelT, SerializedModelT>
+  left:
+    | DocumentSnapshot<ModelT, SerializedModelT>
+    | QuerySnapshot<ModelT, SerializedModelT>,
+  right:
+    | DocumentSnapshot<ModelT, SerializedModelT>
+    | QuerySnapshot<ModelT, SerializedModelT>
 ): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);

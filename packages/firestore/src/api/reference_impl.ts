@@ -95,7 +95,10 @@ export interface SnapshotListenOptions {
 export function getDoc<ModelT, SerializedModelT extends DocumentData>(
   reference: DocumentReference<ModelT, SerializedModelT>
 ): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
-  reference = cast<DocumentReference<ModelT, SerializedModelT>>(reference, DocumentReference);
+  reference = cast<DocumentReference<ModelT, SerializedModelT>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
@@ -114,7 +117,9 @@ export class ExpUserDataWriter extends AbstractUserDataWriter {
     return new Bytes(bytes);
   }
 
-  protected convertReference(name: string): DocumentReference<DocumentData, DocumentData> {
+  protected convertReference(
+    name: string
+  ): DocumentReference<DocumentData, DocumentData> {
     const key = this.convertDocumentKey(name, this.firestore._databaseId);
     return new DocumentReference(this.firestore, /* converter= */ null, key);
   }
@@ -127,8 +132,13 @@ export class ExpUserDataWriter extends AbstractUserDataWriter {
  * @returns A `Promise` resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
-export function getDocFromCache<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
-  reference = cast<DocumentReference<ModelT, SerializedModelT>>(reference, DocumentReference);
+export function getDocFromCache<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>
+): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
+  reference = cast<DocumentReference<ModelT, SerializedModelT>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
@@ -156,8 +166,13 @@ export function getDocFromCache<ModelT, SerializedModelT extends DocumentData>(r
  * @returns A `Promise` resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
-export function getDocFromServer<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
-  reference = cast<DocumentReference<ModelT, SerializedModelT>>(reference, DocumentReference);
+export function getDocFromServer<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>
+): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
+  reference = cast<DocumentReference<ModelT, SerializedModelT>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
@@ -176,7 +191,9 @@ export function getDocFromServer<ModelT, SerializedModelT extends DocumentData>(
  *
  * @returns A `Promise` that will be resolved with the results of the query.
  */
-export function getDocs<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Promise<QuerySnapshot<ModelT, SerializedModelT>> {
+export function getDocs<ModelT, SerializedModelT extends DocumentData>(
+  query: Query<ModelT, SerializedModelT>
+): Promise<QuerySnapshot<ModelT, SerializedModelT>> {
   query = cast<Query<ModelT, SerializedModelT>>(query, Query);
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
@@ -198,7 +215,9 @@ export function getDocs<ModelT, SerializedModelT extends DocumentData>(query: Qu
  *
  * @returns A `Promise` that will be resolved with the results of the query.
  */
-export function getDocsFromCache<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Promise<QuerySnapshot<ModelT, SerializedModelT>> {
+export function getDocsFromCache<ModelT, SerializedModelT extends DocumentData>(
+  query: Query<ModelT, SerializedModelT>
+): Promise<QuerySnapshot<ModelT, SerializedModelT>> {
   query = cast<Query<ModelT, SerializedModelT>>(query, Query);
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
@@ -215,7 +234,12 @@ export function getDocsFromCache<ModelT, SerializedModelT extends DocumentData>(
  *
  * @returns A `Promise` that will be resolved with the results of the query.
  */
-export function getDocsFromServer<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Promise<QuerySnapshot<ModelT, SerializedModelT>> {
+export function getDocsFromServer<
+  ModelT,
+  SerializedModelT extends DocumentData
+>(
+  query: Query<ModelT, SerializedModelT>
+): Promise<QuerySnapshot<ModelT, SerializedModelT>> {
   query = cast<Query<ModelT, SerializedModelT>>(query, Query);
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
@@ -237,7 +261,10 @@ export function getDocsFromServer<ModelT, SerializedModelT extends DocumentData>
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export function setDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, data: WithFieldValue<ModelT>): Promise<void>;
+export function setDoc<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>,
+  data: WithFieldValue<ModelT>
+): Promise<void>;
 /**
  * Writes to the document referred to by the specified `DocumentReference`. If
  * the document does not yet exist, it will be created. If you provide `merge`
@@ -249,9 +276,20 @@ export function setDoc<ModelT, SerializedModelT extends DocumentData>(reference:
  * @returns A Promise resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export function setDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, data: PartialWithFieldValue<ModelT>, options: SetOptions): Promise<void>;
-export function setDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, data: PartialWithFieldValue<ModelT>, options?: SetOptions): Promise<void> {
-  reference = cast<DocumentReference<ModelT, SerializedModelT>>(reference, DocumentReference);
+export function setDoc<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>,
+  data: PartialWithFieldValue<ModelT>,
+  options: SetOptions
+): Promise<void>;
+export function setDoc<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>,
+  data: PartialWithFieldValue<ModelT>,
+  options?: SetOptions
+): Promise<void> {
+  reference = cast<DocumentReference<ModelT, SerializedModelT>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
 
   const convertedValue = applyFirestoreDataConverter(
@@ -285,7 +323,10 @@ export function setDoc<ModelT, SerializedModelT extends DocumentData>(reference:
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export function updateDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, data: UpdateData<SerializedModelT>): Promise<void>;
+export function updateDoc<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>,
+  data: UpdateData<SerializedModelT>
+): Promise<void>;
 /**
  * Updates fields in the document referred to by the specified
  * `DocumentReference` The update will fail if applied to a document that does
@@ -301,9 +342,22 @@ export function updateDoc<ModelT, SerializedModelT extends DocumentData>(referen
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export function updateDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
-export function updateDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, fieldOrUpdateData: string | FieldPath | UpdateData<SerializedModelT>, value?: unknown, ...moreFieldsAndValues: unknown[]): Promise<void> {
-  reference = cast<DocumentReference<ModelT, SerializedModelT>>(reference, DocumentReference);
+export function updateDoc<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>,
+  field: string | FieldPath,
+  value: unknown,
+  ...moreFieldsAndValues: unknown[]
+): Promise<void>;
+export function updateDoc<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>,
+  fieldOrUpdateData: string | FieldPath | UpdateData<SerializedModelT>,
+  value?: unknown,
+  ...moreFieldsAndValues: unknown[]
+): Promise<void> {
+  reference = cast<DocumentReference<ModelT, SerializedModelT>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
 
   const dataReader = newUserDataReader(firestore);
@@ -410,7 +464,14 @@ export interface Unsubscribe {
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, observer: { next?: (snapshot: DocumentSnapshot<ModelT, SerializedModelT>) => void; error?: (error: FirestoreError) => void; complete?: () => void; }): Unsubscribe;
+export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>,
+  observer: {
+    next?: (snapshot: DocumentSnapshot<ModelT, SerializedModelT>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
 /**
  * Attaches a listener for `DocumentSnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
@@ -425,7 +486,15 @@ export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(refere
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, options: SnapshotListenOptions, observer: { next?: (snapshot: DocumentSnapshot<ModelT, SerializedModelT>) => void; error?: (error: FirestoreError) => void; complete?: () => void; }): Unsubscribe;
+export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>,
+  options: SnapshotListenOptions,
+  observer: {
+    next?: (snapshot: DocumentSnapshot<ModelT, SerializedModelT>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
 /**
  * Attaches a listener for `DocumentSnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
@@ -444,7 +513,12 @@ export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(refere
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, onNext: (snapshot: DocumentSnapshot<ModelT, SerializedModelT>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>,
+  onNext: (snapshot: DocumentSnapshot<ModelT, SerializedModelT>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
 /**
  * Attaches a listener for `DocumentSnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
@@ -464,7 +538,13 @@ export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(refere
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<ModelT, SerializedModelT>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(
+  reference: DocumentReference<ModelT, SerializedModelT>,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: DocumentSnapshot<ModelT, SerializedModelT>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
@@ -479,7 +559,14 @@ export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(refere
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>, observer: { next?: (snapshot: QuerySnapshot<ModelT, SerializedModelT>) => void; error?: (error: FirestoreError) => void; complete?: () => void; }): Unsubscribe;
+export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(
+  query: Query<ModelT, SerializedModelT>,
+  observer: {
+    next?: (snapshot: QuerySnapshot<ModelT, SerializedModelT>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
@@ -495,7 +582,15 @@ export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(query:
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>, options: SnapshotListenOptions, observer: { next?: (snapshot: QuerySnapshot<ModelT, SerializedModelT>) => void; error?: (error: FirestoreError) => void; complete?: () => void; }): Unsubscribe;
+export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(
+  query: Query<ModelT, SerializedModelT>,
+  options: SnapshotListenOptions,
+  observer: {
+    next?: (snapshot: QuerySnapshot<ModelT, SerializedModelT>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
@@ -515,7 +610,12 @@ export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(query:
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>, onNext: (snapshot: QuerySnapshot<ModelT, SerializedModelT>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(
+  query: Query<ModelT, SerializedModelT>,
+  onNext: (snapshot: QuerySnapshot<ModelT, SerializedModelT>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
@@ -536,8 +636,19 @@ export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(query:
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<ModelT, SerializedModelT>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
-export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(reference: Query<ModelT, SerializedModelT> | DocumentReference<ModelT, SerializedModelT>, ...args: unknown[]): Unsubscribe {
+export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(
+  query: Query<ModelT, SerializedModelT>,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: QuerySnapshot<ModelT, SerializedModelT>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(
+  reference:
+    | Query<ModelT, SerializedModelT>
+    | DocumentReference<ModelT, SerializedModelT>,
+  ...args: unknown[]
+): Unsubscribe {
   reference = getModularInstance(reference);
 
   let options: SnapshotListenOptions = {
@@ -554,7 +665,9 @@ export function onSnapshot<ModelT, SerializedModelT extends DocumentData>(refere
   };
 
   if (isPartialObserver(args[currArg])) {
-    const userObserver = args[currArg] as PartialObserver<QuerySnapshot<ModelT, SerializedModelT>>;
+    const userObserver = args[currArg] as PartialObserver<
+      QuerySnapshot<ModelT, SerializedModelT>
+    >;
     args[currArg] = userObserver.next?.bind(userObserver);
     args[currArg + 1] = userObserver.error?.bind(userObserver);
     args[currArg + 2] = userObserver.complete?.bind(userObserver);

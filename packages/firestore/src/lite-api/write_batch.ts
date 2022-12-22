@@ -132,7 +132,10 @@ export class WriteBatch {
    * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: UpdateData<SerializedModelT>): WriteBatch;
+  update<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
+    data: UpdateData<SerializedModelT>
+  ): WriteBatch;
   /**
    * Updates fields in the document referred to by this {@link
    * DocumentReference}. The update will fail if applied to a document that does
@@ -201,7 +204,9 @@ export class WriteBatch {
    * @param documentRef - A reference to the document to be deleted.
    * @returns This `WriteBatch` instance. Used for chaining method calls.
    */
-  delete<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): WriteBatch {
+  delete<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>
+  ): WriteBatch {
     this._verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
     this._mutations = this._mutations.concat(
@@ -243,7 +248,15 @@ export class WriteBatch {
   }
 }
 
-export function validateReference<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT> | Compat<DocumentReference<ModelT, SerializedModelT>>, firestore: Firestore): DocumentReference<ModelT, SerializedModelT> {
+export function validateReference<
+  ModelT,
+  SerializedModelT extends DocumentData
+>(
+  documentRef:
+    | DocumentReference<ModelT, SerializedModelT>
+    | Compat<DocumentReference<ModelT, SerializedModelT>>,
+  firestore: Firestore
+): DocumentReference<ModelT, SerializedModelT> {
   documentRef = getModularInstance(documentRef);
 
   if (documentRef.firestore !== firestore) {

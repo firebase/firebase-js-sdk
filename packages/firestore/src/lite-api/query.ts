@@ -53,7 +53,7 @@ import {
 } from '../util/input_validation';
 
 import { FieldPath } from './field_path';
-import {DocumentData, DocumentReference, Query} from './reference';
+import { DocumentData, DocumentReference, Query } from './reference';
 import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
 import {
   newUserDataReader,
@@ -95,7 +95,9 @@ export abstract class AppliableConstraint {
    * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
    * {@link AppliableConstraint} applied.
    */
-  abstract _apply<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Query<ModelT, SerializedModelT>;
+  abstract _apply<ModelT, SerializedModelT extends DocumentData>(
+    query: Query<ModelT, SerializedModelT>
+  ): Query<ModelT, SerializedModelT>;
 }
 
 /**
@@ -114,7 +116,9 @@ export abstract class QueryConstraint extends AppliableConstraint {
    * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
    * {@link AppliableConstraint} applied.
    */
-  abstract _apply<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Query<ModelT, SerializedModelT>;
+  abstract _apply<ModelT, SerializedModelT extends DocumentData>(
+    query: Query<ModelT, SerializedModelT>
+  ): Query<ModelT, SerializedModelT>;
 }
 
 /**
@@ -206,7 +210,9 @@ export class QueryFieldFilterConstraint extends QueryConstraint {
     return new QueryFieldFilterConstraint(_field, _op, _value);
   }
 
-  _apply<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Query<ModelT, SerializedModelT> {
+  _apply<ModelT, SerializedModelT extends DocumentData>(
+    query: Query<ModelT, SerializedModelT>
+  ): Query<ModelT, SerializedModelT> {
     const filter = this._parse(query);
     validateNewFieldFilter(query._query, filter);
     return new Query(
@@ -216,7 +222,9 @@ export class QueryFieldFilterConstraint extends QueryConstraint {
     );
   }
 
-  _parse<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): FieldFilter {
+  _parse<ModelT, SerializedModelT extends DocumentData>(
+    query: Query<ModelT, SerializedModelT>
+  ): FieldFilter {
     const reader = newUserDataReader(query.firestore);
     const filter = newQueryFilter(
       query._query,
@@ -297,7 +305,9 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
     return new QueryCompositeFilterConstraint(type, _queryConstraints);
   }
 
-  _parse<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Filter {
+  _parse<ModelT, SerializedModelT extends DocumentData>(
+    query: Query<ModelT, SerializedModelT>
+  ): Filter {
     const parsedFilters = this._queryConstraints
       .map(queryConstraint => {
         return queryConstraint._parse(query);
@@ -311,7 +321,9 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
     return CompositeFilter.create(parsedFilters, this._getOperator());
   }
 
-  _apply<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Query<ModelT, SerializedModelT> {
+  _apply<ModelT, SerializedModelT extends DocumentData>(
+    query: Query<ModelT, SerializedModelT>
+  ): Query<ModelT, SerializedModelT> {
     const parsedFilter = this._parse(query);
     if (parsedFilter.getFilters().length === 0) {
       // Return the existing query if not adding any more filters (e.g. an empty
@@ -441,7 +453,9 @@ export class QueryOrderByConstraint extends QueryConstraint {
     return new QueryOrderByConstraint(_field, _direction);
   }
 
-  _apply<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Query<ModelT, SerializedModelT> {
+  _apply<ModelT, SerializedModelT extends DocumentData>(
+    query: Query<ModelT, SerializedModelT>
+  ): Query<ModelT, SerializedModelT> {
     const orderBy = newQueryOrderBy(query._query, this._field, this._direction);
     return new Query(
       query.firestore,
@@ -506,7 +520,9 @@ export class QueryLimitConstraint extends QueryConstraint {
     return new QueryLimitConstraint(type, _limit, _limitType);
   }
 
-  _apply<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Query<ModelT, SerializedModelT> {
+  _apply<ModelT, SerializedModelT extends DocumentData>(
+    query: Query<ModelT, SerializedModelT>
+  ): Query<ModelT, SerializedModelT> {
     return new Query(
       query.firestore,
       query.converter,
@@ -570,7 +586,9 @@ export class QueryStartAtConstraint extends QueryConstraint {
     return new QueryStartAtConstraint(type, _docOrFields, _inclusive);
   }
 
-  _apply<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Query<ModelT, SerializedModelT> {
+  _apply<ModelT, SerializedModelT extends DocumentData>(
+    query: Query<ModelT, SerializedModelT>
+  ): Query<ModelT, SerializedModelT> {
     const bound = newQueryBoundFromDocOrFields(
       query,
       this.type,
@@ -607,7 +625,9 @@ export function startAt<ModelT, SerializedModelT extends DocumentData>(
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
-export function startAt(...docOrFields: Array<unknown>): QueryStartAtConstraint {
+export function startAt(
+  ...docOrFields: Array<unknown>
+): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAt',
     docOrFields,
@@ -637,7 +657,9 @@ export function startAfter<ModelT, SerializedModelT extends DocumentData>(
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
 export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
-export function startAfter(...docOrFields: Array<unknown>): QueryStartAtConstraint {
+export function startAfter(
+  ...docOrFields: Array<unknown>
+): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAfter',
     docOrFields,
@@ -673,7 +695,9 @@ export class QueryEndAtConstraint extends QueryConstraint {
     return new QueryEndAtConstraint(type, _docOrFields, _inclusive);
   }
 
-  _apply<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Query<ModelT, SerializedModelT> {
+  _apply<ModelT, SerializedModelT extends DocumentData>(
+    query: Query<ModelT, SerializedModelT>
+  ): Query<ModelT, SerializedModelT> {
     const bound = newQueryBoundFromDocOrFields(
       query,
       this.type,
@@ -710,7 +734,9 @@ export function endBefore<ModelT, SerializedModelT extends DocumentData>(
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
 export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
-export function endBefore(...docOrFields: Array<unknown>): QueryEndAtConstraint {
+export function endBefore(
+  ...docOrFields: Array<unknown>
+): QueryEndAtConstraint {
   return QueryEndAtConstraint._create(
     'endBefore',
     docOrFields,
@@ -749,7 +775,10 @@ export function endAt(...docOrFields: Array<unknown>): QueryEndAtConstraint {
 }
 
 /** Helper function to create a bound from a document or fields */
-function newQueryBoundFromDocOrFields<ModelT, SerializedModelT extends DocumentData>(
+function newQueryBoundFromDocOrFields<
+  ModelT,
+  SerializedModelT extends DocumentData
+>(
   query: Query<ModelT, SerializedModelT>,
   methodName: string,
   docOrFields: Array<unknown>,

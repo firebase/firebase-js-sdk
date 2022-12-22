@@ -46,7 +46,7 @@ import {
   Firestore as LiteFirestore,
   connectFirestoreEmulator
 } from '../lite-api/database';
-import {DocumentData, Query} from '../lite-api/reference';
+import { DocumentData, Query } from '../lite-api/reference';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
@@ -619,7 +619,11 @@ export function namedQuery(
     if (!namedQuery) {
       return null;
     }
-    return new Query<DocumentData, DocumentData>(firestore, null, namedQuery.query);
+    return new Query<DocumentData, DocumentData>(
+      firestore,
+      null,
+      namedQuery.query
+    );
   });
 }
 

@@ -58,7 +58,9 @@ export class Transaction extends LiteTransaction {
    * @param documentRef - A reference to the document to be read.
    * @returns A `DocumentSnapshot` with the read data.
    */
-  get<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
+  get<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>
+  ): Promise<DocumentSnapshot<ModelT, SerializedModelT>> {
     const ref = validateReference(documentRef, this._firestore);
     const userDataWriter = new ExpUserDataWriter(this._firestore);
     return super
