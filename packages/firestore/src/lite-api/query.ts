@@ -625,9 +625,7 @@ export function startAt<ModelT, SerializedModelT extends DocumentData>(
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
-export function startAt(
-  ...docOrFields: unknown[]
-): QueryStartAtConstraint {
+export function startAt(...docOrFields: unknown[]): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAt',
     docOrFields,
@@ -657,9 +655,7 @@ export function startAfter<ModelT, SerializedModelT extends DocumentData>(
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
 export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
-export function startAfter(
-  ...docOrFields: unknown[]
-): QueryStartAtConstraint {
+export function startAfter(...docOrFields: unknown[]): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAfter',
     docOrFields,
@@ -734,9 +730,7 @@ export function endBefore<ModelT, SerializedModelT extends DocumentData>(
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
 export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
-export function endBefore(
-  ...docOrFields: unknown[]
-): QueryEndAtConstraint {
+export function endBefore(...docOrFields: unknown[]): QueryEndAtConstraint {
   return QueryEndAtConstraint._create(
     'endBefore',
     docOrFields,
