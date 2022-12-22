@@ -619,11 +619,7 @@ export function namedQuery(
     if (!namedQuery) {
       return null;
     }
-    return new Query<DocumentData, DocumentData>(
-      firestore,
-      null,
-      namedQuery.query
-    );
+    return new Query(firestore, null, namedQuery.query);
   });
 }
 
