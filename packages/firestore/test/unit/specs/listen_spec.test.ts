@@ -1811,7 +1811,7 @@ describeSpec('Listens:', [], () => {
   );
 
   specTest(
-    'Query with resume target can pass in expectedCount to listen request',
+    'Resuming a query should specify expectedCount when adding the target',
     [],
     () => {
       const query1 = query('collection');
@@ -1845,7 +1845,7 @@ describeSpec('Listens:', [], () => {
   );
 
   specTest(
-    'ExpectedCount should equal to the number of documents that last matched the query at the resume token',
+    'Resuming a query should specify expectedCount that does not include pending mutations',
     [],
     () => {
       const query1 = query('collection');
@@ -1879,22 +1879,14 @@ describeSpec('Listens:', [], () => {
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: 'a' });
-      const docBLocal = doc('collection/b', 1000, {
-        key: 'b'
-      }).setHasLocalMutations();
 
       return spec()
         .withGCEnabled(false)
         .userListens(query1)
         .watchAcksFull(query1, 1000, docA)
         .expectEvents(query1, { added: [docA] })
-        .userSets('collection/b', { key: 'b' })
-        .expectEvents(query1, {
-          hasPendingWrites: true,
-          added: [docBLocal]
-        })
         .disableNetwork()
-        .expectEvents(query1, { hasPendingWrites: true, fromCache: true })
+        .expectEvents(query1, { fromCache: true })
         .enableNetwork()
         .restoreListen(query1, 'resume-token-1000', 1);
     }
