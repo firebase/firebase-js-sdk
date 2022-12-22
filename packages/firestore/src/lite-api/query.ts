@@ -572,7 +572,7 @@ export class QueryStartAtConstraint extends QueryConstraint {
   protected constructor(
     /** The type of this query constraint */
     readonly type: 'startAt' | 'startAfter',
-    private readonly _docOrFields: Array<unknown>,
+    private readonly _docOrFields: unknown[],
     private readonly _inclusive: boolean
   ) {
     super();
@@ -626,7 +626,7 @@ export function startAt<ModelT, SerializedModelT extends DocumentData>(
  */
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
 export function startAt(
-  ...docOrFields: Array<unknown>
+  ...docOrFields: unknown[]
 ): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAt',
@@ -658,7 +658,7 @@ export function startAfter<ModelT, SerializedModelT extends DocumentData>(
  */
 export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
 export function startAfter(
-  ...docOrFields: Array<unknown>
+  ...docOrFields: unknown[]
 ): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAfter',
@@ -681,7 +681,7 @@ export class QueryEndAtConstraint extends QueryConstraint {
   protected constructor(
     /** The type of this query constraint */
     readonly type: 'endBefore' | 'endAt',
-    private readonly _docOrFields: Array<unknown>,
+    private readonly _docOrFields: unknown[],
     private readonly _inclusive: boolean
   ) {
     super();
@@ -735,7 +735,7 @@ export function endBefore<ModelT, SerializedModelT extends DocumentData>(
  */
 export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 export function endBefore(
-  ...docOrFields: Array<unknown>
+  ...docOrFields: unknown[]
 ): QueryEndAtConstraint {
   return QueryEndAtConstraint._create(
     'endBefore',
@@ -766,7 +766,7 @@ export function endAt<ModelT, SerializedModelT extends DocumentData>(
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
 export function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
-export function endAt(...docOrFields: Array<unknown>): QueryEndAtConstraint {
+export function endAt(...docOrFields: unknown[]): QueryEndAtConstraint {
   return QueryEndAtConstraint._create(
     'endAt',
     docOrFields,
@@ -781,7 +781,7 @@ function newQueryBoundFromDocOrFields<
 >(
   query: Query<ModelT, SerializedModelT>,
   methodName: string,
-  docOrFields: Array<unknown>,
+  docOrFields: unknown[],
   inclusive: boolean
 ): Bound {
   docOrFields[0] = getModularInstance(docOrFields[0]);

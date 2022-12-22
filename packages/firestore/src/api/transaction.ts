@@ -22,13 +22,13 @@ import {
   DEFAULT_TRANSACTION_OPTIONS,
   validateTransactionOptions
 } from '../core/transaction_options';
-import { DocumentData } from './reference';
 import { DocumentReference } from '../lite-api/reference';
 import { Transaction as LiteTransaction } from '../lite-api/transaction';
 import { validateReference } from '../lite-api/write_batch';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { DocumentData } from './reference';
 import { ExpUserDataWriter } from './reference_impl';
 import { DocumentSnapshot, SnapshotMetadata } from './snapshot';
 import { TransactionOptions } from './transaction_options';
