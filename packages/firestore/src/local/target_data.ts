@@ -71,7 +71,7 @@ export class TargetData {
      * The number of documents that last matched the query at the resume token or
      * read time.
      */
-    readonly expectedCount: number = 0
+    readonly expectedCount: number | null = null
   ) {}
 
   /** Creates a new target data instance with an updated sequence number. */
@@ -104,7 +104,7 @@ export class TargetData {
       snapshotVersion,
       this.lastLimboFreeSnapshotVersion,
       resumeToken,
-      this.expectedCount
+      /** expectedCount= */ null
     );
   }
 
