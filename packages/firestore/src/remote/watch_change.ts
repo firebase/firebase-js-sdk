@@ -431,7 +431,7 @@ export class WatchChangeAggregator {
     }
   }
 
-  /** Returns wheather a bloom filter removed the deleted documents successfully.*/
+  /** Returns wheather a bloom filter removed the deleted documents successfully. */
   private applyBloomFilter(
     existenceFilter: ExistenceFilter,
     targetId: number,
