@@ -25,6 +25,7 @@ import { arrayEquals } from '../util/misc';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import {
+  DeepPartial,
   DocumentData,
   DocumentReference,
   PartialWithFieldValue,
@@ -109,7 +110,7 @@ export interface FirestoreDataConverter<
   toFirestore(
     modelObject: PartialWithFieldValue<ModelT>,
     options: SetOptions
-  ): SerializedModelT;
+  ): DeepPartial<SerializedModelT>;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of

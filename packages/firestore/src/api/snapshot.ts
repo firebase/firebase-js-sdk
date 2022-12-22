@@ -19,6 +19,7 @@ import { newQueryComparator } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
 import {
+  DeepPartial,
   DocumentData,
   PartialWithFieldValue,
   Query,
@@ -114,7 +115,7 @@ export interface FirestoreDataConverter<
   toFirestore(
     modelObject: PartialWithFieldValue<ModelT>,
     options: SetOptions
-  ): SerializedModelT;
+  ): DeepPartial<SerializedModelT>;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of

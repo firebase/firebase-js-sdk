@@ -63,6 +63,18 @@ export type PartialWithFieldValue<T> =
       : never);
 
 /**
+ * Similar to Typescript's `Partial<T>`, but applies recursively to nested
+ * objects, making their properties optional as well.
+ *
+ * Note: This works because "when type parameter T [of a mapped type] is
+ * instantiated with a primitive type the mapped type evaluates to the same
+ * primitive." https://github.com/microsoft/TypeScript/issues/40012
+ */
+export type DeepPartial<T> = {
+  [P in keyof T]?: DeepPartial<T[P]>
+}
+
+/**
  * Allows FieldValues to be passed in as a property value while maintaining
  * type safety.
  */
