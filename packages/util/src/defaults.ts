@@ -16,7 +16,7 @@
  */
 
 import { base64Decode } from './crypt';
-import { getGlobal } from './environment';
+import { getGlobal } from './global';
 
 /**
  * Keys for experimental properties on the `FirebaseDefaults` object.

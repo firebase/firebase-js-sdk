@@ -228,8 +228,6 @@ export const getDefaults: () => FirebaseDefaults | undefined;
 // @public
 export const getExperimentalSetting: <T extends ExperimentalKey>(name: T) => FirebaseDefaults[`_${T}`];
 
-// Warning: (ae-missing-release-tag) "getGlobal" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function getGlobal(): typeof globalThis;
 
