@@ -180,6 +180,12 @@ input + .form,
 .totp-text {
   font-family: 'Courier New', Courier;
 }
+
+.totp-deadline {
+  font-family: 'Courier New', Courier;
+  color: #d9534f;
+}
+
 .totp-qr-image {
   height: 120px;
   margin-right: 10px;
