@@ -767,6 +767,7 @@ export interface TotpMultiFactorInfo extends MultiFactorInfo {
 export class TotpSecret {
     readonly codeIntervalSeconds: number;
     readonly codeLength: number;
+    readonly enrollmentCompletionDeadline: string;
     // Warning: (ae-forgotten-export) The symbol "StartTotpMfaEnrollmentResponse" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)

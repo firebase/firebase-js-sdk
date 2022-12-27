@@ -199,9 +199,11 @@ export class TotpSecret {
    * The interval (in seconds) when the OTP codes should change.
    */
   readonly codeIntervalSeconds: number;
-  // TODO(prameshj) - make this public after API review.
+  /**
+   * The timestamp(UTC string) by which TOTP enrollment should be completed.
+   */
   // This can be used by callers to show a countdown of when to enter OTP code by.
-  private readonly finalizeEnrollmentBy: string;
+  readonly enrollmentCompletionDeadline: string;
 
   // The public members are declared outside the constructor so the docs can be generated.
   private constructor(
@@ -209,7 +211,7 @@ export class TotpSecret {
     hashingAlgorithm: string,
     codeLength: number,
     codeIntervalSeconds: number,
-    finalizeEnrollmentBy: string,
+    enrollmentCompletionDeadline: string,
     private readonly sessionInfo: string,
     private readonly auth: AuthInternal
   ) {
@@ -217,7 +219,7 @@ export class TotpSecret {
     this.hashingAlgorithm = hashingAlgorithm;
     this.codeLength = codeLength;
     this.codeIntervalSeconds = codeIntervalSeconds;
-    this.finalizeEnrollmentBy = finalizeEnrollmentBy;
+    this.enrollmentCompletionDeadline = enrollmentCompletionDeadline;
   }
 
   /** @internal */
