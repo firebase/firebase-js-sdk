@@ -675,6 +675,27 @@ async function onStartEnrollWithTotpMultiFactor() {
     );
     const url = totpSecret.generateQrCodeUrl('test', 'testissuer');
     console.log('TOTP URL is ' + url);
+    console.log(
+      'Finalize sign in by ' + totpSecret.enrollmentCompletionDeadline
+    );
+    // display the numbr of seconds left to enroll.
+    $('p.totp-deadline').show();
+    var id = setInterval(function () {
+      var deadline = new Date(totpSecret.enrollmentCompletionDeadline);
+      var t = deadline - new Date().getTime();
+      if (t < 0) {
+        clearInterval(id);
+        document.getElementById('totp-deadline').innerText =
+          'TOTP enrollment expired!';
+      } else {
+        var minutes = Math.floor(t / (1000 * 60));
+        var seconds = Math.floor((t % (60 * 1000)) / 1000);
+        // accessing the field using $ does not work here.
+        document.getElementById(
+          'totp-deadline'
+        ).innerText = `Time left - ${minutes} minutes, ${seconds} seconds.`;
+      }
+    }, 1000);
     // Use the QRServer API documented at https://goqr.me/api/doc/
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${url}&amp;size=30x30`;
     $('img.totp-qr-image').attr('src', qrCodeUrl).show();
