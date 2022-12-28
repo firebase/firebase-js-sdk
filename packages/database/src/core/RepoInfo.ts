@@ -46,7 +46,7 @@ export class RepoInfo {
     public readonly nodeAdmin: boolean = false,
     public readonly persistenceKey: string = '',
     public readonly includeNamespaceInQueryParams: boolean = false,
-    public readonly isUsingEmulator = false,
+    public readonly isUsingEmulator = false
   ) {
     this._host = host.toLowerCase();
     this._domain = this._host.substr(this._host.indexOf('.') + 1);

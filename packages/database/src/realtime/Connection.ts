@@ -337,19 +337,18 @@ export class Connection {
     if (MESSAGE_DATA in controlData) {
       const payload = controlData[MESSAGE_DATA];
       if (cmd === SERVER_HELLO) {
-        const handshakePayload = {...payload as {
+        const handshakePayload = {
+          ...(payload as {
             ts: number;
             v: string;
             h: string;
             s: string;
-          },
+          })
         };
-        if(this.repoInfo_.isUsingEmulator) {
+        if (this.repoInfo_.isUsingEmulator) {
           handshakePayload.h = this.repoInfo_.host;
         }
-        this.onHandshake_(
-          handshakePayload
-        );
+        this.onHandshake_(handshakePayload);
       } else if (cmd === END_TRANSMISSION) {
         this.log_('recvd end transmission on primary');
         this.rx_ = this.secondaryConn_;
