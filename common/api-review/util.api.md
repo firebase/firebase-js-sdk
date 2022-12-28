@@ -246,11 +246,6 @@ export function getUA(): string;
 // @public
 export const isAdmin: (token: string) => boolean;
 
-// Warning: (ae-missing-release-tag) "isBrowser" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export function isBrowser(): boolean;
-
 // Warning: (ae-missing-release-tag) "isBrowserExtension" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
