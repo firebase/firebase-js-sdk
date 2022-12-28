@@ -16,14 +16,13 @@
  */
 
 import { FirebaseNamespace } from './public-types';
-import { isBrowser } from '@firebase/util';
 import { firebase as firebaseNamespace } from './firebaseNamespace';
 import { logger } from './logger';
 import { registerCoreComponents } from './registerCoreComponents';
 
 // Firebase Lite detection
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-if (isBrowser() && (self as any).firebase !== undefined) {
+if (typeof self !== 'undefined' && (self as any).firebase !== undefined) {
   logger.warn(`
     Warning: Firebase is already defined in the global scope. Please make sure
     Firebase library is only loaded once.

@@ -74,13 +74,6 @@ export function isNode(): boolean {
 }
 
 /**
- * Detect Browser Environment
- */
-export function isBrowser(): boolean {
-  return typeof self === 'object' && self.self === self;
-}
-
-/**
  * Detect browser extensions (Chrome and Firefox at least).
  */
 interface BrowserRuntime {
