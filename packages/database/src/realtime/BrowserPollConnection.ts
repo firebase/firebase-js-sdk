@@ -548,7 +548,7 @@ export class FirebaseIFrameScriptHolder {
       //We have to actually remove all of the html inside this iframe before removing it from the
       //window, or IE will continue loading and executing the script tags we've already added, which
       //can lead to some errors being thrown. Setting innerText seems to be the safest way to do this.
-      this.myIFrame.doc.body.innerText = '';
+      this.myIFrame.doc.body.textContent = '';
       setTimeout(() => {
         if (this.myIFrame !== null) {
           document.body.removeChild(this.myIFrame);
