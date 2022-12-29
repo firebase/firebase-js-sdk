@@ -548,7 +548,11 @@ export class FirebaseIFrameScriptHolder {
       //We have to actually remove all of the html inside this iframe before removing it from the
       //window, or IE will continue loading and executing the script tags we've already added, which
       //can lead to some errors being thrown. Setting innerHTML seems to be the easiest way to do this.
-      this.myIFrame.doc.body.innerHTML = '';
+      // TODO() ^ see if there is another way to clear the iframe contents;; can also look at the closure function
+      // look at analytics function that removes the script tag
+      // make sure it can't be just removed entirely
+      // this.myIFrame.doc.body.innerHTML = '';
+      this.myIFrame.doc.write('');
       setTimeout(() => {
         if (this.myIFrame !== null) {
           document.body.removeChild(this.myIFrame);
