@@ -2,4 +2,4 @@
 '@firebase/database': patch
 ---
 
-Remove innerHTML call and replace it with textContent
+Replace `innerHTML` call with `textContent`.
