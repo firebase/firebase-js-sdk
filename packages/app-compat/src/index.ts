@@ -20,7 +20,7 @@ import { firebase as firebaseNamespace } from './firebaseNamespace';
 import { logger } from './logger';
 import { registerCoreComponents } from './registerCoreComponents';
 
-// Firebase Lite detection -
+// Firebase Lite detection
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (typeof self !== 'undefined' && (self as any).firebase !== undefined) {
   logger.warn(`
