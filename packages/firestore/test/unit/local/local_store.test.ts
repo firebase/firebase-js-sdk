@@ -2005,7 +2005,7 @@ function genericLocalStoreTests(
       .finish();
   });
 
-  it('can handle multiple field patches on local docs', () => {
+  it('update on remote doc leads to update overlay', () => {
     expect(new Map([['a', 1]])).to.deep.equal(new Map([['a', 0]]));
     return expectLocalStore()
       .afterAllocatingQuery(query('foo'))

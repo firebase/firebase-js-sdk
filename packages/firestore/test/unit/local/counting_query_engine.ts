@@ -48,8 +48,8 @@ export class CountingQueryEngine extends QueryEngine {
   overlayTypes: { [k: string]: MutationType } = {};
 
   /**
-   * The number of documents returned by the RemoteDocumentCache's //
-   * `getAll()` API (since the last call to `resetCounts()`) //
+   * The number of documents returned by the RemoteDocumentCache's
+   * `getAll()` API (since the last call to `resetCounts()`).
    */
   documentsReadByCollection = 0;
 
@@ -185,9 +185,9 @@ export class CountingQueryEngine extends QueryEngine {
       },
 
       getOverlaysForCollectionGroup: (
-        transaction,
-        collectionGroup,
-        sinceBatchId,
+        transaction: PersistenceTransaction,
+        collectionGroup: string,
+        sinceBatchId: number,
         count: number
       ) => {
         return subject
