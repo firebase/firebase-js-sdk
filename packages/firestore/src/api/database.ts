@@ -26,6 +26,7 @@ import { deepEqual, getDefaultEmulatorHostnameAndPort } from '@firebase/util';
 import { User } from '../auth/user';
 import {
   IndexedDbOfflineComponentProvider,
+  LruGcMemoryOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
@@ -286,27 +287,64 @@ export function configureFirestore(firestore: Firestore): void {
 }
 
 /**
- * Attempts to enable persistent storage, if possible.
+ * Attempts to enable the LRU garbage collector for memory persistence.
  *
  * Must be called before any other functions (other than
  * {@link initializeFirestore}, {@link (getFirestore:1)} or
  * {@link clearIndexedDbPersistence}.
  *
- * If this fails, `enableIndexedDbPersistence()` will reject the promise it
- * returns. Note that even after this failure, the {@link Firestore} instance will
- * remain usable, however offline persistence will be disabled.
+ * By default, any documents that are not part of an active query result or
+ * with no mutation attached to them are removed from memory immediately.
  *
- * There are several reasons why this can fail, which can be identified by
- * the `code` on the error.
- *
- *   * failed-precondition: The app is already open in another browser tab.
- *   * unimplemented: The browser is incompatible with the offline
- *     persistence implementation.
+ * This function changes the default behavior, to enable a least-recent-used
+ * garbage collector. Documents will be collected when their total size exceeds
+ * `Settings.cacheSizeBytes`, with least recently used documents get removed first.
  *
  * @param firestore - The {@link Firestore} instance to enable persistence for.
- * @param persistenceSettings - Optional settings object to configure
- * persistence.
  * @returns A `Promise` that represents successfully enabling persistent storage.
+ */
+export function enableMemoryLRUGarbageCollection(
+  firestore: Firestore
+): Promise<void> {
+  firestore = cast(firestore, Firestore);
+  verifyNotInitialized(firestore);
+
+  const client = ensureFirestoreConfigured(firestore);
+  const settings = firestore._freezeSettings();
+
+  const onlineComponentProvider = new OnlineComponentProvider();
+  const offlineComponentProvider = new LruGcMemoryOfflineComponentProvider(
+    settings.cacheSizeBytes
+  );
+  return setPersistenceProviders(
+    client,
+    onlineComponentProvider,
+    offlineComponentProvider
+  );
+}
+
+/**
+ * Attempts to enable persistent storage, if possible. //
+ *				//
+ * Must be called before any other functions (other than //
+ * {@link initializeFirestore}, {@link (getFirestore:1)} or //
+ * {@link clearIndexedDbPersistence}. //
+ *				//
+ * If this fails, `enableIndexedDbPersistence()` will reject the promise it //
+ * returns. Note that even after this failure, the {@link Firestore} instance will //
+ * remain usable, however offline persistence will be disabled. //
+ *				//
+ * There are several reasons why this can fail, which can be identified by //
+ * the `code` on the error.	//
+ *				//
+ *   * failed-precondition: The app is already open in another browser tab. //
+ *   * unimplemented: The browser is incompatible with the offline //
+ *     persistence implementation. //
+ *				//
+ * @param firestore - The {@link Firestore} instance to enable persistence for. //
+ * @param persistenceSettings - Optional settings object to configure //
+ * persistence.			//
+ * @returns A `Promise` that represents successfully enabling persistent storage. //
  */
 export function enableIndexedDbPersistence(
   firestore: Firestore,
