@@ -1096,7 +1096,7 @@ export class SpecBuilder {
     resume?: ResumeSpec
   ): void {
     if (!(resume?.resumeToken || resume?.readTime) && resume?.expectedCount) {
-      fail('ExpectedCount is present without a resumeToken or readTime.');
+      fail('Expected count is present without a resume token or read time.');
     }
 
     if (this.activeTargets[targetId]) {

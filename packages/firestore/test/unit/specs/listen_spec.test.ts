@@ -1826,7 +1826,7 @@ describeSpec('Listens:', [], () => {
           .expectEvents(query1, {})
           .userUnlistens(query1)
           .watchRemoves(query1)
-          // There is 0 remote document from previous listen.
+          // There are 0 remote documents from previous listen.
           .userListens(query1, {
             resumeToken: 'resume-token-1000',
             expectedCount: 0
@@ -1888,7 +1888,7 @@ describeSpec('Listens:', [], () => {
         .disableNetwork()
         .expectEvents(query1, { fromCache: true })
         .enableNetwork()
-        .restoreListen(query1, 'resume-token-1000', 1);
+        .restoreListen(query1, 'resume-token-1000', /* expectedCount= */ 1);
     }
   );
 });

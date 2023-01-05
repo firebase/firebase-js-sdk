@@ -69,7 +69,8 @@ export class TargetData {
     readonly resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING,
     /**
      * The number of documents that last matched the query at the resume token or
-     * read time.
+     * read time. Documents are counted only when making a listen request with
+     * resume token or read time, otherwise, keep it null.
      */
     readonly expectedCount: number | null = null
   ) {}
@@ -104,7 +105,7 @@ export class TargetData {
       snapshotVersion,
       this.lastLimboFreeSnapshotVersion,
       resumeToken,
-      /** expectedCount= */ null
+      /* expectedCount= */ null
     );
   }
 
