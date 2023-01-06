@@ -224,6 +224,15 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface ExistenceFilter {
     targetId?: number;
     count?: number;
+    unchangedNames?: BloomFilter;
+  }
+  interface BloomFilter {
+    bits?: BitSequence;
+    hashCount?: number;
+  }
+  interface BitSequence {
+    bitmap?: string | Uint8Array;
+    padding?: number;
   }
   interface FieldFilter {
     field?: FieldReference;
@@ -382,6 +391,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     readTime?: Timestamp;
     targetId?: number;
     once?: boolean;
+    expectedCount?: number;
   }
   interface TargetChange {
     targetChangeType?: TargetChangeTargetChangeType;
@@ -446,6 +456,7 @@ export declare type BeginTransactionRequest =
   firestoreV1ApiClientInterfaces.BeginTransactionRequest;
 export declare type BeginTransactionResponse =
   firestoreV1ApiClientInterfaces.BeginTransactionResponse;
+export declare type BloomFilter = firestoreV1ApiClientInterfaces.BloomFilter;
 export declare type CollectionSelector =
   firestoreV1ApiClientInterfaces.CollectionSelector;
 export declare type CommitRequest =

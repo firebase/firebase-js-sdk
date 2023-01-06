@@ -560,8 +560,8 @@ export function fromWatchChange(
     assertPresent(change.filter, 'filter');
     const filter = change.filter;
     assertPresent(filter.targetId, 'filter.targetId');
-    const count = filter.count || 0;
-    const existenceFilter = new ExistenceFilter(count);
+    const { count = 0, unchangedNames } = filter;
+    const existenceFilter = new ExistenceFilter(count, unchangedNames);
     const targetId = filter.targetId;
     watchChange = new ExistenceFilterChange(targetId, existenceFilter);
   } else {
