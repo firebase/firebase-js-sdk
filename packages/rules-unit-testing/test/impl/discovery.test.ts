@@ -31,19 +31,19 @@ describe('discoverEmulators()', () => {
 
     expect(emulators).to.deep.equal({
       database: {
-        host: 'localhost',
+        host: '127.0.0.1',
         port: 9002
       },
       firestore: {
-        host: 'localhost',
+        host: '127.0.0.1',
         port: 9003
       },
       storage: {
-        host: 'localhost',
+        host: '127.0.0.1',
         port: 9199
       },
       hub: {
-        host: 'localhost',
+        host: '127.0.0.1',
         port: 4400
       }
     });
