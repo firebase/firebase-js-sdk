@@ -166,6 +166,7 @@ export class MutationBatch {
       if (overlay !== null) {
         overlays.set(m.key, overlay);
       }
+
       if (!mutableDocument.isValidDocument()) {
         mutableDocument.convertToNoDocument(SnapshotVersion.min());
       }

@@ -242,6 +242,10 @@ export class LocalDocumentsView {
           overlay.mutation.getFieldMask(),
           Timestamp.now()
         );
+      } else {
+        // no overlay exists
+        // Using EMPTY to indicate there is no overlay for the document.
+        mutatedFields.set(doc.key, FieldMask.empty());
       }
     });
 
