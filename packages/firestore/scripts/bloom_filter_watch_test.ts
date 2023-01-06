@@ -21,6 +21,8 @@
 import * as yargs from 'yargs';
 
 import { newConnection } from '../src/platform/connection';
+import { setLogLevel } from '../src';
+import { AutoId } from '../src/util/misc';
 import { DatabaseId, DatabaseInfo } from '../src/core/database_info';
 import {
   DocumentChange,
@@ -31,24 +33,38 @@ import {
   ListenResponse,
   TargetChange
 } from '../src/protos/firestore_proto_api';
+import { Connection, Stream } from "../src/remote/connection";
+import { Deferred } from "../test/util/promise";
 
 // Import the following modules despite not using them. This forces them to get
 // transpiled by tsc. Without these imports they do not get transpiled because
 // they are imported dynamically, causing in MODULE_NOT_FOUND errors at runtime.
+import * as node_dom from '../src/platform/node/dom';
+import * as node_base64 from '../src/platform/node/base64';
 import * as node_connection from '../src/platform/node/connection';
 import * as node_format_json from '../src/platform/node/format_json';
-import {Connection, Stream} from "../src/remote/connection";
-import {Deferred} from "../test/util/promise";
+import * as node_random_bytes from '../src/platform/node/random_bytes';
 
 async function main() {
-  const {projectId, host, ssl} = parseArgs();
-  log(`Connecting to Firestore host ${host} using project ID ${projectId}`);
-  const connection = createConnection(projectId, host, ssl);
+  const parsedArgs = parseArgs();
+  if (parsedArgs.debugLoggingEnabled) {
+    setLogLevel("debug");
+  }
+  const {host, projectId} = parsedArgs;
+  const collectionId = parsedArgs.collectionId ?? AutoId.newId();
+
+  log(`Connecting to Firestore host ${host} using project ID ${projectId} ` +
+    `and collection ${collectionId}`);
+  const connection = createConnection(projectId, host, parsedArgs.ssl);
   const watchStream = new WatchStream(connection, projectId);
   await watchStream.open();
   try {
     log("Adding target to watch stream");
-    watchStream.addTarget(1, "TestCollection", "TestKey", "TestValue");
+    watchStream.addTarget(1, collectionId, "TestKey", "TestValue");
+    log("Waiting for a snapshot from watch");
+    const snapshot = await watchStream.getSnapshot(1);
+    const documentNames = new Array(snapshot).sort();
+    log(`Got ${documentNames.length} documents:`, documentNames);
   } finally {
     log("Closing watch stream");
     await watchStream.close();
@@ -64,6 +80,7 @@ interface ParsedArgs {
   documentCreateCount: number;
   documentDeleteCount: number;
   iterationCount: number;
+  debugLoggingEnabled: boolean;
 }
 
 function parseArgs(): ParsedArgs {
@@ -105,6 +122,11 @@ function parseArgs(): ParsedArgs {
         type: "number",
         default: 20,
         describe: "The number of iterations to run."
+      },
+      debug: {
+        type: "boolean",
+        default: false,
+        describe: "Enable Firestore debug logging."
       }
     })
     .help()
@@ -117,7 +139,8 @@ function parseArgs(): ParsedArgs {
     collectionId: parsedArgs.collection ?? null,
     documentCreateCount: parsedArgs.creates,
     documentDeleteCount: parsedArgs.deletes,
-    iterationCount: parsedArgs.iterations
+    iterationCount: parsedArgs.iterations,
+    debugLoggingEnabled: parsedArgs.debug
   };
 }
 
@@ -150,6 +173,9 @@ class TargetState {
   private _added = false;
   private _current = false;
   private _resumeToken: string | Uint8Array | null = null;
+  private _documentNames = new Set<string>();
+  private _snapshot: Set<string> | null = null;
+  private _snapshotDeferreds = new Set<Deferred<Set<string>>>();
 
   onAdded(): void {
     if (this._added) {
@@ -179,17 +205,52 @@ class TargetState {
       throw new TargetStateError(`onReset() invoked when not added.`);
     }
     this._current = false;
+    this._documentNames.clear();
   }
 
   onNoChange(resumeToken: string | Uint8Array | null): void {
     if (!this._added) {
       throw new TargetStateError(`onNoChange() invoked when not added.`);
-    } else if (!this._current) {
-      throw new TargetStateError(`onNoChange() invoked when not current.`);
     }
-    if (resumeToken !== null) {
+    if (this._current && resumeToken !== null) {
       this._resumeToken = resumeToken;
+      const snapshot = new Set(this._documentNames);
+      for (const snapshotDeferred of this._snapshotDeferreds.values()) {
+        snapshotDeferred.resolve(new Set(snapshot));
+      }
+      this._snapshot = snapshot;
+      this._snapshotDeferreds.clear();
     }
+  }
+
+  onDocumentChanged(documentName: string): void {
+    if (!this._added) {
+      throw new TargetStateError(`onDocumentAdded() invoked when not added.`);
+    }
+    this._current = false;
+    this._documentNames.add(documentName);
+  }
+
+  onDocumentRemoved(documentName: string): void {
+    if (!this._added) {
+      throw new TargetStateError(`onDocumentRemoved() invoked when not added.`);
+    }
+    this._current = false;
+    this._documentNames.delete(documentName);
+  }
+
+  getSnapshot(): Promise<Set<string>> {
+    const snapshot = this._snapshot;
+
+    if (snapshot !== null) {
+      return new Promise(resolve => {
+        resolve(new Set(snapshot));
+      })
+    }
+
+    const deferred = new Deferred<Set<string>>();
+    this._snapshotDeferreds.add(deferred);
+    return deferred.promise;
   }
 }
 
@@ -267,7 +328,7 @@ class WatchStream {
       throw new WatchError(`targetId ${targetId} is already used`);
     }
 
-    const target: ListenRequest = {
+    const listenRequest: ListenRequest = {
       addTarget: {
         targetId: targetId,
         query: {
@@ -285,14 +346,30 @@ class WatchStream {
                 }
               }
             },
+            orderBy: [
+              { field: { fieldPath: '__name__' }, direction: 'ASCENDING' }
+            ]
           },
         },
       }
     };
 
-    this._stream.send(target);
+    const listenRequestWithDatabase = {
+      database: `projects/${this._projectId}/databases/(default)`,
+      ...listenRequest
+    }
+
+    this._stream.send(listenRequestWithDatabase);
 
     this._targets.set(targetId, new TargetState());
+  }
+
+  async getSnapshot(targetId: number): Promise<Set<string>> {
+    const targetState = this._targets.get(targetId);
+    if (targetState === undefined) {
+      throw new WatchError(`unknown targetId: ${targetId}`);
+    }
+    return await targetState.getSnapshot();
   }
 
   private _onMessageReceived(msg: ListenResponse): void {
@@ -309,9 +386,8 @@ class WatchStream {
     }
   }
 
-  private _targetStatesForTargetChange(targetChange: TargetChange): Array<TargetState> {
-    const targetIds = targetChange.targetIds;
-    const targetStates = Array.from(targetIds ?? [], targetId => {
+  private _targetStatesForTargetIds(targetIds: Array<number>, allTargetsIfEmpty: boolean): Array<TargetState> {
+    const targetStates = Array.from(targetIds, targetId => {
       const targetState = this._targets.get(targetId);
       if (targetState === undefined) {
         throw new WatchError(`TargetChange specifies an unknown targetId: ${targetId}`);
@@ -319,7 +395,7 @@ class WatchStream {
       return targetState;
     });
 
-    if (targetStates.length > 0) {
+    if (targetStates.length > 0 || !allTargetsIfEmpty) {
       return targetStates;
     }
 
@@ -329,7 +405,7 @@ class WatchStream {
   }
 
   private _onTargetChange(targetChange: TargetChange): void {
-    const targetStates = this._targetStatesForTargetChange(targetChange);
+    const targetStates = this._targetStatesForTargetIds(targetChange.targetIds!, true);
     for (const targetState of targetStates) {
       switch (targetChange.targetChangeType) {
         case "ADD":
@@ -354,15 +430,32 @@ class WatchStream {
   }
 
   private _onDocumentChange(documentChange: DocumentChange): void {
+    for (const targetState of this._targetStatesForTargetIds(documentChange.targetIds!, true)) {
+      targetState.onDocumentChanged(documentChange.document!.name!);
+    }
+    for (const targetState of this._targetStatesForTargetIds(documentChange.removedTargetIds!, false)) {
+      targetState.onDocumentRemoved(documentChange.document!.name!);
+    }
   }
 
   private _onDocumentRemove(documentRemove: DocumentRemove): void {
+    for (const targetState of this._targetStatesForTargetIds(documentRemove.removedTargetIds!, false)) {
+      targetState.onDocumentRemoved(documentRemove.document!);
+    }
   }
 
   private _onDocumentDelete(documentDelete: DocumentDelete): void {
+    for (const targetState of this._targetStatesForTargetIds(documentDelete.removedTargetIds!, false)) {
+      targetState.onDocumentRemoved(documentDelete.document!);
+    }
   }
 
   private _onExistenceFilter(existenceFilter: ExistenceFilter): void {
+    const targetId = existenceFilter.targetId;
+    const targetState = this._targets.get(targetId!);
+    if (targetState === undefined) {
+      throw new WatchError(`ExistenceFilter specified an unknown targetId: ${targetId}`);
+    }
   }
 }
 
