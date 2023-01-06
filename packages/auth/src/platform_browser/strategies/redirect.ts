@@ -92,6 +92,10 @@ export async function _signInWithRedirect(
 ): Promise<void | never> {
   const authInternal = _castAuth(auth);
   _assertInstanceOf(auth, provider, FederatedAuthProvider);
+  // Wait for auth initialization to complete, this will process pending redirects and clear the
+  // PENDING_REDIRECT_KEY in persistence. This should be completed before starting a new
+  // redirect and creating a PENDING_REDIRECT_KEY entry.
+  await authInternal._initializationPromise;
   const resolverInternal = _withDefaultResolver(authInternal, resolver);
   await _setPendingRedirectStatus(resolverInternal, authInternal);
 
@@ -151,6 +155,10 @@ export async function _reauthenticateWithRedirect(
 ): Promise<void | never> {
   const userInternal = getModularInstance(user) as UserInternal;
   _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
+  // Wait for auth initialization to complete, this will process pending redirects and clear the
+  // PENDING_REDIRECT_KEY in persistence. This should be completed before starting a new
+  // redirect and creating a PENDING_REDIRECT_KEY entry.
+  await userInternal.auth._initializationPromise;
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   await _setPendingRedirectStatus(resolverInternal, userInternal.auth);
@@ -206,6 +214,10 @@ export async function _linkWithRedirect(
 ): Promise<void | never> {
   const userInternal = getModularInstance(user) as UserInternal;
   _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
+  // Wait for auth initialization to complete, this will process pending redirects and clear the
+  // PENDING_REDIRECT_KEY in persistence. This should be completed before starting a new
+  // redirect and creating a PENDING_REDIRECT_KEY entry.
+  await userInternal.auth._initializationPromise;
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   await _assertLinkedStatus(false, userInternal, provider.providerId);
