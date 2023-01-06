@@ -1117,6 +1117,10 @@ abstract class TestRunner {
           version(expected.readTime!)
         );
       }
+      if (expected.expectedCount !== undefined) {
+        targetData = targetData.withExpectedCount(expected.expectedCount);
+      }
+
       const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
@@ -1128,6 +1132,11 @@ abstract class TestRunner {
            expectedTarget.resumeToken
          )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
       );
+      if (expected.expectedCount !== undefined) {
+        expect(actualTarget.expectedCount).to.equal(
+          expectedTarget.expectedCount
+        );
+      }
       delete actualTargets[targetId];
     });
     expect(objectSize(actualTargets)).to.equal(
