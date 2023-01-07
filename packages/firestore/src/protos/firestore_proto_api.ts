@@ -162,6 +162,15 @@ export declare namespace firestoreV1ApiClientInterfaces {
     transaction?: string;
     readTime?: string;
   }
+  interface BatchWriteRequest {
+    database?: string;
+    writes?: Write[];
+    labels?: ApiClientObjectMap<string>;
+  }
+  interface BatchWriteResponse {
+    writeResults?: WriteResult[];
+    status?: Status[];
+  }
   interface BeginTransactionRequest {
     options?: TransactionOptions;
   }
@@ -452,6 +461,10 @@ export declare type BatchGetDocumentsRequest =
   firestoreV1ApiClientInterfaces.BatchGetDocumentsRequest;
 export declare type BatchGetDocumentsResponse =
   firestoreV1ApiClientInterfaces.BatchGetDocumentsResponse;
+export declare type BatchWriteRequest =
+  firestoreV1ApiClientInterfaces.BatchWriteRequest;
+export declare type BatchWriteResponse =
+  firestoreV1ApiClientInterfaces.BatchWriteResponse;
 export declare type BeginTransactionRequest =
   firestoreV1ApiClientInterfaces.BeginTransactionRequest;
 export declare type BeginTransactionResponse =
@@ -553,6 +566,21 @@ export interface IProjectsDatabasesDocumentsApiClientAltEnum {
 }
 export declare const ProjectsDatabasesDocumentsApiClientAltEnum: IProjectsDatabasesDocumentsApiClientAltEnum;
 export interface ProjectsDatabasesDocumentsBatchGetNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+}
+export interface ProjectsDatabasesDocumentsBatchWriteNamedParameters {
   access_token?: string;
   alt?: ProjectsDatabasesDocumentsApiClientAlt;
   bearer_token?: string;
@@ -772,6 +800,11 @@ export abstract class ProjectsDatabasesDocumentsApiClient {
     $requestBody: BatchGetDocumentsRequest,
     __namedParams__?: ProjectsDatabasesDocumentsBatchGetNamedParameters & object
   ): Promise<BatchGetDocumentsResponse>;
+  abstract batchWrite(
+    database: string,
+    $requestBody: BatchWriteRequest,
+    __namedParams__?: ProjectsDatabasesDocumentsBatchWriteNamedParameters & object
+  ): Promise<BatchWriteResponse>;
   abstract beginTransaction(
     database: string,
     $requestBody: BeginTransactionRequest,
@@ -864,6 +897,25 @@ export declare class ProjectsDatabasesDocumentsApiClientImpl
       upload_protocol
     }?: ProjectsDatabasesDocumentsBatchGetNamedParameters & object
   ): Promise<BatchGetDocumentsResponse>;
+  batchWrite(
+    database: string,
+    $requestBody: BatchWriteRequest,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsBatchWriteNamedParameters & object
+  ): Promise<BatchWriteResponse>;
   beginTransaction(
     database: string,
     $requestBody: BeginTransactionRequest,

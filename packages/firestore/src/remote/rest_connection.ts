@@ -35,6 +35,7 @@ const LOG_TAG = 'RestConnection';
 const RPC_NAME_URL_MAPPING: StringMap = {};
 
 RPC_NAME_URL_MAPPING['BatchGetDocuments'] = 'batchGet';
+RPC_NAME_URL_MAPPING['BatchWrite'] = 'batchWrite';
 RPC_NAME_URL_MAPPING['Commit'] = 'commit';
 RPC_NAME_URL_MAPPING['RunQuery'] = 'runQuery';
 RPC_NAME_URL_MAPPING['RunAggregationQuery'] = 'runAggregationQuery';
