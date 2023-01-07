@@ -25,13 +25,15 @@ import { setLogLevel } from '../src';
 import { AutoId } from '../src/util/misc';
 import { DatabaseId, DatabaseInfo } from '../src/core/database_info';
 import {
+  BatchWriteRequest, BatchWriteResponse,
   DocumentChange,
   DocumentDelete,
   DocumentRemove,
   ExistenceFilter,
   ListenRequest,
   ListenResponse,
-  TargetChange
+  TargetChange,
+  Write
 } from '../src/protos/firestore_proto_api';
 import { Connection, Stream } from "../src/remote/connection";
 import { Deferred } from "../test/util/promise";
@@ -44,23 +46,56 @@ import * as node_base64 from '../src/platform/node/base64';
 import * as node_connection from '../src/platform/node/connection';
 import * as node_format_json from '../src/platform/node/format_json';
 import * as node_random_bytes from '../src/platform/node/random_bytes';
+import {Token} from "../src/api/credentials";
 
 async function main() {
   const parsedArgs = parseArgs();
   if (parsedArgs.debugLoggingEnabled) {
     setLogLevel("debug");
   }
-  const {host, projectId} = parsedArgs;
+  const {host, projectId, documentCreateCount} = parsedArgs;
   const collectionId = parsedArgs.collectionId ?? AutoId.newId();
 
-  log(`Connecting to Firestore host ${host} using project ID ${projectId} ` +
+  log(`Using Firestore host ${host}, project ID ${projectId}, and ` +
     `and collection ${collectionId}`);
   const connection = createConnection(projectId, host, parsedArgs.ssl);
+
+  const documentIdPrefix = AutoId.newId();
+  const documentIdNumLeadingZeroes = 1 + Math.floor(Math.log10(documentCreateCount));
+  log(`Creating ${documentCreateCount} documents in collection ${collectionId} with prefix ${documentIdPrefix}`);
+  const writes: Array<Write> = [];
+  for (let i=1; i<=documentCreateCount; i++) {
+    const documentIdSuffix = `000000000000${i}`.slice(-documentIdNumLeadingZeroes);
+    const documentId = `${documentIdPrefix}_doc${documentIdSuffix}`;
+    const write: Write = {
+      update: {
+        name: `projects/${projectId}/databases/(default)/documents/${collectionId}/${documentId}`,
+        fields: {
+          TestKey: {
+            stringValue: documentIdPrefix
+          }
+        }
+      }
+    };
+    writes.push(write);
+  }
+  const batchWriteRequest: BatchWriteRequest = {
+    database: `projects/${projectId}/databases/(default)`,
+    writes
+  };
+  const batchWriteResponse = await connection.invokeRPC<BatchWriteRequest, BatchWriteResponse>("BatchWrite", /*path=*/"", batchWriteRequest, /*authToken=*/null, /*appCheckToken=*/null);
+  for (const batchWriteStatus of batchWriteResponse.status!) {
+    if (batchWriteStatus.code != 0) {
+      throw new Error(`Creating document failed: ${JSON.stringify(batchWriteStatus)}`);
+    }
+  }
+  log("Documents created successfully!");
+
   const watchStream = new WatchStream(connection, projectId);
   await watchStream.open();
   try {
     log("Adding target to watch stream");
-    watchStream.addTarget(1, collectionId, "TestKey", "TestValue");
+    watchStream.addTarget(1, collectionId, "TestKey", documentIdPrefix);
     log("Waiting for a snapshot from watch");
     const snapshot = await watchStream.getSnapshot(1);
     const documentNames = new Array(snapshot).sort();
