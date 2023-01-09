@@ -19,6 +19,7 @@
 // yarn build:scripts && node scripts/bloom_filter_watch_test.js
 
 import * as yargs from 'yargs';
+import { assert } from 'chai';
 
 import { newConnection } from '../src/platform/connection';
 import {
@@ -26,22 +27,21 @@ import {
   DocumentReference,
   Firestore,
   setLogLevel,
-  FirestoreSettings,
   collection,
-  writeBatch, WriteBatch, DocumentData
+  writeBatch,
+  WriteBatch,
+  DocumentData
 } from '../src';
 import { AutoId } from '../src/util/misc';
 import { DatabaseId, DatabaseInfo } from '../src/core/database_info';
 import {
-  BatchWriteRequest, BatchWriteResponse,
   DocumentChange,
   DocumentDelete,
   DocumentRemove,
   ExistenceFilter,
   ListenRequest,
   ListenResponse,
-  TargetChange,
-  Write
+  TargetChange
 } from '../src/protos/firestore_proto_api';
 import { Connection, Stream } from "../src/remote/connection";
 import { Deferred } from "../test/util/promise";
@@ -55,7 +55,6 @@ import * as node_base64 from '../src/platform/node/base64';
 import * as node_connection from '../src/platform/node/connection';
 import * as node_format_json from '../src/platform/node/format_json';
 import * as node_random_bytes from '../src/platform/node/random_bytes';
-import {Token} from "../src/api/credentials";
 
 async function main(): Promise<void> {
   const parsedArgs = parseArgs();
@@ -84,7 +83,8 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
     ssl: databaseInfo.ssl
   });
 
-  const createdDocumentIds = await createDocuments(db, documentCreateCount, collectionId, documentIdPrefix);
+  const createdDocumentRefs = await createDocuments(db, documentCreateCount, collectionId, documentIdPrefix);
+  const createdDocumentIds = createdDocumentRefs.map(documentRef => documentRef.id).sort();
 
   const connection = newConnection(databaseInfo);
   const watchStream = new WatchStream(connection, databaseInfo.databaseId.projectId);
@@ -95,8 +95,9 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
     log("Waiting for a snapshot from watch");
     const snapshot = await watchStream.getSnapshot(1);
     const documentNames = Array.from(snapshot).sort();
-    const documentNamesDescription = descriptionFromSortedStrings(documentNames.map(documentIdFromDocumentPath));
-    log(`Got ${documentNames.length} documents: ${documentNamesDescription}`);
+    const documentIds = documentNames.map(documentIdFromDocumentPath);
+    log(`Got ${documentNames.length} documents: ${descriptionFromSortedStrings(documentIds)}`);
+    assert.deepEqual(createdDocumentIds, documentIds);
   } finally {
     log("Closing watch stream");
     await watchStream.close();
