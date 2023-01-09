@@ -67,14 +67,15 @@ async function main(): Promise<void> {
   const collectionId = parsedArgs.collectionId ?? `bloom_filter_watch_test_${uniqueId}`;
   const databaseInfo = createDatabaseInfo(parsedArgs.projectId, parsedArgs.host, parsedArgs.ssl);
 
-  await run(databaseInfo, collectionId, parsedArgs.documentCreateCount, uniqueId);
+  await run(databaseInfo, collectionId, parsedArgs.documentCreateCount, parsedArgs.documentDeleteCount, uniqueId);
 }
 
-async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCreateCount:number, documentIdPrefix: string): Promise<void> {
+async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCreateCount: number, documentDeleteCount: number, documentIdPrefix: string): Promise<void> {
   log("host:", databaseInfo.host);
   log("projectId:", databaseInfo.databaseId.projectId);
   log("collectionId:", collectionId);
   log("documentCreateCount:", documentCreateCount);
+  log("documentDeleteCount:", documentDeleteCount);
   log("documentIdPrefix:", documentIdPrefix);
 
   const db = newTestFirestore(databaseInfo.databaseId.projectId);
@@ -85,6 +86,8 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
 
   const createdDocumentRefs = await createDocuments(db, documentCreateCount, collectionId, documentIdPrefix);
   const createdDocumentIds = createdDocumentRefs.map(documentRef => documentRef.id).sort();
+  const documentRefsToDelete = createdDocumentRefs.slice(createdDocumentRefs.length - documentDeleteCount);
+  const documentIdsToDelete = documentRefsToDelete.map(documentRef => documentRef.id);
 
   const connection = newConnection(databaseInfo);
   const watchStream = new WatchStream(connection, databaseInfo.databaseId.projectId);
@@ -102,6 +105,10 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
     log("Removing target from watch stream");
     await watchStream.removeTarget(1);
     log("Removed target from watch stream");
+
+    log(`Deleting ${documentDeleteCount} documents: ${descriptionFromSortedStrings(documentIdsToDelete)}`);
+    await deleteDocuments(db, documentRefsToDelete);
+    log(`Deleted ${documentDeleteCount} documents`);
   } finally {
     log("Closing watch stream");
     await watchStream.close();
@@ -532,14 +539,19 @@ async function createDocuments(db: Firestore, documentCreateCount:number, collec
   const descriptionRefsDescription = descriptionFromSortedStrings(documentRefs.map(documentRef => documentRef.id).sort());
 
   log(`Creating ${documentRefs.length} documents in collection ${collectionRef.id}: ${descriptionRefsDescription}`);
-  const writeBatches = createWriteBatches(db, documentRefs, { TestKey: documentIdPrefix });
+  const writeBatches = createWriteBatchesForCreate(db, documentRefs, { TestKey: documentIdPrefix });
   await Promise.all(writeBatches.map(batch => batch.commit()));
   log(`${documentRefs.length} documents created successfully.`);
 
   return documentRefs;
 }
 
-function createWriteBatches(db: Firestore, documentRefs: Array<DocumentReference>, documentData: DocumentData): Array<WriteBatch> {
+async function deleteDocuments(db: Firestore, documentRefs: Array<DocumentReference>): Promise<void> {
+  const writeBatches = createWriteBatchesForDelete(db, documentRefs);
+  await Promise.all(writeBatches.map(batch => batch.commit()));
+}
+
+function createWriteBatchesForCreate(db: Firestore, documentRefs: Array<DocumentReference>, documentData: DocumentData): Array<WriteBatch> {
   const writeBatches: Array<WriteBatch> = [];
   let writeBatch_ = writeBatch(db);
   let currentWriteBatchDocumentCount = 0;
@@ -551,6 +563,28 @@ function createWriteBatches(db: Firestore, documentRefs: Array<DocumentReference
       currentWriteBatchDocumentCount = 0;
     }
     writeBatch_.set(documentRef, documentData);
+    currentWriteBatchDocumentCount++;
+  }
+
+  if (currentWriteBatchDocumentCount > 0) {
+    writeBatches.push(writeBatch_);
+  }
+
+  return writeBatches;
+}
+
+function createWriteBatchesForDelete(db: Firestore, documentRefs: Array<DocumentReference>): Array<WriteBatch> {
+  const writeBatches: Array<WriteBatch> = [];
+  let writeBatch_ = writeBatch(db);
+  let currentWriteBatchDocumentCount = 0;
+
+  for (const documentRef of documentRefs) {
+    if (currentWriteBatchDocumentCount === 500) {
+      writeBatches.push(writeBatch_);
+      writeBatch_ = writeBatch(db);
+      currentWriteBatchDocumentCount = 0;
+    }
+    writeBatch_.delete(documentRef);
     currentWriteBatchDocumentCount++;
   }
 
