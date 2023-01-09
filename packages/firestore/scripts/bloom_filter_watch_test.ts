@@ -28,7 +28,7 @@ import {
   setLogLevel,
   FirestoreSettings,
   collection,
-  writeBatch
+  writeBatch, WriteBatch, DocumentData
 } from '../src';
 import { AutoId } from '../src/util/misc';
 import { DatabaseId, DatabaseInfo } from '../src/core/database_info';
@@ -499,14 +499,35 @@ function* generateRangeZeroPadded(count: number): IterableIterator<string> {
 async function createDocuments(db: Firestore, documentCreateCount:number, collectionId: string, documentIdPrefix: string): Promise<Array<DocumentReference>> {
   const collectionRef = collection(db, collectionId);
   const documentRefs = Array.from(generateRangeZeroPadded(documentCreateCount)).map(documentIdSuffix => `${documentIdPrefix}_doc${documentIdSuffix}`).map(documentId => doc(collectionRef, documentId));
+
   log(`Creating ${documentRefs.length} documents in collection ${collectionRef.id} with prefix ${documentIdPrefix}`);
-  const writeBatch_ = writeBatch(db);
-  for (const documentRef of documentRefs) {
-    writeBatch_.set(documentRef, { TestKey: documentIdPrefix });
-  }
-  await writeBatch_.commit();
+  const writeBatches = createWriteBatches(db, documentRefs, { TestKey: documentIdPrefix });
+  await Promise.all(writeBatches.map(batch => batch.commit()));
   log(`${documentRefs.length} documents created successfully`);
+
   return documentRefs;
+}
+
+function createWriteBatches(db: Firestore, documentRefs: Array<DocumentReference>, documentData: DocumentData): Array<WriteBatch> {
+  const writeBatches: Array<WriteBatch> = [];
+  let writeBatch_ = writeBatch(db);
+  let currentWriteBatchDocumentCount = 0;
+
+  for (const documentRef of documentRefs) {
+    if (currentWriteBatchDocumentCount === 500) {
+      writeBatches.push(writeBatch_);
+      writeBatch_ = writeBatch(db);
+      currentWriteBatchDocumentCount = 0;
+    }
+    writeBatch_.set(documentRef, documentData);
+    currentWriteBatchDocumentCount++;
+  }
+
+  if (currentWriteBatchDocumentCount > 0) {
+    writeBatches.push(writeBatch_);
+  }
+
+  return writeBatches;
 }
 
 main();
