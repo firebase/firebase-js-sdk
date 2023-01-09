@@ -21,7 +21,15 @@
 import * as yargs from 'yargs';
 
 import { newConnection } from '../src/platform/connection';
-import { setLogLevel } from '../src';
+import {
+  doc,
+  DocumentReference,
+  Firestore,
+  setLogLevel,
+  FirestoreSettings,
+  collection,
+  writeBatch
+} from '../src';
 import { AutoId } from '../src/util/misc';
 import { DatabaseId, DatabaseInfo } from '../src/core/database_info';
 import {
@@ -37,6 +45,7 @@ import {
 } from '../src/protos/firestore_proto_api';
 import { Connection, Stream } from "../src/remote/connection";
 import { Deferred } from "../test/util/promise";
+import { newTestFirestore } from "../test/util/api_helpers";
 
 // Import the following modules despite not using them. This forces them to get
 // transpiled by tsc. Without these imports they do not get transpiled because
@@ -48,50 +57,36 @@ import * as node_format_json from '../src/platform/node/format_json';
 import * as node_random_bytes from '../src/platform/node/random_bytes';
 import {Token} from "../src/api/credentials";
 
-async function main() {
+async function main(): Promise<void> {
   const parsedArgs = parseArgs();
+
   if (parsedArgs.debugLoggingEnabled) {
     setLogLevel("debug");
   }
-  const {host, projectId, documentCreateCount} = parsedArgs;
-  const collectionId = parsedArgs.collectionId ?? AutoId.newId();
 
-  log(`Using Firestore host ${host}, project ID ${projectId}, and ` +
-    `and collection ${collectionId}`);
-  const connection = createConnection(projectId, host, parsedArgs.ssl);
+  const uniqueId = AutoId.newId();
+  const collectionId = parsedArgs.collectionId ?? `bloom_filter_watch_test_${uniqueId}`;
+  const databaseInfo = createDatabaseInfo(parsedArgs.projectId, parsedArgs.host, parsedArgs.ssl);
 
-  const documentIdPrefix = AutoId.newId();
-  const documentIdNumLeadingZeroes = 1 + Math.floor(Math.log10(documentCreateCount));
-  log(`Creating ${documentCreateCount} documents in collection ${collectionId} with prefix ${documentIdPrefix}`);
-  const writes: Array<Write> = [];
-  for (let i=1; i<=documentCreateCount; i++) {
-    const documentIdSuffix = `000000000000${i}`.slice(-documentIdNumLeadingZeroes);
-    const documentId = `${documentIdPrefix}_doc${documentIdSuffix}`;
-    const write: Write = {
-      update: {
-        name: `projects/${projectId}/databases/(default)/documents/${collectionId}/${documentId}`,
-        fields: {
-          TestKey: {
-            stringValue: documentIdPrefix
-          }
-        }
-      }
-    };
-    writes.push(write);
-  }
-  const batchWriteRequest: BatchWriteRequest = {
-    database: `projects/${projectId}/databases/(default)`,
-    writes
-  };
-  const batchWriteResponse = await connection.invokeRPC<BatchWriteRequest, BatchWriteResponse>("BatchWrite", /*path=*/"", batchWriteRequest, /*authToken=*/null, /*appCheckToken=*/null);
-  for (const batchWriteStatus of batchWriteResponse.status!) {
-    if (batchWriteStatus.code != 0) {
-      throw new Error(`Creating document failed: ${JSON.stringify(batchWriteStatus)}`);
-    }
-  }
-  log("Documents created successfully!");
+  await run(databaseInfo, collectionId, parsedArgs.documentCreateCount, uniqueId);
+}
 
-  const watchStream = new WatchStream(connection, projectId);
+async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCreateCount:number, documentIdPrefix: string): Promise<void> {
+  log("databaseInfo:", databaseInfo);
+  log("collectionId:", collectionId);
+  log("documentCreateCount:", documentCreateCount);
+  log("documentIdPrefix:", documentIdPrefix);
+
+  const db = newTestFirestore(databaseInfo.databaseId.projectId);
+  db._setSettings({
+    host: databaseInfo.host,
+    ssl: databaseInfo.ssl
+  });
+
+  const createdDocumentIds = await createDocuments(db, documentCreateCount, collectionId, documentIdPrefix);
+
+  const connection = newConnection(databaseInfo);
+  const watchStream = new WatchStream(connection, databaseInfo.databaseId.projectId);
   await watchStream.open();
   try {
     log("Adding target to watch stream");
@@ -179,8 +174,8 @@ function parseArgs(): ParsedArgs {
   };
 }
 
-function createConnection(projectId: string, host: string, ssl: boolean): Connection {
-  return newConnection(new DatabaseInfo(
+function createDatabaseInfo(projectId: string, host: string, ssl: boolean): DatabaseInfo {
+  return new DatabaseInfo(
     new DatabaseId(projectId),
     /*appId=*/"",
     /*persistenceKey=*/"[DEFAULT]",
@@ -189,7 +184,7 @@ function createConnection(projectId: string, host: string, ssl: boolean): Connec
     /*forceLongPolling=*/false,
     /*autoDetectLongPolling=*/false,
     /*useFetchStreams=*/true
-  ));
+  );
 }
 
 function log(...args: Array<any>): void {
@@ -492,6 +487,26 @@ class WatchStream {
       throw new WatchError(`ExistenceFilter specified an unknown targetId: ${targetId}`);
     }
   }
+}
+
+function* generateRangeZeroPadded(count: number): IterableIterator<string> {
+  const numLeadingZeroes = 1 + Math.floor(Math.log10(count));
+  for (let i=1; i<=count; i++) {
+    yield `0000000000000000000${i}`.slice(-numLeadingZeroes);
+  }
+}
+
+async function createDocuments(db: Firestore, documentCreateCount:number, collectionId: string, documentIdPrefix: string): Promise<Array<DocumentReference>> {
+  const collectionRef = collection(db, collectionId);
+  const documentRefs = Array.from(generateRangeZeroPadded(documentCreateCount)).map(documentIdSuffix => `${documentIdPrefix}_doc${documentIdSuffix}`).map(documentId => doc(collectionRef, documentId));
+  log(`Creating ${documentRefs.length} documents in collection ${collectionRef.id} with prefix ${documentIdPrefix}`);
+  const writeBatch_ = writeBatch(db);
+  for (const documentRef of documentRefs) {
+    writeBatch_.set(documentRef, { TestKey: documentIdPrefix });
+  }
+  await writeBatch_.commit();
+  log(`${documentRefs.length} documents created successfully`);
+  return documentRefs;
 }
 
 main();
