@@ -72,7 +72,8 @@ async function main(): Promise<void> {
 }
 
 async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCreateCount:number, documentIdPrefix: string): Promise<void> {
-  log("databaseInfo:", databaseInfo);
+  log("host:", databaseInfo.host);
+  log("projectId:", databaseInfo.databaseId.projectId);
   log("collectionId:", collectionId);
   log("documentCreateCount:", documentCreateCount);
   log("documentIdPrefix:", documentIdPrefix);
@@ -93,8 +94,9 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
     watchStream.addTarget(1, collectionId, "TestKey", documentIdPrefix);
     log("Waiting for a snapshot from watch");
     const snapshot = await watchStream.getSnapshot(1);
-    const documentNames = new Array(snapshot).sort();
-    log(`Got ${documentNames.length} documents:`, documentNames);
+    const documentNames = Array.from(snapshot).sort();
+    const documentNamesDescription = descriptionFromSortedStrings(documentNames.map(documentIdFromDocumentPath));
+    log(`Got ${documentNames.length} documents: ${documentNamesDescription}`);
   } finally {
     log("Closing watch stream");
     await watchStream.close();
@@ -499,11 +501,12 @@ function* generateRangeZeroPadded(count: number): IterableIterator<string> {
 async function createDocuments(db: Firestore, documentCreateCount:number, collectionId: string, documentIdPrefix: string): Promise<Array<DocumentReference>> {
   const collectionRef = collection(db, collectionId);
   const documentRefs = Array.from(generateRangeZeroPadded(documentCreateCount)).map(documentIdSuffix => `${documentIdPrefix}_doc${documentIdSuffix}`).map(documentId => doc(collectionRef, documentId));
+  const descriptionRefsDescription = descriptionFromSortedStrings(documentRefs.map(documentRef => documentRef.id).sort());
 
-  log(`Creating ${documentRefs.length} documents in collection ${collectionRef.id} with prefix ${documentIdPrefix}`);
+  log(`Creating ${documentRefs.length} documents in collection ${collectionRef.id}: ${descriptionRefsDescription}`);
   const writeBatches = createWriteBatches(db, documentRefs, { TestKey: documentIdPrefix });
   await Promise.all(writeBatches.map(batch => batch.commit()));
-  log(`${documentRefs.length} documents created successfully`);
+  log(`${documentRefs.length} documents created successfully.`);
 
   return documentRefs;
 }
@@ -528,6 +531,21 @@ function createWriteBatches(db: Firestore, documentRefs: Array<DocumentReference
   }
 
   return writeBatches;
+}
+
+function documentIdFromDocumentPath(documentPath: string): string {
+  const lastSlashIndex = documentPath.lastIndexOf('/');
+  return (lastSlashIndex < 0) ? documentPath : documentPath.slice(lastSlashIndex+1);
+}
+
+function descriptionFromSortedStrings(sortedStrings: Array<string>): string {
+  if (sortedStrings.length === 0) {
+    return "";
+  }
+  if (sortedStrings.length === 1) {
+    return sortedStrings[0];
+  }
+  return `${sortedStrings[0]} ... ${sortedStrings[sortedStrings.length-1]}`;
 }
 
 main();
