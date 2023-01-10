@@ -90,11 +90,11 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
   const documentIdsToDelete = documentRefsToDelete.map(documentRef => documentRef.id);
 
   const connection = newConnection(databaseInfo);
-  const watchStream = new WatchStream(connection, databaseInfo.databaseId.projectId);
-  await watchStream.open();
+  const watchStream1 = new WatchStream(connection, databaseInfo.databaseId.projectId);
+  await watchStream1.open();
   try {
     log("Adding target to watch stream");
-    await watchStream.addTarget({
+    await watchStream1.addTarget({
       targetId: 1,
       projectId: databaseInfo.databaseId.projectId,
       collectionId,
@@ -104,40 +104,52 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
     log("Added target to watch stream");
 
     log("Waiting for a snapshot from watch");
-    const snapshot1 = await watchStream.getInitialSnapshot(1);
+    const snapshot1 = await watchStream1.getInitialSnapshot(1);
     const documentNames1 = Array.from(snapshot1.documentPaths).sort();
     const documentIds1 = documentNames1.map(documentIdFromDocumentPath);
     log(`Got ${documentIds1.length} documents: ${descriptionFromSortedStrings(documentIds1)}`);
     assert.deepEqual(createdDocumentIds, documentIds1);
 
     log("Removing target from watch stream");
-    await watchStream.removeTarget(1);
+    await watchStream1.removeTarget(1);
     log("Removed target from watch stream");
 
     log(`Deleting ${documentDeleteCount} documents: ${descriptionFromSortedStrings(documentIdsToDelete)}`);
     await deleteDocuments(db, documentRefsToDelete);
     log(`Deleted ${documentDeleteCount} documents`);
 
-    log("Resuming target in watch stream");
-    await watchStream.addTarget({
-      targetId: 2,
-      projectId: databaseInfo.databaseId.projectId,
-      collectionId,
-      keyFilter: "TestKey",
-      valueFilter: documentIdPrefix,
-      resumeFrom: snapshot1
-    });
-    log("Resumed target in watch stream");
+    const resumeDeferSeconds = 10;
+    log("Waiting for ${resumeDeferSeconds} seconds so we get an existence filter upon resuming the query.");
+    await new Promise(resolve => setTimeout(resolve, resumeDeferSeconds * 1000));
 
-    log("Waiting for a snapshot from watch");
-    const snapshot2 = await watchStream.getInitialSnapshot(2);
-    const documentNames2 = Array.from(snapshot2.documentPaths).sort();
-    const documentIds2 = documentNames2.map(documentIdFromDocumentPath);
-    log(`Got ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);
+    const watchStream2 = new WatchStream(connection, databaseInfo.databaseId.projectId);
+    await watchStream2.open();
+    try {
+      log("Resuming target in watch stream 2");
+      await watchStream2.addTarget({
+        targetId: 1,
+        projectId: databaseInfo.databaseId.projectId,
+        collectionId,
+        keyFilter: "TestKey",
+        valueFilter: documentIdPrefix,
+        resumeFrom: snapshot1
+      });
+      log("Resumed target in watch stream 2");
+
+      log("Waiting for a snapshot from watch stream 2");
+      const snapshot2 = await watchStream2.getInitialSnapshot(1);
+      const documentNames2 = Array.from(snapshot2.documentPaths).sort();
+      const documentIds2 = documentNames2.map(documentIdFromDocumentPath);
+      log(`Got ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);
+    } finally {
+      log("Closing watch stream 2");
+      await watchStream2.close();
+      log("Watch stream 2 closed");
+    }
   } finally {
-    log("Closing watch stream");
-    await watchStream.close();
-    log("Watch stream closed");
+    log("Closing watch stream 1");
+    await watchStream1.close();
+    log("Watch stream 1 closed");
   }
 }
 
@@ -349,40 +361,15 @@ class TargetState {
     this._accumulatedDocumentNames.delete(documentName);
   }
 
-  static getListenRequest(options: { targetId: number, projectId: string, collectionId: string, keyFilter: string, valueFilter: string, resumeToken?: string | Uint8Array }): ListenRequest {
-    const listenRequest: ListenRequest = {
-      addTarget: {
-        targetId: options.targetId,
-          query: {
-          parent: `projects/${options.projectId}/databases/(default)/documents`,
-            structuredQuery: {
-            from: [{collectionId: options.collectionId}],
-              where: {
-              fieldFilter: {
-                field: {
-                  fieldPath: options.keyFilter
-                },
-                op: "EQUAL",
-                  value: {
-                  stringValue: options.valueFilter
-                }
-              }
-            },
-            orderBy: [
-              { field: { fieldPath: '__name__' }, direction: 'ASCENDING' }
-            ]
-          },
-        },
-      }
-    };
-
-    if (options.resumeToken !== undefined) {
-      listenRequest.addTarget!.resumeToken = options.resumeToken;
+  onExistenceFilter(existenceFilter: ExistenceFilter): void {
+    if (!this._added) {
+      throw new TargetStateError(`onExistenceFilter() invoked when not added.`);
     }
-
-    return listenRequest;
+    if (this._removed) {
+      throw new TargetStateError(`onExistenceFilter() invoked after onRemoved().`);
+    }
+    // TODO: implement this
   }
-
 }
 
 class WatchStream {
@@ -457,16 +444,41 @@ class WatchStream {
       throw new WatchError(`targetId ${targetInfo.targetId} is already used`);
     }
 
-    const targetState = new TargetState(targetInfo.targetId, targetInfo?.resumeFrom?.documentPaths);
+    const listenRequest: ListenRequest = {
+      addTarget: {
+        targetId: targetInfo.targetId,
+        query: {
+          parent: `projects/${targetInfo.projectId}/databases/(default)/documents`,
+          structuredQuery: {
+            from: [{collectionId: targetInfo.collectionId}],
+            where: {
+              fieldFilter: {
+                field: {
+                  fieldPath: targetInfo.keyFilter
+                },
+                op: "EQUAL",
+                value: {
+                  stringValue: targetInfo.valueFilter
+                }
+              }
+            },
+            orderBy: [
+              { field: { fieldPath: '__name__' }, direction: 'ASCENDING' }
+            ]
+          },
+        },
+      }
+    };
+
+    const resumeFrom = targetInfo?.resumeFrom;
+    if (resumeFrom !== undefined) {
+      listenRequest.addTarget!.resumeToken = resumeFrom.resumeToken;
+      listenRequest.addTarget!.expectedCount = resumeFrom.documentPaths.size;
+    }
+
+    const targetState = new TargetState(targetInfo.targetId, resumeFrom?.documentPaths);
     this._targets.set(targetInfo.targetId, targetState);
-    this.sendListenRequest(TargetState.getListenRequest({
-      targetId: targetInfo.targetId,
-      projectId: targetInfo.projectId,
-      collectionId: targetInfo.collectionId,
-      keyFilter: targetInfo.keyFilter,
-      valueFilter: targetInfo.valueFilter,
-      resumeToken: targetInfo?.resumeFrom?.resumeToken
-    }));
+    this.sendListenRequest(listenRequest);
 
     return targetState.addedPromise;
   }
@@ -591,7 +603,9 @@ class WatchStream {
     if (targetState === undefined) {
       throw new WatchError(`ExistenceFilter specified an unknown targetId: ${targetId}`);
     }
+    targetState.onExistenceFilter(existenceFilter);
   }
+
 }
 
 function* generateRangeZeroPadded(count: number): IterableIterator<string> {
