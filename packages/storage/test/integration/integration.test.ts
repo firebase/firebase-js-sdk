@@ -201,7 +201,6 @@ describe('FirebaseStorage Exp', () => {
       snapshot => {
         const p = [snapshot.bytesTransferred, snapshot.totalBytes];
         if (snapshot.bytesTransferred > 0 && !hasPaused) {
-          console.log('pausing');
           task.pause();
           hasPaused = true;
         }
