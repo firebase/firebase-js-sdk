@@ -111,6 +111,14 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
     log(`Deleting ${documentDeleteCount} documents: ${descriptionFromSortedStrings(documentIdsToDelete)}`);
     await deleteDocuments(db, documentRefsToDelete);
     log(`Deleted ${documentDeleteCount} documents`);
+
+    log("Resuming target in watch stream");
+    await watchStream.resumeTarget(1);
+    log("Resumed target in watch stream");
+
+    await new Promise(resolve => {
+      setTimeout(resolve, 5);
+    });
   } finally {
     log("Closing watch stream");
     await watchStream.close();
@@ -225,6 +233,13 @@ class TargetState {
   private _onRemovedDeferred: Deferred<void> | null = null;
   private _onAddedDeferred: Deferred<void> | null = null;
 
+  constructor(readonly targetId: number, readonly projectId: string, readonly collectionId: string, readonly keyFilter: string, readonly valueFilter: string) {
+  }
+
+  get resumeToken(): string | Uint8Array | null {
+    return this._resumeToken;
+  }
+
   onAdded(): void {
     if (this._added) {
       throw new TargetStateError(`onAdded() invoked when already added.`);
@@ -313,6 +328,41 @@ class TargetState {
     }
     return this._onAddedDeferred.promise;
   }
+
+  getListenRequest(options?: { withResumeToken?: boolean }): ListenRequest {
+    const listenRequest: ListenRequest = {
+      addTarget: {
+        targetId: this.targetId,
+          query: {
+          parent: `projects/${this.projectId}/databases/(default)/documents`,
+            structuredQuery: {
+            from: [{collectionId: this.collectionId}],
+              where: {
+              fieldFilter: {
+                field: {
+                  fieldPath: this.keyFilter
+                },
+                op: "EQUAL",
+                  value: {
+                  stringValue: this.valueFilter
+                }
+              }
+            },
+            orderBy: [
+              { field: { fieldPath: '__name__' }, direction: 'ASCENDING' }
+            ]
+          },
+        },
+      }
+    };
+
+    if ((options?.withResumeToken ?? false) && this._resumeToken !== null) {
+      listenRequest.addTarget!.resumeToken = this._resumeToken;
+    }
+
+    return listenRequest;
+  }
+
 }
 
 class WatchStream {
@@ -389,35 +439,9 @@ class WatchStream {
       throw new WatchError(`targetId ${targetId} is already used`);
     }
 
-    this.sendListenRequest({
-      addTarget: {
-        targetId: targetId,
-        query: {
-          parent: `projects/${this._projectId}/databases/(default)/documents`,
-          structuredQuery: {
-            from: [{collectionId: collectionId}],
-            where: {
-              fieldFilter: {
-                field: {
-                  fieldPath: keyFilter
-                },
-                op: "EQUAL",
-                value: {
-                  stringValue: valueFilter
-                }
-              }
-            },
-            orderBy: [
-              { field: { fieldPath: '__name__' }, direction: 'ASCENDING' }
-            ]
-          },
-        },
-      }
-    });
-
-    const targetState = new TargetState();
+    const targetState = new TargetState(targetId, this._projectId, collectionId, keyFilter, valueFilter);
     this._targets.set(targetId, targetState);
-
+    this.sendListenRequest(targetState.getListenRequest());
     return targetState.getOnAddedPromise();
   }
 
@@ -438,6 +462,23 @@ class WatchStream {
     });
 
     return targetState.getOnRemovedPromise();
+  }
+
+  resumeTarget(targetId: number): Promise<void> {
+    if (!this._stream) {
+      throw new WatchError("open() must be called before removeTarget()");
+    } else if (this._closed) {
+      throw new WatchError("removeTarget() may not be called after close()");
+    }
+
+    const targetState = this._targets.get(targetId);
+    if (targetState === undefined) {
+      throw new WatchError(`targetId ${targetId} has not been added by addTarget()`);
+    }
+
+    this.sendListenRequest(targetState.getListenRequest({ withResumeToken: true }));
+
+    return targetState.getOnAddedPromise();
   }
 
   private sendListenRequest(listenRequest: ListenRequest): void {
