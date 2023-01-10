@@ -96,7 +96,7 @@ function repoManagerApplyEmulatorSettings(
     repo.repoInfo_.nodeAdmin,
     repo.repoInfo_.persistenceKey,
     repo.repoInfo_.includeNamespaceInQueryParams,
-    /*isUsingEmulator=*/true
+    /*isUsingEmulator=*/ true
   );
 
   if (tokenProvider) {
