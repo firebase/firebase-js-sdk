@@ -114,9 +114,9 @@ jobs:
       run: |
         VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
         VERSION=`node -e "${VERSION_SCRIPT}"`
-        echo "::set-output name=STAGING_VERSION::$VERSION"
+        echo "STAGING_VERSION=$VERSION" >> $GITHUB_OUTPUT
         BASE_VERSION=$(echo $VERSION | cut -d "-" -f 1)
-        echo "::set-output name=BASE_VERSION::$BASE_VERSION"
+        echo "BASE_VERSION=$BASE_VERSION" >> $GITHUB_OUTPUT
     - name: Echo versions in shell
       run: |
         echo "Staging release ${{ steps.get-version.outputs.STAGING_VERSION }}"
