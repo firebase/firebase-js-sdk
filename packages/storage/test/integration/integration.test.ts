@@ -36,6 +36,8 @@ import {
 import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as types from '../../src/public-types';
+import { waitFor } from '../../../database/test/helpers/util';
+import { Deferred } from '@firebase/util';
 
 use(chaiAsPromised);
 
@@ -186,5 +188,32 @@ describe('FirebaseStorage Exp', () => {
     const listResult = await listAll(ref(storage, 'public/exp-list'));
     expect(listResult.items.map(v => v.name)).to.have.members(['a', 'b']);
     expect(listResult.prefixes.map(v => v.name)).to.have.members(['c']);
+  });
+
+  it('can pause uploads without an error', async () => {
+    const referenceA = ref(storage, 'public/exp-upload/a');
+    const bytesToUpload = new ArrayBuffer(1024 * 1024);
+    const task = uploadBytesResumable(referenceA, bytesToUpload);
+    const failureDeferred = new Deferred();
+    let hasPaused = false;
+    task.on(
+      'state_changed',
+      snapshot => {
+        const p = [snapshot.bytesTransferred, snapshot.totalBytes];
+        if (snapshot.bytesTransferred > 0 && !hasPaused) {
+          console.log('pausing');
+          task.pause();
+          hasPaused = true;
+        }
+      },
+      () => {
+        failureDeferred.reject('Failed to upload file');
+      }
+    );
+    await Promise.race([failureDeferred.promise, waitFor(5000)]);
+    task.resume();
+    await task;
+    const bytes = await getBytes(referenceA);
+    expect(bytes).to.deep.eq(bytesToUpload);
   });
 });
