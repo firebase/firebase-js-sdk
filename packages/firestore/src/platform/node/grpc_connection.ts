@@ -99,15 +99,14 @@ export class GrpcConnection implements Connection {
 
   private ensureActiveStub(): GeneratedGrpcStub {
     if (!this.cachedStub) {
-      logDebug(LOG_TAG, 'Creating Firestore stub.');
+      const host = this.databaseInfo.host;
+      logDebug(LOG_TAG, `Creating Firestore stub, connecting to ${host}`);
       const credentials = this.databaseInfo.ssl
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
-      this.cachedStub = new this.firestore.Firestore(
-        this.databaseInfo.host,
-        credentials
-      );
+      this.cachedStub = new this.firestore.Firestore(host, credentials);
     }
+
     return this.cachedStub;
   }
 
@@ -233,7 +232,7 @@ export class GrpcConnection implements Connection {
     const stream = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {
         if (!closed) {
-          logDebug(LOG_TAG, 'GRPC stream sending:', msg);
+          logDebug(LOG_TAG, `GRPC '${rpcName}' stream sending:`, msg);
           try {
             grpcStream.write(msg);
           } catch (e) {
@@ -248,20 +247,20 @@ export class GrpcConnection implements Connection {
         }
       },
       closeFn: () => {
-        logDebug(LOG_TAG, 'GRPC stream closed locally via close().');
+        logDebug(LOG_TAG, `GRPC '${rpcName}' stream closed locally via close().`);
         close();
       }
     });
 
     grpcStream.on('data', (msg: Resp) => {
       if (!closed) {
-        logDebug(LOG_TAG, 'GRPC stream received:', msg);
+        logDebug(LOG_TAG, `GRPC '${rpcName}' stream received:`, msg);
         stream.callOnMessage(msg);
       }
     });
 
     grpcStream.on('end', () => {
-      logDebug(LOG_TAG, 'GRPC stream ended.');
+      logDebug(LOG_TAG, `GRPC '${rpcName}' stream ended.`);
       close();
     });
 
@@ -269,7 +268,7 @@ export class GrpcConnection implements Connection {
       if (!closed) {
         logWarn(
           LOG_TAG,
-          'GRPC stream error. Code:',
+          `GRPC '${rpcName}' stream error. Code:`,
           grpcError.code,
           'Message:',
           grpcError.message
@@ -279,7 +278,7 @@ export class GrpcConnection implements Connection {
       }
     });
 
-    logDebug(LOG_TAG, 'Opening GRPC stream');
+    logDebug(LOG_TAG, `Opening GRPC '${rpcName}' stream`);
     // TODO(dimond): Since grpc has no explicit open status (or does it?) we
     // simulate an onOpen in the next loop after the stream had it's listeners
     // registered
