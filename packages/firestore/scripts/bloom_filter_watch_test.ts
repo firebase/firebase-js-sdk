@@ -94,15 +94,21 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
   await watchStream.open();
   try {
     log("Adding target to watch stream");
-    await watchStream.addTarget(1, collectionId, "TestKey", documentIdPrefix);
+    await watchStream.addTarget({
+      targetId: 1,
+      projectId: databaseInfo.databaseId.projectId,
+      collectionId,
+      keyFilter: "TestKey",
+      valueFilter: documentIdPrefix
+    });
     log("Added target to watch stream");
 
     log("Waiting for a snapshot from watch");
-    const snapshot = await watchStream.getSnapshot(1);
-    const documentNames = Array.from(snapshot).sort();
-    const documentIds = documentNames.map(documentIdFromDocumentPath);
-    log(`Got ${documentNames.length} documents: ${descriptionFromSortedStrings(documentIds)}`);
-    assert.deepEqual(createdDocumentIds, documentIds);
+    const snapshot1 = await watchStream.getInitialSnapshot(1);
+    const documentNames1 = Array.from(snapshot1.documentPaths).sort();
+    const documentIds1 = documentNames1.map(documentIdFromDocumentPath);
+    log(`Got ${documentIds1.length} documents: ${descriptionFromSortedStrings(documentIds1)}`);
+    assert.deepEqual(createdDocumentIds, documentIds1);
 
     log("Removing target from watch stream");
     await watchStream.removeTarget(1);
@@ -113,12 +119,21 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
     log(`Deleted ${documentDeleteCount} documents`);
 
     log("Resuming target in watch stream");
-    await watchStream.resumeTarget(1);
+    await watchStream.addTarget({
+      targetId: 2,
+      projectId: databaseInfo.databaseId.projectId,
+      collectionId,
+      keyFilter: "TestKey",
+      valueFilter: documentIdPrefix,
+      resumeFrom: snapshot1
+    });
     log("Resumed target in watch stream");
 
-    await new Promise(resolve => {
-      setTimeout(resolve, 5);
-    });
+    log("Waiting for a snapshot from watch");
+    const snapshot2 = await watchStream.getInitialSnapshot(2);
+    const documentNames2 = Array.from(snapshot2.documentPaths).sort();
+    const documentIds2 = documentNames2.map(documentIdFromDocumentPath);
+    log(`Got ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);
   } finally {
     log("Closing watch stream");
     await watchStream.close();
@@ -223,128 +238,133 @@ class TargetStateError extends Error {
   name = "TargetStateError";
 }
 
+class TargetSnapshot {
+  constructor(readonly documentPaths: Set<string>, readonly resumeToken: string | Uint8Array) {
+  }
+}
+
 class TargetState {
   private _added = false;
+  private _removed = false;
   private _current = false;
-  private _resumeToken: string | Uint8Array | null = null;
-  private _documentNames = new Set<string>();
-  private _snapshot: Set<string> | null = null;
-  private _onSnapshotDeferred: Deferred<Set<string>> | null = null;
-  private _onRemovedDeferred: Deferred<void> | null = null;
-  private _onAddedDeferred: Deferred<void> | null = null;
 
-  constructor(readonly targetId: number, readonly projectId: string, readonly collectionId: string, readonly keyFilter: string, readonly valueFilter: string) {
+  private readonly _accumulatedDocumentNames = new Set<string>();
+
+  private readonly _addedDeferred = new Deferred<void>();
+  private readonly _removedDeferred = new Deferred<void>();
+  private readonly _initialSnapshotDeferred = new Deferred<TargetSnapshot>();
+
+  constructor(readonly targetId: number, initialDocumentPaths?: Iterable<string>) {
+    if (initialDocumentPaths) {
+      for (const documentPath of initialDocumentPaths) {
+        this._accumulatedDocumentNames.add(documentPath);
+      }
+    }
   }
 
-  get resumeToken(): string | Uint8Array | null {
-    return this._resumeToken;
+  get addedPromise(): Promise<void> {
+    return this._addedDeferred.promise;
+  }
+
+  get removedPromise(): Promise<void> {
+    return this._removedDeferred.promise;
+  }
+
+  get initialSnapshotPromise(): Promise<TargetSnapshot> {
+    return this._initialSnapshotDeferred.promise;
   }
 
   onAdded(): void {
     if (this._added) {
-      throw new TargetStateError(`onAdded() invoked when already added.`);
+      throw new TargetStateError(`onAdded() already invoked.`);
     }
     this._added = true;
-    this._current = false;
-    this._onAddedDeferred?.resolve(null as unknown as void);
-    this._onAddedDeferred = null;
-    this._onRemovedDeferred = null;
+    this._addedDeferred.resolve(null as unknown as void);
   }
 
   onRemoved(): void {
-    if (!this._added) {
-      throw new TargetStateError(`onRemoved() invoked when not added.`);
+    if (this._removed) {
+      throw new TargetStateError(`onRemoved() already invoked.`);
     }
-    this._added = false;
-    this._current = false;
-    this._onRemovedDeferred?.resolve(null as unknown as void);
-    this._onAddedDeferred = null;
-    this._onRemovedDeferred = null;
+    if (!this._added) {
+      throw new TargetStateError(`onRemoved() invoked before onAdded().`);
+    }
+    this._removed = true;
+    this._removedDeferred.resolve(null as unknown as void);
   }
 
   onCurrent(): void {
     if (!this._added) {
-      throw new TargetStateError(`onCurrent() invoked when not added.`);
+      throw new TargetStateError(`onCurrent() invoked before onAdded().`);
+    }
+    if (this._removed) {
+      throw new TargetStateError(`onCurrent() invoked after onRemoved().`);
     }
     this._current = true;
   }
 
   onReset(): void {
     if (!this._added) {
-      throw new TargetStateError(`onReset() invoked when not added.`);
+      throw new TargetStateError(`onReset() invoked before onAdded().`);
+    }
+    if (this._removed) {
+      throw new TargetStateError(`onReset() invoked after onRemoved().`);
     }
     this._current = false;
-    this._documentNames.clear();
+    this._accumulatedDocumentNames.clear();
   }
 
   onNoChange(resumeToken: string | Uint8Array | null): void {
     if (!this._added) {
-      throw new TargetStateError(`onNoChange() invoked when not added.`);
+      throw new TargetStateError(`onNoChange() invoked before onAdded().`);
+    }
+    if (this._removed) {
+      throw new TargetStateError(`onNoChange() invoked after onRemoved().`);
     }
     if (this._current && resumeToken !== null) {
-      this._resumeToken = resumeToken;
-      this._snapshot = new Set(this._documentNames);
-      this._onSnapshotDeferred?.resolve(new Set(this._snapshot));
-      this._onSnapshotDeferred = null;
+      const documentPaths = new Set(this._accumulatedDocumentNames);
+      this._initialSnapshotDeferred.resolve({documentPaths, resumeToken});
     }
   }
 
   onDocumentChanged(documentName: string): void {
     if (!this._added) {
-      throw new TargetStateError(`onDocumentAdded() invoked when not added.`);
+      throw new TargetStateError(`onDocumentChanged() invoked when not added.`);
+    }
+    if (this._removed) {
+      throw new TargetStateError(`onDocumentChanged() invoked after onRemoved().`);
     }
     this._current = false;
-    this._documentNames.add(documentName);
+    this._accumulatedDocumentNames.add(documentName);
   }
 
   onDocumentRemoved(documentName: string): void {
     if (!this._added) {
       throw new TargetStateError(`onDocumentRemoved() invoked when not added.`);
     }
+    if (this._removed) {
+      throw new TargetStateError(`onDocumentRemoved() invoked after onRemoved().`);
+    }
     this._current = false;
-    this._documentNames.delete(documentName);
+    this._accumulatedDocumentNames.delete(documentName);
   }
 
-  getSnapshot(): Promise<Set<string>> {
-    if (this._snapshot !== null) {
-      return Promise.resolve(this._snapshot);
-    }
-    if (this._onSnapshotDeferred === null) {
-      this._onSnapshotDeferred = new Deferred();
-    }
-    return this._onSnapshotDeferred.promise;
-  }
-
-  getOnRemovedPromise(): Promise<void> {
-    if (this._onRemovedDeferred === null) {
-      this._onRemovedDeferred = new Deferred();
-    }
-    return this._onRemovedDeferred.promise;
-  }
-
-  getOnAddedPromise(): Promise<void> {
-    if (this._onAddedDeferred === null) {
-      this._onAddedDeferred = new Deferred();
-    }
-    return this._onAddedDeferred.promise;
-  }
-
-  getListenRequest(options?: { withResumeToken?: boolean }): ListenRequest {
+  static getListenRequest(options: { targetId: number, projectId: string, collectionId: string, keyFilter: string, valueFilter: string, resumeToken?: string | Uint8Array }): ListenRequest {
     const listenRequest: ListenRequest = {
       addTarget: {
-        targetId: this.targetId,
+        targetId: options.targetId,
           query: {
-          parent: `projects/${this.projectId}/databases/(default)/documents`,
+          parent: `projects/${options.projectId}/databases/(default)/documents`,
             structuredQuery: {
-            from: [{collectionId: this.collectionId}],
+            from: [{collectionId: options.collectionId}],
               where: {
               fieldFilter: {
                 field: {
-                  fieldPath: this.keyFilter
+                  fieldPath: options.keyFilter
                 },
                 op: "EQUAL",
                   value: {
-                  stringValue: this.valueFilter
+                  stringValue: options.valueFilter
                 }
               }
             },
@@ -356,8 +376,8 @@ class TargetState {
       }
     };
 
-    if ((options?.withResumeToken ?? false) && this._resumeToken !== null) {
-      listenRequest.addTarget!.resumeToken = this._resumeToken;
+    if (options.resumeToken !== undefined) {
+      listenRequest.addTarget!.resumeToken = options.resumeToken;
     }
 
     return listenRequest;
@@ -369,7 +389,7 @@ class WatchStream {
 
   private _stream: Stream<unknown, unknown> | null = null;
   private _closed = false;
-  private _closedDeferred = new Deferred();
+  private _closedDeferred = new Deferred<void>();
 
   private _targets = new Map<number, TargetState>();
 
@@ -378,19 +398,19 @@ class WatchStream {
     private readonly _projectId: string) {
   }
 
-  async open(): Promise<void> {
+  open(): Promise<void> {
     if (this._stream) {
       throw new WatchError("open() may only be called once");
     } else if (this._closed) {
       throw new WatchError("open() may not be called after close()");
     }
 
-    const deferred = new Deferred();
+    const deferred = new Deferred<void>();
 
     const stream = this._connection.openStream("Listen", null, null);
     try {
       stream.onOpen(() => {
-        deferred.resolve(null);
+        deferred.resolve(null as unknown as void);
       });
 
       stream.onClose(err => {
@@ -398,8 +418,8 @@ class WatchStream {
           deferred.reject(err as Error);
           this._closedDeferred.reject(err as Error);
         } else {
-          deferred.resolve(null);
-          this._closedDeferred.resolve(null);
+          deferred.resolve(null as unknown as void);
+          this._closedDeferred.resolve(null as unknown as void);
         }
       });
 
@@ -413,36 +433,42 @@ class WatchStream {
 
     this._stream = stream;
 
-    await deferred.promise;
+    return deferred.promise;
   }
 
-  async close(): Promise<void> {
-    if (this._closed) {
-      return;
-    }
+  close(): Promise<void> {
     this._closed = true;
 
     if (! this._stream) {
-      return;
+      return Promise.resolve();
     }
 
     this._stream.close();
-    await this._closedDeferred.promise;
+
+    return this._closedDeferred.promise;
   }
 
-  addTarget(targetId: number, collectionId: string, keyFilter: string, valueFilter: string): Promise<void> {
+  addTarget(targetInfo: { targetId: number, projectId: string, collectionId: string, keyFilter: string, valueFilter: string, resumeFrom?: TargetSnapshot }): Promise<void> {
     if (!this._stream) {
       throw new WatchError("open() must be called before addTarget()");
     } else if (this._closed) {
       throw new WatchError("addTarget() may not be called after close()");
-    } else if (this._targets.has(targetId)) {
-      throw new WatchError(`targetId ${targetId} is already used`);
+    } else if (this._targets.has(targetInfo.targetId)) {
+      throw new WatchError(`targetId ${targetInfo.targetId} is already used`);
     }
 
-    const targetState = new TargetState(targetId, this._projectId, collectionId, keyFilter, valueFilter);
-    this._targets.set(targetId, targetState);
-    this.sendListenRequest(targetState.getListenRequest());
-    return targetState.getOnAddedPromise();
+    const targetState = new TargetState(targetInfo.targetId, targetInfo?.resumeFrom?.documentPaths);
+    this._targets.set(targetInfo.targetId, targetState);
+    this.sendListenRequest(TargetState.getListenRequest({
+      targetId: targetInfo.targetId,
+      projectId: targetInfo.projectId,
+      collectionId: targetInfo.collectionId,
+      keyFilter: targetInfo.keyFilter,
+      valueFilter: targetInfo.valueFilter,
+      resumeToken: targetInfo?.resumeFrom?.resumeToken
+    }));
+
+    return targetState.addedPromise;
   }
 
   removeTarget(targetId: number): Promise<void> {
@@ -461,24 +487,7 @@ class WatchStream {
       removeTarget: targetId
     });
 
-    return targetState.getOnRemovedPromise();
-  }
-
-  resumeTarget(targetId: number): Promise<void> {
-    if (!this._stream) {
-      throw new WatchError("open() must be called before removeTarget()");
-    } else if (this._closed) {
-      throw new WatchError("removeTarget() may not be called after close()");
-    }
-
-    const targetState = this._targets.get(targetId);
-    if (targetState === undefined) {
-      throw new WatchError(`targetId ${targetId} has not been added by addTarget()`);
-    }
-
-    this.sendListenRequest(targetState.getListenRequest({ withResumeToken: true }));
-
-    return targetState.getOnAddedPromise();
+    return targetState.removedPromise;
   }
 
   private sendListenRequest(listenRequest: ListenRequest): void {
@@ -489,12 +498,12 @@ class WatchStream {
     );
   }
 
-  async getSnapshot(targetId: number): Promise<Set<string>> {
+  getInitialSnapshot(targetId: number): Promise<TargetSnapshot> {
     const targetState = this._targets.get(targetId);
     if (targetState === undefined) {
       throw new WatchError(`unknown targetId: ${targetId}`);
     }
-    return await targetState.getSnapshot();
+    return targetState.initialSnapshotPromise;
   }
 
   private _onMessageReceived(msg: ListenResponse): void {
@@ -538,6 +547,7 @@ class WatchStream {
           break;
         case "REMOVE":
           targetState.onRemoved();
+          this._targets.delete(targetState.targetId);
           break;
         case "CURRENT":
           targetState.onCurrent();
