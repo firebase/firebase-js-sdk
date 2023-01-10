@@ -344,6 +344,135 @@ describe('Firebase Storage > Upload Task', () => {
 
     return promise;
   }
+
+async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
+    const storageService = storageServiceWithHandler(fakeServerHandler(), true);
+    const task = new UploadTask(
+      new Reference(storageService, testLocation),
+      blob
+    );
+
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    let resolve: Function, reject: Function;
+    const promise = new Promise<void>((innerResolve, innerReject) => {
+      resolve = innerResolve;
+      reject = innerReject;
+    });
+
+    // Assert functions throw Errors, which means if we're not in the right stack
+    // the error might not get reported properly. This function wraps existing
+    // assert functions, returning a new function that calls reject with any
+    // caught errors. This should make sure errors are reported properly.
+    function promiseAssertWrapper<T>(func: T): T {
+      function wrapped(..._args: any[]): void {
+        try {
+          (func as any as (...args: any[]) => void).apply(null, _args);
+        } catch (e) {
+          reject(e);
+          // also throw to further unwind the stack
+          throw e;
+        }
+      }
+      return wrapped as any as T;
+    }
+
+    const fixedAssertEquals = promiseAssertWrapper(assert.equal);
+    const fixedAssertFalse = promiseAssertWrapper(assert.isFalse);
+    const fixedAssertTrue = promiseAssertWrapper(assert.isTrue);
+    // const fixedAssertFail = promiseAssertWrapper(assert.fail);
+    const pausedDeferred = new Deferred();
+
+    const events: string[] = [];
+    const progress: number[][] = [];
+    let complete = 0;
+    let hasPaused = false;
+    function addCallbacks(task: UploadTask): void {
+      let lastState: string;
+      task.on(
+        TaskEvent.STATE_CHANGED,
+        snapshot => {
+          fixedAssertEquals(complete, 0);
+
+          const state = snapshot.state;
+          if (lastState !== TaskState.RUNNING && state === TaskState.RUNNING) {
+            events.push('resume');
+          } else if (
+            lastState !== TaskState.PAUSED &&
+            state === TaskState.PAUSED
+          ) {
+            events.push('pause');
+          }
+
+          const p = [snapshot.bytesTransferred, snapshot.totalBytes];
+          if(snapshot.bytesTransferred > 0 && !hasPaused) {
+            task.pause();
+            pausedDeferred.resolve();
+            hasPaused = true;
+          }
+          progress.push(p);
+
+          lastState = state;
+        },
+        () => {
+          console.log('Failed to Upload');
+          reject('Failed to Upload');
+        },
+        () => {
+          events.push('complete');
+          complete++;
+        }
+      );
+    }
+
+    addCallbacks(task);
+
+    let completeTriggered = false;
+
+    task.on(TaskEvent.STATE_CHANGED, undefined, undefined, () => {
+      console.log(events);
+      fixedAssertFalse(completeTriggered);
+      completeTriggered = true;
+
+      fixedAssertEquals(events.length, 4);
+      fixedAssertEquals(events[0], 'resume');
+      fixedAssertEquals(events[1], 'pause');
+      fixedAssertEquals(events[2], 'resume');
+      fixedAssertEquals(events[3], 'complete');
+
+      fixedAssertEquals(complete, 1);
+
+      let increasing = true;
+      let allTotalsTheSame = true;
+      for (let i = 0; i < progress.length - 1; i++) {
+        increasing = increasing && progress[i][0] <= progress[i + 1][0];
+        allTotalsTheSame =
+          allTotalsTheSame && progress[i][1] === progress[i + 1][1];
+      }
+
+      let lastIsAll = false;
+      if (progress.length > 0) {
+        const last = progress[progress.length - 1];
+        lastIsAll = last[0] === last[1];
+      } else {
+        lastIsAll = true;
+      }
+
+      fixedAssertTrue(increasing);
+      fixedAssertTrue(allTotalsTheSame);
+      fixedAssertTrue(lastIsAll);
+      console.log('RESOLVING');
+      resolve(null);
+    });
+    await pausedDeferred.promise;
+    await new Promise(resolve =>
+      setTimeout(() => {
+        task.resume();
+        resolve(null);
+      }, 0)
+    );
+
+    return promise;
+  }
   enum StateType {
     RESUME = 'resume',
     PAUSE = 'pause',
@@ -592,6 +721,10 @@ describe('Firebase Storage > Upload Task', () => {
     });
     expect(clock.countTimers()).to.eq(0);
     clock.restore();
+  });
+  it.only('does not error after the first progress is uploaded', async () => {
+    // Kick off upload
+    await runProgressPauseTest(bigBlob);
   });
   it('tests if small requests that respond with 500 retry correctly', async () => {
     clock = useFakeTimers();

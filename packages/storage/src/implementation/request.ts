@@ -84,6 +84,7 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
    * Actually starts the retry loop.
    */
   private start_(): void {
+    console.log('start');
     const doTheRequest: (
       backoffCallback: (success: boolean, ...p2: unknown[]) => void,
       canceled: boolean
@@ -118,11 +119,13 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
           }
           this.pendingConnection_ = null;
           const hitServer = connection.getErrorCode() === ErrorCode.NO_ERROR;
+          console.log(connection.getErrorCode());
+          console.log(connection.getStatus());
           const status = connection.getStatus();
           if (
-            !hitServer ||
-            (isRetryStatusCode(status, this.additionalRetryCodes_) &&
-              this.retry)
+            (!hitServer ||
+            isRetryStatusCode(status, this.additionalRetryCodes_))&&
+              this.retry
           ) {
             const wasCanceled = connection.getErrorCode() === ErrorCode.ABORT;
             backoffCallback(

@@ -36,7 +36,6 @@ import {
 import { use, expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as types from '../../src/public-types';
-import { waitFor } from '../../../database/test/helpers/util';
 import { Deferred } from '@firebase/util';
 
 use(chaiAsPromised);
@@ -199,7 +198,6 @@ describe('FirebaseStorage Exp', () => {
     task.on(
       'state_changed',
       snapshot => {
-        const p = [snapshot.bytesTransferred, snapshot.totalBytes];
         if (snapshot.bytesTransferred > 0 && !hasPaused) {
           task.pause();
           hasPaused = true;
@@ -209,7 +207,10 @@ describe('FirebaseStorage Exp', () => {
         failureDeferred.reject('Failed to upload file');
       }
     );
-    await Promise.race([failureDeferred.promise, waitFor(5000)]);
+    await Promise.race([
+      failureDeferred.promise,
+      new Promise(resolve => setTimeout(resolve, 4000))
+    ]);
     task.resume();
     await task;
     const bytes = await getBytes(referenceA);

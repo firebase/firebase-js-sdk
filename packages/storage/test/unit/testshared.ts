@@ -205,7 +205,8 @@ export type RequestHandler = (
 ) => Response;
 
 export function storageServiceWithHandler(
-  handler: RequestHandler
+  handler: RequestHandler,
+  delay = false
 ): FirebaseStorageImpl {
   function newSend(
     connection: TestingConnection,
@@ -215,11 +216,20 @@ export function storageServiceWithHandler(
     headers?: Headers
   ): void {
     const response = handler(url, method, body, headers);
-    connection.simulateResponse(
+    if(delay) {
+setTimeout(() => connection.simulateResponse(
+      response.status,
+      response.body,
+      response.headers
+    ), 2000);
+    } else {
+connection.simulateResponse(
       response.status,
       response.body,
       response.headers
     );
+    };
+    
   }
 
   injectTestConnection(() => newTestConnection(newSend));
@@ -321,11 +331,13 @@ export function fakeServerHandler(
     if (isUpload) {
       const offset = +headers['X-Goog-Upload-Offset'];
       if (offset !== stat.currentSize) {
+        console.log('wrong offset', { offset, stat });
         return { status: 400, body: 'Uploading at wrong offset', headers: {} };
       }
 
       stat.currentSize += contentLength;
       if (stat.currentSize > stat.finalSize) {
+        console.log('too many bytes');
         return { status: 400, body: 'Too many bytes', headers: {} };
       } else if (!isFinalize) {
         return { status: 200, body: '', headers: statusHeaders('active') };
@@ -341,6 +353,7 @@ export function fakeServerHandler(
           headers: statusHeaders('final')
         };
       } else {
+        console.log('wrong number of bytes');
         return {
           status: 400,
           body: 'finalize without the right # of bytes',
@@ -349,9 +362,11 @@ export function fakeServerHandler(
       }
     }
 
+    console.log('fallback');
     return { status: 400, body: '', headers: {} };
   }
-  return handler;
+    return handler;
+  
 }
 
 /**
