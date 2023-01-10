@@ -94,7 +94,9 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
   await watchStream.open();
   try {
     log("Adding target to watch stream");
-    watchStream.addTarget(1, collectionId, "TestKey", documentIdPrefix);
+    await watchStream.addTarget(1, collectionId, "TestKey", documentIdPrefix);
+    log("Added target to watch stream");
+
     log("Waiting for a snapshot from watch");
     const snapshot = await watchStream.getSnapshot(1);
     const documentNames = Array.from(snapshot).sort();
@@ -220,7 +222,8 @@ class TargetState {
   private _documentNames = new Set<string>();
   private _snapshot: Set<string> | null = null;
   private _onSnapshotDeferred: Deferred<Set<string>> | null = null;
-  private _onRemoveDeferred: Deferred<void> | null = null;
+  private _onRemovedDeferred: Deferred<void> | null = null;
+  private _onAddedDeferred: Deferred<void> | null = null;
 
   onAdded(): void {
     if (this._added) {
@@ -228,6 +231,9 @@ class TargetState {
     }
     this._added = true;
     this._current = false;
+    this._onAddedDeferred?.resolve(null as unknown as void);
+    this._onAddedDeferred = null;
+    this._onRemovedDeferred = null;
   }
 
   onRemoved(): void {
@@ -236,8 +242,9 @@ class TargetState {
     }
     this._added = false;
     this._current = false;
-    this._onRemoveDeferred?.resolve(null as unknown as void);
-    this._onRemoveDeferred = null;
+    this._onRemovedDeferred?.resolve(null as unknown as void);
+    this._onAddedDeferred = null;
+    this._onRemovedDeferred = null;
   }
 
   onCurrent(): void {
@@ -293,11 +300,18 @@ class TargetState {
     return this._onSnapshotDeferred.promise;
   }
 
-  getOnRemovePromise(): Promise<void> {
-    if (this._onRemoveDeferred === null) {
-      this._onRemoveDeferred = new Deferred();
+  getOnRemovedPromise(): Promise<void> {
+    if (this._onRemovedDeferred === null) {
+      this._onRemovedDeferred = new Deferred();
     }
-    return this._onRemoveDeferred.promise;
+    return this._onRemovedDeferred.promise;
+  }
+
+  getOnAddedPromise(): Promise<void> {
+    if (this._onAddedDeferred === null) {
+      this._onAddedDeferred = new Deferred();
+    }
+    return this._onAddedDeferred.promise;
   }
 }
 
@@ -366,7 +380,7 @@ class WatchStream {
     await this._closedDeferred.promise;
   }
 
-  addTarget(targetId: number, collectionId: string, keyFilter: string, valueFilter: string): void {
+  addTarget(targetId: number, collectionId: string, keyFilter: string, valueFilter: string): Promise<void> {
     if (!this._stream) {
       throw new WatchError("open() must be called before addTarget()");
     } else if (this._closed) {
@@ -401,7 +415,10 @@ class WatchStream {
       }
     });
 
-    this._targets.set(targetId, new TargetState());
+    const targetState = new TargetState();
+    this._targets.set(targetId, targetState);
+
+    return targetState.getOnAddedPromise();
   }
 
   removeTarget(targetId: number): Promise<void> {
@@ -420,7 +437,7 @@ class WatchStream {
       removeTarget: targetId
     });
 
-    return targetState.getOnRemovePromise();
+    return targetState.getOnRemovedPromise();
   }
 
   private sendListenRequest(listenRequest: ListenRequest): void {
@@ -606,6 +623,9 @@ function descriptionFromSortedStrings(sortedStrings: Array<string>): string {
   }
   if (sortedStrings.length === 1) {
     return sortedStrings[0];
+  }
+  if (sortedStrings.length === 2) {
+    return `${sortedStrings[0]} and ${sortedStrings[1]}`;
   }
   return `${sortedStrings[0]} ... ${sortedStrings[sortedStrings.length-1]}`;
 }
