@@ -119,7 +119,7 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
     log(`Deleted ${documentDeleteCount} documents`);
 
     const resumeDeferSeconds = 10;
-    log("Waiting for ${resumeDeferSeconds} seconds so we get an existence filter upon resuming the query.");
+    log(`Waiting for ${resumeDeferSeconds} seconds so we get an existence filter upon resuming the query.`);
     await new Promise(resolve => setTimeout(resolve, resumeDeferSeconds * 1000));
 
     const watchStream2 = new WatchStream(connection, databaseInfo.databaseId.projectId);
