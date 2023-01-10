@@ -281,7 +281,6 @@ describe('Database Tests', () => {
 
   it('can call useEmulator before use', () => {
     const db = firebase.database();
-    // Cast as any as _delegate isn't a public property
     db.useEmulator('localhost', 1234);
     // Cast as any as _delegate isn't a public property
     expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.true;
