@@ -11,10 +11,6 @@
   "files": [
     "index.d.ts"
   ],
-  "peerDependencies": {
-    "@firebase/app-types": "0.x",
-    "@firebase/util": "1.x"
-  },
   "repository": {
     "directory": "packages/auth-types",
     "type": "git",
