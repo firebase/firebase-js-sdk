@@ -81,10 +81,10 @@ export class TestingConnection implements Connection<string> {
     headers: { [key: string]: string }
   ): void {
     if (this.state !== State.SENT) {
-      // throw new StorageError(
-      //   StorageErrorCode.UNKNOWN,
-      //   "Can't simulate response before send/more than once"
-      // );
+      throw new StorageError(
+        StorageErrorCode.UNKNOWN,
+        "Can't simulate response before send/more than once"
+      );
     }
 
     this.status = status;

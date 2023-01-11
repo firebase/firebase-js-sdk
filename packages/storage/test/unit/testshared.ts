@@ -206,7 +206,7 @@ export type RequestHandler = (
 
 export function storageServiceWithHandler(
   handler: RequestHandler,
-  callback?: Function
+  shouldResponseCb?: Function
 ): FirebaseStorageImpl {
   function newSend(
     connection: TestingConnection,
@@ -216,17 +216,9 @@ export function storageServiceWithHandler(
     headers?: Headers
   ): void {
     const response = handler(url, method, body, headers);
-if(!callback || callback()) {
-
-connection.simulateResponse(
-      response.status,
-      response.body,
-      response.headers
-    );
-} else {
-  callback();
-}
-    
+    if (!shouldResponseCb || shouldResponseCb()) {
+      connection.simulateResponse(response.status, response.body, response.headers);
+    }
   }
 
   injectTestConnection(() => newTestConnection(newSend));
@@ -239,7 +231,6 @@ connection.simulateResponse(
 
 export function fakeServerHandler(
   fakeMetadata: Partial<Metadata> = defaultFakeMetadata,
-  cb?: Function
 ): RequestHandler {
   const stats: {
     [num: number]: {
@@ -269,9 +260,6 @@ export function fakeServerHandler(
     content = content || '';
     headers = headers || {};
 
-    if(cb) {
-      cb();
-    }
     if (headers['X-Goog-Upload-Protocol'] === 'multipart') {
       return {
         status: 200,

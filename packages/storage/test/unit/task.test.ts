@@ -344,11 +344,14 @@ describe('Firebase Storage > Upload Task', () => {
     return promise;
   }
 
+// This is to test to make sure that when you pause in the middle of a request that you do not get an error
 async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
 
     const pausedDeferred = new Deferred();
     let callbackCount = 0;
-    function callback() {
+    // Usually the first request is to create the resumable upload and the second is to upload.
+    // Upload requests are not retryable, and this callback is to make sure we pause before the response comes back.
+    function shouldRespondCallback() {
       if(callbackCount++ == 1) {
         pausedDeferred.resolve();
         task.pause();
@@ -356,7 +359,7 @@ async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
       }
         return true;
     }
-    const storageService = storageServiceWithHandler(fakeServerHandler(), callback );
+    const storageService = storageServiceWithHandler(fakeServerHandler(), shouldRespondCallback );
     const task = new UploadTask(
       new Reference(storageService, testLocation),
       blob
@@ -389,12 +392,10 @@ async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
     const fixedAssertEquals = promiseAssertWrapper(assert.equal);
     const fixedAssertFalse = promiseAssertWrapper(assert.isFalse);
     const fixedAssertTrue = promiseAssertWrapper(assert.isTrue);
-    // const fixedAssertFail = promiseAssertWrapper(assert.fail);
 
     const events: string[] = [];
     const progress: number[][] = [];
     let complete = 0;
-    let hasPaused = false;
     function addCallbacks(task: UploadTask): void {
       let lastState: string;
       task.on(
