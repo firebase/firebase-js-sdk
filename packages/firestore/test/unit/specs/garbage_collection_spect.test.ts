@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { setLogLevel } from '@firebase/logger';
 import { doc, filter, query } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';

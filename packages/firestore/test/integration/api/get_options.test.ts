@@ -16,8 +16,8 @@
  */
 
 import { expect } from 'chai';
-import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector_impl';
 
+import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector_impl';
 import {
   collection,
   deleteDoc,

@@ -32,13 +32,7 @@ import {
   IndexedDbPersistence
 } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
-import {
-  ActiveTargets,
-  LruGarbageCollector,
-  LruDelegate,
-  LruParams,
-  LruResults
-} from '../../../src/local/lru_garbage_collector';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { LruGarbageCollectorImpl } from '../../../src/local/lru_garbage_collector_impl';
 import {
   MemoryEagerDelegate,

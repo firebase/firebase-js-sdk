@@ -79,11 +79,6 @@ import {
 } from '../../../src/local/indexeddb_sentinels';
 import { LocalStore } from '../../../src/local/local_store';
 import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
-import {
-  LruGarbageCollector,
-  LruParams,
-  LruResults
-} from '../../../src/local/lru_garbage_collector';
 import { MemoryLruDelegate } from '../../../src/local/memory_persistence';
 import {
   ClientId,
