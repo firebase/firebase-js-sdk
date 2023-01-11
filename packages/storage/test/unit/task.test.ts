@@ -422,7 +422,6 @@ describe('Firebase Storage > Upload Task', () => {
           lastState = state;
         },
         () => {
-          console.log('Failed to Upload');
           reject('Failed to Upload');
         },
         () => {
@@ -724,7 +723,7 @@ describe('Firebase Storage > Upload Task', () => {
     expect(clock.countTimers()).to.eq(0);
     clock.restore();
   });
-  it('does not error after the first progress is uploaded', async () => {
+  it('does not error when pausing inflight request', async () => {
     // Kick off upload
     await runProgressPauseTest(bigBlob);
   });
