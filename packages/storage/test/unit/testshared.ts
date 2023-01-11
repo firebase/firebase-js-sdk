@@ -206,7 +206,7 @@ export type RequestHandler = (
 
 export function storageServiceWithHandler(
   handler: RequestHandler,
-  shouldResponseCb?: Function
+  shouldResponseCb?: () => boolean
 ): FirebaseStorageImpl {
   function newSend(
     connection: TestingConnection,
