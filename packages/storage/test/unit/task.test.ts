@@ -341,12 +341,22 @@ describe('Firebase Storage > Upload Task', () => {
     });
 
     task.pause();
-
     return promise;
   }
 
 async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
-    const storageService = storageServiceWithHandler(fakeServerHandler(), true);
+
+    const pausedDeferred = new Deferred();
+    let callbackCount = 0;
+    function callback() {
+      if(callbackCount++ == 1) {
+        pausedDeferred.resolve();
+        task.pause();
+        return false;
+      }
+        return true;
+    }
+    const storageService = storageServiceWithHandler(fakeServerHandler(), callback );
     const task = new UploadTask(
       new Reference(storageService, testLocation),
       blob
@@ -380,7 +390,6 @@ async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
     const fixedAssertFalse = promiseAssertWrapper(assert.isFalse);
     const fixedAssertTrue = promiseAssertWrapper(assert.isTrue);
     // const fixedAssertFail = promiseAssertWrapper(assert.fail);
-    const pausedDeferred = new Deferred();
 
     const events: string[] = [];
     const progress: number[][] = [];
@@ -404,11 +413,7 @@ async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
           }
 
           const p = [snapshot.bytesTransferred, snapshot.totalBytes];
-          if(snapshot.bytesTransferred > 0 && !hasPaused) {
-            task.pause();
-            pausedDeferred.resolve();
-            hasPaused = true;
-          }
+          
           progress.push(p);
 
           lastState = state;
@@ -429,7 +434,6 @@ async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
     let completeTriggered = false;
 
     task.on(TaskEvent.STATE_CHANGED, undefined, undefined, () => {
-      console.log(events);
       fixedAssertFalse(completeTriggered);
       completeTriggered = true;
 
@@ -460,17 +464,11 @@ async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
       fixedAssertTrue(increasing);
       fixedAssertTrue(allTotalsTheSame);
       fixedAssertTrue(lastIsAll);
-      console.log('RESOLVING');
       resolve(null);
     });
     await pausedDeferred.promise;
-    await new Promise(resolve =>
-      setTimeout(() => {
-        task.resume();
-        resolve(null);
-      }, 0)
-    );
-
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    task.resume();
     return promise;
   }
   enum StateType {

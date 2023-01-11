@@ -230,7 +230,6 @@ export class UploadTask {
   // TODO(andysoto): assert false
 
   private _createResumable(): void {
-    console.log('creating resumable');
     this._resolveToken((authToken, appCheckToken) => {
       const requestInfo = createResumableUpload(
         this._ref.storage,
@@ -246,9 +245,7 @@ export class UploadTask {
         appCheckToken
       );
       this._request = createRequest;
-      console.log(this._request);
       createRequest.getPromise().then((url: string) => {
-        console.log('clearing from createRequest');
         this._request = undefined;
         this._uploadUrl = url;
         this._needToFetchStatus = false;
@@ -405,6 +402,7 @@ export class UploadTask {
   }
 
   private _transition(state: InternalTaskState): void {
+    console.log(`transitioning from ${this._state} to ${state}`);
     if (this._state === state) {
       return;
     }
@@ -415,7 +413,6 @@ export class UploadTask {
         // assert(this.state_ === InternalTaskState.RUNNING ||
         //        this.state_ === InternalTaskState.PAUSING);
         this._state = state;
-        console.log(this._request);
         if (this._request !== undefined) {
           this._request.cancel();
         } else if (this.pendingTimeout) {

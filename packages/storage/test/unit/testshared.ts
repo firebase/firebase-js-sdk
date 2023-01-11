@@ -206,7 +206,7 @@ export type RequestHandler = (
 
 export function storageServiceWithHandler(
   handler: RequestHandler,
-  delay = false
+  callback?: Function
 ): FirebaseStorageImpl {
   function newSend(
     connection: TestingConnection,
@@ -216,19 +216,16 @@ export function storageServiceWithHandler(
     headers?: Headers
   ): void {
     const response = handler(url, method, body, headers);
-    if(delay) {
-setTimeout(() => connection.simulateResponse(
-      response.status,
-      response.body,
-      response.headers
-    ), 2000);
-    } else {
+if(!callback || callback()) {
+
 connection.simulateResponse(
       response.status,
       response.body,
       response.headers
     );
-    };
+} else {
+  callback();
+}
     
   }
 
@@ -241,7 +238,8 @@ connection.simulateResponse(
 }
 
 export function fakeServerHandler(
-  fakeMetadata: Partial<Metadata> = defaultFakeMetadata
+  fakeMetadata: Partial<Metadata> = defaultFakeMetadata,
+  cb?: Function
 ): RequestHandler {
   const stats: {
     [num: number]: {
@@ -271,6 +269,9 @@ export function fakeServerHandler(
     content = content || '';
     headers = headers || {};
 
+    if(cb) {
+      cb();
+    }
     if (headers['X-Goog-Upload-Protocol'] === 'multipart') {
       return {
         status: 200,
@@ -331,13 +332,11 @@ export function fakeServerHandler(
     if (isUpload) {
       const offset = +headers['X-Goog-Upload-Offset'];
       if (offset !== stat.currentSize) {
-        console.log('wrong offset', { offset, stat });
         return { status: 400, body: 'Uploading at wrong offset', headers: {} };
       }
 
       stat.currentSize += contentLength;
       if (stat.currentSize > stat.finalSize) {
-        console.log('too many bytes');
         return { status: 400, body: 'Too many bytes', headers: {} };
       } else if (!isFinalize) {
         return { status: 200, body: '', headers: statusHeaders('active') };
@@ -353,7 +352,6 @@ export function fakeServerHandler(
           headers: statusHeaders('final')
         };
       } else {
-        console.log('wrong number of bytes');
         return {
           status: 400,
           body: 'finalize without the right # of bytes',
@@ -362,7 +360,6 @@ export function fakeServerHandler(
       }
     }
 
-    console.log('fallback');
     return { status: 400, body: '', headers: {} };
   }
     return handler;
