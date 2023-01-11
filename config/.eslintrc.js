@@ -98,10 +98,10 @@ module.exports = {
         'object': 'it',
         'property': 'skip'
       },
-      // {
-      //   'object': 'it',
-      //   'property': 'only'
-      // },
+      {
+        'object': 'it',
+        'property': 'only'
+      },
       {
         'object': 'describe',
         'property': 'skip'

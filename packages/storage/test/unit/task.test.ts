@@ -470,6 +470,7 @@ describe('Firebase Storage > Upload Task', () => {
       resolve(null);
     });
     await pausedDeferred.promise;
+    // Need to wait until the state has settled [i.e. from pausing to pause] and allow for any potential errors to propagate.
     await new Promise(resolve => setTimeout(resolve, 1000));
     task.resume();
     return promise;
@@ -723,7 +724,7 @@ describe('Firebase Storage > Upload Task', () => {
     expect(clock.countTimers()).to.eq(0);
     clock.restore();
   });
-  it.only('does not error after the first progress is uploaded', async () => {
+  it('does not error after the first progress is uploaded', async () => {
     // Kick off upload
     await runProgressPauseTest(bigBlob);
   });

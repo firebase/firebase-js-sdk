@@ -402,7 +402,6 @@ export class UploadTask {
   }
 
   private _transition(state: InternalTaskState): void {
-    console.log(`transitioning from ${this._state} to ${state}`);
     if (this._state === state) {
       return;
     }
