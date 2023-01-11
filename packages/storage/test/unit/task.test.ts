@@ -726,7 +726,7 @@ describe('Firebase Storage > Upload Task', () => {
     expect(clock.countTimers()).to.eq(0);
     clock.restore();
   });
-  it.only('does not error when pausing inflight request', async () => {
+  it('does not error when pausing inflight request', async () => {
     // Kick off upload
     await runProgressPauseTest(bigBlob);
   });
