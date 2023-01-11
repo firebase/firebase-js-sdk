@@ -183,13 +183,13 @@ async function main() {
         if (changesetPackages['firebase'] == null) {
           errors.push(
             `- Package ${bumpPackage} has a ${bumpText} bump which requires an ` +
-            `additional line to bump the main "firebase" package to ${bumpText}.`
+              `additional line to bump the main "firebase" package to ${bumpText}.`
           );
           console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_STATE`);
         } else if (bumpRank[changesetPackages['firebase']] < highestBump) {
           errors.push(
             `- Package ${bumpPackage} has a ${bumpText} bump. ` +
-            `Increase the bump for the main "firebase" package to ${bumpText}.`
+              `Increase the bump for the main "firebase" package to ${bumpText}.`
           );
           console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_STATE`);
         }
@@ -206,7 +206,9 @@ async function main() {
    * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
    */
   if (errors.length > 0)
-    console.log(`"CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}" >> $GITHUB_STATE`);
+    console.log(
+      `"CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}" >> $GITHUB_STATE`
+    );
   process.exit();
 }
 
