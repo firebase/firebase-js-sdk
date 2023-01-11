@@ -217,7 +217,11 @@ export function storageServiceWithHandler(
   ): void {
     const response = handler(url, method, body, headers);
     if (!shouldResponseCb || shouldResponseCb()) {
-      connection.simulateResponse(response.status, response.body, response.headers);
+      connection.simulateResponse(
+        response.status,
+        response.body,
+        response.headers
+      );
     }
   }
 
@@ -230,7 +234,7 @@ export function storageServiceWithHandler(
 }
 
 export function fakeServerHandler(
-  fakeMetadata: Partial<Metadata> = defaultFakeMetadata,
+  fakeMetadata: Partial<Metadata> = defaultFakeMetadata
 ): RequestHandler {
   const stats: {
     [num: number]: {
@@ -350,8 +354,7 @@ export function fakeServerHandler(
 
     return { status: 400, body: '', headers: {} };
   }
-    return handler;
-  
+  return handler;
 }
 
 /**
