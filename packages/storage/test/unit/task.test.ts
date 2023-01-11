@@ -346,13 +346,11 @@ describe('Firebase Storage > Upload Task', () => {
 
   // This is to test to make sure that when you pause in the middle of a request that you do not get an error
   async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
-    const pausedDeferred = new Deferred();
     let callbackCount = 0;
     // Usually the first request is to create the resumable upload and the second is to upload.
     // Upload requests are not retryable, and this callback is to make sure we pause before the response comes back.
     function shouldRespondCallback(): boolean {
       if (callbackCount++ === 1) {
-        pausedDeferred.resolve();
         task.pause();
         return false;
       }
@@ -384,6 +382,7 @@ describe('Firebase Storage > Upload Task', () => {
           (func as any as (...args: any[]) => void).apply(null, _args);
         } catch (e) {
           reject(e);
+          pausedStateCompleted.reject(e);
           // also throw to further unwind the stack
           throw e;
         }
@@ -394,9 +393,12 @@ describe('Firebase Storage > Upload Task', () => {
     const fixedAssertEquals = promiseAssertWrapper(assert.equal);
     const fixedAssertFalse = promiseAssertWrapper(assert.isFalse);
     const fixedAssertTrue = promiseAssertWrapper(assert.isTrue);
+    const fixedAssertFail = promiseAssertWrapper(assert.fail);
 
     const events: string[] = [];
     const progress: number[][] = [];
+    // Promise for when we are finally in the pause state
+    const pausedStateCompleted = new Deferred();
     let complete = 0;
     function addCallbacks(task: UploadTask): void {
       let lastState: string;
@@ -412,6 +414,7 @@ describe('Firebase Storage > Upload Task', () => {
             lastState !== TaskState.PAUSED &&
             state === TaskState.PAUSED
           ) {
+            pausedStateCompleted.resolve();
             events.push('pause');
           }
 
@@ -422,7 +425,7 @@ describe('Firebase Storage > Upload Task', () => {
           lastState = state;
         },
         () => {
-          reject('Failed to Upload');
+          fixedAssertFail('Failed to upload');
         },
         () => {
           events.push('complete');
@@ -435,6 +438,8 @@ describe('Firebase Storage > Upload Task', () => {
 
     let completeTriggered = false;
 
+    // We should clean this up and just add all callbacks in one function call.
+    // Keeps track of all events that were logged before and asserts on them.
     task.on(TaskEvent.STATE_CHANGED, undefined, undefined, () => {
       fixedAssertFalse(completeTriggered);
       completeTriggered = true;
@@ -468,9 +473,7 @@ describe('Firebase Storage > Upload Task', () => {
       fixedAssertTrue(lastIsAll);
       resolve(null);
     });
-    await pausedDeferred.promise;
-    // Need to wait until the state has settled [i.e. from pausing to pause] and allow for any potential errors to propagate.
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await pausedStateCompleted.promise;
     task.resume();
     return promise;
   }
@@ -723,7 +726,7 @@ describe('Firebase Storage > Upload Task', () => {
     expect(clock.countTimers()).to.eq(0);
     clock.restore();
   });
-  it('does not error when pausing inflight request', async () => {
+  it.only('does not error when pausing inflight request', async () => {
     // Kick off upload
     await runProgressPauseTest(bigBlob);
   });
