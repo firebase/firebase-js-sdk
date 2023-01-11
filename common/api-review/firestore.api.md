@@ -164,6 +164,9 @@ export { EmulatorMockTokenOptions }
 export function enableIndexedDbPersistence(firestore: Firestore, persistenceSettings?: PersistenceSettings): Promise<void>;
 
 // @public
+export function enableMemoryLRUGarbageCollection(firestore: Firestore): Promise<void>;
+
+// @public
 export function enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void>;
 
 // @public
