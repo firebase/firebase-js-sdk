@@ -54,6 +54,7 @@ import {
   remoteStoreShutdown
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
+import { hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 
@@ -73,7 +74,6 @@ import {
   syncEngineSynchronizeWithChangedDocuments
 } from './sync_engine_impl';
 import { OnlineStateSource } from './types';
-import { hardAssert } from '../util/assert';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;

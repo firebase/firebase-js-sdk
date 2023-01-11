@@ -32,7 +32,14 @@ import {
   IndexedDbPersistence
 } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
+import {
+  ActiveTargets,
+  LruGarbageCollector,
+  LruDelegate,
+  LruParams,
+  LruResults
+} from '../../../src/local/lru_garbage_collector';
+import { LruGarbageCollectorImpl } from '../../../src/local/lru_garbage_collector_impl';
 import {
   MemoryEagerDelegate,
   MemoryLruDelegate,
@@ -207,7 +214,7 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
   persistence!: MockMemoryPersistence;
   connection!: MockConnection;
 
-  constructor(private readonly gcEnabled: boolean) {
+  constructor(private readonly eagerGCEnabled: boolean) {
     super();
   }
 
@@ -219,13 +226,17 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
 
   createPersistence(cfg: ComponentConfiguration): Persistence {
     return new MockMemoryPersistence(
-      this.gcEnabled
+      this.eagerGCEnabled
         ? MemoryEagerDelegate.factory
         : p => new MemoryLruDelegate(p, LruParams.DEFAULT),
       newSerializer(cfg.databaseInfo.databaseId)
     );
   }
 }
+
+// A LRU garbage collector whose params are mutable.
+type Mutable<T> = { -readonly [P in keyof T]: T[P] };
+export type MutableLruGarbageCollector = Mutable<LruGarbageCollectorImpl>;
 
 export class MockConnection implements Connection {
   watchStream: StreamBridge<api.ListenRequest, api.ListenResponse> | null =
@@ -256,8 +267,8 @@ export class MockConnection implements Connection {
   shouldResourcePathBeIncludedInRequest: boolean = false;
 
   /**
-   * Tracks the currently active watch targets as detected by the mock watch
-   * stream, as a mapping from target ID to query Target.
+   * Tracks the currently active watch targets as detected by the mock watch //
+   * stream, as a mapping from target ID to query Target. //
    */
   activeTargets: { [targetId: number]: api.Target } = {};
 

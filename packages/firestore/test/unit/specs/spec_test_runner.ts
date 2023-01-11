@@ -66,6 +66,7 @@ import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import { IndexedDbLruDelegateImpl } from '../../../src/local/indexeddb_lru_delegate_impl';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
@@ -78,6 +79,12 @@ import {
 } from '../../../src/local/indexeddb_sentinels';
 import { LocalStore } from '../../../src/local/local_store';
 import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
+import {
+  LruGarbageCollector,
+  LruParams,
+  LruResults
+} from '../../../src/local/lru_garbage_collector';
+import { MemoryLruDelegate } from '../../../src/local/memory_persistence';
 import {
   ClientId,
   SharedClientState
@@ -171,6 +178,7 @@ import {
   MockMemoryPersistence,
   MockMultiTabOfflineComponentProvider,
   MockOnlineComponentProvider,
+  MutableLruGarbageCollector,
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
@@ -245,9 +253,10 @@ abstract class TestRunner {
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
+  private lruGarbageCollector!: MutableLruGarbageCollector;
   protected sharedClientState!: SharedClientState;
 
-  private useGarbageCollection: boolean;
+  private useEagerGCForMemory: boolean;
   private numClients: number;
   private maxConcurrentLimboResolutions?: number;
   private databaseInfo: DatabaseInfo;
@@ -286,7 +295,7 @@ abstract class TestRunner {
       /* useProto3Json= */ true
     );
 
-    this.useGarbageCollection = config.useGarbageCollection;
+    this.useEagerGCForMemory = config.useEagerGCForMemory;
     this.numClients = config.numClients;
     this.maxConcurrentLimboResolutions = config.maxConcurrentLimboResolutions;
     this.expectedActiveLimboDocs = [];
@@ -318,7 +327,7 @@ abstract class TestRunner {
       await this.initializeOfflineComponentProvider(
         onlineComponentProvider,
         configuration,
-        this.useGarbageCollection
+        this.useEagerGCForMemory
       );
     await onlineComponentProvider.initialize(
       offlineComponentProvider,
@@ -327,6 +336,15 @@ abstract class TestRunner {
 
     this.sharedClientState = offlineComponentProvider.sharedClientState;
     this.persistence = offlineComponentProvider.persistence;
+    // Setting reference to lru collector for manual runs
+    if (
+      this.persistence.referenceDelegate instanceof MemoryLruDelegate ||
+      this.persistence.referenceDelegate instanceof IndexedDbLruDelegateImpl
+    ) {
+      this.lruGarbageCollector =
+        this.persistence.referenceDelegate.garbageCollector;
+    }
+
     this.localStore = offlineComponentProvider.localStore;
     this.remoteStore = onlineComponentProvider.remoteStore;
     this.syncEngine = onlineComponentProvider.syncEngine;
@@ -348,7 +366,7 @@ abstract class TestRunner {
   protected abstract initializeOfflineComponentProvider(
     onlineComponentProvider: MockOnlineComponentProvider,
     configuration: ComponentConfiguration,
-    gcEnabled: boolean
+    eagerGcEnabled: boolean
   ): Promise<
     MockMultiTabOfflineComponentProvider | MockMemoryOfflineComponentProvider
   >;
@@ -442,6 +460,8 @@ abstract class TestRunner {
     } else if ('applyClientState' in step) {
       // PORTING NOTE: Only used by web multi-tab tests.
       return this.doApplyClientState(step.applyClientState!);
+    } else if ('triggerLruGC' in step) {
+      return this.doTriggerLruGC(step.triggerLruGC!);
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
     } else if ('failDatabase' in step) {
@@ -871,6 +891,17 @@ abstract class TestRunner {
     );
   }
 
+  private async doTriggerLruGC(cacheThreshold: number): Promise<void> {
+    return this.queue.enqueue(async () => {
+      if (!!this.lruGarbageCollector) {
+        this.lruGarbageCollector.params.cacheSizeCollectionThreshold =
+          cacheThreshold;
+        this.lruGarbageCollector.params.percentileToCollect = 100;
+        await this.localStore.collectGarbage(this.lruGarbageCollector);
+      }
+    });
+  }
+
   private async doFailDatabase(
     failActions: PersistenceAction[]
   ): Promise<void> {
@@ -1216,9 +1247,11 @@ class MemoryTestRunner extends TestRunner {
   protected async initializeOfflineComponentProvider(
     onlineComponentProvider: MockOnlineComponentProvider,
     configuration: ComponentConfiguration,
-    gcEnabled: boolean
+    eagerGCEnabled: boolean
   ): Promise<MockMemoryOfflineComponentProvider> {
-    const componentProvider = new MockMemoryOfflineComponentProvider(gcEnabled);
+    const componentProvider = new MockMemoryOfflineComponentProvider(
+      eagerGCEnabled
+    );
     await componentProvider.initialize(configuration);
     return componentProvider;
   }
@@ -1241,7 +1274,7 @@ class IndexedDbTestRunner extends TestRunner {
   protected async initializeOfflineComponentProvider(
     onlineComponentProvider: MockOnlineComponentProvider,
     configuration: ComponentConfiguration,
-    gcEnabled: boolean
+    _: boolean
   ): Promise<MockMultiTabOfflineComponentProvider> {
     const offlineComponentProvider = new MockMultiTabOfflineComponentProvider(
       testWindow(this.sharedFakeWebStorage),
@@ -1329,8 +1362,8 @@ export async function runSpec(
 
 /** Specifies initial configuration information for the test. */
 export interface SpecConfig {
-  /** A boolean to enable / disable GC. */
-  useGarbageCollection: boolean;
+  /** A boolean to enable / disable eager GC for memory persistence. */
+  useEagerGCForMemory: boolean;
 
   /** The number of active clients for this test run. */
   numClients: number;
@@ -1452,6 +1485,9 @@ export interface SpecStep {
 
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
+
+  /** Trigger a GC event with given cache threshold in bytes. */
+  triggerLruGC?: number;
 
   /**
    * Restarts the SyncEngine from scratch, except re-uses persistence and auth

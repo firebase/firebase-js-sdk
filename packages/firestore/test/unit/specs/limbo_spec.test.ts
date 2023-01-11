@@ -203,7 +203,7 @@ describeSpec('Limbo Documents:', [], () => {
     return (
       spec()
         // No GC so we can keep the cache populated.
-        .withGCEnabled(false)
+        .withEagerGCForMemoryPersistence(false)
 
         // Full query to populate the cache with docA and docB
         .userListens(fullQuery)
@@ -275,7 +275,7 @@ describeSpec('Limbo Documents:', [], () => {
       return (
         spec()
           // No GC so we can keep the cache populated.
-          .withGCEnabled(false)
+          .withEagerGCForMemoryPersistence(false)
 
           // Full query to populate the cache with docA and docB
           .userListens(fullQuery)
@@ -512,7 +512,7 @@ describeSpec('Limbo Documents:', [], () => {
 
     return (
       spec()
-        .withGCEnabled(false)
+        .withEagerGCForMemoryPersistence(false)
         .userSets('collection/a', { matches: true })
         .userSets('collection/b', { matches: true })
         .writeAcks('collection/a', 1000)
@@ -926,7 +926,7 @@ describeSpec('Limbo Documents:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .withEagerGCForMemoryPersistence(false)
 
           // Start a limbo resolution listen for a document (doc1).
           .userListens(fullQuery)
@@ -964,7 +964,7 @@ describeSpec('Limbo Documents:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .withEagerGCForMemoryPersistence(false)
           .withMaxConcurrentLimboResolutions(1)
 
           // Max out the number of active limbo resolutions.
@@ -1014,7 +1014,7 @@ describeSpec('Limbo Documents:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .withEagerGCForMemoryPersistence(false)
           .withMaxConcurrentLimboResolutions(1)
 
           // Max out the number of active limbo resolutions.

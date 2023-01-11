@@ -324,27 +324,27 @@ export function enableMemoryLRUGarbageCollection(
 }
 
 /**
- * Attempts to enable persistent storage, if possible. //
- *				//
- * Must be called before any other functions (other than //
- * {@link initializeFirestore}, {@link (getFirestore:1)} or //
- * {@link clearIndexedDbPersistence}. //
- *				//
- * If this fails, `enableIndexedDbPersistence()` will reject the promise it //
- * returns. Note that even after this failure, the {@link Firestore} instance will //
- * remain usable, however offline persistence will be disabled. //
- *				//
- * There are several reasons why this can fail, which can be identified by //
- * the `code` on the error.	//
- *				//
- *   * failed-precondition: The app is already open in another browser tab. //
- *   * unimplemented: The browser is incompatible with the offline //
- *     persistence implementation. //
- *				//
- * @param firestore - The {@link Firestore} instance to enable persistence for. //
- * @param persistenceSettings - Optional settings object to configure //
- * persistence.			//
- * @returns A `Promise` that represents successfully enabling persistent storage. //
+ * Attempts to enable persistent storage, if possible.
+ *
+ * Must be called before any other functions (other than
+ * {@link initializeFirestore}, {@link (getFirestore:1)} or
+ * {@link clearIndexedDbPersistence}.
+ *
+ * If this fails, `enableIndexedDbPersistence()` will reject the promise it
+ * returns. Note that even after this failure, the {@link Firestore} instance will
+ * remain usable, however offline persistence will be disabled.
+ *
+ * There are several reasons why this can fail, which can be identified by
+ * the `code` on the error.
+ *
+ *   * failed-precondition: The app is already open in another browser tab.
+ *   * unimplemented: The browser is incompatible with the offline
+ *     persistence implementation.
+ *
+ * @param firestore - The {@link Firestore} instance to enable persistence for.
+ * @param persistenceSettings - Optional settings object to configure
+ * persistence.
+ * @returns A `Promise` that represents successfully enabling persistent storage.
  */
 export function enableIndexedDbPersistence(
   firestore: Firestore,

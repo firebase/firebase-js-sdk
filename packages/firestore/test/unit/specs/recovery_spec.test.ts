@@ -473,7 +473,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const deletedDoc1 = deletedDoc('collection/key1', 2000);
       return (
         spec()
-          .withGCEnabled(false)
+          .withEagerGCForMemoryPersistence(false)
           .userListens(query1)
           .watchAcksFull(query1, 1000, doc1)
           .expectEvents(query1, {
@@ -533,7 +533,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     const doc2 = doc('collection/key2', 2000, { foo: 'b' });
     return (
       spec()
-        .withGCEnabled(false)
+        .withEagerGCForMemoryPersistence(false)
         .userListens(query1)
         .watchAcksFull(query1, 1000, doc1)
         .expectEvents(query1, {
@@ -569,7 +569,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     const doc2 = doc('collection/key2', 2000, { foo: 'b' });
     return (
       spec()
-        .withGCEnabled(false)
+        .withEagerGCForMemoryPersistence(false)
         .userListens(doc1Query)
         .watchAcksFull(doc1Query, 1000, doc1a)
         .expectEvents(doc1Query, {
@@ -617,7 +617,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const doc1b = doc('collection/key1', 1500, { included: false });
       const limboQuery = newQueryForPath(doc1a.key.path);
       return spec()
-        .withGCEnabled(false)
+        .withEagerGCForMemoryPersistence(false)
         .userListens(fullQuery)
         .watchAcksFull(fullQuery, 1000, doc1a)
         .expectEvents(fullQuery, {
@@ -658,7 +658,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     const doc1 = doc('collection/key1', 1, { included: true });
     const limboQuery = newQueryForPath(doc1.key.path);
     return spec()
-      .withGCEnabled(false)
+      .withEagerGCForMemoryPersistence(false)
       .userListens(fullQuery)
       .watchAcksFull(fullQuery, 1000, doc1)
       .expectEvents(fullQuery, {
@@ -796,7 +796,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     const doc1 = doc('collection/key1', 1, { foo: 'a' });
     const doc2 = doc('collection/key2', 2, { foo: 'b' });
     return spec()
-      .withGCEnabled(false)
+      .withEagerGCForMemoryPersistence(false)
       .userListens(query1)
       .watchAcksFull(query1, 1000, doc1)
       .expectEvents(query1, {

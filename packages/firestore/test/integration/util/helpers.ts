@@ -32,7 +32,8 @@ import {
   PrivateSettings,
   SnapshotListenOptions,
   newTestFirestore,
-  newTestApp
+  newTestApp,
+  enableMemoryLRUGarbageCollection
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -139,6 +140,25 @@ export function withTestDb(
   return withTestDbs(persistence, 1, ([db]) => {
     return fn(db);
   });
+}
+
+export function withEnsuredGcTestDb(
+  persistence: boolean,
+  sizeBytes: number,
+  fn: (db: Firestore) => Promise<void>
+): Promise<void> {
+  return withTestDbsSettings(
+    persistence,
+    DEFAULT_PROJECT_ID,
+    { ...DEFAULT_SETTINGS, cacheSizeBytes: sizeBytes },
+    1,
+    async ([db]) => {
+      if (!persistence) {
+        await enableMemoryLRUGarbageCollection(db);
+      }
+      return fn(db);
+    }
+  );
 }
 
 /** Runs provided fn with a db for an alternate project id. */
