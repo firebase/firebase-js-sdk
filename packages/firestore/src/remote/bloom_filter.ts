@@ -16,8 +16,7 @@
  */
 import { Md5, Integer } from '@firebase/webchannel-wrapper';
 
-import { newTextEncoder } from '../platform/text_reader';
-import { debugAssert } from '../util/assert';
+import { newTextEncoder } from '../platform/text_serializer';
 
 const MAX_64_BIT_UNSIGNED_INTEGER = new Integer([0xffffffff, 0xffffffff], 0);
 
@@ -51,18 +50,26 @@ export class BloomFilter {
     padding: number,
     private readonly hashCount: number
   ) {
-    debugAssert(padding >= 0 && padding < 8, `Invalid padding: ${padding}`);
-    if (bitmap.length > 0) {
-      debugAssert(this.hashCount > 0, `Invalid hash count: ${hashCount}`);
-    } else {
-      // Only empty bloom filter can have 0 hash count.
-      debugAssert(this.hashCount >= 0, `Invalid hash count: ${hashCount}`);
+    if (padding < 0 || padding >= 8) {
+      throw new BloomFilterError(`Invalid padding: ${padding}`);
+    }
 
+    if (hashCount < 0) {
+      throw new BloomFilterError(`Invalid hash count: ${hashCount}`);
+    }
+
+    if (bitmap.length > 0 && this.hashCount === 0) {
+      // Only empty bloom filter can have 0 hash count.
+      throw new BloomFilterError(`Invalid hash count: ${hashCount}`);
+    }
+
+    if (bitmap.length === 0) {
       // Empty bloom filter should have 0 padding.
-      debugAssert(
-        padding === 0,
-        `Invalid padding when bitmap length is 0: ${padding}`
-      );
+      if (padding !== 0) {
+        throw new BloomFilterError(
+          `Invalid padding when bitmap length is 0: ${padding}`
+        );
+      }
     }
 
     this.size = bitmap.length * 8 - padding;
@@ -106,5 +113,24 @@ export class BloomFilter {
       }
     }
     return true;
+  }
+}
+
+export class BloomFilterError extends Error {
+  /** The custom name for all FirebaseErrors. */
+  readonly name: string = 'BloomFilterError';
+
+  /** @hideconstructor */
+  constructor(
+    /**
+     * A custom error description.
+     */
+    readonly message: string
+  ) {
+    super(message);
+    // HACK: We write a toString property directly because Error is not a real
+    // class and so inheritance does not work correctly. We could alternatively
+    // do the same "back-door inheritance" trick that FirebaseError does.
+    this.toString = () => `${this.name}}: ${this.message}`;
   }
 }

@@ -22,7 +22,7 @@
 import { Md5, Integer } from '@firebase/webchannel-wrapper';
 import { expect } from 'chai';
 
-import { newTextEncoder } from '../../../src/platform/text_reader';
+import { newTextEncoder } from '../../../src/platform/text_serializer';
 
 describe('Md5', () => {
   // The precomputed MD5 digests of the 3-character strings "abc" and "def".

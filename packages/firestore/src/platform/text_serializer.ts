@@ -17,9 +17,9 @@
 
 import { isNode, isReactNative } from '@firebase/util';
 
-import * as browser from './browser/text_reader';
-import * as node from './node/text_reader';
-import * as rn from './rn/text_reader';
+import * as browser from './browser/text_serializer';
+import * as node from './node/text_serializer';
+import * as rn from './rn/text_serializer';
 
 /**
  * An instance of the Platform's 'TextEncoder' implementation.

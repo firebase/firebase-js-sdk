@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from '../browser_lite/text_reader';
+export { newTextEncoder, newTextDecoder } from '../browser/text_serializer';

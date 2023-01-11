@@ -919,12 +919,12 @@ describeSpec('Limbo Documents:', [], () => {
    * BloomFilter:
    * {
    *   bits: {
-   *   bitmap: 'AQ=='
-   *   padding: 6
+   *     bitmap: 'AQ=='
+   *     padding: 6
    *   },
    *   hashCount: 1
    *  }
-   * When testing migthContain(), 'collection/a','collection/c' will return true,
+   * When testing mightContain(), 'collection/a','collection/c' will return true,
    * while mightContain('collection/b') will return false.
    */
   specTest(
@@ -944,14 +944,10 @@ describeSpec('Limbo Documents:', [], () => {
         spec()
           .withMaxConcurrentLimboResolutions(2)
           .userListens(query1)
-          .watchAcks(query1)
-          .watchSends({ affects: [query1] }, docA, docB)
-          .watchCurrents(query1, 'resume-token-1000')
-          .watchSnapshots(1000)
+          .watchAcksFull(query1, 1000, docA, docB)
           .expectEvents(query1, { added: [docA, docB] })
           // Simulate that the client loses network connection.
           .disableNetwork()
-          // Limbo document causes query to be "inconsistent"
           .expectEvents(query1, { fromCache: true })
           .enableNetwork()
           .restoreListen(query1, 'resume-token-1000')
@@ -961,7 +957,7 @@ describeSpec('Limbo Documents:', [], () => {
           // client re-listens, Watch won't be able to tell that docB were deleted
           // and will only send us existing documents that changed since the resume
           // token. This will cause it to just send the docC with an existence filter
-          // expectedCount of 2.
+          // count of 2.
           .watchSends({ affects: [query1] }, docC)
           .watchFilters([query1], [docA.key, docC.key], {
             bits: { bitmap: 'AQ==', padding: 6 },

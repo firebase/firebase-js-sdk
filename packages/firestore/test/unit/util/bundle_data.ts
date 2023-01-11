@@ -23,7 +23,7 @@ import {
 } from '../../../src/core/query';
 import { DocumentKey } from '../../../src/model/document_key';
 import { newSerializer } from '../../../src/platform/serializer';
-import { newTextEncoder } from '../../../src/platform/text_reader';
+import { newTextEncoder } from '../../../src/platform/text_serializer';
 import {
   BundleElement,
   LimitType as BundleLimitType

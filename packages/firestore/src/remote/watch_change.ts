@@ -31,12 +31,12 @@ import { normalizeByteString } from '../model/normalize';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
-import { BloomFilter } from './bloom_filter';
+import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
 
@@ -411,10 +411,10 @@ export class WatchChangeAggregator {
         }
       } else {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
-        // Existence filter mismatch. Remove documents to limbo, and raise a
+        // Existence filter mismatch. Mark the documents as being in limbo, and raise a
         // snapshot with `isFromCache:true`.
         if (currentSize !== expectedCount) {
-          // Apply bloom filter to identify and move removed documents to limbo.
+          // Apply bloom filter to identify and mark removed documents.
           const bloomFilterApplied = this.applyBloomFilter(
             watchChange.existenceFilter,
             targetId,
@@ -449,7 +449,18 @@ export class WatchChangeAggregator {
       hashCount = 0
     } = unchangedNames;
     const normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
-    const bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
+
+    let bloomFilter;
+    try {
+      bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
+    } catch (err) {
+      if (err instanceof BloomFilterError) {
+        logWarn('BloomFilter', err);
+        return false;
+      } else {
+        throw err;
+      }
+    }
 
     if (bloomFilter.size === 0) {
       return false;
@@ -460,11 +471,7 @@ export class WatchChangeAggregator {
       targetId
     );
 
-    if (currentCount - removedDocumentCount === expectedCount) {
-      return true;
-    }
-
-    return false;
+    return currentCount - removedDocumentCount === expectedCount;
   }
 
   /**
