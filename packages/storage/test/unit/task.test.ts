@@ -350,7 +350,7 @@ describe('Firebase Storage > Upload Task', () => {
     let callbackCount = 0;
     // Usually the first request is to create the resumable upload and the second is to upload.
     // Upload requests are not retryable, and this callback is to make sure we pause before the response comes back.
-    function shouldRespondCallback() {
+    function shouldRespondCallback(): boolean {
       if (callbackCount++ === 1) {
         pausedDeferred.resolve();
         task.pause();
