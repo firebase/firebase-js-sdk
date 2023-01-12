@@ -142,15 +142,14 @@ export function withTestDb(
   });
 }
 
-export function withEnsuredGcTestDb(
+export function withEnsuredLruGcTestDb(
   persistence: boolean,
-  sizeBytes: number,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
     DEFAULT_PROJECT_ID,
-    { ...DEFAULT_SETTINGS, cacheSizeBytes: sizeBytes },
+    { ...DEFAULT_SETTINGS, cacheSizeBytes: 1 * 1024 * 1024 },
     1,
     async ([db]) => {
       if (!persistence) {

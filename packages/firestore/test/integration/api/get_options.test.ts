@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 
-import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector_impl';
 import {
   collection,
   deleteDoc,
@@ -37,7 +36,7 @@ import {
   apiDescribe,
   withTestCollection,
   withTestDocAndInitialData,
-  withEnsuredGcTestDb
+  withEnsuredLruGcTestDb
 } from '../util/helpers';
 
 apiDescribe('GetOptions', (persistence: boolean) => {
@@ -72,23 +71,19 @@ apiDescribe('GetOptions', (persistence: boolean) => {
   it('get document while offline with default get options', () => {
     const initialData = { key: 'value' };
     // Use an instance with Gc turned on.
-    return withEnsuredGcTestDb(
-      persistence,
-      LRU_MINIMUM_CACHE_SIZE_BYTES,
-      async db => {
-        const docRef = doc(collection(db, 'test-collection'));
-        await setDoc(docRef, initialData);
-        return getDoc(docRef)
-          .then(() => disableNetwork(db))
-          .then(() => getDoc(docRef))
-          .then(doc => {
-            expect(doc.exists()).to.be.true;
-            expect(doc.metadata.fromCache).to.be.true;
-            expect(doc.metadata.hasPendingWrites).to.be.false;
-            expect(doc.data()).to.deep.equal(initialData);
-          });
-      }
-    );
+    return withEnsuredLruGcTestDb(persistence, async db => {
+      const docRef = doc(collection(db, 'test-collection'));
+      await setDoc(docRef, initialData);
+      return getDoc(docRef)
+        .then(() => disableNetwork(db))
+        .then(() => getDoc(docRef))
+        .then(doc => {
+          expect(doc.exists()).to.be.true;
+          expect(doc.metadata.fromCache).to.be.true;
+          expect(doc.metadata.hasPendingWrites).to.be.false;
+          expect(doc.data()).to.deep.equal(initialData);
+        });
+    });
   });
 
   it('get collection while offline with default get options', () => {

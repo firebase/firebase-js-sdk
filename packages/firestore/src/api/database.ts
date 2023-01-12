@@ -287,7 +287,7 @@ export function configureFirestore(firestore: Firestore): void {
 }
 
 /**
- * Attempts to enable the LRU garbage collector for memory persistence.
+ * Attempts to enable LRU garbage collection for memory persistence.
  *
  * Must be called before any other functions (other than
  * {@link initializeFirestore}, {@link (getFirestore:1)} or
@@ -300,8 +300,8 @@ export function configureFirestore(firestore: Firestore): void {
  * garbage collector. Documents will be collected when their total size exceeds
  * `Settings.cacheSizeBytes`, with least recently used documents get removed first.
  *
- * @param firestore - The {@link Firestore} instance to enable persistence for.
- * @returns A `Promise` that represents successfully enabling persistent storage.
+ * @param firestore - The {@link Firestore} instance to enable LRU garbage collection for.
+ * @returns A `Promise` that represents successfully enabling LRU garbage collection.
  */
 export function enableMemoryLRUGarbageCollection(
   firestore: Firestore

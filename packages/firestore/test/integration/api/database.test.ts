@@ -20,7 +20,6 @@ import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector_impl';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -68,7 +67,7 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
-  withEnsuredGcTestDb,
+  withEnsuredLruGcTestDb,
   withTestCollection,
   withTestDbsSettings,
   withTestDb,
@@ -1756,19 +1755,15 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('Can get document from cache with GC enabled.', () => {
     const initialData = { key: 'value' };
-    return withEnsuredGcTestDb(
-      persistence,
-      LRU_MINIMUM_CACHE_SIZE_BYTES,
-      async db => {
-        const docRef = doc(collection(db, 'test-collection'));
-        await setDoc(docRef, initialData);
-        return getDoc(docRef).then(doc => {
-          expect(doc.exists()).to.be.true;
-          expect(doc.metadata.fromCache).to.be.false;
-          expect(doc.metadata.hasPendingWrites).to.be.false;
-          expect(doc.data()).to.deep.equal(initialData);
-        });
-      }
-    );
+    return withEnsuredLruGcTestDb(persistence, async db => {
+      const docRef = doc(collection(db, 'test-collection'));
+      await setDoc(docRef, initialData);
+      return getDoc(docRef).then(doc => {
+        expect(doc.exists()).to.be.true;
+        expect(doc.metadata.fromCache).to.be.false;
+        expect(doc.metadata.hasPendingWrites).to.be.false;
+        expect(doc.data()).to.deep.equal(initialData);
+      });
+    });
   });
 });
