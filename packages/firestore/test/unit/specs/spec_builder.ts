@@ -240,14 +240,14 @@ export class SpecBuilder {
     return runSpec(name, tags, usePersistence, this.config, this.steps);
   }
 
-  // Configures Eager Garbage Collection behavior (on or off) for memory persistence. Default is on.
-  // For disk persistence, this has no effect, manual LRU GC is always used.
-  withEagerGCForMemoryPersistence(eagerGCEnabled: boolean): this {
+  // Ensures manual LRU GC for both memory and indexeddb persistence.
+  // In spec tests, GC is always manually triggered via triggerLruGC().
+  ensureManualLruGC(): this {
     debugAssert(
       !this.currentStep,
       'withGCEnabled() must be called before all spec steps.'
     );
-    this.config.useEagerGCForMemory = eagerGCEnabled;
+    this.config.useEagerGCForMemory = false;
     return this;
   }
 
@@ -1258,6 +1258,6 @@ export function client(
   withGcEnabled?: boolean
 ): MultiClientSpecBuilder {
   const specBuilder = new MultiClientSpecBuilder();
-  specBuilder.withEagerGCForMemoryPersistence(withGcEnabled === true);
+  specBuilder.ensureManualLruGC();
   return specBuilder.client(num);
 }

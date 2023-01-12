@@ -44,7 +44,7 @@ describeSpec('Garbage Collection:', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { key: 'a' });
     return spec()
-      .withEagerGCForMemoryPersistence(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1000, docA)
       .expectEvents(query1, { added: [docA] })
@@ -61,7 +61,7 @@ describeSpec('Garbage Collection:', [], () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: 'a' });
       return spec()
-        .withEagerGCForMemoryPersistence(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 1000, docA)
         .expectEvents(query1, { added: [docA] })
@@ -81,7 +81,7 @@ describeSpec('Garbage Collection:', [], () => {
       const docA = doc('collection/a', 1000, { key: 'a' });
       return (
         spec()
-          .withEagerGCForMemoryPersistence(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 1000, docA)
           .expectEvents(query1, { added: [docA] })
@@ -110,7 +110,7 @@ describeSpec('Garbage Collection:', [], () => {
       const docD = doc('collection/d', 1000, { key: 'd' });
       return (
         spec()
-          .withEagerGCForMemoryPersistence(false)
+          .ensureManualLruGC()
           .userListens(queryFull)
           .watchAcksFull(queryFull, 1000, docA, docB, docC, docD)
           .expectEvents(queryFull, { added: [docA, docB, docC, docD] })
