@@ -33,7 +33,6 @@ import {
 } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { LruGarbageCollectorImpl } from '../../../src/local/lru_garbage_collector_impl';
 import {
   MemoryEagerDelegate,
   MemoryLruDelegate,
@@ -227,10 +226,6 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
     );
   }
 }
-
-// A LRU garbage collector whose params are mutable.
-type Mutable<T> = { -readonly [P in keyof T]: T[P] };
-export type MutableLruGarbageCollector = Mutable<LruGarbageCollectorImpl>;
 
 export class MockConnection implements Connection {
   watchStream: StreamBridge<api.ListenRequest, api.ListenResponse> | null =

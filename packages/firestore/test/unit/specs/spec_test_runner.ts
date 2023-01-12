@@ -79,6 +79,7 @@ import {
 } from '../../../src/local/indexeddb_sentinels';
 import { LocalStore } from '../../../src/local/local_store';
 import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
+import { LruGarbageCollector } from '../../../src/local/lru_garbage_collector';
 import { MemoryLruDelegate } from '../../../src/local/memory_persistence';
 import {
   ClientId,
@@ -173,7 +174,6 @@ import {
   MockMemoryPersistence,
   MockMultiTabOfflineComponentProvider,
   MockOnlineComponentProvider,
-  MutableLruGarbageCollector,
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
@@ -248,7 +248,7 @@ abstract class TestRunner {
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
-  private lruGarbageCollector!: MutableLruGarbageCollector;
+  private lruGarbageCollector!: LruGarbageCollector;
   protected sharedClientState!: SharedClientState;
 
   private useEagerGCForMemory: boolean;
@@ -889,9 +889,12 @@ abstract class TestRunner {
   private async doTriggerLruGC(cacheThreshold: number): Promise<void> {
     return this.queue.enqueue(async () => {
       if (!!this.lruGarbageCollector) {
-        this.lruGarbageCollector.params.cacheSizeCollectionThreshold =
-          cacheThreshold;
-        this.lruGarbageCollector.params.percentileToCollect = 100;
+        const params = this.lruGarbageCollector.params as {
+          cacheSizeCollectionThreshold: number;
+          percentileToCollect: number;
+        };
+        params.cacheSizeCollectionThreshold = cacheThreshold;
+        params.percentileToCollect = 100;
         await this.localStore.collectGarbage(this.lruGarbageCollector);
       }
     });
