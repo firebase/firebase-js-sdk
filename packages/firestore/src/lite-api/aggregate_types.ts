@@ -16,20 +16,29 @@
  */
 
 import { Query } from './reference';
+import {FieldPath} from "./field_path";
+import {average, count, sum} from './aggregate';
+
+export type AggregateType = 'average' | 'count' | 'sum';
 
 /**
  * Represents an aggregation that can be performed by Firestore.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class AggregateField<T> {
+export class AggregateField<R, A extends AggregateType = 'count'> {
   /** A type string to uniquely identify instances of this class. */
-  type = 'AggregateField';
+  readonly type = 'AggregateField';
+
+  constructor(public readonly aggregateType: A, public readonly field?: string | FieldPath) {
+  }
 }
 
 /**
  * The union of all `AggregateField` types that are supported by Firestore.
  */
-export type AggregateFieldType = AggregateField<number>;
+export type AggregateFieldType =
+  ReturnType<typeof count>
+  | ReturnType<typeof sum>
+  | ReturnType<typeof average>
 
 /**
  * A type whose property values are all `AggregateField` objects.
@@ -43,14 +52,21 @@ export interface AggregateSpec {
  * result of the aggregation performed by the corresponding `AggregateField`
  * from the input `AggregateSpec`.
  */
-export type AggregateSpecData<T extends AggregateSpec> = {
-  [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
+export type AggregateSpecData<T extends AggregateSpec > = {
+  [P in keyof T]: T[P] extends AggregateField<infer U, any> ? U : never;
 };
+
+export type AggregateFieldSpec<T extends AggregateFieldType> =
+  T extends AggregateField<infer R, infer A> ? Record<A, T> : never;
+
+export type AggregateData<T extends AggregateSpec | AggregateFieldType> =
+  T extends AggregateSpec ? AggregateSpecData<T> :
+    T extends AggregateFieldType ? AggregateFieldSpec<T> : never;
 
 /**
  * The results of executing an aggregation query.
  */
-export class AggregateQuerySnapshot<T extends AggregateSpec> {
+export class AggregateQuerySnapshot<T extends AggregateSpec | AggregateFieldType> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateQuerySnapshot';
 
@@ -63,7 +79,7 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
   /** @hideconstructor */
   constructor(
     query: Query<unknown>,
-    private readonly _data: AggregateSpecData<T>
+    private readonly _data: AggregateData<T>
   ) {
     this.query = query;
   }
@@ -79,7 +95,7 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
    * @returns The results of the aggregations performed over the underlying
    * query.
    */
-  data(): AggregateSpecData<T> {
+  data(): AggregateData<T> {
     return this._data;
   }
 }

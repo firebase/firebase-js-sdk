@@ -21,14 +21,16 @@ import { CountQueryRunner } from '../core/count_query_runner';
 import { cast } from '../util/input_validation';
 
 import {
-  AggregateField,
+  AggregateField, AggregateFieldSpec,
   AggregateQuerySnapshot,
-  AggregateSpec
+  AggregateSpec, AggregateType, AggregateFieldType, AggregateData
 } from './aggregate_types';
 import { getDatastore } from './components';
 import { Firestore } from './database';
 import { Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
+import {FieldPath} from "./field_path";
+import {AggregateQueryRunner} from "../core/aggregate_query_runner";
 
 /**
  * Calculates the number of documents in the result set of the given query,
@@ -51,6 +53,77 @@ export function getCount(
   const datastore = getDatastore(firestore);
   const userDataWriter = new LiteUserDataWriter(firestore);
   return new CountQueryRunner(query, datastore, userDataWriter).run();
+}
+
+export function getAggregateFromServer<T extends AggregateSpec>(
+  query: Query<unknown>,
+  aggregates: T
+): Promise<AggregateQuerySnapshot<T>>;
+
+export function getAggregateFromServer<T extends AggregateFieldType>(
+  query: Query<unknown>,
+  aggregateField: T
+): Promise<AggregateQuerySnapshot<T>>;
+
+export function getAggregateFromServer<T extends AggregateSpec | AggregateFieldType>(
+  query: Query<unknown>,
+  aggregateFieldOrSpec: T
+): Promise<AggregateQuerySnapshot<T>> {
+  let aggregateSpec: AggregateSpec | undefined;
+
+  if (aggregateFieldOrSpec instanceof AggregateField) {
+    aggregateSpec = {[aggregateFieldOrSpec.aggregateType]: aggregateFieldOrSpec};
+  }
+  else {
+    aggregateSpec = aggregateFieldOrSpec;
+  }
+
+  return new Promise(resolve => {
+    const data: any = {};
+    for (const key in aggregateSpec) {
+      const field = aggregateSpec[key];
+      switch (field.aggregateType) {
+        case "count":
+          data[key] = 1;
+          break;
+        case "sum":
+          data[key] = 1;
+          break;
+        case "average":
+          data[key] = 1;
+          break;
+      }
+    }
+    resolve(new AggregateQuerySnapshot(query, data))
+  })
+}
+
+export function sum(field: string | FieldPath): AggregateField<number, 'sum'> {
+  return new AggregateField('sum', field);
+}
+
+export function average(field: string | FieldPath): AggregateField<number | null, 'average'> {
+  return new AggregateField('average', field);
+}
+
+export function count(): AggregateField<number, 'count'> {
+  return new AggregateField('count');
+}
+
+/**
+ * Compares two 'AggregateField` instances for equality.
+ *
+ * @param left
+ * @param right
+ */
+export function aggregateFieldEqual(
+  left: AggregateField<unknown, AggregateType>,
+  right: AggregateField<unknown, AggregateType>
+): boolean {
+  return left instanceof AggregateField &&
+    right instanceof AggregateField &&
+    left.field == right.field &&
+    left.aggregateType == right.aggregateType;
 }
 
 /**
