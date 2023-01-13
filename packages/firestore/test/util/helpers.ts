@@ -94,6 +94,7 @@ import {
   LimitType as ProtoLimitType
 } from '../../src/protos/firestore_bundle_proto';
 import * as api from '../../src/protos/firestore_proto_api';
+import { BloomFilter } from '../../src/remote/bloom_filter';
 import { ExistenceFilter } from '../../src/remote/existence_filter';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
@@ -1072,4 +1073,41 @@ export function computeCombinations<T>(input: T[]): T[][] {
     }
   };
   return computeNonEmptyCombinations(input).concat([[]]);
+}
+
+/**
+ * Helper method to generate bloom filter proto value for mocking watch
+ * filter response.
+ *
+ * If the return value is null, please increase the number of bits and/or
+ * hashCount to generate a bloom filter that meets expectation.
+ */
+export function generateBloomFilterProto(config: {
+  contains: string[];
+  notContains: string[];
+  hashCount: number;
+  numOfBits: number;
+}): api.BloomFilter {
+  const DOCUMENT_PREFIX =
+    'projects/test-project/databases/(default)/documents/';
+
+  const { contains, notContains, hashCount, numOfBits } = config;
+
+  const bloomFilter = BloomFilter.create(
+    numOfBits,
+    hashCount,
+    contains.map(item => DOCUMENT_PREFIX + item)
+  );
+
+  notContains.forEach(item => {
+    if (bloomFilter.mightContain(DOCUMENT_PREFIX + item)) {
+      throw new Error(
+        'Cannot generate desired bloom filter. Please adjust the hashCount and/or bumber of bits.'
+      );
+    }
+  });
+  return {
+    bits: { bitmap: bloomFilter.getBitMap(), padding: bloomFilter!.padding },
+    hashCount: bloomFilter!.hashCount
+  };
 }

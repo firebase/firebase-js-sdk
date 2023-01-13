@@ -46,9 +46,9 @@ export class BloomFilter {
   private readonly sizeInInteger: Integer;
 
   constructor(
-    private readonly bitmap: Uint8Array,
-    padding: number,
-    private readonly hashCount: number
+    private readonly _bitmap: Uint8Array,
+    readonly padding: number,
+    readonly hashCount: number
   ) {
     if (padding < 0 || padding >= 8) {
       throw new BloomFilterError(`Invalid padding: ${padding}`);
@@ -58,12 +58,12 @@ export class BloomFilter {
       throw new BloomFilterError(`Invalid hash count: ${hashCount}`);
     }
 
-    if (bitmap.length > 0 && this.hashCount === 0) {
+    if (_bitmap.length > 0 && this.hashCount === 0) {
       // Only empty bloom filter can have 0 hash count.
       throw new BloomFilterError(`Invalid hash count: ${hashCount}`);
     }
 
-    if (bitmap.length === 0) {
+    if (_bitmap.length === 0) {
       // Empty bloom filter should have 0 padding.
       if (padding !== 0) {
         throw new BloomFilterError(
@@ -72,9 +72,13 @@ export class BloomFilter {
       }
     }
 
-    this.size = bitmap.length * 8 - padding;
+    this.size = _bitmap.length * 8 - padding;
     // Set the size in Integer to avoid repeated calculation in mightContain().
     this.sizeInInteger = Integer.fromNumber(this.size);
+  }
+
+  getBitMap(): Uint8Array {
+    return new Uint8Array(this._bitmap);
   }
 
   // Calculate the ith hash value based on the hashed 64bit integers,
@@ -92,7 +96,7 @@ export class BloomFilter {
   // Return whether the bit on the given index in the bitmap is set to 1.
   private isBitSet(index: number): boolean {
     // To retrieve bit n, calculate: (bitmap[n / 8] & (0x01 << (n % 8))).
-    const byte = this.bitmap[Math.floor(index / 8)];
+    const byte = this._bitmap[Math.floor(index / 8)];
     const offset = index % 8;
     return (byte & (0x01 << offset)) !== 0;
   }
@@ -114,23 +118,40 @@ export class BloomFilter {
     }
     return true;
   }
+
+  /** Create bloom filter input for testing purposes only. */
+  static create(
+    numOfBits: number,
+    hashCount: number,
+    contains: string[]
+  ): BloomFilter {
+    const padding = numOfBits % 8 === 0 ? 0 : 8 - (numOfBits % 8);
+    const bitmap = new Uint8Array(Math.ceil(numOfBits / 8));
+    const bloomFilter = new BloomFilter(bitmap, padding, hashCount);
+    contains.forEach(item => bloomFilter.insert(item));
+    return bloomFilter;
+  }
+
+  private insert(value: string): void {
+    if (this.size === 0 || value === '') {
+      return;
+    }
+
+    const md5HashedValue = getMd5HashValue(value);
+    const [hash1, hash2] = get64BitUints(md5HashedValue);
+    for (let i = 0; i < this.hashCount; i++) {
+      const index = this.getBitIndex(hash1, hash2, i);
+      this.setBit(index);
+    }
+  }
+
+  private setBit(index: number): void {
+    const indexOfByte = Math.floor(index / 8);
+    const offset = index % 8;
+    this._bitmap[indexOfByte] |= 0x01 << offset;
+  }
 }
 
 export class BloomFilterError extends Error {
-  /** The custom name for all FirebaseErrors. */
   readonly name: string = 'BloomFilterError';
-
-  /** @hideconstructor */
-  constructor(
-    /**
-     * A custom error description.
-     */
-    readonly message: string
-  ) {
-    super(message);
-    // HACK: We write a toString property directly because Error is not a real
-    // class and so inheritance does not work correctly. We could alternatively
-    // do the same "back-door inheritance" trick that FirebaseError does.
-    this.toString = () => `${this.name}}: ${this.message}`;
-  }
 }

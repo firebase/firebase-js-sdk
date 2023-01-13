@@ -22,7 +22,14 @@ import {
 } from '../../../src/core/query';
 import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
+import {
+  deletedDoc,
+  doc,
+  filter,
+  generateBloomFilterProto,
+  orderBy,
+  query
+} from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -915,18 +922,6 @@ describeSpec('Limbo Documents:', [], () => {
     }
   );
 
-  /**
-   * BloomFilter:
-   * {
-   *   bits: {
-   *     bitmap: 'AQ=='
-   *     padding: 6
-   *   },
-   *   hashCount: 1
-   *  }
-   * When testing mightContain(), 'collection/a','collection/c' will return true,
-   * while mightContain('collection/b') will return false.
-   */
   specTest(
     'Limbo resolution throttling with bloom filter application',
     [],
@@ -937,7 +932,12 @@ describeSpec('Limbo Documents:', [], () => {
       const docC = doc('collection/c', 1000, { key: 'c' });
 
       const docBQuery = newQueryForPath(docB.key.path);
-
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: ['collection/a', 'collection/c'],
+        notContains: ['collection/b'],
+        numOfBits: 3,
+        hashCount: 1
+      });
       // Verify that limbo resolution throttling works correctly with bloom filter
       // application on existence filter mismatches.
       return (
@@ -959,10 +959,7 @@ describeSpec('Limbo Documents:', [], () => {
           // token. This will cause it to just send the docC with an existence filter
           // count of 2.
           .watchSends({ affects: [query1] }, docC)
-          .watchFilters([query1], [docA.key, docC.key], {
-            bits: { bitmap: 'AQ==', padding: 6 },
-            hashCount: 1
-          })
+          .watchFilters([query1], [docA.key, docC.key], bloomFilterProto)
           .watchSnapshots(1001)
           .expectEvents(query1, {
             added: [docC],
