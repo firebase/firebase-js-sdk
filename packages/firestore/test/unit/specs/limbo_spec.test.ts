@@ -938,8 +938,7 @@ describeSpec('Limbo Documents:', [], () => {
         numOfBits: 3,
         hashCount: 1
       });
-      // Verify that limbo resolution throttling works correctly with bloom filter
-      // application on existence filter mismatches.
+      // Verify that limbo resolution throttling works as expected with bloom filter.
       return (
         spec()
           .withMaxConcurrentLimboResolutions(2)

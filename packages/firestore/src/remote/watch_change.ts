@@ -448,18 +448,20 @@ export class WatchChangeAggregator {
       bits: { bitmap = '', padding = 0 },
       hashCount = 0
     } = unchangedNames;
-    const normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
 
     let bloomFilter;
     try {
+      // normalizeByteString throws error if the bitmap includes invalid 64base characters
+      const normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
+      // BloomFilter throws error if the inputs are invalid
       bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
     } catch (err) {
       if (err instanceof BloomFilterError) {
         logWarn('BloomFilter', err);
-        return false;
       } else {
-        throw err;
+        logWarn('Applying bloom filter failed: ', err);
       }
+      return false;
     }
 
     if (bloomFilter.size === 0) {
