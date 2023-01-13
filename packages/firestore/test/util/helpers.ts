@@ -1102,7 +1102,7 @@ export function generateBloomFilterProto(config: {
   notContains.forEach(item => {
     if (bloomFilter.mightContain(DOCUMENT_PREFIX + item)) {
       throw new Error(
-        'Cannot generate desired bloom filter. Please adjust the hashCount and/or bumber of bits.'
+        'Cannot generate desired bloom filter. Please adjust the hashCount and/or number of bits.'
       );
     }
   });
