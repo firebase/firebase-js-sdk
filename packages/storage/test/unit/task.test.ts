@@ -401,7 +401,7 @@ describe('Firebase Storage > Upload Task', () => {
     const pausedStateCompleted = new Deferred();
     let complete = 0;
     // Adds a callback for when the state has changed. The callback resolves the pausedStateCompleted promise
-    // to let our await know when to resume.
+    // to let our test know when to resume.
     function addCallbacks(task: UploadTask): void {
       let lastState: string;
       task.on(
