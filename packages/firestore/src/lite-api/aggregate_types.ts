@@ -19,16 +19,26 @@ import { Query } from './reference';
 import {FieldPath} from "./field_path";
 import {average, count, sum} from './aggregate';
 
+/**
+ * Union type representing the aggregate type to be performed.
+ */
 export type AggregateType = 'average' | 'count' | 'sum';
 
 /**
  * Represents an aggregation that can be performed by Firestore.
  */
-export class AggregateField<R, A extends AggregateType = 'count'> {
+export class AggregateField<R> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateField';
 
-  constructor(public readonly aggregateType: A, public readonly field?: string | FieldPath) {
+  /**
+   * Create a new AggregateField<R>
+   * @param aggregateType
+   * @param field
+   */
+  constructor(
+    public readonly aggregateType: AggregateType = 'count',
+    public readonly field?: string | FieldPath) {
   }
 }
 
@@ -53,20 +63,13 @@ export interface AggregateSpec {
  * from the input `AggregateSpec`.
  */
 export type AggregateSpecData<T extends AggregateSpec > = {
-  [P in keyof T]: T[P] extends AggregateField<infer U, any> ? U : never;
+  [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
 };
-
-export type AggregateFieldSpec<T extends AggregateFieldType> =
-  T extends AggregateField<infer R, infer A> ? Record<A, T> : never;
-
-export type AggregateData<T extends AggregateSpec | AggregateFieldType> =
-  T extends AggregateSpec ? AggregateSpecData<T> :
-    T extends AggregateFieldType ? AggregateFieldSpec<T> : never;
 
 /**
  * The results of executing an aggregation query.
  */
-export class AggregateQuerySnapshot<T extends AggregateSpec | AggregateFieldType> {
+export class AggregateQuerySnapshot<T extends AggregateSpec> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateQuerySnapshot';
 
@@ -79,7 +82,7 @@ export class AggregateQuerySnapshot<T extends AggregateSpec | AggregateFieldType
   /** @hideconstructor */
   constructor(
     query: Query<unknown>,
-    private readonly _data: AggregateData<T>
+    private readonly _data: AggregateSpecData<T>
   ) {
     this.query = query;
   }
@@ -95,7 +98,7 @@ export class AggregateQuerySnapshot<T extends AggregateSpec | AggregateFieldType
    * @returns The results of the aggregations performed over the underlying
    * query.
    */
-  data(): AggregateData<T> {
+  data(): AggregateSpecData<T> {
     return this._data;
   }
 }
