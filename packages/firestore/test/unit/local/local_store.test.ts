@@ -64,6 +64,7 @@ import { Document } from '../../../src/model/document';
 import {
   Mutation,
   MutationResult,
+  MutationType,
   Precondition
 } from '../../../src/model/mutation';
 import {
@@ -333,22 +334,29 @@ class LocalStoreTester {
    * document key lookups.
    */
   toHaveRead(expectedCount: {
-    mutationsByCollection?: number;
-    mutationsByKey?: number;
+    overlaysByCollection?: number;
+    overlaysByKey?: number;
     documentsByCollection?: number;
     documentsByKey?: number;
+    overlayTypes?: { [k: string]: MutationType };
   }): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      if (expectedCount.mutationsByCollection !== undefined) {
-        expect(this.queryEngine.mutationsReadByCollection).to.be.eq(
-          expectedCount.mutationsByCollection,
-          'Mutations read (by collection)'
+      if (expectedCount.overlaysByCollection !== undefined) {
+        expect(this.queryEngine.overlaysReadByCollection).to.be.eq(
+          expectedCount.overlaysByCollection,
+          'Overlays read (by collection)'
         );
       }
-      if (expectedCount.mutationsByKey !== undefined) {
-        expect(this.queryEngine.mutationsReadByKey).to.be.eq(
-          expectedCount.mutationsByKey,
-          'Mutations read (by key)'
+      if (expectedCount.overlaysByKey !== undefined) {
+        expect(this.queryEngine.overlaysReadByKey).to.be.eq(
+          expectedCount.overlaysByKey,
+          'Overlays read (by key)'
+        );
+      }
+      if (expectedCount.overlayTypes !== undefined) {
+        expect(this.queryEngine.overlayTypes).to.deep.equal(
+          expectedCount.overlayTypes,
+          'Overlay types read'
         );
       }
       if (expectedCount.documentsByCollection !== undefined) {
@@ -1213,40 +1221,40 @@ function genericLocalStoreTests(
     const firstQuery = query('foo');
     const secondQuery = query('foo', filter('matches', '==', true));
 
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(firstQuery)
-        .toReturnTargetId(2)
-        .after(
-          docAddedRemoteEvent(
-            [
-              doc('foo/bar', 10, { matches: true }),
-              doc('foo/baz', 20, { matches: true })
-            ],
-            [2]
-          )
+    return expectLocalStore()
+      .afterAllocatingQuery(firstQuery)
+      .toReturnTargetId(2)
+      .after(
+        docAddedRemoteEvent(
+          [
+            doc('foo/bar', 10, { matches: true }),
+            doc('foo/baz', 20, { matches: true })
+          ],
+          [2]
         )
-        .toReturnChanged(
-          doc('foo/bar', 10, { matches: true }),
-          doc('foo/baz', 20, { matches: true })
-        )
-        .after(setMutation('foo/bonk', { matches: true }))
-        .toReturnChanged(
-          doc('foo/bonk', 0, { matches: true }).setHasLocalMutations()
-        )
-        .afterAllocatingQuery(secondQuery)
-        .toReturnTargetId(4)
-        .afterExecutingQuery(secondQuery)
-        .toReturnChanged(
-          doc('foo/bar', 10, { matches: true }),
-          doc('foo/baz', 20, { matches: true }),
-          doc('foo/bonk', 0, { matches: true }).setHasLocalMutations()
-        )
-        // TODO(overlays): implement overlaysReadByKey and overlaysReadByCollection
-        // No mutations are read because only overlay is needed.
-        .toHaveRead({ documentsByCollection: 2, mutationsByCollection: 0 })
-        .finish()
-    );
+      )
+      .toReturnChanged(
+        doc('foo/bar', 10, { matches: true }),
+        doc('foo/baz', 20, { matches: true })
+      )
+      .after(setMutation('foo/bonk', { matches: true }))
+      .toReturnChanged(
+        doc('foo/bonk', 0, { matches: true }).setHasLocalMutations()
+      )
+      .afterAllocatingQuery(secondQuery)
+      .toReturnTargetId(4)
+      .afterExecutingQuery(secondQuery)
+      .toReturnChanged(
+        doc('foo/bar', 10, { matches: true }),
+        doc('foo/baz', 20, { matches: true }),
+        doc('foo/bonk', 0, { matches: true }).setHasLocalMutations()
+      )
+      .toHaveRead({
+        documentsByCollection: 2,
+        overlaysByCollection: 1,
+        overlayTypes: { [key('foo/bonk').toString()]: MutationType.Set }
+      })
+      .finish();
   });
 
   // eslint-disable-next-line no-restricted-properties
@@ -1994,6 +2002,22 @@ function genericLocalStoreTests(
       .toContain(
         doc('foo/bar', 1, { 'likes': 1, 'stars': 2 }).setHasLocalMutations()
       )
+      .finish();
+  });
+
+  it('update on remote doc leads to update overlay', () => {
+    expect(new Map([['a', 1]])).to.deep.equal(new Map([['a', 0]]));
+    return expectLocalStore()
+      .afterAllocatingQuery(query('foo'))
+      .afterRemoteEvent(docUpdateRemoteEvent(doc('foo/baz', 10, { a: 1 }), [2]))
+      .afterRemoteEvent(docUpdateRemoteEvent(doc('foo/bar', 20, {}), [2]))
+      .afterMutations([patchMutation('foo/baz', { b: 2 })])
+      .afterExecutingQuery(query('foo'))
+      .toHaveRead({
+        documentsByCollection: 2,
+        overlaysByCollection: 1,
+        overlayTypes: { [key('foo/baz').toString()]: MutationType.Patch }
+      })
       .finish();
   });
 

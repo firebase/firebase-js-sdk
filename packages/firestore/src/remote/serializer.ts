@@ -1012,6 +1012,7 @@ export function toTarget(
 
   if (targetData.resumeToken.approximateByteSize() > 0) {
     result.resumeToken = toBytes(serializer, targetData.resumeToken);
+    result.expectedCount = targetData.expectedCount ?? undefined;
   } else if (targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0) {
     // TODO(wuandy): Consider removing above check because it is most likely true.
     // Right now, many tests depend on this behaviour though (leaving min() out
@@ -1020,6 +1021,7 @@ export function toTarget(
       serializer,
       targetData.snapshotVersion.toTimestamp()
     );
+    result.expectedCount = targetData.expectedCount ?? undefined;
   }
 
   return result;

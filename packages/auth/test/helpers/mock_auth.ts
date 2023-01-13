@@ -71,7 +71,8 @@ export class MockPersistenceLayer extends InMemoryPersistence {
 
 export async function testAuth(
   popupRedirectResolver?: PopupRedirectResolver,
-  persistence = new MockPersistenceLayer()
+  persistence = new MockPersistenceLayer(),
+  skipAwaitOnInit?: boolean
 ): Promise<TestAuth> {
   const auth: TestAuth = new AuthImpl(
     FAKE_APP,
@@ -88,7 +89,13 @@ export async function testAuth(
   ) as TestAuth;
   auth._updateErrorMap(debugErrorMap);
 
-  await auth._initializeWithPersistence([persistence], popupRedirectResolver);
+  if (skipAwaitOnInit) {
+    // This is used to verify scenarios where auth flows (like signInWithRedirect) are invoked before auth is fully initialized.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    auth._initializeWithPersistence([persistence], popupRedirectResolver);
+  } else {
+    await auth._initializeWithPersistence([persistence], popupRedirectResolver);
+  }
   auth.persistenceLayer = persistence;
   auth.settings.appVerificationDisabledForTesting = true;
   return auth;

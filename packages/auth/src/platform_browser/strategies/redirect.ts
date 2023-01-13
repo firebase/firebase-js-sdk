@@ -42,6 +42,7 @@ import { getModularInstance } from '@firebase/util';
  *
  * @remarks
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
+ * Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using {@link signInWithRedirect}.
  *
  * @example
  * ```javascript
@@ -91,6 +92,10 @@ export async function _signInWithRedirect(
 ): Promise<void | never> {
   const authInternal = _castAuth(auth);
   _assertInstanceOf(auth, provider, FederatedAuthProvider);
+  // Wait for auth initialization to complete, this will process pending redirects and clear the
+  // PENDING_REDIRECT_KEY in persistence. This should be completed before starting a new
+  // redirect and creating a PENDING_REDIRECT_KEY entry.
+  await authInternal._initializationPromise;
   const resolverInternal = _withDefaultResolver(authInternal, resolver);
   await _setPendingRedirectStatus(resolverInternal, authInternal);
 
@@ -103,6 +108,9 @@ export async function _signInWithRedirect(
 
 /**
  * Reauthenticates the current user with the specified {@link OAuthProvider} using a full-page redirect flow.
+ * @remarks
+ * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
+ * Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using {@link reauthenticateWithRedirect}.
  *
  * @example
  * ```javascript
@@ -113,8 +121,8 @@ export async function _signInWithRedirect(
  *
  * // After returning from the redirect when your app initializes you can obtain the result
  * const result = await getRedirectResult(auth);
- * // Link using a redirect.
- * await linkWithRedirect(result.user, provider);
+ * // Reauthenticate using a redirect.
+ * await reauthenticateWithRedirect(result.user, provider);
  * // This will again trigger a full page redirect away from your app
  *
  * // After returning from the redirect when your app initializes you can obtain the result
@@ -147,6 +155,10 @@ export async function _reauthenticateWithRedirect(
 ): Promise<void | never> {
   const userInternal = getModularInstance(user) as UserInternal;
   _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
+  // Wait for auth initialization to complete, this will process pending redirects and clear the
+  // PENDING_REDIRECT_KEY in persistence. This should be completed before starting a new
+  // redirect and creating a PENDING_REDIRECT_KEY entry.
+  await userInternal.auth._initializationPromise;
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   await _setPendingRedirectStatus(resolverInternal, userInternal.auth);
@@ -162,6 +174,9 @@ export async function _reauthenticateWithRedirect(
 
 /**
  * Links the {@link OAuthProvider} to the user account using a full-page redirect flow.
+ * @remarks
+ * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
+ * Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using {@link linkWithRedirect}.
  *
  * @example
  * ```javascript
@@ -199,6 +214,10 @@ export async function _linkWithRedirect(
 ): Promise<void | never> {
   const userInternal = getModularInstance(user) as UserInternal;
   _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
+  // Wait for auth initialization to complete, this will process pending redirects and clear the
+  // PENDING_REDIRECT_KEY in persistence. This should be completed before starting a new
+  // redirect and creating a PENDING_REDIRECT_KEY entry.
+  await userInternal.auth._initializationPromise;
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   await _assertLinkedStatus(false, userInternal, provider.providerId);
