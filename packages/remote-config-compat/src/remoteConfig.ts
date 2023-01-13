@@ -35,7 +35,8 @@ import {
   getNumber,
   getString,
   getValue,
-  isSupported
+  isSupported,
+  connectRemoteConfigEmulator
 } from '@firebase/remote-config';
 
 export { isSupported };
@@ -71,6 +72,10 @@ export class RemoteConfigCompatImpl
 
   activate(): Promise<boolean> {
     return activate(this._delegate);
+  }
+
+  useEmulator(url: string): void {
+    connectRemoteConfigEmulator(this._delegate, url);
   }
 
   ensureInitialized(): Promise<void> {
