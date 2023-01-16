@@ -19,7 +19,6 @@
 // yarn build:scripts && node scripts/bloom_filter_watch_test.js
 
 import * as yargs from 'yargs';
-import { assert } from 'chai';
 
 import { newConnection } from '../src/platform/connection';
 import {
@@ -108,7 +107,7 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
     const documentNames1 = Array.from(snapshot1.documentPaths).sort();
     const documentIds1 = documentNames1.map(documentIdFromDocumentPath);
     log(`Got ${documentIds1.length} documents: ${descriptionFromSortedStrings(documentIds1)}`);
-    assert.deepEqual(createdDocumentIds, documentIds1);
+    assertDeepEqual(documentIds1, createdDocumentIds);
 
     log("Removing target from watch stream");
     await watchStream1.removeTarget(1);
@@ -266,9 +265,9 @@ class TargetState {
   private readonly _removedDeferred = new Deferred<void>();
   private readonly _initialSnapshotDeferred = new Deferred<TargetSnapshot>();
 
-  constructor(readonly targetId: number, initialDocumentPaths?: Iterable<string>) {
+  constructor(readonly targetId: number, initialDocumentPaths?: Set<string>) {
     if (initialDocumentPaths) {
-      for (const documentPath of initialDocumentPaths) {
+      for (const documentPath of initialDocumentPaths.values()) {
         this._accumulatedDocumentNames.add(documentPath);
       }
     }
@@ -551,9 +550,9 @@ class WatchStream {
   }
 
   private _onTargetChange(targetChange: TargetChange): void {
-    const targetStates = this._targetStatesForTargetIds(targetChange.targetIds!, true);
+    const targetStates = this._targetStatesForTargetIds(targetChange.targetIds ?? [], true);
     for (const targetState of targetStates) {
-      switch (targetChange.targetChangeType) {
+      switch (targetChange.targetChangeType ?? "NO_CHANGE") {
         case "ADD":
           targetState.onAdded();
           break;
@@ -577,22 +576,22 @@ class WatchStream {
   }
 
   private _onDocumentChange(documentChange: DocumentChange): void {
-    for (const targetState of this._targetStatesForTargetIds(documentChange.targetIds!, true)) {
+    for (const targetState of this._targetStatesForTargetIds(documentChange.targetIds ?? [], true)) {
       targetState.onDocumentChanged(documentChange.document!.name!);
     }
-    for (const targetState of this._targetStatesForTargetIds(documentChange.removedTargetIds!, false)) {
+    for (const targetState of this._targetStatesForTargetIds(documentChange.removedTargetIds ?? [], false)) {
       targetState.onDocumentRemoved(documentChange.document!.name!);
     }
   }
 
   private _onDocumentRemove(documentRemove: DocumentRemove): void {
-    for (const targetState of this._targetStatesForTargetIds(documentRemove.removedTargetIds!, false)) {
+    for (const targetState of this._targetStatesForTargetIds(documentRemove.removedTargetIds ?? [], false)) {
       targetState.onDocumentRemoved(documentRemove.document!);
     }
   }
 
   private _onDocumentDelete(documentDelete: DocumentDelete): void {
-    for (const targetState of this._targetStatesForTargetIds(documentDelete.removedTargetIds!, false)) {
+    for (const targetState of this._targetStatesForTargetIds(documentDelete.removedTargetIds ?? [], false)) {
       targetState.onDocumentRemoved(documentDelete.document!);
     }
   }
@@ -693,6 +692,21 @@ function descriptionFromSortedStrings(sortedStrings: Array<string>): string {
     return `${sortedStrings[0]} and ${sortedStrings[1]}`;
   }
   return `${sortedStrings[0]} ... ${sortedStrings[sortedStrings.length-1]}`;
+}
+
+class AssertDeepEqualError extends Error {
+  name = "AssertDeepEqualError";
+}
+
+function assertDeepEqual<T>(actual: Array<T>, expected: Array<T>): void {
+  if (actual.length !== expected.length) {
+    throw new AssertDeepEqualError(`expected length ${expected.length}, but got ${actual.length}`);
+  }
+  for (let i=0; i<actual.length; i++) {
+    if (actual[i] !== expected[i]) {
+      throw new AssertDeepEqualError(`incorrect element at index ${i}: ${actual[i]} (expected ${expected[i]}`);
+    }
+  }
 }
 
 main();
