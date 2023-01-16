@@ -17,19 +17,22 @@
 
 import { deepEqual } from '@firebase/util';
 
-import { CountQueryRunner } from '../core/count_query_runner';
+import { AggregateImpl } from '../core/aggregate';
+import { ObjectValue } from '../model/object_value';
+import { invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { cast } from '../util/input_validation';
+import { mapToArray } from '../util/obj';
 
 import {
   AggregateField,
   AggregateQuerySnapshot,
-  AggregateSpec,
+  AggregateSpec
 } from './aggregate_types';
 import { getDatastore } from './components';
 import { Firestore } from './database';
+import { FieldPath } from './field_path';
 import { Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
-import {FieldPath} from "./field_path";
 
 /**
  * Calculates the number of documents in the result set of the given query,
@@ -50,8 +53,31 @@ export function getCount(
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const firestore = cast(query.firestore, Firestore);
   const datastore = getDatastore(firestore);
-  const userDataWriter = new LiteUserDataWriter(firestore);
-  return new CountQueryRunner(query, datastore, userDataWriter).run();
+
+  const countQuerySpec: { count: AggregateField<number> } = {
+    count: count()
+  };
+
+  const internalAggregates = mapToArray(countQuerySpec, (aggregate, alias) => {
+    return new AggregateImpl(
+      alias,
+      aggregate.aggregateType,
+      aggregate._internalFieldPath
+    );
+  });
+
+  return invokeRunAggregationQueryRpc(
+    datastore,
+    query._query,
+    internalAggregates
+  ).then(aggregateResult =>
+    convertToAggregateQuerySnapshot(
+      firestore,
+      query,
+      countQuerySpec,
+      aggregateResult
+    )
+  );
 }
 
 /**
@@ -59,29 +85,49 @@ export function getCount(
  * @param query
  * @param aggregates
  */
-export function getAggregateFromServer<T extends AggregateSpec>(
+export function getAggregate<T extends AggregateSpec>(
   query: Query<unknown>,
-  aggregates: T
+  aggregateSpec: T
 ): Promise<AggregateQuerySnapshot<T>> {
+  const firestore = cast(query.firestore, Firestore);
+  const datastore = getDatastore(firestore);
 
-  return new Promise(resolve => {
-    const data: any = {};
-    for (const key in aggregates) {
-      const field = aggregates[key];
-      switch (field.aggregateType) {
-        case "count":
-          data[key] = 1;
-          break;
-        case "sum":
-          data[key] = 1;
-          break;
-        case "average":
-          data[key] = 1;
-          break;
-      }
-    }
-    resolve(new AggregateQuerySnapshot(query, data))
-  })
+  const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
+    return new AggregateImpl(
+      alias,
+      aggregate.aggregateType,
+      aggregate._internalFieldPath
+    );
+  });
+
+  return invokeRunAggregationQueryRpc(
+    datastore,
+    query._query,
+    internalAggregates
+  ).then(aggregateResult =>
+    convertToAggregateQuerySnapshot(
+      firestore,
+      query,
+      aggregateSpec,
+      aggregateResult
+    )
+  );
+}
+
+function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
+  firestore: Firestore,
+  query: Query<unknown>,
+  ref: T,
+  aggregateResult: ObjectValue
+): AggregateQuerySnapshot<T> {
+  const userDataWriter = new LiteUserDataWriter(firestore);
+  const querySnapshot = new AggregateQuerySnapshot<T>(
+    query,
+    firestore,
+    userDataWriter,
+    aggregateResult
+  );
+  return querySnapshot;
 }
 
 /**
@@ -89,22 +135,24 @@ export function getAggregateFromServer<T extends AggregateSpec>(
  * @param field
  */
 export function sum(field: string | FieldPath): AggregateField<number> {
-  return new AggregateField('sum', field);
+  return new AggregateField('sum', 'sum', field);
 }
 
 /**
  * TODO
  * @param field
  */
-export function average(field: string | FieldPath): AggregateField<number | null> {
-  return new AggregateField('average', field);
+export function average(
+  field: string | FieldPath
+): AggregateField<number | null> {
+  return new AggregateField('avg', 'average', field);
 }
 
 /**
  * TODO
  */
 export function count(): AggregateField<number> {
-  return new AggregateField('count');
+  return new AggregateField('count', 'count');
 }
 
 /**
@@ -117,10 +165,13 @@ export function aggregateFieldEqual(
   left: AggregateField<unknown>,
   right: AggregateField<unknown>
 ): boolean {
-  return left instanceof AggregateField &&
+  return (
+    left instanceof AggregateField &&
     right instanceof AggregateField &&
-    left.field == right.field &&
-    left.aggregateType == right.aggregateType;
+    left._internalFieldPath?.canonicalString() ===
+      right._internalFieldPath?.canonicalString() &&
+    left.aggregateType === right.aggregateType
+  );
 }
 
 /**

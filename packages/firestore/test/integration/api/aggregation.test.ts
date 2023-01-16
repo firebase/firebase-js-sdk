@@ -24,11 +24,13 @@ import {
   doc,
   DocumentData,
   getCountFromServer,
+  getAggregateFromServer,
   query,
   QueryDocumentSnapshot,
   terminate,
   where,
-  writeBatch
+  writeBatch,
+  count
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -115,7 +117,7 @@ apiDescribe('Count quries', (persistence: boolean) => {
     return withEmptyTestCollection(persistence, async (coll, firestore) => {
       await disableNetwork(firestore);
       await expect(getCountFromServer(coll)).to.be.eventually.rejectedWith(
-        'Failed to get count result because the client is offline'
+        'Failed to get aggregate result because the client is offline'
       );
     });
   });
@@ -134,6 +136,143 @@ apiDescribe('Count quries', (persistence: boolean) => {
           where('key2', '<', 42)
         );
         await expect(getCountFromServer(query_)).to.be.eventually.rejectedWith(
+          /index.*https:\/\/console\.firebase\.google\.com/
+        );
+      });
+    }
+  );
+});
+
+// TODO(sum/avg) update this with sum and average when it is supported by the emulator
+apiDescribe('Aggregation quries', (persistence: boolean) => {
+  it('can run count query getAggregationFromServer', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA' },
+      b: { author: 'authorB', title: 'titleB' }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await getAggregateFromServer(coll, {
+        count: count()
+      });
+      expect(snapshot.data().count).to.equal(2);
+    });
+  });
+
+  it('can alias aggrregations using getAggregationFromServer', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA' },
+      b: { author: 'authorB', title: 'titleB' }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await getAggregateFromServer(coll, {
+        foo: count()
+      });
+      expect(snapshot.data().foo).to.equal(2);
+    });
+  });
+
+  it('can get duplicate aggregations using getAggregationFromServer', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA' },
+      b: { author: 'authorB', title: 'titleB' }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await getAggregateFromServer(coll, {
+        count: count(),
+        foo: count()
+      });
+      expect(snapshot.data().foo).to.equal(2);
+      expect(snapshot.data().count).to.equal(2);
+    });
+  });
+
+  it("getAggregationFromServer doesn't use converter", () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA' },
+      b: { author: 'authorB', title: 'titleB' }
+    };
+    const throwingConverter = {
+      toFirestore(obj: never): DocumentData {
+        throw new Error('should never be called');
+      },
+      fromFirestore(snapshot: QueryDocumentSnapshot): never {
+        throw new Error('should never be called');
+      }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      const query_ = query(
+        coll,
+        where('author', '==', 'authorA')
+      ).withConverter(throwingConverter);
+      const snapshot = await getAggregateFromServer(query_, { count: count() });
+      expect(snapshot.data().count).to.equal(1);
+    });
+  });
+
+  it('aggregate query supports collection groups', () => {
+    return withTestDb(persistence, async db => {
+      const collectionGroupId = doc(collection(db, 'aggregateQueryTest')).id;
+      const docPaths = [
+        `${collectionGroupId}/cg-doc1`,
+        `abc/123/${collectionGroupId}/cg-doc2`,
+        `zzz${collectionGroupId}/cg-doc3`,
+        `abc/123/zzz${collectionGroupId}/cg-doc4`,
+        `abc/123/zzz/${collectionGroupId}`
+      ];
+      const batch = writeBatch(db);
+      for (const docPath of docPaths) {
+        batch.set(doc(db, docPath), { x: 1 });
+      }
+      await batch.commit();
+      const snapshot = await getAggregateFromServer(
+        collectionGroup(db, collectionGroupId),
+        { count: count() }
+      );
+      expect(snapshot.data().count).to.equal(2);
+    });
+  });
+
+  it('getAggregateFromServer fails if firestore is terminated', () => {
+    return withEmptyTestCollection(persistence, async (coll, firestore) => {
+      await terminate(firestore);
+      expect(() => getAggregateFromServer(coll, { count: count() })).to.throw(
+        'The client has already been terminated.'
+      );
+    });
+  });
+
+  it("terminate doesn't crash when there is aggregate query in flight", () => {
+    return withEmptyTestCollection(persistence, async (coll, firestore) => {
+      void getAggregateFromServer(coll, { count: count() });
+      await terminate(firestore);
+    });
+  });
+
+  it('getAggregateFromServer fails if user is offline', () => {
+    return withEmptyTestCollection(persistence, async (coll, firestore) => {
+      await disableNetwork(firestore);
+      await expect(getCountFromServer(coll)).to.be.eventually.rejectedWith(
+        'Failed to get aggregate result because the client is offline'
+      );
+    });
+  });
+
+  // Only verify the error message for missing indexes when running against
+  // production, since the Firestore Emulator does not require index creation
+  // and will, therefore, never fail in this situation.
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'getAggregateFromServer error message is good if missing index',
+    () => {
+      return withEmptyTestCollection(persistence, async coll => {
+        const query_ = query(
+          coll,
+          where('key1', '==', 42),
+          where('key2', '<', 42)
+        );
+        await expect(
+          getAggregateFromServer(query_, { count: count() })
+        ).to.be.eventually.rejectedWith(
           /index.*https:\/\/console\.firebase\.google\.com/
         );
       });

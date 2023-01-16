@@ -15,18 +15,27 @@
  * limitations under the License.
  */
 
-import { Query } from '../api';
-import { firestoreClientRunCountQuery } from '../core/firestore_client';
+import { AggregateSpec, Query } from '../api';
+import { AggregateImpl } from '../core/aggregate';
+import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
+import { count } from '../lite-api/aggregate';
 import {
   AggregateField,
   AggregateQuerySnapshot
 } from '../lite-api/aggregate_types';
+import { ObjectValue } from '../model/object_value';
 import { cast } from '../util/input_validation';
+import { mapToArray } from '../util/obj';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { ExpUserDataWriter } from './reference_impl';
 
-export { aggregateQuerySnapshotEqual } from '../lite-api/aggregate';
+export {
+  aggregateQuerySnapshotEqual,
+  count,
+  sum,
+  average
+} from '../lite-api/aggregate';
 
 /**
  * Calculates the number of documents in the result set of the given query,
@@ -54,6 +63,79 @@ export function getCountFromServer(
 ): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
+
+  const countQuerySpec: { count: AggregateField<number> } = {
+    count: count()
+  };
+
+  const internalAggregates = mapToArray(countQuerySpec, (aggregate, alias) => {
+    return new AggregateImpl(
+      alias,
+      aggregate.aggregateType,
+      aggregate._internalFieldPath
+    );
+  });
+
+  return firestoreClientRunAggregateQuery(
+    client,
+    query._query,
+    internalAggregates
+  ).then(aggregateResult =>
+    convertToAggregateQuerySnapshot(
+      firestore,
+      query,
+      countQuerySpec,
+      aggregateResult
+    )
+  );
+}
+
+/**
+ * TODO
+ * @param query
+ * @param aggregateSpec
+ */
+export function getAggregateFromServer<T extends AggregateSpec>(
+  query: Query<unknown>,
+  aggregateSpec: T
+): Promise<AggregateQuerySnapshot<T>> {
+  const firestore = cast(query.firestore, Firestore);
+  const client = ensureFirestoreConfigured(firestore);
+
+  const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
+    return new AggregateImpl(
+      alias,
+      aggregate.aggregateType,
+      aggregate._internalFieldPath
+    );
+  });
+
+  return firestoreClientRunAggregateQuery(
+    client,
+    query._query,
+    internalAggregates
+  ).then(aggregateResult =>
+    convertToAggregateQuerySnapshot(
+      firestore,
+      query,
+      aggregateSpec,
+      aggregateResult
+    )
+  );
+}
+
+function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
+  firestore: Firestore,
+  query: Query<unknown>,
+  ref: T,
+  aggregateResult: ObjectValue
+): AggregateQuerySnapshot<T> {
   const userDataWriter = new ExpUserDataWriter(firestore);
-  return firestoreClientRunCountQuery(client, query, userDataWriter);
+  const querySnapshot = new AggregateQuerySnapshot<T>(
+    query,
+    firestore,
+    userDataWriter,
+    aggregateResult
+  );
+  return querySnapshot;
 }

@@ -42,6 +42,19 @@ export function forEach<V>(
   }
 }
 
+export function mapToArray<V, R>(
+  obj: Dict<V>,
+  fn: (element: V, key: string, obj: Dict<V>) => R
+): R[] {
+  const result: R[] = [];
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      result.push(fn(obj[key], key, obj));
+    }
+  }
+  return result;
+}
+
 export function isEmpty<V>(obj: Dict<V>): boolean {
   debugAssert(
     obj != null && typeof obj === 'object',

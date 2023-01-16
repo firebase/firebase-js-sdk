@@ -17,7 +17,11 @@
 
 export {
   aggregateQuerySnapshotEqual,
-  getCountFromServer
+  getCountFromServer,
+  getAggregateFromServer,
+  count,
+  sum,
+  average
 } from './api/aggregate';
 
 export {
