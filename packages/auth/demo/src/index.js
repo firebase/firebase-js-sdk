@@ -1812,6 +1812,27 @@ function initApp() {
   },
   onAuthError);
 
+  // Try sign in with redirect once upon page load, not on subsequent loads.
+  // This will demonstrate the behavior when signInWithRedirect is called before
+  // auth is fully initialized. This will fail on firebase/auth versions 0.21.0 and lower
+  // due to https://github.com/firebase/firebase-js-sdk/issues/6827
+  /*
+  if (sessionStorage.getItem('redirect-race-test') !== 'done') {
+    console.log('Starting redirect sign in upon page load.');
+    try {
+      sessionStorage.setItem('redirect-race-test', 'done');
+      signInWithRedirect(
+        auth,
+        new GoogleAuthProvider(),
+        browserPopupRedirectResolver
+      ).catch(onAuthError);
+    } catch (error) {
+      console.log('Error while calling signInWithRedirect');
+      console.error(error);
+    }
+  }
+  */
+
   // Bootstrap tooltips.
   $('[data-toggle="tooltip"]').tooltip();
 

@@ -18,7 +18,7 @@ jobs:
         run: |
           export VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
           export VERSION=`node -e "${VERSION_SCRIPT}"`
-          echo "::set-output name=RELEASE_VERSION::$VERSION"
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_OUTPUT
       - name: Echo version in shell
         run: |
           echo "Merging release ${{ steps.get-version.outputs.RELEASE_VERSION }}"
