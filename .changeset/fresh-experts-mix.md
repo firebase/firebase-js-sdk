@@ -3,4 +3,4 @@
 "@firebase/database": patch
 ---
 
-Fixed issue where hostname set by `useEmulator` was being overridden by longpolling response
+Fixed issue where hostname set by `connectDatabaseEmulator` was being overridden by longpolling response
