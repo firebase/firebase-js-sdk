@@ -17,7 +17,10 @@
 
 import { FieldPath } from '../model/path';
 
-type AggregateType = 'count' | 'avg' | 'sum';
+/**
+ * Union type representing the aggregate type to be performed.
+ */
+export type AggregateType = 'count' | 'avg' | 'sum';
 
 /**
  * TODO

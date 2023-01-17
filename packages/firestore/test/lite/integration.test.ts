@@ -2701,9 +2701,11 @@ describe('Aggregate quries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(getAggregate(query_, {
-          myCount: count()
-        })).to.be.eventually.rejectedWith(
+        await expect(
+          getAggregate(query_, {
+            myCount: count()
+          })
+        ).to.be.eventually.rejectedWith(
           /index.*https:\/\/console\.firebase\.google\.com/
         );
       });

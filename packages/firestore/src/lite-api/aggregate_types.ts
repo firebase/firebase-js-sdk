@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { AggregateType } from '../core/aggregate';
 import { ObjectValue } from '../model/object_value';
 import { FieldPath as InternalFieldPath } from '../model/path';
 
@@ -28,7 +29,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
 /**
  * Union type representing the aggregate type to be performed.
  */
-export type AggregateType = 'avg' | 'count' | 'sum';
+export { AggregateType };
 
 /**
  * Represents an aggregation that can be performed by Firestore.
@@ -51,7 +52,7 @@ export class AggregateField<R> {
    */
   constructor(
     public readonly aggregateType: AggregateType = 'count',
-    methodName: string,
+    methodName: string = 'new AggregateField',
     field?: string | FieldPath
   ) {
     if (field !== undefined) {
@@ -74,6 +75,12 @@ export type AggregateFieldType =
 export interface AggregateSpec {
   [field: string]: AggregateFieldType;
 }
+
+/**
+ * Helper AggregateSpec for count.
+ * @internal
+ */
+export interface CountAggregateSpec { count: AggregateField<number> }
 
 /**
  * A type whose keys are taken from an `AggregateSpec`, and whose values are the

@@ -20,8 +20,8 @@ import { AggregateImpl } from '../core/aggregate';
 import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
 import { count } from '../lite-api/aggregate';
 import {
-  AggregateField,
-  AggregateQuerySnapshot
+  AggregateQuerySnapshot,
+  CountAggregateSpec
 } from '../lite-api/aggregate_types';
 import { ObjectValue } from '../model/object_value';
 import { cast } from '../util/input_validation';
@@ -60,34 +60,12 @@ export {
  */
 export function getCountFromServer(
   query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
-  const firestore = cast(query.firestore, Firestore);
-  const client = ensureFirestoreConfigured(firestore);
-
-  const countQuerySpec: { count: AggregateField<number> } = {
+): Promise<AggregateQuerySnapshot<CountAggregateSpec>> {
+  const countQuerySpec: CountAggregateSpec = {
     count: count()
   };
 
-  const internalAggregates = mapToArray(countQuerySpec, (aggregate, alias) => {
-    return new AggregateImpl(
-      alias,
-      aggregate.aggregateType,
-      aggregate._internalFieldPath
-    );
-  });
-
-  return firestoreClientRunAggregateQuery(
-    client,
-    query._query,
-    internalAggregates
-  ).then(aggregateResult =>
-    convertToAggregateQuerySnapshot(
-      firestore,
-      query,
-      countQuerySpec,
-      aggregateResult
-    )
-  );
+  return getAggregateFromServer(query, countQuerySpec);
 }
 
 /**
