@@ -15,14 +15,11 @@
  * limitations under the License.
  */
 
-import { AggregateSpec, Query } from '../api';
+import { AggregateField, AggregateSpec, Query } from '../api';
 import { AggregateImpl } from '../core/aggregate';
 import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
 import { count } from '../lite-api/aggregate';
-import {
-  AggregateQuerySnapshot,
-  CountAggregateSpec
-} from '../lite-api/aggregate_types';
+import { AggregateQuerySnapshot } from '../lite-api/aggregate_types';
 import { ObjectValue } from '../model/object_value';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
@@ -60,8 +57,8 @@ export {
  */
 export function getCountFromServer(
   query: Query<unknown>
-): Promise<AggregateQuerySnapshot<CountAggregateSpec>> {
-  const countQuerySpec: CountAggregateSpec = {
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const countQuerySpec: { count: AggregateField<number> } = {
     count: count()
   };
 

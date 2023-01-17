@@ -77,12 +77,6 @@ export interface AggregateSpec {
 }
 
 /**
- * Helper AggregateSpec for count.
- * @internal
- */
-export interface CountAggregateSpec { count: AggregateField<number> }
-
-/**
  * A type whose keys are taken from an `AggregateSpec`, and whose values are the
  * result of the aggregation performed by the corresponding `AggregateField`
  * from the input `AggregateSpec`.

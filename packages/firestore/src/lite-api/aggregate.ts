@@ -26,8 +26,7 @@ import { mapToArray } from '../util/obj';
 import {
   AggregateField,
   AggregateQuerySnapshot,
-  AggregateSpec,
-  CountAggregateSpec
+  AggregateSpec
 } from './aggregate_types';
 import { getDatastore } from './components';
 import { Firestore } from './database';
@@ -51,8 +50,8 @@ import { LiteUserDataWriter } from './reference_impl';
  */
 export function getCount(
   query: Query<unknown>
-): Promise<AggregateQuerySnapshot<CountAggregateSpec>> {
-  const countQuerySpec: CountAggregateSpec = {
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const countQuerySpec: { count: AggregateField<number> } = {
     count: count()
   };
 

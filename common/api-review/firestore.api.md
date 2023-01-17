@@ -19,7 +19,7 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 
 // @public
 export class AggregateField<R> {
-    constructor(aggregateType: AggregateType, methodName: string, field?: string | FieldPath);
+    constructor(aggregateType?: AggregateType, methodName?: string, field?: string | FieldPath);
     // (undocumented)
     readonly aggregateType: AggregateType;
     readonly type = "AggregateField";
@@ -50,7 +50,7 @@ export type AggregateSpecData<T extends AggregateSpec> = {
 };
 
 // @public
-export type AggregateType = 'avg' | 'count' | 'sum';
+export type AggregateType = 'count' | 'avg' | 'sum';
 
 // @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
