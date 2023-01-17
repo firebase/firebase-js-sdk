@@ -346,6 +346,7 @@ export class Connection {
           })
         };
         if (this.repoInfo_.isUsingEmulator) {
+          // Upon connecting, the emulator will pass the hostname that it's aware of, but we prefer the user's set hostname via `connectDatabaseEmulator` over what the emulator passes.
           handshakePayload.h = this.repoInfo_.host;
         }
         this.onHandshake_(handshakePayload);
