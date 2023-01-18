@@ -123,7 +123,10 @@ describe('Database@exp Tests', () => {
 
   it('Cleans up the tags after get request query', async () => {
     const db = getDatabase(defaultApp);
-    const myQuery = query(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`),limitToFirst(1));
+    const myQuery = query(
+      refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`),
+      limitToFirst(1)
+    );
     const tag = syncTreeTagForQuery(myQuery._repo.serverSyncTree_, myQuery);
     await get(myQuery);
     expect(myQuery._repo.serverSyncTree_.tagToQueryMap.has(tag)).to.be.false;
