@@ -199,7 +199,7 @@ describe('Database@exp Tests', () => {
   });
 
   // Tests to make sure onValue's data does not get mutated after calling get
-  it.only('calls onValue only once after get request with a non-default query', async () => {
+  it('calls onValue only once after get request with a non-default query', async () => {
     const { readerRef } = getRWRefs(getDatabase(defaultApp));
     const queries = [
       query(readerRef, limitToFirst(1)),
