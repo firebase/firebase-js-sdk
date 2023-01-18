@@ -86,19 +86,15 @@ describe('BloomFilter', () => {
 
   it('mightContain in empty bloom filter should always return false', () => {
     const bloomFilter = new BloomFilter(new Uint8Array(0), 0, 0);
+    expect(bloomFilter.mightContain('')).to.be.false;
     expect(bloomFilter.mightContain('abc')).to.be.false;
-    expect(bloomFilter.mightContain('def')).to.be.false;
   });
 
-  it('mightContain should always return false for empty string', () => {
-    const emptyBloomFilter = new BloomFilter(new Uint8Array(0), 0, 0);
-    const nonEmptyBloomFilter = new BloomFilter(
-      new Uint8Array([255, 255, 255]),
-      1,
-      16
-    );
-    expect(emptyBloomFilter.mightContain('')).to.be.false;
-    expect(nonEmptyBloomFilter.mightContain('')).to.be.false;
+  it('mightContain on empty string might return false positive result ', () => {
+    const bloomFilter1 = new BloomFilter(new Uint8Array([1]), 1, 1);
+    const bloomFilter2 = new BloomFilter(new Uint8Array([255]), 0, 16);
+    expect(bloomFilter1.mightContain('')).to.be.false;
+    expect(bloomFilter2.mightContain('')).to.be.true;
   });
 
   /**
