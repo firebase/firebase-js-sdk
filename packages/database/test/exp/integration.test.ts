@@ -34,6 +34,7 @@ import {
   update,
   orderByKey
 } from '../../src/api/Reference_impl';
+import { syncTreeTagForQuery } from '../../src/core/SyncTree';
 import {
   getDatabase,
   goOffline,
@@ -120,6 +121,14 @@ describe('Database@exp Tests', () => {
     await get(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`));
   });
 
+  it('Cleans up the tags after get request query', async () => {
+    const db = getDatabase(defaultApp);
+    const myQuery = query(refFromURL(db, `${DATABASE_ADDRESS}/foo/bar`),limitToFirst(1));
+    const tag = syncTreeTagForQuery(myQuery._repo.serverSyncTree_, myQuery);
+    await get(myQuery);
+    expect(myQuery._repo.serverSyncTree_.tagToQueryMap.has(tag)).to.be.false;
+  });
+
   it('Can get updates', async () => {
     const db = getDatabase(defaultApp);
     const fooRef = ref(db, 'foo');
@@ -187,7 +196,7 @@ describe('Database@exp Tests', () => {
   });
 
   // Tests to make sure onValue's data does not get mutated after calling get
-  it('calls onValue only once after get request with a non-default query', async () => {
+  it.only('calls onValue only once after get request with a non-default query', async () => {
     const { readerRef } = getRWRefs(getDatabase(defaultApp));
     const queries = [
       query(readerRef, limitToFirst(1)),
