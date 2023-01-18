@@ -102,9 +102,7 @@ export class BloomFilter {
     if (this.bitCount === 0) {
       return false;
     }
-    console.log("value to Hash:",value)
     const md5HashedValue = getMd5HashValue(value);
-    console.log("Hashed value: ", md5HashedValue)
     const [hash1, hash2] = get64BitUints(md5HashedValue);
     for (let i = 0; i < this.hashCount; i++) {
       const index = this.getBitIndex(hash1, hash2, i);
