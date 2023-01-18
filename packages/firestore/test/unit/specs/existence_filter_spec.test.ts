@@ -274,9 +274,9 @@ describeSpec('Existence Filters:', [], () => {
           // BloomFilter identify docB is deleted, skip full query and put docB
           // into limbo directly.
           .expectEvents(query1, { fromCache: true })
-          .expectLimboDocs(docB.key) // docB is now in limbo.
+          .expectLimboDocs(docB.key) // DocB is now in limbo.
           .ackLimbo(2000, deletedDoc('collection/b', 2000))
-          .expectLimboDocs() // docB is no longer in limbo
+          .expectLimboDocs() // DocB is no longer in limbo.
           .expectEvents(query1, {
             removed: [docB]
           })
@@ -312,7 +312,7 @@ describeSpec('Existence Filters:', [], () => {
           .expectActiveTargets({ query: query1, resumeToken: '' })
           .watchRemoves(query1) // Acks removal of query.
           .watchAcksFull(query1, 2000, docA)
-          .expectLimboDocs(docB.key, docC.key) // docB, docC are now in limbo.
+          .expectLimboDocs(docB.key, docC.key) // DocB, docC are now in limbo.
           .ackLimbo(2001, deletedDoc('collection/b', 2001))
           .expectEvents(query1, {
             removed: [docB],
@@ -349,16 +349,16 @@ describeSpec('Existence Filters:', [], () => {
           // DocB is deleted in the next sync.
           .watchFilters([query1], [docA.key], bloomFilterProto)
           .watchSnapshots(2000)
-          // BloomFilter identify docB is deleted, skip full query and put docB
-          // into limbo directly.
+          // BloomFilter identifies docB is deleted, skip full query and put
+          // docB into limbo directly.
           .expectEvents(query1, { fromCache: true })
-          .expectLimboDocs(docB.key) // docB is now in limbo.
+          .expectLimboDocs(docB.key) // DocB is now in limbo.
       );
     }
   );
 
   specTest(
-    'Bloom filter will fill in default value 0 for padding and hashCount',
+    'Bloom filter fills in default values for undefined padding and hashCount',
     [],
     () => {
       const query1 = query('collection');
@@ -458,7 +458,7 @@ describeSpec('Existence Filters:', [], () => {
     );
   });
 
-  specTest('Same docs can have different bloom filters', [], () => {
+  specTest('Same documents can have different bloom filters', [], () => {
     const query1 = query('collection', filter('v', '<=', 2));
     const query2 = query('collection', filter('v', '>=', 2));
 
@@ -493,18 +493,18 @@ describeSpec('Existence Filters:', [], () => {
         .watchSnapshots(2000)
         // BloomFilter identify docA is deleted, skip full query.
         .expectEvents(query1, { fromCache: true })
-        .expectLimboDocs(docA.key) // docA is now in limbo.
+        .expectLimboDocs(docA.key) // DocA is now in limbo.
 
         // DocC is deleted in the next sync for query2.
         .watchFilters([query2], [docB.key], bloomFilterProto2)
         .watchSnapshots(3000)
         // BloomFilter identify docC is deleted, skip full query.
         .expectEvents(query2, { fromCache: true })
-        .expectLimboDocs(docA.key, docC.key) // docC is now in limbo.
+        .expectLimboDocs(docA.key, docC.key) // DocC is now in limbo.
     );
   });
 
-  specTest('Bloom filter handled at global snapshot', [], () => {
+  specTest('Bloom filter is handled at global snapshot', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { v: 1 });
     const docB = doc('collection/b', 2000, { v: 2 });
@@ -529,7 +529,7 @@ describeSpec('Existence Filters:', [], () => {
         .watchSends({ affects: [query1] }, docC)
         .watchSnapshots(2000)
         .expectEvents(query1, { added: [docC], fromCache: true })
-        // re-run of the query1 is skipped, docB is in limbo.
+        // Re-run of the query1 is skipped, docB is in limbo.
         .expectLimboDocs(docB.key)
     );
   });
@@ -551,12 +551,12 @@ describeSpec('Existence Filters:', [], () => {
       .watchFilters([query1], [docA.key], bloomFilterProto)
       .watchSnapshots(2000)
       .expectEvents(query1, { fromCache: true })
-      .expectLimboDocs(docB.key) // docB is now in limbo.
+      .expectLimboDocs(docB.key) // DocB is now in limbo.
       .watchRemoves(
         newQueryForPath(docB.key.path),
         new RpcError(Code.PERMISSION_DENIED, 'no')
       )
-      .expectLimboDocs() // docB is no longer in limbo.
+      .expectLimboDocs() // DocB is no longer in limbo.
       .expectEvents(query1, {
         removed: [docB]
       });

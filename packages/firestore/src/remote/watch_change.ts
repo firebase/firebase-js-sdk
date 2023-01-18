@@ -431,7 +431,7 @@ export class WatchChangeAggregator {
     }
   }
 
-  /** Returns wheather a bloom filter removed the deleted documents successfully. */
+  /** Returns whether a bloom filter removed the deleted documents successfully. */
   private applyBloomFilter(
     existenceFilter: ExistenceFilter,
     targetId: number,
@@ -481,7 +481,7 @@ export class WatchChangeAggregator {
       targetId
     );
 
-    return currentCount - removedDocumentCount === expectedCount;
+    return expectedCount === currentCount - removedDocumentCount;
   }
 
   private isValidBase64String(value: string): boolean {

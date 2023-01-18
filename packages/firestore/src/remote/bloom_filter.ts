@@ -79,9 +79,9 @@ export class BloomFilter {
 
   // Calculate the ith hash value based on the hashed 64bit integers,
   // and calculate its corresponding bit index in the bitmap to be checked.
-  private getBitIndex(num1: Integer, num2: Integer, index: number): number {
+  private getBitIndex(num1: Integer, num2: Integer, hashIndex: number): number {
     // Calculate hashed value h(i) = h1 + (i * h2).
-    let hashValue = num1.add(num2.multiply(Integer.fromNumber(index)));
+    let hashValue = num1.add(num2.multiply(Integer.fromNumber(hashIndex)));
     // Wrap if hash value overflow 64bit.
     if (hashValue.compare(MAX_64_BIT_UNSIGNED_INTEGER) === 1) {
       hashValue = new Integer([hashValue.getBits(0), hashValue.getBits(1)], 0);
@@ -127,10 +127,6 @@ export class BloomFilter {
   }
 
   private insert(value: string): void {
-    if (value === '') {
-      throw new Error('Cannot insert empty string to a bloom filter.');
-    }
-
     if (this.bitCount === 0) {
       return;
     }

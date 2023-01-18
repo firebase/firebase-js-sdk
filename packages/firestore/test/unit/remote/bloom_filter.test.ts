@@ -90,7 +90,7 @@ describe('BloomFilter', () => {
     expect(bloomFilter.mightContain('abc')).to.be.false;
   });
 
-  it('mightContain on empty string might return false positive result ', () => {
+  it('mightContain on empty string might return false positive result', () => {
     const bloomFilter1 = new BloomFilter(new Uint8Array([1]), 1, 1);
     const bloomFilter2 = new BloomFilter(new Uint8Array([255]), 0, 16);
     expect(bloomFilter1.mightContain('')).to.be.false;
