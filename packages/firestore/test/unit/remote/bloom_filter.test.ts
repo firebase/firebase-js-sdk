@@ -24,7 +24,7 @@ import * as TEST_DATA from './bloom_filter_golden_test_data';
 describe('BloomFilter', () => {
   it('can instantiate an empty bloom filter', () => {
     const bloomFilter = new BloomFilter(new Uint8Array(0), 0, 0);
-    expect(bloomFilter.size).to.equal(0);
+    expect(bloomFilter.bitCount).to.equal(0);
   });
 
   it('should throw error if empty bloom filter inputs are invalid', () => {
@@ -46,14 +46,14 @@ describe('BloomFilter', () => {
     const bloomFilter6 = new BloomFilter(new Uint8Array(1), 6, 1);
     const bloomFilter7 = new BloomFilter(new Uint8Array(1), 7, 1);
 
-    expect(bloomFilter0.size).to.equal(8);
-    expect(bloomFilter1.size).to.equal(7);
-    expect(bloomFilter2.size).to.equal(6);
-    expect(bloomFilter3.size).to.equal(5);
-    expect(bloomFilter4.size).to.equal(4);
-    expect(bloomFilter5.size).to.equal(3);
-    expect(bloomFilter6.size).to.equal(2);
-    expect(bloomFilter7.size).to.equal(1);
+    expect(bloomFilter0.bitCount).to.equal(8);
+    expect(bloomFilter1.bitCount).to.equal(7);
+    expect(bloomFilter2.bitCount).to.equal(6);
+    expect(bloomFilter3.bitCount).to.equal(5);
+    expect(bloomFilter4.bitCount).to.equal(4);
+    expect(bloomFilter5.bitCount).to.equal(3);
+    expect(bloomFilter6.bitCount).to.equal(2);
+    expect(bloomFilter7.bitCount).to.equal(1);
   });
 
   it('should throw error if padding is invalid', () => {
@@ -90,7 +90,7 @@ describe('BloomFilter', () => {
     expect(bloomFilter.mightContain('def')).to.be.false;
   });
 
-  it('mightContain should always return false for empty string', () => {
+  it.only('mightContain should always return false for empty string', () => {
     const emptyBloomFilter = new BloomFilter(new Uint8Array(0), 0, 0);
     const nonEmptyBloomFilter = new BloomFilter(
       new Uint8Array([255, 255, 255]),

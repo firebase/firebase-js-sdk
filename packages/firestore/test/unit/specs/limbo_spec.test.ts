@@ -933,8 +933,8 @@ describeSpec('Limbo Documents:', [], () => {
 
       const docBQuery = newQueryForPath(docB.key.path);
       const bloomFilterProto = generateBloomFilterProto({
-        contains: ['collection/a', 'collection/c'],
-        notContains: ['collection/b'],
+        contains: [docA, docC],
+        notContains: [docB],
         numOfBits: 3,
         hashCount: 1
       });

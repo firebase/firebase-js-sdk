@@ -1077,14 +1077,11 @@ export function computeCombinations<T>(input: T[]): T[][] {
 
 /**
  * Helper method to generate bloom filter proto value for mocking watch
- * filter response.
- *
- * If the return value is null, please increase the number of bits and/or
- * hashCount to generate a bloom filter that meets expectation.
+ * existence filter response.
  */
 export function generateBloomFilterProto(config: {
-  contains: string[];
-  notContains: string[];
+  contains: MutableDocument[];
+  notContains: MutableDocument[];
   hashCount: number;
   numOfBits: number;
 }): api.BloomFilter {
@@ -1093,21 +1090,25 @@ export function generateBloomFilterProto(config: {
 
   const { contains, notContains, hashCount, numOfBits } = config;
 
+  if (numOfBits === 0 && contains.length !== 0) {
+    throw new Error('To contain strings, number of bits cannot be 0.');
+  }
   const bloomFilter = BloomFilter.create(
     numOfBits,
     hashCount,
-    contains.map(item => DOCUMENT_PREFIX + item)
+    contains.map(item => DOCUMENT_PREFIX + item.key)
   );
 
   notContains.forEach(item => {
-    if (bloomFilter.mightContain(DOCUMENT_PREFIX + item)) {
+    if (bloomFilter.mightContain(DOCUMENT_PREFIX + item.key)) {
       throw new Error(
-        'Cannot generate desired bloom filter. Please adjust the hashCount and/or number of bits.'
+        'Cannot generate desired bloom filter. Please adjust the hashCount ' +
+          'and/or number of bits.'
       );
     }
   });
   return {
-    bits: { bitmap: bloomFilter.getBitMap(), padding: bloomFilter!.padding },
-    hashCount: bloomFilter!.hashCount
+    bits: { bitmap: bloomFilter.bitmap, padding: bloomFilter.padding },
+    hashCount: bloomFilter.hashCount
   };
 }

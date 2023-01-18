@@ -42,11 +42,11 @@ function get64BitUints(Bytes: Uint8Array): [Integer, Integer] {
 }
 
 export class BloomFilter {
-  readonly size: number;
-  private readonly sizeInInteger: Integer;
+  readonly bitCount: number;
+  private readonly bitCountInInteger: Integer;
 
   constructor(
-    private readonly _bitmap: Uint8Array,
+    readonly bitmap: Uint8Array,
     readonly padding: number,
     readonly hashCount: number
   ) {
@@ -58,12 +58,12 @@ export class BloomFilter {
       throw new BloomFilterError(`Invalid hash count: ${hashCount}`);
     }
 
-    if (_bitmap.length > 0 && this.hashCount === 0) {
+    if (bitmap.length > 0 && this.hashCount === 0) {
       // Only empty bloom filter can have 0 hash count.
       throw new BloomFilterError(`Invalid hash count: ${hashCount}`);
     }
 
-    if (_bitmap.length === 0) {
+    if (bitmap.length === 0) {
       // Empty bloom filter should have 0 padding.
       if (padding !== 0) {
         throw new BloomFilterError(
@@ -72,13 +72,9 @@ export class BloomFilter {
       }
     }
 
-    this.size = _bitmap.length * 8 - padding;
-    // Set the size in Integer to avoid repeated calculation in mightContain().
-    this.sizeInInteger = Integer.fromNumber(this.size);
-  }
-
-  getBitMap(): Uint8Array {
-    return new Uint8Array(this._bitmap);
+    this.bitCount = bitmap.length * 8 - padding;
+    // Set the bit count in Integer to avoid repetition in mightContain().
+    this.bitCountInInteger = Integer.fromNumber(this.bitCount);
   }
 
   // Calculate the ith hash value based on the hashed 64bit integers,
@@ -90,25 +86,25 @@ export class BloomFilter {
     if (hashValue.compare(MAX_64_BIT_UNSIGNED_INTEGER) === 1) {
       hashValue = new Integer([hashValue.getBits(0), hashValue.getBits(1)], 0);
     }
-    return hashValue.modulo(this.sizeInInteger).toNumber();
+    return hashValue.modulo(this.bitCountInInteger).toNumber();
   }
 
   // Return whether the bit on the given index in the bitmap is set to 1.
   private isBitSet(index: number): boolean {
     // To retrieve bit n, calculate: (bitmap[n / 8] & (0x01 << (n % 8))).
-    const byte = this._bitmap[Math.floor(index / 8)];
+    const byte = this.bitmap[Math.floor(index / 8)];
     const offset = index % 8;
     return (byte & (0x01 << offset)) !== 0;
   }
 
   mightContain(value: string): boolean {
-    // Empty bitmap and empty value should always return false on membership
-    // check.
-    if (this.size === 0 || value === '') {
+    // Empty bitmap should always return false on membership check.
+    if (this.bitCount === 0) {
       return false;
     }
-
+    console.log("value to Hash:",value)
     const md5HashedValue = getMd5HashValue(value);
+    console.log("Hashed value: ", md5HashedValue)
     const [hash1, hash2] = get64BitUints(md5HashedValue);
     for (let i = 0; i < this.hashCount; i++) {
       const index = this.getBitIndex(hash1, hash2, i);
@@ -133,7 +129,11 @@ export class BloomFilter {
   }
 
   private insert(value: string): void {
-    if (this.size === 0 || value === '') {
+    if (value === '') {
+      throw new Error('Cannot insert empty string to a bloom filter.');
+    }
+
+    if (this.bitCount === 0) {
       return;
     }
 
@@ -148,7 +148,7 @@ export class BloomFilter {
   private setBit(index: number): void {
     const indexOfByte = Math.floor(index / 8);
     const offset = index % 8;
-    this._bitmap[indexOfByte] |= 0x01 << offset;
+    this.bitmap[indexOfByte] |= 0x01 << offset;
   }
 }
 

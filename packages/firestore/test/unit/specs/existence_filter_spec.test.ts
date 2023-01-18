@@ -251,15 +251,15 @@ describeSpec('Existence Filters:', [], () => {
    * Test existence filter with bloom filter.
    */
   specTest(
-    'Full requery is skipped when bloom filter can identify documents deleted',
+    'Full re-query is skipped when bloom filter can identify documents deleted',
     [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { v: 1 });
       const docB = doc('collection/b', 1000, { v: 2 });
       const bloomFilterProto = generateBloomFilterProto({
-        contains: ['collection/a'],
-        notContains: ['collection/b'],
+        contains: [docA],
+        notContains: [docB],
         numOfBits: 2,
         hashCount: 1
       });
@@ -285,7 +285,7 @@ describeSpec('Existence Filters:', [], () => {
   );
 
   specTest(
-    'Full requery is triggered when bloom filter can not identify documents deleted',
+    'Full re-query is triggered when bloom filter can not identify documents deleted',
     [],
     () => {
       const query1 = query('collection');
@@ -293,8 +293,8 @@ describeSpec('Existence Filters:', [], () => {
       const docB = doc('collection/b', 1000, { v: 2 });
       const docC = doc('collection/c', 1000, { v: 2 });
       const bloomFilterProto = generateBloomFilterProto({
-        contains: ['collection/a', 'collection/b'],
-        notContains: ['collection/c'],
+        contains: [docA, docB],
+        notContains: [docC],
         numOfBits: 3,
         hashCount: 1
       });
@@ -312,7 +312,7 @@ describeSpec('Existence Filters:', [], () => {
           .expectActiveTargets({ query: query1, resumeToken: '' })
           .watchRemoves(query1) // Acks removal of query.
           .watchAcksFull(query1, 2000, docA)
-          .expectLimboDocs(docB.key, docC.key) // docB and docC are now in limbo.
+          .expectLimboDocs(docB.key, docC.key) // docB, docC are now in limbo.
           .ackLimbo(2001, deletedDoc('collection/b', 2001))
           .expectEvents(query1, {
             removed: [docB],
@@ -336,8 +336,8 @@ describeSpec('Existence Filters:', [], () => {
       const docA = doc('collection/ÀÒ∑', 1000, { v: 1 });
       const docB = doc('collection/À∑Ò', 1000, { v: 1 });
       const bloomFilterProto = generateBloomFilterProto({
-        contains: ['collection/ÀÒ∑'],
-        notContains: ['collection/À∑Ò'],
+        contains: [docA],
+        notContains: [docB],
         numOfBits: 2,
         hashCount: 1
       });
@@ -358,7 +358,34 @@ describeSpec('Existence Filters:', [], () => {
   );
 
   specTest(
-    'Full requery is triggered when bloom filter bitmap is invalid',
+    'Bloom filter will fill in default value 0 for padding and hashCount',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 2 });
+
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          // DocB is deleted in the next sync.
+          .watchFilters([query1], [docA.key], {
+            // Bloom filter omitted padding and hashCount. Default value 0 will
+            // be used.
+            bits: { bitmap: 'AQ==' }
+          })
+          .watchSnapshots(2000)
+          // Re-run query is triggered.
+          .expectEvents(query1, { fromCache: true })
+          .expectActiveTargets({ query: query1, resumeToken: '' })
+      );
+    }
+  );
+
+  specTest(
+    'Full re-query is triggered when bloom filter bitmap is invalid',
     [],
     () => {
       const query1 = query('collection');
@@ -372,8 +399,8 @@ describeSpec('Existence Filters:', [], () => {
           .expectEvents(query1, { added: [docA, docB] })
           // DocB is deleted in the next sync.
           .watchFilters([query1], [docA.key], {
-            // Invalid 64base string in bitmap.
-            bits: { bitmap: '*#!', padding: 1 },
+            // Invalid base64 string in bitmap.
+            bits: { bitmap: 'INVALID_BASE_64', padding: 1 },
             hashCount: 1
           })
           .watchSnapshots(2000)
@@ -385,7 +412,7 @@ describeSpec('Existence Filters:', [], () => {
   );
 
   specTest(
-    'Full requery is triggered when bloom filter input is invalid',
+    'Full re-query is triggered when bloom filter input is invalid',
     [],
     () => {
       const query1 = query('collection');
@@ -410,7 +437,7 @@ describeSpec('Existence Filters:', [], () => {
     }
   );
 
-  specTest('Full requery is triggered when bloom filter is empty', [], () => {
+  specTest('Full re-query is triggered when bloom filter is empty', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { v: 1 });
     const docB = doc('collection/b', 1000, { v: 1 });
@@ -440,14 +467,14 @@ describeSpec('Existence Filters:', [], () => {
     const docC = doc('collection/c', 1000, { v: 3 });
 
     const bloomFilterProto1 = generateBloomFilterProto({
-      contains: ['collection/b'],
-      notContains: ['collection/a', 'collection/c'],
+      contains: [docB],
+      notContains: [docA, docC],
       numOfBits: 5,
       hashCount: 1
     });
     const bloomFilterProto2 = generateBloomFilterProto({
-      contains: ['collection/b'],
-      notContains: ['collection/a', 'collection/c'],
+      contains: [docB],
+      notContains: [docA, docC],
       numOfBits: 4,
       hashCount: 1
     });
@@ -484,8 +511,8 @@ describeSpec('Existence Filters:', [], () => {
     const docC = doc('collection/c', 3000, { v: 3 });
 
     const bloomFilterProto = generateBloomFilterProto({
-      contains: ['collection/a'],
-      notContains: ['collection/b'],
+      contains: [docA],
+      notContains: [docB],
       numOfBits: 2,
       hashCount: 1
     });
@@ -512,8 +539,8 @@ describeSpec('Existence Filters:', [], () => {
     const docA = doc('collection/a', 1000, { v: 1 });
     const docB = doc('collection/b', 1000, { v: 1 });
     const bloomFilterProto = generateBloomFilterProto({
-      contains: ['collection/a'],
-      notContains: ['collection/b'],
+      contains: [docA],
+      notContains: [docB],
       numOfBits: 2,
       hashCount: 1
     });
@@ -544,8 +571,8 @@ describeSpec('Existence Filters:', [], () => {
     const docKeys = docs.map(item => item.key);
 
     const bloomFilterProto = generateBloomFilterProto({
-      contains: docKeys.slice(0, 50).map(item => item.toString()),
-      notContains: docKeys.slice(50).map(item => item.toString()),
+      contains: docs.slice(0, 50),
+      notContains: docs.slice(50),
       numOfBits: 1000,
       hashCount: 16
     });
@@ -554,7 +581,7 @@ describeSpec('Existence Filters:', [], () => {
         .userListens(query1)
         .watchAcksFull(query1, 1000, ...docs)
         .expectEvents(query1, { added: docs })
-        // Doc0 to doc50 are deleted in the next sync.
+        // Doc0 to doc49 are deleted in the next sync.
         .watchFilters([query1], docKeys.slice(0, 50), bloomFilterProto)
         .watchSnapshots(2000)
         // BloomFilter correctly identifies docs that deleted, skip full query.

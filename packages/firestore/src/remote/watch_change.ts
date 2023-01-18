@@ -411,8 +411,8 @@ export class WatchChangeAggregator {
         }
       } else {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
-        // Existence filter mismatch. Mark the documents as being in limbo, and raise a
-        // snapshot with `isFromCache:true`.
+        // Existence filter mismatch. Mark the documents as being in limbo, and
+        // raise a snapshot with `isFromCache:true`.
         if (currentSize !== expectedCount) {
           // Apply bloom filter to identify and mark removed documents.
           const bloomFilterApplied = this.applyBloomFilter(
@@ -421,8 +421,8 @@ export class WatchChangeAggregator {
             currentSize
           );
           if (!bloomFilterApplied) {
-            // If bloom filter application fails, we reset the mapping and trigger
-            // re-run of the query.
+            // If bloom filter application fails, we reset the mapping and
+            // trigger re-run of the query.
             this.resetTarget(targetId);
             this.pendingTargetResets = this.pendingTargetResets.add(targetId);
           }
@@ -449,22 +449,30 @@ export class WatchChangeAggregator {
       hashCount = 0
     } = unchangedNames;
 
+    if (typeof bitmap === 'string') {
+      const isValidBitmap = this.isValidBase64String(bitmap);
+      if (!isValidBitmap) {
+        logWarn('Invalid base64 string. Applying bloom filter failed.');
+        return false;
+      }
+    }
+
+    const normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
+
     let bloomFilter;
     try {
-      // normalizeByteString throws error if the bitmap includes invalid 64base characters
-      const normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
       // BloomFilter throws error if the inputs are invalid
       bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
     } catch (err) {
       if (err instanceof BloomFilterError) {
-        logWarn('BloomFilter', err);
+        logWarn('BloomFilter error: ', err);
       } else {
         logWarn('Applying bloom filter failed: ', err);
       }
       return false;
     }
 
-    if (bloomFilter.size === 0) {
+    if (bloomFilter.bitCount === 0) {
       return false;
     }
 
@@ -476,9 +484,16 @@ export class WatchChangeAggregator {
     return currentCount - removedDocumentCount === expectedCount;
   }
 
+  private isValidBase64String(value: string): boolean {
+    const regExp = new RegExp(
+      '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$'
+    );
+    return regExp.test(value);
+  }
+
   /**
-   * Filter out removed documents based on bloom filter membership result and return number
-   * of documents removed.
+   * Filter out removed documents based on bloom filter membership result and
+   * return number of documents removed.
    */
   private filterRemovedDocuments(
     bloomFilter: BloomFilter,

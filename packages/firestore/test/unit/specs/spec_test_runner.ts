@@ -1157,7 +1157,7 @@ abstract class TestRunner {
         actual.error!
       );
     } else {
-      let expectedChanges: DocumentViewChange[] = [];
+      const expectedChanges: DocumentViewChange[] = [];
       if (expected.removed) {
         expected.removed.forEach(change => {
           expectedChanges.push(this.parseChange(ChangeType.Removed, change));
@@ -1180,13 +1180,13 @@ abstract class TestRunner {
         });
       }
 
-      expectedChanges = expectedChanges.sort((a, b) =>
+      const actualChangesSorted = Array.from(actual.view!.docChanges).sort(
+        (a, b) => primitiveComparator(a.doc, b.doc)
+      );
+      const expectedChangesSorted = Array.from(expectedChanges).sort((a, b) =>
         primitiveComparator(a.doc, b.doc)
       );
-      const actualChanges = actual.view!.docChanges.sort((a, b) =>
-        primitiveComparator(a.doc, b.doc)
-      );
-      expect(actualChanges).to.deep.equal(expectedChanges);
+      expect(actualChangesSorted).to.deep.equal(expectedChangesSorted);
 
       expect(actual.view!.hasPendingWrites).to.equal(
         expected.hasPendingWrites,
