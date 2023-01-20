@@ -72,16 +72,16 @@ export type ChildUpdateFields<K extends string, V> = V extends Record<string, un
 export function clearIndexedDbPersistence(firestore: Firestore): Promise<void>;
 
 // @public
-export function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export function collection<T = DocumentData>(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<T>;
 
 // @public
-export function collection(reference: CollectionReference<unknown>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export function collection<T = DocumentData>(reference: CollectionReference<unknown>, path: string, ...pathSegments: string[]): CollectionReference<T>;
 
 // @public
-export function collection(reference: DocumentReference, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export function collection<T = DocumentData>(reference: DocumentReference, path: string, ...pathSegments: string[]): CollectionReference<T>;
 
 // @public
-export function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData>;
+export function collectionGroup<T = DocumentData>(firestore: Firestore, collectionId: string): Query<T>;
 
 // @public
 export class CollectionReference<T = DocumentData> extends Query<T> {
@@ -90,7 +90,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
     get path(): string;
     readonly type = "collection";
     withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
-    withConverter(converter: null): CollectionReference<DocumentData>;
+    withConverter<U = DocumentData>(converter: null): CollectionReference<U>;
 }
 
 // @public
@@ -108,13 +108,13 @@ export function deleteField(): FieldValue;
 export function disableNetwork(firestore: Firestore): Promise<void>;
 
 // @public
-export function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
+export function doc<T = DocumentData>(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<T>;
 
 // @public
 export function doc<T>(reference: CollectionReference<T>, path?: string, ...pathSegments: string[]): DocumentReference<T>;
 
 // @public
-export function doc(reference: DocumentReference<unknown>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
+export function doc<T = DocumentData>(reference: DocumentReference<unknown>, path: string, ...pathSegments: string[]): DocumentReference<T>;
 
 // @public
 export interface DocumentChange<T = DocumentData> {
@@ -144,7 +144,7 @@ export class DocumentReference<T = DocumentData> {
     get path(): string;
     readonly type = "document";
     withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
-    withConverter(converter: null): DocumentReference<DocumentData>;
+    withConverter<U>(converter: null): DocumentReference<U>;
 }
 
 // @public
@@ -407,7 +407,7 @@ export class Query<T = DocumentData> {
     readonly converter: FirestoreDataConverter<T> | null;
     readonly firestore: Firestore;
     readonly type: 'query' | 'collection';
-    withConverter(converter: null): Query<DocumentData>;
+    withConverter<U = DocumentData>(converter: null): Query<U>;
     withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 

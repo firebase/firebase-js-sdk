@@ -182,7 +182,7 @@ export class DocumentReference<T = DocumentData> {
    * @param converter - `null` removes the current converter.
    * @returns A `DocumentReference<DocumentData>` that does not use a converter.
    */
-  withConverter(converter: null): DocumentReference<DocumentData>;
+  withConverter<U>(converter: null): DocumentReference<U>;
   withConverter<U>(
     converter: FirestoreDataConverter<U> | null
   ): DocumentReference<U> {
@@ -222,9 +222,9 @@ export class Query<T = DocumentData> {
    * Removes the current converter.
    *
    * @param converter - `null` removes the current converter.
-   * @returns A `Query<DocumentData>` that does not use a converter.
+   * @returns A `Query<U>` that does not use a converter.
    */
-  withConverter(converter: null): Query<DocumentData>;
+  withConverter<U = DocumentData>(converter: null): Query<U>;
   /**
    * Applies a custom data converter to this query, allowing you to use your own
    * custom model objects with Firestore. When you call {@link getDocs} with
@@ -303,10 +303,10 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * Removes the current converter.
    *
    * @param converter - `null` removes the current converter.
-   * @returns A `CollectionReference<DocumentData>` that does not use a
+   * @returns A `CollectionReference<U>` that does not use a
    * converter.
    */
-  withConverter(converter: null): CollectionReference<DocumentData>;
+  withConverter<U = DocumentData>(converter: null): CollectionReference<U>;
   withConverter<U>(
     converter: FirestoreDataConverter<U> | null
   ): CollectionReference<U> {
@@ -326,11 +326,11 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export function collection(
+export function collection<T = DocumentData>(
   firestore: Firestore,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData>;
+): CollectionReference<T>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
@@ -343,11 +343,11 @@ export function collection(
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export function collection(
+export function collection<T = DocumentData>(
   reference: CollectionReference<unknown>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData>;
+): CollectionReference<T>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
@@ -360,16 +360,16 @@ export function collection(
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export function collection(
+export function collection<T = DocumentData>(
   reference: DocumentReference,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData>;
-export function collection(
+): CollectionReference<T>;
+export function collection<T = DocumentData>(
   parent: Firestore | DocumentReference<unknown> | CollectionReference<unknown>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData> {
+): CollectionReference<T> {
   parent = getModularInstance(parent);
 
   validateNonEmptyArgument('collection', 'path', path);
@@ -414,10 +414,10 @@ export function collection(
  * will be included. Cannot contain a slash.
  * @returns The created `Query`.
  */
-export function collectionGroup(
+export function collectionGroup<T = DocumentData>(
   firestore: Firestore,
   collectionId: string
-): Query<DocumentData> {
+): Query<T> {
   firestore = cast(firestore, Firestore);
 
   validateNonEmptyArgument('collectionGroup', 'collection id', collectionId);
@@ -448,11 +448,11 @@ export function collectionGroup(
  * a document.
  * @returns The `DocumentReference` instance.
  */
-export function doc(
+export function doc<T = DocumentData>(
   firestore: Firestore,
   path: string,
   ...pathSegments: string[]
-): DocumentReference<DocumentData>;
+): DocumentReference<T>;
 /**
  * Gets a `DocumentReference` instance that refers to a document within
  * `reference` at the specified relative path. If no path is specified, an
@@ -485,11 +485,11 @@ export function doc<T>(
  * a document.
  * @returns The `DocumentReference` instance.
  */
-export function doc(
+export function doc<T = DocumentData>(
   reference: DocumentReference<unknown>,
   path: string,
   ...pathSegments: string[]
-): DocumentReference<DocumentData>;
+): DocumentReference<T>;
 export function doc<T>(
   parent: Firestore | CollectionReference<T> | DocumentReference<unknown>,
   path?: string,
