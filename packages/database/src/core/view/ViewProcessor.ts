@@ -639,9 +639,11 @@ function viewProcessorApplyServerMerge(
     }
   });
   viewMergeTree.children.inorderTraversal((childKey, childMergeTree) => {
+    console.log('childMergeTree', childMergeTree.value);
+    console.log('serverCache', viewCache.serverCache);
     const isUnknownDeepMerge =
       !viewCache.serverCache.isCompleteForChild(childKey) &&
-      childMergeTree.value === null;
+      childMergeTree.value === null || (!viewCache.serverCache.isFiltered() && viewCache.serverCache.getNode().isEmpty());
     if (!serverNode.hasChild(childKey) && !isUnknownDeepMerge) {
       const serverChild = viewCache.serverCache
         .getNode()

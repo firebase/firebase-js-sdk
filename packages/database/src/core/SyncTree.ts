@@ -302,7 +302,10 @@ export function syncTreeApplyTaggedListenComplete(
     const r = syncTreeParseQueryKey_(queryKey);
     const queryPath = r.path,
       queryId = r.queryId;
+    console.log('queryPath', queryPath.toString());
+    console.log('path', path.toString());
     const relativePath = newRelativePath(queryPath, path);
+    console.log('relativePath', relativePath.toString());
     const op = new ListenComplete(
       newOperationSourceServerTaggedQuery(queryId),
       relativePath
