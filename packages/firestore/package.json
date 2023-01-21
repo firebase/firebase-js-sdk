@@ -9,7 +9,7 @@
   "scripts": {
     "bundle": "rollup -c",
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
-    "build": "run-p build:lite build:main",
+    "build": "run-p build:main",
     "build:release": "yarn build && yarn typings:public",
     "build:scripts": "tsc -p scripts/tsconfig.json",
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
