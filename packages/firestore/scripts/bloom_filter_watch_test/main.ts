@@ -16,7 +16,7 @@
  */
 
 // To execute this script run the following command in the parent directory:
-// yarn build:scripts && scripts/build/firestore/scripts/bloom_filter_watch_test/main.js
+// yarn build:scripts && node scripts/build/firestore/scripts/bloom_filter_watch_test/main.js
 
 import { parseArgs } from './arg_parser';
 import { runTest } from './run_test';
