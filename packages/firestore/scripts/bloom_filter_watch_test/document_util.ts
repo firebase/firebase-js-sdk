@@ -19,12 +19,17 @@ import {generateIds} from './util';
 import {
   doc,
   DocumentReference,
-  Firestore,
   collection,
+  DocumentData,
+  CollectionReference
+} from '../../src/api/reference';
+import {
+  Firestore,
+} from '../../src/api/database';
+import {
   writeBatch,
   WriteBatch,
-  DocumentData, CollectionReference
-} from '../../src';
+} from '../../src/api/write_batch';
 
 export class DocumentUtil {
 
