@@ -49,6 +49,13 @@ declare module '@firebase/component' {
   }
 }
 
+declare global {
+  // var must be used for global scopes
+  // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#type-checking-for-globalthis
+  // eslint-disable-next-line no-var
+  var FIREBASE_APPCHECK_DEBUG_TOKEN: boolean | string | undefined;
+}
+
 export {
   ReCaptchaV3Provider,
   CustomProvider,
@@ -77,12 +84,14 @@ export function initializeAppCheck(
   // is called in debug mode.
   if (isDebugMode()) {
     // Do not block initialization to get the token for the message.
-    void getDebugToken().then(token =>
+    void getDebugToken().then(token => {
+      // Token is already set correctly.
+      if (globals.FIREBASE_APPCHECK_DEBUG_TOKEN === token) return;
       // Not using logger because I don't think we ever want this accidentally hidden.
       console.log(
         `App Check debug token: ${token}. You will need to add it to your app's App Check settings in the Firebase console for it to work.`
       )
-    );
+    });
   }
 
   if (provider.isInitialized()) {
