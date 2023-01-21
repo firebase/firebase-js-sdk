@@ -76,10 +76,17 @@ export interface ActiveTargetSpec {
   queries: SpecQuery[];
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
+  expectedCount?: number;
 }
 
 export interface ActiveTargetMap {
   [targetId: string]: ActiveTargetSpec;
+}
+
+export interface ResumeSpec {
+  resumeToken?: string;
+  readTime?: TestSnapshotVersion;
+  expectedCount?: number;
 }
 
 /**
@@ -256,10 +263,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userListens(
-    query: Query,
-    resume?: { resumeToken?: string; readTime?: TestSnapshotVersion }
-  ): this {
+  userListens(query: Query, resume?: ResumeSpec): this {
     this.nextStep();
 
     const target = queryToTarget(query);
@@ -278,12 +282,7 @@ export class SpecBuilder {
       }
 
       this.queryMapping.set(target, targetId);
-      this.addQueryToActiveTargets(
-        targetId,
-        query,
-        resume?.resumeToken,
-        resume?.readTime
-      );
+      this.addQueryToActiveTargets(targetId, query, resume);
       this.currentStep = {
         userListen: { targetId, query: SpecBuilder.queryToSpec(query) },
         expectedState: { activeTargets: { ...this.activeTargets } }
@@ -296,14 +295,21 @@ export class SpecBuilder {
    * Registers a previously active target with the test expectations after a
    * stream disconnect.
    */
-  restoreListen(query: Query, resumeToken: string): this {
+  restoreListen(
+    query: Query,
+    resumeToken: string,
+    expectedCount?: number
+  ): this {
     const targetId = this.queryMapping.get(queryToTarget(query));
 
     if (isNullOrUndefined(targetId)) {
       throw new Error("Can't restore an unknown query: " + query);
     }
 
-    this.addQueryToActiveTargets(targetId!, query, resumeToken);
+    this.addQueryToActiveTargets(targetId!, query, {
+      resumeToken,
+      expectedCount
+    });
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -531,18 +537,18 @@ export class SpecBuilder {
       query: Query;
       resumeToken?: string;
       readTime?: TestSnapshotVersion;
+      expectedCount?: number;
     }>
   ): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
     this.clientState.activeTargets = {};
-    targets.forEach(({ query, resumeToken, readTime }) => {
-      this.addQueryToActiveTargets(
-        this.getTargetId(query),
-        query,
+    targets.forEach(({ query, resumeToken, readTime, expectedCount }) => {
+      this.addQueryToActiveTargets(this.getTargetId(query), query, {
         resumeToken,
-        readTime
-      );
+        readTime,
+        expectedCount
+      });
     });
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
@@ -573,7 +579,7 @@ export class SpecBuilder {
       this.addQueryToActiveTargets(
         this.limboMapping[path],
         newQueryForPath(key.path),
-        ''
+        { resumeToken: '' }
       );
     });
 
@@ -912,22 +918,14 @@ export class SpecBuilder {
   }
 
   /** Registers a query that is active in another tab. */
-  expectListen(
-    query: Query,
-    resume?: { resumeToken?: string; readTime?: TestSnapshotVersion }
-  ): this {
+  expectListen(query: Query, resume?: ResumeSpec): this {
     this.assertStep('Expectations require previous step');
 
     const target = queryToTarget(query);
     const targetId = this.queryIdGenerator.cachedId(target);
     this.queryMapping.set(target, targetId);
 
-    this.addQueryToActiveTargets(
-      targetId,
-      query,
-      resume?.resumeToken,
-      resume?.readTime
-    );
+    this.addQueryToActiveTargets(targetId, query, resume);
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -1095,9 +1093,12 @@ export class SpecBuilder {
   private addQueryToActiveTargets(
     targetId: number,
     query: Query,
-    resumeToken?: string,
-    readTime?: TestSnapshotVersion
+    resume?: ResumeSpec
   ): void {
+    if (!(resume?.resumeToken || resume?.readTime) && resume?.expectedCount) {
+      fail('Expected count is present without a resume token or read time.');
+    }
+
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
       if (
@@ -1108,21 +1109,24 @@ export class SpecBuilder {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
-          resumeToken: resumeToken || '',
-          readTime
+          resumeToken: resume?.resumeToken || '',
+          readTime: resume?.readTime,
+          expectedCount: resume?.expectedCount
         };
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
-          resumeToken: resumeToken || '',
-          readTime
+          resumeToken: resume?.resumeToken || '',
+          readTime: resume?.readTime,
+          expectedCount: resume?.expectedCount
         };
       }
     } else {
       this.activeTargets[targetId] = {
         queries: [SpecBuilder.queryToSpec(query)],
-        resumeToken: resumeToken || '',
-        readTime
+        resumeToken: resume?.resumeToken || '',
+        readTime: resume?.readTime,
+        expectedCount: resume?.expectedCount
       };
     }
   }
@@ -1134,7 +1138,8 @@ export class SpecBuilder {
     if (queriesAfterRemoval.length > 0) {
       this.activeTargets[targetId] = {
         queries: queriesAfterRemoval,
-        resumeToken: this.activeTargets[targetId].resumeToken
+        resumeToken: this.activeTargets[targetId].resumeToken,
+        expectedCount: this.activeTargets[targetId].expectedCount
       };
     } else {
       delete this.activeTargets[targetId];
