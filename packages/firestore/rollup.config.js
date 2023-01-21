@@ -19,7 +19,6 @@ import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
-import { terser } from 'rollup-plugin-terser';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import tmp from 'tmp';
 import typescript from 'typescript';
@@ -63,8 +62,7 @@ const browserPlugins = function () {
       abortOnError: true,
       transformers: [util.removeAssertAndPrefixInternalTransformer]
     }),
-    json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
+    json({ preferConst: true })
   ];
 };
 
