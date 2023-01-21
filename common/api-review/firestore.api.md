@@ -52,9 +52,6 @@ export function arrayRemove(...elements: unknown[]): FieldValue;
 // @public
 export function arrayUnion(...elements: unknown[]): FieldValue;
 
-// @public (undocumented)
-export function bloom_filter_watch_test(db: Firestore, projectId: string, host: string, ssl: boolean, log: LogFunction): Promise<void>;
-
 // @public
 export class Bytes {
     static fromBase64String(base64: string): Bytes;
@@ -325,9 +322,6 @@ export interface LoadBundleTaskProgress {
     totalDocuments: number;
 }
 
-// @public (undocumented)
-export type LogFunction = typeof console.log;
-
 export { LogLevel }
 
 // @public
@@ -478,6 +472,33 @@ export class QueryStartAtConstraint extends QueryConstraint {
 
 // @public
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
+
+// @public (undocumented)
+export function runBloomFilterWatchTest(options: RunBloomFilterWatchTestOptions): Promise<void>;
+
+// @public
+export type RunBloomFilterWatchTestLogFunction = (...args: any[]) => any;
+
+// @public (undocumented)
+export interface RunBloomFilterWatchTestOptions {
+    // (undocumented)
+    collectionId: string | null;
+    // (undocumented)
+    db: Firestore;
+    // (undocumented)
+    documentCreateCount: number | null;
+    // (undocumented)
+    documentDeleteCount: number | null;
+    // (undocumented)
+    host: {
+        hostName: string;
+        ssl: boolean;
+    };
+    // (undocumented)
+    log: RunBloomFilterWatchTestLogFunction;
+    // (undocumented)
+    projectId: string;
+}
 
 // @public
 export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
