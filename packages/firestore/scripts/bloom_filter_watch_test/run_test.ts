@@ -29,34 +29,16 @@ import { AutoId } from '../../src/util/misc';
 
 const DOCUMENT_DATA_KEY = "BloomFilterWatchTest_GroupId";
 
-export interface RunTestOptions {
-  db: Firestore,
-  projectId: string,
-  host: {
-    hostName: string,
-    ssl: boolean
-  },
-  documentCreateCount: number | null,
-  documentDeleteCount: number | null,
-  collectionId: string | null,
-  log: LogFunction;
-}
-
 class InvalidRunTestOptionsError extends Error {
   readonly name = "InvalidRunTestOptionsError";
 }
 
-export async function runTest(options: RunTestOptions): Promise<void> {
-  options.log("Bloom Filter Watch Test Started");
+export async function runTest(db: Firestore, projectId: string, host: string, ssl: boolean, documentCreateCount_: number | null, documentDeleteCount_: number | null, collectionId_: string | null, log: (...args: Array<any>) => any): Promise<void> {
+  log("Bloom Filter Watch Test Started");
 
-  const db = options.db;
-  const projectId = options.projectId;
-  const host = options.host.hostName;
-  const ssl = options.host.ssl;
-  const log = options.log;
-  const collectionId = options.collectionId ?? `bloom_filter_watch_test_${AutoId.newId()}`;
-  const documentCreateCount = options.documentCreateCount ?? 10;
-  const documentDeleteCount = options.documentDeleteCount ?? Math.ceil(documentCreateCount / 2);
+  const collectionId = collectionId_ ?? `bloom_filter_watch_test_${AutoId.newId()}`;
+  const documentCreateCount = documentCreateCount_ ?? 10;
+  const documentDeleteCount = documentDeleteCount_ ?? Math.ceil(documentCreateCount / 2);
 
   if (documentDeleteCount > documentCreateCount) {
     throw new InvalidRunTestOptionsError(
@@ -74,7 +56,7 @@ export async function runTest(options: RunTestOptions): Promise<void> {
     await watchStream.close();
   }
 
-  options.log("Bloom Filter Watch Test Completed Successfully");
+  log("Bloom Filter Watch Test Completed Successfully");
 }
 
 async function doTestSteps(db: Firestore, projectId: string, watchStream: WatchStream, collectionId: string, documentCreateCount: number, documentDeleteCount: number, log: LogFunction): Promise<void> {

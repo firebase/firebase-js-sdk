@@ -322,6 +322,9 @@ export interface LoadBundleTaskProgress {
     totalDocuments: number;
 }
 
+// @public
+export type LogFunction = (...args: any[]) => any;
+
 export { LogLevel }
 
 // @public
@@ -474,13 +477,10 @@ export class QueryStartAtConstraint extends QueryConstraint {
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
 // @public (undocumented)
-export function runBloomFilterWatchTest(options: RunBloomFilterWatchTestOptions): Promise<void>;
-
-// @public
-export type RunBloomFilterWatchTestLogFunction = (...args: any[]) => any;
+export function runBloomFilterWatchTest(options: RunTestOptions): Promise<void>;
 
 // @public (undocumented)
-export interface RunBloomFilterWatchTestOptions {
+export interface RunTestOptions {
     // (undocumented)
     collectionId: string | null;
     // (undocumented)
@@ -495,7 +495,7 @@ export interface RunBloomFilterWatchTestOptions {
         ssl: boolean;
     };
     // (undocumented)
-    log: RunBloomFilterWatchTestLogFunction;
+    log: LogFunction;
     // (undocumented)
     projectId: string;
 }

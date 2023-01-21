@@ -310,7 +310,7 @@ class TargetState {
 
   constructor(readonly targetId: number, initialDocumentPaths?: Set<string>) {
     if (initialDocumentPaths) {
-      for (const documentPath of initialDocumentPaths.values()) {
+      for (const documentPath of Array.from(initialDocumentPaths.values())) {
         this._accumulatedDocumentNames.add(documentPath);
       }
     }

@@ -20,8 +20,7 @@ export {
   getCountFromServer
 } from './api/aggregate';
 
-export {runTest as runBloomFilterWatchTest, RunTestOptions as RunBloomFilterWatchTestOptions} from '../scripts/bloom_filter_watch_test/run_test';
-export {LogFunction as RunBloomFilterWatchTestLogFunction} from '../scripts/bloom_filter_watch_test/util';
+export {runTest as runBloomFilterWatchTest} from '../scripts/bloom_filter_watch_test/run_test';
 
 export {
   AggregateField,

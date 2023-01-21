@@ -46,19 +46,7 @@ async function main(): Promise<void> {
     ssl: parsedArgs.ssl
   });
 
-  await runTest({
-      db,
-      projectId: parsedArgs.projectId,
-      host: {
-        hostName: parsedArgs.host,
-        ssl: parsedArgs.ssl
-      },
-      documentCreateCount: parsedArgs.documentCreateCount,
-      documentDeleteCount: parsedArgs.documentDeleteCount,
-      collectionId: parsedArgs.collectionId,
-      log: console.log
-    }
-  );
+  await runTest(db, parsedArgs.projectId, parsedArgs.host, parsedArgs.ssl, parsedArgs.documentCreateCount, parsedArgs.documentDeleteCount, parsedArgs.collectionId, console.log);
 }
 
 main();
