@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import {createWatchStream, WatchStream} from './watch_stream';
+import {createWatchStream, TargetSnapshot, WatchStream} from './watch_stream';
 import {DocumentUtil} from './document_util';
 import {
   assertDeepEqual,
@@ -112,8 +112,19 @@ async function doTestSteps(db: Firestore, projectId: string, watchStream: WatchS
     resumeFrom: snapshot1
   });
 
+  log("Waiting for an existence filter from watch");
+  const existenceFilterPromise = watchStream.getExistenceFilter(2);
+  const snapshotPromise = watchStream.getInitialSnapshot(2);
+  const result = (await Promise.race([existenceFilterPromise, snapshotPromise])) as unknown;
+
+  if (result instanceof TargetSnapshot) {
+    log("Didn't get an existence filter");
+  } else {
+    log(`Got an existence filter: ${JSON.stringify(result, null, 2)}`);
+  }
+
   log("Waiting for a snapshot from watch");
-  const snapshot2 = await watchStream.getInitialSnapshot(2);
+  const snapshot2 = await snapshotPromise;
   const documentNames2 = Array.from(snapshot2.documentPaths).sort();
   const documentIds2 = documentNames2.map(documentIdFromDocumentPath);
   log(`Got snapshot with ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);

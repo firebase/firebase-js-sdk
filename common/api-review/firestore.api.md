@@ -322,9 +322,6 @@ export interface LoadBundleTaskProgress {
     totalDocuments: number;
 }
 
-// @public
-export type LogFunction = (...args: any[]) => any;
-
 export { LogLevel }
 
 // @public
@@ -477,28 +474,7 @@ export class QueryStartAtConstraint extends QueryConstraint {
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
 // @public (undocumented)
-export function runBloomFilterWatchTest(options: RunTestOptions): Promise<void>;
-
-// @public (undocumented)
-export interface RunTestOptions {
-    // (undocumented)
-    collectionId: string | null;
-    // (undocumented)
-    db: Firestore;
-    // (undocumented)
-    documentCreateCount: number | null;
-    // (undocumented)
-    documentDeleteCount: number | null;
-    // (undocumented)
-    host: {
-        hostName: string;
-        ssl: boolean;
-    };
-    // (undocumented)
-    log: LogFunction;
-    // (undocumented)
-    projectId: string;
-}
+export function runBloomFilterWatchTest(db: Firestore, projectId: string, host: string, ssl: boolean, documentCreateCount_: number | null, documentDeleteCount_: number | null, collectionId_: string | null, log: (...args: any[]) => any): Promise<void>;
 
 // @public
 export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;

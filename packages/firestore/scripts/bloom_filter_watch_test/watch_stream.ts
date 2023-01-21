@@ -175,6 +175,14 @@ export class WatchStream {
     return targetState.initialSnapshotPromise;
   }
 
+  getExistenceFilter(targetId: number): Promise<ExistenceFilter> {
+    const targetState = this._targets.get(targetId);
+    if (targetState === undefined) {
+      throw new WatchError(`unknown targetId: ${targetId}`);
+    }
+    return targetState.existenceFilterPromise;
+  }
+
   private _onMessageReceived(msg: ListenResponse): void {
     if (msg.targetChange) {
       this._onTargetChange(msg.targetChange);
@@ -292,7 +300,8 @@ class TargetStateError extends Error {
   name = "TargetStateError";
 }
 
-class TargetSnapshot {
+export class TargetSnapshot {
+  readonly type = "TargetSnapshot";
   constructor(readonly documentPaths: Set<string>, readonly resumeToken: string | Uint8Array) {
   }
 }
@@ -307,6 +316,7 @@ class TargetState {
   private readonly _addedDeferred = new Deferred<void>();
   private readonly _removedDeferred = new Deferred<void>();
   private readonly _initialSnapshotDeferred = new Deferred<TargetSnapshot>();
+  private readonly _existenceFilterPromise = new Deferred<ExistenceFilter>();
 
   constructor(readonly targetId: number, initialDocumentPaths?: Set<string>) {
     if (initialDocumentPaths) {
@@ -326,6 +336,10 @@ class TargetState {
 
   get initialSnapshotPromise(): Promise<TargetSnapshot> {
     return this._initialSnapshotDeferred.promise;
+  }
+
+  get existenceFilterPromise(): Promise<ExistenceFilter> {
+    return this._existenceFilterPromise.promise;
   }
 
   onAdded(): void {
@@ -377,7 +391,7 @@ class TargetState {
     }
     if (this._current && resumeToken !== null) {
       const documentPaths = new Set(this._accumulatedDocumentNames);
-      this._initialSnapshotDeferred.resolve({documentPaths, resumeToken});
+      this._initialSnapshotDeferred.resolve(new TargetSnapshot(documentPaths, resumeToken));
     }
   }
 
@@ -410,6 +424,6 @@ class TargetState {
     if (this._removed) {
       throw new TargetStateError(`onExistenceFilter() invoked after onRemoved().`);
     }
-    // TODO: implement this
+    this._existenceFilterPromise.resolve(existenceFilter);
   }
 }
