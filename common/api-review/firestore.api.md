@@ -52,6 +52,9 @@ export function arrayRemove(...elements: unknown[]): FieldValue;
 // @public
 export function arrayUnion(...elements: unknown[]): FieldValue;
 
+// @public (undocumented)
+export function bloom_filter_watch_test(db: Firestore, projectId: string, host: string, ssl: boolean, log: LogFunction): Promise<void>;
+
 // @public
 export class Bytes {
     static fromBase64String(base64: string): Bytes;
@@ -321,6 +324,9 @@ export interface LoadBundleTaskProgress {
     totalBytes: number;
     totalDocuments: number;
 }
+
+// @public (undocumented)
+export type LogFunction = typeof console.log;
 
 export { LogLevel }
 

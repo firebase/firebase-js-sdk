@@ -21,6 +21,11 @@ export {
 } from './api/aggregate';
 
 export {
+  runTest as run_bloom_filter_watch_test,
+  LogFunction as BloomFilterWatchTestOptions
+} from '../scripts/bloom_filter_watch_test/run_test'
+
+export {
   AggregateField,
   AggregateFieldType,
   AggregateSpec,

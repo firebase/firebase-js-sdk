@@ -15,24 +15,18 @@
  * limitations under the License.
  */
 
-// To execute this script run the following command in the parent directory:
-// yarn build:scripts && node scripts/bloom_filter_watch_test.js
-
-import * as yargs from 'yargs';
-
-import { newConnection } from '../src/platform/connection';
+import { newConnection } from '../../src/platform/connection';
 import {
   doc,
   DocumentReference,
   Firestore,
-  setLogLevel,
   collection,
   writeBatch,
   WriteBatch,
   DocumentData
-} from '../src';
-import { AutoId } from '../src/util/misc';
-import { DatabaseId, DatabaseInfo } from '../src/core/database_info';
+} from '../../src';
+import { AutoId } from '../../src/util/misc';
+import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
 import {
   DocumentChange,
   DocumentDelete,
@@ -41,76 +35,78 @@ import {
   ListenRequest,
   ListenResponse,
   TargetChange
-} from '../src/protos/firestore_proto_api';
-import { Connection, Stream } from "../src/remote/connection";
-import { Deferred } from "../test/util/promise";
-import { newTestFirestore } from "../test/util/api_helpers";
+} from '../../src/protos/firestore_proto_api';
+import { Connection, Stream } from "../../src/remote/connection";
+import { Deferred } from "../../test/util/promise";
 
-// Import the following modules despite not using them. This forces them to get
-// transpiled by tsc. Without these imports they do not get transpiled because
-// they are imported dynamically, causing in MODULE_NOT_FOUND errors at runtime.
-import * as node_dom from '../src/platform/node/dom';
-import * as node_base64 from '../src/platform/node/base64';
-import * as node_connection from '../src/platform/node/connection';
-import * as node_format_json from '../src/platform/node/format_json';
-import * as node_random_bytes from '../src/platform/node/random_bytes';
+const DOCUMENT_DATA_KEY = "BloomFilterWatchTest_GroupId";
 
-async function main(): Promise<void> {
-  const parsedArgs = parseArgs();
+export type LogFunction = (...args: Array<any>) => any;
 
-  if (parsedArgs.debugLoggingEnabled) {
-    setLogLevel("debug");
-  }
-
-  const uniqueId = AutoId.newId();
-  const collectionId = parsedArgs.collectionId ?? `bloom_filter_watch_test_${uniqueId}`;
-  const databaseInfo = createDatabaseInfo(parsedArgs.projectId, parsedArgs.host, parsedArgs.ssl);
-
-  await run(databaseInfo, collectionId, parsedArgs.documentCreateCount, parsedArgs.documentDeleteCount, uniqueId);
+export interface RunTestOptions {
+  db: Firestore,
+  projectId: string,
+  host: {
+    hostName: string,
+    ssl: boolean
+  },
+  documentCreateCount: number | null,
+  documentDeleteCount: number | null,
+  collectionId: string | null,
+  log: LogFunction;
 }
 
-async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCreateCount: number, documentDeleteCount: number, documentIdPrefix: string): Promise<void> {
-  log("host:", databaseInfo.host);
-  log("projectId:", databaseInfo.databaseId.projectId);
-  log("collectionId:", collectionId);
-  log("documentCreateCount:", documentCreateCount);
-  log("documentDeleteCount:", documentDeleteCount);
-  log("documentIdPrefix:", documentIdPrefix);
+class InvalidRunTestOptionsError extends Error {
+  readonly name = "InvalidRunTestOptionsError";
+}
 
-  const db = newTestFirestore(databaseInfo.databaseId.projectId);
-  db._setSettings({
-    host: databaseInfo.host,
-    ssl: databaseInfo.ssl
-  });
+export async function runTest(options: RunTestOptions): Promise<void> {
+  const db = options.db;
+  const projectId = options.projectId;
+  const host = options.host.hostName;
+  const ssl = options.host.ssl;
+  const log = options.log;
+  const uniqueId = AutoId.newId();
+  const collectionId = options.collectionId ?? `bloom_filter_watch_test_${uniqueId}`;
+  const documentCreateCount = options.documentCreateCount ?? 10;
+  const documentDeleteCount = options.documentDeleteCount ?? 5;
 
-  const createdDocumentRefs = await createDocuments(db, documentCreateCount, collectionId, documentIdPrefix);
+  if (documentDeleteCount > documentCreateCount) {
+    throw new InvalidRunTestOptionsError(
+      `documentDeleteCount (${documentDeleteCount}) must be ` +
+      `less than or equal to documentCreateCount (${documentCreateCount})`);
+  }
+
+  log("host:", host);
+  log("projectId:", projectId);
+
+  const createdDocumentRefs = await createDocuments(db, documentCreateCount, collectionId, uniqueId, log);
   const createdDocumentIds = createdDocumentRefs.map(documentRef => documentRef.id).sort();
   const documentRefsToDelete = createdDocumentRefs.slice(createdDocumentRefs.length - documentDeleteCount);
   const documentIdsToDelete = documentRefsToDelete.map(documentRef => documentRef.id);
 
-  const connection = newConnection(databaseInfo);
-  const watchStream1 = new WatchStream(connection, databaseInfo.databaseId.projectId);
-  await watchStream1.open();
+  const watchStream = createWatchStream(projectId, host, ssl);
+  await watchStream.open();
   try {
     log("Adding target to watch stream");
-    await watchStream1.addTarget({
+    await watchStream.addTarget({
       targetId: 1,
-      projectId: databaseInfo.databaseId.projectId,
+      projectId: projectId,
       collectionId,
-      keyFilter: "TestKey",
-      valueFilter: documentIdPrefix
+      keyFilter: DOCUMENT_DATA_KEY,
+      valueFilter: uniqueId
     });
     log("Added target to watch stream");
 
     log("Waiting for a snapshot from watch");
-    const snapshot1 = await watchStream1.getInitialSnapshot(1);
+    const snapshot1 = await watchStream.getInitialSnapshot(1);
     const documentNames1 = Array.from(snapshot1.documentPaths).sort();
     const documentIds1 = documentNames1.map(documentIdFromDocumentPath);
     log(`Got ${documentIds1.length} documents: ${descriptionFromSortedStrings(documentIds1)}`);
     assertDeepEqual(documentIds1, createdDocumentIds);
 
     log("Removing target from watch stream");
-    await watchStream1.removeTarget(1);
+    await watchStream.removeTarget(1);
     log("Removed target from watch stream");
 
     log(`Deleting ${documentDeleteCount} documents: ${descriptionFromSortedStrings(documentIdsToDelete)}`);
@@ -121,107 +117,33 @@ async function run(databaseInfo: DatabaseInfo, collectionId: string, documentCre
     log(`Waiting for ${resumeDeferSeconds} seconds so we get an existence filter upon resuming the query.`);
     await new Promise(resolve => setTimeout(resolve, resumeDeferSeconds * 1000));
 
-    const watchStream2 = new WatchStream(connection, databaseInfo.databaseId.projectId);
-    await watchStream2.open();
-    try {
-      log("Resuming target in watch stream 2");
-      await watchStream2.addTarget({
-        targetId: 1,
-        projectId: databaseInfo.databaseId.projectId,
-        collectionId,
-        keyFilter: "TestKey",
-        valueFilter: documentIdPrefix,
-        resumeFrom: snapshot1
-      });
-      log("Resumed target in watch stream 2");
+    log("Resuming target in watch stream");
+    await watchStream.addTarget({
+      targetId: 2,
+      projectId: projectId,
+      collectionId,
+      keyFilter: DOCUMENT_DATA_KEY,
+      valueFilter: uniqueId,
+      resumeFrom: snapshot1
+    });
+    log("Resumed target in watch stream");
 
-      log("Waiting for a snapshot from watch stream 2");
-      const snapshot2 = await watchStream2.getInitialSnapshot(1);
-      const documentNames2 = Array.from(snapshot2.documentPaths).sort();
-      const documentIds2 = documentNames2.map(documentIdFromDocumentPath);
-      log(`Got ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);
-    } finally {
-      log("Closing watch stream 2");
-      await watchStream2.close();
-      log("Watch stream 2 closed");
-    }
+    log("Waiting for a snapshot from watch stream");
+    const snapshot2 = await watchStream.getInitialSnapshot(2);
+    const documentNames2 = Array.from(snapshot2.documentPaths).sort();
+    const documentIds2 = documentNames2.map(documentIdFromDocumentPath);
+    log(`Got ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);
   } finally {
-    log("Closing watch stream 1");
-    await watchStream1.close();
-    log("Watch stream 1 closed");
+    log("Closing watch stream");
+    await watchStream.close();
+    log("Watch stream closed");
   }
 }
 
-interface ParsedArgs {
-  projectId: string;
-  host: string;
-  ssl: boolean;
-  collectionId: string | null;
-  documentCreateCount: number;
-  documentDeleteCount: number;
-  iterationCount: number;
-  debugLoggingEnabled: boolean;
-}
-
-function parseArgs(): ParsedArgs {
-  const parsedArgs = yargs
-    .strict()
-    .config()
-    .options({
-      projectId: {
-        demandOption: true,
-        type: "string",
-        describe: "The Firebase project ID to use."
-      },
-      host: {
-        type: "string",
-        default: "firestore.googleapis.com",
-        describe: "The Firestore server to which to connect."
-      },
-      ssl: {
-        type: "boolean",
-        default: true,
-        describe: "Whether to use SSL when connecting to the Firestore server."
-      },
-      collection: {
-        type: "string",
-        describe: "The ID of the Firestore collection to use; " +
-          "an auto-generated ID will be used if not specified."
-      },
-      creates: {
-        type: "number",
-        default: 10,
-        describe: "The number of Firestore documents to create."
-      },
-      deletes: {
-        type: "number",
-        default: 5,
-        describe: "The number of documents to delete."
-      },
-      iterations: {
-        type: "number",
-        default: 20,
-        describe: "The number of iterations to run."
-      },
-      debug: {
-        type: "boolean",
-        default: false,
-        describe: "Enable Firestore debug logging."
-      }
-    })
-    .help()
-    .parseSync();
-
-  return {
-    projectId: parsedArgs.projectId,
-    host: parsedArgs.host,
-    ssl: parsedArgs.ssl,
-    collectionId: parsedArgs.collection ?? null,
-    documentCreateCount: parsedArgs.creates,
-    documentDeleteCount: parsedArgs.deletes,
-    iterationCount: parsedArgs.iterations,
-    debugLoggingEnabled: parsedArgs.debug
-  };
+function createWatchStream(projectId: string, host: string, ssl: boolean): WatchStream {
+  const databaseInfo = createDatabaseInfo(projectId, host, ssl);
+  const connection = newConnection(databaseInfo);
+  return new WatchStream(connection, projectId);
 }
 
 function createDatabaseInfo(projectId: string, host: string, ssl: boolean): DatabaseInfo {
@@ -235,10 +157,6 @@ function createDatabaseInfo(projectId: string, host: string, ssl: boolean): Data
     /*autoDetectLongPolling=*/false,
     /*useFetchStreams=*/true
   );
-}
-
-function log(...args: Array<any>): void {
-  console.log(...args);
 }
 
 class WatchError extends Error {
@@ -607,20 +525,19 @@ class WatchStream {
 
 }
 
-function* generateRangeZeroPadded(count: number): IterableIterator<string> {
-  const numLeadingZeroes = 1 + Math.floor(Math.log10(count));
+function* generateIds(count: number): IterableIterator<string> {
   for (let i=1; i<=count; i++) {
-    yield `0000000000000000000${i}`.slice(-numLeadingZeroes);
+    yield AutoId.newId();
   }
 }
 
-async function createDocuments(db: Firestore, documentCreateCount:number, collectionId: string, documentIdPrefix: string): Promise<Array<DocumentReference>> {
+async function createDocuments(db: Firestore, documentCreateCount:number, collectionId: string, uniqueValue: string, log: LogFunction): Promise<Array<DocumentReference>> {
   const collectionRef = collection(db, collectionId);
-  const documentRefs = Array.from(generateRangeZeroPadded(documentCreateCount)).map(documentIdSuffix => `${documentIdPrefix}_doc${documentIdSuffix}`).map(documentId => doc(collectionRef, documentId));
+  const documentRefs = Array.from(generateIds(documentCreateCount)).map(documentId => doc(collectionRef, documentId));
   const descriptionRefsDescription = descriptionFromSortedStrings(documentRefs.map(documentRef => documentRef.id).sort());
 
   log(`Creating ${documentRefs.length} documents in collection ${collectionRef.id}: ${descriptionRefsDescription}`);
-  const writeBatches = createWriteBatchesForCreate(db, documentRefs, { TestKey: documentIdPrefix });
+  const writeBatches = createWriteBatchesForCreate(db, documentRefs, { [DOCUMENT_DATA_KEY]: uniqueValue });
   await Promise.all(writeBatches.map(batch => batch.commit()));
   log(`${documentRefs.length} documents created successfully.`);
 
@@ -708,5 +625,3 @@ function assertDeepEqual<T>(actual: Array<T>, expected: Array<T>): void {
     }
   }
 }
-
-main();
