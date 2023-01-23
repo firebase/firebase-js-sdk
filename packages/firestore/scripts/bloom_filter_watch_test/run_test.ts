@@ -20,12 +20,15 @@ import {DocumentUtil} from './document_util';
 import {
   assertDeepEqual,
   descriptionFromSortedStrings,
-  documentIdFromDocumentPath,
-  LogFunction,
-  pause
+  documentIdFromDocumentPath
 } from './util';
-import {Firestore,} from '../../src';
+
 import { AutoId } from '../../src/util/misc';
+import { decodeBase64 } from '../../src/platform/base64';
+import { BloomFilter } from '../../src/remote/bloom_filter';
+import {ExistenceFilter} from '../../src/protos/firestore_proto_api';
+import {DocumentReference} from '../../src/api/reference';
+import {Firestore} from '../../src/api/database';
 
 const DOCUMENT_DATA_KEY = "BloomFilterWatchTest_GroupId";
 
@@ -48,9 +51,10 @@ export async function runTest(db: Firestore, projectId: string, host: string, ss
 
   log(`Creating WatchStream with projectId=${projectId} and host=${host}`);
   const watchStream = createWatchStream(projectId, host, ssl);
+  const testRunner = new BloomFilterWatchTest(db, watchStream, projectId, host, ssl, documentCreateCount, documentDeleteCount, collectionId, log);
   await watchStream.open();
   try {
-    await doTestSteps(db, projectId, watchStream, collectionId, documentCreateCount, documentDeleteCount, log);
+    await testRunner.run();
   } finally {
     log("Closing watch stream");
     await watchStream.close();
@@ -59,77 +63,137 @@ export async function runTest(db: Firestore, projectId: string, host: string, ss
   log("Bloom Filter Watch Test Completed Successfully");
 }
 
-async function doTestSteps(db: Firestore, projectId: string, watchStream: WatchStream, collectionId: string, documentCreateCount: number, documentDeleteCount: number, log: LogFunction): Promise<void> {
-  const uniqueId = AutoId.newId();
+class BloomFilterWatchTest {
 
-  const documentUtil = new DocumentUtil(db, collectionId);
-  log(`Creating ${documentCreateCount} documents in collection ${collectionId}`);
-  const createdDocumentRefs = await documentUtil.createDocuments(documentCreateCount, { [DOCUMENT_DATA_KEY]: uniqueId});
-  const createdDocumentIds = createdDocumentRefs.map(documentRef => documentRef.id);
-  log(`Created ${documentCreateCount} documents ` +
-    `in collection ${collectionId}: ` +
-    descriptionFromSortedStrings(createdDocumentIds));
+  private readonly documentUtil: DocumentUtil;
+  private readonly uniqueId: string;
 
-  log("Adding target to watch stream");
-  await watchStream.addTarget({
-    targetId: 1,
-    projectId: projectId,
-    collectionId,
-    keyFilter: DOCUMENT_DATA_KEY,
-    valueFilter: uniqueId
-  });
-
-  log("Waiting for a snapshot from watch");
-  const snapshot1 = await watchStream.getInitialSnapshot(1);
-  const documentNames1 = Array.from(snapshot1.documentPaths).sort();
-  const documentIds1 = documentNames1.map(documentIdFromDocumentPath);
-
-  log(`Got snapshot with ${documentIds1.length} documents: ${descriptionFromSortedStrings(documentIds1)}`);
-  assertDeepEqual(documentIds1, createdDocumentIds);
-
-  log("Removing target from watch stream");
-  await watchStream.removeTarget(1);
-
-  const documentRefsToDelete = createdDocumentRefs.slice(createdDocumentRefs.length - documentDeleteCount);
-  const documentIdsToDelete = documentRefsToDelete.map(documentRef => documentRef.id);
-  log(`Deleting ${documentDeleteCount} documents ` +
-    `from collection ${collectionId}: ` +
-    descriptionFromSortedStrings(documentIdsToDelete));
-  await documentUtil.deleteDocuments(documentRefsToDelete);
-  log(`Deleted ${documentDeleteCount} documents`);
-
-  const resumeDeferSeconds = 10;
-  log(`Waiting for ${resumeDeferSeconds} seconds so we get an existence filter upon resuming the query.`);
-  await pause(resumeDeferSeconds);
-
-  log("Resuming target in watch stream");
-  await watchStream.addTarget({
-    targetId: 2,
-    projectId: projectId,
-    collectionId,
-    keyFilter: DOCUMENT_DATA_KEY,
-    valueFilter: uniqueId,
-    resumeFrom: snapshot1
-  });
-
-  log("Waiting for an existence filter from watch");
-  const existenceFilterPromise = watchStream.getExistenceFilter(2);
-  const snapshotPromise = watchStream.getInitialSnapshot(2);
-  const result = (await Promise.race([existenceFilterPromise, snapshotPromise])) as unknown;
-
-  if (result instanceof TargetSnapshot) {
-    log("Didn't get an existence filter");
-  } else {
-    log(`Got an existence filter: ${JSON.stringify(result, null, 2)}`);
+  constructor(
+    readonly db: Firestore,
+    readonly watchStream: WatchStream,
+    readonly projectId: string,
+    readonly host: string,
+    readonly ssl: boolean,
+    readonly documentCreateCount: number,
+    readonly documentDeleteCount: number,
+    readonly collectionId: string,
+    readonly log: (...args: Array<any>) => any) {
+      this.documentUtil = new DocumentUtil(db, collectionId);
+      this.uniqueId = AutoId.newId();
   }
 
-  log("Waiting for a snapshot from watch");
-  const snapshot2 = await snapshotPromise;
-  const documentNames2 = Array.from(snapshot2.documentPaths).sort();
-  const documentIds2 = documentNames2.map(documentIdFromDocumentPath);
-  log(`Got snapshot with ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);
+  async run(): Promise<void> {
+    const createdDocumentRefs = await this.createDocuments();
+
+    const snapshot = await this.startTarget();
+    assertDocumentsInSnapshot(snapshot, createdDocumentRefs);
+
+    const documentRefsToDelete = createdDocumentRefs.slice(createdDocumentRefs.length - this.documentDeleteCount);
+    await this.deleteDocuments(documentRefsToDelete);
+
+    await this.pause(10);
+    await this.resumeWatchStream(snapshot);
+  }
+
+  private async createDocuments(): Promise<Array<DocumentReference>> {
+    this.log(`Creating ${this.documentCreateCount} documents in collection ${this.collectionId}`);
+    const createdDocumentRefs = await this.documentUtil.createDocuments(this.documentCreateCount, {[DOCUMENT_DATA_KEY]: this.uniqueId});
+    const createdDocumentIds = createdDocumentRefs.map(documentRef => documentRef.id);
+    this.log(`Created ${this.documentCreateCount} documents ` +
+      `in collection ${this.collectionId}: ` +
+      descriptionFromSortedStrings(createdDocumentIds));
+    return createdDocumentRefs;
+  }
+
+  private async deleteDocuments(documentRefsToDelete: Array<DocumentReference>): Promise<void> {
+    const documentIdsToDelete = documentRefsToDelete.map(documentRef => documentRef.id);
+    this.log(`Deleting ${documentRefsToDelete.length} documents: ` +
+      descriptionFromSortedStrings(documentIdsToDelete));
+    await this.documentUtil.deleteDocuments(documentRefsToDelete);
+    this.log(`Deleted ${documentRefsToDelete.length} documents`);
+  }
+
+  private pause(numSecondsToPause: number): Promise<void> {
+    this.log(`Pausing for ${numSecondsToPause} seconds.`);
+    return new Promise(resolve => setTimeout(resolve, numSecondsToPause * 1000));
+  }
+
+  private async startTarget(): Promise<TargetSnapshot> {
+    this.log("Adding target to watch stream");
+    await this.watchStream.addTarget({
+      targetId: 1,
+      projectId: this.projectId,
+      collectionId: this.collectionId,
+      keyFilter: DOCUMENT_DATA_KEY,
+      valueFilter: this.uniqueId,
+    });
+
+    this.log("Waiting for a snapshot from watch");
+    const snapshot = await this.watchStream.getInitialSnapshot(1);
+    const documentNames = Array.from(snapshot.documentPaths).sort();
+    const documentIds = documentNames.map(documentIdFromDocumentPath);
+    this.log(`Got snapshot with ${documentIds.length} documents: ${descriptionFromSortedStrings(documentIds)}`);
+
+    this.log("Removing target from watch stream");
+    await this.watchStream.removeTarget(1);
+
+    return snapshot;
+  }
+
+  private async resumeWatchStream(snapshot: TargetSnapshot, options?: { expectedCount?: number }): Promise<void> {
+    const expectedCount = options?.expectedCount ?? snapshot.documentPaths.size;
+    this.log(`Resuming target in watch stream with expectedCount=${expectedCount}`);
+    await this.watchStream.addTarget({
+      targetId: 2,
+      projectId: this.projectId,
+      collectionId: this.collectionId,
+      keyFilter: DOCUMENT_DATA_KEY,
+      valueFilter: this.uniqueId,
+      resume: {
+        from: snapshot,
+        expectedCount
+      }
+    });
+
+    this.log("Waiting for an existence filter from watch");
+    const existenceFilterPromise = this.watchStream.getExistenceFilter(2);
+    const snapshotPromise = this.watchStream.getInitialSnapshot(2);
+    const result = (await Promise.race([existenceFilterPromise, snapshotPromise])) as unknown;
+
+    if (result instanceof TargetSnapshot) {
+      this.log("Didn't get an existence filter");
+    } else {
+      this.log(`Got an existence filter: ${JSON.stringify(result, null, 2)}`);
+      const bloomFilterNumBits = getBloomFilterNumBits(result as ExistenceFilter);
+      if (bloomFilterNumBits !== null) {
+        this.log(`Bloom filter size, in bits: ${bloomFilterNumBits}`);
+      }
+    }
+
+    this.log("Waiting for a snapshot from watch");
+    const snapshot2 = await snapshotPromise;
+    const documentNames2 = Array.from(snapshot2.documentPaths).sort();
+    const documentIds2 = documentNames2.map(documentIdFromDocumentPath);
+    this.log(`Got snapshot with ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);
+  }
 }
 
+function getBloomFilterNumBits(existenceFilter: ExistenceFilter): number | null {
+  if (existenceFilter?.unchangedNames === undefined) {
+    return null;
+  }
+  const bitmap = existenceFilter.unchangedNames.bits?.bitmap ?? '';
+  const padding = existenceFilter.unchangedNames.bits?.padding ?? 0;
+  if (padding < 0 || padding > 7) {
+    return null;
+  }
+  return (bitmap.length * 8) - padding;
+}
 
+function assertDocumentsInSnapshot(snapshot: TargetSnapshot, expectedDocuments: Array<DocumentReference>): void {
+  const actualDocumentPathsSorted = Array.from(snapshot.documentPaths.values()).map(documentIdFromDocumentPath).sort();
+  const expectedDocumentPathsSorted = expectedDocuments.map(documentRef => documentRef.id).sort();
+  assertDeepEqual(actualDocumentPathsSorted, expectedDocumentPathsSorted);
+}
 
 

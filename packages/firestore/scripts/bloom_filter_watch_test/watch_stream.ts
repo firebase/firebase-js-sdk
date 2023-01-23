@@ -29,6 +29,18 @@ import {
 import { Connection, Stream } from "../../src/remote/connection";
 import { Deferred } from "../../test/util/promise";
 
+export interface WatchStreamAddTargetInfo {
+  targetId: number,
+  projectId: string,
+  collectionId: string,
+  keyFilter: string,
+  valueFilter: string,
+  resume?: {
+    from: TargetSnapshot,
+    expectedCount: number
+  }
+}
+
 export class WatchStream {
 
   private _stream: Stream<unknown, unknown> | null = null;
@@ -92,7 +104,7 @@ export class WatchStream {
     return this._closedDeferred.promise;
   }
 
-  addTarget(targetInfo: { targetId: number, projectId: string, collectionId: string, keyFilter: string, valueFilter: string, resumeFrom?: TargetSnapshot }): Promise<void> {
+  addTarget(targetInfo: WatchStreamAddTargetInfo): Promise<void> {
     if (!this._stream) {
       throw new WatchError("open() must be called before addTarget()");
     } else if (this._closed) {
@@ -127,13 +139,12 @@ export class WatchStream {
       }
     };
 
-    const resumeFrom = targetInfo?.resumeFrom;
-    if (resumeFrom !== undefined) {
-      listenRequest.addTarget!.resumeToken = resumeFrom.resumeToken;
-      listenRequest.addTarget!.expectedCount = resumeFrom.documentPaths.size;
+    if (targetInfo?.resume !== undefined) {
+      listenRequest.addTarget!.resumeToken = targetInfo.resume.from.resumeToken;
+      listenRequest.addTarget!.expectedCount = targetInfo.resume.expectedCount;
     }
 
-    const targetState = new TargetState(targetInfo.targetId, resumeFrom?.documentPaths);
+    const targetState = new TargetState(targetInfo.targetId, targetInfo?.resume?.from.documentPaths);
     this._targets.set(targetInfo.targetId, targetState);
     this.sendListenRequest(listenRequest);
 

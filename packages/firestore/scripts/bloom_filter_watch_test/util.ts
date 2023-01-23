@@ -69,7 +69,3 @@ export function assertDeepEqual<T>(actual: Array<T>, expected: Array<T>): void {
     }
   }
 }
-
-export function pause(pauseSeconds: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, pauseSeconds * 1000))
-}
