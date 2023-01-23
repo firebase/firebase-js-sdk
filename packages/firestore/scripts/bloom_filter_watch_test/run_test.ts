@@ -21,7 +21,7 @@ import {
   assertDeepEqual,
   descriptionFromSortedStrings,
   documentIdFromDocumentPath,
-  documentPathFromDocumentRef
+  documentPathFromDocumentRef, LogFunction
 } from './util';
 
 import { AutoId } from '../../src/util/misc';
@@ -52,18 +52,64 @@ export async function runTest(db: Firestore, projectId: string, host: string, ss
     throw new InvalidRunTestOptionsError(`invalid iteration count: ${iterationCount}`);
   }
 
+  const testPromises: Array<Promise<void>> = [];
+  const testResults = new Map<RunTestIterationResult, number>();
+
   log(`Creating WatchStream with projectId=${projectId} and host=${host}`);
   const watchStream = createWatchStream(projectId, host, ssl);
   await watchStream.open();
   try {
-    const testRunner = new BloomFilterWatchTest(db, watchStream, projectId, host, ssl, documentCreateCount, documentDeleteCount, collectionId, log);
-    await testRunner.run();
+    for (let i=1; i<=iterationCount; i++) {
+      const iterationLog = (...args: Array<any>) => log(`iteration ${i}: ${args[0]}`);
+      const testRunner = new BloomFilterWatchTest(db, watchStream, projectId, host, ssl, documentCreateCount, documentDeleteCount, collectionId, iterationLog);
+      const runTestPromise = runTestIteration(i, testRunner).then(result => {
+        const currentCount = testResults.get(result) ?? 0;
+        testResults.set(result, currentCount + 1);
+      });
+      testPromises.push(runTestPromise);
+    }
+
+    await Promise.all(testPromises);
   } finally {
     log("Closing watch stream");
     await watchStream.close();
   }
 
+  log(`All test iterations completed (iterations: ${iterationCount})`);
+  log(`FULL_REQUERY_REQUIRED: ${testResults.get("FULL_REQUERY_REQUIRED") ?? 0}`);
+  log(`FULL_REQUERY_AVOIDED: ${testResults.get("FULL_REQUERY_AVOIDED") ?? 0}`);
+  log(`MISSING_BLOOM_FILTER: ${testResults.get("MISSING_BLOOM_FILTER") ?? 0}`);
+
   log("Bloom Filter Watch Test Completed Successfully");
+}
+
+type RunTestIterationResult =
+  | "MISSING_BLOOM_FILTER"
+  | "FULL_REQUERY_REQUIRED"
+  | "FULL_REQUERY_AVOIDED";
+
+async function runTestIteration(i: number, testRunner: BloomFilterWatchTest): Promise<RunTestIterationResult> {
+  const bloomFilterCounts = await testRunner.run();
+
+  if (bloomFilterCounts === null) {
+    testRunner.log("WARNING: no bloom filter was provided in the existence filter");
+    return "MISSING_BLOOM_FILTER";
+  }
+
+  if (bloomFilterCounts.deletedDocsContained > 0) {
+    testRunner.log(`FALSE POSITIVE: a full requery is required due to ${bloomFilterCounts.deletedDocsContained} false positives`);
+    return "FULL_REQUERY_REQUIRED";
+  }
+
+  testRunner.log(`a full requery would be avoided thanks to the bloom filter`);
+  return "FULL_REQUERY_AVOIDED";
+}
+
+interface BloomFilterCounts {
+  existingDocsContained: number;
+  existingDocsNotContained: number;
+  deletedDocsContained: number;
+  deletedDocsNotContained: number;
 }
 
 class BloomFilterWatchTest {
@@ -85,7 +131,7 @@ class BloomFilterWatchTest {
       this.uniqueId = AutoId.newId();
   }
 
-  async run(): Promise<void> {
+  async run(): Promise<BloomFilterCounts | null> {
     const createdDocumentRefs = await this.createDocuments();
 
     const snapshot = await this.startTarget();
@@ -97,46 +143,11 @@ class BloomFilterWatchTest {
     await this.pause(10);
 
     const bloomFilter = await this.resumeWatchStream(snapshot);
-
-    if (bloomFilter !== null) {
-      this.getBloomFilterCounts(bloomFilter, createdDocumentRefs, documentRefsToDelete);
-    }
-  }
-
-  private getBloomFilterCounts(bloomFilter: BloomFilter, createdDocumentRefs: Iterable<DocumentReference>, deletedDocumentRefs: Iterable<DocumentReference>): void {
-    const toDocumentPath = (documentRef: DocumentReference) => documentPathFromDocumentRef(documentRef, this.projectId);
-    const createdDocumentPaths = new Set(Array.from(createdDocumentRefs).map(toDocumentPath));
-    const deletedDocumentPaths = new Set(Array.from(deletedDocumentRefs).map(toDocumentPath));
-
-    const existingDocumentPaths = new Set(createdDocumentPaths);
-    for (const deletedDocumentPath of deletedDocumentPaths.values()) {
-      existingDocumentPaths.delete(deletedDocumentPath);
+    if (bloomFilter === null) {
+      return null;
     }
 
-    let existingDocumentPathsContainedCount = 0;
-    let existingDocumentPathsNotContainedCount = 0;
-    for (const existingDocumentPath of existingDocumentPaths.values()) {
-      if (bloomFilter.mightContain(existingDocumentPath)) {
-        existingDocumentPathsContainedCount++;
-      } else {
-        existingDocumentPathsNotContainedCount++;
-      }
-    }
-
-    let deletedDocumentPathsContainedCount = 0;
-    let deletedDocumentPathsNotContainedCount = 0;
-    for (const deletedDocumentPath of deletedDocumentPaths.values()) {
-      if (bloomFilter.mightContain(deletedDocumentPath)) {
-        deletedDocumentPathsContainedCount++;
-      } else {
-        deletedDocumentPathsNotContainedCount++;
-      }
-    }
-
-    this.log(`existingDocumentPathsContainedCount: ${existingDocumentPathsContainedCount}`);
-    this.log(`existingDocumentPathsNotContainedCount: ${existingDocumentPathsNotContainedCount}`);
-    this.log(`deletedDocumentPathsContainedCount: ${deletedDocumentPathsContainedCount}`);
-    this.log(`deletedDocumentPathsNotContainedCount: ${deletedDocumentPathsNotContainedCount}`);
+    return this.calculateBloomFilterCounts(bloomFilter, createdDocumentRefs, documentRefsToDelete);
   }
 
   private async createDocuments(): Promise<Array<DocumentReference>> {
@@ -219,16 +230,48 @@ class BloomFilterWatchTest {
       throw new Error(`internal error: unknown result: ${result}`);
     }
 
-    this.log("Waiting for a snapshot from watch");
-    const snapshot2 = await snapshotPromise;
-    const documentNames2 = Array.from(snapshot2.documentPaths).sort();
-    const documentIds2 = documentNames2.map(documentIdFromDocumentPath);
-    this.log(`Got snapshot with ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);
-
     this.log("Removing target from watch stream");
     await this.watchStream.removeTarget(target);
 
     return bloomFilter;
+  }
+
+  private calculateBloomFilterCounts(bloomFilter: BloomFilter, createdDocumentRefs: Iterable<DocumentReference>, deletedDocumentRefs: Iterable<DocumentReference>): BloomFilterCounts {
+    const toDocumentPath = (documentRef: DocumentReference) => documentPathFromDocumentRef(documentRef, this.projectId);
+    const createdDocumentPaths = new Set(Array.from(createdDocumentRefs).map(toDocumentPath));
+    const deletedDocumentPaths = new Set(Array.from(deletedDocumentRefs).map(toDocumentPath));
+
+    const existingDocumentPaths = new Set(createdDocumentPaths);
+    for (const deletedDocumentPath of deletedDocumentPaths.values()) {
+      existingDocumentPaths.delete(deletedDocumentPath);
+    }
+
+    let existingDocumentPathsContainedCount = 0;
+    let existingDocumentPathsNotContainedCount = 0;
+    for (const existingDocumentPath of existingDocumentPaths.values()) {
+      if (bloomFilter.mightContain(existingDocumentPath)) {
+        existingDocumentPathsContainedCount++;
+      } else {
+        existingDocumentPathsNotContainedCount++;
+      }
+    }
+
+    let deletedDocumentPathsContainedCount = 0;
+    let deletedDocumentPathsNotContainedCount = 0;
+    for (const deletedDocumentPath of deletedDocumentPaths.values()) {
+      if (bloomFilter.mightContain(deletedDocumentPath)) {
+        deletedDocumentPathsContainedCount++;
+      } else {
+        deletedDocumentPathsNotContainedCount++;
+      }
+    }
+
+    return {
+      existingDocsContained: existingDocumentPathsContainedCount,
+      existingDocsNotContained: existingDocumentPathsNotContainedCount,
+      deletedDocsContained: deletedDocumentPathsContainedCount,
+      deletedDocsNotContained: deletedDocumentPathsNotContainedCount,
+    };
   }
 }
 
