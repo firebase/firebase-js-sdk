@@ -24,10 +24,10 @@ import {
 } from './util';
 
 import { AutoId } from '../../src/util/misc';
-import { decodeBase64 } from '../../src/platform/base64';
 import { BloomFilter } from '../../src/remote/bloom_filter';
 import {ExistenceFilter} from '../../src/protos/firestore_proto_api';
 import {DocumentReference} from '../../src/api/reference';
+import { normalizeByteString } from '../../src/model/normalize';
 import {Firestore} from '../../src/api/database';
 
 const DOCUMENT_DATA_KEY = "BloomFilterWatchTest_GroupId";
@@ -92,6 +92,7 @@ class BloomFilterWatchTest {
     await this.deleteDocuments(documentRefsToDelete);
 
     await this.pause(10);
+
     await this.resumeWatchStream(snapshot);
   }
 
@@ -161,12 +162,23 @@ class BloomFilterWatchTest {
     const result = (await Promise.race([existenceFilterPromise, snapshotPromise])) as unknown;
 
     if (result instanceof TargetSnapshot) {
-      this.log("Didn't get an existence filter");
+      this.log("WARNING: Didn't get an existence filter");
     } else {
-      this.log(`Got an existence filter: ${JSON.stringify(result, null, 2)}`);
-      const bloomFilterNumBits = getBloomFilterNumBits(result as ExistenceFilter);
-      if (bloomFilterNumBits !== null) {
-        this.log(`Bloom filter size, in bits: ${bloomFilterNumBits}`);
+      try {
+        const bloomFilter = createBloomFilterFrom(result as ExistenceFilter);
+        if (bloomFilter === null) {
+          this.log("Got an existence filter without a bloom filter");
+        } else {
+          this.log(`Got an existence filter with bloom filter with ${bloomFilter.size} bits`);
+        }
+      } catch (err) {
+        if (err instanceof InvalidBloomFilterError) {
+          this.log(`WARNING: Got an existence filter with invalid bloom ` +
+            `filter (${err.message}):`);
+          this.log(JSON.stringify(result, null, 2));
+        } else {
+          throw err;
+        }
       }
     }
 
@@ -175,19 +187,37 @@ class BloomFilterWatchTest {
     const documentNames2 = Array.from(snapshot2.documentPaths).sort();
     const documentIds2 = documentNames2.map(documentIdFromDocumentPath);
     this.log(`Got snapshot with ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);
+
+    this.log("Removing target from watch stream");
+    await this.watchStream.removeTarget(2);
   }
 }
 
-function getBloomFilterNumBits(existenceFilter: ExistenceFilter): number | null {
-  if (existenceFilter?.unchangedNames === undefined) {
+class InvalidBloomFilterError extends Error {
+  readonly name = "InvalidBloomFilterError";
+}
+
+function createBloomFilterFrom(existenceFilter: ExistenceFilter): BloomFilter | null {
+  if (existenceFilter.unchangedNames === undefined) {
     return null;
   }
-  const bitmap = existenceFilter.unchangedNames.bits?.bitmap ?? '';
+
   const padding = existenceFilter.unchangedNames.bits?.padding ?? 0;
+  const hashCount = existenceFilter.unchangedNames.hashCount ?? 0;
   if (padding < 0 || padding > 7) {
-    return null;
+    throw new InvalidBloomFilterError(`invalid padding size: ${padding}`);
   }
-  return (bitmap.length * 8) - padding;
+  if (hashCount < 0) {
+    throw new InvalidBloomFilterError(`invalid hash count: ${hashCount}`);
+  }
+
+  const bitmap = existenceFilter.unchangedNames.bits?.bitmap ?? '';
+  const bytes = normalizeByteString(bitmap).toUint8Array();
+  if (hashCount === 0 && bytes.length > 0) {
+    throw new InvalidBloomFilterError(`non-zero hash count ${hashCount} when bitmap size is zero`);
+  }
+
+  return new BloomFilter(bytes, padding, hashCount);
 }
 
 function assertDocumentsInSnapshot(snapshot: TargetSnapshot, expectedDocuments: Array<DocumentReference>): void {
