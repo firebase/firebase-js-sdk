@@ -35,15 +35,24 @@ class InvalidRunTestOptionsError extends Error {
   readonly name = "InvalidRunTestOptionsError";
 }
 
-export async function runTest(db: Firestore, projectId: string, host: string, ssl: boolean, iterationCount_: number, documentCreateCount_: number | null, documentDeleteCount_: number | null, collectionId_: string | null, randomSeed_: string | null, log: (...args: Array<any>) => any): Promise<void> {
+export async function runTest(db: Firestore, projectId: string, host: string, ssl: boolean, iterationCount_: number | Array<string> | null, documentCreateCount_: number | null, documentDeleteCount_: number | null, collectionId_: string | null, randomSeed_: string | null, log: (...args: Array<any>) => any): Promise<void> {
   log("Bloom Filter Watch Test Started");
 
-  const rng = new AleaRandom(randomSeed_ ?? Math.random());
+  const randomSeed = randomSeed_ ?? new AleaRandom(Math.random()).randomId();
+  log(`Random seed: ${randomSeed}`);
+  const rng = new AleaRandom(randomSeed);
 
   const collectionId = collectionId_ ?? `bloom_filter_watch_test_${rng.randomId()}`;
   const documentCreateCount = documentCreateCount_ ?? 10;
   const documentDeleteCount = documentDeleteCount_ ?? Math.ceil(documentCreateCount / 2);
-  const iterationCount = iterationCount_ ?? 1;
+
+  const iterationCount =
+    (typeof iterationCount_ === 'number')
+    ? iterationCount_
+    : Array.isArray(iterationCount_)
+    ? iterationCount_.length
+    : 1;
+  const iterationRandomSeeds = Array.isArray(iterationCount_) ? iterationCount_ : null;
 
   if (documentDeleteCount > documentCreateCount) {
     throw new InvalidRunTestOptionsError(
@@ -62,7 +71,7 @@ export async function runTest(db: Firestore, projectId: string, host: string, ss
   await watchStream.open();
   try {
     for (let i=1; i<=iterationCount; i++) {
-      const iterationRandomSeed = rng.randomId();
+      const iterationRandomSeed = iterationRandomSeeds?.[i-1] ?? rng.randomId();
       const iterationRng = new AleaRandom(iterationRandomSeed);
       const iterationLog = (...args: Array<any>) => log(`iteration ${i}: ${args[0]}`);
       iterationLog(`random seed: ${iterationRandomSeed}`);
