@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import {generateIds} from './util';
 import {
   doc,
   DocumentReference,
@@ -30,15 +29,16 @@ import {
   writeBatch,
   WriteBatch,
 } from '../../src/api/write_batch';
+import {AleaRandom} from "./random";
 
 export class DocumentUtil {
 
-  constructor(readonly db: Firestore, readonly collectionId: string) {
+  constructor(readonly db: Firestore, readonly collectionId: string, readonly rng: AleaRandom) {
   }
 
   async createDocuments(count:number, documentData: DocumentData): Promise<Array<DocumentReference>> {
     const collectionRef = collection(this.db, this.collectionId);
-    const documentIds = generateIds(count).sort();
+    const documentIds = this.rng.randomIds(count).sort();
     const documentRefs = documentRefsFromIds(collectionRef, documentIds);
     await createDocumentsInBatches(this.db, documentRefs, documentData);
     return documentRefs;

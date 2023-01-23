@@ -16,26 +16,9 @@
  */
 
 import {createWatchStream} from './watch_stream';
-import {
-  doc,
-  DocumentReference,
-  Firestore,
-  collection,
-  writeBatch,
-  WriteBatch,
-  DocumentData
-} from '../../src';
-import { AutoId } from '../../src/util/misc';
+import {DocumentReference} from '../../src';
 
 export type LogFunction = (...args: Array<any>) => any;
-
-export function generateIds(count: number): Array<string> {
-  const ids: Array<string> = [];
-  for (let i=1; i<=count; i++) {
-    ids.push(AutoId.newId());
-  }
-  return ids;
-}
 
 export function documentIdFromDocumentPath(documentPath: string): string {
   const lastSlashIndex = documentPath.lastIndexOf('/');
