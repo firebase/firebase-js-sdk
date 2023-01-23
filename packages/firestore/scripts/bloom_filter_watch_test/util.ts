@@ -42,6 +42,10 @@ export function documentIdFromDocumentPath(documentPath: string): string {
   return (lastSlashIndex < 0) ? documentPath : documentPath.slice(lastSlashIndex+1);
 }
 
+export function documentPathFromDocumentRef(documentRef: DocumentReference, projectId: string): string {
+  return `projects/${projectId}/databases/(default)/documents/${documentRef.path}`;
+}
+
 export function descriptionFromSortedStrings(sortedStrings: Array<string>): string {
   if (sortedStrings.length === 0) {
     return "";

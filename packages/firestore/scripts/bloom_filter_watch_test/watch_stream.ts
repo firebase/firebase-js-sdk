@@ -28,6 +28,8 @@ import {
 } from '../../src/protos/firestore_proto_api';
 import { Connection, Stream } from "../../src/remote/connection";
 import { Deferred } from "../../test/util/promise";
+import {BloomFilter} from "../../src/remote/bloom_filter";
+import {normalizeByteString} from "../../src/model/normalize";
 
 export interface WatchStreamAddTargetInfo {
   targetId: number,
@@ -186,7 +188,7 @@ export class WatchStream {
     return targetState.initialSnapshotPromise;
   }
 
-  getExistenceFilter(targetId: number): Promise<ExistenceFilter> {
+  getExistenceFilter(targetId: number): Promise<BloomFilter | null> {
     const targetState = this._targets.get(targetId);
     if (targetState === undefined) {
       throw new WatchError(`unknown targetId: ${targetId}`);
@@ -229,6 +231,12 @@ export class WatchStream {
   private _onTargetChange(targetChange: TargetChange): void {
     const targetStates = this._targetStatesForTargetIds(targetChange.targetIds ?? [], true);
     for (const targetState of targetStates) {
+      const error = targetChange.cause;
+      if (error) {
+        targetState.onError(error);
+        continue;
+      }
+
       switch (targetChange.targetChangeType ?? "NO_CHANGE") {
         case "ADD":
           targetState.onAdded();
@@ -327,7 +335,7 @@ class TargetState {
   private readonly _addedDeferred = new Deferred<void>();
   private readonly _removedDeferred = new Deferred<void>();
   private readonly _initialSnapshotDeferred = new Deferred<TargetSnapshot>();
-  private readonly _existenceFilterPromise = new Deferred<ExistenceFilter>();
+  private readonly _existenceFilterDeferred = new Deferred<BloomFilter | null>();
 
   constructor(readonly targetId: number, initialDocumentPaths?: Set<string>) {
     if (initialDocumentPaths) {
@@ -349,8 +357,15 @@ class TargetState {
     return this._initialSnapshotDeferred.promise;
   }
 
-  get existenceFilterPromise(): Promise<ExistenceFilter> {
-    return this._existenceFilterPromise.promise;
+  get existenceFilterPromise(): Promise<BloomFilter | null> {
+    return this._existenceFilterDeferred.promise;
+  }
+
+  onError(error: unknown): void {
+    this._addedDeferred.reject(error as Error);
+    this._removedDeferred.reject(error as Error);
+    this._initialSnapshotDeferred.reject(error as Error);
+    this._existenceFilterDeferred.reject(error as Error);
   }
 
   onAdded(): void {
@@ -435,6 +450,35 @@ class TargetState {
     if (this._removed) {
       throw new TargetStateError(`onExistenceFilter() invoked after onRemoved().`);
     }
-    this._existenceFilterPromise.resolve(existenceFilter);
+
+    this._existenceFilterDeferred.resolve(createBloomFilterFrom(existenceFilter));
   }
+}
+
+
+class InvalidBloomFilterError extends Error {
+  readonly name = "InvalidBloomFilterError";
+}
+
+function createBloomFilterFrom(existenceFilter: ExistenceFilter): BloomFilter | null {
+  if (existenceFilter.unchangedNames === undefined) {
+    return null;
+  }
+
+  const padding = existenceFilter.unchangedNames.bits?.padding ?? 0;
+  const hashCount = existenceFilter.unchangedNames.hashCount ?? 0;
+  if (padding < 0 || padding > 7) {
+    throw new InvalidBloomFilterError(`invalid padding size: ${padding}`);
+  }
+  if (hashCount < 0) {
+    throw new InvalidBloomFilterError(`invalid hash count: ${hashCount}`);
+  }
+
+  const bitmap = existenceFilter.unchangedNames.bits?.bitmap ?? '';
+  const bytes = normalizeByteString(bitmap).toUint8Array();
+  if (hashCount === 0 && bytes.length > 0) {
+    throw new InvalidBloomFilterError(`non-zero hash count ${hashCount} when bitmap size is zero`);
+  }
+
+  return new BloomFilter(bytes, padding, hashCount);
 }

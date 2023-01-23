@@ -20,14 +20,13 @@ import {DocumentUtil} from './document_util';
 import {
   assertDeepEqual,
   descriptionFromSortedStrings,
-  documentIdFromDocumentPath
+  documentIdFromDocumentPath,
+  documentPathFromDocumentRef
 } from './util';
 
 import { AutoId } from '../../src/util/misc';
 import { BloomFilter } from '../../src/remote/bloom_filter';
-import {ExistenceFilter} from '../../src/protos/firestore_proto_api';
 import {DocumentReference} from '../../src/api/reference';
-import { normalizeByteString } from '../../src/model/normalize';
 import {Firestore} from '../../src/api/database';
 
 const DOCUMENT_DATA_KEY = "BloomFilterWatchTest_GroupId";
@@ -93,7 +92,47 @@ class BloomFilterWatchTest {
 
     await this.pause(10);
 
-    await this.resumeWatchStream(snapshot);
+    const bloomFilter = await this.resumeWatchStream(snapshot);
+
+    if (bloomFilter !== null) {
+      this.getBloomFilterCounts(bloomFilter, createdDocumentRefs, documentRefsToDelete);
+    }
+  }
+
+  private getBloomFilterCounts(bloomFilter: BloomFilter, createdDocumentRefs: Iterable<DocumentReference>, deletedDocumentRefs: Iterable<DocumentReference>): void {
+    const toDocumentPath = (documentRef: DocumentReference) => documentPathFromDocumentRef(documentRef, this.projectId);
+    const createdDocumentPaths = new Set(Array.from(createdDocumentRefs).map(toDocumentPath));
+    const deletedDocumentPaths = new Set(Array.from(deletedDocumentRefs).map(toDocumentPath));
+
+    const existingDocumentPaths = new Set(createdDocumentPaths);
+    for (const deletedDocumentPath of deletedDocumentPaths.values()) {
+      existingDocumentPaths.delete(deletedDocumentPath);
+    }
+
+    let existingDocumentPathsContainedCount = 0;
+    let existingDocumentPathsNotContainedCount = 0;
+    for (const existingDocumentPath of existingDocumentPaths.values()) {
+      if (bloomFilter.mightContain(existingDocumentPath)) {
+        existingDocumentPathsContainedCount++;
+      } else {
+        existingDocumentPathsNotContainedCount++;
+      }
+    }
+
+    let deletedDocumentPathsContainedCount = 0;
+    let deletedDocumentPathsNotContainedCount = 0;
+    for (const deletedDocumentPath of deletedDocumentPaths.values()) {
+      if (bloomFilter.mightContain(deletedDocumentPath)) {
+        deletedDocumentPathsContainedCount++;
+      } else {
+        deletedDocumentPathsNotContainedCount++;
+      }
+    }
+
+    this.log(`existingDocumentPathsContainedCount: ${existingDocumentPathsContainedCount}`);
+    this.log(`existingDocumentPathsNotContainedCount: ${existingDocumentPathsNotContainedCount}`);
+    this.log(`deletedDocumentPathsContainedCount: ${deletedDocumentPathsContainedCount}`);
+    this.log(`deletedDocumentPathsNotContainedCount: ${deletedDocumentPathsNotContainedCount}`);
   }
 
   private async createDocuments(): Promise<Array<DocumentReference>> {
@@ -141,7 +180,7 @@ class BloomFilterWatchTest {
     return snapshot;
   }
 
-  private async resumeWatchStream(snapshot: TargetSnapshot, options?: { expectedCount?: number }): Promise<void> {
+  private async resumeWatchStream(snapshot: TargetSnapshot, options?: { expectedCount?: number }): Promise<BloomFilter | null> {
     const expectedCount = options?.expectedCount ?? snapshot.documentPaths.size;
     this.log(`Resuming target in watch stream with expectedCount=${expectedCount}`);
     await this.watchStream.addTarget({
@@ -161,25 +200,19 @@ class BloomFilterWatchTest {
     const snapshotPromise = this.watchStream.getInitialSnapshot(2);
     const result = (await Promise.race([existenceFilterPromise, snapshotPromise])) as unknown;
 
+    let bloomFilter: BloomFilter | null;
     if (result instanceof TargetSnapshot) {
       this.log("WARNING: Didn't get an existence filter");
-    } else {
-      try {
-        const bloomFilter = createBloomFilterFrom(result as ExistenceFilter);
-        if (bloomFilter === null) {
-          this.log("Got an existence filter without a bloom filter");
-        } else {
-          this.log(`Got an existence filter with bloom filter with ${bloomFilter.size} bits`);
-        }
-      } catch (err) {
-        if (err instanceof InvalidBloomFilterError) {
-          this.log(`WARNING: Got an existence filter with invalid bloom ` +
-            `filter (${err.message}):`);
-          this.log(JSON.stringify(result, null, 2));
-        } else {
-          throw err;
-        }
+      bloomFilter = null;
+    } else if (result instanceof BloomFilter) {
+      bloomFilter = result;
+      if (bloomFilter === null) {
+        this.log("Got an existence filter without a bloom filter");
+      } else {
+        this.log(`Got an existence filter with bloom filter with ${bloomFilter.size} bits`);
       }
+    } else {
+      throw new Error(`internal error: unknown result: ${result}`);
     }
 
     this.log("Waiting for a snapshot from watch");
@@ -190,34 +223,9 @@ class BloomFilterWatchTest {
 
     this.log("Removing target from watch stream");
     await this.watchStream.removeTarget(2);
-  }
-}
 
-class InvalidBloomFilterError extends Error {
-  readonly name = "InvalidBloomFilterError";
-}
-
-function createBloomFilterFrom(existenceFilter: ExistenceFilter): BloomFilter | null {
-  if (existenceFilter.unchangedNames === undefined) {
-    return null;
+    return bloomFilter;
   }
-
-  const padding = existenceFilter.unchangedNames.bits?.padding ?? 0;
-  const hashCount = existenceFilter.unchangedNames.hashCount ?? 0;
-  if (padding < 0 || padding > 7) {
-    throw new InvalidBloomFilterError(`invalid padding size: ${padding}`);
-  }
-  if (hashCount < 0) {
-    throw new InvalidBloomFilterError(`invalid hash count: ${hashCount}`);
-  }
-
-  const bitmap = existenceFilter.unchangedNames.bits?.bitmap ?? '';
-  const bytes = normalizeByteString(bitmap).toUint8Array();
-  if (hashCount === 0 && bytes.length > 0) {
-    throw new InvalidBloomFilterError(`non-zero hash count ${hashCount} when bitmap size is zero`);
-  }
-
-  return new BloomFilter(bytes, padding, hashCount);
 }
 
 function assertDocumentsInSnapshot(snapshot: TargetSnapshot, expectedDocuments: Array<DocumentReference>): void {
