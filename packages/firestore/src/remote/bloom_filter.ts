@@ -47,9 +47,9 @@ export class BloomFilter {
   private readonly sizeInInteger: Integer;
 
   constructor(
-    private readonly bitmap: Uint8Array,
-    padding: number,
-    private readonly hashCount: number
+    readonly bitmap: Uint8Array,
+    readonly padding: number,
+    readonly hashCount: number
   ) {
     debugAssert(padding >= 0 && padding < 8, `Invalid padding: ${padding}`);
     if (bitmap.length > 0) {

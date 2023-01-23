@@ -35,24 +35,28 @@ class InvalidRunTestOptionsError extends Error {
   readonly name = "InvalidRunTestOptionsError";
 }
 
-export async function runTest(db: Firestore, projectId: string, host: string, ssl: boolean, documentCreateCount_: number | null, documentDeleteCount_: number | null, collectionId_: string | null, log: (...args: Array<any>) => any): Promise<void> {
+export async function runTest(db: Firestore, projectId: string, host: string, ssl: boolean, iterationCount_: number, documentCreateCount_: number | null, documentDeleteCount_: number | null, collectionId_: string | null, log: (...args: Array<any>) => any): Promise<void> {
   log("Bloom Filter Watch Test Started");
 
   const collectionId = collectionId_ ?? `bloom_filter_watch_test_${AutoId.newId()}`;
   const documentCreateCount = documentCreateCount_ ?? 10;
   const documentDeleteCount = documentDeleteCount_ ?? Math.ceil(documentCreateCount / 2);
+  const iterationCount = iterationCount_ ?? 1;
 
   if (documentDeleteCount > documentCreateCount) {
     throw new InvalidRunTestOptionsError(
       `documentDeleteCount (${documentDeleteCount}) must be ` +
       `less than or equal to documentCreateCount (${documentCreateCount})`);
   }
+  if (iterationCount < 0) {
+    throw new InvalidRunTestOptionsError(`invalid iteration count: ${iterationCount}`);
+  }
 
   log(`Creating WatchStream with projectId=${projectId} and host=${host}`);
   const watchStream = createWatchStream(projectId, host, ssl);
-  const testRunner = new BloomFilterWatchTest(db, watchStream, projectId, host, ssl, documentCreateCount, documentDeleteCount, collectionId, log);
   await watchStream.open();
   try {
+    const testRunner = new BloomFilterWatchTest(db, watchStream, projectId, host, ssl, documentCreateCount, documentDeleteCount, collectionId, log);
     await testRunner.run();
   } finally {
     log("Closing watch stream");
@@ -160,8 +164,7 @@ class BloomFilterWatchTest {
 
   private async startTarget(): Promise<TargetSnapshot> {
     this.log("Adding target to watch stream");
-    await this.watchStream.addTarget({
-      targetId: 1,
+    const target = await this.watchStream.addTarget({
       projectId: this.projectId,
       collectionId: this.collectionId,
       keyFilter: DOCUMENT_DATA_KEY,
@@ -169,13 +172,13 @@ class BloomFilterWatchTest {
     });
 
     this.log("Waiting for a snapshot from watch");
-    const snapshot = await this.watchStream.getInitialSnapshot(1);
+    const snapshot = await this.watchStream.getInitialSnapshot(target);
     const documentNames = Array.from(snapshot.documentPaths).sort();
     const documentIds = documentNames.map(documentIdFromDocumentPath);
     this.log(`Got snapshot with ${documentIds.length} documents: ${descriptionFromSortedStrings(documentIds)}`);
 
     this.log("Removing target from watch stream");
-    await this.watchStream.removeTarget(1);
+    await this.watchStream.removeTarget(target);
 
     return snapshot;
   }
@@ -183,8 +186,7 @@ class BloomFilterWatchTest {
   private async resumeWatchStream(snapshot: TargetSnapshot, options?: { expectedCount?: number }): Promise<BloomFilter | null> {
     const expectedCount = options?.expectedCount ?? snapshot.documentPaths.size;
     this.log(`Resuming target in watch stream with expectedCount=${expectedCount}`);
-    await this.watchStream.addTarget({
-      targetId: 2,
+    const target = await this.watchStream.addTarget({
       projectId: this.projectId,
       collectionId: this.collectionId,
       keyFilter: DOCUMENT_DATA_KEY,
@@ -196,8 +198,8 @@ class BloomFilterWatchTest {
     });
 
     this.log("Waiting for an existence filter from watch");
-    const existenceFilterPromise = this.watchStream.getExistenceFilter(2);
-    const snapshotPromise = this.watchStream.getInitialSnapshot(2);
+    const existenceFilterPromise = this.watchStream.getExistenceFilter(target);
+    const snapshotPromise = this.watchStream.getInitialSnapshot(target);
     const result = (await Promise.race([existenceFilterPromise, snapshotPromise])) as unknown;
 
     let bloomFilter: BloomFilter | null;
@@ -209,7 +211,9 @@ class BloomFilterWatchTest {
       if (bloomFilter === null) {
         this.log("Got an existence filter without a bloom filter");
       } else {
-        this.log(`Got an existence filter with bloom filter with ${bloomFilter.size} bits`);
+        this.log(`Got an existence bloom filter with size ` +
+          `${bloomFilter.size} bits and ` +
+          `${bloomFilter.hashCount} hash functions`);
       }
     } else {
       throw new Error(`internal error: unknown result: ${result}`);
@@ -222,7 +226,7 @@ class BloomFilterWatchTest {
     this.log(`Got snapshot with ${documentIds2.length} documents: ${descriptionFromSortedStrings(documentIds2)}`);
 
     this.log("Removing target from watch stream");
-    await this.watchStream.removeTarget(2);
+    await this.watchStream.removeTarget(target);
 
     return bloomFilter;
   }

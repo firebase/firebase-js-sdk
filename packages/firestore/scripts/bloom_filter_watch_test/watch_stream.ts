@@ -32,7 +32,6 @@ import {BloomFilter} from "../../src/remote/bloom_filter";
 import {normalizeByteString} from "../../src/model/normalize";
 
 export interface WatchStreamAddTargetInfo {
-  targetId: number,
   projectId: string,
   collectionId: string,
   keyFilter: string,
@@ -43,11 +42,16 @@ export interface WatchStreamAddTargetInfo {
   }
 }
 
+export interface TargetHandle {
+  targetId: number;
+}
+
 export class WatchStream {
 
   private _stream: Stream<unknown, unknown> | null = null;
   private _closed = false;
   private _closedDeferred = new Deferred<void>();
+  private _nextTargetId = 1;
 
   private _targets = new Map<number, TargetState>();
 
@@ -106,18 +110,18 @@ export class WatchStream {
     return this._closedDeferred.promise;
   }
 
-  addTarget(targetInfo: WatchStreamAddTargetInfo): Promise<void> {
+  async addTarget(targetInfo: WatchStreamAddTargetInfo): Promise<TargetHandle> {
+    const targetId = this._nextTargetId++;
+
     if (!this._stream) {
       throw new WatchError("open() must be called before addTarget()");
     } else if (this._closed) {
       throw new WatchError("addTarget() may not be called after close()");
-    } else if (this._targets.has(targetInfo.targetId)) {
-      throw new WatchError(`targetId ${targetInfo.targetId} is already used`);
     }
 
     const listenRequest: ListenRequest = {
       addTarget: {
-        targetId: targetInfo.targetId,
+        targetId,
         query: {
           parent: `projects/${targetInfo.projectId}/databases/(default)/documents`,
           structuredQuery: {
@@ -146,14 +150,18 @@ export class WatchStream {
       listenRequest.addTarget!.expectedCount = targetInfo.resume.expectedCount;
     }
 
-    const targetState = new TargetState(targetInfo.targetId, targetInfo?.resume?.from.documentPaths);
-    this._targets.set(targetInfo.targetId, targetState);
+    const targetState = new TargetState(targetId, targetInfo?.resume?.from.documentPaths);
+    this._targets.set(targetId, targetState);
     this.sendListenRequest(listenRequest);
 
-    return targetState.addedPromise;
+    await targetState.addedPromise;
+
+    return { targetId };
   }
 
-  removeTarget(targetId: number): Promise<void> {
+  removeTarget(targetHandle: TargetHandle): Promise<void> {
+    const targetId = targetHandle.targetId;
+
     if (!this._stream) {
       throw new WatchError("open() must be called before removeTarget()");
     } else if (this._closed) {
@@ -180,7 +188,8 @@ export class WatchStream {
     );
   }
 
-  getInitialSnapshot(targetId: number): Promise<TargetSnapshot> {
+  getInitialSnapshot(targetHandle: TargetHandle): Promise<TargetSnapshot> {
+    const targetId = targetHandle.targetId;
     const targetState = this._targets.get(targetId);
     if (targetState === undefined) {
       throw new WatchError(`unknown targetId: ${targetId}`);
@@ -188,7 +197,8 @@ export class WatchStream {
     return targetState.initialSnapshotPromise;
   }
 
-  getExistenceFilter(targetId: number): Promise<BloomFilter | null> {
+  getExistenceFilter(targetHandle: TargetHandle): Promise<BloomFilter | null> {
+    const targetId = targetHandle.targetId;
     const targetState = this._targets.get(targetId);
     if (targetState === undefined) {
       throw new WatchError(`unknown targetId: ${targetId}`);
