@@ -31,7 +31,7 @@ export class AleaRandom {
   randomId(): string {
     let result = '';
     for (let i=0; i<20; i++) {
-      const charIndex = Math.round(this.next() * RANDOM_ID_ALPHABET.length);
+      const charIndex = Math.floor(this.next() * RANDOM_ID_ALPHABET.length);
       result += RANDOM_ID_ALPHABET[charIndex];
     }
     return result;
