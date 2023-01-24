@@ -17,12 +17,7 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import {
-  CompleteFn,
-  NextFn,
-  Subscribe,
-  Unsubscribe
-} from '@firebase/util';
+import { CompleteFn, NextFn, Subscribe, Unsubscribe } from '@firebase/util';
 import { StorageError } from './implementation/error';
 
 export { StorageError } from './implementation/error';
@@ -250,7 +245,6 @@ export type TaskEvent = 'state_changed';
  * @public
  */
 export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
-
 
 /**
  * A stream observer for Firebase Storage.
