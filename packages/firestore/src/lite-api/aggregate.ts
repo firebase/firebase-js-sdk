@@ -87,7 +87,7 @@ export function getAggregate<T extends AggregateSpec>(
 
     return new AggregateImpl(
       alias,
-      aggregate.aggregateType,
+      aggregate._aggregateType,
       aggregate._internalFieldPath
     );
   });
@@ -162,7 +162,7 @@ export function aggregateFieldEqual(
     right instanceof AggregateField &&
     left._internalFieldPath?.canonicalString() ===
       right._internalFieldPath?.canonicalString() &&
-    left.aggregateType === right.aggregateType
+    left._aggregateType === right._aggregateType
   );
 }
 

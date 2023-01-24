@@ -34,14 +34,14 @@ export class AggregateField<R> {
 
   /**
    * Create a new AggregateField<R>
-   * @param aggregateType Specifies the type of aggregation operation to perform.
+   * @param _aggregateType Specifies the type of aggregation operation to perform.
    * @param _internalFieldPath Optionally specifies the field that is aggregated.
    * @internal
    */
   constructor(
     // TODO (sum/avg) make aggregateType public when the feature is supported
-    private readonly aggregateType: AggregateType = 'count',
-    private readonly _internalFieldPath?: InternalFieldPath
+    readonly _aggregateType: AggregateType = 'count',
+    readonly _internalFieldPath?: InternalFieldPath
   ) {}
 }
 

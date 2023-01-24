@@ -19,14 +19,11 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 
 // @public
 export class AggregateField<R> {
-    constructor(aggregateType?: AggregateType, methodName?: string, field?: string | FieldPath);
-    // (undocumented)
-    readonly aggregateType: AggregateType;
     readonly type = "AggregateField";
 }
 
 // @public
-export type AggregateFieldType = ReturnType<typeof count> | ReturnType<typeof sum> | ReturnType<typeof average>;
+export type AggregateFieldType = AggregateField<number> | AggregateField<number | null>;
 
 // @public
 export class AggregateQuerySnapshot<T extends AggregateSpec> {
@@ -50,16 +47,10 @@ export type AggregateSpecData<T extends AggregateSpec> = {
 };
 
 // @public
-export type AggregateType = 'count' | 'avg' | 'sum';
-
-// @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
 
 // @public
 export function arrayUnion(...elements: unknown[]): FieldValue;
-
-// @public
-export function average(field: string | FieldPath): AggregateField<number | null>;
 
 // @public
 export class Bytes {
@@ -100,9 +91,6 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 export function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
 }): void;
-
-// @public
-export function count(): AggregateField<number>;
 
 // @public
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
@@ -209,9 +197,6 @@ export class GeoPoint {
         longitude: number;
     };
 }
-
-// @public
-export function getAggregate<T extends AggregateSpec>(query: Query<unknown>, aggregateSpec: T): Promise<AggregateQuerySnapshot<T>>;
 
 // @public
 export function getCount(query: Query<unknown>): Promise<AggregateQuerySnapshot<{
@@ -376,9 +361,6 @@ export function startAt(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstr
 
 // @public
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
-
-// @public
-export function sum(field: string | FieldPath): AggregateField<number>;
 
 // @public
 export function terminate(firestore: Firestore): Promise<void>;

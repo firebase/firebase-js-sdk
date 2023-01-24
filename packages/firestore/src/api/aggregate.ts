@@ -100,7 +100,7 @@ export function getAggregateFromServer<T extends AggregateSpec>(
 
     return new AggregateImpl(
       alias,
-      aggregate.aggregateType,
+      aggregate._aggregateType,
       aggregate._internalFieldPath
     );
   });
