@@ -134,13 +134,11 @@ export function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStora
 // @public
 export function getStream(ref: StorageReference, maxDownloadSizeBytes?: number): NodeJS.ReadableStream;
 
-// Warning: (ae-forgotten-export) The symbol "StorageError" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
-export function _invalidArgument(message: string): StorageError_2;
+export function _invalidArgument(message: string): StorageError;
 
 // @internal (undocumented)
-export function _invalidRootOperation(name: string): StorageError_2;
+export function _invalidRootOperation(name: string): StorageError;
 
 // @public
 export function list(ref: StorageReference, options?: ListOptions): Promise<ListResult>;
@@ -217,9 +215,19 @@ export interface SettableMetadata {
 }
 
 // @public
-export interface StorageError extends FirebaseError {
-    serverResponse: string | null;
-}
+export class StorageError extends FirebaseError {
+    // Warning: (ae-forgotten-export) The symbol "StorageErrorCode" needs to be exported by the entry point index.d.ts
+    constructor(code: StorageErrorCode, message: string, status_?: number);
+    _codeEquals(code: StorageErrorCode): boolean;
+    customData: {
+        serverResponse: string | null;
+    };
+    get serverResponse(): null | string;
+    set serverResponse(serverResponse: string | null);
+    // (undocumented)
+    get status(): number;
+    set status(status: number);
+    }
 
 // @public
 export interface StorageObserver<T> {
@@ -318,20 +326,20 @@ export class _UploadTask {
     constructor(ref: _Reference, blob: _FbsBlob, metadata?: Metadata | null);
     _blob: _FbsBlob;
     cancel(): boolean;
-    catch<T>(onRejected: (p1: StorageError_2) => T | Promise<T>): Promise<T>;
+    catch<T>(onRejected: (p1: StorageError) => T | Promise<T>): Promise<T>;
     // (undocumented)
     isExponentialBackoffExpired(): boolean;
     // Warning: (ae-forgotten-export) The symbol "Metadata" needs to be exported by the entry point index.d.ts
     _metadata: Metadata | null;
     // Warning: (ae-forgotten-export) The symbol "Unsubscribe" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "Subscribe" needs to be exported by the entry point index.d.ts
-    on(type: _TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: StorageError_2) => unknown) | null, completed?: CompleteFn | null): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot>;
+    on(type: _TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: StorageError) => unknown) | null, completed?: CompleteFn | null): Unsubscribe_2 | Subscribe_2<UploadTaskSnapshot>;
     pause(): boolean;
     resume(): boolean;
     get snapshot(): UploadTaskSnapshot;
     // Warning: (ae-forgotten-export) The symbol "InternalTaskState" needs to be exported by the entry point index.d.ts
     _state: InternalTaskState;
-    then<U>(onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null, onRejected?: ((error: StorageError_2) => U | Promise<U>) | null): Promise<U>;
+    then<U>(onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null, onRejected?: ((error: StorageError) => U | Promise<U>) | null): Promise<U>;
     _transferred: number;
     }
 
