@@ -25,27 +25,50 @@ import { CONFIG_STORAGE_BUCKET_KEY } from './constants';
  */
 export class StorageError extends FirebaseError {
   private readonly _baseMessage: string;
+  /**
+   * Stores custom error data unque to StorageError.
+   */
   customData: { serverResponse: string | null } = { serverResponse: null };
+
+  /**
+   * @param code - A StorageErrorCode string to be prefixed with 'storage/' and
+   *  added to the end of the message.
+   * @param message  - Error message.
+   * @param status_ - Corresponding HTTP Status Code
+   */
   constructor(code: StorageErrorCode, message: string, private status_ = 0) {
     super(
       prependCode(code),
       `Firebase Storage: ${message} (${prependCode(code)})`
     );
     this._baseMessage = this.message;
+    // Without this, `instanceof StorageError`, in tests for example,
+    // returns false.
     Object.setPrototypeOf(this, StorageError.prototype);
   }
+
   get status(): number {
     return this.status_;
   }
+
   set status(status: number) {
     this.status_ = status;
   }
+
+  /**
+   * Compares a StorageErrorCode against this error's code, filtering out the prefix.
+   */
   _codeEquals(code: StorageErrorCode): boolean {
     return prependCode(code) === this.code;
   }
+
+  /**
+   * Optional response message that was added by the server.
+   */
   get serverResponse(): null | string {
     return this.customData.serverResponse;
   }
+
   set serverResponse(serverResponse: string | null) {
     this.customData.serverResponse = serverResponse;
     if (this.customData.serverResponse) {
@@ -55,6 +78,7 @@ export class StorageError extends FirebaseError {
     }
   }
 }
+
 export const errors = {};
 
 /**

@@ -19,11 +19,13 @@
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
 import {
   CompleteFn,
-  FirebaseError,
   NextFn,
   Subscribe,
   Unsubscribe
 } from '@firebase/util';
+import { StorageError } from './implementation/error';
+
+export { StorageError } from './implementation/error';
 
 /**
  * A Firebase Storage instance.
@@ -249,16 +251,6 @@ export type TaskEvent = 'state_changed';
  */
 export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
 
-/**
- * An error returned by the Firebase Storage SDK.
- * @public
- */
-export interface StorageError extends FirebaseError {
-  /**
-   * A server response message for the error, if applicable.
-   */
-  serverResponse: string | null;
-}
 
 /**
  * A stream observer for Firebase Storage.
