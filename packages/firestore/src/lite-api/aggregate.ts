@@ -33,6 +33,7 @@ import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
+import { fieldPathFromArgument } from './user_data_reader';
 
 /**
  * Calculates the number of documents in the result set of the given query,
@@ -59,9 +60,19 @@ export function getCount(
 }
 
 /**
- * TODO
- * @param query
- * @param aggregates
+ * Calculates the specified aggregations over the documents in the result
+ * set of the given query, without actually downloading the documents.
+ *
+ * Using this function to perform aggregations is efficient because only the
+ * final aggregation values, not the documents' data, is downloaded. This
+ * function can even perform aggregations if the documents if the result set
+ * would be prohibitively large to download entirely (e.g. thousands of documents).
+ *
+ * @param query The query whose result set to aggregate over.
+ * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
+ * to perform over the result set. The AggregateSpec specifies aliases for each
+ * aggregate, which can be used to retrieve the aggregate result.
+ * @internal TODO (sum/avg) remove when public
  */
 export function getAggregate<T extends AggregateSpec>(
   query: Query<unknown>,
@@ -71,6 +82,9 @@ export function getAggregate<T extends AggregateSpec>(
   const datastore = getDatastore(firestore);
 
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
+    // TODO (sum/avg) should alias validation be performed or should that be
+    // delegated to the backend?
+
     return new AggregateImpl(
       alias,
       aggregate.aggregateType,
@@ -78,30 +92,24 @@ export function getAggregate<T extends AggregateSpec>(
     );
   });
 
+  // Run the aggregation and convert the results
   return invokeRunAggregationQueryRpc(
     datastore,
     query._query,
     internalAggregates
   ).then(aggregateResult =>
-    convertToAggregateQuerySnapshot(
-      firestore,
-      query,
-      aggregateSpec,
-      aggregateResult
-    )
+    convertToAggregateQuerySnapshot(firestore, query, aggregateResult)
   );
 }
 
 function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
   firestore: Firestore,
   query: Query<unknown>,
-  ref: T,
   aggregateResult: ObjectValue
 ): AggregateQuerySnapshot<T> {
   const userDataWriter = new LiteUserDataWriter(firestore);
   const querySnapshot = new AggregateQuerySnapshot<T>(
     query,
-    firestore,
     userDataWriter,
     aggregateResult
   );
@@ -109,35 +117,41 @@ function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
 }
 
 /**
- * TODO
- * @param field
+ * Create an AggregateField object that can be used to compute the sum of
+ * a specified field over a range of documents in the result set of a query.
+ * @param field Specifies the field to sum across the result set.
+ * @internal TODO (sum/avg) remove when public
  */
 export function sum(field: string | FieldPath): AggregateField<number> {
-  return new AggregateField('sum', 'sum', field);
+  return new AggregateField('sum', fieldPathFromArgument('sum', field));
 }
 
 /**
- * TODO
- * @param field
+ * Create an AggregateField object that can be used to compute the average of
+ * a specified field over a range of documents in the result set of a query.
+ * @param field Specifies the field to average across the result set.
+ * @internal TODO (sum/avg) remove when public
  */
 export function average(
   field: string | FieldPath
 ): AggregateField<number | null> {
-  return new AggregateField('avg', 'average', field);
+  return new AggregateField('avg', fieldPathFromArgument('average', field));
 }
 
 /**
- * TODO
+ * Create an AggregateField object that can be used to compute the count of
+ * documents in the result set of a query.
+ * @internal TODO (sum/avg) remove when public
  */
 export function count(): AggregateField<number> {
-  return new AggregateField('count', 'count');
+  return new AggregateField('count');
 }
 
 /**
  * Compares two 'AggregateField` instances for equality.
  *
- * @param left
- * @param right
+ * @param left Compare this AggregateField to the `right`.
+ * @param right Compare this AggregateField to the `left`.
  */
 export function aggregateFieldEqual(
   left: AggregateField<unknown>,

@@ -19,16 +19,9 @@ import { AggregateType } from '../core/aggregate';
 import { ObjectValue } from '../model/object_value';
 import { FieldPath as InternalFieldPath } from '../model/path';
 
-import { average, count, sum } from './aggregate';
-import { Firestore } from './database';
-import { FieldPath } from './field_path';
 import { Query } from './reference';
-import { fieldPathFromArgument } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
 
-/**
- * Union type representing the aggregate type to be performed.
- */
 export { AggregateType };
 
 /**
@@ -40,37 +33,27 @@ export class AggregateField<R> {
   readonly type = 'AggregateField';
 
   /**
+   * Create a new AggregateField<R>
+   * @param aggregateType Specifies the type of aggregation operation to perform.
+   * @param _internalFieldPath Optionally specifies the field that is aggregated.
    * @internal
    */
-  readonly _internalFieldPath: InternalFieldPath | undefined;
-
-  /**
-   * Create a new AggregateField<R>
-   * @param aggregateType
-   * @param field Optional
-   * @param methodName
-   */
   constructor(
-    public readonly aggregateType: AggregateType = 'count',
-    methodName: string = 'new AggregateField',
-    field?: string | FieldPath
-  ) {
-    if (field !== undefined) {
-      this._internalFieldPath = fieldPathFromArgument(methodName, field);
-    }
-  }
+    // TODO (sum/avg) make aggregateType public when the feature is supported
+    private readonly aggregateType: AggregateType = 'count',
+    private readonly _internalFieldPath?: InternalFieldPath
+  ) {}
 }
 
 /**
  * The union of all `AggregateField` types that are supported by Firestore.
  */
 export type AggregateFieldType =
-  | ReturnType<typeof count>
-  | ReturnType<typeof sum>
-  | ReturnType<typeof average>;
+  | AggregateField<number>
+  | AggregateField<number | null>;
 
 /**
- * A type whose property values are all `AggregateField` objects.
+ * Specifies a set of aggregations and their aliases.
  */
 export interface AggregateSpec {
   [field: string]: AggregateFieldType;
@@ -92,7 +75,6 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateQuerySnapshot';
 
-  // TODO(sum/avg) can this be removed?
   /**
    * The underlying query over which the aggregations recorded in this
    * `AggregateQuerySnapshot` were performed.
@@ -102,7 +84,6 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
   /** @hideconstructor */
   constructor(
     query: Query<unknown>,
-    private readonly _firestore: Firestore,
     private readonly _userDataWriter: AbstractUserDataWriter,
     private readonly _data: ObjectValue
   ) {

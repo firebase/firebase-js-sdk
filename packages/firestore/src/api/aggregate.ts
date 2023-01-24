@@ -66,9 +66,26 @@ export function getCountFromServer(
 }
 
 /**
- * TODO
- * @param query
- * @param aggregateSpec
+ * Calculates the specified aggregations over the documents in the result
+ * set of the given query, without actually downloading the documents.
+ *
+ * Using this function to perform aggregations is efficient because only the
+ * final aggregation values, not the documents' data, is downloaded. This
+ * function can even perform aggregations if the documents if the result set
+ * would be prohibitively large to download entirely (e.g. thousands of documents).
+ *
+ * The result received from the server is presented, unaltered, without
+ * considering any local state. That is, documents in the local cache are not
+ * taken into consideration, neither are local modifications not yet
+ * synchronized with the server. Previously-downloaded results, if any, are not
+ * used: every request using this source necessarily involves a round trip to
+ * the server.
+ *
+ * @param query The query whose result set to aggregate over.
+ * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
+ * to perform over the result set. The AggregateSpec specifies aliases for each
+ * aggregate, which can be used to retrieve the aggregate result.
+ * @internal TODO (sum/avg) remove when public
  */
 export function getAggregateFromServer<T extends AggregateSpec>(
   query: Query<unknown>,
@@ -78,6 +95,9 @@ export function getAggregateFromServer<T extends AggregateSpec>(
   const client = ensureFirestoreConfigured(firestore);
 
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
+    // TODO (sum/avg) should alias validation be performed or should that be
+    // delegated to the backend?
+
     return new AggregateImpl(
       alias,
       aggregate.aggregateType,
@@ -85,30 +105,31 @@ export function getAggregateFromServer<T extends AggregateSpec>(
     );
   });
 
+  // Run the aggregation and convert the results
   return firestoreClientRunAggregateQuery(
     client,
     query._query,
     internalAggregates
   ).then(aggregateResult =>
-    convertToAggregateQuerySnapshot(
-      firestore,
-      query,
-      aggregateSpec,
-      aggregateResult
-    )
+    convertToAggregateQuerySnapshot(firestore, query, aggregateResult)
   );
 }
 
+/**
+ * Converts the core aggregration result to an `AggregateQuerySnapshot`
+ * that can be returned to the consumer.
+ * @param query
+ * @param aggregateResult Core aggregation result
+ * @internal
+ */
 function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
   firestore: Firestore,
   query: Query<unknown>,
-  ref: T,
   aggregateResult: ObjectValue
 ): AggregateQuerySnapshot<T> {
   const userDataWriter = new ExpUserDataWriter(firestore);
   const querySnapshot = new AggregateQuerySnapshot<T>(
     query,
-    firestore,
     userDataWriter,
     aggregateResult
   );
