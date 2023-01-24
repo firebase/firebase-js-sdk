@@ -671,7 +671,9 @@ export class SimpleDbStore<
     const iterateOptions = this.options(indexOrRange, range);
     // Use `getAll()` if the browser supports IndexedDB v3, as it is roughly
     // 20% faster.
-    const store = iterateOptions.index ? this.store.index(iterateOptions.index) : this.store;
+    const store = iterateOptions.index
+      ? this.store.index(iterateOptions.index)
+      : this.store;
     if (typeof store.getAll === 'function') {
       const request = store.getAll(iterateOptions.range);
       return new PersistencePromise((resolve, reject) => {
