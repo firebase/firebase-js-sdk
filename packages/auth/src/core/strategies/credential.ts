@@ -96,7 +96,8 @@ export async function linkWithCredential(
  *
  * @remarks
  * Use before operations such as {@link updatePassword} that require tokens from recent sign-in
- * attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error.
+ * attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error
+ * or a `TOKEN_EXPIRED` error.
  *
  * @param user - The user.
  * @param credential - The auth credential.
