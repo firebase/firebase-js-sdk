@@ -302,10 +302,7 @@ export function syncTreeApplyTaggedListenComplete(
     const r = syncTreeParseQueryKey_(queryKey);
     const queryPath = r.path,
       queryId = r.queryId;
-    console.log('queryPath', queryPath.toString());
-    console.log('path', path.toString());
     const relativePath = newRelativePath(queryPath, path);
-    console.log('relativePath', relativePath.toString());
     const op = new ListenComplete(
       newOperationSourceServerTaggedQuery(queryId),
       relativePath
@@ -644,7 +641,7 @@ export function syncTreeGetServerValue(
   }
   const serverCacheComplete = serverCache != null;
   const serverCacheNode: CacheNode | null = serverCacheComplete
-    ? new CacheNode(serverCache, true, false)
+    ? new CacheNode(serverCache, true, undefined)
     : null;
   const writesCache: WriteTreeRef | null = writeTreeChildWrites(
     syncTree.pendingWriteTree_,
