@@ -150,7 +150,7 @@ export function syncPointGetOrCreateView(
       eventCacheComplete = false;
     }
     const viewCache = newViewCache(
-      new CacheNode(eventCache, eventCacheComplete, undefined),
+      new CacheNode(eventCache, eventCacheComplete, false),
       new CacheNode(serverCache, serverCacheComplete, undefined)
     );
     return new View(query, viewCache);

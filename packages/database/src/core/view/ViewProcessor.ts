@@ -639,14 +639,9 @@ function viewProcessorApplyServerMerge(
     }
   });
   viewMergeTree.children.inorderTraversal((childKey, childMergeTree) => {
-    /**
-     * The flaw here is when we have a node that is fullyInitialized (up to date with the server), but is not flagged as filtered by the server yet.
-     * We know that's the case when: There's no data for a server cache node, and the query is a tagged query.
-     */
     const isUnknownDeepMerge =
-      (!viewCache.serverCache.isCompleteForChild(childKey) &&
-        childMergeTree.value === null) ||
-      viewCache.serverCache.isFiltered() === undefined;
+      !viewCache.serverCache.isCompleteForChild(childKey) &&
+      childMergeTree.value === null;
     if (!serverNode.hasChild(childKey) && !isUnknownDeepMerge) {
       const serverChild = viewCache.serverCache
         .getNode()
@@ -760,7 +755,6 @@ function viewProcessorListenComplete(
   accumulator: ChildChangeAccumulator
 ): ViewCache {
   const oldServerNode = viewCache.serverCache;
-  console.log('listenComplete', oldServerNode.isFiltered());
   const newViewCache = viewCacheUpdateServerSnap(
     viewCache,
     oldServerNode.getNode(),

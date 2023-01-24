@@ -56,7 +56,7 @@ export class CacheNode {
 
   isCompleteForChild(key: string): boolean {
     return (
-      (this.isFullyInitialized() && this.filtered_ === false) ||
+      (this.isFullyInitialized() && !this.filtered_ === false) ||
       this.node_.hasChild(key)
     );
   }
