@@ -448,7 +448,7 @@ export function firestoreClientRunAggregateQuery(
   const deferred = new Deferred<ObjectValue>();
 
   client.asyncQueue.enqueueAndForget(async () => {
-    // TODO(aggregates) update this to use the event manager.
+    // TODO (sum/avg) should we update this to use the event manager?
     // Implement and call executeAggregateQueryViaSnapshotListener, similar
     // to the implementation in firestoreClientGetDocumentsViaSnapshotListener
     // above

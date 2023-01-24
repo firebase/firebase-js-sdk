@@ -24,7 +24,7 @@ import { FieldPath } from '../model/path';
 export type AggregateType = 'count' | 'avg' | 'sum';
 
 /**
- * TODO
+ * Represents an Aggregate to be performed over a query result set.
  */
 export interface Aggregate {
   readonly fieldPath?: FieldPath;
@@ -33,7 +33,7 @@ export interface Aggregate {
 }
 
 /**
- * TODO
+ * Concrete implementation of the Aggregate type.
  */
 export class AggregateImpl implements Aggregate {
   constructor(
@@ -41,18 +41,4 @@ export class AggregateImpl implements Aggregate {
     readonly aggregateType: AggregateType,
     readonly fieldPath?: FieldPath
   ) {}
-}
-
-/**
- * TODO
- * @param alias
- * @param aggregateType
- * @param fieldPath
- */
-export function newAggregate(
-  alias: string,
-  aggregateType: AggregateType,
-  fieldPath?: FieldPath
-): Aggregate {
-  return new AggregateImpl(alias, aggregateType, fieldPath);
 }

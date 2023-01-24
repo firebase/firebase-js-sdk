@@ -28,12 +28,12 @@ export { AggregateType };
  * Represents an aggregation that can be performed by Firestore.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export class AggregateField<R> {
+export class AggregateField<T> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateField';
 
   /**
-   * Create a new AggregateField<R>
+   * Create a new AggregateField<T>
    * @param _aggregateType Specifies the type of aggregation operation to perform.
    * @param _internalFieldPath Optionally specifies the field that is aggregated.
    * @internal
