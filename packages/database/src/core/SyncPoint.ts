@@ -121,7 +121,7 @@ export function syncPointApplyOperation(
  * @param serverCacheComplete
  * @returns Events to raise.
  */
-export function syncPointGetView(
+export function syncPointGetOrCreateView(
   syncPoint: SyncPoint,
   query: QueryContext,
   writesCache: WriteTreeRef,
@@ -150,8 +150,8 @@ export function syncPointGetView(
       eventCacheComplete = false;
     }
     const viewCache = newViewCache(
-      new CacheNode(eventCache, eventCacheComplete, false),
-      new CacheNode(serverCache, serverCacheComplete, false)
+      new CacheNode(eventCache, eventCacheComplete, undefined),
+      new CacheNode(serverCache, serverCacheComplete, undefined)
     );
     return new View(query, viewCache);
   }
@@ -176,7 +176,7 @@ export function syncPointAddEventRegistration(
   serverCache: Node | null,
   serverCacheComplete: boolean
 ): Event[] {
-  const view = syncPointGetView(
+  const view = syncPointGetOrCreateView(
     syncPoint,
     query,
     writesCache,

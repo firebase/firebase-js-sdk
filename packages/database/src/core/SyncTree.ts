@@ -38,7 +38,7 @@ import {
   syncPointGetCompleteServerCache,
   syncPointGetCompleteView,
   syncPointGetQueryViews,
-  syncPointGetView,
+  syncPointGetOrCreateView,
   syncPointHasCompleteView,
   syncPointIsEmpty,
   syncPointRemoveEventRegistration,
@@ -650,7 +650,7 @@ export function syncTreeGetServerValue(
     syncTree.pendingWriteTree_,
     query._path
   );
-  const view: View = syncPointGetView(
+  const view: View = syncPointGetOrCreateView(
     syncPoint,
     query,
     writesCache,
