@@ -96,7 +96,7 @@ export interface StorageObserver<T> {
   error?: (error: FirebaseStorageError) => void | null;
   complete?: CompleteFn | null;
 }
-export declare enum StorageErrorCode {
+export enum StorageErrorCode {
   UNKNOWN = 'unknown',
   OBJECT_NOT_FOUND = 'object-not-found',
   BUCKET_NOT_FOUND = 'bucket-not-found',
