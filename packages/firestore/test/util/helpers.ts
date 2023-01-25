@@ -85,6 +85,7 @@ import {
   SetMutation,
   FieldTransform
 } from '../../src/model/mutation';
+import { normalizeByteString } from '../../src/model/normalize';
 import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
@@ -1108,7 +1109,10 @@ export function generateBloomFilterProto(config: {
     }
   });
   return {
-    bits: { bitmap: bloomFilter.bitmap, padding: bloomFilter.padding },
+    bits: {
+      bitmap: normalizeByteString(bloomFilter.bitmap).toBase64(),
+      padding: bloomFilter.padding
+    },
     hashCount: bloomFilter.hashCount
   };
 }
