@@ -88,7 +88,7 @@ describe('Performance Monitoring > remote_config_service', () => {
     fetchConfig?: { reject: boolean; value?: Response }
   ): {
     storageGetItemStub: SinonStub<[string], string | null>;
-    fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
+    fetchStub: SinonStub<[RequestInfo | URL, RequestInit?], Promise<Response>>;
   } {
     const fetchStub = stub(self, 'fetch');
 

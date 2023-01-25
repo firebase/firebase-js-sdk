@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "3.7.3",
+  "version": "3.8.0",
   "engines": {
     "node": ">=10.10.0"
   },
@@ -30,6 +30,8 @@
     "test:all:ci": "run-p test:browser test:lite:browser test:travis",
     "test:all": "run-p test:browser test:lite:browser test:travis test:minified",
     "test:browser": "karma start --single-run",
+    "test:browser:emulator:debug": "karma start --browsers=Chrome --local",
+    "test:browser:emulator": "karma start --single-run --local",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "node ./scripts/run-tests.js  --main=test/register.ts  --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
@@ -80,11 +82,11 @@
     "lite/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.5.21",
-    "@firebase/logger": "0.3.4",
-    "@firebase/util": "1.7.3",
-    "@firebase/webchannel-wrapper": "0.8.1",
-    "@grpc/grpc-js": "^1.3.2",
+    "@firebase/component": "0.6.0",
+    "@firebase/logger": "0.4.0",
+    "@firebase/util": "1.8.0",
+    "@firebase/webchannel-wrapper": "0.9.0",
+    "@grpc/grpc-js": "~1.7.0",
     "@grpc/proto-loader": "^0.6.13",
     "node-fetch": "2.6.7",
     "tslib": "^2.1.0"
@@ -93,15 +95,15 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.8.4",
-    "@firebase/app-compat": "0.1.39",
-    "@firebase/auth": "0.20.11",
+    "@firebase/app": "0.9.0",
+    "@firebase/app-compat": "0.2.0",
+    "@firebase/auth": "0.21.0",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",
     "@types/json-stable-stringify": "1.0.34",
     "chai-exclude": "2.1.0",
-    "json-stable-stringify": "1.0.1",
+    "json-stable-stringify": "1.0.2",
     "protobufjs": "6.11.3",
     "rollup": "2.79.1",
     "rollup-plugin-copy": "3.4.0",
@@ -111,7 +113,7 @@
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.31.2",
     "ts-node": "10.9.1",
-    "typescript": "4.2.2"
+    "typescript": "4.7.4"
   },
   "repository": {
     "directory": "packages/firestore",

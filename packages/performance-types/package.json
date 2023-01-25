@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance-types",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "@firebase/performance Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -12,7 +12,7 @@
     "index.d.ts"
   ],
   "devDependencies": {
-    "typescript": "4.2.2"
+    "typescript": "4.7.4"
   },
   "repository": {
     "directory": "packages/performance-types",

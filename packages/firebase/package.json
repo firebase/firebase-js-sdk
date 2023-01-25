@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "9.14.0",
+  "version": "9.15.0",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -29,7 +29,7 @@
         "require": "./analytics/dist/index.cjs.js",
         "import": "./analytics/dist/index.mjs"
       },
-      "default": "./analytics/dist/index.esm.js"
+      "default": "./analytics/dist/esm/index.esm.js"
     },
     "./app": {
       "types": "./app/dist/app/index.d.ts",
@@ -37,7 +37,7 @@
         "require": "./app/dist/index.cjs.js",
         "import": "./app/dist/index.mjs"
       },
-      "default": "./app/dist/index.esm.js"
+      "default": "./app/dist/esm/index.esm.js"
     },
     "./app-check": {
       "types": "./app-check/dist/app-check/index.d.ts",
@@ -45,7 +45,7 @@
         "require": "./app-check/dist/index.cjs.js",
         "import": "./app-check/dist/index.mjs"
       },
-      "default": "./app-check/dist/index.esm.js"
+      "default": "./app-check/dist/esm/index.esm.js"
     },
     "./auth": {
       "types": "./auth/dist/auth/index.d.ts",
@@ -53,7 +53,7 @@
         "require": "./auth/dist/index.cjs.js",
         "import": "./auth/dist/index.mjs"
       },
-      "default": "./auth/dist/index.esm.js"
+      "default": "./auth/dist/esm/index.esm.js"
     },
     "./auth/cordova": {
       "types": "./auth/cordova/dist/auth/cordova/index.d.ts",
@@ -61,7 +61,7 @@
         "require": "./auth/cordova/dist/index.cjs.js",
         "import": "./auth/cordova/dist/index.mjs"
       },
-      "default": "./auth/cordova/dist/index.esm.js"
+      "default": "./auth/cordova/dist/esm/index.esm.js"
     },
     "./auth/react-native": {
       "types": "./auth/react-native/dist/auth/react-native/index.d.ts",
@@ -69,7 +69,7 @@
         "require": "./auth/react-native/dist/index.cjs.js",
         "import": "./auth/react-native/dist/index.mjs"
       },
-      "default": "./auth/react-native/dist/index.esm.js"
+      "default": "./auth/react-native/dist/esm/index.esm.js"
     },
     "./database": {
       "types": "./database/dist/database/index.d.ts",
@@ -77,7 +77,7 @@
         "require": "./database/dist/index.cjs.js",
         "import": "./database/dist/index.mjs"
       },
-      "default": "./database/dist/index.esm.js"
+      "default": "./database/dist/esm/index.esm.js"
     },
     "./firestore": {
       "types": "./firestore/dist/firestore/index.d.ts",
@@ -85,7 +85,7 @@
         "require": "./firestore/dist/index.cjs.js",
         "import": "./firestore/dist/index.mjs"
       },
-      "default": "./firestore/dist/index.esm.js"
+      "default": "./firestore/dist/esm/index.esm.js"
     },
     "./firestore/lite": {
       "types": "./firestore/lite/dist/firestore/lite/index.d.ts",
@@ -93,7 +93,7 @@
         "require": "./firestore/lite/dist/index.cjs.js",
         "import": "./firestore/lite/dist/index.mjs"
       },
-      "default": "./firestore/lite/dist/index.esm.js"
+      "default": "./firestore/lite/dist/esm/index.esm.js"
     },
     "./functions": {
       "types": "./functions/dist/functions/index.d.ts",
@@ -101,7 +101,7 @@
         "require": "./functions/dist/index.cjs.js",
         "import": "./functions/dist/index.mjs"
       },
-      "default": "./functions/dist/index.esm.js"
+      "default": "./functions/dist/esm/index.esm.js"
     },
     "./installations": {
       "types": "./installations/dist/installations/index.d.ts",
@@ -109,7 +109,7 @@
         "require": "./installations/dist/index.cjs.js",
         "import": "./installations/dist/index.mjs"
       },
-      "default": "./installations/dist/index.esm.js"
+      "default": "./installations/dist/esm/index.esm.js"
     },
     "./messaging": {
       "types": "./messaging/dist/messaging/index.d.ts",
@@ -117,7 +117,7 @@
         "require": "./messaging/dist/index.cjs.js",
         "import": "./messaging/dist/index.mjs"
       },
-      "default": "./messaging/dist/index.esm.js"
+      "default": "./messaging/dist/esm/index.esm.js"
     },
     "./messaging/sw": {
       "types": "./messaging/sw/dist/messaging/sw/index.d.ts",
@@ -125,7 +125,7 @@
         "require": "./messaging/sw/dist/index.cjs.js",
         "import": "./messaging/sw/dist/index.mjs"
       },
-      "default": "./messaging/sw/dist/index.esm.js"
+      "default": "./messaging/sw/dist/esm/index.esm.js"
     },
     "./performance": {
       "types": "./performance/dist/performance/index.d.ts",
@@ -133,7 +133,7 @@
         "require": "./performance/dist/index.cjs.js",
         "import": "./performance/dist/index.mjs"
       },
-      "default": "./performance/dist/index.esm.js"
+      "default": "./performance/dist/esm/index.esm.js"
     },
     "./remote-config": {
       "types": "./remote-config/dist/remote-config/index.d.ts",
@@ -141,7 +141,7 @@
         "require": "./remote-config/dist/index.cjs.js",
         "import": "./remote-config/dist/index.mjs"
       },
-      "default": "./remote-config/dist/index.esm.js"
+      "default": "./remote-config/dist/esm/index.esm.js"
     },
     "./storage": {
       "types": "./storage/dist/storage/index.d.ts",
@@ -149,7 +149,7 @@
         "require": "./storage/dist/index.cjs.js",
         "import": "./storage/dist/index.mjs"
       },
-      "default": "./storage/dist/index.esm.js"
+      "default": "./storage/dist/esm/index.esm.js"
     },
     "./compat/analytics": {
       "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
@@ -157,7 +157,7 @@
         "require": "./compat/analytics/dist/index.cjs.js",
         "import": "./compat/analytics/dist/index.mjs"
       },
-      "default": "./compat/analytics/dist/index.esm.js"
+      "default": "./compat/analytics/dist/esm/index.esm.js"
     },
     "./compat/app": {
       "types": "./compat/app/dist/compat/app/index.d.ts",
@@ -165,7 +165,7 @@
         "require": "./compat/app/dist/index.cjs.js",
         "import": "./compat/app/dist/index.mjs"
       },
-      "default": "./compat/app/dist/index.esm.js"
+      "default": "./compat/app/dist/esm/index.esm.js"
     },
     "./compat/app-check": {
       "types": "./compat/app-check/dist/compat/app-check/index.d.ts",
@@ -173,7 +173,7 @@
         "require": "./compat/app-check/dist/index.cjs.js",
         "import": "./compat/app-check/dist/index.mjs"
       },
-      "default": "./compat/app-check/dist/index.esm.js"
+      "default": "./compat/app-check/dist/esm/index.esm.js"
     },
     "./compat/auth": {
       "types": "./compat/auth/dist/compat/auth/index.d.ts",
@@ -181,7 +181,7 @@
         "require": "./compat/auth/dist/index.cjs.js",
         "import": "./compat/auth/dist/index.mjs"
       },
-      "default": "./compat/auth/dist/index.esm.js"
+      "default": "./compat/auth/dist/esm/index.esm.js"
     },
     "./compat/database": {
       "types": "./compat/database/dist/compat/database/index.d.ts",
@@ -189,7 +189,7 @@
         "require": "./compat/database/dist/index.cjs.js",
         "import": "./compat/database/dist/index.mjs"
       },
-      "default": "./compat/database/dist/index.esm.js"
+      "default": "./compat/database/dist/esm/index.esm.js"
     },
     "./compat/firestore": {
       "types": "./compat/firestore/dist/compat/firestore/index.d.ts",
@@ -197,7 +197,7 @@
         "require": "./compat/firestore/dist/index.cjs.js",
         "import": "./compat/firestore/dist/index.mjs"
       },
-      "default": "./compat/firestore/dist/index.esm.js"
+      "default": "./compat/firestore/dist/esm/index.esm.js"
     },
     "./compat/functions": {
       "types": "./compat/functions/dist/compat/functions/index.d.ts",
@@ -205,7 +205,7 @@
         "require": "./compat/functions/dist/index.cjs.js",
         "import": "./compat/functions/dist/index.mjs"
       },
-      "default": "./compat/functions/dist/index.esm.js"
+      "default": "./compat/functions/dist/esm/index.esm.js"
     },
     "./compat/installations": {
       "types": "./compat/installations/dist/compat/installations/index.d.ts",
@@ -213,7 +213,7 @@
         "require": "./compat/installations/dist/index.cjs.js",
         "import": "./compat/installations/dist/index.mjs"
       },
-      "default": "./compat/installations/dist/index.esm.js"
+      "default": "./compat/installations/dist/esm/index.esm.js"
     },
     "./compat/messaging": {
       "types": "./compat/messaging/dist/compat/messaging/index.d.ts",
@@ -221,7 +221,7 @@
         "require": "./compat/messaging/dist/index.cjs.js",
         "import": "./compat/messaging/dist/index.mjs"
       },
-      "default": "./compat/messaging/dist/index.esm.js"
+      "default": "./compat/messaging/dist/esm/index.esm.js"
     },
     "./compat/performance": {
       "types": "./compat/performance/dist/compat/performance/index.d.ts",
@@ -229,7 +229,7 @@
         "require": "./compat/performance/dist/index.cjs.js",
         "import": "./compat/performance/dist/index.mjs"
       },
-      "default": "./compat/performance/dist/index.esm.js"
+      "default": "./compat/performance/dist/esm/index.esm.js"
     },
     "./compat/remote-config": {
       "types": "./compat/remote-config/dist/compat/remote-config/index.d.ts",
@@ -237,7 +237,7 @@
         "require": "./compat/remote-config/dist/index.cjs.js",
         "import": "./compat/remote-config/dist/index.mjs"
       },
-      "default": "./compat/remote-config/dist/index.esm.js"
+      "default": "./compat/remote-config/dist/esm/index.esm.js"
     },
     "./compat/storage": {
       "types": "./compat/storage/dist/compat/storage/index.d.ts",
@@ -245,7 +245,7 @@
         "require": "./compat/storage/dist/index.cjs.js",
         "import": "./compat/storage/dist/index.mjs"
       },
-      "default": "./compat/storage/dist/index.esm.js"
+      "default": "./compat/storage/dist/esm/index.esm.js"
     },
     "./package.json": "./package.json"
   },
@@ -261,32 +261,32 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "dependencies": {
-    "@firebase/app": "0.8.4",
-    "@firebase/app-compat": "0.1.39",
-    "@firebase/app-types": "0.8.1",
-    "@firebase/auth": "0.20.11",
-    "@firebase/auth-compat": "0.2.24",
-    "@firebase/database": "0.13.10",
-    "@firebase/database-compat": "0.2.10",
-    "@firebase/firestore": "3.7.3",
-    "@firebase/firestore-compat": "0.2.3",
-    "@firebase/functions": "0.8.8",
-    "@firebase/functions-compat": "0.2.8",
-    "@firebase/installations": "0.5.16",
-    "@firebase/installations-compat": "0.1.16",
-    "@firebase/messaging": "0.11.0",
-    "@firebase/messaging-compat": "0.1.21",
-    "@firebase/storage": "0.9.14",
-    "@firebase/storage-compat": "0.1.22",
-    "@firebase/performance": "0.5.17",
-    "@firebase/performance-compat": "0.1.17",
-    "@firebase/remote-config": "0.3.15",
-    "@firebase/remote-config-compat": "0.1.16",
-    "@firebase/analytics": "0.8.4",
-    "@firebase/analytics-compat": "0.1.17",
-    "@firebase/app-check": "0.5.17",
-    "@firebase/app-check-compat": "0.2.17",
-    "@firebase/util": "1.7.3"
+    "@firebase/app": "0.9.0",
+    "@firebase/app-compat": "0.2.0",
+    "@firebase/app-types": "0.9.0",
+    "@firebase/auth": "0.21.0",
+    "@firebase/auth-compat": "0.3.0",
+    "@firebase/database": "0.14.0",
+    "@firebase/database-compat": "0.3.0",
+    "@firebase/firestore": "3.8.0",
+    "@firebase/firestore-compat": "0.3.0",
+    "@firebase/functions": "0.9.0",
+    "@firebase/functions-compat": "0.3.0",
+    "@firebase/installations": "0.6.0",
+    "@firebase/installations-compat": "0.2.0",
+    "@firebase/messaging": "0.12.0",
+    "@firebase/messaging-compat": "0.2.0",
+    "@firebase/storage": "0.10.0",
+    "@firebase/storage-compat": "0.2.0",
+    "@firebase/performance": "0.6.0",
+    "@firebase/performance-compat": "0.2.0",
+    "@firebase/remote-config": "0.4.0",
+    "@firebase/remote-config-compat": "0.2.0",
+    "@firebase/analytics": "0.9.0",
+    "@firebase/analytics-compat": "0.2.0",
+    "@firebase/app-check": "0.6.0",
+    "@firebase/app-check-compat": "0.3.0",
+    "@firebase/util": "1.8.0"
   },
   "devDependencies": {
     "rollup": "2.79.1",

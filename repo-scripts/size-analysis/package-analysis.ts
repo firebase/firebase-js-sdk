@@ -118,10 +118,10 @@ export async function analyzePackageSize(
 }
 
 function mapWorkspaceToPackages(workspaces: string[]): Promise<string[]> {
-  return Promise.all<string[]>(
-    workspaces.map(
+  return Promise.all<Promise<string[]>>(
+    workspaces.map<Promise<string[]>>(
       workspace =>
-        new Promise(resolve => {
+        new Promise<string[]>(resolve => {
           glob(workspace, (err, paths) => {
             if (err) {
               throw err;
