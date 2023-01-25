@@ -20,7 +20,7 @@ import { FirebaseApp, _FirebaseService } from '@firebase/app';
 import { CompleteFn, NextFn, Subscribe, Unsubscribe } from '@firebase/util';
 import { StorageError } from './implementation/error';
 
-export { StorageError } from './implementation/error';
+export { StorageError, StorageErrorCode } from './implementation/error';
 
 /**
  * A Firebase Storage instance.
