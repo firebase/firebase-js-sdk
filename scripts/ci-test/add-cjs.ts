@@ -30,6 +30,7 @@ const results: Result[] = [];
 
 const nodeOnlyMessages: string[] = [];
 const singleNodeFieldMessages: string[]  =  [];
+const requireOnlyMessages: string[]  =  [];
 const changedPackages:string[] = [];
 
 /**
@@ -58,18 +59,12 @@ function checkExports(
     if (typeof exports[key] === 'string') {
       const filePath = resolve(pkgRoot, exports[key]);
       if (key === 'node') {
-        singleNodeFieldMessages.push(`${pkgName} has a single node field pointing to ${filePath}`)
+        singleNodeFieldMessages.push(`${pkgName} > ${filePath}`)
       }
-      // const result = {
-      //   packageName: pkgName,
-      //   found: false,
-      //   filePath,
-      //   fieldPath: `exports${path}[${key}]`
-      // };
-      // if (existsSync(filePath)) {
-      //   result.found = true;
-      // }
-      // results.push(result);
+      if (key === 'require' && !path.includes('node') && !path.includes('browser')) {
+        console.log(path.includes('browser'));
+        requireOnlyMessages.push(`${pkgName} > ${filePath}`)
+      }
     } else {
       if (key === 'node') {
         let requirePath = exports[key]['require'];
@@ -82,10 +77,10 @@ function checkExports(
         if (!exports.default) {
           console.log(`Couldnt find default bundle for ${pkgName}`);
         }
-        if (requirePath.includes('node')) {
-          requirePath = 'NODE_ONLY_BUNDLE_FIXME';
-          nodeOnlyMessages.push(`${pkgName} ${path} cjs bundle is Node only`);
-        }
+        // if (requirePath.includes('node')) {
+        //   requirePath = 'NODE_ONLY_BUNDLE_FIXME';
+        //   nodeOnlyMessages.push(`${pkgName} ${path} cjs bundle is Node only`);
+        // }
         if (!exports['browser']) {
           exports['browser'] = {
             require: requirePath,
@@ -135,7 +130,10 @@ async function main() {
     }
   }
 
+  console.log('SINGLE NODE FIELD');
   console.log(singleNodeFieldMessages.join('\n'));
+  console.log('SINGLE REQUIRE FIELD');
+  console.log(requireOnlyMessages.join('\n'));
   console.log(nodeOnlyMessages.join('\n'));
 
   let missingPaths: boolean = false;
