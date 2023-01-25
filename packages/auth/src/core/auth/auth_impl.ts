@@ -17,6 +17,7 @@
 
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Provider } from '@firebase/component';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import {
   Auth,
   AuthErrorMap,
@@ -108,6 +109,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   constructor(
     public readonly app: FirebaseApp,
     private readonly heartbeatServiceProvider: Provider<'heartbeat'>,
+    private readonly appCheckServiceProvider: Provider<AppCheckInternalComponentName>,
     public readonly config: ConfigInternal
   ) {
     this.name = app.name;
@@ -645,6 +647,20 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     if (heartbeatsHeader) {
       headers[HttpHeader.X_FIREBASE_CLIENT] = heartbeatsHeader;
     }
+
+    // If the App Check service exists, add the App Check token in the headers
+    const appCheckTokenResult = await this.appCheckServiceProvider
+      .getImmediate({ optional: true })
+      ?.getToken();
+    // TODO: What do we want to do if there is an error getting the token?
+    // Context: appCheck.getToken() will never throw even if an error happened.
+    // In the error case, a dummy token will be returned along with an error field describing
+    // the error. In general, we shouldn't care about the error condition and just use
+    // the token (actual or dummy) to send requests.
+    if (appCheckTokenResult?.token) {
+      headers[HttpHeader.X_FIREBASE_APP_CHECK] = appCheckTokenResult.token;
+    }
+
     return headers;
   }
 }
