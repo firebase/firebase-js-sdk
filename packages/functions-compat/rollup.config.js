@@ -60,6 +60,16 @@ const browserBuilds = [
     },
     plugins: es2017BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/index.ts',
+    output: {
+      file: './dist/index.cjs.js',
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 

@@ -19,7 +19,7 @@
       "esm5": "./dist/index.esm5.js",
       "default": "./dist/index.esm2017.js",
       "browser": {
-        "require": "NODE_ONLY_BUNDLE_FIXME",
+        "require": "./dist/index.cjs.js",
         "import": "./dist/index.esm2017.js"
       }
     },
