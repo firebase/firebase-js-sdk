@@ -3,4 +3,4 @@
 "@firebase/storage": minor
 ---
 
-Export StorageError class instead of interface
+Fixed issue where users were unable to check if an Error was an instance of `StorageError`.
