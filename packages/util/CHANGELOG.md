@@ -1,5 +1,15 @@
 # @firebase/util
 
+## 1.9.0
+
+### Minor Changes
+
+- [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8) [#6901](https://github.com/firebase/firebase-js-sdk/pull/6901) - Allow users to specify their environment as `node` or `browser` to override Firebase's runtime environment detection and force the SDK to act as if it were in the respective environment.
+
+### Patch Changes
+
+- [`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3) [#6874](https://github.com/firebase/firebase-js-sdk/pull/6874) (fixes [#6838](https://github.com/firebase/firebase-js-sdk/issues/6838)) - Reformat a comment that causes compile errors in some build toolchains.
+
 ## 1.8.0
 
 ### Minor Changes
