@@ -16,10 +16,10 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { StorageError as FirebaseStorageError } from '@firebase/storage';
 import {
   CompleteFn,
   EmulatorMockTokenOptions,
-  FirebaseError,
   NextFn,
   Unsubscribe
 } from '@firebase/util';
@@ -89,10 +89,6 @@ export type TaskState = string;
 
 export interface UploadMetadata extends SettableMetadata {
   md5Hash?: string | null;
-}
-
-interface FirebaseStorageError extends FirebaseError {
-  serverResponse: string | null;
 }
 
 export interface StorageObserver<T> {

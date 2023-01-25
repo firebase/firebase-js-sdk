@@ -85,7 +85,7 @@ export const errors = {};
  * @public
  * Error codes that can be attached to `StorageError`s.
  */
-export const enum StorageErrorCode {
+export enum StorageErrorCode {
   // Shared between all platforms
   UNKNOWN = 'unknown',
   OBJECT_NOT_FOUND = 'object-not-found',

@@ -229,7 +229,7 @@ export class StorageError extends FirebaseError {
     }
 
 // @public
-export const enum StorageErrorCode {
+export enum StorageErrorCode {
     // (undocumented)
     APP_DELETED = "app-deleted",
     // (undocumented)
