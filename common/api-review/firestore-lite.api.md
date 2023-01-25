@@ -18,7 +18,7 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 };
 
 // @public
-export class AggregateField<R> {
+export class AggregateField<T> {
     readonly type = "AggregateField";
 }
 

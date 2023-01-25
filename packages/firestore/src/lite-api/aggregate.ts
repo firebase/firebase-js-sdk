@@ -72,6 +72,18 @@ export function getCount(
  * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
  * to perform over the result set. The AggregateSpec specifies aliases for each
  * aggregate, which can be used to retrieve the aggregate result.
+ * @example
+ * ```typescript
+ * const aggregateSnapshot = await getAggregate(query, {
+ *   countOfDocs: count(),
+ *   totalHours: sum('hours'),
+ *   averageScore: average('score')
+ * });
+ *
+ * const countOfDocs: number = aggregateSnapshot.data().countOfDocs;
+ * const totalHours: number = aggregateSnapshot.data().totalHours;
+ * const averageScore: number | null = aggregateSnapshot.data().averageScore;
+ * ```
  * @internal TODO (sum/avg) remove when public
  */
 export function getAggregate<T extends AggregateSpec>(
