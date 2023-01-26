@@ -263,9 +263,7 @@ export async function invokeRunAggregationQueryRpc(
   const filteredResult = response.filter(proto => !!proto.result);
 
   hardAssert(
-    filteredResult.length === 1 &&
-      filteredResult[0].result !== undefined &&
-      filteredResult[0].result.aggregateFields !== undefined,
+    filteredResult.length === 1,
     'Aggregation fields are missing from result.'
   );
 

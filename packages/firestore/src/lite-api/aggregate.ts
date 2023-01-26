@@ -65,7 +65,7 @@ export function getCount(
  *
  * Using this function to perform aggregations is efficient because only the
  * final aggregation values, not the documents' data, is downloaded. This
- * function can even perform aggregations if the documents if the result set
+ * function can even perform aggregations of the documents if the result set
  * would be prohibitively large to download entirely (e.g. thousands of documents).
  *
  * @param query The query whose result set to aggregate over.
@@ -172,9 +172,9 @@ export function aggregateFieldEqual(
   return (
     left instanceof AggregateField &&
     right instanceof AggregateField &&
+    left._aggregateType === right._aggregateType &&
     left._internalFieldPath?.canonicalString() ===
-      right._internalFieldPath?.canonicalString() &&
-    left._aggregateType === right._aggregateType
+      right._internalFieldPath?.canonicalString()
   );
 }
 

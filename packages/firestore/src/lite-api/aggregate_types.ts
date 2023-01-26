@@ -45,12 +45,12 @@ export class AggregateField<T> {
   ) {}
 }
 
+// TODO (sum/avg) Update the definition of AggregateFieldType to be based
+// on the return type of `sum(..)`, `average(...)`, and `count()`
 /**
  * The union of all `AggregateField` types that are supported by Firestore.
  */
-export type AggregateFieldType =
-  | AggregateField<number>
-  | AggregateField<number | null>;
+export type AggregateFieldType = AggregateField<number | null>;
 
 /**
  * Specifies a set of aggregations and their aliases.

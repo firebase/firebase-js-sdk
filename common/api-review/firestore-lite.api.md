@@ -23,7 +23,7 @@ export class AggregateField<T> {
 }
 
 // @public
-export type AggregateFieldType = AggregateField<number> | AggregateField<number | null>;
+export type AggregateFieldType = AggregateField<number | null>;
 
 // @public
 export class AggregateQuerySnapshot<T extends AggregateSpec> {

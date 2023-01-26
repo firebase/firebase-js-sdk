@@ -71,7 +71,7 @@ export function getCountFromServer(
  *
  * Using this function to perform aggregations is efficient because only the
  * final aggregation values, not the documents' data, is downloaded. This
- * function can even perform aggregations if the documents if the result set
+ * function can even perform aggregations of the documents if the result set
  * would be prohibitively large to download entirely (e.g. thousands of documents).
  *
  * The result received from the server is presented, unaltered, without
