@@ -649,19 +649,23 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
 
     // If the App Check service exists, add the App Check token in the headers
-    const appCheckTokenResult = await this.appCheckServiceProvider
-      .getImmediate({ optional: true })
-      ?.getToken();
+    const appCheckToken = await this._getAppCheckToken();
     // TODO: What do we want to do if there is an error getting the token?
     // Context: appCheck.getToken() will never throw even if an error happened.
     // In the error case, a dummy token will be returned along with an error field describing
     // the error. In general, we shouldn't care about the error condition and just use
     // the token (actual or dummy) to send requests.
-    if (appCheckTokenResult?.token) {
-      headers[HttpHeader.X_FIREBASE_APP_CHECK] = appCheckTokenResult.token;
+    if (appCheckToken) {
+      headers[HttpHeader.X_FIREBASE_APP_CHECK] = appCheckToken;
     }
 
     return headers;
+  }
+  async _getAppCheckToken(): Promise<string | undefined> {
+    const appCheckTokenResult = await this.appCheckServiceProvider
+      .getImmediate({ optional: true })
+      ?.getToken();
+    return appCheckTokenResult?.token;
   }
 }
 
