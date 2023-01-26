@@ -96,6 +96,7 @@ export interface StorageObserver<T> {
   error?: (error: FirebaseStorageError) => void | null;
   complete?: CompleteFn | null;
 }
+
 export enum StorageErrorCode {
   UNKNOWN = 'unknown',
   OBJECT_NOT_FOUND = 'object-not-found',
@@ -123,6 +124,7 @@ export enum StorageErrorCode {
   INTERNAL_ERROR = 'internal-error',
   UNSUPPORTED_ENVIRONMENT = 'unsupported-environment'
 }
+
 export interface FirebaseStorageError extends FirebaseError {
   /**
    * Stores custom error data unque to StorageError.
