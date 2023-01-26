@@ -100,6 +100,7 @@ let selectedMultiFactorHint = null;
 let recaptchaSize = 'normal';
 let webWorker = null;
 let totpSecret = null;
+let totpDeadlineId = null;
 
 // The corresponding Font Awesome icons for each provider.
 const providersIcons = {
@@ -117,6 +118,7 @@ const providersIcons = {
  */
 function activeUser() {
   const type = $('input[name=toggle-user-selection]:checked').val();
+  console.log("User input type is" + type);
   if (type === 'lastUser') {
     return lastUser;
   } else {
@@ -250,6 +252,8 @@ function showMultiFactorStatus(activeUser) {
         const label = info && (info.displayName || info.uid);
         if (label) {
           $('#enrolled-factors-drop-down').removeClass('open');
+          // Set last user because unenrolling MFA when there are multiple MFA options will logout the user.
+          setLastUser(auth.currentUser);
           mfaUser.unenroll(info).then(() => {
             refreshUserData();
             alertSuccess('Multi-factor successfully unenrolled.');
@@ -279,7 +283,11 @@ function onAuthError(error) {
   if (error.code === 'auth/multi-factor-auth-required') {
     // Handle second factor sign-in.
     handleMultiFactorSignIn(getMultiFactorResolver(auth, error));
+  } else if (error.code === 'auth/user-token-expired' || error.code === 'auth/requires-recent-login') {
+    alertError('Please re-login to continue.');
+
   } else {
+    console.log('Error: ' + error.code);
     alertError('Error: ' + error.code);
   }
 }
@@ -680,11 +688,11 @@ async function onStartEnrollWithTotpMultiFactor() {
     );
     // display the numbr of seconds left to enroll.
     $('p.totp-deadline').show();
-    var id = setInterval(function () {
+    totpDeadlineId = setInterval(function () {
       var deadline = new Date(totpSecret.enrollmentCompletionDeadline);
       var t = deadline - new Date().getTime();
       if (t < 0) {
-        clearInterval(id);
+        clearInterval(totpDeadlineId);
         document.getElementById('totp-deadline').innerText =
           'TOTP enrollment expired!';
       } else {
@@ -721,12 +729,22 @@ async function onFinalizeEnrollWithTotpMultiFactor() {
   try {
     await multiFactor(activeUser()).enroll(multiFactorAssertion, displayName);
     refreshUserData();
+    clearTOTPUIState();
     alertSuccess('TOTP MFA enrolled!');
   } catch (e) {
     onAuthError(e);
   }
 }
 
+function clearTOTPUIState() {
+    $('p.totp-deadline').hide();
+    $('img.totp-qr-image').hide();
+    $('p.totp-text').hide();
+    $('enroll-mfa-totp-verification-code').hide();
+    $('enroll-mfa-totp-display-name').hide();
+    clearInterval(totpDeadlineId);
+
+}
 /**
  * Signs in or links a provider's credential, based on current tab opened.
  * @param {!AuthCredential} credential The provider's credential.
