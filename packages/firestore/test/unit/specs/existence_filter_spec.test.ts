@@ -305,7 +305,6 @@ describeSpec('Existence Filters:', [], () => {
           // BloomFilter correctly identifies docC is deleted, but yields false
           // positive results for docB. Re-run query is triggered.
           .expectEvents(query1, { fromCache: true })
-          .watchRemoves(query1) // Acks removal of query.
           .expectActiveTargets({ query: query1, resumeToken: '' })
       );
     }

@@ -462,7 +462,7 @@ export class WatchChangeAggregator {
 
     let bloomFilter: BloomFilter;
     try {
-      // BloomFilter throws error if the inputs are invalid
+      // BloomFilter throws error if the inputs are invalid.
       bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
     } catch (err) {
       if (err instanceof BloomFilterError) {
