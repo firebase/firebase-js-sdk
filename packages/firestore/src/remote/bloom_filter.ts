@@ -63,13 +63,11 @@ export class BloomFilter {
       throw new BloomFilterError(`Invalid hash count: ${hashCount}`);
     }
 
-    if (bitmap.length === 0) {
+    if (bitmap.length === 0 && padding !== 0) {
       // Empty bloom filter should have 0 padding.
-      if (padding !== 0) {
-        throw new BloomFilterError(
-          `Invalid padding when bitmap length is 0: ${padding}`
-        );
-      }
+      throw new BloomFilterError(
+        `Invalid padding when bitmap length is 0: ${padding}`
+      );
     }
 
     this.bitCount = bitmap.length * 8 - padding;
@@ -113,14 +111,14 @@ export class BloomFilter {
     return true;
   }
 
-  /** Create bloom filter input for testing purposes only. */
+  /** Create bloom filter for testing purposes only. */
   static create(
-    numOfBits: number,
+    bitCount: number,
     hashCount: number,
     contains: string[]
   ): BloomFilter {
-    const padding = numOfBits % 8 === 0 ? 0 : 8 - (numOfBits % 8);
-    const bitmap = new Uint8Array(Math.ceil(numOfBits / 8));
+    const padding = bitCount % 8 === 0 ? 0 : 8 - (bitCount % 8);
+    const bitmap = new Uint8Array(Math.ceil(bitCount / 8));
     const bloomFilter = new BloomFilter(bitmap, padding, hashCount);
     contains.forEach(item => bloomFilter.insert(item));
     return bloomFilter;
@@ -147,5 +145,5 @@ export class BloomFilter {
 }
 
 export class BloomFilterError extends Error {
-  readonly name: string = 'BloomFilterError';
+  readonly name = 'BloomFilterError';
 }

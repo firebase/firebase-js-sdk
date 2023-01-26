@@ -449,6 +449,7 @@ export class WatchChangeAggregator {
       hashCount = 0
     } = unchangedNames;
 
+    // TODO(Mila): Remove this validation, add try catch to normalizeByteString.
     if (typeof bitmap === 'string') {
       const isValidBitmap = this.isValidBase64String(bitmap);
       if (!isValidBitmap) {
@@ -459,7 +460,7 @@ export class WatchChangeAggregator {
 
     const normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
 
-    let bloomFilter;
+    let bloomFilter: BloomFilter;
     try {
       // BloomFilter throws error if the inputs are invalid
       bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
@@ -469,10 +470,6 @@ export class WatchChangeAggregator {
       } else {
         logWarn('Applying bloom filter failed: ', err);
       }
-      return false;
-    }
-
-    if (bloomFilter.bitCount === 0) {
       return false;
     }
 

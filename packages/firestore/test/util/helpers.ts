@@ -1083,19 +1083,19 @@ export function computeCombinations<T>(input: T[]): T[][] {
 export function generateBloomFilterProto(config: {
   contains: MutableDocument[];
   notContains: MutableDocument[];
-  hashCount: number;
-  numOfBits: number;
+  hashCount?: number;
+  bitCount?: number;
 }): api.BloomFilter {
   const DOCUMENT_PREFIX =
     'projects/test-project/databases/(default)/documents/';
 
-  const { contains, notContains, hashCount, numOfBits } = config;
+  const { contains, notContains, hashCount = 10, bitCount = 100 } = config;
 
-  if (numOfBits === 0 && contains.length !== 0) {
+  if (bitCount === 0 && contains.length !== 0) {
     throw new Error('To contain strings, number of bits cannot be 0.');
   }
   const bloomFilter = BloomFilter.create(
-    numOfBits,
+    bitCount,
     hashCount,
     contains.map(item => DOCUMENT_PREFIX + item.key)
   );

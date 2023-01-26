@@ -927,57 +927,57 @@ describeSpec('Limbo Documents:', [], () => {
     [],
     () => {
       const query1 = query('collection');
-      const docA = doc('collection/a', 1000, { key: 'a' });
-      const docB = doc('collection/b', 1000, { key: 'b' });
-      const docC = doc('collection/c', 1000, { key: 'c' });
-
-      const docBQuery = newQueryForPath(docB.key.path);
+      const docA1 = doc('collection/a1', 1000, { key: 'a1' });
+      const docA2 = doc('collection/a2', 1000, { key: 'a2' });
+      const docA3 = doc('collection/a3', 1000, { key: 'a3' });
+      const docB1 = doc('collection/b1', 1000, { key: 'b1' });
+      const docB2 = doc('collection/b2', 1000, { key: 'b2' });
+      const docB3 = doc('collection/b3', 1000, { key: 'b3' });
       const bloomFilterProto = generateBloomFilterProto({
-        contains: [docA, docC],
-        notContains: [docB],
-        numOfBits: 3,
-        hashCount: 1
+        contains: [docB1, docB2, docB3],
+        notContains: [docA1, docA2, docA3]
       });
+
       // Verify that limbo resolution throttling works as expected with bloom filter.
       return (
         spec()
           .withMaxConcurrentLimboResolutions(2)
           .userListens(query1)
-          .watchAcksFull(query1, 1000, docA, docB)
-          .expectEvents(query1, { added: [docA, docB] })
+          .watchAcksFull(query1, 1000, docA1, docA2, docA3)
+          .expectEvents(query1, { added: [docA1, docA2, docA3] })
           // Simulate that the client loses network connection.
           .disableNetwork()
           .expectEvents(query1, { fromCache: true })
           .enableNetwork()
           .restoreListen(query1, 'resume-token-1000')
           .watchAcks(query1)
-          // While this client was disconnected, another client deleted docB, and
-          // added docC. If Watch has to re-run the underlying query when this
-          // client re-listens, Watch won't be able to tell that docB were deleted
-          // and will only send us existing documents that changed since the resume
-          // token. This will cause it to just send the docC with an existence filter
-          // count of 2.
-          .watchSends({ affects: [query1] }, docC)
-          .watchFilters([query1], [docA.key, docC.key], bloomFilterProto)
+          // While this client was disconnected, another client deleted all the
+          // docAs replaced them with docBs. If Watch has to re-run the
+          // underlying query when this client re-listens, Watch won't be able
+          // to tell that docAs were deleted and will only send us existing
+          // documents that changed since the resume token. This will cause it
+          // to just send the docBs with an existence filter with a count of 3.
+          .watchSends({ affects: [query1] }, docB1, docB2, docB3)
+          .watchFilters(
+            [query1],
+            [docB1.key, docB2.key, docB3.key],
+            bloomFilterProto
+          )
           .watchSnapshots(1001)
           .expectEvents(query1, {
-            added: [docC],
+            added: [docB1, docB2, docB3],
             fromCache: true
           })
-          // The view now contains the docA, docB and docC (3 documents), but
-          // the existence filter indicated only 2 should match. There is an existence
-          // filter mismatch. Bloom filter checks membership of the docs, and filters
-          // out docB, while docA and docC returns true. Number of existing docs matches
-          // the expected count, so skip the re-run of the query.
+          // The view now contains the docAs and the docBs (6 documents), but
+          // the existence filter indicated only 3 should match. There is an
+          // existence filter mismatch. Bloom filter checks membership of the
+          // docs, and filters out docAs, while docBs returns true. Number of
+          // existing docs matches the expected count, so skip the re-query.
           .watchCurrents(query1, 'resume-token-1002')
           .watchSnapshots(1002)
-          // The docB is in limbo; the client begins limbo resolution.
-          .expectLimboDocs(docB.key)
-          .watchAcks(docBQuery)
-          .watchCurrents(docBQuery, 'resume-token-1003')
-          .watchSnapshots(1003)
-          .expectEvents(query1, { removed: [docB] })
-          .expectLimboDocs()
+          // The docAs are now in limbo; the client begins limbo resolution.
+          .expectLimboDocs(docA1.key, docA2.key)
+          .expectEnqueuedLimboDocs(docA3.key)
       );
     }
   );
