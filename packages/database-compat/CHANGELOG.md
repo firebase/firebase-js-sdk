@@ -1,5 +1,32 @@
 # @firebase/database-compat
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [[`d8af08feb`](https://github.com/firebase/firebase-js-sdk/commit/d8af08febfd4507a28bcda38d475b8010ef20f92), [`a4056634a`](https://github.com/firebase/firebase-js-sdk/commit/a4056634a5119dd3f2ca935cae23b90fc99d84ee), [`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/database@0.14.1
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+  - @firebase/database-types@0.10.1
+
+## 0.3.0
+
+### Minor Changes
+
+- [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be) [#6799](https://github.com/firebase/firebase-js-sdk/pull/6799) - Update TypeScript version to 4.7.4.
+
+### Patch Changes
+
+- [`37dd6f6f4`](https://github.com/firebase/firebase-js-sdk/commit/37dd6f6f471d9912db3800b9b377080752af8c10) [#6706](https://github.com/firebase/firebase-js-sdk/pull/6706) - Use new wire protocol parameters for startAfter, endBefore.
+
+- Updated dependencies [[`37dd6f6f4`](https://github.com/firebase/firebase-js-sdk/commit/37dd6f6f471d9912db3800b9b377080752af8c10), [`c20633ed3`](https://github.com/firebase/firebase-js-sdk/commit/c20633ed35056cbadc9d65d9ceddf4e28d1ea666), [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be)]:
+  - @firebase/database@0.14.0
+  - @firebase/util@1.8.0
+  - @firebase/component@0.6.0
+  - @firebase/database-types@0.10.0
+  - @firebase/logger@0.4.0
+
 ## 0.2.10
 
 ### Patch Changes

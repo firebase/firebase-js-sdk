@@ -1,5 +1,37 @@
 # @firebase/firestore
 
+## 3.8.1
+
+### Patch Changes
+
+- [`a7622d49f`](https://github.com/firebase/firebase-js-sdk/commit/a7622d49f8a69bcdfb95b89dd1609a5c495fd529) [#6896](https://github.com/firebase/firebase-js-sdk/pull/6896) - Update canonifyFilter to compute the canonization for flat conjunctions the same as implicit AND queries.
+
+- [`1455bfa43`](https://github.com/firebase/firebase-js-sdk/commit/1455bfa4393383ab461de35ccbc2b171f92169df) [#6893](https://github.com/firebase/firebase-js-sdk/pull/6893) - Fix an issue that stops some performance optimization being applied.
+
+- [`37f31c57b`](https://github.com/firebase/firebase-js-sdk/commit/37f31c57b62bc6486bc08d9e5c64e2c32d25cb0a) [#6879](https://github.com/firebase/firebase-js-sdk/pull/6879) (fixes [#6851](https://github.com/firebase/firebase-js-sdk/issues/6851)) - Fix documentation for getDocsFromCache.
+
+- Updated dependencies [[`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+
+## 3.8.0
+
+### Minor Changes
+
+- [`ab3f16cba`](https://github.com/firebase/firebase-js-sdk/commit/ab3f16cbabc420fab0a322a21c9e28d3cbed4f24) [#6796](https://github.com/firebase/firebase-js-sdk/pull/6796) - Upgrade TypeScript to 4.7.4 (was 4.2.2)
+
+- [`fde5adf63`](https://github.com/firebase/firebase-js-sdk/commit/fde5adf638dae4714ff7f25c75e475344907e05e) [#6694](https://github.com/firebase/firebase-js-sdk/pull/6694) - Functions in the Firestore package that return QueryConstraints (for example: `where(...)`, `limit(...)`, and `orderBy(...)`)
+  now return a more specific type, which extends QueryConstraint. Refactoring and code that supports future features is also
+  included in this release.
+
+### Patch Changes
+
+- Updated dependencies [[`c20633ed3`](https://github.com/firebase/firebase-js-sdk/commit/c20633ed35056cbadc9d65d9ceddf4e28d1ea666), [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be)]:
+  - @firebase/util@1.8.0
+  - @firebase/component@0.6.0
+  - @firebase/logger@0.4.0
+  - @firebase/webchannel-wrapper@0.9.0
+
 ## 3.7.3
 
 ### Patch Changes

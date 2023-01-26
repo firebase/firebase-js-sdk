@@ -1,5 +1,27 @@
 #Unreleased
 
+## 0.10.1
+
+### Patch Changes
+
+- [`a67eb5d04`](https://github.com/firebase/firebase-js-sdk/commit/a67eb5d04405b8133e81aad15f3fc9441eb66091) [#6938](https://github.com/firebase/firebase-js-sdk/pull/6938) (fixes [#6935](https://github.com/firebase/firebase-js-sdk/issues/6935)) - Fixed issue where pause throws an error when a request is in flight.
+
+- Updated dependencies [[`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+
+## 0.10.0
+
+### Minor Changes
+
+- [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be) [#6799](https://github.com/firebase/firebase-js-sdk/pull/6799) - Update TypeScript version to 4.7.4.
+
+### Patch Changes
+
+- Updated dependencies [[`c20633ed3`](https://github.com/firebase/firebase-js-sdk/commit/c20633ed35056cbadc9d65d9ceddf4e28d1ea666), [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be)]:
+  - @firebase/util@1.8.0
+  - @firebase/component@0.6.0
+
 ## 0.9.14
 
 ### Patch Changes

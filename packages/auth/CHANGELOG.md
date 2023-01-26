@@ -1,5 +1,30 @@
 # @firebase/auth
 
+## 0.21.1
+
+### Patch Changes
+
+- [`50b8191f6`](https://github.com/firebase/firebase-js-sdk/commit/50b8191f6c51a936bd92a1a6a68af1cf201fc127) [#6914](https://github.com/firebase/firebase-js-sdk/pull/6914) (fixes [#6827](https://github.com/firebase/firebase-js-sdk/issues/6827)) - Fix to minimize a potential race condition between auth init and signInWithRedirect
+
+- Updated dependencies [[`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+
+## 0.21.0
+
+### Minor Changes
+
+- [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be) [#6799](https://github.com/firebase/firebase-js-sdk/pull/6799) - Update TypeScript version to 4.7.4.
+
+### Patch Changes
+
+- [`e650f6498`](https://github.com/firebase/firebase-js-sdk/commit/e650f649854f3c39737fe4bade43f9eedc3e611f) [#6762](https://github.com/firebase/firebase-js-sdk/pull/6762) (fixes [#6736](https://github.com/firebase/firebase-js-sdk/issues/6736)) - move selenium-webdriver to devDependencies
+
+- Updated dependencies [[`c20633ed3`](https://github.com/firebase/firebase-js-sdk/commit/c20633ed35056cbadc9d65d9ceddf4e28d1ea666), [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be)]:
+  - @firebase/util@1.8.0
+  - @firebase/component@0.6.0
+  - @firebase/logger@0.4.0
+
 ## 0.20.11
 
 ### Patch Changes

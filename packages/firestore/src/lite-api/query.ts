@@ -364,13 +364,14 @@ export type QueryFilterConstraint =
   | QueryCompositeFilterConstraint;
 
 /**
- * Creates a {@link QueryCompositeFilterConstraint} that performs a logical OR
- * of all the provided {@link QueryFilterConstraint}s.
+ * Creates a new {@link QueryCompositeFilterConstraint} that is a disjunction of
+ * the given filter constraints. A disjunction filter includes a document if it
+ * satisfies any of the given filters.
  *
- * @param queryConstraints - Optional. The {@link QueryFilterConstraint}s
- * for OR operation. These must be created with calls to {@link where},
- * {@link or}, or {@link and}.
- * @returns The created {@link QueryCompositeFilterConstraint}.
+ * @param queryConstraints - Optional. The list of
+ * {@link QueryFilterConstraint}s to perform a disjunction for. These must be
+ * created with calls to {@link where}, {@link or}, or {@link and}.
+ * @returns The newly created {@link QueryCompositeFilterConstraint}.
  * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function or(
@@ -388,13 +389,14 @@ export function or(
 }
 
 /**
- * Creates a {@link QueryCompositeFilterConstraint} that performs a logical AND
- * of all the provided {@link QueryFilterConstraint}s.
+ * Creates a new {@link QueryCompositeFilterConstraint} that is a conjunction of
+ * the given filter constraints. A conjunction filter includes a document if it
+ * satisfies all of the given filters.
  *
- * @param queryConstraints - Optional. The {@link QueryFilterConstraint}s
- * for AND operation. These must be created with calls to {@link where},
- * {@link or}, or {@link and}.
- * @returns The created {@link QueryCompositeFilterConstraint}.
+ * @param queryConstraints - Optional. The list of
+ * {@link QueryFilterConstraint}s to perform a conjunction for. These must be
+ * created with calls to {@link where}, {@link or}, or {@link and}.
+ * @returns The newly created {@link QueryCompositeFilterConstraint}.
  * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function and(

@@ -1,5 +1,34 @@
 # Unreleased
 
+## 0.14.1
+
+### Patch Changes
+
+- [`d8af08feb`](https://github.com/firebase/firebase-js-sdk/commit/d8af08febfd4507a28bcda38d475b8010ef20f92) [#6883](https://github.com/firebase/firebase-js-sdk/pull/6883) (fixes [#6853](https://github.com/firebase/firebase-js-sdk/issues/6853)) - Fixed issue where connectDatabaseToEmulator can be called twice during a hot reload
+
+- [`a4056634a`](https://github.com/firebase/firebase-js-sdk/commit/a4056634a5119dd3f2ca935cae23b90fc99d84ee) [#6916](https://github.com/firebase/firebase-js-sdk/pull/6916) - Replace `innerHTML` call with `textContent`.
+
+- Updated dependencies [[`e9bcd4c43`](https://github.com/firebase/firebase-js-sdk/commit/e9bcd4c43a0628ebce570f03f1e91dfa93fffca2), [`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/auth-interop-types@0.2.1
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+
+## 0.14.0
+
+### Minor Changes
+
+- [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be) [#6799](https://github.com/firebase/firebase-js-sdk/pull/6799) - Update TypeScript version to 4.7.4.
+
+### Patch Changes
+
+- [`37dd6f6f4`](https://github.com/firebase/firebase-js-sdk/commit/37dd6f6f471d9912db3800b9b377080752af8c10) [#6706](https://github.com/firebase/firebase-js-sdk/pull/6706) - Use new wire protocol parameters for startAfter, endBefore.
+
+- Updated dependencies [[`c20633ed3`](https://github.com/firebase/firebase-js-sdk/commit/c20633ed35056cbadc9d65d9ceddf4e28d1ea666), [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be)]:
+  - @firebase/util@1.8.0
+  - @firebase/auth-interop-types@0.2.0
+  - @firebase/component@0.6.0
+  - @firebase/logger@0.4.0
+
 ## 0.13.10
 
 ### Patch Changes

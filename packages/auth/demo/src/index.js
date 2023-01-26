@@ -252,8 +252,10 @@ function showMultiFactorStatus(activeUser) {
         const label = info && (info.displayName || info.uid);
         if (label) {
           $('#enrolled-factors-drop-down').removeClass('open');
-          // Set last user because unenrolling MFA when there are multiple MFA options will logout the user.
-          setLastUser(auth.currentUser);
+          // Set the last user, in case the current user is logged out.
+          // This can happen if the MFA option being unenrolled is the one that was most recently enrolled into.
+          // See - https://github.com/firebase/firebase-js-sdk/issues/3233
+          setLastUser(activeUser);
           mfaUser.unenroll(info).then(() => {
             refreshUserData();
             alertSuccess('Multi-factor successfully unenrolled.');
@@ -289,6 +291,9 @@ function onAuthError(error) {
   } else {
     console.log('Error: ' + error.code);
     alertError('Error: ' + error.code);
+    if (error.code === 'auth/user-token-expired') {
+      alertError('Token expired, please reauthenticate.');
+    }
   }
 }
 
@@ -421,13 +426,41 @@ function onLinkWithEmailLink() {
  * Re-authenticate a user with email link credential.
  */
 function onReauthenticateWithEmailLink() {
+  if (!activeUser()) {
+    alertError(
+      'No user logged in. Select the "Last User" tab to reauth the previous user.'
+    );
+    return;
+  }
   const email = $('#link-with-email-link-email').val();
   const link = $('#link-with-email-link-link').val() || undefined;
   const credential = EmailAuthProvider.credentialWithLink(email, link);
+  // This will not set auth.currentUser to lastUser if the lastUser is reauthenticated.
   reauthenticateWithCredential(activeUser(), credential).then(result => {
     logAdditionalUserInfo(result);
     refreshUserData();
-    alertSuccess('User reauthenticated!');
+    alertSuccess('User reauthenticated with email link!');
+  }, onAuthError);
+}
+
+/**
+ * Re-authenticate a user with email and password.
+ */
+function onReauthenticateWithEmailAndPassword() {
+  if (!activeUser()) {
+    alertError(
+      'No user logged in. Select the "Last User" tab to reauth the previous user.'
+    );
+    return;
+  }
+  const email = $('#signin-email').val();
+  const password = $('#signin-password').val();
+  const credential = EmailAuthProvider.credential(email, password);
+  // This will not set auth.currentUser to lastUser if the lastUser is reauthenticated.
+  reauthenticateWithCredential(activeUser(), credential).then(result => {
+    logAdditionalUserInfo(result);
+    refreshUserData();
+    alertSuccess('User reauthenticated with email/password!');
   }, onAuthError);
 }
 
@@ -1389,7 +1422,9 @@ function signInWithPopupRedirect(provider) {
       break;
     case 'reauthenticate':
       if (!activeUser()) {
-        alertError('No user logged in.');
+        alertError(
+          'No user logged in. Select the "Last User" tab to reauth the previous user.'
+        );
         return;
       }
       inst = activeUser();
@@ -1936,6 +1971,27 @@ function initApp() {
   },
   onAuthError);
 
+  // Try sign in with redirect once upon page load, not on subsequent loads.
+  // This will demonstrate the behavior when signInWithRedirect is called before
+  // auth is fully initialized. This will fail on firebase/auth versions 0.21.0 and lower
+  // due to https://github.com/firebase/firebase-js-sdk/issues/6827
+  /*
+  if (sessionStorage.getItem('redirect-race-test') !== 'done') {
+    console.log('Starting redirect sign in upon page load.');
+    try {
+      sessionStorage.setItem('redirect-race-test', 'done');
+      signInWithRedirect(
+        auth,
+        new GoogleAuthProvider(),
+        browserPopupRedirectResolver
+      ).catch(onAuthError);
+    } catch (error) {
+      console.log('Error while calling signInWithRedirect');
+      console.error(error);
+    }
+  }
+  */
+
   // Bootstrap tooltips.
   $('[data-toggle="tooltip"]').tooltip();
 
@@ -1963,6 +2019,9 @@ function initApp() {
   // Actions listeners.
   $('#sign-up-with-email-and-password').click(onSignUp);
   $('#sign-in-with-email-and-password').click(onSignInWithEmailAndPassword);
+  $('#reauth-with-email-and-password').click(
+    onReauthenticateWithEmailAndPassword
+  );
   $('.sign-in-with-custom-token').click(onSignInWithCustomToken);
   $('#sign-in-anonymously').click(onSignInAnonymously);
   $('#sign-in-with-generic-idp-credential').click(

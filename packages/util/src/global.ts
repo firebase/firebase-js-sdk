@@ -15,23 +15,20 @@
  * limitations under the License.
  */
 
-import { Document } from '../model/document';
-import { FieldMask } from '../model/field_mask';
-
 /**
- * Represents a local view (overlay) of a document, and the fields that are
- * locally mutated.
+ * Polyfill for `globalThis` object.
+ * @returns the `globalThis` object for the given environment.
+ * @public
  */
-export class OverlayedDocument {
-  constructor(
-    readonly overlayedDocument: Document,
-
-    /**
-     * The fields that are locally mutated by patch mutations.
-     *
-     * If the overlayed	document is from set or delete mutations, this is `null`.
-     * If there is no overlay (mutation) for the document, this is an empty `FieldMask`.
-     */
-    readonly mutatedFields: FieldMask | null
-  ) {}
+export function getGlobal(): typeof globalThis {
+  if (typeof self !== 'undefined') {
+    return self;
+  }
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+  if (typeof global !== 'undefined') {
+    return global;
+  }
+  throw new Error('Unable to locate global object.');
 }
