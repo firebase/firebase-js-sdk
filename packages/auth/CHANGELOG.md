@@ -1,5 +1,15 @@
 # @firebase/auth
 
+## 0.21.1
+
+### Patch Changes
+
+- [`50b8191f6`](https://github.com/firebase/firebase-js-sdk/commit/50b8191f6c51a936bd92a1a6a68af1cf201fc127) [#6914](https://github.com/firebase/firebase-js-sdk/pull/6914) (fixes [#6827](https://github.com/firebase/firebase-js-sdk/issues/6827)) - Fix to minimize a potential race condition between auth init and signInWithRedirect
+
+- Updated dependencies [[`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+
 ## 0.21.0
 
 ### Minor Changes

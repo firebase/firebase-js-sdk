@@ -272,6 +272,7 @@ describe('Database Tests', () => {
   });
 
   it('refFromURL() validates argument', () => {
+    // TODO: Remove all any references
     const db = (firebase as any).database();
     expect(() => {
       const ref = (db as any).refFromURL();
@@ -279,9 +280,16 @@ describe('Database Tests', () => {
   });
 
   it('can call useEmulator before use', () => {
-    const db = (firebase as any).database();
+    const db = firebase.database();
     db.useEmulator('localhost', 1234);
+    // Cast as any as _delegate isn't a public property
+    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.true;
     expect(db.ref().toString()).to.equal('http://localhost:1234/');
+  });
+
+  it('initializes usingEmulator to false before use', () => {
+    const db = firebase.database();
+    expect((db as any)._delegate._repo.repoInfo_.isUsingEmulator).to.be.false;
   });
 
   it('cannot call useEmulator after use', () => {

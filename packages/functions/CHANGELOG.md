@@ -1,5 +1,14 @@
 # @firebase/functions
 
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [[`e9bcd4c43`](https://github.com/firebase/firebase-js-sdk/commit/e9bcd4c43a0628ebce570f03f1e91dfa93fffca2), [`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/auth-interop-types@0.2.1
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+
 ## 0.9.0
 
 ### Minor Changes
