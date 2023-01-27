@@ -8018,7 +8018,6 @@ declare namespace firebase.storage {
   }
 
   /**
-   * @public
    * Error codes that can be attached to `StorageError`s.
    */
   export enum StorageErrorCode {
@@ -8051,7 +8050,6 @@ declare namespace firebase.storage {
 
   /**
    * An error returned by the Firebase Storage SDK.
-   * @public
    */
   export interface FirebaseStorageError extends FirebaseError {
     /**
