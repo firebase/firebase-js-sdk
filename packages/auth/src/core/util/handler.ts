@@ -45,7 +45,7 @@ const EMULATOR_WIDGET_PATH = 'emulator/auth/handler';
  *
  * @internal
  */
-const FIREBASE_APP_CHECK_FRAGMENT_ID = 'fac';
+const FIREBASE_APP_CHECK_FRAGMENT_ID = encodeURIComponent('fac');
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type WidgetParams = {
@@ -118,9 +118,7 @@ export async function _getRedirectUrl(
   // Sets the App Check token to pass to the widget
   const appCheckToken = await auth._getAppCheckToken();
   const appCheckTokenFragment = appCheckToken
-    ? encodeURIComponent(FIREBASE_APP_CHECK_FRAGMENT_ID) +
-      '=' +
-      encodeURIComponent(appCheckToken)
+    ? `${FIREBASE_APP_CHECK_FRAGMENT_ID}=${encodeURIComponent(appCheckToken)}`
     : '';
 
   return `${getHandlerBase(auth)}?${querystring(paramsDict).slice(
