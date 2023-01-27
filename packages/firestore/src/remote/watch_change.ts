@@ -27,14 +27,16 @@ import {
 } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { normalizeByteString } from '../model/normalize';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
+import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
 
@@ -409,14 +411,101 @@ export class WatchChangeAggregator {
         }
       } else {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
+        // Existence filter mismatch. Mark the documents as being in limbo, and
+        // raise a snapshot with `isFromCache:true`.
         if (currentSize !== expectedCount) {
-          // Existence filter mismatch: We reset the mapping and raise a new
-          // snapshot with `isFromCache:true`.
-          this.resetTarget(targetId);
-          this.pendingTargetResets = this.pendingTargetResets.add(targetId);
+          // Apply bloom filter to identify and mark removed documents.
+          const bloomFilterApplied = this.applyBloomFilter(
+            watchChange.existenceFilter,
+            targetId,
+            currentSize
+          );
+          if (!bloomFilterApplied) {
+            // If bloom filter application fails, we reset the mapping and
+            // trigger re-run of the query.
+            this.resetTarget(targetId);
+            this.pendingTargetResets = this.pendingTargetResets.add(targetId);
+          }
         }
       }
     }
+  }
+
+  /** Returns whether a bloom filter removed the deleted documents successfully. */
+  private applyBloomFilter(
+    existenceFilter: ExistenceFilter,
+    targetId: number,
+    currentCount: number
+  ): boolean {
+    const unchangedNames = existenceFilter.unchangedNames;
+    const expectedCount = existenceFilter.count;
+
+    if (!unchangedNames || !unchangedNames.bits) {
+      return false;
+    }
+
+    const {
+      bits: { bitmap = '', padding = 0 },
+      hashCount = 0
+    } = unchangedNames;
+
+    // TODO(Mila): Remove this validation, add try catch to normalizeByteString.
+    if (typeof bitmap === 'string') {
+      const isValidBitmap = this.isValidBase64String(bitmap);
+      if (!isValidBitmap) {
+        logWarn('Invalid base64 string. Applying bloom filter failed.');
+        return false;
+      }
+    }
+
+    const normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
+
+    let bloomFilter: BloomFilter;
+    try {
+      // BloomFilter throws error if the inputs are invalid.
+      bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
+    } catch (err) {
+      if (err instanceof BloomFilterError) {
+        logWarn('BloomFilter error: ', err);
+      } else {
+        logWarn('Applying bloom filter failed: ', err);
+      }
+      return false;
+    }
+
+    const removedDocumentCount = this.filterRemovedDocuments(
+      bloomFilter,
+      targetId
+    );
+
+    return expectedCount === currentCount - removedDocumentCount;
+  }
+
+  // TODO(Mila): Move the validation into normalizeByteString.
+  private isValidBase64String(value: string): boolean {
+    const regExp = new RegExp(
+      '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$'
+    );
+    return regExp.test(value);
+  }
+
+  /**
+   * Filter out removed documents based on bloom filter membership result and
+   * return number of documents removed.
+   */
+  private filterRemovedDocuments(
+    bloomFilter: BloomFilter,
+    targetId: number
+  ): number {
+    const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
+    let removalCount = 0;
+    existingKeys.forEach(key => {
+      if (!bloomFilter.mightContain(key.path.toFullPath())) {
+        this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
+        removalCount++;
+      }
+    });
+    return removalCount;
   }
 
   /**
