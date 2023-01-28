@@ -100,6 +100,7 @@ let selectedMultiFactorHint = null;
 let recaptchaSize = 'normal';
 let webWorker = null;
 let totpSecret = null;
+let totpDeadlineId = null;
 
 // The corresponding Font Awesome icons for each provider.
 const providersIcons = {
@@ -715,11 +716,11 @@ async function onStartEnrollWithTotpMultiFactor() {
     );
     // display the numbr of seconds left to enroll.
     $('p.totp-deadline').show();
-    var id = setInterval(function () {
+    totpDeadlineId = setInterval(function () {
       var deadline = new Date(totpSecret.enrollmentCompletionDeadline);
       var t = deadline - new Date().getTime();
       if (t < 0) {
-        clearInterval(id);
+        clearInterval(totpDeadlineId);
         document.getElementById('totp-deadline').innerText =
           'TOTP enrollment expired!';
       } else {
@@ -756,12 +757,21 @@ async function onFinalizeEnrollWithTotpMultiFactor() {
   try {
     await multiFactor(activeUser()).enroll(multiFactorAssertion, displayName);
     refreshUserData();
+    clearTOTPUIState();
     alertSuccess('TOTP MFA enrolled!');
   } catch (e) {
     onAuthError(e);
   }
 }
 
+function clearTOTPUIState() {
+  $('p.totp-deadline').hide();
+  $('img.totp-qr-image').hide();
+  $('p.totp-text').hide();
+  $('enroll-mfa-totp-verification-code').hide();
+  $('enroll-mfa-totp-display-name').hide();
+  clearInterval(totpDeadlineId);
+}
 /**
  * Signs in or links a provider's credential, based on current tab opened.
  * @param {!AuthCredential} credential The provider's credential.
