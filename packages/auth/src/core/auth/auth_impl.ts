@@ -63,6 +63,7 @@ import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 import { HttpHeader } from '../../api';
 import { AuthMiddlewareQueue } from './middleware';
+import { _logWarn } from '../util/log';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -650,11 +651,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
     // If the App Check service exists, add the App Check token in the headers
     const appCheckToken = await this._getAppCheckToken();
-    // TODO: What do we want to do if there is an error getting the token?
-    // Context: appCheck.getToken() will never throw even if an error happened.
-    // In the error case, a dummy token will be returned along with an error field describing
-    // the error. In general, we shouldn't care about the error condition and just use
-    // the token (actual or dummy) to send requests.
     if (appCheckToken) {
       headers[HttpHeader.X_FIREBASE_APP_CHECK] = appCheckToken;
     }
@@ -665,6 +661,15 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     const appCheckTokenResult = await this.appCheckServiceProvider
       .getImmediate({ optional: true })
       ?.getToken();
+    if (appCheckTokenResult?.error) {
+      // Context: appCheck.getToken() will never throw even if an error happened.
+      // In the error case, a dummy token will be returned along with an error field describing
+      // the error. In general, we shouldn't care about the error condition and just use
+      // the token (actual or dummy) to send requests.
+      _logWarn(
+        `Error while retrieving App Check token: ${appCheckTokenResult.error}`
+      );
+    }
     return appCheckTokenResult?.token;
   }
 }

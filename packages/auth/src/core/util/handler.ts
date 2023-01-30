@@ -121,6 +121,7 @@ export async function _getRedirectUrl(
     ? `${FIREBASE_APP_CHECK_FRAGMENT_ID}=${encodeURIComponent(appCheckToken)}`
     : '';
 
+  // Start at index 1 to skip the leading '&' in the query string
   return `${getHandlerBase(auth)}?${querystring(paramsDict).slice(
     1
   )}#${appCheckTokenFragment}`;

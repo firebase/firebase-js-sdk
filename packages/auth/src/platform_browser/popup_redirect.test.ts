@@ -151,7 +151,7 @@ describe('platform_browser/popup_redirect', () => {
       const matches = (popupUrl as string).match(/.*?#(.*)/);
       expect(matches).not.to.be.null;
       const fragment = matches![1];
-      expect(fragment).not.to.include('fac');
+      expect(fragment).to.be.empty;
     });
 
     it('does not add the App Check token in the url fragment if controller unavailable', async () => {
@@ -165,7 +165,7 @@ describe('platform_browser/popup_redirect', () => {
       const matches = (popupUrl as string).match(/.*?#(.*)/);
       expect(matches).not.to.be.null;
       const fragment = matches![1];
-      expect(fragment).not.to.include('fac');
+      expect(fragment).to.be.empty;
     });
 
     it('throws an error if apiKey is unspecified', async () => {
@@ -259,7 +259,7 @@ describe('platform_browser/popup_redirect', () => {
       const matches = newWindowLocation.match(/.*?#(.*)/);
       expect(matches).not.to.be.null;
       const fragment = matches![1];
-      expect(fragment).not.to.include('fac');
+      expect(fragment).to.be.empty;
     });
 
     it('does not add the App Check token in the url fragment if controller unavailable', async () => {
@@ -279,7 +279,7 @@ describe('platform_browser/popup_redirect', () => {
       const matches = newWindowLocation.match(/.*?#(.*)/);
       expect(matches).not.to.be.null;
       const fragment = matches![1];
-      expect(fragment).not.to.include('fac');
+      expect(fragment).to.be.empty;
     });
 
     it('throws an error if authDomain is unspecified', async () => {
