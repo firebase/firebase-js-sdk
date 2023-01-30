@@ -181,8 +181,7 @@ const allBuilds = [
         sourcemap: true
       }
     ],
-    plugins: [
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))],
+    plugins: [replace(generateBuildTargetReplaceConfig('cjs', 2017))],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false

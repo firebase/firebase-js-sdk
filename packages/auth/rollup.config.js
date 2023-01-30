@@ -109,7 +109,7 @@ const browserBuilds = [
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
+  }
 ];
 
 const nodeBuilds = [
