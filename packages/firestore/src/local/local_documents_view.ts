@@ -511,7 +511,7 @@ export class LocalDocumentsView {
     // Query the remote documents and overlay mutations.
     let remoteDocuments: MutableDocumentMap;
     return this.remoteDocumentCache
-      .getAllFromCollection(transaction, query.path, offset)
+      .getDocumentsMatchingQuery(transaction, query.path, offset)
       .next(queryResults => {
         remoteDocuments = queryResults;
         return this.documentOverlayCache.getOverlaysForCollection(

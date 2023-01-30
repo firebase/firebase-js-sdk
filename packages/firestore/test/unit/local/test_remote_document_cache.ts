@@ -116,7 +116,7 @@ export class TestRemoteDocumentCache {
     return this.persistence.runTransaction(
       'getAllFromCollection',
       'readonly',
-      txn => this.cache.getAllFromCollection(txn, collection, offset)
+      txn => this.cache.getDocumentsMatchingQuery(txn, collection, offset)
     );
   }
 

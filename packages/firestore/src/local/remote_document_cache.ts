@@ -68,7 +68,7 @@ export interface RemoteDocumentCache {
    * @param offset - The offset to start the scan at (exclusive).
    * @returns The set of matching documents.
    */
-  getAllFromCollection(
+  getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     collection: ResourcePath,
     offset: IndexOffset
