@@ -27,6 +27,7 @@ import { FirebaseError } from '@firebase/util';
 import { AuthPopup } from '../platform_browser/util/popup';
 import { AuthInternal } from './auth';
 import { UserCredentialInternal } from './user';
+import { GapiMessage } from '../platform_browser/iframe/gapi.iframes';
 
 export const enum EventFilter {
   POPUP,
@@ -38,7 +39,7 @@ export const enum GapiOutcome {
   ERROR = 'ERROR'
 }
 
-export interface GapiAuthEvent extends gapi.iframes.Message {
+export interface GapiAuthEvent extends GapiMessage {
   authEvent: AuthEvent;
 }
 

@@ -21,6 +21,7 @@ import { Delay } from '../../core/util/delay';
 import { AuthInternal } from '../../model/auth';
 import { _window } from '../auth_window';
 import * as js from '../load_js';
+import { Gapi, GapiContext } from './gapi.iframes';
 
 const NETWORK_TIMEOUT = new Delay(30000, 60000);
 
@@ -54,16 +55,19 @@ function resetUnloadedGapiModules(): void {
   }
 }
 
-function loadGapi(auth: AuthInternal): Promise<gapi.iframes.Context> {
-  return new Promise<gapi.iframes.Context>((resolve, reject) => {
+function loadGapi(auth: AuthInternal): Promise<GapiContext> {
+  return new Promise<GapiContext>((resolve, reject) => {
     // Function to run when gapi.load is ready.
     function loadGapiIframe(): void {
       // The developer may have tried to previously run gapi.load and failed.
       // Run this to fix that.
       resetUnloadedGapiModules();
+
+      // Assertion is safe since this method only runs once gapi is available.
+      const gapi = _gapi()!;
       gapi.load('gapi.iframes', {
         callback: () => {
-          resolve(gapi.iframes.getContext());
+          resolve(gapi.iframes!.getContext());
         },
         ontimeout: () => {
           // The above reset may be sufficient, but having this reset after
@@ -79,10 +83,10 @@ function loadGapi(auth: AuthInternal): Promise<gapi.iframes.Context> {
       });
     }
 
-    if (_window().gapi?.iframes?.Iframe) {
+    if (_gapi()?.iframes?.Iframe) {
       // If gapi.iframes.Iframe available, resolve.
-      resolve(gapi.iframes.getContext());
-    } else if (!!_window().gapi?.load) {
+      resolve(_gapi()!.iframes!.getContext());
+    } else if (!!_gapi()?.load) {
       // Gapi loader ready, load gapi.iframes.
       loadGapiIframe();
     } else {
@@ -95,7 +99,7 @@ function loadGapi(auth: AuthInternal): Promise<gapi.iframes.Context> {
       // GApi loader not available, dynamically load platform.js.
       _window()[cbName] = () => {
         // GApi loader should be ready.
-        if (!!gapi.load) {
+        if (!!_gapi()?.load) {
           loadGapiIframe();
         } else {
           // Gapi loader failed, throw error.
@@ -114,12 +118,22 @@ function loadGapi(auth: AuthInternal): Promise<gapi.iframes.Context> {
   });
 }
 
-let cachedGApiLoader: Promise<gapi.iframes.Context> | null = null;
-export function _loadGapi(auth: AuthInternal): Promise<gapi.iframes.Context> {
+let cachedGApiLoader: Promise<GapiContext> | null = null;
+export function _loadGapi(auth: AuthInternal): Promise<GapiContext> {
   cachedGApiLoader = cachedGApiLoader || loadGapi(auth);
   return cachedGApiLoader;
 }
 
 export function _resetLoader(): void {
   cachedGApiLoader = null;
+}
+
+/**
+ * Returns the gapi global object. This method assumes gapi has been loaded
+ * and that the caller is definitely running in a browser context (the use
+ * of `window` is assumed).
+ */
+export function _gapi(): Gapi|undefined {
+  console.log("HIIIIIIIIIIIIII");
+  return _window().gapi;
 }

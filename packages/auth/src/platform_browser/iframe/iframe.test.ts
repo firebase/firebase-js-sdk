@@ -33,6 +33,7 @@ import { stubSingleTimeout } from '../../../test/helpers/timeout_stub';
 import { _window } from '../auth_window';
 import * as gapiLoader from './gapi';
 import { _openIframe } from './iframe';
+import { Gapi, GapiContext, GapiIframe } from './gapi.iframes';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -49,7 +50,7 @@ describe('platform_browser/iframe/iframe', () => {
       iframes: {
         CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-filter'
       }
-    } as unknown as typeof gapi;
+    } as unknown as Gapi;
     auth = await testAuth();
 
     sinon.stub(gapiLoader, '_loadGapi').returns(
@@ -62,7 +63,7 @@ describe('platform_browser/iframe/iframe', () => {
               libraryLoadedCallback = cb;
             }
           )
-      }) as unknown as Promise<gapi.iframes.Context>
+      }) as unknown as Promise<GapiContext>
     );
   });
 
@@ -111,14 +112,14 @@ describe('platform_browser/iframe/iframe', () => {
   });
 
   context('on load callback', () => {
-    let iframe: sinon.SinonStubbedInstance<gapi.iframes.Iframe>;
+    let iframe: sinon.SinonStubbedInstance<GapiIframe>;
     let clearTimeoutStub: sinon.SinonStub;
 
     beforeEach(() => {
       iframe = sinon.stub({
         restyle: () => {},
         ping: () => {}
-      } as unknown as gapi.iframes.Iframe);
+      } as unknown as GapiIframe);
       clearTimeoutStub = sinon.stub(_window(), 'clearTimeout');
     });
 
