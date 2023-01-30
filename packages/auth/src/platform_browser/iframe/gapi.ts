@@ -134,6 +134,5 @@ export function _resetLoader(): void {
  * of `window` is assumed).
  */
 export function _gapi(): Gapi|undefined {
-  console.log("HIIIIIIIIIIIIII");
   return _window().gapi;
 }
