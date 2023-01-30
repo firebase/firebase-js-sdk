@@ -14,7 +14,7 @@
       "default": "./dist/index.cjs.js",
       "browser": {
         "require": "./dist/index.cjs.js",
-        "import": "./dist/index.cjs.js"
+        "import": "./dist/esm/index.esm.js"
       }
     },
     "./package.json": "./package.json"
