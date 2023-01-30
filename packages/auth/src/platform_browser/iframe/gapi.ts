@@ -128,11 +128,6 @@ export function _resetLoader(): void {
   cachedGApiLoader = null;
 }
 
-/**
- * Returns the gapi global object. This method assumes gapi has been loaded
- * and that the caller is definitely running in a browser context (the use
- * of `window` is assumed).
- */
 export function _gapi(): Gapi|undefined {
   return _window().gapi;
 }
