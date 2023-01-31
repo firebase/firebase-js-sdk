@@ -163,11 +163,6 @@ abstract class BasePath<B extends BasePath<B>> {
     return this.segments.slice(this.offset, this.limit());
   }
 
-  // // TODO(Mila): Use database info and toString() to get full path instead.
-  // toFullPath(): string {
-  //   return this.segments.join('/');
-  // }
-
   static comparator<T extends BasePath<T>>(
     p1: BasePath<T>,
     p2: BasePath<T>

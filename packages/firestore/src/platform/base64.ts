@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+
+/**
+ * An error encountered while decoding base64 string.
+ */
 class Base64DecodeError extends Error {
   readonly name = 'Base64DecodeError';
 }
