@@ -39,6 +39,7 @@ import { SortedSet } from '../util/sorted_set';
 import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
+import { getEncodedDatabaseId, JsonProtoSerializer } from './serializer';
 
 /**
  * Internal representation of the watcher API protocol buffers.
@@ -73,7 +74,8 @@ export class DocumentWatchChange {
 export class ExistenceFilterChange {
   constructor(
     public targetId: TargetId,
-    public existenceFilter: ExistenceFilter
+    public existenceFilter: ExistenceFilter,
+    public serializer: JsonProtoSerializer
   ) {}
 }
 
@@ -416,8 +418,7 @@ export class WatchChangeAggregator {
         if (currentSize !== expectedCount) {
           // Apply bloom filter to identify and mark removed documents.
           const bloomFilterApplied = this.applyBloomFilter(
-            watchChange.existenceFilter,
-            targetId,
+            watchChange,
             currentSize
           );
           if (!bloomFilterApplied) {
@@ -433,12 +434,11 @@ export class WatchChangeAggregator {
 
   /** Returns whether a bloom filter removed the deleted documents successfully. */
   private applyBloomFilter(
-    existenceFilter: ExistenceFilter,
-    targetId: number,
+    watchChange: ExistenceFilterChange,
     currentCount: number
   ): boolean {
-    const unchangedNames = existenceFilter.unchangedNames;
-    const expectedCount = existenceFilter.count;
+    const unchangedNames = watchChange.existenceFilter.unchangedNames;
+    const expectedCount = watchChange.existenceFilter.count;
 
     if (!unchangedNames || !unchangedNames.bits) {
       return false;
@@ -449,16 +449,13 @@ export class WatchChangeAggregator {
       hashCount = 0
     } = unchangedNames;
 
-    // TODO(Mila): Remove this validation, add try catch to normalizeByteString.
-    if (typeof bitmap === 'string') {
-      const isValidBitmap = this.isValidBase64String(bitmap);
-      if (!isValidBitmap) {
-        logWarn('Invalid base64 string. Applying bloom filter failed.');
-        return false;
-      }
+    let normalizedBitmap: Uint8Array;
+    try {
+      normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
+    } catch (err) {
+      logWarn('Base64 string error: ', err);
+      return false;
     }
-
-    const normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
 
     let bloomFilter: BloomFilter;
     try {
@@ -474,19 +471,11 @@ export class WatchChangeAggregator {
     }
 
     const removedDocumentCount = this.filterRemovedDocuments(
-      bloomFilter,
-      targetId
+      watchChange,
+      bloomFilter
     );
 
     return expectedCount === currentCount - removedDocumentCount;
-  }
-
-  // TODO(Mila): Move the validation into normalizeByteString.
-  private isValidBase64String(value: string): boolean {
-    const regExp = new RegExp(
-      '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$'
-    );
-    return regExp.test(value);
   }
 
   /**
@@ -494,17 +483,27 @@ export class WatchChangeAggregator {
    * return number of documents removed.
    */
   private filterRemovedDocuments(
-    bloomFilter: BloomFilter,
-    targetId: number
+    watchChange: ExistenceFilterChange,
+    bloomFilter: BloomFilter
   ): number {
-    const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
+    const targetId = watchChange.targetId;
+    const existingKeys = this.metadataProvider.getRemoteKeysForTarget(
+      watchChange.targetId
+    );
     let removalCount = 0;
+
     existingKeys.forEach(key => {
-      if (!bloomFilter.mightContain(key.path.toFullPath())) {
+      const documentPath =
+        getEncodedDatabaseId(watchChange.serializer!) +
+        '/documents/' +
+        key.path.toString();
+
+      if (!bloomFilter.mightContain(documentPath)) {
         this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
         removalCount++;
       }
     });
+
     return removalCount;
   }
 

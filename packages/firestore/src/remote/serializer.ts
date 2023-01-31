@@ -563,7 +563,11 @@ export function fromWatchChange(
     const { count = 0, unchangedNames } = filter;
     const existenceFilter = new ExistenceFilter(count, unchangedNames);
     const targetId = filter.targetId;
-    watchChange = new ExistenceFilterChange(targetId, existenceFilter);
+    watchChange = new ExistenceFilterChange(
+      targetId,
+      existenceFilter,
+      serializer
+    );
   } else {
     return fail('Unknown change type ' + JSON.stringify(change));
   }

@@ -15,13 +15,28 @@
  * limitations under the License.
  */
 
+class Base64DecodeError extends Error {
+  readonly name = 'Base64DecodeError';
+}
+
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/base64`);
 
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {
-  return platform.decodeBase64(encoded);
+  const decoded = platform.decodeBase64(encoded);
+  const expectedEncodedLength = 4 * Math.ceil(decoded.length / 3);
+
+  if (encoded.length !== expectedEncodedLength) {
+    throw new Base64DecodeError(
+      `Invalid base64 string ` +
+        `(decoded length: ${decoded.length}, ` +
+        `encoded length: ${encoded.length}, ` +
+        `expected encoded length: ${expectedEncodedLength})`
+    );
+  }
+  return decoded;
 }
 
 /** Converts a binary string to a Base64 encoded string. */

@@ -444,7 +444,8 @@ export function existenceFilterEvent(
   aggregator.handleExistenceFilter(
     new ExistenceFilterChange(
       targetId,
-      new ExistenceFilter(remoteCount, bloomFilter)
+      new ExistenceFilter(remoteCount, bloomFilter),
+      new JsonProtoSerializer(TEST_DATABASE_ID, /* useProto3Json= */ true)
     )
   );
   return aggregator.createRemoteEvent(version(snapshotVersion));

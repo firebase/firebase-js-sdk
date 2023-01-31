@@ -700,7 +700,11 @@ abstract class TestRunner {
       'ExistenceFilters currently support exactly one target only.'
     );
     const filter = new ExistenceFilter(keys.length, bloomFilter);
-    const change = new ExistenceFilterChange(targetIds[0], filter);
+    const change = new ExistenceFilterChange(
+      targetIds[0],
+      filter,
+      this.serializer
+    );
     return this.doWatchEvent(change);
   }
 

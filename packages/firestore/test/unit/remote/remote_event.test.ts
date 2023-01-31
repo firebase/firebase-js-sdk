@@ -23,6 +23,7 @@ import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -43,6 +44,7 @@ import {
   key,
   forEachNumber
 } from '../../util/helpers';
+import { TEST_DATABASE_ID } from '../local/persistence_test_helpers';
 
 interface TargetMap {
   [targetId: string]: TargetData;
@@ -155,6 +157,12 @@ describe('RemoteEvent', () => {
       version(options.snapshotVersion)
     );
   }
+
+  const serializer = new JsonProtoSerializer(
+    TEST_DATABASE_ID,
+    /* useProto3Json= */ true
+  );
+
   it('will accumulate document added and removed events', () => {
     const targets = listens(1, 2, 3, 4, 5, 6);
 
@@ -451,7 +459,7 @@ describe('RemoteEvent', () => {
     // The existence filter mismatch will remove the document from target 1,
     // but not synthesize a document delete.
     aggregator.handleExistenceFilter(
-      new ExistenceFilterChange(1, new ExistenceFilter(0))
+      new ExistenceFilterChange(1, new ExistenceFilter(0), serializer)
     );
 
     event = aggregator.createRemoteEvent(version(3));
@@ -491,7 +499,7 @@ describe('RemoteEvent', () => {
     // The existence filter mismatch will clear the previous target mapping,
     // but not synthesize a document delete.
     aggregator.handleExistenceFilter(
-      new ExistenceFilterChange(1, new ExistenceFilter(0))
+      new ExistenceFilterChange(1, new ExistenceFilter(0), serializer)
     );
 
     const event = aggregator.createRemoteEvent(version(3));
