@@ -362,7 +362,7 @@ export function getEncodedDatabaseId(serializer: JsonProtoSerializer): string {
   return path.canonicalString();
 }
 
-export function getDocumentFullPath(
+export function toDocumentFullPath(
   serializer: JsonProtoSerializer,
   key: DocumentKey
 ): string {
