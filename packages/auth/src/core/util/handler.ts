@@ -120,11 +120,12 @@ export async function _getRedirectUrl(
   const appCheckTokenFragment = appCheckToken
     ? `${FIREBASE_APP_CHECK_FRAGMENT_ID}=${encodeURIComponent(appCheckToken)}`
     : '';
+  const fragment = appCheckTokenFragment ? `#${appCheckTokenFragment}` : '';
 
   // Start at index 1 to skip the leading '&' in the query string
   return `${getHandlerBase(auth)}?${querystring(paramsDict).slice(
     1
-  )}#${appCheckTokenFragment}`;
+  )}${fragment}`;
 }
 
 function getHandlerBase({ config }: AuthInternal): string {

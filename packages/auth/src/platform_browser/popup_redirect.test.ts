@@ -150,9 +150,9 @@ describe('platform_browser/popup_redirect', () => {
       await resolver._openPopup(auth, provider, event);
 
       const matches = (popupUrl as string).match(/.*?#(.*)/);
-      expect(matches).not.to.be.null;
-      const fragment = matches![1];
-      expect(fragment).to.be.empty;
+      // The '#' character will not be included when the url fragment is not attached,
+      // so the url will not match the pattern
+      expect(matches).to.be.null;
     });
 
     it('does not add the App Check token in the url fragment if controller unavailable', async () => {
@@ -164,9 +164,9 @@ describe('platform_browser/popup_redirect', () => {
       await resolver._openPopup(auth, provider, event);
 
       const matches = (popupUrl as string).match(/.*?#(.*)/);
-      expect(matches).not.to.be.null;
-      const fragment = matches![1];
-      expect(fragment).to.be.empty;
+      // The '#' character will not be included when the url fragment is not attached,
+      // so the url will not match the pattern
+      expect(matches).to.be.null;
     });
 
     it('throws an error if apiKey is unspecified', async () => {
@@ -259,9 +259,9 @@ describe('platform_browser/popup_redirect', () => {
       });
 
       const matches = newWindowLocation.match(/.*?#(.*)/);
-      expect(matches).not.to.be.null;
-      const fragment = matches![1];
-      expect(fragment).to.be.empty;
+      // The '#' character will not be included when the url fragment is not attached,
+      // so the url will not match the pattern
+      expect(matches).to.be.null;
     });
 
     it('does not add the App Check token in the url fragment if controller unavailable', async () => {
@@ -279,9 +279,9 @@ describe('platform_browser/popup_redirect', () => {
       });
 
       const matches = newWindowLocation.match(/.*?#(.*)/);
-      expect(matches).not.to.be.null;
-      const fragment = matches![1];
-      expect(fragment).to.be.empty;
+      // The '#' character will not be included when the url fragment is not attached,
+      // so the url will not match the pattern
+      expect(matches).to.be.null;
     });
 
     it('throws an error if authDomain is unspecified', async () => {
