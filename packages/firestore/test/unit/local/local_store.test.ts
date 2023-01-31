@@ -2288,10 +2288,10 @@ function genericLocalStoreTests(
         .afterAcknowledgingMutation({ documentVersion: 10 })
         .afterAcknowledgingMutation({ documentVersion: 10 })
         .afterExecutingQuery(query1)
-        // Execute the query, but note that we read all existing documents
+        // Execute the query, but note that we read matching documents
         // from the RemoteDocumentCache since we do not yet have target
         // mapping.
-        .toHaveRead({ documentsByCollection: 3 })
+        .toHaveRead({ documentsByCollection: 2 })
         .after(
           docAddedRemoteEvent(
             [
