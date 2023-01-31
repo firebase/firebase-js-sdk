@@ -39,7 +39,7 @@ import { SortedSet } from '../util/sorted_set';
 import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
-import { getEncodedDatabaseId, JsonProtoSerializer } from './serializer';
+import { toDocumentFullPath, JsonProtoSerializer } from './serializer';
 
 /**
  * Internal representation of the watcher API protocol buffers.
@@ -493,11 +493,7 @@ export class WatchChangeAggregator {
     let removalCount = 0;
 
     existingKeys.forEach(key => {
-      const documentPath =
-        getEncodedDatabaseId(watchChange.serializer!) +
-        '/documents/' +
-        key.path.toString();
-
+      const documentPath = toDocumentFullPath(watchChange.serializer, key);
       if (!bloomFilter.mightContain(documentPath)) {
         this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
         removalCount++;

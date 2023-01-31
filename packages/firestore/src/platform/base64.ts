@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 /**
  * An error encountered while decoding base64 string.
  */

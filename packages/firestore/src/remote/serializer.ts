@@ -362,6 +362,15 @@ export function getEncodedDatabaseId(serializer: JsonProtoSerializer): string {
   return path.canonicalString();
 }
 
+export function getDocumentFullPath(
+  serializer: JsonProtoSerializer,
+  key: DocumentKey
+): string {
+  return (
+    getEncodedDatabaseId(serializer!) + '/documents/' + key.path.toString()
+  );
+}
+
 function fullyQualifiedPrefixPath(databaseId: DatabaseId): ResourcePath {
   return new ResourcePath([
     'projects',
