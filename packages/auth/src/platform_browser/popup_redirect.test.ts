@@ -142,6 +142,7 @@ describe('platform_browser/popup_redirect', () => {
 
     it('does not add the App Check token in the url fragment if none returned', async () => {
       await resolver._initialize(auth);
+      // Redundant, already set in mock_auth.ts but adding here for clarity
       sinon
         .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
         .returns(Promise.resolve({ token: '' }));
@@ -243,6 +244,7 @@ describe('platform_browser/popup_redirect', () => {
     });
 
     it('does not add the App Check token in the url fragment if none returned', async () => {
+      // Redundant, already set in mock_auth.ts but adding here for clarity
       sinon
         .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
         .returns(Promise.resolve({ token: '' }));
