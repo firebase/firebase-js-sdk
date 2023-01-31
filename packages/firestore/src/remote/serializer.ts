@@ -575,7 +575,7 @@ export function fromWatchChange(
     watchChange = new ExistenceFilterChange(
       targetId,
       existenceFilter,
-      serializer
+      serializer.databaseId
     );
   } else {
     return fail('Unknown change type ' + JSON.stringify(change));

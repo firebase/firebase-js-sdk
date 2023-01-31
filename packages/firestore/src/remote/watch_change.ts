@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { DatabaseId } from '../core/database_info';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget } from '../core/target';
 import { TargetId } from '../core/types';
@@ -39,7 +40,6 @@ import { SortedSet } from '../util/sorted_set';
 import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
-import { toDocumentFullPath, JsonProtoSerializer } from './serializer';
 
 /**
  * Internal representation of the watcher API protocol buffers.
@@ -75,7 +75,7 @@ export class ExistenceFilterChange {
   constructor(
     public targetId: TargetId,
     public existenceFilter: ExistenceFilter,
-    public serializer: JsonProtoSerializer
+    public databaseId: DatabaseId
   ) {}
 }
 
@@ -437,8 +437,8 @@ export class WatchChangeAggregator {
     watchChange: ExistenceFilterChange,
     currentCount: number
   ): boolean {
-    const unchangedNames = watchChange.existenceFilter.unchangedNames;
-    const expectedCount = watchChange.existenceFilter.count;
+    const { unchangedNames, count: expectedCount } =
+      watchChange.existenceFilter;
 
     if (!unchangedNames || !unchangedNames.bits) {
       return false;
@@ -486,14 +486,16 @@ export class WatchChangeAggregator {
     watchChange: ExistenceFilterChange,
     bloomFilter: BloomFilter
   ): number {
-    const targetId = watchChange.targetId;
-    const existingKeys = this.metadataProvider.getRemoteKeysForTarget(
-      watchChange.targetId
-    );
+    const { targetId, databaseId } = watchChange;
+    const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     let removalCount = 0;
 
     existingKeys.forEach(key => {
-      const documentPath = toDocumentFullPath(watchChange.serializer, key);
+      const documentPath =
+        databaseId.canonicalString() +
+        '/documents/' +
+        key.path.canonicalString();
+
       if (!bloomFilter.mightContain(documentPath)) {
         this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
         removalCount++;

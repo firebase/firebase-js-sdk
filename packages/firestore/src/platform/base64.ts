@@ -28,16 +28,16 @@ const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/base64`);
 
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {
-  const decoded = platform.decodeBase64(encoded);
+  let decoded: string;
+  try {
+    decoded = platform.decodeBase64(encoded);
+  } catch (e) {
+    throw new Base64DecodeError('Invalid base64 string');
+  }
   const expectedEncodedLength = 4 * Math.ceil(decoded.length / 3);
 
   if (encoded.length !== expectedEncodedLength) {
-    throw new Base64DecodeError(
-      `Invalid base64 string ` +
-        `(decoded length: ${decoded.length}, ` +
-        `encoded length: ${encoded.length}, ` +
-        `expected encoded length: ${expectedEncodedLength})`
-    );
+    throw new Base64DecodeError('Invalid base64 string');
   }
   return decoded;
 }

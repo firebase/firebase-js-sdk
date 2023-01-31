@@ -703,7 +703,7 @@ abstract class TestRunner {
     const change = new ExistenceFilterChange(
       targetIds[0],
       filter,
-      this.serializer
+      this.serializer.databaseId
     );
     return this.doWatchEvent(change);
   }
