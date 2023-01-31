@@ -858,15 +858,6 @@ message Target {
 
   // If the target should be removed once it is current and consistent.
   bool once = 6;
-
-  // The number of documents that last matched the query at the resume token or
-  // read time.
-  //
-  // This value is only relevant when a `resume_type` is provided. This value
-  // being present and greater than zero signals that the client wants
-  // `ExistenceFilter.unchanged_names` to be included in the response.
-  //
-  google.protobuf.Int32Value expected_count = 12;
 }
 
 // Targets being watched have changed.
