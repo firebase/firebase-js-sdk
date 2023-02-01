@@ -20,7 +20,6 @@ import { Code } from '../../../src/util/error';
 import {
   deletedDoc,
   doc,
-  filter,
   query
 } from '../../util/helpers';
 

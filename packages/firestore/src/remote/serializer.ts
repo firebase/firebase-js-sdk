@@ -560,8 +560,8 @@ export function fromWatchChange(
     assertPresent(change.filter, 'filter');
     const filter = change.filter;
     assertPresent(filter.targetId, 'filter.targetId');
-    const { count = 0, unchangedNames } = filter;
-    const existenceFilter = new ExistenceFilter(count, unchangedNames);
+    const count = filter.count || 0;
+    const existenceFilter = new ExistenceFilter(count);
     const targetId = filter.targetId;
     watchChange = new ExistenceFilterChange(targetId, existenceFilter);
   } else {
@@ -1012,7 +1012,6 @@ export function toTarget(
 
   if (targetData.resumeToken.approximateByteSize() > 0) {
     result.resumeToken = toBytes(serializer, targetData.resumeToken);
-    result.expectedCount = targetData.expectedCount ?? undefined;
   } else if (targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0) {
     // TODO(wuandy): Consider removing above check because it is most likely true.
     // Right now, many tests depend on this behaviour though (leaving min() out
@@ -1021,7 +1020,6 @@ export function toTarget(
       serializer,
       targetData.snapshotVersion.toTimestamp()
     );
-    result.expectedCount = targetData.expectedCount ?? undefined;
   }
 
   return result;

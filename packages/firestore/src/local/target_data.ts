@@ -66,13 +66,7 @@ export class TargetData {
      * matches the target. The resume token essentially identifies a point in
      * time from which the server should resume sending results.
      */
-    readonly resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING,
-    /**
-     * The number of documents that last matched the query at the resume token or
-     * read time. Documents are counted only when making a listen request with
-     * resume token or read time, otherwise, keep it null.
-     */
-    readonly expectedCount: number | null = null
+    readonly resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING
   ) {}
 
   /** Creates a new target data instance with an updated sequence number. */
@@ -84,8 +78,7 @@ export class TargetData {
       sequenceNumber,
       this.snapshotVersion,
       this.lastLimboFreeSnapshotVersion,
-      this.resumeToken,
-      this.expectedCount
+      this.resumeToken
     );
   }
 
@@ -104,24 +97,7 @@ export class TargetData {
       this.sequenceNumber,
       snapshotVersion,
       this.lastLimboFreeSnapshotVersion,
-      resumeToken,
-      /* expectedCount= */ null
-    );
-  }
-
-  /**
-   * Creates a new target data instance with an updated expected count.
-   */
-  withExpectedCount(expectedCount: number): TargetData {
-    return new TargetData(
-      this.target,
-      this.targetId,
-      this.purpose,
-      this.sequenceNumber,
-      this.snapshotVersion,
-      this.lastLimboFreeSnapshotVersion,
-      this.resumeToken,
-      expectedCount
+      resumeToken
     );
   }
 
@@ -139,8 +115,7 @@ export class TargetData {
       this.sequenceNumber,
       this.snapshotVersion,
       lastLimboFreeSnapshotVersion,
-      this.resumeToken,
-      this.expectedCount
+      this.resumeToken
     );
   }
 }

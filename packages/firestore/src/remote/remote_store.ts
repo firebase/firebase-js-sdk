@@ -335,16 +335,6 @@ function sendWatchRequest(
     targetData.targetId
   );
 
-  if (
-    targetData.resumeToken.approximateByteSize() > 0 ||
-    targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
-  ) {
-    const expectedCount = remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(
-      targetData.targetId
-    ).size;
-    targetData = targetData.withExpectedCount(expectedCount);
-  }
-
   ensureWatchStream(remoteStoreImpl).watch(targetData);
 }
 

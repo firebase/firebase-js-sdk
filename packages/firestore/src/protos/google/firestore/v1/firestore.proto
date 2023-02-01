@@ -26,7 +26,6 @@ import "google/firestore/v1/query.proto";
 import "google/firestore/v1/write.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/wrappers.proto";
 import "google/rpc/status.proto";
 
 option csharp_namespace = "Google.Cloud.Firestore.V1";
