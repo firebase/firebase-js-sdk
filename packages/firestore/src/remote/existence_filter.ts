@@ -16,5 +16,6 @@
  */
 
 export class ExistenceFilter {
+  // TODO(b/33078163): just use simplest form of existence filter for now
   constructor(public count: number) {}
 }
