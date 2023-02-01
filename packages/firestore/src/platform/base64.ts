@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 
-/**
- * An error encountered while decoding base64 string.
- */
-class Base64DecodeError extends Error {
-  readonly name = 'Base64DecodeError';
-}
+import { Base64DecodeError } from './base64_decode_error';
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -28,17 +23,15 @@ const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/base64`);
 
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {
-  let decoded: string;
-  try {
-    decoded = platform.decodeBase64(encoded);
-  } catch (e) {
-    throw new Base64DecodeError('Invalid base64 string');
-  }
-  const expectedEncodedLength = 4 * Math.ceil(decoded.length / 3);
+  const decoded = platform.decodeBase64(encoded);
 
+  // A quick sanity check as node and rn will not throw error if input is an
+  // invalid base64 string, ie, "A===".
+  const expectedEncodedLength = 4 * Math.ceil(decoded.length / 3);
   if (encoded.length !== expectedEncodedLength) {
     throw new Base64DecodeError('Invalid base64 string');
   }
+
   return decoded;
 }
 

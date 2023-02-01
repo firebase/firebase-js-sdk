@@ -93,6 +93,14 @@ export function createSubscribe<T>(executor: Executor<T>, onNoObservers?: Execut
 // @public
 export const decode: (token: string) => DecodedToken;
 
+// Warning: (ae-missing-release-tag) "DecodeBase64StringError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export class DecodeBase64StringError extends Error {
+    // (undocumented)
+    readonly name = "DecodeBase64StringError";
+}
+
 // Warning: (ae-missing-release-tag) "deepCopy" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public

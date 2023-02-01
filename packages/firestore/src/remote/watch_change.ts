@@ -29,6 +29,7 @@ import {
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { normalizeByteString } from '../model/normalize';
+import { Base64DecodeError } from '../platform/base64_decode_error';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
@@ -453,7 +454,11 @@ export class WatchChangeAggregator {
     try {
       normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
     } catch (err) {
-      logWarn('Base64 string error: ', err);
+      if (err instanceof Base64DecodeError) {
+        logWarn('Base64 string error: ', err);
+      } else {
+        logWarn('Normalizing bloom filter bitmap failed: ', err);
+      }
       return false;
     }
 
