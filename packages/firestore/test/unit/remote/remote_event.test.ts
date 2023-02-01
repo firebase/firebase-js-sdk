@@ -112,11 +112,13 @@ describe('RemoteEvent', () => {
       });
     }
 
-    const aggregator = new WatchChangeAggregator({
-      getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
-      getTargetDataForTarget: targetId =>
-        options.targets ? options.targets[targetId] : null
-    }      ,TEST_DATABASE_ID
+    const aggregator = new WatchChangeAggregator(
+      {
+        getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
+        getTargetDataForTarget: targetId =>
+          options.targets ? options.targets[targetId] : null
+      },
+      TEST_DATABASE_ID
     );
 
     if (options.outstandingResponses) {

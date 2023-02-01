@@ -414,12 +414,13 @@ export function noChangeEvent(
   snapshotVersion: number,
   resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING
 ): RemoteEvent {
-  const aggregator = new WatchChangeAggregator({
-    getRemoteKeysForTarget: () => documentKeySet(),
-    getTargetDataForTarget: targetId =>
-      targetData(targetId, TargetPurpose.Listen, 'foo')
-  },
-  TEST_DATABASE_ID
+  const aggregator = new WatchChangeAggregator(
+    {
+      getRemoteKeysForTarget: () => documentKeySet(),
+      getTargetDataForTarget: targetId =>
+        targetData(targetId, TargetPurpose.Listen, 'foo')
+    },
+    TEST_DATABASE_ID
   );
   aggregator.handleTargetChange(
     new WatchTargetChange(
@@ -438,17 +439,18 @@ export function existenceFilterEvent(
   snapshotVersion: number,
   bloomFilter?: api.BloomFilter
 ): RemoteEvent {
-  const aggregator = new WatchChangeAggregator({
-    getRemoteKeysForTarget: () => syncedKeys,
-    getTargetDataForTarget: targetId =>
-      targetData(targetId, TargetPurpose.Listen, 'foo')
-  },
-  TEST_DATABASE_ID
+  const aggregator = new WatchChangeAggregator(
+    {
+      getRemoteKeysForTarget: () => syncedKeys,
+      getTargetDataForTarget: targetId =>
+        targetData(targetId, TargetPurpose.Listen, 'foo')
+    },
+    TEST_DATABASE_ID
   );
   aggregator.handleExistenceFilter(
     new ExistenceFilterChange(
       targetId,
-      new ExistenceFilter(remoteCount, bloomFilter),
+      new ExistenceFilter(remoteCount, bloomFilter)
     )
   );
   return aggregator.createRemoteEvent(version(snapshotVersion));
@@ -467,22 +469,23 @@ export function docAddedRemoteEvent(
     ? activeTargets
     : (updatedInTargets || []).concat(removedFromTargets || []);
 
-  const aggregator = new WatchChangeAggregator({
-    getRemoteKeysForTarget: () => documentKeySet(),
-    getTargetDataForTarget: targetId => {
-      if (allTargets.indexOf(targetId) !== -1) {
-        const collectionPath = docs[0].key.path.popLast();
-        return targetData(
-          targetId,
-          TargetPurpose.Listen,
-          collectionPath.toString()
-        );
-      } else {
-        return null;
+  const aggregator = new WatchChangeAggregator(
+    {
+      getRemoteKeysForTarget: () => documentKeySet(),
+      getTargetDataForTarget: targetId => {
+        if (allTargets.indexOf(targetId) !== -1) {
+          const collectionPath = docs[0].key.path.popLast();
+          return targetData(
+            targetId,
+            TargetPurpose.Listen,
+            collectionPath.toString()
+          );
+        } else {
+          return null;
+        }
       }
-    }
-  },
-  TEST_DATABASE_ID
+    },
+    TEST_DATABASE_ID
   );
 
   let version = SnapshotVersion.min();
@@ -521,16 +524,18 @@ export function docUpdateRemoteEvent(
     doc.key,
     doc
   );
-  const aggregator = new WatchChangeAggregator({
-    getRemoteKeysForTarget: () => keys(doc),
-    getTargetDataForTarget: targetId => {
-      const purpose =
-        limboTargets && limboTargets.indexOf(targetId) !== -1
-          ? TargetPurpose.LimboResolution
-          : TargetPurpose.Listen;
-      return targetData(targetId, purpose, doc.key.toString());
-    }
-  },      TEST_DATABASE_ID
+  const aggregator = new WatchChangeAggregator(
+    {
+      getRemoteKeysForTarget: () => keys(doc),
+      getTargetDataForTarget: targetId => {
+        const purpose =
+          limboTargets && limboTargets.indexOf(targetId) !== -1
+            ? TargetPurpose.LimboResolution
+            : TargetPurpose.Listen;
+        return targetData(targetId, purpose, doc.key.toString());
+      }
+    },
+    TEST_DATABASE_ID
   );
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);

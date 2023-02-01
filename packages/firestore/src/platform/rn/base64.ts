@@ -16,8 +16,8 @@
  */
 
 import { base64, DecodeBase64StringError } from '@firebase/util';
-import { Base64DecodeError } from '../../util/base64_decode_error';
 
+import { Base64DecodeError } from '../../util/base64_decode_error';
 
 // WebSafe uses a different URL-encoding safe alphabet that doesn't match
 // the encoding used on the backend.

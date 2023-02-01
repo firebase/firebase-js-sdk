@@ -29,8 +29,8 @@ import {
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { normalizeByteString } from '../model/normalize';
-import { Base64DecodeError } from '../util/base64_decode_error';
 import { debugAssert, fail, hardAssert } from '../util/assert';
+import { Base64DecodeError } from '../util/base64_decode_error';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
@@ -75,7 +75,7 @@ export class DocumentWatchChange {
 export class ExistenceFilterChange {
   constructor(
     public targetId: TargetId,
-    public existenceFilter: ExistenceFilter,
+    public existenceFilter: ExistenceFilter
   ) {}
 }
 
@@ -263,7 +263,10 @@ const LOG_TAG = 'WatchChangeAggregator';
  * A helper class to accumulate watch changes into a RemoteEvent.
  */
 export class WatchChangeAggregator {
-  constructor(private metadataProvider: TargetMetadataProvider, private readonly databaseId: DatabaseId) {}
+  constructor(
+    private metadataProvider: TargetMetadataProvider,
+    private readonly databaseId: DatabaseId
+  ) {}
 
   /** The internal state of all tracked targets. */
   private targetStates = new Map<TargetId, TargetState>();
