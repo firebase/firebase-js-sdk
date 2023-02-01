@@ -378,7 +378,7 @@ function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
       getTargetDataForTarget: targetId =>
         remoteStoreImpl.listenTargets.get(targetId) || null
     },
-    remoteStoreImpl.datastore.serializer.databaseId
+    remoteStoreImpl.datastore.databaseId
   );
   ensureWatchStream(remoteStoreImpl).start();
   remoteStoreImpl.onlineStateTracker.handleWatchStreamStart();
