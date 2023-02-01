@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { Base64DecodeError } from './base64_decode_error';
+import { Base64DecodeError } from "../../util/base64_decode_error";
+
 
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {

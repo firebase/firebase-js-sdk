@@ -418,7 +418,9 @@ export function noChangeEvent(
     getRemoteKeysForTarget: () => documentKeySet(),
     getTargetDataForTarget: targetId =>
       targetData(targetId, TargetPurpose.Listen, 'foo')
-  });
+  },
+  TEST_DATABASE_ID
+  );
   aggregator.handleTargetChange(
     new WatchTargetChange(
       WatchTargetChangeState.NoChange,
@@ -440,12 +442,13 @@ export function existenceFilterEvent(
     getRemoteKeysForTarget: () => syncedKeys,
     getTargetDataForTarget: targetId =>
       targetData(targetId, TargetPurpose.Listen, 'foo')
-  });
+  },
+  TEST_DATABASE_ID
+  );
   aggregator.handleExistenceFilter(
     new ExistenceFilterChange(
       targetId,
       new ExistenceFilter(remoteCount, bloomFilter),
-      TEST_DATABASE_ID
     )
   );
   return aggregator.createRemoteEvent(version(snapshotVersion));
@@ -478,7 +481,9 @@ export function docAddedRemoteEvent(
         return null;
       }
     }
-  });
+  },
+  TEST_DATABASE_ID
+  );
 
   let version = SnapshotVersion.min();
 
@@ -525,7 +530,8 @@ export function docUpdateRemoteEvent(
           : TargetPurpose.Listen;
       return targetData(targetId, purpose, doc.key.toString());
     }
-  });
+  },      TEST_DATABASE_ID
+  );
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
 }

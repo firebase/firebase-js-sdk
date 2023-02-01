@@ -29,7 +29,7 @@ import {
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { normalizeByteString } from '../model/normalize';
-import { Base64DecodeError } from '../platform/base64_decode_error';
+import { Base64DecodeError } from '../util/base64_decode_error';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
@@ -76,7 +76,6 @@ export class ExistenceFilterChange {
   constructor(
     public targetId: TargetId,
     public existenceFilter: ExistenceFilter,
-    public databaseId: DatabaseId
   ) {}
 }
 
@@ -264,7 +263,7 @@ const LOG_TAG = 'WatchChangeAggregator';
  * A helper class to accumulate watch changes into a RemoteEvent.
  */
 export class WatchChangeAggregator {
-  constructor(private metadataProvider: TargetMetadataProvider) {}
+  constructor(private metadataProvider: TargetMetadataProvider, private readonly databaseId: DatabaseId) {}
 
   /** The internal state of all tracked targets. */
   private targetStates = new Map<TargetId, TargetState>();
@@ -476,7 +475,7 @@ export class WatchChangeAggregator {
     }
 
     const removedDocumentCount = this.filterRemovedDocuments(
-      watchChange,
+      watchChange.targetId,
       bloomFilter
     );
 
@@ -488,16 +487,15 @@ export class WatchChangeAggregator {
    * return number of documents removed.
    */
   private filterRemovedDocuments(
-    watchChange: ExistenceFilterChange,
+    targetId: number,
     bloomFilter: BloomFilter
   ): number {
-    const { targetId, databaseId } = watchChange;
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     let removalCount = 0;
 
     existingKeys.forEach(key => {
       const documentPath =
-        databaseId.canonicalString() +
+        this.databaseId.canonicalString() +
         '/documents/' +
         key.path.canonicalString();
 

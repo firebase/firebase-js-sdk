@@ -116,7 +116,8 @@ describe('RemoteEvent', () => {
       getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
       getTargetDataForTarget: targetId =>
         options.targets ? options.targets[targetId] : null
-    });
+    }      ,TEST_DATABASE_ID
+    );
 
     if (options.outstandingResponses) {
       forEachNumber(options.outstandingResponses, (targetId, count) => {
@@ -453,7 +454,7 @@ describe('RemoteEvent', () => {
     // The existence filter mismatch will remove the document from target 1,
     // but not synthesize a document delete.
     aggregator.handleExistenceFilter(
-      new ExistenceFilterChange(1, new ExistenceFilter(0), TEST_DATABASE_ID)
+      new ExistenceFilterChange(1, new ExistenceFilter(0))
     );
 
     event = aggregator.createRemoteEvent(version(3));
@@ -493,7 +494,7 @@ describe('RemoteEvent', () => {
     // The existence filter mismatch will clear the previous target mapping,
     // but not synthesize a document delete.
     aggregator.handleExistenceFilter(
-      new ExistenceFilterChange(1, new ExistenceFilter(0), TEST_DATABASE_ID)
+      new ExistenceFilterChange(1, new ExistenceFilter(0))
     );
 
     const event = aggregator.createRemoteEvent(version(3));

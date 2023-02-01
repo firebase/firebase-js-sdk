@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Base64DecodeError } from './base64_decode_error';
+import { Base64DecodeError } from '../util/base64_decode_error';
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
