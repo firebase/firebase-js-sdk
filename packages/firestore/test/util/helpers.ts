@@ -85,7 +85,6 @@ import {
   SetMutation,
   FieldTransform
 } from '../../src/model/mutation';
-import { normalizeByteString } from '../../src/model/normalize';
 import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
@@ -432,8 +431,7 @@ export function existenceFilterEvent(
   targetId: number,
   syncedKeys: DocumentKeySet,
   remoteCount: number,
-  snapshotVersion: number,
-  bloomFilter?: api.BloomFilter
+  snapshotVersion: number
 ): RemoteEvent {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => syncedKeys,
@@ -441,10 +439,7 @@ export function existenceFilterEvent(
       targetData(targetId, TargetPurpose.Listen, 'foo')
   });
   aggregator.handleExistenceFilter(
-    new ExistenceFilterChange(
-      targetId,
-      new ExistenceFilter(remoteCount, bloomFilter)
-    )
+    new ExistenceFilterChange(targetId, new ExistenceFilter(remoteCount))
   );
   return aggregator.createRemoteEvent(version(snapshotVersion));
 }

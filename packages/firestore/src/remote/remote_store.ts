@@ -334,7 +334,6 @@ function sendWatchRequest(
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
     targetData.targetId
   );
-
   ensureWatchStream(remoteStoreImpl).watch(targetData);
 }
 

@@ -33,7 +33,6 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { FieldIndex } from '../../../src/model/field_index';
 import { JsonObject } from '../../../src/model/object_value';
 import { ResourcePath } from '../../../src/model/path';
-import { BloomFilter as ProtoBloomFilter } from '../../../src/protos/firestore_proto_api';
 import {
   isPermanentWriteError,
   mapCodeFromRpcCode,
@@ -76,17 +75,10 @@ export interface ActiveTargetSpec {
   queries: SpecQuery[];
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
-  expectedCount?: number;
 }
 
 export interface ActiveTargetMap {
   [targetId: string]: ActiveTargetSpec;
-}
-
-export interface ResumeSpec {
-  resumeToken?: string;
-  readTime?: TestSnapshotVersion;
-  expectedCount?: number;
 }
 
 /**
@@ -263,7 +255,10 @@ export class SpecBuilder {
     return this;
   }
 
-  userListens(query: Query, resume?: ResumeSpec): this {
+  userListens(
+    query: Query,
+    resume?: { resumeToken?: string; readTime?: TestSnapshotVersion }
+  ): this {
     this.nextStep();
 
     const target = queryToTarget(query);
@@ -282,7 +277,12 @@ export class SpecBuilder {
       }
 
       this.queryMapping.set(target, targetId);
-      this.addQueryToActiveTargets(targetId, query, resume);
+      this.addQueryToActiveTargets(
+        targetId,
+        query,
+        resume?.resumeToken,
+        resume?.readTime
+      );
       this.currentStep = {
         userListen: { targetId, query: SpecBuilder.queryToSpec(query) },
         expectedState: { activeTargets: { ...this.activeTargets } }
@@ -295,21 +295,14 @@ export class SpecBuilder {
    * Registers a previously active target with the test expectations after a
    * stream disconnect.
    */
-  restoreListen(
-    query: Query,
-    resumeToken: string,
-    expectedCount?: number
-  ): this {
+  restoreListen(query: Query, resumeToken: string): this {
     const targetId = this.queryMapping.get(queryToTarget(query));
 
     if (isNullOrUndefined(targetId)) {
       throw new Error("Can't restore an unknown query: " + query);
     }
 
-    this.addQueryToActiveTargets(targetId!, query, {
-      resumeToken,
-      expectedCount
-    });
+    this.addQueryToActiveTargets(targetId!, query, resumeToken);
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -537,18 +530,18 @@ export class SpecBuilder {
       query: Query;
       resumeToken?: string;
       readTime?: TestSnapshotVersion;
-      expectedCount?: number;
     }>
   ): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
     this.clientState.activeTargets = {};
-    targets.forEach(({ query, resumeToken, readTime, expectedCount }) => {
-      this.addQueryToActiveTargets(this.getTargetId(query), query, {
+    targets.forEach(({ query, resumeToken, readTime }) => {
+      this.addQueryToActiveTargets(
+        this.getTargetId(query),
+        query,
         resumeToken,
-        readTime,
-        expectedCount
-      });
+        readTime
+      );
     });
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
@@ -579,7 +572,7 @@ export class SpecBuilder {
       this.addQueryToActiveTargets(
         this.limboMapping[path],
         newQueryForPath(key.path),
-        { resumeToken: '' }
+        ''
       );
     });
 
@@ -776,11 +769,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchFilters(
-    queries: Query[],
-    docs: DocumentKey[] = [],
-    bloomFilter?: ProtoBloomFilter
-  ): this {
+  watchFilters(queries: Query[], ...docs: DocumentKey[]): this {
     this.nextStep();
     const targetIds = queries.map(query => {
       return this.getTargetId(query);
@@ -788,7 +777,10 @@ export class SpecBuilder {
     const keys = docs.map(key => {
       return key.path.canonicalString();
     });
-    const filter = { targetIds, keys, bloomFilter } as SpecWatchFilter;
+    const filter: SpecWatchFilter = [targetIds] as SpecWatchFilter;
+    for (const key of keys) {
+      filter.push(key);
+    }
     this.currentStep = {
       watchFilter: filter
     };
@@ -918,14 +910,22 @@ export class SpecBuilder {
   }
 
   /** Registers a query that is active in another tab. */
-  expectListen(query: Query, resume?: ResumeSpec): this {
+  expectListen(
+    query: Query,
+    resume?: { resumeToken?: string; readTime?: TestSnapshotVersion }
+  ): this {
     this.assertStep('Expectations require previous step');
 
     const target = queryToTarget(query);
     const targetId = this.queryIdGenerator.cachedId(target);
     this.queryMapping.set(target, targetId);
 
-    this.addQueryToActiveTargets(targetId, query, resume);
+    this.addQueryToActiveTargets(
+      targetId,
+      query,
+      resume?.resumeToken,
+      resume?.readTime
+    );
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -1093,12 +1093,9 @@ export class SpecBuilder {
   private addQueryToActiveTargets(
     targetId: number,
     query: Query,
-    resume?: ResumeSpec
+    resumeToken?: string,
+    readTime?: TestSnapshotVersion
   ): void {
-    if (!(resume?.resumeToken || resume?.readTime) && resume?.expectedCount) {
-      fail('Expected count is present without a resume token or read time.');
-    }
-
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
       if (
@@ -1109,24 +1106,21 @@ export class SpecBuilder {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
-          resumeToken: resume?.resumeToken || '',
-          readTime: resume?.readTime,
-          expectedCount: resume?.expectedCount
+          resumeToken: resumeToken || '',
+          readTime
         };
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
-          resumeToken: resume?.resumeToken || '',
-          readTime: resume?.readTime,
-          expectedCount: resume?.expectedCount
+          resumeToken: resumeToken || '',
+          readTime
         };
       }
     } else {
       this.activeTargets[targetId] = {
         queries: [SpecBuilder.queryToSpec(query)],
-        resumeToken: resume?.resumeToken || '',
-        readTime: resume?.readTime,
-        expectedCount: resume?.expectedCount
+        resumeToken: resumeToken || '',
+        readTime
       };
     }
   }
@@ -1138,8 +1132,7 @@ export class SpecBuilder {
     if (queriesAfterRemoval.length > 0) {
       this.activeTargets[targetId] = {
         queries: queriesAfterRemoval,
-        resumeToken: this.activeTargets[targetId].resumeToken,
-        expectedCount: this.activeTargets[targetId].expectedCount
+        resumeToken: this.activeTargets[targetId].resumeToken
       };
     } else {
       delete this.activeTargets[targetId];

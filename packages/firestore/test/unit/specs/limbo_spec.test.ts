@@ -22,13 +22,7 @@ import {
 } from '../../../src/core/query';
 import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import {
-  deletedDoc,
-  doc,
-  filter,
-  orderBy,
-  query
-} from '../../util/helpers';
+import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -886,7 +880,7 @@ describeSpec('Limbo Documents:', [], () => {
           // documents that changed since the resume token. This will cause it
           // to just send the docBs with an existence filter with a count of 3.
           .watchSends({ affects: [query1] }, docB1, docB2, docB3)
-          .watchFilters([query1], [docB1.key, docB2.key, docB3.key])
+          .watchFilters([query1], docB1.key, docB2.key, docB3.key)
           .watchSnapshots(1001)
           .expectEvents(query1, {
             added: [docB1, docB2, docB3],
