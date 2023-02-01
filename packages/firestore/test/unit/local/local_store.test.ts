@@ -1271,10 +1271,13 @@ function genericLocalStoreTests(
       [targetId],
       resumeToken
     );
-    const aggregator = new WatchChangeAggregator({
-      getRemoteKeysForTarget: () => documentKeySet(),
-      getTargetDataForTarget: () => targetData
-    });
+    const aggregator = new WatchChangeAggregator(
+      {
+        getRemoteKeysForTarget: () => documentKeySet(),
+        getTargetDataForTarget: () => targetData
+      },
+      persistenceHelpers.TEST_DATABASE_ID
+    );
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
     await localStoreApplyRemoteEventToLocalCache(localStore, remoteEvent);
@@ -1311,10 +1314,13 @@ function genericLocalStoreTests(
         [targetId],
         byteStringFromString('abc')
       );
-      const aggregator1 = new WatchChangeAggregator({
-        getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData
-      });
+      const aggregator1 = new WatchChangeAggregator(
+        {
+          getRemoteKeysForTarget: () => documentKeySet(),
+          getTargetDataForTarget: () => targetData
+        },
+        persistenceHelpers.TEST_DATABASE_ID
+      );
       aggregator1.handleTargetChange(watchChange1);
       const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
       await localStoreApplyRemoteEventToLocalCache(localStore, remoteEvent1);
@@ -1324,10 +1330,13 @@ function genericLocalStoreTests(
         [targetId],
         ByteString.EMPTY_BYTE_STRING
       );
-      const aggregator2 = new WatchChangeAggregator({
-        getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData
-      });
+      const aggregator2 = new WatchChangeAggregator(
+        {
+          getRemoteKeysForTarget: () => documentKeySet(),
+          getTargetDataForTarget: () => targetData
+        },
+        persistenceHelpers.TEST_DATABASE_ID
+      );
       aggregator2.handleTargetChange(watchChange2);
       const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
       await localStoreApplyRemoteEventToLocalCache(localStore, remoteEvent2);

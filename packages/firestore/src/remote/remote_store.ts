@@ -360,12 +360,15 @@ function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
     'getRemoteKeysForTarget() not set'
   );
 
-  remoteStoreImpl.watchChangeAggregator = new WatchChangeAggregator({
-    getRemoteKeysForTarget: targetId =>
-      remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(targetId),
-    getTargetDataForTarget: targetId =>
-      remoteStoreImpl.listenTargets.get(targetId) || null
-  });
+  remoteStoreImpl.watchChangeAggregator = new WatchChangeAggregator(
+    {
+      getRemoteKeysForTarget: targetId =>
+        remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(targetId),
+      getTargetDataForTarget: targetId =>
+        remoteStoreImpl.listenTargets.get(targetId) || null
+    },
+    remoteStoreImpl.datastore.databaseId
+  );
   ensureWatchStream(remoteStoreImpl).start();
   remoteStoreImpl.onlineStateTracker.handleWatchStreamStart();
 }

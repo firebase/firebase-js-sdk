@@ -43,6 +43,7 @@ import {
   key,
   forEachNumber
 } from '../../util/helpers';
+import { TEST_DATABASE_ID } from '../local/persistence_test_helpers';
 
 interface TargetMap {
   [targetId: string]: TargetData;
@@ -111,11 +112,14 @@ describe('RemoteEvent', () => {
       });
     }
 
-    const aggregator = new WatchChangeAggregator({
-      getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
-      getTargetDataForTarget: targetId =>
-        options.targets ? options.targets[targetId] : null
-    });
+    const aggregator = new WatchChangeAggregator(
+      {
+        getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
+        getTargetDataForTarget: targetId =>
+          options.targets ? options.targets[targetId] : null
+      },
+      TEST_DATABASE_ID
+    );
 
     if (options.outstandingResponses) {
       forEachNumber(options.outstandingResponses, (targetId, count) => {
@@ -155,6 +159,7 @@ describe('RemoteEvent', () => {
       version(options.snapshotVersion)
     );
   }
+
   it('will accumulate document added and removed events', () => {
     const targets = listens(1, 2, 3, 4, 5, 6);
 

@@ -77,6 +77,10 @@ export class DatabaseId {
       other.database === this.database
     );
   }
+
+  canonicalString(): string {
+    return `projects/${this.projectId}/databases/${this.database}`;
+  }
 }
 
 export function databaseIdFromApp(
