@@ -79,8 +79,8 @@ class DatastoreImpl extends Datastore {
     super();
   }
 
-  get databaseId(): DatabaseId { 
-    return this.serializer.databaseId
+  get databaseId(): DatabaseId {
+    return this.serializer.databaseId;
   }
 
   verifyInitialized(): void {
