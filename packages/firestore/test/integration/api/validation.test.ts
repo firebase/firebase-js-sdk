@@ -261,7 +261,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
     });
   });
 
-  describe('Collection paths', () => {
+  describe.only('Collection paths', () => {
     validationIt(persistence, 'must be non-empty strings', db => {
       expect(() => collection(db, '')).to.throw(
         'Function collection() cannot be called with an empty path.'

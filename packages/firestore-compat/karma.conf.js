@@ -19,7 +19,9 @@ const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
 
 module.exports = function (config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
+  const karmaConfig = {
+    ...karmaBase,
+
     // files to load into karma
     files: getTestFiles(argv),
 
@@ -30,11 +32,14 @@ module.exports = function (config) {
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
+  };
 
-    client: Object.assign({}, karmaBase.client, {
-      firestoreSettings: getFirestoreSettings(argv)
-    })
-  });
+  if (argv.local) {
+    karmaConfig.client = {
+      ...karmaConfig.client,
+      targetBackend: 'emulator'
+    };
+  }
 
   config.set(karmaConfig);
 };
@@ -46,24 +51,6 @@ module.exports = function (config) {
 function getTestFiles(argv) {
   const integrationTests = 'test/bootstrap.ts';
   return [integrationTests];
-}
-
-/**
- * If the --local argument is passed, returns a {host, ssl} FirestoreSettings
- * object that point to localhost instead of production.
- */
-function getFirestoreSettings(argv) {
-  if (argv.local) {
-    return {
-      host: 'localhost:8080',
-      ssl: false
-    };
-  } else {
-    return {
-      host: 'firestore.googleapis.com',
-      ssl: true
-    };
-  }
 }
 
 module.exports.files = getTestFiles(argv);
