@@ -47,22 +47,22 @@ export const DEFAULT_SETTINGS: PrivateSettings = {
 // eslint-disable-next-line no-console
 console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 
-function parseTargetBackend(targetBackend: string) : TargetBackend {
+function parseTargetBackend(targetBackend: string): TargetBackend {
   switch (targetBackend) {
-    case "emulator":
+    case 'emulator':
       return TargetBackend.EMULATOR;
-    case "qa":
+    case 'qa':
       return TargetBackend.QA;
-    case "nightly":
+    case 'nightly':
       return TargetBackend.NIGHTLY;
-    case "prod":
+    case 'prod':
       return TargetBackend.PROD;
     default:
-      throw Error("Unknown backend configuration used for integration tests.");
+      throw Error('Unknown backend configuration used for integration tests.');
   }
 }
 
-function getTargetBackend() : TargetBackend {
+function getTargetBackend(): TargetBackend {
   const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
   if (karma && karma.config.targetBackend) {
     return parseTargetBackend(karma.config.targetBackend);
@@ -76,23 +76,24 @@ function getTargetBackend() : TargetBackend {
   return TargetBackend.PROD;
 }
 
-function getFirestoreHost(targetBackend: TargetBackend) : string {
+function getFirestoreHost(targetBackend: TargetBackend): string {
   switch (targetBackend) {
     case TargetBackend.EMULATOR: {
-      const emulatorPort: string = process.env.FIRESTORE_EMULATOR_PORT || '8080';
+      const emulatorPort: string =
+        process.env.FIRESTORE_EMULATOR_PORT || '8080';
       return `localhost:${emulatorPort}`;
     }
     case TargetBackend.QA:
-      return "staging-firestore.sandbox.googleapis.com";
+      return 'staging-firestore.sandbox.googleapis.com';
     case TargetBackend.NIGHTLY:
-      return "test-firestore.sandbox.googleapis.com";
+      return 'test-firestore.sandbox.googleapis.com';
     case TargetBackend.PROD:
     default:
-      return "firestore.googleapis.com";
+      return 'firestore.googleapis.com';
   }
 }
 
-function getSslEnabled(targetBackend: TargetBackend) : boolean {
+function getSslEnabled(targetBackend: TargetBackend): boolean {
   return targetBackend != TargetBackend.EMULATOR;
 }
 
