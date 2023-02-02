@@ -17,7 +17,6 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { DatabaseId } from '../core/database_info';
 import { Query, queryToTarget } from '../core/query';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -60,7 +59,7 @@ import {
  */
 export abstract class Datastore {
   abstract terminate(): void;
-  abstract databaseId: DatabaseId;
+  abstract serializer: JsonProtoSerializer;
 }
 
 /**
@@ -77,10 +76,6 @@ class DatastoreImpl extends Datastore {
     readonly serializer: JsonProtoSerializer
   ) {
     super();
-  }
-
-  get databaseId(): DatabaseId {
-    return this.serializer.databaseId;
   }
 
   verifyInitialized(): void {
