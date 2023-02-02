@@ -29,7 +29,6 @@ import {
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail, hardAssert } from '../util/assert';
-import { Base64DecodeError } from '../util/base64_decode_error';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
