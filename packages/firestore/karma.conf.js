@@ -34,10 +34,10 @@ module.exports = function (config) {
     frameworks: ['mocha']
   };
 
-  if (argv.local) {
+  if (argv.targetBackend) {
     karmaConfig.client = {
       ...karmaConfig.client,
-      targetBackend: 'emulator'
+      targetBackend: argv.targetBackend
     };
   }
 
