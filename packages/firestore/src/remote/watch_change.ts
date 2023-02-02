@@ -255,6 +255,11 @@ export interface TargetMetadataProvider {
    * has become inactive
    */
   getTargetDataForTarget(targetId: TargetId): TargetData | null;
+
+  /**
+   * Returns the database ID of the Firestore instance.
+   */
+  getDatabaseId(): DatabaseId;
 }
 
 const LOG_TAG = 'WatchChangeAggregator';
@@ -263,10 +268,7 @@ const LOG_TAG = 'WatchChangeAggregator';
  * A helper class to accumulate watch changes into a RemoteEvent.
  */
 export class WatchChangeAggregator {
-  constructor(
-    private metadataProvider: TargetMetadataProvider,
-    private readonly databaseId: DatabaseId
-  ) {}
+  constructor(private metadataProvider: TargetMetadataProvider) {}
 
   /** The internal state of all tracked targets. */
   private targetStates = new Map<TargetId, TargetState>();
@@ -498,7 +500,7 @@ export class WatchChangeAggregator {
 
     existingKeys.forEach(key => {
       const documentPath =
-        this.databaseId.canonicalString() +
+        this.metadataProvider.getDatabaseId().canonicalString() +
         '/documents/' +
         key.path.canonicalString();
 

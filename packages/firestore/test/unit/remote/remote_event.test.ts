@@ -111,15 +111,12 @@ describe('RemoteEvent', () => {
         targetIds.push(targetId);
       });
     }
-
-    const aggregator = new WatchChangeAggregator(
-      {
-        getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
-        getTargetDataForTarget: targetId =>
-          options.targets ? options.targets[targetId] : null
-      },
-      TEST_DATABASE_ID
-    );
+    const aggregator = new WatchChangeAggregator({
+      getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
+      getTargetDataForTarget: targetId =>
+        options.targets ? options.targets[targetId] : null,
+      getDatabaseId: () => TEST_DATABASE_ID
+    });
 
     if (options.outstandingResponses) {
       forEachNumber(options.outstandingResponses, (targetId, count) => {
