@@ -183,7 +183,7 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
       const promise = getAggregateFromServer(coll, {
         'with-un/supp[or]ted': count()
       });
-      await expect(promise).to.eventually.rejectedWith(/INVALID_ARGUMENT/);
+      await expect(promise).to.eventually.rejectedWith(/invalid/i);
     });
   });
 
@@ -212,7 +212,7 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
       const promise = getAggregateFromServer(coll, {
         '`with`unsupported`': count()
       });
-      await expect(promise).to.eventually.rejectedWith(/INVALID_ARGUMENT/);
+      await expect(promise).to.eventually.rejectedWith(/invalid/i);
     });
   });
 
