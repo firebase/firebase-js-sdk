@@ -6,22 +6,21 @@
   "main": "dist/index.cjs.js",
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
-  "sw": "dist/index.sw.esm2017.js",
+  "sw": "dist/esm/index.sw.esm2017.js",
   "sw-main": "dist/index.sw.cjs",
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/index-public.d.ts",
-      "node": "./dist/index.cjs.js",
-      "browser": "./dist/esm/index.esm2017.js",
+      "require": "./dist/index.cjs.js",
       "module": "./dist/esm/index.esm2017.js",
       "esm5": "./dist/esm/index.esm.js",
-      "default": "./dist/index.cjs.js"
+      "default": "./dist/esm/index.esm2017.js"
     },
     "./sw": {
       "types": "./dist/sw/index-public.d.ts",
-      "node": "./dist/index.sw.cjs",
-      "default": "./dist/index.sw.esm2017.js"
+      "require": "./dist/index.sw.cjs",
+      "default": "./dist/esm/index.sw.esm2017.js"
     },
     "./package.json": "./package.json"
   },

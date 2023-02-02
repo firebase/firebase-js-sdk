@@ -11,7 +11,11 @@
         "import": "./dist/esm/index.esm.js",
         "require": "./dist/index.cjs.js"
       },
-      "default": "./dist/index.cjs.js"
+      "default": "./dist/index.cjs.js",
+      "browser": {
+        "require": "./dist/index.cjs.js",
+        "import": "./dist/esm/index.esm.js"
+      }
     },
     "./package.json": "./package.json"
   },
