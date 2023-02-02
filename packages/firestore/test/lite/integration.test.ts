@@ -2667,56 +2667,6 @@ describe('Aggregate queries', () => {
     });
   });
 
-  it('aggregateQuerySnapshotEqual on different aggregations to be falsy', () => {
-    const testDocs = [
-      { author: 'authorA', title: 'titleA', rating: 1 },
-      { author: 'authorA', title: 'titleB', rating: 5 },
-      { author: 'authorB', title: 'titleC', rating: 4 },
-      { author: 'authorB', title: 'titleD', rating: 3 }
-    ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, { sum: sum('rating') });
-      const snapshot2 = await getAggregate(query1, { avg: average('rating') });
-
-      // @ts-expect-error
-      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
-    });
-  });
-
-  it('aggregateQuerySnapshotEqual on same aggregations with different aliases to be falsy', () => {
-    const testDocs = [
-      { author: 'authorA', title: 'titleA', rating: 1 },
-      { author: 'authorA', title: 'titleB', rating: 5 },
-      { author: 'authorB', title: 'titleC', rating: 4 },
-      { author: 'authorB', title: 'titleD', rating: 3 }
-    ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, { foo: average('rating') });
-      const snapshot2 = await getAggregate(query1, { bar: average('rating') });
-
-      // @ts-expect-error
-      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
-    });
-  });
-
-  it('aggregateQuerySnapshotEqual on same aggregations with same aliases to be truthy', () => {
-    const testDocs = [
-      { author: 'authorA', title: 'titleA', rating: 1 },
-      { author: 'authorA', title: 'titleB', rating: 5 },
-      { author: 'authorB', title: 'titleC', rating: 4 },
-      { author: 'authorB', title: 'titleD', rating: 3 }
-    ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, { foo: average('rating') });
-      const snapshot2 = await getAggregate(query1, { foo: average('rating') });
-
-      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.true;
-    });
-  });
-
   it('aggregate query fails on a terminated Firestore', () => {
     return withTestCollection(async coll => {
       await terminate(coll.firestore);
@@ -2767,6 +2717,56 @@ describe('Aggregate queries', () => {
 
 // TODO (sum/avg) enable these tests when sum/avg is supported by the backend
 apiDescribe.skip('Aggregation queries - sum / average', () => {
+  it('aggregateQuerySnapshotEqual on different aggregations to be falsy', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', rating: 1 },
+      { author: 'authorA', title: 'titleB', rating: 5 },
+      { author: 'authorB', title: 'titleC', rating: 4 },
+      { author: 'authorB', title: 'titleD', rating: 3 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const snapshot1 = await getAggregate(query1, { sum: sum('rating') });
+      const snapshot2 = await getAggregate(query1, { avg: average('rating') });
+
+      // @ts-expect-error
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
+    });
+  });
+
+  it('aggregateQuerySnapshotEqual on same aggregations with different aliases to be falsy', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', rating: 1 },
+      { author: 'authorA', title: 'titleB', rating: 5 },
+      { author: 'authorB', title: 'titleC', rating: 4 },
+      { author: 'authorB', title: 'titleD', rating: 3 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const snapshot1 = await getAggregate(query1, { foo: average('rating') });
+      const snapshot2 = await getAggregate(query1, { bar: average('rating') });
+
+      // @ts-expect-error
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
+    });
+  });
+
+  it('aggregateQuerySnapshotEqual on same aggregations with same aliases to be truthy', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', rating: 1 },
+      { author: 'authorA', title: 'titleB', rating: 5 },
+      { author: 'authorB', title: 'titleC', rating: 4 },
+      { author: 'authorB', title: 'titleD', rating: 3 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const snapshot1 = await getAggregate(query1, { foo: average('rating') });
+      const snapshot2 = await getAggregate(query1, { foo: average('rating') });
+
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.true;
+    });
+  });
+
   it('can run sum query getAggregationFromServer', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA', pages: 100 },
