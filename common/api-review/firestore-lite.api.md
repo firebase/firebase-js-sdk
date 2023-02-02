@@ -43,7 +43,7 @@ export interface AggregateSpec {
 
 // @public
 export type AggregateSpecData<T extends AggregateSpec> = {
-    [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
+    [P in keyof T as TrimBackticks<P>]: T[P] extends AggregateField<infer U> ? U : never;
 };
 
 // @public
@@ -400,6 +400,9 @@ export class Transaction {
 export interface TransactionOptions {
     readonly maxAttempts?: number;
 }
+
+// @public
+export type TrimBackticks<T> = T extends `\`${infer Body}\`` ? Body : T;
 
 // @public
 export type UnionToIntersection<U> = (U extends unknown ? (k: U) => void : never) extends (k: infer I) => void ? I : never;

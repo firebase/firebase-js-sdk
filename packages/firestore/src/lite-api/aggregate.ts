@@ -94,9 +94,6 @@ export function getAggregate<T extends AggregateSpec>(
   const datastore = getDatastore(firestore);
 
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
-    // TODO (sum/avg) should alias validation be performed or should that be
-    // delegated to the backend?
-
     return new AggregateImpl(
       alias,
       aggregate._aggregateType,

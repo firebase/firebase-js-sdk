@@ -43,7 +43,8 @@ export {
   AggregateSpec,
   AggregateSpecData,
   AggregateQuerySnapshot,
-  AggregateType
+  AggregateType,
+  TrimBackticks
 } from '../src/lite-api/aggregate_types';
 
 export { FirestoreSettings as Settings } from '../src/lite-api/settings';

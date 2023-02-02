@@ -75,7 +75,7 @@ export type AggregateSpecData<T extends AggregateSpec> = {
  * type Foo = '`Foo`'
  * type TrimmedFoo = TrimBackticks<Foo>; // 'Foo'
  */
-type TrimBackticks<T> = T extends `\`${infer Body}\`` ? Body : T;
+export type TrimBackticks<T> = T extends `\`${infer Body}\`` ? Body : T;
 
 /**
  * The results of executing an aggregation query.
