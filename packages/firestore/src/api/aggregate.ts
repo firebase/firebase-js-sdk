@@ -31,7 +31,8 @@ export {
   aggregateQuerySnapshotEqual,
   count,
   sum,
-  average
+  average,
+  aggregateFieldEqual
 } from '../lite-api/aggregate';
 
 /**

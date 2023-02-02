@@ -164,6 +164,7 @@ export function count(): AggregateField<number> {
  *
  * @param left Compare this AggregateField to the `right`.
  * @param right Compare this AggregateField to the `left`.
+ * @internal TODO (sum/avg) remove when public
  */
 export function aggregateFieldEqual(
   left: AggregateField<unknown>,

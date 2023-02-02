@@ -21,7 +21,8 @@ export {
   getAggregateFromServer,
   count,
   sum,
-  average
+  average,
+  aggregateFieldEqual
 } from './api/aggregate';
 
 export {
