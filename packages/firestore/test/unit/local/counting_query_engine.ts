@@ -101,9 +101,19 @@ export class CountingQueryEngine extends QueryEngine {
       setIndexManager: (indexManager: IndexManager) => {
         subject.setIndexManager(indexManager);
       },
-      getAllFromCollection: (transaction, collection, sinceReadTime) => {
+      getDocumentsMatchingQuery: (
+        transaction,
+        query,
+        sinceReadTime,
+        overlays
+      ) => {
         return subject
-          .getAllFromCollection(transaction, collection, sinceReadTime)
+          .getDocumentsMatchingQuery(
+            transaction,
+            query,
+            sinceReadTime,
+            overlays
+          )
           .next(result => {
             this.documentsReadByCollection += result.size;
             return result;

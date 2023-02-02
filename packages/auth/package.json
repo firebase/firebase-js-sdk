@@ -31,7 +31,11 @@
         "default": "./dist/index.webworker.esm5.js"
       },
       "esm5": "./dist/esm5/index.js",
-      "default": "./dist/esm2017/index.js"
+      "default": "./dist/esm2017/index.js",
+      "browser": {
+        "require": "./dist/browser-cjs/index.js",
+        "import": "./dist/esm2017/index.js"
+      }
     },
     "./cordova": {
       "types": "./dist/cordova/index.cordova.d.ts",
@@ -57,7 +61,11 @@
         "default": "./dist/cordova/internal.js"
       },
       "esm5": "./dist/esm5/internal.js",
-      "default": "./dist/esm2017/internal.js"
+      "default": "./dist/esm2017/internal.js",
+      "browser": {
+        "require": "./dist/browser-cjs/internal.js",
+        "import": "./dist/esm2017/internal.js"
+      }
     },
     "./package.json": "./package.json"
   },
