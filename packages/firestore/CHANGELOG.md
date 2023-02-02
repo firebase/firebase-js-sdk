@@ -1,5 +1,17 @@
 # @firebase/firestore
 
+## 3.8.2
+
+### Patch Changes
+
+- [`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5) [#6981](https://github.com/firebase/firebase-js-sdk/pull/6981) - Added browser CJS entry points (expected by Jest when using JSDOM mode).
+
+- [`27b5e7d70`](https://github.com/firebase/firebase-js-sdk/commit/27b5e7d7081688599fc518b329a43db4319cdd1f) [#6989](https://github.com/firebase/firebase-js-sdk/pull/6989) - Reduce memory usage by applying query check sooner in remote document cache.
+
+- Updated dependencies [[`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5)]:
+  - @firebase/util@1.9.1
+  - @firebase/component@0.6.2
+
 ## 3.8.1
 
 ### Patch Changes
