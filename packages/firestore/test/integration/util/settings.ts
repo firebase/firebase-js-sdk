@@ -94,7 +94,7 @@ function getFirestoreHost(targetBackend: TargetBackend): string {
 }
 
 function getSslEnabled(targetBackend: TargetBackend): boolean {
-  return targetBackend != TargetBackend.EMULATOR;
+  return targetBackend !== TargetBackend.EMULATOR;
 }
 
 export const DEFAULT_PROJECT_ID = USE_EMULATOR
