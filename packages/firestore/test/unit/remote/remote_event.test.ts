@@ -43,7 +43,6 @@ import {
   key,
   forEachNumber
 } from '../../util/helpers';
-import { TEST_DATABASE_ID } from '../local/persistence_test_helpers';
 
 interface TargetMap {
   [targetId: string]: TargetData;
@@ -114,8 +113,7 @@ describe('RemoteEvent', () => {
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
       getTargetDataForTarget: targetId =>
-        options.targets ? options.targets[targetId] : null,
-      getDatabaseId: () => TEST_DATABASE_ID
+        options.targets ? options.targets[targetId] : null
     });
 
     if (options.outstandingResponses) {

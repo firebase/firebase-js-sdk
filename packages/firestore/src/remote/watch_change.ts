@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { DatabaseId } from '../core/database_info';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget } from '../core/target';
 import { TargetId } from '../core/types';
@@ -252,11 +251,6 @@ export interface TargetMetadataProvider {
    * has become inactive
    */
   getTargetDataForTarget(targetId: TargetId): TargetData | null;
-
-  /**
-   * Returns the database ID of the Firestore instance.
-   */
-  getDatabaseId(): DatabaseId;
 }
 
 const LOG_TAG = 'WatchChangeAggregator';
