@@ -33,6 +33,7 @@ const describeFn =
       xdescribe;
 
 describeFn('WebChannel', () => {
+  // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)('receives error messages', done => {
     const projectId = DEFAULT_PROJECT_ID;
     const info = getDefaultDatabaseInfo();
