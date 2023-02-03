@@ -26,15 +26,17 @@ import * as path from 'path';
 import freePortFinder from 'find-free-port';
 
 import { FirestoreEmulator } from './emulators/firestore-emulator';
+import {SpawnOptions} from "child_process";
 
 function runTest(port: number, projectId: string, withPersistence: boolean) {
   const options = {
     cwd: path.resolve(__dirname, '../../packages/firestore'),
-    env: Object.assign({}, process.env, {
+    env: {
+      ...process.env,
       FIRESTORE_TARGET_BACKEND: 'emulator',
-      FIRESTORE_EMULATOR_PORT: port,
+      FIRESTORE_EMULATOR_PORT: String(port),
       FIRESTORE_EMULATOR_PROJECT_ID: projectId
-    }),
+    },
     stdio: 'inherit' as const
   };
   // TODO(b/113267261): Include browser test once WebChannel support is
