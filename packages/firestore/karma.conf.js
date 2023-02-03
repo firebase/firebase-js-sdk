@@ -39,6 +39,11 @@ module.exports = function (config) {
       ...karmaConfig.client,
       targetBackend: argv.targetBackend
     };
+  } else if (argv.local) {
+    karmaConfig.client = {
+      ...karmaConfig.client,
+      targetBackend: 'emulator'
+    };
   }
 
   config.set(karmaConfig);
