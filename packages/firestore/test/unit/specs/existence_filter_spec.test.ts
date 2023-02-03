@@ -371,7 +371,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Full re-query is triggered when bloom filter bitmap is invalid',
-    [],
+    ['no-ios', 'no-android'],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { v: 1 });
