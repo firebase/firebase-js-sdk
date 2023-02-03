@@ -1,5 +1,38 @@
 # firebase
 
+## 9.17.1
+
+### Patch Changes
+
+- [`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30) [#7007](https://github.com/firebase/firebase-js-sdk/pull/7007) (fixes [#7005](https://github.com/firebase/firebase-js-sdk/issues/7005)) - Move exports.default fields to always be the last field. This fixes a bug caused in 9.17.0 that prevented some bundlers and frameworks from building.
+
+- Updated dependencies [[`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30)]:
+  - @firebase/auth@0.21.3
+  - @firebase/auth-compat@0.3.3
+  - @firebase/database@0.14.3
+  - @firebase/database-compat@0.3.3
+  - @firebase/firestore@3.8.3
+  - @firebase/firestore-compat@0.3.3
+  - @firebase/functions@0.9.3
+  - @firebase/functions-compat@0.3.3
+  - @firebase/storage@0.11.1
+  - @firebase/util@1.9.2
+  - @firebase/storage-compat@0.3.1
+  - @firebase/analytics@0.9.3
+  - @firebase/analytics-compat@0.2.3
+  - @firebase/app@0.9.3
+  - @firebase/app-check@0.6.3
+  - @firebase/app-check-compat@0.3.3
+  - @firebase/app-compat@0.2.3
+  - @firebase/installations@0.6.3
+  - @firebase/installations-compat@0.2.3
+  - @firebase/messaging@0.12.3
+  - @firebase/messaging-compat@0.2.3
+  - @firebase/performance@0.6.3
+  - @firebase/performance-compat@0.2.3
+  - @firebase/remote-config@0.4.3
+  - @firebase/remote-config-compat@0.2.3
+
 ## 9.17.0
 
 ### Minor Changes
