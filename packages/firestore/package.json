@@ -56,11 +56,11 @@
       },
       "react-native": "./dist/index.rn.js",
       "esm5": "./dist/index.esm5.js",
-      "default": "./dist/index.esm2017.js",
       "browser": {
         "require": "./dist/index.cjs.js",
         "import": "./dist/index.esm2017.js"
-      }
+      },
+      "default": "./dist/index.esm2017.js"
     },
     "./lite": {
       "types": "./dist/lite/index.d.ts",
@@ -70,11 +70,11 @@
       },
       "react-native": "./dist/lite/index.rn.esm2017.js",
       "esm5": "./dist/lite/index.browser.esm5.js",
-      "default": "./dist/lite/index.browser.esm2017.js",
       "browser": {
         "require": "./dist/lite/index.cjs.js",
         "import": "./dist/lite/index.browser.esm2017.js"
-      }
+      },
+      "default": "./dist/lite/index.browser.esm2017.js"
     },
     "./package.json": "./package.json"
   },
