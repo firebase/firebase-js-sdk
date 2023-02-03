@@ -26,7 +26,6 @@ import * as path from 'path';
 import freePortFinder from 'find-free-port';
 
 import { FirestoreEmulator } from './emulators/firestore-emulator';
-import {SpawnOptions} from "child_process";
 
 function runTest(port: number, projectId: string, withPersistence: boolean) {
   const options = {
