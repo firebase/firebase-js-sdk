@@ -16,11 +16,11 @@
         "require": "./dist/index.node.cjs.js"
       },
       "esm5": "./dist/index.esm.js",
-      "default": "./dist/index.esm2017.js",
       "browser": {
         "require": "./dist/index.cjs.js",
         "import": "./dist/index.esm2017.js"
-      }
+      },
+      "default": "./dist/index.esm2017.js"
     },
     "./package.json": "./package.json"
   },
