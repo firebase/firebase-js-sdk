@@ -16,11 +16,9 @@ Firebase Installations
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [getInstallations(app)](./installations.md#getinstallations) | Returns an instance of [Installations](./installations.installations.md#installations_interface) associated with the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
-|  <b>function(installations...)</b> |
 |  [deleteInstallations(installations)](./installations.md#deleteinstallations) | Deletes the Firebase Installation and all associated data. |
 |  [getId(installations)](./installations.md#getid) | Creates a Firebase Installation if there isn't one for the app and returns the Installation ID. |
+|  [getInstallations(app)](./installations.md#getinstallations) | Returns an instance of [Installations](./installations.installations.md#installations_interface) associated with the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
 |  [getToken(installations, forceRefresh)](./installations.md#gettoken) | Returns a Firebase Installations auth token, identifying the current Firebase Installation. |
 |  [onIdChange(installations, callback)](./installations.md#onidchange) | Sets a new callback that will get called when Installation ID changes. Returns an unsubscribe function that will remove the callback when called. |
 
@@ -36,26 +34,6 @@ Firebase Installations
 |  --- | --- |
 |  [IdChangeCallbackFn](./installations.md#idchangecallbackfn) | An user defined callback function that gets called when Installations ID changes. |
 |  [IdChangeUnsubscribeFn](./installations.md#idchangeunsubscribefn) | Unsubscribe a callback function previously added via [IdChangeCallbackFn](./installations.md#idchangecallbackfn)<!-- -->. |
-
-## getInstallations()
-
-Returns an instance of [Installations](./installations.installations.md#installations_interface) associated with the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.
-
-<b>Signature:</b>
-
-```typescript
-export declare function getInstallations(app?: FirebaseApp): Installations;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
-
-<b>Returns:</b>
-
-[Installations](./installations.installations.md#installations_interface)
 
 ## deleteInstallations()
 
@@ -96,6 +74,26 @@ export declare function getId(installations: Installations): Promise<string>;
 <b>Returns:</b>
 
 Promise&lt;string&gt;
+
+## getInstallations()
+
+Returns an instance of [Installations](./installations.installations.md#installations_interface) associated with the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getInstallations(app?: FirebaseApp): Installations;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
+
+<b>Returns:</b>
+
+[Installations](./installations.installations.md#installations_interface)
 
 ## getToken()
 

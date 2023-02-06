@@ -16,9 +16,6 @@ Firebase Remote Config
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [getRemoteConfig(app)](./remote-config.md#getremoteconfig) |  |
-|  <b>function(remoteConfig...)</b> |
 |  [activate(remoteConfig)](./remote-config.md#activate) | Makes the last fetched config available to the getters. |
 |  [ensureInitialized(remoteConfig)](./remote-config.md#ensureinitialized) | Ensures the last activated config are available to the getters. |
 |  [fetchAndActivate(remoteConfig)](./remote-config.md#fetchandactivate) | Performs fetch and activate operations, as a convenience. |
@@ -26,11 +23,11 @@ Firebase Remote Config
 |  [getAll(remoteConfig)](./remote-config.md#getall) | Gets all config. |
 |  [getBoolean(remoteConfig, key)](./remote-config.md#getboolean) | Gets the value for the given key as a boolean.<!-- -->Convenience method for calling <code>remoteConfig.getValue(key).asBoolean()</code>. |
 |  [getNumber(remoteConfig, key)](./remote-config.md#getnumber) | Gets the value for the given key as a number.<!-- -->Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>. |
+|  [getRemoteConfig(app)](./remote-config.md#getremoteconfig) |  |
 |  [getString(remoteConfig, key)](./remote-config.md#getstring) | Gets the value for the given key as a string. Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>. |
 |  [getValue(remoteConfig, key)](./remote-config.md#getvalue) | Gets the [Value](./remote-config.value.md#value_interface) for the given key. |
-|  [setLogLevel(remoteConfig, logLevel)](./remote-config.md#setloglevel) | Defines the log level to use. |
-|  <b>function()</b> |
 |  [isSupported()](./remote-config.md#issupported) | This method provides two different checks:<!-- -->1. Check if IndexedDB exists in the browser environment. 2. Check if the current browser context allows IndexedDB <code>open()</code> calls. |
+|  [setLogLevel(remoteConfig, logLevel)](./remote-config.md#setloglevel) | Defines the log level to use. |
 
 ## Interfaces
 
@@ -47,26 +44,6 @@ Firebase Remote Config
 |  [FetchStatus](./remote-config.md#fetchstatus) | Summarizes the outcome of the last attempt to fetch config from the Firebase Remote Config server.<ul> <li>"no-fetch-yet" indicates the [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance has not yet attempted to fetch config, or that SDK initialization is incomplete.</li> <li>"success" indicates the last attempt succeeded.</li> <li>"failure" indicates the last attempt failed.</li> <li>"throttle" indicates the last attempt was rate-limited.</li> </ul> |
 |  [LogLevel](./remote-config.md#loglevel) | Defines levels of Remote Config logging. |
 |  [ValueSource](./remote-config.md#valuesource) | Indicates the source of a value.<ul> <li>"static" indicates the value was defined by a static constant.</li> <li>"default" indicates the value was defined by default config.</li> <li>"remote" indicates the value was defined by fetched config.</li> </ul> |
-
-## getRemoteConfig()
-
-<b>Signature:</b>
-
-```typescript
-export declare function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
-
-<b>Returns:</b>
-
-[RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface)
-
-A [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance.
 
 ## activate()
 
@@ -226,6 +203,26 @@ number
 
 The value for the given key as a number.
 
+## getRemoteConfig()
+
+<b>Signature:</b>
+
+```typescript
+export declare function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
+
+<b>Returns:</b>
+
+[RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface)
+
+A [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance.
+
 ## getString()
 
 Gets the value for the given key as a string. Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>.
@@ -272,6 +269,23 @@ export declare function getValue(remoteConfig: RemoteConfig, key: string): Value
 
 The value for the given key.
 
+## isSupported()
+
+This method provides two different checks:
+
+1. Check if IndexedDB exists in the browser environment. 2. Check if the current browser context allows IndexedDB `open()` calls.
+
+<b>Signature:</b>
+
+```typescript
+export declare function isSupported(): Promise<boolean>;
+```
+<b>Returns:</b>
+
+Promise&lt;boolean&gt;
+
+A `Promise` which resolves to true if a [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance can be initialized in this environment, or false if it cannot.
+
 ## setLogLevel()
 
 Defines the log level to use.
@@ -292,23 +306,6 @@ export declare function setLogLevel(remoteConfig: RemoteConfig, logLevel: Remote
 <b>Returns:</b>
 
 void
-
-## isSupported()
-
-This method provides two different checks:
-
-1. Check if IndexedDB exists in the browser environment. 2. Check if the current browser context allows IndexedDB `open()` calls.
-
-<b>Signature:</b>
-
-```typescript
-export declare function isSupported(): Promise<boolean>;
-```
-<b>Returns:</b>
-
-Promise&lt;boolean&gt;
-
-A `Promise` which resolves to true if a [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance can be initialized in this environment, or false if it cannot.
 
 ## FetchStatus
 

@@ -9,105 +9,28 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# StorageError class
+# StorageError interface
 An error returned by the Firebase Storage SDK.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class StorageError extends FirebaseError 
+export interface StorageError extends FirebaseError 
 ```
 <b>Extends:</b> [FirebaseError](./util.firebaseerror.md#firebaseerror_class)
 
-## Constructors
-
-|  Constructor | Modifiers | Description |
-|  --- | --- | --- |
-|  [(constructor)(code, message, status\_)](./storage.storageerror.md#storageerrorconstructor) |  | Constructs a new instance of the <code>StorageError</code> class |
-
 ## Properties
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [customData](./storage.storageerror.md#storageerrorcustomdata) |  | { serverResponse: string \| null; } | Stores custom error data unique to the <code>StorageError</code>. |
-|  [serverResponse](./storage.storageerror.md#storageerrorserverresponse) |  | null \| string | Optional response message that was added by the server. |
-|  [status](./storage.storageerror.md#storageerrorstatus) |  | number |  |
-
-## Methods
-
-|  Method | Modifiers | Description |
+|  Property | Type | Description |
 |  --- | --- | --- |
-|  [\_codeEquals(code)](./storage.storageerror.md#storageerror_codeequals) |  | Compares a <code>StorageErrorCode</code> against this error's code, filtering out the prefix. |
-
-## StorageError.(constructor)
-
-Constructs a new instance of the `StorageError` class
-
-<b>Signature:</b>
-
-```typescript
-constructor(code: StorageErrorCode, message: string, status_?: number);
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  code | [StorageErrorCode](./storage.md#storageerrorcode) | A <code>StorageErrorCode</code> string to be prefixed with 'storage/' and added to the end of the message. |
-|  message | string | Error message. |
-|  status\_ | number | Corresponding HTTP Status Code |
-
-## StorageError.customData
-
-Stores custom error data unique to the `StorageError`<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-customData: {
-        serverResponse: string | null;
-    };
-```
+|  [serverResponse](./storage.storageerror.md#storageerrorserverresponse) | string \| null | A server response message for the error, if applicable. |
 
 ## StorageError.serverResponse
 
-Optional response message that was added by the server.
+A server response message for the error, if applicable.
 
 <b>Signature:</b>
 
 ```typescript
-get serverResponse(): null | string;
-
-set serverResponse(serverResponse: string | null);
+serverResponse: string | null;
 ```
-
-## StorageError.status
-
-<b>Signature:</b>
-
-```typescript
-get status(): number;
-
-set status(status: number);
-```
-
-## StorageError.\_codeEquals()
-
-Compares a `StorageErrorCode` against this error's code, filtering out the prefix.
-
-<b>Signature:</b>
-
-```typescript
-_codeEquals(code: StorageErrorCode): boolean;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  code | [StorageErrorCode](./storage.md#storageerrorcode) |  |
-
-<b>Returns:</b>
-
-boolean
-

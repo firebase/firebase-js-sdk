@@ -15,14 +15,11 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [getMessaging(app)](./messaging_.md#getmessaging) | Retrieves a Firebase Cloud Messaging instance. |
-|  <b>function(messaging...)</b> |
 |  [deleteToken(messaging)](./messaging_.md#deletetoken) | Deletes the registration token associated with this [Messaging](./messaging_.messaging.md#messaging_interface) instance and unsubscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance from the push subscription. |
+|  [getMessaging(app)](./messaging_.md#getmessaging) | Retrieves a Firebase Cloud Messaging instance. |
 |  [getToken(messaging, options)](./messaging_.md#gettoken) | Subscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance to push notifications. Returns an Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging_.messaging.md#messaging_interface) instance.<!-- -->If a notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications. |
-|  [onMessage(messaging, nextOrObserver)](./messaging_.md#onmessage) | When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an <code>onMessage()</code> event is dispatched with the payload of the push message. |
-|  <b>function()</b> |
 |  [isSupported()](./messaging_.md#issupported) | Checks if all required APIs exist in the browser. |
+|  [onMessage(messaging, nextOrObserver)](./messaging_.md#onmessage) | When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an <code>onMessage()</code> event is dispatched with the payload of the push message. |
 
 ## Interfaces
 
@@ -33,28 +30,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [MessagePayload](./messaging_.messagepayload.md#messagepayload_interface) | Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification) |
 |  [Messaging](./messaging_.messaging.md#messaging_interface) | Public interface of the Firebase Cloud Messaging SDK. |
 |  [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) | Display notification details. They are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification) |
-
-## getMessaging()
-
-Retrieves a Firebase Cloud Messaging instance.
-
-<b>Signature:</b>
-
-```typescript
-export declare function getMessagingInWindow(app?: FirebaseApp): Messaging;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) |  |
-
-<b>Returns:</b>
-
-[Messaging](./messaging_.messaging.md#messaging_interface)
-
-The Firebase Cloud Messaging instance associated with the provided firebase app.
 
 ## deleteToken()
 
@@ -77,6 +52,28 @@ export declare function deleteToken(messaging: Messaging): Promise<boolean>;
 Promise&lt;boolean&gt;
 
 The promise resolves when the token has been successfully deleted.
+
+## getMessaging()
+
+Retrieves a Firebase Cloud Messaging instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getMessagingInWindow(app?: FirebaseApp): Messaging;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) |  |
+
+<b>Returns:</b>
+
+[Messaging](./messaging_.messaging.md#messaging_interface)
+
+The Firebase Cloud Messaging instance associated with the provided firebase app.
 
 ## getToken()
 
@@ -103,6 +100,21 @@ Promise&lt;string&gt;
 
 The promise resolves with an FCM registration token.
 
+## isSupported()
+
+Checks if all required APIs exist in the browser.
+
+<b>Signature:</b>
+
+```typescript
+export declare function isWindowSupported(): Promise<boolean>;
+```
+<b>Returns:</b>
+
+Promise&lt;boolean&gt;
+
+a Promise that resolves to a boolean.
+
 ## onMessage()
 
 When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an `onMessage()` event is dispatched with the payload of the push message.
@@ -125,19 +137,4 @@ export declare function onMessage(messaging: Messaging, nextOrObserver: NextFn<M
 [Unsubscribe](./util.md#unsubscribe)
 
 To stop listening for messages execute this returned function.
-
-## isSupported()
-
-Checks if all required APIs exist in the browser.
-
-<b>Signature:</b>
-
-```typescript
-export declare function isWindowSupported(): Promise<boolean>;
-```
-<b>Returns:</b>
-
-Promise&lt;boolean&gt;
-
-a Promise that resolves to a boolean.
 

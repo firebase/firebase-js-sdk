@@ -16,38 +16,22 @@ Cloud Storage for Firebase
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [getStorage(app, bucketUrl)](./storage.md#getstorage) | Gets a [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance for the given Firebase app. |
-|  <b>function(storage...)</b> |
 |  [connectStorageEmulator(storage, host, port, options)](./storage.md#connectstorageemulator) | Modify this [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance to communicate with the Cloud Storage emulator. |
-|  [ref(storage, url)](./storage.md#ref) | Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given url. |
-|  <b>function(ref...)</b> |
 |  [deleteObject(ref)](./storage.md#deleteobject) | Deletes the object at this location. |
 |  [getBlob(ref, maxDownloadSizeBytes)](./storage.md#getblob) | Downloads the data at the object's location. Returns an error if the object is not found.<!-- -->To use this functionality, you have to whitelist your app's origin in your Cloud Storage bucket. See also https://cloud.google.com/storage/docs/configuring-cors<!-- -->This API is not available in Node. |
 |  [getBytes(ref, maxDownloadSizeBytes)](./storage.md#getbytes) | Downloads the data at the object's location. Returns an error if the object is not found.<!-- -->To use this functionality, you have to whitelist your app's origin in your Cloud Storage bucket. See also https://cloud.google.com/storage/docs/configuring-cors |
 |  [getDownloadURL(ref)](./storage.md#getdownloadurl) | Returns the download URL for the given [StorageReference](./storage.storagereference.md#storagereference_interface)<!-- -->. |
 |  [getMetadata(ref)](./storage.md#getmetadata) | A <code>Promise</code> that resolves with the metadata for this object. If this object doesn't exist or metadata cannot be retreived, the promise is rejected. |
+|  [getStorage(app, bucketUrl)](./storage.md#getstorage) | Gets a [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance for the given Firebase app. |
 |  [getStream(ref, maxDownloadSizeBytes)](./storage.md#getstream) | Downloads the data at the object's location. Raises an error event if the object is not found.<!-- -->This API is only available in Node. |
 |  [list(ref, options)](./storage.md#list) | List items (files) and prefixes (folders) under this storage reference.<!-- -->List API is only available for Firebase Rules Version 2.<!-- -->GCS is a key-blob store. Firebase Storage imposes the semantic of '/' delimited folder structure. Refer to GCS's List API if you want to learn more.<!-- -->To adhere to Firebase Rules's Semantics, Firebase Storage does not support objects whose paths end with "/" or contain two consecutive "/"s. Firebase Storage List API will filter these unsupported objects. list() may fail if there are too many unsupported objects in the bucket. |
 |  [listAll(ref)](./storage.md#listall) | List all items (files) and prefixes (folders) under this storage reference.<!-- -->This is a helper method for calling list() repeatedly until there are no more results. The default pagination size is 1000.<!-- -->Note: The results may not be consistent if objects are changed while this operation is running.<!-- -->Warning: <code>listAll</code> may potentially consume too many resources if there are too many results. |
+|  [ref(storage, url)](./storage.md#ref) | Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given url. |
+|  [ref(storageOrRef, path)](./storage.md#ref) | Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given path in the default bucket. |
 |  [updateMetadata(ref, metadata)](./storage.md#updatemetadata) | Updates the metadata for this object. |
 |  [uploadBytes(ref, data, metadata)](./storage.md#uploadbytes) | Uploads data to this object's location. The upload is not resumable. |
 |  [uploadBytesResumable(ref, data, metadata)](./storage.md#uploadbytesresumable) | Uploads data to this object's location. The upload can be paused and resumed, and exposes progress updates. |
 |  [uploadString(ref, value, format, metadata)](./storage.md#uploadstring) | Uploads a string to this object's location. The upload is not resumable. |
-|  <b>function(storageOrRef...)</b> |
-|  [ref(storageOrRef, path)](./storage.md#ref) | Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given path in the default bucket. |
-
-## Classes
-
-|  Class | Description |
-|  --- | --- |
-|  [StorageError](./storage.storageerror.md#storageerror_class) | An error returned by the Firebase Storage SDK. |
-
-## Enumerations
-
-|  Enumeration | Description |
-|  --- | --- |
-|  [StorageErrorCode](./storage.md#storageerrorcode) | Error codes that can be attached to <code>StorageError</code> objects. |
 
 ## Interfaces
 
@@ -58,6 +42,7 @@ Cloud Storage for Firebase
 |  [ListOptions](./storage.listoptions.md#listoptions_interface) | The options <code>list()</code> accepts. |
 |  [ListResult](./storage.listresult.md#listresult_interface) | Result returned by list(). |
 |  [SettableMetadata](./storage.settablemetadata.md#settablemetadata_interface) | Object metadata that can be set at any time. |
+|  [StorageError](./storage.storageerror.md#storageerror_interface) | An error returned by the Firebase Storage SDK. |
 |  [StorageObserver](./storage.storageobserver.md#storageobserver_interface) | A stream observer for Firebase Storage. |
 |  [StorageReference](./storage.storagereference.md#storagereference_interface) | Represents a reference to a Google Cloud Storage object. Developers can upload, download, and delete objects, as well as get/set object metadata. |
 |  [UploadMetadata](./storage.uploadmetadata.md#uploadmetadata_interface) | Object metadata that can be set at upload. |
@@ -78,29 +63,6 @@ Cloud Storage for Firebase
 |  [StringFormat](./storage.md#stringformat) | An enumeration of the possible string formats for upload. |
 |  [TaskEvent](./storage.md#taskevent) | An event that is triggered on a task. |
 |  [TaskState](./storage.md#taskstate) | Represents the current state of a running upload. |
-
-## getStorage()
-
-Gets a [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance for the given Firebase app.
-
-<b>Signature:</b>
-
-```typescript
-export declare function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStorage;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | Firebase app to get [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance for. |
-|  bucketUrl | string | The gs:// url to your Firebase Storage Bucket. If not passed, uses the app's default Storage Bucket. |
-
-<b>Returns:</b>
-
-[FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface)
-
-A [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance.
 
 ## connectStorageEmulator()
 
@@ -126,27 +88,6 @@ export declare function connectStorageEmulator(storage: FirebaseStorage, host: s
 <b>Returns:</b>
 
 void
-
-## ref()
-
-Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given url.
-
-<b>Signature:</b>
-
-```typescript
-export declare function ref(storage: FirebaseStorage, url?: string): StorageReference;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  storage | [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) | [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance. |
-|  url | string | URL. If empty, returns root reference. |
-
-<b>Returns:</b>
-
-[StorageReference](./storage.storagereference.md#storagereference_interface)
 
 ## deleteObject()
 
@@ -264,6 +205,29 @@ export declare function getMetadata(ref: StorageReference): Promise<FullMetadata
 
 Promise&lt;[FullMetadata](./storage.fullmetadata.md#fullmetadata_interface)<!-- -->&gt;
 
+## getStorage()
+
+Gets a [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance for the given Firebase app.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStorage;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | Firebase app to get [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance for. |
+|  bucketUrl | string | The gs:// url to your Firebase Storage Bucket. If not passed, uses the app's default Storage Bucket. |
+
+<b>Returns:</b>
+
+[FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface)
+
+A [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance.
+
 ## getStream()
 
 Downloads the data at the object's location. Raises an error event if the object is not found.
@@ -345,6 +309,48 @@ export declare function listAll(ref: StorageReference): Promise<ListResult>;
 Promise&lt;[ListResult](./storage.listresult.md#listresult_interface)<!-- -->&gt;
 
 A `Promise` that resolves with all the items and prefixes under the current storage reference. `prefixes` contains references to sub-directories and `items` contains references to objects in this folder. `nextPageToken` is never returned.
+
+## ref()
+
+Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given url.
+
+<b>Signature:</b>
+
+```typescript
+export declare function ref(storage: FirebaseStorage, url?: string): StorageReference;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  storage | [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) | [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance. |
+|  url | string | URL. If empty, returns root reference. |
+
+<b>Returns:</b>
+
+[StorageReference](./storage.storagereference.md#storagereference_interface)
+
+## ref()
+
+Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given path in the default bucket.
+
+<b>Signature:</b>
+
+```typescript
+export declare function ref(storageOrRef: FirebaseStorage | StorageReference, path?: string): StorageReference;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  storageOrRef | [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) \| [StorageReference](./storage.storagereference.md#storagereference_interface) | [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) or [StorageReference](./storage.storagereference.md#storagereference_interface)<!-- -->. |
+|  path | string |  |
+
+<b>Returns:</b>
+
+[StorageReference](./storage.storagereference.md#storagereference_interface)
 
 ## updateMetadata()
 
@@ -442,27 +448,6 @@ Promise&lt;[UploadResult](./storage.uploadresult.md#uploadresult_interface)<!-- 
 
 A Promise containing an UploadResult
 
-## ref()
-
-Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given path in the default bucket.
-
-<b>Signature:</b>
-
-```typescript
-export declare function ref(storageOrRef: FirebaseStorage | StorageReference, path?: string): StorageReference;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  storageOrRef | [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) \| [StorageReference](./storage.storagereference.md#storagereference_interface) | [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) or [StorageReference](./storage.storagereference.md#storagereference_interface)<!-- -->. |
-|  path | string |  |
-
-<b>Returns:</b>
-
-[StorageReference](./storage.storagereference.md#storagereference_interface)
-
 ## StringFormat
 
 An enumeration of the possible string formats for upload.
@@ -507,44 +492,3 @@ Represents the current state of a running upload.
 ```typescript
 export declare type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
 ```
-
-## StorageErrorCode
-
-Error codes that can be attached to `StorageError` objects.
-
-<b>Signature:</b>
-
-```typescript
-export declare enum StorageErrorCode 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  APP\_DELETED | <code>&quot;app-deleted&quot;</code> |  |
-|  BUCKET\_NOT\_FOUND | <code>&quot;bucket-not-found&quot;</code> |  |
-|  CANCELED | <code>&quot;canceled&quot;</code> |  |
-|  CANNOT\_SLICE\_BLOB | <code>&quot;cannot-slice-blob&quot;</code> |  |
-|  INTERNAL\_ERROR | <code>&quot;internal-error&quot;</code> |  |
-|  INVALID\_ARGUMENT | <code>&quot;invalid-argument&quot;</code> |  |
-|  INVALID\_ARGUMENT\_COUNT | <code>&quot;invalid-argument-count&quot;</code> |  |
-|  INVALID\_CHECKSUM | <code>&quot;invalid-checksum&quot;</code> |  |
-|  INVALID\_DEFAULT\_BUCKET | <code>&quot;invalid-default-bucket&quot;</code> |  |
-|  INVALID\_EVENT\_NAME | <code>&quot;invalid-event-name&quot;</code> |  |
-|  INVALID\_FORMAT | <code>&quot;invalid-format&quot;</code> |  |
-|  INVALID\_ROOT\_OPERATION | <code>&quot;invalid-root-operation&quot;</code> |  |
-|  INVALID\_URL | <code>&quot;invalid-url&quot;</code> |  |
-|  NO\_DEFAULT\_BUCKET | <code>&quot;no-default-bucket&quot;</code> |  |
-|  NO\_DOWNLOAD\_URL | <code>&quot;no-download-url&quot;</code> |  |
-|  OBJECT\_NOT\_FOUND | <code>&quot;object-not-found&quot;</code> |  |
-|  PROJECT\_NOT\_FOUND | <code>&quot;project-not-found&quot;</code> |  |
-|  QUOTA\_EXCEEDED | <code>&quot;quota-exceeded&quot;</code> |  |
-|  RETRY\_LIMIT\_EXCEEDED | <code>&quot;retry-limit-exceeded&quot;</code> |  |
-|  SERVER\_FILE\_WRONG\_SIZE | <code>&quot;server-file-wrong-size&quot;</code> |  |
-|  UNAUTHENTICATED | <code>&quot;unauthenticated&quot;</code> |  |
-|  UNAUTHORIZED | <code>&quot;unauthorized&quot;</code> |  |
-|  UNAUTHORIZED\_APP | <code>&quot;unauthorized-app&quot;</code> |  |
-|  UNKNOWN | <code>&quot;unknown&quot;</code> |  |
-|  UNSUPPORTED\_ENVIRONMENT | <code>&quot;unsupported-environment&quot;</code> |  |
-

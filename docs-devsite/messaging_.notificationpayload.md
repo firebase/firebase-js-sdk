@@ -23,7 +23,6 @@ export interface NotificationPayload
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [body](./messaging_.notificationpayload.md#notificationpayloadbody) | string | The notification's body text. |
-|  [icon](./messaging_.notificationpayload.md#notificationpayloadicon) | string | The URL to use for the notification's icon. If you don't send this key in the request, FCM displays the launcher icon specified in your app manifest. |
 |  [image](./messaging_.notificationpayload.md#notificationpayloadimage) | string | The URL of an image that is downloaded on the device and displayed in the notification. |
 |  [title](./messaging_.notificationpayload.md#notificationpayloadtitle) | string | The notification's title. |
 
@@ -35,16 +34,6 @@ The notification's body text.
 
 ```typescript
 body?: string;
-```
-
-## NotificationPayload.icon
-
-The URL to use for the notification's icon. If you don't send this key in the request, FCM displays the launcher icon specified in your app manifest.
-
-<b>Signature:</b>
-
-```typescript
-icon?: string;
 ```
 
 ## NotificationPayload.image

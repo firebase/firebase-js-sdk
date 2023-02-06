@@ -16,10 +16,8 @@ Firebase Performance Monitoring
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
 |  [getPerformance(app)](./performance.md#getperformance) | Returns a [FirebasePerformance](./performance.firebaseperformance.md#firebaseperformance_interface) instance for the given app. |
 |  [initializePerformance(app, settings)](./performance.md#initializeperformance) | Returns a [FirebasePerformance](./performance.firebaseperformance.md#firebaseperformance_interface) instance for the given app. Can only be called once. |
-|  <b>function(performance...)</b> |
 |  [trace(performance, name)](./performance.md#trace) | Returns a new <code>PerformanceTrace</code> instance. |
 
 ## Interfaces

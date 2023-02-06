@@ -16,10 +16,9 @@ Firebase Analytics
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
 |  [getAnalytics(app)](./analytics.md#getanalytics) | Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance for the given app. |
 |  [initializeAnalytics(app, options)](./analytics.md#initializeanalytics) | Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance for the given app. |
-|  <b>function(analyticsInstance...)</b> |
+|  [isSupported()](./analytics.md#issupported) | This is a public static method provided to users that wraps four different checks:<!-- -->1. Check if it's not a browser extension environment. 2. Check if cookies are enabled in current browser. 3. Check if IndexedDB is supported by the browser environment. 4. Check if the current browser context is valid for using <code>IndexedDB.open()</code>. |
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Track Screenviews](https://firebase.google.com/docs/analytics/screenviews)<!-- -->. |
@@ -43,17 +42,12 @@ Firebase Analytics
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view)<!-- -->. |
 |  [setAnalyticsCollectionEnabled(analyticsInstance, enabled)](./analytics.md#setanalyticscollectionenabled) | Sets whether Google Analytics collection is enabled for this app on this device. Sets global <code>window['ga-disable-analyticsId'] = true;</code> |
+|  [setConsent(consentSettings)](./analytics.md#setconsent) | Sets the applicable end user consent state for this web app across all gtag references once Firebase Analytics is initialized.<!-- -->Use the [ConsentSettings](./analytics.consentsettings.md#consentsettings_interface) to specify individual consent type values. By default consent types are set to "granted". |
 |  [setCurrentScreen(analyticsInstance, screenName, options)](./analytics.md#setcurrentscreen) | Use gtag <code>config</code> command to set <code>screen_name</code>. |
+|  [setDefaultEventParameters(customParams)](./analytics.md#setdefaulteventparameters) | Adds data that will be set on every event logged from the SDK, including automatic ones. With gtag's "set" command, the values passed persist on the current page and are passed with all subsequent events. |
+|  [settings(options)](./analytics.md#settings) | Configures Firebase Analytics to use custom <code>gtag</code> or <code>dataLayer</code> names. Intended to be used if <code>gtag.js</code> script has been installed on this page independently of Firebase Analytics, and is using non-default names for either the <code>gtag</code> function or for <code>dataLayer</code>. Must be called before calling <code>getAnalytics()</code> or it won't have any effect. |
 |  [setUserId(analyticsInstance, id, options)](./analytics.md#setuserid) | Use gtag <code>config</code> command to set <code>user_id</code>. |
 |  [setUserProperties(analyticsInstance, properties, options)](./analytics.md#setuserproperties) | Use gtag <code>config</code> command to set all params specified. |
-|  <b>function()</b> |
-|  [isSupported()](./analytics.md#issupported) | This is a public static method provided to users that wraps four different checks:<!-- -->1. Check if it's not a browser extension environment. 2. Check if cookies are enabled in current browser. 3. Check if IndexedDB is supported by the browser environment. 4. Check if the current browser context is valid for using <code>IndexedDB.open()</code>. |
-|  <b>function(consentSettings...)</b> |
-|  [setConsent(consentSettings)](./analytics.md#setconsent) | Sets the applicable end user consent state for this web app across all gtag references once Firebase Analytics is initialized.<!-- -->Use the [ConsentSettings](./analytics.consentsettings.md#consentsettings_interface) to specify individual consent type values. By default consent types are set to "granted". |
-|  <b>function(customParams...)</b> |
-|  [setDefaultEventParameters(customParams)](./analytics.md#setdefaulteventparameters) | Adds data that will be set on every event logged from the SDK, including automatic ones. With gtag's "set" command, the values passed persist on the current page and are passed with all subsequent events. |
-|  <b>function(options...)</b> |
-|  [settings(options)](./analytics.md#settings) | Configures Firebase Analytics to use custom <code>gtag</code> or <code>dataLayer</code> names. Intended to be used if <code>gtag.js</code> script has been installed on this page independently of Firebase Analytics, and is using non-default names for either the <code>gtag</code> function or for <code>dataLayer</code>. Must be called before calling <code>getAnalytics()</code> or it won't have any effect. |
 
 ## Interfaces
 
@@ -120,6 +114,21 @@ export declare function initializeAnalytics(app: FirebaseApp, options?: Analytic
 <b>Returns:</b>
 
 [Analytics](./analytics.analytics.md#analytics_interface)
+
+## isSupported()
+
+This is a public static method provided to users that wraps four different checks:
+
+1. Check if it's not a browser extension environment. 2. Check if cookies are enabled in current browser. 3. Check if IndexedDB is supported by the browser environment. 4. Check if the current browser context is valid for using `IndexedDB.open()`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function isSupported(): Promise<boolean>;
+```
+<b>Returns:</b>
+
+Promise&lt;boolean&gt;
 
 ## logEvent()
 
@@ -802,6 +811,28 @@ export declare function setAnalyticsCollectionEnabled(analyticsInstance: Analyti
 
 void
 
+## setConsent()
+
+Sets the applicable end user consent state for this web app across all gtag references once Firebase Analytics is initialized.
+
+Use the [ConsentSettings](./analytics.consentsettings.md#consentsettings_interface) to specify individual consent type values. By default consent types are set to "granted".
+
+<b>Signature:</b>
+
+```typescript
+export declare function setConsent(consentSettings: ConsentSettings): void;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  consentSettings | [ConsentSettings](./analytics.consentsettings.md#consentsettings_interface) | Maps the applicable end user consent state for gtag.js. |
+
+<b>Returns:</b>
+
+void
+
 ## setCurrentScreen()
 
 > Warning: This API is now obsolete.
@@ -824,6 +855,46 @@ export declare function setCurrentScreen(analyticsInstance: Analytics, screenNam
 |  analyticsInstance | [Analytics](./analytics.analytics.md#analytics_interface) | The [Analytics](./analytics.analytics.md#analytics_interface) instance. |
 |  screenName | string | Screen name to set. |
 |  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md#analyticscalloptions_interface) |  |
+
+<b>Returns:</b>
+
+void
+
+## setDefaultEventParameters()
+
+Adds data that will be set on every event logged from the SDK, including automatic ones. With gtag's "set" command, the values passed persist on the current page and are passed with all subsequent events.
+
+<b>Signature:</b>
+
+```typescript
+export declare function setDefaultEventParameters(customParams: CustomParams): void;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  customParams | [CustomParams](./analytics.customparams.md#customparams_interface) | Any custom params the user may pass to gtag.js. |
+
+<b>Returns:</b>
+
+void
+
+## settings()
+
+Configures Firebase Analytics to use custom `gtag` or `dataLayer` names. Intended to be used if `gtag.js` script has been installed on this page independently of Firebase Analytics, and is using non-default names for either the `gtag` function or for `dataLayer`<!-- -->. Must be called before calling `getAnalytics()` or it won't have any effect.
+
+<b>Signature:</b>
+
+```typescript
+export declare function settings(options: SettingsOptions): void;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [SettingsOptions](./analytics.settingsoptions.md#settingsoptions_interface) | Custom gtag and dataLayer names. |
 
 <b>Returns:</b>
 
@@ -868,83 +939,6 @@ export declare function setUserProperties(analyticsInstance: Analytics, properti
 |  analyticsInstance | [Analytics](./analytics.analytics.md#analytics_interface) |  |
 |  properties | [CustomParams](./analytics.customparams.md#customparams_interface) |  |
 |  options | [AnalyticsCallOptions](./analytics.analyticscalloptions.md#analyticscalloptions_interface) |  |
-
-<b>Returns:</b>
-
-void
-
-## isSupported()
-
-This is a public static method provided to users that wraps four different checks:
-
-1. Check if it's not a browser extension environment. 2. Check if cookies are enabled in current browser. 3. Check if IndexedDB is supported by the browser environment. 4. Check if the current browser context is valid for using `IndexedDB.open()`<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-export declare function isSupported(): Promise<boolean>;
-```
-<b>Returns:</b>
-
-Promise&lt;boolean&gt;
-
-## setConsent()
-
-Sets the applicable end user consent state for this web app across all gtag references once Firebase Analytics is initialized.
-
-Use the [ConsentSettings](./analytics.consentsettings.md#consentsettings_interface) to specify individual consent type values. By default consent types are set to "granted".
-
-<b>Signature:</b>
-
-```typescript
-export declare function setConsent(consentSettings: ConsentSettings): void;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  consentSettings | [ConsentSettings](./analytics.consentsettings.md#consentsettings_interface) | Maps the applicable end user consent state for gtag.js. |
-
-<b>Returns:</b>
-
-void
-
-## setDefaultEventParameters()
-
-Adds data that will be set on every event logged from the SDK, including automatic ones. With gtag's "set" command, the values passed persist on the current page and are passed with all subsequent events.
-
-<b>Signature:</b>
-
-```typescript
-export declare function setDefaultEventParameters(customParams: CustomParams): void;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  customParams | [CustomParams](./analytics.customparams.md#customparams_interface) | Any custom params the user may pass to gtag.js. |
-
-<b>Returns:</b>
-
-void
-
-## settings()
-
-Configures Firebase Analytics to use custom `gtag` or `dataLayer` names. Intended to be used if `gtag.js` script has been installed on this page independently of Firebase Analytics, and is using non-default names for either the `gtag` function or for `dataLayer`<!-- -->. Must be called before calling `getAnalytics()` or it won't have any effect.
-
-<b>Signature:</b>
-
-```typescript
-export declare function settings(options: SettingsOptions): void;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  options | [SettingsOptions](./analytics.settingsoptions.md#settingsoptions_interface) | Custom gtag and dataLayer names. |
 
 <b>Returns:</b>
 

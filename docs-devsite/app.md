@@ -18,22 +18,15 @@ This package coordinates the communication between the different Firebase compon
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
 |  [deleteApp(app)](./app.md#deleteapp) | Renders this app unusable and frees the resources of all associated services. |
-|  <b>function()</b> |
-|  [getApps()](./app.md#getapps) | A (read-only) array of all initialized apps. |
-|  [initializeApp()](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
-|  <b>function(libraryKeyOrName...)</b> |
-|  [registerVersion(libraryKeyOrName, version, variant)](./app.md#registerversion) | Registers a library's name and version for platform logging purposes. |
-|  <b>function(logCallback...)</b> |
-|  [onLog(logCallback, options)](./app.md#onlog) | Sets log handler for all Firebase SDKs. |
-|  <b>function(logLevel...)</b> |
-|  [setLogLevel(logLevel)](./app.md#setloglevel) | Sets log level for all Firebase SDKs.<!-- -->All of the log types above the current log level are captured (i.e. if you set the log level to <code>info</code>, errors are logged, but <code>debug</code> and <code>verbose</code> logs are not). |
-|  <b>function(name...)</b> |
 |  [getApp(name)](./app.md#getapp) | Retrieves a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->When called with no arguments, the default app is returned. When an app name is provided, the app corresponding to that name is returned.<!-- -->An exception is thrown if the app being retrieved has not yet been initialized. |
-|  <b>function(options...)</b> |
+|  [getApps()](./app.md#getapps) | A (read-only) array of all initialized apps. |
 |  [initializeApp(options, name)](./app.md#initializeapp) | Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
 |  [initializeApp(options, config)](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
+|  [initializeApp()](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
+|  [onLog(logCallback, options)](./app.md#onlog) | Sets log handler for all Firebase SDKs. |
+|  [registerVersion(libraryKeyOrName, version, variant)](./app.md#registerversion) | Registers a library's name and version for platform logging purposes. |
+|  [setLogLevel(logLevel)](./app.md#setloglevel) | Sets log level for all Firebase SDKs.<!-- -->All of the log types above the current log level are captured (i.e. if you set the log level to <code>info</code>, errors are logged, but <code>debug</code> and <code>verbose</code> logs are not). |
 
 ## Interfaces
 
@@ -83,97 +76,6 @@ deleteApp(app)
 
 ```
 
-## getApps()
-
-A (read-only) array of all initialized apps.
-
-<b>Signature:</b>
-
-```typescript
-export declare function getApps(): FirebaseApp[];
-```
-<b>Returns:</b>
-
-[FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->\[\]
-
-## initializeApp()
-
-Creates and initializes a FirebaseApp instance.
-
-<b>Signature:</b>
-
-```typescript
-export declare function initializeApp(): FirebaseApp;
-```
-<b>Returns:</b>
-
-[FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
-
-## registerVersion()
-
-Registers a library's name and version for platform logging purposes.
-
-<b>Signature:</b>
-
-```typescript
-export declare function registerVersion(libraryKeyOrName: string, version: string, variant?: string): void;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  libraryKeyOrName | string |  |
-|  version | string | Current version of that library. |
-|  variant | string | Bundle variant, e.g., node, rn, etc. |
-
-<b>Returns:</b>
-
-void
-
-## onLog()
-
-Sets log handler for all Firebase SDKs.
-
-<b>Signature:</b>
-
-```typescript
-export declare function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  logCallback | LogCallback \| null | An optional custom log handler that executes user code whenever the Firebase SDK makes a logging call. |
-|  options | LogOptions |  |
-
-<b>Returns:</b>
-
-void
-
-## setLogLevel()
-
-Sets log level for all Firebase SDKs.
-
-All of the log types above the current log level are captured (i.e. if you set the log level to `info`<!-- -->, errors are logged, but `debug` and `verbose` logs are not).
-
-<b>Signature:</b>
-
-```typescript
-export declare function setLogLevel(logLevel: LogLevelString): void;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  logLevel | LogLevelString |  |
-
-<b>Returns:</b>
-
-void
-
 ## getApp()
 
 Retrieves a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.
@@ -217,6 +119,19 @@ const app = getApp();
 const otherApp = getApp("otherApp");
 
 ```
+
+## getApps()
+
+A (read-only) array of all initialized apps.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getApps(): FirebaseApp[];
+```
+<b>Returns:</b>
+
+[FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->\[\]
 
 ## initializeApp()
 
@@ -294,6 +209,84 @@ export declare function initializeApp(options: FirebaseOptions, config?: Firebas
 <b>Returns:</b>
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
+
+## initializeApp()
+
+Creates and initializes a FirebaseApp instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare function initializeApp(): FirebaseApp;
+```
+<b>Returns:</b>
+
+[FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
+
+## onLog()
+
+Sets log handler for all Firebase SDKs.
+
+<b>Signature:</b>
+
+```typescript
+export declare function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  logCallback | LogCallback \| null | An optional custom log handler that executes user code whenever the Firebase SDK makes a logging call. |
+|  options | LogOptions |  |
+
+<b>Returns:</b>
+
+void
+
+## registerVersion()
+
+Registers a library's name and version for platform logging purposes.
+
+<b>Signature:</b>
+
+```typescript
+export declare function registerVersion(libraryKeyOrName: string, version: string, variant?: string): void;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  libraryKeyOrName | string |  |
+|  version | string | Current version of that library. |
+|  variant | string | Bundle variant, e.g., node, rn, etc. |
+
+<b>Returns:</b>
+
+void
+
+## setLogLevel()
+
+Sets log level for all Firebase SDKs.
+
+All of the log types above the current log level are captured (i.e. if you set the log level to `info`<!-- -->, errors are logged, but `debug` and `verbose` logs are not).
+
+<b>Signature:</b>
+
+```typescript
+export declare function setLogLevel(logLevel: LogLevelString): void;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  logLevel | LogLevelString |  |
+
+<b>Returns:</b>
+
+void
 
 ## SDK\_VERSION
 

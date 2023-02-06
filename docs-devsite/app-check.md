@@ -16,10 +16,8 @@ Firebase App Check
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [initializeAppCheck(app, options)](./app-check.md#initializeappcheck) | Activate App Check for the given app. Can be called only once per app. |
-|  <b>function(appCheckInstance...)</b> |
 |  [getToken(appCheckInstance, forceRefresh)](./app-check.md#gettoken) | Get the current App Check token. Attaches to the most recent in-flight request if one is present. Returns null if no token is present and no token requests are in-flight. |
+|  [initializeAppCheck(app, options)](./app-check.md#initializeappcheck) | Activate App Check for the given app. Can be called only once per app. |
 |  [onTokenChanged(appCheckInstance, observer)](./app-check.md#ontokenchanged) | Registers a listener to changes in the token state. There can be more than one listener registered at the same time for one or more App Check instances. The listeners call back on the UI thread whenever the current token associated with this App Check instance changes. |
 |  [onTokenChanged(appCheckInstance, onNext, onError, onCompletion)](./app-check.md#ontokenchanged) | Registers a listener to changes in the token state. There can be more than one listener registered at the same time for one or more App Check instances. The listeners call back on the UI thread whenever the current token associated with this App Check instance changes. |
 |  [setTokenAutoRefreshEnabled(appCheckInstance, isTokenAutoRefreshEnabled)](./app-check.md#settokenautorefreshenabled) | Set whether App Check will automatically refresh tokens as needed. |
@@ -48,27 +46,6 @@ Firebase App Check
 |  --- | --- |
 |  [AppCheckTokenListener](./app-check.md#appchecktokenlistener) | A listener that is called whenever the App Check token changes. |
 
-## initializeAppCheck()
-
-Activate App Check for the given app. Can be called only once per app.
-
-<b>Signature:</b>
-
-```typescript
-export declare function initializeAppCheck(app: FirebaseApp | undefined, options: AppCheckOptions): AppCheck;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) \| undefined | the [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) to activate App Check for |
-|  options | [AppCheckOptions](./app-check.appcheckoptions.md#appcheckoptions_interface) | App Check initialization options |
-
-<b>Returns:</b>
-
-[AppCheck](./app-check.appcheck.md#appcheck_interface)
-
 ## getToken()
 
 Get the current App Check token. Attaches to the most recent in-flight request if one is present. Returns null if no token is present and no token requests are in-flight.
@@ -89,6 +66,27 @@ export declare function getToken(appCheckInstance: AppCheck, forceRefresh?: bool
 <b>Returns:</b>
 
 Promise&lt;[AppCheckTokenResult](./app-check.appchecktokenresult.md#appchecktokenresult_interface)<!-- -->&gt;
+
+## initializeAppCheck()
+
+Activate App Check for the given app. Can be called only once per app.
+
+<b>Signature:</b>
+
+```typescript
+export declare function initializeAppCheck(app: FirebaseApp | undefined, options: AppCheckOptions): AppCheck;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) \| undefined | the [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) to activate App Check for |
+|  options | [AppCheckOptions](./app-check.appcheckoptions.md#appcheckoptions_interface) | App Check initialization options |
+
+<b>Returns:</b>
+
+[AppCheck](./app-check.appcheck.md#appcheck_interface)
 
 ## onTokenChanged()
 

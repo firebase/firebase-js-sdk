@@ -23,7 +23,7 @@ export interface StorageObserver<T>
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [complete](./storage.storageobserver.md#storageobservercomplete) | [CompleteFn](./util.md#completefn) \| null |  |
-|  [error](./storage.storageobserver.md#storageobservererror) | (error: [StorageError](./storage.storageerror.md#storageerror_class)<!-- -->) =&gt; void \| null |  |
+|  [error](./storage.storageobserver.md#storageobservererror) | (error: [StorageError](./storage.storageerror.md#storageerror_interface)<!-- -->) =&gt; void \| null |  |
 |  [next](./storage.storageobserver.md#storageobservernext) | [NextFn](./util.md#nextfn)<!-- -->&lt;T&gt; \| null |  |
 
 ## StorageObserver.complete

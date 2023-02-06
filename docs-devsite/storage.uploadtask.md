@@ -74,7 +74,7 @@ catch(onRejected: (error: StorageError) => unknown): Promise<unknown>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  onRejected | (error: [StorageError](./storage.storageerror.md#storageerror_class)<!-- -->) =&gt; unknown |  |
+|  onRejected | (error: [StorageError](./storage.storageerror.md#storageerror_interface)<!-- -->) =&gt; unknown |  |
 
 <b>Returns:</b>
 
@@ -102,7 +102,7 @@ on(event: TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null
 |  --- | --- | --- |
 |  event | [TaskEvent](./storage.md#taskevent) | The type of event to listen for. |
 |  nextOrObserver | [StorageObserver](./storage.storageobserver.md#storageobserver_interface)<!-- -->&lt;[UploadTaskSnapshot](./storage.uploadtasksnapshot.md#uploadtasksnapshot_interface)<!-- -->&gt; \| null \| ((snapshot: [UploadTaskSnapshot](./storage.uploadtasksnapshot.md#uploadtasksnapshot_interface)<!-- -->) =&gt; unknown) | The <code>next</code> function, which gets called for each item in the event stream, or an observer object with some or all of these three properties (<code>next</code>, <code>error</code>, <code>complete</code>). |
-|  error | ((a: [StorageError](./storage.storageerror.md#storageerror_class)<!-- -->) =&gt; unknown) \| null | A function that gets called with a <code>StorageError</code> if the event stream ends due to an error. |
+|  error | ((a: [StorageError](./storage.storageerror.md#storageerror_interface)<!-- -->) =&gt; unknown) \| null | A function that gets called with a <code>StorageError</code> if the event stream ends due to an error. |
 |  complete | [Unsubscribe](./util.md#unsubscribe) \| null |  |
 
 <b>Returns:</b>
@@ -247,7 +247,7 @@ then(onFulfilled?: ((snapshot: UploadTaskSnapshot) => unknown) | null, onRejecte
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  onFulfilled | ((snapshot: [UploadTaskSnapshot](./storage.uploadtasksnapshot.md#uploadtasksnapshot_interface)<!-- -->) =&gt; unknown) \| null | The fulfillment callback. Promise chaining works as normal. |
-|  onRejected | ((error: [StorageError](./storage.storageerror.md#storageerror_class)<!-- -->) =&gt; unknown) \| null | The rejection callback. |
+|  onRejected | ((error: [StorageError](./storage.storageerror.md#storageerror_interface)<!-- -->) =&gt; unknown) \| null | The rejection callback. |
 
 <b>Returns:</b>
 
