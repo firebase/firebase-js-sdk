@@ -1,4 +1,4 @@
-name: Doc Change Check (Run yarn format locally if this fails)
+name: Doc Change Check (Run "yarn docgen devsite" if this fails)
 
 on: pull_request
 
@@ -27,4 +27,4 @@ jobs:
         git diff --exit-code
     - name: Reference documentation needs to be updated. See message below.
       if: ${{ failure() }}
-      run: echo "Changes in this PR affect the reference docs. Run \`yarn docgen\` locally to regenerate docs and add them to this PR."
+      run: echo "Changes in this PR affect the reference docs. Run \`yarn docgen devsite\` locally to regenerate docs and add them to this PR."
