@@ -11,7 +11,9 @@
     "watch": "webpack --watch",
     "build": "webpack",
     "start:modular": "webpack serve --config-name modular",
-    "start:compat": "webpack serve --config-name compat"
+    "start:compat": "webpack serve --config-name compat",
+    "build:modular": "webpack --config-name modular",
+    "build:compat": "webpack --config-name compat"
   },
   "author": "",
   "license": "ISC",
