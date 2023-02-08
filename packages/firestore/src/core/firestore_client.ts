@@ -112,6 +112,10 @@ export class FirestoreClient {
     appCheckToken: string,
     user: User
   ) => Promise<void> = () => Promise.resolve();
+  uninitializedComponentsProvider?: {
+    offline: OfflineComponentProvider;
+    online: OnlineComponentProvider;
+  };
 
   offlineComponents?: OfflineComponentProvider;
   onlineComponents?: OnlineComponentProvider;
@@ -120,12 +124,12 @@ export class FirestoreClient {
     private authCredentials: CredentialsProvider<User>,
     private appCheckCredentials: CredentialsProvider<string>,
     /**
-     * Asynchronous queue responsible for all of our internal processing. When
-     * we get incoming work from the user (via public API) or the network
-     * (incoming GRPC messages), we should always schedule onto this queue.
-     * This ensures all of our work is properly serialized (e.g. we don't
-     * start processing a new operation while the previous one is waiting for
-     * an async I/O to complete).
+     * Asynchronous queue responsible for all of our internal processing. When //
+     * we get incoming work from the user (via public API) or the network //
+     * (incoming GRPC messages), we should always schedule onto this queue. //
+     * This ensures all of our work is properly serialized (e.g. we don't //
+     * start processing a new operation while the previous one is waiting for //
+     * an async I/O to complete). //
      */
     public asyncQueue: AsyncQueue,
     private databaseInfo: DatabaseInfo
@@ -265,11 +269,19 @@ async function ensureOfflineComponents(
   client: FirestoreClient
 ): Promise<OfflineComponentProvider> {
   if (!client.offlineComponents) {
-    logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
-    await setOfflineComponentProvider(
-      client,
-      new MemoryOfflineComponentProvider()
-    );
+    if (client.uninitializedComponentsProvider) {
+      logDebug(LOG_TAG, 'Using user provided OfflineComponentProvider');
+      await setOfflineComponentProvider(
+        client,
+        client.uninitializedComponentsProvider.offline
+      );
+    } else {
+      logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
+      await setOfflineComponentProvider(
+        client,
+        new MemoryOfflineComponentProvider()
+      );
+    }
   }
 
   return client.offlineComponents!;
@@ -279,8 +291,16 @@ async function ensureOnlineComponents(
   client: FirestoreClient
 ): Promise<OnlineComponentProvider> {
   if (!client.onlineComponents) {
-    logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
-    await setOnlineComponentProvider(client, new OnlineComponentProvider());
+    if (client.uninitializedComponentsProvider) {
+      logDebug(LOG_TAG, 'Using user provided OnlineComponentProvider');
+      await setOnlineComponentProvider(
+        client,
+        client.uninitializedComponentsProvider.online
+      );
+    } else {
+      logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
+      await setOnlineComponentProvider(client, new OnlineComponentProvider());
+    }
   }
 
   return client.onlineComponents!;

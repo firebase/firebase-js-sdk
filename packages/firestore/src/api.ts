@@ -28,6 +28,19 @@ export {
   AggregateQuerySnapshot
 } from './lite-api/aggregate_types';
 
+export {
+  FirestoreLocalCache,
+  MemoryLocalCache,
+  IndexedDbLocalCache,
+  IndexedDbMultipleTabManager,
+  indexedDbLocalCache,
+  indexedDbMultipleTabManager,
+  indexedDbSingleTabManager,
+  IndexedDbSingleTabManager,
+  memoryLocalCache,
+  IndexedDbTabManager
+} from './api/cache_config';
+
 export { FieldPath, documentId } from './api/field_path';
 
 export {

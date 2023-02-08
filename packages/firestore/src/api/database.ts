@@ -283,6 +283,15 @@ export function configureFirestore(firestore: Firestore): void {
     firestore._queue,
     databaseInfo
   );
+  if (
+    settings.cache?._offlineComponentProvider &&
+    settings.cache?._onlineComponentProvider
+  ) {
+    firestore._firestoreClient.uninitializedComponentsProvider = {
+      offline: settings.cache._offlineComponentProvider,
+      online: settings.cache._onlineComponentProvider
+    };
+  }
 }
 
 /**
@@ -308,6 +317,7 @@ export function configureFirestore(firestore: Firestore): void {
  * persistence.
  * @returns A `Promise` that represents successfully enabling persistent storage.
  */
+// TODO(wuandy): mark obselete
 export function enableIndexedDbPersistence(
   firestore: Firestore,
   persistenceSettings?: PersistenceSettings
@@ -316,6 +326,10 @@ export function enableIndexedDbPersistence(
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
+  if (client.uninitializedComponentsProvider) {
+    throw new FirestoreError(Code.INVALID_ARGUMENT, 'Already specified.');
+  }
+
   const settings = firestore._freezeSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -353,6 +367,7 @@ export function enableIndexedDbPersistence(
  * @returns A `Promise` that represents successfully enabling persistent
  * storage.
  */
+// TODO(wuandy): mark obselete
 export function enableMultiTabIndexedDbPersistence(
   firestore: Firestore
 ): Promise<void> {
@@ -360,6 +375,10 @@ export function enableMultiTabIndexedDbPersistence(
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
+  if (client.uninitializedComponentsProvider) {
+    throw new FirestoreError(Code.INVALID_ARGUMENT, 'Already specified.');
+  }
+
   const settings = firestore._freezeSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();

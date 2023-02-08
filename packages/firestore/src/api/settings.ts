@@ -17,6 +17,8 @@
 
 import { FirestoreSettings as LiteSettings } from '../lite-api/settings';
 
+import { FirestoreLocalCache } from './cache_config';
+
 export { DEFAULT_HOST } from '../lite-api/settings';
 
 /**
@@ -30,6 +32,7 @@ export interface PersistenceSettings {
    * Workers. Setting this to `true` will enable persistence, but cause other
    * tabs using persistence to fail.
    */
+  // TODO(wuandy): Deprecate this
   forceOwnership?: boolean;
 }
 
@@ -48,7 +51,10 @@ export interface FirestoreSettings extends LiteSettings {
    * The default value is 40 MB. The threshold must be set to at least 1 MB, and
    * can be set to `CACHE_SIZE_UNLIMITED` to disable garbage collection.
    */
+  // TODO(wuandy): Deprecate this
   cacheSizeBytes?: number;
+
+  cache?: FirestoreLocalCache;
 
   /**
    * Forces the SDK’s underlying network transport (WebChannel) to use
