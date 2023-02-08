@@ -326,7 +326,7 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
 });
 
 // TODO (sum/avg) enable these tests when sum/avg is supported by the backend
-apiDescribe('Aggregation queries - sum / average', (persistence: boolean) => {
+apiDescribe.skip('Aggregation queries - sum / average', (persistence: boolean) => {
   it('can run sum query getAggregationFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA', pages: 100 },
