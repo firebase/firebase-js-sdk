@@ -33,7 +33,7 @@ function runTest(port: number, projectId: string, withPersistence: boolean) {
     env: {
       ...process.env,
       FIRESTORE_TARGET_BACKEND: 'emulator',
-      FIRESTORE_EMULATOR_PORT: String(port),
+      FIRESTORE_EMULATOR_PORT: port.toString(),
       FIRESTORE_EMULATOR_PROJECT_ID: projectId
     },
     stdio: 'inherit' as const

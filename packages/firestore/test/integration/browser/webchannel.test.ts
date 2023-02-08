@@ -33,6 +33,11 @@ const describeFn =
       xdescribe;
 
 describeFn('WebChannel', () => {
+  // Test does not run on Emulator because emulator does not impose restriction
+  // on project id. This is likely because emulator does not require creation
+  // of project or database before using it. However, it might wrong for
+  // emulator to allow sharing the same stream across different projects and
+  // databases.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)('receives error messages', done => {
     const projectId = DEFAULT_PROJECT_ID;
@@ -65,7 +70,7 @@ describeFn('WebChannel', () => {
 
     // Wait until we receive data, then send a bad "addTarget" request, causing
     // the stream to be closed with an error. In this case, bad means having a
-    // different database ID.
+    // different project id.
     stream.onMessage(msg => {
       if (msg.targetChange) {
         // Assertion will fail when additional targets are added. This works so
