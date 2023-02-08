@@ -35,7 +35,7 @@ export function decodeBase64(encoded: string): string {
     );
   } catch (e) {
     if (e instanceof DecodeBase64StringError) {
-      throw new Base64DecodeError('Invalid base64 string');
+      throw new Base64DecodeError('Invalid base64 string: ' + e);
     } else {
       throw e;
     }
