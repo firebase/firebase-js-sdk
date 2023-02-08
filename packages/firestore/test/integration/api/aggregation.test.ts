@@ -888,6 +888,31 @@ apiDescribe('Aggregation queries - sum / average', (persistence: boolean) => {
     });
   });
 
+  it('performs sum that is positive infinity using getAggregationFromServer v2', () => {
+    const testDocs = {
+      a: {
+        author: 'authorA',
+        title: 'titleA',
+        pages: 100,
+        year: 1980,
+        rating: Number.MAX_VALUE
+      },
+      b: {
+        author: 'authorB',
+        title: 'titleB',
+        pages: 50,
+        year: 2020,
+        rating: 1e293
+      }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await getAggregateFromServer(coll, {
+        totalRating: sum('rating')
+      });
+      expect(snapshot.data().totalRating).to.equal(Number.POSITIVE_INFINITY);
+    });
+  });
+
   it('performs sum that is negative infinity using getAggregationFromServer', () => {
     const testDocs = {
       a: {
@@ -1248,7 +1273,7 @@ apiDescribe('Aggregation queries - sum / average', (persistence: boolean) => {
         title: 'titleA',
         pages: 100,
         year: 1980,
-        rating: 10.5
+        rating: 8.6
       },
       b: {
         author: 'authorB',
@@ -1269,7 +1294,7 @@ apiDescribe('Aggregation queries - sum / average', (persistence: boolean) => {
       const snapshot = await getAggregateFromServer(coll, {
         averageRating: average('rating')
       });
-      expect(snapshot.data().averageRating).to.equal(10);
+      expect(snapshot.data().averageRating).to.equal(9.2);
     });
   });
 
@@ -1288,13 +1313,6 @@ apiDescribe('Aggregation queries - sum / average', (persistence: boolean) => {
         pages: 50,
         year: 2020,
         rating: 9
-      },
-      c: {
-        author: 'authorC',
-        title: 'titleC',
-        pages: 150,
-        year: 2021,
-        rating: 10
       }
     };
     return withTestCollection(persistence, testDocs, async coll => {
