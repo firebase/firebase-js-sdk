@@ -459,11 +459,15 @@ export class WatchChangeAggregator {
       normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
     } catch (err) {
       if (err instanceof Base64DecodeError) {
-        logWarn('Base64 string error: ', err);
+        logWarn(
+          'Decoding the base64 bloom filter in existence filter failed (' +
+            err.message +
+            '); ignoring the bloom filter and falling back to full re-query.'
+        );
+        return false;
       } else {
-        logWarn('Normalizing bloom filter bitmap failed: ', err);
+        throw err;
       }
-      return false;
     }
 
     let bloomFilter: BloomFilter;
@@ -499,10 +503,10 @@ export class WatchChangeAggregator {
     let removalCount = 0;
 
     existingKeys.forEach(key => {
-      const documentPath =
-        this.metadataProvider.getDatabaseId().canonicalString() +
-        '/documents/' +
-        key.path.canonicalString();
+      const databaseId = this.metadataProvider.getDatabaseId();
+      const documentPath = `projects/${databaseId.projectId}/databases/${
+        databaseId.database
+      }/documents/${key.path.canonicalString()}`;
 
       if (!bloomFilter.mightContain(documentPath)) {
         this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);

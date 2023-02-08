@@ -23,7 +23,7 @@ export function decodeBase64(encoded: string): string {
     return atob(encoded);
   } catch (e) {
     if (e instanceof DOMException) {
-      throw new Base64DecodeError('Invalid base64 string');
+      throw new Base64DecodeError('Invalid base64 string: ' + e);
     } else {
       throw e;
     }

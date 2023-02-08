@@ -26,7 +26,7 @@ export function decodeBase64(encoded: string): string {
   const decoded = platform.decodeBase64(encoded);
 
   // A quick sanity check as node and rn will not throw error if input is an
-  // invalid base64 string, ie, "A===".
+  // invalid base64 string, e.g., "A===".
   const expectedEncodedLength = 4 * Math.ceil(decoded.length / 3);
   if (encoded.length !== expectedEncodedLength) {
     throw new Base64DecodeError('Invalid base64 string');
