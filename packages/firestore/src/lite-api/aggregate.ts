@@ -18,6 +18,7 @@
 import { deepEqual } from '@firebase/util';
 
 import { AggregateImpl } from '../core/aggregate';
+import { AggregateAlias } from '../model/aggregate_alias';
 import { ObjectValue } from '../model/object_value';
 import { invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { cast } from '../util/input_validation';
@@ -94,11 +95,8 @@ export function getAggregate<T extends AggregateSpec>(
   const datastore = getDatastore(firestore);
 
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
-    // TODO (sum/avg) should alias validation be performed or should that be
-    // delegated to the backend?
-
     return new AggregateImpl(
-      alias,
+      new AggregateAlias(alias),
       aggregate._aggregateType,
       aggregate._internalFieldPath
     );
@@ -164,6 +162,7 @@ export function count(): AggregateField<number> {
  *
  * @param left Compare this AggregateField to the `right`.
  * @param right Compare this AggregateField to the `left`.
+ * @internal TODO (sum/avg) remove when public
  */
 export function aggregateFieldEqual(
   left: AggregateField<unknown>,

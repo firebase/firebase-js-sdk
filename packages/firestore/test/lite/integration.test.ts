@@ -24,7 +24,9 @@ import {
   aggregateQuerySnapshotEqual,
   getCount,
   getAggregate,
-  count
+  count,
+  sum,
+  average
 } from '../../src/lite-api/aggregate';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
@@ -83,6 +85,7 @@ import {
 import { Timestamp } from '../../src/lite-api/timestamp';
 import { runTransaction } from '../../src/lite-api/transaction';
 import { writeBatch } from '../../src/lite-api/write_batch';
+import { apiDescribe } from '../integration/util/helpers';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS,
@@ -2122,7 +2125,7 @@ describe('withConverter() support', () => {
 });
 
 // eslint-disable-next-line no-restricted-properties
-describe('Count quries', () => {
+describe('Count queries', () => {
   it('AggregateQuerySnapshot inherits the original query', () => {
     return withTestCollection(async coll => {
       const query_ = query(coll);
@@ -2405,8 +2408,7 @@ describe('Count quries', () => {
   );
 });
 
-// TODO(sum/avg) update this with sum and average when it is supported by the emulator
-describe('Aggregate quries', () => {
+describe('Aggregate queries', () => {
   it('AggregateQuerySnapshot inherits the original query', () => {
     return withTestCollection(async coll => {
       const query_ = query(coll);
@@ -2711,4 +2713,154 @@ describe('Aggregate quries', () => {
       });
     }
   );
+});
+
+// TODO (sum/avg) enable these tests when sum/avg is supported by the backend
+apiDescribe.skip('Aggregation queries - sum / average', () => {
+  it('aggregateQuerySnapshotEqual on different aggregations to be falsy', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', rating: 1 },
+      { author: 'authorA', title: 'titleB', rating: 5 },
+      { author: 'authorB', title: 'titleC', rating: 4 },
+      { author: 'authorB', title: 'titleD', rating: 3 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const snapshot1 = await getAggregate(query1, { sum: sum('rating') });
+      const snapshot2 = await getAggregate(query1, { avg: average('rating') });
+
+      // `snapshot1` and `snapshot2` have different types and therefore the
+      // following use of `aggregateQuerySnapshotEqual(...)` will cause a
+      // TS error. To test the method for JS users, we ignore the TS error.
+      // @ts-expect-error
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
+    });
+  });
+
+  it('aggregateQuerySnapshotEqual on same aggregations with different aliases to be falsy', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', rating: 1 },
+      { author: 'authorA', title: 'titleB', rating: 5 },
+      { author: 'authorB', title: 'titleC', rating: 4 },
+      { author: 'authorB', title: 'titleD', rating: 3 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const snapshot1 = await getAggregate(query1, { foo: average('rating') });
+      const snapshot2 = await getAggregate(query1, { bar: average('rating') });
+
+      // `snapshot1` and `snapshot2` have different types and therefore the
+      // following use of `aggregateQuerySnapshotEqual(...)` will cause a
+      // TS error. To test the method for JS users, we ignore the TS error.
+      // @ts-expect-error
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
+    });
+  });
+
+  it('aggregateQuerySnapshotEqual on same aggregations with same aliases to be truthy', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', rating: 1 },
+      { author: 'authorA', title: 'titleB', rating: 5 },
+      { author: 'authorB', title: 'titleC', rating: 4 },
+      { author: 'authorB', title: 'titleD', rating: 3 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const query1 = query(coll, where('author', '==', 'authorA'));
+      const snapshot1 = await getAggregate(query1, {
+        foo: average('rating'),
+        bar: sum('rating')
+      });
+      const snapshot2 = await getAggregate(query1, {
+        bar: sum('rating'),
+        foo: average('rating')
+      });
+
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.true;
+    });
+  });
+
+  it('can run sum query getAggregationFromServer', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', pages: 100 },
+      { author: 'authorB', title: 'titleB', pages: 50 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const snapshot = await getAggregate(coll, {
+        totalPages: sum('pages')
+      });
+      expect(snapshot.data().totalPages).to.equal(150);
+    });
+  });
+
+  it('can run average query getAggregationFromServer', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', pages: 100 },
+      { author: 'authorB', title: 'titleB', pages: 50 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const snapshot = await getAggregate(coll, {
+        averagePages: average('pages')
+      });
+      expect(snapshot.data().averagePages).to.equal(75);
+    });
+  });
+
+  it('can get multiple aggregations using getAggregationFromServer', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', pages: 100 },
+      { author: 'authorB', title: 'titleB', pages: 50 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const snapshot = await getAggregate(coll, {
+        totalPages: sum('pages'),
+        averagePages: average('pages'),
+        count: count()
+      });
+      expect(snapshot.data().totalPages).to.equal(150);
+      expect(snapshot.data().averagePages).to.equal(75);
+      expect(snapshot.data().count).to.equal(2);
+    });
+  });
+
+  it('fails when exceeding the max (5) aggregations using getAggregationFromServer', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', pages: 100 },
+      { author: 'authorB', title: 'titleB', pages: 50 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const promise = getAggregate(coll, {
+        totalPages: sum('pages'),
+        averagePages: average('pages'),
+        count: count(),
+        totalPagesX: sum('pages'),
+        averagePagesY: average('pages'),
+        countZ: count()
+      });
+
+      await expect(promise).to.eventually.be.rejectedWith(
+        /maximum number of aggregations/
+      );
+    });
+  });
+
+  it('performs aggregations on documents with all aggregated fields using getAggregationFromServer', () => {
+    const testDocs = [
+      { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
+      { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
+      { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
+      { author: 'authorD', title: 'titleD', pages: 50 }
+    ];
+    return withTestCollectionAndInitialData(testDocs, async coll => {
+      const snapshot = await getAggregate(coll, {
+        totalPages: sum('pages'),
+        averagePages: average('pages'),
+        averageYear: average('year'),
+        count: count()
+      });
+      expect(snapshot.data().totalPages).to.equal(300);
+      expect(snapshot.data().averagePages).to.equal(100);
+      expect(snapshot.data().averageYear).to.equal(2007);
+      expect(snapshot.data().count).to.equal(3);
+    });
+  });
 });

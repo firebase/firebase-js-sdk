@@ -20,6 +20,7 @@ import { AggregateImpl } from '../core/aggregate';
 import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
 import { count } from '../lite-api/aggregate';
 import { AggregateQuerySnapshot } from '../lite-api/aggregate_types';
+import { AggregateAlias } from '../model/aggregate_alias';
 import { ObjectValue } from '../model/object_value';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
@@ -31,7 +32,8 @@ export {
   aggregateQuerySnapshotEqual,
   count,
   sum,
-  average
+  average,
+  aggregateFieldEqual
 } from '../lite-api/aggregate';
 
 /**
@@ -107,11 +109,8 @@ export function getAggregateFromServer<T extends AggregateSpec>(
   const client = ensureFirestoreConfigured(firestore);
 
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
-    // TODO (sum/avg) should alias validation be performed or should that be
-    // delegated to the backend?
-
     return new AggregateImpl(
-      alias,
+      new AggregateAlias(alias),
       aggregate._aggregateType,
       aggregate._internalFieldPath
     );

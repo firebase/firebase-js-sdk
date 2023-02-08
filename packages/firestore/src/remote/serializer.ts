@@ -915,19 +915,19 @@ export function toRunAggregationQueryRequest(
   aggregates.forEach(aggregate => {
     if (aggregate.aggregateType === 'count') {
       aggregations.push({
-        alias: aggregate.alias,
+        alias: aggregate.alias.canonicalString(),
         count: {}
       });
     } else if (aggregate.aggregateType === 'avg') {
       aggregations.push({
-        alias: aggregate.alias,
+        alias: aggregate.alias.canonicalString(),
         avg: {
           field: toFieldPathReference(aggregate.fieldPath!)
         }
       });
     } else if (aggregate.aggregateType === 'sum') {
       aggregations.push({
-        alias: aggregate.alias,
+        alias: aggregate.alias.canonicalString(),
         sum: {
           field: toFieldPathReference(aggregate.fieldPath!)
         }

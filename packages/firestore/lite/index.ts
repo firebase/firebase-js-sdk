@@ -33,7 +33,8 @@ export {
   getAggregate,
   count,
   sum,
-  average
+  average,
+  aggregateFieldEqual
 } from '../src/lite-api/aggregate';
 
 export {
