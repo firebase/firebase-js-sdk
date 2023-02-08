@@ -30,7 +30,6 @@ export {
   AggregateFieldType,
   AggregateSpec,
   AggregateSpecData,
-  TrimBackticks,
   AggregateQuerySnapshot,
   AggregateType
 } from './lite-api/aggregate_types';

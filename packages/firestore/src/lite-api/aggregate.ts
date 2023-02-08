@@ -18,6 +18,7 @@
 import { deepEqual } from '@firebase/util';
 
 import { AggregateImpl } from '../core/aggregate';
+import { AggregateAlias } from '../model/aggregate_alias';
 import { ObjectValue } from '../model/object_value';
 import { invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { cast } from '../util/input_validation';
@@ -95,7 +96,7 @@ export function getAggregate<T extends AggregateSpec>(
 
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
     return new AggregateImpl(
-      alias,
+      new AggregateAlias(alias),
       aggregate._aggregateType,
       aggregate._internalFieldPath
     );

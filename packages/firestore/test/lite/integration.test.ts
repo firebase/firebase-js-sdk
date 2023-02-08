@@ -2653,10 +2653,10 @@ describe('Aggregate queries', () => {
 
   it('aggregateQuerySnapshotEqual on different queries be falsy', () => {
     const testDocs = [
-      { author: 'authorA', title: 'titleA', rating: 1 },
-      { author: 'authorA', title: 'titleB', rating: 5 },
-      { author: 'authorB', title: 'titleC', rating: 4 },
-      { author: 'authorB', title: 'titleD', rating: 3 }
+      { author: 'authorA', title: 'titleA' },
+      { author: 'authorA', title: 'titleB' },
+      { author: 'authorB', title: 'titleC' },
+      { author: 'authorB', title: 'titleD' }
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query1 = query(coll, where('author', '==', 'authorA'));
@@ -2729,6 +2729,9 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       const snapshot1 = await getAggregate(query1, { sum: sum('rating') });
       const snapshot2 = await getAggregate(query1, { avg: average('rating') });
 
+      // `snapshot1` and `snapshot2` have different types and therefore the
+      // following use of `aggregateQuerySnapshotEqual(...)` will cause a
+      // TS error. To test the method for JS users, we ignore the TS error.
       // @ts-expect-error
       expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
     });
@@ -2746,6 +2749,9 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       const snapshot1 = await getAggregate(query1, { foo: average('rating') });
       const snapshot2 = await getAggregate(query1, { bar: average('rating') });
 
+      // `snapshot1` and `snapshot2` have different types and therefore the
+      // following use of `aggregateQuerySnapshotEqual(...)` will cause a
+      // TS error. To test the method for JS users, we ignore the TS error.
       // @ts-expect-error
       expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
     });
@@ -2760,8 +2766,14 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, { foo: average('rating') });
-      const snapshot2 = await getAggregate(query1, { foo: average('rating') });
+      const snapshot1 = await getAggregate(query1, {
+        foo: average('rating'),
+        bar: sum('rating')
+      });
+      const snapshot2 = await getAggregate(query1, {
+        bar: sum('rating'),
+        foo: average('rating')
+      });
 
       expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.true;
     });

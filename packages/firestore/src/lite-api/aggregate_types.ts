@@ -65,17 +65,8 @@ export interface AggregateSpec {
  * from the input `AggregateSpec`.
  */
 export type AggregateSpecData<T extends AggregateSpec> = {
-  [P in keyof T as TrimBackticks<P>]: T[P] extends AggregateField<infer U>
-    ? U
-    : never;
+  [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
 };
-
-/**
- * Removes enclosing backticks.
- * type Foo = '`Foo`'
- * type TrimmedFoo = TrimBackticks<Foo>; // 'Foo'
- */
-export type TrimBackticks<T> = T extends `\`${infer Body}\`` ? Body : T;
 
 /**
  * The results of executing an aggregation query.
