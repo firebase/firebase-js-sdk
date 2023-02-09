@@ -852,7 +852,7 @@ describe('DocumentSnapshot', () => {
 
   it('returns Bytes', () => {
     return withTestDocAndInitialData(
-      { bytes: Bytes.fromBase64String('aa') },
+      { bytes: Bytes.fromBase64String('aa==') },
       async docRef => {
         const docSnap = await getDoc(docRef);
         const bytes = docSnap.get('bytes');

@@ -59,6 +59,7 @@ import {
  */
 export abstract class Datastore {
   abstract terminate(): void;
+  abstract serializer: JsonProtoSerializer;
 }
 
 /**
