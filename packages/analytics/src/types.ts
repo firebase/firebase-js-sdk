@@ -34,7 +34,7 @@ export interface ThrottleMetadata {
 
 /**
  * Dynamic configuration fetched from server.
- * See https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.webApps/getConfig
+ * See https://firebase.google.com/docs/reference/firebase-management/rest/v1beta1/projects.webApps/getConfig
  */
 export interface DynamicConfig {
   projectId: string;

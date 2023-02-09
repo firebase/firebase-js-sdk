@@ -95,7 +95,8 @@ function repoManagerApplyEmulatorSettings(
     repo.repoInfo_.webSocketOnly,
     repo.repoInfo_.nodeAdmin,
     repo.repoInfo_.persistenceKey,
-    repo.repoInfo_.includeNamespaceInQueryParams
+    repo.repoInfo_.includeNamespaceInQueryParams,
+    /*isUsingEmulator=*/ true
   );
 
   if (tokenProvider) {

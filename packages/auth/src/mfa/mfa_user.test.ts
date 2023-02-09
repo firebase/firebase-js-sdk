@@ -235,8 +235,10 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
         );
       });
 
-      it('should swallow the error', async () => {
-        await mfaUser.unenroll(mfaInfo);
+      it('should throw TOKEN_EXPIRED error', async () => {
+        await expect(mfaUser.unenroll(mfaInfo)).to.be.rejectedWith(
+          'auth/user-token-expired'
+        );
       });
     });
   });

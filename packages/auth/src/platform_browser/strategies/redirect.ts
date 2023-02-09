@@ -42,7 +42,8 @@ import { getModularInstance } from '@firebase/util';
  *
  * @remarks
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
- * Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using {@link signInWithRedirect}.
+ * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
+ * | best practices} when using {@link signInWithRedirect}.
  *
  * @example
  * ```javascript
@@ -110,7 +111,8 @@ export async function _signInWithRedirect(
  * Reauthenticates the current user with the specified {@link OAuthProvider} using a full-page redirect flow.
  * @remarks
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
- * Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using {@link reauthenticateWithRedirect}.
+ * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
+ * | best practices} when using {@link reauthenticateWithRedirect}.
  *
  * @example
  * ```javascript
@@ -176,7 +178,8 @@ export async function _reauthenticateWithRedirect(
  * Links the {@link OAuthProvider} to the user account using a full-page redirect flow.
  * @remarks
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
- * Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using {@link linkWithRedirect}.
+ * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
+ * | best practices} when using {@link linkWithRedirect}.
  *
  * @example
  * ```javascript

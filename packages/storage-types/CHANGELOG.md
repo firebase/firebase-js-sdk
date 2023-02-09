@@ -1,5 +1,11 @@
 # @firebase/storage-types
 
+## 0.8.0
+
+### Minor Changes
+
+- [`825e648b8`](https://github.com/firebase/firebase-js-sdk/commit/825e648b81ca63c7bc64f8700f7a46eb320b2106) [#6974](https://github.com/firebase/firebase-js-sdk/pull/6974) (fixes [#6944](https://github.com/firebase/firebase-js-sdk/issues/6944)) - Fixed issue where users were unable to check if an Error was an instance of `StorageError`.
+
 ## 0.7.0
 
 ### Minor Changes
