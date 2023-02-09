@@ -288,6 +288,7 @@ export function configureFirestore(firestore: Firestore): void {
     settings.cache?._onlineComponentProvider
   ) {
     firestore._firestoreClient.uninitializedComponentsProvider = {
+      offlineKind: settings.cache.kind,
       offline: settings.cache._offlineComponentProvider,
       online: settings.cache._onlineComponentProvider
     };
@@ -327,7 +328,10 @@ export function enableIndexedDbPersistence(
 
   const client = ensureFirestoreConfigured(firestore);
   if (client.uninitializedComponentsProvider) {
-    throw new FirestoreError(Code.INVALID_ARGUMENT, 'Already specified.');
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'SDK cache is already specified.'
+    );
   }
 
   const settings = firestore._freezeSettings();
@@ -376,7 +380,10 @@ export function enableMultiTabIndexedDbPersistence(
 
   const client = ensureFirestoreConfigured(firestore);
   if (client.uninitializedComponentsProvider) {
-    throw new FirestoreError(Code.INVALID_ARGUMENT, 'Already specified.');
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'SDK cache is already specified.'
+    );
   }
 
   const settings = firestore._freezeSettings();

@@ -31,6 +31,7 @@ import { User } from '../auth/user';
 import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
+  localStoreConfigureFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
@@ -39,6 +40,7 @@ import {
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { FieldIndex } from '../model/field_index';
 import { Mutation } from '../model/mutation';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
@@ -114,6 +116,7 @@ export class FirestoreClient {
   ) => Promise<void> = () => Promise.resolve();
   uninitializedComponentsProvider?: {
     offline: OfflineComponentProvider;
+    offlineKind: 'memory' | 'indexeddb';
     online: OnlineComponentProvider;
   };
 
@@ -767,4 +770,16 @@ function createBundleReader(
     content = data;
   }
   return newBundleReader(toByteStreamReader(content), serializer);
+}
+
+export function firestoreClientSetIndexConfiguration(
+  client: FirestoreClient,
+  indexes: FieldIndex[]
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreConfigureFieldIndexes(
+      await getLocalStore(client),
+      indexes
+    );
+  });
 }

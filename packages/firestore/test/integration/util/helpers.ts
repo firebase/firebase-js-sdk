@@ -18,17 +18,12 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 
 import {
-  indexedDbLocalCache,
-  memoryLocalCache
-} from '../../../src/api/cache_config';
-import { logWarn } from '../../../src/util/log';
-
-import {
   collection,
   doc,
   DocumentReference,
   Firestore,
   terminate,
+  indexedDbLocalCache,
   clearIndexedDbPersistence,
   enableIndexedDbPersistence,
   CollectionReference,
@@ -191,10 +186,11 @@ export async function withTestDbsSettings(
 
   for (let i = 0; i < numDbs; i++) {
     // logWarn(`set persistence from helper: ${persistence}`);
+    const newSettings = { ...settings };
     if (persistence) {
-      settings.cache = indexedDbLocalCache();
+      newSettings.cache = indexedDbLocalCache();
     }
-    const db = newTestFirestore(newTestApp(projectId), settings);
+    const db = newTestFirestore(newTestApp(projectId), newSettings);
     dbs.push(db);
   }
 

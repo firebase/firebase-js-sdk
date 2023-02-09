@@ -39,7 +39,7 @@ class MemoryLocalCacheImpl implements MemoryLocalCache {
     this._offlineComponentProvider = new MemoryOfflineComponentProvider();
   }
 
-  toJSON() {
+  toJSON(): {} {
     return { kind: this.kind };
   }
 }
@@ -68,7 +68,7 @@ class IndexedDbLocalCacheImpl implements IndexedDbLocalCache {
     this._offlineComponentProvider = tabManager._offlineComponentProvider!;
   }
 
-  toJSON() {
+  toJSON(): {} {
     return { kind: this.kind };
   }
 }
@@ -110,7 +110,7 @@ class SingleTabManagerImpl implements IndexedDbSingleTabManager {
 
   constructor(private forceOwnership?: boolean) {}
 
-  toJSON() {
+  toJSON(): {} {
     return { kind: this.kind };
   }
 
@@ -139,7 +139,7 @@ class MultiTabManagerImpl implements IndexedDbMultipleTabManager {
   _onlineComponentProvider?: OnlineComponentProvider;
   _offlineComponentProvider?: OfflineComponentProvider;
 
-  toJSON() {
+  toJSON(): {} {
     return { kind: this.kind };
   }
 

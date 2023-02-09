@@ -24,7 +24,6 @@ import {
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../local/lru_garbage_collector_impl';
 import { Code, FirestoreError } from '../util/error';
 import { validateIsNotUsedTogether } from '../util/input_validation';
-import { logWarn } from '../util/log';
 
 // settings() defaults:
 export const DEFAULT_HOST = 'firestore.googleapis.com';
