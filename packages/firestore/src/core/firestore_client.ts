@@ -17,18 +17,12 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
-import {
-  AbstractUserDataWriter,
-  AggregateField,
-  AggregateQuerySnapshot
-} from '../api';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreExecuteQuery,
@@ -40,9 +34,10 @@ import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
+import { ObjectValue } from '../model/object_value';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
-import { Datastore } from '../remote/datastore';
+import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
 import {
   canUseNetwork,
   RemoteStore,
@@ -61,6 +56,7 @@ import { logDebug } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 
+import { Aggregate } from './aggregate';
 import { NamedQuery } from './bundle';
 import {
   ComponentConfiguration,
@@ -68,7 +64,6 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from './component_provider';
-import { CountQueryRunner } from './count_query_runner';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import {
   addSnapshotsInSyncListener,
@@ -445,6 +440,40 @@ export function firestoreClientGetDocumentsViaSnapshotListener(
   return deferred.promise;
 }
 
+export function firestoreClientRunAggregateQuery(
+  client: FirestoreClient,
+  query: Query,
+  aggregates: Aggregate[]
+): Promise<ObjectValue> {
+  const deferred = new Deferred<ObjectValue>();
+
+  client.asyncQueue.enqueueAndForget(async () => {
+    // TODO (sum/avg) should we update this to use the event manager?
+    // Implement and call executeAggregateQueryViaSnapshotListener, similar
+    // to the implementation in firestoreClientGetDocumentsViaSnapshotListener
+    // above
+    try {
+      const remoteStore = await getRemoteStore(client);
+      if (!canUseNetwork(remoteStore)) {
+        deferred.reject(
+          new FirestoreError(
+            Code.UNAVAILABLE,
+            'Failed to get aggregate result because the client is offline.'
+          )
+        );
+      } else {
+        const datastore = await getDatastore(client);
+        deferred.resolve(
+          invokeRunAggregationQueryRpc(datastore, query, aggregates)
+        );
+      }
+    } catch (e) {
+      deferred.reject(e as Error);
+    }
+  });
+  return deferred.promise;
+}
+
 export function firestoreClientWrite(
   client: FirestoreClient,
   mutations: Mutation[]
@@ -505,40 +534,6 @@ export function firestoreClientTransaction<T>(
       updateFunction,
       deferred
     ).run();
-  });
-  return deferred.promise;
-}
-
-export function firestoreClientRunCountQuery(
-  client: FirestoreClient,
-  query: LiteQuery<unknown>,
-  userDataWriter: AbstractUserDataWriter
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
-  const deferred = new Deferred<
-    AggregateQuerySnapshot<{ count: AggregateField<number> }>
-  >();
-  client.asyncQueue.enqueueAndForget(async () => {
-    try {
-      const remoteStore = await getRemoteStore(client);
-      if (!canUseNetwork(remoteStore)) {
-        deferred.reject(
-          new FirestoreError(
-            Code.UNAVAILABLE,
-            'Failed to get count result because the client is offline.'
-          )
-        );
-      } else {
-        const datastore = await getDatastore(client);
-        const result = new CountQueryRunner(
-          query,
-          datastore,
-          userDataWriter
-        ).run();
-        deferred.resolve(result);
-      }
-    } catch (e) {
-      deferred.reject(e as Error);
-    }
   });
   return deferred.promise;
 }
