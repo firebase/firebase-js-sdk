@@ -90,7 +90,7 @@ import { Mutation } from '../../../src/model/mutation';
 import { JsonObject } from '../../../src/model/object_value';
 import { encodeBase64 } from '../../../src/platform/base64';
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
-import { newTextEncoder } from '../../../src/platform/serializer';
+import { newTextEncoder } from '../../../src/platform/text_serializer';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import {
@@ -1180,7 +1180,13 @@ abstract class TestRunner {
         });
       }
 
-      expect(actual.view!.docChanges).to.deep.equal(expectedChanges);
+      const actualChangesSorted = Array.from(actual.view!.docChanges).sort(
+        (a, b) => primitiveComparator(a.doc, b.doc)
+      );
+      const expectedChangesSorted = Array.from(expectedChanges).sort((a, b) =>
+        primitiveComparator(a.doc, b.doc)
+      );
+      expect(actualChangesSorted).to.deep.equal(expectedChangesSorted);
 
       expect(actual.view!.hasPendingWrites).to.equal(
         expected.hasPendingWrites,

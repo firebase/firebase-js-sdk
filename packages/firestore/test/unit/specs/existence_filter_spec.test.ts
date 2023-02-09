@@ -17,7 +17,13 @@
 
 import { newQueryForPath } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { deletedDoc, doc, query } from '../../util/helpers';
+import {
+  deletedDoc,
+  doc,
+  filter,
+  generateBloomFilterProto,
+  query
+} from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
@@ -32,22 +38,6 @@ describeSpec('Existence Filters:', [], () => {
       .watchAcksFull(query1, 1000, doc1)
       .expectEvents(query1, { added: [doc1] })
       .watchFilters([query1], [doc1.key])
-      .watchSnapshots(2000);
-  });
-
-  // This test is only to make sure watchFilters can accept bloom filter.
-  // TODO:(mila) update the tests when bloom filter logic is implemented.
-  specTest('Existence filter with bloom filter match', [], () => {
-    const query1 = query('collection');
-    const doc1 = doc('collection/1', 1000, { v: 1 });
-    return spec()
-      .userListens(query1)
-      .watchAcksFull(query1, 1000, doc1)
-      .expectEvents(query1, { added: [doc1] })
-      .watchFilters([query1], [doc1.key], {
-        bits: { bitmap: 'a', padding: 1 },
-        hashCount: 1
-      })
       .watchSnapshots(2000);
   });
 
@@ -113,36 +103,6 @@ describeSpec('Existence Filters:', [], () => {
         .watchAcksFull(query1, 1000, doc1, doc2)
         .expectEvents(query1, { added: [doc1, doc2] })
         .watchFilters([query1], [doc1.key]) // in the next sync doc2 was deleted
-        .watchSnapshots(2000)
-        // query is now marked as "inconsistent" because of filter mismatch
-        .expectEvents(query1, { fromCache: true })
-        .expectActiveTargets({ query: query1, resumeToken: '' })
-        .watchRemoves(query1) // Acks removal of query
-        .watchAcksFull(query1, 2000, doc1)
-        .expectLimboDocs(doc2.key) // doc2 is now in limbo
-        .ackLimbo(2000, deletedDoc('collection/2', 2000))
-        .expectLimboDocs() // doc2 is no longer in limbo
-        .expectEvents(query1, {
-          removed: [doc2]
-        })
-    );
-  });
-
-  // This test is only to make sure watchFilters can accept bloom filter.
-  // TODO:(mila) update the tests when bloom filter logic is implemented.
-  specTest('Existence filter mismatch triggers bloom filter', [], () => {
-    const query1 = query('collection');
-    const doc1 = doc('collection/1', 1000, { v: 1 });
-    const doc2 = doc('collection/2', 1000, { v: 2 });
-    return (
-      spec()
-        .userListens(query1)
-        .watchAcksFull(query1, 1000, doc1, doc2)
-        .expectEvents(query1, { added: [doc1, doc2] })
-        .watchFilters([query1], [doc1.key], {
-          bits: { bitmap: 'a', padding: 1 },
-          hashCount: 3
-        }) // in the next sync doc2 was deleted
         .watchSnapshots(2000)
         // query is now marked as "inconsistent" because of filter mismatch
         .expectEvents(query1, { fromCache: true })
@@ -286,4 +246,341 @@ describeSpec('Existence Filters:', [], () => {
       );
     }
   );
+
+  /**
+   * Test existence filter with bloom filter.
+   */
+  specTest(
+    'Full re-query is skipped when bloom filter can identify documents deleted',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 2 });
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA],
+        notContains: [docB]
+      });
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          // DocB is deleted in the next sync.
+          .watchFilters([query1], [docA.key], bloomFilterProto)
+          .watchSnapshots(2000)
+          // BloomFilter identify docB is deleted, skip full query and put docB
+          // into limbo directly.
+          .expectEvents(query1, { fromCache: true })
+          .expectLimboDocs(docB.key) // DocB is now in limbo.
+          .ackLimbo(2000, deletedDoc('collection/b', 2000))
+          .expectLimboDocs() // DocB is no longer in limbo.
+          .expectEvents(query1, {
+            removed: [docB]
+          })
+      );
+    }
+  );
+
+  specTest(
+    'Full re-query is triggered when bloom filter can not identify documents deleted',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 2 });
+      const docC = doc('collection/c', 1000, { v: 2 });
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA, docB],
+        notContains: [docC]
+      });
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB, docC)
+          .expectEvents(query1, { added: [docA, docB, docC] })
+          // DocB and DocC are deleted in the next sync.
+          .watchFilters([query1], [docA.key], bloomFilterProto)
+          .watchSnapshots(2000)
+          // BloomFilter correctly identifies docC is deleted, but yields false
+          // positive results for docB. Re-run query is triggered.
+          .expectEvents(query1, { fromCache: true })
+          .expectActiveTargets({ query: query1, resumeToken: '' })
+      );
+    }
+  );
+
+  specTest(
+    'Bloom filter can process special characters in document name',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/ÀÒ∑', 1000, { v: 1 });
+      const docB = doc('collection/À∑Ò', 1000, { v: 1 });
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA],
+        notContains: [docB]
+      });
+
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          // DocB is deleted in the next sync.
+          .watchFilters([query1], [docA.key], bloomFilterProto)
+          .watchSnapshots(2000)
+          // BloomFilter identifies docB is deleted, skip full query and put
+          // docB into limbo directly.
+          .expectEvents(query1, { fromCache: true })
+          .expectLimboDocs(docB.key) // DocB is now in limbo.
+      );
+    }
+  );
+
+  specTest(
+    'Bloom filter fills in default values for undefined padding and hashCount',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 2 });
+
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA],
+        notContains: [docB]
+      });
+      // Omit padding and hashCount. Default value 0 should be used.
+      delete bloomFilterProto.hashCount;
+      delete bloomFilterProto.bits!.padding;
+
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          // DocB is deleted in the next sync.
+          .watchFilters([query1], [docA.key], bloomFilterProto)
+          .watchSnapshots(2000)
+          // Re-run query is triggered.
+          .expectEvents(query1, { fromCache: true })
+          .expectActiveTargets({ query: query1, resumeToken: '' })
+      );
+    }
+  );
+
+  specTest(
+    'Full re-query is triggered when bloom filter bitmap is invalid',
+    ['no-ios', 'no-android'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 1 });
+
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA],
+        notContains: [docB]
+      });
+      // Set bitmap to invalid base64 string.
+      bloomFilterProto.bits!.bitmap = 'INVALID_BASE_64';
+
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          // DocB is deleted in the next sync.
+          .watchFilters([query1], [docA.key], bloomFilterProto)
+          .watchSnapshots(2000)
+          // Re-run query is triggered.
+          .expectEvents(query1, { fromCache: true })
+          .expectActiveTargets({ query: query1, resumeToken: '' })
+      );
+    }
+  );
+
+  specTest(
+    'Full re-query is triggered when bloom filter hashCount is invalid',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 1 });
+
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA],
+        notContains: [docB]
+      });
+      // Set hashCount to negative number.
+      bloomFilterProto.hashCount = -1;
+
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          // DocB is deleted in the next sync.
+          .watchFilters([query1], [docA.key], bloomFilterProto)
+          .watchSnapshots(2000)
+          // Re-run query is triggered.
+          .expectEvents(query1, { fromCache: true })
+          .expectActiveTargets({ query: query1, resumeToken: '' })
+      );
+    }
+  );
+
+  specTest('Full re-query is triggered when bloom filter is empty', [], () => {
+    const query1 = query('collection');
+    const docA = doc('collection/a', 1000, { v: 1 });
+    const docB = doc('collection/b', 1000, { v: 1 });
+
+    //Generate an empty bloom filter.
+    const bloomFilterProto = generateBloomFilterProto({
+      contains: [],
+      notContains: [],
+      bitCount: 0,
+      hashCount: 0
+    });
+
+    return (
+      spec()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA, docB)
+        .expectEvents(query1, { added: [docA, docB] })
+        // DocB is deleted in the next sync.
+        .watchFilters([query1], [docA.key], bloomFilterProto)
+        .watchSnapshots(2000)
+        // Re-run query is triggered.
+        .expectEvents(query1, { fromCache: true })
+        .expectActiveTargets({ query: query1, resumeToken: '' })
+    );
+  });
+
+  specTest('Same documents can have different bloom filters', [], () => {
+    const query1 = query('collection', filter('v', '<=', 2));
+    const query2 = query('collection', filter('v', '>=', 2));
+
+    const docA = doc('collection/a', 1000, { v: 1 });
+    const docB = doc('collection/b', 1000, { v: 2 });
+    const docC = doc('collection/c', 1000, { v: 3 });
+
+    const bloomFilterProto1 = generateBloomFilterProto({
+      contains: [docB],
+      notContains: [docA, docC],
+      bitCount: 5,
+      hashCount: 2
+    });
+    const bloomFilterProto2 = generateBloomFilterProto({
+      contains: [docB],
+      notContains: [docA, docC],
+      bitCount: 4,
+      hashCount: 1
+    });
+    return (
+      spec()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA, docB)
+        .expectEvents(query1, { added: [docA, docB] })
+        .userListens(query2)
+        .expectEvents(query2, { added: [docB], fromCache: true })
+        .watchAcksFull(query2, 1001, docB, docC)
+        .expectEvents(query2, { added: [docC] })
+
+        // DocA is deleted in the next sync for query1.
+        .watchFilters([query1], [docB.key], bloomFilterProto1)
+        .watchSnapshots(2000)
+        // BloomFilter identify docA is deleted, skip full query.
+        .expectEvents(query1, { fromCache: true })
+        .expectLimboDocs(docA.key) // DocA is now in limbo.
+
+        // DocC is deleted in the next sync for query2.
+        .watchFilters([query2], [docB.key], bloomFilterProto2)
+        .watchSnapshots(3000)
+        // BloomFilter identify docC is deleted, skip full query.
+        .expectEvents(query2, { fromCache: true })
+        .expectLimboDocs(docA.key, docC.key) // DocC is now in limbo.
+    );
+  });
+
+  specTest('Bloom filter is handled at global snapshot', [], () => {
+    const query1 = query('collection');
+    const docA = doc('collection/a', 1000, { v: 1 });
+    const docB = doc('collection/b', 2000, { v: 2 });
+    const docC = doc('collection/c', 3000, { v: 3 });
+
+    const bloomFilterProto = generateBloomFilterProto({
+      contains: [docA],
+      notContains: [docB]
+    });
+
+    return (
+      spec()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA, docB)
+        .expectEvents(query1, { added: [docA, docB] })
+        // Send a mismatching existence filter with one document, but don't
+        // send a new global snapshot. We should not see an event until we
+        // receive the snapshot.
+        .watchFilters([query1], [docA.key], bloomFilterProto)
+        .watchSends({ affects: [query1] }, docC)
+        .watchSnapshots(2000)
+        .expectEvents(query1, { added: [docC], fromCache: true })
+        // Re-run of the query1 is skipped, docB is in limbo.
+        .expectLimboDocs(docB.key)
+    );
+  });
+
+  specTest('Bloom filter limbo resolution is denied', [], () => {
+    const query1 = query('collection');
+    const docA = doc('collection/a', 1000, { v: 1 });
+    const docB = doc('collection/b', 1000, { v: 1 });
+    const bloomFilterProto = generateBloomFilterProto({
+      contains: [docA],
+      notContains: [docB]
+    });
+    return spec()
+      .userListens(query1)
+      .watchAcksFull(query1, 1000, docA, docB)
+      .expectEvents(query1, { added: [docA, docB] })
+      .watchFilters([query1], [docA.key], bloomFilterProto)
+      .watchSnapshots(2000)
+      .expectEvents(query1, { fromCache: true })
+      .expectLimboDocs(docB.key) // DocB is now in limbo.
+      .watchRemoves(
+        newQueryForPath(docB.key.path),
+        new RpcError(Code.PERMISSION_DENIED, 'no')
+      )
+      .expectLimboDocs() // DocB is no longer in limbo.
+      .expectEvents(query1, {
+        removed: [docB]
+      });
+  });
+
+  specTest('Bloom filter with large size works as expected', [], () => {
+    const query1 = query('collection');
+    const docs = [];
+    for (let i = 0; i < 100; i++) {
+      docs.push(doc(`collection/doc${i}`, 1000, { v: 1 }));
+    }
+    const docKeys = docs.map(item => item.key);
+
+    const bloomFilterProto = generateBloomFilterProto({
+      contains: docs.slice(0, 50),
+      notContains: docs.slice(50),
+      bitCount: 1000,
+      hashCount: 16
+    });
+    return (
+      spec()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, ...docs)
+        .expectEvents(query1, { added: docs })
+        // Doc0 to doc49 are deleted in the next sync.
+        .watchFilters([query1], docKeys.slice(0, 50), bloomFilterProto)
+        .watchSnapshots(2000)
+        // BloomFilter correctly identifies docs that deleted, skip full query.
+        .expectEvents(query1, { fromCache: true })
+        .expectLimboDocs(...docKeys.slice(50))
+    );
+  });
 });

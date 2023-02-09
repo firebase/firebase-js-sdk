@@ -41,7 +41,8 @@ import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { newSerializer, newTextEncoder } from '../platform/serializer';
+import { newSerializer } from '../platform/serializer';
+import { newTextEncoder } from '../platform/text_serializer';
 import { Datastore } from '../remote/datastore';
 import {
   canUseNetwork,

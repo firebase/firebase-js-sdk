@@ -16,8 +16,7 @@
  */
 import { Md5, Integer } from '@firebase/webchannel-wrapper';
 
-import { newTextEncoder } from '../platform/serializer';
-import { debugAssert } from '../util/assert';
+import { newTextEncoder } from '../platform/text_serializer';
 
 const MAX_64_BIT_UNSIGNED_INTEGER = new Integer([0xffffffff, 0xffffffff], 0);
 
@@ -43,43 +42,49 @@ function get64BitUints(Bytes: Uint8Array): [Integer, Integer] {
 }
 
 export class BloomFilter {
-  readonly size: number;
-  private readonly sizeInInteger: Integer;
+  readonly bitCount: number;
+  private readonly bitCountInInteger: Integer;
 
   constructor(
     readonly bitmap: Uint8Array,
     readonly padding: number,
     readonly hashCount: number
   ) {
-    debugAssert(padding >= 0 && padding < 8, `Invalid padding: ${padding}`);
-    if (bitmap.length > 0) {
-      debugAssert(this.hashCount > 0, `Invalid hash count: ${hashCount}`);
-    } else {
-      // Only empty bloom filter can have 0 hash count.
-      debugAssert(this.hashCount >= 0, `Invalid hash count: ${hashCount}`);
+    if (padding < 0 || padding >= 8) {
+      throw new BloomFilterError(`Invalid padding: ${padding}`);
+    }
 
+    if (hashCount < 0) {
+      throw new BloomFilterError(`Invalid hash count: ${hashCount}`);
+    }
+
+    if (bitmap.length > 0 && this.hashCount === 0) {
+      // Only empty bloom filter can have 0 hash count.
+      throw new BloomFilterError(`Invalid hash count: ${hashCount}`);
+    }
+
+    if (bitmap.length === 0 && padding !== 0) {
       // Empty bloom filter should have 0 padding.
-      debugAssert(
-        padding === 0,
+      throw new BloomFilterError(
         `Invalid padding when bitmap length is 0: ${padding}`
       );
     }
 
-    this.size = bitmap.length * 8 - padding;
-    // Set the size in Integer to avoid repeated calculation in mightContain().
-    this.sizeInInteger = Integer.fromNumber(this.size);
+    this.bitCount = bitmap.length * 8 - padding;
+    // Set the bit count in Integer to avoid repetition in mightContain().
+    this.bitCountInInteger = Integer.fromNumber(this.bitCount);
   }
 
   // Calculate the ith hash value based on the hashed 64bit integers,
   // and calculate its corresponding bit index in the bitmap to be checked.
-  private getBitIndex(num1: Integer, num2: Integer, index: number): number {
+  private getBitIndex(num1: Integer, num2: Integer, hashIndex: number): number {
     // Calculate hashed value h(i) = h1 + (i * h2).
-    let hashValue = num1.add(num2.multiply(Integer.fromNumber(index)));
+    let hashValue = num1.add(num2.multiply(Integer.fromNumber(hashIndex)));
     // Wrap if hash value overflow 64bit.
     if (hashValue.compare(MAX_64_BIT_UNSIGNED_INTEGER) === 1) {
       hashValue = new Integer([hashValue.getBits(0), hashValue.getBits(1)], 0);
     }
-    return hashValue.modulo(this.sizeInInteger).toNumber();
+    return hashValue.modulo(this.bitCountInInteger).toNumber();
   }
 
   // Return whether the bit on the given index in the bitmap is set to 1.
@@ -91,12 +96,10 @@ export class BloomFilter {
   }
 
   mightContain(value: string): boolean {
-    // Empty bitmap and empty value should always return false on membership
-    // check.
-    if (this.size === 0 || value === '') {
+    // Empty bitmap should always return false on membership check.
+    if (this.bitCount === 0) {
       return false;
     }
-
     const md5HashedValue = getMd5HashValue(value);
     const [hash1, hash2] = get64BitUints(md5HashedValue);
     for (let i = 0; i < this.hashCount; i++) {
@@ -107,4 +110,40 @@ export class BloomFilter {
     }
     return true;
   }
+
+  /** Create bloom filter for testing purposes only. */
+  static create(
+    bitCount: number,
+    hashCount: number,
+    contains: string[]
+  ): BloomFilter {
+    const padding = bitCount % 8 === 0 ? 0 : 8 - (bitCount % 8);
+    const bitmap = new Uint8Array(Math.ceil(bitCount / 8));
+    const bloomFilter = new BloomFilter(bitmap, padding, hashCount);
+    contains.forEach(item => bloomFilter.insert(item));
+    return bloomFilter;
+  }
+
+  private insert(value: string): void {
+    if (this.bitCount === 0) {
+      return;
+    }
+
+    const md5HashedValue = getMd5HashValue(value);
+    const [hash1, hash2] = get64BitUints(md5HashedValue);
+    for (let i = 0; i < this.hashCount; i++) {
+      const index = this.getBitIndex(hash1, hash2, i);
+      this.setBit(index);
+    }
+  }
+
+  private setBit(index: number): void {
+    const indexOfByte = Math.floor(index / 8);
+    const offset = index % 8;
+    this.bitmap[indexOfByte] |= 0x01 << offset;
+  }
+}
+
+export class BloomFilterError extends Error {
+  readonly name = 'BloomFilterError';
 }

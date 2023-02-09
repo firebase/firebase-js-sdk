@@ -375,7 +375,8 @@ function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
     getRemoteKeysForTarget: targetId =>
       remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(targetId),
     getTargetDataForTarget: targetId =>
-      remoteStoreImpl.listenTargets.get(targetId) || null
+      remoteStoreImpl.listenTargets.get(targetId) || null,
+    getDatabaseId: () => remoteStoreImpl.datastore.serializer.databaseId
   });
   ensureWatchStream(remoteStoreImpl).start();
   remoteStoreImpl.onlineStateTracker.handleWatchStreamStart();

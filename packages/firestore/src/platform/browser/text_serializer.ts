@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { DatabaseId } from '../core/database_info';
-import { JsonProtoSerializer } from '../remote/serializer';
+/**
+ * An instance of the Platform's 'TextEncoder' implementation.
+ */
+export function newTextEncoder(): TextEncoder {
+  return new TextEncoder();
+}
 
-// This file is only used under ts-node.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/serializer`);
-
-export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
-  return platform.newSerializer(databaseId);
+/**
+ * An instance of the Platform's 'TextDecoder' implementation.
+ */
+export function newTextDecoder(): TextDecoder {
+  return new TextDecoder('utf-8');
 }

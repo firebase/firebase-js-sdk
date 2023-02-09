@@ -474,7 +474,7 @@ export class QueryStartAtConstraint extends QueryConstraint {
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
 // @public (undocumented)
-export function runBloomFilterWatchTest(db: Firestore, projectId: string, host: string, ssl: boolean, iterationCount_: number, documentCreateCount_: number | null, documentDeleteCount_: number | null, collectionId_: string | null, log: (...args: any[]) => any): Promise<void>;
+export function runBloomFilterWatchTest(db: Firestore, projectId: string, host: string, ssl: boolean, iterationCount_: number | string[] | null, documentCreateCount_: number | null, documentDeleteCount_: number | null, collectionId_: string | null, randomSeed_: string | null, log: (...args: any[]) => any): Promise<void>;
 
 // @public
 export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;

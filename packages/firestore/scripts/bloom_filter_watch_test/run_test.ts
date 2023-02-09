@@ -239,7 +239,7 @@ class BloomFilterWatchTest {
         this.log("Got an existence filter without a bloom filter");
       } else {
         this.log(`Got an existence bloom filter with size ` +
-          `${bloomFilter.size} bits and ` +
+          `${bloomFilter.bitCount} bits and ` +
           `${bloomFilter.hashCount} hash functions`);
       }
     } else {

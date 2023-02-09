@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { DatabaseId } from '../core/database_info';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget } from '../core/target';
 import { TargetId } from '../core/types';
@@ -27,14 +28,17 @@ import {
 } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { normalizeByteString } from '../model/normalize';
 import { debugAssert, fail, hardAssert } from '../util/assert';
+import { Base64DecodeError } from '../util/base64_decode_error';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
+import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
 
@@ -251,6 +255,11 @@ export interface TargetMetadataProvider {
    * has become inactive
    */
   getTargetDataForTarget(targetId: TargetId): TargetData | null;
+
+  /**
+   * Returns the database ID of the Firestore instance.
+   */
+  getDatabaseId(): DatabaseId;
 }
 
 const LOG_TAG = 'WatchChangeAggregator';
@@ -409,14 +418,103 @@ export class WatchChangeAggregator {
         }
       } else {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
+        // Existence filter mismatch. Mark the documents as being in limbo, and
+        // raise a snapshot with `isFromCache:true`.
         if (currentSize !== expectedCount) {
-          // Existence filter mismatch: We reset the mapping and raise a new
-          // snapshot with `isFromCache:true`.
-          this.resetTarget(targetId);
-          this.pendingTargetResets = this.pendingTargetResets.add(targetId);
+          // Apply bloom filter to identify and mark removed documents.
+          const bloomFilterApplied = this.applyBloomFilter(
+            watchChange,
+            currentSize
+          );
+          if (!bloomFilterApplied) {
+            // If bloom filter application fails, we reset the mapping and
+            // trigger re-run of the query.
+            this.resetTarget(targetId);
+            this.pendingTargetResets = this.pendingTargetResets.add(targetId);
+          }
         }
       }
     }
+  }
+
+  /** Returns whether a bloom filter removed the deleted documents successfully. */
+  private applyBloomFilter(
+    watchChange: ExistenceFilterChange,
+    currentCount: number
+  ): boolean {
+    const { unchangedNames, count: expectedCount } =
+      watchChange.existenceFilter;
+
+    if (!unchangedNames || !unchangedNames.bits) {
+      return false;
+    }
+
+    const {
+      bits: { bitmap = '', padding = 0 },
+      hashCount = 0
+    } = unchangedNames;
+
+    let normalizedBitmap: Uint8Array;
+    try {
+      normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
+    } catch (err) {
+      if (err instanceof Base64DecodeError) {
+        logWarn(
+          'Decoding the base64 bloom filter in existence filter failed (' +
+            err.message +
+            '); ignoring the bloom filter and falling back to full re-query.'
+        );
+        return false;
+      } else {
+        throw err;
+      }
+    }
+
+    let bloomFilter: BloomFilter;
+    try {
+      // BloomFilter throws error if the inputs are invalid.
+      bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
+    } catch (err) {
+      if (err instanceof BloomFilterError) {
+        logWarn('BloomFilter error: ', err);
+      } else {
+        logWarn('Applying bloom filter failed: ', err);
+      }
+      return false;
+    }
+
+    const removedDocumentCount = this.filterRemovedDocuments(
+      watchChange.targetId,
+      bloomFilter
+    );
+
+    return expectedCount === currentCount - removedDocumentCount;
+  }
+
+  /**
+   * Filter out removed documents based on bloom filter membership result and
+   * return number of documents removed.
+   */
+  private filterRemovedDocuments(
+    targetId: number,
+    bloomFilter: BloomFilter
+  ): number {
+    const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
+    let removalCount = 0;
+
+    existingKeys.forEach(key => {
+      const databaseId = this.metadataProvider.getDatabaseId();
+      const documentPath = `projects/${databaseId.projectId}/databases/${
+        databaseId.database
+      }/documents/${key.path.canonicalString()}`;
+
+      if (!bloomFilter.mightContain(documentPath)) {
+        this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
+        removalCount++;
+      }
+    });
+
+    return removalCount;
   }
 
   /**
