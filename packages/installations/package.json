@@ -15,7 +15,7 @@
     },
     "./package.json": "./package.json"
   },
-  "typings": "./dist/installations-public.d.ts",
+  "typings": "dist/src/index.d.ts",
   "license": "Apache-2.0",
   "files": [
     "dist"

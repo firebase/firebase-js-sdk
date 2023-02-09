@@ -137,7 +137,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "./dist/auth-public.d.ts",
+  "typings": "dist/auth.d.ts",
   "nyc": {
     "extension": [
       ".ts"

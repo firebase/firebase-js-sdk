@@ -64,7 +64,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "./dist/functions-public.d.ts",
+  "typings": "dist/src/index.d.ts",
   "dependencies": {
     "@firebase/component": "0.6.3",
     "@firebase/messaging-interop-types": "0.2.0",

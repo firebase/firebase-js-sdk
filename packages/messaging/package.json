@@ -24,7 +24,7 @@
     },
     "./package.json": "./package.json"
   },
-  "typings": "./dist/index-public.d.ts",
+  "typings": "dist/src/index.d.ts",
   "files": [
     "dist",
     "sw/package.json"
