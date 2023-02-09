@@ -772,7 +772,7 @@ export class SpecBuilder {
     const keys = docs.map(key => {
       return key.path.canonicalString();
     });
-    const filter: SpecWatchFilter = { targetIds, keys } as SpecWatchFilter;
+    const filter: SpecWatchFilter = { targetIds, keys };
     this.currentStep = {
       watchFilter: filter
     };
