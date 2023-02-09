@@ -1296,7 +1296,7 @@ apiDescribe.skip(
         const snapshot = await getAggregateFromServer(coll, {
           averageRating: average('rating')
         });
-        expect(snapshot.data().averageRating).to.equal(9.2);
+        expect(snapshot.data().averageRating).to.be.closeTo(9.2, 0.0000001);
       });
     });
 
@@ -1389,7 +1389,9 @@ apiDescribe.skip(
         const snapshot = await getAggregateFromServer(coll, {
           averageRating: average('rating')
         });
-        expect(snapshot.data().averageRating).to.equal(Number.MAX_VALUE);
+        expect(snapshot.data().averageRating).to.equal(
+          Number.POSITIVE_INFINITY
+        );
       });
     });
 
