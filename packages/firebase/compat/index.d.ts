@@ -8018,7 +8018,7 @@ declare namespace firebase.storage {
   }
 
   /**
-   * Error codes that can be attached to `StorageError`s.
+   * Error codes that can be attached to `StorageError` objects.
    */
   export enum StorageErrorCode {
     UNKNOWN = 'unknown',
@@ -8053,7 +8053,7 @@ declare namespace firebase.storage {
    */
   export interface FirebaseStorageError extends FirebaseError {
     /**
-     * Stores custom error data unque to StorageError.
+     * Stores custom error data unique to the `StorageError`.
      */
     customData: {
       serverResponse: string | null;
@@ -8062,7 +8062,7 @@ declare namespace firebase.storage {
     get status(): number;
     set status(status: number);
     /**
-     * Compares a StorageErrorCode against this error's code, filtering out the prefix.
+     * Compares a `StorageErrorCode` against this error's code, filtering out the prefix.
      */
     _codeEquals(code: StorageErrorCode): boolean;
     /**

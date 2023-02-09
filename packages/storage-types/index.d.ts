@@ -127,7 +127,7 @@ export enum StorageErrorCode {
 
 export interface FirebaseStorageError extends FirebaseError {
   /**
-   * Stores custom error data unque to StorageError.
+   * Stores custom error data unique to the `StorageError`.
    */
   customData: {
     serverResponse: string | null;
@@ -136,7 +136,7 @@ export interface FirebaseStorageError extends FirebaseError {
   get status(): number;
   set status(status: number);
   /**
-   * Compares a StorageErrorCode against this error's code, filtering out the prefix.
+   * Compares a `StorageErrorCode` against this error's code, filtering out the prefix.
    */
   _codeEquals(code: StorageErrorCode): boolean;
   /**
