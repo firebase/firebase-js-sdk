@@ -292,10 +292,7 @@ export class SpecBuilder {
    * Registers a previously active target with the test expectations after a
    * stream disconnect.
    */
-  restoreListen(
-    query: Query,
-    resumeToken: string
-  ): this {
+  restoreListen(query: Query, resumeToken: string): this {
     const targetId = this.queryMapping.get(queryToTarget(query));
 
     if (isNullOrUndefined(targetId)) {
@@ -767,10 +764,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchFilters(
-    queries: Query[],
-    docs: DocumentKey[] = []
-  ): this {
+  watchFilters(queries: Query[], docs: DocumentKey[] = []): this {
     this.nextStep();
     const targetIds = queries.map(query => {
       return this.getTargetId(query);
