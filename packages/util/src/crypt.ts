@@ -284,7 +284,7 @@ export const base64: Base64 = {
       ++i;
 
       if (byte1 == null || byte2 == null || byte3 == null || byte4 == null) {
-        throw Error();
+        throw new DecodeBase64StringError();
       }
 
       const outByte1 = (byte1 << 2) | (byte2 >> 4);
@@ -332,6 +332,13 @@ export const base64: Base64 = {
     }
   }
 };
+
+/**
+ * An error encountered while decoding base64 string.
+ */
+export class DecodeBase64StringError extends Error {
+  readonly name = 'DecodeBase64StringError';
+}
 
 /**
  * URL-safe base64 encoding
