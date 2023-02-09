@@ -110,11 +110,11 @@ export class FirestoreSettingsImpl {
 
     this.credentials = settings.credentials;
     this.ignoreUndefinedProperties = !!settings.ignoreUndefinedProperties;
-    logWarn(
-      `Setting offline cache to ${JSON.stringify(
-        settings
-      )} from PrivateSettings`
-    );
+    // logWarn(
+    //   `Setting offline cache to ${JSON.stringify(
+    //     settings.cache
+    //   )} from PrivateSettings`
+    // );
     this.cache = settings.cache;
 
     if (settings.cacheSizeBytes === undefined) {

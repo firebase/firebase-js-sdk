@@ -38,6 +38,10 @@ class MemoryLocalCacheImpl implements MemoryLocalCache {
     this._onlineComponentProvider = new OnlineComponentProvider();
     this._offlineComponentProvider = new MemoryOfflineComponentProvider();
   }
+
+  toJSON() {
+    return { kind: this.kind };
+  }
 }
 
 export interface IndexedDbLocalCache {
@@ -54,14 +58,18 @@ class IndexedDbLocalCacheImpl implements IndexedDbLocalCache {
   constructor(settings: IndexedDbSettings | undefined) {
     let tabManager: IndexedDbTabManager;
     if (settings?.tabManager) {
-      settings.tabManager.initialize(settings);
+      settings.tabManager._initialize(settings);
       tabManager = settings.tabManager;
     } else {
       tabManager = indexedDbSingleTabManager(undefined);
-      tabManager.initialize(settings);
+      tabManager._initialize(settings);
     }
     this._onlineComponentProvider = tabManager._onlineComponentProvider!;
     this._offlineComponentProvider = tabManager._offlineComponentProvider!;
+  }
+
+  toJSON() {
+    return { kind: this.kind };
   }
 }
 
@@ -87,7 +95,7 @@ export function indexedDbLocalCache(
 
 export interface IndexedDbSingleTabManager {
   kind: 'indexedDbSingleTab';
-  initialize: (
+  _initialize: (
     settings: Omit<IndexedDbSettings, 'tabManager'> | undefined
   ) => void;
   _onlineComponentProvider?: OnlineComponentProvider;
@@ -102,7 +110,11 @@ class SingleTabManagerImpl implements IndexedDbSingleTabManager {
 
   constructor(private forceOwnership?: boolean) {}
 
-  initialize(
+  toJSON() {
+    return { kind: this.kind };
+  }
+
+  _initialize(
     settings: Omit<IndexedDbSettings, 'tabManager'> | undefined
   ): void {
     this._onlineComponentProvider = new OnlineComponentProvider();
@@ -116,7 +128,7 @@ class SingleTabManagerImpl implements IndexedDbSingleTabManager {
 
 export interface IndexedDbMultipleTabManager {
   kind: 'IndexedDbMultipleTab';
-  initialize: (settings: Omit<IndexedDbSettings, 'tabManager'>) => void;
+  _initialize: (settings: Omit<IndexedDbSettings, 'tabManager'>) => void;
   _onlineComponentProvider?: OnlineComponentProvider;
   _offlineComponentProvider?: OfflineComponentProvider;
 }
@@ -127,7 +139,11 @@ class MultiTabManagerImpl implements IndexedDbMultipleTabManager {
   _onlineComponentProvider?: OnlineComponentProvider;
   _offlineComponentProvider?: OfflineComponentProvider;
 
-  initialize(
+  toJSON() {
+    return { kind: this.kind };
+  }
+
+  _initialize(
     settings: Omit<IndexedDbSettings, 'tabManager'> | undefined
   ): void {
     this._onlineComponentProvider = new OnlineComponentProvider();
