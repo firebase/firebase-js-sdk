@@ -348,9 +348,7 @@ describe('api/_performApiRequest', () => {
 
     it('should handle failures', async () => {
       mockFetch.setUpWithOverride(() => {
-        return new Promise<never>((_, reject) =>
-          reject(new Error('error'))
-        );
+        return new Promise<never>((_, reject) => reject(new Error('error')));
       });
       const promise = _performApiRequest<typeof request, never>(
         auth,

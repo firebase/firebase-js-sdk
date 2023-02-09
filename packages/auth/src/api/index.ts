@@ -183,8 +183,7 @@ export async function _performFetchWithErrorHandling<V>(
     }
     if (e instanceof Error) {
       _fail(auth, AuthErrorCode.INTERNAL_ERROR, e);
-    }
-    else {
+    } else {
       _fail(auth, AuthErrorCode.INTERNAL_ERROR, String(e));
     }
   }
