@@ -59,12 +59,6 @@ export function _fail<K extends AuthErrorCode>(
   ...data: {} extends LessAppName<K> ? [LessAppName<K>?] : [LessAppName<K>]
 ): never;
 export function _fail<K extends AuthErrorCode>(
-  auth: Auth,
-  code: K,
-  errorMessage: string,
-  ...data: {} extends LessAppName<K> ? [LessAppName<K>?] : [LessAppName<K>]
-): never;
-export function _fail<K extends AuthErrorCode>(
   authOrCode: Auth | K,
   ...rest: unknown[]
 ): never {
