@@ -346,10 +346,10 @@ describe('api/_performApiRequest', () => {
       clock.restore();
     });
 
-    it('should handle network failure', async () => {
+    it('should handle failures', async () => {
       mockFetch.setUpWithOverride(() => {
         return new Promise<never>((_, reject) =>
-          reject(new Error('network error'))
+          reject(new Error('error'))
         );
       });
       const promise = _performApiRequest<typeof request, never>(
@@ -360,7 +360,7 @@ describe('api/_performApiRequest', () => {
       );
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
-        'auth/network-request-failed'
+        'auth/internal-error'
       );
     });
   });
