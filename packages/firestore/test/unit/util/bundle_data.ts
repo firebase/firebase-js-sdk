@@ -22,10 +22,8 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { DocumentKey } from '../../../src/model/document_key';
-import {
-  newSerializer,
-  newTextEncoder
-} from '../../../src/platform/serializer';
+import { newSerializer } from '../../../src/platform/serializer';
+import { newTextEncoder } from '../../../src/platform/text_serializer';
 import {
   BundleElement,
   LimitType as BundleLimitType
