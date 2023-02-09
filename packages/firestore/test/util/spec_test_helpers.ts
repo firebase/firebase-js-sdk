@@ -44,8 +44,8 @@ export function encodeWatchChange(
   if (watchChange instanceof ExistenceFilterChange) {
     return {
       filter: {
+        targetId: watchChange.targetId,
         count: watchChange.existenceFilter.count,
-        targetId: watchChange.targetId
       }
     };
   }
