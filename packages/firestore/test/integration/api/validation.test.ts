@@ -1025,6 +1025,19 @@ apiDescribe('Validation:', (persistence: boolean) => {
         "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
 
+      // This is redundant with the above tests, but makes sure our validation
+      // doesn't get confused.
+      expect(() =>
+        query(
+          collection(db, 'test'),
+          where('foo', 'in', [2, 3]),
+          where('foo', 'array-contains', 1),
+          where('foo', 'array-contains-any', [2])
+        )
+      ).to.throw(
+        "Invalid query. You cannot use 'array-contains-any' filters with 'array-contains' filters."
+      );
+
       expect(() =>
         query(
           collection(db, 'test'),
