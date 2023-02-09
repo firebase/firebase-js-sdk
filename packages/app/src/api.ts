@@ -39,7 +39,7 @@ import {
   LogOptions,
   setUserLogHandler
 } from '@firebase/logger';
-import { deepEqual } from '@firebase/util';
+import { deepEqual, getDefaultAppConfig } from '@firebase/util';
 
 export { FirebaseError } from '@firebase/util';
 
@@ -110,10 +110,18 @@ export function initializeApp(
   options: FirebaseOptions,
   config?: FirebaseAppSettings
 ): FirebaseApp;
+/**
+ * Creates and initializes a FirebaseApp instance.
+ *
+ * @public
+ */
+export function initializeApp(): FirebaseApp;
 export function initializeApp(
-  options: FirebaseOptions,
+  _options?: FirebaseOptions,
   rawConfig = {}
 ): FirebaseApp {
+  let options = _options;
+
   if (typeof rawConfig !== 'object') {
     const name = rawConfig;
     rawConfig = { name };
@@ -130,6 +138,12 @@ export function initializeApp(
     throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
       appName: String(name)
     });
+  }
+
+  options ||= getDefaultAppConfig();
+
+  if (!options) {
+    throw ERROR_FACTORY.create(AppError.NO_OPTIONS);
   }
 
   const existingApp = _apps.get(name) as FirebaseAppImpl;
@@ -188,6 +202,9 @@ export function initializeApp(
  */
 export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
   const app = _apps.get(name);
+  if (!app && name === DEFAULT_ENTRY_NAME) {
+    return initializeApp();
+  }
   if (!app) {
     throw ERROR_FACTORY.create(AppError.NO_APP, { appName: name });
   }

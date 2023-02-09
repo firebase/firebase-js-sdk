@@ -27,7 +27,10 @@ import {
   httpsCallable as _httpsCallable,
   httpsCallableFromURL as _httpsCallableFromURL
 } from './service';
-import { getModularInstance } from '@firebase/util';
+import {
+  getModularInstance,
+  getDefaultEmulatorHostnameAndPort
+} from '@firebase/util';
 
 export * from './public-types';
 
@@ -51,6 +54,10 @@ export function getFunctions(
   const functionsInstance = functionsProvider.getImmediate({
     identifier: regionOrCustomDomain
   });
+  const emulator = getDefaultEmulatorHostnameAndPort('functions');
+  if (emulator) {
+    connectFunctionsEmulator(functionsInstance, ...emulator);
+  }
   return functionsInstance;
 }
 

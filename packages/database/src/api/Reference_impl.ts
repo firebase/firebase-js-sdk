@@ -578,8 +578,8 @@ export interface ThenableReferenceImpl
  * resulting list of items is chronologically sorted. The keys are also
  * designed to be unguessable (they contain 72 random bits of entropy).
  *
- * See {@link https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data | Append to a list of data}
- * </br>See {@link ttps://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html | The 2^120 Ways to Ensure Unique Identifiers}
+ * See {@link https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data | Append to a list of data}.
+ * See {@link https://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html | The 2^120 Ways to Ensure Unique Identifiers}.
  *
  * @param parent - The parent location.
  * @param value - Optional value to be written at the generated location.
@@ -1782,8 +1782,8 @@ class QueryEndBeforeConstraint extends QueryConstraint {
  *
  * The ending point is exclusive. If only a value is provided, children
  * with a value less than the specified value will be included in the query.
- * If a key is specified, then children must have a value lesss than or equal
- * to the specified value and a a key name less than the specified key.
+ * If a key is specified, then children must have a value less than or equal
+ * to the specified value and a key name less than the specified key.
  *
  * @param value - The value to end before. The argument type depends on which
  * `orderBy*()` function was used in this query. Specify a value that matches

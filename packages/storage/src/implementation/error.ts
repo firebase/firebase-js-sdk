@@ -26,16 +26,17 @@ import { CONFIG_STORAGE_BUCKET_KEY } from './constants';
 export class StorageError extends FirebaseError {
   private readonly _baseMessage: string;
   /**
-   * Stores custom error data unque to StorageError.
+   * Stores custom error data unique to the `StorageError`.
    */
   customData: { serverResponse: string | null } = { serverResponse: null };
 
   /**
-   * @param code - A StorageErrorCode string to be prefixed with 'storage/' and
+   * @param code - A `StorageErrorCode` string to be prefixed with 'storage/' and
    *  added to the end of the message.
    * @param message  - Error message.
+   * @param status_ - Corresponding HTTP Status Code
    */
-  constructor(code: StorageErrorCode, message: string) {
+  constructor(code: StorageErrorCode, message: string, private status_ = 0) {
     super(
       prependCode(code),
       `Firebase Storage: ${message} (${prependCode(code)})`
@@ -46,8 +47,16 @@ export class StorageError extends FirebaseError {
     Object.setPrototypeOf(this, StorageError.prototype);
   }
 
+  get status(): number {
+    return this.status_;
+  }
+
+  set status(status: number) {
+    this.status_ = status;
+  }
+
   /**
-   * Compares a StorageErrorCode against this error's code, filtering out the prefix.
+   * Compares a `StorageErrorCode` against this error's code, filtering out the prefix.
    */
   _codeEquals(code: StorageErrorCode): boolean {
     return prependCode(code) === this.code;
@@ -74,9 +83,9 @@ export const errors = {};
 
 /**
  * @public
- * Error codes that can be attached to `StorageError`s.
+ * Error codes that can be attached to `StorageError` objects.
  */
-export const enum StorageErrorCode {
+export enum StorageErrorCode {
   // Shared between all platforms
   UNKNOWN = 'unknown',
   OBJECT_NOT_FOUND = 'object-not-found',
@@ -249,6 +258,13 @@ export function noDownloadURL(): StorageError {
   return new StorageError(
     StorageErrorCode.NO_DOWNLOAD_URL,
     'The given file does not have any download URLs.'
+  );
+}
+
+export function missingPolyFill(polyFill: string): StorageError {
+  return new StorageError(
+    StorageErrorCode.UNSUPPORTED_ENVIRONMENT,
+    `${polyFill} is missing. Make sure to install the required polyfills. See https://firebase.google.com/docs/web/environments-js-sdk#polyfills for more information.`
   );
 }
 

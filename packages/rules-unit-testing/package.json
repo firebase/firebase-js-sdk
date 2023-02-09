@@ -1,6 +1,6 @@
 {
   "name": "@firebase/rules-unit-testing",
-  "version": "2.0.4",
+  "version": "2.0.7",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -10,6 +10,10 @@
       "node": {
         "import": "./dist/esm/index.esm.js",
         "require": "./dist/index.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/index.cjs.js",
+        "import": "./dist/esm/index.esm.js"
       },
       "default": "./dist/index.cjs.js"
     },
@@ -34,7 +38,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.72.1",
+    "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2"
   },
   "peerDependencies": {

@@ -72,6 +72,7 @@ export class WebChannelConnection extends RestConnection {
   ): Promise<Resp> {
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
       const xhr = new XhrIo();
+      xhr.setWithCredentials(true);
       xhr.listenOnce(EventType.COMPLETE, () => {
         try {
           switch (xhr.getLastErrorCode()) {
@@ -96,8 +97,11 @@ export class WebChannelConnection extends RestConnection {
                 xhr.getResponseText()
               );
               if (status > 0) {
-                const responseError = (xhr.getResponseJson() as WebChannelError)
-                  .error;
+                let response = xhr.getResponseJson();
+                if (Array.isArray(response)) {
+                  response = response[0];
+                }
+                const responseError = (response as WebChannelError)?.error;
                 if (
                   !!responseError &&
                   !!responseError.status &&

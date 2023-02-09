@@ -48,8 +48,7 @@ export function generateToc({
   if (jsSdk) {
     const firebaseToc: ITocItem = {
       title: 'firebase',
-      path: `${g3Path}/index`,
-      section: []
+      path: `${g3Path}/index`
     };
     toc.push(firebaseToc);
   }

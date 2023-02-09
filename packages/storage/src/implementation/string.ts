@@ -184,6 +184,9 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
   try {
     bytes = decodeBase64(value);
   } catch (e) {
+    if ((e as Error).message.includes('polyfill')) {
+      throw e;
+    }
     throw invalidFormat(format, 'Invalid character found');
   }
   const array = new Uint8Array(bytes.length);

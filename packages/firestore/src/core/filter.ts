@@ -325,6 +325,14 @@ export function canonifyFilter(filter: Filter): string {
       filter.op.toString() +
       canonicalId(filter.value)
     );
+  } else if (compositeFilterIsFlatConjunction(filter)) {
+    // Older SDK versions use an implicit AND operation between their filters.
+    // In the new SDK versions, the developer may use an explicit AND filter.
+    // To stay consistent with the old usages, we add a special case to ensure
+    // the canonical ID for these two are the same. For example:
+    // `col.whereEquals("a", 1).whereEquals("b", 2)` should have the same
+    // canonical ID as `col.where(and(equals("a",1), equals("b",2)))`.
+    return filter.filters.map(filter => canonifyFilter(filter)).join(',');
   } else {
     // filter instanceof CompositeFilter
     const canonicalIdsString = filter.filters

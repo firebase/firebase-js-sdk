@@ -1273,7 +1273,9 @@ function setMaxReadTime(
   collectionGroup: string,
   changedDocs: SortedMap<DocumentKey, Document>
 ): void {
-  let readTime = SnapshotVersion.min();
+  let readTime =
+    localStoreImpl.collectionGroupReadTime.get(collectionGroup) ||
+    SnapshotVersion.min();
   changedDocs.forEach((_, doc) => {
     if (doc.readTime.compareTo(readTime) > 0) {
       readTime = doc.readTime;

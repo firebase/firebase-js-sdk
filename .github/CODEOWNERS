@@ -55,15 +55,14 @@ packages/storage-types @maneesht @tonyjhuang @firebase/jssdk-global-approvers
 # Messaging Code
 packages/messaging  @zwu52 @firebase/jssdk-global-approvers
 packages/messaging-compat  @zwu52 @firebase/jssdk-global-approvers
-packages/messaging-types @zwu52 @firebase/jssdk-global-approvers
 packages/messaging-interop-types @zwu52 @firebase/jssdk-global-approvers
 integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
 # Auth Code
-packages/auth  @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers
-packages/auth-compat @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers
-packages/auth-types @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers
-packages/auth-interop-types @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers
+packages/auth @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth-compat @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth-types @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth-interop-types @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
 
 # Testing Code
 packages/rules-unit-testing  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers

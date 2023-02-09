@@ -224,7 +224,8 @@ describe('QueryListener', () => {
       docChanges: [change1, change4],
       fromCache: snap2.fromCache,
       syncStateChanged: true,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap2.hasCachedResults
     };
     expect(otherEvents).to.deep.equal([expectedSnap2]);
   });
@@ -396,7 +397,8 @@ describe('QueryListener', () => {
         docChanges: [change3],
         fromCache: snap2.fromCache,
         syncStateChanged: snap2.syncStateChanged,
-        mutatedKeys: snap2.mutatedKeys
+        mutatedKeys: snap2.mutatedKeys,
+        hasCachedResults: snap2.hasCachedResults
       };
       expect(filteredEvents).to.deep.equal([snap1, expectedSnap2]);
     }
@@ -482,7 +484,8 @@ describe('QueryListener', () => {
       ],
       fromCache: false,
       syncStateChanged: true,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap3.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
@@ -517,7 +520,8 @@ describe('QueryListener', () => {
       docChanges: [{ type: ChangeType.Added, doc: doc1 }],
       fromCache: true,
       syncStateChanged: true,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap1.hasCachedResults
     };
     const expectedSnap2 = {
       query: query1,
@@ -526,7 +530,8 @@ describe('QueryListener', () => {
       docChanges: [{ type: ChangeType.Added, doc: doc2 }],
       fromCache: true,
       syncStateChanged: false,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap2.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap1, expectedSnap2]);
   });
@@ -552,7 +557,8 @@ describe('QueryListener', () => {
       docChanges: [],
       fromCache: true,
       syncStateChanged: true,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap1.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
@@ -577,7 +583,8 @@ describe('QueryListener', () => {
       docChanges: [],
       fromCache: true,
       syncStateChanged: true,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap1.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
