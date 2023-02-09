@@ -509,18 +509,19 @@ export class LocalDocumentsView {
     offset: IndexOffset
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
-    let remoteDocuments: MutableDocumentMap;
-    return this.remoteDocumentCache
-      .getAllFromCollection(transaction, query.path, offset)
-      .next(queryResults => {
-        remoteDocuments = queryResults;
-        return this.documentOverlayCache.getOverlaysForCollection(
+    let overlays: OverlayMap;
+    return this.documentOverlayCache
+      .getOverlaysForCollection(transaction, query.path, offset.largestBatchId)
+      .next(result => {
+        overlays = result;
+        return this.remoteDocumentCache.getDocumentsMatchingQuery(
           transaction,
-          query.path,
-          offset.largestBatchId
+          query,
+          offset,
+          overlays
         );
       })
-      .next(overlays => {
+      .next(remoteDocuments => {
         // As documents might match the query because of their overlay we need to
         // include documents for all overlays in the initial document set.
         overlays.forEach((_, overlay) => {
