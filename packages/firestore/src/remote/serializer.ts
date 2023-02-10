@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { Aggregate } from '../core/aggregate';
 import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
 import {
@@ -80,6 +81,8 @@ import {
   Precondition as ProtoPrecondition,
   QueryTarget as ProtoQueryTarget,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
+  RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
+  Aggregation as ProtoAggregation,
   Status as ProtoStatus,
   Target as ProtoTarget,
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
@@ -433,6 +436,22 @@ export function fromDocument(
     result.setHasCommittedMutations();
   }
   return hasCommittedMutations ? result.setHasCommittedMutations() : result;
+}
+
+export function fromAggregationResult(
+  aggregationQueryResponse: ProtoRunAggregationQueryResponse
+): ObjectValue {
+  assertPresent(
+    aggregationQueryResponse.result,
+    'aggregationQueryResponse.result'
+  );
+  assertPresent(
+    aggregationQueryResponse.result.aggregateFields,
+    'aggregationQueryResponse.result.aggregateFields'
+  );
+  return new ObjectValue({
+    mapValue: { fields: aggregationQueryResponse.result?.aggregateFields }
+  });
 }
 
 function fromFound(
@@ -887,18 +906,38 @@ export function toQueryTarget(
 
 export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
-  target: Target
+  target: Target,
+  aggregates: Aggregate[]
 ): ProtoRunAggregationQueryRequest {
   const queryTarget = toQueryTarget(serializer, target);
 
+  const aggregations: ProtoAggregation[] = [];
+  aggregates.forEach(aggregate => {
+    if (aggregate.aggregateType === 'count') {
+      aggregations.push({
+        alias: aggregate.alias.canonicalString(),
+        count: {}
+      });
+    } else if (aggregate.aggregateType === 'avg') {
+      aggregations.push({
+        alias: aggregate.alias.canonicalString(),
+        avg: {
+          field: toFieldPathReference(aggregate.fieldPath!)
+        }
+      });
+    } else if (aggregate.aggregateType === 'sum') {
+      aggregations.push({
+        alias: aggregate.alias.canonicalString(),
+        sum: {
+          field: toFieldPathReference(aggregate.fieldPath!)
+        }
+      });
+    }
+  });
+
   return {
     structuredAggregationQuery: {
-      aggregations: [
-        {
-          count: {},
-          alias: 'count_alias'
-        }
-      ],
+      aggregations,
       structuredQuery: queryTarget.structuredQuery
     },
     parent: queryTarget.parent
