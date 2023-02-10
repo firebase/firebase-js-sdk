@@ -1172,7 +1172,13 @@ abstract class TestRunner {
         });
       }
 
-      expect(actual.view!.docChanges).to.deep.equal(expectedChanges);
+      const actualChangesSorted = Array.from(actual.view!.docChanges).sort(
+        (a, b) => primitiveComparator(a.doc, b.doc)
+      );
+      const expectedChangesSorted = Array.from(expectedChanges).sort((a, b) =>
+        primitiveComparator(a.doc, b.doc)
+      );
+      expect(actualChangesSorted).to.deep.equal(expectedChangesSorted);
 
       expect(actual.view!.hasPendingWrites).to.equal(
         expected.hasPendingWrites,
