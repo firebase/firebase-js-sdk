@@ -25,8 +25,10 @@ const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/base64`);
 export function decodeBase64(encoded: string): string {
   const decoded = platform.decodeBase64(encoded);
 
-  // A quick sanity check as node and rn will not throw error if input is an
-  // invalid base64 string, e.g., "A===".
+  // A quick correctness check that the input string was valid base64.
+  // See https://stackoverflow.com/questions/13378815/base64-length-calculation.
+  // This is done because node and rn will not always throw an error if the
+  // input is an invalid base64 string (e.g. "A===").
   const expectedEncodedLength = 4 * Math.ceil(decoded.length / 3);
   if (encoded.length !== expectedEncodedLength) {
     throw new Base64DecodeError('Invalid base64 string');
