@@ -36,7 +36,8 @@ import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { ObjectValue } from '../model/object_value';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { newSerializer, newTextEncoder } from '../platform/serializer';
+import { newSerializer } from '../platform/serializer';
+import { newTextEncoder } from '../platform/text_serializer';
 import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
 import {
   canUseNetwork,
