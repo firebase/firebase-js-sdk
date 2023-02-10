@@ -17,7 +17,12 @@
 
 export {
   aggregateQuerySnapshotEqual,
-  getCountFromServer
+  getCountFromServer,
+  getAggregateFromServer,
+  count,
+  sum,
+  average,
+  aggregateFieldEqual
 } from './api/aggregate';
 
 export {
@@ -25,7 +30,8 @@ export {
   AggregateFieldType,
   AggregateSpec,
   AggregateSpecData,
-  AggregateQuerySnapshot
+  AggregateQuerySnapshot,
+  AggregateType
 } from './lite-api/aggregate_types';
 
 export { FieldPath, documentId } from './api/field_path';
