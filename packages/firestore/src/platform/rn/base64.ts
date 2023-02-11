@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import { base64 } from '@firebase/util';
+import { base64, DecodeBase64StringError } from '@firebase/util';
+
+import { Base64DecodeError } from '../../util/base64_decode_error';
 
 // WebSafe uses a different URL-encoding safe alphabet that doesn't match
 // the encoding used on the backend.
@@ -23,13 +25,21 @@ const WEB_SAFE = false;
 
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {
-  return String.fromCharCode.apply(
-    null,
-    // We use `decodeStringToByteArray()` instead of `decodeString()` since
-    // `decodeString()` returns Unicode strings, which doesn't match the values
-    // returned by `atob()`'s Latin1 representation.
-    base64.decodeStringToByteArray(encoded, WEB_SAFE)
-  );
+  try {
+    return String.fromCharCode.apply(
+      null,
+      // We use `decodeStringToByteArray()` instead of `decodeString()` since
+      // `decodeString()` returns Unicode strings, which doesn't match the values
+      // returned by `atob()`'s Latin1 representation.
+      base64.decodeStringToByteArray(encoded, WEB_SAFE)
+    );
+  } catch (e) {
+    if (e instanceof DecodeBase64StringError) {
+      throw new Base64DecodeError('Invalid base64 string: ' + e);
+    } else {
+      throw e;
+    }
+  }
 }
 
 /** Converts a binary string to a Base64 encoded string. */
