@@ -108,7 +108,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Interface | Description |
 |  --- | --- |
-|  [AggregateSpec](./firestore_lite.aggregatespec.md#aggregatespec_interface) | A type whose property values are all <code>AggregateField</code> objects. |
+|  [AggregateSpec](./firestore_lite.aggregatespec.md#aggregatespec_interface) | Specifies a set of aggregations and their aliases. |
 |  [DocumentData](./firestore_lite.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore_lite.md#setdoc)<!-- -->) consists of fields mapped to values. |
 |  [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>T</code> into Firestore data.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore. |
 |  [Settings](./firestore_lite.settings.md#settings_interface) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
@@ -1277,7 +1277,7 @@ The union of all `AggregateField` types that are supported by Firestore.
 <b>Signature:</b>
 
 ```typescript
-export declare type AggregateFieldType = AggregateField<number>;
+export declare type AggregateFieldType = AggregateField<number | null>;
 ```
 
 ## AggregateSpecData

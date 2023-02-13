@@ -22,7 +22,7 @@ export declare class AggregateField<T>
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [type](./firestore_.aggregatefield.md#aggregatefieldtype) |  | string | A type string to uniquely identify instances of this class. |
+|  [type](./firestore_.aggregatefield.md#aggregatefieldtype) |  | (not declared) | A type string to uniquely identify instances of this class. |
 
 ## AggregateField.type
 
@@ -31,5 +31,5 @@ A type string to uniquely identify instances of this class.
 <b>Signature:</b>
 
 ```typescript
-type: string;
+readonly type = "AggregateField";
 ```
