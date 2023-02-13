@@ -145,12 +145,21 @@ async function generateDocs(
     authApiConfigModified
   );
 
-  if (!skipBuild) {
-    await spawn('yarn', ['build'], {
+  if (skipBuild) {
+    await spawn('yarn', ['api-report'], {
       stdio: 'inherit'
     });
-
-    await spawn('yarn', ['api-report'], {
+  } else {
+    // api-report is run as part of every build
+    await spawn('yarn', [
+      'lerna',
+      'run',
+      '--scope',
+      '@firebase/*',
+      '--ignore',
+      '@firebase/*-compat',
+      'build'
+    ], {
       stdio: 'inherit'
     });
   }

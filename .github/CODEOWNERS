@@ -99,4 +99,4 @@ scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
 docs-devsite/ @egilmorez @markarndt
 
 # Changeset
-.changeset @egilmorez @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers
+.changeset @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers
