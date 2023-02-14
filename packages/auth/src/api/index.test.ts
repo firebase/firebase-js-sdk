@@ -60,10 +60,10 @@ describe('api/_performApiRequest', () => {
   });
 
   context('with regular requests', () => {
+    beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
 
     it('should set the correct request, method and HTTP Headers', async () => {
-      mockFetch.setUp();
       const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
       const response = await _performApiRequest<
         typeof request,
@@ -82,7 +82,6 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should set the device language if available', async () => {
-      mockFetch.setUp();
       auth.languageCode = 'jp';
       const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
       const response = await _performApiRequest<
@@ -96,7 +95,6 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should include whatever headers the auth impl attaches', async () => {
-      mockFetch.setUp();
       sinon.stub(auth, '_getAdditionalHeaders').returns(
         Promise.resolve({
           'look-at-me-im-a-header': 'header-value',
@@ -120,7 +118,6 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should set the framework in clientVersion if logged', async () => {
-      mockFetch.setUp();
       auth._logFramework('Mythical');
       const mock = mockEndpoint(Endpoint.SIGN_UP, serverResponse);
       const response = await _performApiRequest<
@@ -146,7 +143,6 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should translate server errors to auth errors', async () => {
-      mockFetch.setUp();
       const mock = mockEndpoint(
         Endpoint.SIGN_UP,
         {
@@ -176,7 +172,6 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should translate server success with errorMessage into auth error', async () => {
-      mockFetch.setUp();
       const response = {
         errorMessage: ServerError.FEDERATED_USER_ID_ALREADY_LINKED,
         idToken: 'foo-bar'
@@ -198,7 +193,6 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should translate complex server errors to auth errors', async () => {
-      mockFetch.setUp();
       const mock = mockEndpoint(
         Endpoint.SIGN_UP,
         {
@@ -228,7 +222,6 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should pass through server messages if applicable', async () => {
-      mockFetch.setUp();
       mockEndpoint(
         Endpoint.SIGN_UP,
         {
@@ -254,7 +247,6 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should handle unknown server errors', async () => {
-      mockFetch.setUp();
       const mock = mockEndpoint(
         Endpoint.SIGN_UP,
         {
@@ -284,7 +276,6 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should support custom error handling per endpoint', async () => {
-      mockFetch.setUp();
       const mock = mockEndpoint(
         Endpoint.SIGN_UP,
         {
@@ -315,6 +306,10 @@ describe('api/_performApiRequest', () => {
       );
       expect(mock.calls[0].request).to.eql(request);
     });
+  });
+
+  context('with non-Firebase Errors', () => {
+    afterEach(mockFetch.tearDown);
 
     it('should handle non-FirebaseErrors', async () => {
       mockFetch.setUpWithOverride(() => {
