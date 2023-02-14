@@ -95,7 +95,8 @@ function repoManagerApplyEmulatorSettings(
     repo.repoInfo_.webSocketOnly,
     repo.repoInfo_.nodeAdmin,
     repo.repoInfo_.persistenceKey,
-    repo.repoInfo_.includeNamespaceInQueryParams
+    repo.repoInfo_.includeNamespaceInQueryParams,
+    /*isUsingEmulator=*/ true
   );
 
   if (tokenProvider) {
@@ -320,9 +321,11 @@ export function getDatabase(
   const db = _getProvider(app, 'database').getImmediate({
     identifier: url
   }) as Database;
-  const emulator = getDefaultEmulatorHostnameAndPort('database');
-  if (emulator) {
-    connectDatabaseEmulator(db, ...emulator);
+  if (!db._instanceStarted) {
+    const emulator = getDefaultEmulatorHostnameAndPort('database');
+    if (emulator) {
+      connectDatabaseEmulator(db, ...emulator);
+    }
   }
   return db;
 }

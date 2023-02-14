@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 
-import { DocumentKeySet, MutableDocumentMap } from '../model/collections';
+import { Query } from '../core/query';
+import {
+  DocumentKeySet,
+  MutableDocumentMap,
+  OverlayMap
+} from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { IndexOffset } from '../model/field_index';
-import { ResourcePath } from '../model/path';
 
 import { IndexManager } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
@@ -62,16 +66,17 @@ export interface RemoteDocumentCache {
   ): PersistencePromise<MutableDocumentMap>;
 
   /**
-   * Returns the documents from the provided collection.
+   * Returns the documents matching the given query
    *
-   * @param collection - The collection to read.
+   * @param query - The query to match documents against.
    * @param offset - The offset to start the scan at (exclusive).
    * @returns The set of matching documents.
    */
-  getAllFromCollection(
+  getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    collection: ResourcePath,
-    offset: IndexOffset
+    query: Query,
+    offset: IndexOffset,
+    mutatedDocs: OverlayMap
   ): PersistencePromise<MutableDocumentMap>;
 
   /**

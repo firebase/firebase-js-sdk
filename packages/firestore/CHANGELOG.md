@@ -1,5 +1,104 @@
 # @firebase/firestore
 
+## 3.8.3
+
+### Patch Changes
+
+- [`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30) [#7007](https://github.com/firebase/firebase-js-sdk/pull/7007) (fixes [#7005](https://github.com/firebase/firebase-js-sdk/issues/7005)) - Move exports.default fields to always be the last field. This fixes a bug caused in 9.17.0 that prevented some bundlers and frameworks from building.
+
+- Updated dependencies [[`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30)]:
+  - @firebase/util@1.9.2
+  - @firebase/component@0.6.3
+
+## 3.8.2
+
+### Patch Changes
+
+- [`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5) [#6981](https://github.com/firebase/firebase-js-sdk/pull/6981) - Added browser CJS entry points (expected by Jest when using JSDOM mode).
+
+- [`27b5e7d70`](https://github.com/firebase/firebase-js-sdk/commit/27b5e7d7081688599fc518b329a43db4319cdd1f) [#6989](https://github.com/firebase/firebase-js-sdk/pull/6989) - Reduce memory usage by applying query check sooner in remote document cache.
+
+- Updated dependencies [[`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5)]:
+  - @firebase/util@1.9.1
+  - @firebase/component@0.6.2
+
+## 3.8.1
+
+### Patch Changes
+
+- [`a7622d49f`](https://github.com/firebase/firebase-js-sdk/commit/a7622d49f8a69bcdfb95b89dd1609a5c495fd529) [#6896](https://github.com/firebase/firebase-js-sdk/pull/6896) - Update canonifyFilter to compute the canonization for flat conjunctions the same as implicit AND queries.
+
+- [`1455bfa43`](https://github.com/firebase/firebase-js-sdk/commit/1455bfa4393383ab461de35ccbc2b171f92169df) [#6893](https://github.com/firebase/firebase-js-sdk/pull/6893) - Fix an issue that stops some performance optimization being applied.
+
+- [`37f31c57b`](https://github.com/firebase/firebase-js-sdk/commit/37f31c57b62bc6486bc08d9e5c64e2c32d25cb0a) [#6879](https://github.com/firebase/firebase-js-sdk/pull/6879) (fixes [#6851](https://github.com/firebase/firebase-js-sdk/issues/6851)) - Fix documentation for getDocsFromCache.
+
+- Updated dependencies [[`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+
+## 3.8.0
+
+### Minor Changes
+
+- [`ab3f16cba`](https://github.com/firebase/firebase-js-sdk/commit/ab3f16cbabc420fab0a322a21c9e28d3cbed4f24) [#6796](https://github.com/firebase/firebase-js-sdk/pull/6796) - Upgrade TypeScript to 4.7.4 (was 4.2.2)
+
+- [`fde5adf63`](https://github.com/firebase/firebase-js-sdk/commit/fde5adf638dae4714ff7f25c75e475344907e05e) [#6694](https://github.com/firebase/firebase-js-sdk/pull/6694) - Functions in the Firestore package that return QueryConstraints (for example: `where(...)`, `limit(...)`, and `orderBy(...)`)
+  now return a more specific type, which extends QueryConstraint. Refactoring and code that supports future features is also
+  included in this release.
+
+### Patch Changes
+
+- Updated dependencies [[`c20633ed3`](https://github.com/firebase/firebase-js-sdk/commit/c20633ed35056cbadc9d65d9ceddf4e28d1ea666), [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be)]:
+  - @firebase/util@1.8.0
+  - @firebase/component@0.6.0
+  - @firebase/logger@0.4.0
+  - @firebase/webchannel-wrapper@0.9.0
+
+## 3.7.3
+
+### Patch Changes
+
+- [`bf7cc8f69`](https://github.com/firebase/firebase-js-sdk/commit/bf7cc8f691f7a17730b071d3d9c27bd28a6e3980) [#6712](https://github.com/firebase/firebase-js-sdk/pull/6712) (fixes [#6613](https://github.com/firebase/firebase-js-sdk/issues/6613)) - Fix "missing index" error message to include the link to create the composite index.
+
+- [`e2a90bf67`](https://github.com/firebase/firebase-js-sdk/commit/e2a90bf678eb6fa505f8b2f627e03cff622607b5) [#6729](https://github.com/firebase/firebase-js-sdk/pull/6729) - Fix transaction.set() failure without retry on "already-exists" error.
+
+## 3.7.2
+
+### Patch Changes
+
+- [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5) [#6682](https://github.com/firebase/firebase-js-sdk/pull/6682) - Upgrade TypeScript to 4.7.4.
+
+- Updated dependencies [[`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5)]:
+  - @firebase/component@0.5.21
+  - @firebase/logger@0.3.4
+  - @firebase/util@1.7.3
+  - @firebase/webchannel-wrapper@0.8.1
+
+## 3.7.1
+
+### Patch Changes
+
+- Updated dependencies [[`807f06aa2`](https://github.com/firebase/firebase-js-sdk/commit/807f06aa26438a91aaea08fd38efb6c706bb8a5d)]:
+  - @firebase/util@1.7.2
+  - @firebase/component@0.5.20
+
+## 3.7.0
+
+### Minor Changes
+
+- [`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed) [#6643](https://github.com/firebase/firebase-js-sdk/pull/6643) - Set withCredentials=true when making requests via non-streaming RPCs, like is done for streaming RPCs.
+
+### Patch Changes
+
+- [`0a112bd2a`](https://github.com/firebase/firebase-js-sdk/commit/0a112bd2aee2e709d6733b1a36876e6fae1e347f) [#6624](https://github.com/firebase/firebase-js-sdk/pull/6624) (fixes [#5873](https://github.com/firebase/firebase-js-sdk/issues/5873)) - Fix Firestore failing to raise initial snapshot from empty local cache result
+
+* [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561) [#6673](https://github.com/firebase/firebase-js-sdk/pull/6673) - Handle IPv6 addresses in emulator autoinit.
+
+* Updated dependencies [[`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed), [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561), [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18)]:
+  - @firebase/webchannel-wrapper@0.8.0
+  - @firebase/util@1.7.1
+  - @firebase/component@0.5.19
+
 ## 3.6.0
 
 ### Minor Changes

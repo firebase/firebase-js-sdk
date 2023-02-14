@@ -23,7 +23,12 @@ import {
   PartialObserver
 } from './public-types';
 import { ERROR_FACTORY, AppCheckError } from './errors';
-import { getState, setState, AppCheckState, getDebugState } from './state';
+import {
+  getStateReference,
+  getDebugState,
+  DEFAULT_STATE,
+  setInitialState
+} from './state';
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { getModularInstance, ErrorFn, NextFn } from '@firebase/util';
 import { AppCheckService } from './factory';
@@ -101,7 +106,7 @@ export function initializeAppCheck(
   // If isTokenAutoRefreshEnabled is false, do not send any requests to the
   // exchange endpoint without an explicit call from the user either directly
   // or through another Firebase library (storage, functions, etc.)
-  if (getState(app).isTokenAutoRefreshEnabled) {
+  if (getStateReference(app).isTokenAutoRefreshEnabled) {
     // Adding a listener will start the refresher and fetch a token if needed.
     // This gets a token ready and prevents a delay when an internal library
     // requests the token.
@@ -128,13 +133,15 @@ function _activate(
   provider: AppCheckProvider,
   isTokenAutoRefreshEnabled?: boolean
 ): void {
-  const state = getState(app);
+  // Create an entry in the APP_CHECK_STATES map. Further changes should
+  // directly mutate this object.
+  const state = setInitialState(app, { ...DEFAULT_STATE });
 
-  const newState: AppCheckState = { ...state, activated: true };
-  newState.provider = provider; // Read cached token from storage if it exists and store it in memory.
-  newState.cachedTokenPromise = readTokenFromStorage(app).then(cachedToken => {
+  state.activated = true;
+  state.provider = provider; // Read cached token from storage if it exists and store it in memory.
+  state.cachedTokenPromise = readTokenFromStorage(app).then(cachedToken => {
     if (cachedToken && isValid(cachedToken)) {
-      setState(app, { ...getState(app), token: cachedToken });
+      state.token = cachedToken;
       // notify all listeners with the cached token
       notifyTokenListeners(app, { token: cachedToken.token });
     }
@@ -144,14 +151,12 @@ function _activate(
   // Use value of global `automaticDataCollectionEnabled` (which
   // itself defaults to false if not specified in config) if
   // `isTokenAutoRefreshEnabled` param was not provided by user.
-  newState.isTokenAutoRefreshEnabled =
+  state.isTokenAutoRefreshEnabled =
     isTokenAutoRefreshEnabled === undefined
       ? app.automaticDataCollectionEnabled
       : isTokenAutoRefreshEnabled;
 
-  setState(app, newState);
-
-  newState.provider.initialize(app);
+  state.provider.initialize(app);
 }
 
 /**
@@ -168,7 +173,7 @@ export function setTokenAutoRefreshEnabled(
   isTokenAutoRefreshEnabled: boolean
 ): void {
   const app = appCheckInstance.app;
-  const state = getState(app);
+  const state = getStateReference(app);
   // This will exist if any product libraries have called
   // `addTokenListener()`
   if (state.tokenRefresher) {
@@ -178,7 +183,7 @@ export function setTokenAutoRefreshEnabled(
       state.tokenRefresher.stop();
     }
   }
-  setState(app, { ...state, isTokenAutoRefreshEnabled });
+  state.isTokenAutoRefreshEnabled = isTokenAutoRefreshEnabled;
 }
 /**
  * Get the current App Check token. Attaches to the most recent

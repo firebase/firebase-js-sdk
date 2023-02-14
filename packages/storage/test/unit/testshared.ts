@@ -205,7 +205,8 @@ export type RequestHandler = (
 ) => Response;
 
 export function storageServiceWithHandler(
-  handler: RequestHandler
+  handler: RequestHandler,
+  shouldResponseCb?: () => boolean
 ): FirebaseStorageImpl {
   function newSend(
     connection: TestingConnection,
@@ -215,11 +216,13 @@ export function storageServiceWithHandler(
     headers?: Headers
   ): void {
     const response = handler(url, method, body, headers);
-    connection.simulateResponse(
-      response.status,
-      response.body,
-      response.headers
-    );
+    if (!shouldResponseCb || shouldResponseCb()) {
+      connection.simulateResponse(
+        response.status,
+        response.body,
+        response.headers
+      );
+    }
   }
 
   injectTestConnection(() => newTestConnection(newSend));
@@ -356,7 +359,7 @@ export function fakeServerHandler(
 
 /**
  * Responds with a 503 for finalize.
- * @param fakeMetadata metadata to respond with for query
+ * @param fakeMetadata metadata to respond with for finalize
  * @returns a handler for requests
  */
 export function fake503ForFinalizeServerHandler(
@@ -459,7 +462,8 @@ export function fake503ForFinalizeServerHandler(
  * @returns a handler for requests
  */
 export function fake503ForUploadServerHandler(
-  fakeMetadata: Partial<Metadata> = defaultFakeMetadata
+  fakeMetadata: Partial<Metadata> = defaultFakeMetadata,
+  cb?: () => void
 ): RequestHandler {
   const stats: {
     [num: number]: {
@@ -536,6 +540,9 @@ export function fake503ForUploadServerHandler(
     const isUpload = commands.indexOf('upload') !== -1;
 
     if (isUpload) {
+      if (cb) {
+        cb();
+      }
       return {
         status: 503,
         body: JSON.stringify(fakeMetadata),

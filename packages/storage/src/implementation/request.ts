@@ -120,9 +120,9 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
           const hitServer = connection.getErrorCode() === ErrorCode.NO_ERROR;
           const status = connection.getStatus();
           if (
-            (!hitServer ||
-              isRetryStatusCode(status, this.additionalRetryCodes_)) &&
-            this.retry
+            !hitServer ||
+            (isRetryStatusCode(status, this.additionalRetryCodes_) &&
+              this.retry)
           ) {
             const wasCanceled = connection.getErrorCode() === ErrorCode.ABORT;
             backoffCallback(

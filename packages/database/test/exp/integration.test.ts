@@ -77,6 +77,24 @@ describe('Database@exp Tests', () => {
     const db = getDatabase(defaultApp);
     expect(db).to.be.ok;
   });
+  it("doesn't try to connect to emulator after database has already started", async () => {
+    const db = getDatabase(defaultApp);
+    const r = ref(db, '.info/connected');
+    const deferred = new Deferred();
+    onValue(r, snapshot => {
+      if (snapshot.val()) {
+        deferred.resolve();
+      }
+    });
+    await deferred.promise;
+    process.env.__FIREBASE_DEFAULTS__ = JSON.stringify({
+      emulatorHosts: {
+        database: 'localhost:9000'
+      }
+    });
+    expect(() => getDatabase(defaultApp)).to.not.throw();
+    delete process.env.__FIREBASE_DEFAULTS__;
+  });
 
   it('Can get database with custom URL', () => {
     const db = getDatabase(defaultApp, 'http://foo.bar.com');

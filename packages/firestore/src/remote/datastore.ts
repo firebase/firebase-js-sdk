@@ -17,18 +17,19 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
+import { Aggregate } from '../core/aggregate';
 import { Query, queryToTarget } from '../core/query';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
+import { ObjectValue } from '../model/object_value';
 import {
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
   RunQueryRequest as ProtoRunQueryRequest,
-  RunQueryResponse as ProtoRunQueryResponse,
-  Value as ProtoValue
+  RunQueryResponse as ProtoRunQueryResponse
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
@@ -49,7 +50,8 @@ import {
   toMutation,
   toName,
   toQueryTarget,
-  toRunAggregationQueryRequest
+  toRunAggregationQueryRequest,
+  fromAggregationResult
 } from './serializer';
 
 /**
@@ -238,12 +240,14 @@ export async function invokeRunQueryRpc(
 
 export async function invokeRunAggregationQueryRpc(
   datastore: Datastore,
-  query: Query
-): Promise<ProtoValue[]> {
+  query: Query,
+  aggregates: Aggregate[]
+): Promise<ObjectValue> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const request = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
-    queryToTarget(query)
+    queryToTarget(query),
+    aggregates
   );
 
   const parent = request.parent;
@@ -254,12 +258,16 @@ export async function invokeRunAggregationQueryRpc(
     ProtoRunAggregationQueryRequest,
     ProtoRunAggregationQueryResponse
   >('RunAggregationQuery', parent!, request, /*expectedResponseCount=*/ 1);
-  return (
-    response
-      // Omit RunAggregationQueryResponse that only contain readTimes.
-      .filter(proto => !!proto.result)
-      .map(proto => proto.result!.aggregateFields!)
+
+  // Omit RunAggregationQueryResponse that only contain readTimes.
+  const filteredResult = response.filter(proto => !!proto.result);
+
+  hardAssert(
+    filteredResult.length === 1,
+    'Aggregation fields are missing from result.'
   );
+
+  return fromAggregationResult(filteredResult[0]);
 }
 
 export function newPersistentWriteStream(

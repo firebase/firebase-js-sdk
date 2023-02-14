@@ -1,27 +1,26 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.9.17",
+  "version": "0.12.3",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
-  "sw": "dist/index.sw.esm2017.js",
+  "sw": "dist/esm/index.sw.esm2017.js",
   "sw-main": "dist/index.sw.cjs",
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/index-public.d.ts",
-      "node": "./dist/index.cjs.js",
-      "browser": "./dist/esm/index.esm2017.js",
+      "require": "./dist/index.cjs.js",
       "module": "./dist/esm/index.esm2017.js",
       "esm5": "./dist/esm/index.esm.js",
-      "default": "./dist/index.cjs.js"
+      "default": "./dist/esm/index.esm2017.js"
     },
     "./sw": {
       "types": "./dist/sw/index-public.d.ts",
-      "node": "./dist/index.sw.cjs",
-      "default": "./dist/index.sw.esm2017.js"
+      "require": "./dist/index.sw.cjs",
+      "default": "./dist/esm/index.sw.esm2017.js"
     },
     "./package.json": "./package.json"
   },
@@ -54,20 +53,20 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.5.13",
-    "@firebase/messaging-interop-types": "0.1.0",
-    "@firebase/util": "1.7.0",
-    "@firebase/component": "0.5.18",
+    "@firebase/installations": "0.6.3",
+    "@firebase/messaging-interop-types": "0.2.0",
+    "@firebase/util": "1.9.2",
+    "@firebase/component": "0.6.3",
     "idb": "7.0.1",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.8.0",
-    "rollup": "2.72.1",
+    "@firebase/app": "0.9.3",
+    "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
     "@rollup/plugin-json": "4.1.0",
-    "ts-essentials": "9.1.2",
-    "typescript": "4.2.2"
+    "ts-essentials": "9.3.0",
+    "typescript": "4.7.4"
   },
   "repository": {
     "directory": "packages/messaging",

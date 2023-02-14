@@ -30,7 +30,7 @@ export declare type Timestamp =
   | string
   | { seconds?: string | number; nanos?: number };
 
-export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND';
+export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND' | 'OR';
 export interface ICompositeFilterOpEnum {
   OPERATOR_UNSPECIFIED: CompositeFilterOp;
   AND: CompositeFilterOp;
@@ -355,10 +355,18 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
   interface Aggregation {
     count?: Count;
+    sum?: Sum;
+    avg?: Avg;
     alias?: string;
   }
   interface Count {
     upTo?: number;
+  }
+  interface Sum {
+    field?: FieldReference;
+  }
+  interface Avg {
+    field?: FieldReference;
   }
   interface Status {
     code?: number;
@@ -507,6 +515,7 @@ export declare type RunQueryResponse =
   firestoreV1ApiClientInterfaces.RunQueryResponse;
 export declare type RunAggregationQueryRequest =
   firestoreV1ApiClientInterfaces.RunAggregationQueryRequest;
+export declare type Aggregation = firestoreV1ApiClientInterfaces.Aggregation;
 export declare type RunAggregationQueryResponse =
   firestoreV1ApiClientInterfaces.RunAggregationQueryResponse;
 export declare type Status = firestoreV1ApiClientInterfaces.Status;

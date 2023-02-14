@@ -2279,7 +2279,8 @@
                         "Operator": {
                           "values": {
                             "OPERATOR_UNSPECIFIED": 0,
-                            "AND": 1
+                            "AND": 1,
+                            "OR": 2
                           }
                         }
                       }
@@ -2409,7 +2410,9 @@
                       "oneofs": {
                         "operator": {
                           "oneof": [
-                            "count"
+                            "count",
+                            "sum",
+                            "avg"
                           ]
                         }
                       },
@@ -2417,6 +2420,14 @@
                         "count": {
                           "type": "Count",
                           "id": 1
+                        },
+                        "sum": {
+                          "type": "Sum",
+                          "id": 2
+                        },
+                        "avg": {
+                          "type": "Avg",
+                          "id": 3
                         },
                         "alias": {
                           "type": "string",
@@ -2428,6 +2439,22 @@
                           "fields": {
                             "upTo": {
                               "type": "google.protobuf.Int64Value",
+                              "id": 1
+                            }
+                          }
+                        },
+                        "Sum": {
+                          "fields": {
+                            "field": {
+                              "type": "FieldReference",
+                              "id": 1
+                            }
+                          }
+                        },
+                        "Avg": {
+                          "fields": {
+                            "field": {
+                              "type": "FieldReference",
                               "id": 1
                             }
                           }

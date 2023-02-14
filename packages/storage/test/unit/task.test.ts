@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert, expect } from 'chai';
+import { assert, expect, use } from 'chai';
 import { FbsBlob } from '../../src/implementation/blob';
 import { Location } from '../../src/implementation/location';
 import { Unsubscribe } from '../../src/implementation/observer';
@@ -31,8 +31,13 @@ import {
 } from './testshared';
 import { injectTestConnection } from '../../src/platform/connection';
 import { Deferred } from '@firebase/util';
-import { retryLimitExceeded } from '../../src/implementation/error';
+import { canceled, retryLimitExceeded } from '../../src/implementation/error';
 import { SinonFakeTimers, useFakeTimers } from 'sinon';
+import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai';
+import { DEFAULT_MAX_UPLOAD_RETRY_TIME } from '../../src/implementation/constants';
+
+use(sinonChai);
 
 const testLocation = new Location('bucket', 'object');
 const smallBlob = new FbsBlob(new Uint8Array([97]));
@@ -336,7 +341,142 @@ describe('Firebase Storage > Upload Task', () => {
     });
 
     task.pause();
+    return promise;
+  }
 
+  // This is to test to make sure that when you pause in the middle of a request that you do not get an error
+  async function runProgressPauseTest(blob: FbsBlob): Promise<void> {
+    let callbackCount = 0;
+    // Usually the first request is to create the resumable upload and the second is to upload.
+    // Upload requests are not retryable, and this callback is to make sure we pause before the response comes back.
+    function shouldRespondCallback(): boolean {
+      if (callbackCount++ === 1) {
+        task.pause();
+        return false;
+      }
+      return true;
+    }
+    const storageService = storageServiceWithHandler(
+      fakeServerHandler(),
+      shouldRespondCallback
+    );
+    const task = new UploadTask(
+      new Reference(storageService, testLocation),
+      blob
+    );
+
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    let resolve: Function, reject: Function;
+    const promise = new Promise<void>((innerResolve, innerReject) => {
+      resolve = innerResolve;
+      reject = innerReject;
+    });
+
+    // Assert functions throw Errors, which means if we're not in the right stack
+    // the error might not get reported properly. This function wraps existing
+    // assert functions, returning a new function that calls reject with any
+    // caught errors. This should make sure errors are reported properly.
+    function promiseAssertWrapper<T>(func: T): T {
+      function wrapped(..._args: any[]): void {
+        try {
+          (func as any as (...args: any[]) => void).apply(null, _args);
+        } catch (e) {
+          reject(e);
+          pausedStateCompleted.reject(e);
+          // also throw to further unwind the stack
+          throw e;
+        }
+      }
+      return wrapped as any as T;
+    }
+
+    const fixedAssertEquals = promiseAssertWrapper(assert.equal);
+    const fixedAssertFalse = promiseAssertWrapper(assert.isFalse);
+    const fixedAssertTrue = promiseAssertWrapper(assert.isTrue);
+    const fixedAssertFail = promiseAssertWrapper(assert.fail);
+
+    const events: string[] = [];
+    const progress: number[][] = [];
+    // Promise for when we are finally in the pause state
+    const pausedStateCompleted = new Deferred();
+    let complete = 0;
+    // Adds a callback for when the state has changed. The callback resolves the pausedStateCompleted promise
+    // to let our test know when to resume.
+    function addCallbacks(task: UploadTask): void {
+      let lastState: string;
+      task.on(
+        TaskEvent.STATE_CHANGED,
+        snapshot => {
+          fixedAssertEquals(complete, 0);
+
+          const state = snapshot.state;
+          if (lastState !== TaskState.RUNNING && state === TaskState.RUNNING) {
+            events.push('resume');
+          } else if (
+            lastState !== TaskState.PAUSED &&
+            state === TaskState.PAUSED
+          ) {
+            pausedStateCompleted.resolve();
+            events.push('pause');
+          }
+
+          const p = [snapshot.bytesTransferred, snapshot.totalBytes];
+
+          progress.push(p);
+
+          lastState = state;
+        },
+        () => {
+          fixedAssertFail('Failed to upload');
+        },
+        () => {
+          events.push('complete');
+          complete++;
+        }
+      );
+    }
+
+    addCallbacks(task);
+
+    let completeTriggered = false;
+
+    // We should clean this up and just add all callbacks in one function call.
+    // Keeps track of all events that were logged before and asserts on them.
+    task.on(TaskEvent.STATE_CHANGED, undefined, undefined, () => {
+      fixedAssertFalse(completeTriggered);
+      completeTriggered = true;
+
+      fixedAssertEquals(events.length, 4);
+      fixedAssertEquals(events[0], 'resume');
+      fixedAssertEquals(events[1], 'pause');
+      fixedAssertEquals(events[2], 'resume');
+      fixedAssertEquals(events[3], 'complete');
+
+      fixedAssertEquals(complete, 1);
+
+      let increasing = true;
+      let allTotalsTheSame = true;
+      for (let i = 0; i < progress.length - 1; i++) {
+        increasing = increasing && progress[i][0] <= progress[i + 1][0];
+        allTotalsTheSame =
+          allTotalsTheSame && progress[i][1] === progress[i + 1][1];
+      }
+
+      let lastIsAll = false;
+      if (progress.length > 0) {
+        const last = progress[progress.length - 1];
+        lastIsAll = last[0] === last[1];
+      } else {
+        lastIsAll = true;
+      }
+
+      fixedAssertTrue(increasing);
+      fixedAssertTrue(allTotalsTheSame);
+      fixedAssertTrue(lastIsAll);
+      resolve(null);
+    });
+    await pausedStateCompleted.promise;
+    task.resume();
     return promise;
   }
   enum StateType {
@@ -361,7 +501,7 @@ describe('Firebase Storage > Upload Task', () => {
   function handleStateChange(
     requestHandler: RequestHandler,
     blob: FbsBlob
-  ): Promise<TotalState> {
+  ): { taskPromise: Promise<TotalState>; task: UploadTask } {
     const storageService = storageServiceWithHandler(requestHandler);
     const task = new UploadTask(
       new Reference(storageService, testLocation),
@@ -410,7 +550,7 @@ describe('Firebase Storage > Upload Task', () => {
       }
     );
 
-    return deferred.promise;
+    return { taskPromise: deferred.promise, task };
   }
 
   it('Calls callback sequences for small uploads correctly', () => {
@@ -422,13 +562,13 @@ describe('Firebase Storage > Upload Task', () => {
   it('properly times out if large blobs returns a 503 when finalizing', async () => {
     clock = useFakeTimers();
     // Kick off upload
-    const promise = handleStateChange(
+    const { taskPromise } = handleStateChange(
       fake503ForFinalizeServerHandler(),
       bigBlob
     );
     // Run all timers
     await clock.runAllAsync();
-    const { events, progress } = await promise;
+    const { events, progress } = await taskPromise;
     expect(events.length).to.equal(2);
     expect(events[0]).to.deep.equal({ type: 'resume' });
     expect(events[1].type).to.deep.equal('error');
@@ -460,10 +600,13 @@ describe('Firebase Storage > Upload Task', () => {
   it('properly times out if large blobs returns a 503 when uploading', async () => {
     clock = useFakeTimers();
     // Kick off upload
-    const promise = handleStateChange(fake503ForUploadServerHandler(), bigBlob);
+    const { taskPromise } = handleStateChange(
+      fake503ForUploadServerHandler(),
+      bigBlob
+    );
     // Run all timers
     await clock.runAllAsync();
-    const { events, progress } = await promise;
+    const { events, progress } = await taskPromise;
     expect(events.length).to.equal(2);
     expect(events[0]).to.deep.equal({ type: 'resume' });
     expect(events[1].type).to.deep.equal('error');
@@ -478,13 +621,127 @@ describe('Firebase Storage > Upload Task', () => {
     });
     clock.restore();
   });
+
+  /**
+   * Starts upload, finds the first instance of an exponential backoff, and resolves `readyToCancel` when done.
+   * @returns readyToCancel, taskPromise and task
+   */
+  function resumeCancelSetup(): {
+    readyToCancel: Promise<null>;
+    taskPromise: Promise<TotalState>;
+    task: UploadTask;
+  } {
+    clock = useFakeTimers();
+    const fakeSetTimeout = clock.setTimeout;
+
+    let gotFirstEvent = false;
+
+    const stub = sinon.stub(global, 'setTimeout');
+
+    // Function that notifies when we are in the middle of an exponential backoff
+    const readyToCancel = new Promise<null>(resolve => {
+      // @ts-ignore The types for `stub.callsFake` is incompatible with types of `clock.setTimeout`
+      stub.callsFake((fn, timeout) => {
+        // @ts-ignore The types for `stub.callsFake` is incompatible with types of `clock.setTimeout`
+        const res = fakeSetTimeout(fn, timeout);
+        if (timeout !== DEFAULT_MAX_UPLOAD_RETRY_TIME) {
+          if (!gotFirstEvent || timeout === 0) {
+            clock.tick(timeout as number);
+          } else {
+            // If the timeout isn't 0 and it isn't the max upload retry time, it's most likely due to exponential backoff.
+            resolve(null);
+          }
+        }
+        return res;
+      });
+    });
+    readyToCancel.then(
+      () => stub.restore(),
+      () => stub.restore()
+    );
+    return {
+      ...handleStateChange(
+        fake503ForUploadServerHandler(undefined, () => (gotFirstEvent = true)),
+        bigBlob
+      ),
+      readyToCancel
+    };
+  }
+  it('properly errors with a cancel StorageError if a pending timeout remains', async () => {
+    // Kick off upload
+    const { readyToCancel, taskPromise: promise, task } = resumeCancelSetup();
+
+    await readyToCancel;
+    task.cancel();
+
+    const { events, progress } = await promise;
+    expect(events.length).to.equal(2);
+    expect(events[0]).to.deep.equal({ type: 'resume' });
+    expect(events[1].type).to.deep.equal('error');
+    const canceledError = canceled();
+    expect(events[1].data!.name).to.deep.equal(canceledError.name);
+    expect(events[1].data!.message).to.deep.equal(canceledError.message);
+    const blobSize = bigBlob.size();
+    expect(progress.length).to.equal(1);
+    expect(progress[0]).to.deep.equal({
+      bytesTransferred: 0,
+      totalBytes: blobSize
+    });
+    expect(clock.countTimers()).to.eq(0);
+    clock.restore();
+  });
+  it('properly errors with a pause StorageError if a pending timeout remains', async () => {
+    // Kick off upload
+    const { readyToCancel, taskPromise: promise, task } = resumeCancelSetup();
+
+    await readyToCancel;
+
+    task.pause();
+    expect(clock.countTimers()).to.eq(0);
+    task.resume();
+    await clock.runAllAsync();
+
+    // Run all timers
+    const { events, progress } = await promise;
+    expect(events.length).to.equal(4);
+    expect(events[0]).to.deep.equal({ type: 'resume' });
+    expect(events[1]).to.deep.equal({ type: 'pause' });
+    expect(events[2]).to.deep.equal({ type: 'resume' });
+    expect(events[3].type).to.deep.equal('error');
+    const retryError = retryLimitExceeded();
+    expect(events[3].data!.name).to.deep.equal(retryError.name);
+    expect(events[3].data!.message).to.deep.equal(retryError.message);
+    const blobSize = bigBlob.size();
+    expect(progress.length).to.equal(3);
+    expect(progress[0]).to.deep.equal({
+      bytesTransferred: 0,
+      totalBytes: blobSize
+    });
+    expect(progress[1]).to.deep.equal({
+      bytesTransferred: 0,
+      totalBytes: blobSize
+    });
+    expect(progress[2]).to.deep.equal({
+      bytesTransferred: 0,
+      totalBytes: blobSize
+    });
+    expect(clock.countTimers()).to.eq(0);
+    clock.restore();
+  });
+  it('does not error when pausing inflight request', async () => {
+    // Kick off upload
+    await runProgressPauseTest(bigBlob);
+  });
   it('tests if small requests that respond with 500 retry correctly', async () => {
     clock = useFakeTimers();
     // Kick off upload
-    const promise = handleStateChange(fakeOneShot503ServerHandler(), smallBlob);
+    const { taskPromise } = handleStateChange(
+      fakeOneShot503ServerHandler(),
+      smallBlob
+    );
     // Run all timers
     await clock.runAllAsync();
-    const { events, progress } = await promise;
+    const { events, progress } = await taskPromise;
     expect(events.length).to.equal(2);
     expect(events[0]).to.deep.equal({ type: 'resume' });
     expect(events[1].type).to.deep.equal('error');

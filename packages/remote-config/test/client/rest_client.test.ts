@@ -55,7 +55,7 @@ describe('RestClient', () => {
 
   describe('fetch', () => {
     let fetchStub: sinon.SinonStub<
-      [RequestInfo, RequestInit?],
+      [RequestInfo | URL, RequestInit?],
       Promise<Response>
     >;
 

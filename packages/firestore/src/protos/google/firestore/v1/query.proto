@@ -65,8 +65,11 @@ message StructuredQuery {
       // Unspecified. This value must not be used.
       OPERATOR_UNSPECIFIED = 0;
 
-      // The results are required to satisfy each of the combined filters.
+      // Documents are required to satisfy all of the combined filters.
       AND = 1;
+
+      // Documents are required to satisfy at least one of the combined filters.
+      OR = 2;
     }
 
     // The operator for combining multiple filters.
@@ -312,10 +315,47 @@ message StructuredAggregationQuery {
       google.protobuf.Int64Value up_to = 1;
     }
 
+    // Sum of the values of the requested field.
+    //
+    // * Only numeric values will be aggregated. All non-numeric values
+    // including `NULL` are skipped.
+    //
+    // * If the aggregated values contain `NaN`, returns `NaN`.
+    //
+    // * If the aggregated value set is empty, returns 0.
+    //
+    // * Returns a 64-bit integer if the sum result is an integer value and does
+    // not overflow or underflow. Otherwise, the result is returned as a double.
+    message Sum {
+      // The field to aggregate on.
+      StructuredQuery.FieldReference field = 1;
+    }
+
+    // Average of the values of the requested field.
+    //
+    // * Only numeric values will be aggregated. All non-numeric values
+    // including `NULL` are skipped.
+    //
+    // * If the aggregated values contain `NaN`, returns `NaN`.
+    //
+    // * If the aggregated value set is empty, returns `NULL`.
+    //
+    // * Always returns the result as a double.
+    message Avg {
+      // The field to aggregate on.
+      StructuredQuery.FieldReference field = 1;
+    }
+
     // The type of aggregation to perform, required.
     oneof operator {
       // Count aggregator.
       Count count = 1;
+
+      // Sum aggregator.
+      Sum sum = 2;
+
+      // Average aggregator.
+      Avg avg = 3;
     }
 
     // Required. The name of the field to store the result of the aggregation into.

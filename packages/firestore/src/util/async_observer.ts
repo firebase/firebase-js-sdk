@@ -45,7 +45,7 @@ export class AsyncObserver<T> implements Observer<T> {
     if (this.observer.error) {
       this.scheduleEvent(this.observer.error, error);
     } else {
-      logError('Uncaught Error in snapshot listener:', error);
+      logError('Uncaught Error in snapshot listener:', error.toString());
     }
   }
 

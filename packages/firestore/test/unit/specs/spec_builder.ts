@@ -17,6 +17,7 @@
 
 import { IndexConfiguration } from '../../../src/api/index_configuration';
 import { ExpUserDataWriter } from '../../../src/api/reference_impl';
+import { FieldFilter, Filter } from '../../../src/core/filter';
 import {
   LimitType,
   newQueryForPath,
@@ -24,13 +25,7 @@ import {
   queryEquals,
   queryToTarget
 } from '../../../src/core/query';
-import {
-  canonifyTarget,
-  FieldFilter,
-  Filter,
-  Target,
-  targetEquals
-} from '../../../src/core/target';
+import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import { Document } from '../../../src/model/document';
@@ -84,6 +79,11 @@ export interface ActiveTargetSpec {
 
 export interface ActiveTargetMap {
   [targetId: string]: ActiveTargetSpec;
+}
+
+export interface ResumeSpec {
+  resumeToken?: string;
+  readTime?: TestSnapshotVersion;
 }
 
 /**
@@ -260,10 +260,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userListens(
-    query: Query,
-    resume?: { resumeToken?: string; readTime?: TestSnapshotVersion }
-  ): this {
+  userListens(query: Query, resume?: ResumeSpec): this {
     this.nextStep();
 
     const target = queryToTarget(query);
@@ -282,12 +279,7 @@ export class SpecBuilder {
       }
 
       this.queryMapping.set(target, targetId);
-      this.addQueryToActiveTargets(
-        targetId,
-        query,
-        resume?.resumeToken,
-        resume?.readTime
-      );
+      this.addQueryToActiveTargets(targetId, query, resume);
       this.currentStep = {
         userListen: { targetId, query: SpecBuilder.queryToSpec(query) },
         expectedState: { activeTargets: { ...this.activeTargets } }
@@ -307,7 +299,7 @@ export class SpecBuilder {
       throw new Error("Can't restore an unknown query: " + query);
     }
 
-    this.addQueryToActiveTargets(targetId!, query, resumeToken);
+    this.addQueryToActiveTargets(targetId!, query, { resumeToken });
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -541,12 +533,10 @@ export class SpecBuilder {
     const currentStep = this.currentStep!;
     this.clientState.activeTargets = {};
     targets.forEach(({ query, resumeToken, readTime }) => {
-      this.addQueryToActiveTargets(
-        this.getTargetId(query),
-        query,
+      this.addQueryToActiveTargets(this.getTargetId(query), query, {
         resumeToken,
         readTime
-      );
+      });
     });
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
@@ -577,7 +567,7 @@ export class SpecBuilder {
       this.addQueryToActiveTargets(
         this.limboMapping[path],
         newQueryForPath(key.path),
-        ''
+        { resumeToken: '' }
       );
     });
 
@@ -774,7 +764,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchFilters(queries: Query[], ...docs: DocumentKey[]): this {
+  watchFilters(queries: Query[], docs: DocumentKey[] = []): this {
     this.nextStep();
     const targetIds = queries.map(query => {
       return this.getTargetId(query);
@@ -782,10 +772,7 @@ export class SpecBuilder {
     const keys = docs.map(key => {
       return key.path.canonicalString();
     });
-    const filter: SpecWatchFilter = [targetIds] as SpecWatchFilter;
-    for (const key of keys) {
-      filter.push(key);
-    }
+    const filter: SpecWatchFilter = { targetIds, keys };
     this.currentStep = {
       watchFilter: filter
     };
@@ -915,22 +902,14 @@ export class SpecBuilder {
   }
 
   /** Registers a query that is active in another tab. */
-  expectListen(
-    query: Query,
-    resume?: { resumeToken?: string; readTime?: TestSnapshotVersion }
-  ): this {
+  expectListen(query: Query, resume?: ResumeSpec): this {
     this.assertStep('Expectations require previous step');
 
     const target = queryToTarget(query);
     const targetId = this.queryIdGenerator.cachedId(target);
     this.queryMapping.set(target, targetId);
 
-    this.addQueryToActiveTargets(
-      targetId,
-      query,
-      resume?.resumeToken,
-      resume?.readTime
-    );
+    this.addQueryToActiveTargets(targetId, query, resume);
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -1061,6 +1040,7 @@ export class SpecBuilder {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
+        createTime: doc.createTime.toMicroseconds(),
         value: userDataWriter.convertValue(
           doc.data.value
         ) as JsonObject<unknown>,
@@ -1073,6 +1053,7 @@ export class SpecBuilder {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),
+        createTime: doc.createTime.toMicroseconds(),
         value: null
       };
     }
@@ -1096,8 +1077,7 @@ export class SpecBuilder {
   private addQueryToActiveTargets(
     targetId: number,
     query: Query,
-    resumeToken?: string,
-    readTime?: TestSnapshotVersion
+    resume?: ResumeSpec
   ): void {
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
@@ -1109,21 +1089,21 @@ export class SpecBuilder {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
-          resumeToken: resumeToken || '',
-          readTime
+          resumeToken: resume?.resumeToken || '',
+          readTime: resume?.readTime
         };
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
-          resumeToken: resumeToken || '',
-          readTime
+          resumeToken: resume?.resumeToken || '',
+          readTime: resume?.readTime
         };
       }
     } else {
       this.activeTargets[targetId] = {
         queries: [SpecBuilder.queryToSpec(query)],
-        resumeToken: resumeToken || '',
-        readTime
+        resumeToken: resume?.resumeToken || '',
+        readTime: resume?.readTime
       };
     }
   }

@@ -21,7 +21,9 @@
     "firebase-repo-scripts-prune-dts"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
-    "onlyUpdatePeerDependentsWhenOutOfRange": true,
-    "useCalculatedVersionForSnapshots": true
+    "onlyUpdatePeerDependentsWhenOutOfRange": true
+  },
+  "snapshot": {
+    "useCalculatedVersion": true
   }
 }

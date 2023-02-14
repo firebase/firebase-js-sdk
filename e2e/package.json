@@ -11,7 +11,9 @@
     "watch": "webpack --watch",
     "build": "webpack",
     "start:modular": "webpack serve --config-name modular",
-    "start:compat": "webpack serve --config-name compat"
+    "start:compat": "webpack serve --config-name compat",
+    "build:modular": "webpack --config-name modular",
+    "build:compat": "webpack --config-name compat"
   },
   "author": "",
   "license": "ISC",
@@ -20,21 +22,21 @@
   },
   "devDependencies": {
     "@babel/core": "7.17.10",
-    "@babel/preset-env": "7.17.10",
-    "@types/chai": "4.3.1",
+    "@babel/preset-env": "7.19.4",
+    "@types/chai": "4.3.4",
     "@types/mocha": "9.1.1",
     "babel-loader": "8.2.5",
-    "chai": "4.3.6",
-    "karma": "6.3.19",
+    "chai": "4.3.7",
+    "karma": "6.4.1",
     "karma-chrome-launcher": "3.1.1",
     "karma-mocha": "2.0.1",
     "karma-spec-reporter": "0.0.34",
     "karma-typescript": "5.5.3",
     "karma-typescript-es6-transform": "5.5.3",
     "mocha": "9.2.2",
-    "typescript": "4.3.4",
-    "webpack": "5.72.1",
-    "webpack-cli": "4.9.2",
-    "webpack-dev-server": "4.9.0"
+    "typescript": "4.7.4",
+    "webpack": "5.75.0",
+    "webpack-cli": "4.10.0",
+    "webpack-dev-server": "4.11.1"
   }
 }

@@ -275,7 +275,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
     });
-  });
+  }).timeout(10000);
 
   it('runs transactions after getting non-existent document', async () => {
     return withTestDb(persistence, async db => {
@@ -626,6 +626,30 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           expect(err.code).to.equal('invalid-argument');
           expect(counter).to.equal(1);
         });
+    });
+  });
+
+  it('retries when document already exists', () => {
+    return withTestDb(persistence, async db => {
+      let retryCounter = 0;
+      const docRef = doc(collection(db, 'nonexistent'));
+
+      await runTransaction(db, async transaction => {
+        ++retryCounter;
+        const snap = await transaction.get(docRef);
+
+        if (retryCounter === 1) {
+          expect(snap.exists()).to.be.false;
+          // On the first attempt, create a doc before transaction.set(), so that
+          // the transaction fails with "already-exists" error, and retries.
+          await setDoc(docRef, { count: 1 });
+        }
+
+        transaction.set(docRef, { count: 2 });
+      });
+      expect(retryCounter).to.equal(2);
+      const snap = await getDoc(docRef);
+      expect(snap.get('count')).to.equal(2);
     });
   });
 
