@@ -151,17 +151,21 @@ async function generateDocs(
     });
   } else {
     // api-report is run as part of every build
-    await spawn('yarn', [
-      'lerna',
-      'run',
-      '--scope',
-      '@firebase/*',
-      '--ignore',
-      '@firebase/*-compat',
-      'build'
-    ], {
-      stdio: 'inherit'
-    });
+    await spawn(
+      'yarn',
+      [
+        'lerna',
+        'run',
+        '--scope',
+        '@firebase/*',
+        '--ignore',
+        '@firebase/*-compat',
+        'build'
+      ],
+      {
+        stdio: 'inherit'
+      }
+    );
   }
 
   // Restore original auth api-extractor.json contents.
