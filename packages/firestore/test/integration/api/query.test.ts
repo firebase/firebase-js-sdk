@@ -1616,7 +1616,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  it('can handle existence filter', () => {
+  it('can raise expected snapshot when resume query after deleting docs', () => {
     const testDocs = {};
     for (let i = 1; i <= 100; i++) {
       Object.assign(testDocs, { ['doc' + i]: { key: i } });
