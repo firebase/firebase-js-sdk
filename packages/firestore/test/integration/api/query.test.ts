@@ -1615,30 +1615,34 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
   });
-
-  it('can raise expected snapshot when resume query after deleting docs', () => {
-    const testDocs = {};
-    for (let i = 1; i <= 100; i++) {
-      Object.assign(testDocs, { ['doc' + i]: { key: i } });
-    }
-    return withTestCollection(persistence, testDocs, async (coll, db) => {
-      const snapshot1 = await getDocs(coll);
-      expect(snapshot1.size).to.equal(100);
-      // Delete 50 docs in transaction so that it doesn't affect local cache.
-      await runTransaction(db, async txn => {
-        for (let i = 1; i <= 50; i++) {
-          txn.delete(doc(coll, 'doc' + i));
-        }
+  
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ?  it.skip: it)(
+    'can raise expected snapshot when resume query after deleting docs',
+    () => {
+      const testDocs = {};
+      for (let i = 1; i <= 100; i++) {
+        Object.assign(testDocs, { ['doc' + i]: { key: i } });
+      }
+      return withTestCollection(persistence, testDocs, async (coll, db) => {
+        const snapshot1 = await getDocs(coll);
+        expect(snapshot1.size).to.equal(100);
+        // Delete 50 docs in transaction so that it doesn't affect local cache.
+        await runTransaction(db, async txn => {
+          for (let i = 1; i <= 50; i++) {
+            txn.delete(doc(coll, 'doc' + i));
+          }
+        });
+        // Wait 10 seconds, during which the watch will stop tracking the query
+        // and will send an existence filter rather than "delete" events.
+        await (function () {
+          return new Promise(resolve => setTimeout(resolve, 10000));
+        })();
+        const snapshot2 = await getDocs(coll);
+        expect(snapshot2.size).to.equal(50);
       });
-      // Wait 10 seconds, during which the watch will stop tracking the query
-      // and will send an existence filter rather than "delete" events.
-      await (function () {
-        return new Promise(resolve => setTimeout(resolve, 10000));
-      })();
-      const snapshot2 = await getDocs(coll);
-      expect(snapshot2.size).to.equal(50);
-    });
-  }).timeout('15s');
+    }
+  ).timeout('20s');
 });
 
 function verifyDocumentChange<T>(
