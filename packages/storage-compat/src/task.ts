@@ -65,7 +65,7 @@ export class UploadTaskCompat implements types.UploadTask, Compat<UploadTask> {
       | types.StorageObserver<UploadTaskSnapshotCompat>
       | null
       | ((a: UploadTaskSnapshotCompat) => unknown),
-    error?: (error: StorageError) => void | null,
+    error?: ((error: StorageError) => void) | null,
     completed?: () => void | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshotCompat> {
     let wrappedNextOrObserver:

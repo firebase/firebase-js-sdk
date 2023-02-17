@@ -205,7 +205,8 @@ export type RequestHandler = (
 ) => Response;
 
 export function storageServiceWithHandler(
-  handler: RequestHandler
+  handler: RequestHandler,
+  shouldResponseCb?: () => boolean
 ): FirebaseStorageImpl {
   function newSend(
     connection: TestingConnection,
@@ -215,11 +216,13 @@ export function storageServiceWithHandler(
     headers?: Headers
   ): void {
     const response = handler(url, method, body, headers);
-    connection.simulateResponse(
-      response.status,
-      response.body,
-      response.headers
-    );
+    if (!shouldResponseCb || shouldResponseCb()) {
+      connection.simulateResponse(
+        response.status,
+        response.body,
+        response.headers
+      );
+    }
   }
 
   injectTestConnection(() => newTestConnection(newSend));

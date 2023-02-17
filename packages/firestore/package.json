@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "3.8.0",
+  "version": "3.8.3",
   "engines": {
     "node": ">=10.10.0"
   },
@@ -21,8 +21,8 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "prettier": "prettier --write '*.js' '@(lite|src|test)/**/*.ts'",
-    "test:lite": "node ./scripts/run-tests.js --emulator --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
-    "test:lite:prod": "node ./scripts/run-tests.js --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
+    "test:lite": "ts-node ./scripts/run-tests.ts --emulator --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
+    "test:lite:prod": "ts-node ./scripts/run-tests.ts --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:browser": "karma start --single-run --lite",
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
     "test": "run-s lint test:all",
@@ -30,14 +30,14 @@
     "test:all:ci": "run-p test:browser test:lite:browser test:travis",
     "test:all": "run-p test:browser test:lite:browser test:travis test:minified",
     "test:browser": "karma start --single-run",
-    "test:browser:emulator:debug": "karma start --browsers=Chrome --local",
-    "test:browser:emulator": "karma start --single-run --local",
+    "test:browser:emulator:debug": "karma start --browsers=Chrome --targetBackend=emulator",
+    "test:browser:emulator": "karma start --single-run --targetBackend=emulator",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
-    "test:node": "node ./scripts/run-tests.js  --main=test/register.ts  --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
-    "test:node:prod": "node ./scripts/run-tests.js --main=test/register.ts 'test/{,!(browser|lite)/**/}*.test.ts'",
-    "test:node:persistence": "node ./scripts/run-tests.js  --main=test/register.ts --persistence --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
-    "test:node:persistence:prod": "node ./scripts/run-tests.js --main=test/register.ts --persistence 'test/{,!(browser|lite)/**/}*.test.ts'",
+    "test:node": "ts-node ./scripts/run-tests.ts  --main=test/register.ts  --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
+    "test:node:prod": "ts-node ./scripts/run-tests.ts --main=test/register.ts 'test/{,!(browser|lite)/**/}*.test.ts'",
+    "test:node:persistence": "ts-node ./scripts/run-tests.ts  --main=test/register.ts --persistence --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
+    "test:node:persistence:prod": "ts-node ./scripts/run-tests.ts --main=test/register.ts --persistence 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
     "api-report:main": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore --packageRoot . --typescriptDts ./dist/firestore/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index.d.ts",
@@ -56,6 +56,10 @@
       },
       "react-native": "./dist/index.rn.js",
       "esm5": "./dist/index.esm5.js",
+      "browser": {
+        "require": "./dist/index.cjs.js",
+        "import": "./dist/index.esm2017.js"
+      },
       "default": "./dist/index.esm2017.js"
     },
     "./lite": {
@@ -66,6 +70,10 @@
       },
       "react-native": "./dist/lite/index.rn.esm2017.js",
       "esm5": "./dist/lite/index.browser.esm5.js",
+      "browser": {
+        "require": "./dist/lite/index.cjs.js",
+        "import": "./dist/lite/index.browser.esm2017.js"
+      },
       "default": "./dist/lite/index.browser.esm2017.js"
     },
     "./package.json": "./package.json"
@@ -82,9 +90,9 @@
     "lite/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.6.0",
+    "@firebase/component": "0.6.3",
     "@firebase/logger": "0.4.0",
-    "@firebase/util": "1.8.0",
+    "@firebase/util": "1.9.2",
     "@firebase/webchannel-wrapper": "0.9.0",
     "@grpc/grpc-js": "~1.7.0",
     "@grpc/proto-loader": "^0.6.13",
@@ -95,9 +103,9 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.9.0",
-    "@firebase/app-compat": "0.2.0",
-    "@firebase/auth": "0.21.0",
+    "@firebase/app": "0.9.3",
+    "@firebase/app-compat": "0.2.3",
+    "@firebase/auth": "0.21.3",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",

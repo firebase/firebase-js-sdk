@@ -25,7 +25,9 @@ import {
   FieldFilter,
   Operator
 } from '../../../src/core/filter';
-import { andFilter, filter, orFilter } from '../../util/helpers';
+import { queryToTarget } from '../../../src/core/query';
+import { canonifyTarget } from '../../../src/core/target';
+import { andFilter, filter, orFilter, query } from '../../util/helpers';
 
 describe('FieldFilter', () => {
   it('exposes field filter members', () => {
@@ -92,5 +94,15 @@ describe('CompositeFilter', () => {
     expect(compositeFilterIsDisjunction(orFilter2)).true;
     expect(compositeFilterIsFlat(orFilter2)).false;
     expect(compositeFilterIsFlatConjunction(orFilter2)).false;
+  });
+
+  it('computes canonical id of flat conjunctions', () => {
+    const target1 = query('col', a, b, c);
+
+    const target2 = query('col', andFilter(a, b, c));
+
+    expect(canonifyTarget(queryToTarget(target1))).to.equal(
+      canonifyTarget(queryToTarget(target2))
+    );
   });
 });

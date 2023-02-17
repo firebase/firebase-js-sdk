@@ -69,8 +69,8 @@ const browserPlugins = function () {
 };
 
 const allBuilds = [
-  // Intermidiate Node ESM build without build target reporting
-  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // Intermediate Node ESM build without build target reporting
+  // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
     input: './src/index.node.ts',
@@ -117,8 +117,8 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
-  // Intermidiate browser build without build target reporting
-  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // Intermediate browser build without build target reporting
+  // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
     input: './src/index.ts',
@@ -147,6 +147,22 @@ const allBuilds = [
       ...util.es2017ToEs5Plugins(/* mangled= */ true),
       replace(generateBuildTargetReplaceConfig('esm', 5))
     ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Convert es2017 build to cjs
+  {
+    input: pkg['browser'],
+    output: [
+      {
+        file: './dist/index.cjs.js',
+        format: 'cjs',
+        sourcemap: true
+      }
+    ],
+    plugins: [replace(generateBuildTargetReplaceConfig('cjs', 2017))],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
