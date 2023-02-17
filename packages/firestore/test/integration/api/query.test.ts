@@ -1615,9 +1615,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
   });
-  
+
   // eslint-disable-next-line no-restricted-properties
-  (persistence ?  it.skip: it)(
+  (persistence ? it.skip : it)(
     'can raise expected snapshot when resume query after deleting docs',
     () => {
       const testDocs = {};
