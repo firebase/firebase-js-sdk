@@ -165,13 +165,6 @@ export function queryMatchesAllDocuments(query: Query): boolean {
   );
 }
 
-export function queryContainsCompositeFilters(query: Query): boolean {
-  return (
-    query.filters.find(filter => filter instanceof CompositeFilter) !==
-    undefined
-  );
-}
-
 export function getFirstOrderByField(query: Query): FieldPath | null {
   return query.explicitOrderBy.length > 0
     ? query.explicitOrderBy[0].field
