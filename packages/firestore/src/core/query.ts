@@ -25,7 +25,7 @@ import {
   boundSortsAfterDocument,
   boundSortsBeforeDocument
 } from './bound';
-import { CompositeFilter, Filter } from './filter';
+import { Filter } from './filter';
 import { Direction, OrderBy } from './order_by';
 import {
   canonifyTarget,
