@@ -47,6 +47,7 @@ import {
   Query,
   query,
   QuerySnapshot,
+  runTransaction,
   setDoc,
   startAfter,
   startAt,
@@ -1614,6 +1615,32 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
   });
+
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? it.skip : it)(
+    'resuming a query should remove deleted documents indicated by existence filter',
+    () => {
+      const testDocs: { [key: string]: object } = {};
+      for (let i = 1; i <= 100; i++) {
+        testDocs['doc' + i] = { key: i };
+      }
+      return withTestCollection(persistence, testDocs, async (coll, db) => {
+        const snapshot1 = await getDocs(coll);
+        expect(snapshot1.size).to.equal(100);
+        // Delete 50 docs in transaction so that it doesn't affect local cache.
+        await runTransaction(db, async txn => {
+          for (let i = 1; i <= 50; i++) {
+            txn.delete(doc(coll, 'doc' + i));
+          }
+        });
+        // Wait 10 seconds, during which Watch will stop tracking the query
+        // and will send an existence filter rather than "delete" events.
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        const snapshot2 = await getDocs(coll);
+        expect(snapshot2.size).to.equal(50);
+      });
+    }
+  ).timeout('20s');
 });
 
 function verifyDocumentChange<T>(
