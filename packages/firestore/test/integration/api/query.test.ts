@@ -1618,7 +1618,7 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   // eslint-disable-next-line no-restricted-properties
   (persistence ? it.skip : it)(
-    'can raise expected snapshot when resume query after deleting docs',
+    'resuming a query should remove deleted documents indicated by existence filter',
     () => {
       const testDocs = {};
       for (let i = 1; i <= 100; i++) {
@@ -1633,11 +1633,9 @@ apiDescribe('Queries', (persistence: boolean) => {
             txn.delete(doc(coll, 'doc' + i));
           }
         });
-        // Wait 10 seconds, during which the watch will stop tracking the query
+        // Wait 10 seconds, during which Watch will stop tracking the query
         // and will send an existence filter rather than "delete" events.
-        await (function () {
-          return new Promise(resolve => setTimeout(resolve, 10000));
-        })();
+        await new Promise(resolve => setTimeout(resolve, 10000));
         const snapshot2 = await getDocs(coll);
         expect(snapshot2.size).to.equal(50);
       });
