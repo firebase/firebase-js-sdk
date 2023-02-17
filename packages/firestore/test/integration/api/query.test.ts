@@ -1620,9 +1620,9 @@ apiDescribe('Queries', (persistence: boolean) => {
   (persistence ? it.skip : it)(
     'resuming a query should remove deleted documents indicated by existence filter',
     () => {
-      const testDocs = {};
+      const testDocs: { [key: string]: object } = {};
       for (let i = 1; i <= 100; i++) {
-        Object.assign(testDocs, { ['doc' + i]: { key: i } });
+        testDocs['doc' + i] = { key: i };
       }
       return withTestCollection(persistence, testDocs, async (coll, db) => {
         const snapshot1 = await getDocs(coll);
