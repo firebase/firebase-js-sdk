@@ -24,10 +24,7 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { MultiFactorSessionImpl } from '../../mfa/mfa_session';
 import { StartTotpMfaEnrollmentResponse } from '../../api/account_management/mfa';
-import {
-  FinalizeMfaResponse,
-  StartTotpMfaSignInResponse
-} from '../../api/authentication/mfa';
+import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import {
   TotpMultiFactorAssertionImpl,
   TotpMultiFactorGenerator,
@@ -215,7 +212,6 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
 describe('Testing signin Flow', () => {
   let auth: TestAuth;
   let assertion: MultiFactorAssertionImpl;
-  let totpSignInResponse: StartTotpMfaSignInResponse;
   let session: MultiFactorSessionImpl;
   beforeEach(async () => {
     mockFetch.setUp();
@@ -227,24 +223,18 @@ describe('Testing signin Flow', () => {
   afterEach(mockFetch.tearDown);
 
   it('should finalize mfa signin for totp', async () => {
-    totpSignInResponse = {
-      verificationCode: '123456',
+    const mockResponse: FinalizeMfaResponse = {
       idToken: 'final-id-token',
       refreshToken: 'refresh-token'
-    } as any;
+    };
+    const mock = mockEndpoint(Endpoint.FINALIZE_MFA_SIGN_IN, mockResponse);
     assertion = TotpMultiFactorGenerator.assertionForSignIn(
       'enrollment-id',
       '123456'
     ) as any;
-
-    const mock = mockEndpoint(
-      Endpoint.FINALIZE_MFA_SIGN_IN,
-      totpSignInResponse
-    );
-
     const response = await assertion._process(auth, session);
 
-    expect(response).to.eql(totpSignInResponse);
+    expect(response).to.eql(mockResponse);
 
     expect(mock.calls[0].request).to.eql({
       mfaPendingCredential: 'mfa-pending-credential',
@@ -256,12 +246,6 @@ describe('Testing signin Flow', () => {
   });
 
   it('should throw Firebase Error if enrollment-id is undefined', async () => {
-    let _response: FinalizeMfaResponse;
-    totpSignInResponse = {
-      verificationCode: '123456',
-      idToken: 'final-id-token',
-      refreshToken: 'refresh-token'
-    } as any;
     assertion = TotpMultiFactorGenerator.assertionForSignIn(
       undefined as any,
       '123456'
@@ -273,12 +257,6 @@ describe('Testing signin Flow', () => {
   });
 
   it('should throw Firebase Error if otp is undefined', async () => {
-    let _response: FinalizeMfaResponse;
-    totpSignInResponse = {
-      verificationCode: '123456',
-      idToken: 'final-id-token',
-      refreshToken: 'refresh-token'
-    } as any;
     assertion = TotpMultiFactorGenerator.assertionForSignIn(
       'enrollment-id',
       undefined as any
