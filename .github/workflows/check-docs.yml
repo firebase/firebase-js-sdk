@@ -21,10 +21,8 @@ jobs:
       run: yarn
     - name: Run doc generation (devsite docs)
       run: yarn docgen devsite
-    - name: Check for changes (fail if so)
-      run: |
-        cd docs-devsite
-        git diff --exit-code
+    - name: Check for changes in docs-devsite dir (fail if so)
+      run: git diff --exit-code docs-devsite
     - name: Reference documentation needs to be updated. See message below.
       if: ${{ failure() }}
       run: echo "Changes in this PR affect the reference docs. Run \`yarn docgen devsite\` locally to regenerate docs and add them to this PR."

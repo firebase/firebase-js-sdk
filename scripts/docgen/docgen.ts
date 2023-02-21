@@ -136,6 +136,11 @@ async function generateDocs(
     `${projectRoot}/packages/auth/api-extractor.json`,
     'utf8'
   );
+  // Save original auth.md as well.
+  const authApiReportOriginal = fs.readFileSync(
+    `${projectRoot}/common/api-review/auth.api.md`,
+    'utf8'
+  );
   const authApiConfigModified = authApiConfigOriginal.replace(
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.d.ts"`,
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.doc.d.ts"`
@@ -172,6 +177,11 @@ async function generateDocs(
   fs.writeFileSync(
     `${projectRoot}/packages/auth/api-extractor.json`,
     authApiConfigOriginal
+  );
+  // Restore original auth.api.md
+  fs.writeFileSync(
+    `${projectRoot}/common/api-review/auth.api.md`,
+    authApiReportOriginal
   );
 
   if (!fs.existsSync(tmpDir)) {
