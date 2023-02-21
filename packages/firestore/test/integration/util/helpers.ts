@@ -185,7 +185,6 @@ export async function withTestDbsSettings(
   const dbs: Firestore[] = [];
 
   for (let i = 0; i < numDbs; i++) {
-    // logWarn(`set persistence from helper: ${persistence}`);
     const newSettings = { ...settings };
     if (persistence) {
       newSettings.cache = indexedDbLocalCache();

@@ -216,8 +216,13 @@ export class FirestoreError extends FirebaseError {
 // @public
 export type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 
+// @public (undocumented)
+export type FirestoreLocalCache = MemoryLocalCache | IndexedDbLocalCache;
+
 // @public
 export interface FirestoreSettings {
+    // (undocumented)
+    cache?: FirestoreLocalCache;
     cacheSizeBytes?: number;
     experimentalAutoDetectLongPolling?: boolean;
     experimentalForceLongPolling?: boolean;
@@ -285,6 +290,46 @@ export interface IndexConfiguration {
     readonly indexes?: Index[];
 }
 
+// @public (undocumented)
+export interface IndexedDbLocalCache {
+    // (undocumented)
+    kind: 'indexeddb';
+}
+
+// @public (undocumented)
+export function indexedDbLocalCache(settings?: IndexedDbSettings): IndexedDbLocalCache;
+
+// @public (undocumented)
+export interface IndexedDbMultipleTabManager {
+    // (undocumented)
+    kind: 'IndexedDbMultipleTab';
+}
+
+// @public (undocumented)
+export function indexedDbMultipleTabManager(): IndexedDbMultipleTabManager;
+
+// @public (undocumented)
+export interface IndexedDbSettings {
+    // (undocumented)
+    cacheSizeBytes?: number;
+    // (undocumented)
+    tabManager?: IndexedDbTabManager;
+}
+
+// @public (undocumented)
+export interface IndexedDbSingleTabManager {
+    // (undocumented)
+    kind: 'indexedDbSingleTab';
+}
+
+// @public (undocumented)
+export function indexedDbSingleTabManager(settings: {
+    forceOwnership?: boolean;
+} | undefined): IndexedDbSingleTabManager;
+
+// @public (undocumented)
+export type IndexedDbTabManager = IndexedDbSingleTabManager | IndexedDbMultipleTabManager;
+
 // @beta
 export interface IndexField {
     // (undocumented)
@@ -323,6 +368,15 @@ export interface LoadBundleTaskProgress {
 }
 
 export { LogLevel }
+
+// @public (undocumented)
+export interface MemoryLocalCache {
+    // (undocumented)
+    kind: 'memory';
+}
+
+// @public (undocumented)
+export function memoryLocalCache(): MemoryLocalCache;
 
 // @public
 export function namedQuery(firestore: Firestore, name: string): Promise<Query | null>;

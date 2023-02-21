@@ -30,7 +30,6 @@ export {
 
 export {
   FirestoreLocalCache,
-  MemoryLocalCache,
   IndexedDbLocalCache,
   IndexedDbMultipleTabManager,
   indexedDbLocalCache,
@@ -38,6 +37,7 @@ export {
   IndexedDbSettings,
   indexedDbSingleTabManager,
   IndexedDbSingleTabManager,
+  MemoryLocalCache,
   memoryLocalCache,
   IndexedDbTabManager
 } from './api/cache_config';

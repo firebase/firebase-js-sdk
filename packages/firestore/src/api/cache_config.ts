@@ -23,15 +23,28 @@ import {
   OnlineComponentProvider
 } from '../core/component_provider';
 
-export interface MemoryLocalCache {
+/* eslint @typescript-eslint/consistent-type-definitions: ["error", "type"] */
+export type MemoryLocalCache = {
   kind: 'memory';
+  /**
+   * @internal
+   */
   _onlineComponentProvider: OnlineComponentProvider;
+  /**
+   * @internal
+   */
   _offlineComponentProvider: MemoryOfflineComponentProvider;
-}
+};
 
 class MemoryLocalCacheImpl implements MemoryLocalCache {
   kind: 'memory' = 'memory';
+  /**
+   * @internal
+   */
   _onlineComponentProvider: OnlineComponentProvider;
+  /**
+   * @internal
+   */
   _offlineComponentProvider: MemoryOfflineComponentProvider;
 
   constructor() {
@@ -44,15 +57,27 @@ class MemoryLocalCacheImpl implements MemoryLocalCache {
   }
 }
 
-export interface IndexedDbLocalCache {
+export type IndexedDbLocalCache = {
   kind: 'indexeddb';
+  /**
+   * @internal
+   */
   _onlineComponentProvider: OnlineComponentProvider;
+  /**
+   * @internal
+   */
   _offlineComponentProvider: OfflineComponentProvider;
-}
+};
 
 class IndexedDbLocalCacheImpl implements IndexedDbLocalCache {
   kind: 'indexeddb' = 'indexeddb';
+  /**
+   * @internal
+   */
   _onlineComponentProvider: OnlineComponentProvider;
+  /**
+   * @internal
+   */
   _offlineComponentProvider: OfflineComponentProvider;
 
   constructor(settings: IndexedDbSettings | undefined) {
@@ -80,11 +105,11 @@ export function memoryLocalCache(): MemoryLocalCache {
   return new MemoryLocalCacheImpl();
 }
 
-export interface IndexedDbSettings {
+export type IndexedDbSettings = {
   cacheSizeBytes?: number;
   // default to singleTabManager({forceOwnership: false})
   tabManager?: IndexedDbTabManager;
-}
+};
 
 // Factory function
 export function indexedDbLocalCache(
@@ -93,19 +118,34 @@ export function indexedDbLocalCache(
   return new IndexedDbLocalCacheImpl(settings);
 }
 
-export interface IndexedDbSingleTabManager {
+export type IndexedDbSingleTabManager = {
   kind: 'indexedDbSingleTab';
+  /**
+   * @internal
+   */
   _initialize: (
     settings: Omit<IndexedDbSettings, 'tabManager'> | undefined
   ) => void;
+  /**
+   * @internal
+   */
   _onlineComponentProvider?: OnlineComponentProvider;
+  /**
+   * @internal
+   */
   _offlineComponentProvider?: OfflineComponentProvider;
-}
+};
 
 class SingleTabManagerImpl implements IndexedDbSingleTabManager {
   kind: 'indexedDbSingleTab' = 'indexedDbSingleTab';
 
+  /**
+   * @internal
+   */
   _onlineComponentProvider?: OnlineComponentProvider;
+  /**
+   * @internal
+   */
   _offlineComponentProvider?: OfflineComponentProvider;
 
   constructor(private forceOwnership?: boolean) {}
@@ -114,6 +154,9 @@ class SingleTabManagerImpl implements IndexedDbSingleTabManager {
     return { kind: this.kind };
   }
 
+  /**
+   * @internal
+   */
   _initialize(
     settings: Omit<IndexedDbSettings, 'tabManager'> | undefined
   ): void {
@@ -126,23 +169,42 @@ class SingleTabManagerImpl implements IndexedDbSingleTabManager {
   }
 }
 
-export interface IndexedDbMultipleTabManager {
+export type IndexedDbMultipleTabManager = {
   kind: 'IndexedDbMultipleTab';
+  /**
+   * @internal
+   */
   _initialize: (settings: Omit<IndexedDbSettings, 'tabManager'>) => void;
+  /**
+   * @internal
+   */
   _onlineComponentProvider?: OnlineComponentProvider;
+  /**
+   * @internal
+   */
+
   _offlineComponentProvider?: OfflineComponentProvider;
-}
+};
 
 class MultiTabManagerImpl implements IndexedDbMultipleTabManager {
   kind: 'IndexedDbMultipleTab' = 'IndexedDbMultipleTab';
 
+  /**
+   * @internal
+   */
   _onlineComponentProvider?: OnlineComponentProvider;
+  /**
+   * @internal
+   */
   _offlineComponentProvider?: OfflineComponentProvider;
 
   toJSON(): {} {
     return { kind: this.kind };
   }
 
+  /**
+   * @internal
+   */
   _initialize(
     settings: Omit<IndexedDbSettings, 'tabManager'> | undefined
   ): void {

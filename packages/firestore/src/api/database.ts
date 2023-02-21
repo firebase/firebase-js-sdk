@@ -287,10 +287,10 @@ export function configureFirestore(firestore: Firestore): void {
     settings.cache?._offlineComponentProvider &&
     settings.cache?._onlineComponentProvider
   ) {
-    firestore._firestoreClient.uninitializedComponentsProvider = {
-      offlineKind: settings.cache.kind,
-      offline: settings.cache._offlineComponentProvider,
-      online: settings.cache._onlineComponentProvider
+    firestore._firestoreClient._uninitializedComponentsProvider = {
+      _offlineKind: settings.cache.kind,
+      _offline: settings.cache._offlineComponentProvider,
+      _online: settings.cache._onlineComponentProvider
     };
   }
 }
@@ -327,7 +327,7 @@ export function enableIndexedDbPersistence(
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
-  if (client.uninitializedComponentsProvider) {
+  if (client._uninitializedComponentsProvider) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       'SDK cache is already specified.'
@@ -379,7 +379,7 @@ export function enableMultiTabIndexedDbPersistence(
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
-  if (client.uninitializedComponentsProvider) {
+  if (client._uninitializedComponentsProvider) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       'SDK cache is already specified.'

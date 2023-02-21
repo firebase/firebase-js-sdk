@@ -151,8 +151,8 @@ export function setIndexConfiguration(
   firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   if (
-    !client.uninitializedComponentsProvider ||
-    client.uninitializedComponentsProvider?.offlineKind === 'memory'
+    !client._uninitializedComponentsProvider ||
+    client._uninitializedComponentsProvider?._offlineKind === 'memory'
   ) {
     // PORTING NOTE: We don't return an error if the user has not enabled
     // persistence since `enableIndexeddbPersistence()` can fail on the Web.

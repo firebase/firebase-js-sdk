@@ -114,14 +114,14 @@ export class FirestoreClient {
     appCheckToken: string,
     user: User
   ) => Promise<void> = () => Promise.resolve();
-  uninitializedComponentsProvider?: {
-    offline: OfflineComponentProvider;
-    offlineKind: 'memory' | 'indexeddb';
-    online: OnlineComponentProvider;
+  _uninitializedComponentsProvider?: {
+    _offline: OfflineComponentProvider;
+    _offlineKind: 'memory' | 'indexeddb';
+    _online: OnlineComponentProvider;
   };
 
-  offlineComponents?: OfflineComponentProvider;
-  onlineComponents?: OnlineComponentProvider;
+  _offlineComponents?: OfflineComponentProvider;
+  _onlineComponents?: OnlineComponentProvider;
 
   constructor(
     private authCredentials: CredentialsProvider<User>,
@@ -188,11 +188,11 @@ export class FirestoreClient {
     const deferred = new Deferred();
     this.asyncQueue.enqueueAndForgetEvenWhileRestricted(async () => {
       try {
-        if (this.onlineComponents) {
-          await this.onlineComponents.terminate();
+        if (this._onlineComponents) {
+          await this._onlineComponents.terminate();
         }
-        if (this.offlineComponents) {
-          await this.offlineComponents.terminate();
+        if (this._offlineComponents) {
+          await this._offlineComponents.terminate();
         }
 
         // The credentials provider must be terminated after shutting down the
@@ -240,7 +240,7 @@ export async function setOfflineComponentProvider(
     client.terminate()
   );
 
-  client.offlineComponents = offlineComponentProvider;
+  client._offlineComponents = offlineComponentProvider;
 }
 
 export async function setOnlineComponentProvider(
@@ -265,18 +265,18 @@ export async function setOnlineComponentProvider(
   client.setAppCheckTokenChangeListener((_, user) =>
     remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
-  client.onlineComponents = onlineComponentProvider;
+  client._onlineComponents = onlineComponentProvider;
 }
 
 async function ensureOfflineComponents(
   client: FirestoreClient
 ): Promise<OfflineComponentProvider> {
-  if (!client.offlineComponents) {
-    if (client.uninitializedComponentsProvider) {
+  if (!client._offlineComponents) {
+    if (client._uninitializedComponentsProvider) {
       logDebug(LOG_TAG, 'Using user provided OfflineComponentProvider');
       await setOfflineComponentProvider(
         client,
-        client.uninitializedComponentsProvider.offline
+        client._uninitializedComponentsProvider._offline
       );
     } else {
       logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
@@ -287,18 +287,18 @@ async function ensureOfflineComponents(
     }
   }
 
-  return client.offlineComponents!;
+  return client._offlineComponents!;
 }
 
 async function ensureOnlineComponents(
   client: FirestoreClient
 ): Promise<OnlineComponentProvider> {
-  if (!client.onlineComponents) {
-    if (client.uninitializedComponentsProvider) {
+  if (!client._onlineComponents) {
+    if (client._uninitializedComponentsProvider) {
       logDebug(LOG_TAG, 'Using user provided OnlineComponentProvider');
       await setOnlineComponentProvider(
         client,
-        client.uninitializedComponentsProvider.online
+        client._uninitializedComponentsProvider._online
       );
     } else {
       logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
@@ -306,7 +306,7 @@ async function ensureOnlineComponents(
     }
   }
 
-  return client.onlineComponents!;
+  return client._onlineComponents!;
 }
 
 function getPersistence(client: FirestoreClient): Promise<Persistence> {
