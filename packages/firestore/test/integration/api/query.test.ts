@@ -1329,9 +1329,10 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // TODO(orquery): Enable these tests when prod supports OR queries.
+  // OR Query tests only run when the SDK is configured for persistence
+  // because they validate that the result from server and cache match.
   // eslint-disable-next-line no-restricted-properties
-  (false && persistence ? describe : describe.skip)('OR Queries', () => {
+  (persistence ? describe : describe.skip)('OR Queries', () => {
     it('can use query overloads', () => {
       const testDocs = {
         doc1: { a: 1, b: 0 },
@@ -1367,13 +1368,6 @@ apiDescribe('Queries', (persistence: boolean) => {
           query(coll, where('a', '==', 1), limit(2)),
           'doc1',
           'doc4'
-        );
-
-        // a == 1, limit 2, b - desc
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', '==', 1), limit(2), orderBy('b', 'desc')),
-          'doc4',
-          'doc5'
         );
 
         // explicit OR: a == 1 || b == 1 with limit 2
@@ -1418,14 +1412,6 @@ apiDescribe('Queries', (persistence: boolean) => {
           'doc5'
         );
 
-        // with one inequality: a>2 || b==1.
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', '>', 2), where('b', '==', 1))),
-          'doc5',
-          'doc2',
-          'doc3'
-        );
-
         // (a==1 && b==0) || (a==3 && b==2)
         await checkOnlineAndOfflineResultsMatch(
           query(
@@ -1464,48 +1450,6 @@ apiDescribe('Queries', (persistence: boolean) => {
           'doc3'
         );
 
-        // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', '==', 1), where('b', '>', 0)), limit(2)),
-          'doc1',
-          'doc2'
-        );
-
-        // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
-        // Note: The public query API does not allow implicit ordering when limitToLast is used.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', '==', 1), where('b', '>', 0)),
-            limitToLast(2),
-            orderBy('b')
-          ),
-          'doc3',
-          'doc4'
-        );
-
-        // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', '==', 2), where('b', '==', 1)),
-            limit(1),
-            orderBy('a')
-          ),
-          'doc5'
-        );
-
-        // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', '==', 2), where('b', '==', 1)),
-            limitToLast(1),
-            orderBy('a')
-          ),
-          'doc2'
-        );
-
         // Test with limits without orderBy (the __name__ ordering is the tie breaker).
         await checkOnlineAndOfflineResultsMatch(
           query(coll, or(where('a', '==', 2), where('b', '==', 1)), limit(1)),
@@ -1531,14 +1475,6 @@ apiDescribe('Queries', (persistence: boolean) => {
           'doc3',
           'doc4',
           'doc6'
-        );
-
-        // a==2 || b not-in [2,3]
-        // Has implicit orderBy b.
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', '==', 2), where('b', 'not-in', [2, 3]))),
-          'doc1',
-          'doc2'
         );
       });
     });
@@ -1589,23 +1525,15 @@ apiDescribe('Queries', (persistence: boolean) => {
       return withTestCollection(persistence, testDocs, async coll => {
         // Two IN operations on different fields with disjunction.
         await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
-            orderBy('a')
-          ),
+          query(coll, or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
           'doc1',
-          'doc6',
-          'doc3'
+          'doc3',
+          'doc6'
         );
 
         // Two IN operations on different fields with conjunction.
         await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
-            orderBy('a')
-          ),
+          query(coll, and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
           'doc3'
         );
 
@@ -1645,12 +1573,11 @@ apiDescribe('Queries', (persistence: boolean) => {
               where('a', 'in', [1, 3]),
               or(
                 where('a', 'in', [0, 2]),
-                and(where('b', '>=', 1), where('a', 'in', [1, 3]))
+                and(where('b', '==', 2), where('a', 'in', [1, 3]))
               )
             )
           ),
-          'doc3',
-          'doc4'
+          'doc3'
         );
 
         // Nested composite filter on the different fields.
@@ -1786,6 +1713,116 @@ apiDescribe('Queries', (persistence: boolean) => {
             )
           ),
           'doc3'
+        );
+      });
+    });
+  });
+
+  // OR Query tests only run when the SDK is configured for persistence
+  // because they validate that the result from server and cache match
+  // Additionally these tests must be skipped if running against production
+  // because it results in a 'missing index' error. The Firestore Emulator,
+  // however, does serve these queries.
+  // eslint-disable-next-line no-restricted-properties
+  (persistence && USE_EMULATOR ? describe : describe.skip)('OR Queries', () => {
+    it('can use query overloads', () => {
+      const testDocs = {
+        doc1: { a: 1, b: 0 },
+        doc2: { a: 2, b: 1 },
+        doc3: { a: 3, b: 2 },
+        doc4: { a: 1, b: 3 },
+        doc5: { a: 1, b: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async coll => {
+        // a == 1, limit 2, b - desc
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, where('a', '==', 1), limit(2), orderBy('b', 'desc')),
+          'doc4',
+          'doc5'
+        );
+      });
+    });
+
+    it('can use or queries', () => {
+      const testDocs = {
+        doc1: { a: 1, b: 0 },
+        doc2: { a: 2, b: 1 },
+        doc3: { a: 3, b: 2 },
+        doc4: { a: 1, b: 3 },
+        doc5: { a: 1, b: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async coll => {
+        // with one inequality: a>2 || b==1.
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '>', 2), where('b', '==', 1))),
+          'doc5',
+          'doc2',
+          'doc3'
+        );
+
+        // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '==', 1), where('b', '>', 0)), limit(2)),
+          'doc1',
+          'doc2'
+        );
+
+        // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
+        // Note: The public query API does not allow implicit ordering when limitToLast is used.
+        await checkOnlineAndOfflineResultsMatch(
+          query(
+            coll,
+            or(where('a', '==', 1), where('b', '>', 0)),
+            limitToLast(2),
+            orderBy('b')
+          ),
+          'doc3',
+          'doc4'
+        );
+
+        // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
+        await checkOnlineAndOfflineResultsMatch(
+          query(
+            coll,
+            or(where('a', '==', 2), where('b', '==', 1)),
+            limit(1),
+            orderBy('a')
+          ),
+          'doc5'
+        );
+
+        // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
+        await checkOnlineAndOfflineResultsMatch(
+          query(
+            coll,
+            or(where('a', '==', 2), where('b', '==', 1)),
+            limitToLast(1),
+            orderBy('a')
+          ),
+          'doc2'
+        );
+      });
+    });
+
+    it('can use or queries with in and not-in', () => {
+      const testDocs = {
+        doc1: { a: 1, b: 0 },
+        doc2: { b: 1 },
+        doc3: { a: 3, b: 2 },
+        doc4: { a: 1, b: 3 },
+        doc5: { a: 1 },
+        doc6: { a: 2 }
+      };
+
+      return withTestCollection(persistence, testDocs, async coll => {
+        // a==2 || b not-in [2,3]
+        // Has implicit orderBy b.
+        await checkOnlineAndOfflineResultsMatch(
+          query(coll, or(where('a', '==', 2), where('b', 'not-in', [2, 3]))),
+          'doc1',
+          'doc2'
         );
       });
     });
