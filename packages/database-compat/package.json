@@ -30,7 +30,8 @@
     },
     "./standalone": {
       "types": "./dist/database-compat/src/index.standalone.d.ts",
-      "node": "./dist/index.standalone.js"
+      "node": "./dist/index.standalone.js",
+      "default": "./dist/index.standalone.js"
     },
     "./package.json": "./package.json"
   },
