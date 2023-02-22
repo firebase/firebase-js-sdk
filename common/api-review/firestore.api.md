@@ -19,11 +19,11 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 
 // @public
 export class AggregateField<T> {
-    type: string;
+    readonly type = "AggregateField";
 }
 
 // @public
-export type AggregateFieldType = AggregateField<number>;
+export type AggregateFieldType = AggregateField<number | null>;
 
 // @public
 export class AggregateQuerySnapshot<T extends AggregateSpec> {
