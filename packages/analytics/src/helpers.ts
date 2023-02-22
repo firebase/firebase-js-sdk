@@ -28,6 +28,14 @@ import { logger } from './logger';
 // Possible parameter types for gtag 'event' and 'config' commands
 type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
 
+// Create a TrustedTypes policy that we use for scripts
+let _ttPolicy: Partial<TrustedTypePolicy>;
+if (window.trustedTypes) {
+  _ttPolicy = window.trustedTypes.createPolicy('firebase-js-sdk-policy', {
+    createScriptURL: (url: string) => url
+  });
+}
+
 /**
  * Makeshift polyfill for Promise.allSettled(). Resolves when all promises
  * have either resolved or rejected.
@@ -51,7 +59,12 @@ export function insertScriptTag(
   const script = document.createElement('script');
   // We are not providing an analyticsId in the URL because it would trigger a `page_view`
   // without fid. We will initialize ga-id using gtag (config) command together with fid.
-  script.src = `${GTAG_URL}?l=${dataLayerName}&id=${measurementId}`;
+
+  const gtagScriptURL = `${GTAG_URL}?l=${dataLayerName}&id=${measurementId}`;
+  (script.src as string | TrustedScriptURL) = _ttPolicy
+    ? (_ttPolicy as TrustedTypePolicy)?.createScriptURL(gtagScriptURL)
+    : gtagScriptURL;
+
   script.async = true;
   document.head.appendChild(script);
 }
