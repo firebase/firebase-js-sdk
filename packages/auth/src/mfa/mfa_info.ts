@@ -48,7 +48,6 @@ export abstract class MultiFactorInfoImpl implements MultiFactorInfo {
     if ('phoneInfo' in enrollment) {
       return PhoneMultiFactorInfoImpl._fromServerResponse(auth, enrollment);
     } else if ('totpInfo' in enrollment) {
-      // TODO(prameshj) ensure that this field is set by the backend once the tracking bug is fixed.
       return TotpMultiFactorInfoImpl._fromServerResponse(auth, enrollment);
     }
     return _fail(auth, AuthErrorCode.INTERNAL_ERROR);

@@ -51,24 +51,10 @@ export interface StartPhoneMfaSignInRequest {
   };
   tenantId?: string;
 }
-export interface StartTotpMfaSignInRequest {
-  mfaPendingCredential: string;
-  mfaEnrollmentId: string;
-  totpSignInInfo: {
-    verificationCode: string;
-  };
-  tenantId?: string;
-}
 
 export interface StartPhoneMfaSignInResponse {
   phoneResponseInfo: {
     sessionInfo: string;
-  };
-}
-
-export interface StartTotpMfaSignInResponse {
-  totpSignInInfo: {
-    verificationCode: string;
   };
 }
 
@@ -87,27 +73,15 @@ export function startSignInPhoneMfa(
   );
 }
 
-export function startSignInTotpMfa(
-  auth: Auth,
-  request: StartTotpMfaSignInRequest
-): Promise<StartTotpMfaSignInResponse> {
-  return _performApiRequest<
-    StartTotpMfaSignInRequest,
-    StartTotpMfaSignInResponse
-  >(
-    auth,
-    HttpMethod.POST,
-    Endpoint.START_MFA_SIGN_IN,
-    _addTidIfNecessary(auth, request)
-  );
-}
-
 export interface FinalizePhoneMfaSignInRequest {
   mfaPendingCredential: string;
   phoneVerificationInfo: SignInWithPhoneNumberRequest;
   tenantId?: string;
 }
 
+// TOTP MFA Sign in only has a finalize phase. Phone MFA has a start phase to initiate sending an
+// SMS and a finalize phase to complete sign in. With TOTP, the user already has the OTP in the
+// TOTP/Authenticator app.
 export interface FinalizeTotpMfaSignInRequest {
   mfaPendingCredential: string;
   totpVerificationInfo: { verificationCode: string };
