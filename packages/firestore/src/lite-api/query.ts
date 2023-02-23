@@ -1050,49 +1050,27 @@ function validateDisjunctiveFilterElements(
         `'${operator.toString()}' filters.`
     );
   }
-  if (value.length > 10) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid Query. '${operator.toString()}' filters support a ` +
-        'maximum of 10 elements in the value array.'
-    );
-  }
 }
 
 /**
  * Given an operator, returns the set of operators that cannot be used with it.
  *
- * Operators in a query must adhere to the following set of rules:
- * 1. Only one array operator is allowed.
- * 2. Only one disjunctive operator is allowed.
- * 3. `NOT_EQUAL` cannot be used with another `NOT_EQUAL` operator.
- * 4. `NOT_IN` cannot be used with array, disjunctive, or `NOT_EQUAL` operators.
+ * This is not a comprehensive check, and this function should be removed in the
+ * long term. Validations should occur in the Firestore backend.
  *
- * Array operators: `ARRAY_CONTAINS`, `ARRAY_CONTAINS_ANY`
- * Disjunctive operators: `IN`, `ARRAY_CONTAINS_ANY`, `NOT_IN`
+ * Operators in a query must adhere to the following set of rules:
+ * 1. Only one inequality per query.
+ * 2. `NOT_IN` cannot be used with array, disjunctive, or `NOT_EQUAL` operators.
  */
 function conflictingOps(op: Operator): Operator[] {
   switch (op) {
     case Operator.NOT_EQUAL:
       return [Operator.NOT_EQUAL, Operator.NOT_IN];
-    case Operator.ARRAY_CONTAINS:
-      return [
-        Operator.ARRAY_CONTAINS,
-        Operator.ARRAY_CONTAINS_ANY,
-        Operator.NOT_IN
-      ];
-    case Operator.IN:
-      return [Operator.ARRAY_CONTAINS_ANY, Operator.IN, Operator.NOT_IN];
     case Operator.ARRAY_CONTAINS_ANY:
-      return [
-        Operator.ARRAY_CONTAINS,
-        Operator.ARRAY_CONTAINS_ANY,
-        Operator.IN,
-        Operator.NOT_IN
-      ];
+    case Operator.IN:
+      return [Operator.NOT_IN];
     case Operator.NOT_IN:
       return [
-        Operator.ARRAY_CONTAINS,
         Operator.ARRAY_CONTAINS_ANY,
         Operator.IN,
         Operator.NOT_IN,
