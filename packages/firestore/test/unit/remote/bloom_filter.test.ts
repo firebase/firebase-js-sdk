@@ -18,6 +18,7 @@ import { expect } from 'chai';
 
 import { normalizeByteString } from '../../../src/model/normalize';
 import { BloomFilter } from '../../../src/remote/bloom_filter';
+import { doc, generateBloomFilterProto } from '../../util/helpers';
 
 import * as TEST_DATA from './bloom_filter_golden_test_data';
 
@@ -82,6 +83,28 @@ describe('BloomFilter', () => {
     const bloomFilter = new BloomFilter(new Uint8Array([237, 5]), 5, 8);
     expect(bloomFilter.mightContain('ÀÒ∑')).to.be.true;
     expect(bloomFilter.mightContain('Ò∑À')).to.be.false;
+  });
+
+  it.only('should be able to process between codepoint and surrogate pair non standard characters', () => {
+    const DOCUMENT_PREFIX =
+      'projects/test-project/databases/(default)/documents/';
+    // A non-empty BloomFilter object with 1 insertion : "é"
+    const docA = doc('collection/é', 1000, { v: 1 });
+
+    const bloomFilterProto = generateBloomFilterProto({
+      contains: [docA],
+      notContains: []
+    });
+    const {
+      bits={},
+      hashCount=0
+    } = bloomFilterProto;
+    const byteArray = normalizeByteString(bits.bitmap || "").toUint8Array();
+    const bloomFilter = new BloomFilter(byteArray, bits.padding || 0, hashCount);
+
+    expect(bloomFilter.mightContain(DOCUMENT_PREFIX+'collection/é')).to.be.true;
+    expect(bloomFilter.mightContain(DOCUMENT_PREFIX+'collection/\u00E9')).to.be.true;
+    expect(bloomFilter.mightContain(DOCUMENT_PREFIX+'collection/\u0065\u0301')).to.be.false;
   });
 
   it('mightContain in empty bloom filter should always return false', () => {
