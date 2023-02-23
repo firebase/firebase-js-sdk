@@ -136,6 +136,11 @@ async function generateDocs(
     `${projectRoot}/packages/auth/api-extractor.json`,
     'utf8'
   );
+  // Save original auth.md as well.
+  const authApiReportOriginal = fs.readFileSync(
+    `${projectRoot}/common/api-review/auth.api.md`,
+    'utf8'
+  );
   const authApiConfigModified = authApiConfigOriginal.replace(
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.d.ts"`,
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.doc.d.ts"`
@@ -145,20 +150,38 @@ async function generateDocs(
     authApiConfigModified
   );
 
-  if (!skipBuild) {
-    await spawn('yarn', ['build'], {
-      stdio: 'inherit'
-    });
-
+  if (skipBuild) {
     await spawn('yarn', ['api-report'], {
       stdio: 'inherit'
     });
+  } else {
+    // api-report is run as part of every build
+    await spawn(
+      'yarn',
+      [
+        'lerna',
+        'run',
+        '--scope',
+        '@firebase/*',
+        '--ignore',
+        '@firebase/*-compat',
+        'build'
+      ],
+      {
+        stdio: 'inherit'
+      }
+    );
   }
 
   // Restore original auth api-extractor.json contents.
   fs.writeFileSync(
     `${projectRoot}/packages/auth/api-extractor.json`,
     authApiConfigOriginal
+  );
+  // Restore original auth.api.md
+  fs.writeFileSync(
+    `${projectRoot}/common/api-review/auth.api.md`,
+    authApiReportOriginal
   );
 
   if (!fs.existsSync(tmpDir)) {

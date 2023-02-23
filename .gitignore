@@ -89,6 +89,6 @@ packages/**/docs
 tsdoc-metadata.json
 
 # generated html docs
-docs-*/
+docs-rut/
 docs/
 toc/
