@@ -1858,8 +1858,11 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  // TODO(Mila): Skip the test when using emulator as there is a bug related to 
+  // sending existence filter in response: b/270731363. Remove the condition  
+  // here once the bug is resolved.
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it.skip : it)(
+  (USE_EMULATOR ? it.skip : it)(
     'resuming a query should remove deleted documents indicated by existence filter',
     () => {
       const testDocs: { [key: string]: object } = {};
