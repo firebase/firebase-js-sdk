@@ -24,6 +24,7 @@ import {
 import { DynamicConfig, DataLayer, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
+import { AnalyticsError, ERROR_FACTORY } from './errors';
 
 // Possible parameter types for gtag 'event' and 'config' commands
 type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
@@ -32,7 +33,17 @@ type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
 let _ttPolicy: Partial<TrustedTypePolicy>;
 if (window.trustedTypes) {
   _ttPolicy = window.trustedTypes.createPolicy('firebase-js-sdk-policy', {
-    createScriptURL: (url: string) => url
+    createScriptURL: (url: string) => {
+      if (!url.startsWith(GTAG_URL)) {
+        console.error('Unknown gtag resource!', url);
+        const err = ERROR_FACTORY.create(AnalyticsError.INVALID_GTAG_RESOURCE, {
+          gtagURL: url
+        });
+        logger.warn(err.message);
+        return '';
+      }
+      return url;
+    }
   });
 }
 
