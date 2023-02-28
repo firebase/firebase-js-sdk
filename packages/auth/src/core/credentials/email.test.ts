@@ -106,6 +106,9 @@ describe('core/credentials/email', () => {
 
         it('calls sign in with password with recaptcha enabled', async () => {
           const recaptcha = new MockGreCAPTCHATopLevel();
+          if (typeof window === 'undefined') {
+            return;
+          }
           window.grecaptcha = recaptcha;
           sinon
             .stub(recaptcha.enterprise, 'execute')
@@ -151,6 +154,9 @@ describe('core/credentials/email', () => {
 
         it('calls sign in with password with recaptcha disabled', async () => {
           const recaptcha = new MockGreCAPTCHATopLevel();
+          if (typeof window === 'undefined') {
+            return;
+          }
           window.grecaptcha = recaptcha;
           sinon
             .stub(recaptcha.enterprise, 'execute')
@@ -197,6 +203,9 @@ describe('core/credentials/email', () => {
             .stub(jsHelpers, '_loadJS')
             .returns(Promise.resolve(new Event('')));
           const recaptcha = new MockGreCAPTCHATopLevel();
+          if (typeof window === 'undefined') {
+            return;
+          }
           window.grecaptcha = recaptcha;
           const stub = sinon.stub(recaptcha.enterprise, 'execute');
 

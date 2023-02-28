@@ -145,6 +145,9 @@ describe('core/strategies/sendPasswordResetEmail', () => {
   context('#recaptcha', () => {
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
       window.grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
@@ -485,6 +488,9 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
   context('#recaptcha', () => {
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
       window.grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')

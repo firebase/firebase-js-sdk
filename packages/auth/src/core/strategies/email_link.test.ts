@@ -161,6 +161,9 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
   context('#recaptcha', () => {
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
       window.grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
@@ -234,6 +237,9 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
 
     it('calls send sign in link to email with recaptcha forced refresh succeed', async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
       window.grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
 
