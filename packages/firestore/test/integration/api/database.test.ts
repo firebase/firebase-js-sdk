@@ -74,7 +74,8 @@ import {
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData,
-  withNamedTestDbsOrSkipUnlessUsingEmulator
+  withNamedTestDbsOrSkipUnlessUsingEmulator,
+  withEnsuredEagerGcTestDb
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -1753,15 +1754,23 @@ apiDescribe('Database', (persistence: boolean) => {
     );
   });
 
-  it('Can get document from cache with GC enabled.', () => {
+  it('Cannot get document from cache with eager GC enabled.', () => {
+    const initialData = { key: 'value' };
+    return withEnsuredEagerGcTestDb(async db => {
+      const docRef = doc(collection(db, 'test-collection'));
+      await setDoc(docRef, initialData);
+      await expect(getDocFromCache(docRef)).to.be.rejectedWith('Failed to get');
+    });
+  });
+
+  it('Can get document from cache with Lru GC enabled.', () => {
     const initialData = { key: 'value' };
     return withEnsuredLruGcTestDb(persistence, async db => {
       const docRef = doc(collection(db, 'test-collection'));
       await setDoc(docRef, initialData);
-      return getDoc(docRef).then(doc => {
+      return getDocFromCache(docRef).then(doc => {
         expect(doc.exists()).to.be.true;
-        expect(doc.metadata.fromCache).to.be.false;
-        expect(doc.metadata.hasPendingWrites).to.be.false;
+        expect(doc.metadata.fromCache).to.be.true;
         expect(doc.data()).to.deep.equal(initialData);
       });
     });

@@ -142,6 +142,20 @@ export function withTestDb(
   });
 }
 
+export function withEnsuredEagerGcTestDb(
+  fn: (db: Firestore) => Promise<void>
+): Promise<void> {
+  return withTestDbsSettings(
+    false,
+    DEFAULT_PROJECT_ID,
+    { ...DEFAULT_SETTINGS, cacheSizeBytes: 1 * 1024 * 1024 },
+    1,
+    async ([db]) => {
+      return fn(db);
+    }
+  );
+}
+
 export function withEnsuredLruGcTestDb(
   persistence: boolean,
   fn: (db: Firestore) => Promise<void>
