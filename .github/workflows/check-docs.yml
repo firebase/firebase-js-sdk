@@ -1,0 +1,28 @@
+name: Doc Change Check (Run "yarn docgen devsite" if this fails)
+
+on: pull_request
+
+jobs:
+  doc-check:
+    name: Check if reference docs have changed
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@master
+      with:
+        # get all history for the diff
+        fetch-depth: 0
+    - name: Set up Node (14)
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - name: Yarn install
+      run: yarn
+    - name: Run doc generation (devsite docs)
+      run: yarn docgen devsite
+    - name: Check for changes in docs-devsite dir (fail if so)
+      run: git diff --exit-code docs-devsite
+    - name: Reference documentation needs to be updated. See message below.
+      if: ${{ failure() }}
+      run: echo "Changes in this PR affect the reference docs. Run \`yarn docgen devsite\` locally to regenerate docs and add them to this PR."

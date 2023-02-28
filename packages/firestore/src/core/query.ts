@@ -25,7 +25,7 @@ import {
   boundSortsAfterDocument,
   boundSortsBeforeDocument
 } from './bound';
-import { CompositeFilter, Filter } from './filter';
+import { Filter } from './filter';
 import { Direction, OrderBy } from './order_by';
 import {
   canonifyTarget,
@@ -162,13 +162,6 @@ export function queryMatchesAllDocuments(query: Query): boolean {
     (query.explicitOrderBy.length === 0 ||
       (query.explicitOrderBy.length === 1 &&
         query.explicitOrderBy[0].field.isKeyField()))
-  );
-}
-
-export function queryContainsCompositeFilters(query: Query): boolean {
-  return (
-    query.filters.find(filter => filter instanceof CompositeFilter) !==
-    undefined
   );
 }
 

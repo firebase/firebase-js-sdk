@@ -181,7 +181,7 @@ export async function _performFetchWithErrorHandling<V>(
     if (e instanceof FirebaseError) {
       throw e;
     }
-    _fail(auth, AuthErrorCode.NETWORK_REQUEST_FAILED);
+    _fail(auth, AuthErrorCode.INTERNAL_ERROR, { 'message': String(e) });
   }
 }
 

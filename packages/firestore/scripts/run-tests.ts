@@ -58,8 +58,7 @@ let args = [
 ];
 
 if (argv.emulator) {
-  process.env.FIRESTORE_EMULATOR_PORT = '8080';
-  process.env.FIRESTORE_EMULATOR_PROJECT_ID = 'test-emulator';
+  process.env.FIRESTORE_TARGET_BACKEND = 'emulator';
 }
 
 if (argv.persistence) {

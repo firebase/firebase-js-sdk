@@ -341,7 +341,7 @@ describeSpec('Limits:', [], () => {
           // we receive an existence filter, which indicates that our view is
           // out of sync.
           .watchSends({ affects: [limitQuery] }, secondDocument)
-          .watchFilters([limitQuery], secondDocument.key)
+          .watchFilters([limitQuery], [secondDocument.key])
           .watchSnapshots(1004)
           .expectActiveTargets({ query: limitQuery, resumeToken: '' })
           .watchRemoves(limitQuery)
