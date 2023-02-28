@@ -108,12 +108,26 @@ export async function sendPasswordResetEmail(
         actionCodeSettings
       );
     }
-    await authentication.sendPasswordResetEmail(authInternal, request).catch(async (error) => {
-      if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-        console.log("Password resets are protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the password reset flow.");
-        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, RecaptchaActionName.GET_OOB_CODE, true);
-        if (actionCodeSettings) {
-          _setActionCodeSettingsOnRequest(authInternal, requestWithRecaptcha, actionCodeSettings);
+    await authentication
+      .sendPasswordResetEmail(authInternal, request)
+      .catch(async error => {
+        if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
+          console.log(
+            'Password resets are protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the password reset flow.'
+          );
+          const requestWithRecaptcha = await injectRecaptchaFields(
+            authInternal,
+            request,
+            RecaptchaActionName.GET_OOB_CODE,
+            true
+          );
+          if (actionCodeSettings) {
+            _setActionCodeSettingsOnRequest(
+              authInternal,
+              requestWithRecaptcha,
+              actionCodeSettings
+            );
+          }
         }
       });
   }
@@ -274,10 +288,16 @@ export async function createUserWithEmailAndPassword(
     );
     signUpResponse = signUp(authInternal, requestWithRecaptcha);
   } else {
-    signUpResponse = signUp(authInternal, request).catch(async (error) => {
+    signUpResponse = signUp(authInternal, request).catch(async error => {
       if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-        console.log("Sign-up is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-up flow.");
-        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, RecaptchaActionName.SIGN_UP_PASSWORD);
+        console.log(
+          'Sign-up is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-up flow.'
+        );
+        const requestWithRecaptcha = await injectRecaptchaFields(
+          authInternal,
+          request,
+          RecaptchaActionName.SIGN_UP_PASSWORD
+        );
         return signUp(authInternal, requestWithRecaptcha);
       } else {
         return Promise.reject(error);
