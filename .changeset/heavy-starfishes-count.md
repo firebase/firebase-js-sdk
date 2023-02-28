@@ -1,6 +1,6 @@
 ---
-"@firebase/firestore-compat": feat
-"@firebase/firestore": feat
+"@firebase/firestore-compat": minor
+"@firebase/firestore": minor
 ---
 
 Relaxing query validation performed by the SDK
