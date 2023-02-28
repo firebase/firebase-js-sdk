@@ -216,7 +216,7 @@ export const SERVER_ERROR_MAP: Partial<ServerErrorMap<ServerError>> = {
   [ServerError.BLOCKING_FUNCTION_ERROR_RESPONSE]: AuthErrorCode.INTERNAL_ERROR,
 
   // Recaptcha related errors.
-  [ServerError.INVALID_RECAPTCHA_SCORE]: AuthErrorCode.RECAPTCHA_CHECK_FAILED,
+  [ServerError.INVALID_RECAPTCHA_SCORE]: AuthErrorCode.CAPTCHA_CHECK_FAILED,
   [ServerError.RECAPTCHA_NOT_ENABLED]: AuthErrorCode.RECAPTCHA_NOT_ENABLED,
   [ServerError.MISSING_RECAPTCHA_TOKEN]: AuthErrorCode.INTERNAL_ERROR,
   [ServerError.INVALID_RECAPTCHA_TOKEN]: AuthErrorCode.INTERNAL_ERROR,

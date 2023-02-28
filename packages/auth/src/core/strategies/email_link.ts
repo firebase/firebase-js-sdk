@@ -29,7 +29,6 @@ import { _getCurrentUrl } from '../util/location';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
-import { ServerError } from '../../api/errors';
 import { _assert } from '../util/assert';
 import { getModularInstance } from '@firebase/util';
 import { _castAuth } from '../auth/auth_impl';
@@ -115,7 +114,7 @@ export async function sendSignInLinkToEmail(
     await api
       .sendSignInLinkToEmail(authInternal, request)
       .catch(async error => {
-        if (error.code === `auth/${ServerError.MISSING_RECAPTCHA_TOKEN}`) {
+        if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
           console.log(
             'Email link sign-in is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.'
           );
