@@ -25,32 +25,42 @@ export interface Recaptcha {
   reset: (id: number) => unknown;
 }
 
-export function isV2(grecaptcha: Recaptcha | GreCAPTCHA | undefined): grecaptcha is Recaptcha {
-  return grecaptcha !== undefined && (grecaptcha as Recaptcha).getResponse !== undefined;
+export function isV2(
+  grecaptcha: Recaptcha | GreCAPTCHA | undefined
+): grecaptcha is Recaptcha {
+  return (
+    grecaptcha !== undefined &&
+    (grecaptcha as Recaptcha).getResponse !== undefined
+  );
 }
 
 // reCAPTCHA Enterprise & v3 shared interface
- export interface GreCAPTCHATopLevel extends GreCAPTCHA {
-   enterprise: GreCAPTCHA;
- }
- 
- // reCAPTCHA Enterprise interface
- export interface GreCAPTCHA {
-   ready: (callback: () => void) => void;
-   execute: (siteKey: string, options: { action: string }) => Promise<string>;
-   render: (
-     container: string | HTMLElement,
-     parameters: GreCAPTCHARenderOption
-   ) => string;
- }
- 
- export interface GreCAPTCHARenderOption {
-   sitekey: string;
-   size: 'invisible';
- }
+export interface GreCAPTCHATopLevel extends GreCAPTCHA {
+  enterprise: GreCAPTCHA;
+}
 
- export function isEnterprise(grecaptcha: Recaptcha | GreCAPTCHA | undefined): grecaptcha is GreCAPTCHATopLevel {
-  return grecaptcha !== undefined && (grecaptcha as GreCAPTCHATopLevel).enterprise !== undefined;
+// reCAPTCHA Enterprise interface
+export interface GreCAPTCHA {
+  ready: (callback: () => void) => void;
+  execute: (siteKey: string, options: { action: string }) => Promise<string>;
+  render: (
+    container: string | HTMLElement,
+    parameters: GreCAPTCHARenderOption
+  ) => string;
+}
+
+export interface GreCAPTCHARenderOption {
+  sitekey: string;
+  size: 'invisible';
+}
+
+export function isEnterprise(
+  grecaptcha: Recaptcha | GreCAPTCHA | undefined
+): grecaptcha is GreCAPTCHATopLevel {
+  return (
+    grecaptcha !== undefined &&
+    (grecaptcha as GreCAPTCHATopLevel).enterprise !== undefined
+  );
 }
 
 // TODO(chuanr): Replace this with the AuthWindow after resolving the dependency issue in Node.js env.

@@ -23,7 +23,10 @@ export function endpointUrl(endpoint: Endpoint): string {
   return `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`;
 }
 
-export function endpointUrlWithParams(endpoint: Endpoint, params: Record<string, any>): string {
+export function endpointUrlWithParams(
+  endpoint: Endpoint,
+  params: Record<string, any>
+): string {
   let url = `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`;
   for (const key in params) {
     if (Object.prototype.hasOwnProperty.call(params, key)) {
