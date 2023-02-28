@@ -66,7 +66,7 @@ describeSpec('Garbage Collection:', [], () => {
         .watchAcksFull(query1, 1000, docA)
         .expectEvents(query1, { added: [docA] })
         .userUnlistens(query1)
-        .triggerLruGC(1000)
+        .triggerLruGC(1000_000_000)
         .userListens(query1)
         .expectListen(query1, { resumeToken: 'resume-token-1000' })
         .expectEvents(query1, { added: [docA], fromCache: true });
