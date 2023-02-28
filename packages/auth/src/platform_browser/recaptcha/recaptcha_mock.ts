@@ -81,15 +81,15 @@ export class MockGreCAPTCHATopLevel implements GreCAPTCHATopLevel {
 
   execute(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    siteKey: string,
-    options: { action: string }
+    _siteKey: string,
+    _options: { action: string }
   ): Promise<string> {
     return Promise.resolve('token');
   }
   render(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    container: string | HTMLElement,
-    parameters: GreCAPTCHARenderOption
+    _container: string | HTMLElement,
+    _parameters: GreCAPTCHARenderOption
   ): string {
     return '';
   }
@@ -102,15 +102,15 @@ export class MockGreCAPTCHA implements GreCAPTCHA {
 
   execute(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    siteKey: string,
-    options: { action: string }
+    _siteKey: string,
+    _options: { action: string }
   ): Promise<string> {
     return Promise.resolve('token');
   }
   render(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    container: string | HTMLElement,
-    parameters: GreCAPTCHARenderOption
+    _container: string | HTMLElement,
+    _parameters: GreCAPTCHARenderOption
   ): string {
     return '';
   }
