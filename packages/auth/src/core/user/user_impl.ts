@@ -142,6 +142,8 @@ export class UserImpl implements UserInternal {
   _clone(auth: AuthInternal): UserInternal {
     return new UserImpl({
       ...this,
+      createdAt: this.metadata.creationTime,
+      lastLoginAt: this.metadata.lastSignInTime,
       auth,
       stsTokenManager: this.stsTokenManager._clone()
     });
