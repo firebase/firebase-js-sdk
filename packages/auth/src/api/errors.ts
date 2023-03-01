@@ -91,16 +91,14 @@ export const enum ServerError {
   USER_DISABLED = 'USER_DISABLED',
   USER_NOT_FOUND = 'USER_NOT_FOUND',
   WEAK_PASSWORD = 'WEAK_PASSWORD',
-  INVALID_RECAPTCHA_SCORE = 'invalid-recaptcha-score',
+  RECAPTCHA_NOT_ENABLED = 'recaptcha-not-enabled',
   MISSING_RECAPTCHA_TOKEN = 'missing-recaptcha-token',
   INVALID_RECAPTCHA_TOKEN = 'invalid-recaptcha-token',
-  INVALID_RECAPTCHA_ACTION = 'invalide-recaptcha-action',
-  INVALID_RECAPTCHA_ENFORCEMENT_STATE = 'invalid-recaptcha-enforcement-state',
-  RECAPTCHA_NOT_ENABLED = 'recaptcha-not-enabled',
+  INVALID_RECAPTCHA_ACTION = 'invalid-recaptcha-action',
   MISSING_CLIENT_TYPE = 'missing-client-type',
   MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
-  INVALID_REQ_TYPE = 'invalid-req-type',
-  INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version'
+  INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
+  INVALID_REQ_TYPE = 'invalid-req-type'
 }
 
 /**
@@ -216,15 +214,12 @@ export const SERVER_ERROR_MAP: Partial<ServerErrorMap<ServerError>> = {
   [ServerError.BLOCKING_FUNCTION_ERROR_RESPONSE]: AuthErrorCode.INTERNAL_ERROR,
 
   // Recaptcha related errors.
-  [ServerError.INVALID_RECAPTCHA_SCORE]: AuthErrorCode.CAPTCHA_CHECK_FAILED,
   [ServerError.RECAPTCHA_NOT_ENABLED]: AuthErrorCode.RECAPTCHA_NOT_ENABLED,
   [ServerError.MISSING_RECAPTCHA_TOKEN]: AuthErrorCode.INTERNAL_ERROR,
   [ServerError.INVALID_RECAPTCHA_TOKEN]: AuthErrorCode.INTERNAL_ERROR,
   [ServerError.INVALID_RECAPTCHA_ACTION]: AuthErrorCode.INTERNAL_ERROR,
-  [ServerError.INVALID_RECAPTCHA_ENFORCEMENT_STATE]:
-    AuthErrorCode.INTERNAL_ERROR,
   [ServerError.MISSING_CLIENT_TYPE]: AuthErrorCode.INTERNAL_ERROR,
   [ServerError.MISSING_RECAPTCHA_VERSION]: AuthErrorCode.INTERNAL_ERROR,
-  [ServerError.INVALID_REQ_TYPE]: AuthErrorCode.INTERNAL_ERROR,
-  [ServerError.INVALID_RECAPTCHA_VERSION]: AuthErrorCode.INTERNAL_ERROR
+  [ServerError.INVALID_RECAPTCHA_VERSION]: AuthErrorCode.INTERNAL_ERROR,
+  [ServerError.INVALID_REQ_TYPE]: AuthErrorCode.INTERNAL_ERROR
 };
