@@ -442,7 +442,9 @@ export class WatchChangeAggregator {
     watchChange: ExistenceFilterChange,
     currentCount: number
   ): boolean {
-    logWarn(`zzyzx applyBloomFilter() watchChange=${JSON.stringify(watchChange)}`);
+    logWarn(
+      `zzyzx applyBloomFilter() watchChange=${JSON.stringify(watchChange)}`
+    );
 
     const { unchangedNames, count: expectedCount } =
       watchChange.existenceFilter;

@@ -1858,8 +1858,8 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // TODO(Mila): Skip the test when using emulator as there is a bug related to 
-  // sending existence filter in response: b/270731363. Remove the condition  
+  // TODO(Mila): Skip the test when using emulator as there is a bug related to
+  // sending existence filter in response: b/270731363. Remove the condition
   // here once the bug is resolved.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
