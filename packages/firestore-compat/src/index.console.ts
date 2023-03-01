@@ -107,7 +107,12 @@ export class Firestore extends FirestoreCompat {
     count: (query: Compat<ExpQuery<unknown>>) => {
       return getCountFromServer(query._delegate).then(response => {
         return response.data().count;
-      });
+      }).catch(error => {
+        throw new FirestoreError(
+        error.code,
+        error.message,
+      );
+    });
     }
   };
 }
