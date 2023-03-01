@@ -171,6 +171,14 @@ export function initializeFirestore(
     }
   }
 
+  if (settings.cacheSizeBytes !== undefined && settings.cache !== undefined) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `cache and cacheSizeBytes cannot be specified at the same time as cacheSizeBytes will` +
+        `be deprecated. Instead, specify the cache size in the cache object`
+    );
+  }
+
   if (
     settings.cacheSizeBytes !== undefined &&
     settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
@@ -296,6 +304,11 @@ export function configureFirestore(firestore: Firestore): void {
 }
 
 /**
+ * NOTE: this function will be deprecated in a future major release. Instead, set
+ * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
+ * turn on indexeddb cache. Calling this function when `FirestoreSettings.cache`
+ * is already specified will throw an exception.
+ *
  * Attempts to enable persistent storage, if possible.
  *
  * Must be called before any other functions (other than
@@ -318,7 +331,6 @@ export function configureFirestore(firestore: Firestore): void {
  * persistence.
  * @returns A `Promise` that represents successfully enabling persistent storage.
  */
-// TODO(wuandy): mark obselete
 export function enableIndexedDbPersistence(
   firestore: Firestore,
   persistenceSettings?: PersistenceSettings
@@ -336,6 +348,13 @@ export function enableIndexedDbPersistence(
 
   const settings = firestore._freezeSettings();
 
+  if (settings.cache !== undefined) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'FirestoreSettings.cache is already specified.'
+    );
+  }
+
   const onlineComponentProvider = new OnlineComponentProvider();
   const offlineComponentProvider = new IndexedDbOfflineComponentProvider(
     onlineComponentProvider,
@@ -350,6 +369,11 @@ export function enableIndexedDbPersistence(
 }
 
 /**
+ * NOTE: this function will be deprecated in a future major release. Instead, set
+ * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
+ * turn on indexeddb cache. Calling this function when `FirestoreSettings.cache`
+ * is already specified will throw an exception.
+ *
  * Attempts to enable multi-tab persistent storage, if possible. If enabled
  * across all tabs, all operations share access to local persistence, including
  * shared execution of queries and latency-compensated local document updates
@@ -371,7 +395,6 @@ export function enableIndexedDbPersistence(
  * @returns A `Promise` that represents successfully enabling persistent
  * storage.
  */
-// TODO(wuandy): mark obselete
 export function enableMultiTabIndexedDbPersistence(
   firestore: Firestore
 ): Promise<void> {
@@ -387,6 +410,13 @@ export function enableMultiTabIndexedDbPersistence(
   }
 
   const settings = firestore._freezeSettings();
+
+  if (settings.cache !== undefined) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'FirestoreSettings.cache is already specified.'
+    );
+  }
 
   const onlineComponentProvider = new OnlineComponentProvider();
   const offlineComponentProvider = new MultiTabOfflineComponentProvider(

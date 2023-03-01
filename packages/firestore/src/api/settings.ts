@@ -32,7 +32,6 @@ export interface PersistenceSettings {
    * Workers. Setting this to `true` will enable persistence, but cause other
    * tabs using persistence to fail.
    */
-  // TODO(wuandy): Deprecate this
   forceOwnership?: boolean;
 }
 
@@ -42,6 +41,9 @@ export interface PersistenceSettings {
  */
 export interface FirestoreSettings extends LiteSettings {
   /**
+   * NOTE: This field will be deprecated in a future major release. Use `cache` field
+   * instead to specify cache size, and other cache configurations.
+   *
    * An approximate cache size threshold for the on-disk data. If the cache
    * grows beyond this size, Firestore will start removing data that hasn't been
    * recently used. The size is not a guarantee that the cache will stay below
@@ -51,9 +53,18 @@ export interface FirestoreSettings extends LiteSettings {
    * The default value is 40 MB. The threshold must be set to at least 1 MB, and
    * can be set to `CACHE_SIZE_UNLIMITED` to disable garbage collection.
    */
-  // TODO(wuandy): Deprecate this
   cacheSizeBytes?: number;
 
+  /**
+   * Specifies the cache used by the SDK. Availabe options are `MemoryLocalCache`
+   * and `IndexedDbLocalCache`, each with different configuration options.
+   *
+   * When unspecified, `MemoryLocalCache` will be used by default.
+   *
+   * NOTE: setting this field and `cacheSizeBytes` at the same time will throw
+   * exception during SDK initialization. Instead, using the configuration in
+   * the `FirestoreLocalCache` object to specify the cache size.
+   */
   cache?: FirestoreLocalCache;
 
   /**
