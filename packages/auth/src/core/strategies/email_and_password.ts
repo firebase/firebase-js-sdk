@@ -128,6 +128,12 @@ export async function sendPasswordResetEmail(
               actionCodeSettings
             );
           }
+          await authentication.sendPasswordResetEmail(
+            authInternal,
+            requestWithRecaptcha
+          );
+        } else {
+          return Promise.reject(error);
         }
       });
   }
