@@ -37,6 +37,7 @@ export {
   IndexedDbSettings,
   indexedDbSingleTabManager,
   IndexedDbSingleTabManager,
+  IndexedDbSingleTabManagerSettings,
   MemoryLocalCache,
   memoryLocalCache,
   IndexedDbTabManager

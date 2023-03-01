@@ -175,7 +175,6 @@ export async function generateApi(
     /* dtsRollupEnabled= */ false,
     /* apiReportEnabled= */ true
   );
-  console.log(`Invoking extractor with config ${extractorConfig}`);
   Extractor.invoke(extractorConfig, { localBuild: true });
   console.log(`API report for ${packageName} written to ${reportFolder}`);
 }

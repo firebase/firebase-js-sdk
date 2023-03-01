@@ -216,12 +216,11 @@ export class FirestoreError extends FirebaseError {
 // @public
 export type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 
-// @public (undocumented)
+// @public
 export type FirestoreLocalCache = MemoryLocalCache | IndexedDbLocalCache;
 
 // @public
 export interface FirestoreSettings {
-    // (undocumented)
     cache?: FirestoreLocalCache;
     cacheSizeBytes?: number;
     experimentalAutoDetectLongPolling?: boolean;
@@ -290,44 +289,45 @@ export interface IndexConfiguration {
     readonly indexes?: Index[];
 }
 
-// @public (undocumented)
+// @public
 export interface IndexedDbLocalCache {
     // (undocumented)
     kind: 'indexeddb';
 }
 
-// @public (undocumented)
+// @public
 export function indexedDbLocalCache(settings?: IndexedDbSettings): IndexedDbLocalCache;
 
-// @public (undocumented)
+// @public
 export interface IndexedDbMultipleTabManager {
     // (undocumented)
     kind: 'IndexedDbMultipleTab';
 }
 
-// @public (undocumented)
+// @public
 export function indexedDbMultipleTabManager(): IndexedDbMultipleTabManager;
 
-// @public (undocumented)
+// @public
 export interface IndexedDbSettings {
-    // (undocumented)
     cacheSizeBytes?: number;
-    // (undocumented)
     tabManager?: IndexedDbTabManager;
 }
 
-// @public (undocumented)
+// @public
 export interface IndexedDbSingleTabManager {
     // (undocumented)
     kind: 'indexedDbSingleTab';
 }
 
-// @public (undocumented)
-export function indexedDbSingleTabManager(settings: {
-    forceOwnership?: boolean;
-} | undefined): IndexedDbSingleTabManager;
+// @public
+export function indexedDbSingleTabManager(settings: IndexedDbSingleTabManagerSettings | undefined): IndexedDbSingleTabManager;
 
-// @public (undocumented)
+// @public
+export interface IndexedDbSingleTabManagerSettings {
+    forceOwnership?: boolean;
+}
+
+// @public
 export type IndexedDbTabManager = IndexedDbSingleTabManager | IndexedDbMultipleTabManager;
 
 // @beta
@@ -369,13 +369,13 @@ export interface LoadBundleTaskProgress {
 
 export { LogLevel }
 
-// @public (undocumented)
+// @public
 export interface MemoryLocalCache {
     // (undocumented)
     kind: 'memory';
 }
 
-// @public (undocumented)
+// @public
 export function memoryLocalCache(): MemoryLocalCache;
 
 // @public
