@@ -1,5 +1,40 @@
 # firebase
 
+## 9.17.2
+
+### Patch Changes
+
+- [`b5f86b1a3`](https://github.com/firebase/firebase-js-sdk/commit/b5f86b1a305b3067fed12b024938f0c3f47de2ef) [#7018](https://github.com/firebase/firebase-js-sdk/pull/7018) - Internal refactor of platform-specific logic to create TextEncoder and TextDecoder objects.
+
+- [`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6) [#7019](https://github.com/firebase/firebase-js-sdk/pull/7019) - Modify base64 decoding logic to throw on invalid input, rather than silently truncating it.
+
+- Updated dependencies [[`36558bd2e`](https://github.com/firebase/firebase-js-sdk/commit/36558bd2e68e1ba3fb31d85ef997ab9ddf692d50), [`b5f86b1a3`](https://github.com/firebase/firebase-js-sdk/commit/b5f86b1a305b3067fed12b024938f0c3f47de2ef), [`b970dc522`](https://github.com/firebase/firebase-js-sdk/commit/b970dc52282e35d4d3fac947e330d830063caa5e), [`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6), [`67c5a0dc5`](https://github.com/firebase/firebase-js-sdk/commit/67c5a0dc55237391afceb956280cb04cfeaac66f), [`b30186ffc`](https://github.com/firebase/firebase-js-sdk/commit/b30186ffc15cd441521c8f43d3f9a7a4e9ce8820), [`c8a6e08b0`](https://github.com/firebase/firebase-js-sdk/commit/c8a6e08b01a52b3eca77ca9da8989dac2e77a972)]:
+  - @firebase/firestore-compat@0.3.4
+  - @firebase/firestore@3.8.4
+  - @firebase/database-compat@0.3.4
+  - @firebase/util@1.9.3
+  - @firebase/auth@0.21.4
+  - @firebase/analytics@0.9.4
+  - @firebase/analytics-compat@0.2.4
+  - @firebase/app@0.9.4
+  - @firebase/app-check@0.6.4
+  - @firebase/app-check-compat@0.3.4
+  - @firebase/app-compat@0.2.4
+  - @firebase/auth-compat@0.3.4
+  - @firebase/database@0.14.4
+  - @firebase/functions@0.9.4
+  - @firebase/functions-compat@0.3.4
+  - @firebase/installations@0.6.4
+  - @firebase/installations-compat@0.2.4
+  - @firebase/messaging@0.12.4
+  - @firebase/messaging-compat@0.2.4
+  - @firebase/performance@0.6.4
+  - @firebase/performance-compat@0.2.4
+  - @firebase/remote-config@0.4.4
+  - @firebase/remote-config-compat@0.2.4
+  - @firebase/storage@0.11.2
+  - @firebase/storage-compat@0.3.2
+
 ## 9.17.1
 
 ### Patch Changes
