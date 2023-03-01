@@ -26,7 +26,7 @@ Please see [Environment Support](https://firebase.google.com/support/guides/envi
 
 ### Prerequisites
 
-#### Node.js
+#### Node.js ci-test-git
 
 Before you can start working on the Firebase JS SDK, you need to have Node.js
 installed on your machine. The currently supported versions are `10.15.0` or greater.
