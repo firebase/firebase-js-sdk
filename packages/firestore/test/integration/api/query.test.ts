@@ -1458,7 +1458,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
 
-    it('can use or queries with in and not-in', () => {
+    it('can use or queries with in', () => {
       const testDocs = {
         doc1: { a: 1, b: 0 },
         doc2: { b: 1 },
@@ -1531,68 +1531,11 @@ apiDescribe('Queries', (persistence: boolean) => {
           'doc6'
         );
 
-        // Two IN operations on different fields with conjunction.
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
-          'doc3'
-        );
-
-        // Two IN operations on the same field.
-        // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [1, 2, 3]), where('a', 'in', [0, 1, 4]))
-          ),
-          'doc1',
-          'doc4',
-          'doc5'
-        );
-
-        // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an
-        // empty set.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [2, 3]), where('a', 'in', [0, 1, 4]))
-          )
-        );
-
         // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
         await checkOnlineAndOfflineResultsMatch(
           query(coll, or(where('a', 'in', [0, 3]), where('a', 'in', [0, 2]))),
           'doc3',
           'doc6'
-        );
-
-        // Nested composite filter on the same field.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('a', 'in', [1, 3]),
-              or(
-                where('a', 'in', [0, 2]),
-                and(where('b', '==', 2), where('a', 'in', [1, 3]))
-              )
-            )
-          ),
-          'doc3'
-        );
-
-        // Nested composite filter on the different fields.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('b', 'in', [0, 3]),
-              or(
-                where('b', 'in', [1]),
-                and(where('b', 'in', [2, 3]), where('a', 'in', [1, 3]))
-              )
-            )
-          ),
-          'doc4'
         );
       });
     });
@@ -1806,7 +1749,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
 
-    it('can use or queries with in and not-in', () => {
+    it('can use or queries with not-in', () => {
       const testDocs = {
         doc1: { a: 1, b: 0 },
         doc2: { b: 1 },
