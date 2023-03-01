@@ -47,10 +47,6 @@ export const DEFAULT_SETTINGS: PrivateSettings = {
 // eslint-disable-next-line no-console
 console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 
-function parseTargetBackend(targetBackend: string): TargetBackend {
-  return TargetBackend.NIGHTLY;
-}
-
 function getTargetBackend(): TargetBackend {
   return TargetBackend.NIGHTLY;
 }
