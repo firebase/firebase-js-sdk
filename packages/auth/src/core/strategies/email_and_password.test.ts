@@ -144,6 +144,9 @@ describe('core/strategies/sendPasswordResetEmail', () => {
 
   context('#recaptcha', () => {
     beforeEach(async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
       sinon
@@ -166,6 +169,9 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     });
 
     it('calls send password reset email with recaptcha enabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {
@@ -194,6 +200,9 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     });
 
     it('calls send password reset with recaptcha disabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {
@@ -485,6 +494,9 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
   context('#recaptcha', () => {
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
       window.grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
@@ -506,6 +518,9 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     });
 
     it('calls create user with email password with recaptcha enabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {
