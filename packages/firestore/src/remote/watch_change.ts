@@ -450,6 +450,9 @@ export class WatchChangeAggregator {
       watchChange.existenceFilter;
 
     if (!unchangedNames || !unchangedNames.bits) {
+      logWarn(
+        `zzyzx applyBloomFilter() no bloom filter provided; falling back to full requery`
+      );
       return false;
     }
 
@@ -492,7 +495,11 @@ export class WatchChangeAggregator {
       bloomFilter
     );
 
-    return expectedCount === currentCount - removedDocumentCount;
+    const applied = expectedCount === currentCount - removedDocumentCount;
+    logWarn(
+      `zzyzx Applying bloom filter successful? ${applied ? 'yes' : 'no'}`
+    );
+    return applied;
   }
 
   /**
