@@ -346,14 +346,11 @@ export function enableIndexedDbPersistence(
     );
   }
 
+  logWarn(
+    'enableIndexedDbPersistence() will be deprecated in the future, ' +
+      'you can use `FirestoreSettings.cache` instead.'
+  );
   const settings = firestore._freezeSettings();
-
-  if (settings.cache !== undefined) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      'FirestoreSettings.cache is already specified.'
-    );
-  }
 
   const onlineComponentProvider = new OnlineComponentProvider();
   const offlineComponentProvider = new IndexedDbOfflineComponentProvider(
@@ -409,14 +406,11 @@ export function enableMultiTabIndexedDbPersistence(
     );
   }
 
+  logWarn(
+    'enableMultiTabIndexedDbPersistence() will be deprecated in the future, ' +
+      'you can use `FirestoreSettings.cache` instead.'
+  );
   const settings = firestore._freezeSettings();
-
-  if (settings.cache !== undefined) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      'FirestoreSettings.cache is already specified.'
-    );
-  }
 
   const onlineComponentProvider = new OnlineComponentProvider();
   const offlineComponentProvider = new MultiTabOfflineComponentProvider(
