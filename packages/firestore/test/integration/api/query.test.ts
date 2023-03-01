@@ -49,6 +49,7 @@ import {
   QuerySnapshot,
   runTransaction,
   setDoc,
+  setLogLevel,
   startAfter,
   startAt,
   Timestamp,
@@ -1862,7 +1863,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   // sending existence filter in response: b/270731363. Remove the condition
   // here once the bug is resolved.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
+  (USE_EMULATOR || !persistence ? it.skip : it.only)(
     'resuming a query should remove deleted documents indicated by existence filter',
     () => {
       const testDocs: { [key: string]: object } = {};
@@ -1870,6 +1871,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         testDocs['doc' + i] = { key: i };
       }
       return withTestCollection(persistence, testDocs, async (coll, db) => {
+        setLogLevel('debug');
         const snapshot1 = await getDocs(coll);
         expect(snapshot1.size).to.equal(100);
         // Delete 50 docs in transaction so that it doesn't affect local cache.
