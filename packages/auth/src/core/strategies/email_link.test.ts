@@ -175,9 +175,6 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     });
 
     it('calls send sign in link to email with recaptcha enabled', async () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {
