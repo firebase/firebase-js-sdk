@@ -48,32 +48,11 @@ export const DEFAULT_SETTINGS: PrivateSettings = {
 console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 
 function parseTargetBackend(targetBackend: string): TargetBackend {
-  switch (targetBackend) {
-    case 'emulator':
-      return TargetBackend.EMULATOR;
-    case 'qa':
-      return TargetBackend.QA;
-    case 'nightly':
-      return TargetBackend.NIGHTLY;
-    case 'prod':
-      return TargetBackend.PROD;
-    default:
-      throw Error('Unknown backend configuration used for integration tests.');
-  }
+  return TargetBackend.NIGHTLY;
 }
 
 function getTargetBackend(): TargetBackend {
-  const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
-  if (karma && karma.config.targetBackend) {
-    return parseTargetBackend(karma.config.targetBackend);
-  }
-  if (process.env.FIRESTORE_TARGET_BACKEND) {
-    return parseTargetBackend(process.env.FIRESTORE_TARGET_BACKEND);
-  }
-  if (process.env.FIRESTORE_EMULATOR_PORT) {
-    return TargetBackend.EMULATOR;
-  }
-  return TargetBackend.PROD;
+  return TargetBackend.NIGHTLY;
 }
 
 function getFirestoreHost(targetBackend: TargetBackend): string {
