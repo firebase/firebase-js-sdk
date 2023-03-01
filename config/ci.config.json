@@ -1,9 +1,9 @@
 {
-  "apiKey": "AIzaSyBNHCyZ-bpv-WA-HpXTmigJm2aq3z1kaH8",
-  "authDomain": "jscore-sandbox-141b5.firebaseapp.com",
-  "databaseURL": "https://jscore-sandbox-141b5.firebaseio.com",
-  "projectId": "jscore-sandbox-141b5",
-  "storageBucket": "jscore-sandbox-141b5.appspot.com",
-  "messagingSenderId": "280127633210",
-  "appId": "1:280127633210:web:1eb2f7e8799c4d5a46c203"
+  "apiKey": "AIzaSyA-2E3L7feQIPWMw48RQo_w2ttwcbcYhII",
+  "authDomain": "firestore-sdk-nightly.firebaseapp.com",
+  "databaseURL": "",
+  "projectId": "firestore-sdk-nightly",
+  "storageBucket": "firestore-sdk-nightly.appspot.com",
+  "messagingSenderId": "323991545240",
+  "appId": "1:323991545240:web:63ad9b96ff1a0bab1cf7ed"
 }
