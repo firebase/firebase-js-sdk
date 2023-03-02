@@ -51,7 +51,6 @@ export {
   initializeFirestore,
   getFirestore,
   enableIndexedDbPersistence,
-  enableMemoryLRUGarbageCollection,
   enableMultiTabIndexedDbPersistence,
   clearIndexedDbPersistence,
   waitForPendingWrites,

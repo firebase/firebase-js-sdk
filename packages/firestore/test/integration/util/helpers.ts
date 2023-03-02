@@ -16,6 +16,7 @@
  */
 
 import { isIndexedDBAvailable } from '@firebase/util';
+import { memoryLruGarbageCollector } from '../../../src/api/cache_config';
 
 import {
   collection,
@@ -34,7 +35,7 @@ import {
   SnapshotListenOptions,
   newTestFirestore,
   newTestApp,
-  enableMemoryLRUGarbageCollection
+  memoryLocalCache
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -161,15 +162,24 @@ export function withEnsuredLruGcTestDb(
   persistence: boolean,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
+  let newSettings = { ...DEFAULT_SETTINGS };
+  if (persistence) {
+    newSettings.cache = indexedDbLocalCache({
+      cacheSizeBytes: 1 * 1024 * 1024
+    });
+  } else {
+    newSettings.cache = memoryLocalCache({
+      garbageCollector: memoryLruGarbageCollector({
+        cacheSizeBytes: 1 * 1024 * 1024
+      })
+    });
+  }
   return withTestDbsSettings(
     persistence,
     DEFAULT_PROJECT_ID,
-    { ...DEFAULT_SETTINGS, cacheSizeBytes: 1 * 1024 * 1024 },
+    newSettings,
     1,
     async ([db]) => {
-      if (!persistence) {
-        await enableMemoryLRUGarbageCollection(db);
-      }
       return fn(db);
     }
   );

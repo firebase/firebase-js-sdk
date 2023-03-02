@@ -305,41 +305,6 @@ export function configureFirestore(firestore: Firestore): void {
 }
 
 /**
- * Must be called before any other functions (other than
- * {@link initializeFirestore}, {@link (getFirestore:1)} or
- * {@link clearIndexedDbPersistence}.
- *
- * By default, any documents that are not part of an active query result or
- * with no mutation attached to them are removed from memory immediately.
- *
- * This function changes the default behavior, to enable a least-recent-used
- * garbage collector. Documents will be collected when their total size exceeds
- * `Settings.cacheSizeBytes`, with least recently used documents get removed first.
- *
- * @param firestore - The {@link Firestore} instance to enable LRU garbage collection for.
- * @returns A `Promise` that represents successfully enabling LRU garbage collection.
- */
-export function enableMemoryLRUGarbageCollection(
-  firestore: Firestore
-): Promise<void> {
-  firestore = cast(firestore, Firestore);
-  verifyNotInitialized(firestore);
-
-  const client = ensureFirestoreConfigured(firestore);
-  const settings = firestore._freezeSettings();
-
-  const onlineComponentProvider = new OnlineComponentProvider();
-  const offlineComponentProvider = new LruGcMemoryOfflineComponentProvider(
-    settings.cacheSizeBytes
-  );
-  return setPersistenceProviders(
-    client,
-    onlineComponentProvider,
-    offlineComponentProvider
-  );
-}
-
-/**
  * @deprecated This function will be removed in a future major release. Instead, set
  * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
  * turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache`
