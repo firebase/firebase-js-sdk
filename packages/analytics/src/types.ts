@@ -73,6 +73,12 @@ export interface Gtag {
     subCommand: 'default' | 'update',
     consentSettings: ConsentSettings
   ): void;
+  (
+    command: 'get',
+    targetId: string,
+    fieldName: string,
+    callback: (s: string) => void
+  ): void;
 }
 
 export type DataLayer = IArguments[];

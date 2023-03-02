@@ -168,6 +168,25 @@ export function setCurrentScreen(
 }
 
 /**
+ * Returns retrieves a unique identifier for the web client.
+ *
+ * @public
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ */
+export async function getClientId(
+  analyticsInstance: Analytics /** is there a way to get the measurementid from this else i'll need to check if  wrapped exists first + ask for targetId */,
+  targetId: string
+): Promise<string> {
+  const clientId: string = await new Promise(resolve => {
+    wrappedGtagFunction(GtagCommand.GET, targetId, 'client_id', fieldName => {
+      resolve(fieldName);
+    });
+  });
+  return clientId;
+}
+
+/**
  * Use gtag `config` command to set `user_id`.
  *
  * @public
