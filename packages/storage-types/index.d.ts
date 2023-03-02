@@ -91,16 +91,60 @@ export interface UploadMetadata extends SettableMetadata {
   md5Hash?: string | null;
 }
 
-interface FirebaseStorageError extends FirebaseError {
-  serverResponse: string | null;
-}
-
 export interface StorageObserver<T> {
   next?: NextFn<T> | null;
   error?: (error: FirebaseStorageError) => void | null;
   complete?: CompleteFn | null;
 }
 
+export enum StorageErrorCode {
+  UNKNOWN = 'unknown',
+  OBJECT_NOT_FOUND = 'object-not-found',
+  BUCKET_NOT_FOUND = 'bucket-not-found',
+  PROJECT_NOT_FOUND = 'project-not-found',
+  QUOTA_EXCEEDED = 'quota-exceeded',
+  UNAUTHENTICATED = 'unauthenticated',
+  UNAUTHORIZED = 'unauthorized',
+  UNAUTHORIZED_APP = 'unauthorized-app',
+  RETRY_LIMIT_EXCEEDED = 'retry-limit-exceeded',
+  INVALID_CHECKSUM = 'invalid-checksum',
+  CANCELED = 'canceled',
+  INVALID_EVENT_NAME = 'invalid-event-name',
+  INVALID_URL = 'invalid-url',
+  INVALID_DEFAULT_BUCKET = 'invalid-default-bucket',
+  NO_DEFAULT_BUCKET = 'no-default-bucket',
+  CANNOT_SLICE_BLOB = 'cannot-slice-blob',
+  SERVER_FILE_WRONG_SIZE = 'server-file-wrong-size',
+  NO_DOWNLOAD_URL = 'no-download-url',
+  INVALID_ARGUMENT = 'invalid-argument',
+  INVALID_ARGUMENT_COUNT = 'invalid-argument-count',
+  APP_DELETED = 'app-deleted',
+  INVALID_ROOT_OPERATION = 'invalid-root-operation',
+  INVALID_FORMAT = 'invalid-format',
+  INTERNAL_ERROR = 'internal-error',
+  UNSUPPORTED_ENVIRONMENT = 'unsupported-environment'
+}
+
+export interface FirebaseStorageError extends FirebaseError {
+  /**
+   * Stores custom error data unque to StorageError.
+   */
+  customData: {
+    serverResponse: string | null;
+  };
+
+  get status(): number;
+  set status(status: number);
+  /**
+   * Compares a StorageErrorCode against this error's code, filtering out the prefix.
+   */
+  _codeEquals(code: StorageErrorCode): boolean;
+  /**
+   * Optional response message that was added by the server.
+   */
+  get serverResponse(): null | string;
+  set serverResponse(serverResponse: string | null);
+}
 export interface UploadTask {
   cancel(): boolean;
   catch(onRejected: (error: FirebaseStorageError) => any): Promise<any>;

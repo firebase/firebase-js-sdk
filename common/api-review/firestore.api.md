@@ -220,7 +220,11 @@ export class FirestoreError extends FirebaseError {
 export type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 
 // @public
+export type FirestoreLocalCache = MemoryLocalCache | IndexedDbLocalCache;
+
+// @public
 export interface FirestoreSettings {
+    cache?: FirestoreLocalCache;
     cacheSizeBytes?: number;
     experimentalAutoDetectLongPolling?: boolean;
     experimentalForceLongPolling?: boolean;
@@ -288,6 +292,47 @@ export interface IndexConfiguration {
     readonly indexes?: Index[];
 }
 
+// @public
+export interface IndexedDbLocalCache {
+    // (undocumented)
+    kind: 'indexeddb';
+}
+
+// @public
+export function indexedDbLocalCache(settings?: IndexedDbSettings): IndexedDbLocalCache;
+
+// @public
+export interface IndexedDbMultipleTabManager {
+    // (undocumented)
+    kind: 'IndexedDbMultipleTab';
+}
+
+// @public
+export function indexedDbMultipleTabManager(): IndexedDbMultipleTabManager;
+
+// @public
+export interface IndexedDbSettings {
+    cacheSizeBytes?: number;
+    tabManager?: IndexedDbTabManager;
+}
+
+// @public
+export interface IndexedDbSingleTabManager {
+    // (undocumented)
+    kind: 'indexedDbSingleTab';
+}
+
+// @public
+export function indexedDbSingleTabManager(settings: IndexedDbSingleTabManagerSettings | undefined): IndexedDbSingleTabManager;
+
+// @public
+export interface IndexedDbSingleTabManagerSettings {
+    forceOwnership?: boolean;
+}
+
+// @public
+export type IndexedDbTabManager = IndexedDbSingleTabManager | IndexedDbMultipleTabManager;
+
 // @beta
 export interface IndexField {
     // (undocumented)
@@ -326,6 +371,15 @@ export interface LoadBundleTaskProgress {
 }
 
 export { LogLevel }
+
+// @public
+export interface MemoryLocalCache {
+    // (undocumented)
+    kind: 'memory';
+}
+
+// @public
+export function memoryLocalCache(): MemoryLocalCache;
 
 // @public
 export function namedQuery(firestore: Firestore, name: string): Promise<Query | null>;

@@ -172,6 +172,14 @@ export function initializeFirestore(
     }
   }
 
+  if (settings.cacheSizeBytes !== undefined && settings.cache !== undefined) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `cache and cacheSizeBytes cannot be specified at the same time as cacheSizeBytes will` +
+        `be deprecated. Instead, specify the cache size in the cache object`
+    );
+  }
+
   if (
     settings.cacheSizeBytes !== undefined &&
     settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
@@ -284,11 +292,19 @@ export function configureFirestore(firestore: Firestore): void {
     firestore._queue,
     databaseInfo
   );
+  if (
+    settings.cache?._offlineComponentProvider &&
+    settings.cache?._onlineComponentProvider
+  ) {
+    firestore._firestoreClient._uninitializedComponentsProvider = {
+      _offlineKind: settings.cache.kind,
+      _offline: settings.cache._offlineComponentProvider,
+      _online: settings.cache._onlineComponentProvider
+    };
+  }
 }
 
 /**
- * Attempts to enable LRU garbage collection for memory persistence.
- *
  * Must be called before any other functions (other than
  * {@link initializeFirestore}, {@link (getFirestore:1)} or
  * {@link clearIndexedDbPersistence}.
@@ -324,6 +340,11 @@ export function enableMemoryLRUGarbageCollection(
 }
 
 /**
+ * @deprecated This function will be removed in a future major release. Instead, set
+ * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
+ * turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache`
+ * is already specified will throw an exception.
+ *
  * Attempts to enable persistent storage, if possible.
  *
  * Must be called before any other functions (other than
@@ -354,6 +375,17 @@ export function enableIndexedDbPersistence(
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
+  if (client._uninitializedComponentsProvider) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'SDK cache is already specified.'
+    );
+  }
+
+  logWarn(
+    'enableIndexedDbPersistence() will be deprecated in the future, ' +
+      'you can use `FirestoreSettings.cache` instead.'
+  );
   const settings = firestore._freezeSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -370,6 +402,11 @@ export function enableIndexedDbPersistence(
 }
 
 /**
+ * @deprecated This function will be removed in a future major release. Instead, set
+ * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
+ * turn on indexeddb cache. Calling this function when `FirestoreSettings.cache`
+ * is already specified will throw an exception.
+ *
  * Attempts to enable multi-tab persistent storage, if possible. If enabled
  * across all tabs, all operations share access to local persistence, including
  * shared execution of queries and latency-compensated local document updates
@@ -398,6 +435,17 @@ export function enableMultiTabIndexedDbPersistence(
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
+  if (client._uninitializedComponentsProvider) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'SDK cache is already specified.'
+    );
+  }
+
+  logWarn(
+    'enableMultiTabIndexedDbPersistence() will be deprecated in the future, ' +
+      'you can use `FirestoreSettings.cache` instead.'
+  );
   const settings = firestore._freezeSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();

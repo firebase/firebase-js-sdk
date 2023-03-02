@@ -31,6 +31,7 @@ import { User } from '../auth/user';
 import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
+  localStoreConfigureFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
@@ -39,6 +40,7 @@ import {
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { FieldIndex } from '../model/field_index';
 import { Mutation } from '../model/mutation';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
@@ -112,9 +114,14 @@ export class FirestoreClient {
     appCheckToken: string,
     user: User
   ) => Promise<void> = () => Promise.resolve();
+  _uninitializedComponentsProvider?: {
+    _offline: OfflineComponentProvider;
+    _offlineKind: 'memory' | 'indexeddb';
+    _online: OnlineComponentProvider;
+  };
 
-  offlineComponents?: OfflineComponentProvider;
-  onlineComponents?: OnlineComponentProvider;
+  _offlineComponents?: OfflineComponentProvider;
+  _onlineComponents?: OnlineComponentProvider;
 
   constructor(
     private authCredentials: CredentialsProvider<User>,
@@ -181,11 +188,11 @@ export class FirestoreClient {
     const deferred = new Deferred();
     this.asyncQueue.enqueueAndForgetEvenWhileRestricted(async () => {
       try {
-        if (this.onlineComponents) {
-          await this.onlineComponents.terminate();
+        if (this._onlineComponents) {
+          await this._onlineComponents.terminate();
         }
-        if (this.offlineComponents) {
-          await this.offlineComponents.terminate();
+        if (this._offlineComponents) {
+          await this._offlineComponents.terminate();
         }
 
         // The credentials provider must be terminated after shutting down the
@@ -233,7 +240,7 @@ export async function setOfflineComponentProvider(
     client.terminate()
   );
 
-  client.offlineComponents = offlineComponentProvider;
+  client._offlineComponents = offlineComponentProvider;
 }
 
 export async function setOnlineComponentProvider(
@@ -258,32 +265,48 @@ export async function setOnlineComponentProvider(
   client.setAppCheckTokenChangeListener((_, user) =>
     remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
-  client.onlineComponents = onlineComponentProvider;
+  client._onlineComponents = onlineComponentProvider;
 }
 
 async function ensureOfflineComponents(
   client: FirestoreClient
 ): Promise<OfflineComponentProvider> {
-  if (!client.offlineComponents) {
-    logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
-    await setOfflineComponentProvider(
-      client,
-      new MemoryOfflineComponentProvider()
-    );
+  if (!client._offlineComponents) {
+    if (client._uninitializedComponentsProvider) {
+      logDebug(LOG_TAG, 'Using user provided OfflineComponentProvider');
+      await setOfflineComponentProvider(
+        client,
+        client._uninitializedComponentsProvider._offline
+      );
+    } else {
+      logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
+      await setOfflineComponentProvider(
+        client,
+        new MemoryOfflineComponentProvider()
+      );
+    }
   }
 
-  return client.offlineComponents!;
+  return client._offlineComponents!;
 }
 
 async function ensureOnlineComponents(
   client: FirestoreClient
 ): Promise<OnlineComponentProvider> {
-  if (!client.onlineComponents) {
-    logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
-    await setOnlineComponentProvider(client, new OnlineComponentProvider());
+  if (!client._onlineComponents) {
+    if (client._uninitializedComponentsProvider) {
+      logDebug(LOG_TAG, 'Using user provided OnlineComponentProvider');
+      await setOnlineComponentProvider(
+        client,
+        client._uninitializedComponentsProvider._online
+      );
+    } else {
+      logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
+      await setOnlineComponentProvider(client, new OnlineComponentProvider());
+    }
   }
 
-  return client.onlineComponents!;
+  return client._onlineComponents!;
 }
 
 function getPersistence(client: FirestoreClient): Promise<Persistence> {
@@ -747,4 +770,16 @@ function createBundleReader(
     content = data;
   }
   return newBundleReader(toByteStreamReader(content), serializer);
+}
+
+export function firestoreClientSetIndexConfiguration(
+  client: FirestoreClient,
+  indexes: FieldIndex[]
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreConfigureFieldIndexes(
+      await getLocalStore(client),
+      indexes
+    );
+  });
 }
