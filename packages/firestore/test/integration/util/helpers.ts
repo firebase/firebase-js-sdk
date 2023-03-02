@@ -81,7 +81,7 @@ function apiDescribeInternal(
   }
 
   for (const enabled of persistenceModes) {
-    describeFn(`(Persistence=${enabled}) ${message}`, () => testSuite(enabled));
+    describeFn(`(persistence=${enabled}) ${message}`, () => testSuite(enabled));
   }
 }
 
