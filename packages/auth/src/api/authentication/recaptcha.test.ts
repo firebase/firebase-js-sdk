@@ -20,12 +20,20 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError } from '@firebase/util';
 
-import { Endpoint, HttpHeader, RecaptchaClientType, RecaptchaVersion } from '../';
-import { mockEndpoint, mockEndpointWithParams } from '../../../test/helpers/api/helper';
+import {
+  Endpoint,
+  HttpHeader,
+  RecaptchaClientType,
+  RecaptchaVersion
+} from '../';
+import {
+  mockEndpoint,
+  mockEndpointWithParams
+} from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
-import { getRecaptchaParams, getRecaptchaConfig,  } from './recaptcha';
+import { getRecaptchaParams, getRecaptchaConfig } from './recaptcha';
 
 use(chaiAsPromised);
 
@@ -84,7 +92,7 @@ describe('api/authentication/getRecaptchaParams', () => {
 describe('api/authentication/getRecaptchaConfig', () => {
   const request = {
     clientType: RecaptchaClientType.WEB,
-    recaptchaVersion: RecaptchaVersion.ENTERPRISE,
+    recaptchaVersion: RecaptchaVersion.ENTERPRISE
   };
 
   let auth: TestAuth;
@@ -97,9 +105,13 @@ describe('api/authentication/getRecaptchaConfig', () => {
   afterEach(mockFetch.tearDown);
 
   it('should GET to the correct endpoint', async () => {
-    const mock = mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, request, {
-      recaptchaKey: 'site-key'
-    });
+    const mock = mockEndpointWithParams(
+      Endpoint.GET_RECAPTCHA_CONFIG,
+      request,
+      {
+        recaptchaKey: 'site-key'
+      }
+    );
 
     const response = await getRecaptchaConfig(auth, request);
     expect(response.recaptchaKey).to.eq('site-key');
@@ -119,7 +131,7 @@ describe('api/authentication/getRecaptchaConfig', () => {
       {
         error: {
           code: 400,
-          message: ServerError.UNAUTHORIZED_DOMAIN,
+          message: ServerError.UNAUTHORIZED_DOMAIN
         }
       },
       400

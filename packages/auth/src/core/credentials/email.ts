@@ -18,7 +18,10 @@
 import { ProviderId, SignInMethod } from '../../model/enums';
 
 import { updateEmailPassword } from '../../api/account_management/email_and_password';
-import { signInWithPassword, SignInWithPasswordRequest } from '../../api/authentication/email_and_password';
+import {
+  signInWithPassword,
+  SignInWithPasswordRequest
+} from '../../api/authentication/email_and_password';
 import {
   signInWithEmailLink,
   signInWithEmailLinkForLinking
@@ -118,16 +121,26 @@ export class EmailAuthCredential extends AuthCredential {
         const request: SignInWithPasswordRequest = {
           returnSecureToken: true,
           email: this._email,
-          password: this._password,
+          password: this._password
         };
         if (auth._getRecaptchaConfig()?.emailPasswordEnabled) {
-          const requestWithRecaptcha = await injectRecaptchaFields(auth, request, RecaptchaActionName.SIGN_IN_WITH_PASSWORD);
+          const requestWithRecaptcha = await injectRecaptchaFields(
+            auth,
+            request,
+            RecaptchaActionName.SIGN_IN_WITH_PASSWORD
+          );
           return signInWithPassword(auth, requestWithRecaptcha);
         } else {
-          return signInWithPassword(auth, request).catch(async (error) => {
+          return signInWithPassword(auth, request).catch(async error => {
             if (error.code === `auth/${ServerError.MISSING_RECAPTCHA_TOKEN}`) {
-              console.log("Sign-in with email address and password is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.");
-              const requestWithRecaptcha = await injectRecaptchaFields(auth, request, RecaptchaActionName.SIGN_IN_WITH_PASSWORD);
+              console.log(
+                'Sign-in with email address and password is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.'
+              );
+              const requestWithRecaptcha = await injectRecaptchaFields(
+                auth,
+                request,
+                RecaptchaActionName.SIGN_IN_WITH_PASSWORD
+              );
               return signInWithPassword(auth, requestWithRecaptcha);
             } else {
               return Promise.reject(error);

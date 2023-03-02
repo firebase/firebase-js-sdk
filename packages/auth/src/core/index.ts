@@ -71,7 +71,7 @@ export function setPersistence(
  * without reCAPTCHA verification. But if reCAPTCHA verification is required, the reCAPTCHA config
  * will be automatically pulled internally and the flows will restart. Thus, calling this optional
  * method will reduce the latency of auth flows.
- * 
+ *
  * @example
  * ```javascript
  * initializeRecaptchaConfig(auth);
@@ -81,7 +81,7 @@ export function setPersistence(
  *
  * @public
  */
- export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
+export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
   return getModularInstance(auth).initializeRecaptchaConfig();
 }
 

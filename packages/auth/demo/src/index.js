@@ -473,7 +473,7 @@ function onSignInAnonymously() {
 function onSetTenantID(_event) {
   const tenantId = $('#tenant-id').val();
   auth.tenantId = tenantId;
-  if (tenantId === "") {
+  if (tenantId === '') {
     auth.tenantId = null;
   }
 }

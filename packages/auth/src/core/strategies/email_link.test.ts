@@ -24,7 +24,10 @@ import { ActionCodeOperation } from '../../model/public_types';
 import { OperationType } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint, mockEndpointWithParams } from '../../../test/helpers/api/helper';
+import {
+  mockEndpoint,
+  mockEndpointWithParams
+} from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
@@ -159,21 +162,27 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
-      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('recaptcha-response'));
     });
 
     afterEach(() => {
       sinon.restore();
     });
-    
+
     it('calls send sign in link to email with recaptcha enabled', async () => {
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key',
-        recaptchaConfig: { emailPasswordEnabled: true }
-      });
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: { emailPasswordEnabled: true }
+        }
+      );
       await auth.initializeRecaptchaConfig();
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
@@ -190,18 +199,22 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         continueUrl: 'continue-url',
         captchaResp: 'recaptcha-response',
         clientType: RecaptchaClientType.WEB,
-        recaptchaVersion: RecaptchaVersion.ENTERPRISE,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
     });
 
     it('calls send sign in link to email with recaptcha disabled', async () => {
-     mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key',
-        recaptchaConfig: { emailPasswordEnabled: false }
-      });
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: { emailPasswordEnabled: false }
+        }
+      );
       await auth.initializeRecaptchaConfig();
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
@@ -225,50 +238,70 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
 
       // // First verification should fail with 'wrong-site-key'
-      stub.withArgs('wrong-site-key', {action: 'signInWithEmailLink'}).rejects();
+      stub
+        .withArgs('wrong-site-key', { action: 'signInWithEmailLink' })
+        .rejects();
       // Second verifcation should succeed with site key refreshed
-      stub.withArgs('site-key', {action: 'signInWithEmailLink'}).returns(Promise.resolve('recaptcha-response'));
+      stub
+        .withArgs('site-key', { action: 'signInWithEmailLink' })
+        .returns(Promise.resolve('recaptcha-response'));
 
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'mock/project/mock/site-key'
-      });
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'mock/project/mock/site-key'
+        }
+      );
 
       RecaptchaEnterpriseVerifier.agentSiteKey = 'wrong-site-key';
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key',
-        recaptchaConfig: { emailPasswordEnabled: true }
-      });
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: { emailPasswordEnabled: true }
+        }
+      );
       await auth.initializeRecaptchaConfig();
 
       mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
       });
-      expect(sendSignInLinkToEmail(auth, email, {
-        handleCodeInApp: true,
-        url: 'continue-url'
-      })).returned;
+      expect(
+        sendSignInLinkToEmail(auth, email, {
+          handleCodeInApp: true,
+          url: 'continue-url'
+        })
+      ).returned;
     });
 
     it('calls send sign in link to email with recaptcha verify failed', async () => {
       RecaptchaEnterpriseVerifier.agentSiteKey = null;
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaConfig: { emailPasswordEnabled: true }
-      });
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaConfig: { emailPasswordEnabled: true }
+        }
+      );
       await auth.initializeRecaptchaConfig();
 
-      await expect(sendSignInLinkToEmail(auth, email, {
-        handleCodeInApp: true,
-        url: 'continue-url'
-      })).to.be.rejectedWith(Error, 'recaptchaKey undefined');
+      await expect(
+        sendSignInLinkToEmail(auth, email, {
+          handleCodeInApp: true,
+          url: 'continue-url'
+        })
+      ).to.be.rejectedWith(Error, 'recaptchaKey undefined');
     });
   });
 });
