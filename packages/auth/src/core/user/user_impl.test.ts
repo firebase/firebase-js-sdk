@@ -275,8 +275,8 @@ describe('core/user/user_impl', () => {
           }
         ],
         tenantId: 'tenant-id',
-        createdAt: "2018-01-01 13:02:56.12345678",
-        lastLoginAt: "2018-01-05 13:02:56.12345678"
+        createdAt: '2018-01-01 13:02:56.12345678',
+        lastLoginAt: '2018-01-05 13:02:56.12345678'
       });
 
       const newAuth = await testAuth();
@@ -296,8 +296,7 @@ describe('core/user/user_impl', () => {
           uid: 'i-am-uid'
         }
       ]);
-      expect(copy.metadata.creationTime).to.eq("2018-01-01 13:02:56.12345678");
-      expect(copy.metadata.lastSignInTime).to.eq("2018-01-05 13:02:56.12345678");
+      expect(copy.metadata.toJSON()).to.eql(user.metadata.toJSON());
     });
   });
 });

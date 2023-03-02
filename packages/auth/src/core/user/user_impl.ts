@@ -144,10 +144,8 @@ export class UserImpl implements UserInternal {
       ...this,
       auth,
       stsTokenManager: this.stsTokenManager._clone()
-    })
-
-    newUser.metadata._copy(this.metadata)
-
+    });
+    newUser.metadata._copy(this.metadata);
     return newUser;
   }
 
