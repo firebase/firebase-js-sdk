@@ -1,4 +1,4 @@
-# Firebase-Auth for web - Auth Demo (Auth Next) ci-fix-unset
+# Firebase-Auth for web - Auth Demo (Auth Next)
 
 ## Prerequisites
 
@@ -8,7 +8,6 @@ You need to have created a Firebase Project in the
 [Firebase Console](https://firebase.google.com/console/) as well as configured a web app.
 
 ## Installation
-
 Make sure you run `yarn` to install all dependencies in the root directory.
 
 Enable the Auth providers you would like to offer your users in the console, under
@@ -45,7 +44,6 @@ in the `config.js` file.
 ## Deploy
 
 Before deploying, you may need to build the auth package:
-
 ```bash
 yarn
 yarn build:deps
@@ -66,13 +64,15 @@ The demo opens a page like this:
 
 ![image](https://user-images.githubusercontent.com/35932340/153662957-41ba6a82-ea15-4084-ad3a-9fd41083efd3.png)
 
+
 This is a developer view of all the supported auth flows. Make sure that the auth flow you are testing is already enabled in your firebase project.
-For example, if you are testing “Sign up with email/password”, your project should allow email/password as a provider.
-If not, you will see an “auth/operation-not-allowed” error message.
+For example, if you are testing “Sign up with email/password”, your project should allow email/password as a provider. 
+If not, you will see an “auth/operation-not-allowed” error message. 
 
 You can check the enabled providers on the firebase console.
 
 ![image](https://user-images.githubusercontent.com/35932340/153662750-c0faf417-07b4-4f0e-93ab-5e0b82e3c793.png)
+
 
 ## Running against Auth Emulator
 
@@ -103,8 +103,8 @@ By default, the demo runs against the latest release of firebase-auth sdk. This 
 ## Troubleshooting
 
 ### Errors about dependency not being installed, example `lerna: command not found`
-
-Ensure that you run `yarn` to install dependencies.
+  
+  Ensure that you run `yarn` to install dependencies.
 
 ### `Failed to get Firebase project <project name>. Please make sure the project exists and your account has permission to access it.`
 
