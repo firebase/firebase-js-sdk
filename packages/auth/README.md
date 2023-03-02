@@ -1,4 +1,4 @@
-# @firebase/auth
+# @firebase/auth codespace-test
 
 This is the Firebase Authentication component of the Firebase JS SDK.
 
