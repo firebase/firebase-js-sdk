@@ -19,6 +19,7 @@ import { SDK_VERSION } from '../../src/core/version';
 import { Token } from '../api/credentials';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { debugAssert } from '../util/assert';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { StringMap } from '../util/types';
@@ -80,21 +81,22 @@ export abstract class RestConnection implements Connection {
     authToken: Token | null,
     appCheckToken: Token | null
   ): Promise<Resp> {
+    const streamId = generateUniqueDebugId();
     const url = this.makeUrl(rpcName, path);
-    logDebug(LOG_TAG, 'Sending: ', url, req);
+    logDebug(LOG_TAG, `Sending RPC '${rpcName}' ${streamId}:`, url, req);
 
     const headers = {};
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
     return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
       response => {
-        logDebug(LOG_TAG, 'Received: ', response);
+        logDebug(LOG_TAG, `Received RPC '${rpcName}' ${streamId}: `, response);
         return response;
       },
       (err: FirestoreError) => {
         logWarn(
           LOG_TAG,
-          `${rpcName} failed with error: `,
+          `RPC '${rpcName}' ${streamId} failed with error: `,
           err,
           'url: ',
           url,
