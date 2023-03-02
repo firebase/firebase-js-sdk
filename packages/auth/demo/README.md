@@ -1,4 +1,4 @@
-# Firebase-Auth for web - Auth Demo (Auth Next)test
+# Firebase-Auth for web - Auth Demo (Auth Next)
 
 ## Prerequisites
 
