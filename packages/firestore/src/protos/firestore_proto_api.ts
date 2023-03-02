@@ -399,7 +399,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     readTime?: Timestamp;
     targetId?: number;
     once?: boolean;
-    expectedCount?: number;
+    expectedCount?: number | { value: number };
   }
   interface TargetChange {
     targetChangeType?: TargetChangeTargetChangeType;
