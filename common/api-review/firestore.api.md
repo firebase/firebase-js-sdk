@@ -290,13 +290,19 @@ export interface IndexConfiguration {
 }
 
 // @public
+export interface IndexedDbCacheSettings {
+    cacheSizeBytes?: number;
+    tabManager?: IndexedDbTabManager;
+}
+
+// @public
 export interface IndexedDbLocalCache {
     // (undocumented)
     kind: 'indexeddb';
 }
 
 // @public
-export function indexedDbLocalCache(settings?: IndexedDbSettings): IndexedDbLocalCache;
+export function indexedDbLocalCache(settings?: IndexedDbCacheSettings): IndexedDbLocalCache;
 
 // @public
 export interface IndexedDbMultipleTabManager {
@@ -306,12 +312,6 @@ export interface IndexedDbMultipleTabManager {
 
 // @public
 export function indexedDbMultipleTabManager(): IndexedDbMultipleTabManager;
-
-// @public
-export interface IndexedDbSettings {
-    cacheSizeBytes?: number;
-    tabManager?: IndexedDbTabManager;
-}
 
 // @public
 export interface IndexedDbSingleTabManager {
