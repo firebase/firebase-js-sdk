@@ -96,10 +96,8 @@ export interface IndexConfiguration {
  * Query execution will automatically start using the index once the index
  * entries have been written.
  *
- * Indexes are only supported with IndexedDb persistence. Invoke either
- * `enableIndexedDbPersistence()` or `enableMultiTabIndexedDbPersistence()`
- * before setting an index configuration. If IndexedDb is not enabled, any
- * index configuration is ignored.
+ * Indexes are only supported with IndexedDb persistence. If IndexedDb is not
+ * enabled, any index configuration is ignored.
  *
  * @param firestore - The {@link Firestore} instance to configure indexes for.
  * @param configuration -The index definition.

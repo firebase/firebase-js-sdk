@@ -28,7 +28,7 @@ import {
  * Provides a in-memory cache to the SDK. This is the default cache unless explicitly
  * specified otherwise.
  *
- * To use, create an instance using the factory function `memoryLocalCache()`, then
+ * To use, create an instance using the factory function {@link memoryLocalCache()}, then
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */
@@ -68,7 +68,7 @@ class MemoryLocalCacheImpl implements MemoryLocalCache {
 /**
  * Provides a cache backed by IndexedDb to the SDK.
  *
- * To use, create an instance using the factory function `indexedDbLocalCache()`, then
+ * To use, create an instance using the factory function {@link indexedDbLocalCache()}, then
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */

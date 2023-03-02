@@ -304,9 +304,9 @@ export function configureFirestore(firestore: Firestore): void {
 }
 
 /**
- * NOTE: this function will be deprecated in a future major release. Instead, set
+ * @deprecated This function will be removed in a future major release. Instead, set
  * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
- * turn on indexeddb cache. Calling this function when `FirestoreSettings.cache`
+ * turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache`
  * is already specified will throw an exception.
  *
  * Attempts to enable persistent storage, if possible.
@@ -366,7 +366,7 @@ export function enableIndexedDbPersistence(
 }
 
 /**
- * NOTE: this function will be deprecated in a future major release. Instead, set
+ * @deprecated This function will be removed in a future major release. Instead, set
  * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
  * turn on indexeddb cache. Calling this function when `FirestoreSettings.cache`
  * is already specified will throw an exception.
