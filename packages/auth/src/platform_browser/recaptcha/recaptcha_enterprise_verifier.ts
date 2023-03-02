@@ -144,6 +144,12 @@ export class RecaptchaEnterpriseVerifier {
           if (!forceRefresh && isEnterprise(window.grecaptcha)) {
             retrieveRecaptchaToken(siteKey, resolve, reject);
           } else {
+            if (typeof window === 'undefined') {
+              reject(
+                new Error('RecaptchaVerifier is only supported in browser')
+              );
+              return;
+            }
             jsHelpers
               ._loadJS(RECAPTCHA_ENTERPRISE_URL + siteKey)
               .then(() => {
