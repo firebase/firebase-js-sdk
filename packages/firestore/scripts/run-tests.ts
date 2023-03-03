@@ -142,14 +142,14 @@ const childProcess = spawn(nyc, args, {
 }).childProcess;
 
 process.once('exit', () => {
-  debugLog("WARNING: received 'exit' event; killing child process");
+  errorLog("WARNING: received 'exit' event; killing child process");
   childProcess.kill();
 });
 process.once('SIGINT', () => {
-  debugLog("WARNING: received 'SIGINT' event; sending it to child process");
+  errorLog("WARNING: received 'SIGINT' event; sending it to child process");
   childProcess.kill('SIGINT');
 });
 process.once('SIGTERM', () => {
-  debugLog("WARNING: received 'SIGTERM' event; sending it to child process");
+  errorLog("WARNING: received 'SIGTERM' event; sending it to child process");
   childProcess.kill('SIGTERM');
 });
