@@ -82,7 +82,7 @@ function errorLog(...args: any[]): void {
   console.error(__filename, elapsedTimeStr(), ...args);
 }
 
-debugLog('command-line arguments:', process.argv);
+debugLog(`command-line arguments: ${process.argv.join(' ')}`);
 
 const argv = yargs.options({
   main: {
@@ -134,7 +134,7 @@ if (argv.persistence) {
 
 args = args.concat(argv._ as string[]);
 
-debugLog("spawning child process:", nyc, args);
+debugLog(`spawning child process: ${nyc} ${args.join(' ')}`);
 
 const childProcess = spawn(nyc, args, {
   stdio: 'inherit',

@@ -54,7 +54,7 @@ function elapsedTimeStr(): string {
 let elapsedMillisecondsStartTime: number | null = null;
 
 /**
- * Returns the number of nanoseconds that have elapsed since this function's
+ * Returns the number of milliseconds that have elapsed since this function's
  * first invocation. Returns 0 on its first invocation.
  */
 function getElapsedMilliseconds(): number {
@@ -84,7 +84,7 @@ function errorLog(...args: any[]): void {
   console.error(__filename, elapsedTimeStr(), ...args);
 }
 
-debugLog('command-line arguments:', process.argv);
+debugLog(`command-line arguments: ${process.argv.join(' ')}`);
 
 const argv = yargs.parseSync();
 const inputTestConfigName = argv._[0].toString();
@@ -139,9 +139,9 @@ async function runTests(config: TestConfig) {
     }
 
     lernaCmd.push(testCommand);
-    debugLog('spawning process: npx', lernaCmd);
+    debugLog(`spawning process: npx ${lernaCmd.join(' ')}`);
     await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
-    debugLog('process completed successfully: npx', lernaCmd);
+    debugLog(`process completed successfully: npx ${lernaCmd.join(' ')}`);
     process.exit(0);
   } catch (e) {
     errorLog('process failed');
