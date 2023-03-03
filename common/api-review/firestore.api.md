@@ -221,12 +221,12 @@ export type FirestoreLocalCache = MemoryLocalCache | IndexedDbLocalCache;
 
 // @public
 export interface FirestoreSettings {
-    cache?: FirestoreLocalCache;
     cacheSizeBytes?: number;
     experimentalAutoDetectLongPolling?: boolean;
     experimentalForceLongPolling?: boolean;
     host?: string;
     ignoreUndefinedProperties?: boolean;
+    localCache?: FirestoreLocalCache;
     ssl?: boolean;
 }
 
