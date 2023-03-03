@@ -65,7 +65,7 @@ export interface FirestoreSettings extends LiteSettings {
    * exception during SDK initialization. Instead, using the configuration in
    * the `FirestoreLocalCache` object to specify the cache size.
    */
-  cache?: FirestoreLocalCache;
+  localCache?: FirestoreLocalCache;
 
   /**
    * Forces the SDK’s underlying network transport (WebChannel) to use

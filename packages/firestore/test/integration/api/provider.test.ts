@@ -148,7 +148,7 @@ describe('Firestore Provider', () => {
     );
     const db = initializeFirestore(app, {
       ...DEFAULT_SETTINGS,
-      cache: memoryLocalCache()
+      localCache: memoryLocalCache()
     });
     expect(() => enableIndexedDbPersistence(db)).to.throw(
       'SDK cache is already specified.'

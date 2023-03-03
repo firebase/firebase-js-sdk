@@ -186,7 +186,7 @@ export async function withTestDbsSettings(
   for (let i = 0; i < numDbs; i++) {
     const newSettings = { ...settings };
     if (persistence) {
-      newSettings.cache = indexedDbLocalCache();
+      newSettings.localCache = indexedDbLocalCache();
     }
     const db = newTestFirestore(newTestApp(projectId), newSettings);
     dbs.push(db);
@@ -221,7 +221,7 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   for (const dbName of dbNames) {
     const newSettings = { ...DEFAULT_SETTINGS };
     if (persistence) {
-      newSettings.cache = indexedDbLocalCache();
+      newSettings.localCache = indexedDbLocalCache();
     }
     const db = newTestFirestore(app, newSettings, dbName);
     dbs.push(db);
