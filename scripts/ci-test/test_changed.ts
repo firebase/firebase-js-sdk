@@ -77,7 +77,7 @@ function getElapsedMilliseconds(): number {
   return performance.now() - logStartTime;
 }
 
-debugLog("command-line arguments:", process.argv);
+debugLog('command-line arguments:', process.argv);
 
 const argv = yargs.parseSync();
 const inputTestConfigName = argv._[0].toString();
@@ -132,9 +132,9 @@ async function runTests(config: TestConfig) {
     }
 
     lernaCmd.push(testCommand);
-    debugLog('spawning process: npx', lernaCmd)
+    debugLog('spawning process: npx', lernaCmd);
     await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
-    debugLog('process completed successfully: npx', lernaCmd)
+    debugLog('process completed successfully: npx', lernaCmd);
     process.exit(0);
   } catch (e) {
     errorLog('process failed');
