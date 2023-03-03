@@ -20,6 +20,12 @@ import { resolve } from 'path';
 import { spawn } from 'child-process-promise';
 import * as yargs from 'yargs';
 
+function debugLog(...args: any[]): void {
+  console.log(__filename, performance.now(),...args);
+}
+
+debugLog("command-line arguments:", process.argv);
+
 const argv = yargs.options({
   main: {
     type: 'string',
@@ -58,21 +64,34 @@ let args = [
 ];
 
 if (argv.emulator) {
+  debugLog("setting FIRESTORE_TARGET_BACKEND=emulator");
   process.env.FIRESTORE_TARGET_BACKEND = 'emulator';
 }
 
 if (argv.persistence) {
+  debugLog("setting USE_MOCK_PERSISTENCE=YES");
   process.env.USE_MOCK_PERSISTENCE = 'YES';
   args.push('--require', 'test/util/node_persistence.ts');
 }
 
 args = args.concat(argv._ as string[]);
 
+debugLog("spawning child process:", nyc, args);
+
 const childProcess = spawn(nyc, args, {
   stdio: 'inherit',
   cwd: process.cwd()
 }).childProcess;
 
-process.once('exit', () => childProcess.kill());
-process.once('SIGINT', () => childProcess.kill('SIGINT'));
-process.once('SIGTERM', () => childProcess.kill('SIGTERM'));
+process.once('exit', () => {
+  debugLog("WARNING: received 'exit' event; killing child process");
+  childProcess.kill()
+});
+process.once('SIGINT', () => {
+  debugLog("WARNING: received 'SIGINT' event; sending it to child process");
+  childProcess.kill('SIGINT')
+});
+process.once('SIGTERM', () => {
+  debugLog("WARNING: received 'SIGTERM' event; sending it to child process");
+  childProcess.kill('SIGTERM')
+});
