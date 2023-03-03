@@ -81,7 +81,7 @@ function errorLog(...args) {
   console.error(__filename, elapsedTimeStr(), ...args);
 }
 
-debugLog("command-line arguments:", process.argv);
+debugLog('command-line arguments:', process.argv);
 
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
 // Maps the packages where we should not run `test:all` and instead isolate the cross-browser tests.
