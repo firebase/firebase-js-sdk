@@ -21,33 +21,14 @@ const { spawn } = require('child-process-promise');
 const { writeFileSync } = require('fs');
 
 /**
- * Keep track of "time zero" so that all log statements can have an offset from
- * this "time zero". This makes it easy to see how long operations take, rather
- * than printing the wall clock time.
- *
- * This value is initialized the first time that `log()` is called.
- */
-let logStartTime = null;
-
-function debugLog(...args) {
-  // eslint-disable-next-line no-console
-  console.log(__filename, elapsedTimeStr(), ...args);
-}
-
-function errorLog(...args) {
-  // eslint-disable-next-line no-console
-  console.error(__filename, elapsedTimeStr(), ...args);
-}
-
-/**
  * Creates and returns a "timestamp" string for the elapsed time.
  *
  * The given timestamp is taken as an offset from the first time that this
  * function is invoked. This allows log messages to start at "time 0" and make
  * it easy for humans to calculate the elapsed time.
  *
- * @returns The timestamp string with which to prefix log lines added to the
- * UI, created from the elapsed time since this function's first invocation.
+ * @returns The timestamp string with which to prefix log lines, created from
+ * the elapsed time since this function's first invocation.
  */
 function elapsedTimeStr() {
   const milliseconds = getElapsedMilliseconds();
@@ -63,15 +44,41 @@ function elapsedTimeStr() {
 }
 
 /**
- * Returns the number of milliseconds that have elapsed since this function's
- * first invocation.
+ * The "start time", which is set to a non-null value upon the first invocation
+ * of `getElapsedMilliseconds()`. All subsequent invocations calculate the
+ * elapsed time using this value.
+ */
+let elapsedMillisecondsStartTime = null;
+
+/**
+ * Returns the number of nanoseconds that have elapsed since this function's
+ * first invocation. Returns 0 on its first invocation.
  */
 function getElapsedMilliseconds() {
-  if (!logStartTime) {
-    logStartTime = performance.now();
+  const currentTimeMilliseconds = getCurrentMonotonicTimeMilliseconds();
+  if (elapsedMillisecondsStartTime === null) {
+    elapsedMillisecondsStartTime = currentTimeMilliseconds;
     return 0;
   }
-  return performance.now() - logStartTime;
+  return currentTimeMilliseconds - elapsedMillisecondsStartTime;
+}
+
+/**
+ * Returns the current time, in milliseconds, from a monotonic clock.
+ */
+function getCurrentMonotonicTimeMilliseconds() {
+  const currentTime = process.hrtime();
+  return currentTime[0] * 1000 + currentTime[1] / 1_000_000;
+}
+
+function debugLog(...args) {
+  // eslint-disable-next-line no-console
+  console.log(__filename, elapsedTimeStr(), ...args);
+}
+
+function errorLog(...args) {
+  // eslint-disable-next-line no-console
+  console.error(__filename, elapsedTimeStr(), ...args);
 }
 
 debugLog("command-line arguments:", process.argv);
