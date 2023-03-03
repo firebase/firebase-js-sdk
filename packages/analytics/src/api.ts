@@ -175,14 +175,26 @@ export function setCurrentScreen(
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
  */
 export async function getClientId(
-  analyticsInstance: Analytics /** is there a way to get the measurementid from this else i'll need to check if  wrapped exists first + ask for targetId */,
-  targetId: string
+  analyticsInstance: Analytics
 ): Promise<string> {
-  const clientId: string = await new Promise(resolve => {
-    wrappedGtagFunction(GtagCommand.GET, targetId, 'client_id', fieldName => {
-      resolve(fieldName);
+  analyticsInstance = getModularInstance(analyticsInstance);
+  const measurementId = analyticsInstance.app.options.measurementId;
+  let clientId = '';
+  if (!measurementId) {
+    logger.error('The app has no recognizable measurement ID.');
+  } else {
+    clientId = await new Promise(resolve => {
+      wrappedGtagFunction(
+        GtagCommand.GET,
+        measurementId,
+        'client_id',
+        fieldName => {
+          resolve(fieldName);
+        }
+      );
     });
-  });
+  }
+
   return clientId;
 }
 
