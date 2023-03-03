@@ -130,7 +130,10 @@ describe('Firestore Provider', () => {
       'test-use-enablePersistence'
     );
     const db = initializeFirestore(app, DEFAULT_SETTINGS);
-    await enableIndexedDbPersistence(db);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    expect(enableIndexedDbPersistence(db)).to.be.rejected;
+
+    // SDK still functions.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     setDoc(doc(db, 'coll/doc'), { field: 'foo' });
     expect((await getDocFromCache(doc(db, 'coll/doc'))).data()).to.deep.equal({

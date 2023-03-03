@@ -26,7 +26,6 @@ import {
   terminate,
   indexedDbLocalCache,
   clearIndexedDbPersistence,
-  enableIndexedDbPersistence,
   CollectionReference,
   DocumentData,
   QuerySnapshot,
@@ -263,10 +262,11 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   const app = newTestApp(DEFAULT_PROJECT_ID);
   const dbs: Firestore[] = [];
   for (const dbName of dbNames) {
-    const db = newTestFirestore(app, DEFAULT_SETTINGS, dbName);
+    const newSettings = { ...DEFAULT_SETTINGS };
     if (persistence) {
-      await enableIndexedDbPersistence(db);
+      newSettings.cache = indexedDbLocalCache();
     }
+    const db = newTestFirestore(app, newSettings, dbName);
     dbs.push(db);
   }
 

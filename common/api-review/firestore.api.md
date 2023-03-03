@@ -160,13 +160,10 @@ export class DocumentSnapshot<T = DocumentData> {
 
 export { EmulatorMockTokenOptions }
 
-// @public
+// @public @deprecated (undocumented)
 export function enableIndexedDbPersistence(firestore: Firestore, persistenceSettings?: PersistenceSettings): Promise<void>;
 
-// @public
-export function enableMemoryLRUGarbageCollection(firestore: Firestore): Promise<void>;
-
-// @public
+// @public @deprecated (undocumented)
 export function enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void>;
 
 // @public
@@ -293,13 +290,19 @@ export interface IndexConfiguration {
 }
 
 // @public
+export interface IndexedDbCacheSettings {
+    cacheSizeBytes?: number;
+    tabManager?: IndexedDbTabManager;
+}
+
+// @public
 export interface IndexedDbLocalCache {
     // (undocumented)
     kind: 'indexeddb';
 }
 
 // @public
-export function indexedDbLocalCache(settings?: IndexedDbSettings): IndexedDbLocalCache;
+export function indexedDbLocalCache(settings?: IndexedDbCacheSettings): IndexedDbLocalCache;
 
 // @public
 export interface IndexedDbMultipleTabManager {
@@ -309,12 +312,6 @@ export interface IndexedDbMultipleTabManager {
 
 // @public
 export function indexedDbMultipleTabManager(): IndexedDbMultipleTabManager;
-
-// @public
-export interface IndexedDbSettings {
-    cacheSizeBytes?: number;
-    tabManager?: IndexedDbTabManager;
-}
 
 // @public
 export interface IndexedDbSingleTabManager {

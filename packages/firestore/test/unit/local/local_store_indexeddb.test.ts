@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
 import { serverTimestamp, Timestamp } from '../../../src';
@@ -188,6 +189,10 @@ class AsyncLocalStoreTester {
 }
 
 describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
+  if (!isIndexedDBAvailable()) {
+    return;
+  }
+
   let persistence: Persistence;
   let test: AsyncLocalStoreTester;
 

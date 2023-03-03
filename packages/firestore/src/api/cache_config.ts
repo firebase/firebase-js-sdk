@@ -101,7 +101,7 @@ class IndexedDbLocalCacheImpl implements IndexedDbLocalCache {
    */
   _offlineComponentProvider: OfflineComponentProvider;
 
-  constructor(settings: IndexedDbSettings | undefined) {
+  constructor(settings: IndexedDbCacheSettings | undefined) {
     let tabManager: IndexedDbTabManager;
     if (settings?.tabManager) {
       settings.tabManager._initialize(settings);
@@ -249,7 +249,7 @@ export function memoryLocalCache(
 /**
  * An settings object to configure an `IndexedDbLocalCache` instance.
  */
-export type IndexedDbSettings = {
+export type IndexedDbCacheSettings = {
   /**
    * An approximate cache size threshold for the on-disk data. If the cache
    * grows beyond this size, Firestore will start removing data that hasn't been
@@ -273,7 +273,7 @@ export type IndexedDbSettings = {
  * `FirestoreSettings.cache` to tell the SDK what cache layer to use.
  */
 export function indexedDbLocalCache(
-  settings?: IndexedDbSettings
+  settings?: IndexedDbCacheSettings
 ): IndexedDbLocalCache {
   return new IndexedDbLocalCacheImpl(settings);
 }
@@ -288,7 +288,7 @@ export type IndexedDbSingleTabManager = {
    * @internal
    */
   _initialize: (
-    settings: Omit<IndexedDbSettings, 'tabManager'> | undefined
+    settings: Omit<IndexedDbCacheSettings, 'tabManager'> | undefined
   ) => void;
   /**
    * @internal
@@ -322,7 +322,7 @@ class SingleTabManagerImpl implements IndexedDbSingleTabManager {
    * @internal
    */
   _initialize(
-    settings: Omit<IndexedDbSettings, 'tabManager'> | undefined
+    settings: Omit<IndexedDbCacheSettings, 'tabManager'> | undefined
   ): void {
     this._onlineComponentProvider = new OnlineComponentProvider();
     this._offlineComponentProvider = new IndexedDbOfflineComponentProvider(
@@ -342,7 +342,7 @@ export type IndexedDbMultipleTabManager = {
   /**
    * @internal
    */
-  _initialize: (settings: Omit<IndexedDbSettings, 'tabManager'>) => void;
+  _initialize: (settings: Omit<IndexedDbCacheSettings, 'tabManager'>) => void;
   /**
    * @internal
    */
@@ -374,7 +374,7 @@ class MultiTabManagerImpl implements IndexedDbMultipleTabManager {
    * @internal
    */
   _initialize(
-    settings: Omit<IndexedDbSettings, 'tabManager'> | undefined
+    settings: Omit<IndexedDbCacheSettings, 'tabManager'> | undefined
   ): void {
     this._onlineComponentProvider = new OnlineComponentProvider();
     this._offlineComponentProvider = new MultiTabOfflineComponentProvider(

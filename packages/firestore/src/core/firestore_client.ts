@@ -59,7 +59,7 @@ import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
 import { newBundleReader } from '../util/bundle_reader_impl';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 
@@ -100,10 +100,15 @@ import { ViewSnapshot } from './view_snapshot';
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 
+/** DOMException error code constants. */
+const DOM_EXCEPTION_INVALID_STATE = 11;
+const DOM_EXCEPTION_ABORTED = 20;
+const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
+
 /**
- * FirestoreClient is a top-level class that constructs and owns all of the
- * pieces of the client SDK architecture. It is responsible for creating the
- * async queue that is shared by all of the other components in the system.
+ * FirestoreClient is a top-level class that constructs and owns all of the //
+ * pieces of the client SDK architecture. It is responsible for creating the //
+ * async queue that is shared by all of the other components in the system. //
  */
 export class FirestoreClient {
   private user = User.UNAUTHENTICATED;
@@ -127,12 +132,12 @@ export class FirestoreClient {
     private authCredentials: CredentialsProvider<User>,
     private appCheckCredentials: CredentialsProvider<string>,
     /**
-     * Asynchronous queue responsible for all of our internal processing. When
-     * we get incoming work from the user (via public API) or the network
-     * (incoming GRPC messages), we should always schedule onto this queue.
-     * This ensures all of our work is properly serialized (e.g. we don't
-     * start processing a new operation while the previous one is waiting for
-     * an async I/O to complete).
+     * Asynchronous queue responsible for all of our internal processing. When //
+     * we get incoming work from the user (via public API) or the network //
+     * (incoming GRPC messages), we should always schedule onto this queue. //
+     * This ensures all of our work is properly serialized (e.g. we don't //
+     * start processing a new operation while the previous one is waiting for //
+     * an async I/O to complete). //
      */
     public asyncQueue: AsyncQueue,
     private databaseInfo: DatabaseInfo
@@ -171,8 +176,8 @@ export class FirestoreClient {
   }
 
   /**
-   * Checks that the client has not been terminated. Ensures that other methods on
-   * this class cannot be called after the client is terminated.
+   * Checks that the client has not been terminated. Ensures that other methods on //
+   * this class cannot be called after the client is terminated. //
    */
   verifyNotTerminated(): void {
     if (this.asyncQueue.isShuttingDown) {
@@ -268,16 +273,70 @@ export async function setOnlineComponentProvider(
   client._onlineComponents = onlineComponentProvider;
 }
 
+/**
+ * Decides whether the provided error allows us to gracefully disable
+ * persistence (as opposed to crashing the client).
+ */
+export function canFallbackFromIndexedDbError(
+  error: FirestoreError | DOMException
+): boolean {
+  if (error.name === 'FirebaseError') {
+    return (
+      error.code === Code.FAILED_PRECONDITION ||
+      error.code === Code.UNIMPLEMENTED
+    );
+  } else if (
+    typeof DOMException !== 'undefined' &&
+    error instanceof DOMException
+  ) {
+    // There are a few known circumstances where we can open IndexedDb but
+    // trying to read/write will fail (e.g. quota exceeded). For
+    // well-understood cases, we attempt to detect these and then gracefully
+    // fall back to memory persistence.
+    // NOTE: Rather than continue to add to this list, we could decide to
+    // always fall back, with the risk that we might accidentally hide errors
+    // representing actual SDK bugs.
+    return (
+      // When the browser is out of quota we could get either quota exceeded
+      // or an aborted error depending on whether the error happened during
+      // schema migration.
+      error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
+      error.code === DOM_EXCEPTION_ABORTED ||
+      // Firefox Private Browsing mode disables IndexedDb and returns
+      // INVALID_STATE for any usage.
+      error.code === DOM_EXCEPTION_INVALID_STATE
+    );
+  }
+
+  return true;
+}
+
 async function ensureOfflineComponents(
   client: FirestoreClient
 ): Promise<OfflineComponentProvider> {
   if (!client._offlineComponents) {
     if (client._uninitializedComponentsProvider) {
       logDebug(LOG_TAG, 'Using user provided OfflineComponentProvider');
-      await setOfflineComponentProvider(
-        client,
-        client._uninitializedComponentsProvider._offline
-      );
+      try {
+        await setOfflineComponentProvider(
+          client,
+          client._uninitializedComponentsProvider._offline
+        );
+      } catch (e) {
+        const error = e as FirestoreError | DOMException;
+        if (!canFallbackFromIndexedDbError(error)) {
+          throw error;
+        }
+        logWarn(
+          'Error using user provided cache. Falling back to ' +
+            'memory cache: ' +
+            error
+        );
+        await setOfflineComponentProvider(
+          client,
+          new MemoryOfflineComponentProvider()
+        );
+      }
     } else {
       logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
       await setOfflineComponentProvider(
