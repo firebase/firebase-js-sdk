@@ -1511,8 +1511,10 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
 
+    // TODO(orquery) enable this test when the backend supports
+    // one in per disjunction
     // eslint-disable-next-line no-restricted-properties
-    it('supports multiple in ops', () => {
+    it.skip('supports multiple in ops', () => {
       const testDocs = {
         doc1: { a: 1, b: 0 },
         doc2: { b: 1 },
@@ -1540,8 +1542,10 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
 
+    // TODO(orquery) enable this test when the backend supports
+    // one in or array-contains-any per disjunction
     // eslint-disable-next-line no-restricted-properties
-    it('supports using in with array contains any', () => {
+    it.skip('supports using in with array contains any', () => {
       const testDocs = {
         doc1: { a: 1, b: [0] },
         doc2: { b: [1] },
@@ -1569,17 +1573,6 @@ apiDescribe('Queries', (persistence: boolean) => {
         await checkOnlineAndOfflineResultsMatch(
           query(
             coll,
-            and(
-              where('a', 'in', [2, 3]),
-              where('b', 'array-contains-any', [0, 7])
-            )
-          ),
-          'doc3'
-        );
-
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
             or(
               and(where('a', 'in', [2, 3]), where('c', '==', 10)),
               where('b', 'array-contains-any', [0, 7])
@@ -1588,18 +1581,6 @@ apiDescribe('Queries', (persistence: boolean) => {
           'doc1',
           'doc3',
           'doc4'
-        );
-
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('a', 'in', [2, 3]),
-              or(where('b', 'array-contains-any', [0, 7]), where('c', '==', 20))
-            )
-          ),
-          'doc3',
-          'doc6'
         );
       });
     });
