@@ -38,9 +38,15 @@ export {
   indexedDbSingleTabManager,
   IndexedDbSingleTabManager,
   IndexedDbSingleTabManagerSettings,
+  IndexedDbTabManager,
   MemoryLocalCache,
+  MemoryCacheSettings,
+  MemoryGarbageCollector,
+  MemoryEagerGarbageCollector,
+  MemoryLruGarbageCollector,
   memoryLocalCache,
-  IndexedDbTabManager
+  memoryEagerGarbageCollector,
+  memoryLruGarbageCollector
 } from './api/cache_config';
 
 export { FieldPath, documentId } from './api/field_path';

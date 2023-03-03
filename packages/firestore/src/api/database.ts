@@ -26,7 +26,6 @@ import { deepEqual, getDefaultEmulatorHostnameAndPort } from '@firebase/util';
 import { User } from '../auth/user';
 import {
   IndexedDbOfflineComponentProvider,
-  LruGcMemoryOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
