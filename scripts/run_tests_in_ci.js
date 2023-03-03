@@ -141,7 +141,7 @@ const argv = yargs.options({
     debugLog(`${name} process completed successfully:`, 'yarn', yarnArgs);
     writeLogs('Success', name, stdout + '\n' + stderr);
   } catch (e) {
-    errorLog(`${name} process FAILED:`, 'yarn', yarnArgs);
+    errorLog(`${name} process FAILED`);
     debugLog(`${name} process ==== STDOUT BEGIN ====`);
     console.log(stdout);
     debugLog(`${name} process ==== STDOUT END ====`);

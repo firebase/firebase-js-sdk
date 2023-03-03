@@ -23,6 +23,62 @@ import * as yargs from 'yargs';
 import { TestConfig, testConfig } from './testConfig';
 const root = resolve(__dirname, '../..');
 
+/**
+ * Keep track of "time zero" so that all log statements can have an offset from
+ * this "time zero". This makes it easy to see how long operations take, rather
+ * than printing the wall clock time.
+ *
+ * This value is initialized the first time that `log()` is called.
+ */
+let logStartTime: DOMHighResTimeStamp | null = null;
+
+function debugLog(...args: any[]): void {
+  // eslint-disable-next-line no-console
+  console.log(__filename, elapsedTimeStr(), ...args);
+}
+
+function errorLog(...args: any[]): void {
+  // eslint-disable-next-line no-console
+  console.error(__filename, elapsedTimeStr(), ...args);
+}
+
+/**
+ * Creates and returns a "timestamp" string for the elapsed time.
+ *
+ * The given timestamp is taken as an offset from the first time that this
+ * function is invoked. This allows log messages to start at "time 0" and make
+ * it easy for humans to calculate the elapsed time.
+ *
+ * @returns The timestamp string with which to prefix log lines added to the
+ * UI, created from the elapsed time since this function's first invocation.
+ */
+function elapsedTimeStr(): string {
+  const milliseconds = getElapsedMilliseconds();
+  const minutes = Math.floor(milliseconds / (1000 * 60));
+  const seconds = (milliseconds - minutes * 1000 * 60) / 1000;
+  return (
+    (minutes < 10 ? '0' : '') +
+    minutes +
+    ':' +
+    (seconds < 10 ? '0' : '') +
+    seconds.toFixed(3)
+  );
+}
+
+/**
+ * Returns the number of milliseconds that have elapsed since this function's
+ * first invocation.
+ */
+function getElapsedMilliseconds(): number {
+  if (!logStartTime) {
+    logStartTime = performance.now();
+    return 0;
+  }
+  return performance.now() - logStartTime;
+}
+
+debugLog("command-line arguments:", process.argv);
+
 const argv = yargs.parseSync();
 const inputTestConfigName = argv._[0].toString();
 const testCommand = 'test:ci';
@@ -76,10 +132,14 @@ async function runTests(config: TestConfig) {
     }
 
     lernaCmd.push(testCommand);
+    debugLog('spawning process: npx', lernaCmd)
     await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
+    debugLog('process completed successfully: npx', lernaCmd)
     process.exit(0);
   } catch (e) {
+    errorLog('process failed');
     console.error(chalk`{red ${e}}`);
-    process.exit(1);
+    errorLog('terminating with exit code 65');
+    process.exit(65);
   }
 }
