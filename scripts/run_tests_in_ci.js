@@ -20,6 +20,62 @@ const path = require('path');
 const { spawn } = require('child-process-promise');
 const { writeFileSync } = require('fs');
 
+/**
+ * Keep track of "time zero" so that all log statements can have an offset from
+ * this "time zero". This makes it easy to see how long operations take, rather
+ * than printing the wall clock time.
+ *
+ * This value is initialized the first time that `log()` is called.
+ */
+let logStartTime: DOMHighResTimeStamp | null = null;
+
+function debugLog(...args: any[]): void {
+  // eslint-disable-next-line no-console
+  console.log(__filename, elapsedTimeStr(), ...args);
+}
+
+function errorLog(...args: any[]): void {
+  // eslint-disable-next-line no-console
+  console.error(__filename, elapsedTimeStr(), ...args);
+}
+
+/**
+ * Creates and returns a "timestamp" string for the elapsed time.
+ *
+ * The given timestamp is taken as an offset from the first time that this
+ * function is invoked. This allows log messages to start at "time 0" and make
+ * it easy for humans to calculate the elapsed time.
+ *
+ * @returns The timestamp string with which to prefix log lines added to the
+ * UI, created from the elapsed time since this function's first invocation.
+ */
+function elapsedTimeStr(): string {
+  const milliseconds = getElapsedMilliseconds();
+  const minutes = Math.floor(milliseconds / (1000 * 60));
+  const seconds = (milliseconds - minutes * 1000 * 60) / 1000;
+  return (
+    (minutes < 10 ? '0' : '') +
+    minutes +
+    ':' +
+    (seconds < 10 ? '0' : '') +
+    seconds.toFixed(3)
+  );
+}
+
+/**
+ * Returns the number of milliseconds that have elapsed since this function's
+ * first invocation.
+ */
+function getElapsedMilliseconds(): number {
+  if (!logStartTime) {
+    logStartTime = performance.now();
+    return 0;
+  }
+  return performance.now() - logStartTime;
+}
+
+debugLog("command-line arguments:", process.argv);
+
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
 // Maps the packages where we should not run `test:all` and instead isolate the cross-browser tests.
 // TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
@@ -69,7 +125,10 @@ const argv = yargs.options({
         }
       }
     }
-    const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
+
+    const yarnArgs = ['--cwd', dir, scriptName];
+    debugLog(`spawning '${name}' process`:', 'yarn', yarnArgs);
+    const testProcess = spawn('yarn', yarnArgs);
 
     testProcess.childProcess.stdout.on('data', data => {
       stdout += data.toString();
@@ -79,13 +138,14 @@ const argv = yargs.options({
     });
 
     await testProcess;
-    console.log('Success: ' + name);
+    debugLog(`${name} process completed successfully:`, 'yarn', yarnArgs);
     writeLogs('Success', name, stdout + '\n' + stderr);
   } catch (e) {
-    console.error('Failure: ' + name);
+    errorLog(`${name} process FAILED:`, 'yarn', yarnArgs);
     console.log(stdout);
     console.error(stderr);
     writeLogs('Failure', name, stdout + '\n' + stderr);
-    process.exit(1);
+    debugLog('Completing with failure exit code 76');
+    process.exit(76);
   }
 })();
