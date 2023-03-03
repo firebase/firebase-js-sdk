@@ -38,7 +38,7 @@ export interface Auth
 |  Method | Description |
 |  --- | --- |
 |  [beforeAuthStateChanged(callback, onAbort)](./auth.auth.md#authbeforeauthstatechanged) | Adds a blocking callback that runs before an auth state change sets a new user. |
-|  [initializeRecaptchaConfig()](./auth.auth.md#authinitializerecaptchaconfig) | Changes the reCAPTCHA configuration on the <code>Auth</code> instance. |
+|  [initializeRecaptchaConfig()](./auth.auth.md#authinitializerecaptchaconfig) | Initializes the reCAPTCHA configuration on the <code>Auth</code> instance. |
 |  [onAuthStateChanged(nextOrObserver, error, completed)](./auth.auth.md#authonauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(nextOrObserver, error, completed)](./auth.auth.md#authonidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
 |  [setPersistence(persistence)](./auth.auth.md#authsetpersistence) | Changes the type of persistence on the <code>Auth</code> instance. |
@@ -168,13 +168,13 @@ beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, on
 
 ## Auth.initializeRecaptchaConfig()
 
-Changes the reCAPTCHA configuration on the `Auth` instance.
+Initializes the reCAPTCHA configuration on the `Auth` instance.
 
-This will apply the reCAPTCHA config to the currently Auth session and affect the future auth requests.
+This will initialize reCAPTCHA config of the current Auth session which affects the future auth requests.
 
 The reCAPTCHA config indicates whether the reCAPTCHA verification flow should be triggered for a specific auth provider. Note that this only affect the client auth request but won't override the actual enablement state on the server side.
 
-For example, assume that reCAPTCHA verfication is enabled for Email provider via Cloud console or Admin SDKs. If the enablement is set to false via `initializeRecaptchaConfig()`<!-- -->, the auth flow will be started without the reCAPTCHA verfication. This will result in a `reCAPTCHA token missing` error while the SDK will automatically start the auth flow again with the reCAPTCHA verfication flow. Developers can avoid such round trip by enabling the reCAPTCHA flow with this method.
+For example, assume that reCAPTCHA verfication is enabled for Email provider via Cloud console or Admin SDKs. If the enablement is initialized to false via `initializeRecaptchaConfig()`<!-- -->, the auth flow will be started without the reCAPTCHA verfication. This will result in a `reCAPTCHA token missing` error while the SDK will automatically start the auth flow again with the reCAPTCHA verfication flow. Developers can avoid such round trip by enabling the reCAPTCHA flow with this method.
 
 <b>Signature:</b>
 

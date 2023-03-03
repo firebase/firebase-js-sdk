@@ -10,7 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # RecaptchaConfig interface
-An interface representing the reCAPTCHA configuration that can be set with [Auth.initializeRecaptchaConfig()](./auth.auth.md#authinitializerecaptchaconfig)<!-- -->.
 
 <b>Signature:</b>
 

@@ -62,7 +62,7 @@ export function setPersistence(
 }
 
 /**
- * Changes the reCAPTCHA configuration on the `Auth` instance.
+ * Initializes the reCAPTCHA configuration on the `Auth` instance.
  *
  * @remarks
  * This will pull the reCAPTCHA config to the current Auth session and affect future auth

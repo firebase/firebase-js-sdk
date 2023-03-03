@@ -31,7 +31,7 @@ Firebase Authentication
 |  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail) | Gets the list of possible sign in methods for the given email address. |
 |  [getMultiFactorResolver(auth, error)](./auth.md#getmultifactorresolver) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow. |
 |  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
-|  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig) | Changes the reCAPTCHA configuration on the <code>Auth</code> instance. |
+|  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig) | Initializes the reCAPTCHA configuration on the <code>Auth</code> instance. |
 |  [isSignInWithEmailLink(auth, emailLink)](./auth.md#issigninwithemaillink) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->. |
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
@@ -130,7 +130,7 @@ Firebase Authentication
 |  [PhoneSingleFactorInfoOptions](./auth.phonesinglefactorinfooptions.md#phonesinglefactorinfooptions_interface) | Options used for single-factor sign-in. |
 |  [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup) or [signInWithRedirect()](./auth.md#signinwithredirect)<!-- -->. |
 |  [ReactNativeAsyncStorage](./auth.reactnativeasyncstorage.md#reactnativeasyncstorage_interface) | Interface for a supplied <code>AsyncStorage</code>. |
-|  [RecaptchaConfig](./auth.recaptchaconfig.md#recaptchaconfig_interface) | An interface representing the reCAPTCHA configuration that can be set with [Auth.initializeRecaptchaConfig()](./auth.auth.md#authinitializerecaptchaconfig)<!-- -->. |
+|  [RecaptchaConfig](./auth.recaptchaconfig.md#recaptchaconfig_interface) |  |
 |  [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | Interface representing reCAPTCHA parameters.<!-- -->See the \[reCAPTCHA docs\](https://developers.google.com/recaptcha/docs/display\#render\_param) for the list of accepted parameters. All parameters are accepted except for <code>sitekey</code>: Firebase Auth provisions a reCAPTCHA for each project and will configure the site key upon rendering.<!-- -->For an invisible reCAPTCHA, set the <code>size</code> key to <code>invisible</code>. |
 |  [User](./auth.user.md#user_interface) | A user account. |
 |  [UserCredential](./auth.usercredential.md#usercredential_interface) | A structure containing a [User](./auth.user.md#user_interface)<!-- -->, the [OperationType](./auth.md#operationtype)<!-- -->, and the provider ID. |
@@ -486,7 +486,7 @@ const operationType = result.operationType;
 
 ## initializeRecaptchaConfig()
 
-Changes the reCAPTCHA configuration on the `Auth` instance.
+Initializes the reCAPTCHA configuration on the `Auth` instance.
 
 This will pull the reCAPTCHA config to the current Auth session and affect future auth requests, which indicates whether the reCAPTCHA verification flow should be triggered for a specific auth provider. If initializeRecaptchaConfig() is not invoked, the auth flow will start without reCAPTCHA verification. But if reCAPTCHA verification is required, the reCAPTCHA config will be automatically pulled internally and the flows will restart. Thus, calling this optional method will reduce the latency of auth flows.
 
