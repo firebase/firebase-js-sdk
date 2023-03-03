@@ -27,14 +27,14 @@ const { writeFileSync } = require('fs');
  *
  * This value is initialized the first time that `log()` is called.
  */
-let logStartTime: DOMHighResTimeStamp | null = null;
+let logStartTime = null;
 
-function debugLog(...args: any[]): void {
+function debugLog(...args) {
   // eslint-disable-next-line no-console
   console.log(__filename, elapsedTimeStr(), ...args);
 }
 
-function errorLog(...args: any[]): void {
+function errorLog(...args) {
   // eslint-disable-next-line no-console
   console.error(__filename, elapsedTimeStr(), ...args);
 }
@@ -49,7 +49,7 @@ function errorLog(...args: any[]): void {
  * @returns The timestamp string with which to prefix log lines added to the
  * UI, created from the elapsed time since this function's first invocation.
  */
-function elapsedTimeStr(): string {
+function elapsedTimeStr() {
   const milliseconds = getElapsedMilliseconds();
   const minutes = Math.floor(milliseconds / (1000 * 60));
   const seconds = (milliseconds - minutes * 1000 * 60) / 1000;
@@ -66,7 +66,7 @@ function elapsedTimeStr(): string {
  * Returns the number of milliseconds that have elapsed since this function's
  * first invocation.
  */
-function getElapsedMilliseconds(): number {
+function getElapsedMilliseconds() {
   if (!logStartTime) {
     logStartTime = performance.now();
     return 0;
