@@ -127,7 +127,7 @@ const argv = yargs.options({
     }
 
     const yarnArgs = ['--cwd', dir, scriptName];
-    debugLog(`spawning '${name}' process`:', 'yarn', yarnArgs);
+    debugLog(`spawning '${name}' process:`, 'yarn', yarnArgs);
     const testProcess = spawn('yarn', yarnArgs);
 
     testProcess.childProcess.stdout.on('data', data => {
@@ -142,8 +142,12 @@ const argv = yargs.options({
     writeLogs('Success', name, stdout + '\n' + stderr);
   } catch (e) {
     errorLog(`${name} process FAILED:`, 'yarn', yarnArgs);
+    debugLog(`${name} process ==== STDOUT BEGIN ====`);
     console.log(stdout);
+    debugLog(`${name} process ==== STDOUT END ====`);
+    debugLog(`${name} process ==== STDERR BEGIN ====`);
     console.error(stderr);
+    debugLog(`${name} process ==== STDERR END ====`);
     writeLogs('Failure', name, stdout + '\n' + stderr);
     debugLog('Completing with failure exit code 76');
     process.exit(76);
