@@ -21,6 +21,7 @@ import { spawn } from 'child-process-promise';
 import * as yargs from 'yargs';
 
 function debugLog(...args: any[]): void {
+  // eslint-disable-next-line no-console
   console.log(__filename, performance.now(),...args);
 }
 
@@ -85,13 +86,13 @@ const childProcess = spawn(nyc, args, {
 
 process.once('exit', () => {
   debugLog("WARNING: received 'exit' event; killing child process");
-  childProcess.kill()
+  childProcess.kill();
 });
 process.once('SIGINT', () => {
   debugLog("WARNING: received 'SIGINT' event; sending it to child process");
-  childProcess.kill('SIGINT')
+  childProcess.kill('SIGINT');
 });
 process.once('SIGTERM', () => {
   debugLog("WARNING: received 'SIGTERM' event; sending it to child process");
-  childProcess.kill('SIGTERM')
+  childProcess.kill('SIGTERM');
 });
