@@ -1,5 +1,17 @@
 # @firebase/database-compat
 
+## 0.3.4
+
+### Patch Changes
+
+- [`b970dc522`](https://github.com/firebase/firebase-js-sdk/commit/b970dc52282e35d4d3fac947e330d830063caa5e) [#7055](https://github.com/firebase/firebase-js-sdk/pull/7055) - Solve @firebase/database-compat/standalone resolution issues with astrojs
+
+- Updated dependencies [[`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6)]:
+  - @firebase/util@1.9.3
+  - @firebase/component@0.6.4
+  - @firebase/database@0.14.4
+  - @firebase/database-types@0.10.4
+
 ## 0.3.3
 
 ### Patch Changes
