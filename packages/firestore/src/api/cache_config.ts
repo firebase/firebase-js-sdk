@@ -25,8 +25,8 @@ import {
 
 /* eslint @typescript-eslint/consistent-type-definitions: ["error", "type"] */
 /**
- * Provides a in-memory cache to the SDK. This is the default cache unless explicitly
- * specified otherwise.
+ * Provides an in-memory cache to the SDK. This is the default cache unless explicitly
+ * configured otherwise.
  *
  * To use, create an instance using the factory function {@link memoryLocalCache()}, then
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
@@ -120,7 +120,7 @@ export type FirestoreLocalCache = MemoryLocalCache | IndexedDbLocalCache;
 
 /**
  * Creates an instance of `MemoryLocalCache`. The instance can be set to
- * `FirestoreSettings.cache` to tell the SDK what cache layer to use.
+ * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
  */
 export function memoryLocalCache(): MemoryLocalCache {
   return new MemoryLocalCacheImpl();
@@ -133,7 +133,7 @@ export type IndexedDbCacheSettings = {
   /**
    * An approximate cache size threshold for the on-disk data. If the cache
    * grows beyond this size, Firestore will start removing data that hasn't been
-   * recently used. The size is not a guarantee that the cache will stay below
+   * recently used. The SDK does not guarantee that the cache will stay below
    * that size, only that if the cache exceeds the given size, cleanup will be
    * attempted.
    *
@@ -150,7 +150,7 @@ export type IndexedDbCacheSettings = {
 
 /**
  * Creates an instance of `IndexedDbLocalCache`. The instance can be set to
- * `FirestoreSettings.cache` to tell the SDK what cache layer to use.
+ * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
  */
 export function indexedDbLocalCache(
   settings?: IndexedDbCacheSettings
@@ -276,10 +276,10 @@ export type IndexedDbTabManager =
  */
 export type IndexedDbSingleTabManagerSettings = {
   /**
-   * Whether to force enable indexeddb cache for the client. This cannot be used
+   * Whether to force-enable IndexedDB cache for the client. This cannot be used
    * with multi-tab synchronization and is primarily intended for use with Web
-   * Workers. Setting this to `true` will enable indexeddb, but cause other
-   * tabs using indexeddb cache to fail.
+   * Workers. Setting this to `true` will enable IndexedDB, but cause other
+   * tabs using IndexedDB cache to fail.
    */
   forceOwnership?: boolean;
 };
