@@ -167,7 +167,10 @@ export function initializeFirestore(
     }
   }
 
-  if (settings.cacheSizeBytes !== undefined && settings.cache !== undefined) {
+  if (
+    settings.cacheSizeBytes !== undefined &&
+    settings.localCache !== undefined
+  ) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `cache and cacheSizeBytes cannot be specified at the same time as cacheSizeBytes will` +

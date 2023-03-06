@@ -62,7 +62,7 @@ export interface PrivateSettings extends FirestoreSettings {
   // Used in firestore@exp
   useFetchStreams?: boolean;
 
-  cache?: FirestoreLocalCache;
+  localCache?: FirestoreLocalCache;
 }
 
 /**
@@ -109,7 +109,7 @@ export class FirestoreSettingsImpl {
 
     this.credentials = settings.credentials;
     this.ignoreUndefinedProperties = !!settings.ignoreUndefinedProperties;
-    this.cache = settings.cache;
+    this.cache = settings.localCache;
 
     if (settings.cacheSizeBytes === undefined) {
       this.cacheSizeBytes = LRU_DEFAULT_CACHE_SIZE_BYTES;
