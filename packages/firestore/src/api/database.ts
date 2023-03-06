@@ -303,11 +303,6 @@ export function configureFirestore(firestore: Firestore): void {
 }
 
 /**
- * @deprecated This function will be removed in a future major release. Instead, set
- * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
- * turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache`
- * is already specified will throw an exception.
- *
  * Attempts to enable persistent storage, if possible.
  *
  * Must be called before any other functions (other than
@@ -329,6 +324,10 @@ export function configureFirestore(firestore: Firestore): void {
  * @param persistenceSettings - Optional settings object to configure
  * persistence.
  * @returns A `Promise` that represents successfully enabling persistent storage.
+ * @deprecated This function will be removed in a future major release. Instead, set
+ * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
+ * turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache`
+ * is already specified will throw an exception.
  */
 export function enableIndexedDbPersistence(
   firestore: Firestore,
@@ -365,11 +364,6 @@ export function enableIndexedDbPersistence(
 }
 
 /**
- * @deprecated This function will be removed in a future major release. Instead, set
- * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
- * turn on indexeddb cache. Calling this function when `FirestoreSettings.cache`
- * is already specified will throw an exception.
- *
  * Attempts to enable multi-tab persistent storage, if possible. If enabled
  * across all tabs, all operations share access to local persistence, including
  * shared execution of queries and latency-compensated local document updates
@@ -390,6 +384,10 @@ export function enableIndexedDbPersistence(
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @returns A `Promise` that represents successfully enabling persistent
  * storage.
+ * @deprecated This function will be removed in a future major release. Instead, set
+ * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
+ * turn on indexeddb cache. Calling this function when `FirestoreSettings.cache`
+ * is already specified will throw an exception.
  */
 export function enableMultiTabIndexedDbPersistence(
   firestore: Firestore

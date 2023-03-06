@@ -160,10 +160,10 @@ export class DocumentSnapshot<T = DocumentData> {
 
 export { EmulatorMockTokenOptions }
 
-// @public @deprecated (undocumented)
+// @public @deprecated
 export function enableIndexedDbPersistence(firestore: Firestore, persistenceSettings?: PersistenceSettings): Promise<void>;
 
-// @public @deprecated (undocumented)
+// @public @deprecated
 export function enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void>;
 
 // @public
