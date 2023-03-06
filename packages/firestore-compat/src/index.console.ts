@@ -106,12 +106,12 @@ export class Firestore extends FirestoreCompat {
     delete: () => this.terminate(),
     count: (query: Compat<ExpQuery<unknown>>) => {
       return getCountFromServer(query._delegate)
-      .then(response => {
-        return response.data().count;
-      })
-      .catch(error => {
-        throw new FirestoreError(error.code, error.message);
-    });
+        .then(response => {
+          return response.data().count;
+        })
+        .catch(error => {
+          throw new FirestoreError(error.code, error.message);
+        });
     }
   };
 }
