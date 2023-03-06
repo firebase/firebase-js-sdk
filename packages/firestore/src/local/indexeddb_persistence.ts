@@ -977,7 +977,12 @@ export class IndexedDbPersistence implements Persistence {
         // to make sure it gets a chance to run.
         this.markClientZombied();
 
-        if (isSafari() && (navigator.appVersion.match(/(?:Version|Mobile)\/1[456]/) || navigator.userAgent.match(/(?:Version|Mobile)\/1[456]/))) {
+        const safariIndexdbBugVersionRegex = /(?:Version|Mobile)\/1[456]/;
+        if (
+          isSafari() &&
+          (navigator.appVersion.match(safariIndexdbBugVersionRegex) ||
+            navigator.userAgent.match(safariIndexdbBugVersionRegex))
+        ) {
           // On Safari 14, 15, and 16, we do not run any cleanup actions as it might
           // trigger a bug that prevents Safari from re-opening IndexedDB during
           // the next page load.
