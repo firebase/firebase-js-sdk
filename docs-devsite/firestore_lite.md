@@ -57,7 +57,11 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(query...)</b> |
 |  [getCount(query)](./firestore_lite.md#getcount) | Calculates the number of documents in the result set of the given query, without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can even count the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents). |
 |  [getDocs(query)](./firestore_lite.md#getdocs) | Executes the query and returns the results as a [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->.<!-- -->All queries are executed directly by the server, even if the the query was previously executed. Recent modifications are only reflected in the retrieved results if they have already been applied by the backend. If the client is offline, the operation fails. To see previously cached result and local modifications, use the full Firestore SDK. |
+|  [query(query, compositeFilter, queryConstraints)](./firestore_lite.md#query) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
 |  [query(query, queryConstraints)](./firestore_lite.md#query) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
+|  <b>function(queryConstraints...)</b> |
+|  [and(queryConstraints)](./firestore_lite.md#and) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a conjunction of the given filter constraints. A conjunction filter includes a document if it satisfies all of the given filters. |
+|  [or(queryConstraints)](./firestore_lite.md#or) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters. |
 |  <b>function(reference...)</b> |
 |  [addDoc(reference, data)](./firestore_lite.md#adddoc) | Add a new document to specified <code>CollectionReference</code> with the given data, assigning it a document ID automatically.<!-- -->The result of this write will only be reflected in document reads that occur after the returned promise resolves. If the client is offline, the write fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
 |  [collection(reference, path, pathSegments)](./firestore_lite.md#collection) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
@@ -92,7 +96,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [FirestoreError](./firestore_lite.firestoreerror.md#firestoreerror_class) | An error returned by a Firestore operation. |
 |  [GeoPoint](./firestore_lite.geopoint.md#geopoint_class) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
 |  [Query](./firestore_lite.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
-|  [QueryConstraint](./firestore_lite.queryconstraint.md#queryconstraint_class) | A <code>QueryConstraint</code> is used to narrow the set of documents returned by a Firestore query. <code>QueryConstraint</code>s are created by invoking [where()](./firestore_.md#where)<!-- -->, [orderBy()](./firestore_.md#orderby)<!-- -->, , , , , [limit()](./firestore_.md#limit)<!-- -->, [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryConstraint</code>. |
+|  [QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | A <code>QueryCompositeFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by performing the logical OR or AND of multiple [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->s or [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->s. <code>QueryCompositeFilterConstraint</code>s are created by invoking [or()](./firestore_.md#or) or [and()](./firestore_.md#and) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains the <code>QueryCompositeFilterConstraint</code>. |
+|  [QueryConstraint](./firestore_lite.queryconstraint.md#queryconstraint_class) | A <code>QueryConstraint</code> is used to narrow the set of documents returned by a Firestore query. <code>QueryConstraint</code>s are created by invoking [where()](./firestore_.md#where)<!-- -->, [orderBy()](./firestore_.md#orderby)<!-- -->, [startAt()](./firestore_.md#startat)<!-- -->, [startAfter()](./firestore_.md#startafter)<!-- -->, [endBefore()](./firestore_.md#endbefore)<!-- -->, [endAt()](./firestore_.md#endat)<!-- -->, [limit()](./firestore_.md#limit)<!-- -->, [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryConstraint</code>. |
 |  [QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class) | A <code>QueryDocumentSnapshot</code> contains data read from a document in your Firestore database as part of a query. The document is guaranteed to exist and its data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->A <code>QueryDocumentSnapshot</code> offers the same API surface as a <code>DocumentSnapshot</code>. Since query results contain only existing documents, the <code>exists</code> property will always be true and <code>data()</code> will never return 'undefined'. |
 |  [QueryEndAtConstraint](./firestore_lite.queryendatconstraint.md#queryendatconstraint_class) | A <code>QueryEndAtConstraint</code> is used to exclude documents from the end of a result set returned by a Firestore query. <code>QueryEndAtConstraint</code>s are created by invoking [endAt()](./firestore_.md#endat) or [endBefore()](./firestore_.md#endbefore) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryEndAtConstraint</code>. |
 |  [QueryFieldFilterConstraint](./firestore_lite.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) | A <code>QueryFieldFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by filtering on one or more document fields. <code>QueryFieldFilterConstraint</code>s are created by invoking [where()](./firestore_.md#where) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryFieldFilterConstraint</code>. |
@@ -128,7 +133,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [PartialWithFieldValue](./firestore_lite.md#partialwithfieldvalue) | Similar to Typescript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
 |  [Primitive](./firestore_lite.md#primitive) | Primitive types. |
 |  [QueryConstraintType](./firestore_lite.md#queryconstrainttype) | Describes the different query constraints available in this SDK. |
-|  [QueryNonFilterConstraint](./firestore_lite.md#querynonfilterconstraint) | <code>QueryNonFilterConstraint</code> is a helper union type that represents QueryConstraints which are used to narrow or order the set of documents, but that do not explicitly filter on a document field. <code>QueryNonFilterConstraint</code>s are created by invoking [orderBy()](./firestore_.md#orderby)<!-- -->, , , , , [limit()](./firestore_.md#limit) or [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains the <code>QueryConstraint</code>. |
+|  [QueryFilterConstraint](./firestore_lite.md#queryfilterconstraint) | <code>QueryFilterConstraint</code> is a helper union type that represents [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) and [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->. |
+|  [QueryNonFilterConstraint](./firestore_lite.md#querynonfilterconstraint) | <code>QueryNonFilterConstraint</code> is a helper union type that represents QueryConstraints which are used to narrow or order the set of documents, but that do not explicitly filter on a document field. <code>QueryNonFilterConstraint</code>s are created by invoking [orderBy()](./firestore_.md#orderby)<!-- -->, [startAt()](./firestore_.md#startat)<!-- -->, [startAfter()](./firestore_.md#startafter)<!-- -->, [endBefore()](./firestore_.md#endbefore)<!-- -->, [endAt()](./firestore_.md#endat)<!-- -->, [limit()](./firestore_.md#limit) or [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains the <code>QueryConstraint</code>. |
 |  [SetOptions](./firestore_lite.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [UnionToIntersection](./firestore_lite.md#uniontointersection) | Given a union type <code>U = T1 &#124; T2 &#124; ...</code>, returns an intersected type <code>(T1 &amp; T2 &amp; ...)</code>.<!-- -->Uses distributive conditional types and inference from conditional types. This works because multiple candidates for the same type variable in contra-variant positions causes an intersection type to be inferred. https://www.typescriptlang.org/docs/handbook/advanced-types.html\#type-inference-in-conditional-types https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type |
 |  [UpdateData](./firestore_lite.md#updatedata) | Update data (for use with [updateDoc()](./firestore_.md#updatedoc)<!-- -->) that consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference nested fields within the document. FieldValues can be passed in as property values. |
@@ -842,6 +848,32 @@ Creates a new immutable instance of [Query](./firestore_.query.md#query_class) t
 <b>Signature:</b>
 
 ```typescript
+export declare function query<T>(query: Query<T>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<T>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  query | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;T&gt; | The [Query](./firestore_.query.md#query_class) instance to use as a base for the new constraints. |
+|  compositeFilter | [QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | The [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) to apply. Create [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) using [and()](./firestore_.md#and) or [or()](./firestore_.md#or)<!-- -->. |
+|  queryConstraints | [QueryNonFilterConstraint](./firestore_lite.md#querynonfilterconstraint)<!-- -->\[\] | Additional [QueryNonFilterConstraint](./firestore_.md#querynonfilterconstraint)<!-- -->s to apply (e.g. [orderBy()](./firestore_.md#orderby)<!-- -->, [limit()](./firestore_.md#limit)<!-- -->). |
+
+<b>Returns:</b>
+
+[Query](./firestore_lite.query.md#query_class)<!-- -->&lt;T&gt;
+
+## Exceptions
+
+if any of the provided query constraints cannot be combined with the existing or new constraints.
+
+## query()
+
+Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints.
+
+<b>Signature:</b>
+
+```typescript
 export declare function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
 ```
 
@@ -859,6 +891,50 @@ export declare function query<T>(query: Query<T>, ...queryConstraints: QueryCons
 ## Exceptions
 
 if any of the provided query constraints cannot be combined with the existing or new constraints.
+
+## and()
+
+Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a conjunction of the given filter constraints. A conjunction filter includes a document if it satisfies all of the given filters.
+
+<b>Signature:</b>
+
+```typescript
+export declare function and(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  queryConstraints | [QueryFilterConstraint](./firestore_lite.md#queryfilterconstraint)<!-- -->\[\] | Optional. The list of [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->s to perform a conjunction for. These must be created with calls to [where()](./firestore_.md#where)<!-- -->, [or()](./firestore_.md#or)<!-- -->, or [and()](./firestore_.md#and)<!-- -->. |
+
+<b>Returns:</b>
+
+[QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class)
+
+The newly created [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->.
+
+## or()
+
+Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters.
+
+<b>Signature:</b>
+
+```typescript
+export declare function or(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  queryConstraints | [QueryFilterConstraint](./firestore_lite.md#queryfilterconstraint)<!-- -->\[\] | Optional. The list of [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->s to perform a disjunction for. These must be created with calls to [where()](./firestore_.md#where)<!-- -->, [or()](./firestore_.md#or)<!-- -->, or [and()](./firestore_.md#and)<!-- -->. |
+
+<b>Returns:</b>
+
+[QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class)
+
+The newly created [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->.
 
 ## addDoc()
 
@@ -1372,9 +1448,19 @@ Describes the different query constraints available in this SDK.
 export declare type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
 ```
 
+## QueryFilterConstraint
+
+`QueryFilterConstraint` is a helper union type that represents [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) and [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare type QueryFilterConstraint = QueryFieldFilterConstraint | QueryCompositeFilterConstraint;
+```
+
 ## QueryNonFilterConstraint
 
-`QueryNonFilterConstraint` is a helper union type that represents QueryConstraints which are used to narrow or order the set of documents, but that do not explicitly filter on a document field. `QueryNonFilterConstraint`<!-- -->s are created by invoking [orderBy()](./firestore_.md#orderby)<!-- -->, , , , , [limit()](./firestore_.md#limit) or [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains the `QueryConstraint`<!-- -->.
+`QueryNonFilterConstraint` is a helper union type that represents QueryConstraints which are used to narrow or order the set of documents, but that do not explicitly filter on a document field. `QueryNonFilterConstraint`<!-- -->s are created by invoking [orderBy()](./firestore_.md#orderby)<!-- -->, [startAt()](./firestore_.md#startat)<!-- -->, [startAfter()](./firestore_.md#startafter)<!-- -->, [endBefore()](./firestore_.md#endbefore)<!-- -->, [endAt()](./firestore_.md#endat)<!-- -->, [limit()](./firestore_.md#limit) or [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains the `QueryConstraint`<!-- -->.
 
 <b>Signature:</b>
 

@@ -242,7 +242,7 @@ export class Query<T = DocumentData> {
 
 /**
  * A `CollectionReference` object can be used for adding documents, getting
- * document references, and querying for documents (using {@link query}).
+ * document references, and querying for documents (using {@link (query:1)}).
  */
 export class CollectionReference<T = DocumentData> extends Query<T> {
   /** The type of this Firestore reference. */
