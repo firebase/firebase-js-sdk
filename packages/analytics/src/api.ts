@@ -168,7 +168,7 @@ export function setCurrentScreen(
 }
 
 /**
- * Returns retrieves a unique identifier for the web client.
+ * Retrieves a unique identifier for the web client.
  *
  * @public
  *
