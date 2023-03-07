@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _TestingHooks as TestingHooks } from './firebase_export';
+import { _TestingHooks as TestingHooks, _logWarn } from './firebase_export';
 
 /**
  * Captures all existence filter mismatches in the Watch 'Listen' stream that
@@ -105,6 +105,10 @@ export interface ExistenceFilterBloomFilter {
 function existenceFilterMismatchInfoFromRaw(
   raw: RawExistenceFilterMismatchInfo
 ): ExistenceFilterMismatchInfo {
+  _logWarn(
+    'zzyzx existenceFilterMismatchInfoFromRaw() start; raw:',
+    JSON.stringify(raw, null, 2)
+  );
   return {
     actualCount: raw.actualCount,
     expectedCount: raw.change.existenceFilter.count,
