@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { _TestingHooks as TestingHooks, _logWarn } from './firebase_export';
+import {
+  _TestingHooks as TestingHooks,
+  _TestingUtilsExistenceFilterMismatchInfo as RawExistenceFilterMismatchInfo,
+  _logWarn
+} from './firebase_export';
 
 /**
  * Captures all existence filter mismatches in the Watch 'Listen' stream that
@@ -50,28 +54,6 @@ export async function captureExistenceFilterMismatches(
 }
 
 /**
- * The shape of the object specified to
- * `TestingUtils.onExistenceFilterMismatch()` callbacks.
- */
-interface RawExistenceFilterMismatchInfo {
-  actualCount: number;
-  bloomFilterApplied: boolean;
-  change: {
-    targetId: number;
-    existenceFilter: {
-      count: number;
-      unchangedNames?: {
-        bits?: {
-          bitmap?: string | Uint8Array;
-          padding?: number;
-        };
-        hashCount?: number;
-      };
-    };
-  };
-}
-
-/**
  * Information about an existence filter mismatch, capturing during an
  * invocation of `captureExistenceFilterMismatches()`.
  */
@@ -88,7 +70,7 @@ export interface ExistenceFilterMismatchInfo {
  * Information about a bloom filter in an existence filter.
  */
 export interface ExistenceFilterBloomFilter {
-  /** Whether the bloom filter was able to be used to avert a full requery. */
+  /** Whether the bloom filter was used to avert a full requery. */
   applied: boolean;
   /** The number of hash functions used in the bloom filter. */
   hashCount: number;
@@ -118,7 +100,7 @@ function existenceFilterMismatchInfoFromRaw(
 
 /**
  * Creates an `ExistenceFilterBloomFilter` object from the raw object given
- * by `TestingUtils`, returning null if the given object does not defined a
+ * by `TestingUtils`, returning null if the given object does not define a
  * bloom filter.
  */
 function bloomFilterFromRawExistenceFilterMismatchInfo(

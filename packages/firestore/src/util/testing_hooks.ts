@@ -34,7 +34,7 @@
 export class TestingHooks {
   private readonly onExistenceFilterMismatchCallbacks = new Map<
     Symbol,
-    (arg: unknown) => void
+    (info: ExistenceFilterMismatchInfo) => void
   >();
 
   private constructor() {}
@@ -65,17 +65,15 @@ export class TestingHooks {
    * The relative order in which callbacks are notified is unspecified; do not
    * rely on any particular ordering.
    *
-   * @param callback the callback to invoke upon existence filter mismatch. The
-   * type of the argument to this callback is intentionally declared as
-   * `unknown`, rather than something more specific, to discourage its use
-   * unless you really, really know what you are doing. If you know what you are
-   * doing then you know the type and how to interpret it.
+   * @param callback the callback to invoke upon existence filter mismatch.
    *
    * @return a function that, when called, unregisters the given callback; only
    * the first invocation of the returned function does anything; all subsequent
    * invocations do nothing.
    */
-  onExistenceFilterMismatch(callback: (arg: unknown) => void): () => void {
+  onExistenceFilterMismatch(
+    callback: (info: ExistenceFilterMismatchInfo) => void
+  ): () => void {
     const key = Symbol();
     this.onExistenceFilterMismatchCallbacks.set(key, callback);
     return () => this.onExistenceFilterMismatchCallbacks.delete(key);
@@ -83,12 +81,33 @@ export class TestingHooks {
 
   /**
    * Invokes all currently-registered `onExistenceFilterMismatch` callbacks.
-   * @param arg the argument to specify to the callbacks; see the documentation
-   * for `onExistenceFilterMismatch()` for details.
+   * @param info the argument to specify to the callbacks.
    */
-  notifyOnExistenceFilterMismatch(arg: unknown): void {
-    this.onExistenceFilterMismatchCallbacks.forEach(callback => callback(arg));
+  notifyOnExistenceFilterMismatch(info: ExistenceFilterMismatchInfo): void {
+    this.onExistenceFilterMismatchCallbacks.forEach(callback => callback(info));
   }
+}
+
+/**
+ * The shape of the object specified to
+ * `TestingUtils.onExistenceFilterMismatch()` callbacks.
+ */
+export interface ExistenceFilterMismatchInfo {
+  actualCount: number;
+  bloomFilterApplied: boolean;
+  change: {
+    targetId: number;
+    existenceFilter: {
+      count: number;
+      unchangedNames?: {
+        bits?: {
+          bitmap?: string | Uint8Array;
+          padding?: number;
+        };
+        hashCount?: number;
+      };
+    };
+  };
 }
 
 /** The global singleton instance of `TestingHooks`. */
