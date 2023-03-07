@@ -1,6 +1,6 @@
 {
   "name": "@firebase/util",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",

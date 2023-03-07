@@ -1,5 +1,15 @@
 # @firebase/auth
 
+## 0.21.4
+
+### Patch Changes
+
+- [`c8a6e08b0`](https://github.com/firebase/firebase-js-sdk/commit/c8a6e08b01a52b3eca77ca9da8989dac2e77a972) [#7038](https://github.com/firebase/firebase-js-sdk/pull/7038) - Modify \_fail to use AuthErrorCode.INTERNAL_ERROR and pass in error message.
+
+- Updated dependencies [[`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6)]:
+  - @firebase/util@1.9.3
+  - @firebase/component@0.6.4
+
 ## 0.21.3
 
 ### Patch Changes
