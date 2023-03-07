@@ -18,10 +18,10 @@
 import { _TestingHooks as TestingHooks } from './firebase_export';
 
 /**
- * Captures all existence filter mismatches that occur during the execution of
- * the given code block.
- * @param callback The callback to invoke, during whose invocation the existence
- * filter mismatches will be captured.
+ * Captures all existence filter mismatches in the Watch 'Listen' stream that
+ * occur during the execution of the given code block.
+ * @param callback The callback to invoke; during the invocation of this
+ * callback all existence filter mismatches will be captured.
  * @return the captured existence filter mismatches.
  */
 export async function captureExistenceFilterMismatches(
@@ -32,20 +32,24 @@ export async function captureExistenceFilterMismatches(
     results.push(
       existenceFilterMismatchInfoFromRaw(arg as RawExistenceFilterMismatchInfo)
     );
+
   const unregister =
     TestingHooks.getOrCreateInstance().onExistenceFilterMismatch(
       callbackWrapper
     );
+
   try {
     await callback();
   } finally {
     unregister();
   }
+
   return results;
 }
 
 /**
- * The shape of the object specified to `onExistenceFilterMismatch` callbacks.
+ * The shape of the object specified to
+ * `TestingUtils.onExistenceFilterMismatch()` callbacks.
  */
 interface RawExistenceFilterMismatchInfo {
   actualCount: number;
@@ -66,38 +70,51 @@ interface RawExistenceFilterMismatchInfo {
 }
 
 /**
- * Information about an existence filter mismatch.
+ * Information about an existence filter mismatch, capturing during an
+ * invocation of `captureExistenceFilterMismatches()`.
  */
 export interface ExistenceFilterMismatchInfo {
+  /** The number of documents that match the query in the local cache. */
   actualCount: number;
+  /** The number of documents that matched the query on the server. */
   expectedCount: number;
-  bloomFilter?: ExistenceFilterBloomFilter;
+  /** The bloom filter provided by the server, or null if not provided. */
+  bloomFilter: ExistenceFilterBloomFilter | null;
 }
 
 /**
  * Information about a bloom filter in an existence filter.
  */
 export interface ExistenceFilterBloomFilter {
+  /** Whether the bloom filter was able to be used to avert a full requery. */
   applied: boolean;
+  /** The number of hash functions used in the bloom filter. */
   hashCount: number;
+  /** The number of bytes in the bloom filter. */
   bitmapLength: number;
+  /** The number of bits of "padding" in the last byte of the bloom filter. */
   padding: number;
 }
 
+/**
+ * Creates a `ExistenceFilterMismatchInfo` object from the raw object given
+ * by `TestingUtils`.
+ */
 function existenceFilterMismatchInfoFromRaw(
   raw: RawExistenceFilterMismatchInfo
 ): ExistenceFilterMismatchInfo {
-  const result: ExistenceFilterMismatchInfo = {
+  return {
     actualCount: raw.actualCount,
-    expectedCount: raw.change.existenceFilter.count
+    expectedCount: raw.change.existenceFilter.count,
+    bloomFilter: bloomFilterFromRawExistenceFilterMismatchInfo(raw)
   };
-  const bloomFilter = bloomFilterFromRawExistenceFilterMismatchInfo(raw);
-  if (bloomFilter) {
-    result.bloomFilter = bloomFilter;
-  }
-  return result;
 }
 
+/**
+ * Creates an `ExistenceFilterBloomFilter` object from the raw object given
+ * by `TestingUtils`, returning null if the given object does not defined a
+ * bloom filter.
+ */
 function bloomFilterFromRawExistenceFilterMismatchInfo(
   raw: RawExistenceFilterMismatchInfo
 ): null | ExistenceFilterBloomFilter {

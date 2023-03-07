@@ -20,20 +20,20 @@
  * internal state and events during integration tests. Do not use this class
  * except for testing purposes.
  *
- * There are two ways to retrieve an instance of this class:
+ * There are two ways to retrieve the global singleton instance of this class:
  * 1. The `instance` property, which returns null if the global singleton
- *      instance has not been created.
+ *      instance has not been created. Use this property if the caller should
+ *      "do nothing" if there are no testing hooks registered, such as when
+ *      delivering an event to notify registered callbacks.
  * 2. The `getOrCreateInstance()` method, which creates the global singleton
- *      instance if it has not been created.
- *
- * Use the former method if the caller should "do nothing" there are no testing
- * hooks registered. Use the latter if the instance is needed to, for example,
- * register a testing hook.
+ *      instance if it has not been created. Use this method if the instance is
+ *      needed to, for example, register a callback.
  *
  * @internal
  */
 export class TestingHooks {
-  private readonly onExistenceFilterMismatchCallbacks: Array<
+  private readonly onExistenceFilterMismatchCallbacks: Map<
+    Symbol,
     (arg: unknown) => void
   > = [];
 
@@ -61,30 +61,30 @@ export class TestingHooks {
   /**
    * Registers a callback to be notified when an existence filter mismatch
    * occurs in the Watch listen stream.
-   * @param callback the callback to invoke upon existence filter mismatch.
+   *
+   * The relative order in which callbacks are notified is unspecified; do not
+   * rely on any particular ordering.
+   *
+   * @param callback the callback to invoke upon existence filter mismatch. The
+   * type of the argument to this callback is intentionally declared as
+   * `unknown`, rather than something more specific, to discourage its use
+   * unless you really, really know what you are doing. If you know what you are
+   * doing then you know the type and how to interpret it.
+   *
    * @return a function that, when called, unregisters the given callback; only
    * the first invocation of the returned function does anything; all subsequent
    * invocations do nothing.
    */
   onExistenceFilterMismatch(callback: (arg: unknown) => void): () => void {
-    this.onExistenceFilterMismatchCallbacks.push(callback);
-
-    let removed = false;
-    return () => {
-      if (!removed) {
-        const index = this.onExistenceFilterMismatchCallbacks.indexOf(callback);
-        this.onExistenceFilterMismatchCallbacks.splice(index, 1);
-        removed = true;
-      }
-    };
+    const key = Symbol();
+    this.onExistenceFilterMismatchCallbacks.set(key, callback);
+    return () => this.onExistenceFilterMismatchCallbacks.delete(key);
   }
 
   /**
    * Invokes all currently-registered `onExistenceFilterMismatch` callbacks.
-   * @param arg the argument to specify to the callbacks; the type of this
-   * argument is intentionally declared as `unknown` to discourage casual use;
-   * the specific use of this callback in tests knows the structure of the
-   * given argument and will use it accordingly.
+   * @param arg the argument to specify to the callbacks; see the documentation
+   * for `onExistenceFilterMismatch()` for details.
    */
   notifyOnExistenceFilterMismatch(arg: unknown): void {
     this.onExistenceFilterMismatchCallbacks.forEach(callback => callback(arg));
