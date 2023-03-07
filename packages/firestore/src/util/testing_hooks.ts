@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-let gTestingHooksSingletonInstance: TestingHooks | null = null;
-
 /**
  * Manages "testing hooks", hooks into the internals of the SDK to verify
  * internal state and events during integration tests. Do not use this class
@@ -31,6 +29,8 @@ let gTestingHooksSingletonInstance: TestingHooks | null = null;
  * Use the former method if the caller should "do nothing" there are no testing
  * hooks registered. Use the latter if the instance is needed to, for example,
  * register a testing hook.
+ *
+ * @internal
  */
 export class TestingHooks {
   private readonly onExistenceFilterMismatchCallbacks: Array<
@@ -81,8 +81,15 @@ export class TestingHooks {
 
   /**
    * Invokes all currently-registered `onExistenceFilterMismatch` callbacks.
+   * @param arg the argument to specify to the callbacks; the type of this
+   * argument is intentionally declared as `unknown` to discourage casual use;
+   * the specific use of this callback in tests knows the structure of the
+   * given argument and will use it accordingly.
    */
   notifyOnExistenceFilterMismatch(arg: unknown): void {
     this.onExistenceFilterMismatchCallbacks.forEach(callback => callback(arg));
   }
 }
+
+/** The global singleton instance of `TestingHooks`. */
+let gTestingHooksSingletonInstance: TestingHooks | null = null;
