@@ -65,7 +65,8 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { USE_EMULATOR } from '../util/settings';
+import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
+import { USE_EMULATOR, TARGET_BACKEND } from '../util/settings';
 
 apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();
@@ -2061,34 +2062,78 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // TODO(Mila): Skip the test when using emulator as there is a bug related to 
-  // sending existence filter in response: b/270731363. Remove the condition  
-  // here once the bug is resolved.
-  // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
-    'resuming a query should remove deleted documents indicated by existence filter',
+  // TODO(b/270731363): Re-enable this test to run against the Firestore
+  // emulator once the bug where an existence filter fails to be sent when a
+  // query is resumed is fixed.
+  (USE_EMULATOR || !persistence ? it.skip : it.only)(
+    'resuming a query should use bloom filter to avoid full requery',
     () => {
+      // TODO(dconeybe) Add a loop to retry 2 or 3 times if the bloom filter
+      // experienced a false positive. Since there is a non-zero chance of a
+      // false positive, and the chance of experiencing two in a row is
+      // negligible, retrying 2 or 3 times should result in basically zero
+      // false positives.
+
+      // Create 100 documents in a new collection.
       const testDocs: { [key: string]: object } = {};
       for (let i = 1; i <= 100; i++) {
         testDocs['doc' + i] = { key: i };
       }
+
       return withTestCollection(persistence, testDocs, async (coll, db) => {
+        // Run a query to populate the local cache with the 100 documents and a
+        // resume token.
         const snapshot1 = await getDocs(coll);
         expect(snapshot1.size).to.equal(100);
-        // Delete 50 docs in transaction so that it doesn't affect local cache.
+
+        // Delete 50 of the 100 documents. Do this in a transaction, rather than
+        // deleteDoc(), to avoid affecting the local cache.
         await runTransaction(db, async txn => {
           for (let i = 1; i <= 50; i++) {
             txn.delete(doc(coll, 'doc' + i));
           }
         });
-        // Wait 10 seconds, during which Watch will stop tracking the query
-        // and will send an existence filter rather than "delete" events.
+
+        // Wait for 10 seconds, during which Watch will stop tracking the query
+        // and will send an existence filter rather than "delete" events when
+        // the query is resumed.
         await new Promise(resolve => setTimeout(resolve, 10000));
-        const snapshot2 = await getDocs(coll);
-        expect(snapshot2.size).to.equal(50);
+
+        // Resume the query and expect to get a snapshot with the 50 remaining
+        // documents. Use some internal testing hooks to "capture" the existence
+        // filter mismatches to later verify that Watch sent a bloom filter and
+        // it was used to void the full requery.
+        const existenceFilterMismatches =
+          await captureExistenceFilterMismatches(async () => {
+            const snapshot2 = await getDocs(coll);
+            expect(snapshot2.size).to.equal(50);
+          });
+
+        // Verify that upon resuming the query that Watch sent an existence
+        // filter that included a bloom filter, and that that bloom filter was
+        // successfully used to avoid a full requery.
+        // TODO(b/NNNNNNNN) Replace this "if" condition with !USE_EMULATOR once
+        // the feature has been deployed to production. Note that there are no
+        // plans to add bloom filter support to the Firestore emulator.
+        if (TARGET_BACKEND === 'nightly') {
+          expect(existenceFilterMismatches).to.have.length(1);
+          const existenceFilterMismatch = existenceFilterMismatches[0];
+          expect(existenceFilterMismatch.actualCount).to.equal(100);
+          expect(existenceFilterMismatch.expectedCount).to.equal(50);
+          const bloomFilter = existenceFilterMismatch.bloomFilter;
+          if (!bloomFilter) {
+            expect.fail('existence filter should have had a bloom filter');
+            throw new Error('should never get here');
+          }
+          expect(bloomFilter.applied).to.equal(true);
+          expect(bloomFilter.bitmapLength).to.be.above(0);
+          expect(bloomFilter.hashCount).to.be.above(0);
+          expect(bloomFilter.padding).to.be.above(0);
+          expect(bloomFilter.padding).to.be.below(8);
+        }
       });
     }
-  ).timeout('20s');
+  ).timeout('30s');
 });
 
 function verifyDocumentChange<T>(

@@ -37,6 +37,7 @@ import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
+import { TestingHooks } from '../util/testing_hooks';
 
 import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
@@ -432,6 +433,11 @@ export class WatchChangeAggregator {
             this.resetTarget(targetId);
             this.pendingTargetResets = this.pendingTargetResets.add(targetId);
           }
+          TestingHooks.instance?.notifyOnExistenceFilterMismatch({
+            actualCount: currentSize,
+            change: watchChange,
+            bloomFilterApplied: bloomFilterApplied
+          });
         }
       }
     }
