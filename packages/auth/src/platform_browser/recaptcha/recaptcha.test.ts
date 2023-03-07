@@ -15,20 +15,24 @@
  * limitations under the License.
  */
 
- import { expect, use } from 'chai';
- import chaiAsPromised from 'chai-as-promised';
- import sinonChai from 'sinon-chai';
-  
- import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
+import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 
- import { MockReCaptcha, MockGreCAPTCHATopLevel, MockGreCAPTCHA } from './recaptcha_mock';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 
- import {isV2, isEnterprise} from "./recaptcha";
- 
- use(chaiAsPromised);
- use(sinonChai);
- 
- describe('platform_browser/recaptcha/recaptcha', () => {  
+import {
+  MockReCaptcha,
+  MockGreCAPTCHATopLevel,
+  MockGreCAPTCHA
+} from './recaptcha_mock';
+
+import { isV2, isEnterprise } from './recaptcha';
+
+use(chaiAsPromised);
+use(sinonChai);
+
+describe('platform_browser/recaptcha/recaptcha', () => {
   let auth: TestAuth;
   let recaptchaV2: MockReCaptcha;
   let recaptchaV3: MockGreCAPTCHA;
@@ -37,24 +41,23 @@
   context('#verify', () => {
     beforeEach(async () => {
       auth = await testAuth();
-       recaptchaV2 = new MockReCaptcha(auth);
-       recaptchaV3 = new MockGreCAPTCHA();
-       recaptchaEnterprise = new MockGreCAPTCHATopLevel();
+      recaptchaV2 = new MockReCaptcha(auth);
+      recaptchaV3 = new MockGreCAPTCHA();
+      recaptchaEnterprise = new MockGreCAPTCHATopLevel();
     });
- 
-     it('isV2', async () => {
+
+    it('isV2', async () => {
       expect(isV2(undefined)).to.be.false;
       expect(isV2(recaptchaV2)).to.be.true;
       expect(isV2(recaptchaV3)).to.be.false;
       expect(isV2(recaptchaEnterprise)).to.be.false;
     });
 
-     it('isEnterprise', async () => {
+    it('isEnterprise', async () => {
       expect(isEnterprise(undefined)).to.be.false;
       expect(isEnterprise(recaptchaV2)).to.be.false;
       expect(isEnterprise(recaptchaV3)).to.be.false;
       expect(isEnterprise(recaptchaEnterprise)).to.be.true;
     });
-   });
- });
- 
+  });
+});

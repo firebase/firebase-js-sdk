@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, RecaptchaClientType, RecaptchaVersion, _performApiRequest, _addTidIfNecessary } from '../index';
+import {
+  Endpoint,
+  HttpMethod,
+  RecaptchaClientType,
+  RecaptchaVersion,
+  _performApiRequest,
+  _addTidIfNecessary
+} from '../index';
 import { Auth, RecaptchaConfig } from '../../model/public_types';
 
 interface GetRecaptchaParamResponse {
@@ -42,13 +49,17 @@ interface GetRecaptchaConfigRequest {
 
 interface GetRecaptchaConfigResponse {
   recaptchaKey?: string;
-  recaptchaConfig?: RecaptchaConfig
+  recaptchaConfig?: RecaptchaConfig;
 }
 
-export async function getRecaptchaConfig(auth: Auth,
+export async function getRecaptchaConfig(
+  auth: Auth,
   request: GetRecaptchaConfigRequest
 ): Promise<GetRecaptchaConfigResponse> {
-  return _performApiRequest<GetRecaptchaConfigRequest, GetRecaptchaConfigResponse>(
+  return _performApiRequest<
+    GetRecaptchaConfigRequest,
+    GetRecaptchaConfigResponse
+  >(
     auth,
     HttpMethod.GET,
     Endpoint.GET_RECAPTCHA_CONFIG,

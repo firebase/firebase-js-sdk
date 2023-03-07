@@ -84,32 +84,53 @@ export async function sendSignInLinkToEmail(
     requestType: ActionCodeOperation.EMAIL_SIGNIN,
     email
   };
-  function setActionCodeSettings(request: api.EmailSignInRequest, actionCodeSettings: ActionCodeSettings): void {
+  function setActionCodeSettings(
+    request: api.EmailSignInRequest,
+    actionCodeSettings: ActionCodeSettings
+  ): void {
     _assert(
       actionCodeSettings.handleCodeInApp,
       authInternal,
       AuthErrorCode.ARGUMENT_ERROR
     );
     if (actionCodeSettings) {
-      _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
+      _setActionCodeSettingsOnRequest(
+        authInternal,
+        request,
+        actionCodeSettings
+      );
     }
   }
   if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
-    const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, RecaptchaActionName.GET_OOB_CODE, true);
+    const requestWithRecaptcha = await injectRecaptchaFields(
+      authInternal,
+      request,
+      RecaptchaActionName.GET_OOB_CODE,
+      true
+    );
     setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
     await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
   } else {
     setActionCodeSettings(request, actionCodeSettings);
-    await api.sendSignInLinkToEmail(authInternal, request).catch(async (error) => {
-      if (error.code === `auth/${ServerError.MISSING_RECAPTCHA_TOKEN}`) {
-        console.log("Email link sign-in is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.");
-        const requestWithRecaptcha = await injectRecaptchaFields(authInternal, request, RecaptchaActionName.GET_OOB_CODE, true);
-        setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
-        await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
-      } else {
-        return Promise.reject(error);
-      }
-    });
+    await api
+      .sendSignInLinkToEmail(authInternal, request)
+      .catch(async error => {
+        if (error.code === `auth/${ServerError.MISSING_RECAPTCHA_TOKEN}`) {
+          console.log(
+            'Email link sign-in is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.'
+          );
+          const requestWithRecaptcha = await injectRecaptchaFields(
+            authInternal,
+            request,
+            RecaptchaActionName.GET_OOB_CODE,
+            true
+          );
+          setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
+          await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
+        } else {
+          return Promise.reject(error);
+        }
+      });
   }
 }
 

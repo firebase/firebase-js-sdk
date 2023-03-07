@@ -125,7 +125,7 @@ export const enum AuthErrorCode {
   WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported',
   ALREADY_INITIALIZED = 'already-initialized',
   RECAPTCHA_CHECK_FAILED = 'recaptcha-check-failed',
-  RECAPTCHA_NOT_ENABLED = 'recaptcha-not-enabled',
+  RECAPTCHA_NOT_ENABLED = 'recaptcha-not-enabled'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -362,7 +362,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.RECAPTCHA_CHECK_FAILED]:
       'The ReCAPTCHA assessment failed for this request.',
     [AuthErrorCode.RECAPTCHA_NOT_ENABLED]:
-      'reCAPTCHA integration is not enabled for this project.',
+      'reCAPTCHA integration is not enabled for this project.'
   };
 }
 
@@ -566,5 +566,5 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   WEB_STORAGE_UNSUPPORTED: 'auth/web-storage-unsupported',
   ALREADY_INITIALIZED: 'auth/already-initialized',
   RECAPTCHA_CHECK_FAILED: 'auth/recaptcha-check-failed',
-  RECAPTCHA_NOT_ENABLED: 'auth/recaptcha-not-enabled',
+  RECAPTCHA_NOT_ENABLED: 'auth/recaptcha-not-enabled'
 } as const;

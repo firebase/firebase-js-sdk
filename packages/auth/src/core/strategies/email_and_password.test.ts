@@ -24,7 +24,10 @@ import { ActionCodeOperation } from '../../model/public_types';
 import { OperationType } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint, mockEndpointWithParams } from '../../../test/helpers/api/helper';
+import {
+  mockEndpoint,
+  mockEndpointWithParams
+} from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
@@ -141,29 +144,45 @@ describe('core/strategies/sendPasswordResetEmail', () => {
 
   context('#recaptcha', () => {
     beforeEach(async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
-      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key'
-      });
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('recaptcha-response'));
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key'
+        }
+      );
     });
 
     afterEach(() => {
       sinon.restore();
     });
-    
+
     it('calls send password reset email with recaptcha enabled', async () => {
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key',
-        recaptchaConfig: { emailPasswordEnabled: true }
-      });
+      if (typeof window === 'undefined') {
+        return;
+      }
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: { emailPasswordEnabled: true }
+        }
+      );
       await auth.initializeRecaptchaConfig();
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
@@ -176,18 +195,25 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         email,
         captchaResp: 'recaptcha-response',
         clientType: RecaptchaClientType.WEB,
-        recaptchaVersion: RecaptchaVersion.ENTERPRISE,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
     });
 
     it('calls send password reset with recaptcha disabled', async () => {
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key',
-        recaptchaConfig: { emailPasswordEnabled: false }
-      });
+      if (typeof window === 'undefined') {
+        return;
+      }
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: { emailPasswordEnabled: false }
+        }
+      );
       await auth.initializeRecaptchaConfig();
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
@@ -196,7 +222,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       await sendPasswordResetEmail(auth, email);
       expect(apiMock.calls[0].request).to.eql({
         requestType: ActionCodeOperation.PASSWORD_RESET,
-        email,
+        email
       });
     });
   });
@@ -468,39 +494,52 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
   context('#recaptcha', () => {
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
       window.grecaptcha = recaptcha;
-      sinon.stub(recaptcha.enterprise, 'execute').returns(Promise.resolve('recaptcha-response'));
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key'
-      });
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('recaptcha-response'));
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key'
+        }
+      );
     });
 
     afterEach(() => {
       sinon.restore();
     });
-    
+
     it('calls create user with email password with recaptcha enabled', async () => {
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key',
-        recaptchaConfig: { emailPasswordEnabled: true }
-      });
+      if (typeof window === 'undefined') {
+        return;
+      }
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: { emailPasswordEnabled: true }
+        }
+      );
       await auth.initializeRecaptchaConfig();
 
-      const {
-        _tokenResponse,
-        user,
-        operationType
-      } = (await createUserWithEmailAndPassword(
-        auth,
-        'some-email',
-        'some-password'
-      )) as UserCredentialInternal;
+      const { _tokenResponse, user, operationType } =
+        (await createUserWithEmailAndPassword(
+          auth,
+          'some-email',
+          'some-password'
+        )) as UserCredentialInternal;
       expect(_tokenResponse).to.eql({
         idToken: 'id-token',
         refreshToken: 'refresh-token',
@@ -513,24 +552,25 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     });
 
     it('calls create user with email password with recaptcha disabled', async () => {
-      mockEndpointWithParams(Endpoint.GET_RECAPTCHA_CONFIG, {
-        clientType: RecaptchaClientType.WEB,
-        version: RecaptchaVersion.ENTERPRISE,
-      }, {
-        recaptchaKey: 'site-key',
-        recaptchaConfig: { emailPasswordEnabled: false }
-      });
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: { emailPasswordEnabled: false }
+        }
+      );
       await auth.initializeRecaptchaConfig();
 
-      const {
-        _tokenResponse,
-        user,
-        operationType
-      } = (await createUserWithEmailAndPassword(
-        auth,
-        'some-email',
-        'some-password'
-      )) as UserCredentialInternal;
+      const { _tokenResponse, user, operationType } =
+        (await createUserWithEmailAndPassword(
+          auth,
+          'some-email',
+          'some-password'
+        )) as UserCredentialInternal;
       expect(_tokenResponse).to.eql({
         idToken: 'id-token',
         refreshToken: 'refresh-token',

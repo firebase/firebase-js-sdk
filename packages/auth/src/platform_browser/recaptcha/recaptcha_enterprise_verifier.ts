@@ -17,21 +17,20 @@
  */
 
 import { isEnterprise } from './recaptcha';
+import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
 import {
-  getRecaptchaConfig
-} from '../../api/authentication/recaptcha';
-import { RecaptchaClientType, RecaptchaVersion, RecaptchaActionName } from '../../api';
+  RecaptchaClientType,
+  RecaptchaVersion,
+  RecaptchaActionName
+} from '../../api';
 
-import {
-  Auth
-} from '../../model/public_types';
-import {
-  AuthInternal
-} from '../../model/auth';
+import { Auth } from '../../model/public_types';
+import { AuthInternal } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
 import * as jsHelpers from '../load_js';
 
-const RECAPTCHA_ENTERPRISE_URL = 'https://www.google.com/recaptcha/enterprise.js?render=';
+const RECAPTCHA_ENTERPRISE_URL =
+  'https://www.google.com/recaptcha/enterprise.js?render=';
 
 export const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
 
@@ -49,7 +48,7 @@ export class RecaptchaEnterpriseVerifier {
   /**
    * Stores the reCAPTCHA site key for agent.
    */
-   static agentSiteKey: string | null;
+  static agentSiteKey: string | null;
 
   private readonly auth: AuthInternal;
 
@@ -58,9 +57,7 @@ export class RecaptchaEnterpriseVerifier {
    * @param authExtern - The corresponding Firebase {@link Auth} instance.
    *
    */
-  constructor(
-    authExtern: Auth
-  ) {
+  constructor(authExtern: Auth) {
     this.auth = _castAuth(authExtern);
   }
 
@@ -69,53 +66,70 @@ export class RecaptchaEnterpriseVerifier {
    *
    * @returns A Promise for a token that can be used to assert the validity of a request.
    */
-  async verify(action: string = 'verify', forceRefresh = false): Promise<string> {
+  async verify(
+    action: string = 'verify',
+    forceRefresh = false
+  ): Promise<string> {
     async function retrieveSiteKey(auth: AuthInternal): Promise<string> {
       if (!forceRefresh) {
-        if (auth.tenantId == null && RecaptchaEnterpriseVerifier.agentSiteKey != null) {
+        if (
+          auth.tenantId == null &&
+          RecaptchaEnterpriseVerifier.agentSiteKey != null
+        ) {
           return RecaptchaEnterpriseVerifier.agentSiteKey;
         }
-        if (auth.tenantId != null && RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId] !==
-          undefined) {
+        if (
+          auth.tenantId != null &&
+          RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId] !==
+            undefined
+        ) {
           return RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId];
         }
       }
-      
+
       return new Promise<string>(async (resolve, reject) => {
         getRecaptchaConfig(auth, {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
-        }).then((response) => {
-          if (response.recaptchaKey === undefined) {
-            reject(new Error("recaptchaKey undefined"));
-          } else {
-            const siteKey = response.recaptchaKey.split('/')[3];
-            if (auth.tenantId == null) {
-              RecaptchaEnterpriseVerifier.agentSiteKey = siteKey;
+        })
+          .then(response => {
+            if (response.recaptchaKey === undefined) {
+              reject(new Error('recaptchaKey undefined'));
             } else {
-              RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId] = siteKey;
+              const siteKey = response.recaptchaKey.split('/')[3];
+              if (auth.tenantId == null) {
+                RecaptchaEnterpriseVerifier.agentSiteKey = siteKey;
+              } else {
+                RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId] =
+                  siteKey;
+              }
+              return resolve(siteKey);
             }
-            return resolve(siteKey);
-          }
-        }).catch((error) => {
-          reject(error);
-        });
+          })
+          .catch(error => {
+            reject(error);
+          });
       });
     }
 
-    function retrieveRecaptchaToken(siteKey: string, resolve: (value: string | PromiseLike<string>) => void, reject: (reason?: unknown) => void): void {
+    function retrieveRecaptchaToken(
+      siteKey: string,
+      resolve: (value: string | PromiseLike<string>) => void,
+      reject: (reason?: unknown) => void
+    ): void {
       const grecaptcha = window.grecaptcha;
       if (isEnterprise(grecaptcha)) {
         grecaptcha.enterprise.ready(() => {
           try {
-            grecaptcha.enterprise.execute(siteKey, { action })
-            .then((token) => {
-              resolve(token);
-            })
-            .catch((error) => {
-              reject(error);
-            });
-          } catch(error) {
+            grecaptcha.enterprise
+              .execute(siteKey, { action })
+              .then(token => {
+                resolve(token);
+              })
+              .catch(error => {
+                reject(error);
+              });
+          } catch (error) {
             reject(error);
           }
         });
@@ -125,26 +139,40 @@ export class RecaptchaEnterpriseVerifier {
     }
 
     return new Promise<string>((resolve, reject) => {
-      retrieveSiteKey(this.auth).then((siteKey) => {
-        if (!forceRefresh && isEnterprise(window.grecaptcha)) {
-          retrieveRecaptchaToken(siteKey, resolve, reject);
-        } else {
-          jsHelpers._loadJS(RECAPTCHA_ENTERPRISE_URL + siteKey)
-            .then(() => {
-              retrieveRecaptchaToken(siteKey, resolve, reject);
-            })
-            .catch((error) => {
-              reject(error);
-            });
-        }
-      }).catch((error) => {
-        reject(error);
-      });
+      retrieveSiteKey(this.auth)
+        .then(siteKey => {
+          if (!forceRefresh && isEnterprise(window.grecaptcha)) {
+            retrieveRecaptchaToken(siteKey, resolve, reject);
+          } else {
+            if (typeof window === 'undefined') {
+              reject(
+                new Error('RecaptchaVerifier is only supported in browser')
+              );
+              return;
+            }
+            jsHelpers
+              ._loadJS(RECAPTCHA_ENTERPRISE_URL + siteKey)
+              .then(() => {
+                retrieveRecaptchaToken(siteKey, resolve, reject);
+              })
+              .catch(error => {
+                reject(error);
+              });
+          }
+        })
+        .catch(error => {
+          reject(error);
+        });
     });
   }
 }
 
-export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T, action: RecaptchaActionName, captchaResp = false): Promise<T> {
+export async function injectRecaptchaFields<T>(
+  auth: AuthInternal,
+  request: T,
+  action: RecaptchaActionName,
+  captchaResp = false
+): Promise<T> {
   const verifier = new RecaptchaEnterpriseVerifier(auth);
   let captchaResponse;
   try {
@@ -154,11 +182,13 @@ export async function injectRecaptchaFields<T>(auth: AuthInternal, request: T, a
   }
   const newRequest = { ...request };
   if (!captchaResp) {
-    Object.assign(newRequest, {captchaResponse});
+    Object.assign(newRequest, { captchaResponse });
   } else {
-    Object.assign(newRequest, {'captchaResp': captchaResponse});
+    Object.assign(newRequest, { 'captchaResp': captchaResponse });
   }
-  Object.assign(newRequest, {'clientType': RecaptchaClientType.WEB});
-  Object.assign(newRequest, {'recaptchaVersion': RecaptchaVersion.ENTERPRISE});
+  Object.assign(newRequest, { 'clientType': RecaptchaClientType.WEB });
+  Object.assign(newRequest, {
+    'recaptchaVersion': RecaptchaVersion.ENTERPRISE
+  });
   return newRequest;
 }
