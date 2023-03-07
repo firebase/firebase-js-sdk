@@ -436,7 +436,7 @@ export class WatchChangeAggregator {
           TestingHooks.instance?.notifyOnExistenceFilterMismatch({
             actualCount: currentSize,
             change: watchChange,
-            bloomFilterApplied: bloomFilterApplied
+            bloomFilterApplied
           });
         }
       }

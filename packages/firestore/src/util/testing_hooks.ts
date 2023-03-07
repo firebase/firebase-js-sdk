@@ -33,9 +33,9 @@ let gTestingHooksSingletonInstance: TestingHooks | null = null;
  * register a testing hook.
  */
 export class TestingHooks {
-  private readonly onExistenceFilterMismatchCallbacks = new Array<
+  private readonly onExistenceFilterMismatchCallbacks: Array<
     (arg: unknown) => void
-  >();
+  > = [];
 
   private constructor() {}
 

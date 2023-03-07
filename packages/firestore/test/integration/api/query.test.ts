@@ -2065,7 +2065,8 @@ apiDescribe('Queries', (persistence: boolean) => {
   // TODO(b/270731363): Re-enable this test to run against the Firestore
   // emulator once the bug where an existence filter fails to be sent when a
   // query is resumed is fixed.
-  (USE_EMULATOR || !persistence ? it.skip : it.only)(
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR || !persistence ? it.skip : it)(
     'resuming a query should use bloom filter to avoid full requery',
     async () => {
       // Create 100 documents in a new collection.

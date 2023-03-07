@@ -26,8 +26,8 @@ import { _TestingHooks as TestingHooks } from './firebase_export';
  */
 export async function captureExistenceFilterMismatches(
   callback: () => Promise<void>
-): Promise<Array<ExistenceFilterMismatchInfo>> {
-  const results: Array<ExistenceFilterMismatchInfo> = [];
+): Promise<ExistenceFilterMismatchInfo[]> {
+  const results: ExistenceFilterMismatchInfo[] = [];
   const callbackWrapper = (arg: unknown) =>
     results.push(
       existenceFilterMismatchInfoFromRaw(arg as RawExistenceFilterMismatchInfo)
