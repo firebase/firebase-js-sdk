@@ -45,7 +45,7 @@ gulp.task('cdn-type-module-path-internal', function () {
     gulp
       .src(files)
       .pipe(sourcemaps.init({ loadMaps: true }))
-      .pipe(replace(/@firebase\/app/g, "./firebase-app.js"))
+      .pipe(replace(/(['"])@firebase\/app(['"])/g, "'./firebase-app.js'"))
       .pipe(sourcemaps.write('.'))
       .pipe(gulp.dest('.'))
   );
