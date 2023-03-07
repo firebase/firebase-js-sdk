@@ -2067,73 +2067,98 @@ apiDescribe('Queries', (persistence: boolean) => {
   // query is resumed is fixed.
   (USE_EMULATOR || !persistence ? it.skip : it.only)(
     'resuming a query should use bloom filter to avoid full requery',
-    () => {
-      // TODO(dconeybe) Add a loop to retry 2 or 3 times if the bloom filter
-      // experienced a false positive. Since there is a non-zero chance of a
-      // false positive, and the chance of experiencing two in a row is
-      // negligible, retrying 2 or 3 times should result in basically zero
-      // false positives.
-
+    async () => {
       // Create 100 documents in a new collection.
       const testDocs: { [key: string]: object } = {};
       for (let i = 1; i <= 100; i++) {
         testDocs['doc' + i] = { key: i };
       }
 
-      return withTestCollection(persistence, testDocs, async (coll, db) => {
-        // Run a query to populate the local cache with the 100 documents and a
-        // resume token.
-        const snapshot1 = await getDocs(coll);
-        expect(snapshot1.size).to.equal(100);
+      let attemptNumber = 0;
+      while (true) {
+        attemptNumber++;
+        const bloomFilterApplied = await withTestCollection(
+          persistence,
+          testDocs,
+          async (coll, db) => {
+            // Run a query to populate the local cache with the 100 documents and
+            // a resume token.
+            const snapshot1 = await getDocs(coll);
+            expect(snapshot1.size).to.equal(100);
 
-        // Delete 50 of the 100 documents. Do this in a transaction, rather than
-        // deleteDoc(), to avoid affecting the local cache.
-        await runTransaction(db, async txn => {
-          for (let i = 1; i <= 50; i++) {
-            txn.delete(doc(coll, 'doc' + i));
+            // Delete 50 of the 100 documents. Do this in a transaction, rather
+            // than deleteDoc(), to avoid affecting the local cache.
+            await runTransaction(db, async txn => {
+              for (let i = 1; i <= 50; i++) {
+                txn.delete(doc(coll, 'doc' + i));
+              }
+            });
+
+            // Wait for 10 seconds, during which Watch will stop tracking the
+            // query and will send an existence filter rather than "delete" events
+            // when the query is resumed.
+            await new Promise(resolve => setTimeout(resolve, 10000));
+
+            // Resume the query and expect to get a snapshot with the 50 remaining
+            // documents. Use some internal testing hooks to "capture" the
+            // existence filter mismatches to later verify that Watch sent a bloom
+            // filter, and it was used to void the full requery.
+            const existenceFilterMismatches =
+              await captureExistenceFilterMismatches(async () => {
+                const snapshot2 = await getDocs(coll);
+                expect(snapshot2.size).to.equal(50);
+              });
+
+            // Verify that upon resuming the query that Watch sent an existence
+            // filter that included a bloom filter, and that that bloom filter was
+            // successfully used to avoid a full requery.
+            // TODO(b/NNNNNNNN) Replace this "if" condition with !USE_EMULATOR
+            // once the feature has been deployed to production. Note that there
+            // are no plans to implement the bloom filter in the existence filter
+            // responses sent from the Firestore emulator.
+            if (TARGET_BACKEND === 'nightly') {
+              expect(existenceFilterMismatches).to.have.length(1);
+              const existenceFilterMismatch = existenceFilterMismatches[0];
+              expect(existenceFilterMismatch.actualCount).to.equal(100);
+              expect(existenceFilterMismatch.expectedCount).to.equal(50);
+              const bloomFilter = existenceFilterMismatch.bloomFilter;
+              if (!bloomFilter) {
+                expect.fail('existence filter should have had a bloom filter');
+                throw new Error('should never get here');
+              }
+
+              // Although statistically rare, it _is_ possible to get a legitimate
+              // false positive when checking the bloom filter. If this happens,
+              // then retry the test with a different set of documents, and only
+              // fail if the retry _also_ experiences a false positive.
+              if (!bloomFilter.applied) {
+                if (attemptNumber < 2) {
+                  return false;
+                } else {
+                  expect.fail(
+                    'bloom filter false positive occurred ' +
+                      'multiple times; this is statistically ' +
+                      'improbable and should be investigated.'
+                  );
+                }
+              }
+
+              expect(bloomFilter.bitmapLength).to.be.above(0);
+              expect(bloomFilter.hashCount).to.be.above(0);
+              expect(bloomFilter.padding).to.be.above(0);
+              expect(bloomFilter.padding).to.be.below(8);
+            }
+
+            return true;
           }
-        });
+        );
 
-        // Wait for 10 seconds, during which Watch will stop tracking the query
-        // and will send an existence filter rather than "delete" events when
-        // the query is resumed.
-        await new Promise(resolve => setTimeout(resolve, 10000));
-
-        // Resume the query and expect to get a snapshot with the 50 remaining
-        // documents. Use some internal testing hooks to "capture" the existence
-        // filter mismatches to later verify that Watch sent a bloom filter and
-        // it was used to void the full requery.
-        const existenceFilterMismatches =
-          await captureExistenceFilterMismatches(async () => {
-            const snapshot2 = await getDocs(coll);
-            expect(snapshot2.size).to.equal(50);
-          });
-
-        // Verify that upon resuming the query that Watch sent an existence
-        // filter that included a bloom filter, and that that bloom filter was
-        // successfully used to avoid a full requery.
-        // TODO(b/NNNNNNNN) Replace this "if" condition with !USE_EMULATOR once
-        // the feature has been deployed to production. Note that there are no
-        // plans to add bloom filter support to the Firestore emulator.
-        if (TARGET_BACKEND === 'nightly') {
-          expect(existenceFilterMismatches).to.have.length(1);
-          const existenceFilterMismatch = existenceFilterMismatches[0];
-          expect(existenceFilterMismatch.actualCount).to.equal(100);
-          expect(existenceFilterMismatch.expectedCount).to.equal(50);
-          const bloomFilter = existenceFilterMismatch.bloomFilter;
-          if (!bloomFilter) {
-            expect.fail('existence filter should have had a bloom filter');
-            throw new Error('should never get here');
-          }
-          expect(bloomFilter.applied).to.equal(true);
-          expect(bloomFilter.bitmapLength).to.be.above(0);
-          expect(bloomFilter.hashCount).to.be.above(0);
-          expect(bloomFilter.padding).to.be.above(0);
-          expect(bloomFilter.padding).to.be.below(8);
+        if (bloomFilterApplied) {
+          break;
         }
-      });
+      }
     }
-  ).timeout('30s');
+  ).timeout('90s');
 });
 
 function verifyDocumentChange<T>(
