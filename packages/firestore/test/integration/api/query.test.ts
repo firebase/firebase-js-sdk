@@ -2114,7 +2114,7 @@ apiDescribe('Queries', (persistence: boolean) => {
             // Verify that upon resuming the query that Watch sent an existence
             // filter that included a bloom filter, and that that bloom filter
             // was successfully used to avoid a full requery.
-            // TODO(b/NNNNNNNN) Replace this "if" condition with !USE_EMULATOR
+            // TODO(b/271949433) Replace this "if" condition with !USE_EMULATOR
             // once the feature has been deployed to production. Note that there
             // are no plans to implement the bloom filter in the existence filter
             // responses sent from the Firestore emulator.
