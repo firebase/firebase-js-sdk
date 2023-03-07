@@ -91,6 +91,8 @@ export class TestingHooks {
 /**
  * The shape of the object specified to
  * `TestingUtils.onExistenceFilterMismatch()` callbacks.
+ *
+ * @internal
  */
 export interface ExistenceFilterMismatchInfo {
   actualCount: number;
