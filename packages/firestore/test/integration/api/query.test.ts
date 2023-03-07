@@ -2077,9 +2077,8 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       let attemptNumber = 0;
       while (true) {
-        type IterationResult = 'retry' | 'passed';
         attemptNumber++;
-        const iterationResult = await withTestCollection<IterationResult>(
+        const iterationResult = await withTestCollection<'retry' | 'passed'>(
           persistence,
           testDocs,
           async (coll, db) => {
