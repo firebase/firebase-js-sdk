@@ -28,10 +28,12 @@ export async function captureExistenceFilterMismatches(
   callback: () => Promise<void>
 ): Promise<ExistenceFilterMismatchInfo[]> {
   const results: ExistenceFilterMismatchInfo[] = [];
-  const callbackWrapper = (arg: unknown) =>
-    results.push(
-      existenceFilterMismatchInfoFromRaw(arg as RawExistenceFilterMismatchInfo)
+  const callbackWrapper = (arg: unknown): void => {
+    const existenceFilterMismatchInfo = existenceFilterMismatchInfoFromRaw(
+      arg as RawExistenceFilterMismatchInfo
     );
+    results.push(existenceFilterMismatchInfo);
+  };
 
   const unregister =
     TestingHooks.getOrCreateInstance().onExistenceFilterMismatch(

@@ -65,8 +65,8 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 import { USE_EMULATOR, TARGET_BACKEND } from '../util/settings';
+import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
 apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();
