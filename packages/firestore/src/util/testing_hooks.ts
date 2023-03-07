@@ -32,10 +32,10 @@
  * @internal
  */
 export class TestingHooks {
-  private readonly onExistenceFilterMismatchCallbacks: Map<
+  private readonly onExistenceFilterMismatchCallbacks = new Map<
     Symbol,
     (arg: unknown) => void
-  > = [];
+  >();
 
   private constructor() {}
 

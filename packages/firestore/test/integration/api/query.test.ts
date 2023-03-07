@@ -2077,13 +2077,14 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       let attemptNumber = 0;
       while (true) {
+        type IterationResult = 'retry' | 'passed';
         attemptNumber++;
-        const bloomFilterApplied = await withTestCollection(
+        const iterationResult = await withTestCollection<IterationResult>(
           persistence,
           testDocs,
           async (coll, db) => {
-            // Run a query to populate the local cache with the 100 documents and
-            // a resume token.
+            // Run a query to populate the local cache with the 100 documents
+            // and a resume token.
             const snapshot1 = await getDocs(coll);
             expect(snapshot1.size).to.equal(100);
 
@@ -2096,14 +2097,14 @@ apiDescribe('Queries', (persistence: boolean) => {
             });
 
             // Wait for 10 seconds, during which Watch will stop tracking the
-            // query and will send an existence filter rather than "delete" events
-            // when the query is resumed.
+            // query and will send an existence filter rather than "delete"
+            // events when the query is resumed.
             await new Promise(resolve => setTimeout(resolve, 10000));
 
-            // Resume the query and expect to get a snapshot with the 50 remaining
-            // documents. Use some internal testing hooks to "capture" the
-            // existence filter mismatches to later verify that Watch sent a bloom
-            // filter, and it was used to void the full requery.
+            // Resume the query and expect to get a snapshot with the 50
+            // remaining documents. Use some internal testing hooks to "capture"
+            // the existence filter mismatches to later verify that Watch sent a
+            // bloom filter, and it was used to avert a full requery.
             const existenceFilterMismatches =
               await captureExistenceFilterMismatches(async () => {
                 const snapshot2 = await getDocs(coll);
@@ -2111,8 +2112,8 @@ apiDescribe('Queries', (persistence: boolean) => {
               });
 
             // Verify that upon resuming the query that Watch sent an existence
-            // filter that included a bloom filter, and that that bloom filter was
-            // successfully used to avoid a full requery.
+            // filter that included a bloom filter, and that that bloom filter
+            // was successfully used to avoid a full requery.
             // TODO(b/NNNNNNNN) Replace this "if" condition with !USE_EMULATOR
             // once the feature has been deployed to production. Note that there
             // are no plans to implement the bloom filter in the existence filter
@@ -2134,7 +2135,7 @@ apiDescribe('Queries', (persistence: boolean) => {
               // fail if the retry _also_ experiences a false positive.
               if (!bloomFilter.applied) {
                 if (attemptNumber < 2) {
-                  return false;
+                  return 'retry';
                 } else {
                   expect.fail(
                     'bloom filter false positive occurred ' +
@@ -2150,11 +2151,12 @@ apiDescribe('Queries', (persistence: boolean) => {
               expect(bloomFilter.padding).to.be.below(8);
             }
 
-            return true;
+            return 'passed';
           }
         );
 
-        if (bloomFilterApplied) {
+        // Break out of the retry loop if the test passed.
+        if (iterationResult === 'passed') {
           break;
         }
       }
