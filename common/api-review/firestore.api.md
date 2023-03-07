@@ -557,6 +557,14 @@ export type TaskState = 'Error' | 'Running' | 'Success';
 export function terminate(firestore: Firestore): Promise<void>;
 
 // @public
+export class _TestingHooks {
+    static getOrCreateInstance(): _TestingHooks;
+    static get instance(): _TestingHooks | null;
+    notifyOnExistenceFilterMismatch(arg: unknown): void;
+    onExistenceFilterMismatch(callback: (arg: unknown) => void): () => void;
+    }
+
+// @public
 export class Timestamp {
     constructor(
     seconds: number,
