@@ -23,7 +23,7 @@
 import firebase from '@firebase/app-compat';
 import { FirebaseApp } from '@firebase/app-types';
 import { GeoPoint, Timestamp } from '@firebase/firestore';
-import { FirebaseFirestore, Settings } from '@firebase/firestore-types';
+import * as firestore from '@firebase/firestore-types';
 
 import { Blob } from '../../src/api/blob';
 import {
@@ -45,8 +45,8 @@ let appCount = 0;
 export function newTestFirestore(
   projectId: string,
   nameOrApp?: string | FirebaseApp,
-  settings?: Settings
-): FirebaseFirestore {
+  settings?: firestore.Settings
+): firestore.FirebaseFirestore {
   if (nameOrApp === undefined) {
     nameOrApp = 'test-app-' + appCount++;
   }
@@ -78,6 +78,5 @@ export {
   Blob,
   GeoPoint,
   DocumentReference,
-  QueryDocumentSnapshot,
-  Settings
+  QueryDocumentSnapshot
 };

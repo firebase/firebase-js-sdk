@@ -387,7 +387,7 @@ apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
 });
 
 apiDescribe('`undefined` properties', (persistence: boolean) => {
-  const settings: firebaseExport.Settings = { ...DEFAULT_SETTINGS };
+  const settings = { ...DEFAULT_SETTINGS };
   settings.ignoreUndefinedProperties = true;
 
   it('are ignored in set()', () => {
