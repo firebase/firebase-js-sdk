@@ -30,7 +30,7 @@ export async function captureExistenceFilterMismatches(
   const results: ExistenceFilterMismatchInfo[] = [];
   const onExistenceFilterMismatchCallback = (
     info: ExistenceFilterMismatchInfo
-  ) => {
+  ): void => {
     _logWarn('zzyzx onExistenceFilterMismatchCallback', info);
     results.push(info);
   };
