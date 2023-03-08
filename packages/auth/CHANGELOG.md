@@ -1,5 +1,37 @@
 # @firebase/auth
 
+## 0.21.4
+
+### Patch Changes
+
+- [`c8a6e08b0`](https://github.com/firebase/firebase-js-sdk/commit/c8a6e08b01a52b3eca77ca9da8989dac2e77a972) [#7038](https://github.com/firebase/firebase-js-sdk/pull/7038) - Modify \_fail to use AuthErrorCode.INTERNAL_ERROR and pass in error message.
+
+- Updated dependencies [[`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6)]:
+  - @firebase/util@1.9.3
+  - @firebase/component@0.6.4
+
+## 0.21.3
+
+### Patch Changes
+
+- [`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30) [#7007](https://github.com/firebase/firebase-js-sdk/pull/7007) (fixes [#7005](https://github.com/firebase/firebase-js-sdk/issues/7005)) - Move exports.default fields to always be the last field. This fixes a bug caused in 9.17.0 that prevented some bundlers and frameworks from building.
+
+- Updated dependencies [[`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30)]:
+  - @firebase/util@1.9.2
+  - @firebase/component@0.6.3
+
+## 0.21.2
+
+### Patch Changes
+
+- [`6439f1173`](https://github.com/firebase/firebase-js-sdk/commit/6439f1173353f3857ab820675d572ea676340924) [#6973](https://github.com/firebase/firebase-js-sdk/pull/6973) - Expose TOKEN_EXPIRED error when mfa unenroll logs out the user.
+
+- [`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5) [#6981](https://github.com/firebase/firebase-js-sdk/pull/6981) - Added browser CJS entry points (expected by Jest when using JSDOM mode).
+
+- Updated dependencies [[`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5)]:
+  - @firebase/util@1.9.1
+  - @firebase/component@0.6.2
+
 ## 0.21.1
 
 ### Patch Changes

@@ -101,9 +101,9 @@ export abstract class AppliableConstraint {
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
  * Firestore query. `QueryConstraint`s are created by invoking {@link where},
- * {@link orderBy}, {@link startAt}, {@link startAfter}, {@link
- * endBefore}, {@link endAt}, {@link limit}, {@link limitToLast} and
- * can then be passed to {@link query} to create a new query instance that
+ * {@link orderBy}, {@link (startAt:1)}, {@link (startAfter:1)}, {@link
+ * (endBefore:1)}, {@link (endAt:1)}, {@link limit}, {@link limitToLast} and
+ * can then be passed to {@link (query:1)} to create a new query instance that
  * also contains this `QueryConstraint`.
  */
 export abstract class QueryConstraint extends AppliableConstraint {
@@ -130,7 +130,6 @@ export abstract class QueryConstraint extends AppliableConstraint {
  * apply (e.g. {@link orderBy}, {@link limit}).
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
- * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function query<T>(
   query: Query<T>,
@@ -180,7 +179,7 @@ export function query<T>(
  * A `QueryFieldFilterConstraint` is used to narrow the set of documents returned by
  * a Firestore query by filtering on one or more document fields.
  * `QueryFieldFilterConstraint`s are created by invoking {@link where} and can then
- * be passed to {@link query} to create a new query instance that also contains
+ * be passed to {@link (query:1)} to create a new query instance that also contains
  * this `QueryFieldFilterConstraint`.
  */
 export class QueryFieldFilterConstraint extends QueryConstraint {
@@ -274,9 +273,8 @@ export function where(
  * returned by a Firestore query by performing the logical OR or AND of multiple
  * {@link QueryFieldFilterConstraint}s or {@link QueryCompositeFilterConstraint}s.
  * `QueryCompositeFilterConstraint`s are created by invoking {@link or} or
- * {@link and} and can then be passed to {@link query} to create a new query
+ * {@link and} and can then be passed to {@link (query:1)} to create a new query
  * instance that also contains the `QueryCompositeFilterConstraint`.
- * @internal TODO remove this internal tag with OR Query support in the server
  */
 export class QueryCompositeFilterConstraint extends AppliableConstraint {
   /**
@@ -341,8 +339,8 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
  * QueryConstraints which are used to narrow or order the set of documents,
  * but that do not explicitly filter on a document field.
  * `QueryNonFilterConstraint`s are created by invoking {@link orderBy},
- * {@link startAt}, {@link startAfter}, {@link endBefore}, {@link endAt},
- * {@link limit} or {@link limitToLast} and can then be passed to {@link query}
+ * {@link (startAt:1)}, {@link (startAfter:1)}, {@link (endBefore:1)}, {@link (endAt:1)},
+ * {@link limit} or {@link limitToLast} and can then be passed to {@link (query:1)}
  * to create a new query instance that also contains the `QueryConstraint`.
  */
 export type QueryNonFilterConstraint =
@@ -354,10 +352,6 @@ export type QueryNonFilterConstraint =
 /**
  * `QueryFilterConstraint` is a helper union type that represents
  * {@link QueryFieldFilterConstraint} and {@link QueryCompositeFilterConstraint}.
- * `QueryFilterConstraint`s are created by invoking {@link or} or {@link and}
- * and can then be passed to {@link query} to create a new query instance that
- * also contains the `QueryConstraint`.
- * @internal TODO remove this internal tag with OR Query support in the server
  */
 export type QueryFilterConstraint =
   | QueryFieldFilterConstraint
@@ -372,7 +366,6 @@ export type QueryFilterConstraint =
  * {@link QueryFilterConstraint}s to perform a disjunction for. These must be
  * created with calls to {@link where}, {@link or}, or {@link and}.
  * @returns The newly created {@link QueryCompositeFilterConstraint}.
- * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function or(
   ...queryConstraints: QueryFilterConstraint[]
@@ -397,7 +390,6 @@ export function or(
  * {@link QueryFilterConstraint}s to perform a conjunction for. These must be
  * created with calls to {@link where}, {@link or}, or {@link and}.
  * @returns The newly created {@link QueryCompositeFilterConstraint}.
- * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function and(
   ...queryConstraints: QueryFilterConstraint[]
@@ -416,7 +408,7 @@ export function and(
 /**
  * A `QueryOrderByConstraint` is used to sort the set of documents returned by a
  * Firestore query. `QueryOrderByConstraint`s are created by invoking
- * {@link orderBy} and can then be passed to {@link query} to create a new query
+ * {@link orderBy} and can then be passed to {@link (query:1)} to create a new query
  * instance that also contains this `QueryOrderByConstraint`.
  *
  * Note: Documents that do not contain the orderBy field will not be present in
@@ -484,7 +476,7 @@ export function orderBy(
  * A `QueryLimitConstraint` is used to limit the number of documents returned by
  * a Firestore query.
  * `QueryLimitConstraint`s are created by invoking {@link limit} or
- * {@link limitToLast} and can then be passed to {@link query} to create a new
+ * {@link limitToLast} and can then be passed to {@link (query:1)} to create a new
  * query instance that also contains this `QueryLimitConstraint`.
  */
 export class QueryLimitConstraint extends QueryConstraint {
@@ -548,7 +540,7 @@ export function limitToLast(limit: number): QueryLimitConstraint {
  * A `QueryStartAtConstraint` is used to exclude documents from the start of a
  * result set returned by a Firestore query.
  * `QueryStartAtConstraint`s are created by invoking {@link (startAt:1)} or
- * {@link (startAfter:1)} and can then be passed to {@link query} to create a
+ * {@link (startAfter:1)} and can then be passed to {@link (query:1)} to create a
  * new query instance that also contains this `QueryStartAtConstraint`.
  */
 export class QueryStartAtConstraint extends QueryConstraint {
@@ -655,7 +647,7 @@ export function startAfter(
  * A `QueryEndAtConstraint` is used to exclude documents from the end of a
  * result set returned by a Firestore query.
  * `QueryEndAtConstraint`s are created by invoking {@link (endAt:1)} or
- * {@link (endBefore:1)} and can then be passed to {@link query} to create a new
+ * {@link (endBefore:1)} and can then be passed to {@link (query:1)} to create a new
  * query instance that also contains this `QueryEndAtConstraint`.
  */
 export class QueryEndAtConstraint extends QueryConstraint {
@@ -1050,49 +1042,27 @@ function validateDisjunctiveFilterElements(
         `'${operator.toString()}' filters.`
     );
   }
-  if (value.length > 10) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid Query. '${operator.toString()}' filters support a ` +
-        'maximum of 10 elements in the value array.'
-    );
-  }
 }
 
 /**
  * Given an operator, returns the set of operators that cannot be used with it.
  *
- * Operators in a query must adhere to the following set of rules:
- * 1. Only one array operator is allowed.
- * 2. Only one disjunctive operator is allowed.
- * 3. `NOT_EQUAL` cannot be used with another `NOT_EQUAL` operator.
- * 4. `NOT_IN` cannot be used with array, disjunctive, or `NOT_EQUAL` operators.
+ * This is not a comprehensive check, and this function should be removed in the
+ * long term. Validations should occur in the Firestore backend.
  *
- * Array operators: `ARRAY_CONTAINS`, `ARRAY_CONTAINS_ANY`
- * Disjunctive operators: `IN`, `ARRAY_CONTAINS_ANY`, `NOT_IN`
+ * Operators in a query must adhere to the following set of rules:
+ * 1. Only one inequality per query.
+ * 2. `NOT_IN` cannot be used with array, disjunctive, or `NOT_EQUAL` operators.
  */
 function conflictingOps(op: Operator): Operator[] {
   switch (op) {
     case Operator.NOT_EQUAL:
       return [Operator.NOT_EQUAL, Operator.NOT_IN];
-    case Operator.ARRAY_CONTAINS:
-      return [
-        Operator.ARRAY_CONTAINS,
-        Operator.ARRAY_CONTAINS_ANY,
-        Operator.NOT_IN
-      ];
-    case Operator.IN:
-      return [Operator.ARRAY_CONTAINS_ANY, Operator.IN, Operator.NOT_IN];
     case Operator.ARRAY_CONTAINS_ANY:
-      return [
-        Operator.ARRAY_CONTAINS,
-        Operator.ARRAY_CONTAINS_ANY,
-        Operator.IN,
-        Operator.NOT_IN
-      ];
+    case Operator.IN:
+      return [Operator.NOT_IN];
     case Operator.NOT_IN:
       return [
-        Operator.ARRAY_CONTAINS,
         Operator.ARRAY_CONTAINS_ANY,
         Operator.IN,
         Operator.NOT_IN,

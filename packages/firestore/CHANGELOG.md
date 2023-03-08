@@ -1,5 +1,45 @@
 # @firebase/firestore
 
+## 3.8.4
+
+### Patch Changes
+
+- [`36558bd2e`](https://github.com/firebase/firebase-js-sdk/commit/36558bd2e68e1ba3fb31d85ef997ab9ddf692d50) [#7024](https://github.com/firebase/firebase-js-sdk/pull/7024) - Relaxing query validation performed by the SDK
+
+- [`b5f86b1a3`](https://github.com/firebase/firebase-js-sdk/commit/b5f86b1a305b3067fed12b024938f0c3f47de2ef) [#7018](https://github.com/firebase/firebase-js-sdk/pull/7018) - Internal refactor of platform-specific logic to create TextEncoder and TextDecoder objects.
+
+- [`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6) [#7019](https://github.com/firebase/firebase-js-sdk/pull/7019) - Modify base64 decoding logic to throw on invalid input, rather than silently truncating it.
+
+- [`67c5a0dc5`](https://github.com/firebase/firebase-js-sdk/commit/67c5a0dc55237391afceb956280cb04cfeaac66f) [#6952](https://github.com/firebase/firebase-js-sdk/pull/6952) - Refactoring the aggregation implementation to support future aggregate functions.
+
+- [`b30186ffc`](https://github.com/firebase/firebase-js-sdk/commit/b30186ffc15cd441521c8f43d3f9a7a4e9ce8820) [#7058](https://github.com/firebase/firebase-js-sdk/pull/7058) - Fix unimplemented error when loading bundles
+
+- Updated dependencies [[`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6)]:
+  - @firebase/util@1.9.3
+  - @firebase/component@0.6.4
+
+## 3.8.3
+
+### Patch Changes
+
+- [`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30) [#7007](https://github.com/firebase/firebase-js-sdk/pull/7007) (fixes [#7005](https://github.com/firebase/firebase-js-sdk/issues/7005)) - Move exports.default fields to always be the last field. This fixes a bug caused in 9.17.0 that prevented some bundlers and frameworks from building.
+
+- Updated dependencies [[`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30)]:
+  - @firebase/util@1.9.2
+  - @firebase/component@0.6.3
+
+## 3.8.2
+
+### Patch Changes
+
+- [`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5) [#6981](https://github.com/firebase/firebase-js-sdk/pull/6981) - Added browser CJS entry points (expected by Jest when using JSDOM mode).
+
+- [`27b5e7d70`](https://github.com/firebase/firebase-js-sdk/commit/27b5e7d7081688599fc518b329a43db4319cdd1f) [#6989](https://github.com/firebase/firebase-js-sdk/pull/6989) - Reduce memory usage by applying query check sooner in remote document cache.
+
+- Updated dependencies [[`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5)]:
+  - @firebase/util@1.9.1
+  - @firebase/component@0.6.2
+
 ## 3.8.1
 
 ### Patch Changes

@@ -90,7 +90,7 @@ import { Mutation } from '../../../src/model/mutation';
 import { JsonObject } from '../../../src/model/object_value';
 import { encodeBase64 } from '../../../src/platform/base64';
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
-import { newTextEncoder } from '../../../src/platform/serializer';
+import { newTextEncoder } from '../../../src/platform/text_serializer';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import {
@@ -694,12 +694,11 @@ abstract class TestRunner {
   }
 
   private doWatchFilter(watchFilter: SpecWatchFilter): Promise<void> {
-    const targetIds: TargetId[] = watchFilter[0];
+    const { targetIds, keys } = watchFilter;
     debugAssert(
       targetIds.length === 1,
       'ExistenceFilters currently support exactly one target only.'
     );
-    const keys = watchFilter.slice(1);
     const filter = new ExistenceFilter(keys.length);
     const change = new ExistenceFilterChange(targetIds[0], filter);
     return this.doWatchEvent(change);
@@ -1172,7 +1171,13 @@ abstract class TestRunner {
         });
       }
 
-      expect(actual.view!.docChanges).to.deep.equal(expectedChanges);
+      const actualChangesSorted = Array.from(actual.view!.docChanges).sort(
+        (a, b) => primitiveComparator(a.doc, b.doc)
+      );
+      const expectedChangesSorted = Array.from(expectedChanges).sort((a, b) =>
+        primitiveComparator(a.doc, b.doc)
+      );
+      expect(actualChangesSorted).to.deep.equal(expectedChangesSorted);
 
       expect(actual.view!.hasPendingWrites).to.equal(
         expected.hasPendingWrites,
@@ -1583,14 +1588,11 @@ export interface SpecClientState {
 }
 
 /**
- * [[<target-id>, ...], <key>, ...]
- * Note that the last parameter is really of type ...string (spread operator)
  * The filter is based of a list of keys to match in the existence filter
  */
-export interface SpecWatchFilter
-  extends Array<TargetId[] | string | undefined> {
-  '0': TargetId[];
-  '1': string | undefined;
+export interface SpecWatchFilter {
+  targetIds: TargetId[];
+  keys: string[];
 }
 
 export type SpecLimitType = 'LimitToFirst' | 'LimitToLast';
