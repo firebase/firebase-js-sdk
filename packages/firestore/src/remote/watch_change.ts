@@ -433,11 +433,11 @@ export class WatchChangeAggregator {
             this.resetTarget(targetId);
             this.pendingTargetResets = this.pendingTargetResets.add(targetId);
           }
-          TestingHooks.instance?.notifyOnExistenceFilterMismatch({
-            actualCount: currentSize,
-            change: watchChange,
-            bloomFilterApplied
-          });
+          notifyTestingHooksOnExistenceFilterMismatch(
+            bloomFilterApplied,
+            currentSize,
+            watchChange.existenceFilter
+          );
         }
       }
     }
@@ -794,4 +794,26 @@ function documentTargetMap(): SortedMap<DocumentKey, SortedSet<TargetId>> {
 
 function snapshotChangesMap(): SortedMap<DocumentKey, ChangeType> {
   return new SortedMap<DocumentKey, ChangeType>(DocumentKey.comparator);
+}
+
+function notifyTestingHooksOnExistenceFilterMismatch(
+  bloomFilterApplied: boolean,
+  actualCount: number,
+  existenceFilter: ExistenceFilter
+): void {
+  const expectedCount = existenceFilter.count;
+  const unchangedNames = existenceFilter.unchangedNames;
+  const bloomFilterSentFromWatch = !!unchangedNames;
+  const bloomFilterHashCount = unchangedNames?.hashCount ?? 0;
+  const bloomFilterBitmapLength = unchangedNames?.bits?.bitmap?.length ?? 0;
+  const bloomFilterPadding = unchangedNames?.bits?.padding ?? 0;
+  TestingHooks.instance?.notifyOnExistenceFilterMismatch(
+    actualCount,
+    expectedCount,
+    bloomFilterSentFromWatch,
+    bloomFilterApplied,
+    bloomFilterHashCount,
+    bloomFilterBitmapLength,
+    bloomFilterPadding
+  );
 }

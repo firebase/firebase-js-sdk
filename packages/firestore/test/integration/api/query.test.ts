@@ -2085,7 +2085,7 @@ apiDescribe('Queries', (persistence: boolean) => {
             // Run a query to populate the local cache with the 100 documents
             // and a resume token.
             const snapshot1 = await getDocs(coll);
-            expect(snapshot1.size).to.equal(100);
+            expect(snapshot1.size, 'snapshot1.size').to.equal(100);
 
             // Delete 50 of the 100 documents. Do this in a transaction, rather
             // than deleteDoc(), to avoid affecting the local cache.
@@ -2107,47 +2107,56 @@ apiDescribe('Queries', (persistence: boolean) => {
             const existenceFilterMismatches =
               await captureExistenceFilterMismatches(async () => {
                 const snapshot2 = await getDocs(coll);
-                expect(snapshot2.size).to.equal(50);
+                expect(snapshot2.size, 'snapshot2.size').to.equal(50);
               });
 
             // Verify that upon resuming the query that Watch sent an existence
-            // filter that included a bloom filter, and that that bloom filter
+            // filter that included a bloom filter, and that the bloom filter
             // was successfully used to avoid a full requery.
             // TODO(b/271949433) Replace this "if" condition with !USE_EMULATOR
             // once the feature has been deployed to production. Note that there
-            // are no plans to implement the bloom filter in the existence filter
-            // responses sent from the Firestore emulator.
+            // are no plans to implement the bloom filter in the existence
+            // filter responses sent from the Firestore *emulator*.
             if (TARGET_BACKEND === 'nightly') {
-              expect(existenceFilterMismatches).to.have.length(1);
-              const existenceFilterMismatch = existenceFilterMismatches[0];
-              expect(existenceFilterMismatch.actualCount).to.equal(100);
-              expect(existenceFilterMismatch.expectedCount).to.equal(50);
-              const bloomFilter = existenceFilterMismatch.bloomFilter;
-              if (!bloomFilter) {
-                expect.fail('existence filter should have had a bloom filter');
-                throw new Error('should never get here');
+              expect(
+                existenceFilterMismatches,
+                'existenceFilterMismatches'
+              ).to.have.length(1);
+              const {
+                actualCount,
+                expectedCount,
+                bloomFilterSentFromWatch,
+                bloomFilterApplied,
+                bloomFilterHashCount,
+                bloomFilterBitmapLength,
+                bloomFilterPadding
+              } = existenceFilterMismatches[0];
+
+              expect(actualCount, 'actualCount').to.equal(100);
+              expect(expectedCount, 'expectedCount').to.equal(50);
+              expect(bloomFilterSentFromWatch, 'bloomFilterSentFromWatch').to.be
+                .true;
+
+              // Retry the entire test if a bloom filter false positive occurs.
+              // Although statistically rare, false positives are expected to
+              // happen occasionally. When a false positive _does_ happen, just
+              // retry the test with a different set of documents. If that retry
+              // _also_ experiences a false positive, then fail the test because
+              // that is so improbable that something must have gone wrong.
+              if (attemptNumber > 1 && !bloomFilterApplied) {
+                return 'retry';
               }
 
-              // Although statistically rare, it _is_ possible to get a legitimate
-              // false positive when checking the bloom filter. If this happens,
-              // then retry the test with a different set of documents, and only
-              // fail if the retry _also_ experiences a false positive.
-              if (!bloomFilter.applied) {
-                if (attemptNumber < 2) {
-                  return 'retry';
-                } else {
-                  expect.fail(
-                    'bloom filter false positive occurred ' +
-                      'multiple times; this is statistically ' +
-                      'improbable and should be investigated.'
-                  );
-                }
-              }
-
-              expect(bloomFilter.bitmapLength).to.be.above(0);
-              expect(bloomFilter.hashCount).to.be.above(0);
-              expect(bloomFilter.padding).to.be.above(0);
-              expect(bloomFilter.padding).to.be.below(8);
+              expect(bloomFilterApplied, 'bloomFilterApplied').to.be.true;
+              expect(bloomFilterHashCount, 'bloomFilterHashCount').to.be.above(
+                0
+              );
+              expect(
+                bloomFilterBitmapLength,
+                'bloomFilterBitmapLength'
+              ).to.be.above(0);
+              expect(bloomFilterPadding, 'bloomFilterPadding').to.be.above(0);
+              expect(bloomFilterPadding, 'bloomFilterPadding').to.be.below(8);
             }
 
             return 'passed';

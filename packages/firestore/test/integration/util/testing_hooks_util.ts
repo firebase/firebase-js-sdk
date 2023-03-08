@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  _TestingHooks as TestingHooks,
-  _TestingUtilsExistenceFilterMismatchInfo as RawExistenceFilterMismatchInfo,
-  _logWarn
-} from './firebase_export';
+import { _TestingHooks as TestingHooks } from './firebase_export';
 
 /**
  * Captures all existence filter mismatches in the Watch 'Listen' stream that
@@ -32,16 +28,28 @@ export async function captureExistenceFilterMismatches(
   callback: () => Promise<void>
 ): Promise<ExistenceFilterMismatchInfo[]> {
   const results: ExistenceFilterMismatchInfo[] = [];
-  const callbackWrapper = (arg: unknown): void => {
-    const existenceFilterMismatchInfo = existenceFilterMismatchInfoFromRaw(
-      arg as RawExistenceFilterMismatchInfo
-    );
-    results.push(existenceFilterMismatchInfo);
-  };
+  const onExistenceFilterMismatchCallback = (
+    actualCount: number,
+    expectedCount: number,
+    bloomFilterSentFromWatch: boolean,
+    bloomFilterApplied: boolean,
+    bloomFilterHashCount: number,
+    bloomFilterBitmapLength: number,
+    bloomFilterPadding: number
+  ) =>
+    results.push({
+      actualCount,
+      expectedCount,
+      bloomFilterSentFromWatch,
+      bloomFilterApplied,
+      bloomFilterHashCount,
+      bloomFilterBitmapLength,
+      bloomFilterPadding
+    });
 
   const unregister =
     TestingHooks.getOrCreateInstance().onExistenceFilterMismatch(
-      callbackWrapper
+      onExistenceFilterMismatchCallback
     );
 
   try {
@@ -56,64 +64,16 @@ export async function captureExistenceFilterMismatches(
 /**
  * Information about an existence filter mismatch, capturing during an
  * invocation of `captureExistenceFilterMismatches()`.
+ *
+ * See the documentation of `TestingHooks.notifyOnExistenceFilterMismatch()`
+ * for the meaning of these values.
  */
 export interface ExistenceFilterMismatchInfo {
-  /** The number of documents that match the query in the local cache. */
   actualCount: number;
-  /** The number of documents that matched the query on the server. */
   expectedCount: number;
-  /** The bloom filter provided by the server, or null if not provided. */
-  bloomFilter: ExistenceFilterBloomFilter | null;
-}
-
-/**
- * Information about a bloom filter in an existence filter.
- */
-export interface ExistenceFilterBloomFilter {
-  /** Whether the bloom filter was used to avert a full requery. */
-  applied: boolean;
-  /** The number of hash functions used in the bloom filter. */
-  hashCount: number;
-  /** The number of bytes in the bloom filter. */
-  bitmapLength: number;
-  /** The number of bits of "padding" in the last byte of the bloom filter. */
-  padding: number;
-}
-
-/**
- * Creates a `ExistenceFilterMismatchInfo` object from the raw object given
- * by `TestingUtils`.
- */
-function existenceFilterMismatchInfoFromRaw(
-  raw: RawExistenceFilterMismatchInfo
-): ExistenceFilterMismatchInfo {
-  _logWarn(
-    'zzyzx existenceFilterMismatchInfoFromRaw() start; raw:',
-    JSON.stringify(raw, null, 2)
-  );
-  return {
-    actualCount: raw.actualCount,
-    expectedCount: raw.change.existenceFilter.count,
-    bloomFilter: bloomFilterFromRawExistenceFilterMismatchInfo(raw)
-  };
-}
-
-/**
- * Creates an `ExistenceFilterBloomFilter` object from the raw object given
- * by `TestingUtils`, returning null if the given object does not define a
- * bloom filter.
- */
-function bloomFilterFromRawExistenceFilterMismatchInfo(
-  raw: RawExistenceFilterMismatchInfo
-): null | ExistenceFilterBloomFilter {
-  const unchangedNames = raw.change.existenceFilter?.unchangedNames;
-  if (!unchangedNames) {
-    return null;
-  }
-  return {
-    applied: raw.bloomFilterApplied,
-    hashCount: unchangedNames.hashCount ?? 0,
-    bitmapLength: unchangedNames.bits?.bitmap?.length ?? 0,
-    padding: unchangedNames.bits?.padding ?? 0
-  };
+  bloomFilterSentFromWatch: boolean;
+  bloomFilterApplied: boolean;
+  bloomFilterHashCount: number;
+  bloomFilterBitmapLength: number;
+  bloomFilterPadding: number;
 }

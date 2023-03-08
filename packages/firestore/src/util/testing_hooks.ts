@@ -34,7 +34,7 @@
 export class TestingHooks {
   private readonly onExistenceFilterMismatchCallbacks = new Map<
     Symbol,
-    (info: ExistenceFilterMismatchInfo) => void
+    ExistenceFilterMismatchCallback
   >();
 
   private constructor() {}
@@ -65,14 +65,16 @@ export class TestingHooks {
    * The relative order in which callbacks are notified is unspecified; do not
    * rely on any particular ordering.
    *
-   * @param callback the callback to invoke upon existence filter mismatch.
+   * @param callback the callback to invoke upon existence filter mismatch; see
+   * the documentation for `notifyOnExistenceFilterMismatch()` for the meaning
+   * of these arguments.
    *
    * @return a function that, when called, unregisters the given callback; only
    * the first invocation of the returned function does anything; all subsequent
    * invocations do nothing.
    */
   onExistenceFilterMismatch(
-    callback: (info: ExistenceFilterMismatchInfo) => void
+    callback: ExistenceFilterMismatchCallback
   ): () => void {
     const key = Symbol();
     this.onExistenceFilterMismatchCallbacks.set(key, callback);
@@ -81,36 +83,65 @@ export class TestingHooks {
 
   /**
    * Invokes all currently-registered `onExistenceFilterMismatch` callbacks.
-   * @param info the argument to specify to the callbacks.
+   * @param bloomFilterApplied true if a full requery was averted because the
+   * limbo documents were successfully deduced using the bloom filter, or false
+   * if a full requery had to be performed, such as due to a false positive in
+   * the bloom filter.
+   * @param actualCount the number of documents that matched the query in the
+   * local cache.
+   * @param expectedCount the number of documents that matched the query on the
+   * server, as specified in the ExistenceFilter message's `count` field.
+   * @param bloomFilterSentFromWatch whether the ExistenceFilter message
+   * included the `unchangedNames` bloom filter. If false, the remaining
+   * arguments are not applicable and may have any values.
+   * @param bloomFilterApplied whether a full requery was averted by using the
+   * bloom filter; if false, then a false positive occurred, requiring a full
+   * requery to deduce which documents should go into limbo.
+   * @param bloomFilterHashCount the number of hash functions used in the bloom
+   * filter.
+   * @param bloomFilterBitmapLength the number of bytes used by the bloom
+   * filter.
+   * @param bloomFilterPadding the number of bits of padding in the last byte
+   * of the bloom filter.
    */
-  notifyOnExistenceFilterMismatch(info: ExistenceFilterMismatchInfo): void {
-    this.onExistenceFilterMismatchCallbacks.forEach(callback => callback(info));
+  notifyOnExistenceFilterMismatch(
+    actualCount: number,
+    expectedCount: number,
+    bloomFilterSentFromWatch: boolean,
+    bloomFilterApplied: boolean,
+    bloomFilterHashCount: number,
+    bloomFilterBitmapLength: number,
+    bloomFilterPadding: number
+  ): void {
+    this.onExistenceFilterMismatchCallbacks.forEach(callback => {
+      callback(
+        actualCount,
+        expectedCount,
+        bloomFilterSentFromWatch,
+        bloomFilterApplied,
+        bloomFilterHashCount,
+        bloomFilterBitmapLength,
+        bloomFilterPadding
+      );
+    });
   }
 }
 
 /**
- * The shape of the object specified to
- * `TestingUtils.onExistenceFilterMismatch()` callbacks.
+ * The signature of callbacks registered with
+ * `TestingUtils.onExistenceFilterMismatch()`.
  *
  * @internal
  */
-export interface ExistenceFilterMismatchInfo {
-  actualCount: number;
-  bloomFilterApplied: boolean;
-  change: {
-    targetId: number;
-    existenceFilter: {
-      count: number;
-      unchangedNames?: {
-        bits?: {
-          bitmap?: string | Uint8Array;
-          padding?: number;
-        };
-        hashCount?: number;
-      };
-    };
-  };
-}
+export type ExistenceFilterMismatchCallback = (
+  actualCount: number,
+  expectedCount: number,
+  bloomFilterSentFromWatch: boolean,
+  bloomFilterApplied: boolean,
+  bloomFilterHashCount: number,
+  bloomFilterBitmapLength: number,
+  bloomFilterPadding: number
+) => void;
 
 /** The global singleton instance of `TestingHooks`. */
 let gTestingHooksSingletonInstance: TestingHooks | null = null;
