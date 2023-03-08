@@ -407,9 +407,9 @@ export class FirstPartyToken implements Token {
     private readonly authTokenFactory: AuthTokenFactory | null
   ) {}
 
-  /** 
+  /**
    * Gets an authorization token, using a provided factory function, or return
-   * null. 
+   * null.
    */
   private getAuthToken(): string | null {
     if (this.authTokenFactory) {
