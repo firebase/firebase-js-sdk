@@ -37,7 +37,10 @@ import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-import { TestingHooks } from '../util/testing_hooks';
+import {
+  ExistenceFilterMismatchInfo,
+  TestingHooks
+} from '../util/testing_hooks';
 
 import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
@@ -801,19 +804,22 @@ function notifyTestingHooksOnExistenceFilterMismatch(
   actualCount: number,
   existenceFilter: ExistenceFilter
 ): void {
-  const expectedCount = existenceFilter.count;
-  const unchangedNames = existenceFilter.unchangedNames;
-  const bloomFilterSentFromWatch = !!unchangedNames;
-  const bloomFilterHashCount = unchangedNames?.hashCount ?? 0;
-  const bloomFilterBitmapLength = unchangedNames?.bits?.bitmap?.length ?? 0;
-  const bloomFilterPadding = unchangedNames?.bits?.padding ?? 0;
-  TestingHooks.instance?.notifyOnExistenceFilterMismatch(
+  const existenceFilterMismatchInfo: ExistenceFilterMismatchInfo = {
     actualCount,
-    expectedCount,
-    bloomFilterSentFromWatch,
-    bloomFilterApplied,
-    bloomFilterHashCount,
-    bloomFilterBitmapLength,
-    bloomFilterPadding
+    expectedCount: existenceFilter.count
+  };
+
+  const unchangedNames = existenceFilter.unchangedNames;
+  if (unchangedNames) {
+    existenceFilterMismatchInfo.bloomFilter = {
+      applied: bloomFilterApplied,
+      hashCount: unchangedNames?.hashCount ?? 0,
+      bitmapLength: unchangedNames?.bits?.bitmap?.length ?? 0,
+      padding: unchangedNames?.bits?.padding ?? 0
+    };
+  }
+
+  TestingHooks.instance?.notifyOnExistenceFilterMismatch(
+    existenceFilterMismatchInfo
   );
 }

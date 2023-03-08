@@ -2122,20 +2122,29 @@ apiDescribe('Queries', (persistence: boolean) => {
                 existenceFilterMismatches,
                 'existenceFilterMismatches'
               ).to.have.length(1);
-              const {
-                actualCount,
-                expectedCount,
-                bloomFilterSentFromWatch,
-                bloomFilterApplied,
-                bloomFilterHashCount,
-                bloomFilterBitmapLength,
-                bloomFilterPadding
-              } = existenceFilterMismatches[0];
+              const { actualCount, expectedCount, bloomFilter } =
+                existenceFilterMismatches[0];
 
               expect(actualCount, 'actualCount').to.equal(100);
               expect(expectedCount, 'expectedCount').to.equal(50);
-              expect(bloomFilterSentFromWatch, 'bloomFilterSentFromWatch').to.be
-                .true;
+              if (!bloomFilter) {
+                expect.fail(
+                  'The existence filter should have specified ' +
+                    'a bloom filter in its `unchanged_names` field.'
+                );
+                throw new Error('should never get here');
+              }
+
+              expect(
+                bloomFilter.hashCount,
+                'bloomFilter.hashCount'
+              ).to.be.above(0);
+              expect(
+                bloomFilter.bitmapLength,
+                'bloomFilter.bitmapLength'
+              ).to.be.above(0);
+              expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
+              expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
 
               // Retry the entire test if a bloom filter false positive occurs.
               // Although statistically rare, false positives are expected to
@@ -2143,20 +2152,10 @@ apiDescribe('Queries', (persistence: boolean) => {
               // retry the test with a different set of documents. If that retry
               // _also_ experiences a false positive, then fail the test because
               // that is so improbable that something must have gone wrong.
-              if (attemptNumber > 1 && !bloomFilterApplied) {
+              if (attemptNumber > 1 && !bloomFilter.applied) {
                 return 'retry';
               }
-
-              expect(bloomFilterApplied, 'bloomFilterApplied').to.be.true;
-              expect(bloomFilterHashCount, 'bloomFilterHashCount').to.be.above(
-                0
-              );
-              expect(
-                bloomFilterBitmapLength,
-                'bloomFilterBitmapLength'
-              ).to.be.above(0);
-              expect(bloomFilterPadding, 'bloomFilterPadding').to.be.above(0);
-              expect(bloomFilterPadding, 'bloomFilterPadding').to.be.below(8);
+              expect(bloomFilter.applied, 'bloomFilter.applied').to.be.true;
             }
 
             return 'passed';

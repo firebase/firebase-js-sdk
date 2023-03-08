@@ -197,4 +197,3 @@ export { logWarn as _logWarn } from './util/log';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
 export { TestingHooks as _TestingHooks } from './util/testing_hooks';
-export { ExistenceFilterMismatchCallback as _TestingHooksExistenceFilterMismatchCallback } from './util/testing_hooks';

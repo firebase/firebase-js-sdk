@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _TestingHooks as TestingHooks } from './firebase_export';
+import { _TestingHooks as TestingHooks, _logWarn } from './firebase_export';
 
 /**
  * Captures all existence filter mismatches in the Watch 'Listen' stream that
@@ -29,23 +29,11 @@ export async function captureExistenceFilterMismatches(
 ): Promise<ExistenceFilterMismatchInfo[]> {
   const results: ExistenceFilterMismatchInfo[] = [];
   const onExistenceFilterMismatchCallback = (
-    actualCount: number,
-    expectedCount: number,
-    bloomFilterSentFromWatch: boolean,
-    bloomFilterApplied: boolean,
-    bloomFilterHashCount: number,
-    bloomFilterBitmapLength: number,
-    bloomFilterPadding: number
-  ) =>
-    results.push({
-      actualCount,
-      expectedCount,
-      bloomFilterSentFromWatch,
-      bloomFilterApplied,
-      bloomFilterHashCount,
-      bloomFilterBitmapLength,
-      bloomFilterPadding
-    });
+    info: ExistenceFilterMismatchInfo
+  ) => {
+    _logWarn('zzyzx onExistenceFilterMismatchCallback', info);
+    results.push(info);
+  };
 
   const unregister =
     TestingHooks.getOrCreateInstance().onExistenceFilterMismatch(
@@ -71,9 +59,10 @@ export async function captureExistenceFilterMismatches(
 export interface ExistenceFilterMismatchInfo {
   actualCount: number;
   expectedCount: number;
-  bloomFilterSentFromWatch: boolean;
-  bloomFilterApplied: boolean;
-  bloomFilterHashCount: number;
-  bloomFilterBitmapLength: number;
-  bloomFilterPadding: number;
+  bloomFilter?: {
+    applied: boolean;
+    hashCount: number;
+    bitmapLength: number;
+    padding: number;
+  };
 }

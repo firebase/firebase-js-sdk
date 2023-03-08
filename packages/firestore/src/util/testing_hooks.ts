@@ -65,9 +65,7 @@ export class TestingHooks {
    * The relative order in which callbacks are notified is unspecified; do not
    * rely on any particular ordering.
    *
-   * @param callback the callback to invoke upon existence filter mismatch; see
-   * the documentation for `notifyOnExistenceFilterMismatch()` for the meaning
-   * of these arguments.
+   * @param callback the callback to invoke upon existence filter mismatch.
    *
    * @return a function that, when called, unregisters the given callback; only
    * the first invocation of the returned function does anything; all subsequent
@@ -83,64 +81,57 @@ export class TestingHooks {
 
   /**
    * Invokes all currently-registered `onExistenceFilterMismatch` callbacks.
-   * @param bloomFilterApplied true if a full requery was averted because the
-   * limbo documents were successfully deduced using the bloom filter, or false
-   * if a full requery had to be performed, such as due to a false positive in
-   * the bloom filter.
-   * @param actualCount the number of documents that matched the query in the
-   * local cache.
-   * @param expectedCount the number of documents that matched the query on the
-   * server, as specified in the ExistenceFilter message's `count` field.
-   * @param bloomFilterSentFromWatch whether the ExistenceFilter message
-   * included the `unchangedNames` bloom filter. If false, the remaining
-   * arguments are not applicable and may have any values.
-   * @param bloomFilterApplied whether a full requery was averted by using the
-   * bloom filter; if false, then a false positive occurred, requiring a full
-   * requery to deduce which documents should go into limbo.
-   * @param bloomFilterHashCount the number of hash functions used in the bloom
-   * filter.
-   * @param bloomFilterBitmapLength the number of bytes used by the bloom
-   * filter.
-   * @param bloomFilterPadding the number of bits of padding in the last byte
-   * of the bloom filter.
+   * @param info Information about the existence filter mismatch.
    */
-  notifyOnExistenceFilterMismatch(
-    actualCount: number,
-    expectedCount: number,
-    bloomFilterSentFromWatch: boolean,
-    bloomFilterApplied: boolean,
-    bloomFilterHashCount: number,
-    bloomFilterBitmapLength: number,
-    bloomFilterPadding: number
-  ): void {
-    this.onExistenceFilterMismatchCallbacks.forEach(callback => {
-      callback(
-        actualCount,
-        expectedCount,
-        bloomFilterSentFromWatch,
-        bloomFilterApplied,
-        bloomFilterHashCount,
-        bloomFilterBitmapLength,
-        bloomFilterPadding
-      );
-    });
+  notifyOnExistenceFilterMismatch(info: ExistenceFilterMismatchInfo): void {
+    this.onExistenceFilterMismatchCallbacks.forEach(callback => callback(info));
   }
 }
 
 /**
  * The signature of callbacks registered with
  * `TestingUtils.onExistenceFilterMismatch()`.
- *
- * @internal
+ */
+export interface ExistenceFilterMismatchInfo {
+  /** The number of documents that matched the query in the local cache. */
+  actualCount: number;
+
+  /**
+   * The number of documents that matched the query on the server, as specified
+   * in the ExistenceFilter message's `count` field.
+   */
+  expectedCount: number;
+
+  /**
+   * Information about the bloom filter provided by Watch in the ExistenceFilter
+   * message's `unchangedNames` field. If this property is omitted or undefined
+   * then that means that Watch did _not_ provide a bloom filter.
+   */
+  bloomFilter?: {
+    /**
+     * Whether a full requery was averted by using the bloom filter. If false,
+     * then something happened, such as a false positive, to prevent using the
+     * bloom filter to avoid a full requery.
+     */
+    applied: boolean;
+
+    /** The number of hash functions used in the bloom filter. */
+    hashCount: number;
+
+    /** The number of bytes in the bloom filter's bitmask. */
+    bitmapLength: number;
+
+    /** The number of bits of padding in the last byte of the bloom filter. */
+    padding: number;
+  };
+}
+
+/**
+ * The signature of callbacks registered with
+ * `TestingUtils.onExistenceFilterMismatch()`.
  */
 export type ExistenceFilterMismatchCallback = (
-  actualCount: number,
-  expectedCount: number,
-  bloomFilterSentFromWatch: boolean,
-  bloomFilterApplied: boolean,
-  bloomFilterHashCount: number,
-  bloomFilterBitmapLength: number,
-  bloomFilterPadding: number
+  info: ExistenceFilterMismatchInfo
 ) => void;
 
 /** The global singleton instance of `TestingHooks`. */
