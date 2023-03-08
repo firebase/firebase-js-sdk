@@ -33,18 +33,23 @@ type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
 let _ttPolicy: Partial<TrustedTypePolicy>;
 if (window.trustedTypes) {
   _ttPolicy = window.trustedTypes.createPolicy('firebase-js-sdk-policy', {
-    createScriptURL: (url: string) => {
-      if (!url.startsWith(GTAG_URL)) {
-        console.error('Unknown gtag resource!', url);
-        const err = ERROR_FACTORY.create(AnalyticsError.INVALID_GTAG_RESOURCE, {
-          gtagURL: url
-        });
-        logger.warn(err.message);
-        return '';
-      }
-      return url;
-    }
+    createScriptURL: createGtagTrustedTypesScriptURL
   });
+}
+
+/**
+ * Verifies and creates a TrustedScriptURL.
+ */
+export function createGtagTrustedTypesScriptURL(url: string): string {
+  if (!url.startsWith(GTAG_URL)) {
+    console.error('Unknown gtag resource!', url);
+    const err = ERROR_FACTORY.create(AnalyticsError.INVALID_GTAG_RESOURCE, {
+      gtagURL: url
+    });
+    logger.warn(err.message);
+    return '';
+  }
+  return url;
 }
 
 /**

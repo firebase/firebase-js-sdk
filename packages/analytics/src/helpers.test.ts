@@ -24,9 +24,10 @@ import {
   insertScriptTag,
   wrapOrCreateGtag,
   findGtagScriptOnPage,
-  promiseAllSettled
+  promiseAllSettled,
+  createGtagTrustedTypesScriptURL
 } from './helpers';
-import { GtagCommand } from './constants';
+import { GtagCommand, GTAG_URL } from './constants';
 import { Deferred } from '@firebase/util';
 import { ConsentSettings } from './public-types';
 import { removeGtagScripts } from '../testing/gtag-script-util';
@@ -45,6 +46,34 @@ const fakeDynamicConfig: DynamicConfig = {
   measurementId: fakeMeasurementId
 };
 const fakeDynamicConfigPromises = [Promise.resolve(fakeDynamicConfig)];
+
+describe('Trusted Types policies and functions', () => {
+  const ttStub = stub(
+    window.trustedTypes as TrustedTypePolicyFactory,
+    'createPolicy'
+  ).returns({
+    createScriptURL: (s: string) => s
+  } as any);
+
+  it('Verify trustedTypes is called if the API is available', () => {
+    expect(ttStub).to.be.called;
+  });
+
+  it('createGtagTrustedTypesScriptURL verifies gtag URL base exists when a URL is provided', () => {
+    expect(createGtagTrustedTypesScriptURL(GTAG_URL)).to.equal(GTAG_URL);
+  });
+
+  it('createGtagTrustedTypesScriptURL rejects URLs with non-gtag base', () => {
+    const NON_GTAG_URL = 'http://iamnotgtag.com';
+    const consoleErrorStub = stub(console, 'error');
+
+    expect(createGtagTrustedTypesScriptURL(NON_GTAG_URL)).to.equal('');
+    expect(consoleErrorStub).to.be.calledWith(
+      'Unknown gtag resource!',
+      NON_GTAG_URL
+    );
+  });
+});
 
 describe('Gtag wrapping functions', () => {
   afterEach(() => {
