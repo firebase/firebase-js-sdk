@@ -30,6 +30,11 @@ export const enum TargetPurpose {
    */
   ExistenceFilterMismatch,
 
+  /**
+   * The query target was used if the query is the result of a false positive in the bloom filter.
+   */
+  ExistenceFilterMismatchBloom,
+
   /** The query target was used to resolve a limbo document. */
   LimboResolution
 }

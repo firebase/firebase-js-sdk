@@ -1018,7 +1018,7 @@ export function toListenRequestLabels(
   }
 }
 
-function toLabel(
+export function toLabel(
   serializer: JsonProtoSerializer,
   purpose: TargetPurpose
 ): string | null {
@@ -1027,6 +1027,8 @@ function toLabel(
       return null;
     case TargetPurpose.ExistenceFilterMismatch:
       return 'existence-filter-mismatch';
+    case TargetPurpose.ExistenceFilterMismatchBloom:
+      return 'existence-filter-mismatch-bloom';
     case TargetPurpose.LimboResolution:
       return 'limbo-document';
     default:

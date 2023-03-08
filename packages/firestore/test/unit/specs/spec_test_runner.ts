@@ -105,6 +105,7 @@ import {
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
 import {
   JsonProtoSerializer,
+  toLabel,
   toMutation,
   toTarget,
   toVersion
@@ -1095,7 +1096,17 @@ abstract class TestRunner {
         undefined,
         'Expected active target not found: ' + JSON.stringify(expected)
       );
-      const actualTarget = actualTargets[targetId];
+      const { target: actualTarget, labels } = actualTargets[targetId];
+
+      if (expected.targetPurpose) {
+        debugAssert(
+          labels !== undefined,
+          "Actual listen request doesn't have a 'goog-listen-tags'"
+        );
+        expect(labels['goog-listen-tags']).to.equal(
+          toLabel(this.serializer, expected.targetPurpose)
+        );
+      }
 
       // TODO(mcg): populate the purpose of the target once it's possible to
       // encode that in the spec tests. For now, hard-code that it's a listen
