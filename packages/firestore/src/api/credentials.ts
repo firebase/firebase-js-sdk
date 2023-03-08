@@ -407,22 +407,15 @@ export class FirstPartyToken implements Token {
     private readonly authTokenFactory: AuthTokenFactory | null
   ) {}
 
-  /** Gets an authorization token, using a provided factory function, or falling back to First Party GAPI. */
+  /** 
+   * Gets an authorization token, using a provided factory function, or return
+   * null. 
+   */
   private getAuthToken(): string | null {
     if (this.authTokenFactory) {
       return this.authTokenFactory();
     } else {
-      // Make sure this really is a Gapi client.
-      hardAssert(
-        !!(
-          typeof this.gapi === 'object' &&
-          this.gapi !== null &&
-          this.gapi['auth'] &&
-          this.gapi['auth']['getAuthHeaderValueForFirstParty']
-        ),
-        'unexpected gapi interface'
-      );
-      return this.gapi!['auth']['getAuthHeaderValueForFirstParty']([]);
+      return null;
     }
   }
 
