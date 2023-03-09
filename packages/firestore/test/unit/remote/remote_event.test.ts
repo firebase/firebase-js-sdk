@@ -431,9 +431,9 @@ describe('RemoteEvent', () => {
     expectTargetChangeEquals(event.targetChanges.get(1)!, expected);
   });
 
-  // TODO(Mila): Add test cases for existence filter with bloom filter, one will
-  // skip the re-query, one will yield false positive result and clears target
-  // mapping. b/272564458
+  // TODO(b/272564458): Add test cases for existence filter with bloom filter,
+  // one will skip the re-query, one will yield false positive result and clears
+  // target mapping.
   it('existence filters clears target mapping', () => {
     const targets = listens(1, 2);
 
