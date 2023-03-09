@@ -32,7 +32,7 @@ export async function captureExistenceFilterMismatches(
     info: ExistenceFilterMismatchInfo
   ): void => {
     results.push(info);
-  }
+  };
 
   const unregister =
     TestingHooks.getOrCreateInstance().onExistenceFilterMismatch(

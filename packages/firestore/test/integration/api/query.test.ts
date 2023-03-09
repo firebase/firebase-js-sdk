@@ -2114,7 +2114,7 @@ apiDescribe('Queries', (persistence: boolean) => {
             // persistence is disabled because without persistence there is no
             // resume token specified in the subsequent call to getDocs(), and,
             // therefore, Watch will _not_ send an existence filter.
-            if (! persistence) {
+            if (!persistence) {
               return 'passed';
             }
 
