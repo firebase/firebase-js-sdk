@@ -459,6 +459,9 @@ describe('RemoteEvent', () => {
     event = aggregator.createRemoteEvent(version(3));
     expect(event.documentUpdates.size).to.equal(0);
     expect(event.targetMismatches.size).to.equal(1);
+    expect(event.targetMismatches.get(1)).to.equal(
+      TargetPurpose.ExistenceFilterMismatch
+    );
     expect(event.targetChanges.size).to.equal(1);
 
     const expected = updateMapping(
@@ -499,6 +502,9 @@ describe('RemoteEvent', () => {
     const event = aggregator.createRemoteEvent(version(3));
     expect(event.documentUpdates.size).to.equal(1);
     expect(event.targetMismatches.size).to.equal(1);
+    expect(event.targetMismatches.get(1)).to.equal(
+      TargetPurpose.ExistenceFilterMismatch
+    );
     expect(event.targetChanges.get(1)!.current).to.be.false;
   });
 

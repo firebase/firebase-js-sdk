@@ -1104,7 +1104,7 @@ abstract class TestRunner {
           "Actual listen request doesn't have a 'goog-listen-tags'"
         );
         expect(labels['goog-listen-tags']).to.equal(
-          toLabel(this.serializer, expected.targetPurpose)
+          toLabel(expected.targetPurpose)
         );
       }
 

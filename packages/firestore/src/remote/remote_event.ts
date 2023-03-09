@@ -44,8 +44,9 @@ export class RemoteEvent {
      */
     readonly targetChanges: Map<TargetId, TargetChange>,
     /**
-     * A set of targets that is known to be inconsistent. Listens for these
-     * targets should be re-established without resume tokens.
+     * A map of targets that is known to be inconsistent, and the purpose for
+     * re-listening. Listens for these targets should be re-established without
+     * resume tokens.
      */
     readonly targetMismatches: SortedMap<TargetId, TargetPurpose>,
     /**

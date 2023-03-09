@@ -285,7 +285,7 @@ export class WatchChangeAggregator {
   private pendingDocumentTargetMapping = documentTargetMap();
 
   /**
-   * A list of targets with existence filter mismatches. These targets are
+   * A map of targets with existence filter mismatches. These targets are
    * known to be inconsistent and their listens needs to be re-established by
    * RemoteStore.
    */
@@ -430,15 +430,16 @@ export class WatchChangeAggregator {
         if (currentSize !== expectedCount) {
           // Apply bloom filter to identify and mark removed documents.
           const status = this.applyBloomFilter(watchChange, currentSize);
+
           if (status !== BloomFilterApplicationStatus.Success) {
             // If bloom filter application fails, we reset the mapping and
             // trigger re-run of the query.
             this.resetTarget(targetId);
+
             const purpose: TargetPurpose =
               status === BloomFilterApplicationStatus.FalsePositive
                 ? TargetPurpose.ExistenceFilterMismatchBloom
                 : TargetPurpose.ExistenceFilterMismatch;
-
             this.pendingTargetResets = this.pendingTargetResets.insert(
               targetId,
               purpose
@@ -469,10 +470,6 @@ export class WatchChangeAggregator {
       hashCount = 0
     } = unchangedNames;
 
-    if (bitmap.length === 0) {
-      return BloomFilterApplicationStatus.Skipped;
-    }
-
     let normalizedBitmap: Uint8Array;
     try {
       normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
@@ -499,6 +496,10 @@ export class WatchChangeAggregator {
       } else {
         logWarn('Applying bloom filter failed: ', err);
       }
+      return BloomFilterApplicationStatus.Skipped;
+    }
+
+    if (bloomFilter.isEmpty()) {
       return BloomFilterApplicationStatus.Skipped;
     }
 
