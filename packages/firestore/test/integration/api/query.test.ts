@@ -2068,7 +2068,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   // emulator once the bug where an existence filter fails to be sent when a
   // query is resumed is fixed.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it.only)(
+  (USE_EMULATOR ? it.skip : it)(
     'resuming a query should use bloom filter to avoid full requery',
     async () => {
       // Create 100 documents in a new collection.
