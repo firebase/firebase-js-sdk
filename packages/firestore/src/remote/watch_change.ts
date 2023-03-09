@@ -499,7 +499,7 @@ export class WatchChangeAggregator {
       return BloomFilterApplicationStatus.Skipped;
     }
 
-    if (bloomFilter.isEmpty()) {
+    if (bloomFilter.bitCount === 0) {
       return BloomFilterApplicationStatus.Skipped;
     }
 

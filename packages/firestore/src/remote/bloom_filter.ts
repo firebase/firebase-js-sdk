@@ -75,10 +75,6 @@ export class BloomFilter {
     this.bitCountInInteger = Integer.fromNumber(this.bitCount);
   }
 
-  isEmpty(): boolean {
-    return this.bitCount === 0;
-  }
-
   // Calculate the ith hash value based on the hashed 64bit integers,
   // and calculate its corresponding bit index in the bitmap to be checked.
   private getBitIndex(num1: Integer, num2: Integer, hashIndex: number): number {

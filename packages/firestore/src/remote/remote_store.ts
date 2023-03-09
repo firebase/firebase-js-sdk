@@ -611,10 +611,7 @@ function raiseWatchSnapshot(
     // Mark the target we send as being on behalf of an existence filter
     // mismatch, but don't actually retain that in listenTargets. This ensures
     // that we flag the first re-listen this way without impacting future
-    // listens of this target (that might happen e.g. on reconnect). The target
-    // purpose will be `ExistenceFilterMismatchBloom` if there is a bloom filter
-    // but it yield false positive result, otherwise, it will be set to
-    // `ExistenceFilterMismatch`.
+    // listens of this target (that might happen e.g. on reconnect).
     const requestTargetData = new TargetData(
       targetData.target,
       targetId,

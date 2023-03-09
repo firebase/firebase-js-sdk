@@ -26,12 +26,14 @@ export const enum TargetPurpose {
   Listen,
 
   /**
-   * The query target was used to refill a query after an existence filter mismatch.
+   * The query target was used to refill a query after an existence filter
+   * mismatch.
    */
   ExistenceFilterMismatch,
 
   /**
-   * The query target was used if the query is the result of a false positive in the bloom filter.
+   * The query target was used if the query is the result of a false positive in
+   * the bloom filter.
    */
   ExistenceFilterMismatchBloom,
 

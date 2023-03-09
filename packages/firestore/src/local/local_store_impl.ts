@@ -601,7 +601,7 @@ export function localStoreApplyRemoteEventToLocalCache(
         let newTargetData = oldTargetData.withSequenceNumber(
           txn.currentSequenceNumber
         );
-        if (remoteEvent.targetMismatches.get(targetId) != null) {
+        if (remoteEvent.targetMismatches.get(targetId) !== null) {
           newTargetData = newTargetData
             .withResumeToken(
               ByteString.EMPTY_BYTE_STRING,
