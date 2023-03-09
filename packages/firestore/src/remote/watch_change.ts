@@ -38,7 +38,7 @@ import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import {
-  ExistenceFilterMismatchInfo,
+  ExistenceFilterMismatchInfo as TestingHooksExistenceFilterMismatchInfo,
   TestingHooks
 } from '../util/testing_hooks';
 
@@ -436,10 +436,12 @@ export class WatchChangeAggregator {
             this.resetTarget(targetId);
             this.pendingTargetResets = this.pendingTargetResets.add(targetId);
           }
-          notifyTestingHooksOnExistenceFilterMismatch(
-            bloomFilterApplied,
-            currentSize,
-            watchChange.existenceFilter
+          TestingHooks.instance?.notifyOnExistenceFilterMismatch(
+            createExistenceFilterMismatchInfoForTestingHooks(
+              bloomFilterApplied,
+              currentSize,
+              watchChange.existenceFilter
+            )
           );
         }
       }
@@ -799,19 +801,19 @@ function snapshotChangesMap(): SortedMap<DocumentKey, ChangeType> {
   return new SortedMap<DocumentKey, ChangeType>(DocumentKey.comparator);
 }
 
-function notifyTestingHooksOnExistenceFilterMismatch(
+function createExistenceFilterMismatchInfoForTestingHooks(
   bloomFilterApplied: boolean,
   actualCount: number,
   existenceFilter: ExistenceFilter
-): void {
-  const existenceFilterMismatchInfo: ExistenceFilterMismatchInfo = {
+): TestingHooksExistenceFilterMismatchInfo {
+  const result: TestingHooksExistenceFilterMismatchInfo = {
     actualCount,
     expectedCount: existenceFilter.count
   };
 
   const unchangedNames = existenceFilter.unchangedNames;
   if (unchangedNames) {
-    existenceFilterMismatchInfo.bloomFilter = {
+    result.bloomFilter = {
       applied: bloomFilterApplied,
       hashCount: unchangedNames?.hashCount ?? 0,
       bitmapLength: unchangedNames?.bits?.bitmap?.length ?? 0,
@@ -819,7 +821,5 @@ function notifyTestingHooksOnExistenceFilterMismatch(
     };
   }
 
-  TestingHooks.instance?.notifyOnExistenceFilterMismatch(
-    existenceFilterMismatchInfo
-  );
+  return result;
 }
