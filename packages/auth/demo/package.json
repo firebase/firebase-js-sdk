@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@firebase/app": "0.7.24",
-    "@firebase/auth": "0.20.1",
+    "@firebase/auth": "file:..",
     "@firebase/logger": "0.3.2",
     "@firebase/util": "1.6.0",
     "tslib": "^2.1.0"
