@@ -2066,7 +2066,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   // emulator once the bug where an existence filter fails to be sent when a
   // query is resumed is fixed.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR || !persistence ? it.skip : it)(
+  (USE_EMULATOR ? it.skip : it.only)(
     'resuming a query should use bloom filter to avoid full requery',
     async () => {
       // Create 100 documents in a new collection.
@@ -2110,13 +2110,29 @@ apiDescribe('Queries', (persistence: boolean) => {
                 expect(snapshot2.size, 'snapshot2.size').to.equal(50);
               });
 
+            // Skip the verification of the existence filter mismatch when
+            // persistence is disabled because without persistence there is no
+            // resume token specified in the subsequent call to getDocs(), and,
+            // therefore, Watch will _not_ send an existence filter.
+            if (! persistence) {
+              return 'passed';
+            }
+
+            // Skip the verification of the existence filter mismatch when
+            // testing against the Firestore emulator because the Firestore
+            // emulator does not include the `unchanged_names` bloom filter when
+            // it sends ExistenceFilter messages. Some day the emulator _may_
+            // implement this logic, at which time this short-circuit can be
+            // removed.
+            if (USE_EMULATOR) {
+              return 'passed';
+            }
+
             // Verify that upon resuming the query that Watch sent an existence
             // filter that included a bloom filter, and that the bloom filter
             // was successfully used to avoid a full requery.
-            // TODO(b/271949433) Replace this "if" condition with !USE_EMULATOR
-            // once the feature has been deployed to production. Note that there
-            // are no plans to implement the bloom filter in the existence
-            // filter responses sent from the Firestore *emulator*.
+            // TODO(b/271949433) Remove this check for "nightly" once the bloom
+            // filter logic is deployed to production, circa May 2023.
             if (TARGET_BACKEND === 'nightly') {
               expect(
                 existenceFilterMismatches,

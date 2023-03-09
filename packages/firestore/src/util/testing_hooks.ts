@@ -63,7 +63,8 @@ export class TestingHooks {
    * occurs in the Watch listen stream.
    *
    * The relative order in which callbacks are notified is unspecified; do not
-   * rely on any particular ordering.
+   * rely on any particular ordering. If a given callback is registered multiple
+   * times then it will be notified multiple times, once per registration.
    *
    * @param callback the callback to invoke upon existence filter mismatch.
    *
@@ -89,8 +90,8 @@ export class TestingHooks {
 }
 
 /**
- * The signature of callbacks registered with
- * `TestingUtils.onExistenceFilterMismatch()`.
+ * Information about an existence filter mismatch, as specified to callbacks
+ * registered with `TestingUtils.onExistenceFilterMismatch()`.
  */
 export interface ExistenceFilterMismatchInfo {
   /** The number of documents that matched the query in the local cache. */

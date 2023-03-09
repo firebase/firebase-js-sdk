@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _TestingHooks as TestingHooks, _logWarn } from './firebase_export';
+import { _TestingHooks as TestingHooks } from './firebase_export';
 
 /**
  * Captures all existence filter mismatches in the Watch 'Listen' stream that
@@ -31,9 +31,8 @@ export async function captureExistenceFilterMismatches(
   const onExistenceFilterMismatchCallback = (
     info: ExistenceFilterMismatchInfo
   ): void => {
-    _logWarn('zzyzx onExistenceFilterMismatchCallback', info);
     results.push(info);
-  };
+  }
 
   const unregister =
     TestingHooks.getOrCreateInstance().onExistenceFilterMismatch(
@@ -55,6 +54,10 @@ export async function captureExistenceFilterMismatches(
  *
  * See the documentation of `TestingHooks.notifyOnExistenceFilterMismatch()`
  * for the meaning of these values.
+ *
+ * TODO: Delete this "interface" definition and instead use the one from
+ * testing_hooks.ts. I tried to do this but couldn't figure out how to get it to
+ * work in a way that survived bundling and minification.
  */
 export interface ExistenceFilterMismatchInfo {
   actualCount: number;
