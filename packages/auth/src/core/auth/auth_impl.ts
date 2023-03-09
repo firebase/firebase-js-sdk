@@ -22,7 +22,6 @@ import {
   AuthErrorMap,
   AuthSettings,
   EmulatorConfig,
-  RecaptchaConfig,
   NextOrObserver,
   Persistence,
   PopupRedirectResolver,
@@ -63,7 +62,10 @@ import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 import { HttpHeader, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
-import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import {
+  RecaptchaEnterpriseVerifier,
+  RecaptchaConfig2
+} from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { AuthMiddlewareQueue } from './middleware';
 
 interface AsyncAction {
@@ -97,8 +99,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _popupRedirectResolver: PopupRedirectResolverInternal | null = null;
   _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams> =
     _DEFAULT_AUTH_ERROR_FACTORY;
-  _agentRecaptchaConfig: RecaptchaConfig | null = null;
-  _tenantRecaptchaConfigs: Record<string, RecaptchaConfig> = {};
+  _agentRecaptchaConfig: RecaptchaConfig2 | null = null;
+  _tenantRecaptchaConfigs: Record<string, RecaptchaConfig2> = {};
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -397,23 +399,22 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       clientType: RecaptchaClientType.WEB,
       version: RecaptchaVersion.ENTERPRISE
     });
-    // TODO(chuanr): Confirm the response format when backend is ready
-    if (response.recaptchaConfig === undefined) {
-      throw new Error('recaptchaConfig undefined');
-    }
-    const config = response.recaptchaConfig;
-    if (this.tenantId) {
-      this._tenantRecaptchaConfigs[this.tenantId] = config;
+
+    const config = new RecaptchaConfig2(response);
+    if (this.tenantId == null) {
+      RecaptchaEnterpriseVerifier.agentRecaptchaConfig = config;
     } else {
-      this._agentRecaptchaConfig = config;
+      RecaptchaEnterpriseVerifier.tenantRecaptchaConfigs[this.tenantId] =
+        config;
     }
+
     if (config.emailPasswordEnabled) {
       const verifier = new RecaptchaEnterpriseVerifier(this);
       void verifier.verify();
     }
   }
 
-  _getRecaptchaConfig(): RecaptchaConfig | null {
+  _getRecaptchaConfig(): RecaptchaConfig2 | null {
     if (this.tenantId == null) {
       return this._agentRecaptchaConfig;
     } else {

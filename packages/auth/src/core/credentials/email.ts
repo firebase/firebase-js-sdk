@@ -33,7 +33,7 @@ import { ServerError } from '../../api/errors';
 import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
 import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import { RecaptchaActionName } from '../../api';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
  * {@link ProviderId}.PASSWORD
@@ -121,7 +121,8 @@ export class EmailAuthCredential extends AuthCredential {
         const request: SignInWithPasswordRequest = {
           returnSecureToken: true,
           email: this._email,
-          password: this._password
+          password: this._password,
+          clientType: RecaptchaClientType.WEB
         };
         if (auth._getRecaptchaConfig()?.emailPasswordEnabled) {
           const requestWithRecaptcha = await injectRecaptchaFields(

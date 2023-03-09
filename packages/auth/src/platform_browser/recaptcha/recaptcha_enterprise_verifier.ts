@@ -17,7 +17,10 @@
  */
 
 import { isEnterprise } from './recaptcha';
-import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
+import {
+  getRecaptchaConfig,
+  GetRecaptchaConfigResponse
+} from '../../api/authentication/recaptcha';
 import {
   RecaptchaClientType,
   RecaptchaVersion,
@@ -34,6 +37,29 @@ const RECAPTCHA_ENTERPRISE_URL =
 
 export const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
 
+export class RecaptchaConfig2 {
+  /**
+   * The reCAPTCHA site key.
+   */
+
+  siteKey: string;
+
+  /**
+   * The reCAPTCHA enablement status of the {@link EmailAuthProvider} for the current tenant.
+   */
+  emailPasswordEnabled: boolean;
+
+  constructor(response: GetRecaptchaConfigResponse) {
+    this.siteKey = response.recaptchaKey.split('/')[3];
+
+    this.emailPasswordEnabled = response.recaptchaEnforcementState.some(
+      enforcementState =>
+        enforcementState.provider === 'EMAIL_PASSWORD_PROVIDER' &&
+        enforcementState.enforcementState === 'ENFORCE'
+    );
+  }
+}
+
 export class RecaptchaEnterpriseVerifier {
   /**
    * Identifies the type of application verifier (e.g. "recaptcha-enterprise").
@@ -41,14 +67,14 @@ export class RecaptchaEnterpriseVerifier {
   readonly type = RECAPTCHA_ENTERPRISE_VERIFIER_TYPE;
 
   /**
-   * Stores the reCAPTCHA site key per tenant.
+   * Stores the reCAPTCHA confg for agent.
    */
-  static tenantSiteKeys: Record<string, string> = {};
+  static agentRecaptchaConfig: RecaptchaConfig2 | null;
 
   /**
-   * Stores the reCAPTCHA site key for agent.
+   * Stores the reCAPTCHA config per tenant.
    */
-  static agentSiteKey: string | null;
+  static tenantRecaptchaConfigs: Record<string, RecaptchaConfig2> = {};
 
   private readonly auth: AuthInternal;
 
@@ -74,16 +100,18 @@ export class RecaptchaEnterpriseVerifier {
       if (!forceRefresh) {
         if (
           auth.tenantId == null &&
-          RecaptchaEnterpriseVerifier.agentSiteKey != null
+          RecaptchaEnterpriseVerifier.agentRecaptchaConfig != null
         ) {
-          return RecaptchaEnterpriseVerifier.agentSiteKey;
+          return RecaptchaEnterpriseVerifier.agentRecaptchaConfig.siteKey;
         }
         if (
           auth.tenantId != null &&
-          RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId] !==
+          RecaptchaEnterpriseVerifier.tenantRecaptchaConfigs[auth.tenantId] !==
             undefined
         ) {
-          return RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId];
+          return RecaptchaEnterpriseVerifier.tenantRecaptchaConfigs[
+            auth.tenantId
+          ].siteKey;
         }
       }
 
@@ -96,14 +124,15 @@ export class RecaptchaEnterpriseVerifier {
             if (response.recaptchaKey === undefined) {
               reject(new Error('recaptchaKey undefined'));
             } else {
-              const siteKey = response.recaptchaKey.split('/')[3];
+              const config = new RecaptchaConfig2(response);
               if (auth.tenantId == null) {
-                RecaptchaEnterpriseVerifier.agentSiteKey = siteKey;
+                RecaptchaEnterpriseVerifier.agentRecaptchaConfig = config;
               } else {
-                RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId] =
-                  siteKey;
+                RecaptchaEnterpriseVerifier.tenantRecaptchaConfigs[
+                  auth.tenantId
+                ] = config;
               }
-              return resolve(siteKey);
+              return resolve(config.siteKey);
             }
           })
           .catch(error => {
