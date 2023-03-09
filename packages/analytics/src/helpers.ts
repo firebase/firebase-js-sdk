@@ -29,7 +29,8 @@ import { AnalyticsError, ERROR_FACTORY } from './errors';
 // Possible parameter types for gtag 'event' and 'config' commands
 type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
 
-// Create a TrustedTypes policy that we use for scripts
+// Create a TrustedTypes policy that we can use for updating src
+// properties
 let _ttPolicy: Partial<TrustedTypePolicy>;
 if (window.trustedTypes) {
   _ttPolicy = window.trustedTypes.createPolicy('firebase-js-sdk-policy', {
