@@ -1,9 +1,6 @@
 name: Doc Change Check (Run "yarn docgen devsite" if this fails)
 
-on:
-  pull_request:
-    branches:
-      - master
+on: pull_request
 
 jobs:
   doc-check:
