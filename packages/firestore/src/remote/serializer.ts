@@ -1008,7 +1008,7 @@ export function toListenRequestLabels(
   serializer: JsonProtoSerializer,
   targetData: TargetData
 ): ProtoApiClientObjectMap<string> | null {
-  const value = toLabel(serializer, targetData.purpose);
+  const value = toLabel(targetData.purpose);
   if (value == null) {
     return null;
   } else {
@@ -1018,15 +1018,14 @@ export function toListenRequestLabels(
   }
 }
 
-function toLabel(
-  serializer: JsonProtoSerializer,
-  purpose: TargetPurpose
-): string | null {
+export function toLabel(purpose: TargetPurpose): string | null {
   switch (purpose) {
     case TargetPurpose.Listen:
       return null;
     case TargetPurpose.ExistenceFilterMismatch:
       return 'existence-filter-mismatch';
+    case TargetPurpose.ExistenceFilterMismatchBloom:
+      return 'existence-filter-mismatch-bloom';
     case TargetPurpose.LimboResolution:
       return 'limbo-document';
     default:
