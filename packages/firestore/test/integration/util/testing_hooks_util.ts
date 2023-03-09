@@ -60,8 +60,8 @@ export async function captureExistenceFilterMismatches(
  * work in a way that survived bundling and minification.
  */
 export interface ExistenceFilterMismatchInfo {
-  actualCount: number;
-  expectedCount: number;
+  localCacheCount: number;
+  existenceFilterCount: number;
   bloomFilter?: {
     applied: boolean;
     hashCount: number;

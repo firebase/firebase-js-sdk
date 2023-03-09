@@ -803,12 +803,12 @@ function snapshotChangesMap(): SortedMap<DocumentKey, ChangeType> {
 
 function createExistenceFilterMismatchInfoForTestingHooks(
   bloomFilterApplied: boolean,
-  actualCount: number,
+  localCacheCount: number,
   existenceFilter: ExistenceFilter
 ): TestingHooksExistenceFilterMismatchInfo {
   const result: TestingHooksExistenceFilterMismatchInfo = {
-    actualCount,
-    expectedCount: existenceFilter.count
+    localCacheCount,
+    existenceFilterCount: existenceFilter.count
   };
 
   const unchangedNames = existenceFilter.unchangedNames;

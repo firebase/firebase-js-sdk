@@ -2140,11 +2140,11 @@ apiDescribe('Queries', (persistence: boolean) => {
             existenceFilterMismatches,
             'existenceFilterMismatches'
           ).to.have.length(1);
-          const { actualCount, expectedCount, bloomFilter } =
+          const { localCacheCount, existenceFilterCount, bloomFilter } =
             existenceFilterMismatches[0];
 
-          expect(actualCount, 'actualCount').to.equal(100);
-          expect(expectedCount, 'expectedCount').to.equal(50);
+          expect(localCacheCount, 'localCacheCount').to.equal(100);
+          expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
           if (!bloomFilter) {
             expect.fail(
               'The existence filter should have specified ' +

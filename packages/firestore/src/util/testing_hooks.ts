@@ -95,13 +95,13 @@ export class TestingHooks {
  */
 export interface ExistenceFilterMismatchInfo {
   /** The number of documents that matched the query in the local cache. */
-  actualCount: number;
+  localCacheCount: number;
 
   /**
    * The number of documents that matched the query on the server, as specified
    * in the ExistenceFilter message's `count` field.
    */
-  expectedCount: number;
+  existenceFilterCount: number;
 
   /**
    * Information about the bloom filter provided by Watch in the ExistenceFilter
