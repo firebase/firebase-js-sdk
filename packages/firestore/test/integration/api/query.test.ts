@@ -2186,13 +2186,13 @@ apiDescribe('Queries', (persistence: boolean) => {
       expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
 
       // Verify that the bloom filter was successfully used to avert a full
-      // request. If a false positive occurred then retry the entire test.
+      // requery. If a false positive occurred then retry the entire test.
       // Although statistically rare, false positives are expected to happen
       // occasionally. When a false positive _does_ happen, just retry the test
       // with a different set of documents. If that retry _also_ experiences a
       // false positive, then fail the test because that is so improbable that
       // something must have gone wrong.
-      if (attemptNumber > 1 && !bloomFilter.applied) {
+      if (attemptNumber === 1 && !bloomFilter.applied) {
         return 'retry';
       }
       expect(
