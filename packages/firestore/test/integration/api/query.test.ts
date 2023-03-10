@@ -2105,9 +2105,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       // mismatches to verify that Watch sent a bloom filter, and it was used to
       // avert a full requery.
       const [existenceFilterMismatches, snapshot2] =
-        await captureExistenceFilterMismatches(async () => {
-          return await getDocs(coll);
-        });
+        await captureExistenceFilterMismatches(() => getDocs(coll));
 
       // Verify that the snapshot from the resumed query contains the expected
       // documents; that is, that it contains the 50 documents that were _not_
