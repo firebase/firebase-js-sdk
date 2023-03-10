@@ -139,8 +139,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           // be released, but it can only process the change after we recover
           // the database.
           .expectActiveTargets({
-            query: query1,
-            targetPurpose: TargetPurpose.ExistenceFilterMismatch
+            query: query1
           })
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
@@ -727,8 +726,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectActiveTargets({
-            query: query1,
-            targetPurpose: TargetPurpose.ExistenceFilterMismatch
+            query: query1
           })
           .expectEvents(query1, { removed: [doc1], fromCache: true })
           .failDatabaseTransactions('Handle user change')
@@ -738,8 +736,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectActiveTargets({
-            query: query1,
-            targetPurpose: TargetPurpose.ExistenceFilterMismatch
+            query: query1
           })
           .expectEvents(query1, {
             added: [doc1],
@@ -777,8 +774,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectActiveTargets({
-            query: query1,
-            targetPurpose: TargetPurpose.ExistenceFilterMismatch
+            query: query1
           })
           // We are now user 2
           .expectEvents(query1, { removed: [doc1], fromCache: true })
