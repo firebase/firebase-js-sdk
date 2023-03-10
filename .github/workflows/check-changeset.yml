@@ -2,8 +2,8 @@ name: Check Changeset
 
 on:
   pull_request:
-    branches-ignore:
-      - release
+    branches:
+      - master
 
 env:
   GITHUB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
