@@ -45,6 +45,7 @@ function copyTests() {
         testBase + '/integration/util/events_accumulator.ts',
         testBase + '/integration/util/helpers.ts',
         testBase + '/integration/util/settings.ts',
+        testBase + '/integration/util/testing_hooks_util.ts',
         testBase + '/util/equality_matcher.ts',
         testBase + '/util/promise.ts'
       ],

@@ -37,6 +37,10 @@ import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
+import {
+  ExistenceFilterMismatchInfo as TestingHooksExistenceFilterMismatchInfo,
+  TestingHooks
+} from '../util/testing_hooks';
 
 import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
@@ -445,6 +449,13 @@ export class WatchChangeAggregator {
               purpose
             );
           }
+          TestingHooks.instance?.notifyOnExistenceFilterMismatch(
+            createExistenceFilterMismatchInfoForTestingHooks(
+              status,
+              currentSize,
+              watchChange.existenceFilter
+            )
+          );
         }
       }
     }
@@ -814,4 +825,27 @@ function documentTargetMap(): SortedMap<DocumentKey, SortedSet<TargetId>> {
 
 function snapshotChangesMap(): SortedMap<DocumentKey, ChangeType> {
   return new SortedMap<DocumentKey, ChangeType>(DocumentKey.comparator);
+}
+
+function createExistenceFilterMismatchInfoForTestingHooks(
+  status: BloomFilterApplicationStatus,
+  localCacheCount: number,
+  existenceFilter: ExistenceFilter
+): TestingHooksExistenceFilterMismatchInfo {
+  const result: TestingHooksExistenceFilterMismatchInfo = {
+    localCacheCount,
+    existenceFilterCount: existenceFilter.count
+  };
+
+  const unchangedNames = existenceFilter.unchangedNames;
+  if (unchangedNames) {
+    result.bloomFilter = {
+      applied: status === BloomFilterApplicationStatus.Success,
+      hashCount: unchangedNames?.hashCount ?? 0,
+      bitmapLength: unchangedNames?.bits?.bitmap?.length ?? 0,
+      padding: unchangedNames?.bits?.padding ?? 0
+    };
+  }
+
+  return result;
 }
