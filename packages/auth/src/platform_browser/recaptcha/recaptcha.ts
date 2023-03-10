@@ -16,6 +16,7 @@
  */
 
 import { RecaptchaParameters } from '../../model/public_types';
+import { GetRecaptchaConfigResponse } from '../../api/authentication/recaptcha';
 
 // reCAPTCHA v2 interface
 export interface Recaptcha {
@@ -67,5 +68,26 @@ export function isEnterprise(
 declare global {
   interface Window {
     grecaptcha?: Recaptcha | GreCAPTCHATopLevel;
+  }
+}
+
+export class RecaptchaConfig {
+  /**
+   * The reCAPTCHA site key.
+   */
+  siteKey: string = '';
+
+  /**
+   * The reCAPTCHA enablement status of the {@link EmailAuthProvider} for the current tenant.
+   */
+  emailPasswordEnabled: boolean = false;
+
+  constructor(response: GetRecaptchaConfigResponse) {
+    this.siteKey = response.recaptchaKey.split('/')[3];
+    this.emailPasswordEnabled = response.recaptchaEnforcementState.some(
+      enforcementState =>
+        enforcementState.provider === 'EMAIL_PASSWORD_PROVIDER' &&
+        enforcementState.enforcementState === 'ENFORCE'
+    );
   }
 }

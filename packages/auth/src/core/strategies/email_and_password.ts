@@ -38,7 +38,7 @@ import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
 import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { IdTokenResponse } from '../../model/id_token';
-import { RecaptchaActionName } from '../../api';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 
 /**
  * Sends a password reset email to the given email address.
@@ -80,7 +80,8 @@ export async function sendPasswordResetEmail(
   const authInternal = _castAuth(auth);
   const request: authentication.PasswordResetRequest = {
     requestType: ActionCodeOperation.PASSWORD_RESET,
-    email
+    email,
+    clientType: RecaptchaClientType.WEB
   };
   if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
     const requestWithRecaptcha = await injectRecaptchaFields(
@@ -283,7 +284,8 @@ export async function createUserWithEmailAndPassword(
   const request: SignUpRequest = {
     returnSecureToken: true,
     email,
-    password
+    password,
+    clientType: RecaptchaClientType.WEB
   };
   let signUpResponse: Promise<IdTokenResponse>;
   if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {

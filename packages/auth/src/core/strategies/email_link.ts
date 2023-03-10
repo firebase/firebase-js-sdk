@@ -33,7 +33,7 @@ import { _assert } from '../util/assert';
 import { getModularInstance } from '@firebase/util';
 import { _castAuth } from '../auth/auth_impl';
 import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import { RecaptchaActionName } from '../../api';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 
 /**
  * Sends a sign-in email link to the user with the specified email.
@@ -81,7 +81,8 @@ export async function sendSignInLinkToEmail(
   const authInternal = _castAuth(auth);
   const request: api.EmailSignInRequest = {
     requestType: ActionCodeOperation.EMAIL_SIGNIN,
-    email
+    email,
+    clientType: RecaptchaClientType.WEB
   };
   function setActionCodeSettings(
     request: api.EmailSignInRequest,

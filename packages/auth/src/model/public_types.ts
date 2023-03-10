@@ -358,17 +358,6 @@ export interface Persistence {
 }
 
 /**
- *
- * @public
- */
-export interface RecaptchaConfig {
-  /**
-   * The reCAPTCHA enablement status of the {@link EmailAuthProvider} for the current tenant.
-   */
-  emailPasswordEnabled: boolean;
-}
-
-/**
  * Interface representing ID token result obtained from {@link User.getIdTokenResult}.
  *
  * @remarks

@@ -671,11 +671,6 @@ export function reauthenticateWithPopup(user: User, provider: AuthProvider, reso
 // @public
 export function reauthenticateWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
 
-// @public (undocumented)
-export interface RecaptchaConfig {
-    emailPasswordEnabled: boolean;
-}
-
 // @public
 export interface RecaptchaParameters {
     // (undocumented)
