@@ -2073,20 +2073,20 @@ apiDescribe('Queries', (persistence: boolean) => {
     }
 
     // The function that runs a single iteration of the test.
-    // Below this definition, there is a "while" loop that calls this
-    // function potentially multiple times.
+    // Below this definition, there is a "while" loop that calls this function
+    // potentially multiple times.
     const runTestIteration = async (
       coll: CollectionReference,
       db: Firestore
     ): Promise<'retry' | 'passed'> => {
-      // Run a query to populate the local cache with the 100 documents
-      // and a resume token.
+      // Run a query to populate the local cache with the 100 documents and a
+      // resume token.
       const snapshot1 = await getDocs(coll);
       expect(snapshot1.size, 'snapshot1.size').to.equal(100);
       const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
 
-      // Delete 50 of the 100 documents. Do this in a transaction, rather
-      // than deleteDoc(), to avoid affecting the local cache.
+      // Delete 50 of the 100 documents. Do this in a transaction, rather than
+      // deleteDoc(), to avoid affecting the local cache.
       const deletedDocumentIds = new Set<string>();
       await runTransaction(db, async txn => {
         for (let i = 0; i < createdDocuments.length; i += 2) {
@@ -2096,9 +2096,9 @@ apiDescribe('Queries', (persistence: boolean) => {
         }
       });
 
-      // Wait for 10 seconds, during which Watch will stop tracking the
-      // query and will send an existence filter rather than "delete"
-      // events when the query is resumed.
+      // Wait for 10 seconds, during which Watch will stop tracking the query
+      // and will send an existence filter rather than "delete" events when the
+      // query is resumed.
       await new Promise(resolve => setTimeout(resolve, 10000));
 
       // Resume the query and save the resulting snapshot for verification.
@@ -2114,10 +2114,10 @@ apiDescribe('Queries', (persistence: boolean) => {
       // documents; that is, that it contains the 50 documents that were _not_
       // deleted.
       // TODO(b/270731363): Remove the "if" condition below once the
-      // Firestore Emulator is fixed to send an existence filter. At the
-      // time of writing, the Firestore emulator fails to send an
-      // existence filter, resulting in the client including the deleted
-      // documents in the snapshot of the resumed query.
+      // Firestore Emulator is fixed to send an existence filter. At the time of
+      // writing, the Firestore emulator fails to send an existence filter,
+      // resulting in the client including the deleted documents in the snapshot
+      // of the resumed query.
       if (!(USE_EMULATOR && snapshot2.size === 100)) {
         const actualDocumentIds = snapshot2.docs
           .map(documentSnapshot => documentSnapshot.ref.id)
@@ -2131,66 +2131,72 @@ apiDescribe('Queries', (persistence: boolean) => {
         );
       }
 
-      // Skip the verification of the existence filter mismatch when
-      // persistence is disabled because without persistence there is no
-      // resume token specified in the subsequent call to getDocs(), and,
-      // therefore, Watch will _not_ send an existence filter.
+      // Skip the verification of the existence filter mismatch when persistence
+      // is disabled because without persistence there is no resume token
+      // specified in the subsequent call to getDocs(), and, therefore, Watch
+      // will _not_ send an existence filter.
       if (!persistence) {
         return 'passed';
       }
 
-      // Skip the verification of the existence filter mismatch when
-      // testing against the Firestore emulator because the Firestore
-      // emulator does not include the `unchanged_names` bloom filter when
-      // it sends ExistenceFilter messages. Some day the emulator _may_
-      // implement this logic, at which time this short-circuit can be
-      // removed.
+      // Skip the verification of the existence filter mismatch when testing
+      // against the Firestore emulator because the Firestore emulator does not
+      // include the `unchanged_names` bloom filter when it sends
+      // ExistenceFilter messages. Some day the emulator _may_ implement this
+      // logic, at which time this short-circuit can be removed.
       if (USE_EMULATOR) {
         return 'passed';
       }
 
-      // Verify that upon resuming the query that Watch sent an existence
-      // filter that included a bloom filter, and that the bloom filter
-      // was successfully used to avoid a full requery.
-      // TODO(b/271949433) Remove this check for "nightly" once the bloom
-      // filter logic is deployed to production, circa May 2023.
-      if (TARGET_BACKEND === 'nightly') {
-        expect(
-          existenceFilterMismatches,
-          'existenceFilterMismatches'
-        ).to.have.length(1);
-        const { localCacheCount, existenceFilterCount, bloomFilter } =
-          existenceFilterMismatches[0];
+      // Verify that Watch sent an existence filter with the correct counts when
+      // the query was resumed.
+      expect(
+        existenceFilterMismatches,
+        'existenceFilterMismatches'
+      ).to.have.length(1);
+      const { localCacheCount, existenceFilterCount, bloomFilter } =
+        existenceFilterMismatches[0];
+      expect(localCacheCount, 'localCacheCount').to.equal(100);
+      expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
 
-        expect(localCacheCount, 'localCacheCount').to.equal(100);
-        expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
-        if (!bloomFilter) {
-          expect.fail(
-            'The existence filter should have specified ' +
-              'a bloom filter in its `unchanged_names` field.'
-          );
-          throw new Error('should never get here');
-        }
-
-        expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(0);
-        expect(
-          bloomFilter.bitmapLength,
-          'bloomFilter.bitmapLength'
-        ).to.be.above(0);
-        expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
-        expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
-
-        // Retry the entire test if a bloom filter false positive occurs.
-        // Although statistically rare, false positives are expected to
-        // happen occasionally. When a false positive _does_ happen, just
-        // retry the test with a different set of documents. If that retry
-        // _also_ experiences a false positive, then fail the test because
-        // that is so improbable that something must have gone wrong.
-        if (attemptNumber > 1 && !bloomFilter.applied) {
-          return 'retry';
-        }
-        expect(bloomFilter.applied, 'bloomFilter.applied').to.be.true;
+      // Skip the verification of the bloom filter when testing against
+      // production because the bloom filter is only implemented in nightly.
+      // TODO(b/271949433) Remove this "if" block once the bloom filter logic is
+      // deployed to production.
+      if (TARGET_BACKEND !== 'nightly') {
+        return 'passed';
       }
+
+      // Verify that Watch sent a valid bloom filter.
+      if (!bloomFilter) {
+        expect.fail(
+          'The existence filter should have specified a bloom filter in its ' +
+            '`unchanged_names` field.'
+        );
+        throw new Error('should never get here');
+      }
+
+      expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(0);
+      expect(bloomFilter.bitmapLength, 'bloomFilter.bitmapLength').to.be.above(
+        0
+      );
+      expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
+      expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
+
+      // Verify that the bloom filter was successfully used to avert a full
+      // request. If a false positive occurred then retry the entire test.
+      // Although statistically rare, false positives are expected to happen
+      // occasionally. When a false positive _does_ happen, just retry the test
+      // with a different set of documents. If that retry _also_ experiences a
+      // false positive, then fail the test because that is so improbable that
+      // something must have gone wrong.
+      if (attemptNumber > 1 && !bloomFilter.applied) {
+        return 'retry';
+      }
+      expect(
+        bloomFilter.applied,
+        `bloomFilter.applied with attemptNumber=${attemptNumber}`
+      ).to.be.true;
 
       return 'passed';
     };
