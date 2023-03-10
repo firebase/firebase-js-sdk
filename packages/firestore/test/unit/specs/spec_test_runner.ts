@@ -1102,7 +1102,7 @@ abstract class TestRunner {
       let targetData = new TargetData(
         queryToTarget(parseQuery(expected.queries[0])),
         targetId,
-        expected.targetPurpose || TargetPurpose.Listen,
+        expected.targetPurpose ?? TargetPurpose.Listen,
         ARBITRARY_SEQUENCE_NUMBER
       );
       if (expected.resumeToken && expected.resumeToken !== '') {
