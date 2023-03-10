@@ -24,9 +24,9 @@ import { _TestingHooks as TestingHooks } from './firebase_export';
  * callback all existence filter mismatches will be captured.
  * @return the captured existence filter mismatches.
  */
-export async function captureExistenceFilterMismatches(
-  callback: () => Promise<void>
-): Promise<ExistenceFilterMismatchInfo[]> {
+export async function captureExistenceFilterMismatches<T>(
+  callback: () => Promise<T>
+): Promise<[ExistenceFilterMismatchInfo[], T]> {
   const results: ExistenceFilterMismatchInfo[] = [];
   const onExistenceFilterMismatchCallback = (
     info: ExistenceFilterMismatchInfo
@@ -39,13 +39,14 @@ export async function captureExistenceFilterMismatches(
       onExistenceFilterMismatchCallback
     );
 
+  let callbackResult: T;
   try {
-    await callback();
+    callbackResult = await callback();
   } finally {
     unregister();
   }
 
-  return results;
+  return [results, callbackResult];
 }
 
 /**
