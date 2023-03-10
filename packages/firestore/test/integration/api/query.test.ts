@@ -2064,11 +2064,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // TODO(b/270731363): Re-enable this test to run against the Firestore
-  // emulator once the bug where an existence filter fails to be sent when a
-  // query is resumed is fixed.
-  // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
+  it(
     'resuming a query should use bloom filter to avoid full requery',
     async () => {
       // Create 100 documents in a new collection.
@@ -2109,7 +2105,14 @@ apiDescribe('Queries', (persistence: boolean) => {
         const existenceFilterMismatches =
           await captureExistenceFilterMismatches(async () => {
             const snapshot2 = await getDocs(coll);
-            expect(snapshot2.size, 'snapshot2.size').to.equal(50);
+            // TODO(b/270731363): Remove the "if" condition below once the
+            // Firestore Emulator is fixed to send an existence filter. At the
+            // time of writing, the Firestore emulator fails to send an
+            // existence filter, resulting in the client including the deleted
+            // documents in the snapshot of the resumed query.
+            if (!(USE_EMULATOR && snapshot2.size === 100)) {
+              expect(snapshot2.size, 'snapshot2.size').to.equal(50);
+            }
           });
 
         // Skip the verification of the existence filter mismatch when

@@ -451,7 +451,7 @@ export class WatchChangeAggregator {
           }
           TestingHooks.instance?.notifyOnExistenceFilterMismatch(
             createExistenceFilterMismatchInfoForTestingHooks(
-              bloomFilterApplied,
+              status,
               currentSize,
               watchChange.existenceFilter
             )
@@ -828,7 +828,7 @@ function snapshotChangesMap(): SortedMap<DocumentKey, ChangeType> {
 }
 
 function createExistenceFilterMismatchInfoForTestingHooks(
-  bloomFilterApplied: boolean,
+  status: BloomFilterApplicationStatus,
   localCacheCount: number,
   existenceFilter: ExistenceFilter
 ): TestingHooksExistenceFilterMismatchInfo {
@@ -840,7 +840,7 @@ function createExistenceFilterMismatchInfoForTestingHooks(
   const unchangedNames = existenceFilter.unchangedNames;
   if (unchangedNames) {
     result.bloomFilter = {
-      applied: bloomFilterApplied,
+      applied: status === BloomFilterApplicationStatus.Success,
       hashCount: unchangedNames?.hashCount ?? 0,
       bitmapLength: unchangedNames?.bits?.bitmap?.length ?? 0,
       padding: unchangedNames?.bits?.padding ?? 0
