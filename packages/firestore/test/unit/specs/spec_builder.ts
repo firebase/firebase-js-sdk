@@ -28,6 +28,7 @@ import {
 import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
+import { TargetPurpose } from '../../../src/local/target_data';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { FieldIndex } from '../../../src/model/field_index';
@@ -73,6 +74,7 @@ export interface LimboMap {
 
 export interface ActiveTargetSpec {
   queries: SpecQuery[];
+  targetPurpose: TargetPurpose;
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
 }
@@ -279,7 +281,12 @@ export class SpecBuilder {
       }
 
       this.queryMapping.set(target, targetId);
-      this.addQueryToActiveTargets(targetId, query, resume);
+      this.addQueryToActiveTargets(
+        targetId,
+        query,
+        TargetPurpose.Listen,
+        resume
+      );
       this.currentStep = {
         userListen: { targetId, query: SpecBuilder.queryToSpec(query) },
         expectedState: { activeTargets: { ...this.activeTargets } }
@@ -299,7 +306,9 @@ export class SpecBuilder {
       throw new Error("Can't restore an unknown query: " + query);
     }
 
-    this.addQueryToActiveTargets(targetId!, query, { resumeToken });
+    this.addQueryToActiveTargets(targetId!, query, TargetPurpose.Listen, {
+      resumeToken
+    });
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -525,6 +534,7 @@ export class SpecBuilder {
   expectActiveTargets(
     ...targets: Array<{
       query: Query;
+      targetPurpose?: TargetPurpose;
       resumeToken?: string;
       readTime?: TestSnapshotVersion;
     }>
@@ -532,12 +542,24 @@ export class SpecBuilder {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
     this.clientState.activeTargets = {};
-    targets.forEach(({ query, resumeToken, readTime }) => {
-      this.addQueryToActiveTargets(this.getTargetId(query), query, {
+    targets.forEach(
+      ({
+        query,
+        targetPurpose = TargetPurpose.Listen,
         resumeToken,
         readTime
-      });
-    });
+      }) => {
+        this.addQueryToActiveTargets(
+          this.getTargetId(query),
+          query,
+          targetPurpose,
+          {
+            resumeToken,
+            readTime
+          }
+        );
+      }
+    );
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
@@ -567,6 +589,7 @@ export class SpecBuilder {
       this.addQueryToActiveTargets(
         this.limboMapping[path],
         newQueryForPath(key.path),
+        TargetPurpose.LimboResolution,
         { resumeToken: '' }
       );
     });
@@ -909,7 +932,7 @@ export class SpecBuilder {
     const targetId = this.queryIdGenerator.cachedId(target);
     this.queryMapping.set(target, targetId);
 
-    this.addQueryToActiveTargets(targetId, query, resume);
+    this.addQueryToActiveTargets(targetId, query, TargetPurpose.Listen, resume);
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -1077,6 +1100,7 @@ export class SpecBuilder {
   private addQueryToActiveTargets(
     targetId: number,
     query: Query,
+    targetPurpose: TargetPurpose,
     resume?: ResumeSpec
   ): void {
     if (this.activeTargets[targetId]) {
@@ -1089,12 +1113,14 @@ export class SpecBuilder {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
+          targetPurpose,
           resumeToken: resume?.resumeToken || '',
           readTime: resume?.readTime
         };
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
+          targetPurpose,
           resumeToken: resume?.resumeToken || '',
           readTime: resume?.readTime
         };
@@ -1102,6 +1128,7 @@ export class SpecBuilder {
     } else {
       this.activeTargets[targetId] = {
         queries: [SpecBuilder.queryToSpec(query)],
+        targetPurpose,
         resumeToken: resume?.resumeToken || '',
         readTime: resume?.readTime
       };
@@ -1115,6 +1142,7 @@ export class SpecBuilder {
     if (queriesAfterRemoval.length > 0) {
       this.activeTargets[targetId] = {
         queries: queriesAfterRemoval,
+        targetPurpose: this.activeTargets[targetId].targetPurpose,
         resumeToken: this.activeTargets[targetId].resumeToken
       };
     } else {
