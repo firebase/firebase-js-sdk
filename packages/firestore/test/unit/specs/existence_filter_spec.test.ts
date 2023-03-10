@@ -16,6 +16,7 @@
  */
 
 import { newQueryForPath } from '../../../src/core/query';
+import { TargetPurpose } from '../../../src/local/target_data';
 import { Code } from '../../../src/util/error';
 import {
   deletedDoc,
@@ -305,7 +306,11 @@ describeSpec('Existence Filters:', [], () => {
           // BloomFilter correctly identifies docC is deleted, but yields false
           // positive results for docB. Re-run query is triggered.
           .expectEvents(query1, { fromCache: true })
-          .expectActiveTargets({ query: query1, resumeToken: '' })
+          .expectActiveTargets({
+            query: query1,
+            resumeToken: '',
+            targetPurpose: TargetPurpose.ExistenceFilterMismatchBloom
+          })
       );
     }
   );
@@ -394,7 +399,11 @@ describeSpec('Existence Filters:', [], () => {
           .watchSnapshots(2000)
           // Re-run query is triggered.
           .expectEvents(query1, { fromCache: true })
-          .expectActiveTargets({ query: query1, resumeToken: '' })
+          .expectActiveTargets({
+            query: query1,
+            resumeToken: '',
+            targetPurpose: TargetPurpose.ExistenceFilterMismatch
+          })
       );
     }
   );
@@ -424,7 +433,11 @@ describeSpec('Existence Filters:', [], () => {
           .watchSnapshots(2000)
           // Re-run query is triggered.
           .expectEvents(query1, { fromCache: true })
-          .expectActiveTargets({ query: query1, resumeToken: '' })
+          .expectActiveTargets({
+            query: query1,
+            resumeToken: '',
+            targetPurpose: TargetPurpose.ExistenceFilterMismatch
+          })
       );
     }
   );
@@ -452,7 +465,11 @@ describeSpec('Existence Filters:', [], () => {
         .watchSnapshots(2000)
         // Re-run query is triggered.
         .expectEvents(query1, { fromCache: true })
-        .expectActiveTargets({ query: query1, resumeToken: '' })
+        .expectActiveTargets({
+          query: query1,
+          resumeToken: '',
+          targetPurpose: TargetPurpose.ExistenceFilterMismatch
+        })
     );
   });
 
