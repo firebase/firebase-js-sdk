@@ -1102,23 +1102,23 @@ export class SpecBuilder {
         this.activeTargets[targetId] = {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
           targetPurpose,
-          resumeToken: resume?.resumeToken || '',
-          readTime: resume?.readTime
+          resumeToken: resume.resumeToken || '',
+          readTime: resume.readTime
         };
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
           targetPurpose,
-          resumeToken: resume?.resumeToken || '',
-          readTime: resume?.readTime
+          resumeToken: resume.resumeToken || '',
+          readTime: resume.readTime
         };
       }
     } else {
       this.activeTargets[targetId] = {
         queries: [SpecBuilder.queryToSpec(query)],
         targetPurpose,
-        resumeToken: resume?.resumeToken || '',
-        readTime: resume?.readTime
+        resumeToken: resume.resumeToken || '',
+        readTime: resume.readTime
       };
     }
   }
