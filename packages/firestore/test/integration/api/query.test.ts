@@ -33,7 +33,6 @@ import {
   DocumentChange,
   DocumentChangeType,
   documentId,
-  DocumentReference,
   enableNetwork,
   endAt,
   endBefore,
