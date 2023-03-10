@@ -83,7 +83,7 @@ import {
   SharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
-import { TargetData } from '../../../src/local/target_data';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentKey } from '../../../src/model/document_key';
 import { FieldIndex } from '../../../src/model/field_index';
 import { Mutation } from '../../../src/model/mutation';
@@ -1102,7 +1102,7 @@ abstract class TestRunner {
       let targetData = new TargetData(
         queryToTarget(parseQuery(expected.queries[0])),
         targetId,
-        expected.targetPurpose,
+        expected.targetPurpose || TargetPurpose.Listen,
         ARBITRARY_SEQUENCE_NUMBER
       );
       if (expected.resumeToken && expected.resumeToken !== '') {

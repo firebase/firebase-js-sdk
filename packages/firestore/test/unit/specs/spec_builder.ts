@@ -74,7 +74,7 @@ export interface LimboMap {
 
 export interface ActiveTargetSpec {
   queries: SpecQuery[];
-  targetPurpose: TargetPurpose;
+  targetPurpose?: TargetPurpose;
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
 }
@@ -281,12 +281,7 @@ export class SpecBuilder {
       }
 
       this.queryMapping.set(target, targetId);
-      this.addQueryToActiveTargets(
-        targetId,
-        query,
-        TargetPurpose.Listen,
-        resume
-      );
+      this.addQueryToActiveTargets(targetId, query, resume);
       this.currentStep = {
         userListen: { targetId, query: SpecBuilder.queryToSpec(query) },
         expectedState: { activeTargets: { ...this.activeTargets } }
@@ -306,7 +301,7 @@ export class SpecBuilder {
       throw new Error("Can't restore an unknown query: " + query);
     }
 
-    this.addQueryToActiveTargets(targetId!, query, TargetPurpose.Listen, {
+    this.addQueryToActiveTargets(targetId!, query, {
       resumeToken
     });
 
@@ -542,24 +537,17 @@ export class SpecBuilder {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
     this.clientState.activeTargets = {};
-    targets.forEach(
-      ({
+    targets.forEach(({ query, targetPurpose, resumeToken, readTime }) => {
+      this.addQueryToActiveTargets(
+        this.getTargetId(query),
         query,
-        targetPurpose = TargetPurpose.Listen,
-        resumeToken,
-        readTime
-      }) => {
-        this.addQueryToActiveTargets(
-          this.getTargetId(query),
-          query,
-          targetPurpose,
-          {
-            resumeToken,
-            readTime
-          }
-        );
-      }
-    );
+        {
+          resumeToken,
+          readTime
+        },
+        targetPurpose
+      );
+    });
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
@@ -589,8 +577,8 @@ export class SpecBuilder {
       this.addQueryToActiveTargets(
         this.limboMapping[path],
         newQueryForPath(key.path),
-        TargetPurpose.LimboResolution,
-        { resumeToken: '' }
+        { resumeToken: '' },
+        TargetPurpose.LimboResolution
       );
     });
 
@@ -932,7 +920,7 @@ export class SpecBuilder {
     const targetId = this.queryIdGenerator.cachedId(target);
     this.queryMapping.set(target, targetId);
 
-    this.addQueryToActiveTargets(targetId, query, TargetPurpose.Listen, resume);
+    this.addQueryToActiveTargets(targetId, query, resume);
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -1100,8 +1088,8 @@ export class SpecBuilder {
   private addQueryToActiveTargets(
     targetId: number,
     query: Query,
-    targetPurpose: TargetPurpose,
-    resume?: ResumeSpec
+    resume: ResumeSpec = {},
+    targetPurpose?: TargetPurpose
   ): void {
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
