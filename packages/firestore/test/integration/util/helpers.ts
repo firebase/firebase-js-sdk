@@ -322,7 +322,7 @@ export function withTestCollectionSettings<T>(
       let writeBatch_: WriteBatch | null = null;
       let writeBatchSize = 0;
 
-      for (const key in docs) {
+      for (const key of Object.keys(docs)) {
         if (writeBatch_ === null) {
           writeBatch_ = writeBatch(setupDb);
         }
