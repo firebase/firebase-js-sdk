@@ -20,6 +20,70 @@ import { resolve } from 'path';
 import { spawn } from 'child-process-promise';
 import * as yargs from 'yargs';
 
+
+/**
+ * Creates and returns a "timestamp" string for the elapsed time.
+ *
+ * The given timestamp is taken as an offset from the first time that this
+ * function is invoked. This allows log messages to start at "time 0" and make
+ * it easy for humans to calculate the elapsed time.
+ *
+ * @returns The timestamp string with which to prefix log lines, created from
+ * the elapsed time since this function's first invocation.
+ */
+function elapsedTimeStr(): string {
+  const milliseconds = getElapsedMilliseconds();
+  const minutes = Math.floor(milliseconds / (1000 * 60));
+  const seconds = (milliseconds - minutes * 1000 * 60) / 1000;
+  return (
+    (minutes < 10 ? '0' : '') +
+    minutes +
+    ':' +
+    (seconds < 10 ? '0' : '') +
+    seconds.toFixed(3)
+  );
+}
+
+/**
+ * The "start time", which is set to a non-null value upon the first invocation
+ * of `getElapsedMilliseconds()`. All subsequent invocations calculate the
+ * elapsed time using this value.
+ */
+let elapsedMillisecondsStartTime: number | null = null;
+
+/**
+ * Returns the number of nanoseconds that have elapsed since this function's
+ * first invocation. Returns 0 on its first invocation.
+ */
+function getElapsedMilliseconds(): number {
+  const currentTimeMilliseconds = getCurrentMonotonicTimeMilliseconds();
+  if (elapsedMillisecondsStartTime === null) {
+    elapsedMillisecondsStartTime = currentTimeMilliseconds;
+    return 0;
+  }
+  return currentTimeMilliseconds - elapsedMillisecondsStartTime;
+}
+
+/**
+ * Returns the current time, in milliseconds, from a monotonic clock.
+ */
+function getCurrentMonotonicTimeMilliseconds(): number {
+  const currentTime: [number, number] = process.hrtime();
+  return currentTime[0] * 1000 + currentTime[1] / 1_000_000;
+}
+
+function debugLog(...args: any[]): void {
+  // eslint-disable-next-line no-console
+  console.log(__filename, elapsedTimeStr(), ...args);
+}
+
+function errorLog(...args: any[]): void {
+  // eslint-disable-next-line no-console
+  console.error(__filename, elapsedTimeStr(), ...args);
+}
+
+debugLog(`command-line arguments: ${process.argv.join(' ')}`);
+
 const argv = yargs.options({
   main: {
     type: 'string',
@@ -58,21 +122,34 @@ let args = [
 ];
 
 if (argv.emulator) {
+  debugLog("setting FIRESTORE_TARGET_BACKEND=emulator");
   process.env.FIRESTORE_TARGET_BACKEND = 'emulator';
 }
 
 if (argv.persistence) {
+  debugLog("setting USE_MOCK_PERSISTENCE=YES");
   process.env.USE_MOCK_PERSISTENCE = 'YES';
   args.push('--require', 'test/util/node_persistence.ts');
 }
 
 args = args.concat(argv._ as string[]);
 
+debugLog(`spawning child process: ${nyc} ${args.join(' ')}`);
+
 const childProcess = spawn(nyc, args, {
   stdio: 'inherit',
   cwd: process.cwd()
 }).childProcess;
 
-process.once('exit', () => childProcess.kill());
-process.once('SIGINT', () => childProcess.kill('SIGINT'));
-process.once('SIGTERM', () => childProcess.kill('SIGTERM'));
+process.once('exit', () => {
+  errorLog("WARNING: received 'exit' event; killing child process");
+  childProcess.kill();
+});
+process.once('SIGINT', () => {
+  errorLog("WARNING: received 'SIGINT' event; sending it to child process");
+  childProcess.kill('SIGINT');
+});
+process.once('SIGTERM', () => {
+  errorLog("WARNING: received 'SIGTERM' event; sending it to child process");
+  childProcess.kill('SIGTERM');
+});
