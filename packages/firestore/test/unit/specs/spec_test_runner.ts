@@ -105,7 +105,7 @@ import {
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
 import {
   JsonProtoSerializer,
-  toLabel,
+  toListenRequestLabels,
   toMutation,
   toTarget,
   toVersion
@@ -1096,25 +1096,13 @@ abstract class TestRunner {
         undefined,
         'Expected active target not found: ' + JSON.stringify(expected)
       );
-      const { target: actualTarget, labels } = actualTargets[targetId];
+      const { target: actualTarget, labels: actualLabels } =
+        actualTargets[targetId];
 
-      if (expected.targetPurpose) {
-        debugAssert(
-          labels !== undefined,
-          "Actual listen request doesn't have a 'goog-listen-tags'"
-        );
-        expect(labels['goog-listen-tags']).to.equal(
-          toLabel(expected.targetPurpose)
-        );
-      }
-
-      // TODO(mcg): populate the purpose of the target once it's possible to
-      // encode that in the spec tests. For now, hard-code that it's a listen
-      // despite the fact that it's not always the right value.
       let targetData = new TargetData(
         queryToTarget(parseQuery(expected.queries[0])),
         targetId,
-        TargetPurpose.Listen,
+        expected.targetPurpose ?? TargetPurpose.Listen,
         ARBITRARY_SEQUENCE_NUMBER
       );
       if (expected.resumeToken && expected.resumeToken !== '') {
@@ -1131,6 +1119,10 @@ abstract class TestRunner {
       if (expected.expectedCount !== undefined) {
         targetData = targetData.withExpectedCount(expected.expectedCount);
       }
+
+      const expectedLabels =
+        toListenRequestLabels(this.serializer, targetData) ?? undefined;
+      expect(actualLabels).to.deep.equal(expectedLabels);
 
       const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);

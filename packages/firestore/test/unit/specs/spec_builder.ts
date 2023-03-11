@@ -75,10 +75,10 @@ export interface LimboMap {
 
 export interface ActiveTargetSpec {
   queries: SpecQuery[];
+  targetPurpose?: TargetPurpose;
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
   expectedCount?: number;
-  targetPurpose?: TargetPurpose;
 }
 
 export interface ActiveTargetMap {
@@ -537,10 +537,10 @@ export class SpecBuilder {
   expectActiveTargets(
     ...targets: Array<{
       query: Query;
+      targetPurpose?: TargetPurpose;
       resumeToken?: string;
       readTime?: TestSnapshotVersion;
       expectedCount?: number;
-      targetPurpose?: TargetPurpose;
     }>
   ): this {
     this.assertStep('Active target expectation requires previous step');
@@ -589,7 +589,8 @@ export class SpecBuilder {
       this.addQueryToActiveTargets(
         this.limboMapping[path],
         newQueryForPath(key.path),
-        { resumeToken: '' }
+        { resumeToken: '' },
+        TargetPurpose.LimboResolution
       );
     });
 
@@ -1103,7 +1104,7 @@ export class SpecBuilder {
   private addQueryToActiveTargets(
     targetId: number,
     query: Query,
-    resume?: ResumeSpec,
+    resume: ResumeSpec = {},
     targetPurpose?: TargetPurpose
   ): void {
     if (!(resume?.resumeToken || resume?.readTime) && resume?.expectedCount) {
@@ -1120,27 +1121,24 @@ export class SpecBuilder {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
-          resumeToken: resume?.resumeToken || '',
-          readTime: resume?.readTime,
-          expectedCount: resume?.expectedCount,
-          targetPurpose
+          targetPurpose,
+          resumeToken: resume.resumeToken || '',
+          readTime: resume.readTime
         };
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
-          resumeToken: resume?.resumeToken || '',
-          readTime: resume?.readTime,
-          expectedCount: resume?.expectedCount,
-          targetPurpose
+          targetPurpose,
+          resumeToken: resume.resumeToken || '',
+          readTime: resume.readTime
         };
       }
     } else {
       this.activeTargets[targetId] = {
         queries: [SpecBuilder.queryToSpec(query)],
-        resumeToken: resume?.resumeToken || '',
-        readTime: resume?.readTime,
-        expectedCount: resume?.expectedCount,
-        targetPurpose
+        targetPurpose,
+        resumeToken: resume.resumeToken || '',
+        readTime: resume.readTime
       };
     }
   }
@@ -1153,7 +1151,8 @@ export class SpecBuilder {
       this.activeTargets[targetId] = {
         queries: queriesAfterRemoval,
         resumeToken: this.activeTargets[targetId].resumeToken,
-        expectedCount: this.activeTargets[targetId].expectedCount
+        expectedCount: this.activeTargets[targetId].expectedCount,
+        targetPurpose: this.activeTargets[targetId].targetPurpose,
       };
     } else {
       delete this.activeTargets[targetId];
