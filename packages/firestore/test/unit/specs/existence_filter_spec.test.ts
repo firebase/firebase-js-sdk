@@ -393,7 +393,11 @@ describeSpec('Existence Filters:', [], () => {
           .watchSnapshots(2000)
           // Re-run query is triggered.
           .expectEvents(query1, { fromCache: true })
-          .expectActiveTargets({ query: query1, resumeToken: '' })
+          .expectActiveTargets({
+            query: query1,
+            targetPurpose: TargetPurpose.ExistenceFilterMismatch,
+            resumeToken: ''
+          })
       );
     }
   );

@@ -1152,7 +1152,7 @@ export class SpecBuilder {
         queries: queriesAfterRemoval,
         resumeToken: this.activeTargets[targetId].resumeToken,
         expectedCount: this.activeTargets[targetId].expectedCount,
-        targetPurpose: this.activeTargets[targetId].targetPurpose,
+        targetPurpose: this.activeTargets[targetId].targetPurpose
       };
     } else {
       delete this.activeTargets[targetId];
