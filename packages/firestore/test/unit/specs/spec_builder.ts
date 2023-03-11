@@ -28,6 +28,7 @@ import {
 import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
+import { TargetPurpose } from '../../../src/local/target_data';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { FieldIndex } from '../../../src/model/field_index';
@@ -77,6 +78,7 @@ export interface ActiveTargetSpec {
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
   expectedCount?: number;
+  targetPurpose?: TargetPurpose;
 }
 
 export interface ActiveTargetMap {
@@ -538,18 +540,26 @@ export class SpecBuilder {
       resumeToken?: string;
       readTime?: TestSnapshotVersion;
       expectedCount?: number;
+      targetPurpose?: TargetPurpose;
     }>
   ): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
     this.clientState.activeTargets = {};
-    targets.forEach(({ query, resumeToken, readTime, expectedCount }) => {
-      this.addQueryToActiveTargets(this.getTargetId(query), query, {
-        resumeToken,
-        readTime,
-        expectedCount
-      });
-    });
+    targets.forEach(
+      ({ query, resumeToken, readTime, expectedCount, targetPurpose }) => {
+        this.addQueryToActiveTargets(
+          this.getTargetId(query),
+          query,
+          {
+            resumeToken,
+            readTime,
+            expectedCount
+          },
+          targetPurpose
+        );
+      }
+    );
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
@@ -1093,7 +1103,8 @@ export class SpecBuilder {
   private addQueryToActiveTargets(
     targetId: number,
     query: Query,
-    resume?: ResumeSpec
+    resume?: ResumeSpec,
+    targetPurpose?: TargetPurpose
   ): void {
     if (!(resume?.resumeToken || resume?.readTime) && resume?.expectedCount) {
       fail('Expected count is present without a resume token or read time.');
@@ -1111,14 +1122,16 @@ export class SpecBuilder {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
           resumeToken: resume?.resumeToken || '',
           readTime: resume?.readTime,
-          expectedCount: resume?.expectedCount
+          expectedCount: resume?.expectedCount,
+          targetPurpose
         };
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
           resumeToken: resume?.resumeToken || '',
           readTime: resume?.readTime,
-          expectedCount: resume?.expectedCount
+          expectedCount: resume?.expectedCount,
+          targetPurpose
         };
       }
     } else {
@@ -1126,7 +1139,8 @@ export class SpecBuilder {
         queries: [SpecBuilder.queryToSpec(query)],
         resumeToken: resume?.resumeToken || '',
         readTime: resume?.readTime,
-        expectedCount: resume?.expectedCount
+        expectedCount: resume?.expectedCount,
+        targetPurpose
       };
     }
   }

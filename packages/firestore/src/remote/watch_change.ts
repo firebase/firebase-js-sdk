@@ -37,6 +37,10 @@ import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
+import {
+  ExistenceFilterMismatchInfo as TestingHooksExistenceFilterMismatchInfo,
+  TestingHooks
+} from '../util/testing_hooks';
 
 import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
@@ -87,6 +91,11 @@ export const enum WatchTargetChangeState {
   Reset
 }
 
+const enum BloomFilterApplicationStatus {
+  Success,
+  Skipped,
+  FalsePositive
+}
 export class WatchTargetChange {
   constructor(
     /** What kind of change occurred to the watch target. */
@@ -280,11 +289,13 @@ export class WatchChangeAggregator {
   private pendingDocumentTargetMapping = documentTargetMap();
 
   /**
-   * A list of targets with existence filter mismatches. These targets are
+   * A map of targets with existence filter mismatches. These targets are
    * known to be inconsistent and their listens needs to be re-established by
    * RemoteStore.
    */
-  private pendingTargetResets = new SortedSet<TargetId>(primitiveComparator);
+  private pendingTargetResets = new SortedMap<TargetId, TargetPurpose>(
+    primitiveComparator
+  );
 
   /**
    * Processes and adds the DocumentWatchChange to the current set of changes.
@@ -422,31 +433,47 @@ export class WatchChangeAggregator {
         // raise a snapshot with `isFromCache:true`.
         if (currentSize !== expectedCount) {
           // Apply bloom filter to identify and mark removed documents.
-          const bloomFilterApplied = this.applyBloomFilter(
-            watchChange,
-            currentSize
-          );
-          if (!bloomFilterApplied) {
+          const status = this.applyBloomFilter(watchChange, currentSize);
+
+          if (status !== BloomFilterApplicationStatus.Success) {
             // If bloom filter application fails, we reset the mapping and
             // trigger re-run of the query.
             this.resetTarget(targetId);
-            this.pendingTargetResets = this.pendingTargetResets.add(targetId);
+
+            const purpose: TargetPurpose =
+              status === BloomFilterApplicationStatus.FalsePositive
+                ? TargetPurpose.ExistenceFilterMismatchBloom
+                : TargetPurpose.ExistenceFilterMismatch;
+            this.pendingTargetResets = this.pendingTargetResets.insert(
+              targetId,
+              purpose
+            );
           }
+          TestingHooks.instance?.notifyOnExistenceFilterMismatch(
+            createExistenceFilterMismatchInfoForTestingHooks(
+              status,
+              currentSize,
+              watchChange.existenceFilter
+            )
+          );
         }
       }
     }
   }
 
-  /** Returns whether a bloom filter removed the deleted documents successfully. */
+  /**
+   * Apply bloom filter to remove the deleted documents, and return the
+   * application status.
+   */
   private applyBloomFilter(
     watchChange: ExistenceFilterChange,
     currentCount: number
-  ): boolean {
+  ): BloomFilterApplicationStatus {
     const { unchangedNames, count: expectedCount } =
       watchChange.existenceFilter;
 
     if (!unchangedNames || !unchangedNames.bits) {
-      return false;
+      return BloomFilterApplicationStatus.Skipped;
     }
 
     const {
@@ -464,7 +491,7 @@ export class WatchChangeAggregator {
             err.message +
             '); ignoring the bloom filter and falling back to full re-query.'
         );
-        return false;
+        return BloomFilterApplicationStatus.Skipped;
       } else {
         throw err;
       }
@@ -480,7 +507,11 @@ export class WatchChangeAggregator {
       } else {
         logWarn('Applying bloom filter failed: ', err);
       }
-      return false;
+      return BloomFilterApplicationStatus.Skipped;
+    }
+
+    if (bloomFilter.bitCount === 0) {
+      return BloomFilterApplicationStatus.Skipped;
     }
 
     const removedDocumentCount = this.filterRemovedDocuments(
@@ -488,7 +519,11 @@ export class WatchChangeAggregator {
       bloomFilter
     );
 
-    return expectedCount === currentCount - removedDocumentCount;
+    if (expectedCount !== currentCount - removedDocumentCount) {
+      return BloomFilterApplicationStatus.FalsePositive;
+    }
+
+    return BloomFilterApplicationStatus.Success;
   }
 
   /**
@@ -599,7 +634,9 @@ export class WatchChangeAggregator {
 
     this.pendingDocumentUpdates = mutableDocumentMap();
     this.pendingDocumentTargetMapping = documentTargetMap();
-    this.pendingTargetResets = new SortedSet<TargetId>(primitiveComparator);
+    this.pendingTargetResets = new SortedMap<TargetId, TargetPurpose>(
+      primitiveComparator
+    );
 
     return remoteEvent;
   }
@@ -788,4 +825,27 @@ function documentTargetMap(): SortedMap<DocumentKey, SortedSet<TargetId>> {
 
 function snapshotChangesMap(): SortedMap<DocumentKey, ChangeType> {
   return new SortedMap<DocumentKey, ChangeType>(DocumentKey.comparator);
+}
+
+function createExistenceFilterMismatchInfoForTestingHooks(
+  status: BloomFilterApplicationStatus,
+  localCacheCount: number,
+  existenceFilter: ExistenceFilter
+): TestingHooksExistenceFilterMismatchInfo {
+  const result: TestingHooksExistenceFilterMismatchInfo = {
+    localCacheCount,
+    existenceFilterCount: existenceFilter.count
+  };
+
+  const unchangedNames = existenceFilter.unchangedNames;
+  if (unchangedNames) {
+    result.bloomFilter = {
+      applied: status === BloomFilterApplicationStatus.Success,
+      hashCount: unchangedNames?.hashCount ?? 0,
+      bitmapLength: unchangedNames?.bits?.bitmap?.length ?? 0,
+      padding: unchangedNames?.bits?.padding ?? 0
+    };
+  }
+
+  return result;
 }

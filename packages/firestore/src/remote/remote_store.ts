@@ -24,7 +24,7 @@ import {
   localStoreGetNextMutationBatch
 } from '../local/local_store_impl';
 import { isIndexedDbTransactionError } from '../local/simple_db';
-import { TargetData, TargetPurpose } from '../local/target_data';
+import { TargetData } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
 import { debugAssert, debugCast } from '../util/assert';
@@ -587,7 +587,7 @@ function raiseWatchSnapshot(
 
   // Re-establish listens for the targets that have been invalidated by
   // existence filter mismatches.
-  remoteEvent.targetMismatches.forEach(targetId => {
+  remoteEvent.targetMismatches.forEach((targetId, targetPurpose) => {
     const targetData = remoteStoreImpl.listenTargets.get(targetId);
     if (!targetData) {
       // A watched target might have been removed already.
@@ -615,7 +615,7 @@ function raiseWatchSnapshot(
     const requestTargetData = new TargetData(
       targetData.target,
       targetId,
-      TargetPurpose.ExistenceFilterMismatch,
+      targetPurpose,
       targetData.sequenceNumber
     );
     sendWatchRequest(remoteStoreImpl, requestTargetData);
