@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.9.3
+
+### Patch Changes
+
+- [`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6) [#7019](https://github.com/firebase/firebase-js-sdk/pull/7019) - Modify base64 decoding logic to throw on invalid input, rather than silently truncating it.
+
 ## 1.9.2
 
 ### Patch Changes

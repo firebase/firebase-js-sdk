@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # AggregateSpec interface
-A type whose property values are all `AggregateField` objects.
+Specifies a set of aggregations and their aliases.
 
 <b>Signature:</b>
 

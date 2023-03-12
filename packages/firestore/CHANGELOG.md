@@ -1,5 +1,23 @@
 # @firebase/firestore
 
+## 3.8.4
+
+### Patch Changes
+
+- [`36558bd2e`](https://github.com/firebase/firebase-js-sdk/commit/36558bd2e68e1ba3fb31d85ef997ab9ddf692d50) [#7024](https://github.com/firebase/firebase-js-sdk/pull/7024) - Relaxing query validation performed by the SDK
+
+- [`b5f86b1a3`](https://github.com/firebase/firebase-js-sdk/commit/b5f86b1a305b3067fed12b024938f0c3f47de2ef) [#7018](https://github.com/firebase/firebase-js-sdk/pull/7018) - Internal refactor of platform-specific logic to create TextEncoder and TextDecoder objects.
+
+- [`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6) [#7019](https://github.com/firebase/firebase-js-sdk/pull/7019) - Modify base64 decoding logic to throw on invalid input, rather than silently truncating it.
+
+- [`67c5a0dc5`](https://github.com/firebase/firebase-js-sdk/commit/67c5a0dc55237391afceb956280cb04cfeaac66f) [#6952](https://github.com/firebase/firebase-js-sdk/pull/6952) - Refactoring the aggregation implementation to support future aggregate functions.
+
+- [`b30186ffc`](https://github.com/firebase/firebase-js-sdk/commit/b30186ffc15cd441521c8f43d3f9a7a4e9ce8820) [#7058](https://github.com/firebase/firebase-js-sdk/pull/7058) - Fix unimplemented error when loading bundles
+
+- Updated dependencies [[`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6)]:
+  - @firebase/util@1.9.3
+  - @firebase/component@0.6.4
+
 ## 3.8.3
 
 ### Patch Changes

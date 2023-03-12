@@ -1,5 +1,16 @@
 # @firebase/firestore-compat
 
+## 0.3.4
+
+### Patch Changes
+
+- [`36558bd2e`](https://github.com/firebase/firebase-js-sdk/commit/36558bd2e68e1ba3fb31d85ef997ab9ddf692d50) [#7024](https://github.com/firebase/firebase-js-sdk/pull/7024) - Relaxing query validation performed by the SDK
+
+- Updated dependencies [[`36558bd2e`](https://github.com/firebase/firebase-js-sdk/commit/36558bd2e68e1ba3fb31d85ef997ab9ddf692d50), [`b5f86b1a3`](https://github.com/firebase/firebase-js-sdk/commit/b5f86b1a305b3067fed12b024938f0c3f47de2ef), [`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6), [`67c5a0dc5`](https://github.com/firebase/firebase-js-sdk/commit/67c5a0dc55237391afceb956280cb04cfeaac66f), [`b30186ffc`](https://github.com/firebase/firebase-js-sdk/commit/b30186ffc15cd441521c8f43d3f9a7a4e9ce8820)]:
+  - @firebase/firestore@3.8.4
+  - @firebase/util@1.9.3
+  - @firebase/component@0.6.4
+
 ## 0.3.3
 
 ### Patch Changes
