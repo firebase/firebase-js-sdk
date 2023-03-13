@@ -3,4 +3,4 @@
 'firebase': minor
 ---
 
-OR Query public API
+Adds OR query support to Firestore. Example: `query(myCollection, or(where('a', '==', 1), where('b', '==', 1)))`.
