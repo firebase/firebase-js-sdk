@@ -9,25 +9,25 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# IndexedDbMultipleTabManager interface
+# PersistentMultipleTabManager interface
 A tab manager supportting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK.
 
 <b>Signature:</b>
 
 ```typescript
-export declare interface IndexedDbMultipleTabManager 
+export declare interface PersistentMultipleTabManager 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [kind](./firestore_.indexeddbmultipletabmanager.md#indexeddbmultipletabmanagerkind) | 'IndexedDbMultipleTab' |  |
+|  [kind](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanagerkind) | 'PersistentMultipleTab' |  |
 
-## IndexedDbMultipleTabManager.kind
+## PersistentMultipleTabManager.kind
 
 <b>Signature:</b>
 
 ```typescript
-kind: 'IndexedDbMultipleTab';
+kind: 'PersistentMultipleTab';
 ```

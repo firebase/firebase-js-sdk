@@ -9,25 +9,27 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# IndexedDbSingleTabManager interface
-A tab manager supportting only one tab, no synchronization will be performed across tabs.
+# PersistentLocalCache interface
+Provides a persistent cache backed by IndexedDb to the SDK.
+
+To use, create an instance using the factory function , then set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using the settings object.
 
 <b>Signature:</b>
 
 ```typescript
-export declare interface IndexedDbSingleTabManager 
+export declare interface PersistentLocalCache 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [kind](./firestore_.indexeddbsingletabmanager.md#indexeddbsingletabmanagerkind) | 'indexedDbSingleTab' |  |
+|  [kind](./firestore_.persistentlocalcache.md#persistentlocalcachekind) | 'persistent' |  |
 
-## IndexedDbSingleTabManager.kind
+## PersistentLocalCache.kind
 
 <b>Signature:</b>
 
 ```typescript
-kind: 'indexedDbSingleTab';
+kind: 'persistent';
 ```

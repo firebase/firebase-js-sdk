@@ -36,17 +36,17 @@ export {
 
 export {
   FirestoreLocalCache,
-  IndexedDbLocalCache,
-  IndexedDbMultipleTabManager,
-  indexedDbLocalCache,
-  indexedDbMultipleTabManager,
-  IndexedDbCacheSettings,
-  indexedDbSingleTabManager,
-  IndexedDbSingleTabManager,
-  IndexedDbSingleTabManagerSettings,
+  PersistentLocalCache,
+  PersistentMultipleTabManager,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  PersistentCacheSettings,
+  persistentSingleTabManager,
+  PersistentSingleTabManager,
+  PersistentSingleTabManagerSettings,
   MemoryLocalCache,
   memoryLocalCache,
-  IndexedDbTabManager
+  PersistentTabManager
 } from './api/cache_config';
 
 export { FieldPath, documentId } from './api/field_path';

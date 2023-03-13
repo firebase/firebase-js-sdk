@@ -42,8 +42,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [deleteField()](./firestore_.md#deletefield) | Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc) or [setDoc()](./firestore_lite.md#setdoc) with <code>{merge: true}</code> to mark a field for deletion. |
 |  [documentId()](./firestore_.md#documentid) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
 |  [getFirestore()](./firestore_.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
-|  [indexedDbMultipleTabManager()](./firestore_.md#indexeddbmultipletabmanager) | Creates an instance of <code>IndexedDbMultipleTabManager</code>. |
 |  [memoryLocalCache()](./firestore_.md#memorylocalcache) | Creates an instance of <code>MemoryLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
+|  [persistentMultipleTabManager()](./firestore_.md#persistentmultipletabmanager) | Creates an instance of <code>PersistentMultipleTabManager</code>. |
 |  [serverTimestamp()](./firestore_.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) to include a server-generated timestamp in the written data. |
 |  <b>function(elements...)</b> |
 |  [arrayRemove(elements)](./firestore_.md#arrayremove) | Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
@@ -101,8 +101,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [updateDoc(reference, data)](./firestore_.md#updatedoc) | Updates fields in the document referred to by the specified <code>DocumentReference</code>. The update will fail if applied to a document that does not exist. |
 |  [updateDoc(reference, field, value, moreFieldsAndValues)](./firestore_.md#updatedoc) | Updates fields in the document referred to by the specified <code>DocumentReference</code> The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
 |  <b>function(settings...)</b> |
-|  [indexedDbLocalCache(settings)](./firestore_.md#indexeddblocalcache) | Creates an instance of <code>IndexedDbLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
-|  [indexedDbSingleTabManager(settings)](./firestore_.md#indexeddbsingletabmanager) | Creates an instance of <code>IndexedDbSingleTabManager</code>. |
+|  [persistentLocalCache(settings)](./firestore_.md#persistentlocalcache) | Creates an instance of <code>PersistentLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
+|  [persistentSingleTabManager(settings)](./firestore_.md#persistentsingletabmanager) | Creates an instance of <code>PersistentSingleTabManager</code>. |
 |  <b>function(snapshot...)</b> |
 |  [endAt(snapshot)](./firestore_.md#endat) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided document (inclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
 |  [endBefore(snapshot)](./firestore_.md#endbefore) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
@@ -151,15 +151,15 @@ https://github.com/firebase/firebase-js-sdk
 |  [FirestoreSettings](./firestore_.firestoresettings.md#firestoresettings_interface) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
 |  [Index](./firestore_.index.md#index_interface) | <b><i>(BETA)</i></b> The SDK definition of a Firestore index. |
 |  [IndexConfiguration](./firestore_.indexconfiguration.md#indexconfiguration_interface) | <b><i>(BETA)</i></b> A list of Firestore indexes to speed up local query execution.<!-- -->See [JSON Format](https://firebase.google.com/docs/reference/firestore/indexes/#json_format) for a description of the format of the index definition. |
-|  [IndexedDbCacheSettings](./firestore_.indexeddbcachesettings.md#indexeddbcachesettings_interface) | An settings object to configure an <code>IndexedDbLocalCache</code> instance. |
-|  [IndexedDbLocalCache](./firestore_.indexeddblocalcache.md#indexeddblocalcache_interface) | Provides a cache backed by IndexedDb to the SDK.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
-|  [IndexedDbMultipleTabManager](./firestore_.indexeddbmultipletabmanager.md#indexeddbmultipletabmanager_interface) | A tab manager supportting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK. |
-|  [IndexedDbSingleTabManager](./firestore_.indexeddbsingletabmanager.md#indexeddbsingletabmanager_interface) | A tab manager supportting only one tab, no synchronization will be performed across tabs. |
-|  [IndexedDbSingleTabManagerSettings](./firestore_.indexeddbsingletabmanagersettings.md#indexeddbsingletabmanagersettings_interface) | Type to configure an <code>IndexedDbSingleTabManager</code> instace. |
 |  [IndexField](./firestore_.indexfield.md#indexfield_interface) | <b><i>(BETA)</i></b> A single field element in an index configuration. |
 |  [LoadBundleTaskProgress](./firestore_.loadbundletaskprogress.md#loadbundletaskprogress_interface) | Represents a progress update or a final state from loading bundles. |
 |  [MemoryLocalCache](./firestore_.memorylocalcache.md#memorylocalcache_interface) | Provides an in-memory cache to the SDK. This is the default cache unless explicitly configured otherwise.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
 |  [PersistenceSettings](./firestore_.persistencesettings.md#persistencesettings_interface) | Settings that can be passed to <code>enableIndexedDbPersistence()</code> to configure Firestore persistence. |
+|  [PersistentCacheSettings](./firestore_.persistentcachesettings.md#persistentcachesettings_interface) | An settings object to configure an <code>PersistentLocalCache</code> instance. |
+|  [PersistentLocalCache](./firestore_.persistentlocalcache.md#persistentlocalcache_interface) | Provides a persistent cache backed by IndexedDb to the SDK.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
+|  [PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface) | A tab manager supportting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK. |
+|  [PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface) | A tab manager supportting only one tab, no synchronization will be performed across tabs. |
+|  [PersistentSingleTabManagerSettings](./firestore_.persistentsingletabmanagersettings.md#persistentsingletabmanagersettings_interface) | Type to configure an <code>PersistentSingleTabManager</code> instace. |
 |  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set. |
 |  [SnapshotOptions](./firestore_.snapshotoptions.md#snapshotoptions_interface) | Options that configure how data is retrieved from a <code>DocumentSnapshot</code> (for example the desired behavior for server timestamps that have not yet been set to their final value). |
 |  [TransactionOptions](./firestore_.transactionoptions.md#transactionoptions_interface) | Options to customize transaction behavior. |
@@ -182,10 +182,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [DocumentChangeType](./firestore_.md#documentchangetype) | The type of a <code>DocumentChange</code> may be 'added', 'removed', or 'modified'. |
 |  [FirestoreErrorCode](./firestore_.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
 |  [FirestoreLocalCache](./firestore_.md#firestorelocalcache) | Union type from all supported SDK cache layer. |
-|  [IndexedDbTabManager](./firestore_.md#indexeddbtabmanager) | A union of all avaialbe tab managers. |
 |  [NestedUpdateFields](./firestore_.md#nestedupdatefields) | For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 'bar.qux': T2<!-- -->}<!-- -->). Intersect them together to make a single map containing all possible keys that are all marked as optional |
 |  [OrderByDirection](./firestore_.md#orderbydirection) | The direction of a [orderBy()](./firestore_.md#orderby) clause is specified as 'desc' or 'asc' (descending or ascending). |
 |  [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue) | Similar to Typescript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
+|  [PersistentTabManager](./firestore_.md#persistenttabmanager) | A union of all avaialbe tab managers. |
 |  [Primitive](./firestore_.md#primitive) | Primitive types. |
 |  [QueryConstraintType](./firestore_.md#queryconstrainttype) | Describes the different query constraints available in this SDK. |
 |  [QueryFilterConstraint](./firestore_.md#queryfilterconstraint) | <code>QueryFilterConstraint</code> is a helper union type that represents [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) and [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->. |
@@ -807,19 +807,6 @@ export declare function getFirestore(): Firestore;
 
 The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
-## indexedDbMultipleTabManager()
-
-Creates an instance of `IndexedDbMultipleTabManager`<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-export declare function indexedDbMultipleTabManager(): IndexedDbMultipleTabManager;
-```
-<b>Returns:</b>
-
-[IndexedDbMultipleTabManager](./firestore_.indexeddbmultipletabmanager.md#indexeddbmultipletabmanager_interface)
-
 ## memoryLocalCache()
 
 Creates an instance of `MemoryLocalCache`<!-- -->. The instance can be set to `FirestoreSettings.cache` to tell the SDK which cache layer to use.
@@ -832,6 +819,19 @@ export declare function memoryLocalCache(): MemoryLocalCache;
 <b>Returns:</b>
 
 [MemoryLocalCache](./firestore_.memorylocalcache.md#memorylocalcache_interface)
+
+## persistentMultipleTabManager()
+
+Creates an instance of `PersistentMultipleTabManager`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function persistentMultipleTabManager(): PersistentMultipleTabManager;
+```
+<b>Returns:</b>
+
+[PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface)
 
 ## serverTimestamp()
 
@@ -1954,45 +1954,45 @@ Promise&lt;void&gt;
 
 A `Promise` resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
 
-## indexedDbLocalCache()
+## persistentLocalCache()
 
-Creates an instance of `IndexedDbLocalCache`<!-- -->. The instance can be set to `FirestoreSettings.cache` to tell the SDK which cache layer to use.
+Creates an instance of `PersistentLocalCache`<!-- -->. The instance can be set to `FirestoreSettings.cache` to tell the SDK which cache layer to use.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function indexedDbLocalCache(settings?: IndexedDbCacheSettings): IndexedDbLocalCache;
+export declare function persistentLocalCache(settings?: PersistentCacheSettings): PersistentLocalCache;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  settings | [IndexedDbCacheSettings](./firestore_.indexeddbcachesettings.md#indexeddbcachesettings_interface) |  |
+|  settings | [PersistentCacheSettings](./firestore_.persistentcachesettings.md#persistentcachesettings_interface) |  |
 
 <b>Returns:</b>
 
-[IndexedDbLocalCache](./firestore_.indexeddblocalcache.md#indexeddblocalcache_interface)
+[PersistentLocalCache](./firestore_.persistentlocalcache.md#persistentlocalcache_interface)
 
-## indexedDbSingleTabManager()
+## persistentSingleTabManager()
 
-Creates an instance of `IndexedDbSingleTabManager`<!-- -->.
+Creates an instance of `PersistentSingleTabManager`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function indexedDbSingleTabManager(settings: IndexedDbSingleTabManagerSettings | undefined): IndexedDbSingleTabManager;
+export declare function persistentSingleTabManager(settings: PersistentSingleTabManagerSettings | undefined): PersistentSingleTabManager;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  settings | [IndexedDbSingleTabManagerSettings](./firestore_.indexeddbsingletabmanagersettings.md#indexeddbsingletabmanagersettings_interface) \| undefined | Configures the created tab manager. |
+|  settings | [PersistentSingleTabManagerSettings](./firestore_.persistentsingletabmanagersettings.md#persistentsingletabmanagersettings_interface) \| undefined | Configures the created tab manager. |
 
 <b>Returns:</b>
 
-[IndexedDbSingleTabManager](./firestore_.indexeddbsingletabmanager.md#indexeddbsingletabmanager_interface)
+[PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface)
 
 ## endAt()
 
@@ -2169,17 +2169,7 @@ Union type from all supported SDK cache layer.
 <b>Signature:</b>
 
 ```typescript
-export declare type FirestoreLocalCache = MemoryLocalCache | IndexedDbLocalCache;
-```
-
-## IndexedDbTabManager
-
-A union of all avaialbe tab managers.
-
-<b>Signature:</b>
-
-```typescript
-export declare type IndexedDbTabManager = IndexedDbSingleTabManager | IndexedDbMultipleTabManager;
+export declare type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
 ```
 
 ## NestedUpdateFields
@@ -2214,6 +2204,16 @@ Similar to Typescript's `Partial<T>`<!-- -->, but allows nested fields to be omi
 export declare type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
     [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
 } : never);
+```
+
+## PersistentTabManager
+
+A union of all avaialbe tab managers.
+
+<b>Signature:</b>
+
+```typescript
+export declare type PersistentTabManager = PersistentSingleTabManager | PersistentMultipleTabManager;
 ```
 
 ## Primitive

@@ -9,27 +9,25 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# IndexedDbLocalCache interface
-Provides a cache backed by IndexedDb to the SDK.
-
-To use, create an instance using the factory function , then set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using the settings object.
+# PersistentSingleTabManager interface
+A tab manager supportting only one tab, no synchronization will be performed across tabs.
 
 <b>Signature:</b>
 
 ```typescript
-export declare interface IndexedDbLocalCache 
+export declare interface PersistentSingleTabManager 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [kind](./firestore_.indexeddblocalcache.md#indexeddblocalcachekind) | 'indexeddb' |  |
+|  [kind](./firestore_.persistentsingletabmanager.md#persistentsingletabmanagerkind) | 'persistentSingleTab' |  |
 
-## IndexedDbLocalCache.kind
+## PersistentSingleTabManager.kind
 
 <b>Signature:</b>
 
 ```typescript
-kind: 'indexeddb';
+kind: 'persistentSingleTab';
 ```

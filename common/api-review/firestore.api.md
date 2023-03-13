@@ -220,7 +220,7 @@ export class FirestoreError extends FirebaseError {
 export type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 
 // @public
-export type FirestoreLocalCache = MemoryLocalCache | IndexedDbLocalCache;
+export type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
 
 // @public
 export interface FirestoreSettings {
@@ -291,47 +291,6 @@ export interface IndexConfiguration {
     [key: string]: unknown;
     readonly indexes?: Index[];
 }
-
-// @public
-export interface IndexedDbCacheSettings {
-    cacheSizeBytes?: number;
-    tabManager?: IndexedDbTabManager;
-}
-
-// @public
-export interface IndexedDbLocalCache {
-    // (undocumented)
-    kind: 'indexeddb';
-}
-
-// @public
-export function indexedDbLocalCache(settings?: IndexedDbCacheSettings): IndexedDbLocalCache;
-
-// @public
-export interface IndexedDbMultipleTabManager {
-    // (undocumented)
-    kind: 'IndexedDbMultipleTab';
-}
-
-// @public
-export function indexedDbMultipleTabManager(): IndexedDbMultipleTabManager;
-
-// @public
-export interface IndexedDbSingleTabManager {
-    // (undocumented)
-    kind: 'indexedDbSingleTab';
-}
-
-// @public
-export function indexedDbSingleTabManager(settings: IndexedDbSingleTabManagerSettings | undefined): IndexedDbSingleTabManager;
-
-// @public
-export interface IndexedDbSingleTabManagerSettings {
-    forceOwnership?: boolean;
-}
-
-// @public
-export type IndexedDbTabManager = IndexedDbSingleTabManager | IndexedDbMultipleTabManager;
 
 // @beta
 export interface IndexField {
@@ -457,6 +416,47 @@ export type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T
 export interface PersistenceSettings {
     forceOwnership?: boolean;
 }
+
+// @public
+export interface PersistentCacheSettings {
+    cacheSizeBytes?: number;
+    tabManager?: PersistentTabManager;
+}
+
+// @public
+export interface PersistentLocalCache {
+    // (undocumented)
+    kind: 'persistent';
+}
+
+// @public
+export function persistentLocalCache(settings?: PersistentCacheSettings): PersistentLocalCache;
+
+// @public
+export interface PersistentMultipleTabManager {
+    // (undocumented)
+    kind: 'PersistentMultipleTab';
+}
+
+// @public
+export function persistentMultipleTabManager(): PersistentMultipleTabManager;
+
+// @public
+export interface PersistentSingleTabManager {
+    // (undocumented)
+    kind: 'persistentSingleTab';
+}
+
+// @public
+export function persistentSingleTabManager(settings: PersistentSingleTabManagerSettings | undefined): PersistentSingleTabManager;
+
+// @public
+export interface PersistentSingleTabManagerSettings {
+    forceOwnership?: boolean;
+}
+
+// @public
+export type PersistentTabManager = PersistentSingleTabManager | PersistentMultipleTabManager;
 
 // @public
 export type Primitive = string | number | boolean | undefined | null;
