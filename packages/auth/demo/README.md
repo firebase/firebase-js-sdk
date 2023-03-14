@@ -90,14 +90,22 @@ The demo page by default runs against the actual Auth Backend. To run against th
 yarn run demo:emulator
 ```
 
+## Running against Auth Staging endpoint
+
+Modify the configured endpoint to staging by following the changes in this branch:
+
+https://github.com/firebase/firebase-js-sdk/compare/use-staging
+
 ## Running against local changes to auth package
 
-By default, the demo runs against the latest release of firebase-auth sdk. This can be modified by:
+
+By default, the demo runs against the local firebase-auth implementation in packages/auth/src.
+This can be modified to point to a released version using:
 
 ```
 // packages/auth/demo/package.json
-+  "@firebase/auth": "file:..",
--  "@firebase/auth": "0.18.0",
+-  "@firebase/auth": "file:..",
++  "@firebase/auth": "0.18.0",
 ```
 
 ## Troubleshooting

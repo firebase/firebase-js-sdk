@@ -105,6 +105,7 @@ import {
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
 import {
   JsonProtoSerializer,
+  toListenRequestLabels,
   toMutation,
   toTarget,
   toVersion
@@ -1095,15 +1096,13 @@ abstract class TestRunner {
         undefined,
         'Expected active target not found: ' + JSON.stringify(expected)
       );
-      const actualTarget = actualTargets[targetId];
+      const { target: actualTarget, labels: actualLabels } =
+        actualTargets[targetId];
 
-      // TODO(mcg): populate the purpose of the target once it's possible to
-      // encode that in the spec tests. For now, hard-code that it's a listen
-      // despite the fact that it's not always the right value.
       let targetData = new TargetData(
         queryToTarget(parseQuery(expected.queries[0])),
         targetId,
-        TargetPurpose.Listen,
+        expected.targetPurpose ?? TargetPurpose.Listen,
         ARBITRARY_SEQUENCE_NUMBER
       );
       if (expected.resumeToken && expected.resumeToken !== '') {
@@ -1117,6 +1116,11 @@ abstract class TestRunner {
           version(expected.readTime!)
         );
       }
+
+      const expectedLabels =
+        toListenRequestLabels(this.serializer, targetData) ?? undefined;
+      expect(actualLabels).to.deep.equal(expectedLabels);
+
       const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
