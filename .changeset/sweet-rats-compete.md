@@ -3,4 +3,4 @@
 'firebase': minor
 ---
 
-OR Query public API
+Add support for disjunctions in queries (OR queries).
