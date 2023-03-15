@@ -32,6 +32,7 @@ import {
 } from '../core/component_provider';
 import { DatabaseId, DEFAULT_DATABASE_NAME } from '../core/database_info';
 import {
+  canFallbackFromIndexedDbError,
   FirestoreClient,
   firestoreClientDisableNetwork,
   firestoreClientEnableNetwork,
@@ -74,11 +75,6 @@ declare module '@firebase/component' {
     'firestore': Firestore;
   }
 }
-
-/** DOMException error code constants. */
-const DOM_EXCEPTION_INVALID_STATE = 11;
-const DOM_EXCEPTION_ABORTED = 20;
-const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -169,6 +165,17 @@ export function initializeFirestore(
           ' already initialized instance.'
       );
     }
+  }
+
+  if (
+    settings.cacheSizeBytes !== undefined &&
+    settings.localCache !== undefined
+  ) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `cache and cacheSizeBytes cannot be specified at the same time as cacheSizeBytes will` +
+        `be deprecated. Instead, specify the cache size in the cache object`
+    );
   }
 
   if (
@@ -283,6 +290,16 @@ export function configureFirestore(firestore: Firestore): void {
     firestore._queue,
     databaseInfo
   );
+  if (
+    settings.cache?._offlineComponentProvider &&
+    settings.cache?._onlineComponentProvider
+  ) {
+    firestore._firestoreClient._uninitializedComponentsProvider = {
+      _offlineKind: settings.cache.kind,
+      _offline: settings.cache._offlineComponentProvider,
+      _online: settings.cache._onlineComponentProvider
+    };
+  }
 }
 
 /**
@@ -307,6 +324,10 @@ export function configureFirestore(firestore: Firestore): void {
  * @param persistenceSettings - Optional settings object to configure
  * persistence.
  * @returns A `Promise` that represents successfully enabling persistent storage.
+ * @deprecated This function will be removed in a future major release. Instead, set
+ * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
+ * turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache`
+ * is already specified will throw an exception.
  */
 export function enableIndexedDbPersistence(
   firestore: Firestore,
@@ -316,6 +337,17 @@ export function enableIndexedDbPersistence(
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
+  if (client._uninitializedComponentsProvider) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'SDK cache is already specified.'
+    );
+  }
+
+  logWarn(
+    'enableIndexedDbPersistence() will be deprecated in the future, ' +
+      'you can use `FirestoreSettings.cache` instead.'
+  );
   const settings = firestore._freezeSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -352,6 +384,10 @@ export function enableIndexedDbPersistence(
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @returns A `Promise` that represents successfully enabling persistent
  * storage.
+ * @deprecated This function will be removed in a future major release. Instead, set
+ * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
+ * turn on indexeddb cache. Calling this function when `FirestoreSettings.cache`
+ * is already specified will throw an exception.
  */
 export function enableMultiTabIndexedDbPersistence(
   firestore: Firestore
@@ -360,6 +396,17 @@ export function enableMultiTabIndexedDbPersistence(
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
+  if (client._uninitializedComponentsProvider) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'SDK cache is already specified.'
+    );
+  }
+
+  logWarn(
+    'enableMultiTabIndexedDbPersistence() will be deprecated in the future, ' +
+      'you can use `FirestoreSettings.cache` instead.'
+  );
   const settings = firestore._freezeSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -398,52 +445,14 @@ function setPersistenceProviders(
           throw error;
         }
         logWarn(
-          'Error enabling offline persistence. Falling back to ' +
-            'persistence disabled: ' +
+          'Error enabling indexeddb cache. Falling back to ' +
+            'memory cache: ' +
             error
         );
         persistenceResult.reject(error);
       }
     })
     .then(() => persistenceResult.promise);
-}
-
-/**
- * Decides whether the provided error allows us to gracefully disable
- * persistence (as opposed to crashing the client).
- */
-function canFallbackFromIndexedDbError(
-  error: FirestoreError | DOMException
-): boolean {
-  if (error.name === 'FirebaseError') {
-    return (
-      error.code === Code.FAILED_PRECONDITION ||
-      error.code === Code.UNIMPLEMENTED
-    );
-  } else if (
-    typeof DOMException !== 'undefined' &&
-    error instanceof DOMException
-  ) {
-    // There are a few known circumstances where we can open IndexedDb but
-    // trying to read/write will fail (e.g. quota exceeded). For
-    // well-understood cases, we attempt to detect these and then gracefully
-    // fall back to memory persistence.
-    // NOTE: Rather than continue to add to this list, we could decide to
-    // always fall back, with the risk that we might accidentally hide errors
-    // representing actual SDK bugs.
-    return (
-      // When the browser is out of quota we could get either quota exceeded
-      // or an aborted error depending on whether the error happened during
-      // schema migration.
-      error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
-      error.code === DOM_EXCEPTION_ABORTED ||
-      // Firefox Private Browsing mode disables IndexedDb and returns
-      // INVALID_STATE for any usage.
-      error.code === DOM_EXCEPTION_INVALID_STATE
-    );
-  }
-
-  return true;
 }
 
 /**

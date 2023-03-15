@@ -26,7 +26,7 @@ import {
 } from '../util/firebase_export';
 import { isPersistenceAvailable, withTestDb } from '../util/helpers';
 
-describe('where persistence is unsupported, enablePersistence', () => {
+describe('where indexeddb is not available: ', () => {
   // Only test on platforms where persistence is *not* available (e.g. Edge,
   // Node.JS).
   if (isPersistenceAvailable()) {
@@ -59,6 +59,16 @@ describe('where persistence is unsupported, enablePersistence', () => {
       return setDoc(testDoc, { foo: 'bar' }).then(
         () => persistenceFailedPromise
       );
+    });
+  });
+
+  it('fails back to memory cache with initializeFirestore too', () => {
+    // withTestDb will fail the test if persistence is requested but it fails
+    // so we'll enable persistence here instead.
+    return withTestDb(/* persistence= */ true, db => {
+      // Do the set immediately without waiting on the promise.
+      const testDoc = doc(collection(db, 'test-collection'));
+      return setDoc(testDoc, { foo: 'bar' });
     });
   });
 });
