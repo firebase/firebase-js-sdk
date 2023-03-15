@@ -183,7 +183,7 @@ export async function _performFetchWithErrorHandling<V>(
     }
     // Changing this to a different error code will log user out when there is a network error
     // because we treat any error other than NETWORK_REQUEST_FAILED as token is invalid.
-    // https://github.com/firebase/firebase-js-sdk/blob/master/packages/auth/src/core/auth/auth_impl.ts#L309-L316
+    // https://github.com/firebase/firebase-js-sdk/blob/4fbc73610d70be4e0852e7de63a39cb7897e8546/packages/auth/src/core/auth/auth_impl.ts#L309-L316
     _fail(auth, AuthErrorCode.NETWORK_REQUEST_FAILED, { 'message': String(e) });
   }
 }
