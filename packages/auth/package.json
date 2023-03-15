@@ -41,10 +41,6 @@
       "types": "./dist/cordova/index.cordova.d.ts",
       "default": "./dist/cordova/index.js"
     },
-    "./react-native": {
-      "types": "./dist/rn/index.rn.d.ts",
-      "default": "./dist/rn/index.js"
-    },
     "./internal": {
       "types": "./dist/internal/index.d.ts",
       "node": {
@@ -72,8 +68,7 @@
   "files": [
     "dist",
     "cordova/package.json",
-    "internal/package.json",
-    "react-native/package.json"
+    "internal/package.json"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
