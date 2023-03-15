@@ -181,7 +181,10 @@ export async function _performFetchWithErrorHandling<V>(
     if (e instanceof FirebaseError) {
       throw e;
     }
-    _fail(auth, AuthErrorCode.INTERNAL_ERROR, { 'message': String(e) });
+    // Changing this to a different error code will log user out when there is a network error
+    // because we treat any error other than NETWORK_REQUEST_FAILED as token is invalid.
+    // https://github.com/firebase/firebase-js-sdk/blob/master/packages/auth/src/core/auth/auth_impl.ts#L309-L316
+    _fail(auth, AuthErrorCode.NETWORK_REQUEST_FAILED, { 'message': String(e) });
   }
 }
 
