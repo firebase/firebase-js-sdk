@@ -23,8 +23,8 @@ import {
   DocumentReference,
   Firestore,
   terminate,
+  persistentLocalCache,
   clearIndexedDbPersistence,
-  enableIndexedDbPersistence,
   CollectionReference,
   DocumentData,
   QuerySnapshot,
@@ -184,10 +184,11 @@ export async function withTestDbsSettings(
   const dbs: Firestore[] = [];
 
   for (let i = 0; i < numDbs; i++) {
-    const db = newTestFirestore(newTestApp(projectId), settings);
+    const newSettings = { ...settings };
     if (persistence) {
-      await enableIndexedDbPersistence(db);
+      newSettings.localCache = persistentLocalCache();
     }
+    const db = newTestFirestore(newTestApp(projectId), newSettings);
     dbs.push(db);
   }
 
@@ -218,10 +219,11 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   const app = newTestApp(DEFAULT_PROJECT_ID);
   const dbs: Firestore[] = [];
   for (const dbName of dbNames) {
-    const db = newTestFirestore(app, DEFAULT_SETTINGS, dbName);
+    const newSettings = { ...DEFAULT_SETTINGS };
     if (persistence) {
-      await enableIndexedDbPersistence(db);
+      newSettings.localCache = persistentLocalCache();
     }
+    const db = newTestFirestore(app, newSettings, dbName);
     dbs.push(db);
   }
 

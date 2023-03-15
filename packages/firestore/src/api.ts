@@ -34,6 +34,21 @@ export {
   AggregateType
 } from './lite-api/aggregate_types';
 
+export {
+  FirestoreLocalCache,
+  PersistentLocalCache,
+  PersistentMultipleTabManager,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  PersistentCacheSettings,
+  persistentSingleTabManager,
+  PersistentSingleTabManager,
+  PersistentSingleTabManagerSettings,
+  MemoryLocalCache,
+  memoryLocalCache,
+  PersistentTabManager
+} from './api/cache_config';
+
 export { FieldPath, documentId } from './api/field_path';
 
 export {

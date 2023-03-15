@@ -1214,6 +1214,7 @@ apiDescribe('Database', (persistence: boolean) => {
     'cannot clear persistence if the client has been initialized',
     async () => {
       await withTestDoc(persistence, async (docRef, firestore) => {
+        await setDoc(docRef, {});
         const expectedError =
           'Persistence can only be cleared before a Firestore instance is ' +
           'initialized or after it is terminated.';
