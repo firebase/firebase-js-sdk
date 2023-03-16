@@ -13,7 +13,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "eslint": "7.32.0",
+    "eslint": "8.36.0",
     "eslint-plugin-unused-imports": "2.0.0",
     "prettier": "2.8.0"
   },
@@ -32,7 +32,7 @@
     "reportDir": "./coverage/node"
   },
   "devDependencies": {
-    "@types/eslint": "7.29.0",
+    "@types/eslint": "8.21.2",
     "@types/prettier": "2.7.2",
     "mocha": "9.2.2"
   }

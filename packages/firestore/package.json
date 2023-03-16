@@ -108,7 +108,7 @@
     "@firebase/auth": "0.21.5",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",
-    "@types/eslint": "7.29.0",
+    "@types/eslint": "8.21.2",
     "@types/json-stable-stringify": "1.0.34",
     "chai-exclude": "2.1.0",
     "json-stable-stringify": "1.0.2",
