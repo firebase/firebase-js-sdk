@@ -22,7 +22,10 @@ export function decodeBase64(encoded: string): string {
   try {
     return atob(encoded);
   } catch (e) {
-    if (e instanceof DOMException) {
+    // Check that `DOMException` is defined before using it to avoid
+    // "ReferenceError: Property 'DOMException' doesn't exist" in react-native.
+    // (https://github.com/firebase/firebase-js-sdk/issues/7115)
+    if (typeof DOMException !== 'undefined' && e instanceof DOMException) {
       throw new Base64DecodeError('Invalid base64 string: ' + e);
     } else {
       throw e;
