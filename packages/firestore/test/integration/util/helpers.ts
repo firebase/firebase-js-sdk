@@ -32,7 +32,9 @@ import {
   PrivateSettings,
   SnapshotListenOptions,
   newTestFirestore,
-  newTestApp
+  newTestApp,
+  writeBatch,
+  WriteBatch
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -317,11 +319,34 @@ export function withTestCollectionSettings(
       const collectionId = 'test-collection-' + doc(collection(testDb, 'x')).id;
       const testCollection = collection(testDb, collectionId);
       const setupCollection = collection(setupDb, collectionId);
-      const sets: Array<Promise<void>> = [];
-      Object.keys(docs).forEach(key => {
-        sets.push(setDoc(doc(setupCollection, key), docs[key]));
-      });
-      return Promise.all(sets).then(() => fn(testCollection, testDb));
+
+      const writeBatchCommits: Array<Promise<void>> = [];
+      let writeBatch_: WriteBatch | null = null;
+      let writeBatchSize = 0;
+
+      for (const key of Object.keys(docs)) {
+        if (writeBatch_ === null) {
+          writeBatch_ = writeBatch(setupDb);
+        }
+
+        writeBatch_.set(doc(setupCollection, key), docs[key]);
+        writeBatchSize++;
+
+        // Write batches are capped at 500 writes. Use 400 just to be safe.
+        if (writeBatchSize === 400) {
+          writeBatchCommits.push(writeBatch_.commit());
+          writeBatch_ = null;
+          writeBatchSize = 0;
+        }
+      }
+
+      if (writeBatch_ !== null) {
+        writeBatchCommits.push(writeBatch_.commit());
+      }
+
+      return Promise.all(writeBatchCommits).then(() =>
+        fn(testCollection, testDb)
+      );
     }
   );
 }
