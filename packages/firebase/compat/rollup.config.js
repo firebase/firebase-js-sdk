@@ -206,7 +206,7 @@ const componentBuilds = compatPkg.components
       {
         input: `${__dirname}/${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}-compat.js`),
-        plugins: [...plugins, typescriptPluginCDN, uglify(uglifyOptions)],
+        plugins: [...plugins, typescriptPluginCDN],
         external: ['@firebase/app-compat', '@firebase/app']
       }
     ];
