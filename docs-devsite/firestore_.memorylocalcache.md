@@ -24,12 +24,12 @@ export declare interface MemoryLocalCache
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [kind](./firestore_.memorylocalcache.md#memorylocalcachekind) | 'memory' |  |
+|  [kind](./firestore_.memorylocalcache.md#memorylocalcachekind) | "memory" |  |
 
 ## MemoryLocalCache.kind
 
 <b>Signature:</b>
 
 ```typescript
-kind: 'memory';
+kind: "memory";
 ```

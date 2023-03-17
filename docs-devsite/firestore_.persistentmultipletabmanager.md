@@ -22,12 +22,12 @@ export declare interface PersistentMultipleTabManager
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [kind](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanagerkind) | 'PersistentMultipleTab' |  |
+|  [kind](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanagerkind) | "PersistentMultipleTab" |  |
 
 ## PersistentMultipleTabManager.kind
 
 <b>Signature:</b>
 
 ```typescript
-kind: 'PersistentMultipleTab';
+kind: "PersistentMultipleTab";
 ```

@@ -52,6 +52,7 @@ export {
   PersistentSingleTabManager,
   persistentSingleTabManager,
   PersistentSingleTabManagerSettings,
+  PersistentTabManager,
 } from "./api/cache_config";
 
 export { documentId, FieldPath } from "./api/field_path";

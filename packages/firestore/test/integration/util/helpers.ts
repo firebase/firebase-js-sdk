@@ -163,11 +163,11 @@ export function withEnsuredLruGcTestDb(
 ): Promise<void> {
   const newSettings = { ...DEFAULT_SETTINGS };
   if (persistence) {
-    newSettings.cache = indexedDbLocalCache({
+    newSettings.localCache = persistentLocalCache({
       cacheSizeBytes: 1 * 1024 * 1024,
     });
   } else {
-    newSettings.cache = memoryLocalCache({
+    newSettings.localCache = memoryLocalCache({
       garbageCollector: memoryLruGarbageCollector({
         cacheSizeBytes: 1 * 1024 * 1024,
       }),

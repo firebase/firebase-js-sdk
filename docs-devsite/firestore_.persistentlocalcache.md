@@ -24,12 +24,12 @@ export declare interface PersistentLocalCache
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [kind](./firestore_.persistentlocalcache.md#persistentlocalcachekind) | 'persistent' |  |
+|  [kind](./firestore_.persistentlocalcache.md#persistentlocalcachekind) | "persistent" |  |
 
 ## PersistentLocalCache.kind
 
 <b>Signature:</b>
 
 ```typescript
-kind: 'persistent';
+kind: "persistent";
 ```

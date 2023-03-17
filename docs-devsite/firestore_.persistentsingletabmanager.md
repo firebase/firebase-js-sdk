@@ -22,12 +22,12 @@ export declare interface PersistentSingleTabManager
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [kind](./firestore_.persistentsingletabmanager.md#persistentsingletabmanagerkind) | 'persistentSingleTab' |  |
+|  [kind](./firestore_.persistentsingletabmanager.md#persistentsingletabmanagerkind) | "persistentSingleTab" |  |
 
 ## PersistentSingleTabManager.kind
 
 <b>Signature:</b>
 
 ```typescript
-kind: 'persistentSingleTab';
+kind: "persistentSingleTab";
 ```
