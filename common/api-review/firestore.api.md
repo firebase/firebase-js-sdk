@@ -339,7 +339,7 @@ export interface MemoryCacheSettings {
 // @public
 export interface MemoryEagerGarbageCollector {
     // (undocumented)
-    kind: "memoryEager";
+    kind: 'memoryEager';
 }
 
 // @public
@@ -351,7 +351,7 @@ export type MemoryGarbageCollector = MemoryEagerGarbageCollector | MemoryLruGarb
 // @public
 export interface MemoryLocalCache {
     // (undocumented)
-    kind: "memory";
+    kind: 'memory';
 }
 
 // @public
@@ -360,7 +360,7 @@ export function memoryLocalCache(settings?: MemoryCacheSettings): MemoryLocalCac
 // @public
 export interface MemoryLruGarbageCollector {
     // (undocumented)
-    kind: "memoryLru";
+    kind: 'memoryLru';
 }
 
 // @public
@@ -454,7 +454,7 @@ export interface PersistentCacheSettings {
 // @public
 export interface PersistentLocalCache {
     // (undocumented)
-    kind: "persistent";
+    kind: 'persistent';
 }
 
 // @public
@@ -463,7 +463,7 @@ export function persistentLocalCache(settings?: PersistentCacheSettings): Persis
 // @public
 export interface PersistentMultipleTabManager {
     // (undocumented)
-    kind: "PersistentMultipleTab";
+    kind: 'PersistentMultipleTab';
 }
 
 // @public
@@ -472,7 +472,7 @@ export function persistentMultipleTabManager(): PersistentMultipleTabManager;
 // @public
 export interface PersistentSingleTabManager {
     // (undocumented)
-    kind: "persistentSingleTab";
+    kind: 'persistentSingleTab';
 }
 
 // @public

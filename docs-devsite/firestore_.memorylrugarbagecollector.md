@@ -26,12 +26,12 @@ export declare interface MemoryLruGarbageCollector
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [kind](./firestore_.memorylrugarbagecollector.md#memorylrugarbagecollectorkind) | "memoryLru" |  |
+|  [kind](./firestore_.memorylrugarbagecollector.md#memorylrugarbagecollectorkind) | 'memoryLru' |  |
 
 ## MemoryLruGarbageCollector.kind
 
 <b>Signature:</b>
 
 ```typescript
-kind: "memoryLru";
+kind: 'memoryLru';
 ```

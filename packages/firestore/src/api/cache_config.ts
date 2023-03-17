@@ -21,8 +21,8 @@ import {
   MemoryOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
   OfflineComponentProvider,
-  OnlineComponentProvider,
-} from "../core/component_provider";
+  OnlineComponentProvider
+} from '../core/component_provider';
 
 /* eslint @typescript-eslint/consistent-type-definitions: ["error", "type"] */
 /**
@@ -34,7 +34,7 @@ import {
  * the settings object.
  */
 export type MemoryLocalCache = {
-  kind: "memory";
+  kind: 'memory';
   /**
    * @internal
    */
@@ -46,7 +46,7 @@ export type MemoryLocalCache = {
 };
 
 class MemoryLocalCacheImpl implements MemoryLocalCache {
-  kind: "memory" = "memory";
+  kind: 'memory' = 'memory';
   /**
    * @internal
    */
@@ -79,7 +79,7 @@ class MemoryLocalCacheImpl implements MemoryLocalCache {
  * the settings object.
  */
 export type PersistentLocalCache = {
-  kind: "persistent";
+  kind: 'persistent';
   /**
    * @internal
    */
@@ -91,7 +91,7 @@ export type PersistentLocalCache = {
 };
 
 class PersistentLocalCacheImpl implements PersistentLocalCache {
-  kind: "persistent" = "persistent";
+  kind: 'persistent' = 'persistent';
   /**
    * @internal
    */
@@ -143,7 +143,7 @@ export type MemoryGarbageCollector =
  * instance of this collector.
  */
 export type MemoryEagerGarbageCollector = {
-  kind: "memoryEager";
+  kind: 'memoryEager';
   /**
    * @internal
    */
@@ -163,7 +163,7 @@ export type MemoryEagerGarbageCollector = {
  * instance of this collector.
  */
 export type MemoryLruGarbageCollector = {
-  kind: "memoryLru";
+  kind: 'memoryLru';
   /**
    * @internal
    */
@@ -171,7 +171,7 @@ export type MemoryLruGarbageCollector = {
 };
 
 class MemoryEagerGabageCollectorImpl implements MemoryEagerGarbageCollector {
-  kind: "memoryEager" = "memoryEager";
+  kind: 'memoryEager' = 'memoryEager';
   /**
    * @internal
    */
@@ -187,7 +187,7 @@ class MemoryEagerGabageCollectorImpl implements MemoryEagerGarbageCollector {
 }
 
 class MemoryLruGabageCollectorImpl implements MemoryLruGarbageCollector {
-  kind: "memoryLru" = "memoryLru";
+  kind: 'memoryLru' = 'memoryLru';
   /**
    * @internal
    */
@@ -195,7 +195,7 @@ class MemoryLruGabageCollectorImpl implements MemoryLruGarbageCollector {
 
   constructor(cacheSize?: number) {
     this._offlineComponentProvider = new LruGcMemoryOfflineComponentProvider(
-      cacheSize,
+      cacheSize
     );
   }
 
@@ -241,7 +241,7 @@ export type MemoryCacheSettings = {
  * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
  */
 export function memoryLocalCache(
-  settings?: MemoryCacheSettings,
+  settings?: MemoryCacheSettings
 ): MemoryLocalCache {
   return new MemoryLocalCacheImpl(settings);
 }
@@ -273,7 +273,7 @@ export type PersistentCacheSettings = {
  * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
  */
 export function persistentLocalCache(
-  settings?: PersistentCacheSettings,
+  settings?: PersistentCacheSettings
 ): PersistentLocalCache {
   return new PersistentLocalCacheImpl(settings);
 }
@@ -283,12 +283,12 @@ export function persistentLocalCache(
  * performed across tabs.
  */
 export type PersistentSingleTabManager = {
-  kind: "persistentSingleTab";
+  kind: 'persistentSingleTab';
   /**
    * @internal
    */
   _initialize: (
-    settings: Omit<PersistentCacheSettings, "tabManager"> | undefined,
+    settings: Omit<PersistentCacheSettings, 'tabManager'> | undefined
   ) => void;
   /**
    * @internal
@@ -301,7 +301,7 @@ export type PersistentSingleTabManager = {
 };
 
 class SingleTabManagerImpl implements PersistentSingleTabManager {
-  kind: "persistentSingleTab" = "persistentSingleTab";
+  kind: 'persistentSingleTab' = 'persistentSingleTab';
 
   /**
    * @internal
@@ -322,13 +322,13 @@ class SingleTabManagerImpl implements PersistentSingleTabManager {
    * @internal
    */
   _initialize(
-    settings: Omit<PersistentCacheSettings, "tabManager"> | undefined,
+    settings: Omit<PersistentCacheSettings, 'tabManager'> | undefined
   ): void {
     this._onlineComponentProvider = new OnlineComponentProvider();
     this._offlineComponentProvider = new IndexedDbOfflineComponentProvider(
       this._onlineComponentProvider,
       settings?.cacheSizeBytes,
-      this.forceOwnership,
+      this.forceOwnership
     );
   }
 }
@@ -338,11 +338,11 @@ class SingleTabManagerImpl implements PersistentSingleTabManager {
  * mutations done across all tabs using the SDK.
  */
 export type PersistentMultipleTabManager = {
-  kind: "PersistentMultipleTab";
+  kind: 'PersistentMultipleTab';
   /**
    * @internal
    */
-  _initialize: (settings: Omit<PersistentCacheSettings, "tabManager">) => void;
+  _initialize: (settings: Omit<PersistentCacheSettings, 'tabManager'>) => void;
   /**
    * @internal
    */
@@ -355,7 +355,7 @@ export type PersistentMultipleTabManager = {
 };
 
 class MultiTabManagerImpl implements PersistentMultipleTabManager {
-  kind: "PersistentMultipleTab" = "PersistentMultipleTab";
+  kind: 'PersistentMultipleTab' = 'PersistentMultipleTab';
 
   /**
    * @internal
@@ -374,12 +374,12 @@ class MultiTabManagerImpl implements PersistentMultipleTabManager {
    * @internal
    */
   _initialize(
-    settings: Omit<PersistentCacheSettings, "tabManager"> | undefined,
+    settings: Omit<PersistentCacheSettings, 'tabManager'> | undefined
   ): void {
     this._onlineComponentProvider = new OnlineComponentProvider();
     this._offlineComponentProvider = new MultiTabOfflineComponentProvider(
       this._onlineComponentProvider,
-      settings?.cacheSizeBytes,
+      settings?.cacheSizeBytes
     );
   }
 }
@@ -409,7 +409,7 @@ export type PersistentSingleTabManagerSettings = {
  * @param settings Configures the created tab manager.
  */
 export function persistentSingleTabManager(
-  settings: PersistentSingleTabManagerSettings | undefined,
+  settings: PersistentSingleTabManagerSettings | undefined
 ): PersistentSingleTabManager {
   return new SingleTabManagerImpl(settings?.forceOwnership);
 }

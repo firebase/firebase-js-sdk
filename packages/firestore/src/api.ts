@@ -22,8 +22,8 @@ export {
   count,
   getAggregateFromServer,
   getCountFromServer,
-  sum,
-} from "./api/aggregate";
+  sum
+} from './api/aggregate';
 
 export {
   AggregateField,
@@ -31,8 +31,8 @@ export {
   AggregateQuerySnapshot,
   AggregateSpec,
   AggregateSpecData,
-  AggregateType,
-} from "./lite-api/aggregate_types";
+  AggregateType
+} from './lite-api/aggregate_types';
 
 export {
   FirestoreLocalCache,
@@ -52,10 +52,10 @@ export {
   PersistentSingleTabManager,
   persistentSingleTabManager,
   PersistentSingleTabManagerSettings,
-  PersistentTabManager,
-} from "./api/cache_config";
+  PersistentTabManager
+} from './api/cache_config';
 
-export { documentId, FieldPath } from "./api/field_path";
+export { documentId, FieldPath } from './api/field_path';
 
 export {
   clearIndexedDbPersistence,
@@ -72,16 +72,16 @@ export {
   loadBundle,
   namedQuery,
   terminate,
-  waitForPendingWrites,
-} from "./api/database";
+  waitForPendingWrites
+} from './api/database';
 
 export {
   LoadBundleTask,
   LoadBundleTaskProgress,
-  TaskState,
-} from "./api/bundle";
+  TaskState
+} from './api/bundle';
 
-export { FirestoreSettings, PersistenceSettings } from "./api/settings";
+export { FirestoreSettings, PersistenceSettings } from './api/settings';
 
 export {
   DocumentChange,
@@ -92,8 +92,8 @@ export {
   QuerySnapshot,
   snapshotEqual,
   SnapshotMetadata,
-  SnapshotOptions,
-} from "./api/snapshot";
+  SnapshotOptions
+} from './api/snapshot';
 
 export {
   collection,
@@ -108,8 +108,8 @@ export {
   refEqual,
   SetOptions,
   UpdateData,
-  WithFieldValue,
-} from "./api/reference";
+  WithFieldValue
+} from './api/reference';
 
 export {
   and,
@@ -134,14 +134,14 @@ export {
   startAfter,
   startAt,
   where,
-  WhereFilterOp,
-} from "./api/filter";
+  WhereFilterOp
+} from './api/filter';
 
-export { SnapshotListenOptions, Unsubscribe } from "./api/reference_impl";
+export { SnapshotListenOptions, Unsubscribe } from './api/reference_impl';
 
-export { TransactionOptions } from "./api/transaction_options";
+export { TransactionOptions } from './api/transaction_options';
 
-export { runTransaction, Transaction } from "./api/transaction";
+export { runTransaction, Transaction } from './api/transaction';
 
 export {
   addDoc,
@@ -156,64 +156,64 @@ export {
   onSnapshot,
   onSnapshotsInSync,
   setDoc,
-  updateDoc,
-} from "./api/reference_impl";
+  updateDoc
+} from './api/reference_impl';
 
-export { FieldValue } from "./api/field_value";
+export { FieldValue } from './api/field_value';
 
 export {
   arrayRemove,
   arrayUnion,
   deleteField,
   increment,
-  serverTimestamp,
-} from "./api/field_value_impl";
+  serverTimestamp
+} from './api/field_value_impl';
 
-export { LogLevelString as LogLevel, setLogLevel } from "./util/log";
+export { LogLevelString as LogLevel, setLogLevel } from './util/log';
 
-export { Bytes } from "./api/bytes";
+export { Bytes } from './api/bytes';
 
-export { WriteBatch, writeBatch } from "./api/write_batch";
+export { WriteBatch, writeBatch } from './api/write_batch';
 
-export { GeoPoint } from "./api/geo_point";
+export { GeoPoint } from './api/geo_point';
 
-export { Timestamp } from "./api/timestamp";
+export { Timestamp } from './api/timestamp';
 
-export { CACHE_SIZE_UNLIMITED } from "./api/database";
+export { CACHE_SIZE_UNLIMITED } from './api/database';
 
-export { FirestoreError, FirestoreErrorCode } from "./util/error";
+export { FirestoreError, FirestoreErrorCode } from './util/error';
 
-export { AbstractUserDataWriter } from "./lite-api/user_data_writer";
+export { AbstractUserDataWriter } from './lite-api/user_data_writer';
 
 export {
   AddPrefixToKeys,
   ChildUpdateFields,
   NestedUpdateFields,
   Primitive,
-  UnionToIntersection,
-} from "../src/lite-api/types";
+  UnionToIntersection
+} from '../src/lite-api/types';
 
 export {
   Index,
   IndexConfiguration,
   IndexField,
-  setIndexConfiguration,
-} from "./api/index_configuration";
+  setIndexConfiguration
+} from './api/index_configuration';
 
 /**
  * Internal exports
  */
-export { isBase64Available as _isBase64Available } from "./platform/base64";
-export { DatabaseId as _DatabaseId } from "./core/database_info";
+export { isBase64Available as _isBase64Available } from './platform/base64';
+export { DatabaseId as _DatabaseId } from './core/database_info';
 export {
   cast as _cast,
-  validateIsNotUsedTogether as _validateIsNotUsedTogether,
-} from "./util/input_validation";
-export { DocumentKey as _DocumentKey } from "./model/document_key";
-export { debugAssert as _debugAssert } from "./util/assert";
-export { FieldPath as _FieldPath } from "./model/path";
-export type { ResourcePath as _ResourcePath } from "./model/path";
-export type { ByteString as _ByteString } from "./util/byte_string";
-export { logWarn as _logWarn } from "./util/log";
-export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from "./api/credentials";
-export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from "./api/credentials";
+  validateIsNotUsedTogether as _validateIsNotUsedTogether
+} from './util/input_validation';
+export { DocumentKey as _DocumentKey } from './model/document_key';
+export { debugAssert as _debugAssert } from './util/assert';
+export { FieldPath as _FieldPath } from './model/path';
+export type { ResourcePath as _ResourcePath } from './model/path';
+export type { ByteString as _ByteString } from './util/byte_string';
+export { logWarn as _logWarn } from './util/log';
+export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
+export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';

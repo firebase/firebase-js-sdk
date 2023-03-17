@@ -26,12 +26,12 @@ export declare interface MemoryEagerGarbageCollector
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [kind](./firestore_.memoryeagergarbagecollector.md#memoryeagergarbagecollectorkind) | "memoryEager" |  |
+|  [kind](./firestore_.memoryeagergarbagecollector.md#memoryeagergarbagecollectorkind) | 'memoryEager' |  |
 
 ## MemoryEagerGarbageCollector.kind
 
 <b>Signature:</b>
 
 ```typescript
-kind: "memoryEager";
+kind: 'memoryEager';
 ```
