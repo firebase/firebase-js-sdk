@@ -240,7 +240,7 @@ const completeBuilds = [
       sourcemap: true,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPluginCDN, uglify(uglifyOptions)]
+    plugins: [...plugins, typescriptPluginCDN]
   },
   /**
    * App Node.js Builds
