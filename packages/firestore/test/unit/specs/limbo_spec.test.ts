@@ -20,6 +20,7 @@ import {
   newQueryForPath,
   queryWithLimit
 } from '../../../src/core/query';
+import { TargetPurpose } from '../../../src/local/target_data';
 import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
 import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
@@ -880,7 +881,7 @@ describeSpec('Limbo Documents:', [], () => {
           // documents that changed since the resume token. This will cause it
           // to just send the docBs with an existence filter with a count of 3.
           .watchSends({ affects: [query1] }, docB1, docB2, docB3)
-          .watchFilters([query1], docB1.key, docB2.key, docB3.key)
+          .watchFilters([query1], [docB1.key, docB2.key, docB3.key])
           .watchSnapshots(1001)
           .expectEvents(query1, {
             added: [docB1, docB2, docB3],
@@ -889,7 +890,11 @@ describeSpec('Limbo Documents:', [], () => {
           // The view now contains the docAs and the docBs (6 documents), but
           // the existence filter indicated only 3 should match. This causes
           // the client to re-listen without a resume token.
-          .expectActiveTargets({ query: query1, resumeToken: '' })
+          .expectActiveTargets({
+            query: query1,
+            targetPurpose: TargetPurpose.ExistenceFilterMismatch,
+            resumeToken: ''
+          })
           // When the existence filter mismatch was detected, the client removed
           // then re-added the target. Watch needs to acknowledge the removal.
           .watchRemoves(query1)

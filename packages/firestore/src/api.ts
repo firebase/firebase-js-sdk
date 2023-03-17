@@ -16,128 +16,136 @@
  */
 
 export {
+  aggregateFieldEqual,
   aggregateQuerySnapshotEqual,
-  getCountFromServer
-} from './api/aggregate';
+  average,
+  count,
+  getAggregateFromServer,
+  getCountFromServer,
+  sum,
+} from "./api/aggregate";
 
 export {
   AggregateField,
   AggregateFieldType,
+  AggregateQuerySnapshot,
   AggregateSpec,
   AggregateSpecData,
-  AggregateQuerySnapshot
-} from './lite-api/aggregate_types';
+  AggregateType,
+} from "./lite-api/aggregate_types";
 
 export {
   FirestoreLocalCache,
-  IndexedDbLocalCache,
-  IndexedDbMultipleTabManager,
-  indexedDbLocalCache,
-  indexedDbMultipleTabManager,
-  IndexedDbCacheSettings,
-  indexedDbSingleTabManager,
-  IndexedDbSingleTabManager,
-  IndexedDbSingleTabManagerSettings,
-  IndexedDbTabManager,
-  MemoryLocalCache,
   MemoryCacheSettings,
-  MemoryGarbageCollector,
   MemoryEagerGarbageCollector,
-  MemoryLruGarbageCollector,
-  memoryLocalCache,
   memoryEagerGarbageCollector,
-  memoryLruGarbageCollector
-} from './api/cache_config';
+  MemoryGarbageCollector,
+  MemoryLocalCache,
+  memoryLocalCache,
+  MemoryLruGarbageCollector,
+  memoryLruGarbageCollector,
+  PersistentCacheSettings,
+  PersistentLocalCache,
+  persistentLocalCache,
+  PersistentMultipleTabManager,
+  persistentMultipleTabManager,
+  PersistentSingleTabManager,
+  persistentSingleTabManager,
+  PersistentSingleTabManagerSettings,
+} from "./api/cache_config";
 
-export { FieldPath, documentId } from './api/field_path';
+export { documentId, FieldPath } from "./api/field_path";
 
 export {
-  Firestore,
+  clearIndexedDbPersistence,
+  connectFirestoreEmulator,
+  disableNetwork,
   EmulatorMockTokenOptions,
-  initializeFirestore,
-  getFirestore,
   enableIndexedDbPersistence,
   enableMultiTabIndexedDbPersistence,
-  clearIndexedDbPersistence,
-  waitForPendingWrites,
-  disableNetwork,
   enableNetwork,
-  terminate,
-  connectFirestoreEmulator,
+  ensureFirestoreConfigured,
+  Firestore,
+  getFirestore,
+  initializeFirestore,
   loadBundle,
   namedQuery,
-  ensureFirestoreConfigured
-} from './api/database';
+  terminate,
+  waitForPendingWrites,
+} from "./api/database";
 
 export {
   LoadBundleTask,
   LoadBundleTaskProgress,
-  TaskState
-} from './api/bundle';
+  TaskState,
+} from "./api/bundle";
 
-export { FirestoreSettings, PersistenceSettings } from './api/settings';
+export { FirestoreSettings, PersistenceSettings } from "./api/settings";
 
 export {
   DocumentChange,
+  DocumentChangeType,
   DocumentSnapshot,
+  FirestoreDataConverter,
   QueryDocumentSnapshot,
   QuerySnapshot,
   snapshotEqual,
+  SnapshotMetadata,
   SnapshotOptions,
-  FirestoreDataConverter,
-  DocumentChangeType,
-  SnapshotMetadata
-} from './api/snapshot';
+} from "./api/snapshot";
 
 export {
-  DocumentReference,
-  CollectionReference,
-  Query,
-  doc,
   collection,
   collectionGroup,
-  SetOptions,
+  CollectionReference,
+  doc,
   DocumentData,
+  DocumentReference,
+  PartialWithFieldValue,
+  Query,
+  queryEqual,
+  refEqual,
+  SetOptions,
   UpdateData,
   WithFieldValue,
-  PartialWithFieldValue,
-  refEqual,
-  queryEqual
-} from './api/reference';
+} from "./api/reference";
 
 export {
   and,
   endAt,
   endBefore,
-  startAt,
-  startAfter,
   limit,
   limitToLast,
-  where,
   or,
   orderBy,
+  OrderByDirection,
   query,
+  QueryCompositeFilterConstraint,
   QueryConstraint,
   QueryConstraintType,
-  QueryCompositeFilterConstraint,
-  QueryFilterConstraint,
+  QueryEndAtConstraint,
   QueryFieldFilterConstraint,
-  QueryOrderByConstraint,
+  QueryFilterConstraint,
   QueryLimitConstraint,
   QueryNonFilterConstraint,
+  QueryOrderByConstraint,
   QueryStartAtConstraint,
-  QueryEndAtConstraint,
-  OrderByDirection,
-  WhereFilterOp
-} from './api/filter';
+  startAfter,
+  startAt,
+  where,
+  WhereFilterOp,
+} from "./api/filter";
 
-export { Unsubscribe, SnapshotListenOptions } from './api/reference_impl';
+export { SnapshotListenOptions, Unsubscribe } from "./api/reference_impl";
 
-export { TransactionOptions } from './api/transaction_options';
+export { TransactionOptions } from "./api/transaction_options";
 
-export { runTransaction, Transaction } from './api/transaction';
+export { runTransaction, Transaction } from "./api/transaction";
 
 export {
+  addDoc,
+  deleteDoc,
+  executeWrite,
   getDoc,
   getDocFromCache,
   getDocFromServer,
@@ -148,66 +156,63 @@ export {
   onSnapshotsInSync,
   setDoc,
   updateDoc,
-  deleteDoc,
-  addDoc,
-  executeWrite
-} from './api/reference_impl';
+} from "./api/reference_impl";
 
-export { FieldValue } from './api/field_value';
+export { FieldValue } from "./api/field_value";
 
 export {
-  increment,
   arrayRemove,
   arrayUnion,
+  deleteField,
+  increment,
   serverTimestamp,
-  deleteField
-} from './api/field_value_impl';
+} from "./api/field_value_impl";
 
-export { setLogLevel, LogLevelString as LogLevel } from './util/log';
+export { LogLevelString as LogLevel, setLogLevel } from "./util/log";
 
-export { Bytes } from './api/bytes';
+export { Bytes } from "./api/bytes";
 
-export { WriteBatch, writeBatch } from './api/write_batch';
+export { WriteBatch, writeBatch } from "./api/write_batch";
 
-export { GeoPoint } from './api/geo_point';
+export { GeoPoint } from "./api/geo_point";
 
-export { Timestamp } from './api/timestamp';
+export { Timestamp } from "./api/timestamp";
 
-export { CACHE_SIZE_UNLIMITED } from './api/database';
+export { CACHE_SIZE_UNLIMITED } from "./api/database";
 
-export { FirestoreErrorCode, FirestoreError } from './util/error';
+export { FirestoreError, FirestoreErrorCode } from "./util/error";
 
-export { AbstractUserDataWriter } from './lite-api/user_data_writer';
+export { AbstractUserDataWriter } from "./lite-api/user_data_writer";
 
 export {
-  Primitive,
-  NestedUpdateFields,
-  ChildUpdateFields,
   AddPrefixToKeys,
-  UnionToIntersection
-} from '../src/lite-api/types';
+  ChildUpdateFields,
+  NestedUpdateFields,
+  Primitive,
+  UnionToIntersection,
+} from "../src/lite-api/types";
 
 export {
-  setIndexConfiguration,
   Index,
   IndexConfiguration,
-  IndexField
-} from './api/index_configuration';
+  IndexField,
+  setIndexConfiguration,
+} from "./api/index_configuration";
 
 /**
  * Internal exports
  */
-export { isBase64Available as _isBase64Available } from './platform/base64';
-export { DatabaseId as _DatabaseId } from './core/database_info';
+export { isBase64Available as _isBase64Available } from "./platform/base64";
+export { DatabaseId as _DatabaseId } from "./core/database_info";
 export {
+  cast as _cast,
   validateIsNotUsedTogether as _validateIsNotUsedTogether,
-  cast as _cast
-} from './util/input_validation';
-export { DocumentKey as _DocumentKey } from './model/document_key';
-export { debugAssert as _debugAssert } from './util/assert';
-export { FieldPath as _FieldPath } from './model/path';
-export type { ResourcePath as _ResourcePath } from './model/path';
-export type { ByteString as _ByteString } from './util/byte_string';
-export { logWarn as _logWarn } from './util/log';
-export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
-export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
+} from "./util/input_validation";
+export { DocumentKey as _DocumentKey } from "./model/document_key";
+export { debugAssert as _debugAssert } from "./util/assert";
+export { FieldPath as _FieldPath } from "./model/path";
+export type { ResourcePath as _ResourcePath } from "./model/path";
+export type { ByteString as _ByteString } from "./util/byte_string";
+export { logWarn as _logWarn } from "./util/log";
+export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from "./api/credentials";
+export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from "./api/credentials";

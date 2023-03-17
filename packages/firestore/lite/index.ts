@@ -29,7 +29,12 @@ registerFirestore();
 
 export {
   aggregateQuerySnapshotEqual,
-  getCount
+  getCount,
+  getAggregate,
+  count,
+  sum,
+  average,
+  aggregateFieldEqual
 } from '../src/lite-api/aggregate';
 
 export {
@@ -37,7 +42,8 @@ export {
   AggregateFieldType,
   AggregateSpec,
   AggregateSpecData,
-  AggregateQuerySnapshot
+  AggregateQuerySnapshot,
+  AggregateType
 } from '../src/lite-api/aggregate_types';
 
 export { FirestoreSettings as Settings } from '../src/lite-api/settings';

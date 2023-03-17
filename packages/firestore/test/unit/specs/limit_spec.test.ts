@@ -16,6 +16,7 @@
  */
 
 import { LimitType, queryWithLimit } from '../../../src/core/query';
+import { TargetPurpose } from '../../../src/local/target_data';
 import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
@@ -341,9 +342,13 @@ describeSpec('Limits:', [], () => {
           // we receive an existence filter, which indicates that our view is
           // out of sync.
           .watchSends({ affects: [limitQuery] }, secondDocument)
-          .watchFilters([limitQuery], secondDocument.key)
+          .watchFilters([limitQuery], [secondDocument.key])
           .watchSnapshots(1004)
-          .expectActiveTargets({ query: limitQuery, resumeToken: '' })
+          .expectActiveTargets({
+            query: limitQuery,
+            targetPurpose: TargetPurpose.ExistenceFilterMismatch,
+            resumeToken: ''
+          })
           .watchRemoves(limitQuery)
           .watchAcksFull(limitQuery, 1005, secondDocument)
           // The snapshot after the existence filter mismatch triggers limbo

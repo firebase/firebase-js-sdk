@@ -21,8 +21,8 @@ import {
   MemoryOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
   OfflineComponentProvider,
-  OnlineComponentProvider
-} from '../core/component_provider';
+  OnlineComponentProvider,
+} from "../core/component_provider";
 
 /* eslint @typescript-eslint/consistent-type-definitions: ["error", "type"] */
 /**
@@ -34,7 +34,7 @@ import {
  * the settings object.
  */
 export type MemoryLocalCache = {
-  kind: 'memory';
+  kind: "memory";
   /**
    * @internal
    */
@@ -46,7 +46,7 @@ export type MemoryLocalCache = {
 };
 
 class MemoryLocalCacheImpl implements MemoryLocalCache {
-  kind: 'memory' = 'memory';
+  kind: "memory" = "memory";
   /**
    * @internal
    */
@@ -72,14 +72,14 @@ class MemoryLocalCacheImpl implements MemoryLocalCache {
 }
 
 /**
- * Provides a cache backed by IndexedDb to the SDK.
+ * Provides a persistent cache backed by IndexedDb to the SDK.
  *
- * To use, create an instance using the factory function {@link indexedDbLocalCache()}, then
+ * To use, create an instance using the factory function {@link persistentLocalCache()}, then
  * set the instance to `FirestoreSettings.cache` and call `initializeFirestore` using
  * the settings object.
  */
-export type IndexedDbLocalCache = {
-  kind: 'indexeddb';
+export type PersistentLocalCache = {
+  kind: "persistent";
   /**
    * @internal
    */
@@ -90,8 +90,8 @@ export type IndexedDbLocalCache = {
   _offlineComponentProvider: OfflineComponentProvider;
 };
 
-class IndexedDbLocalCacheImpl implements IndexedDbLocalCache {
-  kind: 'indexeddb' = 'indexeddb';
+class PersistentLocalCacheImpl implements PersistentLocalCache {
+  kind: "persistent" = "persistent";
   /**
    * @internal
    */
@@ -101,13 +101,13 @@ class IndexedDbLocalCacheImpl implements IndexedDbLocalCache {
    */
   _offlineComponentProvider: OfflineComponentProvider;
 
-  constructor(settings: IndexedDbCacheSettings | undefined) {
-    let tabManager: IndexedDbTabManager;
+  constructor(settings: PersistentCacheSettings | undefined) {
+    let tabManager: PersistentTabManager;
     if (settings?.tabManager) {
       settings.tabManager._initialize(settings);
       tabManager = settings.tabManager;
     } else {
-      tabManager = indexedDbSingleTabManager(undefined);
+      tabManager = persistentSingleTabManager(undefined);
       tabManager._initialize(settings);
     }
     this._onlineComponentProvider = tabManager._onlineComponentProvider!;
@@ -122,7 +122,7 @@ class IndexedDbLocalCacheImpl implements IndexedDbLocalCache {
 /**
  * Union type from all supported SDK cache layer.
  */
-export type FirestoreLocalCache = MemoryLocalCache | IndexedDbLocalCache;
+export type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
 
 /**
  * Union type from all support gabage collectors for memory local cache.
@@ -143,7 +143,7 @@ export type MemoryGarbageCollector =
  * instance of this collector.
  */
 export type MemoryEagerGarbageCollector = {
-  kind: 'memoryEager';
+  kind: "memoryEager";
   /**
    * @internal
    */
@@ -163,7 +163,7 @@ export type MemoryEagerGarbageCollector = {
  * instance of this collector.
  */
 export type MemoryLruGarbageCollector = {
-  kind: 'memoryLru';
+  kind: "memoryLru";
   /**
    * @internal
    */
@@ -171,7 +171,7 @@ export type MemoryLruGarbageCollector = {
 };
 
 class MemoryEagerGabageCollectorImpl implements MemoryEagerGarbageCollector {
-  kind: 'memoryEager' = 'memoryEager';
+  kind: "memoryEager" = "memoryEager";
   /**
    * @internal
    */
@@ -187,7 +187,7 @@ class MemoryEagerGabageCollectorImpl implements MemoryEagerGarbageCollector {
 }
 
 class MemoryLruGabageCollectorImpl implements MemoryLruGarbageCollector {
-  kind: 'memoryLru' = 'memoryLru';
+  kind: "memoryLru" = "memoryLru";
   /**
    * @internal
    */
@@ -195,7 +195,7 @@ class MemoryLruGabageCollectorImpl implements MemoryLruGarbageCollector {
 
   constructor(cacheSize?: number) {
     this._offlineComponentProvider = new LruGcMemoryOfflineComponentProvider(
-      cacheSize
+      cacheSize,
     );
   }
 
@@ -241,15 +241,15 @@ export type MemoryCacheSettings = {
  * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
  */
 export function memoryLocalCache(
-  settings?: MemoryCacheSettings
+  settings?: MemoryCacheSettings,
 ): MemoryLocalCache {
   return new MemoryLocalCacheImpl(settings);
 }
 
 /**
- * An settings object to configure an `IndexedDbLocalCache` instance.
+ * An settings object to configure an `PersistentLocalCache` instance.
  */
-export type IndexedDbCacheSettings = {
+export type PersistentCacheSettings = {
   /**
    * An approximate cache size threshold for the on-disk data. If the cache
    * grows beyond this size, Firestore will start removing data that hasn't been
@@ -265,30 +265,30 @@ export type IndexedDbCacheSettings = {
   /**
    * Specifies how multiple tabs/windows will be managed by the SDK.
    */
-  tabManager?: IndexedDbTabManager;
+  tabManager?: PersistentTabManager;
 };
 
 /**
- * Creates an instance of `IndexedDbLocalCache`. The instance can be set to
+ * Creates an instance of `PersistentLocalCache`. The instance can be set to
  * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
  */
-export function indexedDbLocalCache(
-  settings?: IndexedDbCacheSettings
-): IndexedDbLocalCache {
-  return new IndexedDbLocalCacheImpl(settings);
+export function persistentLocalCache(
+  settings?: PersistentCacheSettings,
+): PersistentLocalCache {
+  return new PersistentLocalCacheImpl(settings);
 }
 
 /**
  * A tab manager supportting only one tab, no synchronization will be
  * performed across tabs.
  */
-export type IndexedDbSingleTabManager = {
-  kind: 'indexedDbSingleTab';
+export type PersistentSingleTabManager = {
+  kind: "persistentSingleTab";
   /**
    * @internal
    */
   _initialize: (
-    settings: Omit<IndexedDbCacheSettings, 'tabManager'> | undefined
+    settings: Omit<PersistentCacheSettings, "tabManager"> | undefined,
   ) => void;
   /**
    * @internal
@@ -300,8 +300,8 @@ export type IndexedDbSingleTabManager = {
   _offlineComponentProvider?: OfflineComponentProvider;
 };
 
-class SingleTabManagerImpl implements IndexedDbSingleTabManager {
-  kind: 'indexedDbSingleTab' = 'indexedDbSingleTab';
+class SingleTabManagerImpl implements PersistentSingleTabManager {
+  kind: "persistentSingleTab" = "persistentSingleTab";
 
   /**
    * @internal
@@ -322,13 +322,13 @@ class SingleTabManagerImpl implements IndexedDbSingleTabManager {
    * @internal
    */
   _initialize(
-    settings: Omit<IndexedDbCacheSettings, 'tabManager'> | undefined
+    settings: Omit<PersistentCacheSettings, "tabManager"> | undefined,
   ): void {
     this._onlineComponentProvider = new OnlineComponentProvider();
     this._offlineComponentProvider = new IndexedDbOfflineComponentProvider(
       this._onlineComponentProvider,
       settings?.cacheSizeBytes,
-      this.forceOwnership
+      this.forceOwnership,
     );
   }
 }
@@ -337,12 +337,12 @@ class SingleTabManagerImpl implements IndexedDbSingleTabManager {
  * A tab manager supportting multiple tabs. SDK will synchronize queries and
  * mutations done across all tabs using the SDK.
  */
-export type IndexedDbMultipleTabManager = {
-  kind: 'IndexedDbMultipleTab';
+export type PersistentMultipleTabManager = {
+  kind: "PersistentMultipleTab";
   /**
    * @internal
    */
-  _initialize: (settings: Omit<IndexedDbCacheSettings, 'tabManager'>) => void;
+  _initialize: (settings: Omit<PersistentCacheSettings, "tabManager">) => void;
   /**
    * @internal
    */
@@ -354,8 +354,8 @@ export type IndexedDbMultipleTabManager = {
   _offlineComponentProvider?: OfflineComponentProvider;
 };
 
-class MultiTabManagerImpl implements IndexedDbMultipleTabManager {
-  kind: 'IndexedDbMultipleTab' = 'IndexedDbMultipleTab';
+class MultiTabManagerImpl implements PersistentMultipleTabManager {
+  kind: "PersistentMultipleTab" = "PersistentMultipleTab";
 
   /**
    * @internal
@@ -374,12 +374,12 @@ class MultiTabManagerImpl implements IndexedDbMultipleTabManager {
    * @internal
    */
   _initialize(
-    settings: Omit<IndexedDbCacheSettings, 'tabManager'> | undefined
+    settings: Omit<PersistentCacheSettings, "tabManager"> | undefined,
   ): void {
     this._onlineComponentProvider = new OnlineComponentProvider();
     this._offlineComponentProvider = new MultiTabOfflineComponentProvider(
       this._onlineComponentProvider,
-      settings?.cacheSizeBytes
+      settings?.cacheSizeBytes,
     );
   }
 }
@@ -387,36 +387,36 @@ class MultiTabManagerImpl implements IndexedDbMultipleTabManager {
 /**
  * A union of all avaialbe tab managers.
  */
-export type IndexedDbTabManager =
-  | IndexedDbSingleTabManager
-  | IndexedDbMultipleTabManager;
+export type PersistentTabManager =
+  | PersistentSingleTabManager
+  | PersistentMultipleTabManager;
 
 /**
- * Type to configure an `IndexedDbSingleTabManager` instace.
+ * Type to configure an `PersistentSingleTabManager` instace.
  */
-export type IndexedDbSingleTabManagerSettings = {
+export type PersistentSingleTabManagerSettings = {
   /**
-   * Whether to force-enable IndexedDB cache for the client. This cannot be used
-   * with multi-tab synchronization and is primarily intended for use with Web
-   * Workers. Setting this to `true` will enable IndexedDB, but cause other
-   * tabs using IndexedDB cache to fail.
+   * Whether to force-enable persistent (IndexedDB) cache for the client. This
+   * cannot be used with multi-tab synchronization and is primarily intended for
+   * use with Web Workers. Setting this to `true` will enable IndexedDB, but cause
+   * other tabs using IndexedDB cache to fail.
    */
   forceOwnership?: boolean;
 };
 /**
- * Creates an instance of `IndexedDbSingleTabManager`.
+ * Creates an instance of `PersistentSingleTabManager`.
  *
  * @param settings Configures the created tab manager.
  */
-export function indexedDbSingleTabManager(
-  settings: IndexedDbSingleTabManagerSettings | undefined
-): IndexedDbSingleTabManager {
+export function persistentSingleTabManager(
+  settings: PersistentSingleTabManagerSettings | undefined,
+): PersistentSingleTabManager {
   return new SingleTabManagerImpl(settings?.forceOwnership);
 }
 
 /**
- * Creates an instance of `IndexedDbMultipleTabManager`.
+ * Creates an instance of `PersistentMultipleTabManager`.
  */
-export function indexedDbMultipleTabManager(): IndexedDbMultipleTabManager {
+export function persistentMultipleTabManager(): PersistentMultipleTabManager {
   return new MultiTabManagerImpl();
 }

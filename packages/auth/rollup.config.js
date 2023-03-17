@@ -97,6 +97,18 @@ const browserBuilds = [
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: {
+      index: 'index.ts',
+      internal: 'internal/index.ts'
+    },
+    output: [{ dir: 'dist/browser-cjs', format: 'cjs', sourcemap: true }],
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 

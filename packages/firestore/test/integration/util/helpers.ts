@@ -15,33 +15,33 @@
  * limitations under the License.
  */
 
-import { isIndexedDBAvailable } from '@firebase/util';
+import { isIndexedDBAvailable } from "@firebase/util";
 
 import {
+  clearIndexedDbPersistence,
   collection,
+  CollectionReference,
   doc,
+  DocumentData,
   DocumentReference,
   Firestore,
-  terminate,
-  indexedDbLocalCache,
-  clearIndexedDbPersistence,
-  CollectionReference,
-  DocumentData,
+  memoryLocalCache,
+  memoryLruGarbageCollector,
+  newTestApp,
+  newTestFirestore,
+  persistentLocalCache,
+  PrivateSettings,
   QuerySnapshot,
   setDoc,
-  PrivateSettings,
   SnapshotListenOptions,
-  newTestFirestore,
-  newTestApp,
-  memoryLocalCache,
-  memoryLruGarbageCollector
-} from './firebase_export';
+  terminate,
+} from "./firebase_export";
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS,
-  USE_EMULATOR
-} from './settings';
+  USE_EMULATOR,
+} from "./settings";
 
 /* eslint-disable no-restricted-globals */
 
@@ -52,19 +52,19 @@ function isIeOrEdge(): boolean {
 
   const ua = window.navigator.userAgent;
   return (
-    ua.indexOf('MSIE ') > 0 ||
-    ua.indexOf('Trident/') > 0 ||
-    ua.indexOf('Edge/') > 0
+    ua.indexOf("MSIE ") > 0 ||
+    ua.indexOf("Trident/") > 0 ||
+    ua.indexOf("Edge/") > 0
   );
 }
 
 export function isPersistenceAvailable(): boolean {
   return (
-    typeof window === 'object' &&
+    typeof window === "object" &&
     isIndexedDBAvailable() &&
     !isIeOrEdge() &&
-    (typeof process === 'undefined' ||
-      process.env?.INCLUDE_FIRESTORE_PERSISTENCE !== 'false')
+    (typeof process === "undefined" ||
+      process.env?.INCLUDE_FIRESTORE_PERSISTENCE !== "false")
   );
 }
 
@@ -75,7 +75,7 @@ export function isPersistenceAvailable(): boolean {
 function apiDescribeInternal(
   describeFn: Mocha.PendingSuiteFunction,
   message: string,
-  testSuite: (persistence: boolean) => void
+  testSuite: (persistence: boolean) => void,
 ): void {
   const persistenceModes = [false];
   if (isPersistenceAvailable()) {
@@ -89,7 +89,7 @@ function apiDescribeInternal(
 
 type ApiSuiteFunction = (
   message: string,
-  testSuite: (persistence: boolean) => void
+  testSuite: (persistence: boolean) => void,
 ) => void;
 interface ApiDescribe {
   (message: string, testSuite: (persistence: boolean) => void): void;
@@ -99,7 +99,7 @@ interface ApiDescribe {
 
 export const apiDescribe = apiDescribeInternal.bind(
   null,
-  describe
+  describe,
 ) as ApiDescribe;
 // eslint-disable-next-line no-restricted-properties
 apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
@@ -108,22 +108,22 @@ apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
 
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(docSet: QuerySnapshot): DocumentData[] {
-  return docSet.docs.map(d => d.data());
+  return docSet.docs.map((d) => d.data());
 }
 
 /** Converts the changes in a QuerySnapshot to an array with the data of each document. */
 export function toChangesArray(
   docSet: QuerySnapshot,
-  options?: SnapshotListenOptions
+  options?: SnapshotListenOptions,
 ): DocumentData[] {
-  return docSet.docChanges(options).map(d => d.doc.data());
+  return docSet.docChanges(options).map((d) => d.doc.data());
 }
 
 export function toDataMap(docSet: QuerySnapshot): {
   [field: string]: DocumentData;
 } {
   const docsData: { [field: string]: DocumentData } = {};
-  docSet.forEach(doc => {
+  docSet.forEach((doc) => {
     docsData[doc.id] = doc.data();
   });
   return docsData;
@@ -131,12 +131,12 @@ export function toDataMap(docSet: QuerySnapshot): {
 
 /** Converts a DocumentSet to an array with the id of each document */
 export function toIds(docSet: QuerySnapshot): string[] {
-  return docSet.docs.map(d => d.id);
+  return docSet.docs.map((d) => d.id);
 }
 
 export function withTestDb(
   persistence: boolean,
-  fn: (db: Firestore) => Promise<void>
+  fn: (db: Firestore) => Promise<void>,
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
     return fn(db);
@@ -144,7 +144,7 @@ export function withTestDb(
 }
 
 export function withEnsuredEagerGcTestDb(
-  fn: (db: Firestore) => Promise<void>
+  fn: (db: Firestore) => Promise<void>,
 ): Promise<void> {
   return withTestDbsSettings(
     false,
@@ -153,24 +153,24 @@ export function withEnsuredEagerGcTestDb(
     1,
     async ([db]) => {
       return fn(db);
-    }
+    },
   );
 }
 
 export function withEnsuredLruGcTestDb(
   persistence: boolean,
-  fn: (db: Firestore) => Promise<void>
+  fn: (db: Firestore) => Promise<void>,
 ): Promise<void> {
   const newSettings = { ...DEFAULT_SETTINGS };
   if (persistence) {
     newSettings.cache = indexedDbLocalCache({
-      cacheSizeBytes: 1 * 1024 * 1024
+      cacheSizeBytes: 1 * 1024 * 1024,
     });
   } else {
     newSettings.cache = memoryLocalCache({
       garbageCollector: memoryLruGarbageCollector({
-        cacheSizeBytes: 1 * 1024 * 1024
-      })
+        cacheSizeBytes: 1 * 1024 * 1024,
+      }),
     });
   }
   return withTestDbsSettings(
@@ -180,14 +180,14 @@ export function withEnsuredLruGcTestDb(
     1,
     async ([db]) => {
       return fn(db);
-    }
+    },
   );
 }
 
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
   persistence: boolean,
-  fn: (db: Firestore) => Promise<void>
+  fn: (db: Firestore) => Promise<void>,
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
@@ -196,21 +196,21 @@ export function withAlternateTestDb(
     1,
     ([db]) => {
       return fn(db);
-    }
+    },
   );
 }
 
 export function withTestDbs(
   persistence: boolean,
   numDbs: number,
-  fn: (db: Firestore[]) => Promise<void>
+  fn: (db: Firestore[]) => Promise<void>,
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
     DEFAULT_PROJECT_ID,
     DEFAULT_SETTINGS,
     numDbs,
-    fn
+    fn,
   );
 }
 export async function withTestDbsSettings(
@@ -218,7 +218,7 @@ export async function withTestDbsSettings(
   projectId: string,
   settings: PrivateSettings,
   numDbs: number,
-  fn: (db: Firestore[]) => Promise<void>
+  fn: (db: Firestore[]) => Promise<void>,
 ): Promise<void> {
   if (numDbs === 0) {
     throw new Error("Can't test with no databases");
@@ -229,7 +229,7 @@ export async function withTestDbsSettings(
   for (let i = 0; i < numDbs; i++) {
     const newSettings = { ...settings };
     if (persistence) {
-      newSettings.localCache = indexedDbLocalCache();
+      newSettings.localCache = persistentLocalCache();
     }
     const db = newTestFirestore(newTestApp(projectId), newSettings);
     dbs.push(db);
@@ -250,7 +250,7 @@ export async function withTestDbsSettings(
 export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   persistence: boolean,
   dbNames: string[],
-  fn: (db: Firestore[]) => Promise<void>
+  fn: (db: Firestore[]) => Promise<void>,
 ): Promise<void> {
   // Tests with named DBs can only run on emulator for now. This is because the
   // emulator does not require DB to be created before use.
@@ -264,7 +264,7 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   for (const dbName of dbNames) {
     const newSettings = { ...DEFAULT_SETTINGS };
     if (persistence) {
-      newSettings.localCache = indexedDbLocalCache();
+      newSettings.localCache = persistentLocalCache();
     }
     const db = newTestFirestore(app, newSettings, dbName);
     dbs.push(db);
@@ -284,17 +284,17 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
 
 export function withTestDoc(
   persistence: boolean,
-  fn: (doc: DocumentReference, db: Firestore) => Promise<void>
+  fn: (doc: DocumentReference, db: Firestore) => Promise<void>,
 ): Promise<void> {
-  return withTestDb(persistence, db => {
-    return fn(doc(collection(db, 'test-collection')), db);
+  return withTestDb(persistence, (db) => {
+    return fn(doc(collection(db, "test-collection")), db);
   });
 }
 
 export function withTestDocAndSettings(
   persistence: boolean,
   settings: PrivateSettings,
-  fn: (doc: DocumentReference) => Promise<void>
+  fn: (doc: DocumentReference) => Promise<void>,
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
@@ -302,8 +302,8 @@ export function withTestDocAndSettings(
     settings,
     1,
     ([db]) => {
-      return fn(doc(collection(db, 'test-collection')));
-    }
+      return fn(doc(collection(db, "test-collection")));
+    },
   );
 }
 
@@ -315,10 +315,10 @@ export function withTestDocAndSettings(
 export function withTestDocAndInitialData(
   persistence: boolean,
   initialData: DocumentData | null,
-  fn: (doc: DocumentReference, db: Firestore) => Promise<void>
+  fn: (doc: DocumentReference, db: Firestore) => Promise<void>,
 ): Promise<void> {
-  return withTestDb(persistence, db => {
-    const docRef: DocumentReference = doc(collection(db, 'test-collection'));
+  return withTestDb(persistence, (db) => {
+    const docRef: DocumentReference = doc(collection(db, "test-collection"));
     if (initialData) {
       return setDoc(docRef, initialData).then(() => fn(docRef, db));
     } else {
@@ -330,14 +330,14 @@ export function withTestDocAndInitialData(
 export function withTestCollection(
   persistence: boolean,
   docs: { [key: string]: DocumentData },
-  fn: (collection: CollectionReference, db: Firestore) => Promise<void>
+  fn: (collection: CollectionReference, db: Firestore) => Promise<void>,
 ): Promise<void> {
   return withTestCollectionSettings(persistence, DEFAULT_SETTINGS, docs, fn);
 }
 
 export function withEmptyTestCollection(
   persistence: boolean,
-  fn: (collection: CollectionReference, db: Firestore) => Promise<void>
+  fn: (collection: CollectionReference, db: Firestore) => Promise<void>,
 ): Promise<void> {
   return withTestCollection(persistence, {}, fn);
 }
@@ -348,7 +348,7 @@ export function withTestCollectionSettings(
   persistence: boolean,
   settings: PrivateSettings,
   docs: { [key: string]: DocumentData },
-  fn: (collection: CollectionReference, db: Firestore) => Promise<void>
+  fn: (collection: CollectionReference, db: Firestore) => Promise<void>,
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
@@ -357,14 +357,14 @@ export function withTestCollectionSettings(
     2,
     ([testDb, setupDb]) => {
       // Abuse .doc() to get a random ID.
-      const collectionId = 'test-collection-' + doc(collection(testDb, 'x')).id;
+      const collectionId = "test-collection-" + doc(collection(testDb, "x")).id;
       const testCollection = collection(testDb, collectionId);
       const setupCollection = collection(setupDb, collectionId);
       const sets: Array<Promise<void>> = [];
-      Object.keys(docs).forEach(key => {
+      Object.keys(docs).forEach((key) => {
         sets.push(setDoc(doc(setupCollection, key), docs[key]));
       });
       return Promise.all(sets).then(() => fn(testCollection, testDb));
-    }
+    },
   );
 }
