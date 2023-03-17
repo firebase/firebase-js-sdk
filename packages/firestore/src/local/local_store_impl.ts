@@ -875,6 +875,10 @@ export async function localStoreNotifyLocalViewChanges(
       );
       localStoreImpl.targetDataByTarget =
         localStoreImpl.targetDataByTarget.insert(targetId, updatedTargetData);
+
+      // TODO(b/272564316): Apply the optimization done on other platforms.
+      // This is a problem for web because saving the updated targetData from
+      // non-primary client conflicts with what primary client saved.
     }
   }
 }

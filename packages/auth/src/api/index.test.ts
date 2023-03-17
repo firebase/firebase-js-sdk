@@ -308,26 +308,6 @@ describe('api/_performApiRequest', () => {
     });
   });
 
-  context('with non-Firebase Errors', () => {
-    afterEach(mockFetch.tearDown);
-
-    it('should handle non-FirebaseErrors', async () => {
-      mockFetch.setUpWithOverride(() => {
-        return new Promise<never>((_, reject) => reject(new Error('error')));
-      });
-      const promise = _performApiRequest<typeof request, never>(
-        auth,
-        HttpMethod.POST,
-        Endpoint.SIGN_UP,
-        request
-      );
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/internal-error'
-      );
-    });
-  });
-
   context('with network issues', () => {
     afterEach(mockFetch.tearDown);
 
@@ -364,6 +344,26 @@ describe('api/_performApiRequest', () => {
       await promise;
       expect(clock.clearTimeout).to.have.been.called;
       clock.restore();
+    });
+
+    it('should handle network failure', async () => {
+      mockFetch.setUpWithOverride(() => {
+        return new Promise<never>((_, reject) =>
+          reject(new Error('network error'))
+        );
+      });
+      const promise = _performApiRequest<typeof request, never>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      await expect(promise)
+        .to.be.rejectedWith(FirebaseError, 'auth/network-request-failed')
+        .eventually.with.nested.property(
+          'customData.message',
+          'Error: network error'
+        );
     });
   });
 

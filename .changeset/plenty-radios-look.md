@@ -3,4 +3,4 @@
 'firebase': patch
 ---
 
-Improved debug logging of networking abstractions
+Remove the deprecated gapi.auth from FirstPartyToken.

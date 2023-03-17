@@ -240,9 +240,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           doc(db, 'foo/bar');
         }
         expect(() => enableIndexedDbPersistence(db)).to.throw(
-          'Firestore has already been started and persistence can no ' +
-            'longer be enabled. You can only enable persistence before ' +
-            'calling any other methods on a Firestore object.'
+          'SDK cache is already specified.'
         );
       }
     );

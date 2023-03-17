@@ -33,7 +33,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [onSnapshotsInSync(firestore, observer)](./firestore_.md#onsnapshotsinsync) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use SnapshotMetadata in the individual listeners to determine if a snapshot is from the cache or the server. |
 |  [onSnapshotsInSync(firestore, onSync)](./firestore_.md#onsnapshotsinsync) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use <code>SnapshotMetadata</code> in the individual listeners to determine if a snapshot is from the cache or the server. |
 |  [runTransaction(firestore, updateFunction, options)](./firestore_.md#runtransaction) | Executes the given <code>updateFunction</code> and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the <code>updateFunction</code>. If it fails to commit after 5 attempts, the transaction fails.<!-- -->The maximum number of writes allowed in a single transaction is 500. |
-|  [setIndexConfiguration(firestore, configuration)](./firestore_.md#setindexconfiguration) | <b><i>(BETA)</i></b> Configures indexing for local query execution. Any previous index configuration is overridden. The <code>Promise</code> resolves once the index configuration has been persisted.<!-- -->The index entries themselves are created asynchronously. You can continue to use queries that require indexing even if the indices are not yet available. Query execution will automatically start using the index once the index entries have been written.<!-- -->Indexes are only supported with IndexedDb persistence. Invoke either <code>enableIndexedDbPersistence()</code> or <code>enableMultiTabIndexedDbPersistence()</code> before setting an index configuration. If IndexedDb is not enabled, any index configuration is ignored. |
+|  [setIndexConfiguration(firestore, configuration)](./firestore_.md#setindexconfiguration) | <b><i>(BETA)</i></b> Configures indexing for local query execution. Any previous index configuration is overridden. The <code>Promise</code> resolves once the index configuration has been persisted.<!-- -->The index entries themselves are created asynchronously. You can continue to use queries that require indexing even if the indices are not yet available. Query execution will automatically start using the index once the index entries have been written.<!-- -->Indexes are only supported with IndexedDb persistence. If IndexedDb is not enabled, any index configuration is ignored. |
 |  [setIndexConfiguration(firestore, json)](./firestore_.md#setindexconfiguration) | <b><i>(BETA)</i></b> Configures indexing for local query execution. Any previous index configuration is overridden. The <code>Promise</code> resolves once the index configuration has been persisted.<!-- -->The index entries themselves are created asynchronously. You can continue to use queries that require indexing even if the indices are not yet available. Query execution will automatically start using the index once the index entries have been written.<!-- -->Indexes are only supported with IndexedDb persistence. Invoke either <code>enableIndexedDbPersistence()</code> or <code>enableMultiTabIndexedDbPersistence()</code> before setting an index configuration. If IndexedDb is not enabled, any index configuration is ignored.<!-- -->The method accepts the JSON format exported by the Firebase CLI (<code>firebase firestore:indexes</code>). If the JSON format is invalid, this method throws an error. |
 |  [terminate(firestore)](./firestore_.md#terminate) | Terminates the provided [Firestore](./firestore_.firestore.md#firestore_class) instance.<!-- -->After calling <code>terminate()</code> only the <code>clearIndexedDbPersistence()</code> function may be used. Any other function will throw a <code>FirestoreError</code>.<!-- -->To restart after termination, create a new instance of FirebaseFirestore with [getFirestore()](./firestore_.md#getfirestore)<!-- -->.<!-- -->Termination does not cancel any pending writes, and any promises that are awaiting a response from the server will not be resolved. If you have persistence enabled, the next time you start this instance, it will resume sending these writes to the server.<!-- -->Note: Under normal circumstances, calling <code>terminate()</code> is not required. This function is useful only when you want to force this instance to release all of its resources or in combination with <code>clearIndexedDbPersistence()</code> to ensure that all local state is destroyed between test runs. |
 |  [waitForPendingWrites(firestore)](./firestore_.md#waitforpendingwrites) | Waits until all currently pending writes for the active user have been acknowledged by the backend.<!-- -->The returned promise resolves immediately if there are no outstanding writes. Otherwise, the promise waits for all previously issued writes (including those written in a previous app session), but it does not wait for writes that were added after the function is called. If you want to wait for additional writes, call <code>waitForPendingWrites()</code> again.<!-- -->Any outstanding <code>waitForPendingWrites()</code> promises are rejected during user changes. |
@@ -42,6 +42,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [deleteField()](./firestore_.md#deletefield) | Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc) or [setDoc()](./firestore_lite.md#setdoc) with <code>{merge: true}</code> to mark a field for deletion. |
 |  [documentId()](./firestore_.md#documentid) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
 |  [getFirestore()](./firestore_.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
+|  [memoryLocalCache()](./firestore_.md#memorylocalcache) | Creates an instance of <code>MemoryLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
+|  [persistentMultipleTabManager()](./firestore_.md#persistentmultipletabmanager) | Creates an instance of <code>PersistentMultipleTabManager</code>. |
 |  [serverTimestamp()](./firestore_.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) to include a server-generated timestamp in the written data. |
 |  <b>function(elements...)</b> |
 |  [arrayRemove(elements)](./firestore_.md#arrayremove) | Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
@@ -98,6 +100,9 @@ https://github.com/firebase/firebase-js-sdk
 |  [setDoc(reference, data, options)](./firestore_.md#setdoc) | Writes to the document referred to by the specified <code>DocumentReference</code>. If the document does not yet exist, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document. |
 |  [updateDoc(reference, data)](./firestore_.md#updatedoc) | Updates fields in the document referred to by the specified <code>DocumentReference</code>. The update will fail if applied to a document that does not exist. |
 |  [updateDoc(reference, field, value, moreFieldsAndValues)](./firestore_.md#updatedoc) | Updates fields in the document referred to by the specified <code>DocumentReference</code> The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
+|  <b>function(settings...)</b> |
+|  [persistentLocalCache(settings)](./firestore_.md#persistentlocalcache) | Creates an instance of <code>PersistentLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
+|  [persistentSingleTabManager(settings)](./firestore_.md#persistentsingletabmanager) | Creates an instance of <code>PersistentSingleTabManager</code>. |
 |  <b>function(snapshot...)</b> |
 |  [endAt(snapshot)](./firestore_.md#endat) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided document (inclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
 |  [endBefore(snapshot)](./firestore_.md#endbefore) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
@@ -148,7 +153,13 @@ https://github.com/firebase/firebase-js-sdk
 |  [IndexConfiguration](./firestore_.indexconfiguration.md#indexconfiguration_interface) | <b><i>(BETA)</i></b> A list of Firestore indexes to speed up local query execution.<!-- -->See [JSON Format](https://firebase.google.com/docs/reference/firestore/indexes/#json_format) for a description of the format of the index definition. |
 |  [IndexField](./firestore_.indexfield.md#indexfield_interface) | <b><i>(BETA)</i></b> A single field element in an index configuration. |
 |  [LoadBundleTaskProgress](./firestore_.loadbundletaskprogress.md#loadbundletaskprogress_interface) | Represents a progress update or a final state from loading bundles. |
+|  [MemoryLocalCache](./firestore_.memorylocalcache.md#memorylocalcache_interface) | Provides an in-memory cache to the SDK. This is the default cache unless explicitly configured otherwise.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
 |  [PersistenceSettings](./firestore_.persistencesettings.md#persistencesettings_interface) | Settings that can be passed to <code>enableIndexedDbPersistence()</code> to configure Firestore persistence. |
+|  [PersistentCacheSettings](./firestore_.persistentcachesettings.md#persistentcachesettings_interface) | An settings object to configure an <code>PersistentLocalCache</code> instance. |
+|  [PersistentLocalCache](./firestore_.persistentlocalcache.md#persistentlocalcache_interface) | Provides a persistent cache backed by IndexedDb to the SDK.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
+|  [PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface) | A tab manager supportting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK. |
+|  [PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface) | A tab manager supportting only one tab, no synchronization will be performed across tabs. |
+|  [PersistentSingleTabManagerSettings](./firestore_.persistentsingletabmanagersettings.md#persistentsingletabmanagersettings_interface) | Type to configure an <code>PersistentSingleTabManager</code> instace. |
 |  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set. |
 |  [SnapshotOptions](./firestore_.snapshotoptions.md#snapshotoptions_interface) | Options that configure how data is retrieved from a <code>DocumentSnapshot</code> (for example the desired behavior for server timestamps that have not yet been set to their final value). |
 |  [TransactionOptions](./firestore_.transactionoptions.md#transactionoptions_interface) | Options to customize transaction behavior. |
@@ -170,9 +181,11 @@ https://github.com/firebase/firebase-js-sdk
 |  [ChildUpdateFields](./firestore_.md#childupdatefields) | Helper for calculating the nested fields for a given type T1. This is needed to distribute union types such as <code>undefined &#124; {...}</code> (happens for optional props) or <code>{a: A} &#124; {b: B}</code>.<!-- -->In this use case, <code>V</code> is used to distribute the union types of <code>T[K]</code> on <code>Record</code>, since <code>T[K]</code> is evaluated as an expression and not distributed.<!-- -->See https://www.typescriptlang.org/docs/handbook/advanced-types.html\#distributive-conditional-types |
 |  [DocumentChangeType](./firestore_.md#documentchangetype) | The type of a <code>DocumentChange</code> may be 'added', 'removed', or 'modified'. |
 |  [FirestoreErrorCode](./firestore_.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
+|  [FirestoreLocalCache](./firestore_.md#firestorelocalcache) | Union type from all supported SDK cache layer. |
 |  [NestedUpdateFields](./firestore_.md#nestedupdatefields) | For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 'bar.qux': T2<!-- -->}<!-- -->). Intersect them together to make a single map containing all possible keys that are all marked as optional |
 |  [OrderByDirection](./firestore_.md#orderbydirection) | The direction of a [orderBy()](./firestore_.md#orderby) clause is specified as 'desc' or 'asc' (descending or ascending). |
 |  [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue) | Similar to Typescript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
+|  [PersistentTabManager](./firestore_.md#persistenttabmanager) | A union of all avaialbe tab managers. |
 |  [Primitive](./firestore_.md#primitive) | Primitive types. |
 |  [QueryConstraintType](./firestore_.md#queryconstrainttype) | Describes the different query constraints available in this SDK. |
 |  [QueryFilterConstraint](./firestore_.md#queryfilterconstraint) | <code>QueryFilterConstraint</code> is a helper union type that represents [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) and [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->. |
@@ -386,6 +399,11 @@ If the final path has an odd number of segments and does not point to a document
 
 ## enableIndexedDbPersistence()
 
+> Warning: This API is now obsolete.
+> 
+> This function will be removed in a future major release. Instead, set `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache` is already specified will throw an exception.
+> 
+
 Attempts to enable persistent storage, if possible.
 
 Must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence)<!-- -->.
@@ -416,6 +434,11 @@ Promise&lt;void&gt;
 A `Promise` that represents successfully enabling persistent storage.
 
 ## enableMultiTabIndexedDbPersistence()
+
+> Warning: This API is now obsolete.
+> 
+> This function will be removed in a future major release. Instead, set `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to turn on indexeddb cache. Calling this function when `FirestoreSettings.cache` is already specified will throw an exception.
+> 
 
 Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.
 
@@ -602,7 +625,7 @@ Configures indexing for local query execution. Any previous index configuration 
 
 The index entries themselves are created asynchronously. You can continue to use queries that require indexing even if the indices are not yet available. Query execution will automatically start using the index once the index entries have been written.
 
-Indexes are only supported with IndexedDb persistence. Invoke either `enableIndexedDbPersistence()` or `enableMultiTabIndexedDbPersistence()` before setting an index configuration. If IndexedDb is not enabled, any index configuration is ignored.
+Indexes are only supported with IndexedDb persistence. If IndexedDb is not enabled, any index configuration is ignored.
 
 <b>Signature:</b>
 
@@ -783,6 +806,32 @@ export declare function getFirestore(): Firestore;
 [Firestore](./firestore_.firestore.md#firestore_class)
 
 The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
+
+## memoryLocalCache()
+
+Creates an instance of `MemoryLocalCache`<!-- -->. The instance can be set to `FirestoreSettings.cache` to tell the SDK which cache layer to use.
+
+<b>Signature:</b>
+
+```typescript
+export declare function memoryLocalCache(): MemoryLocalCache;
+```
+<b>Returns:</b>
+
+[MemoryLocalCache](./firestore_.memorylocalcache.md#memorylocalcache_interface)
+
+## persistentMultipleTabManager()
+
+Creates an instance of `PersistentMultipleTabManager`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function persistentMultipleTabManager(): PersistentMultipleTabManager;
+```
+<b>Returns:</b>
+
+[PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface)
 
 ## serverTimestamp()
 
@@ -1905,6 +1954,46 @@ Promise&lt;void&gt;
 
 A `Promise` resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
 
+## persistentLocalCache()
+
+Creates an instance of `PersistentLocalCache`<!-- -->. The instance can be set to `FirestoreSettings.cache` to tell the SDK which cache layer to use.
+
+<b>Signature:</b>
+
+```typescript
+export declare function persistentLocalCache(settings?: PersistentCacheSettings): PersistentLocalCache;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  settings | [PersistentCacheSettings](./firestore_.persistentcachesettings.md#persistentcachesettings_interface) |  |
+
+<b>Returns:</b>
+
+[PersistentLocalCache](./firestore_.persistentlocalcache.md#persistentlocalcache_interface)
+
+## persistentSingleTabManager()
+
+Creates an instance of `PersistentSingleTabManager`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function persistentSingleTabManager(settings: PersistentSingleTabManagerSettings | undefined): PersistentSingleTabManager;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  settings | [PersistentSingleTabManagerSettings](./firestore_.persistentsingletabmanagersettings.md#persistentsingletabmanagersettings_interface) \| undefined | Configures the created tab manager. |
+
+<b>Returns:</b>
+
+[PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface)
+
 ## endAt()
 
 Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided document (inclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query.
@@ -2073,6 +2162,16 @@ Possible values: - 'cancelled': The operation was cancelled (typically by the ca
 export declare type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 ```
 
+## FirestoreLocalCache
+
+Union type from all supported SDK cache layer.
+
+<b>Signature:</b>
+
+```typescript
+export declare type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
+```
+
 ## NestedUpdateFields
 
 For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 'bar.qux': T2<!-- -->}<!-- -->). Intersect them together to make a single map containing all possible keys that are all marked as optional
@@ -2105,6 +2204,16 @@ Similar to Typescript's `Partial<T>`<!-- -->, but allows nested fields to be omi
 export declare type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
     [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
 } : never);
+```
+
+## PersistentTabManager
+
+A union of all avaialbe tab managers.
+
+<b>Signature:</b>
+
+```typescript
+export declare type PersistentTabManager = PersistentSingleTabManager | PersistentMultipleTabManager;
 ```
 
 ## Primitive
