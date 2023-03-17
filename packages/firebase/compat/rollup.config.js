@@ -206,7 +206,7 @@ const componentBuilds = compatPkg.components
       {
         input: `${__dirname}/${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}-compat.js`),
-        plugins: [...plugins, typescriptPluginCDN, terser],
+        plugins: [...plugins, typescriptPluginCDN, terser()],
         external: ['@firebase/app-compat', '@firebase/app']
       }
     ];
@@ -240,7 +240,7 @@ const completeBuilds = [
       sourcemap: true,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPluginCDN, terser]
+    plugins: [...plugins, typescriptPluginCDN, terser()]
   },
   /**
    * App Node.js Builds
