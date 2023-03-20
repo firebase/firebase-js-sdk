@@ -31,7 +31,7 @@ import { emitModulePackageFile } from '../../../scripts/build/rollup_emit_module
 
 const external = Object.keys(pkg.dependencies || {});
 const uglifyOptions = {
-  mangle: true,
+  mangle: false,
   webkit: true // Necessary to avoid https://bugs.webkit.org/show_bug.cgi?id=223533
 };
 
