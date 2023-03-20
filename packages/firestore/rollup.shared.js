@@ -151,7 +151,7 @@ const manglePrivatePropertiesOptions = {
     // or if terser's mangler provides an option to avoid mangling everything
     // that isn't a property.
     // See issue: https://github.com/firebase/firebase-js-sdk/issues/5384
-    reserved: ['_getProvider'],
+    reserved: ['_getProvider', 'lastReasonableEscapeIndex'],
     properties: {
       regex: /^__PRIVATE_/,
       // All JS Keywords are reserved. Although this should be taken cared of by
