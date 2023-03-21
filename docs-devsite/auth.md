@@ -132,7 +132,6 @@ Firebase Authentication
 |  [PhoneSingleFactorInfoOptions](./auth.phonesinglefactorinfooptions.md#phonesinglefactorinfooptions_interface) | Options used for single-factor sign-in. |
 |  [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup) or [signInWithRedirect()](./auth.md#signinwithredirect)<!-- -->. |
 |  [ReactNativeAsyncStorage](./auth.reactnativeasyncstorage.md#reactnativeasyncstorage_interface) | Interface for a supplied <code>AsyncStorage</code>. |
-|  [RecaptchaConfig](./auth.recaptchaconfig.md#recaptchaconfig_interface) |  |
 |  [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | Interface representing reCAPTCHA parameters.<!-- -->See the \[reCAPTCHA docs\](https://developers.google.com/recaptcha/docs/display\#render\_param) for the list of accepted parameters. All parameters are accepted except for <code>sitekey</code>: Firebase Auth provisions a reCAPTCHA for each project and will configure the site key upon rendering.<!-- -->For an invisible reCAPTCHA, set the <code>size</code> key to <code>invisible</code>. |
 |  [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) | The class for asserting ownership of a TOTP second factor. Provided by [TotpMultiFactorGenerator.assertionForEnrollment()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforenrollment) and [TotpMultiFactorGenerator.assertionForSignIn()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforsignin)<!-- -->. |
 |  [TotpMultiFactorInfo](./auth.totpmultifactorinfo.md#totpmultifactorinfo_interface) | The subclass of the [MultiFactorInfo](./auth.multifactorinfo.md#multifactorinfo_interface) interface for TOTP second factors. The <code>factorId</code> of this second factor is [FactorId](./auth.md#factorid)<!-- -->.TOTP. |
@@ -1827,8 +1826,14 @@ AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY: {
     readonly WEAK_PASSWORD: "auth/weak-password";
     readonly WEB_STORAGE_UNSUPPORTED: "auth/web-storage-unsupported";
     readonly ALREADY_INITIALIZED: "auth/already-initialized";
-    readonly RECAPTCHA_CHECK_FAILED: "auth/recaptcha-check-failed";
     readonly RECAPTCHA_NOT_ENABLED: "auth/recaptcha-not-enabled";
+    readonly MISSING_RECAPTCHA_TOKEN: "auth/missing-recaptcha-token";
+    readonly INVALID_RECAPTCHA_TOKEN: "auth/invalid-recaptcha-token";
+    readonly INVALID_RECAPTCHA_ACTION: "auth/invalid-recaptcha-action";
+    readonly MISSING_CLIENT_TYPE: "auth/missing-client-type";
+    readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
+    readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
+    readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
 }
 ```
 

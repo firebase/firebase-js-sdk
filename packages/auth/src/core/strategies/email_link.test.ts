@@ -266,7 +266,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         }
       );
 
-      RecaptchaEnterpriseVerifier.agentSiteKey = 'wrong-site-key';
+      auth._agentRecaptchaConfig!.siteKey = 'wrong-site-key';
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {
@@ -292,7 +292,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
     });
 
     it('calls send sign in link to email with recaptcha verify failed', async () => {
-      RecaptchaEnterpriseVerifier.agentSiteKey = null;
+      auth._agentRecaptchaConfig = null;
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {

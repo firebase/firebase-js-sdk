@@ -22,7 +22,6 @@ import {
   AuthErrorMap,
   AuthSettings,
   EmulatorConfig,
-  RecaptchaConfig,
   NextOrObserver,
   Persistence,
   PopupRedirectResolver,
@@ -65,6 +64,7 @@ import { HttpHeader, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
 import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { AuthMiddlewareQueue } from './middleware';
+import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -397,16 +397,14 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       clientType: RecaptchaClientType.WEB,
       version: RecaptchaVersion.ENTERPRISE
     });
-    // TODO(chuanr): Confirm the response format when backend is ready
-    if (response.recaptchaConfig === undefined) {
-      throw new Error('recaptchaConfig undefined');
-    }
-    const config = response.recaptchaConfig;
-    if (this.tenantId) {
-      this._tenantRecaptchaConfigs[this.tenantId] = config;
-    } else {
+
+    const config = new RecaptchaConfig(response);
+    if (this.tenantId == null) {
       this._agentRecaptchaConfig = config;
+    } else {
+      this._tenantRecaptchaConfigs[this.tenantId] = config;
     }
+
     if (config.emailPasswordEnabled) {
       const verifier = new RecaptchaEnterpriseVerifier(this);
       void verifier.verify();
