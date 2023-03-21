@@ -123,7 +123,9 @@ export const enum AuthErrorCode {
   USER_SIGNED_OUT = 'user-signed-out',
   WEAK_PASSWORD = 'weak-password',
   WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported',
-  ALREADY_INITIALIZED = 'already-initialized'
+  ALREADY_INITIALIZED = 'already-initialized',
+  RECAPTCHA_CHECK_FAILED = 'recaptcha-check-failed',
+  RECAPTCHA_NOT_ENABLED = 'recaptcha-not-enabled'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -356,7 +358,11 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'initializeAuth() has already been called with ' +
       'different options. To avoid this error, call initializeAuth() with the ' +
       'same options as when it was originally called, or call getAuth() to return the' +
-      ' already initialized instance.'
+      ' already initialized instance.',
+    [AuthErrorCode.RECAPTCHA_CHECK_FAILED]:
+      'The ReCAPTCHA assessment failed for this request.',
+    [AuthErrorCode.RECAPTCHA_NOT_ENABLED]:
+      'reCAPTCHA integration is not enabled for this project.'
   };
 }
 
@@ -558,5 +564,7 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   USER_SIGNED_OUT: 'auth/user-signed-out',
   WEAK_PASSWORD: 'auth/weak-password',
   WEB_STORAGE_UNSUPPORTED: 'auth/web-storage-unsupported',
-  ALREADY_INITIALIZED: 'auth/already-initialized'
+  ALREADY_INITIALIZED: 'auth/already-initialized',
+  RECAPTCHA_CHECK_FAILED: 'auth/recaptcha-check-failed',
+  RECAPTCHA_NOT_ENABLED: 'auth/recaptcha-not-enabled'
 } as const;

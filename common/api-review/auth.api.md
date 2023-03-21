@@ -85,6 +85,7 @@ export interface Auth {
     readonly config: Config;
     readonly currentUser: User | null;
     readonly emulatorConfig: EmulatorConfig | null;
+    initializeRecaptchaConfig(): Promise<void>;
     languageCode: string | null;
     readonly name: string;
     onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
@@ -226,6 +227,8 @@ export const AuthErrorCodes: {
     readonly WEAK_PASSWORD: "auth/weak-password";
     readonly WEB_STORAGE_UNSUPPORTED: "auth/web-storage-unsupported";
     readonly ALREADY_INITIALIZED: "auth/already-initialized";
+    readonly RECAPTCHA_CHECK_FAILED: "auth/recaptcha-check-failed";
+    readonly RECAPTCHA_NOT_ENABLED: "auth/recaptcha-not-enabled";
 };
 
 // @public
@@ -420,6 +423,9 @@ export const indexedDBLocalPersistence: Persistence;
 
 // @public
 export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth;
+
+// @public
+export function initializeRecaptchaConfig(auth: Auth): Promise<void>;
 
 // @public
 export const inMemoryPersistence: Persistence;
@@ -658,6 +664,11 @@ export function reauthenticateWithPopup(user: User, provider: AuthProvider, reso
 
 // @public
 export function reauthenticateWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
+
+// @public (undocumented)
+export interface RecaptchaConfig {
+    emailPasswordEnabled: boolean;
+}
 
 // @public
 export interface RecaptchaParameters {

@@ -69,7 +69,8 @@ import {
   reauthenticateWithRedirect,
   getRedirectResult,
   browserPopupRedirectResolver,
-  connectAuthEmulator
+  connectAuthEmulator,
+  initializeRecaptchaConfig
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -467,6 +468,18 @@ function onSignInWithCustomToken(_event) {
  */
 function onSignInAnonymously() {
   signInAnonymously(auth).then(onAuthUserCredentialSuccess, onAuthError);
+}
+
+function onSetTenantID(_event) {
+  const tenantId = $('#tenant-id').val();
+  auth.tenantId = tenantId;
+  if (tenantId === '') {
+    auth.tenantId = null;
+  }
+}
+
+function onInitializeRecaptchaConfig() {
+  initializeRecaptchaConfig(auth);
 }
 
 /**
@@ -1902,6 +1915,8 @@ function initApp() {
   );
   $('.sign-in-with-custom-token').click(onSignInWithCustomToken);
   $('#sign-in-anonymously').click(onSignInAnonymously);
+  $('.set-tenant-id').click(onSetTenantID);
+  $('#initialize-recaptcha-config').click(onInitializeRecaptchaConfig);
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );

@@ -60,6 +60,31 @@ export function setPersistence(
 ): Promise<void> {
   return getModularInstance(auth).setPersistence(persistence);
 }
+
+/**
+ * Initializes the reCAPTCHA configuration on the `Auth` instance.
+ *
+ * @remarks
+ * This will pull the reCAPTCHA config to the current Auth session and affect future auth
+ * requests, which indicates whether the reCAPTCHA verification flow should be triggered for a
+ * specific auth provider. If initializeRecaptchaConfig() is not invoked, the auth flow will start
+ * without reCAPTCHA verification. But if reCAPTCHA verification is required, the reCAPTCHA config
+ * will be automatically pulled internally and the flows will restart. Thus, calling this optional
+ * method will reduce the latency of auth flows.
+ *
+ * @example
+ * ```javascript
+ * initializeRecaptchaConfig(auth);
+ * ```
+ *
+ * @param auth - The {@link Auth} instance.
+ *
+ * @public
+ */
+export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
+  return getModularInstance(auth).initializeRecaptchaConfig();
+}
+
 /**
  * Adds an observer for changes to the signed-in user's ID token.
  *

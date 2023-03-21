@@ -25,7 +25,7 @@ import {
 
 import * as account from '../../api/account_management/email_and_password';
 import * as authentication from '../../api/authentication/email_and_password';
-import { signUp } from '../../api/authentication/sign_up';
+import { signUp, SignUpRequest } from '../../api/authentication/sign_up';
 import { MultiFactorInfoImpl } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
@@ -34,8 +34,12 @@ import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
+import { ServerError } from '../../api/errors';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
+import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { IdTokenResponse } from '../../model/id_token';
+import { RecaptchaActionName } from '../../api';
 
 /**
  * Sends a password reset email to the given email address.
@@ -74,16 +78,66 @@ export async function sendPasswordResetEmail(
   email: string,
   actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
-  const authModular = getModularInstance(auth);
+  const authInternal = _castAuth(auth);
   const request: authentication.PasswordResetRequest = {
     requestType: ActionCodeOperation.PASSWORD_RESET,
     email
   };
-  if (actionCodeSettings) {
-    _setActionCodeSettingsOnRequest(authModular, request, actionCodeSettings);
+  if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
+    const requestWithRecaptcha = await injectRecaptchaFields(
+      authInternal,
+      request,
+      RecaptchaActionName.GET_OOB_CODE,
+      true
+    );
+    if (actionCodeSettings) {
+      _setActionCodeSettingsOnRequest(
+        authInternal,
+        requestWithRecaptcha,
+        actionCodeSettings
+      );
+    }
+    await authentication.sendPasswordResetEmail(
+      authInternal,
+      requestWithRecaptcha
+    );
+  } else {
+    if (actionCodeSettings) {
+      _setActionCodeSettingsOnRequest(
+        authInternal,
+        request,
+        actionCodeSettings
+      );
+    }
+    await authentication
+      .sendPasswordResetEmail(authInternal, request)
+      .catch(async error => {
+        if (error.code === `auth/${ServerError.MISSING_RECAPTCHA_TOKEN}`) {
+          console.log(
+            'Password resets are protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the password reset flow.'
+          );
+          const requestWithRecaptcha = await injectRecaptchaFields(
+            authInternal,
+            request,
+            RecaptchaActionName.GET_OOB_CODE,
+            true
+          );
+          if (actionCodeSettings) {
+            _setActionCodeSettingsOnRequest(
+              authInternal,
+              requestWithRecaptcha,
+              actionCodeSettings
+            );
+          }
+          await authentication.sendPasswordResetEmail(
+            authInternal,
+            requestWithRecaptcha
+          );
+        } else {
+          return Promise.reject(error);
+        }
+      });
   }
-
-  await authentication.sendPasswordResetEmail(authModular, request);
 }
 
 /**
@@ -227,10 +281,39 @@ export async function createUserWithEmailAndPassword(
   password: string
 ): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
-  const response = await signUp(authInternal, {
+  const request: SignUpRequest = {
     returnSecureToken: true,
     email,
     password
+  };
+  let signUpResponse: Promise<IdTokenResponse>;
+  if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
+    const requestWithRecaptcha = await injectRecaptchaFields(
+      authInternal,
+      request,
+      RecaptchaActionName.SIGN_UP_PASSWORD
+    );
+    signUpResponse = signUp(authInternal, requestWithRecaptcha);
+  } else {
+    signUpResponse = signUp(authInternal, request).catch(async error => {
+      if (error.code === `auth/${ServerError.MISSING_RECAPTCHA_TOKEN}`) {
+        console.log(
+          'Sign-up is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-up flow.'
+        );
+        const requestWithRecaptcha = await injectRecaptchaFields(
+          authInternal,
+          request,
+          RecaptchaActionName.SIGN_UP_PASSWORD
+        );
+        return signUp(authInternal, requestWithRecaptcha);
+      } else {
+        return Promise.reject(error);
+      }
+    });
+  }
+
+  const response = await signUpResponse.catch(error => {
+    return Promise.reject(error);
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
