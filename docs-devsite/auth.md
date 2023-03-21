@@ -130,7 +130,6 @@ Firebase Authentication
 |  [PhoneSingleFactorInfoOptions](./auth.phonesinglefactorinfooptions.md#phonesinglefactorinfooptions_interface) | Options used for single-factor sign-in. |
 |  [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup) or [signInWithRedirect()](./auth.md#signinwithredirect)<!-- -->. |
 |  [ReactNativeAsyncStorage](./auth.reactnativeasyncstorage.md#reactnativeasyncstorage_interface) | Interface for a supplied <code>AsyncStorage</code>. |
-|  [RecaptchaConfig](./auth.recaptchaconfig.md#recaptchaconfig_interface) |  |
 |  [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | Interface representing reCAPTCHA parameters.<!-- -->See the \[reCAPTCHA docs\](https://developers.google.com/recaptcha/docs/display\#render\_param) for the list of accepted parameters. All parameters are accepted except for <code>sitekey</code>: Firebase Auth provisions a reCAPTCHA for each project and will configure the site key upon rendering.<!-- -->For an invisible reCAPTCHA, set the <code>size</code> key to <code>invisible</code>. |
 |  [User](./auth.user.md#user_interface) | A user account. |
 |  [UserCredential](./auth.usercredential.md#usercredential_interface) | A structure containing a [User](./auth.user.md#user_interface)<!-- -->, the [OperationType](./auth.md#operationtype)<!-- -->, and the provider ID. |
