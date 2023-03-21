@@ -29,15 +29,6 @@ import { AnalyticsError, ERROR_FACTORY } from './errors';
 // Possible parameter types for gtag 'event' and 'config' commands
 type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
 
-// Create a TrustedTypes policy that we can use for updating src
-// properties
-let _ttPolicy: Partial<TrustedTypePolicy>;
-if (window.trustedTypes) {
-  _ttPolicy = window.trustedTypes.createPolicy('firebase-js-sdk-policy', {
-    createScriptURL: createGtagTrustedTypesScriptURL
-  });
-}
-
 /**
  * Verifies and creates a TrustedScriptURL.
  */
@@ -66,6 +57,30 @@ export function promiseAllSettled<T>(
 }
 
 /**
+ * Creates a TrustedTypePolicy object that implements the rules passed as policyOptions.
+ *
+ * @param policyName A string containing the name of the policy
+ * @param policyOptions Object containing implementations of instance methods for TrustedTypesPolicy, see {@link https://developer.mozilla.org/en-US/docs/Web/API/TrustedTypePolicy#instance_methods
+ * | the TrustedTypePolicy reference documentation}.
+ * @returns
+ */
+export function createTrustedTypesPolicy(
+  policyName: string,
+  policyOptions: Partial<TrustedTypePolicyOptions>
+): Partial<TrustedTypePolicy> | undefined {
+  // Create a TrustedTypes policy that we can use for updating src
+  // properties
+  let trustedTypesPolicy: Partial<TrustedTypePolicy> | undefined;
+  if (window.trustedTypes) {
+    trustedTypesPolicy = window.trustedTypes.createPolicy(
+      policyName,
+      policyOptions
+    );
+  }
+  return trustedTypesPolicy;
+}
+
+/**
  * Inserts gtag script tag into the page to asynchronously download gtag.
  * @param dataLayerName Name of datalayer (most often the default, "_dataLayer").
  */
@@ -73,13 +88,20 @@ export function insertScriptTag(
   dataLayerName: string,
   measurementId: string
 ): void {
+  const trustedTypesPolicy = createTrustedTypesPolicy(
+    'firebase-js-sdk-policy',
+    {
+      createScriptURL: createGtagTrustedTypesScriptURL
+    }
+  );
+
   const script = document.createElement('script');
   // We are not providing an analyticsId in the URL because it would trigger a `page_view`
   // without fid. We will initialize ga-id using gtag (config) command together with fid.
 
   const gtagScriptURL = `${GTAG_URL}?l=${dataLayerName}&id=${measurementId}`;
-  (script.src as string | TrustedScriptURL) = _ttPolicy
-    ? (_ttPolicy as TrustedTypePolicy)?.createScriptURL(gtagScriptURL)
+  (script.src as string | TrustedScriptURL) = trustedTypesPolicy
+    ? (trustedTypesPolicy as TrustedTypePolicy)?.createScriptURL(gtagScriptURL)
     : gtagScriptURL;
 
   script.async = true;

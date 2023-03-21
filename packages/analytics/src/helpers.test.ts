@@ -25,7 +25,8 @@ import {
   wrapOrCreateGtag,
   findGtagScriptOnPage,
   promiseAllSettled,
-  createGtagTrustedTypesScriptURL
+  createGtagTrustedTypesScriptURL,
+  createTrustedTypesPolicy
 } from './helpers';
 import { GtagCommand, GTAG_URL } from './constants';
 import { Deferred } from '@firebase/util';
@@ -48,30 +49,63 @@ const fakeDynamicConfig: DynamicConfig = {
 const fakeDynamicConfigPromises = [Promise.resolve(fakeDynamicConfig)];
 
 describe('Trusted Types policies and functions', () => {
-  const ttStub = stub(
-    window.trustedTypes as TrustedTypePolicyFactory,
-    'createPolicy'
-  ).returns({
-    createScriptURL: (s: string) => s
-  } as any);
+  describe('Trusted types exists', () => {
+    let ttStub: SinonStub;
 
-  it('Verify trustedTypes is called if the API is available', () => {
-    expect(ttStub).to.be.called;
+    beforeEach(() => {
+      ttStub = stub(
+        window.trustedTypes as TrustedTypePolicyFactory,
+        'createPolicy'
+      ).returns({
+        createScriptURL: (s: string) => s
+      } as any);
+    });
+
+    afterEach(() => {
+      removeGtagScripts();
+      ttStub.restore();
+    });
+
+    it('Verify trustedTypes is called if the API is available', () => {
+      const trustedTypesPolicy = createTrustedTypesPolicy(
+        'firebase-js-sdk-policy',
+        {
+          createScriptURL: createGtagTrustedTypesScriptURL
+        }
+      );
+
+      expect(ttStub).to.be.called;
+      expect(trustedTypesPolicy).not.to.be.undefined;
+    });
+
+    it('createGtagTrustedTypesScriptURL verifies gtag URL base exists when a URL is provided', () => {
+      expect(createGtagTrustedTypesScriptURL(GTAG_URL)).to.equal(GTAG_URL);
+    });
+
+    it('createGtagTrustedTypesScriptURL rejects URLs with non-gtag base', () => {
+      const NON_GTAG_URL = 'http://iamnotgtag.com';
+      const consoleErrorStub = stub(console, 'error');
+
+      expect(createGtagTrustedTypesScriptURL(NON_GTAG_URL)).to.equal('');
+      expect(consoleErrorStub).to.be.calledWith(
+        'Unknown gtag resource!',
+        NON_GTAG_URL
+      );
+    });
   });
 
-  it('createGtagTrustedTypesScriptURL verifies gtag URL base exists when a URL is provided', () => {
-    expect(createGtagTrustedTypesScriptURL(GTAG_URL)).to.equal(GTAG_URL);
-  });
+  describe('Trusted types does not exist', () => {
+    it('Verify trustedTypes functions are not called if the API is not available', () => {
+      delete window.trustedTypes;
+      const trustedTypesPolicy = createTrustedTypesPolicy(
+        'firebase-js-sdk-policy',
+        {
+          createScriptURL: createGtagTrustedTypesScriptURL
+        }
+      );
 
-  it('createGtagTrustedTypesScriptURL rejects URLs with non-gtag base', () => {
-    const NON_GTAG_URL = 'http://iamnotgtag.com';
-    const consoleErrorStub = stub(console, 'error');
-
-    expect(createGtagTrustedTypesScriptURL(NON_GTAG_URL)).to.equal('');
-    expect(consoleErrorStub).to.be.calledWith(
-      'Unknown gtag resource!',
-      NON_GTAG_URL
-    );
+      expect(trustedTypesPolicy).to.be.undefined;
+    });
   });
 });
 
