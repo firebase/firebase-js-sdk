@@ -233,7 +233,7 @@ describe('core/credentials/email', () => {
               recaptchaConfig: { emailPasswordEnabled: true }
             }
           );
-          RecaptchaEnterpriseVerifier.agentSiteKey = 'wrong-site-key';
+          auth._agentRecaptchaConfig!.siteKey = 'wrong-site-key';
           await auth.initializeRecaptchaConfig();
 
           const idTokenResponse = await credential._getIdTokenResponse(auth);
@@ -252,7 +252,7 @@ describe('core/credentials/email', () => {
         });
 
         it('calls sign in with password with recaptcha verify failed', async () => {
-          RecaptchaEnterpriseVerifier.agentSiteKey = null;
+          auth._agentRecaptchaConfig = null;
           mockEndpointWithParams(
             Endpoint.GET_RECAPTCHA_CONFIG,
             {
