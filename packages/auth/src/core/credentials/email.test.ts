@@ -36,7 +36,6 @@ import {
 import { APIUserInfo } from '../../api/account_management/account';
 import { EmailAuthCredential } from './email';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
-import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import * as jsHelpers from '../../platform_browser/load_js';
 
 use(chaiAsPromised);
