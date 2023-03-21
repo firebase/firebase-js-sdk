@@ -32,6 +32,8 @@ import { GtagCommand, GTAG_URL } from './constants';
 import { Deferred } from '@firebase/util';
 import { ConsentSettings } from './public-types';
 import { removeGtagScripts } from '../testing/gtag-script-util';
+import { logger } from './logger';
+import { AnalyticsError, ERROR_FACTORY } from './errors';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeAppId = 'my-test-app-1234';
@@ -84,13 +86,16 @@ describe('Trusted Types policies and functions', () => {
 
     it('createGtagTrustedTypesScriptURL rejects URLs with non-gtag base', () => {
       const NON_GTAG_URL = 'http://iamnotgtag.com';
-      const consoleErrorStub = stub(console, 'error');
+      const loggerWarnStub = stub(logger, 'warn');
+      const errorMessage = ERROR_FACTORY.create(
+        AnalyticsError.INVALID_GTAG_RESOURCE,
+        {
+          gtagURL: NON_GTAG_URL
+        }
+      ).message;
 
       expect(createGtagTrustedTypesScriptURL(NON_GTAG_URL)).to.equal('');
-      expect(consoleErrorStub).to.be.calledWith(
-        'Unknown gtag resource!',
-        NON_GTAG_URL
-      );
+      expect(loggerWarnStub).to.be.calledWith(errorMessage);
     });
   });
 

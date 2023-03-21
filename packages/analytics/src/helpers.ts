@@ -34,7 +34,6 @@ type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
  */
 export function createGtagTrustedTypesScriptURL(url: string): string {
   if (!url.startsWith(GTAG_URL)) {
-    console.error('Unknown gtag resource!', url);
     const err = ERROR_FACTORY.create(AnalyticsError.INVALID_GTAG_RESOURCE, {
       gtagURL: url
     });
