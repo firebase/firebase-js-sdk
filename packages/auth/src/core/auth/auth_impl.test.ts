@@ -39,6 +39,9 @@ import * as reload from '../user/reload';
 import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 import { ClientPlatform } from '../util/version';
+import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
+import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
+import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
 
 use(sinonChai);
@@ -655,6 +658,94 @@ describe('core/auth/auth_impl', () => {
       expect(await auth._getAdditionalHeaders()).to.eql({
         'X-Client-Version': 'v'
       });
+    });
+  });
+
+  context('recaptchaConfig', () => {
+    const configAgent = { emailPasswordEnabled: true };
+    const configTenant = { emailPasswordEnabled: false };
+
+    beforeEach(async () => {
+      mockFetch.setUp();
+    });
+
+    afterEach(() => {
+      mockFetch.tearDown();
+    });
+
+    it('recaptcha config should be set for agent if tenant id is null.', async () => {
+      auth = await testAuth();
+      auth.tenantId = null;
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: configAgent
+        }
+      );
+      await auth.initializeRecaptchaConfig();
+
+      expect(auth._getRecaptchaConfig()).to.eql(configAgent);
+    });
+
+    it('recaptcha config should be set for tenant if tenant id is not null.', async () => {
+      auth = await testAuth();
+      auth.tenantId = 'tenant-id';
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE,
+          tenantId: 'tenant-id'
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: configTenant
+        }
+      );
+      await auth.initializeRecaptchaConfig();
+
+      expect(auth._getRecaptchaConfig()).to.eql(configTenant);
+    });
+
+    it('recaptcha config should dynamically switch if tenant id switches.', async () => {
+      auth = await testAuth();
+      auth.tenantId = null;
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: configAgent
+        }
+      );
+      await auth.initializeRecaptchaConfig();
+      auth.tenantId = 'tenant-id';
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE,
+          tenantId: 'tenant-id'
+        },
+        {
+          recaptchaKey: 'site-key',
+          recaptchaConfig: configTenant
+        }
+      );
+      await auth.initializeRecaptchaConfig();
+
+      auth.tenantId = null;
+      expect(auth._getRecaptchaConfig()).to.eql(configAgent);
+      auth.tenantId = 'tenant-id';
+      expect(auth._getRecaptchaConfig()).to.eql(configTenant);
     });
   });
 });
