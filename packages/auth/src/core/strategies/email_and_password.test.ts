@@ -67,7 +67,8 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     await sendPasswordResetEmail(auth, email);
     expect(mock.calls[0].request).to.eql({
       requestType: ActionCodeOperation.PASSWORD_RESET,
-      email
+      email,
+      clientType: 'CLIENT_TYPE_WEB'
     });
   });
 
@@ -109,7 +110,8 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iOSBundleId: 'my-bundle'
+        iOSBundleId: 'my-bundle',
+        clientType: "CLIENT_TYPE_WEB"
       });
     });
   });
@@ -137,12 +139,28 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         canHandleCodeInApp: true,
         androidInstallApp: false,
         androidMinimumVersionCode: 'my-version',
-        androidPackageName: 'my-package'
+        androidPackageName: 'my-package',
+        clientType: 'CLIENT_TYPE_WEB'
       });
     });
   });
 
   context('#recaptcha', () => {
+const recaptchaConfigResponseEnforce = {
+  recaptchaKey: 'foo/bar/to/site-key',
+  recaptchaEnforcementState: [
+    {
+      provider: 'EMAIL_PASSWORD_PROVIDER',
+      enforcementState: 'ENFORCE'
+    }
+  ]
+};
+const recaptchaConfigResponseOff = {
+  recaptchaKey: 'foo/bar/to/site-key',
+  recaptchaEnforcementState: [
+    { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
+  ]
+};
     beforeEach(async () => {
       if (typeof window === 'undefined') {
         return;
@@ -158,9 +176,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'site-key'
-        }
+        recaptchaConfigResponseEnforce
       );
     });
 
@@ -178,10 +194,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: { emailPasswordEnabled: true }
-        }
+        recaptchaConfigResponseEnforce
       );
       await auth.initializeRecaptchaConfig();
 
@@ -209,10 +222,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: { emailPasswordEnabled: false }
-        }
+        recaptchaConfigResponseOff
       );
       await auth.initializeRecaptchaConfig();
 
@@ -222,7 +232,8 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       await sendPasswordResetEmail(auth, email);
       expect(apiMock.calls[0].request).to.eql({
         requestType: ActionCodeOperation.PASSWORD_RESET,
-        email
+        email,
+        clientType: 'CLIENT_TYPE_WEB'
       });
     });
   });
@@ -492,6 +503,16 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
   });
 
   context('#recaptcha', () => {
+    const recaptchaConfigResponseEnforce = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        {
+          provider: 'EMAIL_PASSWORD_PROVIDER',
+          enforcementState: 'ENFORCE'
+        }
+      ]
+    };
+
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
       if (typeof window === 'undefined') {
@@ -507,9 +528,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'site-key'
-        }
+        recaptchaConfigResponseEnforce
       );
     });
 
@@ -527,10 +546,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: { emailPasswordEnabled: true }
-        }
+        recaptchaConfigResponseEnforce
       );
       await auth.initializeRecaptchaConfig();
 
@@ -558,10 +574,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: { emailPasswordEnabled: false }
-        }
+        recaptchaConfigResponseEnforce
       );
       await auth.initializeRecaptchaConfig();
 

@@ -83,6 +83,9 @@ export class RecaptchaConfig {
   emailPasswordEnabled: boolean = false;
 
   constructor(response: GetRecaptchaConfigResponse) {
+    if (response.recaptchaKey === undefined) {
+      throw new Error('recaptchaKey undefined');
+    }
     this.siteKey = response.recaptchaKey.split('/')[3];
     this.emailPasswordEnabled = response.recaptchaEnforcementState.some(
       enforcementState =>

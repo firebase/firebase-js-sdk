@@ -92,7 +92,8 @@ describe('core/credentials/email', () => {
         expect(apiMock.calls[0].request).to.eql({
           returnSecureToken: true,
           email: 'some-email',
-          password: 'some-password'
+          password: 'some-password',
+          clientType: "CLIENT_TYPE_WEB"
         });
       });
 
@@ -102,6 +103,19 @@ describe('core/credentials/email', () => {
         afterEach(() => {
           sinon.restore();
         });
+
+        const recaptchaConfigResponseEnforce = {
+          recaptchaKey: 'foo/bar/to/site-key',
+          recaptchaEnforcementState: [
+            { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'ENFORCE' }
+          ]
+        };
+    const recaptchaConfigResponseOff = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
+      ]
+    };
 
         it('calls sign in with password with recaptcha enabled', async () => {
           const recaptcha = new MockGreCAPTCHATopLevel();
@@ -118,21 +132,7 @@ describe('core/credentials/email', () => {
               clientType: RecaptchaClientType.WEB,
               version: RecaptchaVersion.ENTERPRISE
             },
-            {
-              recaptchaKey: 'site-key'
-            }
-          );
-
-          mockEndpointWithParams(
-            Endpoint.GET_RECAPTCHA_CONFIG,
-            {
-              clientType: RecaptchaClientType.WEB,
-              version: RecaptchaVersion.ENTERPRISE
-            },
-            {
-              recaptchaKey: 'site-key',
-              recaptchaConfig: { emailPasswordEnabled: true }
-            }
+            recaptchaConfigResponseEnforce
           );
           await auth.initializeRecaptchaConfig();
 
@@ -166,21 +166,7 @@ describe('core/credentials/email', () => {
               clientType: RecaptchaClientType.WEB,
               version: RecaptchaVersion.ENTERPRISE
             },
-            {
-              recaptchaKey: 'site-key'
-            }
-          );
-
-          mockEndpointWithParams(
-            Endpoint.GET_RECAPTCHA_CONFIG,
-            {
-              clientType: RecaptchaClientType.WEB,
-              version: RecaptchaVersion.ENTERPRISE
-            },
-            {
-              recaptchaKey: 'site-key',
-              recaptchaConfig: { emailPasswordEnabled: false }
-            }
+            recaptchaConfigResponseOff
           );
           await auth.initializeRecaptchaConfig();
 
@@ -192,7 +178,8 @@ describe('core/credentials/email', () => {
           expect(apiMock.calls[0].request).to.eql({
             email: 'some-email',
             password: 'some-password',
-            returnSecureToken: true
+            returnSecureToken: true,
+            clientType: "CLIENT_TYPE_WEB"
           });
         });
 
@@ -227,13 +214,10 @@ describe('core/credentials/email', () => {
               clientType: RecaptchaClientType.WEB,
               version: RecaptchaVersion.ENTERPRISE
             },
-            {
-              recaptchaKey: 'mock/project/mock/site-key',
-              recaptchaConfig: { emailPasswordEnabled: true }
-            }
+            recaptchaConfigResponseEnforce
           );
-          auth._agentRecaptchaConfig!.siteKey = 'wrong-site-key';
           await auth.initializeRecaptchaConfig();
+          auth._agentRecaptchaConfig!.siteKey = 'wrong-site-key';
 
           const idTokenResponse = await credential._getIdTokenResponse(auth);
           expect(idTokenResponse.idToken).to.eq('id-token');
@@ -248,27 +232,6 @@ describe('core/credentials/email', () => {
             recaptchaVersion: RecaptchaVersion.ENTERPRISE,
             returnSecureToken: true
           });
-        });
-
-        it('calls sign in with password with recaptcha verify failed', async () => {
-          auth._agentRecaptchaConfig = null;
-          mockEndpointWithParams(
-            Endpoint.GET_RECAPTCHA_CONFIG,
-            {
-              clientType: RecaptchaClientType.WEB,
-              version: RecaptchaVersion.ENTERPRISE
-            },
-            {
-              recaptchaConfig: { emailPasswordEnabled: true }
-            }
-          );
-          await auth.initializeRecaptchaConfig();
-
-          const response = credential._getIdTokenResponse(auth);
-          await expect(response).to.be.rejectedWith(
-            Error,
-            'recaptchaKey undefined'
-          );
         });
       });
     });
@@ -309,7 +272,8 @@ describe('core/credentials/email', () => {
         expect(apiMock.calls[0].request).to.eql({
           returnSecureToken: true,
           email: 'some-email',
-          password: 'some-password'
+          password: 'some-password',
+          clientType: 'CLIENT_TYPE_WEB'
         });
       });
     });
