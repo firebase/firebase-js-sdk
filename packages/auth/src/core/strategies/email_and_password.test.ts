@@ -568,6 +568,9 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     });
 
     it('calls create user with email password with recaptcha disabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {
