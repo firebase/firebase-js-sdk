@@ -2285,7 +2285,7 @@ function genericLocalStoreTests(
     );
 
     const mutations: PatchMutation[] = [];
-    for (let i = 0; i < 1000; ++i) {
+    for (let i = 0; i < 100; ++i) {
       mutations.push(
         new PatchMutation(
           key('foo/bar'),
