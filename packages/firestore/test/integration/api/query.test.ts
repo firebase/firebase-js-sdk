@@ -66,6 +66,7 @@ import {
   withTestDb
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
+import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
 apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();
@@ -2092,7 +2093,10 @@ apiDescribe('Queries', (persistence: boolean) => {
       await new Promise(resolve => setTimeout(resolve, 10000));
 
       // Resume the query and save the resulting snapshot for verification.
-      const snapshot2 = await getDocs(coll);
+      // Use some internal testing hooks to "capture" the existence filter
+      // mismatches to verify them.
+      const [existenceFilterMismatches, snapshot2] =
+        await captureExistenceFilterMismatches(() => getDocs(coll));
 
       // Verify that the snapshot from the resumed query contains the expected
       // documents; that is, that it contains the 50 documents that were _not_
@@ -2114,6 +2118,37 @@ apiDescribe('Queries', (persistence: boolean) => {
           expectedDocumentIds
         );
       }
+
+      // Skip the verification of the existence filter mismatch when persistence
+      // is disabled because without persistence there is no resume token
+      // specified in the subsequent call to getDocs(), and, therefore, Watch
+      // will _not_ send an existence filter.
+      // TODO(b/272754156) Re-write this test using a snapshot listener instead
+      // of calls to getDocs() and remove this check for disabled persistence.
+      if (!persistence) {
+        return;
+      }
+
+      // Skip the verification of the existence filter mismatch when testing
+      // against the Firestore emulator because the Firestore emulator fails to
+      // to send an existence filter at all.
+      // TODO(b/270731363): Enable the verification of the existence filter
+      // mismatch once the Firestore emulator is fixed to send an existence
+      // filter.
+      if (USE_EMULATOR) {
+        return;
+      }
+
+      // Verify that Watch sent an existence filter with the correct counts when
+      // the query was resumed.
+      expect(
+        existenceFilterMismatches,
+        'existenceFilterMismatches'
+      ).to.have.length(1);
+      const { localCacheCount, existenceFilterCount } =
+        existenceFilterMismatches[0];
+      expect(localCacheCount, 'localCacheCount').to.equal(100);
+      expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
     });
   }).timeout('90s');
 });

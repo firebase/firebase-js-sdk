@@ -34,6 +34,7 @@ import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
+import { TestingHooks } from '../util/testing_hooks';
 
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
@@ -414,6 +415,10 @@ export class WatchChangeAggregator {
           // snapshot with `isFromCache:true`.
           this.resetTarget(targetId);
           this.pendingTargetResets = this.pendingTargetResets.add(targetId);
+          TestingHooks.instance?.notifyOnExistenceFilterMismatch({
+            localCacheCount: currentSize,
+            existenceFilterCount: watchChange.existenceFilter.count
+          });
         }
       }
     }
