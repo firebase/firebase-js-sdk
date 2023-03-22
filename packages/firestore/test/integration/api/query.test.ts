@@ -47,6 +47,7 @@ import {
   Query,
   query,
   QuerySnapshot,
+  runTransaction,
   setDoc,
   startAfter,
   startAt,
@@ -2059,6 +2060,62 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
   });
+
+  it('resuming a query should use existence filter to detect deletes', async () => {
+    // Prepare the names and contents of the 100 documents to create.
+    const testDocs: { [key: string]: object } = {};
+    for (let i = 0; i < 100; i++) {
+      testDocs['doc' + (1000 + i)] = { key: 42 };
+    }
+
+    return withTestCollection(persistence, testDocs, async (coll, db) => {
+      // Run a query to populate the local cache with the 100 documents and a
+      // resume token.
+      const snapshot1 = await getDocs(coll);
+      expect(snapshot1.size, 'snapshot1.size').to.equal(100);
+      const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
+
+      // Delete 50 of the 100 documents. Do this in a transaction, rather than
+      // deleteDoc(), to avoid affecting the local cache.
+      const deletedDocumentIds = new Set<string>();
+      await runTransaction(db, async txn => {
+        for (let i = 0; i < createdDocuments.length; i += 2) {
+          const documentToDelete = createdDocuments[i];
+          txn.delete(documentToDelete);
+          deletedDocumentIds.add(documentToDelete.id);
+        }
+      });
+
+      // Wait for 10 seconds, during which Watch will stop tracking the query
+      // and will send an existence filter rather than "delete" events when the
+      // query is resumed.
+      await new Promise(resolve => setTimeout(resolve, 10000));
+
+      // Resume the query and save the resulting snapshot for verification.
+      const snapshot2 = await getDocs(coll);
+
+      // Verify that the snapshot from the resumed query contains the expected
+      // documents; that is, that it contains the 50 documents that were _not_
+      // deleted.
+      // TODO(b/270731363): Remove the "if" condition below once the
+      // Firestore Emulator is fixed to send an existence filter. At the time of
+      // writing, the Firestore emulator fails to send an existence filter,
+      // resulting in the client including the deleted documents in the snapshot
+      // of the resumed query.
+      if (!(USE_EMULATOR && snapshot2.size === 100)) {
+        const actualDocumentIds = snapshot2.docs
+          .map(documentSnapshot => documentSnapshot.ref.id)
+          .sort();
+        const expectedDocumentIds = createdDocuments
+          .filter(documentRef => !deletedDocumentIds.has(documentRef.id))
+          .map(documentRef => documentRef.id)
+          .sort();
+        expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
+          expectedDocumentIds
+        );
+      }
+    });
+  }).timeout('90s');
 });
 
 function verifyDocumentChange<T>(
