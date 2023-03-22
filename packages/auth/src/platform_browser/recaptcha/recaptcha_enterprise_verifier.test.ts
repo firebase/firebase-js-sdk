@@ -48,15 +48,15 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
   });
 
   context('#verify', () => {
-            const recaptchaConfigResponseEnforce = {
-              recaptchaKey: 'foo/bar/to/site-key',
-              recaptchaEnforcementState: [
-                {
-                  provider: 'EMAIL_PASSWORD_PROVIDER',
-                  enforcementState: 'ENFORCE'
-                }
-              ]
-            };
+    const recaptchaConfigResponseEnforce = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        {
+          provider: 'EMAIL_PASSWORD_PROVIDER',
+          enforcementState: 'ENFORCE'
+        }
+      ]
+    };
 
     const request = {
       clientType: RecaptchaClientType.WEB,

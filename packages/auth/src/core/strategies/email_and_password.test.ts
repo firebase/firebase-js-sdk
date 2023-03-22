@@ -111,7 +111,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
         iOSBundleId: 'my-bundle',
-        clientType: "CLIENT_TYPE_WEB"
+        clientType: 'CLIENT_TYPE_WEB'
       });
     });
   });
@@ -146,21 +146,21 @@ describe('core/strategies/sendPasswordResetEmail', () => {
   });
 
   context('#recaptcha', () => {
-const recaptchaConfigResponseEnforce = {
-  recaptchaKey: 'foo/bar/to/site-key',
-  recaptchaEnforcementState: [
-    {
-      provider: 'EMAIL_PASSWORD_PROVIDER',
-      enforcementState: 'ENFORCE'
-    }
-  ]
-};
-const recaptchaConfigResponseOff = {
-  recaptchaKey: 'foo/bar/to/site-key',
-  recaptchaEnforcementState: [
-    { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
-  ]
-};
+    const recaptchaConfigResponseEnforce = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        {
+          provider: 'EMAIL_PASSWORD_PROVIDER',
+          enforcementState: 'ENFORCE'
+        }
+      ]
+    };
+    const recaptchaConfigResponseOff = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
+      ]
+    };
     beforeEach(async () => {
       if (typeof window === 'undefined') {
         return;

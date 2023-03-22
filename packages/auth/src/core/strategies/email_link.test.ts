@@ -69,7 +69,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       email,
       canHandleCodeInApp: true,
       continueUrl: 'continue-url',
-      clientType: "CLIENT_TYPE_WEB"
+      clientType: 'CLIENT_TYPE_WEB'
     });
   });
 
@@ -176,7 +176,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
       ]
     };
-    
+
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
       if (typeof window === 'undefined') {
@@ -247,7 +247,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         email,
         canHandleCodeInApp: true,
         continueUrl: 'continue-url',
-        clientType: "CLIENT_TYPE_WEB"
+        clientType: 'CLIENT_TYPE_WEB'
       });
     });
 
@@ -268,7 +268,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         .withArgs('site-key', { action: 'signInWithEmailLink' })
         .returns(Promise.resolve('recaptcha-response'));
 
-        mockEndpointWithParams(
+      mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {
           clientType: RecaptchaClientType.WEB,

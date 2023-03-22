@@ -675,7 +675,7 @@ describe('core/auth/auth_impl', () => {
       ]
     };
     const cachedRecaptchaConfigEnforce = {
-      emailPasswordEnabled: true ,
+      emailPasswordEnabled: true,
       siteKey: 'site-key'
     };
     const cachedRecaptchaConfigOFF = {

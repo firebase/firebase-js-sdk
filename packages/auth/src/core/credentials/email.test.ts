@@ -93,7 +93,7 @@ describe('core/credentials/email', () => {
           returnSecureToken: true,
           email: 'some-email',
           password: 'some-password',
-          clientType: "CLIENT_TYPE_WEB"
+          clientType: 'CLIENT_TYPE_WEB'
         });
       });
 
@@ -110,12 +110,12 @@ describe('core/credentials/email', () => {
             { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'ENFORCE' }
           ]
         };
-    const recaptchaConfigResponseOff = {
-      recaptchaKey: 'foo/bar/to/site-key',
-      recaptchaEnforcementState: [
-        { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
-      ]
-    };
+        const recaptchaConfigResponseOff = {
+          recaptchaKey: 'foo/bar/to/site-key',
+          recaptchaEnforcementState: [
+            { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
+          ]
+        };
 
         it('calls sign in with password with recaptcha enabled', async () => {
           const recaptcha = new MockGreCAPTCHATopLevel();
@@ -179,7 +179,7 @@ describe('core/credentials/email', () => {
             email: 'some-email',
             password: 'some-password',
             returnSecureToken: true,
-            clientType: "CLIENT_TYPE_WEB"
+            clientType: 'CLIENT_TYPE_WEB'
           });
         });
 
