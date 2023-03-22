@@ -661,9 +661,9 @@ describe('core/auth/auth_impl', () => {
     });
   });
 
-  context('recaptchaConfig', () => {
-    const configAgent = { emailPasswordEnabled: true };
-    const configTenant = { emailPasswordEnabled: false };
+  context('recaptchaEnforcementState', () => {
+    const configAgent = [{ provider: 'email', enforcementState: 'ENFORCE' }];
+    const configTenant = [{ provider: 'email', enforcementState: 'OFF' }];
 
     beforeEach(async () => {
       mockFetch.setUp();
@@ -684,7 +684,7 @@ describe('core/auth/auth_impl', () => {
         },
         {
           recaptchaKey: 'site-key',
-          recaptchaConfig: configAgent
+          recaptchaEnforcementState: configAgent
         }
       );
       await auth.initializeRecaptchaConfig();
@@ -704,7 +704,7 @@ describe('core/auth/auth_impl', () => {
         },
         {
           recaptchaKey: 'site-key',
-          recaptchaConfig: configTenant
+          recaptchaEnforcementState: configTenant
         }
       );
       await auth.initializeRecaptchaConfig();
@@ -723,7 +723,7 @@ describe('core/auth/auth_impl', () => {
         },
         {
           recaptchaKey: 'site-key',
-          recaptchaConfig: configAgent
+          recaptchaEnforcementState: configAgent
         }
       );
       await auth.initializeRecaptchaConfig();
@@ -737,7 +737,7 @@ describe('core/auth/auth_impl', () => {
         },
         {
           recaptchaKey: 'site-key',
-          recaptchaConfig: configTenant
+          recaptchaEnforcementState: configTenant
         }
       );
       await auth.initializeRecaptchaConfig();
