@@ -61,7 +61,6 @@ export function promiseAllSettled<T>(
  * @param policyName A string containing the name of the policy
  * @param policyOptions Object containing implementations of instance methods for TrustedTypesPolicy, see {@link https://developer.mozilla.org/en-US/docs/Web/API/TrustedTypePolicy#instance_methods
  * | the TrustedTypePolicy reference documentation}.
- * @returns
  */
 export function createTrustedTypesPolicy(
   policyName: string,
