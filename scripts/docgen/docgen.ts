@@ -145,44 +145,47 @@ async function generateDocs(
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.d.ts"`,
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.doc.d.ts"`
   );
-  fs.writeFileSync(
-    `${projectRoot}/packages/auth/api-extractor.json`,
-    authApiConfigModified
-  );
 
-  if (skipBuild) {
-    await spawn('yarn', ['api-report'], {
-      stdio: 'inherit'
-    });
-  } else {
-    // api-report is run as part of every build
-    await spawn(
-      'yarn',
-      [
-        'lerna',
-        'run',
-        '--scope',
-        '@firebase/*',
-        '--ignore',
-        '@firebase/*-compat',
-        'build'
-      ],
-      {
+  try {
+    fs.writeFileSync(
+      `${projectRoot}/packages/auth/api-extractor.json`,
+      authApiConfigModified
+    );
+
+    if (skipBuild) {
+      await spawn('yarn', ['api-report'], {
         stdio: 'inherit'
-      }
+      });
+    } else {
+      // api-report is run as part of every build
+      await spawn(
+        'yarn',
+        [
+          'lerna',
+          'run',
+          '--scope',
+          '@firebase/*',
+          '--ignore',
+          '@firebase/*-compat',
+          'build'
+        ],
+        {
+          stdio: 'inherit'
+        }
+      );
+    }
+  } finally {
+    // Restore original auth api-extractor.json contents.
+    fs.writeFileSync(
+      `${projectRoot}/packages/auth/api-extractor.json`,
+      authApiConfigOriginal
+    );
+    // Restore original auth.api.md
+    fs.writeFileSync(
+      `${projectRoot}/common/api-review/auth.api.md`,
+      authApiReportOriginal
     );
   }
-
-  // Restore original auth api-extractor.json contents.
-  fs.writeFileSync(
-    `${projectRoot}/packages/auth/api-extractor.json`,
-    authApiConfigOriginal
-  );
-  // Restore original auth.api.md
-  fs.writeFileSync(
-    `${projectRoot}/common/api-review/auth.api.md`,
-    authApiReportOriginal
-  );
 
   if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir);
