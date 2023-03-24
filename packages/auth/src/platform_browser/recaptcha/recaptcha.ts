@@ -90,7 +90,7 @@ export class RecaptchaConfig {
     this.emailPasswordEnabled = response.recaptchaEnforcementState.some(
       enforcementState =>
         enforcementState.provider === 'EMAIL_PASSWORD_PROVIDER' &&
-        enforcementState.enforcementState === 'ENFORCE'
+        enforcementState.enforcementState !== 'OFF'
     );
   }
 }
