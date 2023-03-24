@@ -74,6 +74,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();
 
   it('can issue limit queries', () => {
+    expect(1).to.equal(1);
     const testDocs = {
       a: { k: 'a' },
       b: { k: 'b' },
