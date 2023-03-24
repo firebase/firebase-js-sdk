@@ -2139,10 +2139,11 @@ apiDescribe('Queries', (persistence: boolean) => {
       }
 
       // Skip the verification of the existence filter mismatch when testing
-      // against the Firestore emulator because the Firestore emulator does not
-      // include the `unchanged_names` bloom filter when it sends
-      // ExistenceFilter messages. Some day the emulator _may_ implement this
-      // logic, at which time this short-circuit can be removed.
+      // against the Firestore emulator because the Firestore emulator fails to
+      // to send an existence filter at all.
+      // TODO(b/270731363): Enable the verification of the existence filter
+      // mismatch once the Firestore emulator is fixed to send an existence
+      // filter.
       if (USE_EMULATOR) {
         return 'passed';
       }

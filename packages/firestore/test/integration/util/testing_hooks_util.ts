@@ -22,7 +22,8 @@ import { _TestingHooks as TestingHooks } from './firebase_export';
  * occur during the execution of the given code block.
  * @param callback The callback to invoke; during the invocation of this
  * callback all existence filter mismatches will be captured.
- * @return the captured existence filter mismatches.
+ * @return the captured existence filter mismatches and the result of awaiting
+ * the given callback.
  */
 export async function captureExistenceFilterMismatches<T>(
   callback: () => Promise<T>
@@ -50,8 +51,8 @@ export async function captureExistenceFilterMismatches<T>(
 }
 
 /**
- * Information about an existence filter mismatch, capturing during an
- * invocation of `captureExistenceFilterMismatches()`.
+ * Information about an existence filter mismatch, captured during an invocation
+ * of `captureExistenceFilterMismatches()`.
  *
  * See the documentation of `TestingHooks.notifyOnExistenceFilterMismatch()`
  * for the meaning of these values.
