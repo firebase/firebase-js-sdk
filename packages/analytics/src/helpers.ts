@@ -227,9 +227,10 @@ function wrapGtag(
    * @param gtagParams Params if event is EVENT/CONFIG.
    */
   async function gtagWrapper(
-    command: 'config' | 'set' | 'event' | 'consent',
+    command: 'config' | 'set' | 'event' | 'consent' | 'get',
     idOrNameOrParams: string | ControlParams,
-    gtagParams?: GtagConfigOrEventParams | ConsentSettings
+    gtagParams?: GtagConfigOrEventParams | ConsentSettings | string,
+    callback?: (s: string) => void
   ): Promise<void> {
     try {
       // If event, check that relevant initialization promises have completed.
@@ -255,6 +256,13 @@ function wrapGtag(
       } else if (command === GtagCommand.CONSENT) {
         // If CONFIG, second arg must be measurementId.
         gtagCore(GtagCommand.CONSENT, 'update', gtagParams as ConsentSettings);
+      } else if (command === GtagCommand.GET) {
+        gtagCore(
+          GtagCommand.GET,
+          idOrNameOrParams as string,
+          gtagParams as string,
+          callback as (fieldName: string) => void
+        );
       } else {
         // If SET, second arg must be params.
         gtagCore(GtagCommand.SET, idOrNameOrParams as CustomParams);

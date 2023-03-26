@@ -263,6 +263,24 @@ describe('Gtag wrapping functions', () => {
       expect((window['dataLayer'] as DataLayer).length).to.equal(1);
     });
 
+    it('new window.gtag function does not wait when sending "get" calls', async () => {
+      wrapOrCreateGtag(
+        { [fakeAppId]: Promise.resolve(fakeMeasurementId) },
+        fakeDynamicConfigPromises,
+        {},
+        'dataLayer',
+        'gtag'
+      );
+      window['dataLayer'] = [];
+      (window['gtag'] as Gtag)(
+        GtagCommand.GET,
+        fakeMeasurementId,
+        'client_id',
+        fieldName => console.log(fieldName)
+      );
+      expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+    });
+
     it('new window.gtag function waits for initialization promise when sending "config" calls', async () => {
       const initPromise1 = new Deferred<string>();
       wrapOrCreateGtag(

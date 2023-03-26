@@ -168,6 +168,40 @@ export function setCurrentScreen(
 }
 
 /**
+ * Retrieves a unique identifier for the web client.
+ *
+ * @public
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ */
+export async function getGoogleAnalyticsClientId(
+  analyticsInstance: Analytics
+): Promise<string> {
+  analyticsInstance = getModularInstance(analyticsInstance);
+  const measurementId = analyticsInstance.app.options.measurementId;
+  let clientId = '';
+  if (!measurementId) {
+    logger.error('The app has no recognizable measurement ID.');
+  } else {
+    clientId = await new Promise((resolve, reject) => {
+      wrappedGtagFunction(
+        GtagCommand.GET,
+        measurementId,
+        'client_id',
+        fieldName => {
+          if (!fieldName) {
+            reject('There was an issue retrieving the `client_id`');
+          }
+          resolve(fieldName);
+        }
+      );
+    });
+  }
+
+  return clientId;
+}
+
+/**
  * Use gtag `config` command to set `user_id`.
  *
  * @public
