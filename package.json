@@ -153,5 +153,8 @@
     "watch": "1.0.2",
     "webpack": "4.46.0",
     "yargs": "17.6.2"
+  },
+  "dependencies": {
+    "@types/trusted-types": "2.0.3"
   }
 }

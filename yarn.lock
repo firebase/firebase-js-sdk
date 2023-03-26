@@ -3693,6 +3693,11 @@
   resolved "https://registry.npmjs.org/@types/tough-cookie/-/tough-cookie-4.0.1.tgz#8f80dd965ad81f3e1bc26d6f5c727e132721ff40"
   integrity sha512-Y0K95ThC3esLEYD6ZuqNek29lNX2EM1qxV8y2FTLUB0ff5wWrk7az+mLrnNFUnaXcgKye22+sFBRXOgpPILZNg==
 
+"@types/trusted-types@2.0.3":
+  version "2.0.3"
+  resolved "https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.3.tgz#a136f83b0758698df454e328759dbd3d44555311"
+  integrity sha512-NfQ4gyz38SL8sDNrSixxU2Os1a5xcdFxipAFxYEuLUlvU2uDwS4NUpsImcf1//SlWItCVMMLiylsxbmNMToV/g==
+
 "@types/vinyl@^2.0.4":
   version "2.0.6"
   resolved "https://registry.npmjs.org/@types/vinyl/-/vinyl-2.0.6.tgz#b2d134603557a7c3d2b5d3dc23863ea2b5eb29b0"
