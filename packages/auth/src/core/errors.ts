@@ -374,7 +374,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.INVALID_RECAPTCHA_ACTION]:
       'The reCAPTCHA action is invalid when sending request to the backend.',
     [AuthErrorCode.RECAPTCHA_NOT_ENABLED]:
-      'reCAPTCHA integration is not enabled for this project.',
+      'reCAPTCHA Enterprise integration is not enabled for this project.',
     [AuthErrorCode.MISSING_CLIENT_TYPE]:
       'The reCAPTCHA client type is missing when sending request to the backend.',
     [AuthErrorCode.MISSING_RECAPTCHA_VERSION]:

@@ -86,6 +86,7 @@ export class RecaptchaConfig {
     if (response.recaptchaKey === undefined) {
       throw new Error('recaptchaKey undefined');
     }
+    // Example response.recaptchaKey: "projects/653626599802/keys/6LcLwBQjAAAAAC2amrmIMtl9VEU4BDmxMTFWRrCZ"
     this.siteKey = response.recaptchaKey.split('/')[3];
     this.emailPasswordEnabled = response.recaptchaEnforcementState.some(
       enforcementState =>
