@@ -18,7 +18,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install wget
           sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_110.0.5481.177-1_amd64.deb
-          sudo apt-get install -f ./google-chrome-stable_110.0.5481.177-1_amd64.deb
+          sudo apt-get install -f ./google-chrome-stable_110.0.5481.177-1_amd64.deb --allow-downgrades
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
