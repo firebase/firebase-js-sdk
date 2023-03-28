@@ -55,7 +55,7 @@
   },
   "devDependencies": {
     "@firebase/app-compat": "0.2.5",
-    "@types/eslint": "7.29.0",
+    "@types/eslint": "8.21.2",
     "rollup": "2.79.1",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-terser": "7.0.2",
