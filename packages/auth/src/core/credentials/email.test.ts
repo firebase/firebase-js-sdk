@@ -37,6 +37,7 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { EmailAuthCredential } from './email';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 import * as jsHelpers from '../../platform_browser/load_js';
+import { ServerError } from '../../api/errors';
 
 use(chaiAsPromised);
 
@@ -232,6 +233,77 @@ describe('core/credentials/email', () => {
             recaptchaVersion: RecaptchaVersion.ENTERPRISE,
             returnSecureToken: true
           });
+        });
+
+        it('calls sign in with password with fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
+          if (typeof window === 'undefined') {
+            return;
+          }
+
+          // First call to sign in with password should fail with MISSING_RECAPTCHA_TOKEN error
+          mockEndpointWithParams(
+            Endpoint.SIGN_IN_WITH_PASSWORD,
+            {
+              email: 'second-email',
+              password: 'some-password',
+              returnSecureToken: true,
+              clientType: RecaptchaClientType.WEB
+            },
+            {
+              error: {
+                code: 400,
+                message: ServerError.MISSING_RECAPTCHA_TOKEN
+              }
+            },
+            400
+          );
+
+          // Second call to sign in with password should succeed
+          mockEndpointWithParams(
+            Endpoint.SIGN_IN_WITH_PASSWORD,
+            {
+              captchaResponse: 'recaptcha-response',
+              clientType: RecaptchaClientType.WEB,
+              email: 'some-email',
+              password: 'some-password',
+              recaptchaVersion: RecaptchaVersion.ENTERPRISE,
+              returnSecureToken: true
+            },
+            {
+              idToken: 'id-token',
+              refreshToken: 'refresh-token',
+              expiresIn: '1234',
+              localId: serverUser.localId!
+            }
+          );
+
+          // Mock recaptcha js loading method and manually set window.recaptcha
+          sinon
+            .stub(jsHelpers, '_loadJS')
+            .returns(Promise.resolve(new Event('')));
+          const recaptcha = new MockGreCAPTCHATopLevel();
+          window.grecaptcha = recaptcha;
+          const stub = sinon.stub(recaptcha.enterprise, 'execute');
+          stub
+            .withArgs('site-key', {
+              action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
+            })
+            .returns(Promise.resolve('recaptcha-response'));
+
+          mockEndpointWithParams(
+            Endpoint.GET_RECAPTCHA_CONFIG,
+            {
+              clientType: RecaptchaClientType.WEB,
+              version: RecaptchaVersion.ENTERPRISE
+            },
+            recaptchaConfigResponseEnforce
+          );
+
+          const idTokenResponse = await credential._getIdTokenResponse(auth);
+          expect(idTokenResponse.idToken).to.eq('id-token');
+          expect(idTokenResponse.refreshToken).to.eq('refresh-token');
+          expect(idTokenResponse.expiresIn).to.eq('1234');
+          expect(idTokenResponse.localId).to.eq(serverUser.localId);
         });
       });
     });
