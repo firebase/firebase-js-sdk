@@ -179,7 +179,7 @@ export class TotpMultiFactorAssertionImpl
  * Provider for generating a {@link TotpMultiFactorAssertion}.
  *
  * Stores the shared secret key and other parameters to generate time-based OTPs.
- * Implements methods to retrieve the shared secret key, generate a QRCode URL.
+ * Implements methods to retrieve the shared secret key and generate a QR code URL.
  * @public
  */
 export class TotpSecret {
