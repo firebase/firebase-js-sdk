@@ -244,14 +244,14 @@ export class TotpSecret {
   }
 
   /**
-   * Returns a QRCode URL as described in
+   * Returns a QR code URL as described in
    * https://github.com/google/google-authenticator/wiki/Key-Uri-Format
-   * This can be displayed to the user as a QRCode to be scanned into a TOTP App like Google Authenticator.
+   * This can be displayed to the user as a QR code to be scanned into a TOTP app like Google Authenticator.
    * If the optional parameters are unspecified, an accountName of <userEmail> and issuer of <firebaseAppName> are used.
    *
    * @param accountName the name of the account/app along with a user identifier.
-   * @param issuer issuer of the TOTP(likely the app name).
-   * @returns A QRCode URL string.
+   * @param issuer issuer of the TOTP (likely the app name).
+   * @returns A QR code URL string.
    */
   generateQrCodeUrl(accountName?: string, issuer?: string): string {
     let useDefaults = false;
