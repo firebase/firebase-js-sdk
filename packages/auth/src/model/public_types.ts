@@ -1240,7 +1240,8 @@ export interface Dependencies {
 
 /**
  * The class for asserting ownership of a totp second factor. Provided by
- * {@link TotpMultiFactorGenerator.assertion}.
+ * {@link TotpMultiFactorGenerator.assertionForEnrollment} and
+ * {@link TotpMultiFactorGenerator.assertionForSignIn}.
  *
  * @public
  */

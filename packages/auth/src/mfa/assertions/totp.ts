@@ -46,7 +46,7 @@ export class TotpMultiFactorGenerator {
    * the totp(Time-based One Time Password) second factor.
    * This assertion is used to complete enrollment in TOTP second factor.
    *
-   * @param secret {@link TotpSecret}.
+   * @param secret A {@link TotpSecret} containing the shared secret key and other TOTP parameters.
    * @param oneTimePassword One-time password from TOTP App.
    * @returns A {@link TotpMultiFactorAssertion} which can be used with
    * {@link MultiFactorUser.enroll}.
@@ -78,12 +78,12 @@ export class TotpMultiFactorGenerator {
   }
 
   /**
-   * Returns a promise to {@link TOTPSecret} which contains the TOTP shared secret key and other parameters.
+   * Returns a promise to {@link TotpSecret} which contains the TOTP shared secret key and other parameters.
    * Creates a TOTP secret as part of enrolling a TOTP second factor.
    * Used for generating a QRCode URL or inputting into a TOTP App.
    * This method uses the auth instance corresponding to the user in the multiFactorSession.
    *
-   * @param session A link to {@MultiFactorSession}.
+   * @param session The {@link MultiFactorSession} that the user is part of.
    * @returns A promise to {@link TotpSecret}.
    */
   static async generateSecret(
@@ -184,7 +184,7 @@ export class TotpMultiFactorAssertionImpl
  */
 export class TotpSecret {
   /**
-   * Shared secret key/seed used for enrolling in TOTP MFA and generating otps.
+   * Shared secret key/seed used for enrolling in TOTP MFA and generating OTPs.
    */
   readonly secretKey: string;
   /**
