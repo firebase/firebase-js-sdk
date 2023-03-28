@@ -28,7 +28,8 @@ export const enum AnalyticsError {
   CONFIG_FETCH_FAILED = 'config-fetch-failed',
   NO_API_KEY = 'no-api-key',
   NO_APP_ID = 'no-app-id',
-  NO_CLIENT_ID = 'no-client-id'
+  NO_CLIENT_ID = 'no-client-id',
+  INVALID_GTAG_RESOURCE = 'invalid-gtag-resource'
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
@@ -66,7 +67,9 @@ const ERRORS: ErrorMap<AnalyticsError> = {
   [AnalyticsError.NO_APP_ID]:
     'The "appId" field is empty in the local Firebase config. Firebase Analytics requires this field to' +
     'contain a valid app ID.',
-  [AnalyticsError.NO_CLIENT_ID]: 'The "client_id" field is empty.'
+  [AnalyticsError.NO_CLIENT_ID]: 'The "client_id" field is empty.',
+  [AnalyticsError.INVALID_GTAG_RESOURCE]:
+    'Trusted Types detected an invalid gtag resource: {$gtagURL}.'
 };
 
 interface ErrorParams {
@@ -79,6 +82,7 @@ interface ErrorParams {
   };
   [AnalyticsError.INVALID_ANALYTICS_CONTEXT]: { errorInfo: string };
   [AnalyticsError.INDEXEDDB_UNAVAILABLE]: { errorInfo: string };
+  [AnalyticsError.INVALID_GTAG_RESOURCE]: { gtagURL: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AnalyticsError, ErrorParams>(
