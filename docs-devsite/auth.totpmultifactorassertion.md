@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TotpMultiFactorAssertion interface
-The class for asserting ownership of a totp second factor. Provided by [TotpMultiFactorGenerator.assertionForEnrollment()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforenrollment) and [TotpMultiFactorGenerator.assertionForSignIn()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforsignin)<!-- -->.
+The class for asserting ownership of a TOTP second factor. Provided by [TotpMultiFactorGenerator.assertionForEnrollment()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforenrollment) and [TotpMultiFactorGenerator.assertionForSignIn()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforsignin)<!-- -->.
 
 <b>Signature:</b>
 

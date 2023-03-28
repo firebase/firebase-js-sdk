@@ -28,9 +28,9 @@ export declare class TotpMultiFactorGenerator
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [assertionForEnrollment(secret, oneTimePassword)](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforenrollment) | <code>static</code> | Provides a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) to confirm ownership of the totp(Time-based One Time Password) second factor. This assertion is used to complete enrollment in TOTP second factor. |
-|  [assertionForSignIn(enrollmentId, oneTimePassword)](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforsignin) | <code>static</code> | Provides a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) to confirm ownership of the totp second factor. This assertion is used to complete signIn with TOTP as the second factor. |
-|  [generateSecret(session)](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorgeneratesecret) | <code>static</code> | Returns a promise to [TotpSecret](./auth.totpsecret.md#totpsecret_class) which contains the TOTP shared secret key and other parameters. Creates a TOTP secret as part of enrolling a TOTP second factor. Used for generating a QRCode URL or inputting into a TOTP App. This method uses the auth instance corresponding to the user in the multiFactorSession. |
+|  [assertionForEnrollment(secret, oneTimePassword)](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforenrollment) | <code>static</code> | Provides a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) to confirm ownership of the TOTP (time-based one-time password) second factor. This assertion is used to complete enrollment in TOTP second factor. |
+|  [assertionForSignIn(enrollmentId, oneTimePassword)](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforsignin) | <code>static</code> | Provides a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) to confirm ownership of the TOTP second factor. This assertion is used to complete signIn with TOTP as the second factor. |
+|  [generateSecret(session)](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorgeneratesecret) | <code>static</code> | Returns a promise to [TotpSecret](./auth.totpsecret.md#totpsecret_class) which contains the TOTP shared secret key and other parameters. Creates a TOTP secret as part of enrolling a TOTP second factor. Used for generating a QR code URL or inputting into a TOTP app. This method uses the auth instance corresponding to the user in the multiFactorSession. |
 
 ## TotpMultiFactorGenerator.FACTOR\_ID
 
@@ -44,7 +44,7 @@ static FACTOR_ID: FactorId;
 
 ## TotpMultiFactorGenerator.assertionForEnrollment()
 
-Provides a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) to confirm ownership of the totp(Time-based One Time Password) second factor. This assertion is used to complete enrollment in TOTP second factor.
+Provides a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) to confirm ownership of the TOTP (time-based one-time password) second factor. This assertion is used to complete enrollment in TOTP second factor.
 
 <b>Signature:</b>
 
@@ -67,7 +67,7 @@ A [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactora
 
 ## TotpMultiFactorGenerator.assertionForSignIn()
 
-Provides a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) to confirm ownership of the totp second factor. This assertion is used to complete signIn with TOTP as the second factor.
+Provides a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) to confirm ownership of the TOTP second factor. This assertion is used to complete signIn with TOTP as the second factor.
 
 <b>Signature:</b>
 
@@ -90,7 +90,7 @@ A [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactora
 
 ## TotpMultiFactorGenerator.generateSecret()
 
-Returns a promise to [TotpSecret](./auth.totpsecret.md#totpsecret_class) which contains the TOTP shared secret key and other parameters. Creates a TOTP secret as part of enrolling a TOTP second factor. Used for generating a QRCode URL or inputting into a TOTP App. This method uses the auth instance corresponding to the user in the multiFactorSession.
+Returns a promise to [TotpSecret](./auth.totpsecret.md#totpsecret_class) which contains the TOTP shared secret key and other parameters. Creates a TOTP secret as part of enrolling a TOTP second factor. Used for generating a QR code URL or inputting into a TOTP app. This method uses the auth instance corresponding to the user in the multiFactorSession.
 
 <b>Signature:</b>
 

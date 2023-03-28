@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # TotpSecret class
 Provider for generating a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface)<!-- -->.
 
-Stores the shared secret key and other parameters to generate time-based OTPs. Implements methods to retrieve the shared secret key, generate a QRCode URL.
+Stores the shared secret key and other parameters to generate time-based OTPs. Implements methods to retrieve the shared secret key and generate a QR code URL.
 
 <b>Signature:</b>
 
@@ -26,7 +26,7 @@ export declare class TotpSecret
 |  --- | --- | --- | --- |
 |  [codeIntervalSeconds](./auth.totpsecret.md#totpsecretcodeintervalseconds) |  | number | The interval (in seconds) when the OTP codes should change. |
 |  [codeLength](./auth.totpsecret.md#totpsecretcodelength) |  | number | Length of the one-time passwords to be generated. |
-|  [enrollmentCompletionDeadline](./auth.totpsecret.md#totpsecretenrollmentcompletiondeadline) |  | string | The timestamp(UTC string) by which TOTP enrollment should be completed. |
+|  [enrollmentCompletionDeadline](./auth.totpsecret.md#totpsecretenrollmentcompletiondeadline) |  | string | The timestamp (UTC string) by which TOTP enrollment should be completed. |
 |  [hashingAlgorithm](./auth.totpsecret.md#totpsecrethashingalgorithm) |  | string | Hashing algorithm used. |
 |  [secretKey](./auth.totpsecret.md#totpsecretsecretkey) |  | string | Shared secret key/seed used for enrolling in TOTP MFA and generating OTPs. |
 
@@ -34,7 +34,7 @@ export declare class TotpSecret
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateQrCodeUrl(accountName, issuer)](./auth.totpsecret.md#totpsecretgenerateqrcodeurl) |  | Returns a QRCode URL as described in https://github.com/google/google-authenticator/wiki/Key-Uri-Format This can be displayed to the user as a QRCode to be scanned into a TOTP App like Google Authenticator. If the optional parameters are unspecified, an accountName of <userEmail> and issuer of <firebaseAppName> are used. |
+|  [generateQrCodeUrl(accountName, issuer)](./auth.totpsecret.md#totpsecretgenerateqrcodeurl) |  | Returns a QR code URL as described in https://github.com/google/google-authenticator/wiki/Key-Uri-Format This can be displayed to the user as a QR code to be scanned into a TOTP app like Google Authenticator. If the optional parameters are unspecified, an accountName of <userEmail> and issuer of <firebaseAppName> are used. |
 
 ## TotpSecret.codeIntervalSeconds
 
@@ -58,7 +58,7 @@ readonly codeLength: number;
 
 ## TotpSecret.enrollmentCompletionDeadline
 
-The timestamp(UTC string) by which TOTP enrollment should be completed.
+The timestamp (UTC string) by which TOTP enrollment should be completed.
 
 <b>Signature:</b>
 
@@ -88,7 +88,7 @@ readonly secretKey: string;
 
 ## TotpSecret.generateQrCodeUrl()
 
-Returns a QRCode URL as described in https://github.com/google/google-authenticator/wiki/Key-Uri-Format This can be displayed to the user as a QRCode to be scanned into a TOTP App like Google Authenticator. If the optional parameters are unspecified, an accountName of <userEmail> and issuer of <firebaseAppName> are used.
+Returns a QR code URL as described in https://github.com/google/google-authenticator/wiki/Key-Uri-Format This can be displayed to the user as a QR code to be scanned into a TOTP app like Google Authenticator. If the optional parameters are unspecified, an accountName of <userEmail> and issuer of <firebaseAppName> are used.
 
 <b>Signature:</b>
 
@@ -101,11 +101,11 @@ generateQrCodeUrl(accountName?: string, issuer?: string): string;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  accountName | string | the name of the account/app along with a user identifier. |
-|  issuer | string | issuer of the TOTP(likely the app name). |
+|  issuer | string | issuer of the TOTP (likely the app name). |
 
 <b>Returns:</b>
 
 string
 
-A QRCode URL string.
+A QR code URL string.
 
