@@ -43,7 +43,7 @@ import { _assert } from '../../core/util/assert';
 export class TotpMultiFactorGenerator {
   /**
    * Provides a {@link TotpMultiFactorAssertion} to confirm ownership of
-   * the totp(Time-based One Time Password) second factor.
+   * the TOTP (time-based one-time password) second factor.
    * This assertion is used to complete enrollment in TOTP second factor.
    *
    * @param secret A {@link TotpSecret} containing the shared secret key and other TOTP parameters.
