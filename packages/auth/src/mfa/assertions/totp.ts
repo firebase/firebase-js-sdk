@@ -59,7 +59,7 @@ export class TotpMultiFactorGenerator {
   }
 
   /**
-   * Provides a {@link TotpMultiFactorAssertion} to confirm ownership of the totp second factor.
+   * Provides a {@link TotpMultiFactorAssertion} to confirm ownership of the TOTP second factor.
    * This assertion is used to complete signIn with TOTP as the second factor.
    *
    * @param enrollmentId identifies the enrolled TOTP second factor.
@@ -80,7 +80,7 @@ export class TotpMultiFactorGenerator {
   /**
    * Returns a promise to {@link TotpSecret} which contains the TOTP shared secret key and other parameters.
    * Creates a TOTP secret as part of enrolling a TOTP second factor.
-   * Used for generating a QRCode URL or inputting into a TOTP App.
+   * Used for generating a QR code URL or inputting into a TOTP app.
    * This method uses the auth instance corresponding to the user in the multiFactorSession.
    *
    * @param session The {@link MultiFactorSession} that the user is part of.
@@ -200,7 +200,7 @@ export class TotpSecret {
    */
   readonly codeIntervalSeconds: number;
   /**
-   * The timestamp(UTC string) by which TOTP enrollment should be completed.
+   * The timestamp (UTC string) by which TOTP enrollment should be completed.
    */
   // This can be used by callers to show a countdown of when to enter OTP code by.
   readonly enrollmentCompletionDeadline: string;
