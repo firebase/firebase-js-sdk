@@ -47,6 +47,7 @@ import {
   Query,
   query,
   QuerySnapshot,
+  runTransaction,
   setDoc,
   startAfter,
   startAt,
@@ -65,6 +66,7 @@ import {
   withTestDb
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
+import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
 apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();
@@ -2059,6 +2061,96 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
   });
+
+  it('resuming a query should use existence filter to detect deletes', async () => {
+    // Prepare the names and contents of the 100 documents to create.
+    const testDocs: { [key: string]: object } = {};
+    for (let i = 0; i < 100; i++) {
+      testDocs['doc' + (1000 + i)] = { key: 42 };
+    }
+
+    return withTestCollection(persistence, testDocs, async (coll, db) => {
+      // Run a query to populate the local cache with the 100 documents and a
+      // resume token.
+      const snapshot1 = await getDocs(coll);
+      expect(snapshot1.size, 'snapshot1.size').to.equal(100);
+      const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
+
+      // Delete 50 of the 100 documents. Do this in a transaction, rather than
+      // deleteDoc(), to avoid affecting the local cache.
+      const deletedDocumentIds = new Set<string>();
+      await runTransaction(db, async txn => {
+        for (let i = 0; i < createdDocuments.length; i += 2) {
+          const documentToDelete = createdDocuments[i];
+          txn.delete(documentToDelete);
+          deletedDocumentIds.add(documentToDelete.id);
+        }
+      });
+
+      // Wait for 10 seconds, during which Watch will stop tracking the query
+      // and will send an existence filter rather than "delete" events when the
+      // query is resumed.
+      await new Promise(resolve => setTimeout(resolve, 10000));
+
+      // Resume the query and save the resulting snapshot for verification.
+      // Use some internal testing hooks to "capture" the existence filter
+      // mismatches to verify them.
+      const [existenceFilterMismatches, snapshot2] =
+        await captureExistenceFilterMismatches(() => getDocs(coll));
+
+      // Verify that the snapshot from the resumed query contains the expected
+      // documents; that is, that it contains the 50 documents that were _not_
+      // deleted.
+      // TODO(b/270731363): Remove the "if" condition below once the
+      // Firestore Emulator is fixed to send an existence filter. At the time of
+      // writing, the Firestore emulator fails to send an existence filter,
+      // resulting in the client including the deleted documents in the snapshot
+      // of the resumed query.
+      if (!(USE_EMULATOR && snapshot2.size === 100)) {
+        const actualDocumentIds = snapshot2.docs
+          .map(documentSnapshot => documentSnapshot.ref.id)
+          .sort();
+        const expectedDocumentIds = createdDocuments
+          .filter(documentRef => !deletedDocumentIds.has(documentRef.id))
+          .map(documentRef => documentRef.id)
+          .sort();
+        expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
+          expectedDocumentIds
+        );
+      }
+
+      // Skip the verification of the existence filter mismatch when persistence
+      // is disabled because without persistence there is no resume token
+      // specified in the subsequent call to getDocs(), and, therefore, Watch
+      // will _not_ send an existence filter.
+      // TODO(b/272754156) Re-write this test using a snapshot listener instead
+      // of calls to getDocs() and remove this check for disabled persistence.
+      if (!persistence) {
+        return;
+      }
+
+      // Skip the verification of the existence filter mismatch when testing
+      // against the Firestore emulator because the Firestore emulator fails to
+      // to send an existence filter at all.
+      // TODO(b/270731363): Enable the verification of the existence filter
+      // mismatch once the Firestore emulator is fixed to send an existence
+      // filter.
+      if (USE_EMULATOR) {
+        return;
+      }
+
+      // Verify that Watch sent an existence filter with the correct counts when
+      // the query was resumed.
+      expect(
+        existenceFilterMismatches,
+        'existenceFilterMismatches'
+      ).to.have.length(1);
+      const { localCacheCount, existenceFilterCount } =
+        existenceFilterMismatches[0];
+      expect(localCacheCount, 'localCacheCount').to.equal(100);
+      expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
+    });
+  }).timeout('90s');
 });
 
 function verifyDocumentChange<T>(
