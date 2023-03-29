@@ -81,7 +81,6 @@ import {
   Precondition as ProtoPrecondition,
   QueryTarget as ProtoQueryTarget,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
-  RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
   Aggregation as ProtoAggregation,
   Status as ProtoStatus,
   Target as ProtoTarget,
@@ -436,22 +435,6 @@ export function fromDocument(
     result.setHasCommittedMutations();
   }
   return hasCommittedMutations ? result.setHasCommittedMutations() : result;
-}
-
-export function fromAggregationResult(
-  aggregationQueryResponse: ProtoRunAggregationQueryResponse
-): ObjectValue {
-  assertPresent(
-    aggregationQueryResponse.result,
-    'aggregationQueryResponse.result'
-  );
-  assertPresent(
-    aggregationQueryResponse.result.aggregateFields,
-    'aggregationQueryResponse.result.aggregateFields'
-  );
-  return new ObjectValue({
-    mapValue: { fields: aggregationQueryResponse.result?.aggregateFields }
-  });
 }
 
 function fromFound(

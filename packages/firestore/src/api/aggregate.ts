@@ -21,12 +21,13 @@ import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
 import { count } from '../lite-api/aggregate';
 import { AggregateQuerySnapshot } from '../lite-api/aggregate_types';
 import { AggregateAlias } from '../model/aggregate_alias';
-import { ObjectValue } from '../model/object_value';
+import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { ExpUserDataWriter } from './reference_impl';
+
 
 export {
   aggregateQuerySnapshotEqual,
@@ -136,7 +137,7 @@ export function getAggregateFromServer<T extends AggregateSpec>(
 function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
   firestore: Firestore,
   query: Query<unknown>,
-  aggregateResult: ObjectValue
+  aggregateResult: ApiClientObjectMap<Value>
 ): AggregateQuerySnapshot<T> {
   const userDataWriter = new ExpUserDataWriter(firestore);
   const querySnapshot = new AggregateQuerySnapshot<T>(

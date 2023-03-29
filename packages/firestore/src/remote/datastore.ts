@@ -22,18 +22,20 @@ import { Query, queryToTarget } from '../core/query';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { ObjectValue } from '../model/object_value';
 import {
+  ApiClientObjectMap,
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
   RunQueryRequest as ProtoRunQueryRequest,
-  RunQueryResponse as ProtoRunQueryResponse
+  RunQueryResponse as ProtoRunQueryResponse,
+  Value
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
+import { isNullOrUndefined } from '../util/types';
 
 import { Connection } from './connection';
 import {
@@ -50,8 +52,7 @@ import {
   toMutation,
   toName,
   toQueryTarget,
-  toRunAggregationQueryRequest,
-  fromAggregationResult
+  toRunAggregationQueryRequest
 } from './serializer';
 
 /**
@@ -242,7 +243,7 @@ export async function invokeRunAggregationQueryRpc(
   datastore: Datastore,
   query: Query,
   aggregates: Aggregate[]
-): Promise<ObjectValue> {
+): Promise<ApiClientObjectMap<Value>> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const request = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
@@ -266,8 +267,16 @@ export async function invokeRunAggregationQueryRpc(
     filteredResult.length === 1,
     'Aggregation fields are missing from result.'
   );
+  debugAssert(
+    !isNullOrUndefined(filteredResult[0].result),
+    'aggregationQueryResponse.result'
+  );
+  debugAssert(
+    !isNullOrUndefined(filteredResult[0].result.aggregateFields),
+    'aggregationQueryResponse.result.aggregateFields'
+  );
 
-  return fromAggregationResult(filteredResult[0]);
+  return filteredResult[0].result.aggregateFields;
 }
 
 export function newPersistentWriteStream(
