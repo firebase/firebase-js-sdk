@@ -28,7 +28,6 @@ import { mapToArray } from '../util/obj';
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { ExpUserDataWriter } from './reference_impl';
 
-
 export {
   aggregateQuerySnapshotEqual,
   count,
