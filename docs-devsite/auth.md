@@ -536,7 +536,7 @@ export declare function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObs
 
 Adds an observer for changes to the signed-in user's ID token.
 
-This includes sign-in, sign-out, and token refresh events.
+This includes sign-in, sign-out, and token refresh events. This will not be triggered automatically upon ID token expiration. Use [User.getIdToken()](./auth.user.md#usergetidtoken) to refresh the ID token.
 
 <b>Signature:</b>
 
