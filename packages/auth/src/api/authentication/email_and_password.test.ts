@@ -76,7 +76,7 @@ describe('api/authentication/signInWithPassword', () => {
     );
   });
 
-  it('should handle errors', async () => {
+  it('should handle errors for invalid password', async () => {
     const mock = mockEndpoint(
       Endpoint.SIGN_IN_WITH_PASSWORD,
       {
@@ -99,6 +99,31 @@ describe('api/authentication/signInWithPassword', () => {
     );
     expect(mock.calls[0].request).to.eql(request);
   });
+
+  it('should handle error for missing password',  async () => {
+    request.password = '';
+    const mock = mockEndpoint(
+      Endpoint.SIGN_IN_WITH_PASSWORD,
+      {
+        error: {
+          code: 400,
+          message: ServerError.MISSING_PASSWORD,
+          errors: [
+            {
+              message: ServerError.MISSING_PASSWORD
+            }
+          ]
+        }
+      },
+      400
+    );
+
+    await expect(signInWithPassword(auth, request)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: A non-empty password must be provided (auth/missing-password).'
+    );
+    expect(mock.calls[0].request).to.eql(request);
+  })
 });
 
 describe('api/authentication/sendEmailVerification', () => {
