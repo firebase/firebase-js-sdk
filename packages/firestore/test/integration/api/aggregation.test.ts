@@ -766,29 +766,32 @@ apiDescribe.skip(
     });
 
     it('performs sum that overflows max int using getAggregationFromServer', () => {
+      // A large value that will be represented as a Long on the server, but
+      // doubling (2x) this value must overflow Long and force the result to be
+      // represented as a Double type on the server.
+      const maxLong = Math.pow(2, 63) - 1;
+
       const testDocs = {
         a: {
           author: 'authorA',
           title: 'titleA',
           pages: 100,
           year: 1980,
-          rating: Number.MAX_SAFE_INTEGER
+          rating: maxLong
         },
         b: {
           author: 'authorB',
           title: 'titleB',
           pages: 50,
           year: 2020,
-          rating: Number.MAX_SAFE_INTEGER
+          rating: maxLong
         }
       };
       return withTestCollection(persistence, testDocs, async coll => {
         const snapshot = await getAggregateFromServer(coll, {
           totalRating: sum('rating')
         });
-        expect(snapshot.data().totalRating).to.equal(
-          Number.MAX_SAFE_INTEGER + Number.MAX_SAFE_INTEGER
-        );
+        expect(snapshot.data().totalRating).to.equal(maxLong + maxLong);
       });
     });
 
@@ -1296,7 +1299,10 @@ apiDescribe.skip(
         const snapshot = await getAggregateFromServer(coll, {
           averageRating: average('rating')
         });
-        expect(snapshot.data().averageRating).to.equal(9.2);
+        expect(snapshot.data().averageRating).to.be.approximately(
+          9.2,
+          0.0000001
+        );
       });
     });
 
@@ -1368,7 +1374,7 @@ apiDescribe.skip(
       });
     });
 
-    it('performs average that could overflow IEEE754 during accumulation using getAggregationFromServer', () => {
+    it('performs average that overflows IEEE754 during accumulation using getAggregationFromServer', () => {
       const testDocs = {
         a: {
           author: 'authorA',
@@ -1389,7 +1395,9 @@ apiDescribe.skip(
         const snapshot = await getAggregateFromServer(coll, {
           averageRating: average('rating')
         });
-        expect(snapshot.data().averageRating).to.equal(Number.MAX_VALUE);
+        expect(snapshot.data().averageRating).to.equal(
+          Number.POSITIVE_INFINITY
+        );
       });
     });
 
