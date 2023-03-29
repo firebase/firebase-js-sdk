@@ -205,6 +205,89 @@ export async function getToken(
   return interopTokenResult;
 }
 
+/**
+ * This function always resolves.
+ * The result will contain an error field if there is any error.
+ * In case there is an error, the token field in the result will be populated with a dummy value
+ */
+export async function getScopedToken(
+  appCheck: AppCheckService
+): Promise<AppCheckTokenResult> {
+  const app = appCheck.app;
+  ensureActivated(app);
+
+  const { provider } = getStateReference(app);
+
+  /**
+   * First check if there is a token in memory from a previous `getToken()` call.
+   */
+  let token: AppCheckTokenInternal | undefined = undefined;
+  let error: Error | undefined = undefined;
+
+  /**
+   * DEBUG MODE
+   * If debug mode is set, and there is no cached token, fetch a new App
+   * Check token using the debug token, and return it directly.
+   */
+  if (isDebugMode()) {
+    const debugToken = await getDebugToken();
+    const tokenFromDebugExchange: AppCheckTokenInternal = await exchangeToken(
+      getExchangeDebugTokenRequest(app, debugToken),
+      appCheck.heartbeatServiceProvider
+    );
+    return { token: tokenFromDebugExchange.token };
+  }
+
+  /**
+   * There are no valid tokens in memory or indexedDB and we are not in
+   * debug mode.
+   * Request a new token from the exchange endpoint.
+   */
+  try {
+    token = await provider!.getToken();
+  } catch (e) {
+    if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
+      // Warn if throttled, but do not treat it as an error.
+      logger.warn((e as FirebaseError).message);
+    } else {
+      // `getToken()` should never throw, but logging error text to console will aid debugging.
+      logger.error(e);
+    }
+    // Always save error to be added to dummy token.
+    error = e as FirebaseError;
+  }
+
+  let interopTokenResult: AppCheckTokenResult | undefined;
+  if (!token) {
+    // If token is undefined, there must be an error.
+    // Return a dummy token along with the error.
+    interopTokenResult = makeDummyTokenResult(error!);
+  } else if (error) {
+    if (isValid(token)) {
+      // It's also possible a valid token exists, but there's also an error.
+      // (Such as if the token is almost expired, tries to refresh, and
+      // the exchange request fails.)
+      // We add a special error property here so that the refresher will
+      // count this as a failed attempt and use the backoff instead of
+      // retrying repeatedly with no delay, but any 3P listeners will not
+      // be hindered in getting the still-valid token.
+      interopTokenResult = {
+        token: token.token,
+        internalError: error
+      };
+    } else {
+      // No invalid tokens should make it to this step. Memory and cached tokens
+      // are checked. Other tokens are from fresh exchanges. But just in case.
+      interopTokenResult = makeDummyTokenResult(error!);
+    }
+  } else {
+    interopTokenResult = {
+      token: token.token
+    };
+  }
+  return interopTokenResult;
+}
+
 export function addTokenListener(
   appCheck: AppCheckService,
   type: ListenerType,
