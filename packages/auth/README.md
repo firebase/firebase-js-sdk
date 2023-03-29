@@ -40,6 +40,11 @@ commands also run various tests:
   * `yarn test:webdriver` — Executes only the Selenium WebDriver
     integration tests
 
+Note - The webdriver tests require the Chrome webdriver to match the version of Chrome running locally.
+In the CI environment, this is ensured using the environment variable [here.](https://github.com/firebase/firebase-js-sdk/blob/6e80a678fe0c31046860554cec0459a2be34d22b/.github/workflows/test-changed-auth.yml#L7)
+When running locally, change the chromedriver version in [package.json](https://github.com/firebase/firebase-js-sdk/blob/6e80a678fe0c31046860554cec0459a2be34d22b/packages/auth/package.json#L124) to match your local Chrome version and run `yarn install`.
+
+
 For example, to run all integration and WebDriver tests against the emulator,
 you would simply execute the following command:
 
