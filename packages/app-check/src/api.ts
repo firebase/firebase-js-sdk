@@ -35,6 +35,7 @@ import { AppCheckService } from './factory';
 import { AppCheckProvider, ListenerType } from './types';
 import {
   getToken as getTokenInternal,
+  getScopedToken as getScopedTokenInternal,
   addTokenListener,
   removeTokenListener,
   isValid,
@@ -202,6 +203,28 @@ export async function getToken(
   const result = await getTokenInternal(
     appCheckInstance as AppCheckService,
     forceRefresh
+  );
+  if (result.error) {
+    throw result.error;
+  }
+  return { token: result.token };
+}
+
+/**
+ * Requests a Firebase App Check token. This method should be used ONLY if you
+ * need to authorize requests to a non-Firebase backend. Tokens from this
+ * method are intended for use with the Admin SDKs when `consume` is set to
+ * true. Tokens from this method do not interact with FirebaseAppCheck’s token
+ * cache.
+ *
+ * @param appCheckInstance - The App Check service instance.
+ * @public
+ */
+export async function getScopedToken(
+  appCheckInstance: AppCheck
+): Promise<AppCheckTokenResult> {
+  const result = await getScopedTokenInternal(
+    appCheckInstance as AppCheckService
   );
   if (result.error) {
     throw result.error;

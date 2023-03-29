@@ -21,7 +21,8 @@ import {
   setTokenAutoRefreshEnabled,
   initializeAppCheck,
   getToken,
-  onTokenChanged
+  onTokenChanged,
+  getScopedToken
 } from './api';
 import {
   FAKE_SITE_KEY,
@@ -284,6 +285,33 @@ describe('api', () => {
         error: Error('there was an error')
       });
       await expect(getToken(appCheck, true)).to.be.rejectedWith(
+        'there was an error'
+      );
+    });
+  });
+  describe('getScopedToken()', () => {
+    it('getScopedToken() calls the internal getScopedToken() function', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      const appCheck = getFakeAppCheck(app);
+      const internalGetScopedToken = stub(
+        internalApi,
+        'getScopedToken'
+      ).resolves({
+        token: 'a-token-string'
+      });
+      await getScopedToken(appCheck);
+      expect(internalGetScopedToken).to.be.calledWith(appCheck);
+    });
+    it('getScopedToken() throws errors returned with token', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      const appCheck = getFakeAppCheck(app);
+      // If getScopedToken() errors, it returns a dummy token with an error field
+      // instead of throwing.
+      stub(internalApi, 'getScopedToken').resolves({
+        token: 'a-dummy-token',
+        error: Error('there was an error')
+      });
+      await expect(getScopedToken(appCheck)).to.be.rejectedWith(
         'there was an error'
       );
     });
