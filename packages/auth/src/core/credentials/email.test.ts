@@ -235,12 +235,12 @@ describe('core/credentials/email', () => {
           });
         });
 
-        it('calls sign in with password with fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
+        it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
           if (typeof window === 'undefined') {
             return;
           }
 
-          // First call to sign in with password should fail with MISSING_RECAPTCHA_TOKEN error
+          // First call should fail with MISSING_RECAPTCHA_TOKEN error
           mockEndpointWithParams(
             Endpoint.SIGN_IN_WITH_PASSWORD,
             {
@@ -258,7 +258,7 @@ describe('core/credentials/email', () => {
             400
           );
 
-          // Second call to sign in with password should succeed
+          // Second call should succeed
           mockEndpointWithParams(
             Endpoint.SIGN_IN_WITH_PASSWORD,
             {

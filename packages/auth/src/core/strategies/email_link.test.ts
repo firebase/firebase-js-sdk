@@ -30,7 +30,12 @@ import {
 } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
+import {
+  Endpoint,
+  RecaptchaClientType,
+  RecaptchaVersion,
+  RecaptchaActionName
+} from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { UserCredentialInternal } from '../../model/user';
@@ -40,6 +45,7 @@ import {
   signInWithEmailLink
 } from './email_link';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
+import * as jsHelpers from '../../platform_browser/load_js';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -288,6 +294,72 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
           url: 'continue-url'
         })
       ).returned;
+    });
+
+    it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      // First call should fail with MISSING_RECAPTCHA_TOKEN error
+      mockEndpointWithParams(
+        Endpoint.SEND_OOB_CODE,
+        {
+          requestType: ActionCodeOperation.EMAIL_SIGNIN,
+          email,
+          clientType: RecaptchaClientType.WEB
+        },
+        {
+          error: {
+            code: 400,
+            message: ServerError.MISSING_RECAPTCHA_TOKEN
+          }
+        },
+        400
+      );
+
+      // Second call should succeed
+      mockEndpointWithParams(
+        Endpoint.SEND_OOB_CODE,
+        {
+          requestType: ActionCodeOperation.EMAIL_SIGNIN,
+          email,
+          captchaResp: 'recaptcha-response',
+          clientType: RecaptchaClientType.WEB,
+          recaptchaVersion: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          email
+        }
+      );
+
+      // Mock recaptcha js loading method and manually set window.recaptcha
+      sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      window.grecaptcha = recaptcha;
+      const stub = sinon.stub(recaptcha.enterprise, 'execute');
+      stub
+        .withArgs('site-key', {
+          action: RecaptchaActionName.GET_OOB_CODE
+        })
+        .returns(Promise.resolve('recaptcha-response'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await auth.initializeRecaptchaConfig();
+
+      mockEndpoint(Endpoint.SEND_OOB_CODE, { email });
+      const response = await sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: true,
+        url: 'continue-url'
+      });
+      expect(response).to.eq(undefined);
     });
   });
 });
