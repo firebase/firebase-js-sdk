@@ -1,5 +1,11 @@
 # @firebase/analytics
 
+## 0.9.5
+
+### Patch Changes
+
+- [`3435ba945`](https://github.com/firebase/firebase-js-sdk/commit/3435ba945a9febf5a0aece05517a5656f58b246f) [#7155](https://github.com/firebase/firebase-js-sdk/pull/7155) (fixes [#7048](https://github.com/firebase/firebase-js-sdk/issues/7048)) - Use the Trusted Types API when composing the gtag URL.
+
 ## 0.9.4
 
 ### Patch Changes

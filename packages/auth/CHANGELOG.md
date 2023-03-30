@@ -1,5 +1,13 @@
 # @firebase/auth
 
+## 0.21.6
+
+### Patch Changes
+
+- [`58bae8757`](https://github.com/firebase/firebase-js-sdk/commit/58bae875799ed2ace8232f5d9e7aaaaa7a84d064) [#7146](https://github.com/firebase/firebase-js-sdk/pull/7146) - Support TOTP as a multi-factor option in Firebase Auth/GCIP.
+
+- [`00737a1ab`](https://github.com/firebase/firebase-js-sdk/commit/00737a1abd469f3deb041d8ff482165cc16bc34e) [#7125](https://github.com/firebase/firebase-js-sdk/pull/7125) (fixes [#7118](https://github.com/firebase/firebase-js-sdk/issues/7118)) - Modify \_fail to use AuthErrorCode.NETWORK_REQUEST_FAILED
+
 ## 0.21.5
 
 ### Patch Changes
