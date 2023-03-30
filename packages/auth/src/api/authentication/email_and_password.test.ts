@@ -100,7 +100,7 @@ describe('api/authentication/signInWithPassword', () => {
     expect(mock.calls[0].request).to.eql(request);
   });
 
-  it('should handle error for missing password',  async () => {
+  it('should handle errors for missing password', async () => {
     request.password = '';
     const mock = mockEndpoint(
       Endpoint.SIGN_IN_WITH_PASSWORD,
@@ -123,7 +123,7 @@ describe('api/authentication/signInWithPassword', () => {
       'Firebase: A non-empty password must be provided (auth/missing-password).'
     );
     expect(mock.calls[0].request).to.eql(request);
-  })
+  });
 });
 
 describe('api/authentication/sendEmailVerification', () => {
