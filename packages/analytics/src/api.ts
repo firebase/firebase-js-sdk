@@ -168,7 +168,8 @@ export function setCurrentScreen(
 }
 
 /**
- * Retrieves a unique identifier for the web client.
+ * Retrieves a unique Google Analytics identifier for the web client.
+ * See {@link https://developers.google.com/analytics/devguides/collection/ga4/reference/config#client_id | client_id}.
  *
  * @public
  *
