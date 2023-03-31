@@ -34,6 +34,9 @@ export class DatabaseInfo {
    * when using WebChannel as the network transport.
    * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
    * option when using WebChannel as the network transport.
+   * @param longPollingTimeout The desired maximum timeout interval (in
+   * milliseconds) to complete a long-polling GET response; the server _may_
+   * ignore this value; may be undefined to use the default (30 seconds).
    * @param useFetchStreams Whether to use the Fetch API instead of
    * XMLHTTPRequest
    */
@@ -45,6 +48,7 @@ export class DatabaseInfo {
     readonly ssl: boolean,
     readonly forceLongPolling: boolean,
     readonly autoDetectLongPolling: boolean,
+    readonly longPollingTimeout: number | undefined,
     readonly useFetchStreams: boolean
   ) {}
 }

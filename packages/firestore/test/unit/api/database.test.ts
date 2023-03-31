@@ -265,7 +265,7 @@ describe('SnapshotMetadata', () => {
   });
 });
 
-describe('Settings', () => {
+describe.only('Settings', () => {
   it('can not use mutually exclusive settings together', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
@@ -277,6 +277,68 @@ describe('Settings', () => {
     ).to.throw(
       `experimentalForceLongPolling and experimentalAutoDetectLongPolling cannot be used together.`
     );
+  });
+
+  it('experimentalLongPollingTimeout is undefined by default', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    expect(db._getSettings().experimentalLongPollingTimeout).to.be.undefined;
+  });
+
+  it('experimentalLongPollingTimeout minimum value is allowed', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({experimentalLongPollingTimeout: 5000});
+    expect(db._getSettings().experimentalLongPollingTimeout).to.equal(5000);
+  });
+
+  it('experimentalLongPollingTimeout maximum value is allowed', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({experimentalLongPollingTimeout: 600000});
+    expect(db._getSettings().experimentalLongPollingTimeout).to.equal(600000);
+  });
+
+  it('experimentalLongPollingTimeout typical value is allowed', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({experimentalLongPollingTimeout: 25000});
+    expect(db._getSettings().experimentalLongPollingTimeout).to.equal(25000);
+  });
+
+  it('experimentalLongPollingTimeout value of 4999 throws', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    expect(() => db._setSettings({experimentalLongPollingTimeout: 4999}))
+      .to.throw(/invalid.*timeout.*4999.*\(.*5000.*\)/i);
+  });
+
+  it('experimentalLongPollingTimeout value of 0 throws', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    expect(() => db._setSettings({experimentalLongPollingTimeout: 0}))
+      .to.throw(/invalid.*timeout.*0.*\(.*5000.*\)/i);
+  });
+
+  it('experimentalLongPollingTimeout value of -1 throws', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    expect(() => db._setSettings({experimentalLongPollingTimeout: -1}))
+      .to.throw(/invalid.*timeout.*-1.*\(.*5000.*\)/i);
+  });
+
+  it('experimentalLongPollingTimeout value of 600001 throws', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    expect(() => db._setSettings({experimentalLongPollingTimeout: 600001}))
+      .to.throw(/invalid.*timeout.*600001.*\(.*600000.*\)/i);
+  });
+
+  it('experimentalLongPollingTimeout non-integral value throws', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    expect(() => db._setSettings({experimentalLongPollingTimeout: 123.456}))
+      .to.throw(/invalid.*timeout.*123.456.*\(.*integer.*\)/i);
   });
 
   it('gets settings from useEmulator', () => {

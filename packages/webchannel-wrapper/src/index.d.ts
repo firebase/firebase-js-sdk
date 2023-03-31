@@ -101,6 +101,7 @@ export interface WebChannelOptions {
   encodeInitMessageHeaders?: boolean;
   forceLongPolling?: boolean;
   detectBufferingProxy?: boolean;
+  longPollingTimeout?: number;
   fastHandshake?: boolean;
   disableRedac?: boolean;
   clientProfile?: string;

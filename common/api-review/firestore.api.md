@@ -227,6 +227,7 @@ export interface FirestoreSettings {
     cacheSizeBytes?: number;
     experimentalAutoDetectLongPolling?: boolean;
     experimentalForceLongPolling?: boolean;
+    experimentalLongPollingTimeout?: number;
     host?: string;
     ignoreUndefinedProperties?: boolean;
     localCache?: FirestoreLocalCache;

@@ -29,6 +29,17 @@ import { validateIsNotUsedTogether } from '../util/input_validation';
 export const DEFAULT_HOST = 'firestore.googleapis.com';
 export const DEFAULT_SSL = true;
 
+// The minimum long-polling timeout is hardcoded on the server. The value here
+// should be kept in sync with the value used by the server, as the server will
+// silently ignore a value below the minimum and fall back to the default.
+// Googlers see http://google3/net/webchannel/internal/webchannel_config.cc;l=118;rcl=510899643
+const MIN_LONG_POLLING_TIMEOUT = 5000;
+
+// No maximum long-polling timeout is not enforced by the server; however, a
+// "reasonable" maximum value is set by the client to provide some guard rails.
+// Googlers see b/266868871 for relevant discussion.
+const MAX_LONG_POLLING_TIMEOUT = 600000;
+
 /**
  * Specifies custom configurations for your Cloud Firestore instance.
  * You must set these before invoking any other methods.
@@ -60,6 +71,8 @@ export interface PrivateSettings extends FirestoreSettings {
   // Used in firestore@exp
   experimentalAutoDetectLongPolling?: boolean;
   // Used in firestore@exp
+  experimentalLongPollingTimeout?: number;
+  // Used in firestore@exp
   useFetchStreams?: boolean;
 
   localCache?: FirestoreLocalCache;
@@ -82,6 +95,8 @@ export class FirestoreSettingsImpl {
   readonly experimentalForceLongPolling: boolean;
 
   readonly experimentalAutoDetectLongPolling: boolean;
+
+  readonly experimentalLongPollingTimeout: number | undefined;
 
   readonly ignoreUndefinedProperties: boolean;
 
@@ -130,6 +145,7 @@ export class FirestoreSettingsImpl {
     this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
     this.experimentalAutoDetectLongPolling =
       !!settings.experimentalAutoDetectLongPolling;
+    this.experimentalLongPollingTimeout = settings?.experimentalLongPollingTimeout;
     this.useFetchStreams = !!settings.useFetchStreams;
 
     validateIsNotUsedTogether(
@@ -138,6 +154,32 @@ export class FirestoreSettingsImpl {
       'experimentalAutoDetectLongPolling',
       settings.experimentalAutoDetectLongPolling
     );
+
+    if (typeof this.experimentalLongPollingTimeout === 'number') {
+      if (! Number.isInteger(this.experimentalLongPollingTimeout)) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `invalid long polling timeout: ` +
+          `${this.experimentalLongPollingTimeout} (must be an integer)`
+        );
+      }
+      if (this.experimentalLongPollingTimeout < MIN_LONG_POLLING_TIMEOUT) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `invalid long polling timeout: ` +
+          `${this.experimentalLongPollingTimeout} ` +
+          `(minimum allowed value is ${MIN_LONG_POLLING_TIMEOUT})`
+        );
+      }
+      if (this.experimentalLongPollingTimeout > MAX_LONG_POLLING_TIMEOUT) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `invalid long polling timeout: ` +
+          `${this.experimentalLongPollingTimeout} ` +
+          `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT})`
+        );
+      }
+    }
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
@@ -150,6 +192,8 @@ export class FirestoreSettingsImpl {
         other.experimentalForceLongPolling &&
       this.experimentalAutoDetectLongPolling ===
         other.experimentalAutoDetectLongPolling &&
+      this.experimentalLongPollingTimeout ===
+        other.experimentalLongPollingTimeout &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams
     );
