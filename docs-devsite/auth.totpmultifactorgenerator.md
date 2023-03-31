@@ -22,7 +22,7 @@ export declare class TotpMultiFactorGenerator
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [FACTOR\_ID](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorfactor_id) | <code>static</code> | FactorId | The identifier of the TOTP second factor: <code>totp</code>. |
+|  [FACTOR\_ID](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorfactor_id) | <code>static</code> | 'totp' | The identifier of the TOTP second factor: <code>totp</code>. |
 
 ## Methods
 
@@ -39,7 +39,7 @@ The identifier of the TOTP second factor: `totp`<!-- -->.
 <b>Signature:</b>
 
 ```typescript
-static FACTOR_ID: FactorId;
+static FACTOR_ID: 'totp';
 ```
 
 ## TotpMultiFactorGenerator.assertionForEnrollment()
