@@ -754,8 +754,7 @@ export interface TotpMultiFactorAssertion extends MultiFactorAssertion {
 export class TotpMultiFactorGenerator {
     static assertionForEnrollment(secret: TotpSecret, oneTimePassword: string): TotpMultiFactorAssertion;
     static assertionForSignIn(enrollmentId: string, oneTimePassword: string): TotpMultiFactorAssertion;
-    // Warning: (ae-forgotten-export) The symbol "FactorId" needs to be exported by the entry point index.d.ts
-    static FACTOR_ID: FactorId_2;
+    static FACTOR_ID: "totp";
     static generateSecret(session: MultiFactorSession): Promise<TotpSecret>;
 }
 
