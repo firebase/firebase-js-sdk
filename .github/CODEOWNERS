@@ -96,7 +96,7 @@ packages/app-check-interop-types @hsubox76 @firebase/jssdk-global-approvers
 # Documentation Changes
 packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
 scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
-docs-devsite/ @egilmorez @markarndt
+docs-devsite/ @egilmorez @markarndt @kevinthecheung
 
 # Changeset
 .changeset @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers

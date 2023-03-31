@@ -107,7 +107,7 @@ export class TotpMultiFactorGenerator {
   /**
    * The identifier of the TOTP second factor: `totp`.
    */
-  static FACTOR_ID = FactorId.TOTP;
+  static FACTOR_ID: 'totp' = FactorId.TOTP;
 }
 
 export class TotpMultiFactorAssertionImpl
