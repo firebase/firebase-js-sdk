@@ -301,7 +301,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         return;
       }
 
-      // First call should fail with MISSING_RECAPTCHA_TOKEN error
+      // First call without recaptcha token should fail with MISSING_RECAPTCHA_TOKEN error
       mockEndpointWithParams(
         Endpoint.SEND_OOB_CODE,
         {
@@ -318,7 +318,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         400
       );
 
-      // Second call should succeed
+      // Second call with a valid recaptcha token (captchaResp) should succeed
       mockEndpointWithParams(
         Endpoint.SEND_OOB_CODE,
         {

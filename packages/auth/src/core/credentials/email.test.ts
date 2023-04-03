@@ -240,7 +240,7 @@ describe('core/credentials/email', () => {
             return;
           }
 
-          // First call should fail with MISSING_RECAPTCHA_TOKEN error
+          // First call without recaptcha token should fail with MISSING_RECAPTCHA_TOKEN error
           mockEndpointWithParams(
             Endpoint.SIGN_IN_WITH_PASSWORD,
             {
@@ -258,7 +258,7 @@ describe('core/credentials/email', () => {
             400
           );
 
-          // Second call should succeed
+          // Second call with a valid recaptcha token (captchaResp) should succeed
           mockEndpointWithParams(
             Endpoint.SIGN_IN_WITH_PASSWORD,
             {
