@@ -379,8 +379,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The reCAPTCHA client type is missing when sending request to the backend.',
     [AuthErrorCode.MISSING_RECAPTCHA_VERSION]:
       'The reCAPTCHA version is missing when sending request to the backend.',
-    [AuthErrorCode.INVALID_REQ_TYPE]:
-      'Invalid request parameters.',
+    [AuthErrorCode.INVALID_REQ_TYPE]: 'Invalid request parameters.',
     [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
       'The reCAPTCHA version is invalid when sending request to the backend.'
   };
