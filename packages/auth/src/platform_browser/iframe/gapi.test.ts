@@ -26,16 +26,17 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { _window } from '../auth_window';
 import * as js from '../load_js';
 import { _loadGapi, _resetLoader } from './gapi';
+import { Gapi, GapiContext } from './gapi.iframes';
 
 use(sinonChai);
 use(chaiAsPromised);
 
 describe('platform_browser/iframe/gapi', () => {
-  let library: typeof gapi;
+  let library: Gapi;
   let auth: TestAuth;
   let loadJsStub: sinon.SinonStub;
   function onJsLoad(globalLoadFnName: string): void {
-    _window().gapi = library as typeof gapi;
+    _window().gapi = library as Gapi;
     _window()[globalLoadFnName]();
   }
 
@@ -48,7 +49,7 @@ describe('platform_browser/iframe/gapi', () => {
     auth = await testAuth();
   });
 
-  function makeGapi(result: unknown, timesout = false): typeof gapi {
+  function makeGapi(result: unknown, timesout = false): Gapi {
     const callbackFn = timesout === false ? 'callback' : 'ontimeout';
     return {
       load: sinon
@@ -57,9 +58,9 @@ describe('platform_browser/iframe/gapi', () => {
           params[callbackFn]()
         ),
       iframes: {
-        getContext: () => result as gapi.iframes.Context
+        getContext: () => result as GapiContext,
       }
-    } as unknown as typeof gapi;
+    } as unknown as Gapi;
   }
 
   afterEach(() => {
@@ -111,7 +112,7 @@ describe('platform_browser/iframe/gapi', () => {
   });
 
   it('rejects with a network error if load fails', async () => {
-    library = {} as typeof gapi;
+    library = {} as Gapi;
     await expect(_loadGapi(auth)).to.be.rejectedWith(
       FirebaseError,
       'auth/network-request-failed'
@@ -127,7 +128,7 @@ describe('platform_browser/iframe/gapi', () => {
   });
 
   it('resets the load promise if the load errors', async () => {
-    library = {} as typeof gapi;
+    library = {} as Gapi;
     const firstAttempt = _loadGapi(auth);
     await expect(firstAttempt).to.be.rejectedWith(
       FirebaseError,

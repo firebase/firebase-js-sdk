@@ -15,63 +15,67 @@
  * limitations under the License.
  */
 
-// For some reason, the linter doesn't recognize that these are used elsewhere
-// in the SDK
-/* eslint-disable @typescript-eslint/no-unused-vars */
+interface LoadCallback {
+  (): void;
+}
+interface LoadOptions {
+  callback?: LoadCallback;
+  timeout?: number;
+  ontimeout?: LoadCallback;
+}
 
-declare namespace gapi {
-  type LoadCallback = () => void;
-  interface LoadConfig {}
-  interface LoadOptions {
-    callback?: LoadCallback;
-    timeout?: number;
-    ontimeout?: LoadCallback;
-  }
-  function load(
+export interface GapiMessage {
+  type: string;
+}
+
+interface IframesFilter {
+  (iframe: GapiIframe): boolean;
+}
+interface MessageHandler<T extends GapiMessage> {
+  (message: T): unknown | Promise<void>;
+}
+interface SendCallback {
+  (): void;
+}
+interface Callback {
+  (iframe: GapiIframe): void;
+}
+
+export interface GapiContext {
+  open(
+    options: Record<string, unknown>,
+    callback?: Callback
+  ): Promise<GapiIframe>;
+}
+
+export interface GapiIframe {
+  register<T extends GapiMessage>(
+    message: string,
+    handler: MessageHandler<T>,
+    filter?: IframesFilter
+  ): void;
+  send<T extends GapiMessage, U extends GapiMessage>(
+    type: string,
+    data: T,
+    callback?: MessageHandler<U>,
+    filter?: IframesFilter
+  ): void;
+  ping(callback: SendCallback, data?: unknown): Promise<unknown[]>;
+  restyle(
+    style: Record<string, string | boolean>,
+    callback?: SendCallback
+  ): Promise<unknown[]>;
+}
+
+export interface Gapi {
+  load(
     features: 'gapi.iframes',
     options?: LoadOptions | LoadCallback
   ): void;
-}
 
-declare namespace gapi.iframes {
-  interface Message {
-    type: string;
-  }
-
-  type IframesFilter = (iframe: Iframe) => boolean;
-  type MessageHandler<T extends Message> = (
-    message: T
-  ) => unknown | Promise<void>;
-  type SendCallback = () => void;
-  type Callback = (iframe: Iframe) => void;
-
-  class Context {
-    open(
-      options: Record<string, unknown>,
-      callback?: Callback
-    ): Promise<Iframe>;
-  }
-
-  class Iframe {
-    register<T extends Message>(
-      message: string,
-      handler: MessageHandler<T>,
-      filter?: IframesFilter
-    ): void;
-    send<T extends Message, U extends Message>(
-      type: string,
-      data: T,
-      callback?: MessageHandler<U>,
-      filter?: IframesFilter
-    ): void;
-    ping(callback: SendCallback, data?: unknown): Promise<unknown[]>;
-    restyle(
-      style: Record<string, string | boolean>,
-      callback?: SendCallback
-    ): Promise<unknown[]>;
-  }
-
-  const CROSS_ORIGIN_IFRAMES_FILTER: IframesFilter;
-
-  function getContext(): Context;
+  iframes?: {
+    CROSS_ORIGIN_IFRAMES_FILTER: IframesFilter;
+    getContext(): GapiContext;
+    Iframe?: GapiIframe;
+  };
 }

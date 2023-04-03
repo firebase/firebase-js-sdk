@@ -26,6 +26,7 @@ import { _emulatorUrl } from '../../core/util/emulator';
 import { AuthInternal } from '../../model/auth';
 import { _window } from '../auth_window';
 import * as gapiLoader from './gapi';
+import { GapiIframe } from './gapi.iframes';
 
 const PING_TIMEOUT = new Delay(5000, 15000);
 const IFRAME_PATH = '__/auth/iframe';
@@ -75,10 +76,10 @@ function getIframeUrl(auth: AuthInternal): string {
 
 export async function _openIframe(
   auth: AuthInternal
-): Promise<gapi.iframes.Iframe> {
+): Promise<GapiIframe> {
   const context = await gapiLoader._loadGapi(auth);
   const gapi = _window().gapi;
-  _assert(gapi, auth, AuthErrorCode.INTERNAL_ERROR);
+  _assert(gapi?.iframes, auth, AuthErrorCode.INTERNAL_ERROR);
   return context.open(
     {
       where: document.body,
@@ -87,7 +88,7 @@ export async function _openIframe(
       attributes: IFRAME_ATTRIBUTES,
       dontclear: true
     },
-    (iframe: gapi.iframes.Iframe) =>
+    (iframe: GapiIframe) =>
       new Promise(async (resolve, reject) => {
         await iframe.restyle({
           // Prevent iframe from closing on mouse out.

@@ -39,6 +39,8 @@ import { _getRedirectResult } from './strategies/redirect';
 import { _getRedirectUrl } from '../core/util/handler';
 import { _isIOS, _isMobileBrowser, _isSafari } from '../core/util/browser';
 import { _overrideRedirectResult } from '../core/strategies/redirect';
+import { _gapi } from './iframe/gapi';
+import { GapiIframe, GapiMessage } from './iframe/gapi.iframes';
 
 /**
  * The special web storage event
@@ -46,7 +48,7 @@ import { _overrideRedirectResult } from '../core/strategies/redirect';
  */
 const WEB_STORAGE_SUPPORT_KEY = 'webStorageSupport';
 
-interface WebStorageSupportMessage extends gapi.iframes.Message {
+interface WebStorageSupportMessage extends GapiMessage {
   [index: number]: Record<string, boolean>;
 }
 
@@ -57,7 +59,7 @@ interface ManagerOrPromise {
 
 class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
   private readonly eventManagers: Record<string, ManagerOrPromise> = {};
-  private readonly iframes: Record<string, gapi.iframes.Iframe> = {};
+  private readonly iframes: Record<string, GapiIframe> = {};
   private readonly originValidationPromises: Record<string, Promise<void>> = {};
 
   readonly _redirectPersistence = browserSessionPersistence;
@@ -134,7 +136,8 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
         const handled = manager.onEvent(iframeEvent.authEvent);
         return { status: handled ? GapiOutcome.ACK : GapiOutcome.ERROR };
       },
-      gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
+      // Gapi is definitely available by this point.
+      _gapi()!.iframes!.CROSS_ORIGIN_IFRAMES_FILTER
     );
 
     this.eventManagers[auth._key()] = { manager };
@@ -147,7 +150,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
     cb: (supported: boolean) => unknown
   ): void {
     const iframe = this.iframes[auth._key()];
-    iframe.send<gapi.iframes.Message, WebStorageSupportMessage>(
+    iframe.send<GapiMessage, WebStorageSupportMessage>(
       WEB_STORAGE_SUPPORT_KEY,
       { type: WEB_STORAGE_SUPPORT_KEY },
       result => {
@@ -158,7 +161,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
 
         _fail(auth, AuthErrorCode.INTERNAL_ERROR);
       },
-      gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
+      _gapi()!.iframes!.CROSS_ORIGIN_IFRAMES_FILTER
     );
   }
 
