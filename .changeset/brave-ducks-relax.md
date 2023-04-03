@@ -3,4 +3,4 @@
 '@firebase/auth-compat': minor
 ---
 
-App Check <> Auth integration
+[feature] Added Firebase App Check support to Firebase Auth.
