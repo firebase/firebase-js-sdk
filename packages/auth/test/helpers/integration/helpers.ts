@@ -23,7 +23,8 @@ import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node
 import { _generateEventId } from '../../../src/core/util/event_id';
 import { getAppConfig, getEmulatorUrl } from './settings';
 import { resetEmulator } from './emulator_rest_helpers';
-
+// @ts-ignore - ignore types since this is only used in tests.
+import totp from 'totp-generator';
 interface IntegrationTestAuth extends Auth {
   cleanUp(): Promise<void>;
 }
@@ -62,10 +63,12 @@ export function getTestInstance(requireEmulator = false): Auth {
     } else {
       // Clear out any new users that were created in the course of the test
       for (const user of createdUsers) {
-        try {
-          await user.delete();
-        } catch {
-          // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+        if (!user.email?.includes('donotdelete')) {
+          try {
+            await user.delete();
+          } catch {
+            // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+          }
         }
       }
     }
@@ -93,3 +96,22 @@ function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
     }
   });
 }
+
+export function getTotpCode(
+  sharedSecretKey: string,
+  periodSec: number,
+  verificationCodeLength: number,
+  timestamp: Date
+): string {
+  const token = totp(sharedSecretKey, {
+    period: periodSec,
+    digits: verificationCodeLength,
+    algorithm: 'SHA-1',
+    timestamp
+  });
+
+  return token;
+}
+export const email = 'totpuser-donotdelete@test.com';
+//1000000 is always incorrect since it has 7 digits and we expect 6.
+export const incorrectTotpCode = '1000000';

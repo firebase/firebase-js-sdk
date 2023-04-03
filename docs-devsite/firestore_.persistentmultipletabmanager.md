@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PersistentMultipleTabManager interface
-A tab manager supportting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK.
+A tab manager supporting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK.
 
 <b>Signature:</b>
 

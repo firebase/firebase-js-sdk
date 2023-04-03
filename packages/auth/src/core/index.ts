@@ -90,6 +90,7 @@ export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
  *
  * @remarks
  * This includes sign-in, sign-out, and token refresh events.
+ * This will not be triggered automatically upon ID token expiration. Use {@link User.getIdToken} to refresh the ID token.
  *
  * @param auth - The {@link Auth} instance.
  * @param nextOrObserver - callback triggered on change.
