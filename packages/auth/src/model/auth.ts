@@ -20,7 +20,6 @@ import {
   AuthSettings,
   Config,
   EmulatorConfig,
-  RecaptchaConfig,
   PopupRedirectResolver,
   User
 } from './public_types';
@@ -30,6 +29,7 @@ import { AuthErrorCode, AuthErrorParams } from '../core/errors';
 import { PopupRedirectResolverInternal } from './popup_redirect';
 import { UserInternal } from './user';
 import { ClientPlatform } from '../core/util/version';
+import { RecaptchaConfig } from '../platform_browser/recaptcha/recaptcha';
 
 export type AppName = string;
 export type ApiKey = string;

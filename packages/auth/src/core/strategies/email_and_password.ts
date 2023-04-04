@@ -34,12 +34,11 @@ import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
-import { ServerError } from '../../api/errors';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
 import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { IdTokenResponse } from '../../model/id_token';
-import { RecaptchaActionName } from '../../api';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 
 /**
  * Sends a password reset email to the given email address.
@@ -81,7 +80,8 @@ export async function sendPasswordResetEmail(
   const authInternal = _castAuth(auth);
   const request: authentication.PasswordResetRequest = {
     requestType: ActionCodeOperation.PASSWORD_RESET,
-    email
+    email,
+    clientType: RecaptchaClientType.WEB
   };
   if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
     const requestWithRecaptcha = await injectRecaptchaFields(
@@ -112,7 +112,7 @@ export async function sendPasswordResetEmail(
     await authentication
       .sendPasswordResetEmail(authInternal, request)
       .catch(async error => {
-        if (error.code === `auth/${ServerError.MISSING_RECAPTCHA_TOKEN}`) {
+        if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
           console.log(
             'Password resets are protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the password reset flow.'
           );
@@ -284,7 +284,8 @@ export async function createUserWithEmailAndPassword(
   const request: SignUpRequest = {
     returnSecureToken: true,
     email,
-    password
+    password,
+    clientType: RecaptchaClientType.WEB
   };
   let signUpResponse: Promise<IdTokenResponse>;
   if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
@@ -296,7 +297,7 @@ export async function createUserWithEmailAndPassword(
     signUpResponse = signUp(authInternal, requestWithRecaptcha);
   } else {
     signUpResponse = signUp(authInternal, request).catch(async error => {
-      if (error.code === `auth/${ServerError.MISSING_RECAPTCHA_TOKEN}`) {
+      if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
         console.log(
           'Sign-up is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-up flow.'
         );
