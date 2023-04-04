@@ -1,4 +1,4 @@
-# Firebase Javascript SDK
+# Firebase Javascript SDK.
 
 <!-- BADGES -->
 ![Build Status](https://img.shields.io/github/workflow/status/firebase/firebase-js-sdk/Run%20All%20Tests.svg)
