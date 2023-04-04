@@ -29,11 +29,10 @@ import {
 import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
-import { ServerError } from '../../api/errors';
 import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
 import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import { RecaptchaActionName } from '../../api';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
  * {@link ProviderId}.PASSWORD
@@ -121,7 +120,8 @@ export class EmailAuthCredential extends AuthCredential {
         const request: SignInWithPasswordRequest = {
           returnSecureToken: true,
           email: this._email,
-          password: this._password
+          password: this._password,
+          clientType: RecaptchaClientType.WEB
         };
         if (auth._getRecaptchaConfig()?.emailPasswordEnabled) {
           const requestWithRecaptcha = await injectRecaptchaFields(
@@ -132,7 +132,9 @@ export class EmailAuthCredential extends AuthCredential {
           return signInWithPassword(auth, requestWithRecaptcha);
         } else {
           return signInWithPassword(auth, request).catch(async error => {
-            if (error.code === `auth/${ServerError.MISSING_RECAPTCHA_TOKEN}`) {
+            if (
+              error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`
+            ) {
               console.log(
                 'Sign-in with email address and password is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.'
               );

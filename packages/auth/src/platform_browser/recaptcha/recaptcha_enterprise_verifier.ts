@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { isEnterprise } from './recaptcha';
+import { isEnterprise, RecaptchaConfig } from './recaptcha';
 import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
 import {
   RecaptchaClientType,
@@ -40,16 +40,6 @@ export class RecaptchaEnterpriseVerifier {
    */
   readonly type = RECAPTCHA_ENTERPRISE_VERIFIER_TYPE;
 
-  /**
-   * Stores the reCAPTCHA site key per tenant.
-   */
-  static tenantSiteKeys: Record<string, string> = {};
-
-  /**
-   * Stores the reCAPTCHA site key for agent.
-   */
-  static agentSiteKey: string | null;
-
   private readonly auth: AuthInternal;
 
   /**
@@ -72,18 +62,14 @@ export class RecaptchaEnterpriseVerifier {
   ): Promise<string> {
     async function retrieveSiteKey(auth: AuthInternal): Promise<string> {
       if (!forceRefresh) {
-        if (
-          auth.tenantId == null &&
-          RecaptchaEnterpriseVerifier.agentSiteKey != null
-        ) {
-          return RecaptchaEnterpriseVerifier.agentSiteKey;
+        if (auth.tenantId == null && auth._agentRecaptchaConfig != null) {
+          return auth._agentRecaptchaConfig.siteKey;
         }
         if (
           auth.tenantId != null &&
-          RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId] !==
-            undefined
+          auth._tenantRecaptchaConfigs[auth.tenantId] !== undefined
         ) {
-          return RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId];
+          return auth._tenantRecaptchaConfigs[auth.tenantId].siteKey;
         }
       }
 
@@ -96,14 +82,13 @@ export class RecaptchaEnterpriseVerifier {
             if (response.recaptchaKey === undefined) {
               reject(new Error('recaptchaKey undefined'));
             } else {
-              const siteKey = response.recaptchaKey.split('/')[3];
+              const config = new RecaptchaConfig(response);
               if (auth.tenantId == null) {
-                RecaptchaEnterpriseVerifier.agentSiteKey = siteKey;
+                auth._agentRecaptchaConfig = config;
               } else {
-                RecaptchaEnterpriseVerifier.tenantSiteKeys[auth.tenantId] =
-                  siteKey;
+                auth._tenantRecaptchaConfigs[auth.tenantId] = config;
               }
-              return resolve(siteKey);
+              return resolve(config.siteKey);
             }
           })
           .catch(error => {

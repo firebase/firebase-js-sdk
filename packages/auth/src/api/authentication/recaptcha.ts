@@ -23,7 +23,7 @@ import {
   _performApiRequest,
   _addTidIfNecessary
 } from '../index';
-import { Auth, RecaptchaConfig } from '../../model/public_types';
+import { Auth } from '../../model/public_types';
 
 interface GetRecaptchaParamResponse {
   recaptchaSiteKey?: string;
@@ -47,9 +47,14 @@ interface GetRecaptchaConfigRequest {
   version?: RecaptchaVersion;
 }
 
-interface GetRecaptchaConfigResponse {
-  recaptchaKey?: string;
-  recaptchaConfig?: RecaptchaConfig;
+interface RecaptchaEnforcementState {
+  provider: string;
+  enforcementState: string;
+}
+
+export interface GetRecaptchaConfigResponse {
+  recaptchaKey: string;
+  recaptchaEnforcementState: RecaptchaEnforcementState[];
 }
 
 export async function getRecaptchaConfig(

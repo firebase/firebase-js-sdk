@@ -30,7 +30,12 @@ import {
 } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
+import {
+  Endpoint,
+  RecaptchaClientType,
+  RecaptchaVersion,
+  RecaptchaActionName
+} from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { UserCredentialInternal } from '../../model/user';
@@ -40,7 +45,7 @@ import {
   signInWithEmailLink
 } from './email_link';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
-import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import * as jsHelpers from '../../platform_browser/load_js';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -69,7 +74,8 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       requestType: ActionCodeOperation.EMAIL_SIGNIN,
       email,
       canHandleCodeInApp: true,
-      continueUrl: 'continue-url'
+      continueUrl: 'continue-url',
+      clientType: 'CLIENT_TYPE_WEB'
     });
   });
 
@@ -125,7 +131,8 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iOSBundleId: 'my-bundle'
+        iOSBundleId: 'my-bundle',
+        clientType: 'CLIENT_TYPE_WEB'
       });
     });
   });
@@ -153,12 +160,29 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         canHandleCodeInApp: true,
         androidInstallApp: false,
         androidMinimumVersionCode: 'my-version',
-        androidPackageName: 'my-package'
+        androidPackageName: 'my-package',
+        clientType: 'CLIENT_TYPE_WEB'
       });
     });
   });
 
   context('#recaptcha', () => {
+    const recaptchaConfigResponseEnforce = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        {
+          provider: 'EMAIL_PASSWORD_PROVIDER',
+          enforcementState: 'ENFORCE'
+        }
+      ]
+    };
+    const recaptchaConfigResponseOff = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
+      ]
+    };
+
     beforeEach(async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
       if (typeof window === 'undefined') {
@@ -184,10 +208,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: { emailPasswordEnabled: true }
-        }
+        recaptchaConfigResponseEnforce
       );
       await auth.initializeRecaptchaConfig();
 
@@ -216,10 +237,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: { emailPasswordEnabled: false }
-        }
+        recaptchaConfigResponseOff
       );
       await auth.initializeRecaptchaConfig();
 
@@ -234,7 +252,8 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         requestType: ActionCodeOperation.EMAIL_SIGNIN,
         email,
         canHandleCodeInApp: true,
-        continueUrl: 'continue-url'
+        continueUrl: 'continue-url',
+        clientType: 'CLIENT_TYPE_WEB'
       });
     });
 
@@ -261,24 +280,10 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'mock/project/mock/site-key'
-        }
-      );
-
-      RecaptchaEnterpriseVerifier.agentSiteKey = 'wrong-site-key';
-      mockEndpointWithParams(
-        Endpoint.GET_RECAPTCHA_CONFIG,
-        {
-          clientType: RecaptchaClientType.WEB,
-          version: RecaptchaVersion.ENTERPRISE
-        },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: { emailPasswordEnabled: true }
-        }
+        recaptchaConfigResponseEnforce
       );
       await auth.initializeRecaptchaConfig();
+      auth._agentRecaptchaConfig!.siteKey = 'wrong-site-key';
 
       mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -291,26 +296,70 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       ).returned;
     });
 
-    it('calls send sign in link to email with recaptcha verify failed', async () => {
-      RecaptchaEnterpriseVerifier.agentSiteKey = null;
+    it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      // First call without recaptcha token should fail with MISSING_RECAPTCHA_TOKEN error
+      mockEndpointWithParams(
+        Endpoint.SEND_OOB_CODE,
+        {
+          requestType: ActionCodeOperation.EMAIL_SIGNIN,
+          email,
+          clientType: RecaptchaClientType.WEB
+        },
+        {
+          error: {
+            code: 400,
+            message: ServerError.MISSING_RECAPTCHA_TOKEN
+          }
+        },
+        400
+      );
+
+      // Second call with a valid recaptcha token (captchaResp) should succeed
+      mockEndpointWithParams(
+        Endpoint.SEND_OOB_CODE,
+        {
+          requestType: ActionCodeOperation.EMAIL_SIGNIN,
+          email,
+          captchaResp: 'recaptcha-response',
+          clientType: RecaptchaClientType.WEB,
+          recaptchaVersion: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          email
+        }
+      );
+
+      // Mock recaptcha js loading method and manually set window.recaptcha
+      sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      window.grecaptcha = recaptcha;
+      const stub = sinon.stub(recaptcha.enterprise, 'execute');
+      stub
+        .withArgs('site-key', {
+          action: RecaptchaActionName.GET_OOB_CODE
+        })
+        .returns(Promise.resolve('recaptcha-response'));
+
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaConfig: { emailPasswordEnabled: true }
-        }
+        recaptchaConfigResponseEnforce
       );
       await auth.initializeRecaptchaConfig();
 
-      await expect(
-        sendSignInLinkToEmail(auth, email, {
-          handleCodeInApp: true,
-          url: 'continue-url'
-        })
-      ).to.be.rejectedWith(Error, 'recaptchaKey undefined');
+      mockEndpoint(Endpoint.SEND_OOB_CODE, { email });
+      const response = await sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: true,
+        url: 'continue-url'
+      });
+      expect(response).to.eq(undefined);
     });
   });
 });

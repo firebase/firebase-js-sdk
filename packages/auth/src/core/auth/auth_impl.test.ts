@@ -661,9 +661,27 @@ describe('core/auth/auth_impl', () => {
     });
   });
 
-  context('recaptchaConfig', () => {
-    const configAgent = { emailPasswordEnabled: true };
-    const configTenant = { emailPasswordEnabled: false };
+  context('recaptchaEnforcementState', () => {
+    const recaptchaConfigResponseEnforce = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'ENFORCE' }
+      ]
+    };
+    const recaptchaConfigResponseOff = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
+      ]
+    };
+    const cachedRecaptchaConfigEnforce = {
+      emailPasswordEnabled: true,
+      siteKey: 'site-key'
+    };
+    const cachedRecaptchaConfigOFF = {
+      emailPasswordEnabled: false,
+      siteKey: 'site-key'
+    };
 
     beforeEach(async () => {
       mockFetch.setUp();
@@ -682,14 +700,11 @@ describe('core/auth/auth_impl', () => {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: configAgent
-        }
+        recaptchaConfigResponseEnforce
       );
       await auth.initializeRecaptchaConfig();
 
-      expect(auth._getRecaptchaConfig()).to.eql(configAgent);
+      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
     });
 
     it('recaptcha config should be set for tenant if tenant id is not null.', async () => {
@@ -702,14 +717,11 @@ describe('core/auth/auth_impl', () => {
           version: RecaptchaVersion.ENTERPRISE,
           tenantId: 'tenant-id'
         },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: configTenant
-        }
+        recaptchaConfigResponseOff
       );
       await auth.initializeRecaptchaConfig();
 
-      expect(auth._getRecaptchaConfig()).to.eql(configTenant);
+      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
     });
 
     it('recaptcha config should dynamically switch if tenant id switches.', async () => {
@@ -721,10 +733,7 @@ describe('core/auth/auth_impl', () => {
           clientType: RecaptchaClientType.WEB,
           version: RecaptchaVersion.ENTERPRISE
         },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: configAgent
-        }
+        recaptchaConfigResponseEnforce
       );
       await auth.initializeRecaptchaConfig();
       auth.tenantId = 'tenant-id';
@@ -735,17 +744,14 @@ describe('core/auth/auth_impl', () => {
           version: RecaptchaVersion.ENTERPRISE,
           tenantId: 'tenant-id'
         },
-        {
-          recaptchaKey: 'site-key',
-          recaptchaConfig: configTenant
-        }
+        recaptchaConfigResponseOff
       );
       await auth.initializeRecaptchaConfig();
 
       auth.tenantId = null;
-      expect(auth._getRecaptchaConfig()).to.eql(configAgent);
+      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
       auth.tenantId = 'tenant-id';
-      expect(auth._getRecaptchaConfig()).to.eql(configTenant);
+      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
     });
   });
 });
