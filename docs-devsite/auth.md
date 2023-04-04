@@ -31,6 +31,7 @@ Firebase Authentication
 |  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail) | Gets the list of possible sign in methods for the given email address. |
 |  [getMultiFactorResolver(auth, error)](./auth.md#getmultifactorresolver) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow. |
 |  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
+|  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig) | Initializes the reCAPTCHA configuration on the <code>Auth</code> instance. |
 |  [isSignInWithEmailLink(auth, emailLink)](./auth.md#issigninwithemaillink) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->. |
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
@@ -483,6 +484,36 @@ if (result) {
 // check the operationType to determine what triggered this redirect
 // operation.
 const operationType = result.operationType;
+
+```
+
+## initializeRecaptchaConfig()
+
+Initializes the reCAPTCHA configuration on the `Auth` instance.
+
+This will pull the reCAPTCHA config to the current Auth session and affect future auth requests, which indicates whether the reCAPTCHA verification flow should be triggered for a specific auth provider. If initializeRecaptchaConfig() is not invoked, the auth flow will start without reCAPTCHA verification. But if reCAPTCHA verification is required, the reCAPTCHA config will be automatically pulled internally and the flows will restart. Thus, calling this optional method will reduce the latency of auth flows.
+
+<b>Signature:</b>
+
+```typescript
+export declare function initializeRecaptchaConfig(auth: Auth): Promise<void>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
+### Example
+
+
+```javascript
+initializeRecaptchaConfig(auth);
 
 ```
 
@@ -1795,6 +1826,14 @@ AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY: {
     readonly WEAK_PASSWORD: "auth/weak-password";
     readonly WEB_STORAGE_UNSUPPORTED: "auth/web-storage-unsupported";
     readonly ALREADY_INITIALIZED: "auth/already-initialized";
+    readonly RECAPTCHA_NOT_ENABLED: "auth/recaptcha-not-enabled";
+    readonly MISSING_RECAPTCHA_TOKEN: "auth/missing-recaptcha-token";
+    readonly INVALID_RECAPTCHA_TOKEN: "auth/invalid-recaptcha-token";
+    readonly INVALID_RECAPTCHA_ACTION: "auth/invalid-recaptcha-action";
+    readonly MISSING_CLIENT_TYPE: "auth/missing-client-type";
+    readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
+    readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
+    readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
 }
 ```
 

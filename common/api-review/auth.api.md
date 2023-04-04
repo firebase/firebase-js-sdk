@@ -85,6 +85,7 @@ export interface Auth {
     readonly config: Config;
     readonly currentUser: User | null;
     readonly emulatorConfig: EmulatorConfig | null;
+    initializeRecaptchaConfig(): Promise<void>;
     languageCode: string | null;
     readonly name: string;
     onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
@@ -226,6 +227,14 @@ export const AuthErrorCodes: {
     readonly WEAK_PASSWORD: "auth/weak-password";
     readonly WEB_STORAGE_UNSUPPORTED: "auth/web-storage-unsupported";
     readonly ALREADY_INITIALIZED: "auth/already-initialized";
+    readonly RECAPTCHA_NOT_ENABLED: "auth/recaptcha-not-enabled";
+    readonly MISSING_RECAPTCHA_TOKEN: "auth/missing-recaptcha-token";
+    readonly INVALID_RECAPTCHA_TOKEN: "auth/invalid-recaptcha-token";
+    readonly INVALID_RECAPTCHA_ACTION: "auth/invalid-recaptcha-action";
+    readonly MISSING_CLIENT_TYPE: "auth/missing-client-type";
+    readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
+    readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
+    readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
 };
 
 // @public
@@ -421,6 +430,9 @@ export const indexedDBLocalPersistence: Persistence;
 
 // @public
 export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth;
+
+// @public
+export function initializeRecaptchaConfig(auth: Auth): Promise<void>;
 
 // @public
 export const inMemoryPersistence: Persistence;
