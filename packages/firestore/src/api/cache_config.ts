@@ -214,7 +214,7 @@ class SingleTabManagerImpl implements PersistentSingleTabManager {
 }
 
 /**
- * A tab manager supportting multiple tabs. SDK will synchronize queries and
+ * A tab manager supporting multiple tabs. SDK will synchronize queries and
  * mutations done across all tabs using the SDK.
  */
 export type PersistentMultipleTabManager = {
@@ -265,14 +265,14 @@ class MultiTabManagerImpl implements PersistentMultipleTabManager {
 }
 
 /**
- * A union of all avaialbe tab managers.
+ * A union of all available tab managers.
  */
 export type PersistentTabManager =
   | PersistentSingleTabManager
   | PersistentMultipleTabManager;
 
 /**
- * Type to configure an `PersistentSingleTabManager` instace.
+ * Type to configure an `PersistentSingleTabManager` instance.
  */
 export type PersistentSingleTabManagerSettings = {
   /**

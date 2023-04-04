@@ -134,7 +134,7 @@ export const SERVER_ERROR_MAP: Partial<ServerErrorMap<ServerError>> = {
   // Sign in with email and password errors (some apply to sign up too).
   [ServerError.INVALID_PASSWORD]: AuthErrorCode.INVALID_PASSWORD,
   // This can only happen if the SDK sends a bad request.
-  [ServerError.MISSING_PASSWORD]: AuthErrorCode.INTERNAL_ERROR,
+  [ServerError.MISSING_PASSWORD]: AuthErrorCode.MISSING_PASSWORD,
 
   // Sign up with email and password errors.
   [ServerError.EMAIL_EXISTS]: AuthErrorCode.EMAIL_EXISTS,

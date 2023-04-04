@@ -89,6 +89,7 @@ export const enum AuthErrorCode {
   MISSING_MFA_INFO = 'missing-multi-factor-info',
   MISSING_MFA_SESSION = 'missing-multi-factor-session',
   MISSING_PHONE_NUMBER = 'missing-phone-number',
+  MISSING_PASSWORD = 'missing-password',
   MISSING_SESSION_INFO = 'missing-verification-id',
   MODULE_DESTROYED = 'app-deleted',
   NEED_CONFIRMATION = 'account-exists-with-different-credential',
@@ -267,6 +268,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The request does not contain a valid nonce. This can occur if the ' +
       'SHA-256 hash of the provided raw nonce does not match the hashed nonce ' +
       'in the ID token payload.',
+    [AuthErrorCode.MISSING_PASSWORD]: 'A non-empty password must be provided',
     [AuthErrorCode.MISSING_MFA_INFO]:
       'No second factor identifier is provided.',
     [AuthErrorCode.MISSING_MFA_SESSION]:
