@@ -95,7 +95,7 @@ jobs:
       run: |
         VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
         VERSION=`node -e "${VERSION_SCRIPT}"`
-        echo "::set-output name=BASE_VERSION::$VERSION"
+        echo "BASE_VERSION=$VERSION" >> $GITHUB_OUTPUT
     - name: Echo version in shell
       run: |
         echo "Base version: ${{ steps.get-version.outputs.BASE_VERSION }}"

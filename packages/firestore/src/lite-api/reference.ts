@@ -268,7 +268,7 @@ export class Query<ModelT, SerializedModelT extends DocumentData> {
 
 /**
  * A `CollectionReference` object can be used for adding documents, getting
- * document references, and querying for documents (using {@link query}).
+ * document references, and querying for documents (using {@link (query:1)}).
  */
 export class CollectionReference<
   ModelT,

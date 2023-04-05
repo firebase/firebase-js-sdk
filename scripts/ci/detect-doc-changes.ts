@@ -83,9 +83,9 @@ async function runInCI() {
   }
 
   if (await docChanged(mergeBaseSha, headSha)) {
-    console.log(`::set-output name=DOC_CHANGED::true`);
+    console.log(`"DOC_CHANGED=true" >> $GITHUB_STATE`);
   } else {
-    console.log(`::set-output name=DOC_CHANGED::false`);
+    console.log(`"DOC_CHANGED=false" >> $GITHUB_STATE`);
   }
 }
 

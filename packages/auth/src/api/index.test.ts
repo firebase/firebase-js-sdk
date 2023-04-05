@@ -358,10 +358,12 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/network-request-failed'
-      );
+      await expect(promise)
+        .to.be.rejectedWith(FirebaseError, 'auth/network-request-failed')
+        .eventually.with.nested.property(
+          'customData.message',
+          'Error: network error'
+        );
     });
   });
 

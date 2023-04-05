@@ -18,7 +18,7 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { ProviderId } from '../model/enums';
+import { FactorId } from '../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
@@ -27,7 +27,7 @@ import { MultiFactorInfoImpl } from './mfa_info';
 
 use(chaiAsPromised);
 
-describe('core/mfa/mfa_info/MultiFactorInfo', () => {
+describe('core/mfa/mfa_info/MultiFactorInfo for Phone MFA', () => {
   let auth: TestAuth;
 
   beforeEach(async () => {
@@ -49,7 +49,7 @@ describe('core/mfa/mfa_info/MultiFactorInfo', () => {
           auth,
           enrollmentInfo
         );
-        expect(mfaInfo.factorId).to.eq(ProviderId.PHONE);
+        expect(mfaInfo.factorId).to.eq(FactorId.PHONE);
         expect(mfaInfo.uid).to.eq('uid');
         expect(mfaInfo.enrollmentTime).to.eq(new Date(date).toUTCString());
         expect(mfaInfo.displayName).to.eq('display-name');
@@ -69,6 +69,51 @@ describe('core/mfa/mfa_info/MultiFactorInfo', () => {
             auth,
             enrollmentInfo as PhoneMfaEnrollment
           )
+        ).to.throw(FirebaseError, 'auth/internal-error');
+      });
+    });
+  });
+});
+
+describe('core/mfa/mfa_info/MultiFactorInfo for TOTP MFA', () => {
+  let auth: TestAuth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+  });
+
+  describe('_fromServerResponse', () => {
+    context('TOTP enrollment', () => {
+      const date = Date.now();
+      const enrollmentInfo = {
+        mfaEnrollmentId: 'uid',
+        enrolledAt: date,
+        displayName: 'display-name',
+        totpInfo: {}
+      };
+
+      it('should create a valid MfaInfo', () => {
+        const mfaInfo = MultiFactorInfoImpl._fromServerResponse(
+          auth,
+          enrollmentInfo
+        );
+        expect(mfaInfo.factorId).to.eq(FactorId.TOTP);
+        expect(mfaInfo.uid).to.eq('uid');
+        expect(mfaInfo.enrollmentTime).to.eq(new Date(date).toUTCString());
+        expect(mfaInfo.displayName).to.eq('display-name');
+      });
+    });
+
+    context('Invalid enrollment, no totp or phone info found', () => {
+      const enrollmentInfo = {
+        mfaEnrollmentId: 'uid',
+        enrolledAt: Date.now(),
+        displayName: 'display-name'
+      };
+
+      it('should throw an error', () => {
+        expect(() =>
+          MultiFactorInfoImpl._fromServerResponse(auth, enrollmentInfo)
         ).to.throw(FirebaseError, 'auth/internal-error');
       });
     });

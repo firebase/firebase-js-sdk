@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirestoreLocalCache } from '../api/cache_config';
 import { CredentialsSettings } from '../api/credentials';
 import {
   LRU_COLLECTION_DISABLED,
@@ -60,6 +61,8 @@ export interface PrivateSettings extends FirestoreSettings {
   experimentalAutoDetectLongPolling?: boolean;
   // Used in firestore@exp
   useFetchStreams?: boolean;
+
+  localCache?: FirestoreLocalCache;
 }
 
 /**
@@ -83,6 +86,7 @@ export class FirestoreSettingsImpl {
   readonly ignoreUndefinedProperties: boolean;
 
   readonly useFetchStreams: boolean;
+  readonly cache?: FirestoreLocalCache;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -105,6 +109,7 @@ export class FirestoreSettingsImpl {
 
     this.credentials = settings.credentials;
     this.ignoreUndefinedProperties = !!settings.ignoreUndefinedProperties;
+    this.cache = settings.localCache;
 
     if (settings.cacheSizeBytes === undefined) {
       this.cacheSizeBytes = LRU_DEFAULT_CACHE_SIZE_BYTES;

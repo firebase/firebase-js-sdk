@@ -1,3 +1,4 @@
 build/*.js
+build/*.map
 firebase-config.js
 context.html

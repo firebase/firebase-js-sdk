@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
+import { AggregateType } from '../core/aggregate';
+import { ObjectValue } from '../model/object_value';
+import { FieldPath as InternalFieldPath } from '../model/path';
+
 import { DocumentData, Query } from './reference';
+import { AbstractUserDataWriter } from './user_data_writer';
+
+export { AggregateType };
 
 /**
  * Represents an aggregation that can be performed by Firestore.
@@ -23,16 +30,30 @@ import { DocumentData, Query } from './reference';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class AggregateField<T> {
   /** A type string to uniquely identify instances of this class. */
-  type = 'AggregateField';
+  readonly type = 'AggregateField';
+
+  /**
+   * Create a new AggregateField<T>
+   * @param _aggregateType Specifies the type of aggregation operation to perform.
+   * @param _internalFieldPath Optionally specifies the field that is aggregated.
+   * @internal
+   */
+  constructor(
+    // TODO (sum/avg) make aggregateType public when the feature is supported
+    readonly _aggregateType: AggregateType = 'count',
+    readonly _internalFieldPath?: InternalFieldPath
+  ) {}
 }
 
+// TODO (sum/avg) Update the definition of AggregateFieldType to be based
+// on the return type of `sum(..)`, `average(...)`, and `count()`
 /**
  * The union of all `AggregateField` types that are supported by Firestore.
  */
-export type AggregateFieldType = AggregateField<number>;
+export type AggregateFieldType = AggregateField<number | null>;
 
 /**
- * A type whose property values are all `AggregateField` objects.
+ * Specifies a set of aggregations and their aliases.
  */
 export interface AggregateSpec {
   [field: string]: AggregateFieldType;
@@ -67,7 +88,8 @@ export class AggregateQuerySnapshot<
   /** @hideconstructor */
   constructor(
     query: Query<ModelT, SerializedModelT>,
-    private readonly _data: AggregateSpecData<AggregateSpecT>
+    private readonly _userDataWriter: AbstractUserDataWriter,
+    private readonly _data: ObjectValue
   ) {
     this.query = query;
   }
@@ -84,6 +106,8 @@ export class AggregateQuerySnapshot<
    * query.
    */
   data(): AggregateSpecData<AggregateSpecT> {
-    return this._data;
+    return this._userDataWriter.convertValue(
+      this._data.value
+    ) as AggregateSpecData<AggregateSpecT>;
   }
 }

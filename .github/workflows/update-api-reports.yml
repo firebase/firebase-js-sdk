@@ -27,7 +27,7 @@ jobs:
       run: yarn build
       id: update-api-reports
     - name: Commit & Push changes
-      uses: EndBug/add-and-commit@v7
+      uses: EndBug/add-and-commit@v9
       with:
         add: 'common/api-review/*'
         message: 'Update API reports'

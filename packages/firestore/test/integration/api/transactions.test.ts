@@ -275,7 +275,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
     });
-  });
+  }).timeout(10000);
 
   it('runs transactions after getting non-existent document', async () => {
     return withTestDb(persistence, async db => {

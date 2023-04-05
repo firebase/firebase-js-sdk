@@ -17,7 +17,12 @@
 
 export {
   aggregateQuerySnapshotEqual,
-  getCountFromServer
+  getCountFromServer,
+  getAggregateFromServer,
+  count,
+  sum,
+  average,
+  aggregateFieldEqual
 } from './api/aggregate';
 
 export {
@@ -25,8 +30,24 @@ export {
   AggregateFieldType,
   AggregateSpec,
   AggregateSpecData,
-  AggregateQuerySnapshot
+  AggregateQuerySnapshot,
+  AggregateType
 } from './lite-api/aggregate_types';
+
+export {
+  FirestoreLocalCache,
+  PersistentLocalCache,
+  PersistentMultipleTabManager,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  PersistentCacheSettings,
+  persistentSingleTabManager,
+  PersistentSingleTabManager,
+  PersistentSingleTabManagerSettings,
+  MemoryLocalCache,
+  memoryLocalCache,
+  PersistentTabManager
+} from './api/cache_config';
 
 export { FieldPath, documentId } from './api/field_path';
 
@@ -190,3 +211,4 @@ export type { ByteString as _ByteString } from './util/byte_string';
 export { logWarn as _logWarn } from './util/log';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
+export { TestingHooks as _TestingHooks } from './util/testing_hooks';

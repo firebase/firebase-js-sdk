@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexManager } from '../../../src/local/index_manager';
 import { Persistence } from '../../../src/local/persistence';
@@ -23,12 +24,12 @@ import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import {
   DocumentKeySet,
-  MutableDocumentMap
+  MutableDocumentMap,
+  OverlayMap
 } from '../../../src/model/collections';
 import { Document, MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { IndexOffset } from '../../../src/model/field_index';
-import { ResourcePath } from '../../../src/model/path';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a
@@ -109,14 +110,16 @@ export class TestRemoteDocumentCache {
     });
   }
 
-  getAllFromCollection(
-    collection: ResourcePath,
-    offset: IndexOffset
+  getDocumentsMatchingQuery(
+    query: Query,
+    offset: IndexOffset,
+    mutatedDocs: OverlayMap
   ): Promise<MutableDocumentMap> {
     return this.persistence.runTransaction(
       'getAllFromCollection',
       'readonly',
-      txn => this.cache.getAllFromCollection(txn, collection, offset)
+      txn =>
+        this.cache.getDocumentsMatchingQuery(txn, query, offset, mutatedDocs)
     );
   }
 

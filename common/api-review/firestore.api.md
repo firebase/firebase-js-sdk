@@ -19,11 +19,11 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 
 // @public
 export class AggregateField<T> {
-    type: string;
+    readonly type = "AggregateField";
 }
 
 // @public
-export type AggregateFieldType = AggregateField<number>;
+export type AggregateFieldType = AggregateField<number | null>;
 
 // @public
 export class AggregateQuerySnapshot<T extends AggregateSpec> {
@@ -45,6 +45,9 @@ export interface AggregateSpec {
 export type AggregateSpecData<T extends AggregateSpec> = {
     [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
 };
+
+// @public
+export function and(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
 
 // @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
@@ -160,10 +163,10 @@ export class DocumentSnapshot<T = DocumentData> {
 
 export { EmulatorMockTokenOptions }
 
-// @public
+// @public @deprecated
 export function enableIndexedDbPersistence(firestore: Firestore, persistenceSettings?: PersistenceSettings): Promise<void>;
 
-// @public
+// @public @deprecated
 export function enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void>;
 
 // @public
@@ -217,12 +220,16 @@ export class FirestoreError extends FirebaseError {
 export type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 
 // @public
+export type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
+
+// @public
 export interface FirestoreSettings {
     cacheSizeBytes?: number;
     experimentalAutoDetectLongPolling?: boolean;
     experimentalForceLongPolling?: boolean;
     host?: string;
     ignoreUndefinedProperties?: boolean;
+    localCache?: FirestoreLocalCache;
     ssl?: boolean;
 }
 
@@ -325,6 +332,15 @@ export interface LoadBundleTaskProgress {
 export { LogLevel }
 
 // @public
+export interface MemoryLocalCache {
+    // (undocumented)
+    kind: 'memory';
+}
+
+// @public
+export function memoryLocalCache(): MemoryLocalCache;
+
+// @public
 export function namedQuery(firestore: Firestore, name: string): Promise<Query | null>;
 
 // @public
@@ -383,6 +399,9 @@ export function onSnapshotsInSync(firestore: Firestore, observer: {
 export function onSnapshotsInSync(firestore: Firestore, onSync: () => void): Unsubscribe;
 
 // @public
+export function or(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
+
+// @public
 export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryOrderByConstraint;
 
 // @public
@@ -399,6 +418,47 @@ export interface PersistenceSettings {
 }
 
 // @public
+export interface PersistentCacheSettings {
+    cacheSizeBytes?: number;
+    tabManager?: PersistentTabManager;
+}
+
+// @public
+export interface PersistentLocalCache {
+    // (undocumented)
+    kind: 'persistent';
+}
+
+// @public
+export function persistentLocalCache(settings?: PersistentCacheSettings): PersistentLocalCache;
+
+// @public
+export interface PersistentMultipleTabManager {
+    // (undocumented)
+    kind: 'PersistentMultipleTab';
+}
+
+// @public
+export function persistentMultipleTabManager(): PersistentMultipleTabManager;
+
+// @public
+export interface PersistentSingleTabManager {
+    // (undocumented)
+    kind: 'persistentSingleTab';
+}
+
+// @public
+export function persistentSingleTabManager(settings: PersistentSingleTabManagerSettings | undefined): PersistentSingleTabManager;
+
+// @public
+export interface PersistentSingleTabManagerSettings {
+    forceOwnership?: boolean;
+}
+
+// @public
+export type PersistentTabManager = PersistentSingleTabManager | PersistentMultipleTabManager;
+
+// @public
 export type Primitive = string | number | boolean | undefined | null;
 
 // @public
@@ -412,7 +472,15 @@ export class Query<T = DocumentData> {
 }
 
 // @public
+export function query<T>(query: Query<T>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<T>;
+
+// @public
 export function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
+
+// @public
+export class QueryCompositeFilterConstraint {
+    readonly type: 'or' | 'and';
+}
 
 // @public
 export abstract class QueryConstraint {
@@ -440,6 +508,9 @@ export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
 export class QueryFieldFilterConstraint extends QueryConstraint {
     readonly type = "where";
 }
+
+// @public
+export type QueryFilterConstraint = QueryFieldFilterConstraint | QueryCompositeFilterConstraint;
 
 // @public
 export class QueryLimitConstraint extends QueryConstraint {
