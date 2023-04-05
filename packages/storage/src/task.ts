@@ -403,8 +403,10 @@ export class UploadTask {
 
   private _transition(state: InternalTaskState): void {
     if (this._state === state) {
+      console.log('returning');
       return;
     }
+    console.log('transition state', state);
     switch (state) {
       case InternalTaskState.CANCELING:
       case InternalTaskState.PAUSING:
@@ -425,9 +427,10 @@ export class UploadTask {
         // assert(this.state_ === InternalTaskState.PAUSED ||
         //        this.state_ === InternalTaskState.PAUSING);
         const wasPaused = this._state === InternalTaskState.PAUSED;
+        console.log('wasPaused', wasPaused);
         this._state = state;
         if (wasPaused) {
-          this._notifyObservers();
+          console.log("now we're starting");
           this._start();
         }
         break;
@@ -477,7 +480,6 @@ export class UploadTask {
         this._start();
         break;
       default:
-        // TODO(andysoto): assert(false);
         break;
     }
   }
@@ -589,6 +591,7 @@ export class UploadTask {
   }
 
   private _finishPromise(): void {
+    console.log('finishPromise');
     if (this._resolve !== undefined) {
       let triggered = true;
       switch (taskStateFromInternalTaskState(this._state)) {
@@ -648,6 +651,7 @@ export class UploadTask {
    * @returns True if the operation took effect, false if ignored.
    */
   resume(): boolean {
+    console.log('this.state', this._state);
     const valid =
       this._state === InternalTaskState.PAUSED ||
       this._state === InternalTaskState.PAUSING;
