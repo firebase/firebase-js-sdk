@@ -216,5 +216,5 @@ describe.only('FirebaseStorage Exp', () => {
     await task;
     const bytes = await getBytes(referenceA);
     expect(bytes).to.deep.eq(bytesToUpload);
-  }).timeout(30000);
+  });
 });

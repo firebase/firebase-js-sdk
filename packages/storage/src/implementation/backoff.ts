@@ -58,6 +58,7 @@ export class ExponentialBackoff<T> {
       if(this.cancelState === CancelState.RUNNING) {
         this.backoffDeferred.reject({ wasCanceled: true, connection: null });
         this.cancelState = CancelState.STOPPED;
+        this.clearRetryTimeout();
       }
     }, this.timeout);
   }
