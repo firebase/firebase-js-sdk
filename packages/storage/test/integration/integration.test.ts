@@ -63,7 +63,7 @@ export function createStorage(app: FirebaseApp): types.FirebaseStorage {
   return getStorage(app);
 }
 
-describe.only('FirebaseStorage Exp', () => {
+describe('FirebaseStorage Exp', () => {
   let app: FirebaseApp;
   let storage: types.FirebaseStorage;
 
@@ -189,7 +189,7 @@ describe.only('FirebaseStorage Exp', () => {
     expect(listResult.prefixes.map(v => v.name)).to.have.members(['c']);
   });
 
-  it.only('can pause uploads without an error', async () => {
+  it('can pause uploads without an error', async () => {
     const referenceA = ref(storage, 'public/exp-upload/a');
     const bytesToUpload = new ArrayBuffer(1024 * 1024);
     const task = uploadBytesResumable(referenceA, bytesToUpload);
@@ -216,5 +216,5 @@ describe.only('FirebaseStorage Exp', () => {
     await task;
     const bytes = await getBytes(referenceA);
     expect(bytes).to.deep.eq(bytesToUpload);
-  });
+  }).timeout(10000);
 });
