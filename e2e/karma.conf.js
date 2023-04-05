@@ -84,7 +84,7 @@ module.exports = function (config) {
         'sourceMap': true,
         'target': 'es5',
         'importHelpers': true,
-        'noEmitOnError': true,
+        'noEmitOnError': true
       }
     },
     plugins: [
