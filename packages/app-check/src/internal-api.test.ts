@@ -33,7 +33,7 @@ import {
   removeTokenListener,
   formatDummyToken,
   defaultTokenErrorData,
-  getScopedToken
+  getLimitedUseToken
 } from './internal-api';
 import * as reCAPTCHA from './recaptcha';
 import * as client from './client';
@@ -638,7 +638,7 @@ describe('internal api', () => {
     });
   });
 
-  describe('getScopedToken()', () => {
+  describe('getLimitedUseToken()', () => {
     it('uses customTokenProvider to get an AppCheck token', async () => {
       const customTokenProvider = getFakeCustomTokenProvider();
       const customProviderSpy = spy(customTokenProvider, 'getToken');
@@ -646,7 +646,7 @@ describe('internal api', () => {
       const appCheck = initializeAppCheck(app, {
         provider: customTokenProvider
       });
-      const token = await getScopedToken(appCheck as AppCheckService);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
 
       expect(customProviderSpy).to.be.called;
       expect(token).to.deep.equal({
@@ -661,7 +661,7 @@ describe('internal api', () => {
       const appCheck = initializeAppCheck(app, {
         provider: customTokenProvider
       });
-      await getScopedToken(appCheck as AppCheckService);
+      await getLimitedUseToken(appCheck as AppCheckService);
 
       expect(getStateReference(app).token).to.be.undefined;
       expect(getStateReference(app).isTokenAutoRefreshEnabled).to.be.false;
@@ -680,7 +680,7 @@ describe('internal api', () => {
         'exchangeToken'
       ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
 
-      const token = await getScopedToken(appCheck as AppCheckService);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
 
       expect(reCAPTCHASpy).to.be.called;
 
@@ -703,7 +703,7 @@ describe('internal api', () => {
         'exchangeToken'
       ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
 
-      const token = await getScopedToken(appCheck as AppCheckService);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
 
       expect(reCAPTCHASpy).to.be.called;
 
@@ -726,7 +726,7 @@ describe('internal api', () => {
       const error = new Error('oops, something went wrong');
       stub(client, 'exchangeToken').returns(Promise.reject(error));
 
-      const token = await getScopedToken(appCheck as AppCheckService);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
 
       expect(reCAPTCHASpy).to.be.called;
       expect(token).to.deep.equal({
@@ -752,7 +752,7 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      const token = await getScopedToken(appCheck as AppCheckService);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
       expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
         'my-debug-token'
       );
@@ -773,7 +773,7 @@ describe('internal api', () => {
         )
       );
 
-      const token = await getScopedToken(appCheck as AppCheckService);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
 
       // ReCaptchaV3Provider's _throttleData is private so checking
       // the resulting error message to be sure it has roughly the
@@ -799,7 +799,7 @@ describe('internal api', () => {
         )
       );
 
-      const token = await getScopedToken(appCheck as AppCheckService);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
 
       // ReCaptchaV3Provider's _throttleData is private so checking
       // the resulting error message to be sure it has roughly the

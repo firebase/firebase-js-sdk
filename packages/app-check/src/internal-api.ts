@@ -210,7 +210,7 @@ export async function getToken(
  * The result will contain an error field if there is any error.
  * In case there is an error, the token field in the result will be populated with a dummy value
  */
-export async function getScopedToken(
+export async function getLimitedUseToken(
   appCheck: AppCheckService
 ): Promise<AppCheckTokenResult> {
   const app = appCheck.app;

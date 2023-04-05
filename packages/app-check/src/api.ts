@@ -35,7 +35,7 @@ import { AppCheckService } from './factory';
 import { AppCheckProvider, ListenerType } from './types';
 import {
   getToken as getTokenInternal,
-  getScopedToken as getScopedTokenInternal,
+  getLimitedUseToken as getLimitedUseTokenInternal,
   addTokenListener,
   removeTokenListener,
   isValid,
@@ -211,19 +211,23 @@ export async function getToken(
 }
 
 /**
- * Requests a Firebase App Check token. This method should be used ONLY if you
- * need to authorize requests to a non-Firebase backend. Tokens from this
- * method are intended for use with the Admin SDKs when `consume` is set to
- * true. Tokens from this method do not interact with FirebaseAppCheck’s token
- * cache.
+ * Requests a Firebase App Check token. This method should be used
+ * *only* if you need to authorize requests to a non-Firebase backend.
  *
+ * Returns limited-use tokens that are intended for use with your
+ * non-Firebase backend endpoints that are protected with
+ * <a href=[--URL to public docs--]>Replay Protection</a>. This method
+ * does not affect the token generation behavior of the
+ * #getAppCheckToken() method.
+ * 
  * @param appCheckInstance - The App Check service instance.
+ * @returns The limited use token.
  * @public
  */
-export async function getScopedToken(
+export async function getLimitedUseToken(
   appCheckInstance: AppCheck
 ): Promise<AppCheckTokenResult> {
-  const result = await getScopedTokenInternal(
+  const result = await getLimitedUseTokenInternal(
     appCheckInstance as AppCheckService
   );
   if (result.error) {
