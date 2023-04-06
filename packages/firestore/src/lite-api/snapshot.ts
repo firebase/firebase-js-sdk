@@ -80,7 +80,9 @@ import { AbstractUserDataWriter } from './user_data_writer';
  */
 export interface FirestoreDataConverter<
   ModelT,
-  SerializedModelT extends DocumentData = ModelT extends DocumentData ? ModelT : DocumentData
+  SerializedModelT extends DocumentData = ModelT extends DocumentData
+    ? ModelT
+    : DocumentData
 > {
   /**
    * Called by the Firestore SDK to convert a custom model object of type
@@ -92,7 +94,9 @@ export interface FirestoreDataConverter<
    * The `WithFieldValue<ModelT>` type extends `ModelT` to also allow
    * FieldValues such as {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: WithFieldValue<ModelT>): WithFieldValue<SerializedModelT>;
+  toFirestore(
+    modelObject: WithFieldValue<ModelT>
+  ): WithFieldValue<SerializedModelT>;
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type

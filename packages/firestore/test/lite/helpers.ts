@@ -28,7 +28,7 @@ import {
   DocumentReference,
   DeepPartial,
   WithFieldValue,
-  SetOptions,
+  SetOptions
 } from '../../src/lite-api/reference';
 import { setDoc } from '../../src/lite-api/reference_impl';
 import { FirestoreSettings } from '../../src/lite-api/settings';

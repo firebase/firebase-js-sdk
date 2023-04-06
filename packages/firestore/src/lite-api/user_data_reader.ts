@@ -63,11 +63,7 @@ import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
-import {
-  DeepPartial,
-  DocumentReference,
-  WithFieldValue
-} from './reference';
+import { DeepPartial, DocumentReference, WithFieldValue } from './reference';
 import { Timestamp } from './timestamp';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
@@ -80,11 +76,13 @@ export interface UntypedFirestoreDataConverter<
   ModelT,
   SerializedModelT extends DocumentData
 > {
-  toFirestore(modelObject: WithFieldValue<ModelT>): SerializedModelT;
+  toFirestore(
+    modelObject: WithFieldValue<ModelT>
+  ): WithFieldValue<SerializedModelT>;
   toFirestore(
     modelObject: DeepPartial<WithFieldValue<ModelT>>,
     options: SetOptions
-  ): SerializedModelT;
+  ): WithFieldValue<SerializedModelT>;
   fromFirestore(snapshot: unknown, options?: unknown): ModelT;
 }
 

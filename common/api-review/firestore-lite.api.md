@@ -178,10 +178,10 @@ export class Firestore {
 }
 
 // @public
-export interface FirestoreDataConverter<ModelT, SerializedModelT extends DocumentData> {
-    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>): ModelT;
-    toFirestore(modelObject: WithFieldValue<ModelT>): SerializedModelT;
-    toFirestore(modelObject: PartialWithFieldValue<ModelT>, options: SetOptions): DeepPartial<SerializedModelT>;
+export interface FirestoreDataConverter<ModelT, SerializedModelT extends DocumentData = ModelT extends DocumentData ? ModelT : DocumentData> {
+    fromFirestore(snapshot: QueryDocumentSnapshot<SerializedModelT, SerializedModelT>): ModelT;
+    toFirestore(modelObject: WithFieldValue<ModelT>): WithFieldValue<SerializedModelT>;
+    toFirestore(modelObject: DeepPartial<WithFieldValue<ModelT>>, options: SetOptions): DeepPartial<WithFieldValue<SerializedModelT>>;
 }
 
 // @public
@@ -250,11 +250,6 @@ export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDir
 
 // @public
 export type OrderByDirection = 'desc' | 'asc';
-
-// @public
-export type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
-    [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue;
-} : never);
 
 // @public
 export type Primitive = string | number | boolean | undefined | null;
@@ -350,7 +345,7 @@ export function serverTimestamp(): FieldValue;
 export function setDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, data: WithFieldValue<ModelT>): Promise<void>;
 
 // @public
-export function setDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, data: PartialWithFieldValue<ModelT>, options: SetOptions): Promise<void>;
+export function setDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, data: DeepPartial<WithFieldValue<ModelT>>, options: SetOptions): Promise<void>;
 
 // @public
 export function setLogLevel(logLevel: LogLevel): void;
@@ -413,7 +408,7 @@ export class Transaction {
     delete<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): this;
     get<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): Promise<DocumentSnapshot<ModelT, SerializedModelT>>;
     set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: WithFieldValue<ModelT>): this;
-    set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: PartialWithFieldValue<ModelT>, options: SetOptions): this;
+    set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: DeepPartial<WithFieldValue<ModelT>>, options: SetOptions): this;
     update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: UpdateData<SerializedModelT>): this;
     update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 }
@@ -444,7 +439,7 @@ export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value
 export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
 
 // @public
-export type WithFieldValue<T> = T | (T extends Primitive ? T : T extends {} ? {
+export type WithFieldValue<T> = T | (T extends {} ? {
     [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
 } : never);
 
@@ -453,7 +448,7 @@ export class WriteBatch {
     commit(): Promise<void>;
     delete<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): WriteBatch;
     set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: WithFieldValue<ModelT>): WriteBatch;
-    set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: PartialWithFieldValue<ModelT>, options: SetOptions): WriteBatch;
+    set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: DeepPartial<WithFieldValue<ModelT>>, options: SetOptions): WriteBatch;
     update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: UpdateData<SerializedModelT>): WriteBatch;
     update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
 }
